@@ -19,6 +19,20 @@ Level 7's Sniper Rifle (first-person frames, pickup and scope overlay) and the
 Ranged Sweeper (mast antenna, long scoped rifle and a growing windup glint) are
 ready for that level to wire. Image generation used an estimated $2.76 of
 existing credit.
+## Unreleased
+
+The Sniper Rifle and the Ranged Sweeper arrive for level 7. The Sniper Rifle is
+a found Cells weapon: 70 damage, a 1.6 second cycle, a cone that stays on a body
+out to 90 metres, and a held scope that only changes the view. The Railgun keeps
+the middle distance with its faster, harder shot and bright beam; the Sniper
+draws a faint tracer at the far end instead. The Ranged Sweeper is a stationary
+Union marksman with an antenna mast. It glints, holds its aim for 1.5 seconds on
+Standard, then fires once; dropping fully behind cover cancels the shot and any
+hit interrupts it. Both appear on a development range with a firing step behind
+a sill. Both wear the art pass's first-person frames, pickup, scope plate and
+marksman atlas, with an orange tracer to match the Sniper's flash; the Sniper
+report and the glint tone stay clean placeholders until the sound pass's cues
+land.
 
 ## Unreleased (custody devices, 2026-10-02)
 

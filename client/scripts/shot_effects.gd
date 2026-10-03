@@ -14,6 +14,14 @@ const CLEARANCE_SHADER: Shader = preload("res://assets/shaders/shot_clearance.gd
 const MAX_PELLETS: int = 7
 ## Server melee reach in world units. A melee trace can never end farther away.
 const MELEE_REACH: Dictionary = {"fists": 1.8, "shiv": 2.2}
+## The Sniper's faint tracer: short, thin and orange to match its orange-white
+## muzzle flash, gone in a tenth of a second.
+const SNIPER_TRACER_SECONDS: float = 0.1
+const SNIPER_TRACER_METRES: float = 6.0
+const SNIPER_TRACER_WIDTH: float = 0.02
+const SNIPER_TRACER_TINT: Color = Color("ffa45c")
+## No streak is drawn within this distance of the viewing camera.
+const SNIPER_TRACER_VIEWER_CLEARANCE: float = 3.0
 
 class Effect:
 	var shooter: String
@@ -148,7 +156,7 @@ func _process(delta: float) -> void:
 		_effects[i].age += delta
 		var lifetime: float = LIFETIME
 		if _effects[i].kind == "range":
-			lifetime = 0.14 if _effects[i].weapon == "rail" else 0.065
+			lifetime = 0.14 if _effects[i].weapon == "rail" else (SNIPER_TRACER_SECONDS if _effects[i].weapon == "sniper" else 0.065)
 		if _effects[i].age >= lifetime:
 			_effects.remove_at(i)
 	_rebuild()
@@ -178,6 +186,9 @@ func _draw_effect(effect: Effect) -> void:
 	if effect.weapon in EquipmentState.MELEE:
 		_draw_melee_impact(effect)
 		return
+	if effect.weapon == "sniper":
+		_draw_sniper_tracer(effect)
+		return
 	var rail: bool = effect.weapon == "rail"
 	var tint: Color = Color("b4e0e8") if rail else Color("f5b568")
 	var beam_time: float = 0.14 if rail else 0.065
@@ -201,6 +212,33 @@ func _draw_effect(effect: Effect) -> void:
 		var velocity: Vector3 = (tangent * cos(angle) + bitangent * sin(angle)) * 1.8 + normal * 1.3
 		var position: Vector3 = centre + velocity * effect.age + Vector3.DOWN * 3.0 * effect.age * effect.age
 		_segment(position, position + velocity.normalized() * size * 1.8, maxf(size * 0.22, 0.002), tint)
+
+## No beam back to the muzzle: a faint thin streak over the last few metres
+## that fades as it closes on the impact, so the shot reads without pointing at
+## the shooter the way the Railgun's line does.
+func _draw_sniper_tracer(effect: Effect) -> void:
+	var distance: float = effect.origin.distance_to(effect.end)
+	if distance <= 0.05 or effect.age >= SNIPER_TRACER_SECONDS:
+		return
+	var direction: Vector3 = (effect.end - effect.origin).normalized()
+	var progress: float = clampf(effect.age / SNIPER_TRACER_SECONDS, 0.0, 1.0)
+	var length: float = minf(SNIPER_TRACER_METRES, distance * 0.5)
+	var tail: Vector3 = effect.end - direction * length * (1.0 - progress * 0.7)
+	# A shot that lands on the viewer would end its streak in the lens and fill a
+	# scoped view. The hit already reads through damage, so no streak is drawn.
+	if not _clip_to_camera or minf(_camera_origin.distance_to(to_global(effect.end)),
+			_camera_origin.distance_to(to_global(tail))) > SNIPER_TRACER_VIEWER_CLEARANCE:
+		# The unshaded shot material is opaque, so the streak thins rather than fades.
+		_segment(tail, effect.end, SNIPER_TRACER_WIDTH * (1.0 - 0.6 * progress), SNIPER_TRACER_TINT)
+	if effect.kind == "range":
+		return
+	var normal: Vector3 = effect.normal
+	var tangent: Vector3 = normal.cross(Vector3.UP if absf(normal.y) < 0.9 else Vector3.RIGHT).normalized()
+	var bitangent: Vector3 = normal.cross(tangent)
+	var size: float = (0.09 if effect.kind == "fighter" else 0.05) * (1.0 - effect.age / LIFETIME)
+	var centre: Vector3 = effect.end + normal * 0.025
+	_quad(centre - tangent * size - bitangent * size, centre + tangent * size - bitangent * size,
+		centre + tangent * size + bitangent * size, centre - tangent * size + bitangent * size, Color("f2efe4"))
 
 func _draw_melee_impact(effect: Effect) -> void:
 	var tangent: Vector3 = effect.normal.cross(Vector3.UP if absf(effect.normal.y) < 0.9 else Vector3.RIGHT).normalized()

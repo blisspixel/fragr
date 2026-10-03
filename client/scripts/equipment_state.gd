@@ -3,21 +3,26 @@ extends RefCounted
 
 ## Private server inventory. These limits validate presentation, never award ammo.
 ## One count per ammunition type and no magazines: a shot spends one unit.
-## Wire and record order. The Shiv is appended so old record slots keep their meaning.
-const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv"]
-const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "scatter": "shells", "rail": "cells"}
+## Wire and record order. The Shiv and then the Sniper are appended so old record
+## slots keep their meaning.
+const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper"]
+const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "scatter": "shells", "rail": "cells", "sniper": "cells"}
 const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 100}
 ## Pool order on the wire, matching the server.
 const POOL_ORDER: Array[String] = ["bullets", "shells", "cells"]
-const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun"}
+const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle"}
 const POOL_NAMES: Dictionary = {"bullets": "Bullets", "shells": "Shells", "cells": "Cells"}
 ## Rays in one shot. The shotgun's seven pellets still spend one shell.
 const PELLETS: Dictionary = {"scatter": 7}
-## Doom's ladder for the guns that exist: fists, pistol, shotgun, rifle, railgun.
-## One number key per slot. Slot one also holds the Shiv, as Doom's holds the chainsaw.
-const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail"]
+## Doom's ladder for the guns that exist: fists, pistol, shotgun, rifle, railgun,
+## then the found Sniper Rifle on six. One number key per slot. Slot one also
+## holds the Shiv, as Doom's holds the chainsaw.
+const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail", "sniper"]
 ## The wheel order: the Shiv sits beside the fists it shares a key with.
-const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "rail"]
+const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "rail", "sniper"]
+## Weapons that offer a scope. The view is presentation only: aim and hits stay
+## with the server.
+const SCOPED: Array[String] = ["sniper"]
 const MELEE: Array[String] = ["fists", "shiv"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 const MAX_EXACT_INTEGER: int = 9007199254740991

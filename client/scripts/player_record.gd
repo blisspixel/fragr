@@ -59,7 +59,7 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 	return ""
 
 static func valid_counts(value: Variant) -> bool:
-	if not value is Dictionary or not value.get("weapons") is Array 		or value["weapons"].size() not in [LEGACY_WEAPONS, EquipmentState.WEAPONS.size()]:
+	if not value is Dictionary or not value.get("weapons") is Array 		or (value["weapons"].size() < LEGACY_WEAPONS or value["weapons"].size() > EquipmentState.WEAPONS.size()):
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")

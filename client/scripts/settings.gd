@@ -52,7 +52,7 @@ const DEFAULTS: Dictionary = {
 		"strafe": "", "jump": "", "turn_left": "", "turn_right": "",
 		"look_up": "", "look_down": "", "center_view": "", "fire": "",
 		"interact": "", "throw_grenade": "", "place_mine": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
-		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "",
+		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "", "weapon_6": "", "scope": "",
 		"scoreboard": "", "speak": "", "pause": "", "leave_match": "",
 		"join_as_human": "", "cycle_cam": "", "toggle_follow": "",
 		"radio_next_station": "", "radio_next_track": "", "radio_toggle": "",
@@ -184,10 +184,10 @@ func load_from_disk() -> void:
 		for key in (DEFAULTS[section] as Dictionary):
 			var fallback: Variant = (DEFAULTS[section] as Dictionary)[key]
 			set_value(section, key, cfg.get_value(section, key, fallback))
-	if not cfg.has_section_key("bindings", "throw_grenade"):
-		InputBindings.adopt_unclaimed_defaults(self, "throw_grenade")
-	if not cfg.has_section_key("bindings", "place_mine"):
-		InputBindings.adopt_unclaimed_defaults(self, "place_mine")
+	# Actions added after a file was written take only defaults nobody claimed.
+	for added: String in ["throw_grenade", "place_mine", "weapon_6", "scope"]:
+		if not cfg.has_section_key("bindings", added):
+			InputBindings.adopt_unclaimed_defaults(self, added)
 
 func save_to_disk() -> Error:
 	var cfg: ConfigFile = ConfigFile.new()

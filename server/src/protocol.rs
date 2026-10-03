@@ -452,6 +452,8 @@ pub enum WeaponType {
     Tack,
     /// Pool-less melee found as an M01 secret: faster and harder than fists.
     Shiv,
+    /// Level 7 find: slow, tight, long precision hitscan fed by Cells.
+    Sniper,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -475,6 +477,9 @@ impl WeaponType {
             WeaponType::Shiv => 35,
             WeaponType::Flechette => 25,
             WeaponType::Rail => 80,
+            // One aimed hit answers one 70 HP Ranged Sweeper. A Sweeper needs
+            // two, where one Rail hit drops it: the Rail owns the middle.
+            WeaponType::Sniper => 70,
             WeaponType::Scatter => 10,
         }
     }
@@ -518,6 +523,7 @@ impl WeaponType {
             WeaponType::Tack => 5,
             WeaponType::Flechette => 4,
             WeaponType::Rail => 20,
+            WeaponType::Sniper => 32,
             WeaponType::Scatter => 12,
         }
     }
@@ -533,6 +539,9 @@ impl WeaponType {
             WeaponType::Flechette => 0.045,
             // Long precision: 0.7 degrees, near enough to a laser to reward aim.
             WeaponType::Rail => 0.012,
+            // Far precision: 0.23 degrees keeps every ray inside a 0.5 m body
+            // radius out to the full 90 m reach.
+            WeaponType::Sniper => 0.004,
             // Pellet cone: 5.4 degrees. Every pellet lands inside a body at
             // four units and about half of them still do at eight.
             WeaponType::Scatter => 0.095,
@@ -548,6 +557,7 @@ impl WeaponType {
             WeaponType::Tack => 30.0,
             WeaponType::Flechette => 40.0,
             WeaponType::Rail => 60.0,
+            WeaponType::Sniper => 90.0,
             WeaponType::Scatter => 12.0,
         }
     }
@@ -560,6 +570,7 @@ impl WeaponType {
             WeaponType::Tack => (5.0, 18.0),
             WeaponType::Flechette => (8.0, 28.0),
             WeaponType::Rail => (18.0, 45.0),
+            WeaponType::Sniper => (40.0, 88.0),
             WeaponType::Scatter => (2.0, 10.0),
         }
     }
@@ -571,6 +582,7 @@ impl WeaponType {
             WeaponType::Tack => "Tack",
             WeaponType::Flechette => "Flechette",
             WeaponType::Rail => "Rail",
+            WeaponType::Sniper => "Sniper",
             WeaponType::Scatter => "Scatter",
         }
     }
@@ -634,7 +646,11 @@ pub const SABOTAGE_GAMEPLAY_VERSION: u32 = 28;
 /// record `mines`) and the repairing `auditor` with its `channeling` phase.
 /// Required only where a map grants mines or places an Auditor.
 pub const CUSTODY_GAMEPLAY_VERSION: u32 = 29;
-pub const GAMEPLAY_VERSION: u32 = CUSTODY_GAMEPLAY_VERSION;
+/// The found Sniper Rifle (`sniper` in loadouts, traces, pickups and seven-slot
+/// records) and the stationary `ranged_sweeper` marksman. Required only where a
+/// map grants the Sniper or places a Ranged Sweeper.
+pub const SNIPER_GAMEPLAY_VERSION: u32 = 30;
+pub const GAMEPLAY_VERSION: u32 = SNIPER_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

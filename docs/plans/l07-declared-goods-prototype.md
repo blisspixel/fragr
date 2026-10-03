@@ -36,8 +36,8 @@ ordinary-input rendered tour and inspected stills.
   build, as the Heavy Sweeper and Turret rows were part of revision 2.
 - Final art and audio. The parallel art and sound tracks supply the Sniper
   Rifle, scope, Ranged Sweeper art and the sniper, tell and curfew chime
-  sounds. This track routes clean placeholders from existing assets through the
-  same per-weapon and per-enemy tables so each swap is one line.
+  sounds. This track routed clean placeholders through the same per-weapon and
+  per-enemy tables, then wires the delivered files in their place.
 - Brief difficulty challenges (cross without losing armor, kill every rim
   Ranged Sweeper before it fires) as server facts, the runner's line timing,
   par, fresh-player and difficulty acceptance. These stay open.
@@ -166,7 +166,7 @@ Milestone B:
 - `inventory/controller.rs`: agents swap to a usable Sniper when the nearest
   hostile is beyond the held weapon's reach and inside the Sniper's.
 - `run.rs`: maps that place a Ranged Sweeper or grant a Sniper require
-  capability 28. Arcade and earlier authored missions keep their requirements.
+  capability 30. Arcade and earlier authored missions keep their requirements.
 - `server/maps/test/sniper-range.json` (map 1013): a rack, finite Cells, a firing
   step behind a sill, a far rim platform with one Ranged Sweeper, and a walking
   flank.
@@ -174,14 +174,15 @@ Milestone B:
   `player_record.gd` (seven columns), `shot_effects.gd` (tracer instead of
   beam), `actor_state.gd` (kind), `enemy_view.gd` (one texture table entry),
   a scope overlay and zoom bound to the right mouse button, a glint billboard
-  during the Ranged Sweeper windup, and audio table entries. The placeholder
-  Ranged Sweeper atlas comes from a local rig and bake on the Sweeper chassis.
+  during the Ranged Sweeper windup, and audio table entries. The Ranged
+  Sweeper atlas comes from the art pass's local rig and bake on the Sweeper
+  chassis.
 
 Milestone C to E:
 
 - `protocol/m07.rs`, `maps/authored/m07.rs`, `mission/m07.rs`,
   `mission/controller/m07.rs`, with bounded glue in their current owners,
-  following M06. `MissionId::DeclaredGoods`, map 1007, capability 29.
+  following M06. `MissionId::DeclaredGoods`, map 1007, capability 31.
 - `mission/run_file.rs`: run file version 8 represents playable M07, the
   Sniper in carried equipment, retained M06 outcomes and the pending
   `custodian_of_record` edge. A strict v7 reader upgrades validated v7 bytes
@@ -196,10 +197,11 @@ Milestone C to E:
 
 ## Protocol changes
 
-- Capability 28: the `sniper` weapon id in loadouts, shot traces, pickups,
-  actions and records, and the `ranged_sweeper` actor kind. Required only where
-  the map contains either.
-- Capability 29: the `m07` geometry and mission fact envelopes and the
+- Capability 30 (Sabotage took 28 and the level 8 devices 29 first): the
+  `sniper` weapon id in loadouts, shot traces, pickups, actions and records,
+  and the `ranged_sweeper` actor kind. Required only where the map contains
+  either.
+- Capability 31: the `m07` geometry and mission fact envelopes and the
   `declared_goods` mission id. Required only on M07.
 - No new action. The scope is client presentation; aim and fire are unchanged.
 
@@ -221,7 +223,7 @@ Milestone B, seeded and deterministic:
 - Wire strictness on both sides, records with seven columns and their older
   five and six column shapes, capability admission for the range.
 - Client harnesses for equipment, records, shot effects, actor kinds, the scope
-  overlay and the placeholder atlas outlines.
+  overlay, the marksman cue and the atlas outlines.
 
 Milestone C to E:
 
@@ -253,3 +255,34 @@ $0. No paid image, audio, model or cloud request runs on this track.
 ## Progress
 
 Plan written before source work.
+
+### Milestone B, 2026-10-02
+
+The Sniper Rifle, Ranged Sweeper, capability 30, seven-column records, agent
+Sniper selection and the development range are implemented. After the art
+pass (#321) the Sniper's first-person frames, pickup and scope plate come
+from `WeaponArt`, the marksman atlas and its harness from the art rig, and the
+Sniper tracer turns orange to match its flash. The Sniper report and glint
+tone remain placeholders until the sound pass (#322) lands. Seeded server tests cover the tight hit, the out-of-cone miss,
+Rail reach and cone at 55 m, cadence, dry fire, the tell on every tier, sill
+cancellation, head visibility, hit interruption, the notice cone and range
+admission. Local gates pass workspace tests, warning-denied Clippy, 94.32
+percent unfiltered line coverage, the benchmark, dependency policy, every
+playtest smoke, the roster and the soak.
+
+The ordinary-input range tour passed five states. Its recorded cancellation
+holds a clear windup at tick 922, the step off the firing step, a blocked
+windup at 925 and a 12 tick recovery at 926, with no shot through the
+original deadline 952. Inspection of the scoped captures found one defect: a
+marksman shot landing on the viewer drew its tracer through the scope. Shots
+that land within three metres of the viewer now draw no streak, with a
+harness check. The first whole-client check failed one stale six-column
+grenade record assertion, since corrected.
+
+### Handoff
+
+Branch `feat/l07-declared-goods` carries milestone B for its own pull
+request. Level work continues on `feat/l07-level` in the nested worktree
+`.agents/l07/wt-b`, starting from the M06 modules: protocol, authored map,
+mission progress and the map JSON exist; run file version 8, local launch,
+controller, client presenter, tour and story pages remain.

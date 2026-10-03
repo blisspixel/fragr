@@ -6,10 +6,12 @@ walks those guns with the wheel, the bracket keys, and 1 through 5. Wire ids
 for the original guns are unchanged. The found Shiv is the sixth existing gun
 slot. Counted grenades are implemented locally for level 5 through the
 [grenade foundation](hand-grenade-foundation.md), separately from those gun
-slots. The Proximity Mine is a counted device with its own `place_mine` action,
-implemented on the [level 8 custody range](l08-custodian-of-record-prototype.md).
-Sniper Rifle, Rocket Launcher and Remote Mine remain planned campaign finds.
-The table below follows the accepted twenty-level
+slots. The Sniper Rifle is the seventh gun slot, implemented on its development
+range for level 7 by the [Declared Goods plan](l07-declared-goods-prototype.md),
+which records why it plays differently from the Railgun. The Proximity Mine is
+a counted device with its own `place_mine` action, implemented on the
+[level 8 custody range](l08-custodian-of-record-prototype.md). Rocket Launcher
+and Remote Mine remain planned campaign finds. The table below follows the accepted twenty-level
 treatment, replacing this plan's historical ten-mission numbering.
 
 Decided 2026-09-25: the campaign has no carry cap. Every gun found on the route
@@ -28,7 +30,7 @@ them, not granted from a menu and not present in the arcade full arsenal:
 
 | Player reads | Wire id, when added | Taught | What it must feel like |
 |---|---|---|---|
-| Sniper Rifle | `sniper`, planned | Level 7, Declared Goods, after customs teaches the Railgun | Slow, tight, high-damage hitscan. A scope is presentation. |
+| Sniper Rifle | `sniper`, implemented on its range | Level 7, Declared Goods, after customs teaches the Railgun | Slow, tight, high-damage hitscan. A scope is presentation. |
 | Grenade | `throw_grenade` Action and `grenades` count | Level 5, No Forwarding Address, on the ordinary route | Thrown arc, bounce, forty-tick fuse, then covered falloff blast. |
 | Proximity Mine | `place_mine` Action and `proximity_mines` count, development prototype | Level 8, Custodian of Record | Sticks, arms after a visible delay, blinks, then triggers on a body. |
 | Remote Mine | `remote_mine`, planned | Level 11, Right of Search | Sticks and waits for its separate owner detonator. |
@@ -111,4 +113,5 @@ behavior is frozen, and paid generation stays behind the existing cap.
 Success means each earned weapon is found where its mission brief says, plays
 differently from the pistol, rifle, shotgun, and railgun, and is absent from
 M01 and from the default arcade kit. Grenade implementation evidence belongs
-to its bounded foundation and M05 plans; the other four additions remain unbuilt.
+to its bounded foundation and M05 plans; Sniper Rifle evidence to the level 7
+plan. The other three additions remain unbuilt.

@@ -203,6 +203,7 @@ fn heavy_and_turret_tells_precede_damage_by_the_documented_time_on_every_tier() 
     for (kind, weapon, burst) in [
         (EnemyKind::HeavySweeper, WeaponType::Flechette, 4),
         (EnemyKind::Turret, WeaponType::Rail, 1),
+        (EnemyKind::RangedSweeper, WeaponType::Sniper, 1),
     ] {
         let mut timings = Vec::new();
         for difficulty in [

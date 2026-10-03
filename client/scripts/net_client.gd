@@ -1,6 +1,10 @@
 extends Node
 
-# Version 22 understands M02 ballistic inspection glass;
+# Version 30 understands the found Sniper Rifle and the Ranged Sweeper; 29 the
+# Proximity Mine and Auditor; 28 is Sabotage, whose client presentation follows
+# separately;
+# 27 the M06 lunar port; 23 to 26 the Jammer, M03 to M05 and grenades;
+# 22 understands M02 ballistic inspection glass;
 # 21 understands server-owned M02 captive evacuation;
 # 20 understands the optional side ward fact in M02 state;
 # 19 understands the autonomous Latch companion in M02 snapshots;
@@ -13,7 +17,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 29
+const GAMEPLAY_VERSION: int = 30
 
 signal connected_to_server
 signal disconnected_from_server

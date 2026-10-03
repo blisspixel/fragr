@@ -56,6 +56,28 @@ func _blast(target: String, kind: String, count: int, damage: int) -> Dictionary
 	shot["trace"]["impact"] = pellets[0]["impact"]
 	return shot
 
+## The Sniper's evidence draws a short streak at the far end, never the
+## Railgun's line back to the muzzle.
+func _check_sniper_tracer() -> void:
+	var far: Dictionary = _shot("fighter", "sniper")
+	far["trace"]["origin"] = [0.0, 1.6, 0.0]
+	far["trace"]["end"] = [70.0, 1.6, 0.0]
+	var rail: Dictionary = far.duplicate(true)
+	rail["trace"]["weapon"] = "rail"
+	for case: Array in [[far, "sniper"], [rail, "rail"]]:
+		var effects: ShotEffects = ShotEffects.new()
+		root.add_child(effects)
+		effects.ingest(1, [case[0]])
+		_check(effects.active_count() == 1, case[1] + " evidence is accepted")
+		var nearest: float = INF
+		for vertex: Vector3 in _vertices(effects):
+			nearest = minf(nearest, vertex.x)
+		if case[1] == "sniper":
+			_check(nearest >= 70.0 - ShotEffects.SNIPER_TRACER_METRES - 0.01, "the Sniper tracer stays near the impact, nearest x %.2f" % nearest)
+		else:
+			_check(nearest < 1.0, "the Railgun beam reaches back toward the muzzle")
+		effects.queue_free()
+
 func _vertices(effects: ShotEffects) -> PackedVector3Array:
 	var mesh: Mesh = effects.get_node("Surface").mesh
 	if mesh.get_surface_count() == 0:
@@ -92,6 +114,18 @@ func _test_incoming_camera(effects: ShotEffects) -> void:
 		"listener impact creates no empty surface but retains its expiry clock")
 	effects._process(0.18)
 	_check(effects.active_count() == 0 and not effects.is_processing(), "clipped effects still expire")
+	effects.clear()
+	# A Sniper shot landing on the viewer draws no streak into a scoped lens.
+	var marksman_shot: Dictionary = incoming.duplicate(true)
+	marksman_shot["trace"]["weapon"] = "sniper"
+	marksman_shot["trace"]["origin"] = [0.0, 1.6, -70.0]
+	effects.ingest(100, [marksman_shot])
+	_check(_vertices(effects).is_empty() and effects.active_count() == 1,
+		"an incoming Sniper hit on the viewer keeps evidence without a streak in the lens")
+	effects.clear()
+	marksman_shot["trace"]["end"] = [0.0, 1.6, -6.0]
+	effects.ingest(100, [marksman_shot])
+	_check(not _vertices(effects).is_empty(), "a Sniper impact beyond the viewer clearance keeps its streak")
 	effects.clear()
 	# Prediction can move the eye into an impact after the snapshot is presented.
 	incoming["trace"]["end"] = [0.0, 1.6, -3.0]
@@ -168,6 +202,7 @@ func _run() -> void:
 	effects.clear()
 	effects.ingest(1, [_shot(), _shot("fighter", "scatter"), _shot("range", "flechette")])
 	_check(effects.active_count() == 3 and effects.visible, "all impact kinds create bounded presentation")
+	_check_sniper_tracer()
 	_check(effects.get_node("Surface").mesh.get_surface_count() == 1, "effects share one mesh surface")
 	var material: ShaderMaterial = effects.get_node("Surface").mesh.surface_get_material(0)
 	_check(material.shader == ShotEffects.CLEARANCE_SHADER

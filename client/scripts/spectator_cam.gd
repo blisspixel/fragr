@@ -60,6 +60,12 @@ var camera_shake_intensity = 0.0
 var camera_zoom_offset = 0.0
 
 var mouse_motion = Vector2.ZERO
+## Sniper scope magnification from the HUD: 1.0 is the player's own view. Look
+## turns slow by the same factor, so one mouse count covers the same picture.
+var zoom_factor: float = 1.0
+## The player's field of view, kept so the scope can return to it exactly.
+var base_fov: float = 75.0
+var _applied_zoom: float = 1.0
 
 # First-person join: local aim is sent through the shared action channel.
 var fp_mode = false
@@ -93,7 +99,8 @@ func apply_preferences(preferences: FragrSettings) -> void:
 	aim_assist = AimAssist.level_from(preferences.get_value("controls", "aim_assist"))
 	var lens: Camera3D = get_node("Camera3D")
 	lens.keep_aspect = Camera3D.KEEP_HEIGHT
-	lens.fov = preferences.fov()
+	base_fov = preferences.fov()
+	lens.fov = base_fov * _applied_zoom
 
 func _controls_blocked() -> bool:
 	var owner_node: Node = get_parent()
@@ -402,7 +409,7 @@ func _process_fp(delta):
 	var assisted: bool = AimAssist.enabled_for(aim_assist, InputDevice.look_source)
 	assist_pick = AimAssist.pick(_assist_eye(), fp_yaw, fp_pitch, assist_targets, assist_solids, aim_assist) if assisted else {}
 	var pad_look: bool = InputDevice.look_source == "gamepad"
-	var change: Vector2 = _look_delta(delta, AimAssist.friction(assist_pick, aim_assist) if pad_look else 1.0)
+	var change: Vector2 = _look_delta(delta, AimAssist.friction(assist_pick, aim_assist) if pad_look else 1.0) * look_scale()
 	fp_yaw = wrapf(fp_yaw + change.x, 0.0, TAU)
 	fp_pitch = clampf(fp_pitch + change.y, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 	var centre_down: bool = InputMap.has_action("center_view") and Input.is_action_pressed("center_view")
@@ -476,7 +483,22 @@ func _assist_eye() -> Vector3:
 
 ## Radians of turn per mouse count at the current sensitivity.
 func _radians_per_count() -> float:
-	return deg_to_rad(DEGREES_PER_COUNT * mouse_sensitivity)
+	return deg_to_rad(DEGREES_PER_COUNT * mouse_sensitivity) * look_scale()
+
+## Scoped look is finer by the magnification; the open view is unchanged.
+func look_scale() -> float:
+	return clampf(zoom_factor, 0.05, 1.0) if fp_mode else 1.0
+
+## Touch the lens only while the scope is in use or returning, so other owners
+## of the field of view (settings, captures) are never overwritten.
+func apply_zoom() -> void:
+	var wanted: float = clampf(zoom_factor, 0.05, 1.0) if fp_mode else 1.0
+	if is_equal_approx(wanted, _applied_zoom):
+		return
+	_applied_zoom = wanted
+	var lens: Camera3D = get_node_or_null("Camera3D")
+	if lens != null:
+		lens.fov = base_fov * wanted
 
 
 ## Centimetres of mouse travel for a full turn, the number players compare.

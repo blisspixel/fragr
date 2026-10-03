@@ -369,6 +369,7 @@ impl RunDocument {
                 {
                     return Err("M01 run has the wrong continue baseline");
                 }
+                Self::validate_carried_finds(exit)?;
                 exit.validate()
             }
         }
@@ -378,7 +379,19 @@ impl RunDocument {
         if mission == MissionId::RecallNotice && self.level_start_continues != CAMPAIGN_CONTINUES {
             return Err("M01 run has the wrong continue baseline");
         }
+        Self::validate_carried_finds(entry)?;
         entry.validate()
+    }
+
+    /// The Sniper Rifle is first found in Declared Goods. No saved stage before
+    /// that mission can carry it, so a forged copy never becomes an unlock.
+    fn validate_carried_finds(entry: &SavedEntry) -> Result<(), &'static str> {
+        if entry.equipment.weapons.contains(&WeaponType::Sniper)
+            || entry.equipment.selected == WeaponType::Sniper
+        {
+            return Err("saved equipment carries a weapon its stage cannot contain");
+        }
+        Ok(())
     }
 
     pub fn attempt(&self) -> u32 {
@@ -604,6 +617,37 @@ mod tests {
         };
         abandoned.validate([5; 32]).unwrap();
         assert_eq!(abandoned.remaining_continues, CAMPAIGN_CONTINUES);
+    }
+
+    #[test]
+    fn no_saved_stage_before_declared_goods_carries_the_sniper() {
+        let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+        inventory.grant_weapon(WeaponType::Sniper);
+        let forged = SavedEntry {
+            hp: 100,
+            armor: 0,
+            equipment: inventory.saved_equipment(WeaponType::Sniper).unwrap(),
+        };
+        let mut saved = document();
+        saved.step = SavedStep::MissionEntry {
+            mission: MissionId::RecallNotice,
+            entry: forged.clone(),
+        };
+        assert!(saved.validate([5; 32]).is_err());
+        saved.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::RecallNotice,
+            next_mission: M02_MISSION.into(),
+            exit: forged.clone(),
+        };
+        assert!(saved.validate([5; 32]).is_err());
+        let mut unselected = forged;
+        unselected.equipment.selected = WeaponType::Fists;
+        saved.step = SavedStep::PendingContinue {
+            mission: MissionId::RecallNotice,
+            entry: unselected,
+        };
+        saved.remaining_continues = 1;
+        assert!(saved.validate([5; 32]).is_err());
     }
 
     #[test]

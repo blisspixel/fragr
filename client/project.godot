@@ -147,6 +147,14 @@ weapon_5={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":53)]
 }
+weapon_6={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":54)]
+}
+scope={
+"deadzone": 0.5,
+"events": [Object(InputEventMouseButton,"device":-1,"button_index":2,"pressed":true), Object(InputEventKey,"device":-1,"physical_keycode":90), Object(InputEventJoypadButton,"device":-1,"button_index":7)]
+}
 scoreboard={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":4194306), Object(InputEventJoypadButton,"device":-1,"button_index":4)]

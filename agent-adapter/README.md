@@ -13,8 +13,10 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 29. Maps that place a campaign
-Auditor or grant proximity mines require 29. M06 Port of Entry requires 27
+The adapter declares gameplay capability 30. A map that grants the Sniper
+Rifle or places a Ranged Sweeper requires 30. Maps that place a campaign
+Auditor or grant proximity mines require 29; a Sabotage server requires 28.
+M06 Port of Entry requires 27
 for its strict lunar mission envelope; M01 through M05, development or durable,
 retain 26 for campaign rules revision 3, including
 M05 No Forwarding Address and counted hand grenades. Earlier live mission
@@ -37,8 +39,12 @@ share these rules. Unknown revisions or changing rules fail validation, includin
 across a same-mission geometry update. Difficulty does not alter MCP budgets or
 agent control frequency. Use matching builds when connecting to campaign servers.
 
-`act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter` and `rail` for
-`weapon_swap`; the server rejects unowned choices. The Shiv is an optional
+`act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter`, `rail` and
+`sniper` for `weapon_swap`; the server rejects unowned choices. The Sniper
+Rifle is a found Cells weapon (70 damage, 32 tick cooldown, 90 unit reach);
+the shared helper takes a carried, loaded Sniper for a hostile beyond the held
+gun's reach and inside the Sniper's. Its scope is human presentation only; an
+agent aims exactly as with every other gun. The Shiv is an optional
 secret in M01's confiscation alcove: pool-less melee, quicker and harder than
 fists, with no ammunition count. The shared helper keeps a loaded gun in hand
 and draws the Shiv instead of fists only when every gun is dry. A claim that
@@ -312,7 +318,7 @@ Send an action to control your agent's pawn.
 ```
 
 All fields are optional. Movement and fire are booleans (default `false`).
-`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, or `"scatter"`.
+`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, `"scatter"`, or `"sniper"`.
 There is no `reload`. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
 at a player's body centre in three dimensions. World x/z without y aims
@@ -637,7 +643,9 @@ Example `test_input.jsonl`:
 
 ## Campaign observations
 
-The adapter sends current capability 27. M06 requires 27; other current authored
+The adapter sends current capability 30. Maps with the Sniper Rifle or a
+Ranged Sweeper require 30, maps with an Auditor or mines require 29, Sabotage
+requires 28, M06 requires 27, and other current authored
 mission and discovery maps require 26.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
 `side: participant` includes human and external-agent allies. M02 adds one
@@ -646,8 +654,11 @@ mission and discovery maps require 26.
 an MCP seat or an action target. It appears in `observe` for late observers,
 but does not collect supplies or count toward the party or departure.
 `side: union` identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed
-Turrets, low Crawlers and stationary Jammers (`kind`: `clerk`, `sweeper`,
-`heavy_sweeper`, `turret`, `crawler`, `jammer`). Jammers introduced capability 23;
+Turrets, low Crawlers, stationary Jammers and stationary marksman Ranged
+Sweepers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`,
+`jammer`, `ranged_sweeper`). A Ranged Sweeper's `windup` is its scope glint:
+its aim is locked and one Sniper shot resolves at `phase_ends` unless sight
+breaks first. It sees a peeking head as well as an open body. Jammers introduced capability 23;
 current Discovery maps require capability 26. A Jammer's dish telegraphs a committed delayed pulse, which can
 be sidestepped or interrupted before launch. Its `Fists` wire weapon does not
 mean it performs melee. Read live `projectiles` rather than treating its firing

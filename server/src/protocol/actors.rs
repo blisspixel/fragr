@@ -20,6 +20,9 @@ pub enum EnemyKind {
     /// Human custody officer with a shield plate who channels a bounded
     /// repair into disabled Union bots.
     Auditor,
+    /// Stationary marksman bot with an antenna mast: a scope glint, a held
+    /// aim, then one precision shot.
+    RangedSweeper,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

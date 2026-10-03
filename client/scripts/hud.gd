@@ -133,6 +133,8 @@ var fp_muzzle_timer: float = 0.0
 var fp_muzzle_texture: Texture2D
 var fp_kick_amount = Vector2.ZERO
 var current_fp_weapon = ""
+## Presentation-only scope for the Sniper Rifle. The server owns aim and hits.
+var sniper_scope: SniperScope
 var equipment_hud: EquipmentHud
 var melee_view: MeleeView
 var crawler_caption: CrawlerCaption
@@ -182,6 +184,9 @@ func _ready():
 	for weapon: String in WeaponArt.PROFILE:
 		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
 	_build_fp_extras()
+	sniper_scope = SniperScope.new()
+	sniper_scope.name = "SniperScope"
+	add_child(sniper_scope)
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
@@ -1201,6 +1206,7 @@ func _layout_fp_weapon() -> void:
 	var bob_scale: float = 1.0
 	match current_fp_weapon:
 		"Rail": bob_scale = 0.55
+		"Sniper": bob_scale = 0.4
 		"Scatter": bob_scale = 1.35
 	var weight: float = fp_bob_weight if head_bob_enabled else 0.0
 	var bob: Vector2 = Vector2(cos(fp_bob_t * 0.5) * 2.0, sin(fp_bob_t) * 4.0) * bob_scale * weight
@@ -1230,6 +1236,26 @@ func _pose_stab() -> void:
 	fp_weapon.pivot_offset = Vector2(fp_weapon.size.x * 0.8, fp_weapon.size.y)
 	fp_weapon.scale = Vector2.ONE * FP_SHIV_SCALE * (1.0 + 0.22 * reach)
 	fp_weapon.position.x = roundf(fp_weapon.position.x - fp_weapon.size.x * 0.16 * reach)
+
+func _scoped() -> bool:
+	return sniper_scope != null and sniper_scope.scoped()
+
+## Advance the presentation-only scope and return the camera's view factor.
+## Scoped, the viewmodel and crosshair give way to the scope's own reticle.
+func update_scope(delta: float, weapon_wire: String, held: bool, enabled: bool) -> float:
+	if sniper_scope == null:
+		return 1.0
+	var was_scoped: bool = sniper_scope.scoped()
+	var factor: float = sniper_scope.update_scope(delta, weapon_wire, held, enabled and fp_juice_enabled)
+	var now_scoped: bool = sniper_scope.scoped()
+	if was_scoped != now_scoped:
+		if crosshair:
+			crosshair.visible = fp_juice_enabled and not now_scoped
+		if fp_weapon:
+			fp_weapon.visible = fp_juice_enabled and not now_scoped and current_fp_weapon != "" and current_fp_weapon != "Fists"
+		if fp_muzzle and now_scoped:
+			fp_muzzle.visible = false
+	return factor
 
 ## The throw hand and the vitals icons are built here so the scene file keeps
 ## its existing layout; both use the same nearest-sampled palette sprites.
@@ -1461,7 +1487,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 		fp_stab_timer = 0.0
 		_apply_crosshair_for_weapon(weapon_name)
 	_layout_fp_weapon()
-	fp_weapon.visible = weapon_name != "Fists"
+	fp_weapon.visible = weapon_name != "Fists" and not _scoped()
 	melee_view.visible = weapon_name == "Fists"
 
 ## Keep every crosshair edge matching the part it sits behind: same visibility,
@@ -1495,18 +1521,20 @@ func _apply_crosshair_for_weapon(weapon_name: String) -> void:
 	if crosshair_dot:
 		crosshair_dot.visible = false
 	match weapon_name:
-		"Rail":
+		"Rail", "Sniper":
 			if crosshair_hbar:
 				crosshair_hbar.visible = false
 			if crosshair_vbar:
 				crosshair_vbar.visible = false
 			if crosshair_dot:
+				# The unscoped Sniper keeps a single pixel; the scope owns its reticle.
+				var half: float = 1.0 if weapon_name == "Sniper" else 2.0
 				crosshair_dot.visible = true
 				crosshair_dot.color = gun
-				crosshair_dot.offset_left = -2.0
-				crosshair_dot.offset_top = -2.0
-				crosshair_dot.offset_right = 2.0
-				crosshair_dot.offset_bottom = 2.0
+				crosshair_dot.offset_left = -half
+				crosshair_dot.offset_top = -half
+				crosshair_dot.offset_right = half
+				crosshair_dot.offset_bottom = half
 		"Scatter":
 			if crosshair_hbar:
 				crosshair_hbar.offset_left = -18.0
@@ -1548,6 +1576,9 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 			"Rail":
 				col = Color(0.72, 0.78, 0.82, 0.95)
 				hit_marker_timer = 0.28
+			"Sniper":
+				col = Color(0.88, 0.86, 0.8, 0.95)
+				hit_marker_timer = 0.32
 			"Scatter":
 				col = Color(0.9, 0.55, 0.32, 0.95)
 				hit_marker_timer = 0.14
@@ -1589,7 +1620,7 @@ func show_fire_juice(weapon_name: String = "") -> void:
 ## but in first person the pawn is not what anyone is looking at, so until now
 ## the only feedback for pulling the trigger was the sound.
 func _fp_muzzle_flash(weapon_name: String) -> void:
-	if weapon_name == "Fists" or weapon_name == "Shiv":
+	if weapon_name == "Fists" or weapon_name == "Shiv" or _scoped():
 		return
 	if not fp_juice_enabled or not fp_muzzle or fp_muzzle_texture == null:
 		return
@@ -1597,6 +1628,8 @@ func _fp_muzzle_flash(weapon_name: String) -> void:
 	match weapon_name:
 		"Rail":
 			fp_muzzle.modulate = Color(0.72, 0.78, 0.82, 1.0)
+		"Sniper":
+			fp_muzzle.modulate = Color(1.0, 0.82, 0.6, 1.0)
 		"Scatter":
 			fp_muzzle.modulate = Color(0.95, 0.55, 0.28, 1.0)
 		_:
@@ -1629,6 +1662,10 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		"Rail":
 			fp_kick_amount = Vector2(8, 22)
 			fp_kick_timer = 0.18
+		"Sniper":
+			# A heavier, slower shove than the Rail: the rifle settles back.
+			fp_kick_amount = Vector2(4, 34)
+			fp_kick_timer = 0.26
 		"Scatter":
 			fp_kick_amount = Vector2(14, 10)
 			fp_kick_timer = 0.10
@@ -1645,12 +1682,14 @@ func _spawn_floating_damage(damage: int, weapon_name: String) -> void:
 	match weapon_name:
 		"Rail":
 			col = Color(0.75, 0.82, 0.86, 1)
+		"Sniper":
+			col = Color(0.9, 0.88, 0.82, 1)
 		"Scatter":
 			col = Color(0.92, 0.55, 0.3, 1)
 		_:
 			col = Color(0.95, 0.78, 0.45, 1)
 	label.add_theme_color_override("font_color", col)
-	label.add_theme_font_size_override("font_size", 22 if weapon_name != "Rail" else 28)
+	label.add_theme_font_size_override("font_size", 28 if weapon_name in ["Rail", "Sniper"] else 22)
 	var ox = randf_range(-28.0, 28.0)
 	label.position = Vector2(ox, -20.0)
 	damage_numbers.add_child(label)

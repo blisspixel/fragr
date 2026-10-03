@@ -42,7 +42,7 @@ fragments. Neither needs constant banter.
 |---|---|---|---|
 | Clerk | Human security, light issued kit | Low-pressure shots after visible weapon raise | Move, use cover, learn the aim tell |
 | Sweeper | Bot, standard chassis | Mobile bursts with a visible and audible cycle | Interrupt or flank between bursts |
-| Ranged Sweeper | Bot with distinct antenna/weapon silhouette | Stops to line up a precision shot | Break sight or close through cover |
+| Ranged Sweeper | Bot with a tall rear antenna mast and a long scoped rifle; holds its platform | A scope glint at windup start, then a held aim (30 ticks Standard, 24 Severe, 40 Assisted) before one 70 damage Sniper shot. Sees a peeking head as well as an open body; notices new targets only within 1.0 rad of its facing | Drop fully behind a sill to cancel the shot, rise and fire first, suppress it (any hit cancels the windup), or flank outside its notice cone. Implemented on its range |
 | Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst; slow sideways shuffle after recovery. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. Implemented |
 | Crawler | Low constrained Union chassis, M02 draft | Locked leap after a visible crouch; mechanical scrabble and caption on encounter reveal | Shotgun, lateral dodge and punishable recovery; live review pending |
 | Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize it from a flank on its exposed position |

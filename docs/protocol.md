@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `27`; omission means `1`. Discovery-only maps first
+  and the Godot client send `30`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -152,6 +152,11 @@ Initial handshake message. Must be sent immediately after connection.
   `mines`) and the campaign Auditor (actor kind `auditor`, phase `channeling`,
   snapshot `auditors`). Only maps that place an Auditor or grant mines require
   29; every other map keeps its earlier requirement.
+  Version 30 adds the found `sniper` weapon to loadouts, actions, pickups and
+  shot traces, a seventh record weapon slot, and the stationary
+  `ranged_sweeper` Union kind. A map that grants the Sniper Rifle or places a
+  Ranged Sweeper requires 30 for every role, because an older reader would
+  refuse a loadout or actor naming them. Other maps keep their requirements.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -600,7 +605,7 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
-- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"`.
+- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"`.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
@@ -836,14 +841,18 @@ in `Snapshot.players[].weapon`; ammunition does not.
 ```
 
 `weapons` lists owned weapons exactly once, including fists, in the order
-fists, tack, flechette, scatter, rail, shiv. The `shiv` is found, not issued: a
+fists, tack, flechette, scatter, rail, shiv, sniper. The `shiv` is found, not issued: a
 pool-less melee weapon (35 damage, 6 tick cooldown, 2.2 unit reach) that spends
-nothing and has no ammunition count. Picking it up again adds nothing. `ammo` contains
+nothing and has no ammunition count. Picking it up again adds nothing. The
+`sniper` (capability 30) is also found, never issued: hitscan with 70 damage,
+a 32 tick cooldown, a 0.004 radian cone and 90 unit reach, spending one Cell per
+shot. It shares the Cells pool with the Railgun but never its damage or its
+beam; its scope is client presentation and changes no action field. `ammo` contains
 all three unique pools: `bullets` (Tack and Flechette, cap 200), `shells`
-(Scatter, cap 50) and `cells` (Rail, cap 100 since capability 12). There are no magazines and no
+(Scatter, cap 50) and `cells` (Rail and Sniper, cap 100 since capability 12). There are no magazines and no
 reload: one shot, including a seven-pellet scatter blast, spends one unit from
 its pool, and fists need nothing. A weapon pickup adds Tack 50, Flechette 60,
-Scatter 12 or Rail 10 units. The magazine-era `reserves` and `reload` fields are
+Scatter 12, Rail 10 or Sniper 8 units. The magazine-era `reserves` and `reload` fields are
 gone and a message carrying them is refused whole.
 `personal_claims` hides introductory supplies only for their claimant. IDs follow
 the authored map contract. `dry_fire_count` advances once per held empty trigger,
@@ -1252,8 +1261,9 @@ changes presentation only, not the authoritative body or shot geometry.
 Human and external-agent participants are allies. Union `kind` is `clerk` (human
 security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
 equipment), `crawler` (low constrained bot), `jammer` (stationary service
-transmitter), `notary` (flying Office patrol equipment), or `auditor` (human custody
-officer with a shield plate). Names are labels, never a
+transmitter), `notary` (flying Office patrol equipment), `auditor` (human custody
+officer with a shield plate) or `ranged_sweeper` (stationary marksman bot,
+capability 30). Names are labels, never a
 targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
 Inheritance takeover, additional companions or the complete co-op lifecycle.
@@ -1276,6 +1286,16 @@ charge before one Rail shot, and broken sight during `windup` or `firing` ends
 the attack in `recovery` without a shot. Its `hit` follows the same heavy-hit
 rule for 10 ticks. Windup and recovery durations per difficulty are in
 [the difficulty plan](plans/difficulty-and-rewards.md).
+
+A `ranged_sweeper` has 70 HP and carries the `Sniper`. It never changes
+position. It sees a participant within 90 units when either the body centre or
+the eye is in clear line of sight, notices a new target only within 1.0 radian
+of its authored yaw, and engages within 88 units. Its `windup` is the scope
+glint and hold: the aim locks on the first windup tick and one Sniper shot
+resolves on the tick `phase_ends`. Windup lasts 40, 30 or 24 ticks on
+Assisted, Standard and Severe, recovery 50, 40 or 32. Broken sight during the
+windup cancels it into a 12 tick `recovery` without a shot, and any damaging
+hit enters a 6 tick `hit` that also cancels it. With no Cells it stays `idle`.
 
 A `crawler` uses a server-owned 0.8 m body, including movement clearance, shot
 volume and target centre. Its `windup` is a 12-tick crouch that locks the target
@@ -2104,7 +2124,8 @@ or the latest round start for an existing participant. A late arena join has
 `entered_at > round_started_at`. Mission attempts share one record identity.
 The [shared format fixture](../client/golden/player_record.json) is read by Rust,
 MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.json)
-covers the sixth slot and a found secret on both sides.
+covers the sixth slot and a found secret on both sides, and the
+[Sniper fixture](../client/golden/player_record_sniper.json) the seventh.
 
 Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
 `attempt`, `rules` and nullable `run` (the solo run contract above). Calibration
@@ -2117,9 +2138,11 @@ evidence of failure or victory.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
 `dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail
-order, plus a sixth Shiv entry only once the Shiv has attacked. Readers accept
-five or six entries and treat a missing sixth as zero, so retained history keeps
-its shape and no slot changes meaning. `secrets`, present only when nonzero,
+order, plus a sixth Shiv entry once the Shiv has attacked and a seventh Sniper
+entry once the Sniper has attacked. A writer sends the shortest prefix that
+holds every non-zero entry. Readers accept five, six or seven entries and treat
+missing later entries as zero, so retained history keeps its shape and no slot
+changes meaning. `secrets`, present only when nonzero,
 counts distinct authored secrets found: `total` over the whole run, `attempt`
 this attempt. Finding a restored secret again after a continue raises `attempt`
 but not `total`. It cannot exceed `alive_ticks`. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and

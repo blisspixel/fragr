@@ -37,10 +37,20 @@ func _run() -> void:
 		broken["total"].merge(patch, true)
 		broken["attempt"].merge(patch, true)
 		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "invalid secret count: " + str(patch))
-	for size: int in [4, 7]:
+	for size: int in [4, 8]:
 		var broken: Dictionary = found.duplicate(true)
 		broken["total"]["weapons"].resize(size)
-		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "weapon slots must be five or six")
+		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "weapon slots must be five, six or seven")
+	var scoped: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://golden/player_record_sniper.json"))
+	_check(PlayerRecord.validation_error(scoped, scoped["player_id"]).is_empty(), "shared seven-slot Sniper record validates")
+	_check(PlayerRecord.weapon_count(scoped["total"], 6, "kills") == 1 and PlayerRecord.weapon_count(found["total"], 6, "attacks") == 0, "a six-slot record reads as no Sniper use")
+	var overkill: Dictionary = scoped.duplicate(true)
+	overkill["total"]["weapons"][6]["kills"] = 3
+	_check(not PlayerRecord.validation_error(overkill, scoped["player_id"]).is_empty(), "one Sniper ray cannot kill twice")
+	var seventh: Dictionary = PlayerRecord.empty_counts()
+	PlayerRecord.add_counts(seventh, found["total"])
+	PlayerRecord.add_counts(seventh, scoped["total"])
+	_check(int(seventh["weapons"][5]["kills"]) == 1 and int(seventh["weapons"][6]["kills"]) == 1, "history adds six and seven slot records without shifting a slot")
 	var fewer: Dictionary = found.duplicate(true)
 	fewer["attempt"]["secrets"] = 2
 	_check(not PlayerRecord.validation_error(fewer, found["player_id"]).is_empty(), "an attempt cannot find more secrets than the total")

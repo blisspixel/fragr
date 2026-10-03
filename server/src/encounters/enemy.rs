@@ -39,6 +39,12 @@ const HEAVY_REPOSITION_TICKS: u64 = 24;
 const CRAWLER_EXPOSED_HALF_WIDTH: f32 = 0.6;
 const CRAWLER_WINDUP_TICKS: u64 = 12;
 const CRAWLER_RECOVERY_TICKS: u64 = 20;
+/// A Ranged Sweeper reads the whole crater cut, inside the Sniper's reach.
+const MARKSMAN_SIGHT_RANGE: f32 = 90.0;
+const MARKSMAN_ENGAGE_RANGE: f32 = 88.0;
+/// Half-angle either side of its authored facing in which a Ranged Sweeper
+/// notices a new target. A platform's flank stays a flank.
+const MARKSMAN_NOTICE_CONE: f32 = 1.0;
 
 fn crawler_body_exposed(
     viewer: &crate::protocol::PlayerState,
@@ -84,6 +90,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Jammer => (90, WeaponType::Fists),
         EnemyKind::Notary => (50, WeaponType::Tack),
         EnemyKind::Auditor => (120, WeaponType::Tack),
+        EnemyKind::RangedSweeper => (70, WeaponType::Sniper),
     }
 }
 
@@ -92,7 +99,7 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
     match kind {
         EnemyKind::Clerk | EnemyKind::Sweeper => 0.5,
         EnemyKind::HeavySweeper => 0.3,
-        EnemyKind::Turret | EnemyKind::Jammer | EnemyKind::Notary => 0.0,
+        EnemyKind::Turret | EnemyKind::Jammer | EnemyKind::Notary | EnemyKind::RangedSweeper => 0.0,
         EnemyKind::Crawler => 0.7,
         EnemyKind::Auditor => 0.4,
     }
@@ -105,7 +112,8 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::Turret
         | EnemyKind::Crawler
         | EnemyKind::Jammer
-        | EnemyKind::Auditor => 1,
+        | EnemyKind::Auditor
+        | EnemyKind::RangedSweeper => 1,
         EnemyKind::Sweeper | EnemyKind::Notary => 3,
         EnemyKind::HeavySweeper => 4,
     }
@@ -119,7 +127,8 @@ fn stun(kind: EnemyKind) -> u64 {
         | EnemyKind::Crawler
         | EnemyKind::Jammer
         | EnemyKind::Notary
-        | EnemyKind::Auditor => 6,
+        | EnemyKind::Auditor
+        | EnemyKind::RangedSweeper => 6,
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Turret => 10,
     }
@@ -211,6 +220,11 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Auditor, CampaignDifficulty::Assisted) => (22, 32),
         (EnemyKind::Auditor, CampaignDifficulty::Standard) => (14, 22),
         (EnemyKind::Auditor, CampaignDifficulty::Severe) => (12, 18),
+        // The glint and hold: the whole windup is the reaction window. Severe
+        // still gives more than one second to drop below a sill.
+        (EnemyKind::RangedSweeper, CampaignDifficulty::Assisted) => (40, 50),
+        (EnemyKind::RangedSweeper, CampaignDifficulty::Standard) => (30, 40),
+        (EnemyKind::RangedSweeper, CampaignDifficulty::Severe) => (24, 32),
     }
 }
 
@@ -433,6 +447,12 @@ impl EnemyController {
         let tick = state.tick.saturating_add(1);
         let (windup, recovery) = attack_timing(self.kind, state.campaign_rules().difficulty);
         let turret = self.kind == EnemyKind::Turret;
+        let marksman = self.kind == EnemyKind::RangedSweeper;
+        let sight_range = if marksman {
+            MARKSMAN_SIGHT_RANGE
+        } else {
+            SIGHT_RANGE
+        };
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
         let eye = [me.x, feet[1] + crate::combat::eye_height(me.campaign), me.z];
         let centre = |p: &crate::protocol::PlayerState| {
@@ -442,26 +462,41 @@ impl EnemyController {
                 p.z,
             ]
         };
+        let head_point = |p: &crate::protocol::PlayerState| {
+            [
+                p.x,
+                p.y - PLAYER_FLOOR_Y + crate::combat::eye_height(p.campaign),
+                p.z,
+            ]
+        };
         let visible = |p: &&crate::protocol::PlayerState| {
+            let solids = &state.current_arena().solids;
             p.campaign == Some(CampaignActor::Participant {})
                 && me.is_hostile_to(p)
                 && crate::mission::actor_active(state.mission.as_ref(), p.id, p.campaign)
-                && (p.x - me.x).hypot(p.z - me.z) <= SIGHT_RANGE
-                && line_of_sight(eye, centre(p), &state.current_arena().solids)
-                && (self.kind != EnemyKind::Notary
-                    || line_of_sight(
-                        eye,
-                        [
-                            p.x,
-                            p.y - PLAYER_FLOOR_Y + crate::combat::eye_height(p.campaign),
-                            p.z,
-                        ],
-                        &state.current_arena().solids,
-                    ))
+                && (p.x - me.x).hypot(p.z - me.z) <= sight_range
+                && if marksman {
+                    // A marksman sees a peeking head as well as an open body:
+                    // the participant must drop fully behind cover.
+                    line_of_sight(eye, centre(p), solids)
+                        || line_of_sight(eye, head_point(p), solids)
+                } else {
+                    line_of_sight(eye, centre(p), solids)
+                        && (self.kind != EnemyKind::Notary
+                            || line_of_sight(eye, head_point(p), solids))
+                }
         };
         let head = self.head;
+        let home = self.home_yaw;
         let noticed = |p: &&crate::protocol::PlayerState| {
-            !turret || turn(head, (p.z - me.z).atan2(p.x - me.x)).abs() <= TURRET_ACQUIRE_CONE
+            let bearing = (p.z - me.z).atan2(p.x - me.x);
+            if turret {
+                turn(head, bearing).abs() <= TURRET_ACQUIRE_CONE
+            } else if marksman {
+                turn(home, bearing).abs() <= MARKSMAN_NOTICE_CONE
+            } else {
+                true
+            }
         };
         let target = self
             .target
@@ -555,8 +590,9 @@ impl EnemyController {
         // An empty guard can still defend themselves at melee distance.
         if let Some(loadout) = body.inventory.state(body.id, body.weapon, state.tick) {
             if loadout.shots(body.weapon) == Some(0) {
-                if turret || self.kind == EnemyKind::Notary {
-                    // A dry turret has no melee. It stays still and harmless.
+                if turret || marksman || self.kind == EnemyKind::Notary {
+                    // A dry turret or marksman has no melee. It stays still and
+                    // harmless.
                     if self.phase != EnemyPhase::Idle {
                         self.enter(EnemyPhase::Idle, tick, 0);
                     }
@@ -605,6 +641,15 @@ impl EnemyController {
         }
         if turret {
             return self.turret(target, eye, windup, tick, &centre);
+        }
+        if marksman {
+            let solids = &state.current_arena().solids;
+            let aim_point = target.and_then(|target| {
+                [centre(target), head_point(target)]
+                    .into_iter()
+                    .find(|point| line_of_sight(eye, *point, solids))
+            });
+            return self.marksman(target, aim_point, eye, windup, tick);
         }
         if self.kind == EnemyKind::Notary {
             if let Some(target) = target {
@@ -940,6 +985,39 @@ impl EnemyController {
         }
         self.contact_used = true;
         true
+    }
+
+    /// Hold the platform, face the authored line, and glint at a visible target
+    /// in reach. The aim locks on the first windup tick; the shared windup rule
+    /// fires on its last tick or cancels when sight breaks first.
+    fn marksman(
+        &mut self,
+        target: Option<&crate::protocol::PlayerState>,
+        aim_point: Option<[f32; 3]>,
+        eye: [f32; 3],
+        windup: u64,
+        tick: u64,
+    ) -> BotIntent {
+        let mut action = Action::default();
+        let mut facing = self.home_yaw;
+        if let Some(target) = target {
+            facing = (target.z - eye[2]).atan2(target.x - eye[0]);
+            if (target.x - eye[0]).hypot(target.z - eye[2]) <= MARKSMAN_ENGAGE_RANGE {
+                if let Some(aim) = aim_point.and_then(|point| aim_at(eye, point)) {
+                    self.begin_windup(aim, tick, windup, &mut action);
+                    return BotIntent { action, goal: None };
+                }
+            }
+        } else {
+            self.target = None;
+        }
+        self.head = crate::movement::normalize_yaw(facing);
+        action.yaw = Some(self.head);
+        action.pitch = Some(0.0);
+        if self.phase != EnemyPhase::Idle {
+            self.enter(EnemyPhase::Idle, tick, 0);
+        }
+        BotIntent { action, goal: None }
     }
 
     /// Idle sweep, bounded tracking, then a locked spin-up. The turret never

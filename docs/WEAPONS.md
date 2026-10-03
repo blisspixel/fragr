@@ -1,14 +1,15 @@
 # The weapons
 
-Player-facing names, as of 2026-09-30: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun.
-The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
-`flechette`, `scatter`, `rail`, and `shiv`. Ammunition is Doom style (2026-09-24): one
+Player-facing names, as of 2026-10-02: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
+Sniper Rifle. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
+`flechette`, `scatter`, `rail`, `shiv` and `sniper`. Ammunition is Doom style (2026-09-24): one
 count per type, no magazines and no reload. Pistol and Rifle share Bullets, the
-Shotgun uses Shells and the Railgun uses Cells. A Sniper Rifle, Rocket
+Shotgun uses Shells and the Railgun and Sniper Rifle use Cells. A Sniper Rifle, Rocket
 Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
 missions. Level 5's prototype implements counted grenades through a separate
-throw control, capped at six; they leave gun selection unchanged. The other
-four additions remain unbuilt. They are not in M01 or the default arcade kit.
+throw control, capped at six; they leave gun selection unchanged. The Sniper
+Rifle is implemented on its development range for level 7. The other three
+additions remain unbuilt. They are not in M01 or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
 the proposal table below are that rocket launcher and that proximity mine, not
@@ -73,6 +74,7 @@ There is one number per ammunition type and it is everything you carry. A shot s
 | 4 | **Flechette** (shipped) | Mid workhorse | 25 | 0.20 s | 60 | Bullets | Pad |
 | 5 | **Scatter** (shipped) | Close shred | 7 pellets of 10, each falling to 4 | 0.60 s | 12 | Shells | Pad |
 | 6 | **Rail** (shipped) | Long precision | 80 | 1.00 s | 10 | Cells | Pad |
+| 6b | **Sniper** (implemented) | Far precision, scoped, 90 m reach | 70 | 1.60 s | 8 | Cells | Level 7 rack, campaign only |
 | 7 | **Repeater** | Heavy full auto | 14 | 0.10 s | 60 | Bullets | Pad |
 | 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
 | 9 | **Arc** | Energy, ignores armour | 18 | 0.15 s | 40 | Cells | Pad, outer ring |

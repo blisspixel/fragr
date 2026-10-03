@@ -136,6 +136,12 @@ msgstr "WEAPON 4"
 msgid "ACTION_WEAPON_5"
 msgstr "WEAPON 5"
 
+msgid "ACTION_WEAPON_6"
+msgstr "WEAPON 6"
+
+msgid "ACTION_SCOPE"
+msgstr "SCOPE (HOLD)"
+
 msgid "ACTION_SCOREBOARD"
 msgstr "SCORES (HOLD)"
 
