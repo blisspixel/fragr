@@ -422,6 +422,10 @@ func _setup_frontend() -> void:
 	console.preferences = settings
 	console.name = "FragrConsole"
 	add_child(console)
+	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
+	frame_counter.name = "PerformanceOverlay"
+	frame_counter.preferences = settings
+	add_child(frame_counter)
 
 	pause_menu = PauseMenu.new()
 	pause_menu.preferences = settings

@@ -42,6 +42,10 @@ func _run() -> void:
 	cap.select(4)
 	cap.item_selected.emit(4)
 	(panel.find_child("vsync", true, false) as Button).button_pressed = true
+	var counter: OptionButton = panel.find_child("show_fps", true, false) as OptionButton
+	_check(counter != null and counter.item_count == 3 and counter.get_item_text(0) == tr("SETTINGS_SHOW_FPS_OFF") and tr("SETTINGS_SHOW_FPS_OFF") != "SETTINGS_SHOW_FPS_OFF", "display page offers the three frame counter modes from the catalogue")
+	counter.select(2)
+	counter.item_selected.emit(2)
 	var resolution: OptionButton = panel.find_child("resolution_height", true, false) as OptionButton
 	resolution.select(1)
 	resolution.item_selected.emit(1)
@@ -68,6 +72,7 @@ func _run() -> void:
 	loaded.load_from_disk()
 	_check(loaded.fov() == 85 and loaded.get_value("video", "fps_cap") == 120, "display settings survive a fresh store")
 	_check(loaded.get_value("video", "vsync") == true, "VSync survives a fresh store")
+	_check(loaded.get_value("video", "show_fps") == 2, "the frame counter mode survives a fresh store")
 	_check(loaded.get_value("controls", "mouse_sensitivity") == 2.25 and loaded.get_value("controls", "invert_y") == true, "control settings survive a fresh store")
 	_check(loaded.player_name() == "Keep this callsign", "settings save preserves the profile")
 	_check(loaded.get_value("video", "quality") == 2 and loaded.get_value("video", "resolution_height") == 720, "menu resolution and quality choices survive a fresh store")

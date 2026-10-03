@@ -182,6 +182,8 @@ func run(line: String) -> void:
 				Engine.get_frames_per_second(),
 				1000.0 / maxf(1.0, float(Engine.get_frames_per_second())),
 			])
+		"cl_showfps", "showfps":
+			_set_show_fps(rest)
 		"pos":
 			_report_pos()
 		"yaw":
@@ -204,6 +206,7 @@ func _help() -> void:
 	echo("help            this")
 	echo("clear           wipe the scrollback")
 	echo("fps             frames per second and frame time")
+	echo("cl_showfps 0|1|2 frame counter: off, fps, fps with frame time and 1% low")
 	echo("pos             where you are standing")
 	echo("yaw             your facing, in the server's convention and Godot's")
 	echo("sens [value]    look sensitivity")
@@ -300,3 +303,16 @@ func _report_players() -> void:
 
 func _set_fullscreen(on: bool) -> void:
 	_save_preference("video", "display_mode", 2 if on else 0)
+
+## cl_showfps, as Counter-Strike spelled it. No argument reports the current
+## mode; 0, 1 or 2 saves it through the same settings store as the menu.
+func _set_show_fps(args: Array[String]) -> void:
+	if args.is_empty():
+		var current: Variant = null if preferences == null else preferences.get_value("video", "show_fps")
+		echo("show_fps " + str(current) + " (0 off, 1 fps, 2 fps with frame time and 1% low)")
+		return
+	var value: String = args[0]
+	if value not in ["0", "1", "2"]:
+		echo("usage: cl_showfps 0|1|2")
+		return
+	_save_preference("video", "show_fps", value.to_int())

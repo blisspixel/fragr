@@ -4,6 +4,13 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased (frame counter, 2026-10-02)
+
+Display settings gain SHOW FPS: off, the frame rate, or the frame rate with
+average frame time and the 1% low, drawn small in the top right corner on the
+menus, in campaign and in multiplayer. The tilde console takes `cl_showfps 0`,
+`1` or `2` and saves the same setting.
+
 ## Unreleased (Sabotage, 2026-10-02)
 
 Sabotage, the first flagship round mode, plays on Sector 9 Transit Hall. The

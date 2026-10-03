@@ -1069,7 +1069,7 @@ func _apply_graphics_capture(options: Variant) -> void:
 				return
 			draft.set_value("video", key, options[key])
 			continue
-		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
+		if key not in ["quality", "upscaling", "resolution_height", "pixel_scale", "show_fps"] or not (options[key] is int or options[key] is float) or not is_finite(float(options[key])) or float(options[key]) != floorf(float(options[key])):
 			push_error("qa_tour: invalid graphics capture option")
 			_failed = true
 			return
@@ -1083,6 +1083,9 @@ func _apply_graphics_capture(options: Variant) -> void:
 	# Keep the capture window fixed while exercising the production world-buffer
 	# and quality path. Display-mode transitions have their own real-window check.
 	manager.call("_apply_render_preferences")
+	var frame_counter: PerformanceOverlay = manager.get_node_or_null("PerformanceOverlay") as PerformanceOverlay
+	if frame_counter != null:
+		frame_counter.apply_preferences()
 
 ## Frame pacing for a held view: wall time between drawn frames plus the
 ## renderer's own CPU and GPU measurements for the root viewport. The capture
