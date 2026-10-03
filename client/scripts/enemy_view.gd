@@ -81,11 +81,11 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		material.shader = UNION_SPRITE
 		body.material_override = material
 	material.set_shader_parameter("sprite_texture", body.texture)
-	material.set_shader_parameter("normals_enabled", kind == "sweeper")
-	if kind == "sweeper":
-		var normal_key: String = "sweeper_normals"
+	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk"])
+	if kind in ["sweeper", "clerk"]:
+		var normal_key: String = kind + "_normals"
 		if not _textures.has(normal_key):
-			_textures[normal_key] = load("res://assets/characters/union/sweeper_normals.png") as Texture2D
+			_textures[normal_key] = load("res://assets/characters/union/" + normal_key + ".png") as Texture2D
 		material.set_shader_parameter("sprite_normals", _textures[normal_key])
 	if kind == "auditor":
 		material.set_shader_parameter("rim_color", AUDITOR_RIM)

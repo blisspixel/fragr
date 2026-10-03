@@ -108,6 +108,10 @@ func _weapon_articulation() -> void:
 	gun.free()
 
 func _normals_render() -> void:
+	for kind: String in ["sweeper", "clerk"]:
+		await _normal_body(kind)
+
+func _normal_body(kind: String) -> void:
 	var viewport: SubViewport = SubViewport.new()
 	viewport.size = Vector2i(480, 360)
 	viewport.own_world_3d = true
@@ -133,11 +137,11 @@ func _normals_render() -> void:
 	body.position.y = 0.9
 	viewport.add_child(body)
 	var view: EnemyView = EnemyView.new()
-	view.update({"campaign": {"kind": "sweeper", "phase": "idle"}, "weapon": "Flechette"}, 1, body)
+	view.update({"campaign": {"kind": kind, "phase": "idle"}, "weapon": "Flechette"}, 1, body)
 	body.position.y = 0.9
 	body.frame = EnemyAnimation.pose_frame("idle", false, 0.0)
 	var material: ShaderMaterial = body.material_override as ShaderMaterial
-	_check(material.get_shader_parameter("normals_enabled") == true, "live Sweeper presenter uses paired normal cells")
+	_check(material.get_shader_parameter("normals_enabled") == true, "live " + kind + " presenter uses paired normal cells")
 	_check(material.get_shader_parameter("sprite_normals") is Texture2D, "normal sampler has its imported texture")
 	var first: Image = await _frame(viewport)
 	material.set_shader_parameter("normals_enabled", false)
@@ -154,10 +158,10 @@ func _normals_render() -> void:
 	_check(shaped > 100 and moving > 100, "actual normal pixels shape the body and respond to a moving light")
 	var directory: String = ProjectSettings.globalize_path("res://../.agents/art-excellence-research/rendered")
 	DirAccess.make_dir_recursive_absolute(directory)
-	first.save_png(directory.path_join("sweeper-normal-lit.png"))
-	flat.save_png(directory.path_join("sweeper-flat-lit.png"))
-	opposite.save_png(directory.path_join("sweeper-opposite-light.png"))
-	print("test_model_assets: rendered normal changes=", shaped, " moving light changes=", moving)
+	first.save_png(directory.path_join(kind + "-normal-lit.png"))
+	flat.save_png(directory.path_join(kind + "-flat-lit.png"))
+	opposite.save_png(directory.path_join(kind + "-opposite-light.png"))
+	print("test_model_assets: ", kind, " rendered normal changes=", shaped, " moving light changes=", moving)
 	viewport.free()
 
 func _frame(viewport: SubViewport) -> Image:

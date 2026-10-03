@@ -5,13 +5,19 @@ Sweeper, Ranged Sweeper, Turret and Jammer, and for the two free participant bod
 directional campaign sets under visual review. They do not establish a completed cast or final character production bar.
 
 `geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
-humanoid anatomy, issued gear and joint poses; `machines.gd` owns the Heavy
+the earlier humanoid source and shared issued gear; `machines.gd` owns the Heavy
 Sweeper and Turret; `bake.gd` renders the committed atlases in
 `client/assets/characters/union/`. The Sweeper now comes from
 [`../models/sweeper_source.gd`](../models/sweeper_source.gd), with shaped shells,
 exposed joints and six exported mechanical clips. Its bake also writes
 `sweeper_normals.png` in exactly the same cells. The live presenter pairs
 these view-aligned normals with the albedo under venue lighting.
+The Clerk now uses the prepared skinned
+[`../models/candidates/clerk.glb`](../models/candidates/README.md), with 24 bones
+and a retained gait. [`../models/clerk_source.gd`](../models/clerk_source.gd)
+authors its combat, seated and unarmed poses after the skeleton enters the tree.
+Its fabric is graded to charcoal to match the Union palette. The paired
+`clerk_normals.png` uses the same cells and receives the same venue lighting.
 Edit source and rebake, never retouch an atlas
 that the next bake will replace. The source directory is excluded from exports.
 The bake writes a manifest with source/output hashes. The headless harness rejects
@@ -26,7 +32,7 @@ pauldrons and lights their red lamps. The Turret is a braced column under a
 rotating housing with a rail barrel; its tell lights the optic and four red
 charge coils, and its destroyed pose drops the housing beside the broken column.
 Albedo captures are unshaded; the live Union shader receives venue lighting.
-The Sweeper's normal atlas describes body shape under that light. Other
+The Clerk and Sweeper normal atlases describe body shape under that light. Other
 archetypes retain planar sprite lighting until their normal sources are built.
 Union issue is black cloth, dark steel, plates one step lighter, and restrained
 red on visors, optics, armbands and seals (`union_*` in `docs/palette.json`).
@@ -63,7 +69,8 @@ lazily by archetype, so a room with only Clerks and Sweepers holds two. The
 Turret has no gait: its walk cells preserve the fixed head pose while authoritative
 snapshot yaw supplies the actual traverse. Its unarmed cells repeat the armed ones. PNG
 disk size is smaller and does not describe texture memory. The new Sweeper
-normal atlas adds another 43.95 MiB when that archetype is resident. This is
+normal atlas adds another 43.95 MiB when that archetype is resident. The Clerk's
+paired normals have the same cost, loaded only when Clerks are present. This is
 an explicit memory cost, with no claim that PNG disk size measures GPU use.
 No mipmaps or automatic
 3D compression; nearest sampling and cutout alpha preserve the pixel edges.

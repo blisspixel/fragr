@@ -10,6 +10,7 @@ owns quality acceptance.
 |---|---|
 | `sweeper_source.gd` | Shaped Union body, joints, equipment and poses. The character bake uses this source for the live directional Sweeper and its view-aligned normals. `model_clips.gd` exports six rigid mechanical clips in GLB. |
 | `shotgun_source.gd` | Original receiver, hollow barrel, walnut stock, guard, sights, moving pump and attached gloves. GLB and twelve coherent poses are development candidates; existing first-person art remains selected pending quality refinement. |
+| `clerk_source.gd`, `candidates/clerk.glb` | Prepared 24-bone human source, retained gait and authored combat, unarmed, seated and collapse poses. Bakes directional sprites and paired normals through the existing character layout. |
 | `../../scripts/latch_view.gd` | Lean roughly 1.8 metre civilian chassis, tall screen, pixel eyes, left antenna, repairs and voluntary hand gesture. Live companion and ward presentation share this model. |
 | `../../scripts/facility_geometry.gd` | Merged vent, locker, terminal, light and sign housings on registered faces, with two or three material surfaces and at most 8 mm protrusion. |
 | `../../scripts/model_geometry.gd` | Shared chamfered prisms, hollow lathes, tapered shells, pipes, UVs and material cache. Kept in runtime scripts because offline art sources are excluded from desktop packages. |

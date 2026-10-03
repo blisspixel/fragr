@@ -4,6 +4,14 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+Clerks use a prepared skinned human source with sampled walking, authored combat
+and seated poses, charcoal issued cloth and paired body normals under venue
+light. Their directional layout and server-owned combat remain unchanged. Live
+Recall Notice and Persons Unknown routes provide bounded presentation evidence.
+The remaining cast, Shotgun candidate and environment kit still need refinement.
+
 ## v0.68.0 (2026-10-03)
 
 The Sweeper now comes from an original articulated 3D source, with directional

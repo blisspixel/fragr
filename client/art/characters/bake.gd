@@ -2,10 +2,11 @@ extends SceneTree
 
 const Rig = preload("res://art/characters/machines.gd")
 const SweeperSource = preload("res://art/models/sweeper_source.gd")
+const ClerkSource = preload("res://art/models/clerk_source.gd")
 const NORMAL_SHADER: Shader = preload("res://art/models/normal_bake.gdshader")
 const KINDS: Dictionary[String, Dictionary] = {
-	"clerk": {"model": "articulated human security rig",
-		"brief": "Visible human face, open helmet, institutional green cloth, issued bone armor and restrained red seal."},
+	"clerk": {"model": "skinned human security source with authored combat poses and paired view normals",
+		"brief": "Visible human face, open helmet, charcoal cloth, issued bone armor and restrained red seal."},
 	"sweeper": {"model": "contoured articulated issued bot source with paired view normals",
 		"brief": "Manufactured graphite shells, recessed optical slit, service battery louvers, distinct joint caps, finger articulation and restrained red issue strips."},
 	"heavy_sweeper": {"model": "articulated heavy bot rig",
@@ -14,6 +15,7 @@ const KINDS: Dictionary[String, Dictionary] = {
 		"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp."},
 }
 const OUTPUT: String = "res://assets/characters/union/"
+var _bake_materials: Array[Material] = []
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -52,6 +54,7 @@ func bake() -> void:
 	root.add_child(display)
 	var rig: RefCounted = Rig.new()
 	var sweeper: RefCounted = SweeperSource.new()
+	var clerk: RefCounted = ClerkSource.new()
 	var entries: Array[Dictionary] = []
 	for kind: String in KINDS:
 		var atlas: Image = Image.create(EnemyAnimation.COLUMNS * EnemyAnimation.TILE,
@@ -68,8 +71,8 @@ func bake() -> void:
 					var action: String = str(clip["action"])
 					var unarmed: bool = bool(clip["unarmed"])
 					var model: Node3D = sweeper.build_pose(true, action, progress, unarmed) if kind == "sweeper" else \
-						(rig.build_pose(false, action, progress, unarmed) if kind == "clerk" else rig.build_machine(kind, action, progress, unarmed))
-					if kind == "sweeper":
+						(clerk.build_pose(action, progress, unarmed) if kind == "clerk" else rig.build_machine(kind, action, progress, unarmed))
+					if kind in ["sweeper", "clerk"]:
 						_albedo(model)
 					viewport.add_child(model)
 					model.rotation_degrees.y = direction * 45.0
@@ -88,7 +91,7 @@ func bake() -> void:
 					var cell: Vector2i = Vector2i(frame % EnemyAnimation.COLUMNS,
 						floori(float(frame) / EnemyAnimation.COLUMNS)) * EnemyAnimation.TILE
 					atlas.blit_rect(capture, Rect2i(Vector2i.ZERO, viewport.size), cell)
-					if kind == "sweeper":
+					if kind in ["sweeper", "clerk"]:
 						_normal(model)
 						await RenderingServer.frame_post_draw
 						await RenderingServer.frame_post_draw
@@ -105,18 +108,19 @@ func bake() -> void:
 			return
 		entries.append({"file": kind + ".png", "sha256": FileAccess.get_sha256(destination),
 			"model": KINDS[kind]["model"], "brief": KINDS[kind]["brief"]})
-		if kind == "sweeper":
-			var normal_path: String = OUTPUT + "sweeper_normals.png"
+		if kind in ["sweeper", "clerk"]:
+			var normal_path: String = OUTPUT + kind + "_normals.png"
 			if normals.save_png(normal_path) != OK:
 				push_error("character_bake: could not write normal atlas")
 				quit(1)
 				return
-			entries.append({"file": "sweeper_normals.png", "sha256": FileAccess.get_sha256(normal_path), "model": "paired normal atlas", "brief": "Same eight directions and phase cells as the Sweeper albedo."})
+			entries.append({"file": kind + "_normals.png", "sha256": FileAccess.get_sha256(normal_path), "model": "paired normal atlas", "brief": "Same eight directions and phase cells as the matching albedo."})
 		print("character_bake: wrote ", kind)
 	var sources: Dictionary[String, String] = {}
 	for source: String in ["res://art/characters/geometry.gd", "res://art/characters/rig.gd",
 		"res://art/characters/machines.gd", "res://art/characters/bake.gd", "res://scripts/enemy_animation.gd",
 		"res://scripts/model_geometry.gd", "res://art/models/sweeper_source.gd", "res://art/models/normal_bake.gdshader",
+		"res://art/models/clerk_source.gd", "res://art/models/candidates/clerk.glb",
 		"res://assets/models/finishes/wood.png", "res://assets/models/finishes/metal.png", "res://assets/models/finishes/enamel.png"]:
 		sources[source] = FileAccess.get_sha256(source)
 	var manifest: FileAccess = FileAccess.open(OUTPUT + "manifest.json", FileAccess.WRITE)
@@ -141,12 +145,22 @@ func bake() -> void:
 func _albedo(node: Node) -> void:
 	if node is MeshInstance3D:
 		var original: StandardMaterial3D = node.material_override as StandardMaterial3D
-		var material: StandardMaterial3D = original.duplicate()
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.emission_enabled = false
-		node.material_override = material
+		if original != null:
+			node.material_override = _unlit(original)
+		else:
+			for surface: int in range(node.mesh.get_surface_count()):
+				var material: StandardMaterial3D = node.get_active_material(surface) as StandardMaterial3D
+				if material != null:
+					node.set_surface_override_material(surface, _unlit(material))
 	for child: Node in node.get_children():
 		_albedo(child)
+
+func _unlit(original: StandardMaterial3D) -> StandardMaterial3D:
+	var material: StandardMaterial3D = original.duplicate()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.emission_enabled = false
+	_bake_materials.append(material)
+	return material
 
 func _normal(node: Node) -> void:
 	if node is MeshInstance3D:

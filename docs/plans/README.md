@@ -29,6 +29,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`clerk-model-presentation.md`](./clerk-model-presentation.md) | **implemented**, final CI and merge pending | Prepared skinned human source, authored combat poses and paired body normals; source, animation, lighting, full client and bounded M01/M02 played checks pass. |
 | [`meshy-pipeline.md`](./meshy-pipeline.md) | **implemented and tested**, final CI and merge pending | Live account gate, credit/dollar caps and durable requests; four model candidates plus humanoid rig/walk/run outputs rendered in Godot. Runtime art acceptance remains open. |
 | [`art-excellence.md`](./art-excellence.md) | **in flight**, October 3 increment **shipped**, [PR #337](https://github.com/blisspixel/fragr/pull/337) | Original articulated meshes, Sweeper body normals, fixtures, wall bays, venue materials, water and a completed recorded route. Full roster conversion and played quality acceptance remain open. |
 | [`higgsfield-pipeline.md`](./higgsfield-pipeline.md#api-capability-checker-2026-10-03) | October 3 API checker **shipped**, [PR #337](https://github.com/blisspixel/fragr/pull/337) | Free credential and exact-payload estimate checks with preserved receipts; image prices verified, authoritative 3D route and a programmatic balance endpoint remain unresolved. |

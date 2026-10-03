@@ -326,7 +326,11 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    model stages and proves imports for one enemy, weapon and prop plus a
    topology comparison. [Rendered evidence](evidence/meshy-pilot-20261003.md)
    records skin motion, 125 net credits consumed and 15 held conservatively.
-   Runtime model acceptance remains open.
+   [Clerk presentation](plans/clerk-model-presentation.md) is now in flight:
+   prepared skin and gait, authored combat poses and paired normals pass local
+   checks and bounded M01/M02 played routes. Final CI and merge remain; broader
+   art acceptance stays open. [Evidence](evidence/clerk-model-20261003.md) records
+   actual guard-room frames and the limits of the routes.
    The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean
    screen-faced Latch, paired Sweeper normals, shallow manufactured fixtures,
    articulated wall bays, venue materials and lit moving water. The large
