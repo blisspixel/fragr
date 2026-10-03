@@ -124,7 +124,7 @@ authoritative facts only.
 | Player pain voice | generic hit only | open by choice: no voice work this pass |
 | Lifts, tram, gates, objectives, menu | silent except M02 ward | open |
 
-### Level 7 assets (not wired)
+### Level 7 assets
 
 | File | Use | Source |
 |---|---|---|
@@ -135,12 +135,13 @@ authoritative facts only.
 | `client/assets/audio/ranged_sweeper/fire.wav` | Ranged Sweeper shot | `l07/ranged_shot_b` |
 | `client/assets/audio/l07/curfew_chime.wav` | Four descending tones, 2.9 s | `l07/curfew_chime_b` |
 
-Wiring: `player_pawn.gd` already loads `<kind>/tell.wav` for every
-`ActorState.KINDS` entry and stretches `ranged_sweeper` like the Turret, so
-adding the kind plays the tell on its windup and cuts it when the windup ends.
-A Sniper weapon named `Sniper` picks up `fire_sniper.wav` once it is added to
-the pawn's weapon list. The Ranged Sweeper shot needs one line choosing
-`ranged_sweeper/fire.wav` for that kind.
+Wiring after Level 7 (#324) landed: `l07_assets.gd` now names these cues
+instead of its placeholders. `RangedSweeperAudio` paces the tell to the actual
+windup (1.5 s Standard) and stops it when the windup ends; the pawn skips its
+own copy so the tell plays once. The marksman fires `ranged_sweeper/fire.wav`,
+the player's Sniper Rifle `fire_sniper.wav`, and the scope plays its in and out
+cues on each transition. The curfew chime is named in the table but the level
+does not play it yet. The two placeholder WAVs from #324 are no longer loaded.
 
 ### Verification
 

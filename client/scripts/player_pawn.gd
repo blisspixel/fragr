@@ -93,7 +93,9 @@ const MELEE_SWING_PATHS: Dictionary[String, String] = {
 ## Union telegraphs: `<kind>/tell.wav`, keyed by the authoritative windup.
 const TELL_PATH: String = "res://assets/audio/%s/tell.wav"
 ## Charge-shaped tells are stretched to the actual windup so they peak at the shot.
-const STRETCHED_TELLS: Array[String] = ["turret", "ranged_sweeper"]
+const STRETCHED_TELLS: Array[String] = ["turret"]
+## Kinds whose tell has its own long-range presenter (RangedSweeperAudio).
+const DEDICATED_TELLS: Array[String] = ["ranged_sweeper"]
 const TELL_PITCH_MIN: float = 0.8
 const TELL_PITCH_MAX: float = 1.25
 const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
@@ -170,6 +172,8 @@ var melee_streams: Dictionary[String, AudioStream] = {}
 var tell_streams: Dictionary[String, AudioStream] = {}
 var down_body_stream: AudioStream = null
 var down_robot_stream: AudioStream = null
+## The Ranged Sweeper fires its own machine-mounted shot, not the player's rifle.
+var ranged_fire_stream: AudioStream = null
 ## One-shot timer owned by the pawn, so a freed fighter never pumps late.
 var _cycle_timer: Timer = null
 ## The windup this pawn last announced, as its authoritative start tick.
@@ -221,6 +225,8 @@ func _load_audio_streams():
 		if ResourceLoader.exists(MELEE_SWING_PATHS[weapon]):
 			melee_streams[weapon] = load(MELEE_SWING_PATHS[weapon])
 	for kind: String in ActorState.KINDS:
+		if kind in DEDICATED_TELLS:
+			continue
 		var tell_path: String = TELL_PATH % kind
 		if ResourceLoader.exists(tell_path):
 			tell_streams[kind] = load(tell_path)
@@ -228,6 +234,8 @@ func _load_audio_streams():
 		down_body_stream = load(DOWN_BODY_PATH)
 	if ResourceLoader.exists(DOWN_ROBOT_PATH):
 		down_robot_stream = load(DOWN_ROBOT_PATH)
+	if ResourceLoader.exists(L07Assets.RANGED_SWEEPER_FIRE_SOUND):
+		ranged_fire_stream = load(L07Assets.RANGED_SWEEPER_FIRE_SOUND)
 
 ## Fraction of the remaining distance to close this frame.
 ##
@@ -573,6 +581,8 @@ func show_muzzle_flash(weapon: String):
 	if fire_sound:
 		if fire_streams.has(weapon):
 			fire_sound.stream = fire_streams[weapon]
+		if is_campaign_enemy and campaign_actor.get("kind") == "ranged_sweeper" and ranged_fire_stream != null:
+			fire_sound.stream = ranged_fire_stream
 		if fire_sound.stream:
 			fire_sound.play()
 	if weapon == "Scatter":

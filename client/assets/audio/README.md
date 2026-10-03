@@ -49,9 +49,9 @@ request, asset charge or weapon-gunshot substitution.
 | `pickup/weapon.wav`, `ammo.wav`, `cells.wav`, `health.wav`, `armor.wav` | The watched fighter's pickups |
 | `dry_fire.wav` | The owner's dry trigger |
 | `grenade/throw.wav` | A grenade first seen in flight |
-| `fire_sniper.wav`, `sniper/scope_in.wav`, `sniper/scope_out.wav` | Level 7 Sniper Rifle, not wired yet |
-| `ranged_sweeper/tell.wav`, `ranged_sweeper/fire.wav` | Level 7 Ranged Sweeper, not wired yet; the tell loads once the kind exists |
-| `l07/curfew_chime.wav` | Level 7 curfew chime, not wired yet |
+| `fire_sniper.wav`, `sniper/scope_in.wav`, `sniper/scope_out.wav` | Sniper Rifle fire and scope transitions, through `l07_assets.gd` |
+| `ranged_sweeper/tell.wav`, `ranged_sweeper/fire.wav` | Ranged Sweeper tell (paced to its windup, cut when it ends) and shot |
+| `l07/curfew_chime.wav` | Level 7 curfew chime, named in `l07_assets.gd`; the level does not play it yet |
 | `frag.wav` | Elimination stinger |
 | `round_start.wav`, `round_end.wav` | Round cues |
 | `crawler_scrabble.wav` | Spatial M02 Crawler warning cue |

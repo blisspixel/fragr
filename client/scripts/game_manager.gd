@@ -127,6 +127,8 @@ var pickup_sound: AudioStreamPlayer = null
 var dry_fire_sound: AudioStreamPlayer = null
 var pickup_cue_count: int = 0
 var dry_fire_cue_count: int = 0
+var scope_sound: AudioStreamPlayer = null
+var scope_cue_count: int = 0
 var _dry_fire_seen: int = -1
 
 const CRAWLER_SOUND_PATH: String = "res://assets/audio/crawler_scrabble.wav"
@@ -594,6 +596,12 @@ func _load_audio_streams():
 		pickup_sound.bus = &"Effects"
 		pickup_sound.volume_db = -6.0
 		audio_parent.add_child(pickup_sound)
+	if scope_sound == null:
+		scope_sound = AudioStreamPlayer.new()
+		scope_sound.name = "ScopeSound"
+		scope_sound.bus = &"Effects"
+		scope_sound.volume_db = -6.0
+		audio_parent.add_child(scope_sound)
 	if dry_fire_sound == null and ResourceLoader.exists(DRY_FIRE_SOUND_PATH):
 		dry_fire_sound = AudioStreamPlayer.new()
 		dry_fire_sound.name = "DryFireSound"
@@ -620,6 +628,20 @@ func _play_pickup_cue(kind: String, pickup_id: String) -> void:
 	pickup_sound.stream = pickup_streams[key]
 	pickup_sound.play()
 	pickup_cue_count += 1
+
+func _scope_engaged() -> bool:
+	return hud != null and hud.get("sniper_scope") != null and hud.sniper_scope.scoped()
+
+## Raising and lowering the Sniper Rifle scope, heard only by its holder.
+func _play_scope_cue(was_scoped: bool, now_scoped: bool) -> void:
+	if was_scoped == now_scoped or scope_sound == null:
+		return
+	var path: String = L07Assets.SCOPE_IN_SOUND if now_scoped else L07Assets.SCOPE_OUT_SOUND
+	if not ResourceLoader.exists(path):
+		return
+	scope_sound.stream = load(path)
+	scope_sound.play()
+	scope_cue_count += 1
 
 ## The owner's dry trigger count only grows within one life; a held empty
 ## trigger repeats at the weapon's own cadence on the server.
@@ -891,7 +913,9 @@ func _update_scope(delta: float) -> void:
 	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
 	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
 	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode"))
+	var was_scoped: bool = _scope_engaged()
 	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
+	_play_scope_cue(was_scoped, _scope_engaged())
 	if camera.has_method("apply_zoom"):
 		camera.apply_zoom()
 

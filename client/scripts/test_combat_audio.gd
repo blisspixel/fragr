@@ -87,6 +87,7 @@ func _run() -> void:
 	await _check_shotgun(pawn)
 	_check_melee_and_impact(pawn)
 	await _check_tells(scene)
+	await _check_level7(scene)
 	await _check_manager(scene)
 	pawn.queue_free()
 	await create_timer(0.3).timeout
@@ -227,6 +228,53 @@ func _check_tells(scene: PackedScene) -> void:
 	await process_frame
 
 
+func _check_level7(scene: PackedScene) -> void:
+	_check(L07Assets.SNIPER_FIRE_SOUND == "res://assets/audio/fire_sniper.wav"
+		and L07Assets.RANGED_SWEEPER_TELL_SOUND == "res://assets/audio/ranged_sweeper/tell.wav"
+		and L07Assets.RANGED_SWEEPER_FIRE_SOUND == "res://assets/audio/ranged_sweeper/fire.wav"
+		and L07Assets.SCOPE_IN_SOUND == "res://assets/audio/sniper/scope_in.wav"
+		and L07Assets.SCOPE_OUT_SOUND == "res://assets/audio/sniper/scope_out.wav"
+		and L07Assets.CURFEW_CHIME_SOUND == "res://assets/audio/l07/curfew_chime.wav",
+		"the level 7 table names the delivered cues, not placeholders")
+	var marksman: Node3D = scene.instantiate()
+	root.add_child(marksman)
+	await process_frame
+	_check(not marksman.tell_streams.has("ranged_sweeper"),
+		"the marksman tell has one presenter, never a second copy on the pawn")
+	var state: Dictionary = _union("ranged_sweeper", "firing", 40, 41)
+	state["weapon"] = "Sniper"
+	marksman.update_state(state, 40)
+	marksman.show_muzzle_flash("Sniper")
+	var fire: AudioStreamPlayer3D = marksman.get_node("FireSound")
+	_check(fire.stream != null and fire.stream == marksman.ranged_fire_stream
+		and fire.stream.resource_path == L07Assets.RANGED_SWEEPER_FIRE_SOUND,
+		"a Ranged Sweeper fires its own machine shot")
+	marksman.queue_free()
+	var audio: RangedSweeperAudio = RangedSweeperAudio.new()
+	root.add_child(audio)
+	await process_frame
+	var listener: Vector3 = Vector3(0, 1.6, 0)
+	var aim: Dictionary = _union("ranged_sweeper", "windup", 100, 130)
+	_check(audio.apply({"tick": 100, "players": [aim]}, listener) == 1 and audio.voices[0].playing,
+		"the marksman tell starts with its windup")
+	var cue: float = audio.voices[0].stream.get_length()
+	_check(is_equal_approx(audio.voices[0].pitch_scale, RangedSweeperAudio.windup_pitch(cue, 1.5))
+		and audio.voices[0].stream.resource_path == L07Assets.RANGED_SWEEPER_TELL_SOUND,
+		"the delivered tell is paced to the 1.5 s Standard windup")
+	audio.apply({"tick": 110, "players": [_union("ranged_sweeper", "recovery", 110, 130)]}, listener)
+	_check(not audio.voices[0].playing, "a cancelled windup silences the held tone")
+	_check(audio.apply({"tick": 140, "players": [_union("ranged_sweeper", "windup", 140, 170)]}, listener) == 1,
+		"a new windup cues again")
+	audio.apply({"tick": 170, "players": [_union("ranged_sweeper", "firing", 170, 171)]}, listener)
+	_check(audio.voices.all(func(voice: AudioStreamPlayer3D) -> bool: return not voice.playing),
+		"the shot ends the tell")
+	_check(is_equal_approx(RangedSweeperAudio.windup_pitch(1.0, 0.0), 1.0)
+		and is_equal_approx(RangedSweeperAudio.windup_pitch(1.18, 3.0), RangedSweeperAudio.PITCH_MIN),
+		"pacing stays inside a recognisable range")
+	audio.queue_free()
+	await process_frame
+
+
 func _check_manager(scene: PackedScene) -> void:
 	var manager: Node = Node.new()
 	root.add_child(manager)
@@ -267,6 +315,16 @@ func _check_manager(scene: PackedScene) -> void:
 		manager.call("_play_dry_fire_cue", step[0])
 		_check(manager.get("dry_fire_cue_count") == step[1],
 			"dry trigger feedback follows only a growing count: " + str(step[0]))
+	var scope: AudioStreamPlayer = manager.get("scope_sound")
+	manager.call("_play_scope_cue", false, false)
+	manager.call("_play_scope_cue", false, true)
+	_check(manager.get("scope_cue_count") == 1 and scope.stream.resource_path == L07Assets.SCOPE_IN_SOUND,
+		"raising the scope plays the scope-in cue once")
+	manager.call("_play_scope_cue", true, true)
+	manager.call("_play_scope_cue", true, false)
+	_check(manager.get("scope_cue_count") == 2 and scope.stream.resource_path == L07Assets.SCOPE_OUT_SOUND,
+		"lowering it plays the scope-out cue")
+	_check(not manager.call("_scope_engaged"), "a HUD without a scope is never scoped")
 	var target: Node3D = scene.instantiate()
 	root.add_child(target)
 	await process_frame
