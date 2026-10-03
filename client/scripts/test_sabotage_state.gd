@@ -102,6 +102,18 @@ func _run() -> void:
 	line = SabotageState.hud_line(state, "union")
 	_check(line == "R3  DEFEND  UNION 2 : 0 FREE  CHARGE 0:21", "the defence reads the charge clock: " + line)
 	_check(SabotageState.hud_line(_state(), "").begins_with("SABOTAGE R3"), "a spectator reads the mode")
+	# The Use prompt takes the clock's place on the same line.
+	var carry: Dictionary = _state()
+	_check(SabotageState.use_prompt(carry, _layout(), "c1", "coalition", Vector3(10.0, 0.0, -2.0)).is_empty(), "no prompt outside a plant area")
+	_check(SabotageState.use_prompt(carry, _layout(), "c1", "coalition", Vector3(-37.0, 0.0, -26.0)) == "HOLD {use}: PLANT", "the carrier in A reads the plant prompt")
+	_check(SabotageState.use_prompt(carry, _layout(), "c2", "coalition", Vector3(-37.0, 0.0, -26.0)).is_empty(), "only the carrier is prompted to plant")
+	line = SabotageState.hud_line(carry, "coalition", "HOLD F: PLANT")
+	_check(line == "R3  ATTACK  UNION 2 : 0 FREE  HOLD F: PLANT", "the prompt rides the one line: " + line)
+	carry["phase"] = "planted"
+	carry["charge"] = {"status": "planted", "position": [-38.0, 0.0, 27.0], "site": "b"}
+	_check(SabotageState.use_prompt(carry, _layout(), "u1", "union", Vector3(-37.0, 0.0, 27.5)) == "HOLD {use}: DEFUSE", "a defender at the charge reads the defuse prompt")
+	_check(SabotageState.use_prompt(carry, _layout(), "u1", "union", Vector3(-34.0, 0.0, 27.0)).is_empty(), "the defuse prompt needs the server's reach")
+	_check(SabotageState.use_prompt(carry, _layout(), "c1", "coalition", Vector3(-38.0, 0.0, 27.0)).is_empty(), "attackers are never prompted to defuse")
 	_check(is_equal_approx(SabotageState.charge_fraction(state, 700), 0.6), "the charge timer drains")
 	_check(SabotageState.charge_fraction(_state(), 700) < 0.0, "no timer before a plant")
 	state["progress"] = {"kind": "plant", "player_id": "c1", "site": "a", "ticks": 30, "needed": 60}

@@ -2256,7 +2256,15 @@ func _apply_sabotage(data: Dictionary) -> void:
 	arena_sabotage.apply(state, carriers, _sabotage_viewer_team())
 	var progress: Variant = state.get("progress")
 	var owner: bool = progress is Dictionary and eyes != "" and str(progress.get("player_id", "")) == eyes
-	hud.set_sabotage_state(state, _sabotage_viewer_team(), _sabotage_charge_ticks, owner, carrier_id != "" and carrier_id == eyes)
+	var prompt: String = ""
+	var my_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
+	if my_id != "" and not owner:
+		for player_data: Variant in data.get("players", []):
+			if player_data is Dictionary and str(player_data.get("id", "")) == my_id and int(player_data.get("hp", 0)) > 0:
+				# The prompt reads horizontal distance only.
+				var feet: Vector3 = Vector3(float(player_data.get("x", 0.0)), 0.0, float(player_data.get("z", 0.0)))
+				prompt = SabotageState.use_prompt(state, sabotage_layout, my_id, _sabotage_team, feet)
+	hud.set_sabotage_state(state, _sabotage_viewer_team(), _sabotage_charge_ticks, owner, carrier_id != "" and carrier_id == eyes, prompt)
 
 
 func _on_sabotage_event(data: Dictionary) -> void:

@@ -246,6 +246,15 @@ msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE  {clock}"
 msgid "SABOTAGE_LINE_PLANTED_WATCH"
 msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE  CHARGE {clock}"
 
+msgid "SABOTAGE_LINE_PROMPT"
+msgstr "R{round}  {job}  UNION {union} : {coalition} FREE  {clock}"
+
+msgid "SABOTAGE_PROMPT_PLANT"
+msgstr "HOLD {use}: PLANT"
+
+msgid "SABOTAGE_PROMPT_DEFUSE"
+msgstr "HOLD {use}: DEFUSE"
+
 msgid "SABOTAGE_LINE_OVER_WATCH"
 msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE"
 

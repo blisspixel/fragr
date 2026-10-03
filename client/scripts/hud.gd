@@ -314,10 +314,10 @@ func sabotage() -> bool:
 
 ## One snapshot of a Sabotage round. Only the single line is text; the rest
 ## is drawn by the Sabotage widgets.
-func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: int, progress_owner: bool, carried: bool) -> void:
+func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: int, progress_owner: bool, carried: bool, prompt: String = "") -> void:
 	if not sabotage():
 		return
-	var line: String = SabotageState.hud_line(state, viewer_team)
+	var line: String = SabotageState.hud_line(state, viewer_team, InputGlyphs.plain(prompt) if not prompt.is_empty() else "")
 	if sabotage_hud != null:
 		sabotage_hud.apply(state, charge_ticks, progress_owner, carried)
 	var score: Variant = state.get("score")

@@ -19,6 +19,8 @@ const MAX_CALLOUTS: int = 32
 const MAX_CALLOUT_ID: int = 32
 const ATTACKERS: String = "coalition"
 const TICKS_PER_SECOND: int = 20
+## The server's defuse reach, horizontally, for the prompt only.
+const DEFUSE_REACH: float = 1.75
 
 
 ## Membership that tolerates any Variant: a typed array refuses a null probe.
@@ -154,8 +156,10 @@ static func _text(key: String) -> String:
 	return str(TranslationServer.translate(key))
 
 
-## The single HUD line: round, the viewer's job, the score and the clock.
-static func hud_line(state: Dictionary, viewer_team: String) -> String:
+## The single HUD line: round, the viewer's job, the score and the clock. A
+## `prompt` (hold Use to plant or defuse) takes the clock's place, so the line
+## stays one line.
+static func hud_line(state: Dictionary, viewer_team: String, prompt: String = "") -> String:
 	if state.is_empty():
 		return ""
 	var phase: String = str(state.get("phase", ""))
@@ -169,6 +173,9 @@ static func hud_line(state: Dictionary, viewer_team: String) -> String:
 	var key: String = "SABOTAGE_LINE_" + phase.to_upper()
 	if job.is_empty():
 		key += "_WATCH"
+	elif not prompt.is_empty():
+		key = "SABOTAGE_LINE_PROMPT"
+		clock = prompt
 	return _text(key).format({
 		"round": int(state.get("round", 1)),
 		"job": job,
@@ -176,6 +183,27 @@ static func hud_line(state: Dictionary, viewer_team: String) -> String:
 		"coalition": int(score.get("coalition", 0)),
 		"clock": clock,
 	})
+
+
+## The Use prompt for a joined fighter at `feet`: the carrier inside a plant
+## area, or a defender at the planted charge. Empty otherwise. Words only; the
+## server decides whether a plant or defuse actually starts.
+static func use_prompt(state: Dictionary, layout: Dictionary, viewer_id: String, viewer_team: String, feet: Vector3) -> String:
+	var charge: Variant = state.get("charge")
+	if not charge is Dictionary or viewer_id.is_empty():
+		return ""
+	if state.get("phase") == "live" and charge.get("status") == "carried" and str(charge.get("carrier", "")) == viewer_id:
+		for site: Variant in layout.get("sites", []):
+			if not site is Dictionary or not _point(site.get("center"), 3):
+				continue
+			var centre: Array = site["center"]
+			if Vector2(feet.x - float(centre[0]), feet.z - float(centre[2])).length() <= float(site.get("radius", 0.0)):
+				return _text("SABOTAGE_PROMPT_PLANT")
+	if state.get("phase") == "planted" and viewer_team == "union" and charge.get("status") == "planted":
+		var at: Array = charge.get("position", [])
+		if _point(at, 3) and Vector2(feet.x - float(at[0]), feet.z - float(at[2])).length() <= DEFUSE_REACH:
+			return _text("SABOTAGE_PROMPT_DEFUSE")
+	return ""
 
 
 ## Fraction of a held Use done, 0 to 1, or -1 without one.
