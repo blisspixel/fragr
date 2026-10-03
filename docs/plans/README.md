@@ -16,19 +16,21 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The M06, asset, radio and body-contact increment shipped in
-[PR #317](https://github.com/blisspixel/fragr/pull/317), with passing
-[final-source CI](https://github.com/blisspixel/fragr/actions/runs/36981473008)
-and all three desktop package checks. All four README captures are refreshed and inspected.
-Final campaign texture tours and the single 188-script/88-harness whole-client
-gate pass. Source-main CI and tagged desktop publication are tracked in the
-[release closeout](m06-release-closeout.md). Fresh-player,
-difficulty, subjective listening and final character acceptance remain open.
+The October 3 art production increment shipped in
+[PR #337](https://github.com/blisspixel/fragr/pull/337) and
+[v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0), with passing
+[implementation CI](https://github.com/blisspixel/fragr/actions/runs/37149465221)
+and all three desktop package checks. The four README captures are refreshed and
+inspected; the whole-client gate passes 218 scripts and 99 harnesses. A recorded
+Low Water route completes all 23 states through departure. The
+[production evidence](../evidence/art-production-20261003.md) records scope and
+limits. Fresh-player, difficulty, subjective listening and full art acceptance
+remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`art-excellence.md`](./art-excellence.md) | **in flight**, October 3 production | Original articulated meshes, Sweeper body normals, manufactured fixtures, wall bays, venue materials and water; a large high-resolution source library. Full roster conversion and played quality acceptance remain open. |
-| [`higgsfield-pipeline.md`](./higgsfield-pipeline.md#api-capability-checker-2026-10-03) | October 3 API checker **implemented** locally | Free credential and exact-payload estimate checks, preserved JSON receipts and offline validation; image prices verified, authoritative 3D route and API balance remain unresolved. |
+| [`art-excellence.md`](./art-excellence.md) | **in flight**, October 3 increment **shipped**, [PR #337](https://github.com/blisspixel/fragr/pull/337) | Original articulated meshes, Sweeper body normals, fixtures, wall bays, venue materials, water and a completed recorded route. Full roster conversion and played quality acceptance remain open. |
+| [`higgsfield-pipeline.md`](./higgsfield-pipeline.md#api-capability-checker-2026-10-03) | October 3 API checker **shipped**, [PR #337](https://github.com/blisspixel/fragr/pull/337) | Free credential and exact-payload estimate checks with preserved receipts; image prices verified, authoritative 3D route and a programmatic balance endpoint remain unresolved. |
 | [`directional-combat-audio.md`](./directional-combat-audio.md) | **planned** | Hear and see where fire comes from: near-miss cracks from resolved shot paths, a damage-direction arc, occlusion behind walls and per-venue space. |
 | [`sabotage-mode.md`](./sabotage-mode.md) | **shipped**, [PR #325](https://github.com/blisspixel/fragr/pull/325), [PR #333](https://github.com/blisspixel/fragr/pull/333), human review open | The first flagship round mode on Sector 9: one life, plant and defuse with a held Use, halves with a side swap, carried equipment, rule bots on both sides and agents through MCP. |
 | [`campaign-polish-20261002.md`](./campaign-polish-20261002.md) | **shipped**, [PR #320](https://github.com/blisspixel/fragr/pull/320), [PR #326](https://github.com/blisspixel/fragr/pull/326) | Automated playtest and fix pass over levels 1 to 6: HUD, run flow, arrivals, agents, sealed M01 and M06 geometry; ranked open items for human play. |

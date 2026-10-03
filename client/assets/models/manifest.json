@@ -60,7 +60,7 @@
 	"sources": {
 		"res://art/models/bake.gd": "461a8ae02b8cf60e8284f562b8e5307185164025be5f4d2e57fe4b3e8398f320",
 		"res://art/models/model_clips.gd": "c4c71f9f5a4bbcbd09e8bca593bc12bc46c6f8ce8aeae12acc4ebe4576214c49",
-		"res://art/models/shotgun_source.gd": "c73ec0eeb03c3ae0134d42169322a1ff1ba50d63efac74ff3fecc451253f66cf",
+		"res://art/models/shotgun_source.gd": "6a02c758d10a7ba2dcdef237609976e8f97d175a8707e4839854bb16d3800dd1",
 		"res://art/models/sweeper_source.gd": "3d32bf63894e5193a47b0b3325982dd2ebf729800ebba3ef9d63c3ab2c7c8e38",
 		"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",
 		"res://assets/models/finishes/metal.png": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",

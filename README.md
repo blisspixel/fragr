@@ -99,7 +99,10 @@ save behavior and settings are in the [playing guide](docs/PLAYING.md).
 These four stills were refreshed and inspected on October 3, 2026 for the
 current development work. Recall Notice shows the articulated room surfaces;
 the watched match shows the current arena materials and character presentation.
-This art production pass is not yet part of the downloadable v0.67.0 release. The
+This art production pass ships in
+[v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0). Watch the
+[Low Water playthrough with game audio](https://github.com/blisspixel/fragr/releases/download/v0.68.0/fragr-low-water-playthrough-20261003.mp4),
+recorded through ordinary inputs to mission departure. The
 [visual tour](docs/screenshots/README.md) has more states and capture context.
 
 Boot menu:

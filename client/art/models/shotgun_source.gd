@@ -101,4 +101,3 @@ func pose(gun: Node3D, time: float) -> void:
 		stroke = sin((t - 0.18) / 0.26 * PI)
 	var pump: Node3D = gun.get_node("Pump")
 	pump.position.z = -0.55 + stroke * 0.115
-

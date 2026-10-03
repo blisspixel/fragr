@@ -1,10 +1,10 @@
 # Changelog
 
-Release history, newest first. Unreleased changes precede the shipped tags. Planned work stays in
+Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.68.0 (2026-10-03)
 
 The Sweeper now comes from an original articulated 3D source, with directional
 normal cells that let venue light describe its body. Its carbine keeps a shorter

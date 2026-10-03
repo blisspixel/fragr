@@ -15,7 +15,7 @@ The engineering ladder for scale runs through every phase: small squads first (f
 
 ## Where we are (2026-10-03)
 
-[v0.67.0](https://github.com/blisspixel/fragr/releases/tag/v0.67.0) is the
+[v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0) is the
 current desktop release. Main is the only branch and its CI passes. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
@@ -48,7 +48,10 @@ A recorded human session on two machines remains open.
   pump cycle, rebalanced guns, per-weapon impacts and enemy windup tells.
 - An optional [frame counter](plans/frame-counter.md).
 
-The [art excellence](plans/art-excellence.md) production pass is in flight.
+The [art excellence](plans/art-excellence.md) effort remains in flight. Its
+October 3 production increment shipped in [PR #337](https://github.com/blisspixel/fragr/pull/337)
+and v0.68.0. The [Low Water playthrough](https://github.com/blisspixel/fragr/releases/download/v0.68.0/fragr-low-water-playthrough-20261003.mp4)
+shows the integrated assets in combat through mission departure.
 The Sweeper now has a shaped articulated mesh source and a paired normal
 atlas used by the live sprite presenter. Latch has a lean screen-faced live
 model. Registered fixtures and recessed wall bays give existing rooms
@@ -106,7 +109,9 @@ earlier opening batch are in the M01 opening ([scene plan](plans/campaign-scenes
 The old radio-only ending cannot be integrated as the new campaign's actual ending.
 No balance endpoint was documented in the checked API sources. Nick reported
 $8.08 before art pass 2 and $105.88 after the October 3 top-up; the latest
-allowance is recorded above, with actual usage still requiring reconciliation.
+allowance is recorded above.
+The October 3 aggregate balance is reconciled to Nick's reported $14.42;
+individual request charges remain unverified.
 
 **Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, level 7 integrated into the run, levels 9 to 20, the end-of-level tally, the planned console, Ultra graphics and the player-facing rendered benchmark, directional combat audio, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
@@ -293,7 +298,7 @@ map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
 asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-0. **Nick plays v0.67.0.** About an hour across levels 1 to 6, Sabotage with
+0. **Nick plays v0.68.0.** About an hour across levels 1 to 6, Sabotage with
    bots and capture the flag, using the watch list in the
    [polish plan](plans/campaign-polish-20261002.md).
    *Why:* automation proved the routes work; only a person can say whether it
