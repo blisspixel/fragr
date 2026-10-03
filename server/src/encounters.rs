@@ -107,13 +107,15 @@ impl Encounters {
         state.ensure_m04_companion();
         state.ensure_m05_companion();
         state.ensure_m06_companion();
+        state.ensure_m08_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
             // M04 introduces each airborne threat in order. Do not expose a
             // future group that can be shot awake before its lesson.
             if (map.m04_objectives().is_some()
                 || map.m05_objectives().is_some()
-                || map.m06_objectives().is_some())
+                || map.m06_objectives().is_some()
+                || map.m08_objectives().is_some())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
                         .iter()

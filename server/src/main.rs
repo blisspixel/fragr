@@ -27,7 +27,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "custodian_of_record"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
@@ -172,6 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "notice_to_vacate" => fragr_server::protocol::MissionId::NoticeToVacate,
             "no_forwarding_address" => fragr_server::protocol::MissionId::NoForwardingAddress,
             "port_of_entry" => fragr_server::protocol::MissionId::PortOfEntry,
+            "custodian_of_record" => fragr_server::protocol::MissionId::CustodianOfRecord,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };
         return fragr_server::local::serve_with_mode(
@@ -405,6 +406,8 @@ mod tests {
             "scheduled_service",
             "notice_to_vacate",
             "no_forwarding_address",
+            "port_of_entry",
+            "custodian_of_record",
         ] {
             let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
             assert_eq!(args.local_mission.as_deref(), Some(mission));

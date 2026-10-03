@@ -319,6 +319,9 @@ Its integration and acceptance evidence is recorded in that bounded plan.
    prerequisite. The [shared world/character guides](design/README.md) govern
    useful furnishing, lighting and water. Follow the one-new-thing-per-level
    treatment in [CAMPAIGN-MISSIONS.md](CAMPAIGN-MISSIONS.md).
+   Level 8 [Custodian of Record](plans/l08-custodian-of-record-prototype.md) is a
+   development prototype with the Proximity Mine and the Auditor; its M07 to M08
+   carry waits for level 7, and fresh-player and difficulty acceptance stay open.
 2. Refine CTF across its three arenas with contested, multi-seed human/agent/
    spectator automation and inspected captures. Track captures, combat drops,
    route progress and timeouts together. Continue TDM controls regressions before

@@ -48,6 +48,21 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m06_impound_observation": "WORLD_M06_IMPOUND_OBSERVATION",
 	"m06_depot_overlook": "WORLD_M06_DEPOT_OVERLOOK",
 	"m06_transit_departure": "WORLD_M06_TRANSIT_DEPARTURE",
+	"m08_checkpoint_form": "WORLD_M08_CHECKPOINT_FORM",
+	"m08_observation_six": "WORLD_M08_OBSERVATION_SIX",
+	"m08_lost_property_six": "WORLD_M08_LOST_PROPERTY_SIX",
+	"m08_registry": "WORLD_M08_REGISTRY",
+	"m08_bay_release": "WORLD_M08_BAY_RELEASE",
+	"m08_bay_form": "WORLD_M08_BAY_FORM",
+	"m08_mine_cage": "WORLD_M08_MINE_CAGE",
+	"m08_seal_locked": "WORLD_M08_SEAL_LOCKED",
+	"m08_seal_open": "WORLD_M08_SEAL_OPEN",
+	"m08_service_six": "WORLD_M08_SERVICE_SIX",
+	"m08_cold_cabinet": "WORLD_M08_COLD_CABINET",
+	"m08_evidence_desk": "WORLD_M08_EVIDENCE_DESK",
+	"m08_authorized_noise": "WORLD_M08_AUTHORIZED_NOISE",
+	"m08_freight_departure": "WORLD_M08_FREIGHT_DEPARTURE",
+	"m08_custody_shaft": "WORLD_M08_CUSTODY_SHAFT",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
@@ -87,9 +102,9 @@ static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure": return 3
-		"gate_locked": return 7
-		"gate_open": return 8
+		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m08_freight_departure", "m08_bay_release": return 3
+		"gate_locked", "m08_seal_locked": return 7
+		"gate_open", "m08_seal_open": return 8
 		"m03_schedule_cancelled": return 7
 		"strip_light": return 4
 		"union_seal": return 5

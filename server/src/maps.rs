@@ -64,6 +64,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::PortOfEntry => {
                 include_bytes!("../maps/m06_port_of_entry.json")
             }
+            crate::protocol::MissionId::CustodianOfRecord => {
+                include_bytes!("../maps/m08_custodian_of_record.json")
+            }
         };
         sha2::Sha256::digest(bytes).into()
     }
@@ -88,6 +91,9 @@ impl AuthoredSource {
             ),
             Self::Mission(crate::protocol::MissionId::PortOfEntry) => {
                 AuthoredMap::read(include_bytes!("../maps/m06_port_of_entry.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::CustodianOfRecord) => {
+                AuthoredMap::read(include_bytes!("../maps/m08_custodian_of_record.json").as_slice())
             }
         }
     }

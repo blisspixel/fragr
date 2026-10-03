@@ -238,6 +238,7 @@ impl GameState {
                 || run.m04.is_some()
                 || run.m05.is_some()
                 || run.m06.is_some()
+                || run.m08.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -350,6 +351,7 @@ impl GameState {
         self.ensure_m04_companion();
         self.ensure_m05_companion();
         self.ensure_m06_companion();
+        self.ensure_m08_companion();
         self.shot_results.clear();
         tracing::info!(
             attempt = request.attempt + 1,

@@ -192,6 +192,8 @@ static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
 	if key.contains("port of entry"):
 		return moon_port()
+	if key.contains("custodian of record") or key.contains("custody device range"):
+		return moon_archive()
 	if key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
@@ -218,6 +220,20 @@ static func moon_port() -> Preset:
 	preset.view_fill_range = 65.0
 	preset.contrast = 1.08
 	preset.saturation = 0.90
+	return preset
+
+## The custody archive: an enclosed lunar institution lit by desk lamps,
+## the shaft's cold glow and the freight lane. Darker than the port, with
+## warmer, shorter practical pools.
+static func moon_archive() -> Preset:
+	var preset: Preset = moon_port()
+	preset.key_energy = 1.1
+	preset.scene_fill_energy = 0.08
+	preset.practical_color = Color("ffe2ad")
+	preset.practical_energy = 2.6
+	preset.practical_range = 11.0
+	preset.view_fill_energy = 0.5
+	preset.contrast = 1.1
 	return preset
 
 static func low_water() -> Preset:

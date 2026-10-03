@@ -69,7 +69,18 @@ body comes within two metres and trips it; it goes dark with its owner. The
 Auditor raises a hand and channels a visible repair into a disabled Sweeper,
 twice at most; a hit or broken sight snaps it, and its shield plate halves
 frontal shots. Agents engage a channeling Auditor first. Mines have their own
-count, records column and Godot presentation. Level 8 itself is not built yet.
+count, records column and Godot presentation.
+
+Custodian of Record, the level 8 radial custody archive, is a development
+prototype under Practice and Development. Clear the records hall around the
+central shaft, take the cage mines in a one-entrance alcove and let a
+dispatched post pair walk into them, beat the upper gallery Auditor to lift the
+archive's one seal, survive an ambush among the cooling pipes, then shoot four
+glowing support nodes until the custody machine drops through every gallery. The transfer evidence, an uncalled freight
+car and a counterattack up both freight stairs lead to departure. The lower
+bays and Orrin's cold cabinet are optional, three secrets are marked with a
+six, and keyed text pages frame the arrival and departure. Its M07 to M08 run
+carry waits for level 7.
 
 ## Unreleased (sound pass, 2026-10-02)
 

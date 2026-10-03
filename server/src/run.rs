@@ -301,6 +301,9 @@ async fn run_server_impl(
                     crate::protocol::MissionId::PortOfEntry => {
                         saved.promote_next(target, m06_hash)?
                     }
+                    crate::protocol::MissionId::CustodianOfRecord => {
+                        return Err("saved runs do not reach Custodian of Record yet".into())
+                    }
                     crate::protocol::MissionId::RecallNotice => {
                         return Err("a saved transition cannot return to M01".into())
                     }
@@ -395,7 +398,11 @@ async fn run_server_impl(
             .iter()
             .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
     });
-    let required_gameplay = if session.state.map.requires_sniper_contract() {
+    let required_gameplay = if session.state.map.campaign_mission_id()
+        == Some(crate::protocol::MissionId::CustodianOfRecord)
+    {
+        crate::protocol::M08_GAMEPLAY_VERSION
+    } else if session.state.map.requires_sniper_contract() {
         crate::protocol::SNIPER_GAMEPLAY_VERSION
     } else if session.state.map.has_custody_devices() {
         crate::protocol::CUSTODY_GAMEPLAY_VERSION

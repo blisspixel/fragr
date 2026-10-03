@@ -74,6 +74,10 @@ Practice and Development** to practice while preserving your personal run.
 Its implementation and outstanding acceptance are tracked in the
 [M06 plan](docs/plans/m06-port-of-entry-prototype.md).
 
+**Custodian of Record** is the level 8 custody archive development prototype, with the
+Proximity Mine and the repairing Auditor, under **Practice and Development**
+([plan](docs/plans/l08-custodian-of-record-prototype.md)).
+
 The [style and look guidelines](docs/ART_STORY_BIBLE.md) define the game's
 original retro FPS identity: Doom II's readable combat spaces, Quake's 3D movement
 and LAN spirit, and Boltgun's pixel craft and weapon weight. They connect the

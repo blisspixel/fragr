@@ -28,7 +28,7 @@ static func accent(map_id: int) -> Color:
 		5: return Color("6e7950")
 		6: return Color("8a3a58")
 		1004, 1005: return Color("8b6850")
-		1006: return Color("b7aea0")
+		1006, 1008: return Color("b7aea0")
 		_: return Color("7a3a22")
 
 static func make(map_id: int, kind: int) -> ShaderMaterial:
@@ -41,7 +41,7 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 		base = Color("756e59") if kind == 0 else Color("73796a")
 	elif map_id in [1004, 1005]:
 		base = Color("686f69") if kind == 0 else Color("8c796a")
-	elif map_id == 1006:
+	elif map_id in [1006, 1008]:
 		base = Color("a9a698") if kind == 0 else Color("8b8e87")
 	if kind == 2:
 		base = base.darkened(0.15)

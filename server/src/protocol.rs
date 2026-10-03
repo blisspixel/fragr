@@ -9,6 +9,7 @@ mod loadout;
 mod m04;
 mod m05;
 mod m06;
+mod m08;
 mod mission;
 mod rules;
 mod sabotage;
@@ -40,6 +41,10 @@ pub use m05::{
     M05TramState, M05WorkerGeometry, M05WorkerState, M05_OBJECTIVE_IDS, M05_WORKER_IDS,
 };
 pub use m06::{M06MapGeometry, M06ObjectiveState, M06_OBJECTIVE_IDS, M06_SERVICE_ID};
+pub use m08::{
+    M08MapGeometry, M08NodeGeometry, M08ObjectiveState, M08_BAYS_ID, M08_CABINET_ID,
+    M08_MACHINE_STEP, M08_NODES, M08_NODE_HP, M08_OBJECTIVE_IDS,
+};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,
@@ -650,7 +655,10 @@ pub const CUSTODY_GAMEPLAY_VERSION: u32 = 29;
 /// records) and the stationary `ranged_sweeper` marksman. Required only where a
 /// map grants the Sniper or places a Ranged Sweeper.
 pub const SNIPER_GAMEPLAY_VERSION: u32 = 30;
-pub const GAMEPLAY_VERSION: u32 = SNIPER_GAMEPLAY_VERSION;
+/// Custodian of Record's strict `m08` geometry and mission facts and the
+/// `custodian_of_record` mission id. Required only on M08.
+pub const M08_GAMEPLAY_VERSION: u32 = 31;
+pub const GAMEPLAY_VERSION: u32 = M08_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -768,6 +776,7 @@ mod geometry_tests {
             m04: None,
             m05: None,
             m06: None,
+            m08: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -878,6 +887,8 @@ pub enum ServerMessage {
         m05: Option<M05MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m06: Option<M06MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m08: Option<M08MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

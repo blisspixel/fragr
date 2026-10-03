@@ -21,6 +21,7 @@ const M04_MISSION: &str = "notice_to_vacate";
 const M05_MISSION: &str = "no_forwarding_address";
 const M06_MISSION: &str = "port_of_entry";
 const M07_MISSION: &str = "declared_goods";
+const M09_MISSION: &str = "passenger_manifest";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -224,6 +225,9 @@ impl RunDocument {
             MissionId::NoticeToVacate => (MissionId::ScheduledService, M04_MISSION),
             MissionId::NoForwardingAddress => (MissionId::NoticeToVacate, M05_MISSION),
             MissionId::PortOfEntry => (MissionId::NoForwardingAddress, M06_MISSION),
+            MissionId::CustodianOfRecord => {
+                return Err("saved runs do not reach Custodian of Record yet")
+            }
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
         let SavedStep::AwaitingMission {
@@ -282,6 +286,17 @@ impl RunDocument {
     }
 
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
+        if self.stage_mission() == MissionId::CustodianOfRecord
+            || matches!(
+                &self.step,
+                SavedStep::AwaitingMission {
+                    completed_mission: MissionId::CustodianOfRecord,
+                    ..
+                }
+            )
+        {
+            return Err("saved runs do not reach Custodian of Record yet");
+        }
         let completed_m03 = matches!(
             self.stage_mission(),
             MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
@@ -429,6 +444,7 @@ impl GameState {
                     MissionId::NoticeToVacate => M05_MISSION,
                     MissionId::NoForwardingAddress => M06_MISSION,
                     MissionId::PortOfEntry => M07_MISSION,
+                    MissionId::CustodianOfRecord => M09_MISSION,
                 }
                 .into(),
                 exit: solo

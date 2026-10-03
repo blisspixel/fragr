@@ -21,7 +21,7 @@
   "landmarks": [
     {"id":"corridor_mouth","feet":[-11.5,0,1.5]},
     {"id":"alcove_corner","feet":[-19.5,0,2]},
-    {"id":"post","feet":[-11.5,0,20]},
+    {"id":"post","feet":[16,0,20]},
     {"id":"bay_flank","feet":[21,0,14]},
     {"id":"bay_rear","feet":[12,0,22.5]}
   ],
@@ -29,6 +29,7 @@
     {"id":"range_rifle","feet":[-1.5,0,-16],"grant":{"kind":"weapon","weapon":"flechette"},"claim":"personal"},
     {"id":"range_shotgun","feet":[1.5,0,-16],"grant":{"kind":"weapon","weapon":"scatter"},"claim":"personal"},
     {"id":"range_bullets","feet":[0,0,-14],"grant":{"kind":"ammo","pool":"bullets","amount":60},"claim":"contested"},
+    {"id":"range_armor","feet":[-3,0,-14],"grant":{"kind":"armor","amount":50},"claim":"contested"},
     {"id":"cage_mines","feet":[-19.5,0,-0.5],"grant":{"kind":"proximity_mine","amount":4},"claim":"personal"},
     {"id":"bay_shells","feet":[2,0,0],"grant":{"kind":"ammo","pool":"shells","amount":12},"claim":"contested"},
     {"id":"bay_health","feet":[22,0,4],"grant":{"kind":"health","amount":50},"claim":"contested"}
@@ -36,8 +37,8 @@
   "encounters": [
     {"id":"mine_lesson","regions":[{"min":[-21,0,-5],"max":[-14,2,3]}],
       "enemies":[
-        {"id":"post_sweeper_a","kind":"sweeper","feet":[-11.5,0,19],"yaw":4.712389},
-        {"id":"post_sweeper_b","kind":"sweeper","feet":[-11.5,0,21.5],"yaw":4.712389}
+        {"id":"post_sweeper_a","kind":"sweeper","feet":[16,0,22],"yaw":3.1415927},
+        {"id":"post_sweeper_b","kind":"sweeper","feet":[19,0,22],"yaw":3.1415927}
       ]},
     {"id":"audit_bay","regions":[{"min":[2,0,4],"max":[24,2,24]}],
       "enemies":[

@@ -157,6 +157,8 @@ Initial handshake message. Must be sent immediately after connection.
   `ranged_sweeper` Union kind. A map that grants the Sniper Rifle or places a
   Ranged Sweeper requires 30 for every role, because an older reader would
   refuse a loadout or actor naming them. Other maps keep their requirements.
+  Version 31 adds Custodian of Record's strict `m08` geometry and mission facts
+  and the `custodian_of_record` mission id. Only M08 requires 31.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -476,6 +478,27 @@ unique subset. These are immutable previous outcomes, not new port actors or
 assumed ship passengers. Departure requires all living ready participants
 aboard and a fresh aimed Use. Retry resets the port, guards, grants, ally and
 optional marker while retaining earlier outcomes and the M06 entry.
+
+M08 carries `m08` exactly for `custodian_of_record`, mutually exclusive with
+every earlier mission envelope. Its strict facts are
+`{completed,current?,node_hp,seal_open,machine_fallen,custodian_joined,custody_released,recovered_mind_secured,transfer_evidence,captives_evacuated}`.
+The required prefix is `hall_cleared`, `lower_gallery_cleared`,
+`mines_cleared`, `auditor_cleared`, `machine_wrecked`, `evidence_taken`,
+`exit_cleared`, then `party_departed`. Every step but `machine_wrecked` is an
+Arrival that needs its own group cleared and active ready party arrival; future
+groups stay absent until their predecessor clears. When the upper gallery
+Auditor's group clears, the server swaps to the precomputed lifted-seal world
+and resends MapInfo before the changed facts. `machine_wrecked` is a Shoot
+objective naming the next intact support node. Each node has 50 health and
+takes only resolved ray impacts on its registered face while the machine is
+the current step; `node_hp` lists the four in geometry order. The last break
+swaps to the precomputed fallen world. `custodian_joined` follows the lower
+gallery step and `transfer_evidence` the evidence step. `custody_released` and
+`recovered_mind_secured` are optional arrivals at the lower bays and the cold
+cabinet, available only after the seal lifts; neither gates departure.
+`captives_evacuated` is set at departure only when the bays were released.
+Departure requires all living ready participants aboard and a fresh aimed Use.
+Retry restores the sealed world, every node, the guards and every fact.
 
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
@@ -802,6 +825,16 @@ also send `map_info` before shared progress, even when the map ID stays the same
   supported routes and real pressure-glass solids. Same-map replacement cannot
   rebind this contract; controllers wait for matching fresh facts. Every M06
   role requires capability 27, with campaign rules revision 3 unchanged.
+- `m08`: present only on Custodian of Record, map ID 1008 and geometry version
+  2. The strict object contains six ordered Arrival `objectives` (every chain
+  step but `machine_wrecked`), four `nodes` (`solid`, supported `approach`,
+  `aim`), the `machine` and `seal` solid indices, the optional `bays`
+  (`custody_released`) and `cabinet` (`recovered_mind_secured`) arrivals,
+  `departure`, `boarding`, `companion_start`, and the world's `seal_open` and
+  `machine_fallen` stage flags. Only those flags may change on a same-map
+  replacement: forward with the world, and back on a retry. Every M08 role
+  requires capability 31, with
+  campaign rules revision 3 unchanged.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -2083,6 +2116,11 @@ reopening M06, retry, failure and abandonment do not grant another refill.
 The arrival scene precedes readiness only for the pending M05 entry; resuming
 an existing M06 attempt skips it. M06 completion saves `declared_goods` as a
 pending destination; M07 remains unbuilt.
+
+`--local-mission custodian_of_record` starts the independent bundled M08
+development prototype with capability 31 and no personal save. Saved runs do not
+reach M08 yet: every saved-run reader refuses an M08 stage until level 7's carry
+and the M07 to M08 promotion exist.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
