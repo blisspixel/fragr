@@ -263,7 +263,8 @@ Sniper selection and the development range are implemented. After the art
 pass (#321) the Sniper's first-person frames, pickup and scope plate come
 from `WeaponArt`, the marksman atlas and its harness from the art rig, and the
 Sniper tracer turns orange to match its flash. The Sniper report and glint
-tone remain placeholders until the sound pass (#322) lands. Seeded server tests cover the tight hit, the out-of-cone miss,
+tone remained placeholders until the sound pass (#322) wired its delivered
+cues. Seeded server tests cover the tight hit, the out-of-cone miss,
 Rail reach and cone at 55 m, cadence, dry fire, the tell on every tier, sill
 cancellation, head visibility, hit interruption, the notice cone and range
 admission. Local gates pass workspace tests, warning-denied Clippy, 94.32
@@ -297,14 +298,11 @@ is not on main. Nothing on main is half-wired: main has milestone B only.
   six commits on top of `de38e7d` (the #324 merge). Restore with
   `git fetch <bundle> feat/l07-level:feat/l07-level`, then rebase onto main.
 - `C:\GitHub\_backups\l07-20261003-sound-wiring-reference.bundle`: branch
-  `trial/l07-int`, a reference merge of milestone B with the art (#321) and
-  sound (#322) branches. It holds the finished sound wiring to copy once #322
-  lands: `l07_assets.gd` pointing at `fire_sniper.wav`, `sniper/scope_in.wav`,
-  `sniper/scope_out.wav` and `ranged_sweeper/fire.wav`; scope in and out cues
-  in `sniper_scope.gd`; the pawn's 95 metre marksman tell and shot reach
-  (`_hear_marksman_across_the_cut` in `player_pawn.gd`); the separate
-  `ranged_sweeper_audio.gd` retired; and the placeholder bake and files
-  removed. Its client harnesses passed on that tree.
+  `trial/l07-int`, an earlier reference merge of milestone B with the art and
+  sound branches. The sound pass (#322) has since wired the Sniper report,
+  scope cues, marksman glint and shot and the curfew chime constant on main
+  itself, so this bundle is only a reference; the old placeholder sounds and
+  their bake tool are retired from main with this handoff.
 
 **What works on `feat/l07-level`.** Map 1007 (`server/maps/m07_declared_goods.json`,
 generated from a scratch script not kept; edit the JSON directly) passes
@@ -330,13 +328,14 @@ stops seen by no marksman, a crossing never watched by more than two
 marksmen, tour walkability, the departure gate, Latch's restraint, the
 controller and capability admission, plus three version 8 store tests. Client
 harnesses `test_m07_local`, `test_m06_local` and `test_m05_local` pass;
-`test_m07_mission` passes except its curfew chime check, which needs #322's
-`l07/curfew_chime.wav`.
+`test_m07_mission` passed except its curfew chime check, which needed the
+sound pass's `l07/curfew_chime.wav`, now on main.
 
 **What is left.**
 
-1. Rebase `feat/l07-level` on main, renumber the M07 capability, and wire the
-   sound pass from the reference bundle once #322 is on main.
+1. Rebase `feat/l07-level` on main and renumber the M07 capability. Its
+   `l07_assets.gd` adds `CURFEW_CHIME_SOUND`, which main now defines; keep
+   main's table. `test_m07_mission`'s chime check then passes.
 2. Finish the rendered tour (`client/qa/m07_declared_goods.json`). Its first
    three stills (tunnel arrival, the depot tower from the tunnel mouth, the
    ring supplies) render correctly; the patrol fight does not yet complete
