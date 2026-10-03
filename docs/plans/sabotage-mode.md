@@ -248,6 +248,15 @@ synthesized tones; final assets are listed for a later bounded batch.
   that missed its four samples while six agents shared the machine; alone it
   passes.
 
+- 2026-10-02: The server half shipped as
+  [PR #325](https://github.com/blisspixel/fragr/pull/325) with green CI and
+  93.86 percent workspace line coverage. The client half adds the Godot
+  presentation, three rendered tours and the adapter's scripted bot playing
+  the objective through the shared controller. Two wall-clock tests
+  (`a_short_in_process_soak_samples_and_passes` and
+  `scripted_bot_uses_raised_geometry_under_continuous_snapshots`) missed their
+  deadlines only while six agents loaded this machine; each passes alone.
+
 ## Handoff
 
 Two PRs. The first carries the server rules, wire, layout, rule bots, the

@@ -2223,6 +2223,9 @@ func _sabotage_watch_targets(targets: Array, player_list: Array, round_state: St
 				camera.set_fp_mode(false)
 				camera.follow_mode = true
 				camera.spectator_first_person = true
+				# Their own gun must not sit over a teammate's eyes.
+				if hud.has_method("set_fp_juice"):
+					hud.set_fp_juice(false)
 			else:
 				_refresh_fp_target()
 	if not watching:
