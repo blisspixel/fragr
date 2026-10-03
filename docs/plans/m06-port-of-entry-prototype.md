@@ -1,6 +1,7 @@
 # M06 Port of Entry prototype
 
 **Status:** shipped in [PR #317](https://github.com/blisspixel/fragr/pull/317), 2026-10-02. The lunar port development prototype and durable episode carry are integrated; fresh-player and difficulty acceptance remain open.
+The 2026-10-02 [polish pass](campaign-polish-20261002.md) closed the port's hull: walls and roof strips replace openings to the airless surface, and an M06 entry saved before it needs a new run.
 **Spend:** $0 new cash charges. The separately priced
 [M06 audio batch](m06-audio-batch.md) generated four jobs using 252 included
 credits. The separate requested shotgun refresh consumes another 30 included
