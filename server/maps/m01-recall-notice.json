@@ -155,7 +155,7 @@
     {"id":"service_north","min":[-23,6.5,12],"max":[-13,8,13],"surface":"service_steel"},
     {"id":"reception_entry_west","min":[-23,0,12],"max":[-21,6.5,13],"surface":"service_steel"},
     {"id":"reception_entry_east","min":[-17,0,12],"max":[-13,6.5,13],"surface":"service_steel"},
-    {"id":"reception_threshold","min":[-21,2.4,12],"max":[-17,3,13],"surface":"records_tile"},
+    {"id":"reception_threshold","min":[-21,0,12],"max":[-17,3,13],"surface":"records_tile"},
     {"id":"service_north_roof","min":[-23,8,6],"max":[-13,8.5,13],"surface":"service_steel"},
     {"id":"service_roof_transition","min":[-23,6,5],"max":[-13,8,6],"surface":"service_steel"},
     {"id":"office_floor","min":[-12,0,12],"max":[2,3,27],"surface":"records_tile"},

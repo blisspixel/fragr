@@ -1288,3 +1288,48 @@ fn records_balcony_sees_the_lift_sign_but_not_the_transfer_guards() {
     }
     assert!(samples > 100, "balcony sweep covered only {samples} stands");
 }
+
+#[test]
+fn records_floors_have_no_crawlspace_out_of_the_facility() {
+    // The records wing sits on raised floors with 2.4 metres of clearance.
+    // The open ground under the reception threshold let a player walk from
+    // beneath the service landing, under the reception and stacks, and out of
+    // the building into the empty arena.
+    let map = crate::maps::RuntimeMap::Authored(
+        crate::maps::AuthoredSource::Mission(crate::protocol::MissionId::RecallNotice)
+            .load()
+            .unwrap(),
+    );
+    let arena = map.arena();
+    let walk = |from: [f32; 3], to: [f32; 3]| {
+        let mut body = crate::movement::MoveState {
+            x: from[0],
+            y: from[1],
+            z: from[2],
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw: 0.0,
+        };
+        for _ in 0..1200 {
+            let (dx, dz) = (to[0] - body.x, to[2] - body.z);
+            let distance = dx.hypot(dz);
+            if distance < 0.2 && (body.y - to[1]).abs() < 0.03 {
+                return true;
+            }
+            let speed = 4.0_f32.min(distance / 0.05);
+            body.vx = dx / distance.max(0.001) * speed;
+            body.vz = dz / distance.max(0.001) * speed;
+            body = crate::movement::integrate(body, false, 0.05, arena);
+        }
+        false
+    };
+    // The pocket beneath the service landing is still ordinary ground.
+    assert!(walk([-14.0, 0.0, -12.0], [-14.0, 0.0, 8.0]));
+    assert!(walk([-14.0, 0.0, 8.0], [-19.0, 0.0, 8.0]));
+    // It no longer opens into the void under the upper records floors.
+    assert!(!walk([-19.0, 0.0, 8.0], [-19.0, 0.0, 20.0]));
+    assert!(!walk([-14.0, 0.0, 8.0], [-46.0, 0.0, 13.8]));
+    // The upper threshold still joins the landing to reception.
+    assert!(walk([-19.0, 3.0, 10.0], [-19.0, 3.0, 14.5]));
+}

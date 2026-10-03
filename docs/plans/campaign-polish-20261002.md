@@ -1,6 +1,6 @@
 # Campaign polish pass, levels 1 to 6
 
-**Status:** in flight, 2026-10-02. Branch `feat/polish-m01-m06`, landing in
+**Status:** shipped in parts, 2026-10-02; stopped with the ranked open items below. Branches `feat/polish-m01-m06*`, landing in
 several focused PRs.
 **Spend:** $0. Local play, local decision rules (`fragr-brain --provider local`)
 and the existing rendered tours only. No paid provider, asset API or cloud call.
@@ -96,28 +96,58 @@ waiting party.
 
 | # | Finding | Level | Evidence | Fix | Status |
 |---|---|---|---|---|---|
-| 1 | The grenade counter printed `4.0` and `6.0`, because JSON decodes every count as a float | 5 | Published `m05_paint_bay.png` and `m05_departure.png` | `equipment_hud.gd` prints the integer count; `test_equipment.gd` round-trips the stock through JSON | fixed |
-| 2 | A grenade claim wrote a bare `MEAT PROXY:` line, and every own pickup repeated the player's callsign | 1 to 6 | `m05_paint_bay.png` corner feed, `m01_balcony_16x9.png` | `hud.gd` names grenade claims and drops the callsign for a participant; spectators keep it; `test_combat_feed.gd` | fixed |
-| 3 | Grenade supplies floated a bare `PAD` label; armor read `+50 ARM`; world pickup words were not keyed | 4 to 6 | `m04_arrival.png`, source review | `weapon_pickup.gd` uses keyed `PICKUP_*` strings, names grenades, gives them a tint; `test_weapon_pickup.gd` | fixed |
-| 4 | The spawn control legend wrapped between a key and its word (`]` then `weapon`) | 1 to 6 | `m03_yard_arrival_16x9.png` legend crop | `hud.gd` keeps each key and word together; `test_combat_feed.gd` | fixed, M01 tour `.agents/qa/pol-m01-records/01_arrival.png` |
-| 5 | M01's objective card still showed title, tier, a blank line and `AWAITING BOARDING: <yourself>` in solo, up to eight lines | 1 | `.agents/qa/pol-m01-records/13_record_recovered.png` | `mission_hud.gd` uses the same run badge and objective lines as M02 to M06, lists only other party members; `test_mission.gd` | fixed |
-| 6 | Run and optional-route badges stayed on screen all mission, adding up to three lines of HUD text | 2 to 6 | `m04_court_balcony.png`, `m06_turret_windup.png` | Badges appear with the objective card, on a change and during recovery; `test_m03_mission.gd` | fixed |
-| 7 | After every departure the only way on was Esc, Leave, Single Player, Continue Run | 1 to 6 | Source: departed copy says `RETURN TO MENU`; boot menu needs a manual choice | A completed durable run offers `ENTER: CONTINUE THE RUN`; the boot menu starts Continue Run once the old child stops; `test_end_of_run_copy.gd`, `test_frontend.gd`, live `tools/test_m02_carry.sh` | fixed |
-| 8 | The local-rules agent never answered a Sweeper firing from 20 to 24 metres and died at the Railgun lane on every tier | 6 | Standard, Severe and Assisted brain runs: four deaths to `rail_sweeper` and `exit_heavy` | `agents/brain` answers an awake guard out to its 32 metre sight range | in progress, second PR: all three tiers cleared with zero deaths in a local run |
-| 9 | The agent ping-ponged between two idle roof guards for 15 minutes, routing round with the trigger released | 3 | Standard seed 42 brain timeline, 900 seconds at 7 kills | The agent holds and shoots a visible guard inside 75 percent of its weapon reach instead of routing past it | in progress, second PR: Severe cleared with zero deaths in a local run |
-| 10 | A guard that chased the player, or the last alarmed guard of a group, idled where its trail ended, so the last required train guard was never found | 3 | Spectator probe: `train_clerk_a` idled at `[-11, 16.7]` after a chase in one run and at the far activation threshold `[10.1, 24.5]` in another; agents waited at the locomotive for minutes | A walking guard more than 8 metres from its post walks back once when its chase ends, or when its alarm search ends and it is the last of its group standing; other alarmed guards keep their authored dispatch; `lost_guard_walks_back_to_its_post_once_then_waits` | in progress, second PR: broader versions broke three or four seeded M02 routes; this rule passes them |
-| 11 | M02 started with no health before the guard room and a three-Crawler pack that can land 75 damage at once; a low-health carry and every retry restart there | 2 | Brain timelines: 75 damage in 0.4 seconds at the pack; supply list has the first medkit after it | A 25 HP `gallery_medkit` beside the found Shotgun, on the spawn side of the guard room trigger; `bundled_gallery_offers_healing_before_the_first_guards_wake` | in progress, second PR |
-| 12 | Releasing the M05 workshop workers before the paint bay's arrival spot published a state that both the Godot and the Rust readers reject, closing the connection | 5 | Severe and Assisted agent runs ended `invalid M05 facts` at `Splice and workshop captives rescued`; the run was abandoned | The server gates the release on the paint bay lesson, matching the readers; `m05_skipped_arrival_spots_catch_up_and_rescue_stays_readable` | in progress, second PR |
-| 13 | M04, M05 and M06 advance only when someone stands on each fight's arrival spot after it is won. A room cleared from its doorway left the objective line stale and the departure unavailable until the player found that spot again | 4 to 6 | Agent timelines; M05 spots are 2 by 2 metres; the M06 Turret spot is on the west gallery | An arrival whose fight is won also counts once the next ordered fight wakes, or for the last one once someone reaches the boarding area; order and every reader invariant are unchanged; M05 and M06 regressions | in progress, second PR |
-| 14 | The local-rules agent waited at an objective forever when the group it needed had a guard idling out of sight | 3 | Assisted 1234 agent stood at the locomotive for six minutes with two train guards alive and idle at the far threshold | After 20 seconds standing still with nothing to shoot, the agent walks toward the nearest living Union body from the snapshot for up to 30 seconds; seeing a guard hands back to ordinary combat; `stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard` | in progress, second PR: all six M03 seeds depart |
+| 1 | The grenade counter printed `4.0` and `6.0`, because JSON decodes every count as a float | 5 | Published `m05_paint_bay.png` and `m05_departure.png` | `equipment_hud.gd` prints the integer count; `test_equipment.gd` round-trips the stock through JSON | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 2 | A grenade claim wrote a bare `MEAT PROXY:` line, and every own pickup repeated the player's callsign | 1 to 6 | `m05_paint_bay.png` corner feed, `m01_balcony_16x9.png` | `hud.gd` names grenade claims and drops the callsign for a participant; spectators keep it; `test_combat_feed.gd` | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 3 | Grenade supplies floated a bare `PAD` label; armor read `+50 ARM`; world pickup words were not keyed | 4 to 6 | `m04_arrival.png`, source review | `weapon_pickup.gd` uses keyed `PICKUP_*` strings, names grenades, gives them a tint; `test_weapon_pickup.gd` | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 4 | The spawn control legend wrapped between a key and its word (`]` then `weapon`) | 1 to 6 | `m03_yard_arrival_16x9.png` legend crop | `hud.gd` keeps each key and word together; `test_combat_feed.gd` | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 5 | M01's objective card still showed title, tier, a blank line and `AWAITING BOARDING: <yourself>` in solo, up to eight lines | 1 | `.agents/qa/pol-m01-records/13_record_recovered.png` | `mission_hud.gd` uses the same run badge and objective lines as M02 to M06, lists only other party members; `test_mission.gd` | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 6 | Run and optional-route badges stayed on screen all mission, adding up to three lines of HUD text | 2 to 6 | `m04_court_balcony.png`, `m06_turret_windup.png` | Badges appear with the objective card, on a change and during recovery; `test_m03_mission.gd` | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 7 | After every departure the only way on was Esc, Leave, Single Player, Continue Run | 1 to 6 | Source: departed copy says `RETURN TO MENU`; boot menu needs a manual choice | A completed durable run offers `ENTER: CONTINUE THE RUN`; the boot menu starts Continue Run once the old child stops; `test_end_of_run_copy.gd`, `test_frontend.gd`, live `tools/test_m02_carry.sh` | shipped, [PR #320](https://github.com/blisspixel/fragr/pull/320) |
+| 8 | The local-rules agent never answered a Sweeper firing from 20 to 24 metres and died at the Railgun lane on every tier | 6 | Standard, Severe and Assisted brain runs: four deaths to `rail_sweeper` and `exit_heavy` | `agents/brain` answers an awake guard out to its 32 metre sight range | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 9 | The agent ping-ponged between two idle roof guards for 15 minutes, routing round with the trigger released | 3 | Standard seed 42 brain timeline, 900 seconds at 7 kills | The agent holds and shoots a visible guard inside 75 percent of its weapon reach instead of routing past it | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 10 | A guard that chased the player, or the last alarmed guard of a group, idled where its trail ended, so the last required train guard was never found | 3 | Spectator probe: `train_clerk_a` idled at `[-11, 16.7]` after a chase in one run and at the far activation threshold `[10.1, 24.5]` in another; agents waited at the locomotive for minutes | A walking guard more than 8 metres from its post walks back once when its chase ends, or when its alarm search ends and it is the last of its group standing; other alarmed guards keep their authored dispatch; `lost_guard_walks_back_to_its_post_once_then_waits` | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 11 | M02 started with no health before the guard room and a three-Crawler pack that can land 75 damage at once; a low-health carry and every retry restart there | 2 | Brain timelines: 75 damage in 0.4 seconds at the pack; supply list has the first medkit after it | A 25 HP `gallery_medkit` beside the found Shotgun, on the spawn side of the guard room trigger; `bundled_gallery_offers_healing_before_the_first_guards_wake` | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 12 | Releasing the M05 workshop workers before the paint bay's arrival spot published a state that both the Godot and the Rust readers reject, closing the connection | 5 | Severe and Assisted agent runs ended `invalid M05 facts` at `Splice and workshop captives rescued`; the run was abandoned | The server gates the release on the paint bay lesson, matching the readers; `m05_skipped_arrival_spots_catch_up_and_rescue_stays_readable` | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 13 | M04, M05 and M06 advance only when someone stands on each fight's arrival spot after it is won. A room cleared from its doorway left the objective line stale and the departure unavailable until the player found that spot again | 4 to 6 | Agent timelines; M05 spots are 2 by 2 metres; the M06 Turret spot is on the west gallery | An arrival whose fight is won also counts once the next ordered fight wakes, or for the last one once someone reaches the boarding area; order and every reader invariant are unchanged; M05 and M06 regressions | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 14 | The local-rules agent waited at an objective forever when the group it needed had a guard idling out of sight | 3 | Assisted 1234 agent stood at the locomotive for six minutes with two train guards alive and idle at the far threshold | After 20 seconds standing still with nothing to shoot, the agent walks toward the nearest living Union body from the snapshot for up to 30 seconds; seeing a guard hands back to ordinary combat; `stalled_campaign_agent_goes_looking_for_the_nearest_hidden_guard` | shipped, [PR #326](https://github.com/blisspixel/fragr/pull/326) |
+| 15 | The lunar port was not a closed hull: black space showed through slots between roofs, the freight hall opened south onto an unroofed yard, the dock opened east, the loading bay and service corridor opened north, and the exit hall and transit stood on an open platform. A player could walk out onto the surface around the whole building | 6 | `.agents/qa/pol-m06/` stills 11, 17, 23 and 24; a floor flood found 3,902 of 8,592 reachable square metres with no roof | Fourteen enamel walls and roof strips close the hull; the customs north wall sits one metre out so the corridor behind the declaration booths stays two metres wide; `authored_m06_port_is_a_closed_pressure_hull` fails on the old map | in progress, third PR |
+| 16 | In M01 the ground under the reception threshold was open, so a player could walk from beneath the service landing through a 2.4 metre crawlspace under the records floors and out of the building | 1 | Ground flood and an ordinary movement probe from `[-14, 0, 8]` to `[-46, 0, 13.8]` | The threshold solid now reaches the ground; the pocket under the landing stays ordinary ground; `records_floors_have_no_crawlspace_out_of_the_facility` fails on the old map | in progress, third PR |
+| 17 | The M05 tour stopped at `splice_release`: its last waypoint stood inside a held captive, which living-body contact now blocks | 5 | Art lane report; manifest waypoint `[-19, 0, 1.5]` equals `workshop_agent_a`'s held feet | The route enters the release area and steps clear of the workers' lanes; the release expectation is unchanged | in progress, third PR |
+| 18 | `test_m05_presentation` failed once on macOS with 2 leaked instances and `grenade_blast.wav` still in use: the audio server still held a stopped blast playback when the harness quit | 5 | macOS job in CI run 37080486320; the same signature as #186 | The harness waits, with a three second bound, for the stopped voice's playback to be released, as `qa_tour.gd` already does on retirement | in progress, third PR |
+
+## Open, ranked by player impact
+
+Stopped on 2026-10-02 at Nick's request to reduce parallel work. These remain
+open; none is in progress.
+
+1. **Pacing, difficulty and fun need a person.** The accurate agent clears each
+   level in one to two minutes against eight to twelve minute first-run
+   targets, so its times say nothing about pacing. Watch for: where a first
+   run stalls, whether the M02 Crawler pack and the M03 mast watch feel fair,
+   and whether finite ammunition runs short with ordinary misses.
+2. **Outdoor edges.** M03 and M04 stop at the invisible arena edge about six
+   metres behind the spawn, with no wall or fence there. Needs a boundary
+   design and art, not a collision tweak.
+3. **Tour fights under machine load.** Under heavy shared load the M02
+   graybox tour did not confirm `stair_crawler_pack_b`, the M03 tour did not
+   confirm `platform_sweeper_b`, and the M05 tour lost the player at the
+   workshop approach. Not reproduced on a quiet machine; the scripted routes
+   may need sturdier combat timing.
+4. **#186 exit leaks.** The signature (two instances, one WAV in use) matches
+   a stopped sound still held by the audio server at quit. The M05 harness now
+   waits for that release; `qa_tour.gd` already did. Kept open until repeated
+   clean verbose exits are recorded.
+5. **Agent ammunition.** On one M03 seed the local-rules agent spent all its
+   Rifle rounds early and fought with fists until it found the Shotgun.
+6. **Gallery refresh.** The standard tour was not republished after the HUD
+   changes; the README stills do not show the changed lines.
 
 ## Handoff
 
-- First PR (findings 1 to 7, client only): HUD readability, pickup labels,
-  quiet badges and continuing the run from a departure.
-- Second PR in progress (findings 8 to 13): local-rules agent engagement,
-  straggler guards, the M02 opening medkit, the M05 release that disconnected
-  readers, and arrival spots that catch up once the party moves on. Worktree
-  `C:/GitHub/frpo2`, branch `feat/polish-agents`, stacked on the first PR.
+- Shipped: findings 1 to 7 in [PR #320](https://github.com/blisspixel/fragr/pull/320),
+  findings 8 to 14 in [PR #326](https://github.com/blisspixel/fragr/pull/326).
+- Third PR: findings 15 to 18.
+- A fresh worktree's first `--headless --import` crashed once in the Godot
+  4.7.2 font importer; the second import succeeded. Engine behaviour, noted only.
 - Scratch tools (not committed): a brain playtest runner and a read-only
   spectator probe that prints living Union actors.

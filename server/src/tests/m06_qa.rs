@@ -188,3 +188,83 @@ fn authored_m06_rail_lane_and_turret_cover_are_physical() {
         solids
     ));
 }
+
+#[test]
+fn authored_m06_port_is_a_closed_pressure_hull() {
+    // A pressure port must not show open space through its ceiling or let a
+    // player walk out onto the surface. The freight hall's south side, the
+    // dock's east side, the north thresholds, the service corridor and the
+    // transit vestibule used to open straight onto the airless yard.
+    let map = RuntimeMap::Authored(
+        AuthoredSource::Mission(MissionId::PortOfEntry)
+            .load()
+            .unwrap(),
+    );
+    let arena = map.arena();
+    for (inside, outside, place) in [
+        (
+            [0.0, 0.0, -20.0],
+            [0.0, 0.0, -36.0],
+            "freight hall south yard",
+        ),
+        ([-30.0, 0.0, -36.0], [-12.0, 0.0, -36.0], "dock east side"),
+        (
+            [30.0, 0.0, 3.0],
+            [30.0, 0.0, 10.0],
+            "loading bay north corner",
+        ),
+        (
+            [-30.0, 0.0, 22.0],
+            [-30.0, 0.0, 32.0],
+            "service corridor north",
+        ),
+        ([-13.0, 0.0, 39.0], [-30.0, 0.0, 42.0], "customs north west"),
+        ([0.0, 0.0, 42.0], [0.0, 0.0, 47.0], "transit vestibule end"),
+        (
+            [5.0, 0.0, 43.0],
+            [20.0, 0.0, 43.0],
+            "transit vestibule side",
+        ),
+    ] {
+        assert!(
+            !walk(arena, inside, outside),
+            "{place} opens onto the surface"
+        );
+    }
+    // Every point the ordinary route stands on has a roof above it.
+    let covered = |p: [f32; 3]| {
+        arena.solids.iter().any(|s| {
+            s.min_x <= p[0]
+                && p[0] < s.max_x
+                && s.min_z <= p[2]
+                && p[2] < s.max_z
+                && s.bottom >= p[1] + 2.5
+        })
+    };
+    let mut checked = 0;
+    for state in tour()["states"].as_array().unwrap() {
+        for key in ["walk_to"] {
+            let Some(points) = state.get(key) else {
+                continue;
+            };
+            let points: Vec<[f32; 3]> = serde_json::from_value(points.clone()).unwrap();
+            for segment in points.windows(2) {
+                for step in 0..=8 {
+                    let t = step as f32 / 8.0;
+                    let p = [
+                        segment[0][0] + (segment[1][0] - segment[0][0]) * t,
+                        segment[0][1] + (segment[1][1] - segment[0][1]) * t,
+                        segment[0][2] + (segment[1][2] - segment[0][2]) * t,
+                    ];
+                    assert!(
+                        covered(p),
+                        "{} passes under open space at {p:?}",
+                        state["name"]
+                    );
+                    checked += 1;
+                }
+            }
+        }
+    }
+    assert!(checked > 500, "route roof coverage sampled too little");
+}
