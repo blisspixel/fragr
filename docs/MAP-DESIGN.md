@@ -5,6 +5,40 @@ Current arena layouts are useful foundations, not the spatial or visual bar.
 [Campaign missions](CAMPAIGN-MISSIONS.md) own narrative purpose and sequence;
 [MODES.md](MODES.md) owns multiplayer objectives and chronology.
 
+## Maximum fun first
+
+Every level is judged by its loop before its story or its look. The bar is the
+best of the classics: simple to read, intensely fun to play. Each one gives
+fragr a rule:
+
+| Game | What it teaches | fragr rule |
+|---|---|---|
+| Doom and Doom II | Speed, no reloads, a monster mix that dictates the gun, ambushes sprung by a pickup, levels that loop back changed, secrets everywhere, an intermission tally against par | The enemy mix makes the player swap guns. Grabbing something can spring a trap. The way back is never empty. Every level ends on a tally. |
+| GoldenEye 007 | Short objective lists, difficulty that adds objectives instead of health, hit reactions, alarms and reinforcements, par times worth chasing | Objectives are a few short verbs. Harder difficulties add optional objectives and tighter pars, not bullet sponges. Enemies react visibly when hit. |
+| Counter-Strike | Few lanes, readable chokes, callouts, one life of tension, fast resets | Every fight space reads in seconds: where the threat comes from and where the flank is. |
+| Early Call of Duty | Allies fighting beside you, a crescendo the level builds to, grenades both ways, always something happening | Each level builds to one climax people would talk about, and the world fights back loudly. |
+| Battlefield 1942 | Sandbox objectives where unscripted moments happen | Give enemies room to flank and the player room to improvise; never only one solution. |
+
+Checks for every campaign level brief and build:
+
+1. **Fight early.** The first room teaches by fighting, not walking. Measure
+   time to first combat contact on an ordinary route, and the longest stretch
+   without a fight, a pickup or a reveal. One deliberate breath beat is allowed.
+   Long empty walks are cut.
+2. **One new toy.** Teach it safely, then remix it in the climax.
+3. **Vary the shapes.** Use three to five encounter shapes per level, never two
+   of the same in a row: ambush, crossfire, flank race, hold the point, horde
+   push, long duel, boss.
+4. **Weapon choice matters.** Distances and enemy mixes reward the right gun.
+   Ammo and health pressure push swapping without starving the player.
+5. **Secrets.** Two to four per level, with readable clues, rewarding early power.
+6. **Story never blocks play.** Rescues, reveals and atmosphere happen while
+   the player moves and fights. No escort fail states, no waiting on dialogue.
+7. **End on a tally.** Kills, secrets, deaths and time against par, Doom's
+   intermission in fragr's look, kept per difficulty in the service record.
+
+If a brief reads complicated, simplify it: fewer systems, sharper fights.
+
 ## Start with purpose
 
 Before geometry, write the place's ordinary function, the player's immediate
@@ -122,8 +156,9 @@ Judge whether a player can remember the place and make decisions within it.
 Each mission introduces or recombines a readable problem, builds intensity,
 offers a memorable crest, and provides recovery. Vary that structure across
 missions. A short calm inhabited area can establish stakes; persistent empty
-walking is not atmosphere. Avoid a mandatory enemy within an arbitrary number
-of seconds in every scene.
+walking is not atmosphere. Measure pacing per level, as in
+[Maximum fun first](#maximum-fun-first), rather than placing an enemy quota in
+every scene.
 
 Teach one enemy tell in a forgiving setting, then combine roles. Crossfire,
 flank pressure, priority support units, melee threats and scarce safe angles

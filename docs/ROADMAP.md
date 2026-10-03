@@ -338,6 +338,16 @@ The [integrated player review](plans/m02-integrated-player-gate.md) remains
 available on its retained v0.58.0 package. Record its observations when a fresh
 player is available. It does not gate this authorized development round.
 
+Every level, built or planned, must pass the
+[maximum-fun checks](MAP-DESIGN.md#maximum-fun-first) Nick set on 2026-10-02:
+fight early, vary encounter shapes, make weapon choice matter, use secrets and
+ambushes, keep story from blocking play, and build to one climax. Next in this
+lane:
+- Audit the twenty level briefs against these checks and simplify any brief
+  that reads complicated.
+- Build the end-of-level tally (kills, secrets, deaths and time against par)
+  that [CAMPAIGN.md](CAMPAIGN.md) lists as planned.
+
 No cloud apply, public-server claim or 1.0 controls claim follows from this
 integration. The authorized audio batch used included credits. Six possession
 and story image requests reserve $0.274; twenty-seven additional texture requests
