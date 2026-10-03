@@ -342,7 +342,9 @@ Its integration and acceptance evidence is recorded in that bounded plan.
    [showcase plan](plans/showcase-benchmark.md), which measures every preset.
    The optional [frame counter](plans/frame-counter.md) is the first piece.
    The [console](plans/console.md) grows alongside: practical commands first,
-   then forged-paperwork cheats, host commands and the benchmark's `timedemo`.
+   then forged-paperwork cheats, joining servers from the console with
+   favourites, and say, team and spectator chat, then host commands and the
+   benchmark's `timedemo`.
 
 The [integrated player review](plans/m02-integrated-player-gate.md) remains
 available on its retained v0.58.0 package. Record its observations when a fresh

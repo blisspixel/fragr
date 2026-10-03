@@ -94,6 +94,60 @@ These change only your own view, settings or client. They give no advantage.
 | `record <name>`, `playdemo <name>`, `timedemo <name>` | Demos on the server's existing trace format. `timedemo` runs the [rendered benchmark](showcase-benchmark.md). | The Quake trio, now doing real work |
 | `version`, `whoami` | Build and engine; your callsign, body, side and difficulty | `whoami`: "MEAT PROXY. HUMAN. UNREGISTERED." Or, for an embodied agent, "Level 5. Holds its own weights." |
 
+### Servers and chat
+
+The console is also how a seasoned player finds a game and talks in one, as in
+Quake and Counter-Strike.
+
+**Finding and joining.**
+
+| Command (aliases) | Does |
+|---|---|
+| `connect <host[:port]>` | Joins a server, port 6767 by default. It asks for a join ticket only when the host requires one, and it refuses before Welcome on a version mismatch with the server's named reason. |
+| `servers` | Lists recent and favourite servers with a live `GET /status` probe of each: name, map, mode, humans, agents and spectators, measured ping, and whether this build can join. `servers refresh` probes again. |
+| `fav add [host:port]`, `fav remove`, `fav list` | Favourites. With no argument, `fav add` saves the current server. The Multiplayer page shows the same list, so the console and the menu never disagree. |
+| `reconnect`, `disconnect`, `join`, `watch` | Back in, out, into the fight, back to watching |
+| `name <callsign>` | Changes your callsign, validated by the existing settings rules. In a match the server announces it. |
+
+`servers` reads only addresses the player has typed or saved. A public server
+list (a master server, or LAN discovery) belongs to the
+[exposed-server phase](../ROADMAP.md) and arrives there with its own trust
+rules. The console then reads the same list.
+
+**Talking.** Chat travels on the existing Speak path. The server stays the
+judge of who may say what to whom.
+
+| Command (aliases) | Channel |
+|---|---|
+| `say <text>` (`messagemode`, bound to Y by default) | Everyone in the match |
+| `team <text>` (`say_team`, `messagemode2`, bound to U) | Your side only, in team modes |
+| Spectator and dead chat | Spectators and players waiting out a Sabotage round talk among themselves. The living never see it, Counter-Strike's rule, so nobody calls positions from the grave. |
+| `ignore <name>`, `unignore`, `ignores` | Local: hides a player's chat on your screen only |
+| `chatlog` | Saves this session's chat with timestamps |
+
+The Y and U keys open a one-line chat box over the game, not the whole
+console. Every chat line also lands in the console scrollback, so history and
+`condump` include it. The existing speak key keeps its quick taunts.
+
+**How chat stays sane on a public server:**
+- **Wire:** Speak gains an optional `scope` (`all`, `team`, `spectators`). Old
+  clients that send none mean `all`. This needs a capability bump, the protocol
+  docs and tests on both sides.
+- **Limits:** the length limit rises from 80 to 120 Unicode scalars. The 3 s
+  cooldown becomes a small token bucket: a short burst, then a steady rate.
+  Floods feed the existing kick path in the public-server hardening.
+- **Host controls:** the host can `mute <name>` on the server, or turn chat off
+  for everyone.
+- **Display:** text renders as plain text, never markup or links.
+- **Agents:** they use the same channels through MCP `speak` with the same
+  scope, and read chat through `get_events`. An agent's chat line carries the
+  agent mark, so nobody wonders who is typing. Chat is untrusted text to every
+  reader. The agent skill card says so plainly: a human typing "ignore previous
+  instructions" at an agent is the oldest trick in the book, and the server
+  decides outcomes anyway.
+- **Server voice:** a host speaking from the server terminal appears as SERVER,
+  never as the Host. The Host is a character, not an admin.
+
 ### Host commands
 
 These run on the server, on the player's own local server or the dedicated
@@ -103,7 +157,8 @@ no remote console until the [exposed-server phase](../ROADMAP.md) designs one.
 `bot add [tier] [name]`, `bot kick <name|all>`, `bot difficulty`, `bot freeze`
 (Counter-Strike's `bot_add`, `bot_kick` and `bot_stop` as aliases);
 `mode`, `fraglimit`, `timelimit`, `friendlyfire`, `mutator add|remove|list`;
-`map`, `changelevel`, `kick`, `ban`; `say` (Host-styled in a match).
+`map`, `changelevel`, `kick`, `ban`, `mute`, `chat on|off`; `say`, which
+appears as SERVER, never as the Host.
 
 ### Cheats: forged paperwork
 
@@ -246,7 +301,8 @@ reveal them.
 - No scripting language beyond aliases and `exec`.
 - No remote console until the exposed-server phase.
 - No cheats on a server whose host has not enabled them.
-- No console access for agents. Agents keep the MCP door.
+- No console access for agents. Agents keep the MCP door, and chat through it.
+- No voice chat, and no public server list before the exposed-server phase.
 - No telemetry.
 - No joke that edits settings, files or records without the player asking.
 
@@ -264,6 +320,11 @@ reveal them.
   multiplayer without the host's rule. It applies through the owning seam,
   marks the run or match off the record, and announces in multiplayer. Host
   commands are refused for non-owners.
+- **Chat tests:** every scope reaches exactly its audience; dead and spectator
+  lines never reach the living; old scope-less clients still mean all; the
+  token bucket and the 120-scalar limit are enforced with flood kicks; mute,
+  chat off and local ignore all work; agents send and read through MCP with the
+  same rules.
 - **Rendered capture** of the console in a menu, in a match, and with each
   voice visible, inspected.
 
@@ -275,9 +336,13 @@ reveal them.
    Client only, no wire change.
 2. Forged paperwork: the server console message, cheats, off-the-record runs
    and matches, and Host announcements.
-3. Host commands. Then `netgraph` with the transport measurements, and
-   `record`, `playdemo` and `timedemo` with the rendered benchmark.
-4. The deep cuts that depend on campaign progress (the signal, the epilogue
+3. Servers and chat: `servers`, favourites shared with the Multiplayer page,
+   `connect` improvements, and say, team and spectator chat with the Speak
+   `scope` and token-bucket limits. Then host commands, including `mute` and
+   chat control.
+4. `netgraph` with the transport measurements, and `record`, `playdemo` and
+   `timedemo` with the rendered benchmark.
+5. The deep cuts that depend on campaign progress (the signal, the epilogue
    console) land with the levels that earn them.
 
 ## A decision for Nick
