@@ -147,8 +147,30 @@ impl Inventory {
         }
     }
 
+    /// Owned and able to fire now: unlimited arsenals always, discovery
+    /// weapons while their ammunition lasts.
+    pub fn usable(&self, weapon: WeaponType) -> bool {
+        if !self.owns(weapon) {
+            return false;
+        }
+        if self.policy == EquipmentPolicy::FullArsenal {
+            return true;
+        }
+        weapon
+            .ammo_pool()
+            .is_none_or(|pool| self.ammo[pool.index()] > 0)
+    }
+
     pub fn claimed(&self, id: &str) -> bool {
         self.claims.contains(id)
+    }
+
+    /// Forget personal claims, so a carried arsenal can take a spawn pad again.
+    pub fn clear_claims(&mut self) {
+        if !self.claims.is_empty() {
+            self.claims.clear();
+            self.revision += 1;
+        }
     }
 
     pub fn record_claim(&mut self, id: String) {

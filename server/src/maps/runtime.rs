@@ -277,6 +277,13 @@ impl RuntimeMap {
         }
     }
 
+    pub(crate) fn sabotage_layout(&self) -> Option<&'static super::SabotageLayout> {
+        match self {
+            Self::BuiltIn(kind) => super::sabotage_layout(*kind),
+            Self::Authored(_) => None,
+        }
+    }
+
     pub(crate) fn pickups(&self) -> Vec<ArenaPickup> {
         match self {
             Self::BuiltIn(kind) => kind.pickups(),

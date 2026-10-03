@@ -59,8 +59,8 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
-    /// Match mode: ffa, tdm, or ctf. Capture the flag runs on Arena Duel,
-    /// Directive 17, or Sector 9.
+    /// Match mode: ffa, tdm, ctf, or sabotage. Capture the flag runs on Arena
+    /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
 
@@ -81,6 +81,11 @@ struct Args {
     /// Captures that end a ctf round (default 3). Only valid with --mode ctf.
     #[arg(long, value_parser = clap::value_parser!(u32).range(1..=99), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     capture_limit: Option<u32>,
+
+    /// Sabotage match length: short (halves of 4, first to 5, the default)
+    /// or match (halves of 8, first to 9). Only valid with --mode sabotage.
+    #[arg(long, value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    sabotage_format: Option<fragr_server::protocol::SabotageFormat>,
 
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
@@ -268,8 +273,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if rules.mode() != fragr_server::protocol::GameMode::Ctf && args.capture_limit.is_some() {
         return Err("--capture-limit requires --mode ctf".into());
     }
+    if rules.mode() == fragr_server::protocol::GameMode::Sabotage && args.frag_limit.is_some() {
+        return Err("sabotage is won by rounds, not --frag-limit".into());
+    }
+    if rules.mode() != fragr_server::protocol::GameMode::Sabotage && args.sabotage_format.is_some()
+    {
+        return Err("--sabotage-format requires --mode sabotage".into());
+    }
     let mut match_config = match_config(rules, args.frag_limit, args.no_round_events);
     if let Some(config) = match_config.as_mut() {
+        if let Some(format) = args.sabotage_format {
+            config.sabotage.format = format;
+        }
         if config.rules.mode() == fragr_server::protocol::GameMode::Ctf {
             config.capture_limit = Some(
                 args.capture_limit
@@ -306,15 +321,16 @@ fn match_config(
         return None;
     }
     let defaults = fragr_server::sim::MatchConfig::default();
+    let objective = rules.mode().objective();
+    let sabotage = rules.mode() == fragr_server::protocol::GameMode::Sabotage;
     Some(fragr_server::sim::MatchConfig {
-        frag_limit: (rules.mode() != fragr_server::protocol::GameMode::Ctf)
-            .then(|| frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
-        boss_spawn_ticks: (!no_round_events
-            && rules.mode() != fragr_server::protocol::GameMode::Ctf)
+        frag_limit: (!objective).then(|| frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
+        // Sabotage runs its own muster, live and charge clocks.
+        time_limit_ticks: (!sabotage).then_some(defaults.time_limit_ticks).flatten(),
+        boss_spawn_ticks: (!no_round_events && !objective)
             .then_some(defaults.boss_spawn_ticks)
             .flatten(),
-        compliance_ping_ticks: (!no_round_events
-            && rules.mode() != fragr_server::protocol::GameMode::Ctf)
+        compliance_ping_ticks: (!no_round_events && !objective)
             .then_some(defaults.compliance_ping_ticks)
             .flatten(),
         rules,
@@ -658,6 +674,131 @@ mod tests {
             let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
                 .await
                 .expect("ctf reply timeout");
+            let welcomed = matches!(
+                reply,
+                Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
+            );
+            assert_eq!(welcomed, admitted, "{role} capability {version}: {reply:?}");
+        }
+        let _ = shutdown_tx.send(());
+        let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
+    }
+
+    #[test]
+    fn sabotage_takes_a_format_and_no_frag_or_capture_limit() {
+        use fragr_server::protocol::GameMode;
+        let args = Args::try_parse_from([
+            "fragr-server",
+            "--mode",
+            "sabotage",
+            "--map",
+            "4",
+            "--sabotage-format",
+            "match",
+        ])
+        .unwrap();
+        assert_eq!(args.mode, GameMode::Sabotage);
+        assert_eq!(
+            args.sabotage_format,
+            Some(fragr_server::protocol::SabotageFormat::Match)
+        );
+        let rules = fragr_server::rules::RuleSet::new(GameMode::Sabotage, &[], false).unwrap();
+        let config = match_config(rules, None, false).unwrap();
+        assert_eq!(config.frag_limit, None, "rounds decide sabotage");
+        assert_eq!(
+            config.time_limit_ticks, None,
+            "sabotage keeps its own clocks"
+        );
+        assert_eq!(config.boss_spawn_ticks, None);
+        assert_eq!(config.compliance_ping_ticks, None);
+        assert!(Args::try_parse_from(["fragr-server", "--sabotage-format", "pairs"]).is_err());
+    }
+
+    #[tokio::test]
+    async fn sabotage_refuses_a_map_without_sites_or_rotation_before_binding() {
+        let rules = fragr_server::rules::RuleSet::new(
+            fragr_server::protocol::GameMode::Sabotage,
+            &[],
+            false,
+        )
+        .unwrap();
+        let config = match_config(rules, None, false).unwrap();
+        for (map, rotate) in [
+            (fragr_server::sim::MapKind::ArenaDuel, false),
+            (fragr_server::sim::MapKind::Directive17, false),
+            (fragr_server::sim::MapKind::Sector9, true),
+        ] {
+            let error = run_server(
+                ServerOptions {
+                    map,
+                    map_rotate: rotate,
+                    match_config: Some(config.clone()),
+                    bind: "127.0.0.1:0".to_string(),
+                    ..ServerOptions::default()
+                },
+                std::future::pending::<()>(),
+                None,
+            )
+            .await
+            .unwrap_err();
+            assert!(
+                error.to_string().contains("validated sites"),
+                "{map:?} rotate={rotate}: {error}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn sabotage_requires_capability_twenty_eight_for_spectators_and_fighters() {
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
+        let rules = fragr_server::rules::RuleSet::new(
+            fragr_server::protocol::GameMode::Sabotage,
+            &[],
+            false,
+        )
+        .unwrap();
+        let config = match_config(rules, None, true).unwrap();
+        let server = tokio::spawn(async move {
+            run_server(
+                ServerOptions {
+                    bind: "127.0.0.1:0".to_string(),
+                    bots: 0,
+                    map: fragr_server::sim::MapKind::Sector9,
+                    match_config: Some(config),
+                    status_every_s: 0,
+                    ..Default::default()
+                },
+                async move {
+                    let _ = shutdown_rx.await;
+                },
+                Some(ready_tx),
+            )
+            .await
+        });
+        let addr = tokio::time::timeout(Duration::from_secs(20), ready_rx)
+            .await
+            .expect("sabotage ready timeout")
+            .expect("sabotage ready addr");
+        for (version, role, admitted) in [
+            (27, "spectator", false),
+            (27, "agent", false),
+            (28, "spectator", true),
+            (28, "agent", true),
+        ] {
+            let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
+            ws.send(Message::Text(
+                serde_json::json!({
+                    "type": "hello", "role": role, "name": "SiteCheck",
+                    "gameplay_version": version
+                })
+                .to_string(),
+            ))
+            .await
+            .unwrap();
+            let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
+                .await
+                .expect("sabotage reply timeout");
             let welcomed = matches!(
                 reply,
                 Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")

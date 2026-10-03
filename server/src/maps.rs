@@ -121,6 +121,167 @@ pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
     }
 }
 
+/// Sabotage mode data for a map built for it: two plant sites, an attacker
+/// yard and a defender hall with their spawn points, muster zones and pistol
+/// pads, and the callouts every reader shares. It is mode data, not solids:
+/// the geometry stays the one every mode plays.
+#[derive(Debug, Clone)]
+pub(crate) struct SabotageLayout {
+    /// Sites and callouts as readers receive them.
+    pub(crate) wire: crate::protocol::SabotageMap,
+    /// Spawn points by side index, Union defenders first: x, floor, z, yaw.
+    pub(crate) spawns: [Vec<[f32; 4]>; 2],
+    /// Muster zone by side index: lowest x, lowest z, highest x, highest z.
+    pub(crate) muster: [[f32; 4]; 2],
+    /// Clear standing spots around each site, A first: where an anchor holds,
+    /// an escort takes the site and a team guards a planted charge.
+    pub(crate) holds: [Vec<[f32; 3]>; 2],
+    /// Where the attack gathers out of the site's sight before it pushes, A
+    /// first, with clear spots around it for a full side.
+    pub(crate) stages: [Vec<[f32; 3]>; 2],
+    /// The point in mid the attack passes on the way to each stage, A first,
+    /// so the walk round never cuts through the defenders' hall.
+    pub(crate) approaches: [[f32; 3]; 2],
+    /// One personal Tack pad inside each muster zone, within two seconds of
+    /// every spawn point: every life starts empty, and the pistol is the
+    /// first thing a fighter picks up.
+    pub(crate) pads: Vec<ArenaPickup>,
+}
+
+impl SabotageLayout {
+    pub(crate) fn in_muster(&self, side: usize, x: f32, z: f32) -> bool {
+        let [min_x, min_z, max_x, max_z] = self.muster[side];
+        x >= min_x && x <= max_x && z >= min_z && z <= max_z
+    }
+}
+
+pub(crate) fn sabotage_layout(kind: MapKind) -> Option<&'static SabotageLayout> {
+    static SECTOR_9: OnceLock<SabotageLayout> = OnceLock::new();
+    match kind {
+        MapKind::Sector9 => Some(SECTOR_9.get_or_init(sector_9_sabotage)),
+        MapKind::ArenaDuel
+        | MapKind::ComplianceYard
+        | MapKind::Directive17
+        | MapKind::ReclamationGulch
+        | MapKind::TripointWorks => None,
+    }
+}
+
+fn personal_tack_pad(id: &str, x: f32, z: f32) -> ArenaPickup {
+    ArenaPickup {
+        claim: crate::protocol::SupplyClaim::Personal,
+        ..weapon_pad(id, WeaponType::Tack, x, z, 0.0)
+    }
+}
+
+/// Sector 9 as the first Sabotage map. The Union defends the West Hall
+/// (parcel sort): A Frame, the correction frame, sits under the Sort Deck, and
+/// B Server, the registry server, between the freight stacks. The free
+/// coalition musters just inside the East Hall's center door. Mid Doors is the
+/// fast route to either site; the north and south mid doors and the West
+/// Hall's service door are the slow ones.
+fn sector_9_sabotage() -> SabotageLayout {
+    use crate::protocol::{Callout, SabotageMap, SabotageSite, SiteId, Team};
+    let callout = |id: &str, min: [f32; 2], max: [f32; 2]| Callout {
+        id: id.to_string(),
+        min,
+        max,
+    };
+    SabotageLayout {
+        wire: SabotageMap {
+            attackers: Team::Coalition,
+            sites: [
+                SabotageSite {
+                    id: SiteId::A,
+                    center: [-38.0, 0.0, -27.0],
+                    radius: 3.0,
+                },
+                SabotageSite {
+                    id: SiteId::B,
+                    center: [-38.0, 0.0, 27.0],
+                    radius: 3.0,
+                },
+            ],
+            callouts: vec![
+                callout("a_frame", [-44.0, -33.0], [-32.0, -21.0]),
+                callout("b_server", [-44.0, 21.0], [-32.0, 33.0]),
+                callout("sort_deck", [-66.0, -47.0], [-50.0, -21.0]),
+                callout("mid_doors", [-30.0, -5.0], [30.0, 5.0]),
+                callout("defender_hall", [-80.0, -16.0], [-56.0, 16.0]),
+                callout("attacker_yard", [26.0, -16.0], [50.0, 16.0]),
+                callout("north_mid", [-26.0, -80.0], [26.0, -26.0]),
+                callout("south_mid", [-26.0, 26.0], [26.0, 80.0]),
+                callout("mid", [-26.0, -26.0], [26.0, 26.0]),
+                callout("west_hall", [-80.0, -80.0], [-26.0, 80.0]),
+                callout("east_hall", [26.0, -80.0], [80.0, 80.0]),
+                callout("service", [-100.0, -100.0], [100.0, 100.0]),
+            ],
+        },
+        spawns: [
+            vec![
+                [-56.0, 0.0, -9.5, 0.0],
+                [-56.0, 0.0, 9.5, 0.0],
+                [-52.0, 0.0, -9.0, 0.0],
+                [-52.0, 0.0, 9.0, 0.0],
+                [-50.0, 0.0, -3.0, 0.0],
+                [-50.0, 0.0, 3.0, 0.0],
+            ],
+            vec![
+                [31.0, 0.0, -8.0, PI],
+                [31.0, 0.0, 8.0, PI],
+                [35.0, 0.0, -8.0, PI],
+                [35.0, 0.0, 8.0, PI],
+                [31.0, 0.0, -4.0, PI],
+                [31.0, 0.0, 4.0, PI],
+            ],
+        ],
+        muster: [[-74.0, -13.0, -48.0, 13.0], [28.0, -13.0, 44.0, 13.0]],
+        approaches: [[0.0, 0.0, -42.0], [0.0, 0.0, 42.0]],
+        // Just inside the north and south mid doors, behind the freight and the
+        // spawn bays, so a site's anchors cannot see the attack gather.
+        stages: [
+            vec![
+                [-33.0, 0.0, -60.0],
+                [-31.0, 0.0, -62.0],
+                [-35.0, 0.0, -62.0],
+                [-31.0, 0.0, -58.0],
+                [-35.0, 0.0, -58.0],
+                [-33.0, 0.0, -64.0],
+            ],
+            vec![
+                [-33.0, 0.0, 60.0],
+                [-31.0, 0.0, 62.0],
+                [-35.0, 0.0, 62.0],
+                [-31.0, 0.0, 58.0],
+                [-35.0, 0.0, 58.0],
+                [-33.0, 0.0, 64.0],
+            ],
+        ],
+        holds: [
+            vec![
+                [-38.0, 0.0, -21.0],
+                [-32.0, 0.0, -27.0],
+                [-38.0, 0.0, -33.0],
+                [-44.0, 0.0, -27.0],
+                [-33.0, 0.0, -22.0],
+                [-43.0, 0.0, -22.0],
+            ],
+            vec![
+                [-38.0, 0.0, 21.0],
+                [-32.0, 0.0, 27.0],
+                [-38.0, 0.0, 33.0],
+                [-44.0, 0.0, 27.0],
+                [-33.0, 0.0, 22.0],
+                [-43.0, 0.0, 22.0],
+            ],
+        ],
+        pads: vec![
+            personal_tack_pad("sabotage_tack_union", -55.0, 0.0),
+            personal_tack_pad("sabotage_tack_coalition", 34.0, 0.0),
+        ],
+    }
+}
+
 struct NavigationCache {
     maps: [OnceLock<std::sync::Arc<crate::navigation::Navigation>>; MapKind::ALL.len()],
 }

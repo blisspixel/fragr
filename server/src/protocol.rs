@@ -11,6 +11,7 @@ mod m05;
 mod m06;
 mod mission;
 mod rules;
+mod sabotage;
 mod statistics;
 mod status;
 pub use actors::{hostile, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase};
@@ -41,6 +42,11 @@ pub use mission::{
 };
 pub use rules::{
     GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
+};
+pub use sabotage::{
+    Callout, ChargeState, ChargeStatus, ProgressKind, SabotageEventKind, SabotageFormat,
+    SabotageMap, SabotagePhase, SabotageProgress, SabotageReason, SabotageResult, SabotageSite,
+    SabotageState, SiteId, MAX_CALLOUTS, MAX_CALLOUT_ID,
 };
 pub use statistics::{
     CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, RECORD_TICKS_PER_SECOND,
@@ -191,6 +197,43 @@ pub fn team_round_host_line(winner: Option<Team>, scores: TeamScores) -> String 
             scores.union
         ),
     }
+}
+
+/// Host line when a Sabotage round is decided. `score` is round wins by the
+/// uniform each side wore in the round. The client keys its own words; this
+/// is the English line for logs, MCP and older readers.
+pub fn sabotage_round_host_line(
+    winner: Team,
+    reason: SabotageReason,
+    score: TeamScores,
+    match_over: bool,
+) -> String {
+    let how = match reason {
+        SabotageReason::Elimination => "NOBODY LEFT ON THE OTHER SIDE",
+        SabotageReason::Detonation => "THE CHARGE WENT UP",
+        SabotageReason::Defused => "CHARGE DEFUSED",
+        SabotageReason::Time => "THE CLOCK RAN OUT ON THE CHARGE",
+    };
+    let (win, lose) = (score.get(winner), score.get(winner.other()));
+    if match_over {
+        format!(
+            "HOST: {how}. {} TAKE THE MATCH, {win} TO {lose}.",
+            winner.name().to_uppercase()
+        )
+    } else {
+        format!(
+            "HOST: {how}. {} TAKE THE ROUND, {win} TO {lose}.",
+            winner.name().to_uppercase()
+        )
+    }
+}
+
+/// Host line when a Sabotage match ends level after its extra time.
+pub fn sabotage_draw_host_line(score: TeamScores) -> String {
+    format!(
+        "HOST: LEVEL AFTER EXTRA TIME, {} ALL. THE ROTATION MOVES ON.",
+        score.union
+    )
 }
 
 /// Host line when a lives-limited round ends with one fighter left, or none.
@@ -576,7 +619,10 @@ pub const M03_GAMEPLAY_VERSION: u32 = 24;
 pub const M04_GAMEPLAY_VERSION: u32 = 25;
 pub const M05_GAMEPLAY_VERSION: u32 = 26;
 pub const M06_GAMEPLAY_VERSION: u32 = 27;
-pub const GAMEPLAY_VERSION: u32 = M06_GAMEPLAY_VERSION;
+/// Sabotage sites, charge, round state and results. A Sabotage server requires
+/// it for every role so no reader shows a round without its objective.
+pub const SABOTAGE_GAMEPLAY_VERSION: u32 = 28;
+pub const GAMEPLAY_VERSION: u32 = SABOTAGE_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -699,6 +745,7 @@ mod geometry_tests {
             half_extent: 12.0,
             solids: raised.to_vec(),
             geometry_version: 2,
+            sabotage: None,
         };
         let json = serde_json::to_string(&message).unwrap();
         assert!(!json.contains("m02_side_ward"));
@@ -806,6 +853,9 @@ pub enum ServerMessage {
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
+        /// Sabotage sites and callouts. Present only on a Sabotage server.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        sabotage: Option<SabotageMap>,
     },
     Mission {
         tick: u64,
@@ -1113,6 +1163,9 @@ pub struct Snapshot {
     pub capture_scores: Option<TeamScores>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub capture_limit: Option<u32>,
+    /// The Sabotage round: phase, clock, charge, progress and score by round.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sabotage: Option<SabotageState>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1201,6 +1254,19 @@ pub enum GameEvent {
     CrawlerScrabble {
         position: [f32; 3],
     },
+    /// A Sabotage fact everyone hears: the charge changing hands, a plant or
+    /// defuse starting, stopping or finishing, the detonation and the swap.
+    Sabotage {
+        kind: SabotageEventKind,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        player_id: Option<Uuid>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        site: Option<SiteId>,
+        /// Round wins by current uniform.
+        score: TeamScores,
+    },
     Flag {
         kind: FlagEventKind,
         flag: Team,
@@ -1271,6 +1337,10 @@ pub enum GameEvent {
         /// Capture the flag: final capture counts, independent of frags.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         capture_scores: Option<TeamScores>,
+        /// Sabotage: why the round was decided, the score by round and the
+        /// match result once it is decided.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        sabotage: Option<SabotageResult>,
     },
     PlayerJoined {
         player: String,
@@ -1489,6 +1559,7 @@ mod protocol_tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["shot_results"][0]["hit"], true);
@@ -1668,6 +1739,7 @@ mod protocol_tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["pickups"][0]["id"], "pad_rail");
@@ -1873,6 +1945,7 @@ mod protocol_tests {
             mvp: Some("Rusher".to_string()),
             mvp_frags: Some(10),
             host_line: mvp_host_line("Rusher", 10),
+            sabotage: None,
         };
         let v = serde_json::to_value(&event).unwrap();
         assert_eq!(v["event"], "round_end");

@@ -489,7 +489,7 @@ you. Every participant in `observe` carries its own `body`; Union and
 companion actors carry none.
 
 `rules` is the server's rule set from `map_info` (or the last `round_start`
-before `map_info` arrives): `mode` (`ffa`, `tdm` or `ctf`), `name`, `mutators`
+before `map_info` arrives): `mode` (`ffa`, `tdm`, `ctf` or `sabotage`), `name`, `mutators`
 (`rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`,
 `two-lives`), `friendly_fire` and `lives`, each omitted at its default. It is
 null only before either arrives or on a campaign map. `team_scores` is the
@@ -505,6 +505,35 @@ joining: in `tdm` a teammate shares your `team`, takes no damage unless
 ignored. `get_events` also returns `host_reaction` beats (`kind`, `variant`,
 `player`, `other`, `team`); the words live in the client. The full rule
 contract is in [`docs/protocol.md`](../docs/protocol.md#match-rules).
+
+**Sabotage.** On a Sabotage server `round_state` adds four fields, each null
+elsewhere:
+
+```json
+{
+  "sabotage": {"format": "short", "phase": "live", "round": 3, "period": 0, "half": 1,
+    "half_rounds": 4, "rounds_to_win": 5, "score": {"union": 1, "coalition": 1},
+    "alive": {"union": 4, "coalition": 3}, "clock_ticks": 1460,
+    "charge": {"status": "carried", "position": [12.0, 0.0, -40.0], "carrier": "..."}},
+  "sabotage_map": {"attackers": "coalition", "sites": [{"id": "a", "center": [-38.0, 0.0, -27.0], "radius": 3.0}, {"id": "b", "center": [-38.0, 0.0, 27.0], "radius": 3.0}], "callouts": [...]},
+  "sabotage_objective": {"kind": "walk", "to": [-38.0, 0.0, -27.0]},
+  "self_callout": "mid"
+}
+```
+
+`sabotage` is the snapshot's round state and `sabotage_map` the static sites
+and callouts from `map_info`. `sabotage_objective` is the shared Sabotage
+controller's advice for you (the same one the playtest agents use): `idle`,
+`walk` with a `to` point, `plant` or `defuse`. `self_callout` names the region
+you stand in. The coalition carries and plants; the union defends and
+defuses. To plant, stand still inside a site's radius while carrying the
+charge and send `act` with `interact: true` and no movement until `planted`
+arrives in `get_events` (60 ticks); to defuse, do the same within 1.75 m of the
+planted charge as a union fighter (120 ticks). Movement, release or any damage
+loses the progress. One life per round; after death you are absent from
+`players` until the next round. Sides swap at half, so read `self_team` each
+round. The contract is in
+[`docs/protocol.md`](../docs/protocol.md#sabotage).
 
 ## Architecture
 

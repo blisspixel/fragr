@@ -588,6 +588,13 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         .and_then(|p| p.get("body"))
         .cloned()
         .unwrap_or(Value::Null);
+    let sabotage_map = state
+        .map
+        .as_ref()
+        .and_then(|map| map.get("sabotage"))
+        .cloned()
+        .unwrap_or(Value::Null);
+    let (sabotage_objective, self_callout) = sabotage_guidance(state, me, &sabotage_map);
 
     serde_json::json!({
         "connected": state.connected,
@@ -610,12 +617,42 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         "flags": snap_field(snap, "flags"),
         "capture_scores": snap_field(snap, "capture_scores"),
         "capture_limit": snap_field(snap, "capture_limit"),
+        "sabotage": snap_field(snap, "sabotage"),
+        "sabotage_map": sabotage_map,
+        "sabotage_objective": sabotage_objective,
+        "self_callout": self_callout,
         "self_team": self_team,
         "self_lives": self_lives,
         "self_body": self_body,
         "last_round_start": last_round_start,
         "last_round_end": last_round_end
     })
+}
+
+/// The shared Sabotage controller's advice for this agent, and the callout it
+/// stands in. Both are Null outside a Sabotage round.
+fn sabotage_guidance(state: &ToolState, me: Option<&Value>, layout: &Value) -> (Value, Value) {
+    use fragr_server::sim::sabotage::controller::{objective, Objective};
+    let (Some(id), Some(snapshot)) = (state.player_id, state.last_snapshot.as_ref()) else {
+        return (Value::Null, Value::Null);
+    };
+    let Ok(map) = serde_json::from_value::<protocol::SabotageMap>(layout.clone()) else {
+        return (Value::Null, Value::Null);
+    };
+    let callout = me
+        .and_then(|p| Some((p.get("x")?.as_f64()?, p.get("z")?.as_f64()?)))
+        .and_then(|(x, z)| map.callout_at(x as f32, z as f32))
+        .map_or(Value::Null, Value::from);
+    let Ok(snapshot) = serde_json::from_value::<protocol::Snapshot>(snapshot.clone()) else {
+        return (Value::Null, callout);
+    };
+    let advice = match objective(id, &snapshot, &map) {
+        Objective::Idle => serde_json::json!({"kind": "idle"}),
+        Objective::Walk(point) => serde_json::json!({"kind": "walk", "to": point}),
+        Objective::Plant => serde_json::json!({"kind": "plant"}),
+        Objective::Defuse => serde_json::json!({"kind": "defuse"}),
+    };
+    (advice, callout)
 }
 
 fn tools_list_result() -> Value {
@@ -645,7 +682,7 @@ fn tools_list_result() -> Value {
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter"], "description": "Select an owned weapon. The Shiv is found melee and needs no ammunition"},
-                        "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press."},
+                        "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
                         "look_at": {
                             "type": "object",
@@ -737,7 +774,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "round_state",
-                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm or ctf; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, self_team, self_lives and self_body, from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. Prefer this over scraping observe.",
+                "description": "Current round summary (state, number, time left, frag limit, mode_name, host_line, pressure), rules (ffa, tdm, ctf or sabotage; mutators, friendly_fire, lives), team_scores, flags, capture_scores, capture_limit, sabotage (phase, round, score by round, alive, clock, charge, plant or defuse progress), sabotage_map (sites and callouts), sabotage_objective (idle, walk with a point, plant or defuse for you), self_callout, self_team, self_lives and self_body, from the last snapshot, map_info and recent round events. In tdm, teammates cannot be hurt unless friendly_fire is true. In ctf, captures decide the winner. In sabotage the free coalition (coalition) carries and plants the charge and the union defends or defuses; one life per round, sides swap at half. Prefer this over scraping observe.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {},
@@ -1098,8 +1135,12 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             presentation,
             mission,
             rules,
+            sabotage,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
+            if let Some(layout) = sabotage.as_ref() {
+                layout.validate()?;
+            }
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
             state.mission.replace_map_with_id(
                 map_id,
@@ -1163,6 +1204,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
             if let Some(rules) = rules {
                 map["rules"] = serde_json::json!(rules);
+            }
+            if let Some(layout) = sabotage {
+                map["sabotage"] = serde_json::json!(layout);
             }
             state.map = Some(map);
         }
@@ -2973,5 +3017,61 @@ mod mcp_tests {
         assert_eq!(round["flags"][0]["status"], "home");
         assert_eq!(round["capture_scores"]["union"], 1);
         assert_eq!(round["capture_limit"], 3);
+    }
+
+    /// A real Sabotage server's map and snapshot, read the way the adapter
+    /// reads the wire, reach `round_state` with the shared controller's advice.
+    #[test]
+    fn sabotage_round_state_reports_sites_charge_and_the_objective() {
+        use fragr_server::sim::{GameState, MapKind, MatchConfig};
+        let mut server = GameState::with_map(MapKind::Sector9, false);
+        server.seed(3);
+        server.apply_config(MatchConfig {
+            frag_limit: None,
+            time_limit_ticks: None,
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Sabotage, &[], false)
+                .unwrap(),
+            sabotage: fragr_server::rules::SabotageConfig {
+                muster_ticks: 2,
+                ..Default::default()
+            },
+            ..MatchConfig::default()
+        });
+        let me = Uuid::from_u128(9);
+        server.add_player(me, "Planter".into(), protocol::Role::Agent);
+        server.start_round();
+        for _ in 0..4 {
+            server.tick(0.05);
+        }
+        let mut state = ToolState {
+            player_id: Some(me),
+            connected: true,
+            ..Default::default()
+        };
+        let map = serde_json::to_string(&server.map_info()).unwrap();
+        ingest_server_text(&mut state, &map).unwrap();
+        let snapshot =
+            serde_json::to_string(&protocol::ServerMessage::Snapshot(server.snapshot())).unwrap();
+        ingest_server_text(&mut state, &snapshot).unwrap();
+        let round = build_round_state_result(&state);
+        assert_eq!(round["rules"]["mode"], "sabotage");
+        assert_eq!(round["sabotage"]["phase"], "live");
+        assert_eq!(round["sabotage"]["charge"]["status"], "carried");
+        assert_eq!(round["sabotage"]["charge"]["carrier"], me.to_string());
+        assert_eq!(round["sabotage_map"]["sites"][0]["id"], "a");
+        assert_eq!(round["self_callout"], "attacker_yard");
+        assert_eq!(round["sabotage_objective"]["kind"], "walk");
+        assert_eq!(round["self_team"], "coalition");
+        // Off a Sabotage server the fields stay null.
+        let plain = build_round_state_result(&ToolState::default());
+        assert!(plain["sabotage"].is_null() && plain["sabotage_objective"].is_null());
+        // A malformed layout is refused before it replaces the map.
+        let mut bad: Value = serde_json::from_str(&map).unwrap();
+        bad["sabotage"]["sites"][0]["radius"] = serde_json::json!(40.0);
+        let mut fresh = ToolState::default();
+        assert!(ingest_server_text(&mut fresh, &bad.to_string()).is_err());
+        assert!(fresh.map.is_none());
     }
 }

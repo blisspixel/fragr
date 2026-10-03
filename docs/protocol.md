@@ -1557,7 +1557,7 @@ CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"unio
 ### Match rules
 
 A server runs one rule set, chosen by the host at launch
-(`--mode ffa|tdm|ctf`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit` for FFA/TDM or `--capture-limit` for CTF).
+(`--mode ffa|tdm|ctf|sabotage`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit` for FFA/TDM, `--capture-limit` for CTF or `--sabotage-format short|match` for Sabotage).
 `map_info.rules` carries it to every connection, `round_start` repeats it,
 `GET /status` names it, and the MCP adapter returns it from `round_state`.
 
@@ -1571,13 +1571,15 @@ A server runs one rule set, chosen by the host at launch
 }
 ```
 
-- `mode`: `ffa` (free-for-all), `tdm` (team deathmatch), or `ctf` (capture the flag).
+- `mode`: `ffa` (free-for-all), `tdm` (team deathmatch), `ctf` (capture the
+  flag), or `sabotage` (round-based plant and defuse, below).
 - `name`: an English label for logs and agents. Clients key their own labels.
 - `mutators`: sorted, unique ids, omitted when none: `rail-only`,
   `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`.
   A Rust reader refuses an unknown id; the Godot client drops it.
 - `friendly_fire`: present and true when team damage lands. Off by default.
-- `lives`: lives per fighter per round when limited (Two Lives sends 2).
+- `lives`: lives per fighter per round when limited (Two Lives sends 2,
+  Sabotage sends 1).
 
 Rules the server enforces:
 
@@ -1614,6 +1616,7 @@ Rules the server enforces:
   captures at the clock draw. The default capture limit is 3. `--frag-limit`
   and the Two Lives mutator are refused in CTF. The Compliance slow and Drone
   arena events do not run in CTF.
+- **Sabotage.** See [Sabotage](#sabotage) below.
 - **Rail Only, Shotgun Only, Fists Only.** Everyone holds that one weapon with
   unlimited ammunition, `weapon_swap` to anything else is ignored, and weapon
   and ammunition pads are removed. Health and armour pads stay. No private
@@ -1635,6 +1638,152 @@ Rules the server enforces:
 
 Plain free-for-all servers send `rules` with `mode` `ffa` and no mutators, and
 none of the team, lives or golden fields.
+
+#### Sabotage
+
+The first flagship round mode, on Sector 9 only. The free coalition
+(`coalition`) always attacks: it carries a charge to one of two Union sites and
+plants it with a held Use. The Union (`union`) defends the sites or defuses a
+planted charge. One life per round, no shop and no loadouts. A server with
+`--mode sabotage` on any other map, or with rotation, refuses to start. A
+Sabotage server requires gameplay capability 28 for every role, spectators
+included.
+
+**`map_info.sabotage`** carries the static layout once, never per tick:
+
+```json
+{
+  "attackers": "coalition",
+  "sites": [
+    {"id": "a", "center": [-38.0, 0.0, -27.0], "radius": 3.0},
+    {"id": "b", "center": [-38.0, 0.0, 27.0], "radius": 3.0}
+  ],
+  "callouts": [
+    {"id": "a_frame", "min": [-44.0, -33.0], "max": [-32.0, -21.0]},
+    {"id": "mid_doors", "min": [-30.0, -5.0], "max": [30.0, 5.0]}
+  ]
+}
+```
+
+- `sites`: exactly two, `a` then `b`. `center` is feet height; `radius` (1 to
+  8 m) is the horizontal plant area. A is the correction frame under the Sort
+  Deck, B the registry server between the West Hall freight stacks.
+- `callouts`: at most 32 named x/z rectangles, most specific first; a reader
+  names a point by the first region that contains it. Ids are short
+  snake_case; clients key their own words. Sector 9 sends `a_frame`,
+  `b_server`, `sort_deck`, `mid_doors`, `defender_hall`, `attacker_yard`,
+  `north_mid`, `south_mid`, `mid`, `west_hall`, `east_hall` and `service`.
+
+**`snapshot.sabotage`** is the round, from the first round on:
+
+```json
+{
+  "format": "short",
+  "phase": "planted",
+  "round": 6,
+  "period": 0,
+  "half": 2,
+  "half_rounds": 4,
+  "rounds_to_win": 5,
+  "score": {"union": 3, "coalition": 2},
+  "alive": {"union": 2, "coalition": 1},
+  "clock_ticks": 412,
+  "charge": {"status": "planted", "position": [-37.2, 0.0, -26.1], "site": "a"},
+  "progress": {"kind": "defuse", "player_id": "...", "site": "a", "ticks": 40, "needed": 120}
+}
+```
+
+- `phase`: `muster` (10 s held in the spawn zones; pickups work, fire and
+  throws do not, and a step that would leave the zone is refused), `live`
+  (1:45), `planted` (the charge's 35 s clock replaces the round clock), `over`
+  (decided; the result card is up).
+- `round` counts from 1 within the match. `period` is 0 in regulation and
+  counts extra periods. `half` is 1 or 2 within the period, `half_rounds` its
+  length, `rounds_to_win` the round wins that take the match from here.
+- `score`: round wins by current uniform. At a side swap every fighter changes
+  uniform and the two numbers swap with them, so the score follows the people.
+- `alive`: fighters still standing per side.
+- `clock_ticks`: ticks left on the clock that matters now. `round_time_left`
+  carries the same clock in whole seconds while the round is active.
+- `charge`: absent only when no attacker is in the match. `status` is
+  `carried` (with `carrier`), `dropped`, `planted` (with `site`), `defused` or
+  `detonated`; `position` is feet height. The carrier is present for every
+  reader; clients show it only to teammates and spectators until per-recipient
+  interest filtering exists.
+- `progress`: a held Use under way, with `kind` `plant` or `defuse`.
+  Interruption removes it and loses all progress.
+- `swap_after`: present and true when this round ends a half.
+
+Rules the server enforces, in tick order after combat:
+
+- **Muster and spawns.** Every round, each side spawns in its zone: the Union
+  in the West Hall's defender hall, the coalition in the attacker yard inside
+  the East Hall's center door. Survivors keep every weapon, their ammunition
+  and armour, with health restored; anyone who fell, and everyone at the start
+  of a match, starts with fists. A personal Tack pad in each zone is within two
+  seconds of every spawn point and can be claimed once per round. Map pads stay
+  on. The equipment is the discovery inventory, so private `loadout` messages
+  flow as on a campaign map.
+- **The charge** starts with a seeded random attacker. It drops at the feet of
+  a carrier who dies, leaves, parks or changes side, and any living attacker
+  touching it within 1.5 m (and 2 m vertically) takes it after a 10-tick drop
+  window. Defenders never carry it. A death in Sabotage also leaves the
+  victim's best primary (the held one if it is a primary, then Rail, Scatter,
+  Flechette) as a one-time `dropped_<n>` weapon pickup, cleared at the next
+  round; weapon-only mutators drop nothing.
+- **Plant.** The carrier, inside a site's radius with feet within 1 m of its
+  floor, holding `interact` with no movement keys while grounded, plants after
+  60 ticks (3 s). Releasing, any movement key or displacement, leaving the
+  area, death, or any loss of health or armour interrupts it.
+- **Defuse.** One defender at a time, within 1.75 m of the planted charge
+  horizontally and 1 m vertically, holding `interact` still, defuses after 120
+  ticks (6 s). Interruption loses all progress; the first eligible defender in
+  join order starts.
+- **Outcome**, checked in this order: a completed defuse (Union); detonation
+  (coalition); elimination when both sides have fighters (before a plant the
+  side with nobody standing loses, a same-tick double wipe going to the Union;
+  after a plant only the Union can be eliminated, so killing every attacker
+  still needs a defuse); the live clock running out before a plant (Union). A
+  plant completing on the clock's last tick counts. A defuse completing on the
+  detonation tick counts. A defuser killed on that tick does not.
+- **Format.** `short` (default): halves of 4, first to 5; at 4-4 one extra
+  pair, one round a side, then a draw. `match`: halves of 8, first to 9; at
+  8-8 extra periods of two halves of 3, first to win 4 of the period,
+  repeating while level. Sides swap after every half except entering an extra
+  period. Frags carry across the rounds of a match. After a decided match the
+  next round starts a new match.
+- **Joining.** A joiner takes the smaller side, then the side behind on
+  rounds. Joining during muster spawns in the zone; joining later sits out the
+  round with `lives` 0 and returns next round.
+- `--frag-limit` and the Two Lives mutator are refused; the arena's Compliance
+  slow and Drone do not run.
+
+**`event: sabotage`** reports every fact, with `kind`, optional `player`,
+`player_id` and `site`, and `score` (round wins by current uniform):
+
+| `kind` | When |
+|---|---|
+| `live` | Muster ends and weapons go live |
+| `charge_taken` | An attacker picks up the loose charge |
+| `charge_dropped` | The carrier died, left, parked or changed side |
+| `plant_started`, `plant_interrupted`, `planted` | The plant begins, stops, or completes |
+| `defuse_started`, `defuse_interrupted`, `defused` | The defuse begins, stops, or completes |
+| `detonated` | The charge's clock ran out |
+| `sides_swapped` | Every fighter changed uniform; sent at the next round's start |
+
+**`round_end.sabotage`** carries the result; `winning_team` names the round's
+winner and `winner` is omitted:
+
+```json
+{"reason": "defused", "round": 4, "score": {"union": 3, "coalition": 1}, "sides_swap": true}
+```
+
+`reason` is `elimination`, `detonation`, `defused` or `time`. `score` is by the
+uniform each side wore in that round. `sides_swap` is present when the next
+round swaps; `match_over` is present when this round decided the match, with
+`match_winner` naming the uniform that won it (absent for a draw). The card
+holds 5 s, or 8 s before a swap or after a match.
+
 
 #### Host reactions
 

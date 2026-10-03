@@ -776,6 +776,7 @@ mod tests {
         let round_end_event = protocol::GameEvent::RoundEnd {
             team_scores: None,
             capture_scores: None,
+            sabotage: None,
             winning_team: None,
             winner: Some("Bot1".to_string()),
             reason: "Frag limit reached".to_string(),
@@ -1097,6 +1098,7 @@ mod tests {
             flags: None,
             capture_scores: None,
             capture_limit: None,
+            sabotage: None,
             tick: 100,
             players: vec![protocol::PlayerState {
                 collidable: true,
@@ -1164,6 +1166,7 @@ mod tests {
             flags: None,
             capture_scores: None,
             capture_limit: None,
+            sabotage: None,
             tick: 7,
             players: vec![],
             round_state: Some("Active".into()),
@@ -1216,6 +1219,7 @@ mod tests {
             flags: None,
             capture_scores: None,
             capture_limit: None,
+            sabotage: None,
             tick: 50,
             players: vec![
                 protocol::PlayerState {
@@ -1564,6 +1568,7 @@ mod tests {
             flags: None,
             capture_scores: None,
             capture_limit: None,
+            sabotage: None,
             tick: 1,
             players: vec![
                 protocol::PlayerState {
@@ -2102,6 +2107,7 @@ mod tests {
                 .unwrap();
             let map = ServerMessage::MapInfo {
                 rules: None,
+                sabotage: None,
                 mission: None,
                 m02_objectives: None,
                 m02_side_ward: false,

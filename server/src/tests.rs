@@ -330,6 +330,7 @@ fn test_protocol_game_event_round_end() {
         mvp: Some("Bot1".to_string()),
         mvp_frags: Some(10),
         host_line: mvp_host_line("Bot1", 10),
+        sabotage: None,
     };
     let json = serde_json::to_value(&event).unwrap();
     assert_eq!(json["event"], "round_end");
@@ -416,6 +417,7 @@ fn test_protocol_snapshot_serialization() {
         episode_progress: None,
         episode_phase: None,
         jammer_dish: None,
+        sabotage: None,
     };
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tick"], 123);
@@ -453,6 +455,7 @@ fn test_protocol_snapshot_empty_players() {
         episode_progress: None,
         episode_phase: None,
         jammer_dish: None,
+        sabotage: None,
     };
     let json = serde_json::to_string(&snapshot).unwrap();
     assert!(json.contains(r#""tick":0"#));
@@ -746,6 +749,7 @@ fn test_sim_match_config_custom() {
         compliance_ping_ticks: None,
         compliance_duration_ticks: 20 * 6,
         boss_spawn_ticks: None,
+        sabotage: Default::default(),
     };
 
     assert_eq!(config.frag_limit, Some(5));
@@ -2154,6 +2158,7 @@ fn test_round_cycle_events_survive_ticks() {
         compliance_ping_ticks: None,
         compliance_duration_ticks: 20 * 6,
         boss_spawn_ticks: None,
+        sabotage: Default::default(),
     };
 
     let a = uuid::Uuid::new_v4();
@@ -2276,6 +2281,7 @@ fn test_server_round_event_wire_json_shape() {
         mvp: Some("Alpha".into()),
         mvp_frags: Some(10),
         host_line: mvp_host_line("Alpha", 10),
+        sabotage: None,
     });
     let end_json = serde_json::to_string(&end).unwrap();
     assert!(end_json.contains(r#""event":"round_end""#), "{}", end_json);
@@ -2560,6 +2566,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            sabotage: None,
         });
         broadcast_to_clients(&clients, &[snap]).await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
@@ -2946,6 +2953,7 @@ fn test_compliance_ping_fires_once_and_sets_pressure() {
         compliance_ping_ticks: Some(5),
         compliance_duration_ticks: 10,
         boss_spawn_ticks: None,
+        sabotage: Default::default(),
     };
     let id = Uuid::new_v4();
     state.add_player(id, "Scrap".to_string(), Role::Human);
@@ -3020,6 +3028,7 @@ fn test_compliance_pressure_slows_movement() {
         compliance_ping_ticks: None,
         compliance_duration_ticks: 20,
         boss_spawn_ticks: None,
+        sabotage: Default::default(),
     };
     let id = Uuid::new_v4();
     state.add_player(id, "Runner".to_string(), Role::Human);
@@ -3099,6 +3108,7 @@ fn test_snapshot_host_line_sticky_for_mid_join() {
         compliance_ping_ticks: Some(5),
         compliance_duration_ticks: 8,
         boss_spawn_ticks: None,
+        sabotage: Default::default(),
     };
     state.add_player(Uuid::new_v4(), "Late".to_string(), Role::Human);
 
@@ -3164,6 +3174,7 @@ fn test_compliance_drone_spawns_once_with_pressure_and_host() {
         compliance_ping_ticks: None,
         compliance_duration_ticks: 10,
         boss_spawn_ticks: Some(3),
+        sabotage: Default::default(),
     };
     // Warmup -> Active
     state.tick(0.05);
@@ -3214,6 +3225,7 @@ fn test_boss_wiped_on_round_end_emits_boss_down_no_killer() {
         compliance_ping_ticks: None,
         compliance_duration_ticks: 10,
         boss_spawn_ticks: Some(1),
+        sabotage: Default::default(),
     };
     state.tick(0.05); // Warmup -> Active
     let _ = state.take_events();
@@ -3284,6 +3296,7 @@ fn test_compliance_drone_killable_emits_boss_down_no_respawn() {
         compliance_ping_ticks: None,
         compliance_duration_ticks: 10,
         boss_spawn_ticks: Some(1),
+        sabotage: Default::default(),
     };
     state.tick(0.05); // warmup -> Active
     let _ = state.take_events();
@@ -6906,5 +6919,6 @@ mod jammer;
 mod m01;
 mod modes;
 mod pellets;
+mod sabotage;
 mod shiv;
 mod traveling_shot;

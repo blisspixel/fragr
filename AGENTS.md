@@ -79,6 +79,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Decision-brain agent, budget gate, spend ledger | `agents/brain` (`budget`, `provider`, `bot`); free local models in `local_model` (loopback only, never the ledger) |
 | Session glue, rosters, `min_bots`, broadcast | `server/src/session.rs` |
 | Match rule sets (mode, mutators, sides, lives, golden Railgun, Host reactions) | `server/src/rules.rs` validates and carries the rule set in `MatchConfig`; `sim/modes.rs` applies it; wire in `protocol/rules.rs`. Client validation and labels: `match_rules.gd`, words in `client/i18n/match.en.po`. Every join, human, agent or bot, takes a side through `add_player`. |
+| Sabotage rounds, charge, plant and defuse | `rules/sabotage.rs` owns format arithmetic, `sim/sabotage.rs` every transition, `sim/sabotage/bots.rs` rule bots, `sim/sabotage/controller.rs` the one wire controller for agents; layout data in `maps.rs`; wire in `protocol/sabotage.rs`. Bots-only evidence: `fragr-playtest --sabotage-survey`. |
 | Wire types and Host line generators | `server/src/protocol.rs`, documented in `docs/protocol.md`. The adapter, the playtest harness, and the brain agent all read these types from `fragr-server`; there is no second copy to keep in step. |
 | WebSocket accept and per-client plumbing | `server/src/net.rs`. `ClientSession` stays outside broadcast delivery until `send_unicasts` queues its initial MapInfo; preserve this ordering for every role. Liveness is any inbound frame, pongs included; never close a reading spectator for silence. Kicks and the `fragr_server::audit` target live here; never log tickets or resume tokens. |
 | Ban and allow lists | `server/src/access.rs`. Addresses and CIDR ranges only, never callsigns. Strict parse at start; a bad reload keeps the last good list. Refuse before any slot, seat, or status answer. |
@@ -137,6 +138,8 @@ cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mutator rail-onl
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode tdm --mutator licence-to-kill --frag-limit 6 --time-limit-seconds 60 --assert --report .agents/playtest/ci-tdm-licence.json
 cargo run -p fragr-playtest --locked -- --ctf-route-smoke --report .agents/playtest/ci-ctf-route.json
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode ctf --map 4 --tiers reflex,planner --capture-limit 1 --time-limit-seconds 180 --max-seconds 240 --assert --ctf-contested --report .agents/playtest/ci-ctf.json
+cargo run -p fragr-playtest --locked -- --sabotage-route-smoke --report .agents/playtest/ci-sabotage-route.json
+cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --mode sabotage --map 4 --tiers reflex,planner --time-limit-seconds 105 --max-seconds 160 --assert --sabotage-contested --report .agents/playtest/ci-sabotage.json
 bash tools/playtest_roster.sh   # 2/6/6/8/12/16 mixed clients across all six maps
 cargo build -p fragr-server -p fragr-playtest --release --locked   # soak job
 target/release/fragr-playtest --soak --soak-seconds 120 --soak-sample-seconds 15 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/ci.ndjson

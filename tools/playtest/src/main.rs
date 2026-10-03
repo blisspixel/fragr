@@ -2,7 +2,8 @@
 
 use clap::Parser;
 use fragr_playtest::{
-    check_contested_ctf, check_ctf_route_smoke, check_thresholds, run, Config, Policy,
+    check_contested_ctf, check_contested_sabotage, check_ctf_route_smoke,
+    check_sabotage_route_smoke, check_thresholds, run, Config, Policy,
 };
 use std::path::PathBuf;
 use tracing_subscriber::EnvFilter;
@@ -27,9 +28,35 @@ struct Cli {
     /// Assert combat and flag replication in a contested CTF observation.
     #[arg(long, requires = "assert", conflicts_with_all = ["soak", "fanout_matrix"])]
     ctf_contested: bool,
+    /// Prove an unopposed attacker plants and a defender defuses over a real
+    /// socket on Sector 9, using the shared Sabotage controller.
+    #[arg(long, conflicts_with_all = [
+        "ctf_route_smoke", "ctf_contested", "sabotage_contested", "fanout_matrix",
+        "soak", "agents", "rounds", "map", "frag_limit", "capture_limit",
+        "time_limit_seconds", "max_seconds", "assert", "seed", "mode",
+        "mutators", "tiers"
+    ])]
+    sabotage_route_smoke: bool,
+    /// Assert a contested Sabotage round: results, frags, pickups and rules.
+    #[arg(long, requires = "assert", conflicts_with_all = ["soak", "fanout_matrix", "ctf_contested"])]
+    sabotage_contested: bool,
     /// Run the local fighter and spectator delivery matrix instead of a round.
     #[arg(long)]
     fanout_matrix: bool,
+    /// Bots-only Sabotage survey on Sector 9: whole seeded matches of rule
+    /// bots on the session, without sockets. Asserts plants, defuses, round
+    /// wins for both sides and no stuck round when --assert is set.
+    #[arg(long, conflicts_with_all = ["soak", "fanout_matrix", "ctf_route_smoke", "ctf_contested"])]
+    sabotage_survey: bool,
+    /// Matches the survey plays, one per seed from --seed upward.
+    #[arg(long, default_value_t = 16, value_parser = clap::value_parser!(u64).range(1..=1000))]
+    survey_seeds: u64,
+    /// Rule bots in each surveyed match, split between the sides.
+    #[arg(long, default_value_t = 8, value_parser = clap::value_parser!(u64).range(2..=16))]
+    survey_bots: u64,
+    /// Sabotage match length for --mode sabotage and the survey: short or match.
+    #[arg(long, value_enum, default_value_t = fragr_server::protocol::SabotageFormat::Short)]
+    sabotage_format: fragr_server::protocol::SabotageFormat,
     /// Seconds measured in each of the twelve fanout matrix rows.
     #[arg(long, default_value_t = 10)]
     fanout_seconds: u64,
@@ -161,6 +188,55 @@ fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
     println!("log: {}", log.display());
 }
 
+fn print_survey(report: &fragr_playtest::sabotage::SurveyReport) {
+    let finished = report.matches.iter().filter(|m| m.finished).count();
+    println!(
+        "sabotage survey: {} of {} matches finished, {} rounds, attackers won {:.0} percent, mean round {:.1} s, longest {:.1} s",
+        finished,
+        report.matches.len(),
+        report.rounds.len(),
+        report.attacker_round_share * 100.0,
+        report.mean_round_seconds,
+        report.longest_round_seconds
+    );
+    println!(
+        "charge: {} plants started, {} planted, {} interrupted; {} defuses started, {} defused; {} detonations; {} drops, {} pickups; {} swaps",
+        report.plants_started,
+        report.plants,
+        report.plants_interrupted,
+        report.defuses_started,
+        report.defuses,
+        report.detonations,
+        report.charge_drops,
+        report.charge_pickups,
+        report.swaps
+    );
+    let wins: Vec<String> = report
+        .wins
+        .iter()
+        .map(|(key, count)| format!("{key} {count}"))
+        .collect();
+    println!("round wins: {}", wins.join(", "));
+    let tally = |map: &std::collections::BTreeMap<String, u32>| {
+        let mut rows: Vec<(&String, &u32)> = map.iter().collect();
+        rows.sort_by(|a, b| b.1.cmp(a.1).then_with(|| a.0.cmp(b.0)));
+        rows.iter()
+            .map(|(key, count)| format!("{key} {count}"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+    println!("deaths: {}", tally(&report.deaths));
+    println!("charge drops: {}", tally(&report.drop_callouts));
+    let hot: std::collections::BTreeMap<String, u32> = report
+        .death_grid
+        .iter()
+        .filter(|(_, count)| **count >= 3)
+        .map(|(key, count)| (key.clone(), *count))
+        .collect();
+    println!("death cells (3 or more): {}", tally(&hot));
+    println!("unarmed when live: {}", tally(&report.unarmed_at_live));
+}
+
 fn config_from(cli: &Cli) -> Result<Config, String> {
     if cli.ctf_route_smoke {
         return Ok(Config {
@@ -181,13 +257,41 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
             ..Config::default()
         });
     }
+    if cli.sabotage_route_smoke {
+        return Ok(Config {
+            agents: 2,
+            rounds: 1,
+            map: fragr_server::sim::MapKind::Sector9,
+            time_limit_ticks: 20 * 105,
+            max_ticks: 20 * 140,
+            seed: 42,
+            tiers: vec![Policy::RouteProbe],
+            rules: fragr_server::rules::RuleSet::new(
+                fragr_server::protocol::GameMode::Sabotage,
+                &[],
+                false,
+            )
+            .map_err(|error| format!("invalid Sabotage route rules: {error}"))?,
+            sabotage: fragr_server::rules::SabotageConfig {
+                muster_ticks: 20 * 3,
+                ..fragr_server::rules::SabotageConfig::default()
+            },
+            ..Config::default()
+        });
+    }
     if cli.ctf_contested && cli.mode != fragr_server::protocol::GameMode::Ctf {
         return Err("--ctf-contested requires --mode ctf".into());
+    }
+    if cli.sabotage_contested && cli.mode != fragr_server::protocol::GameMode::Sabotage {
+        return Err("--sabotage-contested requires --mode sabotage".into());
     }
     let map = fragr_server::sim::MapKind::from_cli(&cli.map)
         .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
     if cli.mode == fragr_server::protocol::GameMode::Ctf && map.ctf_stands().is_none() {
         return Err("ctf requires a map with validated flag stands".into());
+    }
+    if cli.mode == fragr_server::protocol::GameMode::Sabotage && map.sabotage_map().is_none() {
+        return Err("sabotage requires a map with validated sites (map 4, Sector 9)".into());
     }
     Ok(Config {
         agents: cli.agents,
@@ -202,6 +306,13 @@ fn config_from(cli: &Cli) -> Result<Config, String> {
             .map_err(|e| format!("invalid --tiers {:?}: {e}", cli.tiers))?,
         rules: fragr_server::rules::RuleSet::new(cli.mode, &cli.mutators, false)
             .map_err(|e| format!("invalid rule set: {e}"))?,
+        // Harness rounds muster for three seconds; the live clock is
+        // --time-limit-seconds.
+        sabotage: fragr_server::rules::SabotageConfig {
+            format: cli.sabotage_format,
+            muster_ticks: 20 * 3,
+            ..fragr_server::rules::SabotageConfig::default()
+        },
     })
 }
 
@@ -214,6 +325,44 @@ async fn main() {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
+    if cli.sabotage_survey {
+        let config = fragr_playtest::sabotage::SurveyConfig {
+            seeds: (cli.seed..cli.seed + cli.survey_seeds).collect(),
+            bots: cli.survey_bots as usize,
+            format: cli.sabotage_format,
+            ..fragr_playtest::sabotage::SurveyConfig::default()
+        };
+        let report = fragr_playtest::sabotage::run_survey(&config);
+        if let Some(parent) = cli.report.parent() {
+            if !parent.as_os_str().is_empty() {
+                if let Err(error) = std::fs::create_dir_all(parent) {
+                    eprintln!("error: cannot create {}: {error}", parent.display());
+                    std::process::exit(2);
+                }
+            }
+        }
+        let json = serde_json::to_string_pretty(&report).expect("survey report serializes");
+        if let Err(error) = std::fs::write(
+            &cli.report,
+            format!(
+                "{json}
+"
+            ),
+        ) {
+            eprintln!("error: cannot write {}: {error}", cli.report.display());
+            std::process::exit(2);
+        }
+        print_survey(&report);
+        println!("report: {}", cli.report.display());
+        let problems = fragr_playtest::sabotage::check_survey(&report);
+        for problem in &problems {
+            println!("threshold: {problem}");
+        }
+        if cli.assert && !problems.is_empty() {
+            std::process::exit(1);
+        }
+        return;
+    }
     if cli.soak {
         let config = match soak_config(&cli) {
             Ok(config) => config,
@@ -325,6 +474,24 @@ async fn main() {
             "rules: {}, sides {:?}, {} host reactions, {} team kills",
             rules.name, report.sides, report.host_reactions, report.team_kills
         );
+        if rules.mode == fragr_server::protocol::GameMode::Sabotage {
+            let rounds: Vec<String> = report
+                .sabotage_rounds
+                .iter()
+                .map(|(winner, result)| {
+                    format!(
+                        "{} {}",
+                        winner.map_or("none", |t| t.id()),
+                        result.reason.id()
+                    )
+                })
+                .collect();
+            println!(
+                "sabotage: events {:?}, rounds [{}]",
+                report.sabotage_events,
+                rounds.join(", ")
+            );
+        }
         if rules.mode == fragr_server::protocol::GameMode::Ctf {
             println!(
                 "flags: {} takes, {} drops, {} returns, {} captures, {:.1} carrier seconds, last round {:?} {:?}",
@@ -341,15 +508,19 @@ async fn main() {
     println!("report: {}", cli.report.display());
     let problems = if cli.ctf_route_smoke {
         check_ctf_route_smoke(&report, &observation)
+    } else if cli.sabotage_route_smoke {
+        check_sabotage_route_smoke(&report)
     } else if cli.ctf_contested {
         check_contested_ctf(&report, &observation)
+    } else if cli.sabotage_contested {
+        check_contested_sabotage(&report)
     } else {
         check_thresholds(&report)
     };
     for problem in &problems {
         println!("threshold: {problem}");
     }
-    if (cli.assert || cli.ctf_route_smoke) && !problems.is_empty() {
+    if (cli.assert || cli.ctf_route_smoke || cli.sabotage_route_smoke) && !problems.is_empty() {
         std::process::exit(1);
     }
 }
@@ -407,6 +578,52 @@ mod tests {
         let wrong_mode =
             Cli::try_parse_from(["fragr-playtest", "--assert", "--ctf-contested"]).unwrap();
         assert!(config_from(&wrong_mode).is_err());
+    }
+
+    #[test]
+    fn sabotage_gates_have_their_own_configs() {
+        let route = Cli::try_parse_from(["fragr-playtest", "--sabotage-route-smoke"]).unwrap();
+        let config = config_from(&route).unwrap();
+        assert_eq!(config.agents, 2);
+        assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(config.tiers, vec![Policy::RouteProbe]);
+        assert_eq!(
+            config.rules.mode(),
+            fragr_server::protocol::GameMode::Sabotage
+        );
+        assert!(
+            Cli::try_parse_from(["fragr-playtest", "--sabotage-route-smoke", "--map", "1"])
+                .is_err()
+        );
+        let contested = Cli::try_parse_from([
+            "fragr-playtest",
+            "--mode",
+            "sabotage",
+            "--map",
+            "4",
+            "--assert",
+            "--sabotage-contested",
+        ])
+        .unwrap();
+        let config = config_from(&contested).unwrap();
+        assert_eq!(config.sabotage.muster_ticks, 60);
+        assert!(Cli::try_parse_from(["fragr-playtest", "--sabotage-contested"]).is_err());
+        let wrong_mode =
+            Cli::try_parse_from(["fragr-playtest", "--assert", "--sabotage-contested"]).unwrap();
+        assert!(config_from(&wrong_mode).is_err());
+        let no_sites = Cli::try_parse_from(["fragr-playtest", "--mode", "sabotage"]).unwrap();
+        assert!(config_from(&no_sites).is_err(), "Arena Duel has no sites");
+        let survey = Cli::try_parse_from([
+            "fragr-playtest",
+            "--sabotage-survey",
+            "--survey-seeds",
+            "3",
+            "--survey-bots",
+            "6",
+        ])
+        .unwrap();
+        assert!(survey.sabotage_survey);
+        assert_eq!((survey.survey_seeds, survey.survey_bots), (3, 6));
     }
 
     #[test]

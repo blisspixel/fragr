@@ -604,7 +604,7 @@ impl GameSession {
 
         self.state.tick(dt);
         self.send_records();
-        if self.state.map.equipment_policy() == protocol::EquipmentPolicy::Discovery {
+        if self.state.equipment_policy() == protocol::EquipmentPolicy::Discovery {
             let connected: std::collections::HashSet<Uuid> =
                 self.client_to_player.values().copied().collect();
             self.sent_loadouts.retain(|id, _| connected.contains(id));

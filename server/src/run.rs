@@ -157,6 +157,16 @@ async fn run_server_impl(
             "capture the flag requires a map with validated flag stands and no rotation".into(),
         );
     }
+    if options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Sabotage)
+        && (rotate || options.authored.is_some() || map.sabotage_map().is_none())
+    {
+        return Err(
+            "sabotage requires a map with validated sites (Sector 9) and no rotation".into(),
+        );
+    }
     if (options.difficulty.is_some() || options.campaign_run) && options.authored.is_none() {
         return Err("difficulty requires an authored mission".into());
     }
@@ -393,6 +403,12 @@ async fn run_server_impl(
         crate::protocol::M05_GAMEPLAY_VERSION
     } else if has_jammer {
         crate::protocol::JAMMER_GAMEPLAY_VERSION
+    } else if options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Sabotage)
+    {
+        crate::protocol::SABOTAGE_GAMEPLAY_VERSION
     } else if options
         .match_config
         .as_ref()
