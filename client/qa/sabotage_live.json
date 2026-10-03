@@ -1,0 +1,51 @@
+{
+  "comment": "A spectator watches rule bots play Sabotage on a real Sector 9 server. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MAP=4 FRAGR_QA_BOTS=8 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "sabotage_site_a",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 3,
+      "camera": "sabotage_site",
+      "site": "a",
+      "camera_offset": [8.0, 3.2, 3.0],
+      "settle_seconds": 0.5,
+      "note": "A Frame: the floating A plate, the correction frame and the plant ring, all sprites."
+    },
+    {
+      "name": "sabotage_site_b",
+      "camera": "sabotage_site",
+      "site": "b",
+      "camera_offset": [8.0, 3.2, -3.0],
+      "settle_seconds": 0.5,
+      "note": "B Server between the West Hall freight stacks."
+    },
+    {
+      "name": "sabotage_bot_carried",
+      "camera": "sabotage_charge",
+      "await_sabotage": {"phase": "live", "charge_status": "carried"},
+      "await_timeout_seconds": 60,
+      "settle_seconds": 0.2,
+      "note": "A rule bot carries the charge at its side; spectators see the carrier."
+    },
+    {
+      "name": "sabotage_bot_planted",
+      "camera": "sabotage_charge",
+      "camera_distance": 5.0,
+      "camera_height": 2.4,
+      "await_sabotage": {"phase": "planted"},
+      "await_timeout_seconds": 600,
+      "settle_seconds": 0.4,
+      "note": "A rule bot planted the charge; the timer cue is at the top of the screen."
+    },
+    {
+      "name": "sabotage_round_card",
+      "camera": "follow",
+      "await_sabotage": {"phase": "over"},
+      "await_timeout_seconds": 200,
+      "settle_seconds": 0.3,
+      "note": "The round card: winner, reason and the score by round."
+    }
+  ]
+}

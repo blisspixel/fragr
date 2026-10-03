@@ -1,0 +1,77 @@
+{
+  "comment": "A joined fighter walks unarmed into A Frame's anchors under Licence to Kill, falls, and watches living teammates. With eight bots the sides are level, so a joiner at 0:0 attacks; a route for each side was checked with a straight-line walker from every spawn. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MUTATORS=licence-to-kill FRAGR_QA_MAP=4 FRAGR_QA_BOTS=8 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "sabotage_fallen_join",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "join": "human",
+      "camera": "first_person",
+      "settle_seconds": 0.5,
+      "note": "Join; the next round may be needed if muster has passed.",
+      "await_alive": 240
+    },
+    {
+      "name": "sabotage_fallen_watch",
+      "await_sabotage": {
+        "phase": "live",
+        "self_alive": true
+      },
+      "await_timeout_seconds": 240,
+      "walk_into": {
+        "union": [
+          [
+            -46.0,
+            0.0,
+            0.0
+          ],
+          [
+            -24.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            30.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "coalition": [
+          [
+            30.0,
+            0.0,
+            0.0
+          ],
+          [
+            -24.0,
+            0.0,
+            0.0
+          ],
+          [
+            -36.0,
+            0.0,
+            -24.0
+          ],
+          [
+            -44.0,
+            0.0,
+            -30.0
+          ]
+        ]
+      },
+      "settle_seconds": 1.5,
+      "expect_sabotage": {
+        "self_fallen": true
+      },
+      "note": "Fallen in the open: the view follows a living teammate, and the pips show who is left.",
+      "walk_into_wait_seconds": 60
+    }
+  ]
+}

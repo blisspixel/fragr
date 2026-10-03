@@ -416,6 +416,7 @@ async fn run_scripted_bot(
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
+    let mut sabotage_map: Option<protocol::SabotageMap> = None;
     let mut action_tick = tokio::time::interval(std::time::Duration::from_millis(50));
     action_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
@@ -440,7 +441,11 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, half_extent, solids, geometry_version, presentation, mission, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                            if let Some(layout) = sabotage.as_ref() {
+                                layout.validate().map_err(io::Error::other)?;
+                            }
+                            sabotage_map = sabotage;
                             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
                             mission_client.replace_map_with_id(map_id, m02_objectives, m02_side_ward, mission.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m03(m03.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
@@ -468,11 +473,25 @@ async fn run_scripted_bot(
 
             _ = action_tick.tick() => {
                 if let (Some(snapshot), Some(world)) = (last_snapshot.as_ref(), navigation.as_ref()) {
+                    // Sabotage: a plant or defuse is a held Use standing still,
+                    // sent as is; otherwise the shared objective leads unless an
+                    // enemy is close.
+                    let sabotage = sabotage_map.as_ref().filter(|_| snapshot.sabotage.is_some());
+                    if let Some(hold) = sabotage.and_then(|map| sabotage_hold(bot_id, snapshot, map)) {
+                        if ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::Action(hold))?)).await.is_err() {
+                            break;
+                        }
+                        continue;
+                    }
                     let live_solids = mission_client.live_visibility_solids();
                     let wanted = match live_solids.as_deref() {
                         Some(solids) => compute_bot_action_filtered(bot_id, snapshot, |mine, other| fighter_visible_in_solids(mine, other, solids)),
                         None => compute_bot_action(bot_id, snapshot),
                     };
+                    let wanted = sabotage
+                        .filter(|_| !enemy_within(bot_id, snapshot, SABOTAGE_FIGHT_RANGE))
+                        .and_then(|map| fragr_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map))
+                        .unwrap_or(wanted);
                     let wanted = fragr_server::inventory::control_action_with_target_filter(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some(), |mine, other| live_solids.as_deref().is_none_or(|solids| fighter_visible_in_solids(mine, other, solids)));
                     let action = mission_client.steer(&mut navigator, world, bot_id, snapshot, wanted);
                     let action_msg = ClientMessage::Action(action);
@@ -498,6 +517,37 @@ async fn run_scripted_bot(
 
     tracing::info!("Bot disconnected");
     Ok(())
+}
+
+/// A scripted Sabotage fighter turns to fight an enemy this close.
+const SABOTAGE_FIGHT_RANGE: f32 = 20.0;
+
+/// The held Use for a plant or defuse the shared controller asks for now.
+fn sabotage_hold(
+    bot_id: uuid::Uuid,
+    snapshot: &protocol::Snapshot,
+    map: &protocol::SabotageMap,
+) -> Option<protocol::Action> {
+    use fragr_server::sim::sabotage::controller::{objective, Objective};
+    matches!(
+        objective(bot_id, snapshot, map),
+        Objective::Plant | Objective::Defuse
+    )
+    .then(|| protocol::Action {
+        interact: true,
+        ..protocol::Action::default()
+    })
+}
+
+/// A living enemy within `range` metres.
+fn enemy_within(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot, range: f32) -> bool {
+    let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
+        return false;
+    };
+    snapshot
+        .players
+        .iter()
+        .any(|p| me.is_hostile_to(p) && p.hp > 0 && (p.x - me.x).hypot(p.z - me.z) < range)
 }
 
 const BOT_TAUNTS: &[&str] = &[
@@ -2302,6 +2352,57 @@ mod tests {
             "malformed replacement must stop the controller"
         );
         peer.await.unwrap();
+    }
+
+    /// The scripted bot plays Sabotage through the shared controller: walk
+    /// to the site, then a still held Use inside it; fight a close enemy.
+    #[test]
+    fn scripted_sabotage_walks_plants_and_fights_close_enemies() {
+        use fragr_server::sim::{GameState, MapKind, MatchConfig};
+        let mut server = GameState::with_map(MapKind::Sector9, false);
+        server.seed(3);
+        server.apply_config(MatchConfig {
+            frag_limit: None,
+            time_limit_ticks: None,
+            boss_spawn_ticks: None,
+            compliance_ping_ticks: None,
+            rules: fragr_server::rules::RuleSet::new(protocol::GameMode::Sabotage, &[], false)
+                .unwrap(),
+            sabotage: fragr_server::rules::SabotageConfig {
+                muster_ticks: 2,
+                ..Default::default()
+            },
+            ..MatchConfig::default()
+        });
+        let me = uuid::Uuid::from_u128(5);
+        server.add_player(me, "Script".into(), Role::Agent);
+        server.start_round();
+        for _ in 0..4 {
+            server.tick(0.05);
+        }
+        let map = MapKind::Sector9.sabotage_map().unwrap();
+        let mut snapshot = server.snapshot();
+        assert!(
+            sabotage_hold(me, &snapshot, &map).is_none(),
+            "still in the yard"
+        );
+        let walk =
+            fragr_server::sim::sabotage::controller::objective_action(me, &snapshot, &map).unwrap();
+        assert!(walk.forward && walk.look_at.is_some());
+        let site = map.sites[0].center;
+        let mine = snapshot.players.iter_mut().find(|p| p.id == me).unwrap();
+        mine.x = site[0];
+        mine.z = site[2];
+        let hold = sabotage_hold(me, &snapshot, &map).expect("plant inside the site");
+        assert!(hold.interact && !hold.forward && hold.look_at.is_none());
+        assert!(!enemy_within(me, &snapshot, SABOTAGE_FIGHT_RANGE));
+        let mut enemy = snapshot.players[0].clone();
+        enemy.id = uuid::Uuid::from_u128(6);
+        enemy.team = Some(protocol::Team::Union);
+        enemy.x = site[0] + 5.0;
+        snapshot.players.push(enemy);
+        assert!(enemy_within(me, &snapshot, SABOTAGE_FIGHT_RANGE));
+        assert!(!enemy_within(uuid::Uuid::from_u128(99), &snapshot, 50.0));
     }
 
     #[tokio::test]

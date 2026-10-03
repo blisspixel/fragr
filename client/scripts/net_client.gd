@@ -1,8 +1,7 @@
 extends Node
 
 # Version 30 understands the found Sniper Rifle and the Ranged Sweeper; 29 the
-# Proximity Mine and Auditor; 28 is Sabotage, whose client presentation follows
-# separately;
+# Proximity Mine and Auditor; 28 Sabotage rounds, presented in full;
 # 27 the M06 lunar port; 23 to 26 the Jammer, M03 to M05 and grenades;
 # 22 understands M02 ballistic inspection glass;
 # 21 understands server-owned M02 captive evacuation;
@@ -367,8 +366,12 @@ func _handle_message(text: String):
 			if problem.is_empty():
 				problem = MissionState.map_error(data)
 			if problem.is_empty():
+				problem = SabotageState.map_error(data)
+			if problem.is_empty():
 				var rules: Dictionary = MatchRules.parse(data.get("rules"))
 				_requires_flags = rules.get("mode", "") == "ctf"
+				if rules.get("mode", "") == "sabotage" and not data.get("sabotage") is Dictionary:
+					problem = "sabotage map has no sites"
 			if problem != "":
 				disconnect_from_server()
 				server_error.emit(problem)
@@ -451,6 +454,8 @@ func _handle_message(text: String):
 				problem = PlayerBody.snapshot_error(data)
 			if problem.is_empty():
 				problem = FlagState.snapshot_error(data)
+			if problem.is_empty():
+				problem = SabotageState.snapshot_error(data)
 			if problem.is_empty() and _requires_flags and data.get("flags") == null:
 				problem = "ctf snapshot has no flags"
 			if not problem.is_empty():

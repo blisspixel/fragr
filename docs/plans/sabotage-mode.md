@@ -146,6 +146,28 @@ planted, defuse started and defused, with a Union round, in 33.2 s.
 decided its round by elimination with three frags, a charge drop and pickups.
 These prove the wire path for agents, not human fun.
 
+Rendered tours, Godot 4.7.2 under the render lock, seed 42 on Sector 9
+(stills in `.agents/qa/sabotage-*`, inspected by eye):
+
+- `client/qa/sabotage_plant.json`, no bots: a joiner waits out round 1, takes
+  the charge in muster, walks the Mid Doors line to A Frame, reads "HOLD F:
+  PLANT" in the HUD line, plants with a held Use, and the charge detonates
+  into the round card. Passed.
+- `client/qa/sabotage_live.json`, eight rule bots, spectator: both site
+  plates and props, a bot carrying the charge, a bot plant at B Server with
+  the HUD charge timer, and the round card. Passed.
+- `client/qa/sabotage_fallen.json`, eight rule bots under Licence to Kill: an
+  unarmed joining attacker walks into A Frame's anchors, falls to first
+  blood, and the view follows a living teammate with the side pips counting
+  survivors. Passed.
+- `tools/godot_check.sh` passed with all 90 harnesses, the new
+  `test_sabotage_state` among them, and the CTF live tour still passes.
+
+Every tour can end with two "Texture ... leaked 349524 bytes" lines at exit,
+which `qa_tour.sh` counts as a failure. The same lines appear in main's
+tours back to 2026-09-19 (roster, CTF result card, campaign missions), so
+they predate Sabotage; they are an open baseline issue, not a mode fault.
+
 ## Architecture impact
 
 | Area | Change |
@@ -206,6 +228,26 @@ synthesized tones; final assets are listed for a later bounded batch.
 - [ ] CI runs a Sabotage smoke; coverage stays at or above 90 percent.
 - [ ] A human group plays a full match and asks for another. Open until it happens.
 
+## Assets the mode still needs
+
+Every placeholder is drawn or synthesized in code at $0 and swaps for final
+art by path, with no code change. Sprites are sized in metres, so a larger
+image keeps its world size.
+
+| Asset | Path | Placeholder |
+|---|---|---|
+| A and B site plates | `client/assets/sabotage/plate_a.png`, `plate_b.png` | Riveted plate with the letter in bone |
+| Correction frame (A) and registry server (B) | `client/assets/sabotage/prop_a.png`, `prop_b.png` | 24 by 32 pixel gantry and rack |
+| The charge, carried, loose, planted and as the HUD icon | `client/assets/sabotage/charge.png` | 16 by 12 pixel taped satchel |
+| Plant-area floor ring, top-down | `client/assets/sabotage/ring.png` | Dashed Union-red ring |
+| Detonation burst | `client/assets/sabotage/burst.png` | Ragged white-to-red disc |
+| Timer beep, carried hum (looped), plant or defuse start, planted, defused, detonation | `client/assets/audio/sabotage/beep.wav`, `hum.wav`, `arm.wav`, `planted.wav`, `defused.wav`, `detonation.wav` | Synthesized tones and filtered noise |
+
+Wanted later: a first-person charge in the carrier's off hand (today the
+charge icon sits beside the gun), side pips as small fighter heads rather than
+plain bars, and Host voice lines for plant, defuse, detonation and the swap
+(the Host is text first today).
+
 ## Decisions made without Nick
 
 1. The free coalition always attacks and the fighters change uniform at half,
@@ -248,14 +290,31 @@ synthesized tones; final assets are listed for a later bounded batch.
   that missed its four samples while six agents shared the machine; alone it
   passes.
 
+- 2026-10-02: The server half shipped as
+  [PR #325](https://github.com/blisspixel/fragr/pull/325) with green CI and
+  93.86 percent workspace line coverage. The client half adds the Godot
+  presentation, three rendered tours and the adapter's scripted bot playing
+  the objective through the shared controller. Two wall-clock tests
+  (`a_short_in_process_soak_samples_and_passes` and
+  `scripted_bot_uses_raised_geometry_under_continuous_snapshots`) missed their
+  deadlines only while six agents loaded this machine; each passes alone.
+
+- 2026-10-03: The client half rebased onto #321 and #326. Placeholder art and
+  audio now load final files by path when present and size sprites in
+  metres. The HUD line carries the hold-Use prompt and never wraps or clips.
+  The tours gained `await_alive` for a late joiner, side-keyed `walk_into`
+  routes checked with a straight-line walker from all twelve spawns, and a
+  `hud_line_contains` expectation.
+
 ## Handoff
 
-Two PRs. The first carries the server rules, wire, layout, rule bots, the
-shared controller, the adapter, the harness gates, CI and the protocol docs.
-The second carries the Godot presentation, the rendered tours and the player
-docs; its client work is on `feat/sabotage-mode` in the `frmp` worktree. Next
-there: run `tools/godot_check.sh` and the three Sabotage tours under the render
-lock, inspect the stills, then MODES, README and CHANGELOG.
+Shipped in two PRs: #325 (server rules, wire, layout, rule bots, controller,
+adapter, harness gates, CI, protocol docs) and #333 (Godot
+presentation, tours, scripted bot objective, player docs). To play:
+`fragr-server --mode sabotage --map 4 --bots 8`, then join from the client.
+Open: human playtest on real hands, final art and audio (see the asset
+table), the exit-time texture leak in tours, and the 2v2 Pairs cut and
+Rescue as follow-ups.
 Fast iteration build: `CARGO_PROFILE_RELEASE_INCREMENTAL=true
 CARGO_PROFILE_RELEASE_CODEGEN_UNITS=256 cargo build -p fragr-playtest --release
 --target-dir target/iter`, then `target/iter/release/fragr-playtest

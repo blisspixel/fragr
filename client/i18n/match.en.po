@@ -12,6 +12,9 @@ msgstr "TEAM DEATHMATCH"
 msgid "MODE_CTF"
 msgstr "CAPTURE THE FLAG"
 
+msgid "MODE_SABOTAGE"
+msgstr "SABOTAGE"
+
 msgid "FLAG_CAPTURE_SCORE_LINE"
 msgstr "CAPTURES U {union} : {coalition} FREE / {limit} TO WIN"
 
@@ -215,3 +218,111 @@ msgstr "HOST: GOLD IN THE HANDS OF {player}. TAKE IT OFF THEM."
 
 msgid "HOST_REACTION_GOLDEN_RAIL_2"
 msgstr "HOST: {player} FOUND THE GOLDEN RAIL. EVERYBODY KNOWS."
+
+msgid "SABOTAGE_JOB_ATTACK"
+msgstr "ATTACK"
+
+msgid "SABOTAGE_JOB_DEFEND"
+msgstr "DEFEND"
+
+msgid "SABOTAGE_LINE_MUSTER"
+msgstr "R{round}  {job}  UNION {union} : {coalition} FREE  MUSTER {clock}"
+
+msgid "SABOTAGE_LINE_LIVE"
+msgstr "R{round}  {job}  UNION {union} : {coalition} FREE  {clock}"
+
+msgid "SABOTAGE_LINE_PLANTED"
+msgstr "R{round}  {job}  UNION {union} : {coalition} FREE  CHARGE {clock}"
+
+msgid "SABOTAGE_LINE_OVER"
+msgstr "R{round}  {job}  UNION {union} : {coalition} FREE"
+
+msgid "SABOTAGE_LINE_MUSTER_WATCH"
+msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE  MUSTER {clock}"
+
+msgid "SABOTAGE_LINE_LIVE_WATCH"
+msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE  {clock}"
+
+msgid "SABOTAGE_LINE_PLANTED_WATCH"
+msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE  CHARGE {clock}"
+
+msgid "SABOTAGE_LINE_PROMPT"
+msgstr "R{round}  {job}  UNION {union} : {coalition} FREE  {clock}"
+
+msgid "SABOTAGE_PROMPT_PLANT"
+msgstr "HOLD {use}: PLANT"
+
+msgid "SABOTAGE_PROMPT_DEFUSE"
+msgstr "HOLD {use}: DEFUSE"
+
+msgid "SABOTAGE_LINE_OVER_WATCH"
+msgstr "SABOTAGE R{round}  UNION {union} : {coalition} FREE"
+
+msgid "SABOTAGE_SITE_A"
+msgstr "A FRAME"
+
+msgid "SABOTAGE_SITE_B"
+msgstr "B SERVER"
+
+msgid "SABOTAGE_EVENT_LIVE"
+msgstr "WEAPONS LIVE"
+
+msgid "SABOTAGE_EVENT_CHARGE_TAKEN"
+msgstr "{player} HAS THE CHARGE"
+
+msgid "SABOTAGE_EVENT_CHARGE_DROPPED"
+msgstr "THE CHARGE IS DOWN"
+
+msgid "SABOTAGE_EVENT_PLANT_STARTED"
+msgstr "PLANTING AT {site}"
+
+msgid "SABOTAGE_EVENT_PLANTED"
+msgstr "CHARGE PLANTED AT {site}"
+
+msgid "SABOTAGE_EVENT_DEFUSE_STARTED"
+msgstr "{player} IS DEFUSING"
+
+msgid "SABOTAGE_EVENT_DEFUSED"
+msgstr "{player} DEFUSED THE CHARGE"
+
+msgid "SABOTAGE_EVENT_DETONATED"
+msgstr "{site} IS GONE"
+
+msgid "SABOTAGE_ROUND_WINNER"
+msgstr "{team} TAKES ROUND {round}"
+
+msgid "SABOTAGE_REASON_ELIMINATION"
+msgstr "NOBODY LEFT ON THE OTHER SIDE"
+
+msgid "SABOTAGE_REASON_DETONATION"
+msgstr "THE CHARGE WENT UP"
+
+msgid "SABOTAGE_REASON_DEFUSED"
+msgstr "CHARGE DEFUSED"
+
+msgid "SABOTAGE_REASON_TIME"
+msgstr "THE CLOCK RAN OUT ON THE ATTACK"
+
+msgid "SABOTAGE_ROUND_SCORE"
+msgstr "ROUNDS: UNION {union} : {coalition} FREE"
+
+msgid "SABOTAGE_MATCH_WINNER"
+msgstr "{team} TAKES THE MATCH"
+
+msgid "SABOTAGE_MATCH_DRAW"
+msgstr "LEVEL AFTER EXTRA TIME: A DRAW"
+
+msgid "SABOTAGE_SWAP_NEXT"
+msgstr "SIDES SWAP NEXT ROUND"
+
+msgid "SABOTAGE_YOU_WON"
+msgstr "ROUND TO YOUR SIDE"
+
+msgid "SABOTAGE_YOU_LOST"
+msgstr "ROUND TO THE OTHER SIDE"
+
+msgid "SABOTAGE_SWAPPED"
+msgstr "SIDES SWAPPED: EVERYONE CHANGES UNIFORM"
+
+msgid "SABOTAGE_SWAPPED_JOB"
+msgstr "YOU NOW {job}"

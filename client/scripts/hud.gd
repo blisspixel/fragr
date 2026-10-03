@@ -12,6 +12,10 @@ signal host_spoke(seconds: float)
 @onready var round_label = $Panel/VBoxContainer/RoundLabel
 ## The server's rule set under the round line, for players and spectators.
 @onready var mode_chip_label: Label = $Panel/VBoxContainer/ModeChipLabel
+## The status panel's right edge in Sabotage, wide enough for the one line
+## with a Use prompt in it.
+const SABOTAGE_PANEL_RIGHT: float = 540.0
+var _panel_right: float = NAN
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
 @onready var combat_feed: CombatFeed = $CombatFeed
 @onready var round_message = $RoundMessage
@@ -41,6 +45,11 @@ var match_rules: Dictionary = {}
 var sides: Dictionary = {}
 var team_score_text: String = ""
 var flag_status_text: String = ""
+## Sabotage's one HUD line: round, job, round score and clock.
+var sabotage_line: String = ""
+## Round wins by current uniform, for the scoreboard overlay.
+var sabotage_score: Dictionary = {}
+var sabotage_hud: SabotageHud
 ## The local fighter's lives when lives are limited, otherwise -1.
 var own_lives: int = -1
 @onready var warmup_tv = $WarmupTv
@@ -168,6 +177,8 @@ func _ready():
 	equipment_hud = EquipmentHud.new()
 	equipment_hud.name = "Equipment"
 	add_child(equipment_hud)
+	sabotage_hud = SabotageHud.new()
+	add_child(sabotage_hud)
 	crawler_caption = CrawlerCaption.new()
 	add_child(crawler_caption)
 	melee_view = MeleeView.new()
@@ -287,6 +298,19 @@ func set_match_rules(rules: Dictionary) -> void:
 		sides = {}
 	if rules.get("mode", "") != "ctf":
 		flag_status_text = ""
+	if not sabotage():
+		sabotage_line = ""
+		if sabotage_hud != null:
+			sabotage_hud.hide_all()
+	if mode_chip_label != null:
+		# Sabotage's one line stays one line; the other chips wrap in the panel.
+		mode_chip_label.autowrap_mode = TextServer.AUTOWRAP_OFF if sabotage() else TextServer.AUTOWRAP_WORD_SMART
+	var hud_panel: Control = get_node_or_null("Panel") as Control
+	if hud_panel != null:
+		# The panel clips; in Sabotage its one line needs the room a prompt takes.
+		if is_nan(_panel_right):
+			_panel_right = hud_panel.offset_right
+		hud_panel.offset_right = maxf(_panel_right, SABOTAGE_PANEL_RIGHT) if sabotage() else _panel_right
 	if int(rules.get("lives", 0)) <= 0:
 		own_lives = -1
 	_refresh_mode_label()
@@ -294,9 +318,49 @@ func set_match_rules(rules: Dictionary) -> void:
 	update_scoreboard()
 
 
+func sabotage() -> bool:
+	return match_rules.get("mode", "") == "sabotage"
+
+
+## One snapshot of a Sabotage round. Only the single line is text; the rest
+## is drawn by the Sabotage widgets.
+func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: int, progress_owner: bool, carried: bool, prompt: String = "") -> void:
+	if not sabotage():
+		return
+	var line: String = SabotageState.hud_line(state, viewer_team, InputGlyphs.plain(prompt) if not prompt.is_empty() else "")
+	if sabotage_hud != null:
+		sabotage_hud.apply(state, charge_ticks, progress_owner, carried)
+	var score: Variant = state.get("score")
+	if score is Dictionary and score != sabotage_score:
+		sabotage_score = (score as Dictionary).duplicate()
+		update_scoreboard()
+	if line == sabotage_line:
+		return
+	sabotage_line = line
+	_refresh_mode_chip()
+
+
+## The round card for a decided Sabotage round, on the opaque backing.
+func show_sabotage_result(card: String, host_line: String) -> void:
+	host_spoke.emit(4.0)
+	if host_line != "":
+		sticky_host_line = host_line
+		host_line_seen = true
+	if card.is_empty() or round_message == null:
+		return
+	_show_round_banner(card, 4.5, true)
+
+
+## A short centred notice: the side swap, or that a round goes live.
+func show_sabotage_notice(text: String, seconds: float) -> void:
+	if text.is_empty() or round_message == null:
+		return
+	_show_round_banner(text, seconds, true)
+
+
 ## Side frags from a snapshot. Ignored outside a team mode.
 func set_team_scores(scores: Variant) -> void:
-	if match_rules.get("mode", "") == "ctf":
+	if match_rules.get("mode", "") == "ctf" or sabotage():
 		return
 	var line: String = MatchRules.team_score_line(scores) if MatchRules.teams(match_rules) else ""
 	if line == team_score_text:
@@ -357,6 +421,13 @@ func set_own_lives(lives: int) -> void:
 
 func _refresh_mode_chip() -> void:
 	var lines: PackedStringArray = []
+	if sabotage():
+		# One line of HUD text in Sabotage; everything else is a picture.
+		if sabotage_line != "":
+			lines.append(sabotage_line)
+		mode_chip_label.text = "\n".join(lines)
+		mode_chip_label.visible = not lines.is_empty()
+		return
 	var chip: String = MatchRules.chip_text(match_rules)
 	if chip != "":
 		lines.append(chip)
@@ -464,7 +535,7 @@ func _refresh_mode_label():
 	# The league and the playlist are how a spectator knows what they tuned
 	# into. A player picked the match and is standing in it.
 	var league = ""
-	if client_mode == "SPECTATING":
+	if client_mode == "SPECTATING" and not sabotage():
 		league = league_mode_name.to_upper()
 		# Arena Duel is the older playlist label on the wire. CTF has its own
 		# rules chip and an actual map chip, so do not advertise a different game.
@@ -600,6 +671,12 @@ func update_scoreboard():
 	# the window, which the first visual QA tour caught, and a standing HUD is
 	# for who is winning. The full table belongs on the scoreboard screen.
 	var board_score: String = tr("FLAG_FRAGS_BOARD_LABEL") if match_rules.get("mode", "") == "ctf" else team_score_text
+	if sabotage():
+		# Shown only while the scoreboard key is held: rounds first, then frags.
+		board_score = tr("SABOTAGE_ROUND_SCORE").format({
+			"union": int(sabotage_score.get("union", 0)),
+			"coalition": int(sabotage_score.get("coalition", 0)),
+		})
 	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, board_score, HUD_SCOREBOARD_ROWS)
 	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else "(waiting for scrap)"
 
@@ -1102,9 +1179,10 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 
 	# "FOLLOWING: Human Player" is what a player was told about themselves.
 	# The line is for a spectator watching someone else.
-	if client_mode != "SPECTATING":
+	if client_mode != "SPECTATING" or sabotage():
 		# The gun is already in the player's hands, drawn large. Naming it in
-		# the corner as well is the third copy of the same fact.
+		# the corner as well is the third copy of the same fact. Sabotage
+		# watchers read names from the nameplates.
 		weapon_label.text = ""
 	else:
 		weapon_label.text = StanceChipScript.follow_line(player_name, behavior, weapon_desc)
@@ -1140,7 +1218,9 @@ func _process(delta):
 	if round_backdrop and round_backdrop.visible and not round_message.visible:
 		round_backdrop.visible = false
 	if scoreboard:
-		scoreboard.visible = not fp_juice_enabled or (InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard"))
+		# Sabotage keeps the corner to its one line for watchers too; the
+		# table comes up on the scoreboard key.
+		scoreboard.visible = (not fp_juice_enabled and not sabotage()) or (InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard"))
 	if _controls_revision != InputDevice.revision and Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
 		_refresh_mode_label()
 	if damage_flash_timer > 0:

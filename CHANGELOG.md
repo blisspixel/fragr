@@ -4,6 +4,20 @@ Shipped tags, newest first. A line here is on `main`. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased (Sabotage, 2026-10-02)
+
+Sabotage, the first flagship round mode, plays on Sector 9 Transit Hall. The
+free coalition carries a charge to A Frame or B Server and plants it with three
+seconds of held Use; the Union holds the sites or defuses a planted charge in
+six. One life a round, a muster in each spawn zone, a 35-second charge clock,
+and halves where everyone changes uniform. Every life starts empty with a
+pistol pad by the spawn; survivors carry their guns and armour forward and the
+fallen drop their best one. Rule bots stage, push, plant, anchor, rotate,
+retake and defuse, and agents read the same objective through MCP. Site
+plates, the charge, its timer, the plant and defuse bars and the round card are
+pictures; the HUD keeps to one line. Start a server with
+`fragr-server --mode sabotage --map 4 --bots 8`.
+
 ## Unreleased (art pass 2, 2026-10-02)
 
 The Rifle is repainted in the Pistol's flat grey-green enamel, so it no longer
