@@ -1,5 +1,5 @@
 {
-  "comment": "A joined fighter walks unarmed into the other side's route under Licence to Kill, falls, and watches living teammates. Both routes were checked with a straight-line walker from every spawn. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MUTATORS=licence-to-kill FRAGR_QA_MAP=4 FRAGR_QA_BOTS=7 FRAGR_QA_SEED=42.",
+  "comment": "A joined fighter walks unarmed into A Frame's anchors under Licence to Kill, falls, and watches living teammates. With eight bots the sides are level, so a joiner at 0:0 attacks; a route for each side was checked with a straight-line walker from every spawn. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MUTATORS=licence-to-kill FRAGR_QA_MAP=4 FRAGR_QA_BOTS=8 FRAGR_QA_SEED=42.",
   "width": 1280,
   "height": 720,
   "states": [
