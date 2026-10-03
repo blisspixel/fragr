@@ -161,6 +161,14 @@ func _mine_body() -> Node3D:
 	var body: Node3D = Node3D.new()
 	var puck: MeshInstance3D = _mesh(Vector3(0.22, 0.05, 0.22), MINE_BODY)
 	puck.name = "Puck"
+	# Round like the drawn face, so no box corner shows past its rim.
+	var disc: CylinderMesh = CylinderMesh.new()
+	disc.top_radius = 0.15
+	disc.bottom_radius = 0.16
+	disc.height = 0.05
+	disc.radial_segments = 12
+	disc.rings = 1
+	puck.mesh = disc
 	puck.position = Vector3(0, 0.025, 0)
 	body.add_child(puck)
 	var face: Sprite3D = Sprite3D.new()
