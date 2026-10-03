@@ -249,9 +249,19 @@ impl Encounters {
         let snapshot = state.snapshot();
         let mut actions = Vec::with_capacity(self.enemies.len());
         for (group, enemy) in &mut self.enemies {
-            if !matches!(self.groups[*group], Group::Active { .. }) {
+            let Group::Active { ids, .. } = &self.groups[*group] else {
                 continue;
-            }
+            };
+            enemy.last_standing = ids
+                .iter()
+                .filter(|id| {
+                    snapshot
+                        .players
+                        .iter()
+                        .any(|player| player.id == **id && player.hp > 0)
+                })
+                .count()
+                == 1;
             let intent = enemy.intent(state, &snapshot);
             if let Some(player) = state.players.iter_mut().find(|p| p.id == enemy.id) {
                 player.campaign = Some(enemy.identity());
