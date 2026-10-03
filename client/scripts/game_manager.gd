@@ -12,6 +12,17 @@ var players = {}
 var pickups = {}
 var jammer_dish_node = null
 var arena_flags: ArenaFlags = null
+## Sabotage sites and charge; empty outside a Sabotage server.
+var arena_sabotage: ArenaSabotage = null
+var sabotage_layout: Dictionary = {}
+## The joined fighter's side, kept through a death so a fallen fighter still
+## watches its own living teammates.
+var _sabotage_team: String = ""
+## The longest charge clock seen in this plant, for the HUD's draining timer.
+var _sabotage_charge_ticks: int = 700
+var _sabotage_watching_mates: bool = false
+## A side-swap notice waiting for its round to open.
+var _sabotage_swap_notice: String = ""
 var traveling_shots: TravelingShots = null
 var jammer_audio: JammerAudio = null
 var notary_audio: NotaryAudio = null
@@ -246,6 +257,9 @@ func _ready():
 		arena_flags = ArenaFlags.new()
 		arena_flags.name = "ArenaFlags"
 		arena_root.add_child(arena_flags)
+		arena_sabotage = ArenaSabotage.new()
+		arena_sabotage.name = "ArenaSabotage"
+		arena_root.add_child(arena_sabotage)
 		traveling_shots = TravelingShots.new()
 		traveling_shots.name = "TravelingShots"
 		arena_root.add_child(traveling_shots)
@@ -257,6 +271,9 @@ func _ready():
 		arena_flags = ArenaFlags.new()
 		arena_flags.name = "ArenaFlags"
 		add_child(arena_flags)
+		arena_sabotage = ArenaSabotage.new()
+		arena_sabotage.name = "ArenaSabotage"
+		add_child(arena_sabotage)
 		traveling_shots = TravelingShots.new()
 		traveling_shots.name = "TravelingShots"
 		add_child(traveling_shots)
@@ -342,6 +359,10 @@ func _on_map_info(info: Dictionary) -> void:
 	# The rule set arrives with the map; a campaign map has none.
 	if hud and hud.has_method("set_match_rules"):
 		hud.set_match_rules(MatchRules.parse(info.get("rules")))
+	var layout: Variant = info.get("sabotage")
+	sabotage_layout = layout.duplicate(true) if layout is Dictionary else {}
+	if arena_sabotage != null:
+		arena_sabotage.set_layout(sabotage_layout)
 	if camera:
 		camera.assist_solids = info.get("solids", []) if info.get("solids") is Array else []
 	_awaiting_map = false
@@ -1301,6 +1322,11 @@ func _clear_world() -> void:
 		hud.set_match_rules({})
 	if arena_flags != null:
 		arena_flags.clear_flags()
+	if arena_sabotage != null:
+		arena_sabotage.clear_layout()
+	sabotage_layout = {}
+	_sabotage_team = ""
+	_sabotage_watching_mates = false
 	if traveling_shots != null:
 		traveling_shots.clear_shots()
 	pending_jump = false
@@ -1436,7 +1462,7 @@ func _on_snapshot_received(data):
 			if str(player_data.get("id", "")) == str(net_client.player_id):
 				var lives: Variant = player_data.get("lives")
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
-	hud.round_label.visible = not _mission_map()
+	hud.round_label.visible = not _mission_map() and not hud.sabotage()
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	
@@ -1477,7 +1503,7 @@ func _on_snapshot_received(data):
 		if is_instance_valid(pawn) and not pawn.is_campaign_enemy and not pawn.is_campaign_companion:
 			targets.append(pawn)
 	if camera:
-		camera.set_available_targets(targets)
+		camera.set_available_targets(_sabotage_watch_targets(targets, player_list, str(data.get("round_state", ""))))
 		
 		var followed = camera.get_followed_target()
 		for pawn in players.values():
@@ -1499,6 +1525,7 @@ func _on_snapshot_received(data):
 					if is_instance_valid(carrier_pawn):
 						carriers[str(flag_row.get("carrier", ""))] = carrier_pawn
 		arena_flags.apply(flag_rows, carriers)
+	_apply_sabotage(data)
 	if traveling_shots != null:
 		traveling_shots.apply(data.get("projectiles"))
 	_sync_jammer_dish(data.get("jammer_dish", null))
@@ -1579,7 +1606,9 @@ func _update_nameplates() -> void:
 
 func _on_event_received(data):
 	var event_type = data.get("event", "")
-	if event_type == "flag":
+	if event_type == "sabotage":
+		_on_sabotage_event(data)
+	elif event_type == "flag":
 		hud.show_flag_event(data)
 	elif event_type == "frag":
 		var killer_name = data.get("killer", "?")
@@ -1628,7 +1657,17 @@ func _on_event_received(data):
 		var mode_name = str(data.get("mode_name", "Contested Frequency"))
 		var playlist = str(data.get("playlist", "Arena Duel"))
 		hud.set_league_identity(mode_name, playlist)
-		hud.show_round_start(data.get("round_number", 0), str(data.get("host_line", "")))
+		var shown_round: int = int(data.get("round_number", 0))
+		var sabotage_round: Variant = latest_snapshot.get("sabotage")
+		if hud.sabotage() and sabotage_round is Dictionary:
+			# The match's own round, not the server's count of rounds since boot.
+			shown_round = int(sabotage_round.get("round", shown_round))
+		hud.show_round_start(shown_round, str(data.get("host_line", "")))
+		if _sabotage_swap_notice != "":
+			# The swap arrives just before its round opens; it outranks the
+			# round number on the card.
+			hud.show_sabotage_notice(_sabotage_swap_notice, 3.0)
+			_sabotage_swap_notice = ""
 		if round_start_sound and round_start_sound.stream:
 			round_start_sound.play()
 	elif event_type == "compliance_ping":
@@ -1723,7 +1762,10 @@ func _on_event_received(data):
 		var mvp_frags = int(data.get("mvp_frags", data.get("winner_score", 0)))
 		var host_line = str(data.get("host_line", ""))
 		var podium = data.get("final_scores", [])
-		if hud and hud.has_method("show_round_end"):
+		if hud and hud.sabotage():
+			hud.show_sabotage_result(SabotageState.result_text(data, _sabotage_viewer_team()), host_line)
+			hud.show_host_join(host_line)
+		elif hud and hud.has_method("show_round_end"):
 			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
 		if round_end_sound and round_end_sound.stream:
 			round_end_sound.play()
@@ -1738,7 +1780,9 @@ func _shows_participant_notice(subject_id: String) -> bool:
 
 func _maybe_rehydrate_ended_mvp(data, round_state) -> void:
 	# Mid-join during Ended: structured Snapshot mvp/mvp_frags/host_line sell podium.
-	if round_state != "Ended" or ended_podium_shown:
+	# A Sabotage round is between rounds for five seconds; its card needs the
+	# round_end event, and the Host line already says who won.
+	if round_state != "Ended" or ended_podium_shown or hud.sabotage():
 		return
 	var mvp_raw = data.get("mvp", null)
 	var frags_raw = data.get("mvp_frags", null)
@@ -2140,6 +2184,96 @@ func _first_person_carrier_id() -> String:
 	if camera != null and camera.has_method("is_observing_first_person") and camera.is_observing_first_person():
 		return _followed_player_id()
 	return ""
+
+## The side whose view this is: the joined fighter's own, kept through death,
+## or empty for a spectator.
+func _sabotage_viewer_team() -> String:
+	return _sabotage_team if is_human_player else ""
+
+
+## Whose eyes this view looks through: the living joined fighter, or the
+## fighter a camera follows in first person.
+func _sabotage_eyes_id() -> String:
+	if is_human_player:
+		if _sabotage_watching_mates and camera != null and camera.is_observing_first_person():
+			return _followed_player_id()
+		return _first_person_carrier_id()
+	if camera != null and camera.is_observing_first_person():
+		return _followed_player_id()
+	return ""
+
+
+## A fallen Sabotage fighter watches living teammates only, in first person or
+## the follow camera, until the next round puts them back in their own eyes.
+func _sabotage_watch_targets(targets: Array, player_list: Array, round_state: String) -> Array:
+	if not hud.sabotage() or not is_human_player:
+		_sabotage_watching_mates = false
+		return targets
+	var my_id: String = str(net_client.player_id) if net_client.player_id != null else ""
+	var alive: bool = false
+	for player_data: Variant in player_list:
+		if player_data is Dictionary and str(player_data.get("id", "")) == my_id:
+			alive = true
+			_sabotage_team = MatchRules.valid_team(player_data.get("team"))
+	var watching: bool = not alive and round_state == "Active" and _sabotage_team != ""
+	if watching != _sabotage_watching_mates:
+		_sabotage_watching_mates = watching
+		if camera != null:
+			if watching:
+				camera.set_fp_mode(false)
+				camera.follow_mode = true
+				camera.spectator_first_person = true
+			else:
+				_refresh_fp_target()
+	if not watching:
+		return targets
+	var mates: Array = []
+	for pawn: Variant in targets:
+		if is_instance_valid(pawn) and str(pawn.get("team")) == _sabotage_team:
+			mates.append(pawn)
+	return mates
+
+
+func _apply_sabotage(data: Dictionary) -> void:
+	if arena_sabotage == null or sabotage_layout.is_empty():
+		return
+	var state: Dictionary = data.get("sabotage") if data.get("sabotage") is Dictionary else {}
+	var carriers: Dictionary = {}
+	var charge: Variant = state.get("charge")
+	var carrier_id: String = str(charge.get("carrier", "")) if charge is Dictionary else ""
+	if carrier_id != "" and players.has(carrier_id) and is_instance_valid(players[carrier_id]):
+		carriers[carrier_id] = players[carrier_id]
+	if state.get("phase") == "planted":
+		_sabotage_charge_ticks = maxi(_sabotage_charge_ticks if _sabotage_charge_ticks > 0 else 1, int(state.get("clock_ticks", 0)))
+	elif state.get("phase") == "live" or state.get("phase") == "muster":
+		_sabotage_charge_ticks = 1
+	var eyes: String = _sabotage_eyes_id()
+	arena_sabotage.set_charge_ticks(_sabotage_charge_ticks)
+	arena_sabotage.set_first_person(eyes)
+	arena_sabotage.apply(state, carriers, _sabotage_viewer_team())
+	var progress: Variant = state.get("progress")
+	var owner: bool = progress is Dictionary and eyes != "" and str(progress.get("player_id", "")) == eyes
+	hud.set_sabotage_state(state, _sabotage_viewer_team(), _sabotage_charge_ticks, owner, carrier_id != "" and carrier_id == eyes)
+
+
+func _on_sabotage_event(data: Dictionary) -> void:
+	var kind: String = str(data.get("kind", ""))
+	var line: String = SabotageState.event_line(data, _sabotage_viewer_team())
+	if not line.is_empty():
+		var color: Color = MatchRules.COALITION_LABEL if kind in ["charge_taken", "charge_dropped", "plant_started", "planted", "detonated"] else MatchRules.UNION_LABEL
+		hud.combat_feed.push(line, color)
+	if kind in ["plant_started", "defuse_started"] and arena_sabotage != null:
+		arena_sabotage.play_arm_cue()
+	if kind == "sides_swapped":
+		var job: String = ""
+		if is_human_player and _sabotage_team != "":
+			# The swap lands before this client's next snapshot names the new side.
+			job = tr("SABOTAGE_JOB_DEFEND") if _sabotage_team == "coalition" else tr("SABOTAGE_JOB_ATTACK")
+		var notice: String = tr("SABOTAGE_SWAPPED")
+		if job != "":
+			notice += "\n" + tr("SABOTAGE_SWAPPED_JOB").format({"job": job})
+		_sabotage_swap_notice = notice
+
 
 func _carried_flag_team(subject: String, flags: Variant) -> String:
 	if subject == "" or not flags is Array:

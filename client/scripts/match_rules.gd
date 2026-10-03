@@ -6,7 +6,7 @@ extends RefCounted
 ## line and the Host's keyed reactions. The server decides every outcome;
 ## this only reads and labels what it sent.
 
-const MODES: Array[String] = ["ffa", "tdm", "ctf"]
+const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage"]
 const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]
 const TEAMS: Array[String] = ["union", "coalition"]
 const REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]
@@ -55,7 +55,7 @@ static func parse(value: Variant) -> Dictionary:
 
 
 static func teams(rules: Dictionary) -> bool:
-	return rules.get("mode", "") == "tdm" or rules.get("mode", "") == "ctf"
+	return ["tdm", "ctf", "sabotage"].has(rules.get("mode", ""))
 
 
 static func _text(key: String) -> String:

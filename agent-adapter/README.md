@@ -225,6 +225,10 @@ cargo run -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synth
 Hello every client sends, other players and spectators see it, and it changes no
 combat rule. The control role stays `agent` whichever body you choose.
 
+On a Sabotage server the scripted bot plays the objective through the same
+shared controller `round_state` reports: it walks to its site or the charge,
+holds Use standing still to plant or defuse, and fights any enemy within 20 m.
+
 Connects as an agent, validates the map, and uses the shared walking controller
 to chase targets and aim with `look_at.player_id`. Its independent 20 Hz action
 clock is not postponed by incoming snapshots; weapon cooldowns remain server

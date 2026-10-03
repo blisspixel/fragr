@@ -167,6 +167,11 @@ func _run() -> void:
 				await _retire_scene()
 				quit(1)
 				return
+		if state.has("await_sabotage"):
+			if not await _await_sabotage(state["await_sabotage"], float(state.get("await_timeout_seconds", 120.0))):
+				await _retire_scene()
+				quit(1)
+				return
 
 		_release_body_camera()
 		var menu_page: String = state.get("menu_page", "")
@@ -264,6 +269,9 @@ func _run() -> void:
 				return
 			if not _walk_results.is_empty() and bool(_walk_results.back().get("stopped_for_round", false)):
 				break
+		for point: Array in state.get("walk_into", []):
+			if await _walk_into(Vector3(float(point[0]), float(point[1]), float(point[2]))):
+				break
 		if state.has("expect_companion_displacement"):
 			await _expect_companion_displacement(float(state["expect_companion_displacement"]), state_name)
 		if state.get("m05_board_tram", false):
@@ -324,6 +332,9 @@ func _run() -> void:
 				_failed = true
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		if state.has("hold_use") and _game_manager() != null:
+			# A Sabotage plant or defuse: Use stays held into the next states.
+			_game_manager().set("interact_held", bool(state["hold_use"]))
 		if state.get("m05_review_departure", false):
 			await _set_m05_departure_review(true)
 		if state.get("m05_cancel_review", false):
@@ -503,7 +514,7 @@ func _run() -> void:
 		# the tree, and a capture result only lasts the round's end delay.
 		var framed: Variant = measured.get("observed")
 		if framed is Dictionary:
-			for key: String in ["flags", "capture_scores", "round_state"]:
+			for key: String in ["flags", "capture_scores", "round_state", "sabotage", "self_alive"]:
 				if (framed as Dictionary).has(key):
 					observed[key] = (framed as Dictionary)[key]
 		if state.get("expect_crawler_scrabble", false) and _game_manager() != null:
@@ -516,6 +527,10 @@ func _run() -> void:
 			observed["active_enemy_phases"] = active_enemy_phases
 		if state.has("await_ctf") and not _ctf_matches(state["await_ctf"], observed):
 			push_error("qa_tour: %s lost the awaited live CTF state before capture" % state_name)
+			_failed = true
+		if state.has("expect_sabotage") and not _sabotage_matches(state["expect_sabotage"], observed):
+			push_error("qa_tour: %s expected Sabotage %s, saw %s" % [state_name,
+				str(state["expect_sabotage"]), str(observed.get("sabotage"))])
 			_failed = true
 		if state.has("expect_flag_statuses"):
 			var actual_statuses: Array[String] = []
@@ -1401,6 +1416,8 @@ func _observed_state() -> Dictionary:
 		"map_id": snapshot.get("map_id", 0),
 		"flags": snapshot.get("flags"),
 		"capture_scores": snapshot.get("capture_scores"),
+		"sabotage": snapshot.get("sabotage"),
+		"self_alive": _self_alive(gm, snapshot),
 		"capture_limit": snapshot.get("capture_limit"),
 		"round_state": snapshot.get("round_state", "unknown"),
 		"fighters": (snapshot.get("players", []) as Array).size(),
@@ -2031,6 +2048,25 @@ func _walk_to(goal: Vector3, look_back: bool = false, stop_round_state: String =
 		push_error("qa_tour: ordinary walk failed to reach %s, stopped at %s (walking %d ms, fighting %d ms)" % [goal, stopped, walking_ms, fighting_ms])
 		_failed = true
 
+## Walk an ordinary route into danger. Unlike `walk_to`, falling on the way is
+## the expected end: returns true once the joined fighter is out of the round.
+func _walk_into(goal: Vector3) -> bool:
+	var camera: Node = _spectator_camera()
+	var started: int = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - started < 20000:
+		var feet: Vector3 = _local_feet()
+		if not bool(_observed_state().get("self_alive", false)) or not feet.is_finite():
+			QaCombat.release_inputs()
+			return true
+		if Vector2(feet.x - goal.x, feet.z - goal.z).length() < 0.5:
+			break
+		Input.action_press(&"move_forward")
+		camera.set("fp_yaw", atan2(goal.z - feet.z, goal.x - feet.x))
+		camera.set("fp_pitch", 0.0)
+		await create_timer(0.05).timeout
+	QaCombat.release_inputs()
+	return false
+
 ## One uninterrupted diagnostic window. Every control goes through the same
 ## human Action path as ordinary play; snapshot shots and positions prove that
 ## the server resolved combat and movement during the measured interval.
@@ -2178,6 +2214,56 @@ func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
 		return false
 	return true
 
+## The joined fighter appears in the live snapshot.
+func _self_alive(gm: Node, snapshot: Dictionary) -> bool:
+	var net: Node = gm.get("net_client")
+	if not bool(gm.get("is_human_player")) or net == null or net.get("player_id") == null:
+		return false
+	for player: Variant in snapshot.get("players", []):
+		if player is Dictionary and str(player.get("id", "")) == str(net.get("player_id")):
+			return true
+	return false
+
+
+## Live Sabotage facts a state waits for or expects: `phase`, `charge_status`,
+## `progress_kind`, `progress_at_least` (0 to 1), `round_at_least`, `round_state`,
+## `self_fallen` (a joined fighter out of an active round) and `winner_card`.
+func _sabotage_matches(expected: Dictionary, observed: Dictionary) -> bool:
+	var round: Variant = observed.get("sabotage")
+	if not round is Dictionary:
+		return false
+	if expected.has("phase") and round.get("phase") != expected["phase"]:
+		return false
+	var charge: Dictionary = round.get("charge") if round.get("charge") is Dictionary else {}
+	if expected.has("charge_status") and charge.get("status") != expected["charge_status"]:
+		return false
+	var progress: Dictionary = round.get("progress") if round.get("progress") is Dictionary else {}
+	if expected.has("progress_kind") and progress.get("kind") != expected["progress_kind"]:
+		return false
+	if expected.has("progress_at_least") and SabotageState.progress_fraction(round) < float(expected["progress_at_least"]):
+		return false
+	if expected.has("round_at_least") and int(round.get("round", 0)) < int(expected["round_at_least"]):
+		return false
+	if expected.has("round_state") and observed.get("round_state") != expected["round_state"]:
+		return false
+	if expected.has("self_alive") and bool(expected["self_alive"]) != bool(observed.get("self_alive", false)):
+		return false
+	if expected.has("self_fallen") and bool(expected["self_fallen"]) != (observed.get("round_state") == "Active" and not bool(observed.get("self_alive", false))):
+		return false
+	return true
+
+
+func _await_sabotage(expected: Dictionary, timeout_seconds: float) -> bool:
+	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline:
+		if _sabotage_matches(expected, _observed_state()):
+			return true
+		await create_timer(0.05).timeout
+	push_error("qa_tour: live Sabotage state never reached %s" % str(expected))
+	_failed = true
+	return false
+
+
 func _await_ctf(expected: Dictionary, timeout_seconds: float) -> bool:
 	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
 	while Time.get_ticks_msec() < deadline:
@@ -2196,6 +2282,61 @@ func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 		return
 	cam.set("frag_follow_timer", 0.0)
 	match mode:
+		"sabotage_site":
+			var layout: Dictionary = _game_manager().get("sabotage_layout") if _game_manager() != null else {}
+			var wanted_site: String = str(state.get("site", "a"))
+			for site: Variant in layout.get("sites", []):
+				if site is Dictionary and site.get("id") == wanted_site and cam is Node3D:
+					var centre: Array = site["center"]
+					var point: Vector3 = Vector3(float(centre[0]), float(centre[1]), float(centre[2]))
+					cam.set("spectator_first_person", false)
+					cam.set("follow_mode", false)
+					cam.set("fp_mode", false)
+					var offset: Array = state.get("camera_offset", [9.0, 4.0, 0.0])
+					var camera: Node3D = cam
+					camera.global_position = point + Vector3(float(offset[0]), float(offset[1]), float(offset[2]))
+					camera.look_at(point + Vector3(0.0, 1.8, 0.0), Vector3.UP)
+					cam.set("tip_locked_transform", cam.global_transform)
+					cam.set("tip_has_locked_transform", true)
+					cam.set("tip_pose_lock", true)
+					return
+			push_error("qa_tour: no Sabotage site %s to frame" % wanted_site)
+			_failed = true
+		"sabotage_charge":
+			var round: Variant = _observed_state().get("sabotage")
+			var charge: Variant = round.get("charge") if round is Dictionary else null
+			if charge is Dictionary and cam is Node3D:
+				var position: Array = charge["position"]
+				var focus: Vector3 = Vector3(float(position[0]), float(position[1]) + 0.4, float(position[2]))
+				var forward: Vector3 = Vector3(1.0, 0.0, 0.3).normalized()
+				var manager: Node = _game_manager()
+				if charge.get("status") == "carried" and manager != null:
+					var pawn: Variant = manager.players.get(str(charge.get("carrier", "")))
+					if pawn is Node3D and is_instance_valid(pawn):
+						focus = (pawn as Node3D).global_position + Vector3(0.0, -0.3, 0.0)
+						forward = (pawn as Node3D).global_transform.basis.x
+				cam.set("spectator_first_person", false)
+				cam.set("follow_mode", false)
+				cam.set("fp_mode", false)
+				var camera: Node3D = cam
+				var back: float = float(state.get("camera_distance", 4.2))
+				camera.global_position = focus + forward.normalized() * back + Vector3(0.0, float(state.get("camera_height", 1.6)), 0.0)
+				camera.look_at(focus, Vector3.UP)
+				cam.set("tip_locked_transform", cam.global_transform)
+				cam.set("tip_has_locked_transform", true)
+				cam.set("tip_pose_lock", true)
+				return
+			push_error("qa_tour: no live Sabotage charge to frame")
+			_failed = true
+		"sabotage_actor":
+			var round: Variant = _observed_state().get("sabotage")
+			var progress: Variant = round.get("progress") if round is Dictionary else null
+			if progress is Dictionary and cam.has_method("pin_player"):
+				release_camera_pose_lock(cam)
+				cam.call("pin_player", str(progress.get("player_id", "")))
+				return
+			push_error("qa_tour: no Sabotage plant or defuse to follow")
+			_failed = true
 		"ctf_carried", "ctf_dropped":
 			var wanted: String = "carried" if mode == "ctf_carried" else "dropped"
 			var flags: Variant = _observed_state().get("flags")

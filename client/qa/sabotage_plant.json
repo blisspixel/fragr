@@ -1,0 +1,119 @@
+{
+  "comment": "A joined fighter alone on a Sabotage server carries the charge to A Frame, plants it and watches it detonate. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MAP=4 FRAGR_QA_BOTS=0 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "sabotage_joined",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "join": "human",
+      "camera": "first_person",
+      "settle_seconds": 1.0,
+      "note": "Joining a Sabotage server: the first-person view with the one HUD line."
+    },
+    {
+      "name": "sabotage_muster",
+      "camera": "first_person",
+      "await_sabotage": {
+        "phase": "muster",
+        "charge_status": "carried"
+      },
+      "await_timeout_seconds": 200,
+      "settle_seconds": 1.0,
+      "note": "Muster in the attacker yard: the pistol from the spawn pad, the carried charge beside the weapon and the muster clock.",
+      "walk_to": [
+        [
+          38.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "sabotage_at_site",
+      "camera": "first_person",
+      "await_sabotage": {
+        "phase": "live",
+        "charge_status": "carried"
+      },
+      "await_timeout_seconds": 30,
+      "walk_to": [
+        [
+          30.0,
+          0.0,
+          0.0
+        ],
+        [
+          -24.0,
+          0.0,
+          0.0
+        ],
+        [
+          -33.0,
+          0.0,
+          -21.0
+        ]
+      ],
+      "look_at": [
+        -38.0,
+        2.0,
+        -27.0
+      ],
+      "settle_seconds": 0.5,
+      "note": "Through Mid Doors to A Frame: the site plate, the correction frame and the plant ring."
+    },
+    {
+      "name": "sabotage_planting",
+      "camera": "first_person",
+      "hold_use": true,
+      "settle_seconds": 1.6,
+      "expect_sabotage": {
+        "progress_kind": "plant"
+      },
+      "note": "Holding Use inside the ring: the plant bar fills under the crosshair.",
+      "walk_to": [
+        [
+          -37.0,
+          0.0,
+          -25.5
+        ]
+      ]
+    },
+    {
+      "name": "sabotage_planted",
+      "camera": "first_person",
+      "await_sabotage": {
+        "phase": "planted"
+      },
+      "await_timeout_seconds": 10,
+      "hold_use": false,
+      "settle_seconds": 1.0,
+      "note": "Planted: the charge's timer replaces the round clock at the top of the screen."
+    },
+    {
+      "name": "sabotage_planted_world",
+      "camera": "sabotage_charge",
+      "camera_distance": 3.2,
+      "camera_height": 1.4,
+      "settle_seconds": 0.6,
+      "expect_sabotage": {
+        "phase": "planted",
+        "charge_status": "planted"
+      },
+      "note": "The planted charge on the floor of A Frame, its light blinking with the beeps."
+    },
+    {
+      "name": "sabotage_detonated",
+      "camera": "sabotage_charge",
+      "camera_distance": 9.0,
+      "camera_height": 3.0,
+      "await_sabotage": {
+        "charge_status": "detonated"
+      },
+      "await_timeout_seconds": 60,
+      "settle_seconds": 0.25,
+      "note": "Detonation: the burst at A Frame and the round card for the free coalition."
+    }
+  ]
+}

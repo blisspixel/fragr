@@ -2,12 +2,13 @@
 
 The canonical list of modes. The roadmap sequences them, the plans build them, this says what each one is.
 
-**Implementation status, 2026-09-26:** free-for-all Scrap, team deathmatch,
+**Implementation status, 2026-10-02:** free-for-all Scrap, team deathmatch,
 six host mutators and Episode 0 exist; a host picks the mode and mutators at
 launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Capture the
-flag has a locally tested Sector 9 implementation in flight
-([plan](plans/capture-the-flag.md)); a human match and other maps remain open.
-Other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
+flag plays on Arena Duel, Directive 17 and Sector 9
+([plan](plans/capture-the-flag.md)); a human match remains open. Sabotage plays
+on Sector 9 ([plan](plans/sabotage-mode.md)); a human match remains open.
+Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
 mutators, capture the flag, Rescue, Sabotage, then a big combined-arms
@@ -109,9 +110,20 @@ and no loadouts. You fight with what the floor gives you.
 captive agents; the Union holds them. Attackers win by getting captives out or
 by eliminating the defenders; defenders win on the clock or by elimination.
 
-**Sabotage.** The free side plants a charge on a Union correction frame or
-registry server at one of two sites; the Union defends the sites or defuses a
-planted charge. Round flow, format and map requirements are in
+**Sabotage (built on Sector 9).** The free side plants a charge on a Union
+correction frame or registry server at one of two sites; the Union defends the
+sites or defuses a planted charge. Every round opens with a ten-second muster
+in each side's spawn zone, then 1:45 of play with one life each. The charge
+starts with a random attacker and falls where its carrier dies. Planting takes
+three seconds of held Use inside a site's ring and defusing six at the charge;
+movement, release or damage restarts either. A planted charge runs 35 seconds
+and its clock replaces the round's. Survivors carry their weapons and armour
+into the next round; the fallen start empty and leave their best gun on the
+floor. Sides change uniform at half: halves of four, first to five, or halves
+of eight, first to nine, with extra time when level. Rule bots stage, push,
+plant, anchor, rotate, retake and defuse, and agents read the same objective
+through MCP. Evidence and the rules as built are in
+[the Sabotage plan](plans/sabotage-mode.md); the design is in
 [the replayability plan](plans/replayability.md#the-flagship-rescue-and-sabotage).
 
 

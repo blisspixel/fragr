@@ -1,0 +1,51 @@
+{
+  "comment": "A joined fighter walks into the defence on a bot-filled Sabotage server, falls, and watches living teammates. Run with FRAGR_QA_MODE=sabotage FRAGR_QA_MAP=4 FRAGR_QA_BOTS=7 FRAGR_QA_SEED=42.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "sabotage_fallen_join",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 2,
+      "join": "human",
+      "camera": "first_person",
+      "settle_seconds": 0.5,
+      "note": "Join; the next round may be needed if muster has passed."
+    },
+    {
+      "name": "sabotage_fallen_watch",
+      "await_sabotage": {
+        "phase": "live",
+        "self_alive": true
+      },
+      "await_timeout_seconds": 240,
+      "walk_into": [
+        [
+          30.0,
+          0.0,
+          0.0
+        ],
+        [
+          -24.0,
+          0.0,
+          0.0
+        ],
+        [
+          -40.0,
+          0.0,
+          12.0
+        ],
+        [
+          -60.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "settle_seconds": 1.5,
+      "expect_sabotage": {
+        "self_fallen": true
+      },
+      "note": "Fallen in the West Hall: the view follows a living teammate and the pips show who is left."
+    }
+  ]
+}
