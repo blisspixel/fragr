@@ -1,6 +1,6 @@
 # Campaign polish pass, levels 1 to 6
 
-**Status:** in flight, 2026-10-02. Branches `feat/polish-m01-m06*`, landing in
+**Status:** shipped in parts, 2026-10-02; stopped with the ranked open items below. Branches `feat/polish-m01-m06*`, landing in
 several focused PRs.
 **Spend:** $0. Local play, local decision rules (`fragr-brain --provider local`)
 and the existing rendered tours only. No paid provider, asset API or cloud call.
@@ -115,13 +115,39 @@ waiting party.
 | 17 | The M05 tour stopped at `splice_release`: its last waypoint stood inside a held captive, which living-body contact now blocks | 5 | Art lane report; manifest waypoint `[-19, 0, 1.5]` equals `workshop_agent_a`'s held feet | The route enters the release area and steps clear of the workers' lanes; the release expectation is unchanged | in progress, third PR |
 | 18 | `test_m05_presentation` failed once on macOS with 2 leaked instances and `grenade_blast.wav` still in use: the audio server still held a stopped blast playback when the harness quit | 5 | macOS job in CI run 37080486320; the same signature as #186 | The harness waits, with a three second bound, for the stopped voice's playback to be released, as `qa_tour.gd` already does on retirement | in progress, third PR |
 
+## Open, ranked by player impact
+
+Stopped on 2026-10-02 at Nick's request to reduce parallel work. These remain
+open; none is in progress.
+
+1. **Pacing, difficulty and fun need a person.** The accurate agent clears each
+   level in one to two minutes against eight to twelve minute first-run
+   targets, so its times say nothing about pacing. Watch for: where a first
+   run stalls, whether the M02 Crawler pack and the M03 mast watch feel fair,
+   and whether finite ammunition runs short with ordinary misses.
+2. **Outdoor edges.** M03 and M04 stop at the invisible arena edge about six
+   metres behind the spawn, with no wall or fence there. Needs a boundary
+   design and art, not a collision tweak.
+3. **Tour fights under machine load.** Under heavy shared load the M02
+   graybox tour did not confirm `stair_crawler_pack_b`, the M03 tour did not
+   confirm `platform_sweeper_b`, and the M05 tour lost the player at the
+   workshop approach. Not reproduced on a quiet machine; the scripted routes
+   may need sturdier combat timing.
+4. **#186 exit leaks.** The signature (two instances, one WAV in use) matches
+   a stopped sound still held by the audio server at quit. The M05 harness now
+   waits for that release; `qa_tour.gd` already did. Kept open until repeated
+   clean verbose exits are recorded.
+5. **Agent ammunition.** On one M03 seed the local-rules agent spent all its
+   Rifle rounds early and fought with fists until it found the Shotgun.
+6. **Gallery refresh.** The standard tour was not republished after the HUD
+   changes; the README stills do not show the changed lines.
+
 ## Handoff
 
 - Shipped: findings 1 to 7 in [PR #320](https://github.com/blisspixel/fragr/pull/320),
   findings 8 to 14 in [PR #326](https://github.com/blisspixel/fragr/pull/326).
-- Next: the M05 tour stall at `splice_release` reported by the art lane, the
-  intermittent `test_m05_presentation` exit resource on macOS (#186), M06
-  ceiling gaps to space, the standard tour refresh and the M02 and M03 tour
-  fights that did not confirm one named guard under load.
+- Third PR: findings 15 to 18.
+- A fresh worktree's first `--headless --import` crashed once in the Godot
+  4.7.2 font importer; the second import succeeded. Engine behaviour, noted only.
 - Scratch tools (not committed): a brain playtest runner and a read-only
   spectator probe that prints living Union actors.
