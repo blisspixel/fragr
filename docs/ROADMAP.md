@@ -21,23 +21,24 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 6 are playable development prototypes, with
+**Campaign.** Levels 1 to 8 are playable development prototypes, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
 to 18 of 18 level departures across three difficulties.
 
-Level 7's Sniper Rifle and Ranged Sweeper play on a development range. The
-level has been restored on a development branch in
-[PR #345](https://github.com/blisspixel/fragr/pull/345); its complete 29-state
-rendered route passes all 25 guards, actual window cancellation and departure.
-Full integration CI remains pending under the
-[level 7 plan](plans/l07-declared-goods-prototype.md). The route ends at 15 HP
-with one Cell, retaining a pacing concern. Level 8, Custodian of
-Record, is a standalone development prototype with the Proximity Mine and the
-repairing Auditor ([level 8 plan](plans/l08-custodian-of-record-prototype.md)),
-and requires strict mine-count save carry before joining the run. Fresh-player and difficulty
-acceptance remain open for every level.
+The restored [level 7](plans/l07-declared-goods-prototype.md) passes its complete
+29-state rendered route: all 25 guards, actual window cancellation and departure.
+That route ends at 15 HP with one Cell, retaining a pacing concern.
+The [durable archive carry](plans/m07-m08-save-carry.md) continues into level 8,
+Custodian of Record, without a continue refill. Version 9 retains actual mine
+counts and strictly upgrades historical v2-v8 documents with exact-byte archives.
+Owned client checks prove actual mine placement and mission-entry restoration.
+The [level 8 prototype](plans/l08-custodian-of-record-prototype.md) retains its
+Proximity Mine and repairing Auditor, with a separate practice entry. M09 is
+not playable. Combined integration is tracked in
+[PR #347](https://github.com/blisspixel/fragr/pull/347); fresh-player, difficulty
+and final art acceptance remain open for every level.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
 capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
@@ -319,12 +320,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    continues while that feedback is pending; this is not a stop gate for code
    or art trials.
 1. **Finish what is started.**
-   - Land the restored level 7 in [PR #345](https://github.com/blisspixel/fragr/pull/345).
-     Its corrected patrol and full 29-state route pass; full integration CI
-     remains before main selection.
-   - Connect the M07 to M08 carry with actual finite mine counts and strict
-     historical save upgrades. The development M08 entry stays separate until
-     its carry gate passes.
+   - The restored level 7 and its strict M07-to-M08 carry are integrated through
+     [PR #347](https://github.com/blisspixel/fragr/pull/347). Its full 29-state
+     route and actual local carry/mine/retry checks pass. Keep the low-health
+     rim crossing on the fresh-player pacing review.
    - Land any parked art.
 
    *Why:* two levels are nearly done, and finishing beats starting.
@@ -367,13 +366,17 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    Its complete 31-state structural route confirms all 21 guards, the Rail lane,
    Turret cancellation, prisoner route and departure. Separate final art views
    inspect pressure-case chamfers, grips, locks, gauges and measuring hardware.
-   Full client checks pass; full CI and main integration remain pending. Wider
+   Full client checks pass; combined integration is tracked in PR #347. Wider
    room architecture and final art acceptance remain open.
    The separate [M04 enclosure pass](plans/m04-building-enclosure.md) addresses
    missing clinic/workshop roofs in
-   [PR #343](https://github.com/blisspixel/fragr/pull/343). A clean 29-state
+   the reviewed source from [PR #343](https://github.com/blisspixel/fragr/pull/343),
+   consolidated into PR #347. A clean 29-state
    rendered route now passes all 28 guards, clinic release and actual departure
-   with no deaths or HP lost. Final combined CI gates main integration.
+   with no deaths or HP lost. The [civilian surface pass](plans/civilian-surface-markings.md)
+   removes inherited red warning paint from Low Water and lunar dwellings/decks
+   while preserving issued black/red equipment. Its ordinary-input art subsets
+   retain their own evidence, separate from the earlier complete routes.
    [Evidence](evidence/clerk-model-20261003.md) records
    actual guard-room frames and the limits of the routes.
    The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean

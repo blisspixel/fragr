@@ -1,7 +1,9 @@
 # M04 building enclosure
 
 **Status:** implemented, 2026-10-03;
-[PR #343](https://github.com/blisspixel/fragr/pull/343) owns final CI and integration.
+[PR #343](https://github.com/blisspixel/fragr/pull/343) records the reviewed source
+and all eight passing CI jobs. Combined main integration is consolidated into
+[PR #347](https://github.com/blisspixel/fragr/pull/347), with its own complete gate.
 Nick found the played buildings oddly open.
 Rendered review confirms the clinic and workshop have perimeter walls but no
 ceilings. The market and courtyard are intentionally outdoors.

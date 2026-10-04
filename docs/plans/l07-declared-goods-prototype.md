@@ -460,6 +460,9 @@ resource leaks, on Compatibility rendering at 1280 by 720 on an AMD Radeon
 Fresh-player teaching, difficulty, pacing, par and final art and audio
 acceptance remain open. In particular, the east rim crossing consumes most
 of the participant's remaining health, and one Cell remains at departure.
-M08 is available as a separate development mission; durable M07 to M08 carry
-is the next bounded change. It must retain actual mine counts and strictly
-upgrade the new saved-run version rather than merely enabling M08 admission.
+The separate [durable M07-to-M08 carry](m07-m08-save-carry.md) now retains actual
+mine counts, strictly upgrades historical documents and proves real owned-child
+continuation and entry-anchor retries. The original mission review in
+[PR #345](https://github.com/blisspixel/fragr/pull/345) has all eight CI jobs
+passing. Its accepted source and the carry are consolidated into
+[PR #347](https://github.com/blisspixel/fragr/pull/347), with fresh combined CI.

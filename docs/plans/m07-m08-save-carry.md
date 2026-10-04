@@ -1,6 +1,7 @@
 # M07 to M08 durable campaign carry
 
-**Status:** in flight, 2026-10-03. Written before implementation.
+**Status:** implemented, 2026-10-03. Written before implementation; combined
+main integration is tracked in [PR #347](https://github.com/blisspixel/fragr/pull/347).
 **Spend:** $0. Local source work and checks only.
 
 ## Goal and boundary
@@ -69,6 +70,12 @@ three entry mines, ordinary input places one, and the saved retry anchor retains
 three while the live count is two. Both children stop cleanly. Frontend and
 local-preview harnesses pass, including refusal of a playable M09 entry.
 
-Complete fresh workspace and client verification remain in progress. This
+The complete fresh workspace and warning-denied workspace Clippy pass at the
+scoped implementation checkpoint. The full client checker passes all 230 scripts
+and 107 harnesses, exit 0 with its own PASS marker and no error or leak lines.
+The failed initial workspace run is retained; its historical v2 test fixture
+was corrected to omit both later explosive fields, without weakening the reader.
+Combined integration is consolidated into
+[PR #347](https://github.com/blisspixel/fragr/pull/347), with separate full CI. This
 work does not change M07 combat balance or establish M08 fresh-player, pacing,
 difficulty, final art or whole rendered-route acceptance.
