@@ -13,8 +13,8 @@ gallery routes clear. These are static assemblies, with no new interaction,
 conveyor simulation, pressure mechanic, supply or progression condition.
 
 The M06-only presenter finishes ten exact machine/work hosts with shallow rails,
-clamps, seals, drawers, an existing personal textile and three original 64x32
-pixel display icons. Full rotated mesh bounds stay within their actual solid
+clamps, seals, drawers, an existing personal textile and four original 64x32
+pixel displays, including the refined beam readout. Full rotated mesh bounds stay within their actual solid
 plus 25 mm. Bone, muted teal and weathered steel give the equipment variety.
 Black/red issued fittings retain their existing limited role. The enclosing
 pressure-shell palette, accepted roof workmanship and shared lighting remain.
@@ -81,6 +81,9 @@ performance comparison or supported-platform proof.
 
 ## Inspected work-area views
 
+These four initial structure/work-area frames precede the later freight craft
+refinement recorded separately below.
+
 ![Loaded freight weighing assembly](../screenshots/m06-port-activity-20261003/freight-weighbridge.png)
 
 The two shipment heights, restrained color differences, holding clamps and
@@ -104,6 +107,63 @@ civilian activity alongside its control equipment.
 Four restrained drawer fronts and handles identify a records cabinet from its
 clear southern aisle. It has the same truthful cover as its visible host body.
 Supported galleries, enclosing walls and ceiling remain visible in the room.
+
+## Later bounded freight craft views
+
+The first shipment faces were too plain at playing distance. Their refined
+finish adds nested chamfered lid borders and recessed panel outlines, a distinct
+lid split seam, four recessed carry grips, eight locking cam housings/levers and
+two pressure gauges. The existing beam gains a calibration rail, two mounted
+measuring heads and a small mass/control readout with physical selector knobs.
+The scale console has a clipped-corner bezel and two selectors. Existing offline
+enamel/metal grain preserves broad pixel finishes. No new paid asset is used.
+
+All 106 authoritative bodies and map bytes remain exactly unchanged. Panel
+bevels describe the lid surface, not a replacement collision hull. Hardware
+stays within its real host plus 25 mm and adds no unsupported hanging obstacle.
+The map SHA-256 remains
+`a36172af57d72e8c42b9a93abb3e132bf02da3f35550df72c0beff39690ea662`.
+Focused activity, original presentation, workmanship and mission harnesses each
+exit 0 with their own PASS marker and no errors. The activity harness additionally
+checks both real chamfered meshes, four grips, eight locks and two measuring
+heads, including full rotated bounds for the octagonal dial geometry. A close
+inspection caught hidden gauge pointers; their depth is corrected and a
+regression requires each entire pointer to sit visibly ahead of its dial face.
+The full client checker is repeated for the final finish: 226 scripts and 104
+harnesses pass, all 331 expected labels are present and no errors remain.
+`craft-full-client-receipt.json` binds that result to the final presenter source.
+
+A separate later ten-state art-view subset uses ordinary dock entry, the actual
+freight fight and five physical playing-distance/near inspection states. It
+exits 0 with its `qa_tour: 10 states under` marker, all 27 recorded walking goals
+arriving and no blank/error captures. Its manifest SHA-256 is
+`a0df70d4993336597c77b8cdb3f62d4a21b15553be4d5df9b3f0c16db7705dce`;
+the route SHA-256 is
+`4d192d933cb0f145c9e11811f97b3da734d16e3bf7e40c9a9a39ceaa706c0d01`.
+`craft-final-art-receipt.json` binds these refreshed corrected-gauge views to the unchanged map and retains the
+earlier complete 31-state structural route receipt separately. This subset does
+not claim a second complete campaign run. Owned rendering/server processes are
+closed, and the GPU slot is released.
+
+![Refined freight craft at the original playing distance](../screenshots/m06-port-activity-20261003/refined-freight-playing-distance.png)
+
+The same hero approach now reads the clipped lid edges, grips, cam locks, gauges
+and calibration/control treatment rather than two large blank colored fronts.
+
+![Near pressure lid and locking hardware](../screenshots/m06-port-activity-20261003/refined-pressure-case-close.png)
+
+The ordinary front aisle exposes the chamfered perimeter, recessed panel seam,
+carry-grip openings and latch housings on the actual shipment body.
+
+![Mounted beam measuring heads and controls](../screenshots/m06-port-activity-20261003/refined-weighing-beam-close.png)
+
+The upward view shows both mounted measuring heads, the calibration rail and
+the small mass/control panel. The host beam still owns all physical cover.
+
+![Framed weighing console with selectors](../screenshots/m06-port-activity-20261003/refined-scale-console-close.png)
+
+The clipped-corner bezel frames the existing balance icon and two selectors.
+These are static authored controls, with no new Use prompt or weighing puzzle.
 
 ## Limits and remaining gates
 

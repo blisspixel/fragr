@@ -64,3 +64,32 @@ The full headless client checker passes 226 script parses and 104 harnesses,
 with all 331 expected labels present and no errors. Full CI, main integration,
 publication and wider art acceptance remain separate gates. No shared QA,
 renderer, protocol, rules, supply or encounter definition changes were needed.
+
+## Bounded freight craft follow-up
+
+The first playing-distance capture leaves large shipment faces too plain and
+the weighing beam insufficiently functional. Before integration, refine only
+this assembly with beveled recessed panel borders, visible lid seams, carrying
+handles and locking mechanisms. Give the existing beam a readable measuring
+head, calibration scale and control face. Use original local geometry and
+existing offline finishes, at $0. Preserve all 106 authoritative bodies and
+the accepted 31-state structural route receipt exactly.
+
+Every fitting remains within its real host plus the existing 25 mm trim limit.
+Panel bevels describe surface craft rather than replacing the collision hull.
+Do not add unsupported hanging machinery or visually promise a new interaction.
+Check full rotated bounds, finite budgets and meaningful hardware selection.
+Record later playing-distance and close art views separately from the earlier
+complete combat/departure route. This is a bounded structural and craft pass,
+not final whole-port art acceptance.
+
+The follow-up is implemented with the original map bytes and all 106 bodies
+unchanged. Focused activity, original presentation, workmanship and mission
+harnesses pass. The inspected separate ten-state art subset completes all 27
+walking goals and shows the refined assembly at its original playing distance,
+then near the case lids, measuring beam and console. Its own receipts and four
+additional images are labeled separately in the evidence. The earlier complete
+31-state structural route remains intact; whole-port final art acceptance stays
+open. The corrected gauge pointers have an explicit layering regression and
+refreshed final art captures. Repeat full headless checks pass 226 scripts and
+104 harnesses, all 331 expected labels present and no errors.

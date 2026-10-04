@@ -26,14 +26,34 @@ func _run() -> void:
 	root.add_child(activity)
 	activity.build(info)
 	_check(activity.host_count == 10, "ten real machine/work hosts select their fitting assemblies")
-	_check(activity.get_child_count() <= 45, "coherent work-area dressing has a finite budget")
+	_check(activity.get_child_count() <= 135, "coherent work-area dressing has a finite budget")
 	var displays: int = 0
 	var luggage: bool = false
+	var panels: int = 0
+	var measuring_heads: int = 0
+	var handles: int = 0
+	var locks: int = 0
+	var gauge_faces: Array[MeshInstance3D] = []
+	var needles: Array[MeshInstance3D] = []
 	for child: Node in activity.get_children():
 		_check(child is MeshInstance3D, "activity creates no cosmetic collision, simulated workers or new lights")
 		if not child is MeshInstance3D:
 			continue
 		var view: MeshInstance3D = child
+		var part: String = view.get_meta("m06_craft_part", "")
+		if part == "PressureLidBevel":
+			panels += 1
+			_check(view.mesh is ArrayMesh and view.mesh.get_surface_count() == 1, "pressure lid has a chamfered mesh rather than a flat replacement box")
+		if part == "BeamMeasuringHead":
+			measuring_heads += 1
+		if part == "CarryHandleGrip":
+			handles += 1
+		if part == "LockingCamHousing":
+			locks += 1
+		if part == "PressureGaugeFace":
+			gauge_faces.append(view)
+		if part == "PressureGaugeNeedle":
+			needles.append(view)
 		var material: StandardMaterial3D = view.material_override
 		_check(view.layers == 2 and material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST,
 			"work-area finish uses nearest-filtered world lighting")
@@ -52,7 +72,15 @@ func _run() -> void:
 				"authored display uses a bounded original pixel icon")
 		if material.albedo_texture != null and material.albedo_texture.resource_path == M06Port.TEXTILE:
 			luggage = true
-	_check(displays == 3 and luggage, "scale console, both actual desks and personal textile are present")
+	_check(displays == 4 and luggage, "scale console, beam readout, both actual desks and personal textile are present")
+	_check(panels == 2 and measuring_heads == 2 and handles == 4 and locks == 8,
+		"both pressure lids carry handles and real-scale locking hardware, with two mounted beam measuring heads")
+	_check(gauge_faces.size() == 2 and needles.size() == 2, "both pressure gauges include a face and pointer")
+	for needle: MeshInstance3D in needles:
+		for face: MeshInstance3D in gauge_faces:
+			if absf(needle.position.x - face.position.x) < 0.2:
+				_check(needle.position.z - needle.mesh.get_aabb().size.z * 0.5 > face.position.z + face.mesh.get_aabb().size.y * 0.5,
+					"the whole pointer is visibly in front of its rotated dial face, without hidden or coincident geometry")
 	for patch: Dictionary in [{"map_id": 1007}, {"map_name": "Declared Goods"}, {"solids": []}]:
 		var other: Dictionary = info.duplicate(true)
 		other.merge(patch, true)
