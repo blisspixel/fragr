@@ -378,13 +378,19 @@ the Shotgun pickup from Rifle selection for the same reason. Its revised
 street capture clears those Clerks with 80 HP remaining. A later pass also
 confirms a participant Shotgun kill on the first Sweeper, then records the
 second Sweeper killing that participant during the ordinary search walk.
-The patrol and full route acceptance remain open.
+Subsequent ordinary-input captures clear the entire opening patrol. The
+furthest full route reaches 19 of 29 states, through the plaza, post, actual
+Sniper Rifle pickup, real window windup cancellation, scoped kill, window
+arrival and roof overlook. The cut and whole-route acceptance remain open.
 
 The route refinement exposes the existing target selector's distance
 bound as an optional, validated `engagement_distance` in the combat capture
-manifest. M07 Shotgun states use 10 metres so a visible distant guard does not
-stop ordinary search-route walking. Other captures keep the current unlimited
-selector by default. Boundary tests reject malformed distances and prove
+manifest. All 13 M07 combat states now use a supported weapon band: the five
+ordinary Rifle states select within 30 metres against its 40 metre reach, and
+the eight Sniper Rifle states select within 75 metres against its 90 metre
+reach. A visible distant guard no longer stops ordinary search-route walking.
+Other captures keep the current unlimited selector by default. Boundary tests
+reject malformed distances and prove
 that a distant visible guard is excluded until actual movement brings it into
 the requested band. Short-range search reuses the existing no-fire approach
 defense against committed tells. A harness proves that defense and preserves
@@ -405,7 +411,33 @@ all 224 scripts and all 103 harnesses. The latest complete workspace tests pass,
 including 864 server tests with three ignored tests. The focused distance and
 search-defense harness passes after its final edits.
 
-The whole rendered route, upper-room enclosure inspection, fresh-player
-teaching, difficulty, pacing, par and final art and audio acceptance remain
+The exact failed plaza capture preserved a visible Notary at 40 to 48 metres
+and resolved Rifle traces that ended at range. A failed post capture preserved
+15 Rifle rounds spent before its gate cleared. The current route includes a
+normal walking detour to the existing 40-round bend stock. It also collects
+the existing plaza Health and side-street Armor and Health before the post.
+Every current detour passes the shared ordinary movement proof. Supplies,
+enemy roster, attack timing and damage remain unchanged. Failed captures now
+preserve bounded samples of participant positions, actual loadout, required
+guard positions and line of sight, plus resolved shots and route progress.
+
+Inspected captures show the post's walls and ceiling, its enclosed upper room
+and the deliberate firing window with a sill and lintel. The surrounding
+pressure-dome streets are outdoors. This establishes the shell's rendered
+presence, not final environment art acceptance.
+
+The macOS client gate initially reported a successful M07 harness followed by
+a leaked chime playback at process exit. The harness now observes actual
+playback release inside the existing two-second retirement bound. The shared
+tour uses the same synchronous weak-reference predicate so its temporary
+reference cannot remain across an await. A focused harness plays the actual
+committed chime, replaces its live playback, stops and frees the owner, and
+requires both playback references to release. Both this test and the M07
+retirement assertions pass; the macOS portability rerun passes. The latest
+complete fresh local client gate passes all 225 scripts and 104 harnesses
+without error logs.
+
+The whole rendered route, fresh-player teaching, difficulty, pacing, par and
+final art and audio acceptance remain
 open. M08 is available as a separate development mission; durable M07 to M08
 carry remains the next bounded change after M07 route acceptance.
