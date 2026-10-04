@@ -236,3 +236,13 @@ Whole rendered departure acceptance is still open.
 The Common Carrier's collision hull and civilian casting are provisional.
 The maintenance cubby, runner shortcut, reviewed par and fresh-player pacing
 acceptance remain open. This checkpoint does not mark M09 complete.
+
+The leaf checkpoint is 75cb483e. Merge de3da3fe retains current main's
+loading-first behavior and every M09 hook. On its fresh matching native,
+owned M09 launch, strict boundary/presenter and loading-first harnesses pass;
+workspace all-target clippy also passes. The strengthened contact preflight
+passes both immediate departure and independent optional-boarding cases for
+each conditional roster. Actual optional crew can finish all lifted route
+holds, while departure itself does not wait for them. Full combined client
+and native checks are running; the next complete rendered combat route remains
+an acceptance gate.

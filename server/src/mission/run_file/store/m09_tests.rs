@@ -431,90 +431,118 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
     .unwrap();
     for edda in [false, true] {
         for splice in [false, true] {
-            let mut source = completed_archive();
-            if !edda {
-                source
-                    .m04_outcome
-                    .as_mut()
-                    .unwrap()
-                    .rescued_patients
-                    .clear();
-            }
-            if !splice {
-                source
-                    .m05_outcome
-                    .as_mut()
-                    .unwrap()
-                    .evacuated_workers
-                    .clear();
-            }
-            let saved = source
-                .promote_next(MissionId::PassengerManifest, hash)
-                .unwrap();
-            let mut game = GameState::with_authored_map(map.clone());
-            game.load_campaign_run(&saved).unwrap();
-            let owner = Uuid::from_u128(9009);
-            game.add_player(owner, "Visitor".into(), Role::Human);
-            assert!(game.acknowledge_mission(
-                owner,
-                MissionReady {
-                    id: MissionId::PassengerManifest,
-                    attempt: 1
+            for verify_boarding in [false, true] {
+                let mut source = completed_archive();
+                if !edda {
+                    source
+                        .m04_outcome
+                        .as_mut()
+                        .unwrap()
+                        .rescued_patients
+                        .clear();
                 }
-            ));
-            assert_eq!(
-                game.mission_state().unwrap().m09.unwrap().crew.len(),
-                3 + usize::from(edda) + usize::from(splice)
-            );
-            for state in qa["states"].as_array().unwrap() {
-                let context = format!("{} edda={edda} splice={splice}", state["name"]);
-                for route in [state.get("walk_to"), state["combat"].get("search_route")]
-                    .into_iter()
-                    .flatten()
-                {
-                    for goal in serde_json::from_value::<Vec<[f32; 3]>>(route.clone()).unwrap() {
-                        walk(&mut game, owner, goal, &context);
+                if !splice {
+                    source
+                        .m05_outcome
+                        .as_mut()
+                        .unwrap()
+                        .evacuated_workers
+                        .clear();
+                }
+                let saved = source
+                    .promote_next(MissionId::PassengerManifest, hash)
+                    .unwrap();
+                let mut game = GameState::with_authored_map(map.clone());
+                game.load_campaign_run(&saved).unwrap();
+                let owner = Uuid::from_u128(9009);
+                game.add_player(owner, "Visitor".into(), Role::Human);
+                assert!(game.acknowledge_mission(
+                    owner,
+                    MissionReady {
+                        id: MissionId::PassengerManifest,
+                        attempt: 1
+                    }
+                ));
+                assert_eq!(
+                    game.mission_state().unwrap().m09.unwrap().crew.len(),
+                    3 + usize::from(edda) + usize::from(splice)
+                );
+                for state in qa["states"].as_array().unwrap() {
+                    let context = format!("{} edda={edda} splice={splice}", state["name"]);
+                    for route in [state.get("walk_to"), state["combat"].get("search_route")]
+                        .into_iter()
+                        .flatten()
+                    {
+                        for goal in serde_json::from_value::<Vec<[f32; 3]>>(route.clone()).unwrap()
+                        {
+                            walk(&mut game, owner, goal, &context);
+                        }
+                    }
+                    if let Some(control) = state["interact"].as_str() {
+                        if control != "crew_freed" && verify_boarding {
+                            // This independent branch proves optional crew can
+                            // finish after all authored holds lift. The other
+                            // branch departs immediately, proving no NPC wait gate.
+                            game.set_action(owner, Action::default());
+                            for _ in 0..4000 {
+                                if game
+                                    .mission_state()
+                                    .unwrap()
+                                    .m09
+                                    .unwrap()
+                                    .crew
+                                    .iter()
+                                    .all(|c| c.aboard)
+                                {
+                                    break;
+                                }
+                                tick_without_guards(&mut game);
+                            }
+                            let crew = game.mission_state().unwrap().m09.unwrap().crew;
+                            assert!(
+                                crew.iter().all(|c| c.aboard),
+                                "optional crew did not finish: {crew:?}"
+                            );
+                        }
+                        let g = game.map.m09_geometry().unwrap();
+                        let target = if control == "crew_freed" {
+                            g.crew_release
+                        } else {
+                            g.departure
+                        };
+                        let point = target
+                            .point(
+                                game.map.presentation_ref().unwrap(),
+                                &game.current_arena().solids,
+                            )
+                            .unwrap();
+                        game.set_action(owner, Action::default());
+                        tick_without_guards(&mut game);
+                        game.set_action(
+                            owner,
+                            Action {
+                                interact: true,
+                                look_at: Some(LookAt {
+                                    x: Some(point[0]),
+                                    y: Some(point[1]),
+                                    z: Some(point[2]),
+                                    player_id: None,
+                                }),
+                                ..Action::default()
+                            },
+                        );
+                        tick_without_guards(&mut game);
+                    }
+                    if let Some(expected) = state.get("expect_m09_completed") {
+                        assert_eq!(
+                            game.mission_state().unwrap().m09.unwrap().completed,
+                            serde_json::from_value::<Vec<String>>(expected.clone()).unwrap(),
+                            "{context}"
+                        );
                     }
                 }
-                if let Some(control) = state["interact"].as_str() {
-                    let g = game.map.m09_geometry().unwrap();
-                    let target = if control == "crew_freed" {
-                        g.crew_release
-                    } else {
-                        g.departure
-                    };
-                    let point = target
-                        .point(
-                            game.map.presentation_ref().unwrap(),
-                            &game.current_arena().solids,
-                        )
-                        .unwrap();
-                    game.set_action(owner, Action::default());
-                    tick_without_guards(&mut game);
-                    game.set_action(
-                        owner,
-                        Action {
-                            interact: true,
-                            look_at: Some(LookAt {
-                                x: Some(point[0]),
-                                y: Some(point[1]),
-                                z: Some(point[2]),
-                                player_id: None,
-                            }),
-                            ..Action::default()
-                        },
-                    );
-                    tick_without_guards(&mut game);
-                }
-                if let Some(expected) = state.get("expect_m09_completed") {
-                    assert_eq!(
-                        game.mission_state().unwrap().m09.unwrap().completed,
-                        serde_json::from_value::<Vec<String>>(expected.clone()).unwrap(),
-                        "{context}"
-                    );
-                }
+                assert_eq!(game.mission_state().unwrap().phase, MissionPhase::Departed);
             }
-            assert_eq!(game.mission_state().unwrap().phase, MissionPhase::Departed);
         }
     }
 }
