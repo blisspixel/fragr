@@ -155,7 +155,7 @@ that finite arrival before the unchanged first-Crawler and pack probes.
 Shared movement reaches (-2.268329, 3, -28.36091) on the existing gallery.
 All failed manifests, diagnostics and logs remain.
 
-The final bounded attempt, `.agents/m02-latch-art-3/`, captures 20 of 24 states
+The third attempt, `.agents/m02-latch-art-3/`, captures 20 of 24 states
 through actual floor-Crawler activation and both required kills. It retains
 the original first-Crawler no-damage and pack checks, real release, voluntary
 second-bay gesture, one-pawn handoff, support cadence and all four crossfire
@@ -173,9 +173,31 @@ aborts on that retained failure before the final manifest writer, so this
 attempt has captures, native/client logs, source hashes and the real active
 service record, but no final `manifest.json`. The real record has zero deaths
 and 19 human kills; the mission is still active. Do not call this a clean
-whole-route pass or a completed departure. No more whole-route retries belong
-to this bounded source change. Gantry, dock, departure and fresh-player pacing
+whole-route pass or a completed departure. Gantry, dock, departure and fresh-player pacing
 need their own acceptance, including the existing strict pitch gate.
+
+Independent review identifies a checker defect: raw `look_at` angles can exceed
+the actual 85 degree pitch limit, while the real camera and server correctly
+clamp them. Dependency `1a4da5fa` (local cherry-pick `a2aed243`) normalizes the
+setter target once and retains the 0.001 acknowledgement tolerance and explicit
+pitch assertions. Its real setter regression and combined `test_qa_combat`
+pass; an old-behavior mutation is rejected at both extremes. This actual code
+correction authorizes one further byte-identical replay, not a route change.
+
+The corrected replay, `.agents/m02-latch-art-4/`, preserves the archived
+24-state manifest bytes, seed 42, Standard rules, unchanged map/native and
+all finite claims. It passes the near-floor pitch acknowledgement, captures
+18 states and retains real release, second-bay action, handoff, opening pack
+and support gates. Owner events confirm eight upper shells at feet
+(-2.2269588, 3, -29.319885), tick 402; eight floor shells at
+(-2.373565, 0, -5.382889), tick 1611; and 40 HP at
+(11.99522, 0, 3.4660058), tick 1731. The support probe takes HP from 100 to 15
+with three resolved allied Tack hits, and the finite medkit restores HP to 55.
+The next crossfire correctly fails on actual participant death with only two
+of four required guards defeated. The native resets the mission to attempt 2.
+The failure manifest, pickup receipts, diagnostics, source/helper hashes and
+environment receipt are retained. This is not a clean full-route or departure
+pass. No further route retries belong to this bounded mesh acceptance.
 
 The final runtime and QA script hashes match the captured source receipt. The
 exact captured route is archived as `m02-latch-art-3/capture-manifest.json`;
