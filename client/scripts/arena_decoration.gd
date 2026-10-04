@@ -64,14 +64,28 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m08_authorized_noise": "WORLD_M08_AUTHORIZED_NOISE",
 	"m08_freight_departure": "WORLD_M08_FREIGHT_DEPARTURE",
 	"m08_custody_shaft": "WORLD_M08_CUSTODY_SHAFT",
+	"m07_closed_shop": "WORLD_M07_CLOSED_SHOP",
+	"m07_curfew_notice": "WORLD_M07_CURFEW_NOTICE",
+	"m07_chalk_67": "WORLD_M07_CHALK_67",
+	"m07_transit_arrival": "WORLD_M07_TRANSIT_ARRIVAL",
+	"m07_lamp_six": "WORLD_M07_LAMP_SIX",
+	"m07_berm_six": "WORLD_M07_BERM_SIX",
+	"m07_sniper_rack": "WORLD_M07_SNIPER_RACK",
+	"m07_port_overlook": "WORLD_M07_PORT_OVERLOOK",
+	"m07_depot_freight": "WORLD_M07_DEPOT_FREIGHT",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
+## Faces a mission presenter dresses itself; a plate here would hide them.
+const PRESENTER_ONLY: Array[String] = ["m07_window_figure"]
+
 static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky.Preset = null) -> void:
 	var preset: ArenaSky.Preset = venue if venue != null else ArenaSky.scrapyard()
 	for index: int in range(details.size()):
 		var detail: Dictionary = details[index]
 		var kind: String = detail["kind"]
+		if kind in PRESENTER_ONLY:
+			continue
 		var size: Vector2 = Vector2(detail["size"][0], detail["size"][1])
 		var panel: MeshInstance3D = MeshInstance3D.new()
 		panel.name = "Detail_%d_%s" % [index, kind]
@@ -106,7 +120,7 @@ static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m08_freight_departure", "m08_bay_release": return 3
+		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release": return 3
 		"gate_locked", "m08_seal_locked": return 7
 		"gate_open", "m08_seal_open": return 8
 		"m03_schedule_cancelled": return 7

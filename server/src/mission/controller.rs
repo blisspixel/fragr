@@ -10,6 +10,7 @@ use uuid::Uuid;
 mod m04;
 mod m05;
 mod m06;
+mod m07;
 mod m08;
 
 #[derive(Debug, Clone, Default)]
@@ -32,6 +33,9 @@ pub struct MissionClient {
     m08_map: Option<crate::protocol::M08MapGeometry>,
     m08_point: Option<[f32; 3]>,
     m08_pending: bool,
+    m07_map: Option<crate::protocol::M07MapGeometry>,
+    m07_point: Option<[f32; 3]>,
+    m07_pending: bool,
     m03_departure: Option<[f32; 3]>,
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
@@ -222,7 +226,11 @@ impl MissionClient {
             self.m03_departure = None;
             return Ok(());
         };
-        if self.geometry.is_some() || self.m02_map.is_some() || self.m06_map.is_some() {
+        if self.geometry.is_some()
+            || self.m02_map.is_some()
+            || self.m06_map.is_some()
+            || self.m07_map.is_some()
+        {
             return Err("M03 cannot share another mission map");
         }
         geometry.validate(half, solids, presentation)?;
@@ -263,6 +271,9 @@ impl MissionClient {
             return Err("M02 side ward marker changed for the same map");
         }
         if let Some(count) = m02_objectives {
+            if self.m07_map.is_some() {
+                return Err("M02 cannot share an M07 mission map");
+            }
             if !(1..=8).contains(&count) || mission.is_some() || presentation.is_none() {
                 return Err("invalid M02 map marker or presentation");
             }
@@ -322,6 +333,17 @@ impl MissionClient {
             self.run = old.run;
             self.observed = old.observed;
             self.m08_pending = true;
+        }
+        if old.m07_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1007
+        {
+            self.m07_map = old.m07_map.clone();
+            self.m07_point = old.m07_point;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m07_pending = true;
         }
         if let Some(count) = m02_objectives {
             let presentation = presentation.ok_or("M02 requires map presentation")?;
@@ -393,6 +415,9 @@ impl MissionClient {
         let map_matches = if state.id == MissionId::CustodianOfRecord {
             self.validate_m08_target(&state)?;
             true
+        } else if state.id == MissionId::DeclaredGoods {
+            self.validate_m07_target(&state)?;
+            true
         } else if state.id == MissionId::PortOfEntry {
             self.validate_m06_target(&state)?;
             true
@@ -438,6 +463,7 @@ impl MissionClient {
         self.m05_pending = false;
         self.m06_pending = false;
         self.m08_pending = false;
+        self.m07_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -533,6 +559,7 @@ impl MissionClient {
             && self.m04_map.is_none()
             && self.m05_map.is_none()
             && self.m06_map.is_none()
+            && self.m07_map.is_none()
             && self.m08_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
@@ -629,7 +656,12 @@ impl MissionClient {
         if !self.participating(id) {
             return Action::default();
         }
-        if self.m04_pending || self.m05_pending || self.m06_pending || self.m08_pending {
+        if self.m04_pending
+            || self.m05_pending
+            || self.m06_pending
+            || self.m07_pending
+            || self.m08_pending
+        {
             navigator.clear();
             return Action::default();
         }
@@ -646,6 +678,13 @@ impl MissionClient {
             .is_some_and(|state| state.id == MissionId::PortOfEntry)
         {
             return self.steer_m06(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::DeclaredGoods)
+        {
+            return self.steer_m07(navigator, world, id, snapshot, action);
         }
         if self
             .state

@@ -348,3 +348,5 @@ msgstr "PASSENGER MANIFEST"
 
 msgid "STORY_L08_L09_FREIGHT"
 msgstr "Nobody called the car. It ran the freight lane toward the berth anyway.\n\nThe manifests name Mars, and systems several sides built."
+msgid "STORY_M07_DEPARTURE_TITLE"
+msgstr "CUSTODIAN OF RECORD"

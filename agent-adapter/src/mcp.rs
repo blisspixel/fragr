@@ -1146,6 +1146,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m05,
             m06,
             m08,
+            m07,
             map_name,
             half_extent,
             solids,
@@ -1216,6 +1217,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m08 {
                 map["m08"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m07(
+                m07.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m07 {
+                map["m07"] = serde_json::json!(geometry);
             }
             if let Some(count) = m02_objectives {
                 map["m02_objectives"] = serde_json::json!(count);

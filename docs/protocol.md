@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `30`; omission means `1`. Discovery-only maps first
+  and the Godot client send `32`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -159,6 +159,8 @@ Initial handshake message. Must be sent immediately after connection.
   refuse a loadout or actor naming them. Other maps keep their requirements.
   Version 31 adds Custodian of Record's strict `m08` geometry and mission facts
   and the `custodian_of_record` mission id. Only M08 requires 31.
+  Version 32 adds Declared Goods' strict M07 geometry and ordered objectives
+  with immutable carried outcomes from M03 through M06. Only M07 requires 32.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -500,6 +502,21 @@ cabinet, available only after the seal lifts; neither gates departure.
 Departure requires all living ready participants aboard and a fresh aimed Use.
 Retry restores the sealed world, every node, the guards and every fact.
 
+M07 carries `m07` exactly for `declared_goods`, mutually exclusive with
+other mission envelopes. Its strict facts are
+`{completed,current?,carried_recall_cars,carried_patients,carried_photos,carried_released_workers,carried_evacuated_workers,carried_prisoner_route_marked}`.
+The required prefix is `ring_cleared`, `plaza_cleared`, `post_cleared`,
+`window_cleared`, `cut_cleared`, then `party_departed`. Each of the first five
+objectives requires its corresponding encounter clear and active ready party
+arrival at the registered region. Future required guards remain absent until
+their predecessor clears. There is no optional branch. Latch follows and has
+bounded support ammunition, but does not fire into the isolated roof-window
+marksman lesson. The carried fields are the immutable earlier outcomes,
+including the M06 route marker. Departure requires all living ready
+participants aboard the freight boarding region and a fresh aimed Use. Retry
+resets the town, guards, grants and ally while retaining earlier outcomes and
+the M07 entry.
+
 Participants finish or skip their opening by sending
 `{"type":"mission_ready","id":"recall_notice","attempt":1}` using the current
 mission ID and attempt. Both fields are required; extra fields are rejected.
@@ -835,6 +852,12 @@ also send `map_info` before shared progress, even when the map ID stays the same
   replacement: forward with the world, and back on a retry. Every M08 role
   requires capability 31, with
   campaign rules revision 3 unchanged.
+- `m07`: present only on Declared Goods, map ID 1007 and geometry version 2.
+  The strict object contains five ordered Arrival `objectives`, `departure`
+  (a registered `m07_depot_freight` panel and its approach), `boarding` and
+  `companion_start`. One static world; pressure glass is permitted. Same-map
+  replacement cannot rebind this contract. Every M07 role requires capability
+  32, with campaign rules revision 3 unchanged.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -2023,10 +2046,10 @@ content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
 under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
 refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v7 after validating their historical revision
+M01/M02/M03 documents migrate to v8 after validating their historical revision
 2 rules and exact content hash. The upgrade promotes rules to revision 3 with
 exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v7 with zero historical grenades. Strict v6 documents preserve
+3 and upgrade to v8 with zero historical grenades. Strict v6 documents preserve
 their real grenade counts and M05 release/boarding outcomes; they cannot forge
 playable M06 or its future route outcome. Old shapes reject grenade
 fields and forged M05 stages. Exact source bytes are archived before replacement;
@@ -2039,8 +2062,10 @@ continues, pending_continue, nullable body), `failed`, `abandoned`,
 `awaiting_mission` (mission, difficulty, continues, nullable body),
 `incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
 M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
-M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, or unbuilt
-M07 `declared_goods` after M06. Version 7 retains completed
+M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
+`declared_goods` after M06, or M08 `custodian_of_record` after M07,
+whose saved-run carry is still pending.
+Version 8 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2048,11 +2073,14 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 and v7 saved equipment object has independent `grenades` from zero to six.
-M06 adds `m06_outcome:{prisoner_route_marked}` only at its completed pending M07
-edge. Earlier outcomes persist through that edge. Episode II continues refill
+Every v6, v7 and v8 saved equipment object has independent `grenades` from zero to six.
+M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
+edge and throughout M07 entry, retry and terminal states. Earlier outcomes
+persist through every later edge. Only an M07 exit may carry the Sniper Rifle;
+an M07 entry never does. Episode II continues refill
 only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Unknown future versions, forged older M04/M05/M06 states and
+Strict v7 documents upgrade to v8 unchanged and cannot forge an M07 stage or
+a carried Sniper Rifle. Unknown future versions, forged older M04/M05/M06/M07 states and
 changed source hashes are rejected before replacement. An absent body on a legacy
 save is bound by the player's visible body choice on admission; a bound body
 remains the server-owned run identity despite later profile changes.
@@ -2115,7 +2143,17 @@ level baseline. Read-only preview, historical-format upgrade, Practice,
 reopening M06, retry, failure and abandonment do not grant another refill.
 The arrival scene precedes readiness only for the pending M05 entry; resuming
 an existing M06 attempt skips it. M06 completion saves `declared_goods` as a
-pending destination; M07 remains unbuilt.
+pending destination.
+
+`--local-mission declared_goods` without a run mode starts the independent
+bundled M07 prototype with capability 32 and no personal save. Resume promotes
+a completed M06 exit under the writer lock, preserving exact body, difficulty,
+HP, armor, equipment, remaining continues and every earlier outcome, clearing
+only old-map claims. Episode II was refilled entering M06, so this promotion
+grants no refill and sets the level baseline to the continues that remain.
+The arrival scene precedes readiness only for the pending M06 entry. M07
+completion saves `custodian_of_record` as a pending destination; durable M08
+carry remains in development.
 
 `--local-mission custodian_of_record` starts the independent bundled M08
 development prototype with capability 31 and no personal save. Saved runs do not

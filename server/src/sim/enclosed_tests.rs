@@ -225,6 +225,7 @@ fn export_enclosed_capture() {
             m05: None,
             m06: None,
             m08: None,
+            m07: None,
             map_id: 1,
             map_name: "Enclosed geometry fixture".into(),
             half_extent: arena.half,

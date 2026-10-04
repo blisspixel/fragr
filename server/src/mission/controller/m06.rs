@@ -15,7 +15,8 @@ impl MissionClient {
             self.m06_pending = false;
             return Ok(());
         };
-        if self.geometry.is_some()
+        if self.m07_map.is_some()
+            || self.geometry.is_some()
             || self.m02_map.is_some()
             || self.m03_map.is_some()
             || self.m04_map.is_some()

@@ -16,6 +16,8 @@ pub(super) struct SoloRun {
     pub carried_photos: u32,
     pub carried_released_workers: Vec<String>,
     pub carried_evacuated_workers: Vec<String>,
+    /// M06's optional prisoner route, retained unchanged through M07.
+    pub carried_prisoner_route_marked: bool,
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
@@ -119,6 +121,7 @@ impl GameState {
             carried_photos: 0,
             carried_released_workers: Vec::new(),
             carried_evacuated_workers: Vec::new(),
+            carried_prisoner_route_marked: false,
             entry: None,
             saved_entry: None,
             exit: None,
@@ -182,6 +185,10 @@ impl GameState {
             .m05_outcome
             .as_ref()
             .map_or_else(Vec::new, |outcome| outcome.evacuated_workers.clone());
+        solo.carried_prisoner_route_marked = document
+            .m06_outcome
+            .as_ref()
+            .is_some_and(|outcome| outcome.prisoner_route_marked);
         Ok(())
     }
 
@@ -239,6 +246,7 @@ impl GameState {
                 || run.m05.is_some()
                 || run.m06.is_some()
                 || run.m08.is_some()
+                || run.m07.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -352,6 +360,7 @@ impl GameState {
         self.ensure_m05_companion();
         self.ensure_m06_companion();
         self.ensure_m08_companion();
+        self.ensure_m07_companion();
         self.shot_results.clear();
         tracing::info!(
             attempt = request.attempt + 1,

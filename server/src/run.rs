@@ -212,69 +212,16 @@ async fn run_server_impl(
             .map
             .content_sha256()
             .ok_or("durable local run requires authored content")?;
-        let m01_hash = if session.state.map.campaign_mission_id()
-            == Some(crate::protocol::MissionId::RecallNotice)
-        {
-            content_sha256
-        } else {
-            crate::maps::AuthoredSource::bundled_content_sha256(
-                crate::protocol::MissionId::RecallNotice,
-            )
-        };
-        let m02_hash = if session.state.map.campaign_mission_id()
-            == Some(crate::protocol::MissionId::PersonsUnknown)
-        {
-            content_sha256
-        } else {
-            crate::maps::AuthoredSource::bundled_content_sha256(
-                crate::protocol::MissionId::PersonsUnknown,
-            )
-        };
-        let m03_hash = if session.state.map.campaign_mission_id()
-            == Some(crate::protocol::MissionId::ScheduledService)
-        {
-            content_sha256
-        } else {
-            crate::maps::AuthoredSource::bundled_content_sha256(
-                crate::protocol::MissionId::ScheduledService,
-            )
-        };
-        let m04_hash = if session.state.map.campaign_mission_id()
-            == Some(crate::protocol::MissionId::NoticeToVacate)
-        {
-            content_sha256
-        } else {
-            crate::maps::AuthoredSource::bundled_content_sha256(
-                crate::protocol::MissionId::NoticeToVacate,
-            )
-        };
-        let m05_hash = if session.state.map.campaign_mission_id()
-            == Some(crate::protocol::MissionId::NoForwardingAddress)
-        {
-            content_sha256
-        } else {
-            crate::maps::AuthoredSource::bundled_content_sha256(
-                crate::protocol::MissionId::NoForwardingAddress,
-            )
-        };
-        let m06_hash = if session.state.map.campaign_mission_id()
-            == Some(crate::protocol::MissionId::PortOfEntry)
-        {
-            content_sha256
-        } else {
-            crate::maps::AuthoredSource::bundled_content_sha256(
-                crate::protocol::MissionId::PortOfEntry,
-            )
-        };
-        let store = RunStore::open_with_hashes(
-            &local_run.directory,
-            m01_hash,
-            m02_hash,
-            m03_hash,
-            m04_hash,
-            m05_hash,
-            m06_hash,
-        )?;
+        let current = session.state.map.campaign_mission_id();
+        let hashes: crate::mission::run_file::store::ContentHashes = std::array::from_fn(|index| {
+            let mission = crate::mission::run_file::store::CAMPAIGN_MISSIONS[index];
+            if current == Some(mission) {
+                content_sha256
+            } else {
+                crate::maps::AuthoredSource::bundled_content_sha256(mission)
+            }
+        });
+        let store = RunStore::open_with_hashes(&local_run.directory, hashes)?;
         if local_run.resume {
             let mut saved = store.load()?.ok_or("no saved campaign run to resume")?;
             let source = saved.clone();
@@ -287,27 +234,13 @@ async fn run_server_impl(
                 saved.step,
                 crate::mission::run_file::SavedStep::AwaitingMission { .. }
             ) {
-                saved = match target {
-                    crate::protocol::MissionId::PersonsUnknown => saved.promote_m02(m02_hash)?,
-                    crate::protocol::MissionId::ScheduledService => {
-                        saved.promote_next(target, m03_hash)?
-                    }
-                    crate::protocol::MissionId::NoticeToVacate => {
-                        saved.promote_next(target, m04_hash)?
-                    }
-                    crate::protocol::MissionId::NoForwardingAddress => {
-                        saved.promote_next(target, m05_hash)?
-                    }
-                    crate::protocol::MissionId::PortOfEntry => {
-                        saved.promote_next(target, m06_hash)?
-                    }
-                    crate::protocol::MissionId::CustodianOfRecord => {
-                        return Err("saved runs do not reach Custodian of Record yet".into())
-                    }
-                    crate::protocol::MissionId::RecallNotice => {
-                        return Err("a saved transition cannot return to M01".into())
-                    }
-                };
+                if target == crate::protocol::MissionId::RecallNotice {
+                    return Err("a saved transition cannot return to M01".into());
+                }
+                saved = saved.promote_next(
+                    target,
+                    hashes[crate::mission::run_file::store::stage_index(target)],
+                )?;
                 store.archive_and_save(&source, &saved)?;
             } else if saved.stage_mission() != target {
                 return Err("saved campaign run names another mission".into());
@@ -402,6 +335,10 @@ async fn run_server_impl(
         == Some(crate::protocol::MissionId::CustodianOfRecord)
     {
         crate::protocol::M08_GAMEPLAY_VERSION
+    } else if session.state.map.campaign_mission_id()
+        == Some(crate::protocol::MissionId::DeclaredGoods)
+    {
+        crate::protocol::M07_GAMEPLAY_VERSION
     } else if session.state.map.requires_sniper_contract() {
         crate::protocol::SNIPER_GAMEPLAY_VERSION
     } else if session.state.map.has_custody_devices() {

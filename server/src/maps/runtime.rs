@@ -77,6 +77,15 @@ impl RuntimeMap {
         }
         Some(Self::Authored(Arc::new(selected)))
     }
+    pub(crate) fn m07_objectives(&self) -> Option<&super::authored::m07::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m07.as_deref(),
+        }
+    }
+    pub fn m07_geometry(&self) -> Option<crate::protocol::M07MapGeometry> {
+        self.m07_objectives().map(|p| p.geometry.clone())
+    }
     pub(crate) fn m06_objectives(&self) -> Option<&super::authored::m06::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -218,6 +227,10 @@ impl RuntimeMap {
                 self.m08_objectives()
                     .map(|_| crate::protocol::MissionId::CustodianOfRecord)
             })
+            .or_else(|| {
+                self.m07_objectives()
+                    .map(|_| crate::protocol::MissionId::DeclaredGoods)
+            })
     }
 
     pub fn opened_route(&self) -> Option<Self> {
@@ -250,7 +263,7 @@ impl RuntimeMap {
     pub fn is_campaign(&self) -> bool {
         self.has_encounters()
             || self.mission().is_some()
-            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some() || map.m08.is_some())
+            || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some() || map.m07.is_some() || map.m08.is_some())
     }
 
     pub(crate) fn encounters(&self) -> &[super::authored::encounters::EncounterDefinition] {

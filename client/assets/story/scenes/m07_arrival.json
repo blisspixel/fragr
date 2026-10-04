@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m07_arrival",
+  "title_key": "MISSION_M07_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "ambience": {"path": "res://assets/story/ambience/lunar_port_utility.wav", "volume_db": -24.0},
+  "shots": [
+    {"id": "TRANSIT", "caption_key": "STORY_L06_L07_TRANSIT", "image": "res://assets/story/images/m06/lunar_transit_departure.png", "motion": {"kind": "zoom_in", "amount": 0.06}, "timing": "reader", "hold": 2.0}
+  ]
+}

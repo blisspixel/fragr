@@ -86,8 +86,10 @@ func _run() -> void:
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")
 	yard["scope"]["rules"]["revision"] = 2
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "historical revision 2 records remain readable")
-	yard["scope"]["mission"] = LocalMatch.NEXT_MISSION
-	_check(not PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "unimplemented M05 record scope is rejected")
+	yard["scope"]["mission"] = MissionState.M07_ID
+	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M07 records retain the level allowance through the shared record boundary")
+	yard["scope"]["mission"] = "unavailable_mission"
+	_check(not PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "unknown mission record scope is rejected")
 	var rewritten: Dictionary = mission.duplicate(true)
 	rewritten["scope"]["attempt"] = 2
 	rewritten["scope"]["run"]["continues"] = 2

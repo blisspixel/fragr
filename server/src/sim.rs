@@ -1457,6 +1457,7 @@ impl GameState {
             m05: self.map.m05_geometry(),
             m06: self.map.m06_geometry(),
             m08: self.map.m08_geometry(),
+            m07: self.map.m07_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),

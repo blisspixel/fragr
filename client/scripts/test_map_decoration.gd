@@ -102,6 +102,8 @@ func _presentation() -> void:
 	var base_count: int = cover.get_child_count()
 	var details: Array = []
 	for kind: String in MapDecoration.KINDS:
+		if kind in ArenaDecoration.PRESENTER_ONLY:
+			continue
 		var detail: Dictionary = DETAIL.duplicate(true)
 		detail["kind"] = kind
 		details.append(detail)
@@ -121,6 +123,14 @@ func _presentation() -> void:
 			_check_label(label)
 		if kind == "strip_light":
 			_expect(panel.get_node("Practical") is OmniLight3D, "missing practical light")
+	for kind: String in ArenaDecoration.PRESENTER_ONLY:
+		var detail: Dictionary = DETAIL.duplicate(true)
+		detail["kind"] = kind
+		info["presentation"]["decorations"] = [detail]
+		cover.apply_map_info(info)
+		_expect(cover.get_child_count() == base_count, "presenter-owned figure must not duplicate a generic panel")
+	info["presentation"]["decorations"] = details
+	cover.apply_map_info(info)
 	# A runtime locale change must relayout expanded copy, not retain English metrics.
 	var expanded: Translation = Translation.new()
 	expanded.locale = "de"

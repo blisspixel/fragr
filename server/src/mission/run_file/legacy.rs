@@ -1,6 +1,60 @@
 //! Strict historical save shapes. Versions before 6 have no grenade fields.
 use super::*;
 
+/// Version 7 has the current fields but cannot represent playable M07, its
+/// pending level 8 edge or a carried Sniper Rifle. Decode its exact shape and
+/// refuse anything only version 8 can mean before upgrading.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct RunDocumentV7 {
+    pub version: u32,
+    pub id: Uuid,
+    pub starting_continues: u8,
+    pub remaining_continues: u8,
+    pub level_start_continues: u8,
+    pub body: Option<BodyKind>,
+    pub rules: CampaignRules,
+    pub content_sha256: [u8; 32],
+    pub step: SavedStep,
+    #[serde(default)]
+    pub m03_outcome: Option<M03Outcome>,
+    #[serde(default)]
+    pub m04_outcome: Option<M04Outcome>,
+    #[serde(default)]
+    pub m05_outcome: Option<M05Outcome>,
+    #[serde(default)]
+    pub m06_outcome: Option<M06Outcome>,
+}
+
+impl RunDocumentV7 {
+    pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
+        if self.version != 7 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+            return Err("unsupported historical campaign rules");
+        }
+        let document = RunDocument {
+            version: RUN_FILE_VERSION,
+            id: self.id,
+            starting_continues: self.starting_continues,
+            remaining_continues: self.remaining_continues,
+            level_start_continues: self.level_start_continues,
+            body: self.body,
+            rules: self.rules,
+            content_sha256: self.content_sha256,
+            step: self.step,
+            m03_outcome: self.m03_outcome,
+            m04_outcome: self.m04_outcome,
+            m05_outcome: self.m05_outcome,
+            m06_outcome: self.m06_outcome,
+        };
+        let mission = document.stage_mission();
+        if mission == MissionId::DeclaredGoods {
+            return Err("M07 was not supported by version 7");
+        }
+        document.validate(hashes[store::stage_index(mission)])?;
+        Ok(document)
+    }
+}
+
 /// Version 6 includes real grenade counts but cannot represent playable M06.
 /// Decode its exact fields before upgrading; do not default away equipment or
 /// accept future outcomes under a historical version number.
@@ -51,7 +105,9 @@ impl RunDocumentV6 {
             MissionId::NoticeToVacate => hashes[3],
             MissionId::NoForwardingAddress => hashes[4],
             MissionId::PortOfEntry => return Err("M06 was not supported by version 6"),
-            MissionId::CustodianOfRecord => return Err("M08 was not supported by version 6"),
+            MissionId::DeclaredGoods | MissionId::CustodianOfRecord => {
+                return Err("M08 was not supported by version 6")
+            }
         };
         document.validate(hash)?;
         Ok(document)
@@ -197,6 +253,7 @@ impl RunDocumentV5 {
             MissionId::NoticeToVacate => hashes[3],
             MissionId::NoForwardingAddress
             | MissionId::PortOfEntry
+            | MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord => return Err("M05 was not supported by version 5"),
         };
         document.validate(hash)?;
@@ -238,6 +295,7 @@ impl RunDocumentV4 {
                 MissionId::NoticeToVacate
                 | MissionId::NoForwardingAddress
                 | MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord => {
                     return Err("mission was not supported by version 4")
                 }
@@ -251,6 +309,7 @@ impl RunDocumentV4 {
                 MissionId::NoticeToVacate
                 | MissionId::NoForwardingAddress
                 | MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord => {
                     return Err("mission was not supported by version 4")
                 }
@@ -320,6 +379,7 @@ impl RunDocumentV3 {
             MissionId::NoticeToVacate => return Err("M04 was not supported by version 3"),
             MissionId::NoForwardingAddress
             | MissionId::PortOfEntry
+            | MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {

@@ -19,6 +19,7 @@ mod m05;
 mod m05_qa;
 mod m06;
 mod m06_qa;
+mod m07;
 mod m08;
 mod m08_qa;
 mod roster;

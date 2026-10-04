@@ -13,7 +13,8 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 31. M08 Custodian of Record requires 31
+The adapter declares gameplay capability 32. M07 Declared Goods requires 32
+for its strict town and crater envelope. M08 Custodian of Record requires 31
 for its strict archive envelope. A map that grants the Sniper Rifle or places a
 Ranged Sweeper requires 30. Maps that place a campaign Auditor or grant
 proximity mines require 29; a Sabotage server requires 28. M06 Port of Entry requires 27
@@ -135,6 +136,17 @@ secured clinic or departs from the roof; optional rescue never gates departure.
 Same-map clinic changes clear mission steering until matching fresh state
 arrives. `mission_ready` and `mission_continue` accept `notice_to_vacate` through
 the existing tools. No separate campaign command path is needed.
+
+For M07, `observe.map.m07` binds the five ordered arrival objectives, the
+freight departure panel and approach, the boarding region and Latch's start.
+`observe.mission.m07` reports ordered completion, the current objective and
+the retained M03 to M06 outcomes. Each objective needs its encounter cleared
+and a real arrival; the departure is an aimed `act.interact` at the freight
+panel with the whole living ready party aboard. The rack in the curfew post
+grants the Sniper Rifle (`sniper`); a Ranged Sweeper's `windup` phase is its
+glint, and leaving its sight during the hold cancels the shot. The scope is
+presentation only and has no action field. `mission_ready` and
+`mission_continue` accept `declared_goods` through the existing tools.
 
 Development mission parties allow four humans/agents together. `--campaign-run`
 instead permits one lifetime combat seat; spectators do not take seats. Leaving
@@ -647,7 +659,7 @@ Example `test_input.jsonl`:
 
 ## Campaign observations
 
-The adapter sends current capability 31. M08 requires 31, maps with the Sniper
+The adapter sends current capability 32. M08 requires 31, maps with the Sniper
 Rifle or a Ranged Sweeper require 30, maps with a campaign Auditor or mine
 supply require 29, Sabotage requires 28, M06 requires 27, and other current
 authored mission and discovery maps require 26. On M08, `observe.map.m08` carries the
@@ -657,6 +669,7 @@ the optional bays and cabinet, departure, boarding and the `seal_open` and
 facts, including `node_hp`. On the `machine_wrecked` step the shared controller
 walks to the next node's approach and fires at its aim; in the mine lesson it
 throws one mine at the alcove mouth and holds.
+M07 Declared Goods requires 32 for its strict town and crater envelope.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
 `side: participant` includes human and external-agent allies. M02 adds one
 `side: companion`, `kind: latch` actor after the guarded release. Its
