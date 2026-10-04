@@ -127,6 +127,24 @@ through MCP. Evidence and the rules as built are in
 [the replayability plan](plans/replayability.md#the-flagship-rescue-and-sabotage).
 
 
+### Competitive 5v5 and Liberation
+
+The accepted multiplayer direction includes explicit five-per-side elimination
+and plant/defuse on multiple original maps. Sector 9 Sabotage is built;
+strict seat caps, standalone elimination and additional objective layouts are
+not. The [competitive/community plan](plans/competitive-and-community.md)
+links the classic-map research and records admission, equipment and playtest
+decisions without adding another global build order.
+
+**Liberation (planned).** Humans and free agents cooperate against Union
+forces over connected objectives, with vehicles, defensive positions and
+rescues. Start with four allied seats at Launch Works before the larger
+Holdfast Atoll scenario. Allied rule bots are possible; allegiance, body type
+and control method remain separate. Mode failure/reinforcement contracts and
+vehicles are unbuilt. This is ordinary Union conflict, separate from Wipe's
+unexpected takeover disaster and finite isolated resources. It introduces no
+mandatory campaign co-op.
+
 ### Control
 
 Hold ground to score. First one hill that moves every minute, so nobody camps it; then three fixed sites on the medium maps. Control proves zone state on the wire before Custody and conquest-lite depend on it.

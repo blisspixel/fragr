@@ -10,6 +10,7 @@ class_name LoadingCard
 ## in it, which every game worth copying has known since Doom.
 
 signal dismissed
+signal return_requested
 
 const HOLD_SECONDS: float = 4.0
 
@@ -18,6 +19,45 @@ var _armed: bool = false
 var _bar: ProgressBar = null
 var _controls: Label = null
 var _device_revision: int = -1
+var waiting_for_world: bool = false
+var failed: bool = false
+var _hint: Label
+var _return: Button
+
+func begin_loading() -> void:
+	waiting_for_world = true
+	failed = false
+	_elapsed = 0.0
+	_armed = false
+	_update_waiting()
+
+func finish_loading(show_controls: bool) -> void:
+	if not waiting_for_world or failed:
+		return
+	waiting_for_world = false
+	_elapsed = 0.0
+	_armed = false
+	_update_waiting()
+	if not show_controls:
+		dismiss()
+
+func show_error(message: String) -> void:
+	waiting_for_world = true
+	failed = true
+	_armed = false
+	_update_waiting()
+	if _hint != null:
+		_hint.text = message.left(200)
+	if _return != null:
+		_return.visible = true
+
+func _update_waiting() -> void:
+	if _bar != null:
+		_bar.visible = not waiting_for_world
+	if _hint != null:
+		_hint.text = tr("LOADING_WAIT" if waiting_for_world else "LOADING_BEGIN")
+	if _return != null:
+		_return.visible = failed
 
 func _ready() -> void:
 	layer = 90
@@ -80,11 +120,18 @@ func _build() -> void:
 	column.add_child(_bar)
 
 	var hint: Label = Label.new()
-	hint.text = tr("LOADING_BEGIN")
+	_hint = hint
+	hint.text = tr("LOADING_WAIT" if waiting_for_world else "LOADING_BEGIN")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_size_override("font_size", 13)
 	hint.add_theme_color_override("font_color", Color(0.55, 0.57, 0.6))
 	column.add_child(hint)
+	_return = Button.new()
+	_return.text = tr("LOADING_RETURN")
+	_return.visible = false
+	_return.pressed.connect(func() -> void: return_requested.emit())
+	column.add_child(_return)
+	_update_waiting()
 
 ## The control scheme, in the order a new player needs it, from the live
 ## bindings of the device in the player's hands.
@@ -92,10 +139,12 @@ static func _controls_text() -> String:
 	return InputGlyphs.plain(TranslationServer.translate("LOADING_CONTROLS_PAD" if InputDevice.is_gamepad() else "LOADING_CONTROLS_KEYS"))
 
 func _process(delta: float) -> void:
-	_elapsed += delta
 	if _controls != null and _device_revision != InputDevice.revision:
 		_device_revision = InputDevice.revision
 		_controls.text = _controls_text()
+	if waiting_for_world:
+		return
+	_elapsed += delta
 	if _bar != null:
 		_bar.value = minf(_elapsed, HOLD_SECONDS)
 	# A short arming delay, so the keypress that started the match does not
@@ -118,7 +167,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func dismiss() -> void:
-	if not visible:
+	if not visible or waiting_for_world:
 		return
 	visible = false
 	dismissed.emit()

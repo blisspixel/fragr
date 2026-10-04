@@ -441,11 +441,22 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
    which measures every preset.
 6. **Multiplayer depth.**
-   - Sabotage maps built to the Dust II lessons, and bots that split up and
-     fake.
+   - [Competitive and community scope](plans/competitive-and-community.md):
+     explicit 5v5 elimination and plant/defuse, with original Sector 9,
+     Low Water and Custody Archive objective layouts. Apply the linked classic
+     map research and prove rotations, retakes and side balance in play.
    - Rescue.
    - The [vehicle](plans/vehicles.md) rungs toward the flagship island,
      [Holdfast Atoll](plans/multiplayer-maps.md#17-holdfast-atoll-new-the-flagship-island-working-name).
+   - Liberation: humans and free agents cooperate against Union forces,
+     starting with one connected Launch Works scenario and four allied seats.
+     Vehicles, defenses and rescues reuse proven server systems. Larger
+     rosters, reinforcement rules and the distinct Wipe wrapper need their
+     own acceptance. These formats remain unbuilt.
+   - Free self hosting and [community contributions](../CONTRIBUTING.md),
+     with [non-invasive fair play](plans/fair-play.md), temporary host bans
+     and planned optional bans for repeated confirmed abuse. Skill or agent
+     control alone never warrants punishment.
 7. **Network.** Bounded lag compensation and a recorded two-machine session
    before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
 8. **Complete the campaign.** Build levels 9 to 20 one mission at a time,

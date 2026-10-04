@@ -33,7 +33,7 @@ acceptance still open:
 6. **Port of Entry:** the lunar port, the found Railgun and flankable Turrets.
 7. **Declared Goods:** the curfew town, Sniper Rifle window lesson, Ranged
    Sweepers, crater cut and freight departure.
-8. **Custodian of Record:** the Proximity Mine and the repairing Auditor, as a
+8. **Custodian of Record:** the Proximity Mine and the repairing Auditor,
    connected to the run through strict saved equipment and finite mine counts.
 
 The twenty-level story in five episodes is in [CAMPAIGN.md](docs/CAMPAIGN.md),
@@ -42,6 +42,14 @@ and the build order is in the [roadmap](docs/ROADMAP.md). Sabotage starts with
 Source checkouts also include development ranges for the Jammer, the Sniper
 Rifle and the custody devices; [server/maps/README.md](server/maps/README.md)
 lists them and how to run each one.
+
+The next multiplayer scope includes original 5v5 elimination and plant/defuse
+maps, plus Liberation: humans and free agents cooperating against Union
+forces over objectives, eventually with vehicles, defenses and rescues.
+These additions remain planned. The [multiplayer plan](docs/plans/competitive-and-community.md)
+links classic-map research and concrete acceptance gates. Local hosting stays
+free; [contributions](CONTRIBUTING.md) and [temporary host moderation](docs/plans/fair-play.md)
+have practical paths without invasive client software.
 
 The finished game targets a complete twenty-level campaign and polished
 multiplayer. Retro is the art direction, not a quality ceiling: detailed
@@ -62,13 +70,18 @@ The civilian skin and idle/walking strip pass local source and body checks.
 The Sweeper and Auditor now use posed skins for directional albedo/normal
 atlases; Latch uses a live packaged skin with actual gait, fitted screen and
 palm attachments. Role checks and played views are recorded separately from
-full mission-route acceptance. Combined verification remains in flight. This batch
-used 160 included model credits. A free live check reports 2,745 remaining,
-with a separate 15-credit uncertain hold retained.
+full mission-route acceptance. This runtime increment shipped in
+[PR #348](https://github.com/blisspixel/fragr/pull/348) and
+[v0.71.0](https://github.com/blisspixel/fragr/releases/tag/v0.71.0), with full
+implementation CI and all three desktop package checks passing. Its cast batch
+used 160 included model credits. Further Enforcer and Crawler source candidates
+remain in flight. The latest October 4 free account check reports 2,655
+available with a 15-credit uncertain hold, leaving 2,640 usable; tracked net
+consumption is 415 credits. The [full asset plan](docs/plans/meshy-full-game-assets.md)
+owns the per-object briefs and budget scenarios.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
-and [campaign results](docs/plans/campaign-results.md) are implemented locally
-with real server-shot and mission-completion evidence. Their combined CI and
-main integration are tracked in [PR #348](https://github.com/blisspixel/fragr/pull/348).
+and [campaign results](docs/plans/campaign-results.md) shipped in that same
+increment with real server-shot and mission-completion evidence.
 The [Low Water detail](docs/evidence/m04-inhabited-world-20261003.md) and
 [lunar port workmanship](docs/evidence/m06-world-workmanship-20261003.md) passes
 add civilian care, shared charging, domestic windows and maintained cargo equipment.
