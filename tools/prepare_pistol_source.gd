@@ -79,11 +79,16 @@ func _run() -> void:
 				_fail("cannot decode embedded map")
 				return
 			image.resize(1024, 1024, Image.INTERPOLATE_LANCZOS)
+			if slot == BaseMaterial3D.TEXTURE_ALBEDO:
+				_quiet_albedo(image)
 			textures[key] = ImageTexture.create_from_image(image)
 		material.set_texture(slot, textures[key])
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	material.metallic = 0.45
-	material.roughness = 0.8
+	material.metallic_texture = null
+	material.roughness_texture = null
+	material.metallic = 0.06
+	material.roughness = 0.96
+	material.normal_scale = 0.20
 	var gun: Node3D = Node3D.new()
 	gun.name = "Pistol"
 	root.add_child(gun)
@@ -121,8 +126,8 @@ func _run() -> void:
 		piece.material_override = material
 		holder.add_child(piece)
 	var g: RefCounted = Workshop.new()
-	var edge: StandardMaterial3D = g.material("pistol_machined_trigger", Color("89918b"), 0.65, 0.55)
-	var guide: StandardMaterial3D = g.material("pistol_spring_guide", Color("545c59"), 0.5, 0.68)
+	var edge: StandardMaterial3D = g.material("pistol_machined_trigger", Color("626b65"), 0.10, 0.91)
+	var guide: StandardMaterial3D = g.material("pistol_spring_guide", Color("525951"), 0.06, 0.95)
 	# The reviewed front recoil plug follows the slide. Its guide stays on the
 	# receiver, independently from the fixed barrel and open muzzle bore.
 	g.cylinder(gun.get_node("Body"), "SpringGuide", 0.0018, 0.032, guide, Vector3(0.0012, -0.016, -0.166), 10)
@@ -155,6 +160,8 @@ func _run() -> void:
 		"prepared_sha256": FileAccess.get_sha256(args[1]), "prepare_sha256": FileAccess.get_sha256(get_script().resource_path),
 		"original_triangles": 5154, "original_groups": group_counts, "authored_triangles": additions,
 		"metres_per_raw_unit": METRES, "maps_max_pixels": 1024,
+		"material_policy": {"albedo_cluster_pixels":4, "metallic":0.06, "roughness":0.96,
+			"normal_scale":0.20, "roughness_map":false, "metallic_map":false},
 		"mechanism": {"moving_recoil_plug_island": 1478, "fixed_barrel_island": 4991, "slide_travel_m": 0.012},
 		"runtime_selected": false}, "\t") + "\n")
 	receipt.close()
@@ -163,6 +170,27 @@ func _run() -> void:
 	await process_frame
 	print("prepare_pistol_source: PASS (5154 preserved triangles, groups ", group_counts, ", additions ", additions, ", embedded 1K maps; visual acceptance open)")
 	quit(0)
+
+func _quiet_albedo(image: Image) -> void:
+	# Broad paint and walnut value groups. Mechanical edges come from retained
+	# geometry, rather than white scratch specks baked into the source atlas.
+	image.resize(256, 256, Image.INTERPOLATE_LANCZOS)
+	image.convert(Image.FORMAT_RGBA8)
+	for y: int in range(image.get_height()):
+		for x: int in range(image.get_width()):
+			var pixel: Color = image.get_pixel(x, y)
+			var value: float = clampf(pixel.get_luminance(), 0.0, 1.0)
+			var wood: bool = pixel.r > pixel.g * 1.20 and pixel.g > pixel.b * 1.03 and pixel.r - pixel.g > 0.035
+			var finish: Color
+			if wood:
+				finish = Color("62432d").lerp(Color("946239"), snappedf(value, 1.0 / 8.0))
+			elif pixel.g > pixel.r * 1.12 and pixel.g > pixel.b * 1.06:
+				finish = Color("4c594a").lerp(Color("65745a"), snappedf(value, 1.0 / 8.0))
+			else:
+				finish = Color("323b3b").lerp(Color("4b5451"), snappedf(value, 1.0 / 8.0))
+			finish.a = pixel.a
+			image.set_pixel(x, y, finish)
+	image.resize(1024, 1024, Image.INTERPOLATE_NEAREST)
 
 func _root(parents: PackedInt32Array, index: int) -> int:
 	var result: int = index

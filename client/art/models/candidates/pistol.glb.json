@@ -5,6 +5,14 @@
 	},
 	"maps_max_pixels": 1024,
 	"material_finish_sha256": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
+	"material_policy": {
+		"albedo_cluster_pixels": 4,
+		"metallic": 0.06,
+		"metallic_map": false,
+		"normal_scale": 0.2,
+		"roughness": 0.96,
+		"roughness_map": false
+	},
 	"mechanism": {
 		"fixed_barrel_island": 4991,
 		"moving_recoil_plug_island": 1478,
@@ -18,8 +26,8 @@
 		"Trigger": 176
 	},
 	"original_triangles": 5154,
-	"prepare_sha256": "123c708e520bc0e475fe7d2f5565b41736ff42b3a1eb81841b8f141c995eabff",
-	"prepared_sha256": "c8a257cd5941060cd44fa43def4c78830a8b1cf602a956bdcd1fb28c5c264038",
+	"prepare_sha256": "d0c4e1bf5d416c20a2df8219d66a0dd285a18d235c677070bb129558e7f817be",
+	"prepared_sha256": "b7463eea8ca234a2343ea9eeaa2d4c4f259a49502511491c3c7b2e244dd31df2",
 	"raw_sha256": "9c097088ab52e63730d6ec4494180c4663b812016035c490a06a19bf51a51318",
 	"runtime_selected": false,
 	"schema": 1

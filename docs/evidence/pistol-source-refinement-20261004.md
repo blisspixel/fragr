@@ -1,21 +1,22 @@
 # Civilian Pistol source refinement
 
-Status: source and candidate checks tested locally, 2026-10-04.
-Runtime selection and packaging acceptance remain open. $0 new spend.
+Status: refined source and played comparison tested locally, 2026-10-04.
+Runtime art review, selection and packaging acceptance remain open.
+$0 new spend.
 The shared production receipt owns the original 15-credit source operation.
 
 ## Source and workmanship
 
 Reviewed raw SHA-256:
 `9c097088ab52e63730d6ec4494180c4663b812016035c490a06a19bf51a51318`.
-Prepared GLB SHA-256:
+Initial prepared GLB SHA-256:
 `c8a257cd5941060cd44fa43def4c78830a8b1cf602a956bdcd1fb28c5c264038`.
 
 All 5,154 source triangles remain: Body 2,685, Slide 1,985, Trigger 176,
 Hammer 308. The front recoil plug is part of the moving slide, while the
 actual barrel remains fixed. Authored additions are a 60-triangle curved
 trigger blade and 120-triangle recoil guide, for 5,334 total gun triangles.
-Compact sage work gloves are authored separately from the prepared gun.
+Initial compact sage work gloves are authored separately from the prepared gun.
 
 The 24 cm source embeds 1K material maps, samples nearest pixels and imports
 without generated LOD. Four rendered studio views retain the actual bore,
@@ -61,5 +62,71 @@ The next two trials correctly rejected two shots and 50-to-48 ammo. The
 manual release in the third was unnumbered, which canonical human ingress
 correctly refused after numbered inputs. The corrected fixture waits for the
 existing manager to transmit physical release before any capture work. Its
-one-shot, ammunition and trace gates are unchanged. A clean complete played
-receipt remains required before the source can be selected for runtime.
+one-shot, ammunition and trace gates are unchanged.
+
+The fourth trial, `played-pair-4/`, exits 0 with clean error logs: eight
+nonblank states and nine ordinary walking arrivals. The real pad supplies
+the Pistol and 50 Bullets. Exactly one Pistol shot at tick 274 resolves on
+the authoritative near wall, leaving 49. The normal sender transmits the
+release before capture, with sequence 863; no second sequence writer remains.
+Nine same-sample pairs freeze only client presentation for 14 to 18 ms,
+preserving camera transform, textures and processing through restoration.
+The canonical server continues normally, with retained samples from ticks
+201 through 463. `resolved-shot.json`, `same-sample-pairs.json` and
+`manifest.json` preserve the facts, timestamps and image hashes.
+
+The selected/candidate held, firing, close-wall, occluded and returned pickup
+views are inspected at 1280x720. This is one played sample with two
+presentations, not two independent runs. The pickup silhouette is coherent;
+the initial held candidate is too low and small, with noisy chrome highlights
+and overly cool gloves. It remains unselected.
+
+The next offline revision retains exact raw geometry, scale and mechanisms.
+It uses closer bake framing, broad charcoal/walnut value groups, reduced
+normal strength and matte roughness without metallic/roughness maps. Plain
+worn civilian workshop gloves replace the cool sage treatment; they add no
+costume theme. Initial source receipts, scripts and all four played trials
+remain archived. Fresh pixel, motion, registration and matched-view gates
+are required for the refined outputs.
+
+## Quiet material and framing revision
+
+The refined GLB is 1,098,860 bytes, SHA-256
+`b7463eea8ca234a2343ea9eeaa2d4c4f259a49502511491c3c7b2e244dd31df2`.
+It preserves all part counts and motion. The embedded 1K albedo uses broad
+four-pixel charcoal, walnut and restrained sage value clusters. Metallic
+and roughness maps are removed; metallic strength is 0.06, roughness 0.96
+and normal strength 0.20. The plain warm gloves depict civilian workshop
+workwear, with no costume theme.
+
+Only the offline camera changes to fill the useful 224x180 vertical envelope.
+Gameplay camera, canvas, weapon transform, scale and bob remain unchanged.
+Two higher framing attempts clipped the firing burst at the top edge. Both
+private bakes and the failed strict gate remain retained. The corrected
+`candidate-quiet-v2-clearance/` bake passes every original source and inherited
+registration threshold, plus new full-height silhouette and top-edge checks.
+Logs `test-v2-source-clearance.log` and `test-v2-registration.log` have their
+PASS markers, successful exits and no errors. The original selected
+`test_viewmodel.gd` also passes after exact restoration.
+
+The fifth comparison, `played-pair-5/`, retains the same diagnostic map,
+eight states and nine ordinary arrivals. One actual Pistol shot at tick 304
+resolves on the near wall, reducing 50 Bullets to 49. Canonical physical
+release precedes capture, sequence 836. Nine same-sample presentation pairs
+take 16 to 25 ms across ticks 227 through 500. Their images, hashes and camera
+facts remain in `same-sample-pairs.json`; `source-pairing.json` records the
+map, route, wrapper, native helper, GLB and bake hashes.
+
+The final manifest and tour log contain all eight nonblank captures with no
+error lines. A private process owner launches and retires the renderer and
+cleans only its returned server PID; its own exit is 0. The child renderer's
+exit code was not recorded by this fallback launcher. This evidence therefore
+establishes the completed manifest, clean log and observed child retirement,
+rather than claiming a measured child exit status.
+
+Full-size held, resolved-fire, close-wall and returned pickup pairs are
+inspected. The closer framing and matte planes improve the initial low,
+chrome-like candidate; gloves remain angular at play scale. The HUD texture
+is still an overlay, so the close-wall comparison does not establish world
+mesh near clipping. Runtime selection and exported-package checks remain
+open. No paid source, ammunition policy or server outcome changes here.

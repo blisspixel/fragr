@@ -20,9 +20,9 @@ func build(hands: bool = false) -> Node3D:
 	return gun
 
 func _hand(geometry: RefCounted, hand: Node3D, support: bool) -> void:
-	var glove: StandardMaterial3D = geometry.material("pistol_work_glove", Color("555b45"), 0.0, 0.92)
-	var cuff: StandardMaterial3D = geometry.material("pistol_cuff", Color("353c32"), 0.0, 0.96)
-	var seam: StandardMaterial3D = geometry.material("pistol_glove_seam", Color("7e8269"), 0.0, 0.9)
+	var glove: StandardMaterial3D = geometry.material("pistol_work_glove", Color("78543d"), 0.0, 0.92)
+	var cuff: StandardMaterial3D = geometry.material("pistol_cuff", Color("514137"), 0.0, 0.96)
+	var seam: StandardMaterial3D = geometry.material("pistol_glove_seam", Color("a58059"), 0.0, 0.9)
 	var side: float = -1.0 if support else 1.0
 	var palm: MeshInstance3D = geometry.hull(hand, "Palm", PackedVector3Array([
 		Vector3(-0.028, 0.014, 0.020), Vector3(-0.018, 0.019, 0.027),

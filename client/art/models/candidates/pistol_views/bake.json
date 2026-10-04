@@ -1,13 +1,13 @@
 {
-	"bake_sha256": "2d09a416280b759d30a00f6dfff0348cbc91b5279db5621243840173b8bebc4e",
+	"bake_sha256": "0e9334165aff37859410942041b5a4db1ea69f172b09f09e3343f710a2ade40f",
 	"frames": {
-		"pistol.png": "8048a933d06a4eafc4bf2e7e44e052a27839af12ba48f3b634867448ca3c86e1",
-		"pistol_fire.png": "3848748edce7a1313ec1dcf8267021a2be9fa5726891c793784dbdf221616265",
-		"pistol_idle.png": "7fed3e035e2ac32955226cf36857ea06ae1b44f185be47b5a3875264f1a159dd"
+		"pistol.png": "e0d03a230820537410ff0af9c3ee8c40c67df2f3f31987293bb7c76e08fb276f",
+		"pistol_fire.png": "ab2a1416d2fbe7512a1d46b2ed2cbf99d153aa7b4893c0b3f36b0a1ffae300c8",
+		"pistol_idle.png": "c98269e47a1ca437d91b4afe3144b2ff64d4e1efbc4168b200f64dcd4948dc19"
 	},
-	"presenter_sha256": "41940e7dc431ee1e7947b2b26366729b93d5594aae154c8a8ad6b60274e864b4",
+	"presenter_sha256": "22a49bcdaeb4dd41db892eafaeb66aeaefaea73d2cdad4dec36499d71a6baf6f",
 	"renderer": "gl_compatibility",
 	"runtime_selected": false,
 	"schema": 1,
-	"source_sha256": "c8a257cd5941060cd44fa43def4c78830a8b1cf602a956bdcd1fb28c5c264038"
+	"source_sha256": "b7463eea8ca234a2343ea9eeaa2d4c4f259a49502511491c3c7b2e244dd31df2"
 }

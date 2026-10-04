@@ -34,8 +34,8 @@ func _run() -> void:
 	var camera: Camera3D = Camera3D.new()
 	camera.fov = 58.0
 	viewport.add_child(camera)
-	camera.position = Vector3(0.025, 0.060, 0.190)
-	camera.look_at(Vector3(0.0, -0.065, -0.182))
+	camera.position = Vector3(0.0, 0.055, 0.125)
+	camera.look_at(Vector3(0.0, -0.120, -0.182))
 	var source: RefCounted = Source.new()
 	var gun: Node3D = source.build(true)
 	viewport.add_child(gun)
@@ -156,7 +156,7 @@ func _flash(muzzle: Node3D) -> Node3D:
 		tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		var points: PackedVector3Array = []
 		for point: int in range(10):
-			var radius: float = (0.050 if point % 2 == 0 else 0.016) * (0.62 if layer == 1 else 1.0)
+			var radius: float = (0.045 if point % 2 == 0 else 0.016) * (0.62 if layer == 1 else 1.0)
 			var angle: float = TAU * point / 10.0
 			points.append(Vector3(cos(angle) * radius, sin(angle) * radius, -0.008 - layer * 0.001))
 		for point: int in range(10):

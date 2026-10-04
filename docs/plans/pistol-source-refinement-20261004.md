@@ -56,8 +56,16 @@ shared documentation, integration, complete CI and releases.
 Source preservation, 1K embedding, physical bounds, hardware and independent
 mechanism checks pass locally. Studio and candidate pixel views are inspected;
 the selected art remains unchanged. The first held-glove attempt and three
-failed diagnostic trials are retained. The corrected comparison uses the
-canonical physical-release sender before freezing any client presentation.
-Actual held/fire/pickup/close-wall comparison and package acceptance remain
-open. [Source evidence](../evidence/pistol-source-refinement-20261004.md)
-records exact geometry, hashes, checks and the retained failures.
+failed diagnostic trials are retained. The fourth comparison uses the
+canonical physical-release sender before freezing client presentation and
+passes eight states, nine ordinary arrivals and exactly one 50-to-49 shot.
+Inspected images reject its low, small held framing and noisy chrome finish.
+The refined source has broader matte charcoal/walnut value groups, closer
+bake framing and plain warm civilian workshop gloves. Fresh source, pixel,
+motion and inherited registration gates pass without relaxing thresholds.
+The fifth matched comparison completes the same eight states and nine
+ordinary arrivals with exactly one actual 50-to-49 shot. All nine temporary
+presentation pairs restore the selected textures exactly. Parent art review,
+runtime selection and package acceptance remain open.
+[Source evidence](../evidence/pistol-source-refinement-20261004.md) records
+exact geometry, hashes, checks and the retained failures.

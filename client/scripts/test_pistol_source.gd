@@ -24,6 +24,9 @@ func _run() -> void:
 		_check(material.albedo_texture.get_width() == 1024 and material.normal_texture.get_width() == 1024,
 			name + " embeds bounded 1K maps")
 		_check(material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST, name + " samples nearest pixels")
+		_check(material.metallic_texture == null and material.roughness_texture == null
+			and material.metallic < 0.10 and material.roughness > 0.90 and material.normal_scale <= 0.21,
+			name + " retains bounded matte presentation without noisy specular maps")
 	var source_bounds: AABB
 	var bounded: bool = false
 	for name: String in counts:
@@ -104,6 +107,10 @@ func _run() -> void:
 				_check(alpha == 0.0 or alpha == 1.0, "candidate has hard pixel alpha without a studio rectangle")
 		_check(image.get_used_rect().size.x > 8 and image.get_pixel(0, 0).a == 0.0, "object silhouette is bounded and background transparent")
 		if size.y == 180:
+			var used: Rect2i = image.get_used_rect()
+			_check(used.position.y <= 20 and used.size.y >= 160, "held weapon fills the useful vertical envelope without the rejected empty upper canvas")
+			for x: int in range(image.get_width()):
+				_check(image.get_pixel(x, 0).a == 0.0, "sights and firing burst retain top-edge clearance")
 			for y: int in range(166, 180):
 				_check(image.get_pixel(112, y).a == 1.0, "centre glove cut remains opaque at the inherited bottom edge")
 	gun.free()
