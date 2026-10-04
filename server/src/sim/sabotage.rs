@@ -145,7 +145,7 @@ impl GameState {
         self.config.rules.mode() == GameMode::Sabotage && self.map.sabotage_layout().is_some()
     }
 
-    /// Discovery equipment in Sabotage, where every life starts empty;
+    /// Discovery equipment in Sabotage, with profile-owned fresh starts;
     /// otherwise the map's own policy.
     pub(crate) fn equipment_policy(&self) -> EquipmentPolicy {
         if self.sabotage.is_some() {
@@ -161,6 +161,11 @@ impl GameState {
 
     /// The fresh arsenal a fighter starts a life with under these rules.
     fn fresh_inventory(&self) -> (crate::inventory::Inventory, WeaponType) {
+        if self.config.sabotage.five_vs_five {
+            let mut inventory = crate::inventory::Inventory::new(EquipmentPolicy::Discovery);
+            inventory.grant_weapon(WeaponType::Tack);
+            return (inventory, WeaponType::Tack);
+        }
         match self.config.rules.only_weapon() {
             Some(weapon) => (crate::inventory::Inventory::restricted(weapon), weapon),
             None => (

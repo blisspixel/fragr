@@ -445,6 +445,7 @@ pub struct NetServer {
     geometry_version: u32,
     gameplay_version: u32,
     party_slots: Option<Arc<Semaphore>>,
+    five_vs_five: bool,
     solo_run: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     admission: Arc<Admission>,
@@ -546,6 +547,7 @@ impl NetServer {
             geometry_version,
             gameplay_version,
             solo_run: false,
+            five_vs_five: false,
             solo_bound_body: None,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
                 .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
@@ -631,6 +633,12 @@ impl NetServer {
         }
     }
 
+    /// Rule bots and network fighters share the same bounded permit pool.
+    pub(crate) fn set_sabotage_seats(&mut self, slots: Arc<Semaphore>) {
+        self.party_slots = Some(slots);
+        self.five_vs_five = true;
+    }
+
     /// Only a completed admission consumes the run's lifetime combat seat.
     pub(crate) fn reserve_solo_run(&mut self) -> std::io::Result<()> {
         if self.gameplay_version < crate::protocol::CONTINUES_GAMEPLAY_VERSION {
@@ -659,6 +667,7 @@ impl NetServer {
                     let gameplay_version = self.gameplay_version;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
+                    let five_vs_five = self.five_vs_five;
                     let solo_bound_body = self.solo_bound_body;
                     let admission = Arc::clone(&self.admission);
                     let status = Arc::clone(&self.status);
@@ -708,6 +717,7 @@ impl NetServer {
                                 required_gameplay: gameplay_version,
                                 party_slots,
                                 solo_run,
+                                five_vs_five,
                                 solo_bound_body,
                                 handshake_timeout,
                                 hello_timeout,
@@ -859,6 +869,7 @@ struct HelloPolicy {
     required_gameplay: u32,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
+    five_vs_five: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     handshake_timeout: Duration,
     hello_timeout: Duration,
@@ -1180,9 +1191,11 @@ async fn handle_connection(
                                 Ok(seat) => Some(seat),
                                 Err(_) => {
                                     let rejection = ServerMessage::Error {
-                                    code: if policy.solo_run { "run_seat_closed" } else { "party_full" }.into(),
+                                    code: if policy.solo_run { "run_seat_closed" } else if policy.five_vs_five { "match_full" } else { "party_full" }.into(),
                                     message: if policy.solo_run {
                                         "This run already has an owner. Join as a spectator or start a new run."
+                                    } else if policy.five_vs_five {
+                                        "This five versus five match has ten fighter seats. Join as a spectator or wait for a seat."
                                     } else {
                                         "This mission supports four participants; join as a spectator or wait for a seat."
                                     }.into(),
