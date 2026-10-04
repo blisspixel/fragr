@@ -4,6 +4,22 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+Passenger Manifest extends the campaign prototype through level 9. The lunar
+Common Carrier berth has supported gantries, service galleries and sealed
+glazing, ordered encounters and human Union Enforcers with server-owned contact
+charges. Strict version 10 saves retain actual M08 outcomes and historical
+unknowns, equipment and retry carry. Clinic-team rescue counts as saving Edda
+for this appearance; Splice requires actual prior evacuation. Released crew
+have an optional grounded boarding route. Level 10 remains pending.
+
+The default free human now wears hatless civilian workwear. A refined Pistol
+uses readable painted materials, coherent moving hardware and registered held,
+firing and pickup frames. Each increment passed its local gates, complete CI
+and all three desktop package checks before merging to main. Level 9 remains a
+development prototype with final casting, art and fresh-player review open.
+
 ## v0.72.0 (2026-10-04)
 
 An optional `--sabotage-five-v-five` host profile bounds Sector 9 Sabotage to

@@ -312,13 +312,18 @@ the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The current release is [v0.72.0](https://github.com/blisspixel/fragr/releases/tag/v0.72.0),
 including [PR #351](https://github.com/blisspixel/fragr/pull/351), with all eight
 main CI jobs and three desktop package checks passing. Current independent
-lanes are M09, Pistol/Rifle craft, Kitchen and Garage. The
+lanes are Rifle/Jammer craft, the Repeater foundation, Kitchen and Garage. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain
-open, and the source is unshipped. The Pistol candidate is selected locally
-after its played comparison, while complete integration checks remain open;
-Rifle compact preparation and mechanical presentation continue. Kitchen's
+open. The prototype is on main through [PR #354](https://github.com/blisspixel/fragr/pull/354).
+The refined Pistol and hatless civilian are on main through
+[PR #353](https://github.com/blisspixel/fragr/pull/353) and
+[PR #352](https://github.com/blisspixel/fragr/pull/352), with complete local
+client checks, all eight CI jobs and all three desktop package checks passing
+on their reviewed heads. Rifle compact preparation and mechanical presentation
+continue. The corrected Jammer candidate consumed 35 included credits and
+requires mechanical and played acceptance before selection. Kitchen's
 eight-pad route and actual four-fighter match pass, but its first-use white-wall
 art defect remains unresolved. Garage's ordinary 15-state route passes with
 no deaths; vehicle/surface craft and fresh human fun remain open. Shared
@@ -345,19 +350,19 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      route and actual local carry/mine/retry checks pass. Keep the low-health
      rim crossing on the fresh-player pacing review.
    - Land any parked art.
-   - [Campaign results](plans/campaign-results.md) are implemented locally:
+   - [Campaign results](plans/campaign-results.md) shipped in v0.71.0:
      actual mission kills, secrets, deaths and elapsed server time, with a real
-     M01 completion and onward save. The selected slice ships with the combined
+     M01 completion and onward save. The selected slice shipped with the combined
      main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
    *Why:* two levels are nearly done, and finishing beats starting.
 2. **The feel layer.**
    - [Directional combat audio](plans/directional-combat-audio.md): near-miss
-     cracks, a damage arc, occlusion. The first bounded slice is implemented
-     locally with [real shot evidence](evidence/directional-feedback-20261004.md),
+     cracks, a damage arc, occlusion. The first bounded slice shipped in v0.71.0
+     with [real shot evidence](evidence/directional-feedback-20261004.md),
      finite-ray cue placement, covered closest-point suppression and pixel
      damage bearings. Wider room acoustics and listening acceptance stay open.
-     The selected slice ships with the combined main integration of PR #348.
+     The selected slice shipped with the combined main integration of PR #348.
    - Then [console](plans/console.md) phase 1: practical commands, voices
      and jokes, client only.
 
@@ -396,7 +401,7 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    have authored role poses and paired atlases; Latch uses a packaged live
    skin with gait and real palm attachments. Source and venue views pass
    locally; full route acceptance and combined integration remain distinct.
-   The selected cast sources, live presentation and residential frontage ship
+   The selected cast sources, live presentation and residential frontage shipped
    through the same main integration of PR #348. The full Auditor range and
    full M02 art route remain open; the pitch checker correction retains strict
    acknowledgements and does not change combat difficulty or outcomes.
@@ -445,15 +450,15 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 4. **The fun loop.**
    - Audit the twenty level briefs against the maximum-fun checks, and
      simplify what reads complicated.
-   - Build the end-of-level tally: kills, secrets, deaths and time against par.
+   - Refine the shipped end-of-level tally: kills, secrets, deaths and time against par.
 
    *Why:* settle the loop and the briefs before levels 9 to 20 are built.
 5. **[Graphics options and Ultra lighting](plans/graphics-options-and-lighting.md),**
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
    which measures every preset.
 6. **Multiplayer depth.**
-   - [Optional 5v5 Sabotage](plans/sabotage-five-seats.md) is implemented and
-     tested locally: ten shared fighter seats, finite Pistol fresh starts,
+   - [Optional 5v5 Sabotage](plans/sabotage-five-seats.md) shipped in v0.72.0:
+     ten shared fighter seats, finite Pistol fresh starts,
      survivor carry, exact parked resume and localized full-room refusal.
      [PR #351](https://github.com/blisspixel/fragr/pull/351) records complete
      CI and package verification; human match acceptance remains open. Generic matches retain
@@ -477,7 +482,7 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      control alone never warrants punishment.
 7. **Network.** Bounded lag compensation and a recorded two-machine session
    before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
-8. **Complete the campaign.** Build levels 9 to 20 one mission at a time,
+8. **Complete the campaign.** Refine level 9 and build levels 10 to 20 one mission at a time,
    following [the mission treatment](CAMPAIGN-MISSIONS.md) and its
    [dependency plan](plans/campaign-build-order.md), through the wipe and
    conditional epilogue. Carry the accepted art, combat and results approach
