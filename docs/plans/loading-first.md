@@ -1,6 +1,8 @@
 # Loading before the world
 
-Status: **in flight**, 2026-10-04. Spend: $0. Parent sequence: the presentation
+Status: **shipped** with main integration of
+[PR #350](https://github.com/blisspixel/fragr/pull/350), 2026-10-04.
+Spend: $0. Parent sequence: the presentation
 and controls work in ROADMAP.md, no additional global build order.
 
 The initial game scene currently exposes its default arena while waiting for
@@ -42,5 +44,11 @@ clean logs and the harness PASS marker. Inspected 1920x1280 captures show the
 first game frame covered, geometry still covered before a matching snapshot,
 an observable failed connection, then the rendered world after reveal. This
 uses controlled delivery at actual presenter boundaries, not a complete
-network playthrough or hardware performance benchmark. Full client and CI
-verification remain required before shipping.
+network playthrough or hardware performance benchmark. A separate actual
+rendered local M08 run passes opening, owned-child save/resume and finite mine
+placement with a loading-covered first frame. The final runtime's full Linux
+client CI passes, as do all three desktop package checks. Retained local
+full-suite failures document the two repaired input/teardown problems rather
+than being counted as passing checks. [Evidence](../evidence/loading-first-20261004.md)
+records the scope; exact reviewed-head implementation CI and fresh main CI
+remain the integration gates.

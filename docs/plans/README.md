@@ -30,7 +30,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`loading-first.md`](./loading-first.md) | **in flight** | Opaque first-frame loading curtain, matching snapshot and draw readiness, observable failure and safe input rearming; full checks and integration tracked by its own gate. |
+| [`loading-first.md`](./loading-first.md) | **shipped** with main integration of [PR #350](https://github.com/blisspixel/fragr/pull/350) | Opaque first-frame loading curtain, matching snapshot and draw readiness, observable failure and safe input rearming; actual rendered local campaign and desktop package checks pass. |
 | [`competitive-and-community.md`](./competitive-and-community.md) | **planned** direction, new format details **proposed** | Classic-map research applied to original 5v5 objectives, cooperative Liberation, mixed human/agent play and free community hosting. New modes remain unbuilt. |
 | [`meshy-full-game-assets.md`](./meshy-full-game-assets.md) | **in flight**, production planning | Complete per-object lore, reference, articulation and quality briefs, with one shared credit ledger, priced scenarios and a bounded first production allocation. Source candidates remain separate from selected runtime assets. |
 | [`wipe-survival.md`](./wipe-survival.md) | **planned** direction, detailed mechanics **proposed** | Unexpected takeover interrupts Union holdout fighting; continuous M18-M20 catastrophe culminates in a mobile district stand, locally isolated sentries/vehicles and one shared cooperative multiplayer scenario. All new mechanics remain unbuilt. |

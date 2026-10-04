@@ -4,6 +4,20 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.71.1 (2026-10-04)
+
+Gameplay starts behind its loading screen, before the default arena can appear.
+The curtain waits for authoritative geometry, a matching snapshot and a drawn
+frame; campaign stories can take over the cover. Failed loading offers return
+to the menu. Released grenade/mine inputs work immediately after dismissal,
+while held keys still require release. This does not resolve the separate
+unreproduced office-wall or intermittent Kitchen material report.
+
+The multiplayer direction now includes original 5v5 objectives and Liberation,
+humans and free agents cooperating against Union forces. Three classic-map
+research reports, contribution guidance and corrected non-invasive fair-play
+planning distinguish existing host controls from unbuilt modes and defenses.
+
 ## v0.71.0 (2026-10-04)
 
 The cast gains four coherent stylized production sources and rigs. The free
