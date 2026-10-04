@@ -1,6 +1,7 @@
 # Latch live mesh presentation
 
-**Status:** in flight, 2026-10-04. Main base `a8611d04`; shared cast preparation
+**Status:** implemented locally, 2026-10-04. Full M02 departure acceptance remains
+in flight. Main base `a8611d04`; shared cast preparation
 and virtual source helpers from parent dependency `a48fd5b4` (local cherry-pick
 `643d3c3f`). No asset generation belongs to this change.
 
@@ -131,5 +132,58 @@ The finite support-fire throttle reduces human HP from 85 to 20; the next
 crossfire correctly rejects participant death with three of four guards
 defeated. Keep `.agents/m02-latch-live/` logs, manifest and hashes. Inspected
 venue captures show coherent new Latch and the remaining procedural second-bay
-captive. Full departure, adjusted ordinary finite-supply route and fresh-player
-acceptance remain open. No map, grants or difficulty rules change here.
+captive. The separately labelled ordinary finite-supply route retains every
+original combat, support-fire throttle, first-Crawler no-damage, release,
+handoff and departure gate. No map, grants or difficulty rules change here.
+
+The first adjusted run, `.agents/m02-latch-art-1/`, completes 18 states and all
+four crossfire guards. Real owner events confirm eight `floor_shells` at feet
+(-2.365398, 0, -4.9552794), snapshot tick 1478, and 40 HP from `floor_medkit`
+at (11.994792, 0, 3.4636776), snapshot tick 1597. The following Crawler gate
+correctly fails: the explicit Shotgun selection carries zero shells forward
+while 26 bullets remain, and visible inactive bodies stop the search outside
+the authored encounter trigger. The correction selects the owned Tack within
+its actual 30 metre band and walks through the existing trigger before firing.
+Shared movement reaches (0.018872, 0, 10.71742), with unchanged solids.
+
+The next full repeat, `.agents/m02-latch-art-2/`, fails earlier at the original
+pack gate: all three Crawlers fall, but the active Sweeper retains six HP at
+2.388 metres with clear sight. The twelve starting shells have been consumed;
+human HP is 50 and no other gun has been acquired. The existing eight-shell
+`guard_room_shells` pad was never visited. The final ordinary art route adds
+that finite arrival before the unchanged first-Crawler and pack probes.
+Shared movement reaches (-2.268329, 3, -28.36091) on the existing gallery.
+All failed manifests, diagnostics and logs remain.
+
+The final bounded attempt, `.agents/m02-latch-art-3/`, captures 20 of 24 states
+through actual floor-Crawler activation and both required kills. It retains
+the original first-Crawler no-damage and pack checks, real release, voluntary
+second-bay gesture, one-pawn handoff, support cadence and all four crossfire
+guards. Real owner events confirm eight `guard_room_shells` at feet
+(-2.2476552, 3, -29.363184), snapshot tick 381; eight `floor_shells` at
+(-2.2888281, 0, -4.836745), tick 1553; and 40 HP from `floor_medkit` at
+(11.996079, 0, 3.4733381), tick 1773. These are authoritative pickup events
+paired with the latest snapshot feet and tick, not independently simulated
+arrival facts. Inspected second-bay and actual allied-fire frames show the
+new Latch skin in the existing room lighting.
+
+This attempt exits 1: strict pitch acknowledgements fail when framing the
+nearby floor supply and after the floor-Crawler fight. The following walk
+aborts on that retained failure before the final manifest writer, so this
+attempt has captures, native/client logs, source hashes and the real active
+service record, but no final `manifest.json`. The real record has zero deaths
+and 19 human kills; the mission is still active. Do not call this a clean
+whole-route pass or a completed departure. No more whole-route retries belong
+to this bounded source change. Gantry, dock, departure and fresh-player pacing
+need their own acceptance, including the existing strict pitch gate.
+
+The final runtime and QA script hashes match the captured source receipt. The
+exact captured route is archived as `m02-latch-art-3/capture-manifest.json`;
+the public route is reformatted to compact LF text with identical parsed data.
+Its semantic audit retains all original 22 states and assertions, adding two
+finite supplies and the explicit supported selection/activation approaches.
+Recorded private hashes refer to the exact capture bytes. Parent owns the
+combined source, actual shared
+model-library re-export, receipt reconciliation and fresh full CI. This source
+change does not complete all ward character art: the second-bay captive still
+uses the earlier procedural figure.
