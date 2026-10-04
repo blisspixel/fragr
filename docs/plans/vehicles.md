@@ -1,28 +1,30 @@
 # Vehicles: jeep, motorcycle, jetpack
 
-**Status:** planned, 2026-09-24. Design and staging only; nothing here is built.
-**Spend:** $0. Meshes, textures and sounds come from in-repo tools and the
-approved audio pipeline within existing credits.
+**Status:** planned, 2026-10-04. Design and staging only; nothing here is built.
+**Spend:** $0 new cash. Local implementation is free; proposed model candidates
+and audio use approved existing credits under the
+[full-game asset plan](meshy-full-game-assets.md), with separate bounded stages.
 
 ## When
 
 Vehicles are built only when the campaign reaches the mission that needs one.
 Much of the game is built without them. No vehicle rung is in the near-term
 sequence and none of this blocks Act I (M01 to M03), M04 to M07, or the
-controls work in rung 7 of the [full build order](../ROADMAP.md#full-build-order-2026-09-27).
+controls work in rung 7 of the [full build order](../ROADMAP.md#full-build-order-updated-2026-10-04).
 
 | Rung | Starts when | First use |
 |---|---|---|
-| 1. Vehicle seam and jeep | M08 is the next mission in rung 8 | M08 launch works |
-| 2. Motorcycle | M09 is next | M09 transit approach |
-| 3. Jetpack | M10 is next | M10 changed streets and waterworks |
-| 4. Campaign placement | Inside each of rungs 1 to 3, same mission cycle | M08, M09, M10 |
+| 1. Vehicle seam and jeep | M14 is the next mission in rung 8 | M14 launch works |
+| 2. Motorcycle | M16 is next | M16 transit approach |
+| 3. Jetpack | M19 is next | M19 changed streets and waterworks |
+| 4. Campaign placement | Inside each of rungs 1 to 3, same mission cycle | M14, M16, M19 |
 | 5. Multiplayer vehicle map | Phase 4, after team deathmatch | Conquest-lite |
 
-Each rung also needs buttery-controls stage 3 (prediction and reconciliation),
-which rung 7 ships before M04, so the dependency is met by the time M08 is
-next. If a mission's plan drops its vehicle, that rung waits for the next
-mission or for rung 5.
+Each rung needs the applicable prediction and reconciliation work demonstrated
+through actual driving, not inferred from pawn prediction or this sequence.
+If a mission's plan drops its vehicle, that rung waits for the next mission
+or for rung 5. The [shared Wipe design](wipe-survival.md) can reuse proven
+vehicles; it cannot claim them implemented ahead of these gates.
 
 ## Goal
 
@@ -49,7 +51,7 @@ gun, not an ammunition pool, so vehicle ammo can never become a mandatory key;
 overheating has a visible glow and a captioned hiss. Proposed: top speed about
 16 m/s, 400 HP, occupants exposed above the doors. A solo player can park and
 switch to the gun, the way it was always done in 1942. An autonomous ally may
-take the free seat on its own; it is never required. M08's captured utility
+take the free seat on its own; it is never required. M14's captured utility
 rover is this jeep in coalition paint.
 
 **Motorcycle.** One seat. Proposed: top speed about 20 m/s, quick acceleration,
@@ -143,13 +145,13 @@ vehicles. HUD: vehicle HP, gun heat, seat, and jetpack fuel.
 
 ## Campaign fit
 
-- **M08 jeep.** The rover circuit across depot, berm and gantry, as the M08 plan
+- **M14 jeep.** The rover circuit across depot, berm and gantry, as the M14 plan
   already describes. Infantry routes are proven first; the Walker stays
   defeatable if the jeep is lost.
-- **M09 motorcycle.** A run down the civic transit approach from the coalition
+- **M16 motorcycle.** A run down the civic transit approach from the coalition
   staging point to the foothold, past checkpoints under Notary patrols. The
   transit station is the foot route if the bike is lost. No timer, no escort.
-- **M10 jetpack.** Coalition gear in the evacuation concourse. It opens roof and
+- **M19 jetpack.** Coalition gear in the evacuation concourse. It opens roof and
   waterworks lines over Paver work strips during the changed-streets phase. The
   ground route always works.
 - **Moon and Mars.** No per-map gravity is assumed. If one is added later, the

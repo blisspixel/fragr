@@ -1,21 +1,25 @@
 # Enemy roster
 
-**Status, 2026-09-30:** Clerk and Sweeper prototype encounters are implemented
+**Status, 2026-10-04:** Clerk and Sweeper prototype encounters are implemented
 through shared simulation bodies, typed campaign identity and directional
-animation. Their unshaded atlases no longer share one outline: the Sweeper is
+animation. Their selected paired albedo/normal atlases have distinct outlines: the Sweeper is
 the wide bot with the level rifle, and the Clerk is the narrower human whose
 aim clears the shoulder. The M02 Crawler is implemented in a draft slice with
 a low server body, committed leap, original atlas and captioned spatial cue;
 live motion and fresh-player acceptance remain open. The Heavy Sweeper and the
 Turret are implemented on
 the same seams and demonstrated on a test range. The Heavy also fights in M05;
-the Turret's first campaign placement remains planned for level 6
+the Turret fights in level 6
 ([plan](plans/heavy-sweeper-and-turret.md)). All five wear the black, dark
 steel and restrained red Union issue. Full-mission tuning and a fresh-player
 review remain open. The Jammer fights in M03 and the bounded flying Notary in
 M04/M05. The campaign Auditor and its bounded repair are a development
-prototype on the [custody range](plans/l08-custodian-of-record-prototype.md).
-The Assessor and remaining enemy projectiles are proposed. Calibration's NODS
+prototype in level 8 and on the [custody range](plans/l08-custodian-of-record-prototype.md).
+Ranged Sweeper fights in level 7. These nine roles exist in source. Stylized
+Clerk, Sweeper and Auditor presentation ships through PR #346 and #348; full
+M02 art-route and Auditor-range acceptance remain open. Enforcer, Redactor,
+Assessor, Continuance Walker and the three restoration roles remain unbuilt.
+Calibration's NODS
 and arcade "AUDITOR" label are separate arcade prototypes, not implementations
 of the proposed roster.
 
@@ -195,7 +199,7 @@ not absorbed and can become targets too. Body, combat role, faction and imposed
 control are separate state: a chassis or cosmetic skin cannot decide assimilation.
 Teach the changed danger before combining these units with restoration machines.
 
-Introduced sparingly before full restoration encounters in M10. Names and
+Introduced across M18-M20 in the accepted twenty-level treatment. Names and
 mechanics need a combat prototype before art production.
 
 | Working role | Read and behavior | Counterplay |

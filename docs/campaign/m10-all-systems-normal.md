@@ -7,7 +7,11 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 
 **Status:** agreed survival-finale direction; detailed encounters proposed and
 unbuilt, revised 2026-09-20. Earth at the abrupt onset of the wipe. Initial target:
-about 33 active survival minutes after a short ordinary-life opening.
+about 33 active survival minutes after a short ordinary-life opening. The
+accepted twenty-level expansion supersedes that single-mission structure:
+M18 has a ten-minute clock, M19 eleven and M20 twelve, each with its own retry.
+Nick's 2026-10-04 direction places the larger strategic stand in M20; see the
+[shared Wipe plan](../plans/wipe-survival.md). Encounters remain unbuilt.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-18-all-systems-normal).
 
 ## Confirmed premise and cast
@@ -26,8 +30,11 @@ Nobody can establish whether the absorbed individuals still exist.
 
 ## Local-to-global sequence
 
-1. Complete a short ordinary delivery/reunion in a populated square. Show recovery
-   and the people it benefits; no countdown, ominous briefing or evacuation order.
+1. Complete a short ordinary delivery/reunion in a populated square while
+   unresolved fighting with Union holdouts continues nearby. The player can
+   engage those forces before the takeover interrupts the conflict. Show
+   recovery and the people it benefits; no countdown, ominous briefing or
+   evacuation order predicts the rupture. M17's leadership victory remains real.
 2. Union bots interrupt their routine together. A human supervisor's command gets
    no response; the same recognizable bodies move with one purpose. Free agents
    nearby do not join them. A stalled tram makes this immediately local.
@@ -39,7 +46,7 @@ Nobody can establish whether the absorbed individuals still exist.
    It does not explain the intelligence's whole plan or introduce an alien cause.
 6. Return control in an evacuation concourse with an achievable local rescue.
 
-These are the opening beats of the survival mission, not its entire duration.
+These are the opening beats of M18, not the entire three-level wipe.
 Continue through changed streets and flood-control works toward a refuge while
 free-agent friends try to obtain an exception from the Inheritance. They remain
 independent and act without a companion-command interface. Their success does

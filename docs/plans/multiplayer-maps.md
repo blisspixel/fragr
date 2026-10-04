@@ -288,8 +288,8 @@ agents. Crossing times are corner to corner at 5 m/s.
 
 ## The roster
 
-Twenty maps would be a list; sixteen is a roster. Seven small, six medium,
-three large. Places come from [the gazetteer](../lore/gazetteer.md): league
+The proposed roster has seventeen maps: seven small, six medium and four
+large. Places come from [the gazetteer](../lore/gazetteer.md): league
 venues for free-for-all, campaign places for team play, where the Union (black
 and red) holds ground the free coalition wants back.
 
@@ -558,7 +558,7 @@ flavor, the way it already is everywhere else in the game.
 
 #### 14. Launch Works (new)
 
-- **Place:** the Martian habitat's launch works, the M08 place: freight depot,
+- **Place:** the Martian habitat's launch works, the M14 place: freight depot,
   bermed approach, launch gantry. Authored separately from the mission.
 - **Players and modes:** 16 to 32. Conquest-lite.
 - **Layout and loop:** 450 by 300 m. Five sites: the coalition's habitat edge
@@ -593,7 +593,7 @@ flavor, the way it already is everywhere else in the game.
 #### 16. Waterworks (new)
 
 - **Place:** the Earth recovery district's changed streets and waterworks, the
-  M10 place, during or after the wipe.
+  M18-M20 places, during or after the wipe.
 - **Players and modes:** 16 to 24. Conquest-lite, infantry first.
 - **Layout and loop:** 380 by 300 m of streets, filter beds and roofs. Five
   sites: Pump House, Filter Beds, Tram Bridge, Water Tower, Relief Market.

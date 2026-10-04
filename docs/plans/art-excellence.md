@@ -58,10 +58,10 @@ Being honest about the gap:
 
 | Area | Today | Gap |
 |---|---|---|
-| Characters | Articulated Sweeper and skinned Clerk sources supply directional sprites with paired view normals; new deliberately stylized black/red Clerk revision passes source, lighting, replay and full local client gates; lean screen-faced Latch live model | Clerk integration is tracked in PR #346. Full roster model conversion, texture craft and broader played quality acceptance remain open |
+| Characters | Selected stylized Clerk, Sweeper and Auditor sources supply directional sprites with paired view normals; selected civilian strip and weighted, screen-faced live Latch ship in v0.71.0 | Clerk revision ships in PR #346 and the cast increment in PR #348. Full M02 art route, Auditor range clear, wider roster conversion and played quality acceptance remain open |
 | Weapons | Existing stylised viewmodels remain selected. Original Shotgun GLBs, separate pump/gloves and twelve coherent poses exist as candidates | First-person framing and hand anatomy need refinement before replacing the selected Shotgun; other guns need model conversion |
 | Pickups and HUD | Object sprites and icons, after art pass 1 | Good direction |
-| Maps | Selected venue tiles, wall bays, ceiling coffers, merged fixture housings, lit shallow water and Low Water river; bounded M04 civilian detail and M06 workmanship shipped in PR #344 and #342 with complete rendered routes | Larger authored landmarks, room volumes and full environmental kits remain open; M04 roof acceptance stays in draft #343 |
+| Maps | Selected venue tiles, wall bays, ceiling coffers, merged fixture housings, lit shallow water and Low Water river; M04 inhabited detail and roof enclosures, M06 workmanship and M04 residential frontage ship through PR #342, #344, #347 and #348 | Larger authored landmarks and full environmental kits remain open; ordinary M04 departure and roof-return evidence cover the selected enclosures |
 | Lighting | Three presets with SSAO, glow, venue lights | Planned Ultra preset ([graphics options](graphics-options-and-lighting.md)) |
 
 ## Direction

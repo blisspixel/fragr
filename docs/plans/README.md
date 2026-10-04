@@ -30,6 +30,8 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`meshy-full-game-assets.md`](./meshy-full-game-assets.md) | **in flight**, production planning | Complete per-object lore, reference, articulation and quality briefs, with one shared credit ledger, priced scenarios and a bounded first production allocation. Source candidates remain separate from selected runtime assets. |
+| [`wipe-survival.md`](./wipe-survival.md) | **planned** direction, detailed mechanics **proposed** | Unexpected takeover interrupts Union holdout fighting; continuous M18-M20 catastrophe culminates in a mobile district stand, locally isolated sentries/vehicles and one shared cooperative multiplayer scenario. All new mechanics remain unbuilt. |
 | [`union-field-uniform.md`](./union-field-uniform.md) | **in flight**, Clerk replacement **shipped**, [PR #346](https://github.com/blisspixel/fragr/pull/346) | New stylized black/red source, poses, moving-light checks and clean guard-room replay; full local client and eight implementation CI jobs pass. Broader roster remains open. |
 | [`m04-inhabited-world-polish.md`](./m04-inhabited-world-polish.md) | **shipped**, [PR #344](https://github.com/blisspixel/fragr/pull/344) | Shared charging bench, maintained clinic and domestic court details; clean 26-state route and passing full implementation CI. |
 | [`m06-world-workmanship.md`](./m06-world-workmanship.md) | **shipped**, [PR #342](https://github.com/blisspixel/fragr/pull/342) | Hosted cargo fittings, ceiling services and customs work surfaces; clean 28-state route, full client checks and passing implementation CI. |
