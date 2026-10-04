@@ -655,6 +655,7 @@ impl GameState {
                     run.m09
                         .as_ref()
                         .and_then(|p| p.departure_outcome.clone())
+                        .filter(|outcome| matches!(outcome, M09Outcome::Recorded { .. }))
                         .ok_or("completed M09 lacks its actual departure receipt")?,
                 )
             } else {

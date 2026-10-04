@@ -685,7 +685,9 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                 }
                 assert_eq!(game.mission_state().unwrap().phase, MissionPhase::Departed);
                 let crew = game.mission_state().unwrap().m09.unwrap().crew;
-                if boarding_count == 1 {
+                if boarding_count == 0 {
+                    assert!(crew.iter().all(|c| !c.aboard));
+                } else if boarding_count == 1 {
                     assert!(crew.iter().any(|c| c.aboard) && crew.iter().any(|c| !c.aboard));
                 }
                 let boarding = game.map.m09_geometry().unwrap().boarding;
@@ -733,6 +735,18 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                 assert!(
                     game.campaign_run_document().is_err(),
                     "a fabricated native completion without its actual receipt must refuse"
+                );
+                game.mission
+                    .as_mut()
+                    .unwrap()
+                    .m09
+                    .as_mut()
+                    .unwrap()
+                    .departure_outcome =
+                    Some(crate::mission::run_file::M09Outcome::HistoricalUnrecorded {});
+                assert!(
+                    game.campaign_run_document().is_err(),
+                    "historical unknown cannot substitute for a new actual departure"
                 );
                 game.mission
                     .as_mut()
