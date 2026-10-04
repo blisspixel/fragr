@@ -1,6 +1,7 @@
 # Auditor source and custody poses
 
-**Status:** in flight, 2026-10-04.
+**Status:** implemented, scoped source-role evidence recorded 2026-10-04.
+Integration and full campaign acceptance remain parent-owned work.
 **Spend:** $0 new calls. Reuse the reviewed local source and completed rigs.
 
 ## Goal and scope
@@ -77,8 +78,23 @@ Scatter/held-cover trial passed the first Sweeper fight without a death and
 recorded 38 actual channel ticks with the paired atlas bound, then died during
 the original unattended 3.2-second watch. Explicit Assisted launch is rejected
 because the range has no mission. These remain separate failed histories,
-not a full range or campaign acceptance. The next source-role retry uses an
-ordinary peek and shorter fixed capture timing while preserving combat gates.
+not a full range or campaign acceptance. An ordinary peek and shorter watch
+captured the live officer, then failed during the remaining full guard clear.
+
+A separate four-state Standard source-role proof now passes without deaths:
+normal supplies, pillar approach, the original first Sweeper combat gate and
+37 actual channel ticks. A diagnostic camera shares the actual world and the
+live eye's bearing; it tries 6, 5 and 4 m positions and refuses a solid-obscured
+segment. The final frame used a clear 6 m position and contains the real channel
+sprite, active beam and two remaining repair lamps. It never repositions an
+actor or changes a health, damage, timing or inventory fact. The observer's
+initial pillar refusal is retained. The original full development range clear
+remains open, distinct from this completed source-role increment.
+
+The final source uses LF line endings. A parent-owned actual rebake corrected
+the wrapper's receipt hash after Git normalization; both PNG hashes stayed
+unchanged. The focused source and refreshed atlas harnesses pass again. The
+parent owns that normalized receipt and the shared live-normal hook.
 
 Do not spend credits, modify shared documentation, change the server, or claim
 the whole cast or room acoustics complete from this source increment.

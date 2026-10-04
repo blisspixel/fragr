@@ -1,6 +1,6 @@
 # Auditor source and registered hardware
 
-2026-10-04, bounded source checkpoint. No new generation calls or charges.
+2026-10-04, bounded source checkpoint. No new external generation calls or charges.
 Main `a8611d04` plus the shared prepared-cast dependency `a48fd5b4` supplies
 the existing skin, gait and pose seam. Full combined CI and release selection
 remain separate gates.
@@ -25,7 +25,7 @@ not a live combat recording.
 | Complete bake | `auditor_bake: PASS`, clean exit 0, all 55 poses in eight directions, 440 paired cells |
 | Atlas | `test_auditor: PASS`, clean exit 0: source/PNG hashes, portable layout, all unclipped cells, matching normal alpha, shaped normals, exact feet, readable cap band, frontal plate and channel-only emitter at beam height |
 | Moving-light diagnostic | `qa_auditor_lighting: PASS`, clean exit 0, 2,642 changed pixels with luminance difference above 0.035 when the point light moves |
-| Actual world | Existing Standard custody range, normal human movement and discovered equipment, real first Sweeper defeat and repair snapshots with live normal atlas bound; full range clear remains open |
+| Actual source-role view | Separate four-state Standard proof, clean exit 0, original first Sweeper/no-death gate and 37 real repair ticks, live normal atlas bound, actual same-world channel frame; original full range clear remains open |
 
 Both current human sources wear peaked caps. The obsolete comparison with a
 shorter Clerk helmet becomes equal supported body height and at least eight
@@ -65,8 +65,43 @@ diagnostic waypoint was rejected before play and corrected; that rejected
 launch is not acceptance evidence. All failures remain retained. No full range,
 M08 completion, settled runtime corpse or whole-cast acceptance is claimed.
 
-The remaining source-role view uses a separately labelled diagnostic camera
-in the same actual world, triggered by a real repair snapshot. It does not
-replace the open original range clear. Focused import and owned script parse
-checks are clean; the parent owns the fresh full client checker and integration
-CI.
+![Actual repair channel through a diagnostic observer](screens/auditor-source-20261004/channel-observer.png)
+
+The final separate four-state source-role proof exits 0 with clean logs and
+`qa_auditor_source: PASS`. It uses the original range map, normal supplies and
+human input, Standard rules, the original first-Sweeper combat and no-death
+gate, and a short covered watch. The player finishes alive at 75 HP, with
+zero deaths. Two actual Scatter attacks defeat the first Sweeper at tick 385;
+the shot-group recorder retains four resolved groups, including pellet groups
+that hit the pillar. No inventory or outcome is granted.
+
+The diagnostic observer shares the existing actual world. Its camera preserves
+the live eye's bearing and tests finite 6, 5 and 4 m positions against the
+authoritative solids. An earlier six-metre pillar refusal correctly failed
+the observer gate and remains retained. This final frame used a clear 6 m
+position `[7.1553, 1.55, 9.0128]`. The receipt records tick 386, the officer's
+actual channel from ticks 386 to 430, live seated/channel cell 0, two remaining
+repairs and 14 actual beam meshes. The actual disabled target is dead and
+noncollidable. The beam continues beyond the image toward that target; this
+frame does not show the whole link or a settled runtime corpse. No actor or
+rule is altered. This source-role proof does not replace the original full
+range clear or establish M08 completion.
+
+Source `auditor_rig.gd` is normalized to LF. Git removed one trailing CR byte
+after the first local bake, so the parent performed another actual renderer
+bake on the committed source rather than editing a hash alone. Both PNG hashes
+above are unchanged. The refreshed receipt now hashes the wrapper as
+`e18536cb7feab5fbce7ee1b40546b52c8860b5541f96b1e6b2edd400e261c108`.
+The parent owns that receipt and shared normal hook. The focused source and
+refreshed atlas harnesses pass again with clean exit 0. Focused import and owned
+script parse checks are clean; the parent owns the fresh full client checker
+and integration CI.
+
+Reproduce the bounded view by launching the existing native server with
+`--bots 0 --map-file server/maps/test/custody-range.json` on an owned port,
+setting `FRAGR_SERVER`, `FRAGR_QA_DIR` and an isolated `FRAGR_RUN_DIR`, then
+running pinned Godot with `--path client --rendering-method gl_compatibility
+--rendering-driver opengl3 --script res://scripts/qa_auditor_source.gd` and
+`FRAGR_QA_MANIFEST=res://qa/auditor-source-role.json`. Keep the shared two-line
+Auditor normal hook integrated. The diagnostic lighting script is
+`res://scripts/qa_auditor_lighting.gd`, with its own isolated output directory.
