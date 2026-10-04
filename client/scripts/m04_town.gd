@@ -1,6 +1,8 @@
 class_name M04Town
 extends Node3D
 
+const LivedDetail = preload("res://scripts/m04_lived_detail.gd")
+
 ## Town fixtures follow registered server geometry. They never add collision.
 var _geometry: Dictionary = {}
 var _views: Dictionary[String, Sprite3D] = {}
@@ -51,6 +53,7 @@ func configure_map(info: Dictionary) -> void:
 				for index: int in range(3):
 					_box("PrinterPaper", Vector3(center.x + float(index) * 0.2, high.y + 0.015 + float(index) * 0.018, center.z),
 						Vector3(0.6, 0.015, 0.9), Color("d1cbb4"))
+	LivedDetail.new().build(_root, info)
 	for index: int in range(info["m04"]["patients"].size()):
 		var patient: Dictionary = info["m04"]["patients"][index]
 		var view: Sprite3D = Sprite3D.new()
