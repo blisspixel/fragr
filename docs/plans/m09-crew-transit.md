@@ -1,8 +1,10 @@
 # Passenger Manifest crew departure and transit
 
-Status: planned, 2026-10-04. Isolated from frozen Repeater PR 358 at
-`3991bf90`. No implementation, wire revision, save revision, paid request or
-rendering is claimed. This is a bounded prerequisite inside the existing M10
+Status: in flight, 2026-10-04. Implementation lane is based on clean frozen
+Repeater PR 358 head `aa22c412`, whose initial identical runtime passed all
+eight CI jobs and three packages. Root approved the capture checkpoint after
+review. No implementation acceptance, paid request or rendering is claimed.
+This is a bounded prerequisite inside the existing M10
 campaign rung, not another global build order.
 
 Nick accepted released eligible crew finishing boarding during a short
@@ -40,17 +42,17 @@ and document retries cannot resample or rewrite it.
 
 Proposed private outcome:
 
-- `Recorded`: canonical present/released crew IDs, actual aboard-at-departure
-  subset, and explicit pending transit. Validate unique bounded IDs and order,
+- `Recorded`: canonical released crew IDs and actual aboard-at-departure
+  subset. The existing awaiting-M10 step expresses pending transit; no completed
+  transit field is added. Validate unique bounded IDs and order,
   aboard subset of released, all mandatory released crew, and the accepted
   Edda/Splice eligibility against recorded earlier outcomes.
 - `HistoricalUnrecorded`: absence of historical M09 facts, produced only by a
   legitimate strict old-document upgrade for an actually completed M09.
   Never generate synthetic zero-aboard or assumed released sets.
 
-Present and released need not be separate serialized lists if one validated
-immutable canonical roster plus the mandatory release gate proves the same
-fact without redundancy. Review the exact shape before coding. Native new
+The present roster and mandatory release gate prove the released set without
+a redundant second list. Native new
 completed M09 requires Recorded; earlier stages must refuse any M09 outcome.
 
 This first checkpoint adds no wire field, so M09's current strict facts and
@@ -84,10 +86,9 @@ Optional missing crew never gate the living player's completion.
 
 ## Strict storage review
 
-The foundation prepares save version 11. Adding the private M09 outcome needs
-a separately reviewed next version and an exact strict v11 reader, preserving
-strict v10 and earlier readers and original-byte archives. This plan reserves
-no number. Legitimate v10/v11 completed M09 upgrades become
+The foundation prepares save version 11. The approved separate capture
+checkpoint uses version 12 and an exact strict v11 reader, preserving strict
+v10 and earlier readers and original-byte archives. Legitimate v10/v11 completed M09 upgrades become
 HistoricalUnrecorded; old earlier stages retain no M09 outcome. Older formats
 that never supported playable M09 cannot forge such a completion.
 

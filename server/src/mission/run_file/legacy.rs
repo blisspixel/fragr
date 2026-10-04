@@ -27,11 +27,30 @@ pub(crate) struct RunDocumentV10 {
     pub m08_outcome: Option<M08Outcome>,
 }
 
+/// Version 11 has the identical exact fields. Its supported stages still
+/// refuse Repeater; neither historical format recorded M09 crew outcomes.
+pub(crate) type RunDocumentV11 = RunDocumentV10;
+
 impl RunDocumentV10 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
-        if self.version != 10 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        self.upgrade_version(hashes, 10)
+    }
+
+    pub fn upgrade_v11(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
+        self.upgrade_version(hashes, 11)
+    }
+
+    fn upgrade_version(
+        self,
+        hashes: store::ContentHashes,
+        expected_version: u32,
+    ) -> Result<RunDocument, &'static str> {
+        if self.version != expected_version || self.rules.revision != CAMPAIGN_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
+        let completed_m09 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::PassengerManifest, next_mission, ..
+        } if next_mission == M10_MISSION);
         let document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
@@ -47,6 +66,7 @@ impl RunDocumentV10 {
             m05_outcome: self.m05_outcome,
             m06_outcome: self.m06_outcome,
             m08_outcome: self.m08_outcome,
+            m09_outcome: completed_m09.then_some(M09Outcome::HistoricalUnrecorded {}),
         };
         document.validate(hashes[store::stage_index(document.stage_mission())])?;
         Ok(document)
@@ -143,6 +163,7 @@ impl RunDocumentV9 {
             m05_outcome: self.m05_outcome,
             m06_outcome: self.m06_outcome,
             m08_outcome: completed_m08.then_some(M08Outcome::HistoricalUnrecorded {}),
+            m09_outcome: None,
         };
         document.validate(hashes[store::stage_index(document.stage_mission())])?;
         Ok(document)
@@ -193,6 +214,7 @@ impl RunDocumentV8 {
             m05_outcome: self.m05_outcome,
             m06_outcome: self.m06_outcome,
             m08_outcome: None,
+            m09_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -252,6 +274,7 @@ impl RunDocumentV7 {
             m05_outcome: self.m05_outcome,
             m06_outcome: self.m06_outcome,
             m08_outcome: None,
+            m09_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -309,6 +332,7 @@ impl RunDocumentV6 {
             m05_outcome: self.m05_outcome,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -505,6 +529,7 @@ impl RunDocumentV5 {
             m05_outcome: None,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -593,6 +618,7 @@ impl RunDocumentV4 {
             m05_outcome: None,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
         };
         document.validate(expected)?;
         Ok(document)
@@ -636,6 +662,7 @@ impl RunDocumentV3 {
             m05_outcome: None,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
         };
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
@@ -702,6 +729,7 @@ impl RunDocumentV2 {
             m05_outcome: None,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
         };
         document.validate(m01_hash)?;
         Ok(document)

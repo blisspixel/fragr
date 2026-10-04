@@ -1,11 +1,11 @@
 use super::*;
 use crate::mission::run_file::{M08Outcome, SavedStep};
 
-const HASHES: ContentHashes = [
+pub(super) const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32],
 ];
 
-fn completed_archive() -> RunDocument {
+pub(super) fn completed_archive() -> RunDocument {
     let mut document = super::m07_tests::completed_port()
         .promote_next(MissionId::DeclaredGoods, HASHES[6])
         .unwrap();
@@ -90,7 +90,7 @@ fn strict_historical_and_current_pre_m10_documents_refuse_repeater_ownership() {
     let source = completed_archive()
         .promote_next(MissionId::PassengerManifest, HASHES[8])
         .unwrap();
-    for version in [9, 10, super::super::RUN_FILE_VERSION] {
+    for version in [9, 10, 11, super::super::RUN_FILE_VERSION] {
         for selected in [false, true] {
             let mut value = serde_json::to_value(&source).unwrap();
             value["version"] = version.into();
@@ -573,7 +573,7 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
     .unwrap();
     for edda in [false, true] {
         for splice in [false, true] {
-            for verify_boarding in [false, true] {
+            for boarding_count in [0, 1, 2] {
                 let mut source = completed_archive();
                 if !edda {
                     source
@@ -621,20 +621,16 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                         }
                     }
                     if let Some(control) = state["interact"].as_str() {
-                        if control != "crew_freed" && verify_boarding {
+                        if control != "crew_freed" && boarding_count > 0 {
                             // This independent branch proves optional crew can
-                            // finish after all authored holds lift. The other
-                            // branch departs immediately, proving no NPC wait gate.
+                            // finish after all authored holds lift. Capture
+                            // either a naturally partial or fully boarded roster;
+                            // the zero branch proves there is no NPC wait gate.
                             game.set_action(owner, Action::default());
                             for _ in 0..4000 {
-                                if game
-                                    .mission_state()
-                                    .unwrap()
-                                    .m09
-                                    .unwrap()
-                                    .crew
-                                    .iter()
-                                    .all(|c| c.aboard)
+                                let crew = game.mission_state().unwrap().m09.unwrap().crew;
+                                if (boarding_count == 1 && crew.iter().any(|c| c.aboard))
+                                    || crew.iter().all(|c| c.aboard)
                                 {
                                     break;
                                 }
@@ -642,7 +638,11 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                             }
                             let crew = game.mission_state().unwrap().m09.unwrap().crew;
                             assert!(
-                                crew.iter().all(|c| c.aboard),
+                                if boarding_count == 1 {
+                                    crew.iter().any(|c| c.aboard) && crew.iter().any(|c| !c.aboard)
+                                } else {
+                                    crew.iter().all(|c| c.aboard)
+                                },
                                 "optional crew did not finish: {crew:?}"
                             );
                         }
@@ -684,6 +684,63 @@ fn m09_capture_route_preflights_real_held_and_released_contacts_for_all_four_cas
                     }
                 }
                 assert_eq!(game.mission_state().unwrap().phase, MissionPhase::Departed);
+                let crew = game.mission_state().unwrap().m09.unwrap().crew;
+                if boarding_count == 1 {
+                    assert!(crew.iter().any(|c| c.aboard) && crew.iter().any(|c| !c.aboard));
+                }
+                let boarding = game.map.m09_geometry().unwrap().boarding;
+                let document = game.campaign_run_document().unwrap().unwrap();
+                let expected = crate::mission::run_file::M09Outcome::Recorded {
+                    released_crew: crew.iter().map(|c| c.id.clone()).collect(),
+                    aboard_at_departure: crew
+                        .iter()
+                        .filter(|c| boarding.contains(c.feet))
+                        .map(|c| c.id.clone())
+                        .collect(),
+                };
+                assert_eq!(document.m09_outcome, Some(expected));
+                let directory = std::env::temp_dir()
+                    .join(format!("fragr-m09-actual-receipt-{}", Uuid::new_v4()));
+                let store =
+                    RunStore::open_with_hashes(&directory, [hash; CAMPAIGN_STAGES]).unwrap();
+                store.save(&document).unwrap();
+                assert_eq!(store.load().unwrap().unwrap(), document);
+                drop(store);
+                let reopened =
+                    RunStore::open_with_hashes(&directory, [hash; CAMPAIGN_STAGES]).unwrap();
+                assert_eq!(reopened.load().unwrap().unwrap(), document);
+                drop(reopened);
+                fs::remove_dir_all(directory).unwrap();
+                // A stale later body/presenter observation cannot rewrite the
+                // immutable actual departure receipt or finite player exit.
+                for crew in &mut game.mission.as_mut().unwrap().m09.as_mut().unwrap().crew {
+                    crew.feet = [0.0; 3];
+                    crew.aboard = !crew.aboard;
+                }
+                for _ in 0..3 {
+                    game.tick(0.05);
+                }
+                assert_eq!(game.campaign_run_document().unwrap().unwrap(), document);
+                let receipt = game
+                    .mission
+                    .as_mut()
+                    .unwrap()
+                    .m09
+                    .as_mut()
+                    .unwrap()
+                    .departure_outcome
+                    .take();
+                assert!(
+                    game.campaign_run_document().is_err(),
+                    "a fabricated native completion without its actual receipt must refuse"
+                );
+                game.mission
+                    .as_mut()
+                    .unwrap()
+                    .m09
+                    .as_mut()
+                    .unwrap()
+                    .departure_outcome = receipt;
             }
         }
     }
