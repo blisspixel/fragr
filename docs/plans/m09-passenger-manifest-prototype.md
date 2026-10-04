@@ -154,3 +154,27 @@ evidence directory alongside the successful bake and source inspection.
 These gates establish source, atlas and package availability. Actual venue
 lighting, gameplay attack readability, near clipping and the full M09 route
 are still open. No reviewed par or fresh-player acceptance is claimed.
+
+## Berth geometry checkpoint, 2026-10-04
+
+The strict M09 authoring slice now prepares the closed and raised boarding
+hatch before readiness. Its eight ordered groups contain 21 guards, including
+the isolated first Enforcer. All seven supported fight arrivals, supply and
+enemy approaches pass the canonical navigation boundary. Five held crew
+routes pass every segment through actual shared movement at civilian speed.
+Boarding is unreachable in the closed world and reachable after the hatch
+moves; every other collision solid remains identical. A pressure shell and
+registered roof window enclose the lunar berth.
+
+Four focused geometry checks pass for those routes, ordinary stairs, refused
+wall teleportation and unsupported destinations, and malformed role or crew
+definitions. Three existing v10 preparation checks also remain passing. The
+package all-target clippy check passes. Retained private failures caught the
+office wall closing the stair exit, stair-edge crew waypoints and a supply
+touching blocking cargo. The fixes changed authored geometry or placements,
+not movement, navigation budgets or acceptance assertions.
+
+This is a loader and movement checkpoint. M09 readiness, ordered mission
+facts, living crew contacts, challenge attribution, client presentation,
+durable promotion and whole-route acceptance are still open. The maintenance
+cubby and runner shortcut also remain unbuilt; no par value is enabled.

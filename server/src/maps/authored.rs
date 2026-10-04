@@ -18,6 +18,7 @@ pub(crate) mod m05;
 pub(crate) mod m06;
 pub(crate) mod m07;
 pub(crate) mod m08;
+pub(crate) mod m09;
 mod mission;
 mod supplies;
 
@@ -28,6 +29,8 @@ const MAX_PLACEMENTS: usize = 128;
 mod encounters_tests;
 #[cfg(test)]
 mod m02_tests;
+#[cfg(test)]
+mod m09_tests;
 #[cfg(test)]
 mod tests;
 
@@ -42,6 +45,8 @@ pub struct AuthoredMap {
     pub(super) m05: Option<Arc<m05::Prepared>>,
     pub(super) m06: Option<Arc<m06::Prepared>>,
     pub(super) m08: Option<Arc<m08::Prepared>>,
+    pub(super) m09: Option<Arc<m09::Prepared>>,
+    pub(super) hatch_open: bool,
     /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
     pub(super) m08_stage: u8,
     pub(super) m07: Option<Arc<m07::Prepared>>,
@@ -77,6 +82,8 @@ struct Document {
     m06: Option<m06::Definition>,
     #[serde(default)]
     m08: Option<m08::Definition>,
+    #[serde(default)]
+    m09: Option<m09::Definition>,
     m07: Option<m07::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
@@ -317,10 +324,11 @@ impl AuthoredMap {
             || (doc.m02.is_none()
                 && doc.m06.is_none()
                 && doc.m07.is_none()
+                && doc.m09.is_none()
                 && presentation.solids.contains(&MapSurface::InspectionGlass))
         {
             return Err(invalid(
-                "inspection glass belongs to an M02, M06 or M07 solid",
+                "inspection glass belongs to an M02, M06, M07 or M09 solid",
             ));
         }
         if doc.m07.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m07()) {
@@ -410,6 +418,22 @@ impl AuthoredMap {
                 "M04 requires map 1004, discovery and no other mission",
             ));
         }
+        if doc.m09.is_some()
+            && (doc.mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.m05.is_some()
+                || doc.m06.is_some()
+                || doc.m07.is_some()
+                || doc.m08.is_some()
+                || doc.map_id != 1009
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M09 requires map1009, discovery and no other mission",
+            ));
+        }
         let mission = doc
             .mission
             .map(|definition| definition.prepare(&arena, &solid_ids, &mut presentation))
@@ -490,6 +514,20 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m09 = doc
+            .m09
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let m07 = doc
             .m07
             .map(|definition| {
@@ -590,7 +628,9 @@ impl AuthoredMap {
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &m08 {
+        let navigation = if let Some(prepared) = &m09 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m08 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m07 {
             prepared.navigation.clone()
@@ -642,7 +682,9 @@ impl AuthoredMap {
                 .ok_or_else(|| invalid("M02 side ward requires a released gate world"))?;
             crate::mission::validate_m02_evacuation_route(released.1).map_err(invalid)?;
         }
-        let opened_navigation = if let Some(prepared) = &m08 {
+        let opened_navigation = if let Some(prepared) = &m09 {
+            Some(prepared.opened_navigation.clone())
+        } else if let Some(prepared) = &m08 {
             Some(prepared.fallen_navigation.clone())
         } else if let Some(prepared) = &m05 {
             Some(prepared.navigation.clone())
@@ -717,6 +759,8 @@ impl AuthoredMap {
             m05,
             m06,
             m08,
+            m09,
+            hatch_open: false,
             m08_stage: 0,
             m07,
             freight_open: false,

@@ -11,6 +11,7 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+mod m09;
 mod mission;
 mod rules;
 mod sabotage;
@@ -47,6 +48,7 @@ pub use m08::{
     M08MapGeometry, M08NodeGeometry, M08ObjectiveState, M08_BAYS_ID, M08_CABINET_ID,
     M08_MACHINE_STEP, M08_NODES, M08_NODE_HP, M08_OBJECTIVE_IDS,
 };
+pub use m09::{M09CrewGeometry, M09MapGeometry, M09_CREW_IDS, M09_CREW_STEP, M09_OBJECTIVE_IDS};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,

@@ -29,6 +29,36 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m09_objectives(&self) -> Option<&super::authored::m09::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m09.as_deref(),
+        }
+    }
+
+    pub fn m09_geometry(&self) -> Option<crate::protocol::M09MapGeometry> {
+        let mut geometry = self.m09_objectives()?.geometry.clone();
+        geometry.hatch_open = matches!(self, Self::Authored(map) if map.hatch_open);
+        Some(geometry)
+    }
+
+    /// Authoritative ordered group bound for the berth mission controller.
+    pub fn m09_encounter_index(&self, step: usize) -> Option<usize> {
+        self.m09_objectives()?.encounters.get(step).copied()
+    }
+
+    pub fn prepared_m09_world(&self) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m09.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.arena = prepared.opened.clone();
+        selected.navigation = prepared.opened_navigation.clone();
+        selected.hatch_open = true;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+
     pub(crate) fn m08_objectives(&self) -> Option<&super::authored::m08::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
