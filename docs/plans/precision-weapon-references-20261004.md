@@ -1,6 +1,6 @@
-# Railgun and Sniper Rifle reference refinement
+# Railgun and Sniper Rifle reference and source refinement
 
-Status: in flight, 2026-10-04. This bounded reference pass belongs beneath the
+Status: in flight, 2026-10-04. This bounded source pass belongs beneath the
 existing full-game asset catalog and art-excellence rung.
 
 The current library designs establish an accelerator spine with protected
@@ -23,9 +23,11 @@ No labels, marks, duplicate guns, detached accessories or photographic noise.
 Record input/output hashes and preserve original private tool responses.
 Normalize optional application metadata without changing decoded pixels.
 
-This pass performs no paid model submission. Each existing asset brief permits
-a later first candidate capped at 35 included credits, or a suitable reviewed
-15-credit Smart Topology route, inside the shared 900-credit allocation.
+The initial reference checkpoint performed no paid model submission. After
+full-size reference review, the two existing asset briefs supplied a first
+candidate each, capped at 35 included credits inside the shared 900-credit
+allocation. A suitable reviewed 15-credit Smart Topology route remains an
+option for other sources, not a measured claim about these two candidates.
 Root alone owns the native account ledger and serialized balance preflight.
 No new cash, pack, subscription operation, top-up or overage is authorized.
 
@@ -40,4 +42,11 @@ distinct material families. Native pixel comparison confirmed that metadata
 normalization did not change either decoded image. Their selected paths,
 hashes, limits and measured-part acceptance requirements now live in the two
 asset briefs and [reference receipt](../evidence/precision-weapon-references-20261004.md).
-No new model, rig, atlas or runtime selection is claimed by this checkpoint.
+No model, rig, atlas or runtime selection was claimed by that reference checkpoint.
+
+The subsequent two serialized Ultra stages reported 35 credits each, with
+no humanoid rig. Both actual sources imported and rendered four views under
+Compatibility; the owned renderer exited 0 with clean logs. Inspection
+accepted their broad silhouettes for local preparation. Glossy source maps,
+one-piece mechanisms, physical bores, optical contact, scale and hand support
+still need refinement and proof. Current runtime art remains selected.
