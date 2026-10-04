@@ -40,15 +40,39 @@ fixed geometry. Preserving every fused joint facet prevents usable rigid
 motion. The bounded repair clips only the measured upper joint and old handle
 regions, retains original geometry outside them, and authors a supported bolt,
 shaft, handle and fixed chamber lips. Record exact removal masks, retained UV
-and winding fingerprints, all replacement counts and continuous surface sweep
-proof. Preserve the rejected studio and sweep report. This repair does not
+and winding fingerprints, all replacement counts and sampled surface sweep
+proof with its interval. Preserve the rejected studio and sweep report. This repair does not
 make the candidate selected or claim whole-weapon art acceptance.
+
+The repaired joint studio passed its bounded source review, but both optical
+ends retained jagged inward source facets. Replace those measured end regions
+with supported hollow housings, plain flat glass disks recessed 6.5 mm and
+quiet lips. Real radial triangle queries must prove a clear entrance, uniform
+disk depth and housing contact with the remaining scope tube. Preserve the
+rejected optical views. This repair retains 9,552 source triangles including
+559 clipped fragments, replaces 2,501 whole original triangles and adds 3,992
+local hardware triangles. The 8,955 untouched Body triangles retain their
+position, UV and winding multiset; the 38 moved muzzle-cap triangles remain
+separately counted. Verify the whole original 11,835-triangle ledger before
+another studio review. Clearance uses 2,717 surface samples over 250,729
+actual motion segments at 10 ms intervals, including fixed gloves; it does
+not prove mathematical continuous clearance for arbitrary motion.
 
 Normalize the retained gun to deliberate practical metre dimensions and -Z
 forward. Embed at most 1K albedo/normal maps, disable generated LOD and fine
 reflective noise, and use broad matte wood/metal values. Author connected warm
 work gloves with actual fingertip/grip and wrist/palm contact, clear of optical
 and bolt travel. Neither this source nor a requested target implies quality.
+
+Idle index contact is along the upper guard/receiver, with trigger discipline.
+The raw source contains a real lower blade at approximately
+`[0.395, -0.065, 0.015]`. Its measured transverse intersections are separate
+from the receiver contact. Only the two existing finger segments articulate
+onto that blade for the 80 ms firing picture, retaining their mesh lengths,
+connected endpoints and fixed palm/wrist; they release by 180 ms. Query the
+specific retained blade triangles and reject receiver-displaced contact.
+Include all nineteen finger poses at 10 ms intervals, plus the unchanged
+rest, in the conservative sampled bolt-clearance envelope.
 
 Request the shared GPU lease only after CPU preflight. Inspect front, side,
 back, muzzle, both optical ends, chamber and actual moving mechanism. Retain

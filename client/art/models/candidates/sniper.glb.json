@@ -1,0 +1,144 @@
+{
+	"authored_triangles": {
+		"Bolt/HandleElbow": 144,
+		"Bolt/HandleKnob": 96,
+		"Bolt/HandleRoot": 144,
+		"Bolt/HandleStem": 144,
+		"Bolt/LockingCollar": 144,
+		"Bolt/RearPin": 144,
+		"Bolt/Shaft": 192,
+		"Bolt/Shroud": 192,
+		"Chamber/GuideRail-1": 60,
+		"Chamber/GuideRail1": 60,
+		"Chamber/PlatePin27": 96,
+		"Chamber/PlatePin73": 96,
+		"Chamber/RearScopeBridge": 60,
+		"Chamber/ScopePier-1": 60,
+		"Chamber/ScopePier1": 60,
+		"Chamber/SidePlateRepair": 60,
+		"FrontSocket/OpenGuide": 128,
+		"MuzzleLiner": 192,
+		"MuzzleLip": 192,
+		"OpticBackHousing": 192,
+		"OpticBackLens": 288,
+		"OpticBackLiner": 192,
+		"OpticBackLip": 192,
+		"OpticFrontHousing": 192,
+		"OpticFrontLens": 288,
+		"OpticFrontLiner": 192,
+		"OpticFrontLip": 192
+	},
+	"axes_raw": {
+		"bolt": [
+			0.370000004768372,
+			0.100000001490116,
+			0.0149999996647239
+		],
+		"muzzle": [
+			-0.951640009880066,
+			0.0900000035762787,
+			0.0149999996647239
+		],
+		"optic_back": [
+			0.432000011205673,
+			0.175999999046326,
+			0.0149999996647239
+		],
+		"optic_front": [
+			0.0780000016093254,
+			0.175999999046326,
+			0.0149999996647239
+		]
+	},
+	"bolt_partition_accepted": false,
+	"embedded_map_pixels": 1024,
+	"joint_audit": {
+		"clipped_original_triangles": 341,
+		"fully_replaced_original_triangles": 2501,
+		"outside_joint_original_triangles": 8993,
+		"retained_clipped_fragment_triangles": 559
+	},
+	"material_policy": {
+		"albedo_cluster_pixels": 4,
+		"metallic": 0.04,
+		"normal_scale": 0.18,
+		"roughness": 0.96
+	},
+	"metres_per_raw_unit": 0.620317405647565,
+	"prepare_sha256": "17a563bed1bd83ba6f4ee65de753998038126fa77fe139ff52a7993e69b68be0",
+	"prepared_sha256": "859f136bdde598471ccdb418c24d2d25f84d1fe08dff181a76c1116e317db726",
+	"provisional_length_m": 1.18,
+	"raw_connected_components": 1,
+	"raw_sha256": "4a1d5a0e405410feb385514a6878cf0b9476c298fbcf3456d8674e4797998bcb",
+	"raw_triangles": 11835,
+	"recessed_raw_triangles": {
+		"MuzzleCap": 38
+	},
+	"repair_metres": {
+		"muzzle_cap_recess": 0.022,
+		"optic_lens_recess": 0.006
+	},
+	"replacement_masks_raw": {
+		"handle": {
+			"max": [
+				0.425000011920929,
+				0.122999995946884,
+				-0.0250000022351742
+			],
+			"min": [
+				0.330000013113022,
+				-0.00600000005215406,
+				-0.0780000016093254
+			]
+		},
+		"optic_back": {
+			"max": [
+				0.444999992847443,
+				0.224999994039536,
+				0.0600000023841858
+			],
+			"min": [
+				0.416000008583069,
+				0.136999994516373,
+				-0.025000000372529
+			]
+		},
+		"optic_front": {
+			"max": [
+				0.112000003457069,
+				0.225000008940697,
+				0.0599999949336052
+			],
+			"min": [
+				0.0549999997019768,
+				0.135000005364418,
+				-0.0270000007003546
+			]
+		},
+		"upper_joint": {
+			"max": [
+				0.545000016689301,
+				0.136999994516373,
+				0.0750000029802322
+			],
+			"min": [
+				0.340000003576279,
+				0.0700000002980232,
+				-0.0750000029802322
+			]
+		}
+	},
+	"retained_source_groups": {
+		"Body": 9514,
+		"MuzzleCap": 38
+	},
+	"retained_surface_contract": {
+		"grid": 4093.0,
+		"position_uv_winding_sha256": "c336817a76eeb15162da425620fab057f68ed40aa0bfb80218f46f4548c3990a",
+		"triangles": 8955
+	},
+	"retained_triangle_receipt_sha256": "4666250bbfca073e5e4d1999c49afaf11054c319fde93684ea3aa8f5d7b783f9",
+	"runtime_selected": false,
+	"schema": 1,
+	"surface_contract_sha256": "8f83a9d44438e62cca0aa0a3d5a63d9e9a84dc92f00acfb1e58c6029c17b9997"
+}

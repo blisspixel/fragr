@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "map_id": 60019,
+  "name": "Sniper Rifle presentation diagnostic range",
+  "half_extent": 20,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"backstop","min":[10,0,-5],"max":[11,3,5],"surface":"service_steel"},
+    {"id":"north","min":[-9,0,-5],"max":[10,3,-4.5],"surface":"enamel"},
+    {"id":"south","min":[-9,0,4.5],"max":[10,3,5],"surface":"enamel"},
+    {"id":"near_wall","min":[0,0,-1],"max":[0.3,2.4,1],"surface":"concrete"}
+  ],
+  "spawns": [{"id":"observer","feet":[-6,0,0],"yaw":0}],
+  "landmarks": [
+    {"id":"near_face","feet":[-0.65,0,0]},
+    {"id":"peek_route","feet":[1.3,0,2.5]}
+  ],
+  "supplies": [
+    {"id":"owned_sniper","feet":[-4,0,0],"grant":{"kind":"weapon","weapon":"sniper"},"claim":"personal"},
+    {"id":"unclaimed_sniper","feet":[3,0,0],"grant":{"kind":"weapon","weapon":"sniper"},"claim":"personal"}
+  ]
+}
