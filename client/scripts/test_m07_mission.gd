@@ -1,6 +1,7 @@
 extends SceneTree
 
 const PLAYER: String = "00000000-0000-0000-0000-000000000002"
+const TOUR = preload("res://scripts/qa_tour.gd")
 var failures: int = 0
 var _retiring_chimes: Array[WeakRef] = []
 
@@ -191,7 +192,7 @@ func _presentation(info: Dictionary, first: Dictionary, post: Dictionary, end: D
 	var deadline: int = Time.get_ticks_msec() + 2000
 	while not _retiring_chimes.is_empty() and Time.get_ticks_msec() < deadline:
 		for index: int in range(_retiring_chimes.size() - 1, -1, -1):
-			if _chime_retired(_retiring_chimes[index]):
+			if TOUR.audio_reference_retired(_retiring_chimes[index]):
 				_retiring_chimes.remove_at(index)
 		if not _retiring_chimes.is_empty():
 			await create_timer(0.01).timeout
@@ -200,6 +201,3 @@ func _presentation(info: Dictionary, first: Dictionary, post: Dictionary, end: D
 func _track_chime(town: M07Town) -> void:
 	if is_instance_valid(town.chime) and town.chime.has_stream_playback():
 		_retiring_chimes.append(weakref(town.chime.get_stream_playback()))
-
-static func _chime_retired(reference: WeakRef) -> bool:
-	return reference.get_ref() == null

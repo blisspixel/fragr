@@ -161,6 +161,22 @@ static func valid_engagement_distance(spec: Dictionary) -> bool:
 	return (typeof(distance) == TYPE_FLOAT or typeof(distance) == TYPE_INT) \
 		and is_finite(float(distance)) and float(distance) > 0.0 and float(distance) <= 90.0
 
+static func engagement_evidence(snapshot: Dictionary, player_id: String, loadout: Dictionary,
+		solids: Array, required: Array, max_distance: float) -> Dictionary:
+	var me: Dictionary = actor_by_id(snapshot, player_id)
+	var guards: Array[Dictionary] = []
+	if not me.is_empty():
+		var eye: Vector3 = Vector3(me.x, float(me.y) + CAMERA.FP_EYE_HEIGHT, me.z)
+		for actor: Dictionary in snapshot.get("players", []):
+			if actor.get("name", "") not in required:
+				continue
+			var point: Vector3 = exposed_point(actor, eye, solids)
+			guards.append({"actor": actor.duplicate(true), "line_of_sight": point.is_finite(),
+				"distance_m": eye.distance_to(Vector3(actor.x, actor.y, actor.z)),
+				"within_engagement_distance": point.is_finite() and eye.distance_to(point) < max_distance})
+	return {"tick": snapshot.get("tick", 0), "participant": me.duplicate(true),
+		"loadout": loadout.duplicate(true), "guards": guards}
+
 func _observe(snapshot: Dictionary) -> void:
 	var tick: int = int(snapshot["tick"])
 	if tick <= _last_tick:
@@ -704,7 +720,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			frame.resize(320, 180, Image.INTERPOLATE_BILINEAR)
 			frame.convert(Image.FORMAT_RGB8)
 			frames.append(frame)
-			var sample: Dictionary = {"ms": Time.get_ticks_msec(), "tick": snapshot["tick"], "target": target.duplicate(true), "hp": me.get("hp", 0)}
+			var sample: Dictionary = {"ms": Time.get_ticks_msec(), "tick": snapshot["tick"], "target": target.duplicate(true), "hp": me.get("hp", 0),
+				"engagement": engagement_evidence(snapshot, _player_id, manager.get("net_client").get("equipment"), solids, required, engagement_distance)}
 			var pawn: Node = manager.get("players").get(last_target_id)
 			if is_instance_valid(pawn):
 				var body: Sprite3D = pawn.get_node("Body")
@@ -748,6 +765,18 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			"participant_hp_end": int(participant_end.get("hp", 0)),
 			"participant_armor_end": int(participant_end.get("armor", 0)), "passed": companion_damage}))
 	if not passed:
+		var evidence: Dictionary = engagement_evidence(manager.get("latest_snapshot"), _player_id,
+			manager.get("net_client").get("equipment"), solids, required, engagement_distance)
+		evidence["search_index"] = search_index
+		evidence["approach_index"] = approach_index
+		evidence["spec"] = spec.duplicate(true)
+		evidence["resolved_shots"] = resolved_shots.duplicate(true)
+		evidence["samples"] = samples.duplicate(true)
+		var diagnostic: FileAccess = FileAccess.open(output + "_failure.json", FileAccess.WRITE)
+		if diagnostic != null:
+			diagnostic.store_string(JSON.stringify(evidence, "  "))
+		else:
+			push_error("qa_combat: could not preserve failed engagement evidence")
 		push_error("qa_combat: %s defeated %d, required %s confirmed %s, shots %d, alive %s, participant died %s, saved %s, approach %s, encounter HP %d to %d, no damage %s" % [
 			_kind, defeated.size(), required, confirmed_names.keys(), shots, alive, participant_died, saved,
 			approach_complete, first_crawler_encounter_start_hp,

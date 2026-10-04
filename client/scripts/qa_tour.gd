@@ -779,13 +779,17 @@ func _retire_scene() -> void:
 	var deadline: int = Time.get_ticks_msec() + 2000
 	while not _retiring_audio.is_empty() and Time.get_ticks_msec() < deadline:
 		for index: int in range(_retiring_audio.size() - 1, -1, -1):
-			if _retiring_audio[index].get_ref() == null:
+			if audio_reference_retired(_retiring_audio[index]):
 				_retiring_audio.remove_at(index)
 		if not _retiring_audio.is_empty():
 			await create_timer(0.01).timeout
 	if not _retiring_audio.is_empty():
 		push_error("qa_tour: %d audio playbacks remain after scene retirement" % _retiring_audio.size())
 		_failed = true
+
+static func audio_reference_retired(reference: WeakRef) -> bool:
+	# Keep the temporary strong reference out of the awaiting caller's frame.
+	return reference.get_ref() == null
 
 func _record_audio(seconds: float, state_index: int) -> Dictionary:
 	if not _begin_audio("steady-state"):

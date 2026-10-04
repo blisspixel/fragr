@@ -261,6 +261,20 @@ func _initialize() -> void:
 	var solid: Dictionary = {"min_x":-1.0, "max_x":1.0, "min_z":2.0, "max_z":3.0, "bottom":0.0, "top":3.0}
 	_check(QaCombat.visible_target(snapshot, "player", [solid]).is_empty(), "wall prevents automated fire")
 	_check(QaCombat.visible_target(snapshot, "player", [solid], true).is_empty(), "hidden windup cannot drive evasion")
+	var loadout: Dictionary = {"selected": "scatter", "ammo": [0, 0, 90, 6, 0]}
+	var distant: Dictionary = QaCombat.engagement_evidence(snapshot, "player", loadout, [], ["ward_clerk"], 4.0)
+	_check(distant["participant"]["id"] == "player" and distant["loadout"] == loadout
+		and distant["guards"].size() == 1 and distant["guards"][0]["line_of_sight"] == true
+		and distant["guards"][0]["within_engagement_distance"] == false,
+		"failed combat evidence separates actual loadout, visible guard and rejected distance")
+	var hidden: Dictionary = QaCombat.engagement_evidence(snapshot, "player", loadout, [solid], ["ward_clerk"], 10.0)
+	_check(hidden["guards"][0]["line_of_sight"] == false and hidden["guards"][0]["within_engagement_distance"] == false,
+		"failed combat evidence distinguishes solid cover from an exposed target")
+	loadout["selected"] = "flechette"
+	guard["x"] = 6.0
+	_check(distant["loadout"]["selected"] == "scatter" and distant["guards"][0]["actor"]["x"] == 0.0,
+		"preserved evidence does not follow subsequent mutable snapshots")
+	guard["x"] = 0.0
 	var low_cover: Dictionary = {"min_x":-1.0, "max_x":1.0, "min_z":3.0, "max_z":4.0, "bottom":0.0, "top":1.3}
 	var exposed: Vector3 = QaCombat.exposed_point(guard, Vector3(0, 1.6, 0), [low_cover])
 	_check(exposed.y > 1.3 and exposed.y < MoveStep.BODY_HEIGHT, "low cover permits an exposed upper-body shot within the real hit volume")
