@@ -1,7 +1,7 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
 use super::{
     RunDocument, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6,
-    RunDocumentV7, RunDocumentV8,
+    RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
 use crate::protocol::MissionId;
 use sha2::{Digest, Sha256};
@@ -15,7 +15,7 @@ const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
 /// Playable campaign stages with bundled content, in mission order.
-pub(crate) const CAMPAIGN_STAGES: usize = 8;
+pub(crate) const CAMPAIGN_STAGES: usize = 9;
 /// Bundled content hashes for every playable campaign stage.
 pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 
@@ -29,6 +29,7 @@ pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = [
     MissionId::PortOfEntry,
     MissionId::DeclaredGoods,
     MissionId::CustodianOfRecord,
+    MissionId::PassengerManifest,
 ];
 
 /// Index of a playable mission in [`ContentHashes`].
@@ -42,6 +43,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::PortOfEntry => 5,
         MissionId::DeclaredGoods => 6,
         MissionId::CustodianOfRecord => 7,
+        MissionId::PassengerManifest => 8,
     }
 }
 
@@ -201,6 +203,16 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(9) => {
+                let legacy: RunDocumentV9 = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(hashes) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -230,7 +242,7 @@ impl RunStore {
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
         Ok(matches!(
             value.get("version").and_then(serde_json::Value::as_u64),
-            Some(2..=8)
+            Some(2..=9)
         ))
     }
 
@@ -467,6 +479,7 @@ mod tests {
             m04_outcome: None,
             m05_outcome: None,
             m06_outcome: None,
+            m08_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -550,6 +563,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -570,7 +584,10 @@ mod tests {
         assert!(matches!(
             RunStore::inspect_with_hashes(
                 &directory,
-                [[7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32]]
+                [
+                    [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                    [101; 32]
+                ]
             )
             .unwrap(),
             RunProbe::Incompatible
@@ -700,6 +717,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -746,6 +764,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -806,6 +825,7 @@ mod tests {
             &directory,
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -868,6 +888,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -913,7 +934,10 @@ mod tests {
         assert!(matches!(
             RunStore::inspect_with_hashes(
                 &directory,
-                [[7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32]]
+                [
+                    [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                    [101; 32]
+                ]
             )
             .unwrap(),
             RunProbe::Incompatible
@@ -929,6 +953,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -978,7 +1003,10 @@ mod tests {
         assert!(matches!(
             RunStore::inspect_with_hashes(
                 &directory,
-                [[7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32]]
+                [
+                    [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
+                    [101; 32]
+                ]
             )
             .unwrap(),
             RunProbe::Incompatible
@@ -1028,3 +1056,5 @@ mod m06_tests;
 mod m07_tests;
 #[cfg(test)]
 mod m08_tests;
+#[cfg(test)]
+mod m09_tests;

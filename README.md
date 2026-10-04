@@ -8,6 +8,9 @@ while the match continues. A Rust server decides every game outcome; the Godot
 client presents it; agents use the same action channel through an MCP adapter.
 
 Get the [latest development release](https://github.com/blisspixel/fragr/releases/latest).
+The current published release is [v0.72.0](https://github.com/blisspixel/fragr/releases/tag/v0.72.0),
+with loading-first presentation and the optional ten-seat Sabotage profile.
+All eight main CI jobs and the three desktop package checks passed.
 See the [roadmap](docs/ROADMAP.md) for the build order and the
 [changelog](CHANGELOG.md) for shipped changes.
 
@@ -15,8 +18,8 @@ See the [roadmap](docs/ROADMAP.md) for the build order and the
 
 | Choose | What you get | Start here |
 |---|---|---|
-| **The campaign** | Levels 1 to 8 as one run in development, from the Annex 67 intake through the lunar town to the custody archive. Three continues per episode and a local save at each level's entry. | **Single Player > Recall Notice**, then **Continue Run** after each departure |
-| **Practice and Development** | Any built level on its own, without touching your run, including level 8 | **Single Player > Practice and Development** |
+| **The campaign** | Levels 1 to 9 in this development source, from the Annex 67 intake to the lunar Common Carrier berth. The published v0.72.0 has levels 1 to 8. Three continues per episode and a local save at each level's entry. | **Single Player > Recall Notice**, then **Continue Run** after each departure |
+| **Practice and Development** | Any built level on its own, without touching your run, including the source-only level 9 | **Single Player > Practice and Development** |
 | **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor | `./tools/solo_scrap.sh` |
 | **Multiplayer** | Six arenas for free-for-all and team deathmatch. Capture the flag on Arena Duel, Directive 17 and Sector 9. Sabotage on Sector 9: plant or defuse a charge, one life a round. Humans, agents and spectators share one server-owned match. | Run a server, then choose **Multiplayer** |
 
@@ -35,6 +38,12 @@ acceptance still open:
    Sweepers, crater cut and freight departure.
 8. **Custodian of Record:** the Proximity Mine and the repairing Auditor,
    connected to the run through strict saved equipment and finite mine counts.
+9. **Passenger Manifest:** release the Common Carrier's crew, face charging
+   Enforcers and climb supported service galleries to the boarding hatch.
+   Strict archive choices, actual equipment and retry carry pass locally;
+   the complete 27-state combat and structural route passes. This prototype
+   is not yet shipped. Its final hull art, shortcuts and fresh-player review
+   remain open, and level 10 stays pending.
 
 The twenty-level story in five episodes is in [CAMPAIGN.md](docs/CAMPAIGN.md),
 and the build order is in the [roadmap](docs/ROADMAP.md). Sabotage starts with
@@ -101,10 +110,13 @@ shows quiet Low Water trim and lunar dwelling/deck finishes, while Union outfits
 and issued security equipment retain black/red. The combined work is tracked
 in [PR #347](https://github.com/blisspixel/fragr/pull/347).
 
-**Custodian of Record** is the level 8 custody archive development prototype, with the
-Proximity Mine and the repairing Auditor, available through **Continue Run** and
-separately under **Practice and Development**
-([plan](docs/plans/l08-custodian-of-record-prototype.md)).
+**Passenger Manifest** extends the source campaign through level 9 without an
+Episode II refill. Its [plan](docs/plans/m09-passenger-manifest-prototype.md)
+and [evidence](docs/evidence/m09-passenger-manifest-20261004.md) distinguish
+real completion, historical unknown outcomes and remaining art and play gates.
+Parallel development continues on Pistol and Rifle craft, a Kitchen map with
+an unresolved first-use wall-rendering defect, and a Garage whose full walking
+route passes but vehicle craft and fresh human fun remain open.
 
 The [style and look guidelines](docs/ART_STORY_BIBLE.md) define the game's
 original retro FPS identity: Doom II's readable combat spaces, Quake's 3D movement

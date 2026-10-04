@@ -15,6 +15,11 @@ pub(crate) fn gait(identity: Option<CampaignActor>) -> f32 {
             phase: EnemyPhase::Leaping,
             ..
         }) => 1.15,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Enforcer,
+            phase: EnemyPhase::Charging,
+            ..
+        }) => 1.6,
         Some(CampaignActor::Union { kind, .. }) => enemy::gait(kind),
         _ => 1.0,
     }
@@ -109,6 +114,7 @@ impl Encounters {
         state.ensure_m06_companion();
         state.ensure_m08_companion();
         state.ensure_m07_companion();
+        state.ensure_m09_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
             // M04 introduces each airborne threat in order. Do not expose a
@@ -117,13 +123,20 @@ impl Encounters {
                 || map.m05_objectives().is_some()
                 || map.m06_objectives().is_some()
                 || map.m07_objectives().is_some()
-                || map.m08_objectives().is_some())
+                || map.m08_objectives().is_some()
+                || map.m09_objectives().is_some())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
                         .iter()
                         .position(|e| e.id == *id)
                         .is_none_or(|previous| !matches!(self.groups[previous], Group::Complete))
                 })
+                && matches!(self.groups[index], Group::Unplaced)
+            {
+                continue;
+            }
+            if map.m09_objectives().is_some()
+                && !state.m09_encounter_available(index)
                 && matches!(self.groups[index], Group::Unplaced)
             {
                 continue;
@@ -455,6 +468,18 @@ impl Encounters {
             .iter_mut()
             .find(|(_, enemy)| enemy.id == id)
             .and_then(|(_, enemy)| enemy.claim_notary_photo_target())
+    }
+    pub(crate) fn claim_enforcer_contact(&mut self, id: Uuid) -> bool {
+        self.enemies
+            .iter_mut()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.claim_enforcer_contact())
+    }
+    pub(crate) fn enforcer_fell(&self, id: Uuid, feet: [f32; 3]) -> bool {
+        self.enemies
+            .iter()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.enforcer_fell(feet))
     }
 }
 

@@ -34,6 +34,12 @@ func _ready() -> void:
 	if not live_available:
 		_finish(false, "the live Latch skin or walking clip is missing from this build")
 		return
+	# The Enforcer uses packaged directional surfaces, never offline source art.
+	for path: String in ["res://assets/characters/union/enforcer.png",
+		"res://assets/characters/union/enforcer_normals.png"]:
+		if not ResourceLoader.exists(path, "Texture2D") or not load(path) is Texture2D:
+			_finish(false, "the Enforcer surfaces are missing from this build")
+			return
 	# Scene manifests are plain JSON; the export filter must carry them.
 	if not StoryScene.exists(CampaignOpening.SCENE_ID):
 		_finish(false, "the story scene manifests are missing from this build")

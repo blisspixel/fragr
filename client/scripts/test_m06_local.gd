@@ -194,7 +194,7 @@ func _saved_transition(owned: LocalMatch) -> bool:
 		return false
 	var saved_bytes: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
 	var saved: Variant = JSON.parse_string(saved_bytes)
-	_check(saved is Dictionary and saved["version"] == 9 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
+	_check(saved is Dictionary and saved["version"] == 10 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
 		"actual child atomically persists upgraded v8 identity and current rules")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M06_ID \

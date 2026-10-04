@@ -79,6 +79,11 @@ impl GameState {
                 bodies.push(civilian(format!("m05/{}", captive.id), captive.feet));
             }
         }
+        if let Some(p) = &run.m09 {
+            for crew in &p.crew {
+                bodies.push(civilian(format!("m09/{}", crew.id), crew.feet));
+            }
+        }
     }
 }
 

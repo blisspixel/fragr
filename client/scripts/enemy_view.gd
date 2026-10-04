@@ -81,8 +81,8 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		material.shader = UNION_SPRITE
 		body.material_override = material
 	material.set_shader_parameter("sprite_texture", body.texture)
-	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk", "auditor"])
-	if kind in ["sweeper", "clerk", "auditor"]:
+	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk", "auditor", "enforcer"])
+	if kind in ["sweeper", "clerk", "auditor", "enforcer"]:
 		var normal_key: String = kind + "_normals"
 		if not _textures.has(normal_key):
 			_textures[normal_key] = load("res://assets/characters/union/" + normal_key + ".png") as Texture2D
@@ -140,7 +140,7 @@ static func atlas_path(kind: String) -> String:
 func advance(delta: float, distance: float) -> void:
 	elapsed += delta
 	shot_age += delta
-	if actor.get("phase") == "moving" and distance >= 0.0 and distance < 2.0:
+	if actor.get("phase") in ["moving", "charging"] and distance >= 0.0 and distance < 2.0:
 		var stride: float = CrawlerAnimation.STRIDE_METRES if _kind == "crawler" else EnemyAnimation.STRIDE_METRES
 		travel = fposmod(travel + distance, stride)
 
@@ -157,10 +157,19 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 		body.frame = JammerAnimation.frame(actor, tick, elapsed, facing)
 	elif _kind == "crawler":
 		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, travel, facing)
+	elif _kind == "enforcer" and actor.get("phase") == "charging":
+		body.frame = enforcer_charge_frame(travel, facing)
 	else:
 		var custody: int = custody_frame(actor, weapon, tick, elapsed, facing, _standing)
 		body.frame = custody if custody >= 0 else EnemyAnimation.frame(actor, weapon, tick, elapsed,
 			travel, shot_age, facing)
+
+## The Enforcer's unused armed gait row holds its committed charge posture.
+## Playback cannot advance the authoritative charge phase or cause a hit.
+static func enforcer_charge_frame(distance: float, facing: int) -> int:
+	return posmod(facing, EnemyAnimation.DIRECTIONS) * EnemyAnimation.poses() \
+		+ EnemyAnimation.pose_frame("walk", false,
+			fposmod(distance / EnemyAnimation.STRIDE_METRES, 1.0))
 
 ## Custody poses over the shared baked layout: the Auditor's channel is the
 ## seated cell of its own atlas, which an Auditor never otherwise uses, and a

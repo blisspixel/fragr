@@ -12,7 +12,7 @@ func _run() -> void:
 		_fail("require walking GLB, output source GLB and optional cast name")
 		return
 	var cast_name: String = args[2] if args.size() == 3 else "Clerk"
-	if cast_name not in ["Clerk", "Sweeper", "Auditor", "FreeHuman", "Latch"]:
+	if cast_name not in ["Clerk", "Sweeper", "Auditor", "FreeHuman", "Latch", "Enforcer"]:
 		_fail("unsupported cast name")
 		return
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(args[0])

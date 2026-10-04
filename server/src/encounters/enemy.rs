@@ -6,6 +6,8 @@ use crate::protocol::{
 use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
+mod enforcer;
+pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
 /// Damage from one tick at or above this staggers an armored body. A Rail hit,
 /// a close Scatter blast or several pellets landing together qualify; a single
@@ -91,6 +93,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Notary => (50, WeaponType::Tack),
         EnemyKind::Auditor => (120, WeaponType::Tack),
         EnemyKind::RangedSweeper => (70, WeaponType::Sniper),
+        EnemyKind::Enforcer => (140, WeaponType::Fists),
     }
 }
 
@@ -102,6 +105,7 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         EnemyKind::Turret | EnemyKind::Jammer | EnemyKind::Notary | EnemyKind::RangedSweeper => 0.0,
         EnemyKind::Crawler => 0.7,
         EnemyKind::Auditor => 0.4,
+        EnemyKind::Enforcer => 0.45,
     }
 }
 
@@ -114,6 +118,7 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::Jammer
         | EnemyKind::Auditor
         | EnemyKind::RangedSweeper => 1,
+        EnemyKind::Enforcer => 1,
         EnemyKind::Sweeper | EnemyKind::Notary => 3,
         EnemyKind::HeavySweeper => 4,
     }
@@ -130,12 +135,16 @@ fn stun(kind: EnemyKind) -> u64 {
         | EnemyKind::Auditor
         | EnemyKind::RangedSweeper => 6,
         EnemyKind::HeavySweeper => 16,
+        EnemyKind::Enforcer => 16,
         EnemyKind::Turret => 10,
     }
 }
 
 fn armored(kind: EnemyKind) -> bool {
-    matches!(kind, EnemyKind::HeavySweeper | EnemyKind::Turret)
+    matches!(
+        kind,
+        EnemyKind::HeavySweeper | EnemyKind::Turret | EnemyKind::Enforcer
+    )
 }
 
 /// Signed shortest turn from `from` to `to`, in (-pi, pi].
@@ -194,6 +203,8 @@ pub(super) struct EnemyController {
     channel_target: Option<Uuid>,
     /// A disabled body's own end of presentation, before any channel hold.
     dead_until: u64,
+    /// The charge's original supported height, retained through recovery.
+    charge_floor: Option<f32>,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -225,6 +236,9 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::RangedSweeper, CampaignDifficulty::Assisted) => (40, 50),
         (EnemyKind::RangedSweeper, CampaignDifficulty::Standard) => (30, 40),
         (EnemyKind::RangedSweeper, CampaignDifficulty::Severe) => (24, 32),
+        (EnemyKind::Enforcer, CampaignDifficulty::Assisted) => (32, 44),
+        (EnemyKind::Enforcer, CampaignDifficulty::Standard) => (24, 36),
+        (EnemyKind::Enforcer, CampaignDifficulty::Severe) => (20, 30),
     }
 }
 
@@ -378,6 +392,7 @@ impl EnemyController {
             },
             channel_target: None,
             dead_until: tick,
+            charge_floor: None,
         }
     }
 
@@ -407,7 +422,9 @@ impl EnemyController {
     pub fn hit(&mut self, tick: u64, died: bool) {
         self.photograph_pending = None;
         self.seated = false;
-        self.contact_used = true;
+        if self.kind != EnemyKind::Enforcer || died {
+            self.contact_used = true;
+        }
         if self.phase == EnemyPhase::Dead {
             return;
         }
@@ -505,7 +522,10 @@ impl EnemyController {
                 // A committed attack never snaps to a replacement target.
                 (!matches!(
                     self.phase,
-                    EnemyPhase::Windup | EnemyPhase::Firing | EnemyPhase::Leaping
+                    EnemyPhase::Windup
+                        | EnemyPhase::Firing
+                        | EnemyPhase::Leaping
+                        | EnemyPhase::Charging
                 ))
                 .then(|| {
                     snapshot
@@ -544,6 +564,24 @@ impl EnemyController {
         }
 
         let mut action = Action::default();
+        if self.kind == EnemyKind::Enforcer {
+            let grounded = state
+                .players
+                .iter()
+                .find(|p| p.id == self.id)
+                .is_some_and(|p| {
+                    p.vy <= 0.0
+                        && (feet[1]
+                            - state.current_arena().support_height(
+                                feet[0],
+                                feet[2],
+                                feet[1] + 0.01,
+                            ))
+                        .abs()
+                            <= 0.02
+                });
+            return self.enforcer(target, feet, grounded, (windup, recovery), tick);
+        }
         if matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Recovery) && tick < self.until {
             return BotIntent::default();
         }

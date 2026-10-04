@@ -1,0 +1,3154 @@
+{
+  "version": 1,
+  "map_id": 1009,
+  "name": "Passenger Manifest",
+  "half_extent": 50,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id":"cargo_receiving_roof","min":[-45,8.4,-48],"max":[-12,8.8,-35],"surface":"service_steel"},
+    {"id":"cargo_pressure_header","min":[-45,7.2,-48],"max":[-12,8.4,-47.2],"surface":"service_steel"},
+    {"id":"cargo_receiving_east","min":[-13,0,-48],"max":[-12,8.4,-39.8],"surface":"service_steel"},
+    {"id":"cargo_pressure_west","min":[-45,0,-48],"max":[-44,8.4,-43],"surface":"service_steel"},
+    {"id":"office_stair_canopy","min":[-44,8.4,-35],"max":[-38,8.8,-25],"surface":"service_steel"},
+    {"id":"west_service_shelter","min":[-24,10,-13],"max":[-16,10.4,14],"surface":"service_steel"},
+    {"id":"west_service_column_n24_n1","min":[-24,0,-1],"max":[-23,10.4,0],"surface":"service_steel"},
+    {"id":"west_service_column_n17_n1","min":[-17,0,-1],"max":[-16,10.4,0],"surface":"service_steel"},
+    {"id":"north_service_shelter","min":[-24,12.4,22],"max":[22,12.8,30],"surface":"service_steel"},
+    {"id":"north_service_column_n24_29","min":[-24,0,29],"max":[-23,12.8,30],"surface":"service_steel"},
+    {"id":"north_service_column_21_29","min":[21,0,29],"max":[22,12.8,30],"surface":"service_steel"},
+    {"id":"north_service_rear_column","min":[-1,0,29],"max":[0,12.8,30],"surface":"service_steel"},
+    {"id":"east_service_shelter","min":[26,14.4,-12],"max":[34,14.8,30],"surface":"service_steel"},
+    {"id":"east_service_column_26_9","min":[26,0,9],"max":[27,14.8,10],"surface":"service_steel"},
+    {"id":"east_service_column_33_9","min":[33,0,9],"max":[34,14.8,10],"surface":"service_steel"},
+    {"id":"gallery_service_roof","min":[16,14.4,-24],"max":[40,14.8,-12],"surface":"service_steel"},
+    {"id":"gallery_service_column_39_n13","min":[39,0,-13],"max":[40,14.8,-12],"surface":"service_steel"},
+    {"id":"bridge_west_support","min":[-11,0,-35],"max":[-10,11.4,-34],"surface":"service_steel"},
+    {"id":"bridge_east_support","min":[23,0,-35],"max":[24,11.4,-34],"surface":"service_steel"},
+    {"id":"carrier_stern_neck","min":[-8,3,-22],"max":[8,12,-18],"surface":"enamel"},
+    {"id":"carrier_upper_freight","min":[-5,9,-12],"max":[5,11,12],"surface":"enamel"},
+    {"id":"carrier_cradle_chock_n8_n15","min":[-8,0,-15],"max":[-6,2,-12],"surface":"service_steel"},
+    {"id":"carrier_cradle_chock_n8_8","min":[-8,0,8],"max":[-6,2,11],"surface":"service_steel"},
+    {"id":"carrier_cradle_chock_6_n15","min":[6,0,-15],"max":[8,2,-12],"surface":"service_steel"},
+    {"id":"carrier_cradle_chock_6_8","min":[6,0,8],"max":[8,2,11],"surface":"service_steel"},
+    {"id":"carrier_bow_chock","min":[-4,0,19],"max":[4,2,21],"surface":"service_steel"},
+    {"id":"pressure_glazing_crossbar_west","min":[-12,25.6,-8.5],"max":[12,26,-7.5],"surface":"service_steel"},
+    {"id":"pressure_glazing_crossbar_east","min":[-12,25.6,7.5],"max":[12,26,8.5],"surface":"service_steel"},
+    {"id":"pressure_glazing_spine","min":[-0.4,25.6,-24],"max":[0.4,26,24],"surface":"service_steel"},
+    {"id":"hangar_buttress_n48_n1","min":[-48,0,-1],"max":[-46,26,1],"surface":"service_steel"},
+    {"id":"hangar_buttress_46_n1","min":[46,0,-1],"max":[48,26,1],"surface":"service_steel"},
+    {
+      "id": "carrier_keel",
+      "min": [
+        -8,
+        2,
+        -18
+      ],
+      "max": [
+        8,
+        9,
+        18
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_bow",
+      "min": [
+        -5,
+        2,
+        18
+      ],
+      "max": [
+        5,
+        6,
+        23
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_engine_west",
+      "min": [
+        -14,
+        1,
+        -17
+      ],
+      "max": [
+        -8,
+        5,
+        -7
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "carrier_engine_east",
+      "min": [
+        8,
+        1,
+        -17
+      ],
+      "max": [
+        14,
+        5,
+        -7
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_landing",
+      "min": [
+        -38,
+        0,
+        -35
+      ],
+      "max": [
+        -18,
+        4,
+        -25
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_floor",
+      "min": [
+        -38,
+        0,
+        -25
+      ],
+      "max": [
+        -18,
+        4,
+        -15
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_west",
+      "min": [
+        -39,
+        4,
+        -25
+      ],
+      "max": [
+        -38,
+        8,
+        -15
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_east",
+      "min": [
+        -18,
+        4,
+        -27
+      ],
+      "max": [
+        -17,
+        8,
+        -15
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_north",
+      "min": [
+        -38,
+        4,
+        -16
+      ],
+      "max": [
+        -25,
+        8,
+        -15
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_roof",
+      "min": [
+        -38,
+        8,
+        -27
+      ],
+      "max": [
+        -18,
+        8.4,
+        -16
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stair_link",
+      "min": [
+        -44,
+        0,
+        -27
+      ],
+      "max": [
+        -38,
+        4,
+        -25
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_0",
+      "min": [
+        -44,
+        0,
+        -35
+      ],
+      "max": [
+        -38,
+        0.2,
+        -34.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_1",
+      "min": [
+        -44,
+        0,
+        -34.6
+      ],
+      "max": [
+        -38,
+        0.4,
+        -34.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_2",
+      "min": [
+        -44,
+        0,
+        -34.2
+      ],
+      "max": [
+        -38,
+        0.6000000000000001,
+        -33.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_3",
+      "min": [
+        -44,
+        0,
+        -33.8
+      ],
+      "max": [
+        -38,
+        0.8,
+        -33.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_4",
+      "min": [
+        -44,
+        0,
+        -33.4
+      ],
+      "max": [
+        -38,
+        1,
+        -33
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_5",
+      "min": [
+        -44,
+        0,
+        -33
+      ],
+      "max": [
+        -38,
+        1.2000000000000002,
+        -32.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_6",
+      "min": [
+        -44,
+        0,
+        -32.6
+      ],
+      "max": [
+        -38,
+        1.4000000000000001,
+        -32.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_7",
+      "min": [
+        -44,
+        0,
+        -32.2
+      ],
+      "max": [
+        -38,
+        1.6,
+        -31.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_8",
+      "min": [
+        -44,
+        0,
+        -31.8
+      ],
+      "max": [
+        -38,
+        1.8,
+        -31.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_9",
+      "min": [
+        -44,
+        0,
+        -31.4
+      ],
+      "max": [
+        -38,
+        2,
+        -31
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_10",
+      "min": [
+        -44,
+        0,
+        -31
+      ],
+      "max": [
+        -38,
+        2.2,
+        -30.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_11",
+      "min": [
+        -44,
+        0,
+        -30.6
+      ],
+      "max": [
+        -38,
+        2.4000000000000004,
+        -30.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_12",
+      "min": [
+        -44,
+        0,
+        -30.2
+      ],
+      "max": [
+        -38,
+        2.6,
+        -29.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_13",
+      "min": [
+        -44,
+        0,
+        -29.8
+      ],
+      "max": [
+        -38,
+        2.8000000000000003,
+        -29.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_14",
+      "min": [
+        -44,
+        0,
+        -29.4
+      ],
+      "max": [
+        -38,
+        3,
+        -29
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_15",
+      "min": [
+        -44,
+        0,
+        -29
+      ],
+      "max": [
+        -38,
+        3.2,
+        -28.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_16",
+      "min": [
+        -44,
+        0,
+        -28.6
+      ],
+      "max": [
+        -38,
+        3.4000000000000004,
+        -28.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_17",
+      "min": [
+        -44,
+        0,
+        -28.2
+      ],
+      "max": [
+        -38,
+        3.6,
+        -27.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_18",
+      "min": [
+        -44,
+        0,
+        -27.8
+      ],
+      "max": [
+        -38,
+        3.8000000000000003,
+        -27.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "office_stair_19",
+      "min": [
+        -44,
+        0,
+        -27.4
+      ],
+      "max": [
+        -38,
+        4,
+        -27
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_0",
+      "min": [
+        -24,
+        0,
+        -19
+      ],
+      "max": [
+        -18,
+        4.2,
+        -18.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_1",
+      "min": [
+        -24,
+        0,
+        -18.6
+      ],
+      "max": [
+        -18,
+        4.4,
+        -18.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_2",
+      "min": [
+        -24,
+        0,
+        -18.2
+      ],
+      "max": [
+        -18,
+        4.6,
+        -17.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_3",
+      "min": [
+        -24,
+        0,
+        -17.8
+      ],
+      "max": [
+        -18,
+        4.8,
+        -17.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_4",
+      "min": [
+        -24,
+        0,
+        -17.4
+      ],
+      "max": [
+        -18,
+        5,
+        -17
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_5",
+      "min": [
+        -24,
+        0,
+        -17
+      ],
+      "max": [
+        -18,
+        5.2,
+        -16.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_6",
+      "min": [
+        -24,
+        0,
+        -16.6
+      ],
+      "max": [
+        -18,
+        5.4,
+        -16.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_7",
+      "min": [
+        -24,
+        0,
+        -16.2
+      ],
+      "max": [
+        -18,
+        5.6,
+        -15.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_8",
+      "min": [
+        -24,
+        0,
+        -15.8
+      ],
+      "max": [
+        -18,
+        5.8,
+        -15.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_9",
+      "min": [
+        -24,
+        0,
+        -15.4
+      ],
+      "max": [
+        -18,
+        6,
+        -15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_stair_link",
+      "min": [
+        -24,
+        0,
+        -15
+      ],
+      "max": [
+        -16,
+        6,
+        -13
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gantry_west",
+      "min": [
+        -24,
+        5.4,
+        -13
+      ],
+      "max": [
+        -16,
+        6,
+        14
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_0",
+      "min": [
+        -24,
+        0,
+        14
+      ],
+      "max": [
+        -16,
+        6.2,
+        14.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_1",
+      "min": [
+        -24,
+        0,
+        14.4
+      ],
+      "max": [
+        -16,
+        6.4,
+        14.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_2",
+      "min": [
+        -24,
+        0,
+        14.8
+      ],
+      "max": [
+        -16,
+        6.6,
+        15.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_3",
+      "min": [
+        -24,
+        0,
+        15.2
+      ],
+      "max": [
+        -16,
+        6.8,
+        15.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_4",
+      "min": [
+        -24,
+        0,
+        15.6
+      ],
+      "max": [
+        -16,
+        7,
+        16
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_5",
+      "min": [
+        -24,
+        0,
+        16
+      ],
+      "max": [
+        -16,
+        7.2,
+        16.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_6",
+      "min": [
+        -24,
+        0,
+        16.4
+      ],
+      "max": [
+        -16,
+        7.4,
+        16.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_7",
+      "min": [
+        -24,
+        0,
+        16.8
+      ],
+      "max": [
+        -16,
+        7.6,
+        17.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_8",
+      "min": [
+        -24,
+        0,
+        17.2
+      ],
+      "max": [
+        -16,
+        7.8,
+        17.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_9",
+      "min": [
+        -24,
+        0,
+        17.6
+      ],
+      "max": [
+        -16,
+        8,
+        18
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "north_stair_link",
+      "min": [
+        -24,
+        0,
+        18
+      ],
+      "max": [
+        -16,
+        8,
+        22
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gantry_north",
+      "min": [
+        -24,
+        7.4,
+        22
+      ],
+      "max": [
+        22,
+        8,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_0",
+      "min": [
+        22,
+        0,
+        22
+      ],
+      "max": [
+        22.4,
+        8.2,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_1",
+      "min": [
+        22.4,
+        0,
+        22
+      ],
+      "max": [
+        22.8,
+        8.4,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_2",
+      "min": [
+        22.8,
+        0,
+        22
+      ],
+      "max": [
+        23.2,
+        8.6,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_3",
+      "min": [
+        23.2,
+        0,
+        22
+      ],
+      "max": [
+        23.6,
+        8.8,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_4",
+      "min": [
+        23.6,
+        0,
+        22
+      ],
+      "max": [
+        24,
+        9,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_5",
+      "min": [
+        24,
+        0,
+        22
+      ],
+      "max": [
+        24.4,
+        9.2,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_6",
+      "min": [
+        24.4,
+        0,
+        22
+      ],
+      "max": [
+        24.8,
+        9.4,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_7",
+      "min": [
+        24.8,
+        0,
+        22
+      ],
+      "max": [
+        25.2,
+        9.6,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_8",
+      "min": [
+        25.2,
+        0,
+        22
+      ],
+      "max": [
+        25.6,
+        9.8,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_9",
+      "min": [
+        25.6,
+        0,
+        22
+      ],
+      "max": [
+        26,
+        10,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gantry_east",
+      "min": [
+        26,
+        9.4,
+        -12
+      ],
+      "max": [
+        34,
+        10,
+        30
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gallery",
+      "min": [
+        16,
+        9.4,
+        -24
+      ],
+      "max": [
+        40,
+        10,
+        -12
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_0",
+      "min": [
+        16,
+        0,
+        -24.4
+      ],
+      "max": [
+        24,
+        10.2,
+        -24
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_1",
+      "min": [
+        16,
+        0,
+        -24.8
+      ],
+      "max": [
+        24,
+        10.4,
+        -24.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_2",
+      "min": [
+        16,
+        0,
+        -25.2
+      ],
+      "max": [
+        24,
+        10.6,
+        -24.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_3",
+      "min": [
+        16,
+        0,
+        -25.6
+      ],
+      "max": [
+        24,
+        10.8,
+        -25.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_4",
+      "min": [
+        16,
+        0,
+        -26
+      ],
+      "max": [
+        24,
+        11,
+        -25.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_5",
+      "min": [
+        16,
+        0,
+        -26.4
+      ],
+      "max": [
+        24,
+        11.2,
+        -26
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_6",
+      "min": [
+        16,
+        0,
+        -26.8
+      ],
+      "max": [
+        24,
+        11.4,
+        -26.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_7",
+      "min": [
+        16,
+        0,
+        -27.2
+      ],
+      "max": [
+        24,
+        11.6,
+        -26.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_8",
+      "min": [
+        16,
+        0,
+        -27.6
+      ],
+      "max": [
+        24,
+        11.8,
+        -27.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_stair_9",
+      "min": [
+        16,
+        0,
+        -28
+      ],
+      "max": [
+        24,
+        12,
+        -27.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "hatch_bridge",
+      "min": [
+        -12,
+        11.4,
+        -35
+      ],
+      "max": [
+        24,
+        12,
+        -28
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "boarding_floor",
+      "min": [
+        -10,
+        0,
+        -30
+      ],
+      "max": [
+        10,
+        12,
+        -22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_west",
+      "min": [
+        -11,
+        12,
+        -31
+      ],
+      "max": [
+        -10,
+        16,
+        -22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_east",
+      "min": [
+        10,
+        12,
+        -31
+      ],
+      "max": [
+        11,
+        16,
+        -22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_north",
+      "min": [
+        -10,
+        12,
+        -23
+      ],
+      "max": [
+        10,
+        16,
+        -22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_south_west",
+      "min": [
+        -10,
+        12,
+        -31
+      ],
+      "max": [
+        -3,
+        16,
+        -30
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_south_east",
+      "min": [
+        3,
+        12,
+        -31
+      ],
+      "max": [
+        10,
+        16,
+        -30
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_roof",
+      "min": [
+        -10,
+        16,
+        -31
+      ],
+      "max": [
+        10,
+        16.4,
+        -22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "boarding_hatch",
+      "min": [
+        -3,
+        12,
+        -31
+      ],
+      "max": [
+        3,
+        16,
+        -30
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_freight",
+      "min": [
+        -43,
+        0,
+        -47
+      ],
+      "max": [
+        -36,
+        2,
+        -43
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "loading_crate_west",
+      "min": [
+        -34,
+        0,
+        -42
+      ],
+      "max": [
+        -30,
+        2,
+        -38
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "loading_crate_east",
+      "min": [
+        -24,
+        0,
+        -44
+      ],
+      "max": [
+        -20,
+        2,
+        -40
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "loading_cover",
+      "min": [
+        -17,
+        0,
+        -39
+      ],
+      "max": [
+        -14,
+        2,
+        -35
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "customs_locker",
+      "min": [
+        -37,
+        4,
+        -23
+      ],
+      "max": [
+        -35,
+        5,
+        -20
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_control",
+      "min": [
+        17,
+        10,
+        -23
+      ],
+      "max": [
+        18,
+        12,
+        -21
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_west_shell",
+      "min": [
+        -49,
+        0,
+        -49
+      ],
+      "max": [
+        -48,
+        26,
+        49
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_east_shell",
+      "min": [
+        48,
+        0,
+        -49
+      ],
+      "max": [
+        49,
+        26,
+        49
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_north_shell",
+      "min": [
+        -48,
+        0,
+        -49
+      ],
+      "max": [
+        48,
+        26,
+        -48
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_south_shell",
+      "min": [
+        -48,
+        0,
+        48
+      ],
+      "max": [
+        48,
+        26,
+        49
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_roof_west",
+      "min": [
+        -49,
+        26,
+        -49
+      ],
+      "max": [
+        -12,
+        27,
+        49
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_roof_east",
+      "min": [
+        12,
+        26,
+        -49
+      ],
+      "max": [
+        49,
+        27,
+        49
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_roof_north",
+      "min": [
+        -12,
+        26,
+        -49
+      ],
+      "max": [
+        12,
+        27,
+        -24
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_roof_south",
+      "min": [
+        -12,
+        26,
+        24
+      ],
+      "max": [
+        12,
+        27,
+        49
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "berth_pressure_window",
+      "min": [
+        -12,
+        26,
+        -24
+      ],
+      "max": [
+        12,
+        26.4,
+        24
+      ],
+      "surface": "inspection_glass"
+    }
+  ],
+  "spawns": [
+    {
+      "id": "freight_arrival",
+      "feet": [
+        -35,
+        0,
+        -46
+      ],
+      "yaw": 1.5707963267948966
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "office_charge_lesson",
+      "feet": [
+        -29,
+        4,
+        -31
+      ]
+    },
+    {
+      "id": "gantry_first_landing",
+      "feet": [
+        -20,
+        6,
+        8
+      ]
+    },
+    {
+      "id": "control_gallery",
+      "feet": [
+        30,
+        10,
+        -18
+      ]
+    },
+    {
+      "id": "boarding_approach",
+      "feet": [
+        0,
+        12,
+        -33
+      ]
+    }
+  ],
+  "decorations": [],
+  "supplies": [
+    {
+      "id": "berth_tack",
+      "feet": [
+        -35,
+        0,
+        -40
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "tack"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "berth_scatter",
+      "feet": [
+        -35,
+        0,
+        -37
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "scatter"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "berth_rail",
+      "feet": [
+        -20,
+        4,
+        -29
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "rail"
+      },
+      "claim": "personal",
+      "secret": false
+    },
+    {
+      "id": "berth_health_0",
+      "feet": [
+        -36,
+        0,
+        -40
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_rounds_0",
+      "feet": [
+        -36,
+        0,
+        -38
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 40
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_shells_0",
+      "feet": [
+        -36,
+        0,
+        -38.5
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_health_1",
+      "feet": [
+        -34,
+        4,
+        -24
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_rounds_1",
+      "feet": [
+        -32.5,
+        4,
+        -24
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 40
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_shells_1",
+      "feet": [
+        -34,
+        4,
+        -22.5
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_health_2",
+      "feet": [
+        -20,
+        6,
+        0
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_rounds_2",
+      "feet": [
+        -18.5,
+        6,
+        0
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 40
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_shells_2",
+      "feet": [
+        -20,
+        6,
+        1.5
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_health_3",
+      "feet": [
+        -18,
+        8,
+        26
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_rounds_3",
+      "feet": [
+        -16.5,
+        8,
+        26
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 40
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_shells_3",
+      "feet": [
+        -18,
+        8,
+        27.5
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_health_4",
+      "feet": [
+        30,
+        10,
+        24
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_rounds_4",
+      "feet": [
+        31.5,
+        10,
+        24
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 40
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_shells_4",
+      "feet": [
+        30,
+        10,
+        25.5
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_health_5",
+      "feet": [
+        32,
+        10,
+        -16
+      ],
+      "grant": {
+        "kind": "health",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_rounds_5",
+      "feet": [
+        33.5,
+        10,
+        -16
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 40
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_shells_5",
+      "feet": [
+        32,
+        10,
+        -14.5
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "berth_cells",
+      "feet": [
+        -21,
+        4,
+        -30
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "cells",
+        "amount": 24
+      },
+      "claim": "contested",
+      "secret": false
+    },
+    {
+      "id": "customs_plate",
+      "feet": [
+        -33,
+        4,
+        -22
+      ],
+      "grant": {
+        "kind": "armor",
+        "amount": 50
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "customs_cells",
+      "feet": [
+        -33,
+        4,
+        -20
+      ],
+      "grant": {
+        "kind": "ammo",
+        "pool": "cells",
+        "amount": 12
+      },
+      "claim": "contested",
+      "secret": true
+    },
+    {
+      "id": "gallery_grenades",
+      "feet": [
+        20,
+        10,
+        -21
+      ],
+      "grant": {
+        "kind": "grenade",
+        "amount": 3
+      },
+      "claim": "personal",
+      "secret": true
+    },
+    {
+      "id": "gallery_mine",
+      "feet": [
+        22,
+        10,
+        -21
+      ],
+      "grant": {
+        "kind": "proximity_mine",
+        "amount": 1
+      },
+      "claim": "personal",
+      "secret": true
+    }
+  ],
+  "encounters": [
+    {
+      "id": "lower_loading",
+      "regions": [
+        {
+          "min": [
+            -45,
+            0,
+            -39.5
+          ],
+          "max": [
+            -12,
+            2,
+            -35
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "loading_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            -28,
+            0,
+            -44
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "loading_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            -18,
+            0,
+            -43
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "loading_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -28,
+            0,
+            -38
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "loading_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            -18,
+            0,
+            -36
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "office_stair_turret",
+          "kind": "turret",
+          "feet": [
+            -40,
+            0,
+            -37
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "office_lesson",
+      "after": "lower_loading",
+      "regions": [
+        {
+          "min": [
+            -37,
+            3.8,
+            -34
+          ],
+          "max": [
+            -18,
+            6,
+            -25
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "first_enforcer",
+          "kind": "enforcer",
+          "feet": [
+            -23,
+            4,
+            -31
+          ],
+          "yaw": 0
+        }
+      ]
+    },
+    {
+      "id": "berth_office",
+      "after": "office_lesson",
+      "regions": [
+        {
+          "min": [
+            -37,
+            3.8,
+            -25
+          ],
+          "max": [
+            -19,
+            6,
+            -16
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "office_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            -34,
+            4,
+            -18
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "office_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            -25,
+            4,
+            -22
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    },
+    {
+      "id": "gantry_one",
+      "after": "berth_office",
+      "regions": [
+        {
+          "min": [
+            -24,
+            5.8,
+            -13
+          ],
+          "max": [
+            -16,
+            8,
+            14
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "gantry_one_enforcer",
+          "kind": "enforcer",
+          "feet": [
+            -20,
+            6,
+            -7
+          ],
+          "yaw": 1.5707963267948966
+        },
+        {
+          "id": "gantry_one_sweeper",
+          "kind": "sweeper",
+          "feet": [
+            -20,
+            6,
+            10
+          ],
+          "yaw": 4.71238898038469
+        }
+      ]
+    },
+    {
+      "id": "gantry_two",
+      "after": "gantry_one",
+      "regions": [
+        {
+          "min": [
+            -24,
+            7.8,
+            22
+          ],
+          "max": [
+            22,
+            10,
+            30
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "gantry_two_enforcer",
+          "kind": "enforcer",
+          "feet": [
+            -5,
+            8,
+            26
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "gantry_two_sweeper",
+          "kind": "sweeper",
+          "feet": [
+            14,
+            8,
+            26
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "cradle_notary_west",
+          "kind": "notary",
+          "feet": [
+            -12,
+            6.5,
+            16
+          ],
+          "yaw": 3.141592653589793,
+          "hover": {
+            "volume": {
+              "min": [
+                -14,
+                5.5,
+                14
+              ],
+              "max": [
+                -10,
+                7.5,
+                18
+              ]
+            },
+            "band": [
+              5,
+              7.5
+            ],
+            "patrol": [
+              [
+                -12,
+                6.5,
+                16
+              ],
+              [
+                -12,
+                6.5,
+                17
+              ]
+            ],
+            "approach": [
+              -16,
+              8,
+              24
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "gantry_three",
+      "after": "gantry_two",
+      "regions": [
+        {
+          "min": [
+            26,
+            9.8,
+            -12
+          ],
+          "max": [
+            34,
+            12,
+            30
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "gantry_three_enforcer",
+          "kind": "enforcer",
+          "feet": [
+            30,
+            10,
+            18
+          ],
+          "yaw": 4.71238898038469
+        },
+        {
+          "id": "gantry_three_sweeper",
+          "kind": "sweeper",
+          "feet": [
+            30,
+            10,
+            -6
+          ],
+          "yaw": 1.5707963267948966
+        },
+        {
+          "id": "cradle_notary_east",
+          "kind": "notary",
+          "feet": [
+            19,
+            6.5,
+            13
+          ],
+          "yaw": 3.141592653589793,
+          "hover": {
+            "volume": {
+              "min": [
+                17,
+                5.5,
+                10
+              ],
+              "max": [
+                21,
+                7.5,
+                16
+              ]
+            },
+            "band": [
+              5,
+              7.5
+            ],
+            "patrol": [
+              [
+                19,
+                6.5,
+                13
+              ],
+              [
+                19,
+                6.5,
+                14
+              ]
+            ],
+            "approach": [
+              28,
+              10,
+              13
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "upper_counter",
+      "after": "gantry_three",
+      "regions": [
+        {
+          "min": [
+            16,
+            9.8,
+            -24
+          ],
+          "max": [
+            40,
+            12,
+            -12
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "upper_enforcer_a",
+          "kind": "enforcer",
+          "feet": [
+            23,
+            10,
+            -18
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "upper_enforcer_b",
+          "kind": "enforcer",
+          "feet": [
+            35,
+            10,
+            -18
+          ],
+          "yaw": 3.141592653589793
+        },
+        {
+          "id": "gallery_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            19,
+            10,
+            -22
+          ],
+          "yaw": 1.5707963267948966
+        },
+        {
+          "id": "gallery_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            38,
+            10,
+            -22
+          ],
+          "yaw": 1.5707963267948966
+        }
+      ]
+    },
+    {
+      "id": "boarding_watch",
+      "after": "upper_counter",
+      "regions": [
+        {
+          "min": [
+            -12,
+            11.8,
+            -35
+          ],
+          "max": [
+            24,
+            14,
+            -31
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "hatch_enforcer",
+          "kind": "enforcer",
+          "feet": [
+            6,
+            12,
+            -33
+          ],
+          "yaw": 3.141592653589793
+        }
+      ]
+    }
+  ],
+  "m09": {
+    "objectives": [
+      {
+        "id": "loading_cleared",
+        "arrival": {
+          "min": [
+            -45,
+            0,
+            -46
+          ],
+          "max": [
+            -12,
+            2,
+            -35
+          ]
+        },
+        "approach": [
+          -30,
+          0,
+          -36
+        ],
+        "requires_encounter": "lower_loading"
+      },
+      {
+        "id": "lesson_cleared",
+        "arrival": {
+          "min": [
+            -37,
+            3.8,
+            -34
+          ],
+          "max": [
+            -18,
+            6,
+            -25
+          ]
+        },
+        "approach": [
+          -29,
+          4,
+          -31
+        ],
+        "requires_encounter": "office_lesson"
+      },
+      {
+        "id": "gantry_one_cleared",
+        "arrival": {
+          "min": [
+            -24,
+            5.8,
+            -13
+          ],
+          "max": [
+            -16,
+            8,
+            14
+          ]
+        },
+        "approach": [
+          -20,
+          6,
+          8
+        ],
+        "requires_encounter": "gantry_one"
+      },
+      {
+        "id": "gantry_two_cleared",
+        "arrival": {
+          "min": [
+            -24,
+            7.8,
+            22
+          ],
+          "max": [
+            22,
+            10,
+            30
+          ]
+        },
+        "approach": [
+          -3,
+          8,
+          26
+        ],
+        "requires_encounter": "gantry_two"
+      },
+      {
+        "id": "gantry_three_cleared",
+        "arrival": {
+          "min": [
+            26,
+            9.8,
+            -12
+          ],
+          "max": [
+            34,
+            12,
+            30
+          ]
+        },
+        "approach": [
+          30,
+          10,
+          10
+        ],
+        "requires_encounter": "gantry_three"
+      },
+      {
+        "id": "clamps_released",
+        "arrival": {
+          "min": [
+            16,
+            9.8,
+            -24
+          ],
+          "max": [
+            40,
+            12,
+            -12
+          ]
+        },
+        "approach": [
+          30,
+          10,
+          -18
+        ],
+        "requires_encounter": "upper_counter"
+      },
+      {
+        "id": "hatch_cleared",
+        "arrival": {
+          "min": [
+            -12,
+            11.8,
+            -35
+          ],
+          "max": [
+            24,
+            14,
+            -31
+          ]
+        },
+        "approach": [
+          0,
+          12,
+          -33
+        ],
+        "requires_encounter": "boarding_watch"
+      }
+    ],
+    "crew_release": {
+      "panel": {
+        "solid": "office_north",
+        "face": "north",
+        "center": [
+          0,
+          0
+        ],
+        "size": [
+          1.2,
+          1.1
+        ],
+        "kind": "m09_crew_manifest"
+      },
+      "approach": [
+        -31.5,
+        4,
+        -18
+      ],
+      "requires_encounter": "berth_office"
+    },
+    "crew": [
+      {
+        "id": "tern",
+        "route": [
+          [
+            -33,
+            4,
+            -21
+          ],
+          [
+            -33,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -19.6
+          ],
+          [
+            -21,
+            6,
+            -13
+          ],
+          [
+            -20,
+            6,
+            13.4
+          ],
+          [
+            -20,
+            8,
+            18.6
+          ],
+          [
+            -20,
+            8,
+            26
+          ],
+          [
+            21.4,
+            8,
+            26
+          ],
+          [
+            26.6,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -23.4
+          ],
+          [
+            20,
+            12,
+            -28.6
+          ],
+          [
+            20,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -28
+          ],
+          [
+            -4,
+            12,
+            -26
+          ]
+        ],
+        "held_until": [
+          0,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "id": "berth_crew_a",
+        "route": [
+          [
+            -31,
+            4,
+            -21
+          ],
+          [
+            -31,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -19.6
+          ],
+          [
+            -21,
+            6,
+            -13
+          ],
+          [
+            -20,
+            6,
+            13.4
+          ],
+          [
+            -20,
+            8,
+            18.6
+          ],
+          [
+            -20,
+            8,
+            26
+          ],
+          [
+            21.4,
+            8,
+            26
+          ],
+          [
+            26.6,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -23.4
+          ],
+          [
+            20,
+            12,
+            -28.6
+          ],
+          [
+            20,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -28
+          ],
+          [
+            -2,
+            12,
+            -26
+          ]
+        ],
+        "held_until": [
+          0,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "id": "berth_crew_b",
+        "route": [
+          [
+            -29,
+            4,
+            -21
+          ],
+          [
+            -29,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -19.6
+          ],
+          [
+            -21,
+            6,
+            -13
+          ],
+          [
+            -20,
+            6,
+            13.4
+          ],
+          [
+            -20,
+            8,
+            18.6
+          ],
+          [
+            -20,
+            8,
+            26
+          ],
+          [
+            21.4,
+            8,
+            26
+          ],
+          [
+            26.6,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -23.4
+          ],
+          [
+            20,
+            12,
+            -28.6
+          ],
+          [
+            20,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -28
+          ],
+          [
+            0,
+            12,
+            -26
+          ]
+        ],
+        "held_until": [
+          0,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "id": "edda",
+        "route": [
+          [
+            -27,
+            4,
+            -21
+          ],
+          [
+            -27,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -19.6
+          ],
+          [
+            -21,
+            6,
+            -13
+          ],
+          [
+            -20,
+            6,
+            13.4
+          ],
+          [
+            -20,
+            8,
+            18.6
+          ],
+          [
+            -20,
+            8,
+            26
+          ],
+          [
+            21.4,
+            8,
+            26
+          ],
+          [
+            26.6,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -23.4
+          ],
+          [
+            20,
+            12,
+            -28.6
+          ],
+          [
+            20,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -28
+          ],
+          [
+            2,
+            12,
+            -26
+          ]
+        ],
+        "held_until": [
+          0,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      },
+      {
+        "id": "splice",
+        "route": [
+          [
+            -25,
+            4,
+            -21
+          ],
+          [
+            -25,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -28
+          ],
+          [
+            -21,
+            4,
+            -19.6
+          ],
+          [
+            -21,
+            6,
+            -13
+          ],
+          [
+            -20,
+            6,
+            13.4
+          ],
+          [
+            -20,
+            8,
+            18.6
+          ],
+          [
+            -20,
+            8,
+            26
+          ],
+          [
+            21.4,
+            8,
+            26
+          ],
+          [
+            26.6,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            26
+          ],
+          [
+            30,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -18
+          ],
+          [
+            20,
+            10,
+            -23.4
+          ],
+          [
+            20,
+            12,
+            -28.6
+          ],
+          [
+            20,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -33
+          ],
+          [
+            0,
+            12,
+            -28
+          ],
+          [
+            4,
+            12,
+            -26
+          ]
+        ],
+        "held_until": [
+          0,
+          3,
+          3,
+          3,
+          3,
+          4,
+          4,
+          4,
+          5,
+          5,
+          5,
+          6,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7,
+          7
+        ]
+      }
+    ],
+    "departure": {
+      "panel": {
+        "solid": "boarding_north",
+        "face": "north",
+        "center": [
+          0,
+          0
+        ],
+        "size": [
+          1.2,
+          1.1
+        ],
+        "kind": "m09_board_carrier"
+      },
+      "approach": [
+        0,
+        12,
+        -24.5
+      ],
+      "requires_encounter": "boarding_watch",
+      "boarding": {
+        "min": [
+          -8,
+          11.9,
+          -29
+        ],
+        "max": [
+          8,
+          14,
+          -23
+        ]
+      }
+    },
+    "hatch": {
+      "solid": "boarding_hatch",
+      "open": {
+        "min": [
+          -3,
+          16,
+          -31
+        ],
+        "max": [
+          3,
+          20,
+          -30
+        ]
+      }
+    },
+    "companion_start": [
+      -33,
+      0,
+      -46
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "format": 1,
+  "id": "l09_l10",
+  "title_key": "STORY_M09_DEPARTURE_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "PASSAGE", "caption_key": "STORY_L09_L10_PASSAGE", "timing": "reader", "hold": 1.0}
+  ]
+}

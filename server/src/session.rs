@@ -588,7 +588,8 @@ impl GameSession {
                         Some(protocol::CampaignActor::Union {
                             phase: protocol::EnemyPhase::Windup
                                 | protocol::EnemyPhase::Firing
-                                | protocol::EnemyPhase::Leaping,
+                                | protocol::EnemyPhase::Leaping
+                                | protocol::EnemyPhase::Charging,
                             ..
                         })
                     )

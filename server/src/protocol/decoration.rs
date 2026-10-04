@@ -45,6 +45,8 @@ pub enum MapDecorationKind {
     Terminal,
     StripLight,
     LiftControl,
+    M09CrewManifest,
+    M09BoardCarrier,
     /// M02 gate signal: red lamp over a closed shutter pictogram. Authored only
     /// through a gate, which flips it to `GateOpen` in every world where it is raised.
     GateLocked,

@@ -11,6 +11,7 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+mod m09;
 mod mission;
 mod rules;
 mod sabotage;
@@ -46,6 +47,10 @@ pub use m07::{M07MapGeometry, M07ObjectiveState, M07_OBJECTIVE_IDS};
 pub use m08::{
     M08MapGeometry, M08NodeGeometry, M08ObjectiveState, M08_BAYS_ID, M08_CABINET_ID,
     M08_MACHINE_STEP, M08_NODES, M08_NODE_HP, M08_OBJECTIVE_IDS,
+};
+pub use m09::{
+    M08Outcome, M09CrewGeometry, M09CrewState, M09MapGeometry, M09ObjectiveState, M09_CREW_IDS,
+    M09_CREW_STEP, M09_OBJECTIVE_IDS,
 };
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
@@ -666,7 +671,9 @@ pub const M08_GAMEPLAY_VERSION: u32 = 31;
 pub const M07_GAMEPLAY_VERSION: u32 = 32;
 /// Optional frozen mission elapsed time on completed private records.
 pub const MISSION_RESULTS_GAMEPLAY_VERSION: u32 = 33;
-pub const GAMEPLAY_VERSION: u32 = MISSION_RESULTS_GAMEPLAY_VERSION;
+/// Passenger Manifest and its committed human Enforcer charge.
+pub const M09_GAMEPLAY_VERSION: u32 = 34;
+pub const GAMEPLAY_VERSION: u32 = M09_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -786,6 +793,7 @@ mod geometry_tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -902,6 +910,8 @@ pub enum ServerMessage {
         m08: Option<M08MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m07: Option<M07MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m09: Option<M09MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

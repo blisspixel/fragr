@@ -18,6 +18,7 @@ pub(super) struct SoloRun {
     pub carried_evacuated_workers: Vec<String>,
     /// M06's optional prisoner route, retained unchanged through M07.
     pub carried_prisoner_route_marked: bool,
+    pub carried_archive: Option<crate::protocol::M08Outcome>,
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
@@ -122,6 +123,7 @@ impl GameState {
             carried_released_workers: Vec::new(),
             carried_evacuated_workers: Vec::new(),
             carried_prisoner_route_marked: false,
+            carried_archive: None,
             entry: None,
             saved_entry: None,
             exit: None,
@@ -189,6 +191,20 @@ impl GameState {
             .m06_outcome
             .as_ref()
             .is_some_and(|outcome| outcome.prisoner_route_marked);
+        solo.carried_archive = document.m08_outcome.clone();
+        if let Some(progress) = &mut run.m09 {
+            let g = run
+                .initial_map
+                .m09_geometry()
+                .ok_or("M09 geometry missing")?;
+            *progress = m09::M09Progress::new(
+                &g,
+                !solo.carried_patients.is_empty(),
+                solo.carried_evacuated_workers
+                    .iter()
+                    .any(|id| id == "splice"),
+            );
+        }
         Ok(())
     }
 
@@ -247,6 +263,7 @@ impl GameState {
                 || run.m06.is_some()
                 || run.m08.is_some()
                 || run.m07.is_some()
+                || run.m09.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -361,6 +378,7 @@ impl GameState {
         self.ensure_m06_companion();
         self.ensure_m08_companion();
         self.ensure_m07_companion();
+        self.ensure_m09_companion();
         self.shot_results.clear();
         tracing::info!(
             attempt = request.attempt + 1,

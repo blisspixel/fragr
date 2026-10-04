@@ -34,6 +34,12 @@ func run() -> void:
 	var turret: Dictionary = {"side":"union", "kind":"turret", "phase":"moving", "phase_started":100, "phase_ends":100}
 	_check(EnemyAnimation.frame(turret, "Rail", 100, 0, 0, INF, 0) != EnemyAnimation.frame(turret, "Rail", 108, 0, 0, INF, 0),
 		"a fixed turret traverses on phase time without travel")
+	_check(EnemyView.enforcer_charge_frame(0, 0) !=
+		EnemyView.enforcer_charge_frame(0.4, 0),
+		"Enforcer charge gait follows actual displacement")
+	_check(EnemyView.enforcer_charge_frame(0.4, 1) -
+		EnemyView.enforcer_charge_frame(0.4, 0) == EnemyAnimation.poses(),
+		"Enforcer charge preserves registered facing")
 	actor["phase"] = "firing"
 	var fire: int = EnemyAnimation.frame(actor, "Tack", 112, 0, 0, 0, 0)
 	_check(fire != EnemyAnimation.frame(actor, "Tack", 112, 0, 0, INF, 0),

@@ -18,11 +18,13 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+mod m09;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
 pub(crate) use m02::validate_m02_evacuation_route;
 pub(crate) use m02::{LATCH_RELEASE_TICKS, LATCH_SECOND_FEET};
+pub(crate) use m09::m09_route_segment_valid;
 
 #[cfg(test)]
 mod difficulty_tests;
@@ -42,6 +44,7 @@ pub(crate) struct MissionRun {
     m06: Option<m06::M06Progress>,
     m08: Option<m08::M08Progress>,
     m07: Option<m07::M07Progress>,
+    m09: Option<m09::M09Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -64,6 +67,9 @@ impl MissionRun {
             m06: map.m06_geometry().map(|_| m06::M06Progress::default()),
             m08: map.m08_geometry().map(|_| m08::M08Progress::default()),
             m07: map.m07_geometry().map(|_| m07::M07Progress::default()),
+            m09: map
+                .m09_geometry()
+                .map(|g| m09::M09Progress::new(&g, false, false)),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -216,6 +222,7 @@ impl GameState {
                 || run.m06.is_some()
                 || run.m08.is_some()
                 || run.m07.is_some()
+                || run.m09.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -232,6 +239,7 @@ impl GameState {
         self.ensure_m06_companion();
         self.ensure_m08_companion();
         self.ensure_m07_companion();
+        self.ensure_m09_companion();
     }
 
     pub(crate) fn note_mission_started(&mut self) {
@@ -264,6 +272,17 @@ impl GameState {
             .initial_map
             .m07_geometry()
             .map(|_| m07::M07Progress::default());
+        run.m09 = run.initial_map.m09_geometry().map(|g| {
+            m09::M09Progress::new(
+                &g,
+                run.solo
+                    .as_ref()
+                    .is_some_and(|s| !s.carried_patients.is_empty()),
+                run.solo
+                    .as_ref()
+                    .is_some_and(|s| s.carried_evacuated_workers.iter().any(|id| id == "splice")),
+            )
+        });
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
@@ -274,6 +293,7 @@ impl GameState {
                 || run.m06.is_some()
                 || run.m08.is_some()
                 || run.m07.is_some()
+                || run.m09.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -299,10 +319,14 @@ impl GameState {
         self.ensure_m06_companion();
         self.ensure_m08_companion();
         self.ensure_m07_companion();
+        self.ensure_m09_companion();
     }
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m09.is_some() {
+            return self.m09_mission_state();
+        }
         if run.m08.is_some() {
             return self.m08_mission_state();
         }
@@ -380,6 +404,7 @@ impl GameState {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
         })
     }
 
@@ -406,6 +431,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m09.is_some()) {
+            self.advance_m09();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m08.is_some()) {
             self.advance_m08();
             return;

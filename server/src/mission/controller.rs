@@ -12,6 +12,7 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+mod m09;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -36,6 +37,9 @@ pub struct MissionClient {
     m07_map: Option<crate::protocol::M07MapGeometry>,
     m07_point: Option<[f32; 3]>,
     m07_pending: bool,
+    m09_map: Option<crate::protocol::M09MapGeometry>,
+    m09_points: Option<[[f32; 3]; 2]>,
+    m09_pending: bool,
     m03_departure: Option<[f32; 3]>,
     pub state: Option<MissionState>,
     last_tick: Option<u64>,
@@ -230,6 +234,7 @@ impl MissionClient {
             || self.m02_map.is_some()
             || self.m06_map.is_some()
             || self.m07_map.is_some()
+            || self.m09_map.is_some()
         {
             return Err("M03 cannot share another mission map");
         }
@@ -271,7 +276,7 @@ impl MissionClient {
             return Err("M02 side ward marker changed for the same map");
         }
         if let Some(count) = m02_objectives {
-            if self.m07_map.is_some() {
+            if self.m07_map.is_some() || self.m09_map.is_some() {
                 return Err("M02 cannot share an M07 mission map");
             }
             if !(1..=8).contains(&count) || mission.is_some() || presentation.is_none() {
@@ -358,12 +363,23 @@ impl MissionClient {
             if old.m02_map.as_ref().is_some_and(|old| {
                 old.id == map_id && old.total == count && old.side_ward == m02_side_ward
             }) {
-                self.state = old.state;
+                self.state = old.state.clone();
                 self.last_tick = old.last_tick;
                 self.rules = old.rules;
                 self.run = old.run;
                 self.observed = old.observed;
             }
+        }
+        if old.m09_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1009
+        {
+            self.m09_map = old.m09_map.clone();
+            self.m09_points = old.m09_points;
+            self.state = old.state;
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m09_pending = true;
         }
         Ok(())
     }
@@ -412,7 +428,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::CustodianOfRecord {
+        let map_matches = if state.id == MissionId::PassengerManifest {
+            self.validate_m09_target(&state)?;
+            true
+        } else if state.id == MissionId::CustodianOfRecord {
             self.validate_m08_target(&state)?;
             true
         } else if state.id == MissionId::DeclaredGoods {
@@ -464,6 +483,7 @@ impl MissionClient {
         self.m06_pending = false;
         self.m08_pending = false;
         self.m07_pending = false;
+        self.m09_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -560,7 +580,8 @@ impl MissionClient {
             && self.m05_map.is_none()
             && self.m06_map.is_none()
             && self.m07_map.is_none()
-            && self.m08_map.is_none())
+            && self.m08_map.is_none()
+            && self.m09_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -636,6 +657,11 @@ impl MissionClient {
                     append(format!("m05/{}", captive.id), captive.feet);
                 }
             }
+            if let Some(f) = &state.m09 {
+                for crew in &f.crew {
+                    append(format!("m09/{}", crew.id), crew.feet);
+                }
+            }
         }
         let solids = self.live_visibility_solids();
         let arena = crate::movement::Arena {
@@ -661,9 +687,17 @@ impl MissionClient {
             || self.m06_pending
             || self.m07_pending
             || self.m08_pending
+            || self.m09_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|state| state.id == MissionId::PassengerManifest)
+        {
+            return self.steer_m09(navigator, world, id, snapshot, action);
         }
         if self
             .state

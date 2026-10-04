@@ -851,7 +851,7 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
@@ -890,6 +890,9 @@ pub async fn run_bot(
                         if let Err(error) = mission_client.replace_map_with_m07(m07.as_ref(), half_extent, &solids, presentation.as_ref()) {
                             session_error = Some(Error::Transport(format!("invalid M07 mission map: {error}")));
                             break;
+                        }
+                        if let Err(error)=mission_client.replace_map_with_m09(m09.as_ref(),half_extent,&solids,presentation.as_ref()) {
+                            session_error=Some(Error::Transport(format!("invalid M09 mission map: {error}")));break;
                         }
                         let arena = fragr_server::movement::Arena { half: half_extent, solids };
                         let built = tokio::task::spawn_blocking(move || {
@@ -1260,6 +1263,7 @@ mod tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
         };
         state.validate(1).unwrap();
         assert!(!terminal_mission(&state));
@@ -1312,6 +1316,7 @@ mod tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
         };
         state.validate(20).unwrap();
         let mut total = CombatCounts {
@@ -1446,6 +1451,7 @@ mod tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
         };
         state.validate(1).unwrap();
         let loadout = LoadoutState {
@@ -1545,6 +1551,7 @@ mod tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
         };
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");
@@ -1790,6 +1797,7 @@ mod tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
         };
         let mut epoch = DecisionEpoch::default();
         if DecisionEpoch::mission_changed(None, &mission) {

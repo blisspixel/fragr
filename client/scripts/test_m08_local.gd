@@ -110,7 +110,7 @@ func _run() -> void:
 	if not await _stop(owned):
 		return
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 9 and saved["step"]["mission"] == MissionState.M08_ID, "child atomically writes v9 M08 entry")
+	_check(saved is Dictionary and saved["version"] == 10 and saved["step"]["mission"] == MissionState.M08_ID, "child atomically writes current M08 entry")
 	if not saved is Dictionary:
 		quit(1)
 		return
@@ -146,6 +146,9 @@ func _run() -> void:
 	if not await _until(_playing, "existing M08 entry resumes without replaying arrival"):
 		return
 	if not await _until(func() -> bool: return int(_gear().get("proximity_mines", -1)) == 3, "disk mine count reaches actual loadout"):
+		return
+	game = current_scene
+	if not await _until(func() -> bool: return game._has_local_input_target() and game.place_armed, "actual resumed pawn input is armed before a fresh mine press"):
 		return
 	Input.action_press("place_mine")
 	if not await _until(func() -> bool: return int(_gear().get("proximity_mines", -1)) == 2, "ordinary input consumes one actual finite mine"):
