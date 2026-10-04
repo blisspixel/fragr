@@ -1,6 +1,9 @@
 # Civilian Pistol source and presentation refinement
 
-Status: **in flight**, 2026-10-04. Plan precedes implementation.
+Status: **shipped** on main in [PR #353](https://github.com/blisspixel/fragr/pull/353),
+2026-10-04. Plan preceded implementation. Source, paired live presentation,
+complete local client checking, all eight CI jobs and all three desktop package
+checks passed on reviewed head `131701bc` before main integration.
 Spend: $0 in this refinement. The parent production receipt owns the existing
 15-credit candidate; no new request or subscription operation is authorized here.
 
