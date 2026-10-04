@@ -326,6 +326,10 @@ on their reviewed heads. The Rifle's accepted source and played comparison
 passed complete local checking, all eight exact-head CI jobs and all three
 desktop package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356)
 merged the selected art to main after v0.73.0 was published.
+The [shared Union shadow repair](evidence/union-billboard-shadows-20261004.md)
+is on main through [PR #359](https://github.com/blisspixel/fragr/pull/359), with
+rendered original/corrected controls, complete client, all eight CI jobs and
+all three desktop packages passing. It retains casting and reception.
 The corrected Jammer candidate consumed 35 included credits, passed mechanical
 source inspection and continues through pixel baking and played acceptance.
 The [precision weapon pass](plans/precision-weapon-references-20261004.md)

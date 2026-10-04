@@ -131,6 +131,10 @@ package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) selects
 the refined Rifle on main after accepted source and played comparisons,
 complete local client checks, all eight exact-head CI jobs and all three
 desktop package checks. That increment follows the published v0.73.0 build.
+The [Union shadow repair](docs/evidence/union-billboard-shadows-20261004.md)
+is also on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
+with rendered regression, complete client, all eight CI and all three package
+checks passing. It preserves real shadows while removing diagonal body bands.
 Parallel development continues on Jammer and precision-weapon craft,
 the Repeater foundation, a Kitchen map with
 an unresolved first-use wall-rendering defect, and a Garage whose full walking
