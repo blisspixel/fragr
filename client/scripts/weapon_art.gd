@@ -12,8 +12,9 @@ extends RefCounted
 ## source in `res://art/models/candidates/pistol.glb`; source and bake hashes
 ## are retained beside it. They preserve existing shot and pickup timing.
 ##
-## "Sniper" is the Level 7 Sniper Rifle. Its art is ready; the weapon itself
-## is not on the wire until Level 7 adds it.
+## "Sniper" is the existing Level 7 Sniper Rifle. Its reviewed walnut and
+## charcoal source supplies held, fire and pickup pictures without changing
+## finite Cells, scope behavior or the existing server shot timing.
 
 ## First-person pose at rest. Fists and the Shiv keep their own animation.
 const IDLE: Dictionary[String, Texture2D] = {
@@ -22,7 +23,7 @@ const IDLE: Dictionary[String, Texture2D] = {
 	"Flechette": preload("res://assets/weapons/rifle-source-20261004/rifle_idle.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_idle.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_idle.png"),
-	"Sniper": preload("res://assets/weapons/viewmodels/sniper_idle.png"),
+	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper_idle.png"),
 	"Shiv": preload("res://assets/weapons/viewmodels/shiv_idle.png"),
 }
 
@@ -33,7 +34,7 @@ const FIRE: Dictionary[String, Texture2D] = {
 	"Flechette": preload("res://assets/weapons/rifle-source-20261004/rifle_fire.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_fire.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_fire.png"),
-	"Sniper": preload("res://assets/weapons/viewmodels/sniper_fire.png"),
+	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper_fire.png"),
 }
 
 ## A follow-through after the shot: the Shotgun's pump stroke.
@@ -74,7 +75,7 @@ const PROFILE: Dictionary[String, Texture2D] = {
 	"Flechette": preload("res://assets/weapons/rifle-source-20261004/rifle.png"),
 	"Scatter": preload("res://assets/weapons/pickups/shotgun.png"),
 	"Rail": preload("res://assets/weapons/pickups/railgun.png"),
-	"Sniper": preload("res://assets/weapons/pickups/sniper.png"),
+	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper.png"),
 	"Shiv": preload("res://assets/weapons/48/shiv.png"),
 }
 
