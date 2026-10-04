@@ -81,5 +81,11 @@ source and participant-body harnesses pass, including distinct cache identity,
 actual foot movement, stationary walking root, unarmed civilian stance, map
 budget, palette, retained strip hashes and the existing wire/body boundary.
 The unchanged Clerk pose regression also passes after sharing its loader.
-Sweeper, Auditor and live Latch source integration continue independently;
-their posed and played acceptance and the full combined checks remain open.
+The [Sweeper](sweeper-stylized-source.md) and
+[Auditor](auditor-model-presentation-20261004.md) now use authored role poses
+and paired atlases. The [live Latch](latch-live-mesh.md) uses its packaged
+skin, retained gait, independent fitted screen and actual palm attachment.
+Focused source checks pass. The Auditor's original full development-range
+clear and Latch's full mission-route acceptance remain open; partial played
+evidence is labelled separately. The parent owns fresh whole-client checks
+and one combined integration into main.

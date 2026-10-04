@@ -22,7 +22,7 @@
       "geometry_resolution": "2k",
       "target_triangles": 12000,
       "pose": "a-pose",
-      "status": "source candidate, motion and played acceptance required"
+      "status": "posed skin and paired runtime atlases implemented, combined acceptance pending"
     },
     {
       "role": "auditor",
@@ -34,7 +34,7 @@
       "geometry_resolution": "2k",
       "target_triangles": 12000,
       "pose": "a-pose",
-      "status": "source candidate, motion and played acceptance required"
+      "status": "posed skin and paired runtime atlases implemented, full range clear remains open"
     },
     {
       "role": "free-human",
@@ -46,7 +46,7 @@
       "geometry_resolution": "2k",
       "target_triangles": 12000,
       "pose": "a-pose",
-      "status": "source candidate, motion and played acceptance required"
+      "status": "prepared civilian skin and runtime strip implemented, wider played acceptance open"
     },
     {
       "role": "latch",
@@ -58,7 +58,7 @@
       "geometry_resolution": "2k",
       "target_triangles": 12000,
       "pose": "a-pose",
-      "status": "source candidate, motion and played acceptance required"
+      "status": "live packaged skin and gait implemented, full mission-route acceptance pending"
     }
   ]
 }

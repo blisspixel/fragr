@@ -1,5 +1,31 @@
 # Prepared model sources
 
+## Sweeper and Auditor
+
+`sweeper.glb` and `auditor.glb` are the October 4 prepared issued bodies,
+with 24-bone skins, retained walking clips and embedded 1024-pixel PBR maps.
+Their role sources share the Clerk's bounded loader and pose mathematics,
+but keep separate cached scenes, silhouettes, hands and equipment.
+
+The Sweeper uses two-handed rifle poses, recoil, recovery, unarmed strikes
+and supported collapse. Its horizontal presentation calibration makes the
+bot visibly broader than the Clerk while retaining height and fixed feet;
+gameplay collision is unchanged. The Auditor carries a frontal shield with
+two registered repair lamps, an upper-back cable and raised-hand channel
+emitter. Both bake the existing 55-pose, eight-direction layout with exact
+matching albedo/normal cells. Runtime uses those atlases, not these GLBs.
+The earlier rigid Sweeper export remains a separate library asset.
+
+Source, gait, equipment, channel and atlas gates pass locally. Played evidence
+and remaining gates live in the [Sweeper plan](../../../../docs/plans/sweeper-stylized-source.md)
+and [Auditor evidence](../../../../docs/evidence/auditor-source-20261004.md).
+The full custody development-range clear remains open.
+
+The same preparer produced Latch, but its actual live mesh is packaged at
+`client/assets/models/latch_stylized.glb`, outside this offline directory.
+The [Latch plan](../../../../docs/plans/latch-live-mesh.md) distinguishes
+packaging, actual skin/gesture checks and mission-route acceptance.
+
 ## Free human
 
 `free_human.glb` is the October 4 stylized civilian source. It retains a

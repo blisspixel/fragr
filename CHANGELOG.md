@@ -8,9 +8,13 @@ Release history, newest first. Planned work stays in
 
 The cast gains four coherent stylized production sources and rigs. The free
 human's selectable body uses a prepared skin and gait, painted angular face,
-worn leather jacket, work trousers and civilian accessories. Sweeper, Auditor
-and Latch motion and live presentation continue through their own acceptance
-gates. Production used 160 included model credits, with no new cash charge.
+worn leather jacket, work trousers and civilian accessories. The Sweeper gains
+a broader bot silhouette and two-handed rifle poses. The Auditor gains a
+skinned field uniform, held shield, repair sockets, upper-back cable and
+raised-hand emitter, with matching directional body normals. Latch uses a live
+packaged skin, retained gait, expressive CRT face and actual palm attachment.
+Played evidence and remaining acceptance gates are recorded separately.
+Production used 160 included model credits, with no new cash charge.
 
 Incoming fire gains short spatial pass-by cues and fading pixel damage
 bearings from resolved server shots. Finite shot segments, authoritative cover,

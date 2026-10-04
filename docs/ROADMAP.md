@@ -127,7 +127,7 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, level 7 integrated into the run, levels 9 to 20, the end-of-level tally, the planned console, Ultra graphics and the player-facing rendered benchmark, directional combat audio, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, levels 9 to 20, the planned console, Ultra graphics and the player-facing rendered benchmark, wider directional combat acoustics, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -373,8 +373,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    The [October 4 cast batch](plans/cast-model-buildout-20261004.md) produces
    coherent Sweeper, Auditor, free-human and Latch sources. All four candidates
    and rigs completed for 160 included credits. The new selectable civilian
-   source and eight-cell strip pass focused checks. Role poses, live Latch,
-   venue light and combined played acceptance remain in flight.
+   source and eight-cell strip pass focused checks. The Sweeper and Auditor
+   have authored role poses and paired atlases; Latch uses a packaged live
+   skin with gait and real palm attachments. Source and venue views pass
+   locally; full route acceptance and combined integration remain distinct.
    [West-court homes](plans/m04-residential-facades.md) add sealed domestic
    masses and varied roof edges; the full local M04 route retains all 28 guards
    and departure. Optional roof access and ordinary return also pass. Strict

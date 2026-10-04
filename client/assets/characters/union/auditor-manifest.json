@@ -90,7 +90,7 @@
 	"sha256": "ae7ee3bf8fa1f1bf4a8d398dc74b23e36224cb86bb710436e12f8625cc96ef9a",
 	"sources": {
 		"res://art/characters/auditor_bake.gd": "f3ebb211a6ca1ee2aed6dae1933ddf66eaecc62b35c6b556c8eae6e5a96bfacb",
-		"res://art/characters/auditor_rig.gd": "9e47ddc19adc61f01f7259a0adc95df4e1fb5f415e2fa54f964096953207dba4",
+		"res://art/characters/auditor_rig.gd": "e18536cb7feab5fbce7ee1b40546b52c8860b5541f96b1e6b2edd400e261c108",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 		"res://art/models/auditor_source.gd": "922eee9f31aa3d6511f68f287874cae12dd2dea100d49d98334ae8ad24ba734c",
 		"res://art/models/candidates/auditor.glb": "e4f49157490060e276b4649a838ac147af1b575f71e47531760cd22baf4b2b4c",

@@ -8,8 +8,10 @@ directional campaign sets under visual review. They do not establish a completed
 the earlier humanoid source and shared issued gear; `machines.gd` owns the Heavy
 Sweeper and Turret; `bake.gd` renders the committed atlases in
 `client/assets/characters/union/`. The Sweeper now comes from
-[`../models/sweeper_source.gd`](../models/sweeper_source.gd), with shaped shells,
-exposed joints and six exported mechanical clips. Its bake also writes
+[`../models/sweeper_skinned_source.gd`](../models/sweeper_skinned_source.gd), with
+an angular 24-bone skin, exposed joints, two-handed rifle grip and authored
+combat poses. The earlier rigid source and six exported mechanical clips stay
+in the separate model library. Its character bake also writes
 `sweeper_normals.png` in exactly the same cells. The live presenter pairs
 these view-aligned normals with the albedo under venue lighting.
 The Clerk now uses the prepared skinned
@@ -33,7 +35,7 @@ pauldrons and lights their red lamps. The Turret is a braced column under a
 rotating housing with a rail barrel; its tell lights the optic and four red
 charge coils, and its destroyed pose drops the housing beside the broken column.
 Albedo captures are unshaded; the live Union shader receives venue lighting.
-The Clerk and Sweeper normal atlases describe body shape under that light. Other
+The Clerk, Sweeper and Auditor normal atlases describe body shape under that light. Other
 archetypes retain planar sprite lighting until their normal sources are built.
 Union issue is black cloth, dark steel, plates one step lighter, and restrained
 red on visors, optics, armbands and seals (`union_*` in `docs/palette.json`).
@@ -241,12 +243,13 @@ approximate shapes without editing it. This is a later-art direction, not an
 updated runtime atlas. Body
 customization remains available, and a selected free agent body is not always Latch.
 
-`player_rig.gd` extends the same rig with the two bodies a player can choose: a
-free human and a conscious embodied agent in a synthetic body. They share the
-rig's joints, poses, field and feet registration, and none of the Union issue:
-no black cloth, red, serials, pauldrons or visor slit. The human wears a bone
-shirt under an open warm-leather jacket, a rust scarf and a cyan patch and
-armband, with a visible face and hair. The synthetic body is a bone shell over a
+The selectable human now uses `../models/free_human_source.gd` and its prepared
+24-bone civilian skin, an angular painted face, worn leather, teal shirt, work
+trousers, ochre scarf and practical hat. Its sampler removes horizontal root
+travel and keeps both hands relaxed and empty. `player_rig.gd` retains the
+separate selectable synthetic body, which is not always Latch. Both bodies
+share the existing strip field and fixed feet and carry no Union issue.
+The synthetic body is a bone shell over a
 gunmetal frame with a leather harness, an ember scarf, rust repair plates, two
 round cyan lenses and one magenta-tipped antenna. Both are outlined in outline
 purple. Neither body establishes moral status.
@@ -266,10 +269,12 @@ Run the main and maintenance M01 tours after changes. Inspect attack and death
 sequences, facing from multiple sides, occlusion, feet, both renderers, and
 spectator eyes. The atlas harness cannot determine whether motion looks good.
 
-## Latch reference and provisional geometry
+## Latch live skin and design
 
-Latch uses the separate shared `client/scripts/latch_view.gd` procedural figure
-for the ward and moving companion. Their intended reference scale is roughly
+Latch uses the shared `client/scripts/latch_view.gd` presenter and packaged
+`client/assets/models/latch_stylized.glb` weighted skin for the ward and moving
+companion. `latch_source.gd` samples actual gait and poses the real arms and
+palms; the face keeps an independent fitted pixel expression. Their scale is roughly
 six feet tall (about 1.8 metres), an ordinary person in a scrappy robot body.
 Unequal repaired parts, worn bone/dark steel and a small chosen cyan patch carry
 individual continuity. Latch has their own will and can disagree or refuse;
@@ -284,10 +289,9 @@ muted cyan patch. Preserve screen-expression habits, the single left antenna
 and repair identity across Earth, Moon, Mars
 and story scenes. They are personal traits rather than issued status lights.
 
-The existing [Latch visual implementation](../../../docs/plans/m02-latch-visual-identity.md)
-and model remain provisional against that approved direction. Their historical
-ward and travel captures establish
-implementation evidence, not final body art, exact visual scale approval or a
-named voice. Future art and casting must follow the personhood and personal-choice
-contract in the character guide. No current mesh, atlas or gameplay dimensions
-are changed by this direction.
+The [live mesh plan](../../../docs/plans/latch-live-mesh.md) records actual
+skin, palm, travel, near-visibility and exported Windows install checks.
+Mission-route and wider art acceptance remain distinct. The supplied skin
+has no finger bones, so the voluntary gesture moves the real wrist and palm
+without claiming articulated fingers. Future art and casting follow the
+personhood and personal-choice contract in the character guide.

@@ -58,8 +58,11 @@ normals in a live Persons Unknown guard-room test. Union outfits are recognizabl
 buildings keep their own materials. The remaining cast still needs refinement.
 The [October 4 cast buildout](docs/plans/cast-model-buildout-20261004.md)
 continues with coherent Sweeper, Auditor, free-human and Latch models and rigs.
-The civilian skin and idle/walking strip pass local source and body checks;
-role motion, live Latch and combined acceptance remain in flight. This batch
+The civilian skin and idle/walking strip pass local source and body checks.
+The Sweeper and Auditor now use posed skins for directional albedo/normal
+atlases; Latch uses a live packaged skin with actual gait, fitted screen and
+palm attachments. Role checks and played views are recorded separately from
+full mission-route acceptance. Combined verification remains in flight. This batch
 used 160 included model credits. A free live check reports 2,745 remaining,
 with a separate 15-credit uncertain hold retained.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
