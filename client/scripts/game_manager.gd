@@ -478,7 +478,8 @@ func _apply_render_preferences() -> void:
 	RenderQuality.apply_dither(self, get_viewport(), settings)
 
 func controls_blocked() -> bool:
-	if get_node_or_null("LoadingCard") != null:
+	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if loading != null and loading.visible:
 		return true
 	if is_instance_valid(departure_review):
 		return true

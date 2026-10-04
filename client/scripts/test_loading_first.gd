@@ -76,9 +76,16 @@ func _run() -> void:
 	_check(not scene.throw_armed and scene.place_armed,
 		"a device held through dismissal still requires release")
 	Input.action_release("throw_grenade")
+	scene.show_loading_card(true)
+	card = scene.get_node("LoadingCard") as LoadingCard
+	card.finish_loading(false)
+	_check(not scene.controls_blocked() and scene.place_armed and scene.throw_armed,
+		"dismissal cannot block and disarm the next action while deferred deletion is pending")
 	_check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "automation never captures the pointer")
 	scene.queue_free()
 	await process_frame
+	# Scene teardown stops the radio; allow its mixer to release the decoder.
+	await create_timer(0.1).timeout
 	remove_meta("fragr_boot")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("fragr_settings_path"))))
 	if _failures == 0:
