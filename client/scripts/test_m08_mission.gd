@@ -141,7 +141,7 @@ func _run() -> void:
 	_check(StoryScene.BEFORE_MISSION.get(MissionState.M08_ID) == "m08_arrival" and StoryScene.exists("m08_arrival")
 		and StoryScene.AFTER_MISSION.get(MissionState.M08_ID) == "l08_l09" and StoryScene.exists("l08_l09"), "keyed arrival and departure pages exist")
 	_check(tr("MISSION_M08_TITLE") != "MISSION_M08_TITLE" and tr("WORLD_M08_AUTHORIZED_NOISE") != "WORLD_M08_AUTHORIZED_NOISE", "archive words are keyed")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M08_ID) == 31 and NET.GAMEPLAY_VERSION == 34, "the archive retains capability 31 while the client supports the Enforcer berth capability")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M08_ID) == 31 and NET.GAMEPLAY_VERSION == 35, "the archive retains capability 31 while the client supports the Repeater contract")
 	await process_frame
 	if failures == 0:
 		print("test_m08_mission: PASS strict archive contract, stage flags, node targets, rescues, HUD, presenter and pages")
