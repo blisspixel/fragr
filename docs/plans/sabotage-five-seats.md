@@ -1,6 +1,7 @@
 # Optional five versus five Sabotage admission
 
-**Status:** in flight, 2026-10-04. Plan precedes implementation.
+**Status:** implemented, 2026-10-04. Focused local checks pass; combined
+integration, complete CI and shipping remain open. Plan preceded implementation.
 **Spend:** $0. No rendering or external calls required.
 
 ## Goal and scope
@@ -82,3 +83,6 @@ input and passive pickups. Preserve existing committed-device tests.
 Integration, complete CI, public host documentation and player-facing room
 profile discovery remain separate parent-owned gates. The server sends no
 new profile field in this cut; a host must advertise the optional room rule.
+
+Local receipts and scope are recorded in
+[the profile evidence](../evidence/sabotage-five-seats-20261004.md).

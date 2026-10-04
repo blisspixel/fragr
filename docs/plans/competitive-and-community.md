@@ -51,9 +51,14 @@ role uses the same seats and actions; control never implies allegiance.
 Plant/defuse extends the existing Sabotage state machine and controllers.
 Elimination reuses shared life and round transitions without a charge. Both
 need side-swapped trials and validated format facts. No buy shop or reload is
-implied. Current Sabotage retains survivor equipment and restarts fallen
-players empty; a starting pistol is a proposed alternative pending the
-equipment decision, not an implemented change.
+implied. Nick accepted a basic Pistol start for the optional 5v5 profile on
+2026-10-04: admission, the first round and fresh post-death rounds grant the
+owned Tack/Pistol with fifty finite Bullets. Stronger guns are map pickups.
+Survivors retain their carried weapons and ammunition without a repeated
+sidearm refill, and parked resume retains exact inventory. The
+[bounded profile](sabotage-five-seats.md) is implemented and tested locally;
+combined integration and CI remain open. Generic Sabotage keeps its existing
+survivor carry and empty fresh starts.
 
 ## Liberation: cooperative combined arms
 
