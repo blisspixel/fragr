@@ -24,7 +24,8 @@ hidden geometry, optical axis or chamber clearance.
 
 First measure connected geometry, transforms and actual barrel/optic endpoints
 on the CPU. Inspect real bore and lens depth before repairing them. Preserve
-and count all raw triangles separately from any needed local hollow hardware.
+and count retained, clipped, replaced and authored triangles separately. Keep
+the immutable raw source and record any local retopology explicitly.
 Keep legal notices and bind raw, preparation, source and output hashes.
 
 Separate real bolt parts through measured topology and chamber geometry,
@@ -32,6 +33,16 @@ without sliding the receiver, barrel, scope, furniture or gloves. Bounded
 presentation movement must settle before the existing 1.60 s server cooldown.
 Prove its displacement and clearance with meaningful negative controls.
 No reload, magazine rule, ammunition change, new input or sixth-key change.
+
+The initial fused-mesh partition is rejected. The first studio shows jagged
+joint seams, and 55,522 actual vertex sweep segments report 290 crossings of
+fixed geometry. Preserving every fused joint facet prevents usable rigid
+motion. The bounded repair clips only the measured upper joint and old handle
+regions, retains original geometry outside them, and authors a supported bolt,
+shaft, handle and fixed chamber lips. Record exact removal masks, retained UV
+and winding fingerprints, all replacement counts and continuous surface sweep
+proof. Preserve the rejected studio and sweep report. This repair does not
+make the candidate selected or claim whole-weapon art acceptance.
 
 Normalize the retained gun to deliberate practical metre dimensions and -Z
 forward. Embed at most 1K albedo/normal maps, disable generated LOD and fine
