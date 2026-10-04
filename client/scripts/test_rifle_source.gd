@@ -65,6 +65,18 @@ func _run() -> void:
 			"a visibly separated wrist fails the same actual glove surface test")
 	_check(muzzle.position.z < -0.46 and absf(muzzle.position.x) < 0.003 and absf(muzzle.position.y) < 0.006,
 		"marker retains source bore direction and physical muzzle endpoint")
+	for name: String in ["BoreLip", "BoreLiner"]:
+		var piece: MeshInstance3D = gun.get_node(name) as MeshInstance3D
+		_check(piece.mesh.get_faces().size() / 3 == 192, "local " + name + " triangles stay separately counted")
+		var box: AABB = piece.global_transform * piece.get_aabb()
+		_check(bounds.grow(0.0001).encloses(box), "local bore hardware remains inside the source barrel envelope")
+	_check(not _segment_hits_source(gun, muzzle.global_position + Vector3(0, 0, -0.005),
+		muzzle.global_position + Vector3(0, 0, 0.028)),
+		"actual central aperture remains open through twenty-eight millimetres of recessed bore")
+	var rim_offset: Vector3 = Vector3(0.009, 0, 0)
+	_check(_segment_hits_source(gun, muzzle.global_position + rim_offset + Vector3(0, 0, -0.005),
+		muzzle.global_position + rim_offset + Vector3(0, 0, 0.028)),
+		"the same source triangle probe hits the real outer bore rim")
 	var bolt_finish: StandardMaterial3D = (bolt.get_node("BoltMesh") as MeshInstance3D).get_active_material(0) as StandardMaterial3D
 	_check(bolt_finish.vertex_color_use_as_albedo, "actual imported bolt enables retained per-face plane paint")
 	var maximum: float = 0.0
@@ -99,11 +111,49 @@ func _run() -> void:
 		and receipt.get("runtime_selected") == false, "exact source and preparation receipts stay offline")
 	_check(WeaponArt.IDLE["Flechette"].resource_path == "res://assets/weapons/viewmodels/rifle_idle.png",
 		"runtime Rifle stays unchanged while source review remains open")
+	_check_frames()
 	gun.free()
 	await process_frame
 	if _failures == 0:
 		print("test_rifle_source: PASS preserved topology, compact maps, measured bounds and independent offline mechanism")
 	quit(0 if _failures == 0 else 1)
+
+func _check_frames() -> void:
+	var path: String = "res://art/models/candidates/rifle_views/"
+	var receipt: Variant = JSON.parse_string(FileAccess.get_file_as_string(path + "bake.json"))
+	_check(receipt is Dictionary and receipt.get("runtime_selected") == false
+		and receipt.get("source_sha256") == FileAccess.get_sha256(Source.SOURCE)
+		and receipt.get("presenter_sha256") == FileAccess.get_sha256("res://art/models/rifle_source.gd")
+		and receipt.get("bake_sha256") == FileAccess.get_sha256("res://../tools/preview_rifle_source.gd"),
+		"candidate bake binds exact current source, presenter and camera")
+	var pictures: Dictionary[String, Image] = {}
+	for name: String in ["rifle_idle.png", "rifle_fire.png", "rifle.png"]:
+		var texture: Texture2D = load(path + name) as Texture2D
+		var picture: Image = texture.get_image()
+		pictures[name] = picture
+		var size: Vector2i = Vector2i(80, 19) if name == "rifle.png" else Vector2i(241, 180)
+		_check(picture.get_size() == size and not picture.has_mipmaps(), "candidate " + name + " preserves the original canvas without mipmaps")
+		_check(receipt is Dictionary and receipt.get("frames", {}).get(name) == FileAccess.get_sha256(path + name),
+			"candidate " + name + " pixels match the rendered receipt")
+		var hard_alpha: bool = true
+		for y: int in range(size.y):
+			for x: int in range(size.x):
+				var alpha: float = picture.get_pixel(x, y).a
+				hard_alpha = hard_alpha and (alpha == 0.0 or alpha == 1.0)
+		_check(hard_alpha, "candidate " + name + " has deliberate opaque pixel silhouettes")
+	var idle: Image = pictures["rifle_idle.png"]
+	var fire: Image = pictures["rifle_fire.png"]
+	var bounds: Rect2i = idle.get_used_rect()
+	_check(bounds.size.x >= 100 and bounds.size.y >= 145 and bounds.position.y >= 8
+		and bounds.end.y == 180, "held rifle has useful width, sight headroom and a cropped lower wrist")
+	var flash: int = 0
+	for y: int in range(90):
+		for x: int in range(241):
+			var a: Color = idle.get_pixel(x, y)
+			var b: Color = fire.get_pixel(x, y)
+			if b.a > 0.99 and b.r > a.r + 0.20 and b.g > a.g + 0.15 and b.b < 0.75:
+				flash += 1
+	_check(flash >= 10, "actual coherent firing pixels show a readable muzzle flash")
 
 func _distance_to_surface(point: Vector3, mesh: MeshInstance3D) -> float:
 	var faces: PackedVector3Array = mesh.mesh.get_faces()
@@ -127,3 +177,17 @@ func _distance_to_surface(point: Vector3, mesh: MeshInstance3D) -> float:
 			and (a - c).cross(projected - c).dot(normal) >= 0.0:
 			nearest = minf(nearest, point.distance_to(projected))
 	return nearest
+
+func _segment_hits_source(gun: Node3D, start: Vector3, end: Vector3) -> bool:
+	# Condition millimetre-sized art triangles in centimetre coordinates for the
+	# geometry helper's fixed epsilon. This never participates in combat rays.
+	for node: Node in gun.find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = node as MeshInstance3D
+		var faces: PackedVector3Array = mesh.mesh.get_faces()
+		for face: int in range(0, faces.size(), 3):
+			var hit: Variant = Geometry3D.segment_intersects_triangle(start * 100.0, end * 100.0,
+				mesh.to_global(faces[face]) * 100.0, mesh.to_global(faces[face + 1]) * 100.0,
+				mesh.to_global(faces[face + 2]) * 100.0)
+			if hit is Vector3:
+				return true
+	return false

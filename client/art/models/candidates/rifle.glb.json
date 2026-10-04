@@ -1,5 +1,8 @@
 {
-	"authored_triangles": {},
+	"authored_triangles": {
+		"BoreLiner": 192,
+		"BoreLip": 192
+	},
 	"maps_max_pixels": 1024,
 	"material_policy": {
 		"albedo_cluster_pixels": 4,
@@ -25,8 +28,8 @@
 		"Trigger": 88
 	},
 	"original_triangles": 6122,
-	"prepare_sha256": "3fdcff4419d839364a8b61684e57856951c88da1d2b1d620383644d393d7cb4d",
-	"prepared_sha256": "a27602ecaaf138cc21dabea89ceb23fe3febc1755f9afd2d79af4f74bdc3372f",
+	"prepare_sha256": "53ed35b507ded408f257745d00a44b89abd4644a004d1300a5543db67ab60881",
+	"prepared_sha256": "152628e4b61afd772c21b72158218c73821948e809ec1a21b36f1159bb0b462e",
 	"raw_sha256": "5d53e8995a825b4e594c9b812759dcb070342bfddc73bd64ba351ea9a0576394",
 	"runtime_selected": false,
 	"schema": 1

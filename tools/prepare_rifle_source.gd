@@ -1,6 +1,7 @@
 extends SceneTree
 
 const Metadata = preload("res://art/models/glb_metadata.gd")
+const Geometry = preload("res://scripts/model_geometry.gd")
 const SOURCE_SHA256: String = "5d53e8995a825b4e594c9b812759dcb070342bfddc73bd64ba351ea9a0576394"
 const METRES: float = 0.94
 
@@ -119,6 +120,11 @@ func _run() -> void:
 				plane = Color(1.22, 1.22, 1.18) if face_normal.y > 0.55 else Color(0.82, 0.84, 0.82)
 				if island in [6055, 5585, 6035]:
 					plane = Color(0.53, 0.55, 0.53) if face_normal.y < 0.55 else Color(1.08, 1.08, 1.02)
+				if island == 5901:
+					var center: Vector3 = (vertices[indices[face]] + vertices[indices[face + 1]] + vertices[indices[face + 2]]) / 3.0
+					var radial: Vector2 = Vector2(center.y - 0.060, center.z + 0.015) * METRES
+					if center.x > 0.445 and center.x < 0.470 and radial.length() < 0.008:
+						plane = Color(0.12, 0.14, 0.14)
 			for offset: int in range(3):
 				var index: int = indices[face + offset]
 				surface.set_color(plane)
@@ -137,6 +143,19 @@ func _run() -> void:
 	muzzle.name = "Muzzle"
 	muzzle.position = basis * (Vector3(0.5, 0.060, -0.015) - origin) * METRES
 	gun.add_child(muzzle)
+	var geometry: RefCounted = Geometry.new()
+	for label: String in ["BoreLip", "BoreLiner"]:
+		var finish: StandardMaterial3D = StandardMaterial3D.new()
+		finish.albedo_color = Color("303a37") if label == "BoreLip" else Color("121a18")
+		finish.roughness = 0.96
+		finish.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		var profile: PackedVector2Array = PackedVector2Array([
+			Vector2(0.0012, 0.0068), Vector2(0.0012, 0.0105),
+			Vector2(0.0040, 0.0105), Vector2(0.0040, 0.0068)]) if label == "BoreLip" else PackedVector2Array([
+			Vector2(0.003, 0.0067), Vector2(0.003, 0.0080),
+			Vector2(0.031, 0.0080), Vector2(0.031, 0.0067)])
+		var piece: MeshInstance3D = geometry.lathe(gun, label, profile, finish, muzzle.position, 24)
+		additions[label] = piece.mesh.get_faces().size() / 3
 	var output: GLTFDocument = GLTFDocument.new()
 	output.image_format = "PNG"
 	var export_state: GLTFState = GLTFState.new()

@@ -34,7 +34,7 @@ func _run() -> void:
 	var camera: Camera3D = Camera3D.new()
 	camera.fov = 58.0
 	viewport.add_child(camera)
-	camera.position = Vector3(0.180, 0.100, 0.550)
+	camera.position = Vector3(0.170, 0.100, 0.550)
 	camera.look_at(Vector3(-0.050, -0.420, -0.470))
 	var source: RefCounted = Source.new()
 	var gun: Node3D = source.build(true)
@@ -97,10 +97,11 @@ func _run() -> void:
 			push_error("preview_rifle_source: cannot write mechanism view")
 			quit(1)
 			return
+	source.pose(gun, 1.0)
 	camera.size = 0.055
 	var muzzle: Node3D = gun.get_node("Muzzle") as Node3D
-	camera.position = muzzle.position + Vector3(0, 0, -0.30)
-	camera.look_at(muzzle.position)
+	camera.position = muzzle.global_position + Vector3(0, 0, -0.30)
+	camera.look_at(muzzle.global_position)
 	await process_frame
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw

@@ -1,6 +1,8 @@
 # Civilian Rifle source and presentation refinement
 
 Status: **in flight**, 2026-10-04. Plan precedes implementation.
+Source, fourth studio and ordinary paired presentation accepted; runtime
+selection, combined client and package gates remain open.
 Spend: $0 in this refinement. The shared production receipt owns the existing
 15-credit source. No new source, rig, renewal or account operation here.
 
@@ -58,3 +60,9 @@ pairs; server outcomes, timing and input ownership remain unchanged. Keep
 failed receipts. Request a GPU lease before any renderer and clean only owned
 PIDs. Runtime selection, full client checks, public CI and exported packages
 are separate gates after an accepted actual comparison.
+
+Current [evidence](../evidence/rifle-source-refinement-20261004.md) records
+preserved source counts, separately counted hollow bore pieces, contact and
+mechanism proof, retained rejected cameras and passing original-column
+viewmodel gate. The first played eight-state comparison passes with nine
+ordinary arrivals and exactly one authoritative shot, 60 to 59 Bullets.
