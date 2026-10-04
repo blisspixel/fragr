@@ -81,6 +81,15 @@ venue-light readability, facing, attack origin, near clipping and export
 availability remain explicit art gates. Standing source import alone cannot
 complete this mission or its combat role. Do not add paid calls here.
 
+The inspected 24-bone human source is handed off with a prepared 1K GLB hash
+`8db523712f1c925bbb43b354e0a0e985308a6a96d5d97a09802bc9d74df68292`.
+Reuse the offline Clerk skin/pose math through its existing virtual source
+path, with a scoped powered-armor source and separate atlas receipt. Its
+unused armed-walk cells carry charge poses; actual Fists walking uses the
+unarmed row. Shoulder-drop windup and red issued vents follow the real tell.
+No existing character atlas or shared baked layout is replaced. The runtime
+uses only packaged atlas/shader resources, never the excluded offline GLB.
+
 Meaningful checks cover malformed authoring/wire shapes, old reader refusal,
 ordered activation and no future-body damage, real charge and cover contact,
 one hit per charge, lateral dodge, interruption, off-edge consequence, finite
@@ -104,7 +113,7 @@ receive geometry before snapshots. The native package clippy check passes.
 Headless import has a clean log, and the actor identity and enemy animation
 harnesses pass. Existing baked pose source and atlas receipts remain unchanged.
 
-Retained private logs under `.agents/m09-passenger-manifest-evidence` include
+Retained private logs and recorded observations under `.agents/m09-passenger-manifest-evidence` include
 the initial whole-step shove failure, a test enum spelling correction, queued
 snapshot and empty-party roster failures, and the rejected baked-source change.
 The final tests wait for real body placement and keep an actual participant
@@ -123,3 +132,25 @@ outcome fields, contradictory evacuation and extra or missing v10 outcome
 fields are refused. Native M08 completion records actual progress. Playable
 M09 promotion, historical-unknown carry through M09 retry and fresh mission
 departure are still open and are not proved by this preparation slice.
+
+## Enforcer source checkpoint, 2026-10-04
+
+The actual 24-bone source passes weighted-skin, fixed-sole, gait, supported
+corpse, windup, charge and recovery checks. The independent paired bake passes
+on Radeon 780M with 440 visible, unclipped cells. A full-size 24-view source
+sheet was inspected: the heavy human silhouette, separate limbs, red issued
+shoulder marks and vent tell remain readable through the charge and recovery.
+The atlas gate verifies exact source/output hashes, normal registration,
+actual normal deformation and server-phase-only playback. Existing character
+bakes remain unchanged. Actor, animation and source harnesses pass.
+
+A real Windows release export with the matching private native server passes
+the install check, including both Enforcer texture resources. The runtime
+does not require excluded offline source art. The first missing-native
+install harness failure is retained; the matching-native repeat passes.
+Earlier source-lifetime and insufficient-lean failures remain in the private
+evidence directory alongside the successful bake and source inspection.
+
+These gates establish source, atlas and package availability. Actual venue
+lighting, gameplay attack readability, near clipping and the full M09 route
+are still open. No reviewed par or fresh-player acceptance is claimed.

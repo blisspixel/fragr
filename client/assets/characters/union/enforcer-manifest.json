@@ -1,0 +1,102 @@
+{
+	"clips": [
+		{
+			"action": "seated",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": false
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": false
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": false
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": true
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": true
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": true
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": true
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": true
+		}
+	],
+	"columns": 18,
+	"directions": 8,
+	"engine": "4.7.2-stable (official)",
+	"file": "enforcer.png",
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"model": "Stylized human powered armor with sampled gait, committed charge posture, shoulder-drop windup and issued vent tell; armed gait cells hold charge",
+	"normals_file": "enforcer_normals.png",
+	"normals_sha256": "00ba36069522a5994788d139f57be3aff049be62572bf83a2e5d1e64dc323462",
+	"poses": 55,
+	"rows": 25,
+	"schema": 1,
+	"sha256": "4f964800e6073c586b8bc7dd4cd6bd5e9ec2b374732bf16113e7d3b22ead7d64",
+	"sources": {
+		"res://art/characters/enforcer_bake.gd": "66ae8ad9264297b304ec5100dfb797c3a7d2b759ccd4490a0e4caa87bfb03178",
+		"res://art/characters/enforcer_rig.gd": "4d8a36a4fbc2a205af250227bf62199d3f15bbc32cc38f961077b2d5369fc1f5",
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/models/candidates/enforcer.glb": "8db523712f1c925bbb43b354e0a0e985308a6a96d5d97a09802bc9d74df68292",
+		"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
+		"res://art/models/enforcer_source.gd": "257cd26fbb1ae6b4eb666dffda6da2df894b2363396823cf9df32ade271e9285",
+		"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
+		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+	},
+	"tile_pixels": 160
+}

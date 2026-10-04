@@ -81,8 +81,8 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		material.shader = UNION_SPRITE
 		body.material_override = material
 	material.set_shader_parameter("sprite_texture", body.texture)
-	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk", "auditor"])
-	if kind in ["sweeper", "clerk", "auditor"]:
+	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk", "auditor", "enforcer"])
+	if kind in ["sweeper", "clerk", "auditor", "enforcer"]:
 		var normal_key: String = kind + "_normals"
 		if not _textures.has(normal_key):
 			_textures[normal_key] = load("res://assets/characters/union/" + normal_key + ".png") as Texture2D
@@ -133,9 +133,6 @@ func _plate_part(part_name: String, size: Vector3, offset: Vector3, colour: Colo
 
 ## Per-kind atlas source. Delivered art replaces a placeholder in one table.
 static func atlas_path(kind: String) -> String:
-	# Provisional human role source until its authored powered-armor atlas passes.
-	if kind == "enforcer":
-		return "res://assets/characters/union/clerk.png"
 	if kind == "ranged_sweeper":
 		return L07Assets.RANGED_SWEEPER_ATLAS
 	return "res://assets/characters/union/%s.png" % kind
@@ -161,17 +158,17 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	elif _kind == "crawler":
 		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, travel, facing)
 	elif _kind == "enforcer" and actor.get("phase") == "charging":
-		body.frame = provisional_charge_frame(travel, facing)
+		body.frame = enforcer_charge_frame(travel, facing)
 	else:
 		var custody: int = custody_frame(actor, weapon, tick, elapsed, facing, _standing)
 		body.frame = custody if custody >= 0 else EnemyAnimation.frame(actor, weapon, tick, elapsed,
 			travel, shot_age, facing)
 
-## Existing unarmed gait is provisional until powered-armor source poses pass.
+## The Enforcer's unused armed gait row holds its committed charge posture.
 ## Playback cannot advance the authoritative charge phase or cause a hit.
-static func provisional_charge_frame(distance: float, facing: int) -> int:
+static func enforcer_charge_frame(distance: float, facing: int) -> int:
 	return posmod(facing, EnemyAnimation.DIRECTIONS) * EnemyAnimation.poses() \
-		+ EnemyAnimation.pose_frame("walk", true,
+		+ EnemyAnimation.pose_frame("walk", false,
 			fposmod(distance / EnemyAnimation.STRIDE_METRES, 1.0))
 
 ## Custody poses over the shared baked layout: the Auditor's channel is the
