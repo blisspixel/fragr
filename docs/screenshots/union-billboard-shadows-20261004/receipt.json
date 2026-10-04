@@ -1,0 +1,55 @@
+﻿{
+    "fixture":  {
+                    "camera":  [
+                                   2.4,
+                                   1.6,
+                                   0.0
+                               ],
+                    "camera_target":  [
+                                          0.0,
+                                          0.85,
+                                          0.0
+                                      ],
+                    "casting_darkened_pixels":  2343,
+                    "corrected_plate_luminance_range":  0.0,
+                    "failures":  0,
+                    "old_plate_luminance_range":  0.351520776748657,
+                    "receiving_darkened_pixels":  525,
+                    "shader_sha256":  "1b7fea51c27b64037caee05f1b3fa5d8188eadf2407ee8b5980220fa8ca27f2e"
+                },
+    "base":  "53b5c0367122d2cd8a7d0eb34ad187cea32ffabc",
+    "harness_sha256":  "d660771667df526d6cf3b24d168530a1b336b6ba17baab49cb9ece3b9852c346",
+    "shader_sha256":  "1b7fea51c27b64037caee05f1b3fa5d8188eadf2407ee8b5980220fa8ca27f2e",
+    "owned_process_retired":  true,
+    "renderer":  "Compatibility",
+    "prior_failure":  {
+                          "renderer_exit":  1,
+                          "reason":  "Directional light faced the plate backside. Old/corrected plate range0 and receiving0 were inconclusive. Casting12374 passed. All gates retained.",
+                          "fixture":  "fixture-1",
+                          "renderer_pid":  24692
+                      },
+    "images":  [
+                   {
+                       "sha256":  "9e114c436742390fedd67f0b88e0281fa7aca69f42a694b2cee9d8109594d12f",
+                       "file":  "original-fixed-camera.png"
+                   },
+                   {
+                       "sha256":  "3d1041b572bdedb449706f899510e3ff75c53cad9a62aa04b5188557dfe3f254",
+                       "file":  "corrected-fixed-camera.png"
+                   },
+                   {
+                       "sha256":  "556591d968828edd5f1cae4ac8bc1a8366b59aaf4ec4abf3f70dca190755118b",
+                       "file":  "casting-off-control.png"
+                   },
+                   {
+                       "sha256":  "48ae791c5c7141eb48e71d4079a7f74210a8058e2886f1c670b043faed01bc39",
+                       "file":  "receiver-blocker-present.png"
+                   }
+               ],
+    "gpu":  "AMD Radeon 780M",
+    "error_clean":  true,
+    "engine":  "4.7.2-stable",
+    "renderer_exit":  0,
+    "date":  "2026-10-04",
+    "renderer_pid":  18452
+}
