@@ -321,9 +321,15 @@ The refined Pistol and hatless civilian are on main through
 [PR #353](https://github.com/blisspixel/fragr/pull/353) and
 [PR #352](https://github.com/blisspixel/fragr/pull/352), with complete local
 client checks, all eight CI jobs and all three desktop package checks passing
-on their reviewed heads. Rifle compact preparation and mechanical presentation
-continue. The corrected Jammer candidate consumed 35 included credits and
-requires mechanical and played acceptance before selection. Kitchen's
+on their reviewed heads. The Rifle's accepted source and played comparison
+passed complete local checking; its refreshed main-based branch awaits new
+exact-head CI and package gates in [PR #356](https://github.com/blisspixel/fragr/pull/356).
+The corrected Jammer candidate consumed 35 included credits, passed mechanical
+source inspection and continues through pixel baking and played acceptance.
+The [precision weapon pass](plans/precision-weapon-references-20261004.md)
+adds two inspected sources for 70 included credits; compact preparation and
+selection remain open. The latest account check reports 2,480 available,
+15 held and 2,465 usable, with 590 tracked credits consumed. Kitchen's
 eight-pad route and actual four-fighter match pass, but its first-use white-wall
 art defect remains unresolved. Garage's ordinary 15-state route passes with
 no deaths; vehicle/surface craft and fresh human fun remain open. Shared
