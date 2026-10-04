@@ -1,8 +1,8 @@
 # Optional five versus five Sabotage admission
 
-**Status:** implemented, 2026-10-04. Focused local checks pass. Main integration,
-complete CI and desktop shipping follow
-[PR #351](https://github.com/blisspixel/fragr/pull/351). Human match acceptance
+**Status:** shipped, 2026-10-04, in
+[PR #351](https://github.com/blisspixel/fragr/pull/351) and v0.72.0 after focused
+local checks, complete CI and all three desktop package checks. Human match acceptance
 remains open. Plan preceded implementation.
 **Spend:** $0. No rendering or external calls required.
 

@@ -1,8 +1,10 @@
 # Passenger Manifest prototype
 
 Status: in flight, started 2026-10-04 from main a6407616. The bounded playable
-prototype and structural route are implemented and tested locally, not shipped;
-final art, fresh-player and difficulty acceptance remain open.
+prototype shipped on main in [PR #354](https://github.com/blisspixel/fragr/pull/354)
+after its actual structural combat route, complete local checks, all eight CI
+jobs and all three desktop package checks passed on reviewed head `01912934`.
+Final art, fresh-player and difficulty acceptance remain open.
 
 The accepted level 9 brief in [Passenger Manifest](../campaign/l09-passenger-manifest.md)
 owns this Episode II finale. Its destination is Tern's recognizable Common

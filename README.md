@@ -40,9 +40,10 @@ acceptance still open:
    connected to the run through strict saved equipment and finite mine counts.
 9. **Passenger Manifest:** release the Common Carrier's crew, face charging
    Enforcers and climb supported service galleries to the boarding hatch.
-   Strict archive choices, actual equipment and retry carry pass locally;
+   Strict archive choices, actual equipment and retry carry pass;
    the complete 27-state combat and structural route passes. This prototype
-   is not yet shipped. Its final hull art, shortcuts and fresh-player review
+   is on main through [PR #354](https://github.com/blisspixel/fragr/pull/354).
+   Its final hull art, shortcuts and fresh-player review
    remain open, and level 10 stays pending.
 
 The twenty-level story in five episodes is in [CAMPAIGN.md](docs/CAMPAIGN.md),
@@ -83,7 +84,9 @@ normals in a live Persons Unknown guard-room test. Union outfits are recognizabl
 buildings keep their own materials. The remaining cast still needs refinement.
 The [October 4 cast buildout](docs/plans/cast-model-buildout-20261004.md)
 continues with coherent Sweeper, Auditor, free-human and Latch models and rigs.
-The civilian skin and idle/walking strip pass local source and body checks.
+The default civilian now has a hatless silhouette, rust utility jacket and
+casual teal layer. [PR #352](https://github.com/blisspixel/fragr/pull/352)
+records source, body, full client, live match, CI and desktop package checks.
 The Sweeper and Auditor now use posed skins for directional albedo/normal
 atlases; Latch uses a live packaged skin with actual gait, fitted screen and
 palm attachments. Role checks and played views are recorded separately from
@@ -91,10 +94,11 @@ full mission-route acceptance. This runtime increment shipped in
 [PR #348](https://github.com/blisspixel/fragr/pull/348) and
 [v0.71.0](https://github.com/blisspixel/fragr/releases/tag/v0.71.0), with full
 implementation CI and all three desktop package checks passing. Its cast batch
-used 160 included model credits. Further Enforcer and Crawler source candidates
-remain in flight. The latest October 4 free account check reports 2,655
-available with a 15-credit uncertain hold, leaving 2,640 usable; tracked net
-consumption is 415 credits. The [full asset plan](docs/plans/meshy-full-game-assets.md)
+used 160 included model credits. The Enforcer is integrated with level 9;
+Crawler refinement remains in flight. The latest October 4 free account check
+reports 2,550 available with a 15-credit uncertain hold, leaving 2,535 usable;
+tracked net consumption is 520 credits, including the new Jammer candidate
+under inspection. The [full asset plan](docs/plans/meshy-full-game-assets.md)
 owns the per-object briefs and budget scenarios.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
 and [campaign results](docs/plans/campaign-results.md) shipped in that same
@@ -114,7 +118,10 @@ in [PR #347](https://github.com/blisspixel/fragr/pull/347).
 Episode II refill. Its [plan](docs/plans/m09-passenger-manifest-prototype.md)
 and [evidence](docs/evidence/m09-passenger-manifest-20261004.md) distinguish
 real completion, historical unknown outcomes and remaining art and play gates.
-Parallel development continues on Pistol and Rifle craft, a Kitchen map with
+[PR #353](https://github.com/blisspixel/fragr/pull/353) selects the refined
+Pistol after source, paired live presentation, full client, CI and desktop
+package checks. Parallel development continues on Rifle and Jammer craft,
+the Repeater foundation, a Kitchen map with
 an unresolved first-use wall-rendering defect, and a Garage whose full walking
 route passes but vehicle craft and fresh human fun remain open.
 
