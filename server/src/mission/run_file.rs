@@ -10,11 +10,14 @@ use uuid::Uuid;
 
 mod legacy;
 pub(crate) mod store;
-use legacy::{RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6};
+use legacy::{
+    RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
+};
 
-/// Version 7 adds playable M06 and its optional route outcome.
-/// Versions 2 through 6 upgrade explicitly; version 1 remains incompatible.
-pub(super) const RUN_FILE_VERSION: u32 = 7;
+/// Version 8 adds playable M07, a carried Sniper Rifle after it, and the
+/// pending level 8 edge. Versions 2 through 7 upgrade explicitly; version 1
+/// remains incompatible.
+pub(super) const RUN_FILE_VERSION: u32 = 8;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -22,6 +25,7 @@ const M05_MISSION: &str = "no_forwarding_address";
 const M06_MISSION: &str = "port_of_entry";
 const M07_MISSION: &str = "declared_goods";
 const M09_MISSION: &str = "passenger_manifest";
+const M08_MISSION: &str = "custodian_of_record";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -210,6 +214,7 @@ impl RunDocument {
         }
     }
 
+    #[cfg(test)]
     pub fn promote_m02(&self, m02_hash: [u8; 32]) -> Result<Self, &'static str> {
         self.promote_next(MissionId::PersonsUnknown, m02_hash)
     }
@@ -228,6 +233,7 @@ impl RunDocument {
             MissionId::CustodianOfRecord => {
                 return Err("saved runs do not reach Custodian of Record yet")
             }
+            MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
         let SavedStep::AwaitingMission {
@@ -242,7 +248,10 @@ impl RunDocument {
             || next_mission != next
             || (!matches!(
                 mission,
-                MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
+                MissionId::NoticeToVacate
+                    | MissionId::NoForwardingAddress
+                    | MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -255,7 +264,8 @@ impl RunDocument {
         promoted.content_sha256 = content_hash;
         promoted.level_start_continues = self.remaining_continues;
         // Only the completed M05 edge enters Episode II. Reopening a promoted
-        // entry or retrying it never passes this edge again.
+        // entry or retrying it never passes this edge again. M07 continues the
+        // same episode with whatever allowance M06 left.
         if mission == MissionId::PortOfEntry {
             promoted.remaining_continues = CAMPAIGN_CONTINUES;
             promoted.level_start_continues = CAMPAIGN_CONTINUES;
@@ -299,7 +309,10 @@ impl RunDocument {
         }
         let completed_m03 = matches!(
             self.stage_mission(),
-            MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
+            MissionId::NoticeToVacate
+                | MissionId::NoForwardingAddress
+                | MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -311,7 +324,7 @@ impl RunDocument {
         }
         let completed_m04 = matches!(
             self.stage_mission(),
-            MissionId::NoForwardingAddress | MissionId::PortOfEntry
+            MissionId::NoForwardingAddress | MissionId::PortOfEntry | MissionId::DeclaredGoods
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -321,8 +334,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m04_outcome {
             outcome.validate()?;
         }
-        let completed_m05 = self.stage_mission() == MissionId::PortOfEntry
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m05 = matches!(
+            self.stage_mission(),
+            MissionId::PortOfEntry | MissionId::DeclaredGoods
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
         if completed_m05 != self.m05_outcome.is_some() {
@@ -331,9 +346,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m05_outcome {
             outcome.validate()?;
         }
-        let completed_m06 = matches!(&self.step, SavedStep::AwaitingMission {
-            completed_mission: MissionId::PortOfEntry, next_mission, ..
-        } if next_mission == M07_MISSION);
+        let completed_m06 = self.stage_mission() == MissionId::DeclaredGoods
+            || matches!(&self.step, SavedStep::AwaitingMission {
+                completed_mission: MissionId::PortOfEntry, next_mission, ..
+            } if next_mission == M07_MISSION);
         if completed_m06 != self.m06_outcome.is_some() {
             return Err("saved prisoner-route outcome does not match completed M06");
         }
@@ -376,6 +392,7 @@ impl RunDocument {
                         | (MissionId::NoticeToVacate, M05_MISSION)
                         | (MissionId::NoForwardingAddress, M06_MISSION)
                         | (MissionId::PortOfEntry, M07_MISSION)
+                        | (MissionId::DeclaredGoods, M08_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -384,7 +401,7 @@ impl RunDocument {
                 {
                     return Err("M01 run has the wrong continue baseline");
                 }
-                Self::validate_carried_finds(exit)?;
+                Self::validate_carried_finds(exit, *completed_mission == MissionId::DeclaredGoods)?;
                 exit.validate()
             }
         }
@@ -394,15 +411,17 @@ impl RunDocument {
         if mission == MissionId::RecallNotice && self.level_start_continues != CAMPAIGN_CONTINUES {
             return Err("M01 run has the wrong continue baseline");
         }
-        Self::validate_carried_finds(entry)?;
+        Self::validate_carried_finds(entry, false)?;
         entry.validate()
     }
 
-    /// The Sniper Rifle is first found in Declared Goods. No saved stage before
-    /// that mission can carry it, so a forged copy never becomes an unlock.
-    fn validate_carried_finds(entry: &SavedEntry) -> Result<(), &'static str> {
-        if entry.equipment.weapons.contains(&WeaponType::Sniper)
-            || entry.equipment.selected == WeaponType::Sniper
+    /// The Sniper Rifle is first found in Declared Goods. Only the exit of a
+    /// completed M07 can carry it; every earlier stage, including an M07 entry
+    /// or retry, refuses a forged copy so it never becomes an unlock.
+    fn validate_carried_finds(entry: &SavedEntry, sniper_found: bool) -> Result<(), &'static str> {
+        if !sniper_found
+            && (entry.equipment.weapons.contains(&WeaponType::Sniper)
+                || entry.equipment.selected == WeaponType::Sniper)
         {
             return Err("saved equipment carries a weapon its stage cannot contain");
         }
@@ -445,6 +464,7 @@ impl GameState {
                     MissionId::NoForwardingAddress => M06_MISSION,
                     MissionId::PortOfEntry => M07_MISSION,
                     MissionId::CustodianOfRecord => M09_MISSION,
+                    MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
                 exit: solo
@@ -472,7 +492,10 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
+                MissionId::NoticeToVacate
+                    | MissionId::NoForwardingAddress
+                    | MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -489,7 +512,7 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::NoForwardingAddress | MissionId::PortOfEntry
+                MissionId::NoForwardingAddress | MissionId::PortOfEntry | MissionId::DeclaredGoods
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -505,7 +528,7 @@ impl GameState {
                     released_workers: self.m05_released_worker_ids(),
                     evacuated_workers: self.m05_evacuated_worker_ids(),
                 })
-            } else if mission == MissionId::PortOfEntry {
+            } else if matches!(mission, MissionId::PortOfEntry | MissionId::DeclaredGoods) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
                     evacuated_workers: solo.carried_evacuated_workers.clone(),
@@ -513,11 +536,19 @@ impl GameState {
             } else {
                 None
             },
-            m06_outcome: (solo.state.status == CampaignRunStatus::Complete
-                && mission == MissionId::PortOfEntry)
-                .then(|| M06Outcome {
+            m06_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::PortOfEntry
+            {
+                Some(M06Outcome {
                     prisoner_route_marked: self.m06_prisoner_route_marked(),
-                }),
+                })
+            } else if mission == MissionId::DeclaredGoods {
+                Some(M06Outcome {
+                    prisoner_route_marked: solo.carried_prisoner_route_marked,
+                })
+            } else {
+                None
+            },
         };
         document.validate(content_sha256)?;
         Ok(Some(document))

@@ -12,6 +12,9 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 		lunar.build(half)
 		add_child(lunar)
 		return
+	if venue == "moon_town":
+		# The town presenter owns the dome, depot tower and port silhouettes.
+		return
 	if venue == "low_water":
 		_build_town(half)
 		return

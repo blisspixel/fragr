@@ -9,6 +9,7 @@ mod loadout;
 mod m04;
 mod m05;
 mod m06;
+mod m07;
 mod m08;
 mod mission;
 mod rules;
@@ -41,6 +42,7 @@ pub use m05::{
     M05TramState, M05WorkerGeometry, M05WorkerState, M05_OBJECTIVE_IDS, M05_WORKER_IDS,
 };
 pub use m06::{M06MapGeometry, M06ObjectiveState, M06_OBJECTIVE_IDS, M06_SERVICE_ID};
+pub use m07::{M07MapGeometry, M07ObjectiveState, M07_OBJECTIVE_IDS};
 pub use m08::{
     M08MapGeometry, M08NodeGeometry, M08ObjectiveState, M08_BAYS_ID, M08_CABINET_ID,
     M08_MACHINE_STEP, M08_NODES, M08_NODE_HP, M08_OBJECTIVE_IDS,
@@ -658,7 +660,11 @@ pub const SNIPER_GAMEPLAY_VERSION: u32 = 30;
 /// Custodian of Record's strict `m08` geometry and mission facts and the
 /// `custodian_of_record` mission id. Required only on M08.
 pub const M08_GAMEPLAY_VERSION: u32 = 31;
-pub const GAMEPLAY_VERSION: u32 = M08_GAMEPLAY_VERSION;
+
+/// Declared Goods: strict M07 geometry and facts, the depot freight departure
+/// and retained earlier outcomes. Required only on M07.
+pub const M07_GAMEPLAY_VERSION: u32 = 32;
+pub const GAMEPLAY_VERSION: u32 = M07_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -777,6 +783,7 @@ mod geometry_tests {
             m05: None,
             m06: None,
             m08: None,
+            m07: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -786,6 +793,8 @@ mod geometry_tests {
         };
         let json = serde_json::to_string(&message).unwrap();
         assert!(!json.contains("m02_side_ward"));
+        assert!(!json.contains("m07"));
+        assert!(!json.contains("m08"));
         assert!(
             matches!(serde_json::from_str::<ServerMessage>(&json).unwrap(),
             ServerMessage::MapInfo { geometry_version: 2, solids, .. } if solids == raised)
@@ -889,6 +898,8 @@ pub enum ServerMessage {
         m06: Option<M06MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m08: Option<M08MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m07: Option<M07MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

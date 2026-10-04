@@ -43,21 +43,9 @@ pub enum RunPreview {
 }
 
 pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
-    let m01_hash = AuthoredSource::bundled_content_sha256(MissionId::RecallNotice);
-    let m02_hash = AuthoredSource::bundled_content_sha256(MissionId::PersonsUnknown);
-    let m03_hash = AuthoredSource::bundled_content_sha256(MissionId::ScheduledService);
-    let m04_hash = AuthoredSource::bundled_content_sha256(MissionId::NoticeToVacate);
-    let m05_hash = AuthoredSource::bundled_content_sha256(MissionId::NoForwardingAddress);
-    let m06_hash = AuthoredSource::bundled_content_sha256(MissionId::PortOfEntry);
-    match RunStore::inspect_with_hashes(
-        &run_directory()?,
-        m01_hash,
-        m02_hash,
-        m03_hash,
-        m04_hash,
-        m05_hash,
-        m06_hash,
-    )? {
+    let hashes = crate::mission::run_file::store::CAMPAIGN_MISSIONS
+        .map(AuthoredSource::bundled_content_sha256);
+    match RunStore::inspect_with_hashes(&run_directory()?, hashes)? {
         RunProbe::Missing => Ok(RunPreview::Missing),
         RunProbe::Incompatible => Ok(RunPreview::Incompatible),
         RunProbe::Corrupt => Ok(RunPreview::Corrupt),
@@ -72,6 +60,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::NoForwardingAddress => "no_forwarding_address",
                         MissionId::PortOfEntry => "port_of_entry",
                         MissionId::CustodianOfRecord => "custodian_of_record",
+                        MissionId::DeclaredGoods => "declared_goods",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -153,7 +142,9 @@ impl Ready {
             url: format!("ws://{address}"),
             // M06 adds a distinct envelope; earlier mission readers retain
             // their existing capability boundary and unchanged rules.
-            gameplay_version: if mission == MissionId::CustodianOfRecord {
+            gameplay_version: if mission == MissionId::DeclaredGoods {
+                crate::protocol::M07_GAMEPLAY_VERSION
+            } else if mission == MissionId::CustodianOfRecord {
                 crate::protocol::M08_GAMEPLAY_VERSION
             } else if mission == MissionId::PortOfEntry {
                 crate::protocol::M06_GAMEPLAY_VERSION

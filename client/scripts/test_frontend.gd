@@ -113,9 +113,13 @@ func _run() -> void:
 	_check(column.get_node_or_null("PortOfEntrySaved") != null and _menu_text(column).contains("PORT OF ENTRY"), "completed M05 offers the real lunar continuation with spent old allowance")
 	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M06_ID}), "new lunar transition plays arrival while an existing lunar entry does not")
 	owned.run_preview["continues"] = 2
+	owned.run_preview["mission"] = MissionState.M07_ID
+	menu._show("single")
+	_check(column.get_node_or_null("DeclaredGoodsSaved") != null and _menu_text(column).contains("DECLARED GOODS"), "completed M06 offers the real town continuation with retained allowance")
+	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M07_ID}), "new town transition plays arrival while an existing town entry does not")
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
-	_check(column.get_node_or_null("PortOfEntrySaved") == null and _menu_text(column).contains("Declared Goods is still in development"), "unbuilt M07 has no launch button")
+	_check(column.get_node_or_null("DeclaredGoodsSaved") == null and _menu_text(column).contains("Continue Run into level 8 is still in development"), "pending M08 carry has no launch button")
 	menu._onward_pending = true
 	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
 	owned.run_preview = {"status": "loading"}
@@ -129,16 +133,16 @@ func _run() -> void:
 	menu._try_onward()
 	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
 		"an unbuilt next mission settles the onward request on Single Player without launching")
-	_check(_menu_text(column).contains("NEXT: DECLARED GOODS") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M05 previews mission, shared continues and saved body")
+	_check(_menu_text(column).contains("NEXT: CUSTODIAN OF RECORD") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M07 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
-		"pending M05 leaves an unbound body visible without an unavailable selector")
+		"pending M07 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 6 and development.get_item_text(4).contains("PORT OF ENTRY")
-		and development.get_item_text(5).contains("CUSTODIAN OF RECORD"), "compact practice selector exposes the lunar and archive prototypes")
+	_check(development.item_count == 7 and development.get_item_text(4).contains("PORT OF ENTRY")
+		and development.get_item_text(5).contains("DECLARED GOODS") and development.get_item_text(6).contains("CUSTODIAN OF RECORD"), "compact practice selector exposes the lunar, town and archive prototypes")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	await menu._show("multi")

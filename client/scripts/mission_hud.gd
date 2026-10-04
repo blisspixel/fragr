@@ -284,6 +284,9 @@ func _refresh_content() -> void:
 	if state.get("id") == MissionState.M06_ID:
 		_refresh_m06()
 		return
+	if state.get("id") == MissionState.M07_ID:
+		_refresh_m07()
+		return
 	_evac_badge.visible = false
 	_recovery.visible = false
 	# The same quiet card as the later missions: the run allowance is a corner
@@ -328,7 +331,7 @@ func _refresh_content() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M08_ID]:
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -352,8 +355,8 @@ static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
-	var progress_key: String = "m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))
-	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M08_ID] and value.get(progress_key) is Dictionary:
+	var progress_key: String = "m07" if value.get("id") == MissionState.M07_ID else "m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID] and value.get(progress_key) is Dictionary:
 		var current: Variant = value[progress_key].get("current")
 		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
 		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
@@ -516,6 +519,27 @@ func _refresh_m06() -> void:
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
 			use = _catalog("M06_USE_TRANSIT")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
+## The curfew town has one objective line and a legal freight prompt.
+func _refresh_m07() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m07"]
+	_evac_badge.visible = false
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("M07_WAITING")
+		"departed": _copy.text = InputGlyphs.plain(_catalog("M07_DEPARTED"))
+		_: _copy.text = _catalog("M07_OBJECTIVE_" + str(progress["current"]["id"]).to_upper())
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M07_USE_FREIGHT")
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
 

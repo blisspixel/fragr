@@ -154,6 +154,13 @@ static func visible_target(snapshot: Dictionary, player_id: String, solids: Arra
 		distance = eye.distance_squared_to(point)
 	return nearest
 
+static func valid_engagement_distance(spec: Dictionary) -> bool:
+	if not spec.has("engagement_distance"):
+		return true
+	var distance: Variant = spec["engagement_distance"]
+	return (typeof(distance) == TYPE_FLOAT or typeof(distance) == TYPE_INT) \
+		and is_finite(float(distance)) and float(distance) > 0.0 and float(distance) <= 90.0
+
 func _observe(snapshot: Dictionary) -> void:
 	var tick: int = int(snapshot["tick"])
 	if tick <= _last_tick:
@@ -433,6 +440,16 @@ func approach_step(manager: Node, me: Dictionary, snapshot: Dictionary, spec: Di
 	var next_index: int = follow_route(me, camera, route, index, focus)
 	return {"index": next_index, "anchor": Vector2(me.x, me.z) if next_index != index else anchor}
 
+## Short-range search keeps the existing no-fire approach defense while a
+## visible guard remains outside the capture's engagement distance.
+func search_step(manager: Node, me: Dictionary, snapshot: Dictionary, spec: Dictionary,
+		solids: Array, anchor: Vector2, route: Array, index: int) -> Dictionary:
+	if spec.has("engagement_distance"):
+		return approach_step(manager, me, snapshot, spec, solids, anchor, route, index)
+	var camera: Node3D = manager.get_node("SpectatorCamera")
+	var next_index: int = follow_route(me, camera, route, index)
+	return {"index": next_index, "anchor": Vector2(me.x, me.z) if next_index != index else anchor}
+
 static func valid_approach_focus(spec: Dictionary) -> bool:
 	if not spec.has("approach_focus"):
 		return true
@@ -492,6 +509,9 @@ func turret_peek_allows(spec: Dictionary, index: int, tick: int) -> bool:
 		and observer.clear_windup_ready(tick))
 
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
+	if not valid_engagement_distance(spec):
+		push_error("qa_combat: engagement_distance must be finite, positive and at most 90 metres")
+		return {"passed": false}
 	if not valid_turret_cancel(spec):
 		push_error("qa_combat: Turret cancellation requires a typed flag and one named required Turret")
 		return {"passed": false}
@@ -527,6 +547,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		push_error("qa_combat: target_required_only needs named required enemies")
 		return {"passed": false}
 	var target_names: Array = required if spec.get("target_required_only", false) else []
+	var engagement_distance: float = float(spec.get("engagement_distance", INF))
 	if spec.get("require_companion_damage", false) and required.is_empty():
 		push_error("qa_combat: companion damage proof requires named targets")
 		return {"passed": false}
@@ -568,7 +589,6 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	resolved_shots_omitted = 0
 	enemy_shots = 0
 	_recording = true
-	var camera: Node3D = manager.get_node("SpectatorCamera")
 	var info: Dictionary = manager.get("current_map_info")
 	var solids: Array = info["solids"]
 	_turret_observer = null
@@ -621,7 +641,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 				break
 		var me: Dictionary = actor_by_id(snapshot, _player_id)
 		alive = not me.is_empty() and int(me["hp"]) > 0
-		var target: Dictionary = visible_target(snapshot, _player_id, solids, false, INF, target_names)
+		var target: Dictionary = visible_target(snapshot, _player_id, solids, false, engagement_distance, target_names)
 		if not target.is_empty():
 			last_target_id = str(target["id"])
 		release_inputs()
@@ -636,10 +656,9 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 				may_fire = may_fire and cadence_allows_fire(fire_cadence, maxi(0, int(snapshot["tick"]) - start_tick))
 			engage(manager, me, target, solids, anchor, spec.get("evade_tells", false), may_fire)
 		elif target.is_empty() and alive and not complete and approach_index >= approach_route.size() and search_index < search_route.size():
-			var previous_index: int = search_index
-			search_index = follow_route(me, camera, search_route, search_index)
-			if search_index != previous_index:
-				anchor = Vector2(me.x, me.z)
+			var progress: Dictionary = search_step(manager, me, snapshot, spec, solids, anchor, search_route, search_index)
+			search_index = progress["index"]
+			anchor = progress["anchor"]
 		var handled_phase: String = ""
 		var handled_actor: Dictionary = actor_by_id(snapshot, last_target_id)
 		if not handled_actor.is_empty():
@@ -729,8 +748,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 			"participant_hp_end": int(participant_end.get("hp", 0)),
 			"participant_armor_end": int(participant_end.get("armor", 0)), "passed": companion_damage}))
 	if not passed:
-		push_error("qa_combat: %s defeated %d, required %s confirmed %s, shots %d, alive %s, saved %s, approach %s, encounter HP %d to %d, no damage %s" % [
-			_kind, defeated.size(), required, confirmed_names.keys(), shots, alive, saved,
+		push_error("qa_combat: %s defeated %d, required %s confirmed %s, shots %d, alive %s, participant died %s, saved %s, approach %s, encounter HP %d to %d, no damage %s" % [
+			_kind, defeated.size(), required, confirmed_names.keys(), shots, alive, participant_died, saved,
 			approach_complete, first_crawler_encounter_start_hp,
 			first_crawler_encounter_low_hp, no_damage_proven,
 		])
@@ -749,6 +768,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		"companion_damage": companion_damage,
 		"companion_fire_file": companion_fire_file,
 		"participant_hp_start": participant_hp_start,
+		"participant_died": participant_died,
 		"participant_armor_start": participant_armor_start,
 		"participant_hp_end": int(participant_end.get("hp", 0)),
 		"participant_armor_end": int(participant_end.get("armor", 0)),

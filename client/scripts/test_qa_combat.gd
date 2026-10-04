@@ -17,6 +17,7 @@ class ApproachProbe extends QaCombat:
 var _failures: int = 0
 
 func _initialize() -> void:
+	_check_engagement_distance()
 	_check_focused_route()
 	_check_m06_gallery_contact()
 	_check_m06_contact_dodge()
@@ -225,6 +226,8 @@ func _initialize() -> void:
 		_check(manifest is Dictionary and TOUR.valid_walks(manifest.get("states")), filename + " has valid walking routes")
 		if manifest is Dictionary:
 			for state: Variant in manifest.get("states", []):
+				if state is Dictionary and state.get("combat") is Dictionary:
+					_check(QaCombat.valid_engagement_distance(state["combat"]), filename + " has a valid optional engagement distance")
 				if state is Dictionary and state.get("combat") is Dictionary and state["combat"].has("fire_cadence"):
 					_check(QaCombat.valid_fire_cadence(state["combat"]["fire_cadence"]),
 						filename + " has a valid bounded fire cadence")
@@ -442,6 +445,27 @@ func _initialize() -> void:
 		print("test_qa_combat: PASS")
 	quit(0 if _failures == 0 else 1)
 
+func _check_engagement_distance() -> void:
+	_check(QaCombat.valid_engagement_distance({}) and QaCombat.valid_engagement_distance({"engagement_distance": 10})
+		and QaCombat.valid_engagement_distance({"engagement_distance": 90.0}), "distance-bounded combat is optional and accepts finite positive limits")
+	for invalid: Variant in [null, true, "10", [], {}, NAN, INF, -INF, 0, -1, 90.1]:
+		_check(not QaCombat.valid_engagement_distance({"engagement_distance": invalid}), "malformed or unbounded combat distance is refused")
+	var me: Dictionary = {"id": "player", "hp": 100, "x": 0.0, "y": 1.5, "z": 0.0, "campaign": {"side": "participant"}}
+	var guard: Dictionary = {"id": "guard", "name": "held_sweeper", "hp": 80, "x": 20.0, "y": 1.5, "z": 0.0,
+		"campaign": {"side": "union", "kind": "sweeper", "phase": "windup"}}
+	var snapshot: Dictionary = {"players": [me, guard]}
+	_check(QaCombat.visible_target(snapshot, "player", []).get("id") == "guard"
+		and QaCombat.visible_target(snapshot, "player", [], false, 10.0).is_empty(), "a visible distant guard keeps ordinary search movement eligible in a short-range stage")
+	var body: Dictionary = MoveStep.make_state(0.0, 0.0, 0.0)
+	body["y"] = 0.0
+	for _tick: int in range(45):
+		body = MoveStep.live_step(body, MoveStep.make_input(true, false, false, false, 0.0),
+			MoveStep.TOP_SPEED, MoveStep.DT_LIVE, {"half": 40.0, "solids": []})
+	me["x"] = body["x"]
+	me["z"] = body["z"]
+	_check(QaCombat.visible_target(snapshot, "player", [], false, 10.0, ["held_sweeper"]).get("id") == "guard", "ordinary movement brings the same actual guard inside the engagement limit")
+	_check(QaCombat.visible_target(snapshot, "player", [], false, 10.0, ["other_guard"]).is_empty(), "distance does not bypass the named encounter boundary")
+
 func _check_focused_route() -> void:
 	var course: Vector2 = Vector2.from_angle(deg_to_rad(14.0))
 	var buttons: Dictionary = QaCombat.route_buttons(course, 0.0)
@@ -513,6 +537,14 @@ func _check_approach_arrival() -> void:
 	var unfinished: Dictionary = driver.approach_step(manager, me, snapshot, {}, [], anchor, [[0, 0, 2]], 0)
 	_check(unfinished["index"] == 0 and unfinished["anchor"] == anchor
 		and driver.defenses == 1 and not driver.fired, "unfinished committed approach retains defense and cannot fire")
+	var searching: Dictionary = driver.search_step(manager, me, snapshot, {"engagement_distance": 3.0}, [], anchor, [[0, 0, 2]], 0)
+	_check(searching["index"] == 0 and searching["anchor"] == anchor
+		and driver.defenses == 2 and not driver.fired, "a distant committed guard cannot strip tell defense or cause premature search fire")
+	QaCombat.release_inputs()
+	searching = driver.search_step(manager, me, snapshot, {}, [], anchor, [[0, 0, 2]], 0)
+	_check(searching["index"] == 0 and driver.defenses == 2 and Input.is_action_pressed("move_forward")
+		and not Input.is_action_pressed("fire"), "an unspecified search retains its existing ordinary walking behavior")
+	driver.defenses = 1
 	guard["campaign"]["phase"] = "idle"
 	QaCombat.release_inputs()
 	var walking: Dictionary = driver.approach_step(manager, me, snapshot, focus, [], anchor, [[0, 0, 2]], 0)

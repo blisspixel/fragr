@@ -112,7 +112,7 @@ func _run() -> void:
 	if not await _saved_transition(owned):
 		return
 	if failures == 0:
-		print("test_m05_local: PASS development isolation and v5 saved M04-M05 carry, arrival/readiness release, v7 archive and owned cleanup")
+		print("test_m05_local: PASS development isolation and v5 saved M04-M05 carry, arrival/readiness release, v8 archive and owned cleanup")
 	quit(0 if failures == 0 else 1)
 
 func _saved_transition(owned: LocalMatch) -> bool:
@@ -189,13 +189,13 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "durable owned M05 child stops cleanly before inspecting disk"):
 		return false
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 7 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
-		"actual child atomically persists upgraded v7 identity and current rules")
+	_check(saved is Dictionary and saved["version"] == 8 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
+		"actual child atomically persists upgraded v8 identity and current rules")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M05_ID \
 			and saved["m03_outcome"]["liberated_cars"] == fixture["m03_outcome"]["liberated_cars"] \
 			and saved["m04_outcome"]["rescued_patients"] == fixture["m04_outcome"]["rescued_patients"] \
-			and int(saved["m04_outcome"]["photos_completed"]) == 2, "v7 entry retains authored outcomes: " + JSON.stringify(saved))
+			and int(saved["m04_outcome"]["photos_completed"]) == 2, "v8 entry retains authored outcomes: " + JSON.stringify(saved))
 	var archives: Array[String] = []
 	for filename: String in DirAccess.get_files_at(run_directory):
 		if filename.begins_with("run.prior-") and filename.ends_with(".json"):

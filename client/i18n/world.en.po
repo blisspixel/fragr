@@ -798,3 +798,80 @@ msgstr "FREIGHT / BERTH LANE"
 
 msgid "WORLD_M08_CUSTODY_SHAFT"
 msgstr "CUSTODY SHAFT / KEEP CLEAR"
+msgid "WORLD_M07_CLOSED_SHOP"
+msgstr "CLOSED BY ORDER / OPEN BY APPOINTMENT / APPOINTMENTS SUSPENDED"
+
+msgid "WORLD_M07_CURFEW_NOTICE"
+msgstr "CURFEW / REMAIN INDOORS / DECLARE ALL MOVEMENT"
+
+msgid "WORLD_M07_CHALK_67"
+msgstr "67"
+
+msgid "WORLD_M07_TRANSIT_ARRIVAL"
+msgstr "TRANSIT / HABITATION RING"
+
+msgid "WORLD_M07_LAMP_SIX"
+msgstr "6"
+
+msgid "WORLD_M07_BERM_SIX"
+msgstr "6"
+
+msgid "WORLD_M07_SNIPER_RACK"
+msgstr "CONFISCATED LONG ARMS"
+
+msgid "WORLD_M07_PORT_OVERLOOK"
+msgstr "PORT OF ENTRY / BELOW"
+
+msgid "WORLD_M07_DEPOT_FREIGHT"
+msgstr "FREIGHT INTAKE / DECLARED GOODS"
+
+msgid "WORLD_M07_CURFEW_PA"
+msgstr "Curfew PA: Curfew is provided for your rest. Rest is mandatory."
+
+msgid "WORLD_M07_LATCH_LINE"
+msgstr "Latch: They're not joining. They're doing this."
+
+msgid "MISSION_M07_TITLE"
+msgstr "DECLARED GOODS"
+
+msgid "M07_PROTOTYPE_TITLE"
+msgstr "DECLARED GOODS / DEVELOPMENT"
+
+msgid "M07_LOCAL_STARTING"
+msgstr "Starting Declared Goods..."
+
+msgid "M07_RUN_DESCRIPTION"
+msgstr "The lunar town under curfew, then the crater cut toward the custody depot."
+
+msgid "M07_NEXT_TITLE"
+msgstr "CUSTODIAN OF RECORD"
+
+msgid "M07_NEXT_PENDING"
+msgstr "Your run is saved at the depot. Continue Run into level 8 is still in development."
+
+msgid "M07_WAITING"
+msgstr "Waiting for the party."
+
+msgid "M07_DEPARTED"
+msgstr "The freight lift takes the party into the depot."
+
+msgid "M07_USE_FREIGHT"
+msgstr "USE THE FREIGHT INTAKE"
+
+msgid "M07_OBJECTIVE_RING_CLEARED"
+msgstr "BREAK THE CURFEW PATROL ON THE RING"
+
+msgid "M07_OBJECTIVE_PLAZA_CLEARED"
+msgstr "CLEAR THE MARKET VAULT PLAZA"
+
+msgid "M07_OBJECTIVE_POST_CLEARED"
+msgstr "TAKE THE CURFEW POST"
+
+msgid "M07_OBJECTIVE_WINDOW_CLEARED"
+msgstr "TAKE THE RIM SHOT FROM THE ROOF WINDOW"
+
+msgid "M07_OBJECTIVE_CUT_CLEARED"
+msgstr "CROSS THE CRATER CUT TO THE DEPOT RIM"
+
+msgid "M07_OBJECTIVE_PARTY_DEPARTED"
+msgstr "GATHER AT THE FREIGHT INTAKE"

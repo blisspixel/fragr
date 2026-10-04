@@ -1,8 +1,8 @@
 # L07 Declared Goods prototype
 
-**Status:** in flight, 2026-10-02. Written before source work. Milestone B
-(Sniper Rifle, Ranged Sweeper and their range) lands first; the level, run
-carry, entry and presentation follow in a second pull request.
+**Status:** in flight, 2026-10-03. Written before source work. Milestone B
+(Sniper Rifle, Ranged Sweeper and their range) is on main. The restored level,
+run carry, entry and presentation are under full route verification.
 **Spend:** $0. No paid generation, cloud or provider call. Existing textures,
 the existing audio library, local GDScript rigs and bakes only.
 
@@ -358,3 +358,54 @@ breath beat, about 13 seconds, with the overlook climb next at about 11
 seconds. These are estimates from route geometry, not a measured play
 session. Whether the crater climax is the moment people talk about needs
 human play.
+
+### Restoration on current source, 2026-10-03
+
+The retained level bundle is reconciled with the current archive mission,
+living-body contact, character art and strict historical save readers. M07
+uses capability 32; M08 retains 31 and campaign rules remain revision 3.
+Version 8 explicitly upgrades historical version 7 documents, archives their
+exact bytes, and promotes completed M06 into M07 without an episode refill.
+Both static mission envelopes remain separate. An absent envelope is omitted
+on earlier maps rather than emitted as null.
+
+The opening patrol now places its porch Clerk on the supported ground lane.
+A server regression walks an actual participant through the ordinary supply
+pickups, confirms that finding the Shotgun selects it, reselects the Rifle,
+and clears all three Clerks while alive in the 25 second street window.
+Each confirmed death comes from a resolved shot. The rendered route splits
+the Shotgun pickup from Rifle selection for the same reason. Its revised
+street capture clears those Clerks with 80 HP remaining. A later pass also
+confirms a participant Shotgun kill on the first Sweeper, then records the
+second Sweeper killing that participant during the ordinary search walk.
+The patrol and full route acceptance remain open.
+
+The route refinement exposes the existing target selector's distance
+bound as an optional, validated `engagement_distance` in the combat capture
+manifest. M07 Shotgun states use 10 metres so a visible distant guard does not
+stop ordinary search-route walking. Other captures keep the current unlimited
+selector by default. Boundary tests reject malformed distances and prove
+that a distant visible guard is excluded until actual movement brings it into
+the requested band. Short-range search reuses the existing no-fire approach
+defense against committed tells. A harness proves that defense and preserves
+the default search behavior. Capture diagnostics explicitly retain participant
+death even if the development mission resets the pawn. These changes affect
+capture inputs only; server reach, damage,
+enemy intent and the 25 second combat window remain authoritative.
+
+Focused server and store checks pass 16 tests, including M06, Sniper and M08
+reader refusal on M07. Warning-denied workspace Clippy passes. The M07 client
+boundary, real owned child launch, version 7 preview and M06 transition
+harnesses pass. The menu harness now covers the M07 saved continuation and
+its separate practice entry while retaining the pending M08 carry boundary.
+The first full client pass exposed the absent-envelope serialization defect
+and stale menu, story, archive capability and presenter-owned decoration
+expectations. All were corrected. The complete fresh client gate passes import,
+all 224 scripts and all 103 harnesses. The latest complete workspace tests pass,
+including 864 server tests with three ignored tests. The focused distance and
+search-defense harness passes after its final edits.
+
+The whole rendered route, upper-room enclosure inspection, fresh-player
+teaching, difficulty, pacing, par and final art and audio acceptance remain
+open. M08 is available as a separate development mission; durable M07 to M08
+carry remains the next bounded change after M07 route acceptance.

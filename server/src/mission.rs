@@ -16,6 +16,7 @@ mod m03;
 mod m04;
 mod m05;
 mod m06;
+mod m07;
 mod m08;
 mod recovery;
 pub(crate) mod run_file;
@@ -40,6 +41,7 @@ pub(crate) struct MissionRun {
     m05: Option<m05::M05Progress>,
     m06: Option<m06::M06Progress>,
     m08: Option<m08::M08Progress>,
+    m07: Option<m07::M07Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -60,6 +62,7 @@ impl MissionRun {
             m05: map.m05_geometry().map(m05::M05Progress::new),
             m06: map.m06_geometry().map(|_| m06::M06Progress::default()),
             m08: map.m08_geometry().map(|_| m08::M08Progress::default()),
+            m07: map.m07_geometry().map(|_| m07::M07Progress::default()),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -210,6 +213,7 @@ impl GameState {
                 || run.m05.is_some()
                 || run.m06.is_some()
                 || run.m08.is_some()
+                || run.m07.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -224,6 +228,7 @@ impl GameState {
         self.ensure_m05_companion();
         self.ensure_m06_companion();
         self.ensure_m08_companion();
+        self.ensure_m07_companion();
     }
 
     pub(crate) fn note_mission_started(&mut self) {
@@ -252,6 +257,10 @@ impl GameState {
             .initial_map
             .m08_geometry()
             .map(|_| m08::M08Progress::default());
+        run.m07 = run
+            .initial_map
+            .m07_geometry()
+            .map(|_| m07::M07Progress::default());
         run.phase = if run.ready.is_empty() {
             MissionPhase::Briefing
         } else {
@@ -261,6 +270,7 @@ impl GameState {
                 || run.m05.is_some()
                 || run.m06.is_some()
                 || run.m08.is_some()
+                || run.m07.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -284,12 +294,16 @@ impl GameState {
         self.ensure_m05_companion();
         self.ensure_m06_companion();
         self.ensure_m08_companion();
+        self.ensure_m07_companion();
     }
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
         if run.m08.is_some() {
             return self.m08_mission_state();
+        }
+        if run.m07.is_some() {
+            return self.m07_mission_state();
         }
         if run.m06.is_some() {
             return self.m06_mission_state();
@@ -361,6 +375,7 @@ impl GameState {
             m05: None,
             m06: None,
             m08: None,
+            m07: None,
         })
     }
 
@@ -380,6 +395,10 @@ impl GameState {
     pub(crate) fn advance_mission(&mut self) {
         if self.mission.as_ref().is_some_and(|r| r.m08.is_some()) {
             self.advance_m08();
+            return;
+        }
+        if self.mission.as_ref().is_some_and(|r| r.m07.is_some()) {
+            self.advance_m07();
             return;
         }
         if self.mission.as_ref().is_some_and(|r| r.m06.is_some()) {

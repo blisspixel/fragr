@@ -105,6 +105,44 @@ pub enum MapDecorationKind {
     M08AuthorizedNoise,
     M08FreightDeparture,
     M08CustodyShaft,
+    M07ShutterRow,
+    M07ClosedShop,
+    M07CurfewNotice,
+    #[serde(rename = "m07_chalk_67")]
+    M07Chalk67,
+    M07TransitArrival,
+    M07MarketStall,
+    M07LampSix,
+    M07BermSix,
+    M07WindowFigure,
+    M07SniperRack,
+    M07PortOverlook,
+    /// Wall lamp on the route toward the cut, lit in authored order once the
+    /// curfew post is cleared.
+    M07CurfewLamp,
+    M07DepotFreight,
+}
+
+impl MapDecorationKind {
+    /// Registered panels that belong only to Declared Goods.
+    pub fn is_m07(self) -> bool {
+        matches!(
+            self,
+            Self::M07ShutterRow
+                | Self::M07ClosedShop
+                | Self::M07CurfewNotice
+                | Self::M07Chalk67
+                | Self::M07TransitArrival
+                | Self::M07MarketStall
+                | Self::M07LampSix
+                | Self::M07BermSix
+                | Self::M07WindowFigure
+                | Self::M07SniperRack
+                | Self::M07PortOverlook
+                | Self::M07CurfewLamp
+                | Self::M07DepotFreight
+        )
+    }
 }
 
 /// Authoring names a solid; the validated wire form uses its index. The same
