@@ -1293,6 +1293,202 @@
         46
       ],
       "surface": "enamel"
+    },
+    {
+      "id": "freight_weighing_platform",
+      "min": [
+        -8,
+        0,
+        -27
+      ],
+      "max": [
+        6,
+        0.9,
+        -23
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "weighed_pressure_case_west",
+      "min": [
+        -6.8,
+        0.9,
+        -26.5
+      ],
+      "max": [
+        -1.5,
+        3.2,
+        -23.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "weighed_pressure_case_east",
+      "min": [
+        -0.3,
+        0.9,
+        -26.5
+      ],
+      "max": [
+        4.7,
+        2.6,
+        -23.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "weighing_gantry_west",
+      "min": [
+        -8,
+        0.9,
+        -26
+      ],
+      "max": [
+        -7.4,
+        4.3,
+        -25.3
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "weighing_gantry_east",
+      "min": [
+        5.4,
+        0.9,
+        -26
+      ],
+      "max": [
+        6,
+        4.3,
+        -25.3
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "weighing_gantry_beam",
+      "min": [
+        -8,
+        4.3,
+        -26
+      ],
+      "max": [
+        6,
+        4.8,
+        -25.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "freight_scale_console",
+      "min": [
+        7.5,
+        0,
+        -25.1
+      ],
+      "max": [
+        8.4,
+        2.1,
+        -23.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_customs_display_mast",
+      "min": [
+        -11.9,
+        0.9,
+        16.7
+      ],
+      "max": [
+        -11.7,
+        1.6,
+        16.95
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_customs_display",
+      "min": [
+        -11.95,
+        1.4,
+        15.8
+      ],
+      "max": [
+        -11.65,
+        2.25,
+        17.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_customs_display_mast",
+      "min": [
+        11.7,
+        0.9,
+        16.7
+      ],
+      "max": [
+        11.9,
+        1.6,
+        16.95
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_customs_display",
+      "min": [
+        11.65,
+        1.4,
+        15.8
+      ],
+      "max": [
+        11.95,
+        2.25,
+        17.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "customs_luggage_bed",
+      "min": [
+        -15,
+        0,
+        22
+      ],
+      "max": [
+        -12.5,
+        0.65,
+        25
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "customs_personal_luggage",
+      "min": [
+        -14.7,
+        0.65,
+        22.3
+      ],
+      "max": [
+        -12.8,
+        1.8,
+        24.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "customs_document_sorter",
+      "min": [
+        12.5,
+        0,
+        22.8
+      ],
+      "max": [
+        14.7,
+        2.65,
+        26
+      ],
+      "surface": "enamel"
     }
   ],
   "spawns": [

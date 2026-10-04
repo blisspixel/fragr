@@ -268,3 +268,64 @@ fn authored_m06_port_is_a_closed_pressure_hull() {
     }
     assert!(checked > 500, "route roof coverage sampled too little");
 }
+
+#[test]
+fn authored_m06_work_areas_have_actual_bodies_and_accessible_aisles() {
+    let map = RuntimeMap::Authored(
+        AuthoredSource::Mission(MissionId::PortOfEntry)
+            .load()
+            .unwrap(),
+    );
+    let arena = map.arena();
+    let start = [-30.0, 0.0, -36.0];
+    // A loaded weighbridge is a real body, with a normal walk around its front.
+    assert!(!walk(arena, [-9.0, 0.0, -25.0], [9.0, 0.0, -25.0]));
+    for (from, to) in [
+        ([-29.0, 0.0, -18.0], [-29.0, 0.0, -17.0]),
+        ([-29.0, 0.0, -17.0], [0.0, 0.0, -17.0]),
+        ([0.0, 0.0, -17.0], [-29.0, 0.0, -17.0]),
+        ([-29.0, 0.0, -17.0], [-29.0, 0.0, -18.0]),
+        ([-10.0, 0.0, -21.0], [10.0, 0.0, -21.0]),
+        ([10.0, 0.0, -21.0], [10.0, 0.0, -26.0]),
+        ([0.0, 0.0, 25.0], [0.0, 0.0, 20.0]),
+        ([0.0, 0.0, 20.0], [-7.0, 0.0, 20.0]),
+        ([0.0, 0.0, 20.0], [7.0, 0.0, 20.0]),
+        ([-7.0, 0.0, 20.0], [-11.0, 0.0, 20.0]),
+        ([-11.0, 0.0, 20.0], [-11.0, 0.0, 24.5]),
+        ([-11.0, 0.0, 24.5], [-10.5, 0.0, 24.5]),
+        ([-10.5, 0.0, 24.5], [-11.0, 0.0, 24.5]),
+        ([-11.0, 0.0, 24.5], [-11.0, 0.0, 20.0]),
+        ([-11.0, 0.0, 20.0], [0.0, 0.0, 20.0]),
+        ([0.0, 0.0, 20.0], [11.0, 0.0, 20.0]),
+        ([11.0, 0.0, 20.0], [0.0, 0.0, 20.0]),
+        ([0.0, 0.0, 20.0], [0.0, 0.0, 25.0]),
+        ([-11.0, 0.0, 20.0], [-11.0, 0.0, 27.0]),
+        ([11.0, 0.0, 20.0], [11.0, 0.0, 27.0]),
+    ] {
+        assert!(
+            walk(arena, from, to),
+            "working aisle blocked: {from:?}->{to:?}"
+        );
+        assert_eq!(
+            map.navigation()
+                .route(start, to, crate::navigation::SEARCH_LIMIT)
+                .status,
+            crate::navigation::RouteStatus::Complete,
+            "new work-area approach is disconnected from entry: {to:?}"
+        );
+    }
+    // The cases, side terminals and luggage are actual shot cover, not scenery.
+    for (from, to) in [
+        ([-4.0, 1.6, -28.0], [-4.0, 1.6, -22.0]),
+        ([-13.0, 1.8, 16.5], [-10.0, 1.8, 16.5]),
+        ([13.0, 1.8, 16.5], [10.0, 1.8, 16.5]),
+        ([-14.0, 1.2, 21.0], [-14.0, 1.2, 26.0]),
+        ([13.5, 1.8, 22.0], [13.5, 1.8, 27.0]),
+    ] {
+        assert!(!crate::combat::line_of_sight(from, to, &arena.solids));
+    }
+    assert!(
+        crate::combat::line_of_sight([-4.0, 3.8, -28.0], [-4.0, 3.8, -22.0], &arena.solids),
+        "space above the shipment remains visibly and physically clear"
+    );
+}
