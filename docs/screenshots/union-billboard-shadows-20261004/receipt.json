@@ -51,5 +51,21 @@
     "engine":  "4.7.2-stable",
     "renderer_exit":  0,
     "date":  "2026-10-04",
-    "renderer_pid":  18452
+    "renderer_pid":  18452,
+    "final_source_merge":  "94b1e437b7131ee7e01070b8e0a64ea901a8b5b0",
+    "full_client":  {
+                        "error_clean":  true,
+                        "after_merge_import_exit":  0,
+                        "stderr_sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                        "exit":  0,
+                        "passed_harnesses":  122,
+                        "latest_main":  "621bd1b90e3b8fa4063215d9854745d60608dd95",
+                        "log_sha256":  "fba554faa9e460d7db1e02adfe82d9798a6fb719108d4bde8ebd460fce942aaa",
+                        "parsed_scripts":  258,
+                        "checker_pid":  27436,
+                        "native_sha256":  "8c48423259ade27627c4a3246f2b1eb79db3b0b1b6250222147d010c9afb33a6",
+                        "source_commit":  "8253dd6",
+                        "owned_checker_retired":  true,
+                        "runtime_shader_and_harness_unchanged":  true
+                    }
 }

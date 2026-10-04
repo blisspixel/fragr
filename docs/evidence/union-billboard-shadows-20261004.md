@@ -1,7 +1,7 @@
 # Union billboard shadow repair, 2026-10-04
 
-Status: implemented and locally rendered. Complete client, integration CI and
-package acceptance remain separate gates. Spend: $0.
+Status: implemented, locally rendered and complete client passed. Integration
+CI and package acceptance remain separate gates. Spend: $0.
 
 ## Defect and correction
 
@@ -78,5 +78,16 @@ and the fixed old/new framing remained unchanged. No production light changed.
 
 Headless import, parse and the new harness's boundary checks passed with clean
 exit. The headless marker explicitly states that rendered pixel gates require a
-framebuffer. Complete-client and integration results will be recorded after
-their actual completion; the separate art candidate remains parked.
+framebuffer. The complete client checker parsed all 258 scripts and passed all
+122 harnesses on source `8253dd6`, exited 0, and produced no error, failure or
+leak lines. Its owned process 27436 ended. Local-launch checks used a private
+verified native server with SHA-256
+`8c48423259ade27627c4a3246f2b1eb79db3b0b1b6250222147d010c9afb33a6`;
+the historical root binary was not overwritten.
+
+Current main `621bd1b90e3b8fa4063215d9854745d60608dd95` was then merged
+normally as `94b1e437b7131ee7e01070b8e0a64ea901a8b5b0`. Its additional
+precision-reference documents and images change no runtime source. Final import
+passed with exit 0 and clean logs. The actual captured shader and harness hashes
+still match the final source. Integration CI and package gates remain pending;
+the separate art candidate remains parked.

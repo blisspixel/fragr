@@ -1,6 +1,6 @@
 # Union billboard shadow orientation
 
-Status: Implemented, locally rendered. 2026-10-04. Spend: $0.
+Status: Implemented, locally rendered, complete client passed. 2026-10-04. Spend: $0.
 Base: main `53b5c0367122d2cd8a7d0eb34ad187cea32ffabc`.
 
 ## Defect and boundary
@@ -55,7 +55,10 @@ The fixed-camera rendered fixture passes unchanged pixel gates: original plate
 range 0.351521, corrected 0, 2,343 floor casting pixels and 525 sprite receiving
 samples. Renderer 18452 exited 0 cleanly and retired. The first ambient-only
 backside-light fixture failed and remains retained. Headless import, parse and
-boundary checks passed; the complete client checker is in flight.
+boundary checks passed. The complete client checker passed all 258 scripts and
+122 harnesses with exit 0 and clean logs. Current main `621bd1b9` was merged
+normally as `94b1e437`, with no runtime source change; final import passed and
+both actual captured shader/harness hashes still match.
 See [the evidence](../evidence/union-billboard-shadows-20261004.md) for controls,
 framing, thresholds and the separate current M03 route limitation. Final
 integration CI and package gates remain pending.
