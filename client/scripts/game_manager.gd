@@ -124,6 +124,8 @@ var _opening_finished: bool = false
 var _opening_release: bool = false
 var _readiness_attempt_sent: int = 0
 var _awaiting_map: bool = false
+var _world_load_generation: int = 0
+var _world_reveal_pending: bool = false
 var input_device: InputDevice
 var local_prediction: LocalPrediction = LocalPrediction.new()
 var _adopt_local_spawn_snapshot: bool = false
@@ -159,6 +161,7 @@ var crawler_last_position: Vector3 = Vector3.INF
 var crawler_last_ms: int = -1000
 
 func _ready():
+	_begin_world_load()
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
 	mission_hud.notice_requested.connect(func(text: String) -> void:
@@ -342,6 +345,8 @@ func _release_retired_environments() -> void:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	if not current_map_info.is_empty() and info.get("map_id") != current_map_info.get("map_id"):
+		_begin_world_load()
 	if grenade_effects != null:
 		grenade_effects.reset()
 	if auditor_channels != null:
@@ -444,6 +449,11 @@ func _on_map_info(info: Dictionary) -> void:
 	NotaryAnimation.configure_map(info)
 	if notary_audio != null:
 		notary_audio.configure_map(info)
+	# The story's opaque cover takes over without exposing an unfinished world.
+	if is_instance_valid(opening):
+		var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+		if loading != null and loading.waiting_for_world:
+			loading.finish_loading(false)
 
 ## The console, the pause menu and the loading card. Built here rather than in
 ## the scene because they are the same three things whatever the match is.
@@ -476,6 +486,9 @@ func _apply_render_preferences() -> void:
 	RenderQuality.apply_dither(self, get_viewport(), settings)
 
 func controls_blocked() -> bool:
+	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if loading != null and loading.visible:
+		return true
 	if is_instance_valid(departure_review):
 		return true
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
@@ -532,12 +545,53 @@ func _submit_mission_readiness() -> void:
 
 ## The controls card. Shown on every join, including pressing J mid-match,
 ## because a player who joined from the booth never saw the boot one.
-func show_loading_card() -> void:
+func show_loading_card(wait_for_world: bool = false) -> void:
 	if get_node_or_null("LoadingCard") != null:
+		if wait_for_world:
+			(get_node("LoadingCard") as LoadingCard).begin_loading()
 		return
 	var card: LoadingCard = LoadingCard.new()
 	card.name = "LoadingCard"
+	if wait_for_world:
+		card.begin_loading()
+	card.return_requested.connect(_on_leave_requested)
+	card.dismissed.connect(_on_loading_dismissed)
 	add_child(card)
+
+func _on_loading_dismissed() -> void:
+	# Released devices are ready immediately, including a press before the
+	# next action tick. A key held through the curtain still needs release.
+	throw_armed = not Input.is_action_pressed("throw_grenade")
+	place_armed = not Input.is_action_pressed("place_mine")
+
+func _begin_world_load() -> void:
+	_world_load_generation += 1
+	_world_reveal_pending = false
+	_awaiting_map = true
+	show_loading_card(true)
+
+func _queue_world_reveal(snapshot: Dictionary) -> void:
+	var card: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if card == null or not card.waiting_for_world or card.failed or _world_reveal_pending \
+		or _awaiting_map or current_map_info.is_empty() \
+		or snapshot.get("map_id") != current_map_info.get("map_id"):
+		return
+	_world_reveal_pending = true
+	_reveal_world_after_draw.call_deferred(_world_load_generation)
+
+func _reveal_world_after_draw(generation: int) -> void:
+	# A real first draw occurs beneath the opaque card. Headless checks have no
+	# framebuffer and exercise lifecycle ordering on their next process frame.
+	if DisplayServer.get_name() == "headless":
+		await get_tree().process_frame
+	else:
+		await RenderingServer.frame_post_draw
+	if generation != _world_load_generation or _awaiting_map:
+		return
+	_world_reveal_pending = false
+	var card: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if card != null and not card.failed:
+		card.finish_loading(is_human_player and not _mission_map())
 
 func _on_leave_requested() -> void:
 	if _leaving:
@@ -1381,8 +1435,18 @@ func _on_disconnected():
 
 func _on_server_error(message: String) -> void:
 	hud.set_status(message)
+	var card: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if card != null:
+		_world_load_generation += 1
+		_world_reveal_pending = false
+		card.show_error(message)
 
 func _clear_world() -> void:
+	_world_load_generation += 1
+	_world_reveal_pending = false
+	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if loading != null:
+		loading.show_error(tr("LOADING_DISCONNECTED"))
 	_close_departure_review()
 	_close_campaign_results()
 	if grenade_effects != null:
@@ -1641,6 +1705,7 @@ func _on_snapshot_received(data):
 	hud.equipment_hud.tick = int(data.get("tick", 0))
 	_refresh_equipment_visibility()
 	_update_nameplates()
+	_queue_world_reveal(data)
 
 
 func _update_prediction_contacts(snapshot: Dictionary) -> void:

@@ -353,6 +353,11 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    *Why:* being shot at must read by ear and eye, which is the fun bar's
    three-signal rule. The console is cheap, client-only depth.
 3. **[Art excellence](plans/art-excellence.md), in flight.** The
+   [full-game asset catalog](plans/meshy-full-game-assets.md) records individual
+   lore/reference briefs, retained sources, local construction kits and priced
+   model candidates beneath this rung. Its first production allocation is
+   bounded to 900 existing credits including revisions and suitable rigs;
+   larger catalog totals are estimates, not generation orders or finished art.
    [native 3D pilot](plans/meshy-pipeline.md) verifies live credit before paid
    model stages and proves imports for one enemy, weapon and prop plus a
    topology comparison. [Rendered evidence](evidence/meshy-pilot-20261003.md)
@@ -436,11 +441,22 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
    which measures every preset.
 6. **Multiplayer depth.**
-   - Sabotage maps built to the Dust II lessons, and bots that split up and
-     fake.
+   - [Competitive and community scope](plans/competitive-and-community.md):
+     explicit 5v5 elimination and plant/defuse, with original Sector 9,
+     Low Water and Custody Archive objective layouts. Apply the linked classic
+     map research and prove rotations, retakes and side balance in play.
    - Rescue.
    - The [vehicle](plans/vehicles.md) rungs toward the flagship island,
      [Holdfast Atoll](plans/multiplayer-maps.md#17-holdfast-atoll-new-the-flagship-island-working-name).
+   - Liberation: humans and free agents cooperate against Union forces,
+     starting with one connected Launch Works scenario and four allied seats.
+     Vehicles, defenses and rescues reuse proven server systems. Larger
+     rosters, reinforcement rules and the distinct Wipe wrapper need their
+     own acceptance. These formats remain unbuilt.
+   - Free self hosting and [community contributions](../CONTRIBUTING.md),
+     with [non-invasive fair play](plans/fair-play.md), temporary host bans
+     and planned optional bans for repeated confirmed abuse. Skill or agent
+     control alone never warrants punishment.
 7. **Network.** Bounded lag compensation and a recorded two-machine session
    before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
 8. **Complete the campaign.** Build levels 9 to 20 one mission at a time,
@@ -449,6 +465,12 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    conditional epilogue. Carry the accepted art, combat and results approach
    through earlier levels too. Verify the whole saved run, episode refills,
    retries and retained outcomes. Each mission keeps its own acceptance gate.
+   [Wipe survival](plans/wipe-survival.md) records the accepted larger M20
+   climax and shared multiplayer direction. M18 interrupts ongoing Union
+   holdout fighting with abrupt takeover; M19 carries escape. Continuous
+   pressure, locally isolated equipment and a local reprieve preserve the
+   ending. Detailed counts and mechanics are proposed; the shared multiplayer
+   wrapper belongs to item 6 after its campaign systems are proven.
 9. **Prove the release.** Close fresh-player, difficulty, input and visual
    acceptance; inspect performance on supported hardware; verify clean
    desktop installs on Windows, Linux and macOS; complete the twenty-four

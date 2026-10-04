@@ -11,6 +11,16 @@ and staging. This anchor is a production target, not finished-appearance evidenc
 to 33, the climax. Surviving it unlocks [Still Here](epilogue-still-here.md).
 [Story arc](story-arc.md).
 
+**Expanded gameplay direction, accepted 2026-10-04:** this is the larger
+strategic survival climax after M18's unexpected takeover and M19's escape.
+Use a connected district with persistent converging attacks, useful vehicle
+routes, finite locally isolated deployable sentries and moving resupply choices.
+The [shared Wipe plan](../plans/wipe-survival.md) owns the campaign and
+multiplayer implementation proposal. A relentless catastrophe drives the
+pressure; no announced wave/shop breaks divide the fiction. Dimensions,
+director budgets and resource counts remain playtest hypotheses. The local
+reprieve and conditional epilogue below remain the ending contract.
+
 | Episode | Place | New | First run | Clock | Doors |
 |---|---|---|---|---|---|
 | V Inheritance | Waterworks, freight pier, refuge approach | Surveyor | 13 min | 12:00 | 1 |

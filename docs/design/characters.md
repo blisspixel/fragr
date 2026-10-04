@@ -73,10 +73,12 @@ they choose to stand tall and make a difference. They are soft people under
 hard authority, with active courage and conviction. Warm leather, bone and
 rust contrast with the Union's issued black cloth and restrained red.
 
-Current Latch geometry and the shared selectable bodies are provisional assets.
-Their implementation and combat behavior do not approve final proportions,
-portraits or voices. Apply this identity to later reference sheets, poses and
-casting briefs while preserving the existing gameplay contracts.
+The weighted stylized Latch skin and free-human selectable strip are selected
+in v0.71.0, with authored face, gait and attachment evidence. Full M02 route
+acceptance and wider cast refinement remain open. Their implementation does
+not approve later portraits or voices. Apply this identity to later reference
+sheets, poses and casting briefs while preserving the existing gameplay
+contracts; a shared civilian source does not establish a named person's face.
 
 The duo shows two free people, not a required player pairing or a coalition
 uniform. A selectable agent body does not automatically depict Latch, and the
