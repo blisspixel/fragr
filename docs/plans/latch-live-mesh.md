@@ -96,5 +96,40 @@ The first raw inspector ran before scene-tree readiness, so its error log is
 retained separately; the corrected deferred inspector is clean. The first
 rendered pose inspection caught a head overlay using the rest rotation twice.
 The correction uses the actual posed-to-rest head delta. Corrected close,
-near fade and actual mission route inspection remain pending. Full client
-checks are running; these focused and exported gates are not whole acceptance.
+near fade and actual mission route inspection follow separately. The fitted
+independent screen and actual idle, walking, raised palm, Tack and back source
+frames are inspected in the Compatibility renderer on AMD Radeon 780M.
+
+The first original-resolution near sweep passes hide, silhouette, coherent
+coverage, monotonic fade and opaque distant gates, but its thin upward-offset
+far source occupies 863 pixels against the old procedural rig's 1000 pixel
+sample floor. Retain that failure. A wider sampling raster (384 by 216) passes
+the same floor, but changes the floor as a share of raster area, so that number
+alone is not equivalent acceptance strength. The final harness separately
+compares the same unmasked and clipped source at the original 320 by 180
+resolution, original cameras and both far offsets. It has exactly zero binary
+shape mismatches and normalized coverage 1.0 (1121/1121 and 863/863). All close,
+upward, translated-anchor, shadow and coverage assertions remain.
+`latch-near-source-reference-render.log` passes cleanly and receipts live in
+`.agents/m06-buildout-20261001/latch-near-corrected/source-reference.json`.
+
+The final presenter removes obsolete empty leg, arm and hand markers. The
+remaining `RightArm` weapon holder tracks the real skinned arm transform; the
+gun remains registered at the real palm. The ward calls its actual release
+presenter without changing an unused procedural arm. Focused source, ward,
+actor and near checks pass in the `*-final2.log` files.
+
+The full isolated checker parses 234 scripts and passes 107 harnesses, with two
+accurately retained provenance failures: the parent Clerk helper refactor's
+old enemy bake receipt, and the old model library's Latch source hash. Parent
+owns real re-export and reconciliation of those shared files before combined
+acceptance. This is not a clean whole-client pass.
+
+The unchanged 22-state M02 support route reaches 16 states, real release,
+second bay, Low Water, one-pawn handoff and three resolved allied Tack hits.
+The finite support-fire throttle reduces human HP from 85 to 20; the next
+crossfire correctly rejects participant death with three of four guards
+defeated. Keep `.agents/m02-latch-live/` logs, manifest and hashes. Inspected
+venue captures show coherent new Latch and the remaining procedural second-bay
+captive. Full departure, adjusted ordinary finite-supply route and fresh-player
+acceptance remain open. No map, grants or difficulty rules change here.

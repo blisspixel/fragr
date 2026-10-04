@@ -26,7 +26,8 @@ func _run() -> void:
 	_check(idle.is_equal_approx(skeleton.get_bone_global_pose(skeleton.find_bone("LeftLeg"))), "idle returns the real leg to rest")
 	view.set_weapon_visible(true)
 	var palm: Transform3D = view._source.bone_transform(view._source_body, "RightHand")
-	_check(view._gun.position.distance_to(palm.origin + Vector3(0, 0.025, 0.03)) < 0.001, "Tack is registered in the actual skinned palm")
+	var weapon: Transform3D = view._right_arm.transform * view._gun.transform
+	_check(weapon.origin.distance_to(palm.origin + Vector3(0, 0.025, 0.03)) < 0.001, "Tack is registered in the actual skinned palm")
 	view.shot()
 	_check(view._flash.visible, "only the resolved-shot callback enables flash")
 	view.advance(0.11, 0.0, "following")

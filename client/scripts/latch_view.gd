@@ -17,12 +17,8 @@ var near_camera_clip: bool = false
 var _ward_materials: Dictionary[MeshInstance3D, StandardMaterial3D] = {}
 var _near_origin: Vector3 = Vector3.INF
 
-var _left_leg: Node3D
-var _right_leg: Node3D
-var _left_arm: Node3D
 var _right_arm: Node3D
 var _gun: Node3D
-var _right_hand: Node3D
 var _flash: MeshInstance3D
 var _stride: float = 0.0
 var _flash_left: float = 0.0
@@ -45,17 +41,9 @@ func _init() -> void:
 	for node: Node in _source_body.find_children("*", "MeshInstance3D", true, false):
 		var part: MeshInstance3D = node as MeshInstance3D
 		part.material_override = part.get_active_material(0).duplicate() as StandardMaterial3D
-	for label: String in ["LeftLeg", "RightLeg", "LeftArm", "RightArm"]:
-		var marker: Node3D = Node3D.new()
-		marker.name = label
-		add_child(marker)
-	_left_leg = get_node("LeftLeg")
-	_right_leg = get_node("RightLeg")
-	_left_arm = get_node("LeftArm")
-	_right_arm = get_node("RightArm")
-	_right_hand = Node3D.new()
-	_right_hand.name = "Hand"
-	_right_arm.add_child(_right_hand)
+	_right_arm = Node3D.new()
+	_right_arm.name = "RightArm"
+	add_child(_right_arm)
 	_gun = Node3D.new()
 	_gun.name = "Tack"
 	_right_arm.add_child(_gun)
@@ -67,14 +55,17 @@ func _init() -> void:
 	_flash.visible = false
 	_gun.visible = false
 	# Independent optics cover the painted display, following the actual head skin.
-	_screen = _box(self, "FaceRecess", Vector3.ZERO, Vector3(0.139, 0.171, 0.004), _material(DARK))
+	_screen = _box(self, "FaceRecess", Vector3.ZERO, Vector3(0.139, 0.155, 0.004), _material(DARK))
 	var optics: SurfaceTool = SurfaceTool.new()
 	optics.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for x: float in [-0.035, 0.035]:
 		_workshop.quad(optics, Vector3(x - 0.009, 0.018, 0), Vector3(x + 0.009, 0.018, 0),
 			Vector3(x + 0.009, 0.044, 0), Vector3(x - 0.009, 0.044, 0), Vector3.BACK)
-	_workshop.quad(optics, Vector3(-0.023, -0.032, 0), Vector3(0.023, -0.032, 0),
-		Vector3(0.023, -0.026, 0), Vector3(-0.023, -0.026, 0), Vector3.BACK)
+	_workshop.quad(optics, Vector3(-0.018, -0.032, 0), Vector3(0.018, -0.032, 0),
+		Vector3(0.018, -0.026, 0), Vector3(-0.018, -0.026, 0), Vector3.BACK)
+	for x: float in [-0.021, 0.021]:
+		_workshop.quad(optics, Vector3(x - 0.003, -0.027, 0), Vector3(x + 0.003, -0.027, 0),
+			Vector3(x + 0.003, -0.018, 0), Vector3(x - 0.003, -0.018, 0), Vector3.BACK)
 	_eyes = _workshop.instance(self, "PixelEyes", optics.commit(), _material(CYAN, true))
 	_pose_source()
 	set_process(false)
@@ -82,10 +73,12 @@ func _init() -> void:
 func _pose_source() -> void:
 	_source.pose_live(_source_body, _stride, _moving, _gun.visible, _release, _firing)
 	var hand: Transform3D = _source.bone_transform(_source_body, "RightHand")
+	var arm: Transform3D = _source.bone_transform(_source_body, "RightArm")
+	_right_arm.transform = Transform3D(arm.basis.orthonormalized(), arm.origin)
 	# Keep the actual weapon in the skinned palm, pointing along the actor's facing.
 	_gun.transform = _right_arm.transform.affine_inverse() * Transform3D(Basis.IDENTITY, hand.origin + Vector3(0, 0.025, 0.03))
 	var head_delta: Transform3D = _source.bone_delta(_source_body, "Head")
-	_screen.transform = head_delta * Transform3D(Basis.IDENTITY, Vector3(0, 1.588, 0.148))
+	_screen.transform = head_delta * Transform3D(Basis.IDENTITY, Vector3(0, 1.55, 0.148))
 	_eyes.transform = _screen.transform * Transform3D(Basis.IDENTITY, Vector3(0, 0, 0.004))
 
 func _process(_delta: float) -> void:
@@ -181,8 +174,6 @@ func pose_release(progress: float) -> void:
 	elif travel >= 2.0:
 		_stride = 0.0
 	_release = clampf(progress, 0.0, 1.0)
-	_right_hand.rotation.x = -0.35 * _release
-	_right_hand.rotation.z = -0.18 * _release
 	_pose_source()
 
 func advance(delta: float, travel: float, phase: String) -> void:

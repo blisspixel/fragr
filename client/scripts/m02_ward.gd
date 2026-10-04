@@ -42,7 +42,6 @@ var _caption_key: String = ""
 var _root: Node3D
 var _latch: LatchView
 var _notary: NotaryView
-var _latch_arm: Node3D
 var _first_left: Node3D
 var _first_right: Node3D
 var _second_left: Node3D
@@ -266,7 +265,6 @@ func _set_visual(seconds: float, released: bool) -> void:
 		_latch.rotation.y = lerp_angle(bay_turn, -PI / 2.0, clampf((seconds - 8.0) / 2.0, 0.0, 1.0))
 	else:
 		_latch.rotation.y = -PI / 2.0
-	_latch_arm.rotation.x = -clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) * PI / 2.0 if released else 0.0
 	_latch.pose_release(clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) if released else 0.0)
 	var open: float = clampf((seconds - CROSS_END) / (SECOND_OPEN_END - CROSS_END), 0.0, 1.0) if released else 0.0
 	_second_left.position.x = -0.3 - open * 0.68
@@ -351,7 +349,6 @@ func _build() -> void:
 	_notary.scale = Vector3.ONE * 1.2
 	_notary.rotation.y = -PI / 2.0
 	_root.add_child(_notary)
-	_latch_arm = _latch.get_node("RightArm") as Node3D
 	var first: Node3D = Node3D.new()
 	first.name = "LatchRestraint"
 	first.position = Vector3(7.21, 0.0, -10.0)

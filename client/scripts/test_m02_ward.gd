@@ -51,7 +51,7 @@ func _run() -> void:
 	_check(source_mesh != null and source_mesh.skin != null and skeleton.get_bone_count() == 24
 		and is_equal_approx(source_mesh.mesh.get_aabb().size.y, 1.8)
 		and is_zero_approx(source_mesh.mesh.get_aabb().position.y),
-		"the reviewed civilian source retains weighted skin and registered1.8metre feet")
+		"the reviewed civilian source retains weighted skin and registered 1.8 metre feet")
 	var finish: StandardMaterial3D = source_mesh.material_override as StandardMaterial3D
 	_check(finish != null and finish.albedo_texture != null and finish.normal_texture != null
 		and finish.albedo_texture.get_width() <= 1024 and finish.normal_texture.get_width() <= 1024,
