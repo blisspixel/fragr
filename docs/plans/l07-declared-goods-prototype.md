@@ -379,9 +379,11 @@ street capture clears those Clerks with 80 HP remaining. A later pass also
 confirms a participant Shotgun kill on the first Sweeper, then records the
 second Sweeper killing that participant during the ordinary search walk.
 Subsequent ordinary-input captures clear the entire opening patrol. The
-furthest full route reaches 19 of 29 states, through the plaza, post, actual
+furthest full route reaches 21 of 29 states, through the plaza, post, actual
 Sniper Rifle pickup, real window windup cancellation, scoped kill, window
-arrival and roof overlook. The cut and whole-route acceptance remain open.
+arrival, roof overlook and both pairs of cut Sweepers. It clears 20 required
+guards and reaches the first remaining rim marksman with 100 HP, 30 Armor and
+nine Cells. The remaining rim guards and whole-route acceptance remain open.
 
 The route refinement exposes the existing target selector's distance
 bound as an optional, validated `engagement_distance` in the combat capture
@@ -420,6 +422,14 @@ Every current detour passes the shared ordinary movement proof. Supplies,
 enemy roster, attack timing and damage remain unchanged. Failed captures now
 preserve bounded samples of participant positions, actual loadout, required
 guard positions and line of sight, plus resolved shots and route progress.
+
+The first rim peek stopped at actual feet just inside its shield edge. The
+guard was within the Sniper band but covered, so the capture correctly refused
+to fire. The west and east opening peeks now have 1.25 metres of edge clearance.
+A server regression proves the rejected feet remain covered and both revised
+peeks expose their guards throughout a conservative square containing the
+capture's 0.5 metre arrival tolerance. The route still requires ordinary
+supported movement and actual resolved kills.
 
 Inspected captures show the post's walls and ceiling, its enclosed upper room
 and the deliberate firing window with a sill and lintel. The surrounding

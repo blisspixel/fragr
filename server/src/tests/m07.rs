@@ -392,6 +392,50 @@ fn m07_cover_rows_shield_the_ordinary_route_stops() {
 }
 
 #[test]
+fn m07_sniper_peeks_clear_cover_across_the_tour_arrival_band() {
+    let runtime = RuntimeMap::Authored(map());
+    let solids = &runtime.arena().solids;
+    let exposed = |feet: [f32; 3], target: [f32; 3]| {
+        let eye = [feet[0], feet[1] + crate::movement::EYE_HEIGHT, feet[2]];
+        [0.5, 0.85, 0.2].into_iter().any(|fraction| {
+            crate::combat::line_of_sight(
+                eye,
+                [
+                    target[0],
+                    target[1] + crate::combat::FIGHTER_HEIGHT * fraction,
+                    target[2],
+                ],
+                solids,
+            )
+        })
+    };
+    assert!(
+        !exposed([-1.631_547_1, 4.0, 10.915_329], [-14.0, 9.0, 59.5]),
+        "actual accepted edge feet remain behind the first shield"
+    );
+    for (peek, target) in [
+        ([-3.25, 4.0, 11.0], [-14.0, 9.0, 59.5]),
+        ([15.25, 4.0, 11.0], [32.0, 9.0, 59.5]),
+    ] {
+        // The capture accepts a horizontal distance below 0.5 m. Check a
+        // containing square, including its corners, for a conservative margin.
+        for dx in [-0.5, 0.0, 0.5] {
+            for dz in [-0.5, 0.0, 0.5] {
+                let feet = [peek[0] + dx, peek[1], peek[2] + dz];
+                assert!(
+                    runtime.navigation().walkable([6.0, 4.0, 11.0], feet),
+                    "peek {feet:?} remains an ordinary supported walk"
+                );
+                assert!(
+                    exposed(feet, target),
+                    "peek {feet:?} must expose {target:?}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
 fn m07_departure_needs_the_cut_clear_a_ready_living_party_and_a_fresh_use() {
     let (mut s, id) = fixture();
     for i in 0..4 {
