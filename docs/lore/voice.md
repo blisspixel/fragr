@@ -12,8 +12,8 @@ occasional voice in the world, not the campaign's main companion or dispatcher.
 **Main human reference.** Chill stoner-gamer ease, warm practical humor and
 ordinary interests in music, scrap and friends. Wants a free life, not a crusade.
 The Union's recall, custody and clanker slavery force a choice; he answers with
-courage while keeping his easy humanity. The light cowboy influence stays
-understated in delivery.
+courage while keeping his easy humanity. Freedom-loving character does not
+require a Western accent, cowboy performance or a faction voice.
 
 **Latch.** Likable, almost stoner-cool, practical, dry and familiar with the player. Speaks as an independent
 person with wants, doubts and a life of their own. Scrappy robot parts and an

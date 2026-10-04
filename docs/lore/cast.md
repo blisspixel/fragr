@@ -64,7 +64,10 @@ Latch's free-agent identity, approximate height, scrappy construction and
 CRT-like screen head, taller than wide, and one thin antenna on the anatomical
 left ear are established. Nick's October 1
 [duo reference](../../client/art/characters/references/free-duo-reference.png)
-also establishes the main human's restrained future-cowboy direction.
+anchors the main human's relaxed freedom-loving character. Nick clarified on
+October 4 that the visual influence is light, not literal cowboy costumes.
+The default human uses hatless practical civilian workwear. Free humans have
+varied clothes and possessions appropriate to their own lives and work.
 Both live with limited means; repairs and choices express independence rather
 than wealth or a shared uniform. The remaining detail is working art direction, not approved final
 designs or completed assets. Shared materials and exact swatches come from the
@@ -74,7 +77,7 @@ gear can cover them but must not silently change the character underneath.
 
 | Actor | Proposed silhouette and palette anchors | Continuity and behavior |
 |---|---|---|
-| Player | Chosen human or agent body, callsign and supported cosmetics; main human reference has a worn leather/rust jacket, dark work pants, boots, optional short-brim hat and red neckerchief, with a scavenged long rifle when needed | Easy visible face and posture, understated future-cowboy influence and personal repairs; body-neutral opening, with equipment matching the actual level loadout |
+| Player | Chosen human or agent body, callsign and supported cosmetics; default human reference is hatless, with a worn utility jacket, casual layers, dark work pants and practical footwear; a scavenged long rifle appears when needed | Easy visible face and posture, relaxed freedom-loving character and personal repairs; varied civilian clothing rather than Western or faction costuming; body-neutral opening with actual level equipment |
 | Latch (`companion`) | Roughly six-foot midweight bone/dark-steel robot; taller-than-wide CRT-like screen with soft friendly pixel faces, one thin left-ear antenna, seams, bolts, unequal repaired forearm plates and a small muted cyan patch | Familiar easy stance, precise hands and fist-bump energy; individuality precedes combat equipment, and restraints are imposed equipment |
 | Mara (`organizer`) | Human in a short rust utility coat over dark work gear, folded route case | Work-worn organizer, not an officer redesign after the coalition succeeds |
 | Renn (`custodian`) | Human, upright narrow silhouette, issued black Union coat, dark steel buttons and a registry case | Rank marking is deliberately removed after defection; manner changes gradually, old kit remains recognizable |
