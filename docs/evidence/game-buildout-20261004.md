@@ -44,7 +44,8 @@ release directory. The matching copied engine has this server SHA256:
 Logs live under `.agents/buildout-20261004/`.
 
 Formatting, warnings-denied workspace Clippy, locked workspace tests and the
-workspace release build pass. The server suite has 877 passing tests and three
+workspace release build pass. Unfiltered Windows workspace line coverage is
+93.62 percent, above the unchanged 90 percent floor. The server suite has 877 passing tests and three
 existing ignored tests. The seed-42 16-bot, 1,200-tick benchmark passes budget
 and determinism checks, with local CPU p99 0.885 ms. This is one laptop CPU
 measurement, not public-server capacity or GPU evidence.
