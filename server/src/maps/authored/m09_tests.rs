@@ -5,6 +5,83 @@ use crate::navigation::{RouteStatus, SEARCH_LIMIT};
 const SOURCE: &str = include_str!("../../../maps/m09_passenger_manifest.json");
 
 #[test]
+fn m09_structural_galleries_support_feet_and_leave_real_lower_circulation() {
+    let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
+    let runtime = RuntimeMap::Authored(map);
+    let opened = runtime.prepared_m09_world().unwrap();
+    for world in [&runtime, &opened] {
+        let arena = world.arena();
+        for feet in [
+            [-35.0, 0.0, -46.0],
+            [-41.0, 4.0, -26.0],
+            [-20.0, 6.0, -7.0],
+            [-3.0, 8.0, 26.0],
+            [30.0, 10.0, 14.0],
+            [30.0, 10.0, -18.0],
+            [0.0, 12.0, -33.0],
+        ] {
+            assert!(
+                standing(arena, feet),
+                "unsupported or obstructed service feet {feet:?}"
+            );
+        }
+        for (from, to) in [
+            ([-20.0, 0.0, -6.0], [-20.0, 0.0, 4.0]),
+            ([-12.0, 0.0, 26.0], [12.0, 0.0, 26.0]),
+            ([30.0, 0.0, 0.0], [30.0, 0.0, 20.0]),
+        ] {
+            assert!(
+                crate::mission::m09_route_segment_valid(arena, from, to),
+                "lower service circulation blocked: {from:?} -> {to:?}"
+            );
+        }
+        assert!(
+            arena.blocked_body_at(-23.5, -0.5, 0.0, 0.0),
+            "registered west column must actually block bodies"
+        );
+        assert!(
+            !crate::combat::line_of_sight([-25.0, 1.6, -0.5], [-22.0, 1.6, -0.5], &arena.solids),
+            "structural column must actually stop resolved rays"
+        );
+        assert_eq!(arena.support_height(-20.0, -7.0, 6.1), 6.0);
+        assert_eq!(arena.support_height(-3.0, 26.0, 8.1), 8.0);
+        assert_eq!(arena.support_height(30.0, 14.0, 10.1), 10.0);
+        assert!(
+            !crate::combat::line_of_sight([5.0, 25.0, 5.0], [5.0, 28.0, 5.0], &arena.solids),
+            "the visible pressure glazing must remain an actual sealed collision pane"
+        );
+        assert!(
+            arena.blocked_body_at(5.0, 5.0, 25.0, 25.0),
+            "a body cannot cross the pressure roof"
+        );
+    }
+}
+
+#[test]
+fn m09_physical_controls_bind_the_registered_manifest_and_carrier_labels() {
+    let original: serde_json::Value = serde_json::from_str(SOURCE).unwrap();
+    let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
+    let geometry = map.m09.as_ref().unwrap().geometry.clone();
+    let presentation = &map.presentation;
+    assert_eq!(
+        presentation.decorations[geometry.crew_release.decoration].kind,
+        crate::protocol::MapDecorationKind::M09CrewManifest
+    );
+    assert_eq!(
+        presentation.decorations[geometry.departure.decoration].kind,
+        crate::protocol::MapDecorationKind::M09BoardCarrier
+    );
+    for key in ["crew_release", "departure"] {
+        let mut wrong = original.clone();
+        wrong["m09"][key]["panel"]["kind"] = "lift_control".into();
+        assert!(
+            AuthoredMap::read(serde_json::to_vec(&wrong).unwrap().as_slice()).is_err(),
+            "generic custody copy cannot claim the M09 control: {key}"
+        );
+    }
+}
+
+#[test]
 fn m09_loading_search_detour_preserves_actual_cover_and_visible_remaining_guard() {
     let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
     let arena = &map.arena;

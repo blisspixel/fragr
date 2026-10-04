@@ -26,8 +26,8 @@ static func fixture_map(opened: bool = false) -> Dictionary:
 			{"min_x": -2, "max_x": 2, "min_z": -10, "max_z": -9, "bottom": 0, "top": 3},
 			{"min_x": -2, "max_x": 2, "min_z": 12, "max_z": 13, "bottom": 0, "top": 3}],
 		"presentation": {"ground": "concrete", "solids": ["service_steel", "enamel", "enamel"], "decorations": [
-			{"solid": 1, "face": "north", "center": [0, 0], "size": [1, 1], "kind": "lift_control"},
-			{"solid": 2, "face": "north", "center": [0, 0], "size": [1, 1], "kind": "lift_control"}]},
+			{"solid": 1, "face": "north", "center": [0, 0], "size": [1, 1], "kind": "m09_crew_manifest"},
+			{"solid": 2, "face": "north", "center": [0, 0], "size": [1, 1], "kind": "m09_board_carrier"}]},
 		"m09": {"objectives": objectives, "crew_release": {"decoration": 0, "approach": [0, 0, -12]},
 			"crew": crew, "departure": {"decoration": 1, "approach": [0, 0, 10]},
 			"boarding": {"min": [-4, 0, 8], "max": [4, 2, 12]}, "companion_start": [-4, 0, -20], "hatch": 0, "hatch_open": opened}}
@@ -60,6 +60,18 @@ func _run() -> void:
 		cast.assign(raw_cast)
 		_check(MissionState.validation_error(fixture_state(info, 0, cast), geometry).is_empty(), "recorded optional cast accepted: " + str(cast))
 	var bad: Dictionary = info.duplicate(true)
+	bad["presentation"]["decorations"][0]["kind"] = "lift_control"
+	_check(not MissionState.map_error(bad).is_empty(), "a borrowed custody control cannot replace the registered crew manifest")
+	var signage: Node3D = Node3D.new()
+	root.add_child(signage)
+	ArenaDecoration.build(signage, info["solids"], info["presentation"]["decorations"])
+	_check(signage.get_child_count() == 2, "both physical controls use registered panels")
+	var manifest_sign: WorldSign = signage.get_child(0).get_node("Copy") as WorldSign
+	var departure_sign: WorldSign = signage.get_child(1).get_node("Copy") as WorldSign
+	_check(manifest_sign.message_key == "WORLD_M09_CREW_MANIFEST" and manifest_sign.text == tr("WORLD_M09_CREW_MANIFEST"), "crew control labels the actual passenger manifest")
+	_check(departure_sign.message_key == "WORLD_M09_BOARD_CARRIER" and departure_sign.text == tr("WORLD_M09_BOARD_CARRIER"), "boarding control labels the actual carrier departure")
+	signage.queue_free()
+	bad = info.duplicate(true)
 	bad["m08"] = {}
 	_check(not MissionState.map_error(bad).is_empty(), "mixed mission map refused")
 	bad = info.duplicate(true)
@@ -124,8 +136,16 @@ func _run() -> void:
 	berth.apply_state(walking["state"])
 	_check(berth._crew["tern"].position == Vector3(-2, EnemyAnimation.CENTRE_HEIGHT, 10), "presented feet follow the recorded route")
 	berth._process(0.05)
+	var glazed: Dictionary = info.duplicate(true)
+	glazed["solids"].append({"min_x": -5, "max_x": 5, "min_z": -6, "max_z": 6, "bottom": 10, "top": 10.4})
+	glazed["presentation"]["solids"].append("inspection_glass")
+	berth.configure_map(glazed)
+	_check(berth._glazing_views.size() == 1, "only a registered solid pressure pane receives glazing detail")
+	var pane: MeshInstance3D = berth._glazing_views[0]
+	_check(pane.position == Vector3(0, 9.988, 0) and (pane.mesh as BoxMesh).size == Vector3(10, 0.006, 12), "visible glazing attaches to the actual solid face and span")
+	_check((pane.material_override as StandardMaterial3D).transparency == BaseMaterial3D.TRANSPARENCY_ALPHA, "the registered skylight stays visibly glazed")
 	berth.clear_map()
-	_check(berth._crew.is_empty() and berth._geometry.is_empty() and berth.get_child_count() == 0, "map retirement removes every passenger")
+	_check(berth._crew.is_empty() and berth._glazing_views.is_empty() and berth._geometry.is_empty() and berth.get_child_count() == 0, "map retirement removes every passenger and glazing view")
 	berth.queue_free()
 	var hud: MissionHud = MissionHud.new()
 	root.add_child(hud)

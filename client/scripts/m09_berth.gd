@@ -10,12 +10,14 @@ var _crew: Dictionary[String, Sprite3D] = {}
 var _clock: float = 0.0
 var _hatch_lamp: MeshInstance3D = null
 var _engine_lamps: Array[MeshInstance3D] = []
+var _glazing_views: Array[MeshInstance3D] = []
 var state_applied: int = 0
 
 func clear_map() -> void:
 	_geometry.clear()
 	_crew.clear()
 	_engine_lamps.clear()
+	_glazing_views.clear()
 	_hatch_lamp = null
 	state_applied = 0
 	_clock = 0.0
@@ -32,22 +34,46 @@ func configure_map(info: Dictionary) -> void:
 	_root = Node3D.new()
 	_root.name = "PassengerBerthDetails"
 	add_child(_root)
+	var stern: Dictionary = {}
+	for candidate: Dictionary in info["solids"]:
+		if float(candidate["min_x"]) == -8.0 and float(candidate["max_x"]) == 8.0 \
+			and float(candidate["min_z"]) == -22.0 and float(candidate["max_z"]) == -18.0 \
+			and float(candidate["bottom"]) == 3.0 and float(candidate["top"]) == 12.0:
+			stern = candidate
 	# Detail attaches to the authoritative hull faces, not an invented ship body.
 	for index: int in range(info["solids"].size()):
 		var solid: Dictionary = info["solids"][index]
+		if info["presentation"]["solids"][index] == "inspection_glass":
+			_glazing(solid)
 		if float(solid["min_x"]) == -8.0 and float(solid["max_x"]) == 8.0 and float(solid["top"]) == 9.0 \
 			and float(solid["min_z"]) == -18.0 and float(solid["max_z"]) == 18.0:
-			_ship(solid)
+			_ship(solid, stern)
 	var control: Dictionary = info["m09"]["departure"]
 	var decoration: Dictionary = info["presentation"]["decorations"][int(control["decoration"])]
 	var transform: Transform3D = MapDecoration.placement(info["solids"][int(decoration["solid"])], decoration)
 	_hatch_lamp = _box("BoardingStatus", transform.origin + transform.basis.z * 0.035 + transform.basis.y * 0.75, Vector3(0.9, 0.1, 0.06), Color("9a4533"), true)
 	ArenaSky.mark_world(_root)
 
-func _ship(hull: Dictionary) -> void:
+func _glazing(solid: Dictionary) -> void:
+	# The seal already exists in the server. A restrained face tint makes its
+	# large pressure pane legible without changing glass in other venues.
+	var size: Vector3 = Vector3(float(solid["max_x"]) - float(solid["min_x"]), 0.006, float(solid["max_z"]) - float(solid["min_z"]))
+	var at: Vector3 = Vector3((float(solid["min_x"]) + float(solid["max_x"])) * 0.5, float(solid["bottom"]) - MapDecoration.OFFSET, (float(solid["min_z"]) + float(solid["max_z"])) * 0.5)
+	var pane: MeshInstance3D = _box("PressureGlazing", at, size, Color(0.35, 0.55, 0.58, 0.22))
+	var material: StandardMaterial3D = pane.material_override as StandardMaterial3D
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.emission_enabled = true
+	material.emission = Color(0.045, 0.075, 0.078)
+	material.emission_energy_multiplier = 0.7
+	material.roughness = 0.85
+	material.metallic_specular = 0.0
+	_glazing_views.append(pane)
+
+func _ship(hull: Dictionary, stern: Dictionary = {}) -> void:
 	var width: float = float(hull["max_x"]) - float(hull["min_x"])
-	var front: float = float(hull["min_z"]) - 0.02
-	_box("CarrierHullStripe", Vector3(0, 2.2, front), Vector3(width, 0.22, 0.025), Color("778f8a"))
+	var front_host: Dictionary = hull if stern.is_empty() else stern
+	var front: float = float(front_host["min_z"]) - 0.02
+	_box("CarrierHullStripe", Vector3(0, maxf(2.2, float(front_host["bottom"]) + 0.2), front), Vector3(width, 0.22, 0.025), Color("778f8a"))
 	var label: WorldSign = WorldSign.new()
 	label.name = "CommonCarrierHullName"
 	label.position = Vector3(0, 6.7, front - 0.015)

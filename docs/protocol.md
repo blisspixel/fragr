@@ -906,6 +906,10 @@ also send `map_info` before shared progress, even when the map ID stays the same
   remain exact. The raised world is prepared before readiness and sent before
   changed mission facts. Actual crew presence depends on retained outcomes,
   not the five reserved authoring routes. Every role requires capability 34.
+  The crew control binds registered `m09_crew_manifest` decoration; departure
+  binds `m09_board_carrier`. Generic custody controls cannot replace these
+  physical manifest and carrier labels. Older strict readers of every role
+  are refused before these new kinds are sent.
   Campaign rules revision 3 remains unchanged.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite

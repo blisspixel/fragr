@@ -6,11 +6,42 @@
   "ground": "concrete",
   "equipment": "discovery",
   "solids": [
+    {"id":"cargo_receiving_roof","min":[-45,8.4,-48],"max":[-12,8.8,-35],"surface":"service_steel"},
+    {"id":"cargo_pressure_header","min":[-45,7.2,-48],"max":[-12,8.4,-47.2],"surface":"service_steel"},
+    {"id":"cargo_receiving_east","min":[-13,0,-48],"max":[-12,8.4,-39.8],"surface":"service_steel"},
+    {"id":"cargo_pressure_west","min":[-45,0,-48],"max":[-44,8.4,-43],"surface":"service_steel"},
+    {"id":"office_stair_canopy","min":[-44,8.4,-35],"max":[-38,8.8,-25],"surface":"service_steel"},
+    {"id":"west_service_shelter","min":[-24,10,-13],"max":[-16,10.4,14],"surface":"service_steel"},
+    {"id":"west_service_column_n24_n1","min":[-24,0,-1],"max":[-23,10.4,0],"surface":"service_steel"},
+    {"id":"west_service_column_n17_n1","min":[-17,0,-1],"max":[-16,10.4,0],"surface":"service_steel"},
+    {"id":"north_service_shelter","min":[-24,12.4,22],"max":[22,12.8,30],"surface":"service_steel"},
+    {"id":"north_service_column_n24_29","min":[-24,0,29],"max":[-23,12.8,30],"surface":"service_steel"},
+    {"id":"north_service_column_21_29","min":[21,0,29],"max":[22,12.8,30],"surface":"service_steel"},
+    {"id":"north_service_rear_column","min":[-1,0,29],"max":[0,12.8,30],"surface":"service_steel"},
+    {"id":"east_service_shelter","min":[26,14.4,-12],"max":[34,14.8,30],"surface":"service_steel"},
+    {"id":"east_service_column_26_9","min":[26,0,9],"max":[27,14.8,10],"surface":"service_steel"},
+    {"id":"east_service_column_33_9","min":[33,0,9],"max":[34,14.8,10],"surface":"service_steel"},
+    {"id":"gallery_service_roof","min":[16,14.4,-24],"max":[40,14.8,-12],"surface":"service_steel"},
+    {"id":"gallery_service_column_39_n13","min":[39,0,-13],"max":[40,14.8,-12],"surface":"service_steel"},
+    {"id":"bridge_west_support","min":[-11,0,-35],"max":[-10,11.4,-34],"surface":"service_steel"},
+    {"id":"bridge_east_support","min":[23,0,-35],"max":[24,11.4,-34],"surface":"service_steel"},
+    {"id":"carrier_stern_neck","min":[-8,3,-22],"max":[8,12,-18],"surface":"enamel"},
+    {"id":"carrier_upper_freight","min":[-5,9,-12],"max":[5,11,12],"surface":"enamel"},
+    {"id":"carrier_cradle_chock_n8_n15","min":[-8,0,-15],"max":[-6,2,-12],"surface":"service_steel"},
+    {"id":"carrier_cradle_chock_n8_8","min":[-8,0,8],"max":[-6,2,11],"surface":"service_steel"},
+    {"id":"carrier_cradle_chock_6_n15","min":[6,0,-15],"max":[8,2,-12],"surface":"service_steel"},
+    {"id":"carrier_cradle_chock_6_8","min":[6,0,8],"max":[8,2,11],"surface":"service_steel"},
+    {"id":"carrier_bow_chock","min":[-4,0,19],"max":[4,2,21],"surface":"service_steel"},
+    {"id":"pressure_glazing_crossbar_west","min":[-12,25.6,-8.5],"max":[12,26,-7.5],"surface":"service_steel"},
+    {"id":"pressure_glazing_crossbar_east","min":[-12,25.6,7.5],"max":[12,26,8.5],"surface":"service_steel"},
+    {"id":"pressure_glazing_spine","min":[-0.4,25.6,-24],"max":[0.4,26,24],"surface":"service_steel"},
+    {"id":"hangar_buttress_n48_n1","min":[-48,0,-1],"max":[-46,26,1],"surface":"service_steel"},
+    {"id":"hangar_buttress_46_n1","min":[46,0,-1],"max":[48,26,1],"surface":"service_steel"},
     {
       "id": "carrier_keel",
       "min": [
         -8,
-        0,
+        2,
         -18
       ],
       "max": [
@@ -24,7 +55,7 @@
       "id": "carrier_bow",
       "min": [
         -5,
-        0,
+        2,
         18
       ],
       "max": [
@@ -598,7 +629,7 @@
       "id": "gantry_west",
       "min": [
         -24,
-        0,
+        5.4,
         -13
       ],
       "max": [
@@ -766,7 +797,7 @@
       "id": "gantry_north",
       "min": [
         -24,
-        0,
+        7.4,
         22
       ],
       "max": [
@@ -920,7 +951,7 @@
       "id": "gantry_east",
       "min": [
         26,
-        0,
+        9.4,
         -12
       ],
       "max": [
@@ -934,7 +965,7 @@
       "id": "gallery",
       "min": [
         16,
-        0,
+        9.4,
         -24
       ],
       "max": [
@@ -1088,7 +1119,7 @@
       "id": "hatch_bridge",
       "min": [
         -12,
-        0,
+        11.4,
         -35
       ],
       "max": [
@@ -2450,7 +2481,7 @@
           1.2,
           1.1
         ],
-        "kind": "lift_control"
+        "kind": "m09_crew_manifest"
       },
       "approach": [
         -31.5,
@@ -3078,7 +3109,7 @@
           1.2,
           1.1
         ],
-        "kind": "lift_control"
+        "kind": "m09_board_carrier"
       },
       "approach": [
         0,

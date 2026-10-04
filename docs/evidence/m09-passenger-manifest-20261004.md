@@ -67,7 +67,8 @@ optional; its real attribution tests and visible HUD badge are retained.
 The carrier hull, civic casting and broad hangar architecture are provisional.
 The complete current-main workspace passes, including 911 server unit tests
 (three existing ignored tests), all 17 owned-child integration tests and six
-five-seat match integrations. Workspace all-target Clippy is clean. The fresh
-full client gate remains in flight; remote CI and packages are parent gates.
+five-seat match integrations. Workspace all-target Clippy and the complete
+matching client checker pass. These are baseline results, before the separate
+berth structure pass; remote CI and packages are parent integration gates.
 Maintenance shortcuts, reviewed par, fresh-player fun and the complete
 difficulty matrix remain open. This evidence does not claim a finished game.

@@ -227,15 +227,16 @@ impl M09MapGeometry {
                 || c.held_until.windows(2).any(|w| w[1] < w[0])
                 || !c.route.last().is_some_and(|p| self.boarding.contains(*p)))
         { return Err("invalid M09 geometry"); }
-        for control in [&self.crew_release, &self.departure] {
+        for (control, kind) in [
+            (&self.crew_release, MapDecorationKind::M09CrewManifest),
+            (&self.departure, MapDecorationKind::M09BoardCarrier),
+        ] {
             if !point(&control.approach)
                 || control.point(presentation, solids).is_none()
                 || presentation
                     .decorations
                     .get(control.decoration)
-                    .is_none_or(|p| {
-                        p.kind != MapDecorationKind::LiftControl || p.solid == self.hatch
-                    })
+                    .is_none_or(|p| p.kind != kind || p.solid == self.hatch)
             {
                 return Err("invalid M09 physical control");
             }

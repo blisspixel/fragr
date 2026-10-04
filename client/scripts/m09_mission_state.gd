@@ -41,7 +41,8 @@ static func map_error(info: Dictionary) -> String:
 		if not M06MissionState._arrival(bound["objectives"][index], OBJECTIVES[ARRIVALS[index]], half):
 			return MissionState.INVALID
 	for key: String in ["crew_release", "departure"]:
-		if not M04MissionState._control(bound[key], details, half, ["lift_control"]) \
+		var kind: String = "m09_crew_manifest" if key == "crew_release" else "m09_board_carrier"
+		if not M04MissionState._control(bound[key], details, half, [kind]) \
 			or details[int(bound[key]["decoration"])]["solid"] == bound["hatch"]:
 			return MissionState.INVALID
 	if bound["crew_release"] == bound["departure"] or not M03MissionState._inside(bound["departure"]["approach"], bound["boarding"]):

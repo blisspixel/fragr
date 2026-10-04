@@ -47,3 +47,26 @@ hover volumes. Keep original authored destinations and prove those interactions
 before a renderer rerun. The original route ended at 70 HP with 22 Cells,
 three grenades and one mine, but automated finite-supply collection is not
 proof that a fresh player finds that pacing fair. Real par remains unauthored.
+
+## Current checkpoint
+
+The first 51-piece candidate exceeded the existing navigation construction
+work cap after adding lower layers. The simplified 31-piece layout retains
+actual columns and open lower circulation, plus the cargo threshold, service
+shelters, pressure ribs and supported stepped carrier. The construction guard
+remains unchanged. Both rejected identifier and topology logs are retained.
+Twenty-two focused native tests pass, including both-world support/headroom,
+body and ray refusal at real columns, every original route, all four actual
+crew contact/boarding rosters, low-resource safe entry, strict carry and the
+optional Severe challenge. The actual child ingress test protects every older
+role before Welcome. Client boundary and physical keyed-sign rendering pass.
+Full rendered changed-geometry acceptance remains open.
+
+The roof already contains an authoritative pressure-glass solid. Three
+registered mullions replace the initial two exterior ribs, forming six visible
+panes without reducing the air volume. Both-world tests prove the pane stops
+body crossing and resolved rays. A local face tint attaches to that actual
+registered pane through the shared decoration offset, leaving other venues'
+glass unchanged. Client checks prove bounds and teardown. The carrier name
+now attaches to the actual stepped stern face rather than its occluded old
+keel face. Final hardware views remain required.

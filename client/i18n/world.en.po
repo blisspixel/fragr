@@ -947,3 +947,9 @@ msgstr "Optional challenge: bait a charge over an edge."
 
 msgid "M09_OPTIONAL_FALL_DONE"
 msgstr "Optional challenge complete: a charge went over an edge."
+
+msgid "WORLD_M09_CREW_MANIFEST"
+msgstr "PASSENGER MANIFEST\nRELEASE BERTH CREW"
+
+msgid "WORLD_M09_BOARD_CARRIER"
+msgstr "COMMON CARRIER\nCONFIRM DEPARTURE"
