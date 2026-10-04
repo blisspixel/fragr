@@ -222,6 +222,75 @@ fn tap_opens_gate_once_and_held_use_cannot_depart() {
 }
 
 #[test]
+fn completion_elapsed_excludes_briefing_and_freezes_at_actual_departure() {
+    let mut state = session().state;
+    let id = Uuid::from_u128(991);
+    state.add_player(id, "Reader".into(), Role::Human);
+    for _ in 0..40 {
+        state.tick(0.05);
+    }
+    assert_eq!(state.player_record(id).unwrap().mission_elapsed_ticks, None);
+    assert!(state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: MissionId::RecallNotice,
+            attempt: 1,
+        }
+    ));
+    let ready_tick = state.tick;
+    for _ in 0..20 {
+        state.tick(0.05);
+    }
+    use_record(&mut state, id);
+    state.set_action(id, Action::default());
+    let action = approach(&mut state, id, false);
+    state.set_action(id, action);
+    state.tick(0.05);
+    assert!(state.mission_departed());
+    let complete = state.player_record(id).unwrap();
+    assert_eq!(
+        complete.mission_elapsed_ticks,
+        Some(state.tick - ready_tick)
+    );
+    complete.validate_for(Some(id), None).unwrap();
+    for _ in 0..100 {
+        state.tick(0.05);
+    }
+    let later = state.player_record(id).unwrap();
+    assert_eq!(later.mission_elapsed_ticks, complete.mission_elapsed_ticks);
+    assert_eq!(later.total, complete.total);
+    later.validate_for(Some(id), Some(&complete)).unwrap();
+}
+
+#[test]
+fn completion_clock_waits_for_the_whole_party_and_does_not_restart_on_late_ready() {
+    let mut state = session().state;
+    let a = Uuid::from_u128(992);
+    let b = Uuid::from_u128(993);
+    for id in [a, b] {
+        state.add_player(id, "Party".into(), Role::Human);
+    }
+    let ready = MissionReady {
+        id: MissionId::RecallNotice,
+        attempt: 1,
+    };
+    assert!(state.acknowledge_mission(a, ready));
+    for _ in 0..20 {
+        state.tick(0.05);
+    }
+    assert_eq!(state.mission.as_ref().unwrap().started_at, None);
+    assert!(state.acknowledge_mission(b, ready));
+    let activated = state.tick;
+    assert_eq!(state.mission.as_ref().unwrap().started_at, Some(activated));
+    state.tick(0.05);
+    assert!(!state.acknowledge_mission(a, ready));
+    let late = Uuid::from_u128(994);
+    state.add_player(late, "Late".into(), Role::Agent);
+    assert!(state.acknowledge_mission(late, ready));
+    assert_eq!(state.mission.as_ref().unwrap().started_at, Some(activated));
+}
+
+#[test]
 fn use_requires_live_participant_range_aim_and_clear_sight() {
     for rejection in ["range", "aim", "wall", "dead", "npc"] {
         let mut state = session().state;

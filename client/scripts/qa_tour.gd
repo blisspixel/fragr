@@ -2257,6 +2257,7 @@ static func _correction_distribution(samples: Array[float]) -> Dictionary:
 		"max": snappedf(ordered.back(), 0.0001)}
 
 func _set_aim_pitch(pitch: float) -> void:
+	pitch = clampf(pitch, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT)
 	var gm: Node = _game_manager()
 	var cam: Node = _spectator_camera()
 	if gm == null or cam == null or not bool(gm.get("is_human_player")):
@@ -2268,7 +2269,7 @@ func _set_aim_pitch(pitch: float) -> void:
 	while absf(_local_server_pitch(gm) - pitch) > 0.001 and Time.get_ticks_msec() < deadline:
 		await process_frame
 	if absf(_local_server_pitch(gm) - pitch) > 0.001:
-		push_error("qa_tour: pitch did not reach the authoritative snapshot")
+		push_error("qa_tour: pitch did not reach the authoritative snapshot (expected %.6f, server %.6f)" % [pitch, _local_server_pitch(gm)])
 		_failed = true
 
 func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:

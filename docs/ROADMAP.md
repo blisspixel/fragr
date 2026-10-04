@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-03)
+## Where we are (2026-10-04)
 
 [Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
 matching client/server packages and immutable build checks. Bounded development branches use pull requests with
@@ -90,9 +90,13 @@ balance. Aggregate balance is reconciled to that report; individual request
 charges are not independently verified. The [production spend record](../client/art/production-20261003/spend.json)
 contains each batch. The subsequently authorized model pilot consumed 125 net
 credits, followed by 40 for the new stylized Clerk source and rig. The live
-account checker reports 2,905 credits, with the original 15-credit uncertain
+account checker initially reported 2,905 credits, with the original 15-credit uncertain
 local hold retained. A separate 30-credit account decrease is not attributed
-to local production receipts. No new cash charge or cloud apply ran.
+to local production receipts. The October 4 four-character model/rig batch used
+160 existing credits and its subsequent free check reports 2,745 available,
+with the same 15-credit hold. Source preparation and played acceptance continue
+under the [cast plan](plans/cast-model-buildout-20261004.md). No new cash charge
+or cloud apply ran.
 
 **Shipped and proven on the tip:**
 
@@ -123,7 +127,7 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, level 7 integrated into the run, levels 9 to 20, the end-of-level tally, the planned console, Ultra graphics and the player-facing rendered benchmark, directional combat audio, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, levels 9 to 20, the planned console, Ultra graphics and the player-facing rendered benchmark, wider directional combat acoustics, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -297,21 +301,26 @@ under #197.
 
 The phases below are the long shape. The sequence that follows is the build order. Each rung is there because the rung before it is what makes the next one true. A green harness is not a finished mission. A scripted clear is not a fresh player.
 
-## Full build order (2026-09-27)
+## Full build order (updated 2026-10-04)
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-10-03.** The order is set by what most raises fun and
-quality for the work. Nick authorized three independent level lanes alongside
-asset production on 2026-10-03: M04 civilian detail, M06 lunar workmanship and
-M07 completion. Shared integration and art direction stay with the asset lane;
+**Next, as of 2026-10-04.** The order is set by what most raises fun and
+quality for the work. Nick authorized parallel game development alongside
+substantial model production. The current independent lanes are M04 residential
+architecture, directional combat feedback, campaign results and cast sources.
+Earlier M04, M06 and M07 improvements shipped in v0.70.0. Shared integration
+and art direction stay coordinated through
+[PR #348](https://github.com/blisspixel/fragr/pull/348), one short-lived branch;
 rendered tours take turns on the same GPU. Every level, built or planned,
 must pass the [maximum-fun checks](MAP-DESIGN.md#maximum-fun-first). Every
 map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
 asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-0. **Nick plays v0.68.0.** About an hour across levels 1 to 6, Sabotage with
+0. **Nick plays v0.70.0.** The current desktop release includes the new Clerk,
+   sealed buildings, civilian finishes and restored level 7. Review levels 1
+   to 6, Sabotage with
    bots and capture the flag, using the watch list in the
    [polish plan](plans/campaign-polish-20261002.md).
    *Why:* automation proved the routes work; only a person can say whether it
@@ -325,11 +334,19 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      route and actual local carry/mine/retry checks pass. Keep the low-health
      rim crossing on the fresh-player pacing review.
    - Land any parked art.
+   - [Campaign results](plans/campaign-results.md) are implemented locally:
+     actual mission kills, secrets, deaths and elapsed server time, with a real
+     M01 completion and onward save. The selected slice ships with the combined
+     main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
    *Why:* two levels are nearly done, and finishing beats starting.
 2. **The feel layer.**
    - [Directional combat audio](plans/directional-combat-audio.md): near-miss
-     cracks, a damage arc, occlusion.
+     cracks, a damage arc, occlusion. The first bounded slice is implemented
+     locally with [real shot evidence](evidence/directional-feedback-20261004.md),
+     finite-ray cue placement, covered closest-point suppression and pixel
+     damage bearings. Wider room acoustics and listening acceptance stay open.
+     The selected slice ships with the combined main integration of PR #348.
    - Then [console](plans/console.md) phase 1: practical commands, voices
      and jokes, client only.
 
@@ -356,6 +373,21 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    all eight implementation CI jobs pass.
    Black/red applies to issued outfits and equipment; civilian walls and lunar
    pressure shells retain place-specific materials.
+   The [October 4 cast batch](plans/cast-model-buildout-20261004.md) produces
+   coherent Sweeper, Auditor, free-human and Latch sources. All four candidates
+   and rigs completed for 160 included credits. The new selectable civilian
+   source and eight-cell strip pass focused checks. The Sweeper and Auditor
+   have authored role poses and paired atlases; Latch uses a packaged live
+   skin with gait and real palm attachments. Source and venue views pass
+   locally; full route acceptance and combined integration remain distinct.
+   The selected cast sources, live presentation and residential frontage ship
+   through the same main integration of PR #348. The full Auditor range and
+   full M02 art route remain open; the pitch checker correction retains strict
+   acknowledgements and does not change combat difficulty or outcomes.
+   [West-court homes](plans/m04-residential-facades.md) add sealed domestic
+   masses and varied roof edges; the full local M04 route retains all 28 guards
+   and departure. Optional roof access and ordinary return also pass. Strict
+   historical M04 saves bound to the old map hash remain incompatible.
    [M04 inhabited detail](plans/m04-inhabited-world-polish.md) shipped in
    [PR #344](https://github.com/blisspixel/fragr/pull/344), with a clean 26-state
    route. [M06 workmanship](plans/m06-world-workmanship.md) shipped in

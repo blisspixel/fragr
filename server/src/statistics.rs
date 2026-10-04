@@ -179,6 +179,7 @@ impl GameState {
             role: player.role,
             scope,
             status,
+            mission_elapsed_ticks: self.mission_elapsed_ticks(),
             total: player.statistics.total.clone(),
             attempt: player.statistics.attempt.clone(),
         })

@@ -48,6 +48,25 @@ func _run() -> void:
 				var start: Transform3D = model.get_node("LeftLeg/Shin").transform
 				player.seek(0.25, true)
 				_check(not start.is_equal_approx(model.get_node("LeftLeg/Shin").transform), "imported walk moves the actual leg")
+		if entry["file"] == "latch.glb":
+			var skeletons: Array[Node] = model.find_children("*", "Skeleton3D", true, false)
+			var players: Array[Node] = model.find_children("*", "AnimationPlayer", true, false)
+			_check(skeletons.size() == 1 and players.size() == 1, "Latch library export retains one skin and gait player")
+			if skeletons.size() == 1 and players.size() == 1:
+				var skeleton: Skeleton3D = skeletons[0] as Skeleton3D
+				var player: AnimationPlayer = players[0] as AnimationPlayer
+				var leg: int = skeleton.find_bone("LeftLeg")
+				_check(skeleton.get_bone_count() == 24 and leg >= 0 and player.has_animation("walk"), "Latch export keeps its actual weighted joints and walking clip")
+				if leg >= 0 and player.has_animation("walk"):
+					player.play("walk")
+					player.seek(0.0, true)
+					var start: Transform3D = skeleton.get_bone_pose(leg)
+					player.seek(0.25, true)
+					_check(not start.is_equal_approx(skeleton.get_bone_pose(leg)), "reimported Latch gait moves the actual leg bone")
+			var weighted: int = 0
+			for node: Node in model.find_children("*", "MeshInstance3D", true, false):
+				weighted += 1 if (node as MeshInstance3D).skin != null else 0
+			_check(weighted > 0, "reimported Latch surfaces retain their skin bindings")
 		model.free()
 	_fixture_bounds()
 	for size: Vector3 in [Vector3(12, 6, 0.5), Vector3(0.5, 4, 18), Vector3(3, 3, 1.5)]:
@@ -108,7 +127,7 @@ func _weapon_articulation() -> void:
 	gun.free()
 
 func _normals_render() -> void:
-	for kind: String in ["sweeper", "clerk"]:
+	for kind: String in ["sweeper", "clerk", "auditor"]:
 		await _normal_body(kind)
 
 func _normal_body(kind: String) -> void:

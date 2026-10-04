@@ -27,7 +27,11 @@
 		},
 		{
 			"file": "latch.glb",
-			"sha256": "5bc992a8ccc455ea2c2b9937ef1972c2c59ccc13eab6ea8715058694884a396f"
+			"sha256": "a2694417a93f7555037bffab3abe251a7085e913459f7d48567b0c9863a6b9e4"
+		},
+		{
+			"file": "latch_stylized.glb",
+			"sha256": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951"
 		},
 		{
 			"file": "shotgun.glb",
@@ -58,7 +62,7 @@
 	],
 	"schema": 1,
 	"sources": {
-		"res://art/models/bake.gd": "2d68cfc966e6b1f9ef8f2126fd56bca44d8381b6e5b25e6cf273bea1b6745440",
+		"res://art/models/bake.gd": "5741f5e9fbbbe275bce1cb55bada4e5ceebd856f04ab3cebd221e9e1c2171a6a",
 		"res://art/models/glb_metadata.gd": "aa7f7c800bc2b3b025569271cae3d826538e15e7e8274463a9eef9bd8ca68601",
 		"res://art/models/model_clips.gd": "c4c71f9f5a4bbcbd09e8bca593bc12bc46c6f8ce8aeae12acc4ebe4576214c49",
 		"res://art/models/shotgun_source.gd": "6a02c758d10a7ba2dcdef237609976e8f97d175a8707e4839854bb16d3800dd1",
@@ -66,8 +70,11 @@
 		"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",
 		"res://assets/models/finishes/metal.png": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
 		"res://assets/models/finishes/wood.png": "4529cac0e869e2227c5e79613c09e7a906eee15655f7742d917ea591055d3e3e",
+		"res://assets/models/latch_stylized.glb": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
+		"res://assets/shaders/latch_near_clip.gdshader": "3d83749b972ca6a5c898804b3866fdb7f9262390d5dd34dfee5e10e4b4225937",
 		"res://scripts/facility_geometry.gd": "cf169e96605f837b59695babda7675159dfb5829f4c0161af5dac152046f45c3",
-		"res://scripts/latch_view.gd": "da7d8a811c22c9f50d7a9d624400f269a4374bc2db7e5520fe1974a92f29afc2",
+		"res://scripts/latch_source.gd": "dc2cc6ab7bc98bdc769b0c0639f8af129c3e1bbb6222a53538201e11c87cceed",
+		"res://scripts/latch_view.gd": "2c73256ed67f762ca6840a90ee8e13329137b8d8b20ea2dc36de5ab71c3e8206",
 		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 	}
 }

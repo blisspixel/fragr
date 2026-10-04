@@ -242,3 +242,147 @@ fn authored_m04_tour_requires_every_guard_and_three_secrets() {
         "party_departed"
     );
 }
+
+#[test]
+fn authored_m04_west_homes_are_physical_without_changing_court_shot_lanes() {
+    use crate::maps::AuthoredMap;
+    use crate::navigation::{RouteStatus, SEARCH_LIMIT};
+    let document: serde_json::Value =
+        serde_json::from_slice(include_bytes!("../../maps/m04_notice_to_vacate.json")).unwrap();
+    let mut prior = document.clone();
+    prior["solids"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|solid| !solid["id"].as_str().unwrap().starts_with("west_home_"));
+    let baseline = RuntimeMap::Authored(
+        AuthoredMap::read(serde_json::to_vec(&prior).unwrap().as_slice()).unwrap(),
+    );
+    let (closed, opened) = worlds();
+    for world in [&closed, &opened] {
+        for (z, roof) in [(21.0, 5.5), (27.0, 6.2), (35.0, 5.15)] {
+            assert!(!walk_segment(
+                world.arena(),
+                [-29.0, 0.0, z],
+                [-22.0, 0.0, z]
+            ));
+            assert!(!crate::combat::line_of_sight(
+                [-22.0, roof + 1.0, z],
+                [-22.0, 1.6, z],
+                &world.arena().solids
+            ));
+            // Ordinary balcony walking cannot enter a sealed home body.
+            assert!(!walk_segment(
+                world.arena(),
+                [-18.0, 3.0, z],
+                [-22.0, roof, z]
+            ));
+        }
+        let watchers = &document["encounters"][5]["enemies"];
+        for enemy in watchers.as_array().unwrap().iter().take(2) {
+            for target in enemy["hover"]["patrol"].as_array().unwrap() {
+                let point: [f32; 3] = serde_json::from_value(target.clone()).unwrap();
+                for origin in [[0.0, 1.6, 23.0], [-17.0, 4.6, 32.0], [13.5, 5.6, 36.5]] {
+                    assert_eq!(
+                        crate::combat::line_of_sight(origin, point, &world.arena().solids),
+                        crate::combat::line_of_sight(origin, point, &baseline.arena().solids),
+                        "new home changed a court Notary shot lane"
+                    );
+                }
+            }
+        }
+        // Preparation, finite supplies, tank approach and departure remain
+        // reachable in the actual prepared navigation world.
+        for target in [
+            [-18.0, 0.0, 20.0],
+            [-6.0, 0.0, 20.0],
+            [-16.5, 3.0, 34.0],
+            [13.5, 4.0, 36.5],
+        ] {
+            assert_eq!(
+                world
+                    .navigation()
+                    .route([0.0, 0.0, 23.0], target, SEARCH_LIMIT)
+                    .status,
+                RouteStatus::Complete
+            );
+        }
+    }
+    assert_ne!(
+        closed.content_sha256(),
+        baseline.content_sha256(),
+        "new collision must change content identity"
+    );
+}
+
+#[test]
+fn authored_m04_new_home_roofs_keep_truthful_post_stair_access_and_return() {
+    let (closed, opened) = worlds();
+    for world in [&closed, &opened] {
+        for z in [21.0, 27.0, 35.0] {
+            let mut body = MoveState {
+                x: -18.8,
+                y: 3.0,
+                z,
+                vx: -4.0,
+                vz: 0.0,
+                vy: 0.0,
+                yaw: 0.0,
+            };
+            for tick in 0..50 {
+                body.vx = -4.0;
+                body = integrate(body, tick == 0, 0.05, world.arena());
+            }
+            assert!(
+                body.x > -19.5 && (body.y - 3.0).abs() < 0.01,
+                "balcony jump bypassed the existing sealed wall"
+            );
+        }
+        // The existing 4m exit deck permits a jump onto the existing 5m north
+        // wall. New roofs are truthful optional side platforms after this stair,
+        // rather than inaccessible scenery or an early departure shortcut.
+        let mut body = MoveState {
+            x: 13.5,
+            y: 4.0,
+            z: 38.0,
+            vx: 0.0,
+            vz: 0.0,
+            vy: 0.0,
+            yaw: 0.0,
+        };
+        for tick in 0..25 {
+            body.vz = if body.z < 39.15 { 2.0 } else { 0.0 };
+            body = integrate(body, tick == 0, 0.05, world.arena());
+        }
+        assert!((body.y - 5.0).abs() < 0.01);
+        for _ in 0..175 {
+            body.vx = if body.x > -19.65 { -4.0 } else { 0.0 };
+            body.vz = 0.0;
+            body = integrate(body, false, 0.05, world.arena());
+        }
+        for _ in 0..15 {
+            body.vx = if body.x > -21.0 { -2.0 } else { 0.0 };
+            body.vz = if body.z > 38.6 { -2.0 } else { 0.0 };
+            body = integrate(body, false, 0.05, world.arena());
+        }
+        assert!(body.x < -20.5 && (body.y - 5.15).abs() < 0.01);
+        assert!(
+            walk_segment(world.arena(), [body.x, body.y, body.z], [-19.75, 5.0, 37.6]),
+            "new roof must allow an ordinary return onto the registered west wall"
+        );
+        assert!(walk_segment(
+            world.arena(),
+            [-19.75, 5.0, 37.6],
+            [-18.8, 3.0, 37.6]
+        ));
+        assert!(walk_segment(
+            world.arena(),
+            [-18.8, 3.0, 37.6],
+            [-18.8, 3.0, 34.25]
+        ));
+        assert!(walk_segment(
+            world.arena(),
+            [-18.8, 3.0, 34.25],
+            [-12.0, 3.0, 34.25]
+        ));
+    }
+}

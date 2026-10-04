@@ -1,17 +1,25 @@
 extends "res://art/characters/geometry.gd"
 
 const SOURCE: String = "res://art/models/candidates/clerk.glb"
-static var _packed: PackedScene
+static var _scenes: Dictionary[String, PackedScene] = {}
+
+func source_path() -> String:
+	return SOURCE
+
+func pose_name() -> String:
+	return "ClerkPose"
 
 func build_pose(action: String, progress: float, unarmed: bool = false) -> Node3D:
-	if _packed == null:
-		_packed = load(SOURCE) as PackedScene
+	var path: String = source_path()
+	if not _scenes.has(path):
+		_scenes[path] = load(path) as PackedScene
+	var packed: PackedScene = _scenes[path]
 	var model: Node3D = Node3D.new()
-	model.name = "ClerkPose"
-	if _packed == null:
+	model.name = pose_name()
+	if packed == null:
 		push_error("clerk_source: source is unavailable")
 		return model
-	var body: Node3D = _packed.instantiate() as Node3D
+	var body: Node3D = packed.instantiate() as Node3D
 	model.add_child(body)
 	model.ready.connect(_apply_pose.bind(model, body, action, progress, unarmed), CONNECT_ONE_SHOT)
 	return model

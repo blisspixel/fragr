@@ -55,8 +55,11 @@ func _run() -> void:
 	for node: Node in parts:
 		var part: MeshInstance3D = node as MeshInstance3D
 		_check(part.material_override == live._ward_materials[part], "disabling clipping restores exact original resources")
+	var resting_hand: Transform3D = ward._source.bone_transform(ward._source_body, "RightHand")
 	ward.pose_release(1.0)
-	_check(ward.get_node("RightArm/Hand").rotation.x < -0.3 and ward.get_node("RightArm/Tack").visible == false,
+	var reaching_hand: Transform3D = ward._source.bone_transform(ward._source_body, "RightHand")
+	_check(reaching_hand.origin.y > resting_hand.origin.y + 0.25
+		and not reaching_hand.basis.is_equal_approx(resting_hand.basis) and not ward.get_node("RightArm/Tack").visible,
 		"ward voluntary hand gesture and hidden weapon remain intact")
 	var pawn: Node3D = load("res://scenes/player.tscn").instantiate()
 	root.add_child(pawn)
@@ -131,6 +134,7 @@ func _rendered(live: LatchView) -> void:
 	_check(upper_pixels == 0, "upward first-person view retains no close head or shoulder fragments in the sky")
 	upward.save_png(directory.path_join("latch-upward-clipped.png"))
 	await _transition_sweep(viewport, camera, live, clear)
+	await _distant_source_reference(viewport, camera, live, clear)
 	await _shadow_retained(viewport, camera, live, world)
 	live.reparent(root)
 	viewport.free()
@@ -138,9 +142,12 @@ func _rendered(live: LatchView) -> void:
 		print("test_latch_near_clip: rendered PASS actual close/offset/transition/distant pixels and retained shadow")
 
 func _transition_sweep(viewport: SubViewport, camera: Camera3D, live: LatchView, background: Color) -> void:
-	viewport.size = Vector2i(320, 180)
-	var original_board: Image = Image.create(1280, 720, false, Image.FORMAT_RGBA8)
-	var corrected_board: Image = Image.create(1280, 720, false, Image.FORMAT_RGBA8)
+	viewport.size = Vector2i(384, 216)
+	# Sample the lean source at 384 by 216 so the same 1000 pixel minimum holds
+	# at the far upward-offset endpoint. Original angles, coverage and shadows remain.
+	camera.fov = 75.0
+	var original_board: Image = Image.create(1536, 864, false, Image.FORMAT_RGBA8)
+	var corrected_board: Image = Image.create(1536, 864, false, Image.FORMAT_RGBA8)
 	var samples: Array[Dictionary] = []
 	var index: int = 0
 	for offset: float in [0.0, 0.25]:
@@ -158,8 +165,8 @@ func _transition_sweep(viewport: SubViewport, camera: Camera3D, live: LatchView,
 			var outside: int = 0
 			var coverage_cells: Dictionary[Vector2i, bool] = {}
 			var incoherent: int = 0
-			for y: int in range(180):
-				for x: int in range(320):
+			for y: int in range(216):
+				for x: int in range(384):
 					var before: bool = _color_distance(original.get_pixel(x, y), background) > 0.03
 					var after: bool = _color_distance(corrected.get_pixel(x, y), background) > 0.03
 					original_pixels += int(before)
@@ -183,10 +190,10 @@ func _transition_sweep(viewport: SubViewport, camera: Camera3D, live: LatchView,
 				_check(corrected_pixels == original_pixels, "ordinary distant full rig remains completely opaque at both camera offsets")
 			elif distance == 1.15:
 				_check(corrected_pixels > 0 and corrected_pixels < original_pixels, "short near transition retains distributed figure coverage")
-			var slot: Vector2i = Vector2i((index % 4) * 320, (index / 4) * 180)
-			original_board.blit_rect(original, Rect2i(Vector2i.ZERO, Vector2i(320, 180)), slot)
-			corrected_board.blit_rect(corrected, Rect2i(Vector2i.ZERO, Vector2i(320, 180)), slot)
-			samples.append({"offset": offset, "pitch": camera.rotation.x, "distance": distance,
+			var slot: Vector2i = Vector2i((index % 4) * 384, (index / 4) * 216)
+			original_board.blit_rect(original, Rect2i(Vector2i.ZERO, Vector2i(384, 216)), slot)
+			corrected_board.blit_rect(corrected, Rect2i(Vector2i.ZERO, Vector2i(384, 216)), slot)
+			samples.append({"offset": offset, "pitch": camera.rotation.x, "fov": camera.fov, "distance": distance,
 				"original_pixels": original_pixels, "corrected_pixels": corrected_pixels, "outside": outside})
 			index += 1
 	var directory: String = ProjectSettings.globalize_path("res://../.agents/m06-buildout-20261001/latch-near-corrected")
@@ -205,12 +212,49 @@ func _transition_sweep(viewport: SubViewport, camera: Camera3D, live: LatchView,
 	camera.rotation = Vector3(0.45, 0, 0)
 	var moved: Image = await _frame(viewport)
 	var remaining: int = 0
-	for y: int in range(180):
-		for x: int in range(320):
+	for y: int in range(216):
+		for x: int in range(384):
 			remaining += int(_color_distance(moved.get_pixel(x, y), background) > 0.03)
 	_check(remaining == 0, "moved actual chassis retains coherent clearance with translated height and render eye")
 	live.position = Vector3.ZERO
 	live._process(0.0)
+
+## Compare the new thin skin with itself at the original raster and cameras.
+## The older procedural figure's fixed pixel floor is not a shape reference.
+func _distant_source_reference(viewport: SubViewport, camera: Camera3D, live: LatchView, background: Color) -> void:
+	viewport.size = Vector2i(320, 180)
+	camera.fov = 75.0
+	var samples: Array[Dictionary] = []
+	for offset: float in [0.0, 0.25]:
+		camera.position = Vector3(offset, MoveStep.EYE_HEIGHT, 2.5)
+		camera.rotation = Vector3(0.25 if offset == 0.0 else 0.4, 0, 0)
+		live.set_near_camera_clip(false)
+		var reference: Image = await _frame(viewport)
+		live.set_near_camera_clip(true)
+		var clipped: Image = await _frame(viewport)
+		var reference_pixels: int = 0
+		var clipped_pixels: int = 0
+		var shape_mismatches: int = 0
+		for y: int in range(180):
+			for x: int in range(320):
+				var before: bool = _color_distance(reference.get_pixel(x, y), background) > 0.03
+				var after: bool = _color_distance(clipped.get_pixel(x, y), background) > 0.03
+				reference_pixels += int(before)
+				clipped_pixels += int(after)
+				shape_mismatches += int(before != after)
+		_check(reference_pixels > 0 and shape_mismatches == 0,
+			"original-resolution distant source and near-fade skin have identical nonempty silhouettes")
+		var coverage: float = float(clipped_pixels) / maxf(1.0, reference_pixels)
+		_check(is_equal_approx(coverage, 1.0), "original-resolution distant source has full normalized coverage")
+		samples.append({"offset": offset, "distance": 2.5, "fov": camera.fov,
+			"size": [320, 180], "reference_pixels": reference_pixels, "clipped_pixels": clipped_pixels,
+			"shape_mismatches": shape_mismatches, "coverage": coverage})
+	var directory: String = ProjectSettings.globalize_path("res://../.agents/m06-buildout-20261001/latch-near-corrected")
+	var receipt: FileAccess = FileAccess.open(directory.path_join("source-reference.json"), FileAccess.WRITE)
+	_check(receipt != null, "original-resolution source reference receipt opens")
+	if receipt != null:
+		receipt.store_string(JSON.stringify(samples, "  "))
+		receipt.close()
 
 func _shadow_retained(viewport: SubViewport, camera: Camera3D, live: LatchView, world: WorldEnvironment) -> void:
 	world.environment.ambient_light_energy = 0.12

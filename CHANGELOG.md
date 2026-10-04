@@ -4,6 +4,41 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.71.0 (2026-10-04)
+
+The cast gains four coherent stylized production sources and rigs. The free
+human's selectable body uses a prepared skin and gait, painted angular face,
+worn leather jacket, work trousers and civilian accessories. The Sweeper gains
+a broader bot silhouette and two-handed rifle poses. The Auditor gains a
+skinned field uniform, held shield, repair sockets, upper-back cable and
+raised-hand emitter, with matching directional body normals. Latch uses a live
+packaged skin, retained gait, expressive CRT face and actual palm attachment.
+Played evidence and remaining acceptance gates are recorded separately.
+Production used 160 included model credits, with no new cash charge.
+
+Incoming fire gains short spatial pass-by cues and fading pixel damage
+bearings from resolved server shots. Finite shot segments, authoritative cover,
+local ownership and a bounded voice pool govern feedback. Actual two-client
+range shots exercise each bearing and a non-damaging near miss. Broader room
+acoustics and listening acceptance remain open.
+
+Local campaign departure shows actual kills, secrets, deaths and server elapsed
+time after story presentation. Readiness and retries own the clock; completion
+freezes it. Capability 33 gates the new record field for older clients. A real
+M01 route reaches its tally and durable onward save. Authored par is not yet
+available and is omitted.
+
+Low Water's west court gains three sealed residential buildings with domestic
+windows, varied roof heights and roof edges. Solid bodies and upper silhouettes
+use authoritative collision. The full mission route retains all 28 guards and
+departure; an optional roof route has a verified ordinary return. Older M04
+saves tied to the previous map hash remain incompatible.
+
+The played capture helper now waits for attainable pitch at the existing
+85-degree limit, retaining its strict acknowledgement tolerance. A real setter
+regression, old-behavior mutation and identical route replay prove the fix.
+Full M02 art-route completion and fresh-player pacing remain open.
+
 ## v0.70.0 (2026-10-03)
 
 The Clerk's replacement source has angular painted facial planes, a black

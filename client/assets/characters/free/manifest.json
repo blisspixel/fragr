@@ -4,15 +4,15 @@
 	"entries": [
 		{
 			"body": "human",
-			"brief": "Free human: bone shirt, open warm-leather jacket, rust scarf, cyan patch and armband, visible face and hair.",
+			"brief": "Free human: angular painted face, worn leather jacket, teal shirt, work trousers, ochre scarf and practical hat.",
 			"file": "human.png",
-			"sha256": "e89763c55f769b9bc29be20537e68c0058db79b1945576fccd48c019ef878046"
+			"sha256": "1419a43717277beaa133186b0e6286a03053819c85e6aa4e3d6f34f8edd69d2b"
 		},
 		{
 			"body": "synthetic",
 			"brief": "Free embodied agent: bone shell over a gunmetal frame, leather harness, ember scarf, rust repair plates, round cyan lenses, magenta-tipped antenna.",
 			"file": "synthetic.png",
-			"sha256": "e1c11a34907b4c77394fcac97c93b930084d1a4a3d11bc5096ba9b0133c773fb"
+			"sha256": "a5a1ebca00287c1c8388be6ea849af3f3c00d5992a4ac5a814f159f3bbca7506"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
@@ -20,9 +20,12 @@
 	"schema": 1,
 	"sources": {
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
-		"res://art/characters/player_bake.gd": "f4169d392ea540e8f7ecba89ad7fd97cc4d7d7e5da7b3552771dc9617cacb7e8",
+		"res://art/characters/player_bake.gd": "56d989876a80ac4f2ad84bdac120d219275ba0ff51ff42502fbddc992b1252c8",
 		"res://art/characters/player_rig.gd": "8816452026528b05b49709f75f1e7170f9761f90bcaedb2c4c8b2d71cdd0f3a4",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
+		"res://art/models/candidates/free_human.glb": "8b131e404a0155cae8eec586cbd22f5f19750238059f561074fdcbf1583d6f13",
+		"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
+		"res://art/models/free_human_source.gd": "7a83f137ed1c447db363b7f3b960e662a074df30b70ec52d4ee8bd738af313ba",
 		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
 	},
 	"tile_pixels": 160,

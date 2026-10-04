@@ -13,7 +13,7 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 32. M07 Declared Goods requires 32
+The adapter declares gameplay capability 33. M07 Declared Goods requires 32
 for its strict town and crater envelope. M08 Custodian of Record requires 31
 for its strict archive envelope. A map that grants the Sniper Rifle or places a
 Ranged Sweeper requires 30. Maps that place a campaign Auditor or grant
@@ -659,7 +659,7 @@ Example `test_input.jsonl`:
 
 ## Campaign observations
 
-The adapter sends current capability 32. M08 requires 31, maps with the Sniper
+The adapter sends current capability 33. M08 requires 31, maps with the Sniper
 Rifle or a Ranged Sweeper require 30, maps with a campaign Auditor or mine
 supply require 29, Sabotage requires 28, M06 requires 27, and other current
 authored mission and discovery maps require 26. On M08, `observe.map.m08` carries the

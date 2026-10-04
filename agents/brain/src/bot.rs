@@ -1322,6 +1322,7 @@ mod tests {
         total.weapons[WeaponType::Tack.index()].damaging_attacks = 1;
         total.weapons[WeaponType::Tack.index()].kills = 1;
         let record = PlayerRecord {
+            mission_elapsed_ticks: None,
             version: RECORD_VERSION,
             session_id: Uuid::from_u128(3),
             player_id: id,

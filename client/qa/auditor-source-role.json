@@ -1,0 +1,11 @@
+{
+  "comment": "Four-state Standard source-role proof in the existing custody development range. Normal discovered Scatter, real first Sweeper kill, unchanged death gate and a simultaneous diagnostic observer in the same world. This is not the original full range clear or a completed M08.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"auditor_source_supplies","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","radio_off":true,"walk_to":[[-1.5,0,-16],[1.5,0,-16],[0,0,-14],[-3,0,-14]],"note":"Claim the original Rifle, Shotgun, ammunition and armor through ordinary walking."},
+    {"name":"auditor_source_cover","camera":"first_person","weapon":"Scatter","walk_to":[[0,0,-4],[3,0,2],[4,0,6]],"look_at":[12,1.2,18],"note":"Reach existing pillar cover through ordinary input."},
+    {"name":"auditor_source_disabled_body","camera":"first_person","weapon":"Scatter","combat":{"kind":"union","required":["bay_sweeper_a"],"target_required_only":true,"evade_tells":false},"note":"Real first Sweeper defeat with the original resolved-shot and participant-death gates."},
+    {"name":"auditor_source_role","camera":"first_person","strip_frames":6,"strip_interval_seconds":0.05,"note":"Stay at the actual cover. The separate diagnostic camera records the live raised-hand channel without moving any actor. Remaining-guard clear belongs to the original range and stays open."}
+  ]
+}

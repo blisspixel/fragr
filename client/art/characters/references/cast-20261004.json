@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "date": "2026-10-04",
+  "style": "Angular painted forms, broad values and coherent pixel detail, practical retro-futurism around 2070.",
+  "union": "Black and dark steel with restrained red issue marks and fictional three-bar seals.",
+  "free_people": "Worn civilian possessions, warm leather, bone and rust, individual repairs, expressive conscious people.",
+  "model": "7.1",
+  "total_consumed_credits": 160,
+  "available_api_credits_after": 2745,
+  "retained_uncertain_credits": 15,
+  "new_cash_usd": 0,
+  "automatic_topups": false,
+  "pricing_source": "https://docs.meshy.ai/en/api/pricing",
+  "entries": [
+    {
+      "role": "sweeper",
+      "reference": "sweeper-stylized-v2.png",
+      "reference_sha256": "9407d349fc768af63b5f07238764e383dd396aaeca4053dfeea41ee9dabb1934",
+      "model_credits": 35,
+      "rig_credits": 5,
+      "source_texture_pixels": 4096,
+      "geometry_resolution": "2k",
+      "target_triangles": 12000,
+      "pose": "a-pose",
+      "status": "posed skin and paired runtime atlases implemented, combined acceptance pending"
+    },
+    {
+      "role": "auditor",
+      "reference": "auditor-stylized-v2.png",
+      "reference_sha256": "d525c262492b8c0bdf510ffa1468715b4f1f226cbd1e3e28e0022ac7b0b9e6fd",
+      "model_credits": 35,
+      "rig_credits": 5,
+      "source_texture_pixels": 4096,
+      "geometry_resolution": "2k",
+      "target_triangles": 12000,
+      "pose": "a-pose",
+      "status": "posed skin and paired runtime atlases implemented, full range clear remains open"
+    },
+    {
+      "role": "free-human",
+      "reference": "free-human-stylized-v2.png",
+      "reference_sha256": "792adf9c0ab25631e3d2a7c070aa630773905cdc19cbaaf017cd2e1cf11bdf35",
+      "model_credits": 35,
+      "rig_credits": 5,
+      "source_texture_pixels": 4096,
+      "geometry_resolution": "2k",
+      "target_triangles": 12000,
+      "pose": "a-pose",
+      "status": "prepared civilian skin and runtime strip implemented, wider played acceptance open"
+    },
+    {
+      "role": "latch",
+      "reference": "latch-stylized-v2.png",
+      "reference_sha256": "0dfea3de518111bd761b7e8ae191d133aa3a7220d248c52f37eab16b948a4b72",
+      "model_credits": 35,
+      "rig_credits": 5,
+      "source_texture_pixels": 4096,
+      "geometry_resolution": "2k",
+      "target_triangles": 12000,
+      "pose": "a-pose",
+      "status": "live packaged skin and gait implemented, full mission-route acceptance pending"
+    }
+  ]
+}

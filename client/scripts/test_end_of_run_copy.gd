@@ -5,6 +5,8 @@ class MatchHost extends Node:
 
 class FakeNet extends RefCounted:
 	var mission: Dictionary = {}
+	var record: Dictionary = {}
+	var player_id: String = ""
 
 var _failures: int = 0
 
@@ -18,6 +20,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _departed_state() -> Dictionary:
 	return {
+		"id": MissionState.ID,
 		"rules": {"difficulty": "standard", "revision": 3},
 		"attempt": 1,
 		"phase": "departed",
@@ -56,11 +59,15 @@ func _run() -> void:
 	_check(manager.get("local_match") == null, "a match is not a local campaign until that process exists")
 	manager.free()
 
-	# A completed mission in an owned durable run offers to continue the run
-	# straight away; development children and other phases never do.
+	# A completed mission in an owned durable run offers to continue after its
+	# result is dismissed; development children and other phases never do.
 	var onward: Node = load("res://scripts/game_manager.gd").new()
 	var wire: FakeNet = FakeNet.new()
 	wire.mission = {"state": _departed_state()}
+	wire.record = JSON.parse_string(FileAccess.get_file_as_string("res://golden/player_record.json"))
+	wire.player_id = wire.record["player_id"]
+	wire.record["scope"] = {"kind": "mission", "mission": MissionState.ID, "attempt": 1,
+		"rules": _departed_state()["rules"], "run": _departed_state()["run"]}
 	var owner: LocalMatch = LocalMatch.new()
 	owner.set("_run_mode", "resume")
 	var display: MissionHud = MissionHud.new()
@@ -71,6 +78,11 @@ func _run() -> void:
 	onward.set("local_match", owner)
 	onward.set("mission_hud", display)
 	onward.set("is_human_player", true)
+	onward._arm_onward()
+	_check(not onward.get("_onward_armed"), "completion cannot bypass an unpresented result")
+	var result: Dictionary = CampaignResult.select(wire.record, wire.mission["state"], wire.player_id)
+	_check(not result.is_empty(), "the shared completion record validates")
+	onward._results_played[result["key"]] = true
 	onward._arm_onward()
 	_check(onward.get("_onward_armed") and display.prompt_text == InputGlyphs.plain(tr("RUN_NEXT_MISSION_INPUT")),
 		"a completed durable run offers to continue: " + display.prompt_text)

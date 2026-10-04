@@ -8,8 +8,13 @@ extends SceneTree
 const Rig = preload("res://art/characters/auditor_rig.gd")
 const OUTPUT: String = "res://assets/characters/union/auditor.png"
 const MANIFEST: String = "res://assets/characters/union/auditor-manifest.json"
+const NORMALS: String = "res://assets/characters/union/auditor_normals.png"
+const NORMAL_SHADER: Shader = preload("res://art/models/normal_bake.gdshader")
+var _bake_materials: Array[Material] = []
 const SOURCES: Array[String] = ["res://art/characters/auditor_rig.gd",
-	"res://art/characters/auditor_bake.gd", "res://art/characters/rig.gd",
+	"res://art/characters/auditor_bake.gd", "res://art/models/auditor_source.gd",
+	"res://art/models/clerk_source.gd", "res://art/models/candidates/auditor.glb",
+	"res://art/models/normal_bake.gdshader",
 	"res://art/characters/geometry.gd", "res://scripts/enemy_animation.gd"]
 
 func _initialize() -> void:
@@ -45,6 +50,7 @@ func bake() -> void:
 	var rig: RefCounted = Rig.new()
 	var atlas: Image = Image.create(EnemyAnimation.COLUMNS * EnemyAnimation.TILE,
 		EnemyAnimation.rows() * EnemyAnimation.TILE, false, Image.FORMAT_RGBA8)
+	var normals: Image = Image.create(atlas.get_width(), atlas.get_height(), false, Image.FORMAT_RGBA8)
 	for direction: int in range(EnemyAnimation.DIRECTIONS):
 		var pose: int = 0
 		for clip: Dictionary in EnemyAnimation.CLIPS:
@@ -58,6 +64,7 @@ func bake() -> void:
 				if action == "seated":
 					action = "channel"
 				var model: Node3D = rig.build_auditor(action, progress, bool(clip["unarmed"]))
+				_albedo(model)
 				viewport.add_child(model)
 				model.rotation_degrees.y = direction * 45.0
 				await process_frame
@@ -75,11 +82,21 @@ func bake() -> void:
 				var cell: Vector2i = Vector2i(frame % EnemyAnimation.COLUMNS,
 					floori(float(frame) / EnemyAnimation.COLUMNS)) * EnemyAnimation.TILE
 				atlas.blit_rect(capture, Rect2i(Vector2i.ZERO, viewport.size), cell)
+				_normal(model)
+				await RenderingServer.frame_post_draw
+				await RenderingServer.frame_post_draw
+				var normal_capture: Image = viewport.get_texture().get_image()
+				normal_capture.convert(Image.FORMAT_RGBA8)
+				normals.blit_rect(normal_capture, Rect2i(Vector2i.ZERO, viewport.size), cell)
 				pose += 1
 				model.queue_free()
 				await process_frame
 	if atlas.save_png(ProjectSettings.globalize_path(OUTPUT)) != OK:
 		push_error("auditor_bake: could not write atlas")
+		quit(1)
+		return
+	if normals.save_png(ProjectSettings.globalize_path(NORMALS)) != OK:
+		push_error("auditor_bake: could not write normals")
 		quit(1)
 		return
 	var sources: Dictionary[String, String] = {}
@@ -88,9 +105,10 @@ func bake() -> void:
 	var receipt: FileAccess = FileAccess.open(MANIFEST, FileAccess.WRITE)
 	if receipt == null or not receipt.store_string(JSON.stringify({
 		"schema":1, "engine":Engine.get_version_info()["string"],
-		"model":"Original procedural custody officer on the Clerk body with cap, coat, shield plate, repair spool and pistol; seated cell holds the repair channel",
+		"model":"Stylized skinned custody officer with sampled gait, held frontal shield, glove emitter and repair cable; seated cell holds the channel",
 		"format":"RGBA8 PNG, nearest sampling, no mipmaps",
 		"sources":sources, "file":"auditor.png", "sha256":FileAccess.get_sha256(OUTPUT),
+		"normals_file":"auditor_normals.png", "normals_sha256":FileAccess.get_sha256(NORMALS),
 		"tile_pixels":EnemyAnimation.TILE, "poses":EnemyAnimation.poses(),
 		"directions":EnemyAnimation.DIRECTIONS, "columns":EnemyAnimation.COLUMNS,
 		"rows":EnemyAnimation.rows(), "clips":EnemyAnimation.CLIPS
@@ -104,3 +122,24 @@ func bake() -> void:
 	await RenderingServer.frame_post_draw
 	print("auditor_bake: PASS")
 	quit()
+
+func _albedo(node: Node) -> void:
+	if node is MeshInstance3D:
+		for surface: int in range(node.mesh.get_surface_count()):
+			var original: StandardMaterial3D = node.get_active_material(surface) as StandardMaterial3D
+			if original != null:
+				var material: StandardMaterial3D = original.duplicate()
+				material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				material.emission_enabled = false
+				_bake_materials.append(material)
+				node.set_surface_override_material(surface, material)
+	for child: Node in node.get_children():
+		_albedo(child)
+
+func _normal(node: Node) -> void:
+	if node is MeshInstance3D:
+		var material: ShaderMaterial = ShaderMaterial.new()
+		material.shader = NORMAL_SHADER
+		node.material_override = material
+	for child: Node in node.get_children():
+		_normal(child)

@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `32`; omission means `1`. Discovery-only maps first
+  and the Godot client send `33`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -161,6 +161,10 @@ Initial handshake message. Must be sent immediately after connection.
   and the `custodian_of_record` mission id. Only M08 requires 31.
   Version 32 adds Declared Goods' strict M07 geometry and ordered objectives
   with immutable carried outcomes from M03 through M06. Only M07 requires 32.
+  Version 33 adds frozen completion elapsed time on private mission records.
+  This adds no map admission requirement. The existing private unicast seam
+  omits the optional field for earlier recipients so their strict readers keep
+  the original version-1 shape.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -2221,6 +2225,18 @@ finished, not that this participant won. A completed M01 or M02 record means
 that mission's route finished, not that the unbuilt campaign finished. A
 missing final update must be shown as incomplete; transport loss is not
 evidence of failure or victory.
+
+Completed mission records delivered to capability 33 or later optionally include
+`mission_elapsed_ticks`, an exact
+nonnegative integer in server ticks at `ticks_per_second` (20). It measures the
+successful attempt from the party's readiness to authoritative departure,
+including time spent dead within that attempt, excluding briefing and later
+story/results viewing. Accepted retry starts a fresh clock. Completion freezes
+this value. It cannot exceed `tick - round_started_at`, appear on a noncompleted
+or nonmission record, or change after terminal delivery. Historical version-1
+records omit it and retain their exact shape; absence means unavailable time,
+not zero. No runtime par is currently authored. The completion tally uses the
+existing attempt and total resolved counts, and never counts client-side kills.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
 `dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail

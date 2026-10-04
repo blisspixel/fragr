@@ -1,5 +1,29 @@
 # Character references
 
+## Cast production references, 2026-10-04
+
+Four new references continue the angular painted style of the field guard:
+`sweeper-stylized-v2.png`, `auditor-stylized-v2.png`,
+`free-human-stylized-v2.png` and `latch-stylized-v2.png`.
+The [receipt](cast-20261004.json) records their hashes, exact consumed model
+and rig credits, and the checked remaining account balance.
+Public PNGs preserve identical decoded pixels while removing optional software
+metadata; the original inputs remain in the private production archive.
+
+The Sweeper uses shaped dark steel plates, separated mechanical limbs, a red
+optical slit and restrained issued panels. The Auditor uses a narrow black
+split-hem coat, service cap, red three-bar band and a compact repair spool.
+Neither input fuses a carried weapon into the body. Authored equipment and
+role-specific poses remain separate source work.
+
+The free human wears a worn leather jacket, teal shirt, patched work trousers,
+boots, ochre scarf and practical hat. Latch stays a lean civilian chassis with
+bone and rust repairs, a friendly screen and one anatomical-left antenna.
+These references direct coherent reconstruction; they do not approve every
+body, complete motion, scene lighting or final game quality. The
+[bounded plan](../../../../docs/plans/cast-model-buildout-20261004.md) owns
+conversion and played acceptance.
+
 ## Union field guard direction, 2026-10-03
 
 [union-field-guard-v2.png](union-field-guard-v2.png) is a new production reference

@@ -772,7 +772,20 @@ pub async fn send_unicasts(
             {
                 continue;
             }
-            if queue_for_client(client, msg, &mut stats)
+            let delivered = if let ServerMessage::Record(record) = msg {
+                if client.gameplay_version < protocol::MISSION_RESULTS_GAMEPLAY_VERSION
+                    && record.mission_elapsed_ticks.is_some()
+                {
+                    let mut legacy_record = record.clone();
+                    legacy_record.mission_elapsed_ticks = None;
+                    Some(ServerMessage::Record(legacy_record))
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+            if queue_for_client(client, delivered.as_ref().unwrap_or(msg), &mut stats)
                 && matches!(msg, ServerMessage::MapInfo { .. })
             {
                 client.initialized = true;

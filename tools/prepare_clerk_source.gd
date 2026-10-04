@@ -8,8 +8,12 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
-	if args.size() != 2:
-		_fail("require walking GLB and output source GLB")
+	if args.size() not in [2, 3]:
+		_fail("require walking GLB, output source GLB and optional cast name")
+		return
+	var cast_name: String = args[2] if args.size() == 3 else "Clerk"
+	if cast_name not in ["Clerk", "Sweeper", "Auditor", "FreeHuman", "Latch"]:
+		_fail("unsupported cast name")
 		return
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(args[0])
 	if bytes.size() < 20 or bytes.size() > 64 * 1024 * 1024:
@@ -36,7 +40,7 @@ func _run() -> void:
 		_fail("source scene missing")
 		return
 	root.add_child(model)
-	model.name = "Clerk"
+	model.name = cast_name
 	var cache: Dictionary[int, ImageTexture] = {}
 	for candidate: Node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh: MeshInstance3D = candidate as MeshInstance3D
@@ -57,7 +61,7 @@ func _run() -> void:
 						_fail("cannot decode source texture")
 						return
 					image.resize(1024, 1024, Image.INTERPOLATE_LANCZOS)
-					if slot == BaseMaterial3D.TEXTURE_ALBEDO:
+					if slot == BaseMaterial3D.TEXTURE_ALBEDO and cast_name == "Clerk":
 						_grade_cloth(image)
 					cache[key] = ImageTexture.create_from_image(image)
 				material.set_texture(slot, cache[key])
