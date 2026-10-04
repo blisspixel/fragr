@@ -23,11 +23,12 @@ uniform vec3 rim_color : source_color = vec3(0.42, 0.44, 0.50);
 uniform float rim_glow = 0.55;
 
 void vertex() {
-	// BILLBOARD_FIXED_Y, the same transform the engine generates for Sprite3D.
+	// Keep the scene camera basis during light-camera shadow draws as well.
+	// This matches the engine's current BILLBOARD_FIXED_Y transform.
 	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
-		vec4(normalize(cross(vec3(0.0, 1.0, 0.0), INV_VIEW_MATRIX[2].xyz)), 0.0),
+		vec4(normalize(cross(vec3(0.0, 1.0, 0.0), MAIN_CAM_INV_VIEW_MATRIX[2].xyz)), 0.0),
 		vec4(0.0, 1.0, 0.0, 0.0),
-		vec4(normalize(cross(INV_VIEW_MATRIX[0].xyz, vec3(0.0, 1.0, 0.0))), 0.0),
+		vec4(normalize(cross(MAIN_CAM_INV_VIEW_MATRIX[0].xyz, vec3(0.0, 1.0, 0.0))), 0.0),
 		MODEL_MATRIX[3]);
 	MODELVIEW_MATRIX = MODELVIEW_MATRIX * mat4(
 		vec4(length(MODEL_MATRIX[0].xyz), 0.0, 0.0, 0.0),
