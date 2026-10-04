@@ -62,9 +62,10 @@ The source checks pass grip, gait, unarmed follow-through, seated knees and hit
 reaction. The directional bake, silhouette checks and actual moving-light
 render pass. A clean five-state M02 replay defeats both required Clerks with
 four resolved Shotgun attacks, no deaths and 100 HP. The source, albedo and
-paired normal atlas are selected on the feature branch. The full local client
-checker passes 224 scripts and 103 harnesses with clean logs; full CI and main
-integration are tracked in [PR #346](https://github.com/blisspixel/fragr/pull/346).
+paired normal atlas shipped on main in
+[PR #346](https://github.com/blisspixel/fragr/pull/346), with all eight full CI
+jobs passing. The full local client checker passes 224 scripts and 103 harnesses
+with clean logs. Desktop packages follow the release workflow.
 [Evidence](../evidence/union-stylized-20261003.md)
 records the source hashes, captures and limits.
 

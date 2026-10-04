@@ -351,10 +351,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    starts from a new deliberately stylized reference, rather than recoloring the
    previous face. The shipped rig remains useful; the old look is not final art.
    Its replacement source, directional atlas and clean guard-room replay are
-   [implemented locally](evidence/union-stylized-20261003.md), consuming 40
-   existing model credits. Full local client checks pass 224 scripts and 103
-   harnesses; [PR #346](https://github.com/blisspixel/fragr/pull/346) owns the
-   full CI and main selection gates.
+   [shipped on main](evidence/union-stylized-20261003.md) in
+   [PR #346](https://github.com/blisspixel/fragr/pull/346), consuming 40 existing
+   model credits. Full local client checks pass 224 scripts and 103 harnesses;
+   all eight implementation CI jobs pass.
    Black/red applies to issued outfits and equipment; civilian walls and lunar
    pressure shells retain place-specific materials.
    [M04 inhabited detail](plans/m04-inhabited-world-polish.md) shipped in
@@ -371,8 +371,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    room architecture and final art acceptance remain open.
    The separate [M04 enclosure pass](plans/m04-building-enclosure.md) addresses
    missing clinic/workshop roofs in
-   [draft PR #343](https://github.com/blisspixel/fragr/pull/343). Its full CI
-   passes, but clean rendered route acceptance remains open.
+   [PR #343](https://github.com/blisspixel/fragr/pull/343). A clean 29-state
+   rendered route now passes all 28 guards, clinic release and actual departure
+   with no deaths or HP lost. Final combined CI gates main integration.
    [Evidence](evidence/clerk-model-20261003.md) records
    actual guard-room frames and the limits of the routes.
    The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean
