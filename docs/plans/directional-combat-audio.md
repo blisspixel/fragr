@@ -1,6 +1,6 @@
 # Directional combat audio
 
-**Status:** planned, 2026-10-03. Nick: "make sure the sound has like 3d so if
+**Status:** in flight, 2026-10-04. Nick: "make sure the sound has like 3d so if
 being shot at you can hear direction."
 **Spend:** $0 for the code. Any new near-miss or impact source sounds go through
 `tools/audiogen` on included credits.
@@ -47,6 +47,51 @@ of every hit: audio, a visual cue, and the HUD.
 - No sound that reveals information the player could not otherwise have, such
   as footsteps through floors at unrealistic range.
 - No paid middleware.
+
+## First bounded slice, 2026-10-04
+
+Build incoming pass-by cues and a restrained pixel damage bearing together.
+Reuse the strict resolved trace parser in `shot_effects.gd`, the validated
+MapInfo geometry and the existing line-of-sight helper in `aim_assist.gd`.
+The server already carries the resolved source, stopped segment and pellets;
+its positive committed damage includes armor. Zero damage, another target,
+missing traces and HP changes alone cannot establish a damage bearing. The
+source remains the resolved origin even when the shooter has died or moved.
+
+The new presenter owns a bounded Effects voice pool and a separate pointer-free
+HUD overlay. Its local human owner and first-person camera are explicit; roles,
+map replacement and disconnect clear the voices and indicators. A final traced
+hit can briefly indicate the committed damage before death; dead spectators
+cannot start pass-by audio. Bearings follow the current view during their fade.
+
+Pass-by candidates stay on the finite resolved segment, within 2 m, beyond
+the muzzle and before the stopped endpoint. Repeated pellets share one cue per
+shooter, with a bounded global cadence. A short connector from the closest point
+to the listener must pass authoritative solid visibility before audio starts.
+This narrowly prevents through-cover pass-by disclosure. It does not implement
+the broader occlusion filter goal above.
+
+There is no dedicated committed pass-by recording. Bake short deterministic
+mono 48 kHz noise accents offline in GDScript, with distinct pellet, rifle and
+Rail envelopes, and commit their source recipe and WAVs. Runtime only loads
+those files; there is no synthesis or paid operation during play. They remain
+subject to listening acceptance.
+
+Acceptance for this slice: strict boundary failures, cardinal and diagonal
+bearings with yaw and pitch, segment endpoints and radius, actual target and
+zero-damage ownership, scatter aggregation, walls and raised slabs, snapshot
+deduplication, cadence, bounded voices, fade and teardown. Inspect rendered
+four-direction examples and keep synthetic presentation examples distinct from
+an actual server-resolved play check. Directional impact thuds, general
+occlusion/low-pass, venue reverb, vacuum sound, HRTF evaluation and headphone/
+speaker listening remain open. No whole-plan completion claim follows from
+this slice.
+
+The pinned 4.7.2 binary exercised the node properties in the harness. The
+[official AudioStreamPlayer3D reference](https://docs.godotengine.org/en/stable/classes/class_audiostreamplayer3d.html),
+checked 2026-10-04, describes camera-based listening, Effects-compatible bus
+routing, stereo panning and explicit stopping. This slice uses that established
+spatial player path and does not claim an HRTF implementation.
 
 ## Verification
 
