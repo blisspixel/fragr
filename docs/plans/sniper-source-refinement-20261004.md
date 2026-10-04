@@ -89,9 +89,15 @@ and shot timing. Describe picture pairs as presentations of a single sample.
 ## Scope and later gates
 
 Own the Sniper preparer, offline source/presenter, focused harness, this plan
-and unique evidence only. No shared WeaponArt, runtime selection, catalog,
-account, protocol, collision, inventory or gameplay changes in this cut.
+and unique evidence. The reviewed nine-state played comparison was accepted
+on 2026-10-04, authorizing selection of its exact three pictures through
+WeaponArt. Preserve the original pictures and bind selected outputs in their
+own receipt. No catalog, account, protocol, collision, inventory or gameplay
+changes belong to this cut.
 Reuse the reviewed immutable native helper; no cold duplicate build.
 Keep private output isolated, never capture the desktop pointer, clean only
-owned processes, and monitor disk space. Source remains offline until actual
-quality, full integration and exported package gates are separately accepted.
+owned processes, and monitor disk space. The prepared GLB remains an offline
+source; only the accepted pixel faces are selected. Complete focused and full
+client integration, exported installation and exact-head desktop package/CI
+gates before treating the selected increment as shipped. Wider human feel
+and the remaining arsenal stay open.

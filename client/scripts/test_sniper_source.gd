@@ -2,6 +2,8 @@ extends SceneTree
 
 const Source = preload("res://art/models/sniper_source.gd")
 const Surfaces = preload("res://art/models/sniper_surface_contract.gd")
+const Art = preload("res://scripts/weapon_art.gd")
+const SELECTED: String = "res://assets/weapons/sniper-source-20261004/"
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -14,6 +16,7 @@ func _check(condition: bool, message: String) -> void:
 		push_error("test_sniper_source: " + message)
 
 func _run() -> void:
+	_check_selection()
 	var source: RefCounted = Source.new()
 	var gun: Node3D = source.build(true)
 	root.add_child(gun)
@@ -215,6 +218,37 @@ func _run() -> void:
 	if _failures == 0:
 		print("test_sniper_source: PASS accounted geometry, compact matte maps, real recesses, fixed axes, independent bolt and actual contact queries; visual acceptance separate")
 	quit(0 if _failures == 0 else 1)
+
+func _check_selection() -> void:
+	var receipt: Variant = JSON.parse_string(FileAccess.get_file_as_string(SELECTED + "selection.json"))
+	_check(receipt is Dictionary and receipt.get("schema") == 1.0 and receipt.get("runtime_selected") == true,
+		"selected pictures have a distinct runtime receipt")
+	if not receipt is Dictionary:
+		return
+	_check(receipt.get("source_sha256") == FileAccess.get_sha256(Source.SOURCE)
+		and receipt.get("presenter_sha256") == FileAccess.get_sha256("res://art/models/sniper_source.gd")
+		and receipt.get("bake_sha256") == FileAccess.get_sha256("res://../tools/preview_sniper_source.gd"),
+		"selection binds the actual accepted source, presenter and baker")
+	var textures: Dictionary[String, Texture2D] = {
+		"sniper_idle.png": Art.IDLE["Sniper"], "sniper_fire.png": Art.FIRE["Sniper"], "sniper.png": Art.PROFILE["Sniper"]}
+	for label: String in textures:
+		var texture: Texture2D = textures[label]
+		_check(texture.resource_path == SELECTED + label and not texture.get_image().has_mipmaps()
+			and receipt.get("frames", {}).get(label) == FileAccess.get_sha256(SELECTED + label)
+			and FileAccess.get_sha256(SELECTED + label) == FileAccess.get_sha256("res://art/models/candidates/sniper_views/" + label),
+			"live " + label + " uses the exact reviewed pixel picture without mipmaps")
+	_check(Art.frame_after_shot("Sniper", 0.0) == Art.FIRE["Sniper"]
+		and Art.frame_after_shot("Sniper", 0.079) == Art.FIRE["Sniper"]
+		and Art.frame_after_shot("Sniper", 0.080) == Art.IDLE["Sniper"]
+		and Art.frame_after_shot("Sniper", 0.30) == Art.IDLE["Sniper"]
+		and Art.pickup_texture("weapon", "Sniper", "Cells") == Art.PROFILE["Sniper"],
+		"actual runtime frame and pickup routing preserves existing fire duration without adding a cycle")
+	_check(Art.SCOPE_OVERLAY.resource_path == "res://assets/weapons/sniper/scope_overlay.png"
+		and is_equal_approx(Art.PICKUP_TEXEL_METRES, 1.0 / 72.0)
+		and FileAccess.file_exists("res://assets/weapons/viewmodels/sniper_idle.png")
+		and FileAccess.file_exists("res://assets/weapons/viewmodels/sniper_fire.png")
+		and FileAccess.file_exists("res://assets/weapons/pickups/sniper.png"),
+		"scope, physical density and original artwork remain retained")
 
 func _segment_hits(gun: Node3D, start: Vector3, end: Vector3) -> bool:
 	for node: Node in gun.find_children("*", "MeshInstance3D", true, false):

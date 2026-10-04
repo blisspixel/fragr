@@ -1,6 +1,7 @@
-# Sniper Rifle offline source refinement
+# Sniper Rifle source refinement and selected pictures
 
-Status: **in flight**, 2026-10-04. No runtime selection or whole-arsenal claim.
+Status: **in flight**, 2026-10-04. Reviewed pixel pictures selected locally;
+full integration and package gates remain open. No whole-arsenal claim.
 The [bounded plan](../plans/sniper-source-refinement-20261004.md) preceded the
 work. Local preparation and inspection use $0 in additional charges.
 
@@ -68,7 +69,7 @@ joint fragments, so it was rejected. The subsequent repaired joint passed
 source review but retained inward optical wedges; those views were also
 rejected before the flat supported lens repair. The first pixel bakes failed
 lower-column registration and flash readability. Original diagnostics remain
-retained, and the candidate has not been selected to sidestep those gates.
+retained. Source and pixel failures were corrected before selection.
 
 The final source, studio and candidate harnesses exit 0 with clean error logs
 and their own PASS markers. The source keeps an exact 241 by 180 held canvas
@@ -79,12 +80,43 @@ field of view, held-art hiding and release pass without changing production
 textures. These are source and presentation checks, not a benchmark or a
 campaign playthrough.
 
+## Ordinary played comparison
+
+The nine-state diagnostic range passes with exit 0, clean error logs and its
+own PASS marker. Ordinary movement discovers eight Cells, selects Sniper,
+fires once into actual solid cover, approaches that wall, walks behind cover,
+peeks at the unclaimed pickup, returns and scopes. Tick 279 resolves the one
+owned Sniper Solid trace with zero damage, reducing Cells from eight to seven.
+The canonical input sender releases fire before any diagnostic capture work.
+
+Each pair is one actual gameplay sample shown with two presentations. The
+client scene tree and camera are briefly frozen for texture-only swaps while
+the Rust server continues normally. The ten pairs, nine route samples and
+one resolved firing sample, freeze for 14 to 20 ms. All preserve the measured
+camera and restore exact texture references and previous pause state before
+observing a newer authoritative snapshot. The firing pair is not a temporal
+strip or a second independent shot. Scoped pairs are byte-identical, with
+the ordinary held weapon hidden. A separate audit verifies the actual shot,
+source hashes, pair hashes, restoration and advancing ticks.
+
+| Same sample | Retained presentation | Accepted presentation |
+| --- | --- | --- |
+| Held idle | [Original](../images/sniper-source-20261004/held-selected.png) | [New source](../images/sniper-source-20261004/held-candidate.png) |
+| Resolved fire | [Original](../images/sniper-source-20261004/fire-selected.png) | [New source](../images/sniper-source-20261004/fire-candidate.png) |
+| Close wall | [Original](../images/sniper-source-20261004/wall-selected.png) | [New source](../images/sniper-source-20261004/wall-candidate.png) |
+| Pickup peek | [Original](../images/sniper-source-20261004/pickup-selected.png) | [New source](../images/sniper-source-20261004/pickup-candidate.png) |
+
+The reviewed wood stock, charcoal receiver, attached gloves and recessed
+scope were accepted for the bounded art increment. Exact idle, fire and
+profile pictures are copied into `client/assets/weapons/sniper-source-20261004/`.
+Its `selection.json` binds actual source, presenter, baker and picture hashes.
+WeaponArt changes only those three paths. The GLB is still an offline source.
+The Rust server, six physical slots, ammunition, scope overlay, fire duration
+and pickup density stay unchanged. Focused selection checks exercise the
+actual live frame and pickup routing and retain original artwork.
+
 ## Remaining acceptance
 
-Same-camera ordinary played held/fire, pickup, wall approach and scope
-comparison remain open. Any played proof must
-retain actual discovery, eight starting Cells, one accepted shot spending one
-Cell, real resolved trace, ordinary action release and exact texture cleanup.
-The Rust server, six physical slots, ammunition policy and scope behavior
-remain unchanged. Runtime selection, full client integration and desktop
-package checks are separate later decisions.
+Full client integration, installed export and exact-head CI/three desktop
+packages remain open. Wider human feel, campaign coverage and the remaining
+arsenal are separate work. These inspected pictures do not prove performance.
