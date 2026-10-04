@@ -250,3 +250,12 @@ msgstr "Left stick moves        Right stick looks        {fire} fires        {in
 
 msgid "LOADING_BEGIN"
 msgstr "Any key or button to begin"
+
+msgid "LOADING_WAIT"
+msgstr "Preparing the world..."
+
+msgid "LOADING_RETURN"
+msgstr "Return to menu"
+
+msgid "LOADING_DISCONNECTED"
+msgstr "Connection closed. Return to the menu to try again."
