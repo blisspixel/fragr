@@ -209,3 +209,11 @@ combined source, actual shared
 model-library re-export, receipt reconciliation and fresh full CI. This source
 change does not complete all ward character art: the second-bay captive still
 uses the earlier procedural figure.
+
+## Main integration
+
+The implemented slice ships with the combined main integration of
+[PR #348](https://github.com/blisspixel/fragr/pull/348).
+[Combined evidence](../evidence/game-buildout-20261004.md) records local checks;
+fresh implementation and desktop-package CI remain required before publication.
+Wider acceptance limits recorded above remain open.

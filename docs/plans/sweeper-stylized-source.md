@@ -93,3 +93,11 @@ Imported units, root motion, shoulder width or long weapon/death extents can
 break the fixed three-metre bake field. Judge played silhouettes and visible
 red issue accents before calling the replacement accepted. Rig success alone
 does not establish useful movement or a finished enemy.
+
+## Main integration
+
+The implemented slice ships with the combined main integration of
+[PR #348](https://github.com/blisspixel/fragr/pull/348).
+[Combined evidence](../evidence/game-buildout-20261004.md) records local checks;
+fresh implementation and desktop-package CI remain required before publication.
+Wider acceptance limits recorded above remain open.

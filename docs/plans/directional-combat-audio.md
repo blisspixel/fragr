@@ -111,3 +111,11 @@ the additional audio and listening work listed above.
 - **Listening note:** a headphone pass with bots firing from each side, behind
   a wall and at range. Like every listening result, it is recorded as
   subjective evidence, separate from automated checks.
+
+## Main integration
+
+The implemented slice ships with the combined main integration of
+[PR #348](https://github.com/blisspixel/fragr/pull/348).
+[Combined evidence](../evidence/game-buildout-20261004.md) records local checks;
+fresh implementation and desktop-package CI remain required before publication.
+Wider acceptance limits recorded above remain open.

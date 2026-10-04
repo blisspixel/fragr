@@ -136,3 +136,11 @@ The scoped code checkpoints are `083671bb` and `74be01f2`. Parent owns combined
 integration CI, shared capability docs and publication. Real authored par,
 cross-process statistics, party aggregate results and fresh-player/difficulty
 review remain open.
+
+## Main integration
+
+The implemented slice ships with the combined main integration of
+[PR #348](https://github.com/blisspixel/fragr/pull/348).
+[Combined evidence](../evidence/game-buildout-20261004.md) records local checks;
+fresh implementation and desktop-package CI remain required before publication.
+Wider acceptance limits recorded above remain open.

@@ -68,7 +68,7 @@ with a separate 15-credit uncertain hold retained.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
 and [campaign results](docs/plans/campaign-results.md) are implemented locally
 with real server-shot and mission-completion evidence. Their combined CI and
-main integration remain pending.
+main integration are tracked in [PR #348](https://github.com/blisspixel/fragr/pull/348).
 The [Low Water detail](docs/evidence/m04-inhabited-world-20261003.md) and
 [lunar port workmanship](docs/evidence/m06-world-workmanship-20261003.md) passes
 add civilian care, shared charging, domestic windows and maintained cargo equipment.

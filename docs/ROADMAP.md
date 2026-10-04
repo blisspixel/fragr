@@ -310,7 +310,8 @@ quality for the work. Nick authorized parallel game development alongside
 substantial model production. The current independent lanes are M04 residential
 architecture, directional combat feedback, campaign results and cast sources.
 Earlier M04, M06 and M07 improvements shipped in v0.70.0. Shared integration
-and art direction stay coordinated through one short-lived branch;
+and art direction stay coordinated through
+[PR #348](https://github.com/blisspixel/fragr/pull/348), one short-lived branch;
 rendered tours take turns on the same GPU. Every level, built or planned,
 must pass the [maximum-fun checks](MAP-DESIGN.md#maximum-fun-first). Every
 map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
@@ -335,7 +336,8 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    - Land any parked art.
    - [Campaign results](plans/campaign-results.md) are implemented locally:
      actual mission kills, secrets, deaths and elapsed server time, with a real
-     M01 completion and onward save. Combined checks and integration remain.
+     M01 completion and onward save. The selected slice ships with the combined
+     main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
    *Why:* two levels are nearly done, and finishing beats starting.
 2. **The feel layer.**
@@ -344,6 +346,7 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      locally with [real shot evidence](evidence/directional-feedback-20261004.md),
      finite-ray cue placement, covered closest-point suppression and pixel
      damage bearings. Wider room acoustics and listening acceptance stay open.
+     The selected slice ships with the combined main integration of PR #348.
    - Then [console](plans/console.md) phase 1: practical commands, voices
      and jokes, client only.
 
@@ -377,6 +380,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    have authored role poses and paired atlases; Latch uses a packaged live
    skin with gait and real palm attachments. Source and venue views pass
    locally; full route acceptance and combined integration remain distinct.
+   The selected cast sources, live presentation and residential frontage ship
+   through the same main integration of PR #348. The full Auditor range and
+   full M02 art route remain open; the pitch checker correction retains strict
+   acknowledgements and does not change combat difficulty or outcomes.
    [West-court homes](plans/m04-residential-facades.md) add sealed domestic
    masses and varied roof edges; the full local M04 route retains all 28 guards
    and departure. Optional roof access and ordinary return also pass. Strict

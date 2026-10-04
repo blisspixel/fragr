@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.71.0 (2026-10-04)
 
 The cast gains four coherent stylized production sources and rigs. The free
 human's selectable body uses a prepared skin and gait, painted angular face,
@@ -33,6 +33,11 @@ windows, varied roof heights and roof edges. Solid bodies and upper silhouettes
 use authoritative collision. The full mission route retains all 28 guards and
 departure; an optional roof route has a verified ordinary return. Older M04
 saves tied to the previous map hash remain incompatible.
+
+The played capture helper now waits for attainable pitch at the existing
+85-degree limit, retaining its strict acknowledgement tolerance. A real setter
+regression, old-behavior mutation and identical route replay prove the fix.
+Full M02 art-route completion and fresh-player pacing remain open.
 
 ## v0.70.0 (2026-10-03)
 

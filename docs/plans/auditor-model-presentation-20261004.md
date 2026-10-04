@@ -98,3 +98,11 @@ parent owns that normalized receipt and the shared live-normal hook.
 
 Do not spend credits, modify shared documentation, change the server, or claim
 the whole cast or room acoustics complete from this source increment.
+
+## Main integration
+
+The implemented slice ships with the combined main integration of
+[PR #348](https://github.com/blisspixel/fragr/pull/348).
+[Combined evidence](../evidence/game-buildout-20261004.md) records local checks;
+fresh implementation and desktop-package CI remain required before publication.
+Wider acceptance limits recorded above remain open.

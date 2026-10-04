@@ -71,3 +71,11 @@ first scenario passed because repeated shell spawning was slow. Its partial log
 is retained, not accepted as the complete verifier self-test. The full normal
 Linux CI verifier gate remains required before integration. No renderer or
 owned native server remains running.
+
+## Main integration
+
+The implemented slice ships with the combined main integration of
+[PR #348](https://github.com/blisspixel/fragr/pull/348).
+[Combined evidence](../evidence/game-buildout-20261004.md) records local checks;
+fresh implementation and desktop-package CI remain required before publication.
+Wider acceptance limits recorded above remain open.
