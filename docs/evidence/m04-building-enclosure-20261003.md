@@ -18,6 +18,15 @@ The matching server ran assisted difficulty, seed 42 and zero rule bots on owned
 
 Private receipts, source, logs, full manifest and contact sheet are retained under `.agents/level4-roof-capture-variant6-20261003/`. Earlier attempts remain in their original directories and `.agents/level4-roof-capture-history-20261003.md`.
 
+The combined enclosure and selected stylized Clerk client subsequently passes
+all 224 scripts and 103 headless harnesses, exit 0 with its own PASS marker and
+no script, runtime or shutdown errors. Its log is retained at
+`.agents/art-playthrough-20261003/union-roof-combined-full-client.log`, SHA256
+`1004a3de611840f7883009ff8cef2b58ac745a39c1d2417f2383eb2010d43f85`.
+All 25 focused M04 Rust checks, historical-save integration checks, formatting
+and workspace warning-denied Clippy pass. These combined source checks do not
+replace the separately identified rendered capture or the final integration CI.
+
 ## Actual route outcomes
 
 | Check | Observed result |

@@ -19,6 +19,13 @@ cargo locking straps, overhead services, restrained practical lighting and
 customs work details. Both bounded passes have clean full-mission rendered routes
 and passing implementation CI. Their broader architecture and art remain in progress.
 
+Real clinic and workshop roof slabs enclose Low Water's rooms, with a closed
+raised-shutter housing and unchanged open-air court. A clean 29-state route
+confirms all 28 guards, patient release and actual roof departure with no deaths
+or HP lost. The capture route's return crossing stays on its supported platform
+and explicitly traverses the existing stair tread. Shots collide with the
+rendered roofs; existing mission rules and movement remain authoritative.
+
 The Clerk source and rig consumed 40 existing model credits, bringing locally
 tracked net consumption to 165. The free account check reports 2,905 available
 credits; the prior uncertain 15-credit reservation remains held. No new cash
