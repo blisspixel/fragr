@@ -19,6 +19,13 @@ cargo locking straps, overhead services, restrained practical lighting and
 customs work details. Both bounded passes have clean full-mission rendered routes
 and passing implementation CI. Their broader architecture and art remain in progress.
 
+Port of Entry gains a loaded freight weighing assembly, customs terminals,
+luggage inspection and records storage. Pressure-case lids have chamfered seams,
+grips, cam locks and visible gauges; the weighing beam has measuring heads and
+controls. Substantial bodies use authoritative collision. The clean 31-state
+structural route retains all 21 guards, the Rail lane, Turret lesson and actual
+departure; separate final art views inspect the later surface refinement.
+
 The Clerk source and rig consumed 40 existing model credits, bringing locally
 tracked net consumption to 165. The free account check reports 2,905 available
 credits; the prior uncertain 15-credit reservation remains held. No new cash

@@ -29,12 +29,14 @@ to 18 of 18 level departures across three difficulties.
 
 Level 7's Sniper Rifle and Ranged Sweeper play on a development range. The
 level has been restored on a development branch in
-[draft PR #345](https://github.com/blisspixel/fragr/pull/345); its complete
-rendered route and integration gates remain open under the
-[level 7 plan](plans/l07-declared-goods-prototype.md). Level 8, Custodian of
+[PR #345](https://github.com/blisspixel/fragr/pull/345); its complete 29-state
+rendered route passes all 25 guards, actual window cancellation and departure.
+Full integration CI remains pending under the
+[level 7 plan](plans/l07-declared-goods-prototype.md). The route ends at 15 HP
+with one Cell, retaining a pacing concern. Level 8, Custodian of
 Record, is a standalone development prototype with the Proximity Mine and the
 repairing Auditor ([level 8 plan](plans/l08-custodian-of-record-prototype.md)),
-and it joins the run once level 7 lands. Fresh-player and difficulty
+and requires strict mine-count save carry before joining the run. Fresh-player and difficulty
 acceptance remain open for every level.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
@@ -317,9 +319,12 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    continues while that feedback is pending; this is not a stop gate for code
    or art trials.
 1. **Finish what is started.**
-   - Land level 7 from its bundle: fix the patrol that holds its porches,
-     then run the full checks.
-   - Connect the M07 to M08 carry.
+   - Land the restored level 7 in [PR #345](https://github.com/blisspixel/fragr/pull/345).
+     Its corrected patrol and full 29-state route pass; full integration CI
+     remains before main selection.
+   - Connect the M07 to M08 carry with actual finite mine counts and strict
+     historical save upgrades. The development M08 entry stays separate until
+     its carry gate passes.
    - Land any parked art.
 
    *Why:* two levels are nearly done, and finishing beats starting.
@@ -357,6 +362,13 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    route. [M06 workmanship](plans/m06-world-workmanship.md) shipped in
    [PR #342](https://github.com/blisspixel/fragr/pull/342), with a clean 28-state
    route and full-client checks. Both have passing full implementation CI.
+   The [M06 activity pass](plans/m06-port-activity-architecture.md) adds actual
+   freight weighing, customs terminals, luggage inspection and records storage.
+   Its complete 31-state structural route confirms all 21 guards, the Rail lane,
+   Turret cancellation, prisoner route and departure. Separate final art views
+   inspect pressure-case chamfers, grips, locks, gauges and measuring hardware.
+   Full client checks pass; full CI and main integration remain pending. Wider
+   room architecture and final art acceptance remain open.
    The separate [M04 enclosure pass](plans/m04-building-enclosure.md) addresses
    missing clinic/workshop roofs in
    [draft PR #343](https://github.com/blisspixel/fragr/pull/343). Its full CI

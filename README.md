@@ -59,6 +59,10 @@ buildings keep their own materials. The remaining cast still needs refinement.
 The [Low Water detail](docs/evidence/m04-inhabited-world-20261003.md) and
 [lunar port workmanship](docs/evidence/m06-world-workmanship-20261003.md) passes
 add civilian care, shared charging, domestic windows and maintained cargo equipment.
+The [working port rooms](docs/evidence/m06-port-activity-20261003.md) pass adds
+actual freight weighing, customs terminals, luggage inspection and records
+storage, with pressure-case handles, locks and gauges. Its structural route and
+separate final art views pass locally; full integration CI remains pending.
 
 **Custodian of Record** is the level 8 custody archive development prototype, with the
 Proximity Mine and the repairing Auditor, under **Practice and Development**
