@@ -1476,6 +1476,7 @@ impl GameState {
             m06: self.map.m06_geometry(),
             m08: self.map.m08_geometry(),
             m07: self.map.m07_geometry(),
+            m09: self.map.m09_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -1836,6 +1837,9 @@ impl GameState {
                 .hp
                 .saturating_add(self.players[index].armor);
             self.resolve_fighter_hit(index, index, damage, None);
+            if self.players[index].hp <= 0 {
+                self.note_m09_charge_fall();
+            }
         }
 
         // Target intent takes precedence after movement, for every controller role.
@@ -1889,6 +1893,7 @@ impl GameState {
         self.tick_pickups();
         self.advance_m04_patients(dt);
         self.advance_m05_captives(dt);
+        self.advance_m09_crew(dt);
 
         let grenade_launches = self.launch_grenades();
         let mine_placements = self.place_mines(&grenade_launches);

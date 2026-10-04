@@ -70,6 +70,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::DeclaredGoods => {
                 include_bytes!("../maps/m07_declared_goods.json")
             }
+            crate::protocol::MissionId::PassengerManifest => {
+                include_bytes!("../maps/m09_passenger_manifest.json")
+            }
         };
         sha2::Sha256::digest(bytes).into()
     }
@@ -97,6 +100,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::CustodianOfRecord) => {
                 AuthoredMap::read(include_bytes!("../maps/m08_custodian_of_record.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
+                AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())
             }
             Self::Mission(crate::protocol::MissionId::DeclaredGoods) => {
                 AuthoredMap::read(include_bytes!("../maps/m07_declared_goods.json").as_slice())

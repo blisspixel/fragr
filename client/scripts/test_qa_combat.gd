@@ -85,6 +85,9 @@ func _run() -> void:
 	_check(QaCombat.approach_focus_point({"players": [turret]}, "intro_turret") == Vector3.INF
 		and QaCombat.approach_focus_point({"players": []}, "intro_turret") == Vector3.INF, "missing or defeated actor cannot invent a capture target")
 	_check(TOUR.valid_walks([{"expect_m06_completed": ["freight_cleared"], "expect_m06_prisoner_route_marked": false}]), "M06 expectations accept an exact prefix and typed marker")
+	_check(TOUR.valid_walks([{"expect_m09_completed": ["loading_cleared"], "expect_m09_crew_released": false, "expect_m09_charge_falls": 0}]), "M09 expectations retain actual ordered facts")
+	for invalid_m09: Dictionary in [{"expect_m09_completed": ["lesson_cleared"]}, {"expect_m09_hatch_open": "true"}, {"expect_m09_charge_falls": 8}, {"expect_m09_charge_falls": 0.5}]:
+		_check(not TOUR.valid_walks([invalid_m09]), "malformed berth acceptance requirement is refused")
 	for invalid_m06: Dictionary in [{"expect_m06_completed": ["rail_lane_cleared"]}, {"expect_m06_prisoner_route_marked": "false"}, {"expect_m06_carried_photos": -1}, {"expect_m06_carried_patients": ["edda", "edda"]}]:
 		_check(not TOUR.valid_walks([invalid_m06]), "malformed M06 capture requirement cannot become an untested assertion")
 	var declared_false: Dictionary = {"combat_travel": false}

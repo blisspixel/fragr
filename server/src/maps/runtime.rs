@@ -261,6 +261,10 @@ impl RuntimeMap {
                 self.m07_objectives()
                     .map(|_| crate::protocol::MissionId::DeclaredGoods)
             })
+            .or_else(|| {
+                self.m09_objectives()
+                    .map(|_| crate::protocol::MissionId::PassengerManifest)
+            })
     }
 
     pub fn opened_route(&self) -> Option<Self> {

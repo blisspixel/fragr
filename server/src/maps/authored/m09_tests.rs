@@ -5,6 +5,82 @@ use crate::navigation::{RouteStatus, SEARCH_LIMIT};
 const SOURCE: &str = include_str!("../../../maps/m09_passenger_manifest.json");
 
 #[test]
+fn m09_loading_search_detour_preserves_actual_cover_and_visible_remaining_guard() {
+    let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
+    let arena = &map.arena;
+    assert!(
+        !crate::mission::m09_route_segment_valid(arena, [-32.0, 0.0, -44.0], [-32.0, 0.0, -37.0]),
+        "the rejected search crossed the existing west cargo"
+    );
+    let route = [
+        [-36.0, 0.0, -38.5],
+        [-35.0, 0.0, -44.0],
+        [-35.0, 0.0, -36.5],
+        [-28.0, 0.0, -36.5],
+        [-22.0, 0.0, -38.0],
+        [-18.0, 0.0, -36.5],
+    ];
+    for points in route.windows(2) {
+        assert!(
+            crate::mission::m09_route_segment_valid(arena, points[0], points[1]),
+            "unsupported detour {:?} -> {:?}",
+            points[0],
+            points[1]
+        );
+    }
+    assert!(
+        crate::combat::line_of_sight(
+            [-28.0, 1.6, -36.5],
+            [-18.344017, 1.0, -36.46885],
+            &arena.solids
+        ),
+        "the supported detour exposes the actual rejected Sweeper position"
+    );
+}
+
+#[test]
+fn m09_ordinary_capture_routes_use_supported_walks_in_the_matching_world() {
+    let map = AuthoredMap::read(SOURCE.as_bytes()).unwrap();
+    let runtime = RuntimeMap::Authored(map);
+    let opened = runtime.prepared_m09_world().unwrap();
+    let qa: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../client/qa/m09_passenger_manifest.json"
+    ))
+    .unwrap();
+    let mut hatch_open = false;
+    let mut unsupported = Vec::new();
+    for state in qa["states"].as_array().unwrap() {
+        let arena = if hatch_open {
+            opened.arena()
+        } else {
+            runtime.arena()
+        };
+        for route in [state.get("walk_to"), state["combat"].get("search_route")]
+            .into_iter()
+            .flatten()
+        {
+            let points: Vec<[f32; 3]> = serde_json::from_value(route.clone()).unwrap();
+            for pair in points.windows(2) {
+                if !crate::mission::m09_route_segment_valid(arena, pair[0], pair[1]) {
+                    unsupported.push(format!("{}: {:?} -> {:?}", state["name"], pair[0], pair[1]));
+                }
+            }
+        }
+        if state["expect_m09_hatch_open"] == true {
+            hatch_open = true;
+        }
+    }
+    assert!(
+        hatch_open,
+        "the ordinary route must demand the actual raised hatch"
+    );
+    assert!(
+        unsupported.is_empty(),
+        "unsupported ordinary routes: {unsupported:?}"
+    );
+}
+
+#[test]
 fn m09_stairs_use_shared_supported_movement() {
     let doc: Document = serde_json::from_str(SOURCE).unwrap();
     let arena = Arena {

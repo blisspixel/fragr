@@ -25,36 +25,10 @@ const M05_MISSION: &str = "no_forwarding_address";
 const M06_MISSION: &str = "port_of_entry";
 const M07_MISSION: &str = "declared_goods";
 const M09_MISSION: &str = "passenger_manifest";
+const M10_MISSION: &str = "common_carrier";
 const M08_MISSION: &str = "custodian_of_record";
 
-/// A cabinet copy is secured evidence, not proof of restoration or identity.
-/// Historical v9 bytes never recorded these choices. Keep that absence honest.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
-pub(crate) enum M08Outcome {
-    Recorded {
-        custody_released: bool,
-        recovered_mind_secured: bool,
-        captives_evacuated: bool,
-    },
-    HistoricalUnrecorded {},
-}
-
-impl M08Outcome {
-    fn validate(&self) -> Result<(), &'static str> {
-        if matches!(
-            self,
-            Self::Recorded {
-                custody_released: false,
-                captives_evacuated: true,
-                ..
-            }
-        ) {
-            return Err("saved custody evacuation requires actual release");
-        }
-        Ok(())
-    }
-}
+pub(crate) use crate::protocol::M08Outcome;
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -262,6 +236,7 @@ impl RunDocument {
             MissionId::NoForwardingAddress => (MissionId::NoticeToVacate, M05_MISSION),
             MissionId::PortOfEntry => (MissionId::NoForwardingAddress, M06_MISSION),
             MissionId::CustodianOfRecord => (MissionId::DeclaredGoods, M08_MISSION),
+            MissionId::PassengerManifest => (MissionId::CustodianOfRecord, M09_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -282,6 +257,7 @@ impl RunDocument {
                     | MissionId::PortOfEntry
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -334,6 +310,7 @@ impl RunDocument {
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
+                | MissionId::PassengerManifest
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -349,6 +326,7 @@ impl RunDocument {
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
+                | MissionId::PassengerManifest
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -360,7 +338,10 @@ impl RunDocument {
         }
         let completed_m05 = matches!(
             self.stage_mission(),
-            MissionId::PortOfEntry | MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+            MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
+                | MissionId::CustodianOfRecord
+                | MissionId::PassengerManifest
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
@@ -372,14 +353,15 @@ impl RunDocument {
         }
         let completed_m06 = matches!(
             self.stage_mission(),
-            MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+            MissionId::DeclaredGoods | MissionId::CustodianOfRecord | MissionId::PassengerManifest
         ) || matches!(&self.step, SavedStep::AwaitingMission {
                 completed_mission: MissionId::PortOfEntry, next_mission, ..
             } if next_mission == M07_MISSION);
         if completed_m06 != self.m06_outcome.is_some() {
             return Err("saved prisoner-route outcome does not match completed M06");
         }
-        let completed_m08 = matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m08 = self.stage_mission() == MissionId::PassengerManifest
+            || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
         if completed_m08 != self.m08_outcome.is_some() {
@@ -429,6 +411,7 @@ impl RunDocument {
                         | (MissionId::PortOfEntry, M07_MISSION)
                         | (MissionId::DeclaredGoods, M08_MISSION)
                         | (MissionId::CustodianOfRecord, M09_MISSION)
+                        | (MissionId::PassengerManifest, M10_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -441,9 +424,14 @@ impl RunDocument {
                     exit,
                     matches!(
                         *completed_mission,
-                        MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+                        MissionId::DeclaredGoods
+                            | MissionId::CustodianOfRecord
+                            | MissionId::PassengerManifest
                     ),
-                    *completed_mission == MissionId::CustodianOfRecord,
+                    matches!(
+                        *completed_mission,
+                        MissionId::CustodianOfRecord | MissionId::PassengerManifest
+                    ),
                 )?;
                 exit.validate()
             }
@@ -456,8 +444,14 @@ impl RunDocument {
         }
         Self::validate_carried_finds(
             entry,
-            mission == MissionId::CustodianOfRecord,
-            mission == MissionId::CustodianOfRecord,
+            matches!(
+                mission,
+                MissionId::CustodianOfRecord | MissionId::PassengerManifest
+            ),
+            matches!(
+                mission,
+                MissionId::CustodianOfRecord | MissionId::PassengerManifest
+            ),
         )?;
         entry.validate()
     }
@@ -518,6 +512,7 @@ impl GameState {
                     MissionId::NoForwardingAddress => M06_MISSION,
                     MissionId::PortOfEntry => M07_MISSION,
                     MissionId::CustodianOfRecord => M09_MISSION,
+                    MissionId::PassengerManifest => M10_MISSION,
                     MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
@@ -551,6 +546,7 @@ impl GameState {
                     | MissionId::PortOfEntry
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -571,6 +567,7 @@ impl GameState {
                     | MissionId::PortOfEntry
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -588,7 +585,10 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::PortOfEntry | MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+                MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
             ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
@@ -605,7 +605,9 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+                MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
             ) {
                 Some(M06Outcome {
                     prisoner_route_marked: solo.carried_prisoner_route_marked,
@@ -622,6 +624,8 @@ impl GameState {
                     recovered_mind_secured: progress.recovered_mind_secured,
                     captives_evacuated: progress.captives_evacuated,
                 })
+            } else if mission == MissionId::PassengerManifest {
+                solo.carried_archive.clone()
             } else {
                 None
             },

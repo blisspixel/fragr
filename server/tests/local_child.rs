@@ -1435,3 +1435,116 @@ async fn m08_development_child_serves_the_archive_to_current_readers_only() {
         assert_eq!(refused, !admitted, "capability {version}");
     }
 }
+
+#[tokio::test]
+async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth_first() {
+    let mut child = OwnedChild(
+        Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+            .args(["--local-mission", "passenger_manifest", "--seed", "42"])
+            .current_dir(std::env::temp_dir())
+            .env("RUST_LOG", "warn")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .spawn()
+            .unwrap(),
+    );
+    let output = child.0.stdout.take().unwrap();
+    let (tx, rx) = std::sync::mpsc::channel();
+    std::thread::spawn(move || {
+        let mut line = String::new();
+        let result = BufReader::new(output).take(4096).read_line(&mut line);
+        tx.send((result, line)).unwrap();
+    });
+    let (result, line) = rx
+        .recv_timeout(Duration::from_secs(30))
+        .expect("M09 child readiness deadline");
+    result.unwrap();
+    let ready: Ready = serde_json::from_str(&line).unwrap();
+    assert_eq!(ready.mission, MissionId::PassengerManifest);
+    assert_eq!(
+        ready.gameplay_version,
+        fragr_server::protocol::M09_GAMEPLAY_VERSION
+    );
+    for role in [Role::Human, Role::Agent, Role::Spectator] {
+        let (mut socket, _) = connect_async(&ready.url).await.unwrap();
+        socket
+            .send(Message::Text(
+                serde_json::to_string(&ClientMessage::Hello {
+                    body: None,
+                    role,
+                    name: "Berth reader".into(),
+                    geometry_version: 2,
+                    gameplay_version: 33,
+                    ticket: None,
+                    resume: None,
+                })
+                .unwrap(),
+            ))
+            .await
+            .unwrap();
+        let next = tokio::time::timeout(Duration::from_secs(5), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let Message::Text(text) = next else {
+            panic!("expected strict refusal before Welcome")
+        };
+        assert!(
+            matches!(serde_json::from_str::<ServerMessage>(&text).unwrap(), ServerMessage::Error { code, .. } if code == "unsupported_gameplay")
+        );
+    }
+    let (mut socket, _) = connect_async(&ready.url).await.unwrap();
+    socket
+        .send(Message::Text(
+            serde_json::to_string(&ClientMessage::Hello {
+                body: None,
+                role: Role::Spectator,
+                name: "Current berth reader".into(),
+                geometry_version: 2,
+                gameplay_version: fragr_server::protocol::GAMEPLAY_VERSION,
+                ticket: None,
+                resume: None,
+            })
+            .unwrap(),
+        ))
+        .await
+        .unwrap();
+    let mut map_seen = false;
+    let mut facts_seen = false;
+    for _ in 0..12 {
+        let next = tokio::time::timeout(Duration::from_secs(5), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let Message::Text(text) = next else { continue };
+        match serde_json::from_str::<ServerMessage>(&text).unwrap() {
+            ServerMessage::MapInfo { map_id, m09, .. } => {
+                assert_eq!(map_id, 1009);
+                assert!(!m09.unwrap().hatch_open);
+                map_seen = true;
+            }
+            ServerMessage::Mission { tick, state } => {
+                assert!(map_seen, "mission cannot overtake collision world");
+                state.validate(tick).unwrap();
+                assert_eq!(state.id, MissionId::PassengerManifest);
+                assert!(state.party.is_empty(), "refused readers never take a seat");
+                assert_eq!(state.m09.unwrap().crew.len(), 3);
+                facts_seen = true;
+                break;
+            }
+            _ => {}
+        }
+    }
+    assert!(facts_seen);
+    child
+        .0
+        .stdin
+        .as_mut()
+        .unwrap()
+        .write_all(b"{\"type\":\"shutdown\"}\n")
+        .unwrap();
+    exited(&mut child, &ready, true);
+}

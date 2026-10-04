@@ -379,6 +379,12 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
+			if geometry.get("id") == MissionState.M09_ID and mission_geometry.get("id") == MissionState.M09_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and not M09MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			# Only the archive's two stage flags may move; a retry returns them.
 			if geometry.get("id") == MissionState.M08_ID and mission_geometry.get("id") == MissionState.M08_ID \
 				and geometry.get("map_id") == mission_geometry.get("map_id") \
@@ -423,7 +429,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry

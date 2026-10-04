@@ -185,10 +185,12 @@ impl Definition {
             hatch,
             hatch_open: false,
         };
-        for world in [arena, &opened] {
+        for (world, hatch_open) in [(arena, false), (&opened, true)] {
             crate::protocol::validate_decorations(&presentation.decorations, &world.solids)
                 .map_err(invalid)?;
-            geometry
+            let mut world_geometry = geometry.clone();
+            world_geometry.hatch_open = hatch_open;
+            world_geometry
                 .validate(arena.half, &world.solids, Some(presentation))
                 .map_err(invalid)?;
         }

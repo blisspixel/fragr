@@ -377,3 +377,18 @@ msgid "STORY_L08_L09_FREIGHT"
 msgstr "Nobody called the car. It ran the freight lane toward the berth anyway.\n\nThe manifests name Mars, and systems several sides built."
 msgid "STORY_M07_DEPARTURE_TITLE"
 msgstr "CUSTODIAN OF RECORD"
+
+msgid "MISSION_M09_TITLE"
+msgstr "PASSENGER MANIFEST"
+
+msgid "STORY_M09_ARRIVAL_BERTH"
+msgstr "The launch berth. The car nobody sent stopped under Tern's ship, still in its cradle, still sealed."
+
+msgid "STORY_M09_ARRIVAL_CREW"
+msgstr "Tern and the passengers are in the berth office. Free the crew. Take the gantries. Get everyone aboard."
+
+msgid "STORY_M09_DEPARTURE_TITLE"
+msgstr "COMMON CARRIER"
+
+msgid "STORY_L09_L10_PASSAGE"
+msgstr "The impounded ship leaves the Moon. Four days to Mars.\n\nThe transfer evidence goes under Tern's bunk."

@@ -15,7 +15,7 @@ const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
 /// Playable campaign stages with bundled content, in mission order.
-pub(crate) const CAMPAIGN_STAGES: usize = 8;
+pub(crate) const CAMPAIGN_STAGES: usize = 9;
 /// Bundled content hashes for every playable campaign stage.
 pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 
@@ -29,6 +29,7 @@ pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = [
     MissionId::PortOfEntry,
     MissionId::DeclaredGoods,
     MissionId::CustodianOfRecord,
+    MissionId::PassengerManifest,
 ];
 
 /// Index of a playable mission in [`ContentHashes`].
@@ -42,6 +43,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::PortOfEntry => 5,
         MissionId::DeclaredGoods => 6,
         MissionId::CustodianOfRecord => 7,
+        MissionId::PassengerManifest => 8,
     }
 }
 
@@ -561,6 +563,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -581,7 +584,10 @@ mod tests {
         assert!(matches!(
             RunStore::inspect_with_hashes(
                 &directory,
-                [[7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32]]
+                [
+                    [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                    [101; 32]
+                ]
             )
             .unwrap(),
             RunProbe::Incompatible
@@ -711,6 +717,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -757,6 +764,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -817,6 +825,7 @@ mod tests {
             &directory,
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -879,6 +888,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -924,7 +934,10 @@ mod tests {
         assert!(matches!(
             RunStore::inspect_with_hashes(
                 &directory,
-                [[7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32]]
+                [
+                    [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                    [101; 32]
+                ]
             )
             .unwrap(),
             RunProbe::Incompatible
@@ -940,6 +953,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
+                [101; 32],
             ],
         )
         .unwrap();
@@ -989,7 +1003,10 @@ mod tests {
         assert!(matches!(
             RunStore::inspect_with_hashes(
                 &directory,
-                [[7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32]]
+                [
+                    [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
+                    [101; 32]
+                ]
             )
             .unwrap(),
             RunProbe::Incompatible

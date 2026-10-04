@@ -81,6 +81,12 @@ func _run() -> void:
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M03 development records validate on the shared record boundary")
 	yard["scope"]["run"] = {"id": mission["scope"]["run"]["id"], "status": "playing", "continues": 1, "level_start_continues": 1}
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M03 records retain the level allowance without a refill")
+	var berth: Dictionary = yard.duplicate(true)
+	berth["scope"]["mission"] = MissionState.M09_ID
+	berth["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M09 private record retains version one and exact run baseline")
+	berth["scope"]["mission"] = "common_carrier"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M10 cannot forge a playable participant record")
 	yard["scope"]["mission"] = MissionState.M04_ID
 	yard["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")

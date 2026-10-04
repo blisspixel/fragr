@@ -194,12 +194,12 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "durable owned M07 child stops cleanly before inspecting disk"):
 		return false
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 9 and saved["id"] == RUN_ID, "actual child atomically persists the version 9 run")
+	_check(saved is Dictionary and saved["version"] == 10 and saved["id"] == RUN_ID, "actual child atomically persists the current run")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M07_ID \
 			and saved["m06_outcome"] == fixture["m06_outcome"] and saved["m05_outcome"] == fixture["m05_outcome"] \
 			and int(saved["remaining_continues"]) == 1 and int(saved["level_start_continues"]) == 1,
-			"version 9 entry retains every outcome and the unrefilled baseline: " + JSON.stringify(saved))
+			"current entry retains every outcome and the unrefilled baseline: " + JSON.stringify(saved))
 	var archives: Array[String] = []
 	for filename: String in DirAccess.get_files_at(run_directory):
 		if filename.begins_with("run.prior-") and filename.ends_with(".json"):

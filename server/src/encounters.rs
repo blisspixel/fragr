@@ -114,6 +114,7 @@ impl Encounters {
         state.ensure_m06_companion();
         state.ensure_m08_companion();
         state.ensure_m07_companion();
+        state.ensure_m09_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
             // M04 introduces each airborne threat in order. Do not expose a
@@ -122,13 +123,20 @@ impl Encounters {
                 || map.m05_objectives().is_some()
                 || map.m06_objectives().is_some()
                 || map.m07_objectives().is_some()
-                || map.m08_objectives().is_some())
+                || map.m08_objectives().is_some()
+                || map.m09_objectives().is_some())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
                         .iter()
                         .position(|e| e.id == *id)
                         .is_none_or(|previous| !matches!(self.groups[previous], Group::Complete))
                 })
+                && matches!(self.groups[index], Group::Unplaced)
+            {
+                continue;
+            }
+            if map.m09_objectives().is_some()
+                && !state.m09_encounter_available(index)
                 && matches!(self.groups[index], Group::Unplaced)
             {
                 continue;

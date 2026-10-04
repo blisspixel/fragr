@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m09_arrival",
+  "title_key": "MISSION_M09_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "BERTH", "caption_key": "STORY_M09_ARRIVAL_BERTH", "timing": "reader", "hold": 1.0},
+    {"id": "CREW", "caption_key": "STORY_M09_ARRIVAL_CREW", "timing": "reader", "hold": 1.0}
+  ]
+}

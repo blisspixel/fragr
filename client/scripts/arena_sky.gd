@@ -190,7 +190,7 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
-	if key.contains("port of entry"):
+	if key.contains("port of entry") or key.contains("passenger manifest"):
 		return moon_port()
 	if key.contains("custodian of record") or key.contains("custody device range"):
 		return moon_archive()

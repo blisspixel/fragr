@@ -1,0 +1,110 @@
+class_name M09Berth
+extends Node3D
+
+## The ship's surface details add no collision. Civilian strips remain
+## provisional casting; their presence and feet come only from mission facts.
+const TINTS: Dictionary[String, Color] = {"tern": Color("cfc4a5"), "berth_crew_a": Color("a7bbad"), "berth_crew_b": Color("c6a880"), "edda": Color("b8c5c7"), "splice": Color("b6abbe")}
+var _root: Node3D = null
+var _geometry: Dictionary = {}
+var _crew: Dictionary[String, Sprite3D] = {}
+var _clock: float = 0.0
+var _hatch_lamp: MeshInstance3D = null
+var _engine_lamps: Array[MeshInstance3D] = []
+var state_applied: int = 0
+
+func clear_map() -> void:
+	_geometry.clear()
+	_crew.clear()
+	_engine_lamps.clear()
+	_hatch_lamp = null
+	state_applied = 0
+	_clock = 0.0
+	if is_instance_valid(_root):
+		remove_child(_root)
+		_root.queue_free()
+	_root = null
+
+func configure_map(info: Dictionary) -> void:
+	clear_map()
+	if not info.get("m09") is Dictionary or not MissionState.map_error(info).is_empty():
+		return
+	_geometry = MissionState.geometry_for(info)
+	_root = Node3D.new()
+	_root.name = "PassengerBerthDetails"
+	add_child(_root)
+	# Detail attaches to the authoritative hull faces, not an invented ship body.
+	for index: int in range(info["solids"].size()):
+		var solid: Dictionary = info["solids"][index]
+		if float(solid["min_x"]) == -8.0 and float(solid["max_x"]) == 8.0 and float(solid["top"]) == 9.0 \
+			and float(solid["min_z"]) == -18.0 and float(solid["max_z"]) == 18.0:
+			_ship(solid)
+	var control: Dictionary = info["m09"]["departure"]
+	var decoration: Dictionary = info["presentation"]["decorations"][int(control["decoration"])]
+	var transform: Transform3D = MapDecoration.placement(info["solids"][int(decoration["solid"])], decoration)
+	_hatch_lamp = _box("BoardingStatus", transform.origin + transform.basis.z * 0.035 + transform.basis.y * 0.75, Vector3(0.9, 0.1, 0.06), Color("9a4533"), true)
+	ArenaSky.mark_world(_root)
+
+func _ship(hull: Dictionary) -> void:
+	var width: float = float(hull["max_x"]) - float(hull["min_x"])
+	var front: float = float(hull["min_z"]) - 0.02
+	_box("CarrierHullStripe", Vector3(0, 2.2, front), Vector3(width, 0.22, 0.025), Color("778f8a"))
+	var label: WorldSign = WorldSign.new()
+	label.name = "CommonCarrierHullName"
+	label.position = Vector3(0, 6.7, front - 0.015)
+	label.rotation.y = PI
+	label.configure("WORLD_M09_COMMON_CARRIER", Vector2(11.0, 1.7), MenuTheme.BONE)
+	_root.add_child(label)
+	for side: float in [-1.0, 1.0]:
+		var x: float = side * 8.02
+		_box("CarrierSideStripe", Vector3(x, 2.2, 0), Vector3(0.025, 0.22, 36), Color("778f8a"))
+		for index: int in range(7):
+			_box("CarrierPassengerWindow", Vector3(x, 6.2, -10 + index * 3.0), Vector3(0.03, 0.8, 1.4), Color("728d91"))
+		var engine: MeshInstance3D = _box("CarrierEngineReady", Vector3(side * 11, 2.8, -17.025), Vector3(3, 0.55, 0.035), Color("473c32"), true)
+		_engine_lamps.append(engine)
+
+func apply_state(state: Dictionary) -> void:
+	if _geometry.is_empty() or state.get("id") != MissionState.M09_ID \
+		or not MissionState.validation_error({"tick": EquipmentState.MAX_EXACT_INTEGER, "state": state}, _geometry).is_empty():
+		return
+	state_applied += 1
+	var facts: Dictionary = state["m09"]
+	for person: Dictionary in facts["crew"]:
+		var id: String = str(person["id"])
+		if not _crew.has(id):
+			var figure: Sprite3D = Sprite3D.new()
+			figure.name = "Passenger_" + id
+			figure.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if id == "splice" else PlayerBody.HUMAN)) as Texture2D
+			figure.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
+			figure.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
+			figure.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+			figure.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			figure.layers = ArenaSky.ACTOR_LAYERS
+			figure.modulate = TINTS[id]
+			figure.position = _feet(person["feet"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
+			figure.set_meta("walked", 0.0)
+			figure.set_meta("last_move_ms", -1000)
+			_root.add_child(figure)
+			_crew[id] = figure
+		var view: Sprite3D = _crew[id]
+		var next: Vector3 = _feet(person["feet"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
+		var distance: float = view.position.distance_to(next)
+		if distance > 0.001:
+			view.set_meta("walked", float(view.get_meta("walked")) + distance)
+			view.set_meta("last_move_ms", Time.get_ticks_msec())
+		view.position = next
+	if is_instance_valid(_hatch_lamp):
+		_hatch_lamp.material_override = MoonBackdrop._material(Color("8eb58b") if facts["hatch_open"] else Color("9a4533"), true)
+	for engine: MeshInstance3D in _engine_lamps:
+		engine.material_override = MoonBackdrop._material(Color("d8a15e") if facts["completed"].size() >= 8 else Color("473c32"), true)
+
+func _process(delta: float) -> void:
+	_clock += delta
+	for view: Sprite3D in _crew.values():
+		var moving: bool = Time.get_ticks_msec() - int(view.get_meta("last_move_ms")) < 150
+		view.frame = PlayerBody.frame(_clock, float(view.get_meta("walked")), 2.0 if moving else 0.0)
+
+static func _feet(raw: Array) -> Vector3:
+	return Vector3(float(raw[0]), float(raw[1]), float(raw[2]))
+
+func _box(label: String, at: Vector3, size: Vector3, color: Color, glow: bool = false) -> MeshInstance3D:
+	return MoonBackdrop._piece(_root, label, at, size, MoonBackdrop._material(color, glow))

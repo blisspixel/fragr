@@ -32,7 +32,7 @@ v1 and the capability 33 elapsed-time compatibility remain intact. MapInfo
 must precede accepted mission facts; stale or contradictory facts refuse
 controller steering. Keep one campaign control door for humans and agents.
 
-Proposed save version 10 adds a strict historical v9 reader, retains original
+Save version 10 adds a strict historical v9 reader, retains original
 bytes under the existing locked archive replacement and promotes completed
 M08 to M09 with actual HP, armor, all weapon counts, grenades and mines. Clear
 only old-map personal claims. There is no Episode II refill. Continue restores
@@ -49,6 +49,14 @@ neither belongs in this save. A strict v9 completed-M08 upgrade assigns only
 through M09 save, reopen and retry. Native completion always emits recorded
 facts. Unknown history cannot gate crew release or boarding. Both tagged
 shapes reject extra fields and contradictory evacuation without release.
+
+Nick confirmed on 2026-10-04 that recorded clinic-team rescue counts as saving
+Edda for this authored appearance. Nonempty actual M04 `rescued_patients`
+therefore makes Edda available in the berth. The earlier IDs remain team facts,
+not newly invented historical individual evacuation or survival fields. No
+recorded team rescue means absent; missing historical choices stay absent.
+Splice requires actual recorded M05 evacuation, never release alone. Both
+conditions and unknown archive choices survive M09 retry unchanged.
 
 ## Bounded implementation
 
@@ -178,3 +186,53 @@ This is a loader and movement checkpoint. M09 readiness, ordered mission
 facts, living crew contacts, challenge attribution, client presentation,
 durable promotion and whole-route acceptance are still open. The maintenance
 cubby and runner shortcut also remain unbuilt; no par value is enabled.
+
+## Mission and carry checkpoint, 2026-10-04
+
+The authoritative leaf now owns all eight ordered encounters, the physical
+crew console, actual supported crew movement, the raised hatch and fresh
+all-party boarding departure. Seven Enforcers retain their own committed
+charge, tell, interruption and fall behavior. The Severe challenge counts
+only a real lethal committed-charge descent; a pre-existing corpse or ordinary
+fall cannot satisfy it, and self damage never creates a participant frag.
+MapInfo precedes changed hatch facts, and stale or forged state cannot steer
+the shared controller.
+
+Strict version 10 promotes completed M08 into M09 under the existing writer
+lock, carrying actual health, armor, equipment, independent grenade and mine
+counts and prior outcomes without an Episode II refill. Retry and reopen keep
+the mission entry, monotonic revisions and explicitly unknown historical v9
+archive choices. Current completion leaves M10 pending and unplayable. Actual
+clinic-team rescue supplies Edda's accepted authored appearance condition;
+Splice requires actual recorded evacuation. All four conditional rosters pass
+carry and retry checks without adding individual historical rescue fields.
+
+The native workspace passes (902 server tests and three existing ignored tests,
+with every integration and other workspace suite passing), and all-target
+workspace clippy passes. The later all-authored-route movement audit and actual
+held/released contact preflight pass separately. The contact preflight walks
+every capture waypoint through real player input for all four saved rosters,
+performs fresh physical control uses and reaches the complete departure.
+Guards are explicitly disabled as seeded fixtures in that preflight; it proves
+contact and gates, not combat. A separate low-resource test keeps the authentic
+39 HP, 17 armor and finite equipment unchanged through story/readiness, then
+obtains Tack by ordinary movement before activating the same five loading guards.
+
+The full headless client checker passes on the earlier matching native build.
+Focused actual owned-child tests prove story dismissal's release barrier,
+finite mine consumption, exact historical-byte archiving and the unchanged
+retry inventory anchor. The final adjusted crew geometry still needs a fresh
+matching native and complete client repeat after integration.
+
+Two full renderer attempts remain rejected and retained privately. The first
+found an incorrectly ordered pickup assertion and a search path into cargo;
+the second passed the first nine states, all five loading guards, the Enforcer
+lesson and the office pair, then refused a console approach through held crew.
+The revised paths preserve the original guard roster, supplies, physical
+controls and arrival tolerances. Crew now leave in spaced parallel lanes and
+join the stair from one direction, avoiding the original opposing convergence.
+Whole rendered departure acceptance is still open.
+
+The Common Carrier's collision hull and civilian casting are provisional.
+The maintenance cubby, runner shortcut, reviewed par and fresh-player pacing
+acceptance remain open. This checkpoint does not mark M09 complete.

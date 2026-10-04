@@ -29,6 +29,27 @@ impl RunDocumentV9 {
         if self.version != 9 || self.rules.revision != CAMPAIGN_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
+        if matches!(
+            &self.step,
+            SavedStep::MissionEntry {
+                mission: MissionId::PassengerManifest,
+                ..
+            } | SavedStep::PendingContinue {
+                mission: MissionId::PassengerManifest,
+                ..
+            } | SavedStep::Failed {
+                mission: MissionId::PassengerManifest,
+                ..
+            } | SavedStep::Abandoned {
+                mission: MissionId::PassengerManifest,
+                ..
+            } | SavedStep::AwaitingMission {
+                completed_mission: MissionId::PassengerManifest,
+                ..
+            }
+        ) {
+            return Err("M09 was not supported by version 9");
+        }
         let completed_m08 = matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
@@ -99,7 +120,10 @@ impl RunDocumentV8 {
             m08_outcome: None,
         };
         let mission = document.stage_mission();
-        if mission == MissionId::CustodianOfRecord {
+        if matches!(
+            mission,
+            MissionId::CustodianOfRecord | MissionId::PassengerManifest
+        ) {
             return Err("M08 was not supported by version 8");
         }
         document.validate(hashes[store::stage_index(mission)])?;
@@ -218,9 +242,9 @@ impl RunDocumentV6 {
             MissionId::NoticeToVacate => hashes[3],
             MissionId::NoForwardingAddress => hashes[4],
             MissionId::PortOfEntry => return Err("M06 was not supported by version 6"),
-            MissionId::DeclaredGoods | MissionId::CustodianOfRecord => {
-                return Err("M08 was not supported by version 6")
-            }
+            MissionId::DeclaredGoods
+            | MissionId::CustodianOfRecord
+            | MissionId::PassengerManifest => return Err("M08 was not supported by version 6"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -413,7 +437,8 @@ impl RunDocumentV5 {
             MissionId::NoForwardingAddress
             | MissionId::PortOfEntry
             | MissionId::DeclaredGoods
-            | MissionId::CustodianOfRecord => return Err("M05 was not supported by version 5"),
+            | MissionId::CustodianOfRecord
+            | MissionId::PassengerManifest => return Err("M05 was not supported by version 5"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -455,7 +480,8 @@ impl RunDocumentV4 {
                 | MissionId::NoForwardingAddress
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
-                | MissionId::CustodianOfRecord => {
+                | MissionId::CustodianOfRecord
+                | MissionId::PassengerManifest => {
                     return Err("mission was not supported by version 4")
                 }
             },
@@ -469,7 +495,8 @@ impl RunDocumentV4 {
                 | MissionId::NoForwardingAddress
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
-                | MissionId::CustodianOfRecord => {
+                | MissionId::CustodianOfRecord
+                | MissionId::PassengerManifest => {
                     return Err("mission was not supported by version 4")
                 }
             },
@@ -541,7 +568,8 @@ impl RunDocumentV3 {
             MissionId::NoForwardingAddress
             | MissionId::PortOfEntry
             | MissionId::DeclaredGoods
-            | MissionId::CustodianOfRecord => return Err("M05 was not supported by version 3"),
+            | MissionId::CustodianOfRecord
+            | MissionId::PassengerManifest => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");

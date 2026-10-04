@@ -168,8 +168,8 @@ Initial handshake message. Must be sent immediately after connection.
   Version 34 adds the human powered-armor `enforcer` Union kind and its
   committed `charging` phase. Every map placing an Enforcer requires 34 for
   humans, agents and spectators. Other maps retain their earlier requirements.
-  Passenger Manifest's mission boundary is reserved for the same capability;
-  its development implementation remains in flight.
+  Passenger Manifest uses the same capability for its strict `m09` geometry,
+  ordered crew release and all-party berth departure.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -510,6 +510,28 @@ cabinet, available only after the seal lifts; neither gates departure.
 `captives_evacuated` is set at departure only when the bays were released.
 Departure requires all living ready participants aboard and a fresh aimed Use.
 Retry restores the sealed world, every node, the guards and every fact.
+
+M09 carries `m09` exactly for `passenger_manifest`, mutually exclusive with
+other mission envelopes. Its strict facts are
+`{completed,current?,crew_released,crew,hatch_open,charge_falls,carried_archive?}`.
+The prefix is `loading_cleared`, `lesson_cleared`, `crew_freed`,
+`gantry_one_cleared`, `gantry_two_cleared`, `gantry_three_cleared`,
+`clamps_released`, `hatch_cleared`, then `party_departed`. Crew release is a
+fresh aimed Use after the office guards clear; every fight arrival requires
+its actual group clear and participating party arrival. Gantry guards cannot
+activate before crew release. Clearing the gallery prepares the raised hatch
+world and sends MapInfo before changed facts. `crew` contains strict
+`{id,feet,aboard}` records: Tern and two berth crew, then optional Edda and
+Splice in that order. Edda's authored appearance uses nonempty recorded M04
+clinic-team rescue; it adds no historical individual survival fact. Splice
+requires actual M05 evacuation, not release alone. Crew feet follow supported
+held routes with ordinary living-body contacts; their timing never gates exit.
+`charge_falls` counts only actual lethal Enforcer charge descents, at most seven.
+Severe departure requires at least one such fall. All departures require every
+ready living participant aboard and a fresh aimed Use. Retry restores the closed
+world, entry inventory and guards, preserving carried history and cast.
+`carried_archive` is the immutable tagged v10 M08 outcome described below;
+it is absent in independent development parties and never blocks boarding.
 
 M07 carries `m07` exactly for `declared_goods`, mutually exclusive with
 other mission envelopes. Its strict facts are
@@ -867,6 +889,16 @@ also send `map_info` before shared progress, even when the map ID stays the same
   `companion_start`. One static world; pressure glass is permitted. Same-map
   replacement cannot rebind this contract. Every M07 role requires capability
   32, with campaign rules revision 3 unchanged.
+- `m09`: present only on Passenger Manifest, map ID 1009 and geometry version
+  2. Seven ordered Arrival `objectives` accompany the physical `crew_release`
+  and `departure` controls, `boarding`, `companion_start`, five authored `crew`
+  routes with per-point `held_until` gates, the `hatch` solid index and
+  `hatch_open`. Only the hatch's registered vertical bounds and stage flag may
+  change on a same-map replacement; all other collision and contract fields
+  remain exact. The raised world is prepared before readiness and sent before
+  changed mission facts. Actual crew presence depends on retained outcomes,
+  not the five reserved authoring routes. Every role requires capability 34.
+  Campaign rules revision 3 remains unchanged.
 
 Geometry bounds: finite half extent from 2 to 256; at most 2048 solids; finite
 coordinates within -512 to 512; strictly increasing X and Z bounds. Navigation
@@ -937,8 +969,9 @@ omitted while zero, so earlier readers keep every map without mines. It is
 neither a weapon slot nor a grenade. A grant with `kind: "proximity_mine"` and
 an `amount` from one through four uses ordinary personal or contested claims;
 its pickup carries kind `proximity_mine`, actual amount, no weapon and no pool.
-Weapon-only mutators refuse mines. Saved run equipment does not yet store a mine
-count: mines are found in level 8 and no later mission carries them.
+Weapon-only mutators refuse mines. Current saved run equipment stores its own
+bounded actual mine count, independently of grenades, and carries it through
+M08 and M09 entry and retry.
 
 Pickup entries additionally support `kind: "ammo"`, `pool` (`bullets`, `shells`,
 `cells`) and a round `amount`. `claim` defaults to `contested` and is omitted in
@@ -2088,7 +2121,8 @@ continues, pending_continue, nullable body), `failed`, `abandoned`,
 M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
 M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
-M09 `passenger_manifest` after M08. M09 is not playable.
+M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
+M09 is supported; M10 cannot launch.
 Version 10 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
@@ -2106,7 +2140,11 @@ edge and throughout M07 entry, retry and terminal states. Earlier outcomes
 persist through every later edge. An M07 exit and later stages may carry the
 Sniper Rifle; an M07 entry never does. M08 entry, continue and retry restore
 the mission-entry equipment anchor, including its independent mine count.
-M08 completion stores the actual remaining count at its pending M09 edge.
+M08 completion stores actual remaining counts at its M09 edge. The locked
+promotion carries HP, armor, equipment, grenades and mines without an episode
+refill; only old-map personal supply claims clear. M09 retry restores that
+entry anchor and retains all earlier outcomes. Completion stores the actual
+exit at pending M10; no Episode III refill or playable M10 is implied.
 Version 10 also requires `m08_outcome` at that completed edge. Native
 completion emits `{"kind":"recorded","custody_released":bool,
 "recovered_mind_secured":bool,"captives_evacuated":bool}` from actual mission
@@ -2122,7 +2160,7 @@ Strict v7 documents upgrade to v10 and cannot forge an M07 stage or a carried
 Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
 Sniper, then promote into M08 without a refill. V8 refuses playable M08.
 Strict v9 preserves all actual equipment and earlier outcomes. Its exact
-shape refuses `m08_outcome`, even null, before any upgrade.
+shape refuses `m08_outcome`, even null, and any playable M09 stage before upgrade.
 Read-only preview preserves source bytes; writable migration archives exact
 bytes under the existing writer lock before atomic replacement. Unknown future
 versions, forged older M04/M05/M06/M07/M08 states and
@@ -2197,13 +2235,23 @@ HP, armor, equipment, remaining continues and every earlier outcome, clearing
 only old-map claims. Episode II was refilled entering M06, so this promotion
 grants no refill and sets the level baseline to the continues that remain.
 The arrival scene precedes readiness only for the pending M06 entry. M07
-completion saves `custodian_of_record` as a pending destination; durable M08
-carry remains in development.
+completion saves `custodian_of_record` as the supported next destination.
 
-`--local-mission custodian_of_record` starts the independent bundled M08
-development prototype with capability 31 and no personal save. Saved runs do not
-reach M08 yet: every saved-run reader refuses an M08 stage until level 7's carry
-and the M07 to M08 promotion exist.
+`--local-mission custodian_of_record` without a run mode starts the independent
+bundled M08 development prototype with capability 31 and no personal save.
+Resume promotes a completed M07 exit under the existing writer lock, retaining
+actual independent mine and grenade counts, earlier outcomes and the remaining
+Episode II allowance. Retry restores the M08 entry anchor. Actual completion
+records the archive custody, cabinet and evacuation facts separately and saves
+the supported `passenger_manifest` destination.
+
+`--local-mission passenger_manifest` without a run mode starts the independent
+bundled M09 development prototype with capability 34 and no personal save.
+Resume promotes completed M08 under the same lock without an episode refill.
+Actual inventory, body and archive outcomes carry; historical v9 choices remain
+explicitly unknown. Readiness does not activate the loading fight at spawn.
+Ordinary movement obtains the Tack before crossing its authored activation
+boundary. Completion saves pending `common_carrier`; M10 is unavailable.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using

@@ -48,7 +48,10 @@ pub use m08::{
     M08MapGeometry, M08NodeGeometry, M08ObjectiveState, M08_BAYS_ID, M08_CABINET_ID,
     M08_MACHINE_STEP, M08_NODES, M08_NODE_HP, M08_OBJECTIVE_IDS,
 };
-pub use m09::{M09CrewGeometry, M09MapGeometry, M09_CREW_IDS, M09_CREW_STEP, M09_OBJECTIVE_IDS};
+pub use m09::{
+    M08Outcome, M09CrewGeometry, M09CrewState, M09MapGeometry, M09ObjectiveState, M09_CREW_IDS,
+    M09_CREW_STEP, M09_OBJECTIVE_IDS,
+};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,
@@ -790,6 +793,7 @@ mod geometry_tests {
             m06: None,
             m08: None,
             m07: None,
+            m09: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -906,6 +910,8 @@ pub enum ServerMessage {
         m08: Option<M08MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m07: Option<M07MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m09: Option<M09MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
