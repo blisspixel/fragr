@@ -941,3 +941,9 @@ msgstr "COMMON CARRIER"
 
 msgid "M09_NEXT_PENDING"
 msgstr "Your run is saved. The onward passage is not available in this build."
+
+msgid "M09_OPTIONAL_FALL"
+msgstr "Optional challenge: bait a charge over an edge."
+
+msgid "M09_OPTIONAL_FALL_DONE"
+msgstr "Optional challenge complete: a charge went over an edge."

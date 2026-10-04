@@ -52,6 +52,7 @@ pub struct M09ObjectiveState {
     pub crew_released: bool,
     pub crew: Vec<M09CrewState>,
     pub hatch_open: bool,
+    /// Resolved optional challenge evidence, never a departure prerequisite.
     pub charge_falls: u8,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub carried_archive: Option<M08Outcome>,

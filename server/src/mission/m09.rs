@@ -99,7 +99,6 @@ impl GameState {
         } else if p.index == 8
             && !party.is_empty()
             && party.iter().all(|m| m.ready && m.alive && m.aboard)
-            && (run.rules.difficulty != CampaignDifficulty::Severe || p.charge_falls > 0)
         {
             Some(&g.departure)
         } else {

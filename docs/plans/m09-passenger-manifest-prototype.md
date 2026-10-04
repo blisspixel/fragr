@@ -195,6 +195,8 @@ all-party boarding departure. Seven Enforcers retain their own committed
 charge, tell, interruption and fall behavior. The Severe challenge counts
 only a real lethal committed-charge descent; a pre-existing corpse or ordinary
 fall cannot satisfy it, and self damage never creates a participant frag.
+This is an optional challenge on Severe, never a departure, prompt or controller
+prerequisite. Defeating all Enforcers with ordinary gunfire still permits exit.
 MapInfo precedes changed hatch facts, and stale or forged state cannot steer
 the shared controller.
 
@@ -246,3 +248,14 @@ each conditional roster. Actual optional crew can finish all lifted route
 holds, while departure itself does not wait for them. Full combined client
 and native checks are running; the next complete rendered combat route remains
 an acceptance gate.
+
+The Severe charge-fall challenge is optional. A focused regression fires a finite
+Rail fixture kit through actual damage resolution at all 21 required guards,
+then accepts the zero-fall state through protocol and controller validation and
+uses the real fresh exit to depart. Enemy tactics are isolated in this unit
+fixture, so this is completion-contract evidence, separate from rendered play.
+Actual charge descent attribution tests remain unchanged. The client retains
+an optional challenge badge and accepts a zero-fall departure prompt. The first
+regression attempt incorrectly expected exactly zero HP on lethal overkill;
+the corrected test requires an actual damaging resolved shot with HP at or below
+zero. Both logs are retained privately. Focused client boundary/HUD proof passes.

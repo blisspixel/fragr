@@ -577,7 +577,8 @@ func _refresh_m09() -> void:
 		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
 		_refresh_run_recovery(run)
 	var progress: Dictionary = state["m09"]
-	_evac_badge.visible = false
+	_evac_badge.visible = state["rules"]["difficulty"] == "severe" and state["phase"] == "in_progress"
+	_evac_badge.text = _catalog("M09_OPTIONAL_FALL_DONE" if progress["charge_falls"] > 0 else "M09_OPTIONAL_FALL")
 	match state["phase"]:
 		"briefing": _copy.text = _catalog("M09_WAITING")
 		"departed": _copy.text = InputGlyphs.plain(_catalog("M09_DEPARTED"))

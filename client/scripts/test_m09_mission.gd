@@ -104,9 +104,9 @@ func _run() -> void:
 	_check(not MissionState.validation_error(bad, opened_geometry).is_empty(), "dead party cannot own an exit prompt")
 	bad = departure.duplicate(true)
 	bad["state"]["rules"]["difficulty"] = "severe"
-	_check(not MissionState.validation_error(bad, opened_geometry).is_empty(), "Severe prompt requires server fall evidence")
+	_check(MissionState.validation_error(bad, opened_geometry).is_empty(), "zero falls cannot block the optional Severe challenge's departure")
 	bad["state"]["m09"]["charge_falls"] = 1
-	_check(MissionState.validation_error(bad, opened_geometry).is_empty(), "actual challenge fact permits Severe departure")
+	_check(MissionState.validation_error(bad, opened_geometry).is_empty(), "actual optional challenge evidence remains valid")
 	_check(MissionState.validation_error(fixture_state(opened, 9), opened_geometry).is_empty(), "real terminal prefix is accepted")
 	var berth: M09Berth = M09Berth.new()
 	root.add_child(berth)
@@ -133,6 +133,15 @@ func _run() -> void:
 	_check(hud._copy.text == tr("M09_OBJECTIVE_CREW_FREED") and not hud._copy.text.contains("M09_"), "crew progress uses keyed copy")
 	hud.apply(departure["state"], PLAYER)
 	_check(hud.prompt_text == tr("M09_USE_DEPARTURE"), "only the actual exit prompt shows departure")
+	var optional: Dictionary = departure["state"].duplicate(true)
+	optional["rules"]["difficulty"] = "severe"
+	hud.apply(optional, PLAYER)
+	_check(hud._evac_badge.visible and hud._evac_badge.text == tr("M09_OPTIONAL_FALL") and hud.prompt_text == tr("M09_USE_DEPARTURE"), "optional challenge remains visible without hiding the usable exit")
+	optional["m09"]["charge_falls"] = 1
+	hud.apply(optional, PLAYER)
+	_check(hud._evac_badge.text == tr("M09_OPTIONAL_FALL_DONE"), "only actual fall evidence completes the optional badge")
+	hud.apply(departure["state"], PLAYER)
+	_check(not hud._evac_badge.visible, "Standard does not inherit the Severe optional badge")
 	hud.queue_free()
 	_check(StoryScene.exists("m09_arrival") and StoryScene.exists("l09_l10") and StoryScene.BEFORE_MISSION.get(MissionState.M09_ID) == "m09_arrival", "arrival and departure reuse the story boundary")
 	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == 34 and LocalMatch.NEXT_MISSION == "common_carrier", "the berth is playable and M10 stays pending")

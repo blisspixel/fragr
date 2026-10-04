@@ -190,8 +190,7 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 		if not M03MissionState._exact(prompt, ["player_id", "kind"]) or prompt["kind"] != "objective_use" \
 			or value["phase"] != "in_progress" or not party.has(prompt["player_id"]) \
 			or not party[prompt["player_id"]]["ready"] or not party[prompt["player_id"]]["alive"] or prompt["player_id"] in prompted \
-			or (completed.size() != 2 and (completed.size() != 8 or not all_aboard \
-				or (value["rules"]["difficulty"] == "severe" and progress["charge_falls"] == 0))):
+			or (completed.size() != 2 and (completed.size() != 8 or not all_aboard)):
 			return MissionState.INVALID
 		prompted.append(prompt["player_id"])
 	if not previous.is_empty():

@@ -591,8 +591,6 @@ impl MissionState {
                                 || f.completed.len() == 8
                                     && !self.party.is_empty()
                                     && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
-                                    && (self.rules.difficulty != CampaignDifficulty::Severe
-                                        || f.charge_falls > 0)
                         }))
                         || (self.id == MissionId::CustodianOfRecord
                             && prompt.kind == InteractionKind::ObjectiveUse

@@ -527,7 +527,8 @@ clinic-team rescue; it adds no historical individual survival fact. Splice
 requires actual M05 evacuation, not release alone. Crew feet follow supported
 held routes with ordinary living-body contacts; their timing never gates exit.
 `charge_falls` counts only actual lethal Enforcer charge descents, at most seven.
-Severe departure requires at least one such fall. All departures require every
+Severe exposes a fall as an optional challenge; zero falls never blocks a
+prompt, controller or departure. All departures require every
 ready living participant aboard and a fresh aimed Use. Retry restores the closed
 world, entry inventory and guards, preserving carried history and cast.
 `carried_archive` is the immutable tagged v10 M08 outcome described below;

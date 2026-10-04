@@ -189,6 +189,18 @@ fn m09_departure_requires_final_clear_fresh_use_and_all_ready_living_aboard() {
     let state = s.state.mission_state().unwrap();
     assert_eq!(state.phase, MissionPhase::Departed);
     state.validate(s.state.tick).unwrap();
+    let map = s.state.map.clone();
+    let g = map.m09_geometry().unwrap();
+    let mut controller = crate::mission::MissionClient::default();
+    controller
+        .replace_map_with_m09(
+            Some(&g),
+            map.half_extent(),
+            &map.arena().solids,
+            map.presentation_ref(),
+        )
+        .unwrap();
+    controller.observe(s.state.tick, state.clone()).unwrap();
     assert_eq!(
         state.m09.unwrap().completed.last().unwrap(),
         "party_departed"
@@ -391,26 +403,125 @@ fn m09_controller_refuses_stale_world_facts_and_forged_crew_routes() {
 }
 
 #[test]
-fn m09_severe_departure_requires_actual_charge_fall_without_counting_old_deadfalls() {
+fn m09_severe_departure_after_all_resolved_gun_kills_does_not_require_charge_falls() {
+    use crate::protocol::{AmmoPool, WeaponType};
     let (mut s, id) = fixture(CampaignDifficulty::Severe);
-    for index in 0..3 {
-        clear(&mut s, id, index);
+    // Isolate the completion contract from AI tactics. A finite fixture kit
+    // fires real resolved shots at all 21 bodies; no death or fall is seeded.
+    let player = s.state.players.iter_mut().find(|p| p.id == id).unwrap();
+    player.inventory.grant_weapon(WeaponType::Rail);
+    player.inventory.grant_ammo(AmmoPool::Cells, 40);
+    let mut resolved_kills = std::collections::HashSet::new();
+    for index in 0..8 {
+        let g = s.state.map.m09_geometry().unwrap();
+        let arrival = g.step(index).unwrap();
+        let feet = match arrival.action {
+            MissionObjectiveAction::Arrival { feet, .. } => feet,
+            MissionObjectiveAction::Use { target } => target.approach,
+            _ => panic!("berth step"),
+        };
+        place(&mut s, id, feet);
+        s.state.tick(0.05);
+        let names: Vec<_> = s.state.map.encounters()[index]
+            .enemies
+            .iter()
+            .map(|e| e.id.clone())
+            .collect();
+        for name in names {
+            let target = s.state.players.iter().find(|p| p.name == name).unwrap();
+            let target_id = target.id;
+            let target_eye = [target.x, target.y, target.z];
+            let arena = s.state.current_arena().into_owned();
+            let approach = [[-4.0, 0.0], [4.0, 0.0], [0.0, -4.0], [0.0, 4.0]]
+                .into_iter()
+                .find_map(|[dx, dz]| {
+                    let x = target_eye[0] + dx;
+                    let z = target_eye[2] + dz;
+                    let floor = arena.support_height(x, z, target_eye[1]);
+                    let feet = [x, floor, z];
+                    (!arena.blocked_body_at(x, z, floor, floor)
+                        && crate::combat::line_of_sight(
+                            [x, floor + crate::movement::EYE_HEIGHT, z],
+                            target_eye,
+                            &arena.solids,
+                        ))
+                    .then_some(feet)
+                })
+                .expect("supported visible isolated firing fixture");
+            place(&mut s, id, approach);
+            for p in &mut s.state.players {
+                if p.is_campaign_enemy() {
+                    p.clear_input();
+                }
+            }
+            s.state.set_action(
+                id,
+                Action {
+                    fire: true,
+                    weapon_swap: Some(WeaponType::Rail),
+                    look_at: Some(LookAt {
+                        player_id: Some(target_id),
+                        ..LookAt::default()
+                    }),
+                    ..Action::default()
+                },
+            );
+            for _ in 0..100 {
+                s.state.tick(0.05);
+                if s.state.shot_results.iter().any(|shot| {
+                    shot.shooter_id == id
+                        && shot.target_id == Some(target_id)
+                        && shot.damage > 0
+                        && shot.target_hp_after.is_some_and(|hp| hp <= 0)
+                }) {
+                    resolved_kills.insert(target_id);
+                    break;
+                }
+            }
+            assert!(
+                resolved_kills.contains(&target_id),
+                "real gunfire did not defeat {name}"
+            );
+            s.state.set_action(id, Action::default());
+        }
+        place(&mut s, id, feet);
+        s.state.tick(0.05);
+        s.state.tick(0.05);
+        if index == 2 {
+            use_at(&mut s, id, true, false);
+            use_at(&mut s, id, true, true);
+        }
     }
-    use_at(&mut s, id, true, false);
-    use_at(&mut s, id, true, true);
-    for index in 3..8 {
-        clear(&mut s, id, index);
-    }
+    assert_eq!(resolved_kills.len(), 21);
     assert_eq!(
         facts(&s).charge_falls,
         0,
-        "seeded kills and later corpse descent cannot fulfil challenge"
+        "ordinary gun deaths cannot create optional charge-fall evidence"
     );
     use_at(&mut s, id, false, false);
+    let state = s.state.mission_state().unwrap();
+    state.validate(s.state.tick).unwrap();
+    let map = s.state.map.clone();
+    let g = map.m09_geometry().unwrap();
+    let mut controller = crate::mission::MissionClient::default();
+    controller
+        .replace_map_with_m09(
+            Some(&g),
+            map.half_extent(),
+            &map.arena().solids,
+            map.presentation_ref(),
+        )
+        .unwrap();
+    controller.observe(s.state.tick, state.clone()).unwrap();
+    assert_eq!(
+        state.prompts.len(),
+        1,
+        "the optional challenge cannot hide the real exit"
+    );
     use_at(&mut s, id, false, true);
     assert_eq!(
         s.state.mission_state().unwrap().phase,
-        MissionPhase::InProgress
+        MissionPhase::Departed
     );
-    assert!(s.state.mission_state().unwrap().prompts.is_empty());
+    assert_eq!(facts(&s).charge_falls, 0);
 }
