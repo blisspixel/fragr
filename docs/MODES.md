@@ -186,7 +186,30 @@ The Walker does not play like a fighter. Jump is a leap across the map that land
 
 Escalating rosters with a boss beat every third round, a results card, a local best. Co-op from the start, because the server already seats several fighters.
 
+### Wipe
+
+Accepted direction, 2026-10-04, unbuilt: a larger strategic district, usable
+vehicles, finite placeable automatic sentries and continuous catastrophe share
+one authoritative system between the campaign finale and cooperative multiplayer.
+M18's ongoing Union holdout conflict is interrupted by the unexpected takeover;
+M19 escalates the escape; M20 is the main mobile stand and local reprieve. No
+zombies, invasion countdown, announced arena waves or shopping breaks. Independent
+free agents remain themselves, and the planetary catastrophe continues outside
+the exception. Surviving locally never defeats the whole intelligence.
+
+The multiplayer default is proposed as a finite cooperative scenario with
+watch/join/leave, finite team reinforcements and no revival. Numbers and final
+admission rules need played proof. Campaign limited continues and conditional
+epilogue remain owned by its contract. Locally isolated hardwired defenses are
+tools, never enslaved people or safe merely because their paint changed.
+[Design](design/wipe-finale-and-mode.md), [bounded plan](plans/wipe-survival.md).
+
 ### The Sweep
+
+The older endless profile below remains a separate unbuilt proposal. Its
+revives, reactive counters and shop pauses are not Wipe's default rules or
+the campaign finale. A later profile needs its own reviewed life and economy
+contract before reusing the shared system.
 
 Hordes, forever. The round you fell on is the score. Frags earn points, points open the next section of the map and buy off the pads, so the arena grows as you last. A downed partner can be picked up.
 
