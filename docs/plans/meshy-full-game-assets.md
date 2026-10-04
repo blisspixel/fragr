@@ -27,20 +27,25 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest production reconciliation on 2026-10-04 reports **2,550 API
-credits**, **15 uncertain credits held**, and **2,535 usable**. Enforcer,
+The latest production reconciliation on 2026-10-04 reports **2,480 API
+credits**, **15 uncertain credits held**, and **2,465 usable**. Enforcer,
 Crawler, Pistol, Rifle, the bounded civilian revision and the corrected Jammer
-candidate consumed 195 included credits inside the first 900-credit allocation,
-leaving 705 within that ceiling. Total tracked consumption is 520 credits.
+candidate, followed by the first Railgun and Sniper Rifle sources, consumed
+265 included credits inside the first 900-credit allocation, leaving 635
+within that ceiling. Total tracked consumption is 590 credits.
 The Jammer task `01a10891-f9a6-76b4-9ba1-85f035260e77` consumed 35 credits
 for a textured 7.1 Ultra candidate; mechanical and played acceptance remain
 open. No humanoid rig was requested for its four-foot/four-petal machinery.
+The [precision weapon receipt](../evidence/precision-weapon-references-20261004.md)
+records two serialized 35-credit source stages, eight inspected raw views and
+the subsequent account reconciliation. Neither precision weapon is selected
+runtime art; local preparation and played acceptance remain open.
 These receipts do not establish finished game coverage. The
 [production receipt](../evidence/asset-production-20261004.md) records actual
 operations, inspection and remaining acceptance; the later
 [civilian revision receipt](../evidence/free-human-civilian-20261004.md) records
-its additional 40 credits and current balance. No pack is needed for the
-remaining seven first candidates in this allocation.
+its additional 40 credits and its dated balance. No pack is needed for the
+remaining five first candidates in this allocation.
 
 The planning baseline before this production batch on 2026-10-04 was
 **2,745 API credits**, with the retained **15-credit uncertain hold**, leaving
@@ -76,7 +81,7 @@ Allocate **at most 900 existing credits**, including justified revisions and sui
 
 Reuse and refine the parked Shotgun and generator alongside those candidates. Derive Heavy/Ranged from the accepted Sweeper family, retaining meaningful geometry/gait differences. Preserve selected presentation until replacements pass. Ranged does not require another paid body just because it carries a scope. Current-game improvements come before speculative aircraft or fleet purchases under the existing roadmap.
 
-Parallel gameplay work is independently bounded: Area Kitchen and Larak Lot preserve the six existing multiplayer IDs; Passenger Manifest is the next campaign leaf. The dedicated Wipe design is planning, not implemented waves/vehicles/turrets. Every mission/map remains in flight until its own route, play and compatibility gates pass.
+Parallel gameplay work is independently bounded: Area Kitchen and Larak Lot preserve the six existing multiplayer IDs; Passenger Manifest is a prototype on main and Common Carrier remains planned. The dedicated Wipe design is planning, not implemented waves/vehicles/turrets. Every mission/map remains in flight until its own route, play and compatibility gates pass.
 
 ## Architecture and delivery
 
