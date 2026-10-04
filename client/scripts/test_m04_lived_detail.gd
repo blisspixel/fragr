@@ -1,6 +1,7 @@
 extends SceneTree
 
 const LivedDetail = preload("res://scripts/m04_lived_detail.gd")
+const ResidentialFacades = preload("res://scripts/m04_residential_facades.gd")
 var failures: int = 0
 
 func _initialize() -> void:
@@ -20,6 +21,7 @@ func _run() -> void:
 	var parent: Node3D = Node3D.new()
 	root.add_child(parent)
 	var detail: Node3D = LivedDetail.new().build(parent, {"solids": solids})
+	_check_facades(parent, solids)
 	_check(detail.has_node("SharedChargingBench") and detail.has_node("MaintainedCareStation")
 		and detail.has_node("InterruptedSharedMeal"), "specific activities anchor to actual solid furniture")
 	_check(detail.get_meta("finish_surfaces") <= 8, "merged material surfaces bound render submissions")
@@ -71,3 +73,37 @@ func _check(condition: bool, message: String) -> void:
 		failures += 1
 		if failures < 8:
 			push_error("test_m04_lived_detail: " + message)
+
+func _check_facades(parent: Node3D, solids: Array[Dictionary]) -> void:
+	var homes: Node3D = ResidentialFacades.new().build(parent, {"solids": solids})
+	_check(homes.get_meta("homes") == 3 and homes.get_child_count() == 1,
+		"three homes share one bounded surface mesh")
+	var view: MeshInstance3D = homes.get_node("DomesticSurfaceMesh")
+	_check(view.layers == ArenaSky.WORLD_LAYERS and view.mesh.get_surface_count() == 9,
+		"home finishes receive world lighting with nine bounded material surfaces")
+	for surface: int in range(view.mesh.get_surface_count()):
+		var material: ShaderMaterial = view.mesh.surface_get_material(surface) as ShaderMaterial
+		_check(material != null and material.get_shader_parameter("trim_glow") == 0.0
+			and material.get_shader_parameter("markings_enabled") == false,
+			"local domestic paint is quiet without changing global materials")
+		var vertices: PackedVector3Array = view.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+		for point: Vector3 in vertices:
+			var supported: bool = false
+			for solid: Dictionary in solids:
+				if float(solid["max_x"]) > -19.5:
+					continue
+				supported = supported or (point.x >= float(solid["min_x"]) - 0.0011
+					and point.x <= float(solid["max_x"]) + 0.0081
+					and point.y >= float(solid["bottom"]) - 0.0011 and point.y <= float(solid["top"]) + 0.0011
+					and point.z >= float(solid["min_z"]) - 0.0011 and point.z <= float(solid["max_z"]) + 0.0011)
+			_check(supported, "every final facade vertex is registered body dressing or eight-millimetre wall relief")
+			_check(point.x <= -19.4919, "domestic detail stays outside court and balcony lanes")
+	var altered: Array[Dictionary] = solids.duplicate(true)
+	for solid: Dictionary in altered:
+		if float(solid["max_x"]) == -20.0 and float(solid["top"]) > 5.0:
+			solid["max_x"] = -21.0
+	var custom: Node3D = ResidentialFacades.new().build(parent, {"solids": altered})
+	_check(custom.get_meta("homes") == 0 and custom.get_child_count() == 0,
+		"changed custom home bodies do not inherit guessed facades")
+	var empty: Node3D = ResidentialFacades.new().build(parent, {"solids": []})
+	_check(empty.get_child_count() == 0, "unrelated custom maps receive no homes")

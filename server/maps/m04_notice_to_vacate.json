@@ -1187,6 +1187,42 @@
         30
       ],
       "surface": "enamel"
+    },
+    {
+      "id": "west_home_south_body",
+      "min": [-27, 0, 17],
+      "max": [-20, 5.5, 24],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_home_middle_body",
+      "min": [-28, 0, 24],
+      "max": [-20, 6.2, 31.5],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_home_north_body",
+      "min": [-26.5, 0, 31.5],
+      "max": [-20, 5.15, 39],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_home_south_roof_edge",
+      "min": [-20.3, 5.5, 17],
+      "max": [-20, 5.72, 24],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_home_middle_roof_edge",
+      "min": [-20.3, 6.2, 24],
+      "max": [-20, 6.42, 31.5],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_home_north_roof_edge",
+      "min": [-20.3, 5.15, 31.5],
+      "max": [-20, 5.37, 39],
+      "surface": "enamel"
     }
   ],
   "spawns": [
