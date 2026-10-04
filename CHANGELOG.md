@@ -4,6 +4,27 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.70.0 (2026-10-03)
+
+The Clerk's replacement source has angular painted facial planes, a black
+high-collar field uniform, dark steel plates, peaked service cap and red registry
+arm band. Directional combat and seated poses retain their existing layout,
+paired body normals and server-owned timing. A clean guard-room replay confirms
+both named guards defeated with the currently selected Shotgun. Black/red marks
+Union outfits and issued equipment; venue walls keep their own materials.
+
+Low Water gains a shared charging and repair bench, maintained clinic beds,
+interrupted meal settings and sealed domestic windows. The lunar port gains
+cargo locking straps, overhead services, restrained practical lighting and
+customs work details. Both bounded passes have clean full-mission rendered routes
+and passing implementation CI. Their broader architecture and art remain in progress.
+
+The Clerk source and rig consumed 40 existing model credits, bringing locally
+tracked net consumption to 165. The free account check reports 2,905 available
+credits; the prior uncertain 15-credit reservation remains held. No new cash
+charge or automatic top-up ran. The remaining cast and separate Shotgun candidate
+still need refinement and acceptance.
+
 ## v0.69.0 (2026-10-03)
 
 Clerks use a prepared skinned human source with sampled walking, authored combat

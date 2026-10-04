@@ -15,8 +15,9 @@ The engineering ladder for scale runs through every phase: small squads first (f
 
 ## Where we are (2026-10-03)
 
-[v0.68.0](https://github.com/blisspixel/fragr/releases/tag/v0.68.0) is the
-current desktop release. Main is the only branch and its CI passes. The
+[Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
+matching client/server packages and immutable build checks. Bounded development branches use pull requests with
+full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
@@ -27,7 +28,9 @@ hidden arrival gates and stranded guards, and took the free local agent from 7
 to 18 of 18 level departures across three difficulties.
 
 Level 7's Sniper Rifle and Ranged Sweeper play on a development range. The
-level itself is parked in a backup with a precise handoff in the
+level has been restored on a development branch in
+[draft PR #345](https://github.com/blisspixel/fragr/pull/345); its complete
+rendered route and integration gates remain open under the
 [level 7 plan](plans/l07-declared-goods-prototype.md). Level 8, Custodian of
 Record, is a standalone development prototype with the Proximity Mine and the
 repairing Auditor ([level 8 plan](plans/l08-custodian-of-record-prototype.md)),
@@ -82,7 +85,11 @@ with no unresolved jobs. Nick subsequently reported $14.42 remaining in the
 API dashboard, implying a $91.46 net balance decrease from the reported starting
 balance. Aggregate balance is reconciled to that report; individual request
 charges are not independently verified. The [production spend record](../client/art/production-20261003/spend.json)
-contains each batch; no other paid service or cloud apply ran.
+contains each batch. The subsequently authorized model pilot consumed 125 net
+credits, followed by 40 for the new stylized Clerk source and rig. The live
+account checker reports 2,905 credits, with the original 15-credit uncertain
+local hold retained. A separate 30-credit account decrease is not attributed
+to local production receipts. No new cash charge or cloud apply ran.
 
 **Shipped and proven on the tip:**
 
@@ -292,7 +299,10 @@ The phases below are the long shape. The sequence that follows is the build orde
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
 **Next, as of 2026-10-03.** The order is set by what most raises fun and
-quality for the work. At most two agents run at once. Every level, built or planned,
+quality for the work. Nick authorized three independent level lanes alongside
+asset production on 2026-10-03: M04 civilian detail, M06 lunar workmanship and
+M07 completion. Shared integration and art direction stay with the asset lane;
+rendered tours take turns on the same GPU. Every level, built or planned,
 must pass the [maximum-fun checks](MAP-DESIGN.md#maximum-fun-first). Every
 map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
@@ -331,6 +341,26 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    prepared skin and gait, authored combat poses and paired normals pass local
    checks, full CI and bounded M01/M02 played routes. Broader art acceptance
    stays open. Desktop packages use the tag's release workflow.
+   Nick rejected photographic human treatment and requested stronger black/red
+   recognition. The [Union field uniform revision](plans/union-field-uniform.md)
+   starts from a new deliberately stylized reference, rather than recoloring the
+   previous face. The shipped rig remains useful; the old look is not final art.
+   Its replacement source, directional atlas and clean guard-room replay are
+   [implemented locally](evidence/union-stylized-20261003.md), consuming 40
+   existing model credits. Full local client checks pass 224 scripts and 103
+   harnesses; [PR #346](https://github.com/blisspixel/fragr/pull/346) owns the
+   full CI and main selection gates.
+   Black/red applies to issued outfits and equipment; civilian walls and lunar
+   pressure shells retain place-specific materials.
+   [M04 inhabited detail](plans/m04-inhabited-world-polish.md) shipped in
+   [PR #344](https://github.com/blisspixel/fragr/pull/344), with a clean 26-state
+   route. [M06 workmanship](plans/m06-world-workmanship.md) shipped in
+   [PR #342](https://github.com/blisspixel/fragr/pull/342), with a clean 28-state
+   route and full-client checks. Both have passing full implementation CI.
+   The separate [M04 enclosure pass](plans/m04-building-enclosure.md) addresses
+   missing clinic/workshop roofs in
+   [draft PR #343](https://github.com/blisspixel/fragr/pull/343). Its full CI
+   passes, but clean rendered route acceptance remains open.
    [Evidence](evidence/clerk-model-20261003.md) records
    actual guard-room frames and the limits of the routes.
    The October 3 production pass adds original Sweeper and Shotgun mesh sources, a lean

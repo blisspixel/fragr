@@ -2,19 +2,25 @@
 
 ## Clerk
 
-`clerk.glb` is the selected humanoid production source from the October 3 paid
-model pilot. It retains the reviewed 24-bone skin and one in-place walking clip.
+`clerk.glb` is the stylized black-and-red humanoid revision from October 3.
+It retains a 24-bone skin and one in-place walking clip. Angular painted facial
+planes, a black high-collar uniform, dark steel plates, peaked service cap and
+clear red issue band replace the previous photographic human direction.
 The raw walking GLB remains in the ignored production archive, SHA-256
-`9e0f52db0dfff86fab95c8a65fbf8876aa8d32cc68a6bc928a582c47e526ded5`.
+`bfbd2374e73d95dbac71ab4ecddc11b9b9cab66c5cf3fdb486ba75368dd3d845`.
+The prepared source SHA-256 is
+`166a6eab7a203f1e80fb089fc6dc2d39c37f72e2e77b09a234c9d15c22e4cf14`.
 The paid pilot, request parameters and account reconciliation are recorded in
 [`docs/evidence/meshy-pilot-20261003.md`](../../../../docs/evidence/meshy-pilot-20261003.md).
 
 Preparation uses `tools/prepare_clerk_source.gd` with the raw walking GLB and
 an output path as its two user arguments. It embeds 1024-pixel PBR maps, retains
 skin and gait, removes optional software metadata and preserves legal copyright.
-The green fabric is graded to the established charcoal Union cloth while keeping
-face, bone plates, wear and red issue marks. No additional paid generation is
-needed to reproduce this preparation.
+The new reference already has the Union's black/red outfit signature. The
+preparer's legacy green-cloth conversion leaves its painted face, black uniform,
+steel and red marks intact. No additional paid generation is needed to reproduce
+preparation from the retained source. The revision's model and rig used 40 existing
+credits under the [bounded plan](../../../../docs/plans/union-field-uniform.md).
 
 `../clerk_source.gd` supplies the authored combat, unarmed, seated and collapse
 poses. `../../characters/bake.gd` bakes the existing eight-direction layout and

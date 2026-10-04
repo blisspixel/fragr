@@ -1,6 +1,9 @@
 # Low Water inhabited world polish
 
-Status: implemented, 2026-10-03; full CI and main integration pending. This bounded presentation pass follows the
+Status: shipped, 2026-10-03, [PR #344](https://github.com/blisspixel/fragr/pull/344).
+All eight [implementation CI checks](https://github.com/blisspixel/fragr/actions/runs/37166332811)
+pass, including the full client checks on all three desktop targets.
+This bounded presentation pass follows the
 [level 4 brief](../campaign/l04-notice-to-vacate.md),
 [Earth direction](../design/earth.md) and [art bible](../ART_STORY_BIBLE.md).
 
@@ -40,7 +43,7 @@ run failed its log gate on the known Compatibility sky texture-retirement
 signature. Standalone rendering and retirement of the exact possession source
 exited cleanly; the full repeated tour also exited cleanly with no errors,
 all 28 named defenders, released patients and actual departure. No source
-change or weaker assertion was needed. Full CI and main integration remain
-pending. The same captures identify missing clinic and
+change or weaker assertion was needed. Desktop publication, fresh-player pacing
+and final art acceptance remain open. The same captures identify missing clinic and
 workshop ceilings and thin court frontage for a separate authoritative
 architecture increment.

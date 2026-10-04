@@ -58,10 +58,10 @@ Being honest about the gap:
 
 | Area | Today | Gap |
 |---|---|---|
-| Characters | Articulated Sweeper and skinned Clerk sources supply directional sprites with paired view normals; lean screen-faced Latch live model. Other bodies retain their earlier sources | Full roster model conversion, texture craft and broader played quality acceptance remain open |
+| Characters | Articulated Sweeper and skinned Clerk sources supply directional sprites with paired view normals; new deliberately stylized black/red Clerk revision passes source, lighting, replay and full local client gates; lean screen-faced Latch live model | Clerk integration is tracked in PR #346. Full roster model conversion, texture craft and broader played quality acceptance remain open |
 | Weapons | Existing stylised viewmodels remain selected. Original Shotgun GLBs, separate pump/gloves and twelve coherent poses exist as candidates | First-person framing and hand anatomy need refinement before replacing the selected Shotgun; other guns need model conversion |
 | Pickups and HUD | Object sprites and icons, after art pass 1 | Good direction |
-| Maps | Selected venue tiles, recessed wall bays and ceiling coffers, merged fixture housings, lit shallow water and an exterior Low Water river | Rooms still need larger authored landmarks, inhabited prop arrangements and full environmental kit conversion |
+| Maps | Selected venue tiles, wall bays, ceiling coffers, merged fixture housings, lit shallow water and Low Water river; bounded M04 civilian detail and M06 workmanship shipped in PR #344 and #342 with complete rendered routes | Larger authored landmarks, room volumes and full environmental kits remain open; M04 roof acceptance stays in draft #343 |
 | Lighting | Three presets with SSAO, glow, venue lights | Planned Ultra preset ([graphics options](graphics-options-and-lighting.md)) |
 
 ## Direction
@@ -498,7 +498,7 @@ The [native pilot](meshy-pipeline.md) now proves generation, rigging, bounded
 downloads and rendered Godot imports for an enemy, weapon and environmental prop.
 It includes a second Shotgun topology candidate, seven GLBs total and visible
 walking/running motion. [Evidence](../evidence/meshy-pilot-20261003.md) records
-125 net credits consumed, 15 held for a refused request and a final live API balance
+125 net credits consumed, 15 held for a refused request and its final API balance
 of 2,975. All 140 reserved credits remain within the pilot's 150-credit allowance
 and existing $5 run ceiling. No additional purchases or top-ups were enabled.
 The pipeline reuses the current image references, dotenv, locked request ledger
@@ -515,3 +515,23 @@ still needs cleanup and placement at game scale. Broader played art acceptance
 remains open. Preserve required legal notices and paid-plan
 output rights when preparing public model sources. The existing v0.68.0
 playthrough shows the prior integrated art, not this new pilot.
+
+Nick subsequently rejected photographic human treatment and clarified that the
+Union's black/red signature belongs to outfits and issued equipment, not every
+wall. The [new stylized Clerk revision](union-field-uniform.md) starts from a
+new full-body reference and replaces the source face, cap, uniform and plates.
+It consumed 40 existing credits for the model and inspected rig. Its directional
+poses, actual moving-light check, clean guard-room replay and full local client
+gate pass; [PR #346](https://github.com/blisspixel/fragr/pull/346) owns integration.
+The final free checker reports 2,905 available credits and the unchanged
+15-credit hold. Net locally tracked consumption is 165; another 30-credit account
+decrease has no local production receipt. These stages made no new cash purchase.
+
+The [Low Water detail](m04-inhabited-world-polish.md) and
+[lunar port workmanship](m06-world-workmanship.md) passes shipped in PR #344 and
+#342, with clean 26-state and 28-state ordinary-input routes and passing full
+implementation CI. Their captures also identify the next architectural gaps:
+M04's missing clinic/workshop roofs and thin domestic frontage, and M06's broad
+empty freight/customs deck. Finite local detail does not close whole-map art
+acceptance. Civilian plaster, timber and personal possessions, and lunar
+pressure-shell finishes, remain place-specific.

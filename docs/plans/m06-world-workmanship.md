@@ -1,7 +1,8 @@
 # Lunar port workmanship
 
-**Status:** implemented, 2026-10-03. Local structural checks and an inspected
-28-state route pass. Integration and full CI belong to the parent art increment.
+**Status:** shipped, 2026-10-03, [PR #342](https://github.com/blisspixel/fragr/pull/342).
+All eight [implementation CI checks](https://github.com/blisspixel/fragr/actions/runs/37165892071)
+pass. Local full-client checks and an inspected 28-state route also pass.
 **Spend:** $0. Existing pixel materials and authored geometry only.
 
 ## Goal
@@ -54,4 +55,4 @@ not establish a close visual acceptance of each desk detail.
 
 Large sparse freight/customs deck areas still need an architecture and activity
 review. This pass neither fills them with false cover nor closes whole-map art
-acceptance. Source-main CI and publication remain parent-owned gates.
+acceptance. Desktop publication remains a separate gate.

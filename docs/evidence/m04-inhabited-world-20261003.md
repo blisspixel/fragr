@@ -1,8 +1,9 @@
 # Low Water inhabited-world presentation
 
-Local implementation evidence, 2026-10-03. The
-[bounded plan](../plans/m04-inhabited-world-polish.md) is implemented with clean
-local rendered evidence; full CI and main integration remain pending.
+Recorded 2026-10-03. The
+[bounded plan](../plans/m04-inhabited-world-polish.md) shipped in
+[PR #344](https://github.com/blisspixel/fragr/pull/344), with clean local rendered
+evidence and all eight implementation CI checks passing.
 
 The M04-specific source gives existing furniture recognizable activities:
 shared charging cables, shaped hollow spools and contact repair tools; clean

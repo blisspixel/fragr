@@ -16,14 +16,15 @@ The Clerk now uses the prepared skinned
 [`../models/candidates/clerk.glb`](../models/candidates/README.md), with 24 bones
 and a retained gait. [`../models/clerk_source.gd`](../models/clerk_source.gd)
 authors its combat, seated and unarmed poses after the skeleton enters the tree.
-Its fabric is graded to charcoal to match the Union palette. The paired
+The revised source has an angular painted face, black service cap, black cloth,
+dark steel plates and a clear red issue band. The paired
 `clerk_normals.png` uses the same cells and receives the same venue lighting.
 Edit source and rebake, never retouch an atlas
 that the next bake will replace. The source directory is excluded from exports.
 The bake writes a manifest with source/output hashes. The headless harness rejects
 stale outputs after source or layout changes; a rebake updates the receipt.
 
-The human Clerk has an open helmet, visible face, black cloth and a pistol that
+The human Clerk has a peaked service cap, visible stylized face, black cloth and a pistol that
 clears the shoulder when it aims. The bot Sweeper has wide pauldrons, a box head, a
 red visor slit, a battery pack and a rifle that stays inside those shoulders.
 The Heavy Sweeper is broader still, with its head sunk below two large

@@ -24,6 +24,12 @@ Prodeus, Dusk, Ultrakill, Cultic), at game scale, in motion and under light.
 Plain boxes, muddy sprites and barren rooms are defects, not style. See
 [art excellence](plans/art-excellence.md).
 
+Characters are deliberately stylized, including human faces. Use angular
+sculpted planes, expressive simplified features, broad painted values and
+coherent pixel clusters across people, robots, weapons and rooms. Photographic
+skin, pores, fabric weave and dense realistic material noise do not fit this
+direction. Shrinking a photographic person is not a completed pixel character.
+
 The campaign's loose reference is around 2070, confirmed on 2026-10-03.
 Established Moon and Mars bases coexist with recognizable industrial hardware,
 CRT-like displays, physical controls, civilian firearms and personally repaired
@@ -140,6 +146,16 @@ confiscation, forced labor, recalls and identity erasure, carried out by people
 and systems that can look ordinary and competent. Use original institutional
 marks and designs; the [Chancellery rule](lore/the-chancellery.md#felt-never-named)
 owns the historical echo and language treatment.
+
+Black field uniforms, dark steel armor, peaked service caps and clear deep-red
+bands or seals identify the Union at fighting distance. Keep the body palette
+black and red, with plates only slightly lighter and deliberate red attack
+tells. Pale armor must not dominate these soldiers. Use severe institutional
+shapes and stylized faces consistently across their human and machine ranks.
+This is the outfit and issued-equipment signature, not a universal wall palette.
+Buildings retain their place-specific plaster, enamel, timber, concrete, steel
+and maintenance history. Civilian Low Water rooms keep warm personal variation;
+institutional interiors use controlled accents without painting every wall red.
 
 Free humans and agents have varied civilian clothes, chassis, equipment and
 personal repairs. Hackers, workshop people and neighbors would prefer a quiet
