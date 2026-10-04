@@ -12,12 +12,12 @@ mod legacy;
 pub(crate) mod store;
 use legacy::{
     RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
-    RunDocumentV8,
+    RunDocumentV8, RunDocumentV9,
 };
 
-/// Version 9 carries actual finite mines and enables M08 after M07.
-/// Versions 2 through 8 upgrade explicitly; version 1 remains incompatible.
-pub(super) const RUN_FILE_VERSION: u32 = 9;
+/// Version 10 retains actual archive choices, with explicitly unknown history
+/// for strict version 9 completions. Version 1 remains incompatible.
+pub(super) const RUN_FILE_VERSION: u32 = 10;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -26,6 +26,35 @@ const M06_MISSION: &str = "port_of_entry";
 const M07_MISSION: &str = "declared_goods";
 const M09_MISSION: &str = "passenger_manifest";
 const M08_MISSION: &str = "custodian_of_record";
+
+/// A cabinet copy is secured evidence, not proof of restoration or identity.
+/// Historical v9 bytes never recorded these choices. Keep that absence honest.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub(crate) enum M08Outcome {
+    Recorded {
+        custody_released: bool,
+        recovered_mind_secured: bool,
+        captives_evacuated: bool,
+    },
+    HistoricalUnrecorded {},
+}
+
+impl M08Outcome {
+    fn validate(&self) -> Result<(), &'static str> {
+        if matches!(
+            self,
+            Self::Recorded {
+                custody_released: false,
+                captives_evacuated: true,
+                ..
+            }
+        ) {
+            return Err("saved custody evacuation requires actual release");
+        }
+        Ok(())
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -199,6 +228,8 @@ pub(crate) struct RunDocument {
     pub m05_outcome: Option<M05Outcome>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m06_outcome: Option<M06Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m08_outcome: Option<M08Outcome>,
 }
 
 impl RunDocument {
@@ -291,6 +322,7 @@ impl RunDocument {
             m04_outcome: None,
             m05_outcome: None,
             m06_outcome: None,
+            m08_outcome: None,
         }
     }
 
@@ -346,6 +378,15 @@ impl RunDocument {
             } if next_mission == M07_MISSION);
         if completed_m06 != self.m06_outcome.is_some() {
             return Err("saved prisoner-route outcome does not match completed M06");
+        }
+        let completed_m08 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::CustodianOfRecord, next_mission, ..
+        } if next_mission == M09_MISSION);
+        if completed_m08 != self.m08_outcome.is_some() {
+            return Err("saved custody outcome does not match completed M08");
+        }
+        if let Some(outcome) = &self.m08_outcome {
+            outcome.validate()?;
         }
         if self.version != RUN_FILE_VERSION
             || self.id.is_nil()
@@ -572,6 +613,18 @@ impl GameState {
             } else {
                 None
             },
+            m08_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::CustodianOfRecord
+            {
+                let progress = run.m08.as_ref().ok_or("completed M08 lacks progress")?;
+                Some(M08Outcome::Recorded {
+                    custody_released: progress.custody_released,
+                    recovered_mind_secured: progress.recovered_mind_secured,
+                    captives_evacuated: progress.captives_evacuated,
+                })
+            } else {
+                None
+            },
         };
         document.validate(content_sha256)?;
         Ok(Some(document))
@@ -661,6 +714,7 @@ mod tests {
             m04_outcome: None,
             m05_outcome: None,
             m06_outcome: None,
+            m08_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

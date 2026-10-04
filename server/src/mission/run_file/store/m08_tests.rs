@@ -348,6 +348,15 @@ fn live_m08_retry_restores_entry_mines_and_completion_saves_actual_exit() {
     solo.capture_exit(exit.clone());
     solo.state.status = CampaignRunStatus::Complete;
     let completed = state.campaign_run_document().unwrap().unwrap();
+    assert_eq!(
+        completed.m08_outcome,
+        Some(crate::mission::run_file::M08Outcome::Recorded {
+            custody_released: false,
+            recovered_mind_secured: false,
+            captives_evacuated: false,
+        }),
+        "native completion records actual progress, never historical defaults"
+    );
     assert_eq!(completed.m03_outcome, saved.m03_outcome);
     assert_eq!(completed.m04_outcome, saved.m04_outcome);
     assert_eq!(completed.m05_outcome, saved.m05_outcome);

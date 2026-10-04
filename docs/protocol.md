@@ -2070,10 +2070,10 @@ content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
 under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
 refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v8 after validating their historical revision
+M01/M02/M03 documents migrate to v10 after validating their historical revision
 2 rules and exact content hash. The upgrade promotes rules to revision 3 with
 exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v8 with zero historical grenades. Strict v6 documents preserve
+3 and upgrade to v10 with zero historical grenades. Strict v6 documents preserve
 their real grenade counts and M05 release/boarding outcomes; they cannot forge
 playable M06 or its future route outcome. Old shapes reject grenade
 fields and forged M05 stages. Exact source bytes are archived before replacement;
@@ -2089,7 +2089,7 @@ M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
 M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
 M09 `passenger_manifest` after M08. M09 is not playable.
-Version 9 retains completed
+Version 10 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2097,8 +2097,8 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v9 saved equipment object requires independent `grenades`
-from zero to six. Version 9 also requires actual `proximity_mines` from zero
+Every v6 through v10 saved equipment object requires independent `grenades`
+from zero to six. Versions 9 and 10 require actual `proximity_mines` from zero
 to four. Historical v2 through v8 equipment never has a mine field; an explicit
 strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
@@ -2107,11 +2107,22 @@ persist through every later edge. An M07 exit and later stages may carry the
 Sniper Rifle; an M07 entry never does. M08 entry, continue and retry restore
 the mission-entry equipment anchor, including its independent mine count.
 M08 completion stores the actual remaining count at its pending M09 edge.
+Version 10 also requires `m08_outcome` at that completed edge. Native
+completion emits `{"kind":"recorded","custody_released":bool,
+"recovered_mind_secured":bool,"captives_evacuated":bool}` from actual mission
+progress. Evacuation requires release. The cabinet fact says a copy was
+secured; it makes no claim that a mind was restored or is the same person.
+Strict v9 completion upgrades to `{"kind":"historical_unrecorded"}` because
+its old shape never recorded those choices. Earlier or unfinished stages
+have no M08 outcome. Both tagged forms refuse extra fields. Historical
+absence never becomes invented false values, counts or a mission gate.
 Episode II continues refill
 only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Strict v7 documents upgrade to v9 and cannot forge an M07 stage or a carried
+Strict v7 documents upgrade to v10 and cannot forge an M07 stage or a carried
 Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
 Sniper, then promote into M08 without a refill. V8 refuses playable M08.
+Strict v9 preserves all actual equipment and earlier outcomes. Its exact
+shape refuses `m08_outcome`, even null, before any upgrade.
 Read-only preview preserves source bytes; writable migration archives exact
 bytes under the existing writer lock before atomic replacement. Unknown future
 versions, forged older M04/M05/M06/M07/M08 states and

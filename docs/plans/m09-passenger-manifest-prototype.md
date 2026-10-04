@@ -111,3 +111,15 @@ The final tests wait for real body placement and keep an actual participant
 while inspecting the spectator roster. Those corrections do not weaken the
 geometry ordering or capability checks. The mission geometry, carry,
 whole-route presentation and full integration acceptance are still open.
+
+The foundation's full native server library also passes (884 tests, with
+three existing ignored tests). Its logs are tied to source c6942037.
+
+The initial v10 storage slice passes 47 run-file checks and all 16 real
+local-child integration tests, plus package clippy. Strict v9 completion
+archives its original formatting, preserves actual equipment and earlier
+outcomes, and reopens with explicitly unrecorded archive choices. Forged v9
+outcome fields, contradictory evacuation and extra or missing v10 outcome
+fields are refused. Native M08 completion records actual progress. Playable
+M09 promotion, historical-unknown carry through M09 retry and fresh mission
+departure are still open and are not proved by this preparation slice.
