@@ -57,7 +57,7 @@ robot parts, and an individual whose friendship and choices precede their combat
 role. Freedom-loving American traditions inform some human communities without
 turning the coalition into a present-day national faction.
 The shared [character guide](../design/characters.md) keeps Latch's screen faces
-and antenna, the main human's restrained future-cowboy look and their modest,
+and antenna, the main human's relaxed civilian workwear and their modest,
 personally maintained possessions consistent across worlds and story scenes.
 Their shared read is relaxed, likable and warm: music, scrap, friends and a free
 life. They answer the call to defend freedom without losing that humanity.

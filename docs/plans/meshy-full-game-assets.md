@@ -27,14 +27,20 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest production reconciliation on 2026-10-04 reports **2,625 API
-credits**, **15 uncertain credits held**, and **2,610 usable**. Enforcer,
-Crawler, Pistol and Rifle production consumed 120 included credits inside the
-first 900-credit allocation, leaving 780 within that ceiling. These are source
-candidates in preparation, not four finished runtime assets. The
+The latest production reconciliation on 2026-10-04 reports **2,550 API
+credits**, **15 uncertain credits held**, and **2,535 usable**. Enforcer,
+Crawler, Pistol, Rifle, the bounded civilian revision and the corrected Jammer
+candidate consumed 195 included credits inside the first 900-credit allocation,
+leaving 705 within that ceiling. Total tracked consumption is 520 credits.
+The Jammer task `01a10891-f9a6-76b4-9ba1-85f035260e77` consumed 35 credits
+for a textured 7.1 Ultra candidate; mechanical and played acceptance remain
+open. No humanoid rig was requested for its four-foot/four-petal machinery.
+These receipts do not establish finished game coverage. The
 [production receipt](../evidence/asset-production-20261004.md) records actual
-operations, inspection and remaining acceptance. No pack is needed for the
-remaining eight first candidates in this allocation.
+operations, inspection and remaining acceptance; the later
+[civilian revision receipt](../evidence/free-human-civilian-20261004.md) records
+its additional 40 credits and current balance. No pack is needed for the
+remaining seven first candidates in this allocation.
 
 The planning baseline before this production batch on 2026-10-04 was
 **2,745 API credits**, with the retained **15-credit uncertain hold**, leaving

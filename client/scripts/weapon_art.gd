@@ -8,6 +8,9 @@ extends RefCounted
 ## are in `res://assets/art-pass-20261002-manifest.json`, and for the redrawn
 ## Rifle in `res://assets/art-pass-2-20261002-manifest.json`. All are palette
 ## sprites drawn with nearest sampling.
+## The selected civilian Pistol frames are baked from the reviewed local
+## source in `res://art/models/candidates/pistol.glb`; source and bake hashes
+## are retained beside it. They preserve existing shot and pickup timing.
 ##
 ## "Sniper" is the Level 7 Sniper Rifle. Its art is ready; the weapon itself
 ## is not on the wire until Level 7 adds it.
@@ -15,7 +18,7 @@ extends RefCounted
 ## First-person pose at rest. Fists and the Shiv keep their own animation.
 const IDLE: Dictionary[String, Texture2D] = {
 	"Fists": preload("res://assets/weapons/viewmodels/fists_idle.png"),
-	"Tack": preload("res://assets/weapons/viewmodels/pistol_idle.png"),
+	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol_idle.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/rifle_idle.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_idle.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_idle.png"),
@@ -26,7 +29,7 @@ const IDLE: Dictionary[String, Texture2D] = {
 ## The frame at the instant of the shot, its muzzle flash painted in. Each was
 ## drawn from its own idle, so the two register on the same full canvas.
 const FIRE: Dictionary[String, Texture2D] = {
-	"Tack": preload("res://assets/weapons/viewmodels/pistol_fire.png"),
+	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol_fire.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/rifle_fire.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_fire.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_fire.png"),
@@ -67,7 +70,7 @@ const MINE_DEVICE_METRES: float = 0.34
 
 ## Side profiles: the world pickup and the gun a fighter holds.
 const PROFILE: Dictionary[String, Texture2D] = {
-	"Tack": preload("res://assets/weapons/pickups/pistol.png"),
+	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol.png"),
 	"Flechette": preload("res://assets/weapons/pickups/rifle.png"),
 	"Scatter": preload("res://assets/weapons/pickups/shotgun.png"),
 	"Rail": preload("res://assets/weapons/pickups/railgun.png"),

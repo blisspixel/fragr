@@ -1,6 +1,6 @@
 # Character, voice and scene continuity
 
-Production contract, updated 2026-10-03. [Cast](../lore/cast.md) owns roles and the
+Production contract, updated 2026-10-04. [Cast](../lore/cast.md) owns roles and the
 visual anchors; [voice](../lore/voice.md) owns registers and recorded wording.
 The owner-provided [free-duo reference](../../client/art/characters/references/free-duo-reference.png),
 accepted 2026-10-01, anchors the look direction below. The later approved text
@@ -56,9 +56,13 @@ life. Clothing, utility gear, wear, small possessions and chosen repairs carry
 personality; a weapon is equipment rather than the person's defining costume.
 The approved human direction is a chill stoner-gamer dude who mostly wants to
 live freely, listen to music, tinker with scrap and spend time with friends.
-Use a warm worn leather or rust jacket, dark work pants, boots, an easy face and
-relaxed posture. A short-brim hat and red neckerchief are optional light cowboy
-accents, never glamorous or camp. A scavenged long rifle belongs when the scene's
+Use worn civilian utility clothing, casual layers, dark work pants, practical
+footwear, an easy face and relaxed posture. Nick clarified on October 4 that
+the influence concerns freedom-loving character, not literal cowboy outfits.
+The default reference is hatless, without a neckerchief. Civilian roles vary:
+mechanics, hackers, medics, pilots and other ordinary people express their own
+work and tastes. Western accessories are occasional personal choices, never
+the common human silhouette or a coalition uniform. A scavenged long rifle belongs when the scene's
 actual equipment calls for it. Union recall, custody and enslavement of agents
 leave no peaceful option; fighting serves people rather than a crusader persona.
 The freedom-loving American inspiration informs voluntary association,

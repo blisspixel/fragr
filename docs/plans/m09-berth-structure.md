@@ -1,6 +1,8 @@
 # Passenger Manifest berth structure
 
-Status: implemented locally, not shipped. Scope approved 2026-10-04.
+Status: shipped as prototype structure in
+[PR #354](https://github.com/blisspixel/fragr/pull/354). Scope approved 2026-10-04.
+Final art and fresh-player acceptance remain open.
 
 The original M09 prototype has a clean 27-state ordinary-input completion
 baseline at source `42c00dcc`: all 21 guards, seven Enforcers, crew release,
