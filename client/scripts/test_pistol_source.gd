@@ -111,7 +111,20 @@ func _run() -> void:
 	_check(bake is Dictionary and bake.get("source_sha256") == FileAccess.get_sha256(Source.SOURCE)
 		and bake.get("presenter_sha256") == FileAccess.get_sha256("res://art/models/pistol_source.gd")
 		and bake.get("bake_sha256") == FileAccess.get_sha256("res://../tools/preview_pistol_source.gd")
-		and bake.get("runtime_selected") == false, "candidate pixels match the actual source and bake without selecting runtime")
+		and bake.get("runtime_selected") == false, "selected pixels match their historical candidate source and bake receipt")
+	for entry: Array in [[WeaponArt.IDLE["Tack"], "pistol_idle.png"],
+		[WeaponArt.FIRE["Tack"], "pistol_fire.png"], [WeaponArt.PROFILE["Tack"], "pistol.png"]]:
+		var selected: Texture2D = entry[0] as Texture2D
+		_check(selected.resource_path.begins_with("res://assets/weapons/pistol-source-20261004/")
+			and FileAccess.get_sha256(selected.resource_path) == bake.get("frames", {}).get(entry[1]),
+			"packaged runtime picture exactly matches reviewed offline bake")
+	var selection: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/weapons/pistol-source-20261004/selection.json"))
+	_check(selection is Dictionary and selection.get("runtime_selected") == true
+		and selection.get("source_sha256") == bake.get("source_sha256")
+		and selection.get("bake_sha256") == bake.get("bake_sha256")
+		and selection.get("presenter_sha256") == bake.get("presenter_sha256")
+		and selection.get("frames") == bake.get("frames"),
+		"runtime selection receipt binds the actual reviewed source and all three pictures")
 	for label: String in ["pistol_idle.png", "pistol_fire.png", "pistol.png"]:
 		var path: String = directory.path_join(label)
 		var texture: Texture2D = load(path) as Texture2D

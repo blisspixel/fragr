@@ -1,7 +1,8 @@
 # Civilian Pistol source refinement
 
 Status: refined source and played comparison tested locally, 2026-10-04.
-Runtime art review, selection and packaging acceptance remain open.
+Runtime art review is accepted and the three pictures are selected locally.
+Full client, integration and packaging acceptance remain open.
 $0 new spend.
 The shared production receipt owns the original 15-credit source operation.
 
@@ -173,4 +174,25 @@ the documented [process exit API](https://docs.godotengine.org/en/stable/classes
 The clean tour log and complete manifest provide separate successful content
 evidence. Selected WeaponArt is restored to SHA-256
 `1610df85e0bf1eac6e0d00b0f9f028861856d054bdaca593da1356b255eb246a`.
-No runtime selection, package acceptance or campaign completion is claimed.
+The actual matched views are accepted for runtime selection. Exact copies of
+the three PNGs now live in `assets/weapons/pistol-source-20261004/`, outside
+the desktop export presets' offline `art/*` exclusion. WeaponArt selects those
+packaged copies. `selection.json` binds their exact source, presenter, bake
+and picture hashes; generation-time candidate receipts remain unchanged.
+Original artwork, source revisions and all six played trials remain intact.
+
+The canonical viewmodel gate now checks the reviewed Pistol glove column 112
+instead of the previous artwork's column 150, retaining every swap, alpha,
+bob, recoil, firing and resize assertion. Focused source and canonical
+viewmodel harnesses pass with runtime selection active. The diagnostic pair
+wrapper explicitly loads historical baseline pictures for its first frame
+and restores the selected runtime textures, so later comparisons do not
+accidentally compare the new art against itself. Full client, integration
+and exported-package acceptance remain open; no campaign or whole-arsenal
+completion is claimed.
+
+Public frames are exact copies of the sixth diagnostic pair's candidate
+presentation, with the same actual gameplay samples and no desktop pointer:
+[held](../images/pistol-source-20261004/held.png),
+[resolved fire](../images/pistol-source-20261004/fire.png), and
+[returned pickup](../images/pistol-source-20261004/pickup.png).

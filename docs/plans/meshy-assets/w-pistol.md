@@ -1,6 +1,6 @@
 # Pistol
 
-Status: in flight, 2026-10-04. Source route: **New source candidate**, inspected and refined offline. Runtime selection remains open. Included in the first bounded production allocation.
+Status: in flight, 2026-10-04. Source route: **New source**, reviewed and selected locally after matched gameplay comparison. Full client, integration and package acceptance remain open. Included in the first bounded production allocation.
 Stable ID: `W-pistol`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -37,8 +37,12 @@ The source is 24 cm long, about 20 cm high and less than 5 cm wide.
 The [bounded refinement plan](../pistol-source-refinement-20261004.md)
 owns source checks and the actual presentation comparison. Its 224x180 held
 and fire canvases and 36x26 pickup canvas come from this source, without a
-magazine, reload, ammunition grant or altered shot timing. Candidate pixels
-remain offline until the played comparison and packaging gates pass.
+magazine, reload, ammunition grant or altered shot timing. The third refined
+bake is approved after the sixth actual matched comparison. Its exact pictures
+are selected through WeaponArt under `assets/weapons/pistol-source-20261004/`,
+with source/output hashes bound in `selection.json`. Original artwork and
+generation-time candidate receipts remain intact. Full client, integration
+and package acceptance remain open.
 
 Author rigid weapon mechanisms, grips and effects locally. Humanoid rigging does not apply to guns or equipment. One accepted source supplies held, pickup and icon views.
 

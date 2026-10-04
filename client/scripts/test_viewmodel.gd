@@ -17,8 +17,8 @@ func _column(weapon_name: String) -> int:
 		"Shiv":
 			return 190
 		"Tack":
-			# The pistol grip sits right of a gap between it and the support glove.
-			return 150
+			# The selected three-quarter Pistol keeps its glove cut central.
+			return 112
 	return 112
 
 func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> void:

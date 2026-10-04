@@ -79,5 +79,11 @@ source, motion and unchanged candidate registration gates. The sixth actual
 comparison completes the same eight states and nine arrivals, preserving
 exactly one 50-to-49 shot, restored textures and camera facts. Runtime art
 review, selection and exported-package acceptance remain open.
+Actual sixth-pair art review is accepted. The three exact pictures are now
+selected locally through WeaponArt, under the packaged `assets/` boundary.
+Original source, artwork and generation-time candidate receipts remain
+retained. Canonical viewmodel registration uses the reviewed glove column
+112 with all thresholds intact. Full client, integration and package checks
+remain acceptance work.
 [Source evidence](../evidence/pistol-source-refinement-20261004.md) records
 exact geometry, hashes, checks and the retained failures.

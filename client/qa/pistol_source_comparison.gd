@@ -86,20 +86,25 @@ func _pair(label: String, fire: bool, strip_file: String = "") -> void:
 	var transform: Transform3D = camera.global_transform
 	var tick: int = int(_game_manager().get("latest_snapshot").get("tick", -1))
 	var started: int = Time.get_ticks_msec()
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
-	var selected: Image = _grab()
 	var originals: Dictionary[Node, Texture2D] = {}
 	var weapon: TextureRect = _find_hud().get_node("FpWeapon") as TextureRect
 	if _find_hud().get("current_fp_weapon") == "Tack":
 		originals[weapon] = weapon.texture
-		weapon.texture = load(CANDIDATE + ("pistol_fire.png" if fire else "pistol_idle.png")) as Texture2D
+		weapon.texture = load("res://assets/weapons/viewmodels/" + ("pistol_fire.png" if fire else "pistol_idle.png")) as Texture2D
 	for icon: Node in root.find_children("Icon", "Sprite3D", true, false):
 		var parent: Node = icon.get_parent()
 		if "weapon_name" in parent and str(parent.get("weapon_name")) == "Tack":
 			var sprite: Sprite3D = icon as Sprite3D
 			originals[sprite] = sprite.texture
-			sprite.texture = load(CANDIDATE + "pistol.png") as Texture2D
+			sprite.texture = load("res://assets/weapons/pickups/pistol.png") as Texture2D
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var selected: Image = _grab()
+	for node: Node in originals:
+		if node == weapon:
+			node.set("texture", load(CANDIDATE + ("pistol_fire.png" if fire else "pistol_idle.png")) as Texture2D)
+		else:
+			node.set("texture", load(CANDIDATE + "pistol.png") as Texture2D)
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	var candidate: Image = _grab()
