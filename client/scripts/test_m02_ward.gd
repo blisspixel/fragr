@@ -44,27 +44,22 @@ func _run() -> void:
 	_check(ward._notary.find_children("*", "VisualInstance3D", true, false).size() <= 22,
 		"the observation model stays bounded for a later source bake")
 	var latch: LatchView = ward._latch
-	var head: MeshInstance3D = latch.get_node("FacetedHead") as MeshInstance3D
-	var patch: MeshInstance3D = latch.get_node("Patch") as MeshInstance3D
-	var repair: MeshInstance3D = latch.get_node("RightArm/RustRepair") as MeshInstance3D
+	var source_mesh: MeshInstance3D = latch._source_body.get_node("Armature/Skeleton3D/char1") as MeshInstance3D
+	var skeleton: Skeleton3D = latch._source_body.get_node("Armature/Skeleton3D") as Skeleton3D
 	_check(latch.find_children("*", "VisualInstance3D", true, false).size() <= 40,
 		"the shared local chassis stays within a bounded mesh count")
-	_check(head.mesh is ArrayMesh and head.mesh.get_aabb().size.y > head.mesh.get_aabb().size.x
-		and latch.get_node_or_null("LeftAntenna") is MeshInstance3D
-		and (latch.get_node("LeftAntenna") as Node3D).position.x > 0.0
-		and latch.get_node_or_null("RightAntenna") == null
-		and latch.get_node_or_null("PixelEyes") is MeshInstance3D
-		and latch.get_node_or_null("LeftArm/RustRepair") == null
-		and latch.get_node_or_null("LeftArm/RustRepairEdge") == null,
-		"the tall screen, single anatomical left antenna, pixel eyes and individual forearm repair distinguish Latch")
-	var patch_size: Vector3 = patch.mesh.get_aabb().size
-	_check(patch_size.x > 0.0 and patch_size.y > 0.0 and maxf(patch_size.x, patch_size.y) < 0.08
-		and (patch.material_override as StandardMaterial3D).albedo_color == LatchView.CYAN
-		and (repair.material_override as StandardMaterial3D).albedo_color == LatchView.RUST,
-		"the small chest patch and rust repair retain the workshop palette")
-	_check(latch.get_node("RightArm/Hand/Index") is Node3D
-		and latch.get_node("RightArm/Hand/Opposed") is Node3D,
-		"the right hand has separate fingers for an intentional release gesture")
+	_check(source_mesh != null and source_mesh.skin != null and skeleton.get_bone_count() == 24
+		and is_equal_approx(source_mesh.mesh.get_aabb().size.y, 1.8)
+		and is_zero_approx(source_mesh.mesh.get_aabb().position.y),
+		"the reviewed civilian source retains weighted skin and registered1.8metre feet")
+	var finish: StandardMaterial3D = source_mesh.material_override as StandardMaterial3D
+	_check(finish != null and finish.albedo_texture != null and finish.normal_texture != null
+		and finish.albedo_texture.get_width() <= 1024 and finish.normal_texture.get_width() <= 1024,
+		"the real workshop finish and normal map survive bounded preparation")
+	_check(latch.get_node("PixelEyes") is MeshInstance3D
+		and (latch._eyes.material_override as StandardMaterial3D).emission_enabled,
+		"friendly optics remain independently emissive")
+	var resting_hand: Transform3D = latch._source.bone_transform(latch._source_body, "RightHand")
 	_check(ward._side_captives.size() == 2 and not ward._side_captives[0].visible and not ward._side_captives[1].visible,
 		"side-ward figures wait for the optional server state")
 	for part: Node in ward._latch.find_children("*", "VisualInstance3D", true, false):
@@ -145,10 +140,13 @@ func _run() -> void:
 	_check(ward._second_left.position.x < -0.9 and ward._second_right.position.x > 0.9
 		and ward._caption_key == "M02_LATCH_SPEECH" and not ward._transfer_list.visible,
 		"both door leaves open before Latch speaks")
-	_check((latch.get_node("RightArm/Hand") as Node3D).rotation.x < -0.3
-		and (latch.get_node("RightArm/Hand/Index") as Node3D).rotation.z < -0.3
-		and (latch.get_node("LeftArm") as Node3D).rotation.x < -0.25,
-		"Latch opens a hand and braces with the other arm at the second restraint")
+	var release_hand: Transform3D = latch._source.bone_transform(latch._source_body, "RightHand")
+	var release_left: Transform3D = latch._source.bone_transform(latch._source_body, "LeftHand")
+	_check(release_hand.origin.y > resting_hand.origin.y + 0.25
+		and release_hand.origin.z > resting_hand.origin.z + 0.2
+		and not release_hand.basis.is_equal_approx(resting_hand.basis)
+		and release_left.origin.y > 1.05,
+		"actual skinned arm reaches, rotates the palm and braces with the other arm at the second restraint")
 	ward._process(1.4)
 	_check(ward._transfer_list.visible and ward._caption_key == "M02_LOW_WATER"
 		and ward._copy.text.contains("LOW WATER"), "the transfer list and legible Low Water beat follow speech")
@@ -234,9 +232,9 @@ func _run() -> void:
 		and not ward._ward_stop_sound.playing and not ward._release_sound.playing
 		and not ward._second_release_sound.playing,
 		"retry restores both beds and suppresses old one-shots")
-	_check(is_zero_approx((latch.get_node("RightArm/Hand") as Node3D).rotation.x)
-		and is_zero_approx((latch.get_node("LeftArm") as Node3D).rotation.x),
-		"retry returns Latch's hands to the restrained pose")
+	_check(latch._source.bone_transform(latch._source_body, "RightHand").is_equal_approx(resting_hand)
+		and is_zero_approx(latch._release),
+		"retry returns actual skinned palm and arm to the restrained pose")
 	_check(not ward._secured and not ward._released and ward._latch.visible
 		and not ward._transfer_list.visible and ward._second_left.position.x > -0.5,
 		"retry reconstructs the restrained ward")

@@ -6,6 +6,15 @@ uniform bool finish_enabled = false;
 uniform sampler2D chassis_finish : source_color, filter_nearest, repeat_enable;
 uniform float chassis_metallic = 0.3;
 uniform float chassis_roughness = 0.85;
+uniform bool normal_enabled = false;
+uniform sampler2D chassis_normal : hint_normal, filter_nearest, repeat_enable;
+uniform float normal_strength = 1.0;
+uniform bool metallic_enabled = false;
+uniform sampler2D chassis_metallic_map : filter_nearest, repeat_enable;
+uniform vec4 metallic_channel = vec4(1.0, 0.0, 0.0, 0.0);
+uniform bool roughness_enabled = false;
+uniform sampler2D chassis_roughness_map : filter_nearest, repeat_enable;
+uniform vec4 roughness_channel = vec4(1.0, 0.0, 0.0, 0.0);
 uniform vec3 chassis_emission : source_color = vec3(0.0);
 uniform vec3 chassis_origin = vec3(0.0);
 uniform float chassis_center_height = 1.2;
@@ -34,7 +43,11 @@ void fragment() {
 		}
 	}
 	ALBEDO = chassis_color.rgb * (finish_enabled ? texture(chassis_finish, UV).rgb : vec3(1.0));
-	METALLIC = chassis_metallic;
-	ROUGHNESS = chassis_roughness;
+	METALLIC = chassis_metallic * (metallic_enabled ? dot(texture(chassis_metallic_map, UV), metallic_channel) : 1.0);
+	ROUGHNESS = chassis_roughness * (roughness_enabled ? dot(texture(chassis_roughness_map, UV), roughness_channel) : 1.0);
+	if (normal_enabled) {
+		NORMAL_MAP = texture(chassis_normal, UV).rgb;
+		NORMAL_MAP_DEPTH = normal_strength;
+	}
 	EMISSION = chassis_emission;
 }

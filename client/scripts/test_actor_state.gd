@@ -128,9 +128,11 @@ func _run() -> void:
 	ally.update_state(moving, 13)
 	_check(ally.latch_view.get_node("RightArm/Tack").visible and ally.target_position.x == 8.0,
 		"following Latch uses the server position and carries a Tack")
+	var ally_skin: Skeleton3D = ally.latch_view._source_body.get_node("Armature/Skeleton3D") as Skeleton3D
+	var resting_leg: Transform3D = ally_skin.get_bone_global_pose(ally_skin.find_bone("LeftLeg"))
 	ally.latch_view.advance(0.1, 0.5, "following")
-	_check(not is_zero_approx(ally.latch_view.get_node("LeftLeg").rotation.x),
-		"rendered travel animates the ally legs")
+	_check(not resting_leg.is_equal_approx(ally_skin.get_bone_global_pose(ally_skin.find_bone("LeftLeg"))),
+		"rendered travel deforms the actual ally skin")
 	ally.show_muzzle_flash("Tack")
 	_check(ally.latch_view.get_node("RightArm/Tack/Flash").visible,
 		"authoritative supporting fire lights the ally's weapon")

@@ -20,6 +20,20 @@ func _init(local: LocalMatch) -> void:
 	_local = local
 
 func _ready() -> void:
+	# Live cast resources belong in the export, unlike offline source-art tools.
+	if not ResourceLoader.exists(LatchSource.LATCH_SOURCE, "PackedScene"):
+		_finish(false, "the live Latch mesh is missing from this build")
+		return
+	var latch: LatchView = LatchView.new()
+	var skin: Skeleton3D = latch._source_body.get_node_or_null("Armature/Skeleton3D") as Skeleton3D
+	var mesh: MeshInstance3D = latch._source_body.get_node_or_null("Armature/Skeleton3D/char1") as MeshInstance3D
+	var player: AnimationPlayer = latch._source_body.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	var live_available: bool = skin != null and skin.find_bone("RightHand") >= 0 \
+		and mesh != null and mesh.skin != null and player != null and player.has_animation(&"walk")
+	latch.free()
+	if not live_available:
+		_finish(false, "the live Latch skin or walking clip is missing from this build")
+		return
 	# Scene manifests are plain JSON; the export filter must carry them.
 	if not StoryScene.exists(CampaignOpening.SCENE_ID):
 		_finish(false, "the story scene manifests are missing from this build")
