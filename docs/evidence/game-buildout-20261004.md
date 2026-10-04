@@ -21,7 +21,9 @@ keeps its venue materials.
 - [Latch](../plans/latch-live-mesh.md): packaged weighted skin, actual gait,
   fitted expressive screen, real palm attachment, near-camera visibility and
   exported Windows install evidence. Mission-route attempts are recorded in
-  its plan separately from source and packaging checks.
+  its plan separately from source and packaging checks. The final identical
+  route replay passes the corrected near-floor pitch check, then correctly
+  rejects actual human death during crossfire. Full M02 departure remains open.
 - The selectable free human uses its prepared civilian skin and eight-cell
   idle/walking strip. The separate selectable synthetic body remains provisional.
 - [Incoming combat feedback](directional-feedback-20261004.md) uses finite
@@ -31,6 +33,9 @@ keeps its venue materials.
   deaths and elapsed server mission time, after story departure. Capability 33
   strips the optional elapsed field for older receivers. A real M01 completion
   and durable onward save are recorded.
+- [Bounded capture pitch](../plans/qa-bounded-pitch.md) normalizes the helper's
+  target to the existing authoritative limit. The real setter, old-behavior
+  mutation and identical played replay preserve strict ACK checks.
 - [Low Water residential frontage](m04-residential-facades-20261004.md) adds
   authoritative sealed homes and varied roof edges, with full departure and
   ordinary roof-return evidence. Older M04 saves tied to the prior map hash

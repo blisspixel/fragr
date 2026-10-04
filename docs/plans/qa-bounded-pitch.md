@@ -1,6 +1,6 @@
 # Bound played capture pitch to the authoritative limit
 
-Status: **in flight**, 2026-10-04. Part of the current cast's played acceptance.
+Status: **implemented**, 2026-10-04. Combined integration remains pending.
 
 ## Problem and scope
 
@@ -32,3 +32,18 @@ Source regression and full played-route acceptance are separate results.
 Local work costs $0. No external asset call, cloud action or new dependency.
 Integrate through the same short-lived combined branch; fresh CI remains
 required before main changes. This plan adds no second build order.
+
+## Actual evidence
+
+The real setter regression exercises both vertical extremes, exact limits
+and ordinary angles, the actual camera input and the local human's snapshot
+despite a decoy other participant. Focused checks pass. Removing only the
+normalization line makes both vertical extremes fail with the unchanged
+0.001 tolerance and no script errors or leaked test resources.
+
+The archived 24-state M02 route was replayed with identical manifest bytes,
+native, map and finite supplies. The near-floor pitch acknowledgement now
+passes. The route then correctly rejects actual participant death during
+crossfire; it is not a completed mission. Full receipts and retained failures
+remain separate from this checker correction in the
+[Latch plan](latch-live-mesh.md).
