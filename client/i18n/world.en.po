@@ -847,7 +847,16 @@ msgid "M07_NEXT_TITLE"
 msgstr "CUSTODIAN OF RECORD"
 
 msgid "M07_NEXT_PENDING"
-msgstr "Your run is saved at the depot. Continue Run into level 8 is still in development."
+msgstr "Your run is saved at the depot. Continue Run into Custodian of Record."
+
+msgid "M08_RUN_DESCRIPTION"
+msgstr "The custody depot, its sealed archive and the machine above it."
+
+msgid "M08_NEXT_TITLE"
+msgstr "PASSENGER MANIFEST"
+
+msgid "M08_NEXT_PENDING"
+msgstr "Your run is saved after the archive. Continue Run into level 9 is still in development."
 
 msgid "M07_WAITING"
 msgstr "Waiting for the party."

@@ -9,7 +9,7 @@ const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32],
 ];
 
-fn exit(sniper: bool) -> SavedEntry {
+pub(super) fn exit(sniper: bool) -> SavedEntry {
     let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
     inventory.grant_weapon(WeaponType::Flechette);
     inventory.grant_weapon(WeaponType::Scatter);
@@ -33,7 +33,7 @@ fn exit(sniper: bool) -> SavedEntry {
 }
 
 /// A completed M06 run waiting at the level 7 edge, with every earlier outcome.
-fn completed_port() -> RunDocument {
+pub(super) fn completed_port() -> RunDocument {
     let mut document = RunDocument::new(
         Uuid::new_v4(),
         CampaignRules::new(CampaignDifficulty::Standard),
@@ -72,6 +72,7 @@ fn completed_port() -> RunDocument {
 fn version_seven_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 7.into();
+    super::super::remove_historical_mines(&mut value);
     serde_json::to_vec_pretty(&value).unwrap()
 }
 
@@ -149,6 +150,7 @@ fn version_seven_cannot_claim_m07_or_a_sniper_and_m07_entry_refuses_one() {
         "kind": "mission_entry", "mission": "declared_goods",
         "entry": serde_json::to_value(exit(false)).unwrap()
     });
+    super::super::remove_historical_mines(&mut forged);
     let bytes = serde_json::to_vec(&forged).unwrap();
     assert!(matches!(
         RunStore::inspect_bytes(&bytes, HASHES),
@@ -157,6 +159,7 @@ fn version_seven_cannot_claim_m07_or_a_sniper_and_m07_entry_refuses_one() {
     let mut sniper: serde_json::Value =
         serde_json::from_slice(&version_seven_bytes(&source)).unwrap();
     sniper["step"]["exit"] = serde_json::to_value(exit(true)).unwrap();
+    super::super::remove_historical_mines(&mut sniper);
     let bytes = serde_json::to_vec(&sniper).unwrap();
     assert!(matches!(
         RunStore::inspect_bytes(&bytes, HASHES),
@@ -213,6 +216,6 @@ fn completed_m07_carries_its_sniper_and_every_outcome_to_the_level_eight_edge() 
     assert!(
         town.promote_next(MissionId::DeclaredGoods, HASHES[6])
             .is_err(),
-        "level 8 is not playable yet"
+        "completed town cannot promote to town again"
     );
 }

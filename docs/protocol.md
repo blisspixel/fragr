@@ -2063,9 +2063,9 @@ continues, pending_continue, nullable body), `failed`, `abandoned`,
 `incompatible`, or `corrupt`. `awaiting_mission` identifies M02 after M01 or
 M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
 M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
-`declared_goods` after M06, or M08 `custodian_of_record` after M07,
-whose saved-run carry is still pending.
-Version 8 retains completed
+`declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
+M09 `passenger_manifest` after M08. M09 is not playable.
+Version 9 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2073,14 +2073,24 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6, v7 and v8 saved equipment object has independent `grenades` from zero to six.
+Every v6 through v9 saved equipment object requires independent `grenades`
+from zero to six. Version 9 also requires actual `proximity_mines` from zero
+to four. Historical v2 through v8 equipment never has a mine field; an explicit
+strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
 edge and throughout M07 entry, retry and terminal states. Earlier outcomes
-persist through every later edge. Only an M07 exit may carry the Sniper Rifle;
-an M07 entry never does. Episode II continues refill
+persist through every later edge. An M07 exit and later stages may carry the
+Sniper Rifle; an M07 entry never does. M08 entry, continue and retry restore
+the mission-entry equipment anchor, including its independent mine count.
+M08 completion stores the actual remaining count at its pending M09 edge.
+Episode II continues refill
 only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Strict v7 documents upgrade to v8 unchanged and cannot forge an M07 stage or
-a carried Sniper Rifle. Unknown future versions, forged older M04/M05/M06/M07 states and
+Strict v7 documents upgrade to v9 and cannot forge an M07 stage or a carried
+Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
+Sniper, then promote into M08 without a refill. V8 refuses playable M08.
+Read-only preview preserves source bytes; writable migration archives exact
+bytes under the existing writer lock before atomic replacement. Unknown future
+versions, forged older M04/M05/M06/M07/M08 states and
 changed source hashes are rejected before replacement. An absent body on a legacy
 save is bound by the player's visible body choice on admission; a bound body
 remains the server-owned run identity despite later profile changes.

@@ -256,7 +256,7 @@ func _page_single() -> void:
 			mission.disabled = not can_start
 		"awaiting_mission":
 			var pending_mission: String = str(_local_match.run_preview.get("mission", ""))
-			if pending_mission in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID]:
+			if pending_mission in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID]:
 				var next: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
 				next.name = _saved_mission_button(pending_mission)
 				next.disabled = not can_start
@@ -267,7 +267,7 @@ func _page_single() -> void:
 				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.NEXT_MISSION)}))
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview, false)
-				_label(tr("M07_NEXT_PENDING"))
+				_label(tr("M08_NEXT_PENDING"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -300,6 +300,8 @@ func _page_single() -> void:
 				description = "M06_RUN_DESCRIPTION"
 			elif _local_match.run_preview.get("mission") == MissionState.M07_ID:
 				description = "M07_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M08_ID:
+				description = "M08_RUN_DESCRIPTION"
 		_label(tr(description))
 	_button(tr("MENU_PRACTICE_DEVELOPMENT"), func() -> void: _show("practice"))
 	_button("Back", func() -> void: _show("main"))
@@ -346,8 +348,10 @@ func _saved_mission_title(mission_id: String) -> String:
 			return tr("MISSION_M06_TITLE")
 		MissionState.M07_ID:
 			return tr("MISSION_M07_TITLE")
+		MissionState.M08_ID:
+			return tr("MISSION_M08_TITLE")
 		LocalMatch.NEXT_MISSION:
-			return tr("M07_NEXT_TITLE")
+			return tr("M08_NEXT_TITLE")
 	return tr("MISSION_M01_TITLE")
 
 func _saved_mission_button(mission_id: String) -> String:
@@ -364,6 +368,8 @@ func _saved_mission_button(mission_id: String) -> String:
 			return "PortOfEntrySaved"
 		MissionState.M07_ID:
 			return "DeclaredGoodsSaved"
+		MissionState.M08_ID:
+			return "CustodianOfRecordSaved"
 	return "RecallNotice"
 
 func _saved_body_choice(preview: Dictionary, can_choose: bool = true) -> void:
@@ -454,7 +460,7 @@ func _start_campaign_resume() -> void:
 	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
 		return
 	var mission_id: String = str(preview.get("mission", ""))
-	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID]):
+	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID]):
 		return
 	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
@@ -467,7 +473,7 @@ func _start_campaign_resume() -> void:
 static func _arrival_for_preview(preview: Dictionary) -> bool:
 	var mission_id: String = str(preview.get("mission", ""))
 	return preview.get("status") == "awaiting_mission" \
-		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID] \
+		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID] \
 		and StoryScene.BEFORE_MISSION.has(mission_id)
 
 func _page_launch() -> void:

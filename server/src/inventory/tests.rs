@@ -359,10 +359,27 @@ fn proximity_mines_have_their_own_capped_count_and_wire_field() {
     assert_eq!(inventory.mines(), 3);
     inventory.restore_entry(&entry);
     assert_eq!(inventory.mines(), 4);
-    // Saved entries carry no mines yet, so a disk restore clears them.
     let saved = inventory.saved_equipment(WeaponType::Fists).unwrap();
+    assert_eq!(saved.proximity_mines, 4);
+    assert!(inventory.try_place_mine());
     inventory.restore_saved_equipment(&saved).unwrap();
-    assert_eq!(inventory.mines(), 0);
+    assert_eq!(inventory.mines(), 4);
+    let mut malformed = saved.clone();
+    malformed.proximity_mines = 5;
+    assert!(inventory.restore_saved_equipment(&malformed).is_err());
+    assert_eq!(
+        inventory.mines(),
+        4,
+        "invalid disk restore does not mutate inventory"
+    );
+    malformed.proximity_mines = 3;
+    malformed.grenades = 6;
+    inventory.restore_saved_equipment(&malformed).unwrap();
+    assert_eq!((inventory.mines(), inventory.grenades()), (3, 6));
+    let encoded = serde_json::to_value(&malformed).unwrap();
+    assert_eq!(encoded["proximity_mines"], 3);
+    let read: SavedEquipment = serde_json::from_value(encoded).unwrap();
+    assert_eq!(read, malformed);
     let mut restricted = Inventory::restricted(WeaponType::Rail);
     assert_eq!(restricted.grant_mines(4), 0);
     assert!(!restricted.try_place_mine());

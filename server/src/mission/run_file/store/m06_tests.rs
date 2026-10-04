@@ -54,6 +54,7 @@ fn completed_workshop() -> RunDocument {
 fn historical_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 6.into();
+    super::super::remove_historical_mines(&mut value);
     serde_json::to_vec_pretty(&value).unwrap()
 }
 

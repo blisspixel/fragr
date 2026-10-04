@@ -12,12 +12,12 @@ mod legacy;
 pub(crate) mod store;
 use legacy::{
     RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
+    RunDocumentV8,
 };
 
-/// Version 8 adds playable M07, a carried Sniper Rifle after it, and the
-/// pending level 8 edge. Versions 2 through 7 upgrade explicitly; version 1
-/// remains incompatible.
-pub(super) const RUN_FILE_VERSION: u32 = 8;
+/// Version 9 carries actual finite mines and enables M08 after M07.
+/// Versions 2 through 8 upgrade explicitly; version 1 remains incompatible.
+pub(super) const RUN_FILE_VERSION: u32 = 9;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -230,9 +230,7 @@ impl RunDocument {
             MissionId::NoticeToVacate => (MissionId::ScheduledService, M04_MISSION),
             MissionId::NoForwardingAddress => (MissionId::NoticeToVacate, M05_MISSION),
             MissionId::PortOfEntry => (MissionId::NoForwardingAddress, M06_MISSION),
-            MissionId::CustodianOfRecord => {
-                return Err("saved runs do not reach Custodian of Record yet")
-            }
+            MissionId::CustodianOfRecord => (MissionId::DeclaredGoods, M08_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -252,6 +250,7 @@ impl RunDocument {
                     | MissionId::NoForwardingAddress
                     | MissionId::PortOfEntry
                     | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -296,23 +295,13 @@ impl RunDocument {
     }
 
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
-        if self.stage_mission() == MissionId::CustodianOfRecord
-            || matches!(
-                &self.step,
-                SavedStep::AwaitingMission {
-                    completed_mission: MissionId::CustodianOfRecord,
-                    ..
-                }
-            )
-        {
-            return Err("saved runs do not reach Custodian of Record yet");
-        }
         let completed_m03 = matches!(
             self.stage_mission(),
             MissionId::NoticeToVacate
                 | MissionId::NoForwardingAddress
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
+                | MissionId::CustodianOfRecord
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -324,7 +313,10 @@ impl RunDocument {
         }
         let completed_m04 = matches!(
             self.stage_mission(),
-            MissionId::NoForwardingAddress | MissionId::PortOfEntry | MissionId::DeclaredGoods
+            MissionId::NoForwardingAddress
+                | MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
+                | MissionId::CustodianOfRecord
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -336,7 +328,7 @@ impl RunDocument {
         }
         let completed_m05 = matches!(
             self.stage_mission(),
-            MissionId::PortOfEntry | MissionId::DeclaredGoods
+            MissionId::PortOfEntry | MissionId::DeclaredGoods | MissionId::CustodianOfRecord
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
@@ -346,8 +338,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m05_outcome {
             outcome.validate()?;
         }
-        let completed_m06 = self.stage_mission() == MissionId::DeclaredGoods
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m06 = matches!(
+            self.stage_mission(),
+            MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
                 completed_mission: MissionId::PortOfEntry, next_mission, ..
             } if next_mission == M07_MISSION);
         if completed_m06 != self.m06_outcome.is_some() {
@@ -393,6 +387,7 @@ impl RunDocument {
                         | (MissionId::NoForwardingAddress, M06_MISSION)
                         | (MissionId::PortOfEntry, M07_MISSION)
                         | (MissionId::DeclaredGoods, M08_MISSION)
+                        | (MissionId::CustodianOfRecord, M09_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -401,7 +396,14 @@ impl RunDocument {
                 {
                     return Err("M01 run has the wrong continue baseline");
                 }
-                Self::validate_carried_finds(exit, *completed_mission == MissionId::DeclaredGoods)?;
+                Self::validate_carried_finds(
+                    exit,
+                    matches!(
+                        *completed_mission,
+                        MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+                    ),
+                    *completed_mission == MissionId::CustodianOfRecord,
+                )?;
                 exit.validate()
             }
         }
@@ -411,14 +413,25 @@ impl RunDocument {
         if mission == MissionId::RecallNotice && self.level_start_continues != CAMPAIGN_CONTINUES {
             return Err("M01 run has the wrong continue baseline");
         }
-        Self::validate_carried_finds(entry, false)?;
+        Self::validate_carried_finds(
+            entry,
+            mission == MissionId::CustodianOfRecord,
+            mission == MissionId::CustodianOfRecord,
+        )?;
         entry.validate()
     }
 
     /// The Sniper Rifle is first found in Declared Goods. Only the exit of a
-    /// completed M07 can carry it; every earlier stage, including an M07 entry
-    /// or retry, refuses a forged copy so it never becomes an unlock.
-    fn validate_carried_finds(entry: &SavedEntry, sniper_found: bool) -> Result<(), &'static str> {
+    /// completed M07 or a later stage can carry it; every earlier stage,
+    /// including an M07 entry or retry, refuses a forged copy.
+    fn validate_carried_finds(
+        entry: &SavedEntry,
+        sniper_found: bool,
+        mines_found: bool,
+    ) -> Result<(), &'static str> {
+        if !mines_found && entry.equipment.proximity_mines != 0 {
+            return Err("saved equipment carries mines before their mission");
+        }
         if !sniper_found
             && (entry.equipment.weapons.contains(&WeaponType::Sniper)
                 || entry.equipment.selected == WeaponType::Sniper)
@@ -496,6 +509,7 @@ impl GameState {
                     | MissionId::NoForwardingAddress
                     | MissionId::PortOfEntry
                     | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -512,7 +526,10 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::NoForwardingAddress | MissionId::PortOfEntry | MissionId::DeclaredGoods
+                MissionId::NoForwardingAddress
+                    | MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -528,7 +545,10 @@ impl GameState {
                     released_workers: self.m05_released_worker_ids(),
                     evacuated_workers: self.m05_evacuated_worker_ids(),
                 })
-            } else if matches!(mission, MissionId::PortOfEntry | MissionId::DeclaredGoods) {
+            } else if matches!(
+                mission,
+                MissionId::PortOfEntry | MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+            ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
                     evacuated_workers: solo.carried_evacuated_workers.clone(),
@@ -542,7 +562,10 @@ impl GameState {
                 Some(M06Outcome {
                     prisoner_route_marked: self.m06_prisoner_route_marked(),
                 })
-            } else if mission == MissionId::DeclaredGoods {
+            } else if matches!(
+                mission,
+                MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+            ) {
                 Some(M06Outcome {
                     prisoner_route_marked: solo.carried_prisoner_route_marked,
                 })
@@ -564,6 +587,7 @@ pub(super) fn historical_value(document: &RunDocument) -> serde_json::Value {
 
 #[cfg(test)]
 pub(super) fn remove_historical_grenades(value: &mut serde_json::Value) {
+    remove_historical_mines(value);
     for entry_key in ["entry", "exit"] {
         if let Some(equipment) = value
             .get_mut("step")
@@ -578,6 +602,26 @@ pub(super) fn remove_historical_grenades(value: &mut serde_json::Value) {
                 Some(0)
             );
             equipment.remove("grenades");
+        }
+    }
+}
+
+#[cfg(test)]
+pub(super) fn remove_historical_mines(value: &mut serde_json::Value) {
+    for entry_key in ["entry", "exit"] {
+        if let Some(equipment) = value
+            .get_mut("step")
+            .and_then(|step| step.get_mut(entry_key))
+            .and_then(|entry| entry.get_mut("equipment"))
+            .and_then(serde_json::Value::as_object_mut)
+        {
+            assert_eq!(
+                equipment
+                    .get("proximity_mines")
+                    .and_then(serde_json::Value::as_u64),
+                Some(0)
+            );
+            equipment.remove("proximity_mines");
         }
     }
 }
