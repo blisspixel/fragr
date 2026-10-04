@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Checks the Auditor atlas without a renderer: the bake receipt is fresh, the
 ## layout matches EnemyAnimation, every pose is visible and unclipped, feet
-## share the Clerk's registration, the cap rises above the Clerk's helmet, the
+## share the Clerk's registration, the issued cap has a readable red band, the
 ## shield plate faces front and not back, and the seated cell holds a lit
 ## repair emitter at Level 8's beam height.
 
@@ -54,6 +54,8 @@ func _run() -> void:
 	for source: String in manifest["sources"]:
 		_check(FileAccess.get_sha256(source) == manifest["sources"][source], "source matches bake receipt " + source)
 	_check(FileAccess.get_sha256(ATLAS) == manifest["sha256"], "atlas matches its bake receipt")
+	var normals_path: String = "res://assets/characters/union/" + str(manifest.get("normals_file", ""))
+	_check(FileAccess.get_sha256(normals_path) == str(manifest.get("normals_sha256", "")), "paired normal atlas matches receipt")
 	_check(int(manifest["poses"]) == EnemyAnimation.poses() and int(manifest["directions"]) == EnemyAnimation.DIRECTIONS \
 		and int(manifest["columns"]) == EnemyAnimation.COLUMNS and int(manifest["rows"]) == EnemyAnimation.rows(),
 		"baked layout matches playback")
@@ -62,6 +64,20 @@ func _run() -> void:
 		and atlas.get_height() == EnemyAnimation.rows() * EnemyAnimation.TILE \
 		and atlas.get_width() <= 4096 and atlas.get_height() <= 4096, "atlas portable bounds")
 	_check(not atlas.has_mipmaps(), "pixel art has no mipmaps")
+	var normals: Image = (load(normals_path) as Texture2D).get_image()
+	_check(normals.get_size() == atlas.get_size() and not normals.has_mipmaps(), "paired normal layout stays nearest with no mipmaps")
+	var mismatches: int = 0
+	var nonflat: int = 0
+	for y: int in range(0, atlas.get_height(), 3):
+		for x: int in range(0, atlas.get_width(), 3):
+			var a: Color = atlas.get_pixel(x, y)
+			var n: Color = normals.get_pixel(x, y)
+			if (a.a > 0.5) != (n.a > 0.5):
+				mismatches += 1
+			if n.a > 0.5 and (absf(n.r - 0.5) > 0.1 or absf(n.g - 0.5) > 0.1):
+				nonflat += 1
+	_check(mismatches == 0, "paired silhouettes match throughout all phases and directions")
+	_check(nonflat > 500, "encoded source normals retain shaped surfaces")
 	for direction: int in range(EnemyAnimation.DIRECTIONS):
 		for pose: int in range(EnemyAnimation.poses()):
 			var used: Rect2i = _tile(atlas, direction * EnemyAnimation.poses() + pose).get_used_rect()
@@ -75,7 +91,18 @@ func _run() -> void:
 		var mine: Rect2i = _tile(atlas, frame).get_used_rect()
 		var theirs: Rect2i = _tile(clerk, frame).get_used_rect()
 		_check(mine.end.y == theirs.end.y, "feet share the Clerk's registration in direction %d" % direction)
-		_check(mine.position.y < theirs.position.y, "the cap rises above the Clerk's helmet in direction %d" % direction)
+		_check(absi(mine.position.y - theirs.position.y) <= 2, "issued caps share supported body height in direction %d" % direction)
+	# Both current human sources wear peaked caps. Test a visible issue band
+	# at head height instead of the retired helmet-versus-taller-cap assumption.
+	var front_idle: Image = _tile(atlas, idle)
+	var head_top: int = front_idle.get_used_rect().position.y
+	var band_pixels: int = 0
+	for y: int in range(head_top, head_top + 7):
+		for x: int in range(EnemyAnimation.TILE):
+			var c: Color = front_idle.get_pixel(x, y)
+			if c.a > 0.5 and c.r > c.g * 1.4 and c.r > c.b * 1.3:
+				band_pixels += 1
+	_check(band_pixels >= 8, "peaked cap retains its readable red issue band")
 	var front: int = _count(_tile(atlas, idle), PLATE_FACE)
 	var back: int = _count(_tile(atlas, 4 * EnemyAnimation.poses() + idle), PLATE_FACE)
 	_check(front > 300 and front > back * 4, "the shield plate faces front and not back: %d front, %d back" % [front, back])
