@@ -22,6 +22,18 @@ static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
 		material.set_shader_parameter("tile_floor_strength", 0.7)
 	return material
 
+## Street decking has no issued warning signal. Duplicate only this material
+## so the same authored steel on the post and barriers keeps its red markings.
+static func ground(material: Material, surface: String, venue: String) -> Material:
+	if venue != "moon_town" or surface != "service_steel" or not material is ShaderMaterial:
+		return material
+	var deck: ShaderMaterial = material.duplicate() as ShaderMaterial
+	deck.set_shader_parameter("surface_color", Color("505954"))
+	deck.set_shader_parameter("accent_color", Color("7f8278"))
+	deck.set_shader_parameter("warning_color", Color("7f8278"))
+	deck.set_shader_parameter("trim_glow", 0.0)
+	return deck
+
 static func accent(map_id: int) -> Color:
 	match map_id:
 		2, 4: return Color("6e1218")
@@ -66,8 +78,8 @@ static func authored(surface: String, venue: String = "") -> Material:
 	var material: ShaderMaterial = ShaderMaterial.new()
 	material.shader = SURFACE
 	var index: int = MapGeometry.SURFACES.find(surface)
-	# Union spaces read black and red: service steel is dark steel with a
-	# glowing on_air warning strip, and enamel carries a red pinline.
+	# Issued service steel retains its red markings. Civilian enamel receives
+	# its venue's quiet paint rather than the shader's default warning pinline.
 	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("565753"), Color("82917f"), Color("343e40")]
 	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("8b1e1e"), Color("354d42"), Color("7eaaa0")]
 	if venue == "low_water":
@@ -79,6 +91,9 @@ static func authored(surface: String, venue: String = "") -> Material:
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
+	if venue == "low_water" or (venue == "moon_town" and surface == "enamel"):
+		material.set_shader_parameter("warning_color", accents[index])
+		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
 	EnvironmentTextures.apply(material, surface, venue)
 	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:

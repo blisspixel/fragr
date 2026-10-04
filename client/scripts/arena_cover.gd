@@ -55,7 +55,7 @@ func apply_map_info(info: Dictionary) -> void:
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:
 			authored_materials[surface] = ArenaMaterials.authored(surface, venue)
-		_materials[0] = authored_materials[presentation["ground"]]
+		_materials[0] = ArenaMaterials.ground(authored_materials[presentation["ground"]], presentation["ground"], venue)
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()

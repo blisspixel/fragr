@@ -1,5 +1,6 @@
 extends SceneTree
 
+const TOWN_FIXTURE = preload("res://scripts/test_m07_mission.gd")
 var failures: int = 0
 
 func _initialize() -> void:
@@ -13,7 +14,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var paths: Dictionary[String, bool] = {}
-	for venue: String in ["earth_union", "earth_yard", "earth_scrap", "low_water", "moon_port"]:
+	for venue: String in ["earth_union", "earth_yard", "earth_scrap", "low_water", "moon_port", "moon_town"]:
 		for surface: String in MapGeometry.SURFACES:
 			for horizontal: bool in [false, true]:
 				var path: String = EnvironmentTextures.path_for(surface, venue, horizontal)
@@ -37,6 +38,8 @@ func _run() -> void:
 	_check(wall.get_shader_parameter("detail_enabled") != true, "opaque lunar fallback cannot cover the selected issued steel tile")
 	var repair: ShaderMaterial = ArenaMaterials.authored("enamel", "low_water") as ShaderMaterial
 	_check(repair.get_shader_parameter("detail_enabled") == true and repair.get_shader_parameter("tile_enabled") == true, "existing grounded repair layer and new repeating albedo coexist")
+	_civilian_boundaries()
+	await _town_ground_assignment()
 	var plain: ShaderMaterial = ArenaMaterials.authored("enamel", "unknown") as ShaderMaterial
 	_check(plain.get_shader_parameter("tile_enabled") != true, "unknown venue keeps established fallback")
 	_check(ArenaMaterials.authored("inspection_glass", "moon_port") is StandardMaterial3D, "registered glass retains transparent material")
@@ -44,12 +47,68 @@ func _run() -> void:
 	_check(EnvironmentTextures.path_for("concrete", "mars").is_empty(), "future Mars library does not imply an implemented venue")
 	_check(EnvironmentTextures.texture_at("res://assets/environment/missing.png") == null, "missing local asset retains procedural fallback")
 	if failures == 0 and DisplayServer.get_name() != "headless":
-		for venue: String in ["earth_union", "low_water", "moon_port"]:
+		for venue: String in ["earth_union", "low_water", "moon_port", "moon_town"]:
 			await _rendered(venue)
 	await process_frame
 	if failures == 0:
-		print("test_environment_textures: PASS local venue tiles, cache, wrap edges, grounded repairs and glass isolation")
+		print("test_environment_textures: PASS local venue tiles, cache, wrap edges, civilian markings, issued boundaries, grounded repairs and glass isolation")
 	quit(0 if failures == 0 else 1)
+
+func _civilian_boundaries() -> void:
+	for surface: String in ["concrete", "enamel", "service_steel"]:
+		var civilian: ShaderMaterial = ArenaMaterials.authored(surface, "low_water") as ShaderMaterial
+		_check(civilian.get_shader_parameter("trim_glow") == 0.0, "Low Water surfaces have no emissive warning marks: " + surface)
+		var expected: Color = {"concrete": Color("5a655f"), "enamel": Color("6f6554"), "service_steel": Color("aa7451")}[surface]
+		_check(civilian.get_shader_parameter("warning_color") == expected, "Low Water markings use the actual venue paint: " + surface)
+	var dwelling: ShaderMaterial = ArenaMaterials.authored("enamel", "moon_town") as ShaderMaterial
+	_check(dwelling.get_shader_parameter("trim_glow") == 0.0 and dwelling.get_shader_parameter("warning_color") == Color("7f8278"), "lunar dwelling enamel has quiet nonemissive seam paint")
+	_check((dwelling.get_shader_parameter("tile_wall") as Texture2D).resource_path == EnvironmentTextures.MOON + "moon_pressure_bone.png", "actual dwelling wall selects pressure-bone")
+	_check((dwelling.get_shader_parameter("tile_floor") as Texture2D).resource_path == EnvironmentTextures.MOON + "moon_worn_deck.png", "actual dwelling ledges select worn deck")
+	_check(dwelling.get_shader_parameter("tile_strength") == 0.3, "large town dwelling faces keep restrained pressure-shell history")
+	var issued: ShaderMaterial = ArenaMaterials.authored("service_steel", "moon_town") as ShaderMaterial
+	_check(issued.get_shader_parameter("accent_color") == Color("9a302a") and issued.get_shader_parameter("surface_color") == Color("394144"), "town issued steel retains dark body and red marking")
+	_check((issued.get_shader_parameter("tile_wall") as Texture2D).resource_path == EnvironmentTextures.PRODUCTION + "archive_steel.png", "issued town walls retain their selected steel texture")
+	_check((issued.get_shader_parameter("tile_floor") as Texture2D).resource_path == EnvironmentTextures.MOON + "moon_worn_deck.png", "town walking steel selects worn deck")
+	var ground: ShaderMaterial = ArenaMaterials.ground(issued, "service_steel", "moon_town") as ShaderMaterial
+	_check(ground != issued and ground.get_shader_parameter("surface_style") == issued.get_shader_parameter("surface_style") and ground.shader == issued.shader, "town ground is independent without replacing shared shader or pixel rib geometry")
+	_check(ground.get_shader_parameter("surface_color") == Color("505954") and ground.get_shader_parameter("accent_color") == Color("7f8278") and ground.get_shader_parameter("trim_glow") == 0.0, "town common ground has quiet nonemissive worn-deck paint")
+	_check(ground.get_shader_parameter("tile_floor") == issued.get_shader_parameter("tile_floor"), "ground duplicate reuses nearest cached worn-deck texture")
+	ground.set_shader_parameter("accent_color", Color("e8e2d6"))
+	_check(issued.get_shader_parameter("accent_color") == Color("9a302a"), "editing town ground cannot recolor the issued wall instance")
+	_check(ArenaMaterials.ground(dwelling, "enamel", "moon_town") == dwelling, "ground override is limited to the authored town steel deck")
+	for venue: String in ["moon_port", "earth_union", "earth_yard", "earth_scrap", "unknown"]:
+		var institution: ShaderMaterial = ArenaMaterials.authored("enamel", venue) as ShaderMaterial
+		_check(institution.get_shader_parameter("warning_color") == issued.get_shader_parameter("warning_color") and institution.get_shader_parameter("trim_glow") == issued.get_shader_parameter("trim_glow"), "other venues retain shader warning defaults: " + venue)
+		var original_ground: Material = ArenaMaterials.authored("service_steel", venue)
+		_check(ArenaMaterials.ground(original_ground, "service_steel", venue) == original_ground, "other venues retain their exact ground material instance: " + venue)
+	var low_water_ground: Material = ArenaMaterials.authored("enamel", "low_water")
+	_check(ArenaMaterials.ground(low_water_ground, "enamel", "low_water") == low_water_ground, "Low Water ground assignment retains existing material identity")
+	_check(EnvironmentTextures.path_for("enamel", "moon_port") == EnvironmentTextures.PRODUCTION + "archive_enamel.png", "port/archive enamel remains unchanged")
+	_check(EnvironmentTextures.path_for("service_steel", "moon_port", true) == EnvironmentTextures.PRODUCTION + "archive_floor.png", "port/archive deck remains unchanged")
+	_check(EnvironmentTextures.path_for("lift_panel", "moon_town") == EnvironmentTextures.MOON + "moon_repair_plate.png", "town repairs retain reviewed plates")
+	_check(EnvironmentTextures.path_for("inspection_glass", "moon_town").is_empty(), "civilian glass receives no opaque pressure tile")
+
+func _town_ground_assignment() -> void:
+	var info: Dictionary = TOWN_FIXTURE.fixture_map()
+	info["presentation"]["solids"][0] = "service_steel"
+	_check(MapGeometry.validation_error(info).is_empty(), "town ground integration uses a validated registered world")
+	var cover: ArenaCover = ArenaCover.new()
+	root.add_child(cover)
+	cover.apply_map_info(info)
+	var deck: ShaderMaterial = (cover.get_node("MapFloor") as MeshInstance3D).material_override as ShaderMaterial
+	var wall: ShaderMaterial = cover._solid_views[0].material_override as ShaderMaterial
+	_check(deck != wall and deck.get_shader_parameter("accent_color") == Color("7f8278") and wall.get_shader_parameter("accent_color") == Color("9a302a"), "actual MapFloor receives quiet paint while the issued solid retains red")
+	_check(deck.get_shader_parameter("tile_floor") == wall.get_shader_parameter("tile_floor") and deck.shader == wall.shader, "actual floor and walls reuse shader and nearest cached tile")
+	var legacy: Dictionary = info.duplicate(true)
+	legacy.erase("m07")
+	legacy["map_id"] = 1002
+	legacy["map_name"] = "Persons Unknown"
+	legacy["presentation"]["decorations"] = []
+	cover.apply_map_info(legacy)
+	_check((cover.get_node("MapFloor") as MeshInstance3D).material_override == cover._solid_views[0].material_override, "replacing town with another venue restores original shared material assignment")
+	cover.queue_free()
+	await process_frame
+	await process_frame
 
 func _rendered(venue: String) -> void:
 	var viewport: SubViewport = SubViewport.new()

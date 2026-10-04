@@ -8,7 +8,14 @@ const PRODUCTION: String = "res://assets/environment/production/"
 static var _textures: Dictionary[String, Texture2D] = {}
 
 static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
-	if venue in ["moon_port", "moon_town"]:
+	if venue == "moon_town":
+		match surface:
+			"concrete": return MOON + "moon_regolith.png"
+			"enamel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_pressure_bone.png")
+			"records_tile": return PRODUCTION + "archive_ceramic.png"
+			"service_steel": return MOON + "moon_worn_deck.png" if horizontal else PRODUCTION + "archive_steel.png"
+			"lift_panel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_repair_plate.png")
+	elif venue == "moon_port":
 		match surface:
 			"concrete": return MOON + "moon_regolith.png"
 			"enamel": return PRODUCTION + "archive_enamel.png"
@@ -48,6 +55,10 @@ static func apply(material: ShaderMaterial, surface: String, venue: String) -> v
 	material.set_shader_parameter("tile_wall", wall)
 	material.set_shader_parameter("tile_floor", floor)
 	material.set_shader_parameter("tile_strength", 0.35 if venue == "low_water" and surface in ["service_steel", "lift_panel"] else 0.55)
+	if venue == "moon_town" and surface == "enamel":
+		# Long dwelling fronts retain pressure-shell history without dense
+		# panel noise overwhelming their shutters, people and route landmarks.
+		material.set_shader_parameter("tile_strength", 0.3)
 	# Palette reduction amplifies concrete pits. Keep walking lanes quieter
 	# than walls so surface history does not compete with bodies and pickups.
 	material.set_shader_parameter("tile_floor_strength", (0.18 if venue == "low_water" else 0.35) if surface == "concrete" else 0.55)
