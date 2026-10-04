@@ -1,6 +1,6 @@
 # Campaign completion results
 
-**Status:** in flight, 2026-10-04. Based on main `a8611d04`.
+**Status:** implemented, 2026-10-04. Based on main `a8611d04`.
 
 ## Goal and scope
 
@@ -122,7 +122,17 @@ checks, not standalone branch proof.
 
 The first full combined checker found an older onward test's synthetic network
 object lacked the required completion record. Its fixture now uses the shared
-strict record without removing assertions. Preserve that failed log and require
-a clean full rerun. Parent owns combined integration CI, shared capability docs
-and publication. Real authored par, cross-process statistics, party aggregate
-results and fresh-player/difficulty review remain open.
+strict record without removing assertions. A subsequent repeat exposed an
+out-of-tree viewport assumption in the coordinated feedback hook and a result
+test's exact-frame retirement assumption. The hook now suppresses feedback with
+no viewport, and the test bounds actual queued retirement across frame
+boundaries. Both focused harnesses pass without removing their assertions.
+Keep the failed logs as diagnostics.
+
+`results-full-godot-final.log` is the clean full combined acceptance: exit zero,
+238 script parses, 110 harness PASS markers and `Godot checks: PASS`, without
+error lines. This includes the exact temporary audio dependency described above.
+The scoped code checkpoints are `083671bb` and `74be01f2`. Parent owns combined
+integration CI, shared capability docs and publication. Real authored par,
+cross-process statistics, party aggregate results and fresh-player/difficulty
+review remain open.
