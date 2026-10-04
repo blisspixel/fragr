@@ -1,6 +1,6 @@
 # Water pump
 
-Status: **in flight**, 2026-10-04. Complete-port conversion reference reviewed; source generation and runtime selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: **in flight**, 2026-10-04. Complete-port reference and all-side raw source inspection passed, using 35 actual included credits. Local preparation and runtime selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation. The [source receipt](../../evidence/world-prop-sources-20261004.md) records the task, geometry and allowance.
 Stable ID: `E-water-pump`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design

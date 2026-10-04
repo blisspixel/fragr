@@ -330,8 +330,11 @@ The corrected Jammer candidate consumed 35 included credits, passed mechanical
 source inspection and continues through pixel baking and played acceptance.
 The [precision weapon pass](plans/precision-weapon-references-20261004.md)
 adds two inspected sources for 70 included credits; compact preparation and
-selection remain open. The latest account check reports 2,480 available,
-15 held and 2,465 usable, with 590 tracked credits consumed. Kitchen's
+selection remain open. Three [inhabited-world prop sources](evidence/world-prop-sources-20261004.md)
+add an assembled scrubber, complete-port pump and civilian radio for 105 actual
+credits, with all twelve raw views inspected. Local preparation and placement
+remain open. The latest account check reports 2,375 available,
+15 held and 2,360 usable, with 695 tracked credits consumed. Kitchen's
 eight-pad route and actual four-fighter match pass, but its first-use white-wall
 art defect remains unresolved. Garage's ordinary 15-state route passes with
 no deaths; vehicle/surface craft and fresh human fun remain open. Shared

@@ -97,9 +97,12 @@ full mission-route acceptance. This runtime increment shipped in
 implementation CI and all three desktop package checks passing. Its cast batch
 used 160 included model credits. The Enforcer is integrated with level 9;
 Crawler refinement remains in flight. The latest October 4 free account check
-reports 2,480 available with a 15-credit uncertain hold, leaving 2,465 usable;
-tracked net consumption is 590 credits, including the Jammer and the first
-Railgun/Sniper Rifle candidates under local refinement. The
+reports 2,375 available with a 15-credit uncertain hold, leaving 2,360 usable;
+tracked net consumption is 695 credits, including the Jammer, first
+Railgun/Sniper Rifle candidates and three inhabited-world prop sources.
+The [prop source receipt](docs/evidence/world-prop-sources-20261004.md) records
+105 actual credits and twelve inspected views. These candidates still need
+compact local preparation and played selection. The
 [precision source receipt](docs/evidence/precision-weapon-references-20261004.md)
 records their actual geometry, eight inspected views and 70 included credits.
 The [full asset plan](docs/plans/meshy-full-game-assets.md)

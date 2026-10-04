@@ -1,7 +1,10 @@
 # Inhabited-world prop references and first sources
 
-Status: **in flight**, 2026-10-04. References and raw sources precede runtime
-selection. This increment follows the existing full-game asset allocation.
+Status: **in flight**, 2026-10-04. All three references and raw source stages
+are inspected, with 105 actual included credits reconciled. Local preparation
+and runtime selection remain open. The [source receipt](../evidence/world-prop-sources-20261004.md)
+records measured geometry, all-side views and the remaining allowance.
+This increment follows the existing full-game asset allocation.
 
 Prepare assembled, isolated painted references for E-air-scrubber,
 E-water-pump and E-community-radio. Follow their individual lore briefs, the
