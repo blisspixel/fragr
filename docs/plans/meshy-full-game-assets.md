@@ -27,7 +27,22 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-A fresh free native check on 2026-10-04 reports **2,745 API credits**, with the retained **15-credit uncertain hold**, leaving **2,730** available for new work. This planning pass itself submitted zero generation requests. Existing 325 tracked consumed credits and the separate historical 30-credit account decrease remain historical ledger facts.
+The latest production reconciliation on 2026-10-04 reports **2,625 API
+credits**, **15 uncertain credits held**, and **2,610 usable**. Enforcer,
+Crawler, Pistol and Rifle production consumed 120 included credits inside the
+first 900-credit allocation, leaving 780 within that ceiling. These are source
+candidates in preparation, not four finished runtime assets. The
+[production receipt](../evidence/asset-production-20261004.md) records actual
+operations, inspection and remaining acceptance. No pack is needed for the
+remaining eight first candidates in this allocation.
+
+The planning baseline before this production batch on 2026-10-04 was
+**2,745 API credits**, with the retained **15-credit uncertain hold**, leaving
+**2,730**. The catalog planning pass itself submitted zero generation requests.
+Its original 325 tracked consumed credits and the separate historical
+30-credit account decrease remain dated ledger facts. Use the later production
+receipt above for the live allowance; the following scenarios retain their
+original baseline rather than counting newly completed source tasks twice.
 
 [Official API prices](https://docs.meshy.ai/en/api/pricing), checked 2026-10-04: textured 7.1 standard 2K/4K costs 30 credits, or 35 with Ultra geometry; textured Smart Topology costs 15. A suitable humanoid rig costs 5 and optional animations cost 3 per action. Pin the exact model/options; no obsolete lowpoly path. [Rigging](https://docs.meshy.ai/en/api/rigging) is designed for clear humanoid bipeds, not crawlers, fans, weapons or vehicles.
 
@@ -39,7 +54,11 @@ A fresh free native check on 2026-10-04 reports **2,745 API credits**, with the 
 
 These are planning scenarios, not quotes for accepted finished assets. Smart Topology is appropriate only when the actual result meets the same silhouette, articulation, texture and played quality gates. No source is replaced simply to consume credits. Revisions are reserved, not automatically submitted. If each source needs a complete second candidate, the request cost rises accordingly. References, retopology, rig repair, local poses, collision, packaging and gameplay still need work; credit counts do not estimate completion time.
 
-Current credits cover the important first batch and may cover the whole core catalog on a successful mixed route. They do not guarantee the conservative core plus revisions, or the extended future fleet. Relative to 2,730 usable now, the conservative core scenario is 466 short and the extended ceiling is 2,585 short. Reconcile real results before recommending a pack. No pack is needed to start.
+The planning baseline covered the important first batch and may cover the
+whole core catalog on a successful mixed route. It did not guarantee the
+conservative core plus revisions or the extended future fleet. Relative to
+the original 2,730 usable baseline, those scenarios were 466 and 2,585 short.
+Reconcile real source results and remaining work before recommending a pack.
 
 [Monthly credit reset](https://help.meshy.ai/en/articles/9991991-when-will-my-credits-reset) says Premium resets its monthly allowance to 3,000 on the subscription date, without rollover. The [API price page](https://docs.meshy.ai/en/api/pricing) describes prepaid API credits; the current balance endpoint does not report the account's monthly/permanent split or renewal date. Confirm the account's actual API replenishment before scheduling future paid work. Purchased permanent credits and any pack price must be verified in the account. This plan enables no renewal, cash purchase, automatic top-up or overage.
 
