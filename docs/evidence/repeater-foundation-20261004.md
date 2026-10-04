@@ -2,8 +2,10 @@
 
 Status: implemented locally, 2026-10-04. This is a CPU-only behavior and compatibility
 foundation from frozen M09 `01912934`, not an accepted M10 lesson or selected
-weapon presentation. Source checkpoint `2b867d3c` and integration assertions
-`9941449c` / `05121e50` are local and unmerged.
+weapon presentation. Source checkpoint `2b867d3c`, integration assertions
+`9941449c` / `05121e50` and presentation correction `950b7e03` are unmerged.
+The final combined source includes accepted main `53b5c036`, with the civilian,
+Pistol and Rifle presentation intact.
 
 ## Actual behavior
 
@@ -70,7 +72,27 @@ corrected exact expectation is 35, while M08's own requirement stays 31. The
 focused archive harness passes cleanly after that correction.
 Release native SHA256:
 `ec469482cfa336212c4a77e42bdea4fc683ec2d79f772f0310c0ca47056c3a58`.
-Full combination CI, coverage, desktop packages and played feel are unclaimed.
+After source-identical native integration with current main, the final combined
+client checker passes import, all 257 scripts and all 121 harnesses, exit 0,
+its final PASS marker and no error lines. The complete check includes actual
+M02 through M09 local launch, the new Rifle and Pistol source contracts and
+packaged-install checks. Rust source, manifests and lockfile are unchanged
+from the already checked `60928b0d` native checkpoint. Main's additional
+Pistol/Rifle development-map fixtures remain present.
+
+A real HUD reproduction found that selecting unsupported Repeater after a
+scoped Sniper hid the frame but retained its cached identity and texture.
+Closing scope then restored Sniper, and unsupported resolved fire produced a
+generic flash. The new regression failed six assertions before correction.
+The HUD now clears unsupported cached art and refuses unsupported fire cues.
+The regression also proves the selected real Rifle's idle, fire and settle
+frames remain correct. The original reproduction, failed regression and clean
+focused repeat are retained separately. The final complete checker uses this
+corrected source. A private launcher referencing a nonexistent old harness
+name failed before the corrected existing RangedSweeper and install harnesses
+ran; this launcher failure is retained and is not counted as a source pass.
+
+Remote full combination CI, coverage, desktop packages and played feel are unclaimed.
 No paid requests or GPU rendering ran. A real articulated Repeater asset,
 truthful cues, strict presentation facts and an isolated played lesson remain
 required before production selection. M10 crew transit and its map are outside

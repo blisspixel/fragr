@@ -1,7 +1,7 @@
 # Repeater behavior foundation
 
 Status: implemented locally, 2026-10-04. CPU-only prototype from frozen M09 `01912934`.
-No M10 geometry, passenger rule, runtime art selection or new spend.
+No M10 geometry, passenger-rule implementation, runtime art selection or new spend.
 The [local evidence](../evidence/repeater-foundation-20261004.md) records the
 complete native/client checks and actual retained-reader wire proof. Parent
 integration, full combination CI and packages remain open.
@@ -9,7 +9,10 @@ integration, full combination CI and packages remain open.
 The [active Common Carrier brief](../campaign/m06-common-carrier.md#level-10-design-twenty-level-expansion)
 introduces a genuine sustained-fire gun sharing finite Bullets. This bounded
 foundation prepares its behavior and strict contracts before a played lesson.
-M09's PR remains immutable. M10 boarding/transit decisions remain pending.
+M09's reviewed source remains unchanged. Nick accepted a short authoritative
+departure transition for released eligible crew on 2026-10-04, keeping release
+and aboard facts distinct. Its implementation, strict historical compatibility
+and M10 mission work remain separate from this foundation.
 
 ## Candidate behavior
 
@@ -81,7 +84,9 @@ strict record types and the existing per-recipient sender, old-save parsing
 and current equipment validation only as required. Client work is strict
 equipment/record boundaries and family selection tests. The approved narrow
 fire-audio hook clears an unsupported identity's previous stream instead of
-replaying another gun's cue. No Repeater viewmodel, sound or map is added.
+replaying another gun's cue. The HUD similarly clears unsupported cached art
+and refuses unsupported resolved-fire flashes, preserving the selected real
+Rifle's frames. No Repeater viewmodel, sound or map is added.
 Coordinate exact shared source paths before later integration.
 
 Unversioned standalone CombatCounts retains historical five/six/seven-column
@@ -116,12 +121,17 @@ roadmap, catalog or plan index.
 Formatting, all-target workspace Clippy, the complete locked Rust workspace
 and a matching private release build pass. The server has 927 passing unit
 tests and three existing ignored tests; all 17 real local-child integration
-tests pass. The complete Godot checker passes import, 255 scripts and all 119
-harnesses with exit 0 and no errors. Actual older-client transport proof accepts
+tests pass. The final combined source includes accepted main `53b5c036` and
+its civilian, Pistol and Rifle presentation. Native Rust source, manifests and
+lockfile remain identical to the checked foundation checkpoint. The complete
+Godot checker passes import, 257 scripts and all 121 harnesses with exit 0 and
+no errors. Actual older-client transport proof accepts
 the genuine-zero revision 1 downgrade and refuses the new revision 2 record.
 Failed logs remain retained, including the initial exact current-client
 capability assertion that was corrected from 34 to 35 without changing M08's
-requirement of 31.
+requirement of 31. An actual scoped Sniper to unsupported Repeater reproduction
+and six failed regression assertions are retained before the narrow HUD fix;
+the corrected focused regression and complete client repeat pass.
 
 These checks establish this CPU foundation, not a final Repeater balance or
 accepted M10 lesson. Repeater art, truthful cues and presentation, played feel,
