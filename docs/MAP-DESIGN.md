@@ -75,6 +75,15 @@ goal, what changed here, the encounter progression, and why its exit leads to
 the next mission. Sketch a route graph and height section. Name the landmarks.
 Do not start with a giant rectangle and distribute cover until it looks occupied.
 
+Nick clarified on 2026-10-04 that wide spaces are fine when they make sense
+for the lore. A lunar dome or ship hangar may have a large pressurized volume;
+its shell, supports, loading routes and maintenance access should explain
+that scale. Outdoor yards, streets, courtyards and terrain remain valid.
+Distinguish the visible architectural volume from the route the player fights
+through. Preserve useful openness, flanks and varied sightlines while making
+rooms, infrastructure and transitions credible. Extra corridors or decorative
+clutter cannot substitute for a believable place.
+
 The current six arenas still have oversized open spaces, repetitive cover and
 weak landmarks. The [Compliance Yard study](plans/authored-compliance-yard.md)
 is deferred spatial research, not the campaign opening. The first campaign

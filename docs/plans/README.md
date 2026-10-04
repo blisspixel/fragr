@@ -30,6 +30,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`free-human-civilian-revision.md`](./free-human-civilian-revision.md) | **in flight** | Correct the default human's overly literal cowboy treatment with hatless civilian workwear, varied role direction and a bounded 40-credit source/rig revision. Existing selected art remains until replacement acceptance. |
 | [`loading-first.md`](./loading-first.md) | **shipped** with main integration of [PR #350](https://github.com/blisspixel/fragr/pull/350) | Opaque first-frame loading curtain, matching snapshot and draw readiness, observable failure and safe input rearming; actual rendered local campaign and desktop package checks pass. |
 | [`sabotage-five-seats.md`](./sabotage-five-seats.md) | **implemented**, [PR #351](https://github.com/blisspixel/fragr/pull/351) owns complete CI and package verification; human match acceptance open | Optional ten-seat Sabotage, mixed fighter roles and bots sharing five per side, finite Pistol fresh starts, survivor carry, parked resume and localized full-room refusal. Generic matches remain unchanged. |
 | [`competitive-and-community.md`](./competitive-and-community.md) | **planned** direction, new format details **proposed** | Classic-map research applied to original 5v5 objectives, cooperative Liberation, mixed human/agent play and free community hosting. New modes remain unbuilt. |

@@ -27,13 +27,15 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest production reconciliation on 2026-10-04 reports **2,625 API
-credits**, **15 uncertain credits held**, and **2,610 usable**. Enforcer,
-Crawler, Pistol and Rifle production consumed 120 included credits inside the
-first 900-credit allocation, leaving 780 within that ceiling. These are source
-candidates in preparation, not four finished runtime assets. The
+The latest production reconciliation on 2026-10-04 reports **2,585 API
+credits**, **15 uncertain credits held**, and **2,570 usable**. Enforcer,
+Crawler, Pistol, Rifle and the bounded civilian revision consumed 160 included
+credits inside the first 900-credit allocation, leaving 740 within that ceiling.
+These receipts do not establish finished game coverage. The
 [production receipt](../evidence/asset-production-20261004.md) records actual
-operations, inspection and remaining acceptance. No pack is needed for the
+operations, inspection and remaining acceptance; the later
+[civilian revision receipt](../evidence/free-human-civilian-20261004.md) records
+its additional 40 credits and current balance. No pack is needed for the
 remaining eight first candidates in this allocation.
 
 The planning baseline before this production batch on 2026-10-04 was

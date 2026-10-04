@@ -58,6 +58,12 @@ does not excuse empty rooms, weak silhouettes, flat lighting or incoherent art.
 ## Environment detail and water
 
 A place should explain who uses it, what they do there and what just happened.
+Nick clarified on October 4 that large spaces are welcome when their purpose
+and construction are believable. A lunar dome or ship hangar can contain a
+large air volume; show its pressure boundary, structural supports and useful
+service routes. Outdoor yards, streets and natural terrain remain part of the
+variety. Plausibility does not mean turning every map into tight corridors.
+Judge what the space supports and how people use it, not openness alone.
 Start with an identifiable activity: a clinic receiving patients, a repair
 market sharing tools, a freight yard sorting people, an institution enforcing a
 queue. Put detail around that activity. Repeated generic crates and vents cannot
@@ -177,10 +183,14 @@ preferences, relationships and a body maintained through its own choices.
 The body is lean, with modest shoulders and articulated civilian proportions.
 Avoid a muscular superhero silhouette or heavy built-in combat armor.
 The main human is a chill stoner-gamer dude who wants music, scrap, friends and
-a free life. His look is a restrained future cowboy: worn leather/rust jacket,
-dark work pants, boots, an easy visible face and posture, with an optional
-short-brim hat and red neckerchief. A scavenged long rifle is gear when needed,
-not a personality. Avoid theatrical western costumes or expensive tactical armor. Both have
+a free life. Nick clarified on October 4 that the freedom-loving influence is
+light, not literal cowboy costuming. The default reference is hatless civilian
+workwear: a worn utility jacket, casual layers, dark work pants, practical
+footwear and an easy visible face and posture. Free humans include mechanics,
+hackers, medics and other ordinary people with varied clothes and possessions.
+Western accessories may be an occasional personal choice, never the default
+body or a faction uniform. A scavenged long rifle is gear when needed,
+not a personality. Avoid theatrical costumes or expensive tactical armor. Both have
 limited means; maintained possessions and personal repairs show dignity and
 choice rather than wealth. Nick's October 1
 [duo reference](../client/art/characters/references/free-duo-reference.png)

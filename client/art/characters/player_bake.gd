@@ -16,7 +16,7 @@ const WALK_FRAMES: int = 4
 const BREATH: Array[float] = [0.0, 0.012, 0.02, 0.01]
 const OUTLINE: Color = Color8(58, 42, 72)
 const BODIES: Dictionary[String, String] = {
-	"human": "Free human: angular painted face, worn leather jacket, teal shirt, work trousers, ochre scarf and practical hat.",
+	"human": "Free human: angular painted face, short informal hair, rust utility jacket, teal casual shirt, patched work trousers and practical shoes. Hatless civilian workwear.",
 	"synthetic": "Free embodied agent: bone shell over a gunmetal frame, leather harness, ember scarf, rust repair plates, round cyan lenses, magenta-tipped antenna.",
 }
 

@@ -4,9 +4,9 @@
 	"entries": [
 		{
 			"body": "human",
-			"brief": "Free human: angular painted face, worn leather jacket, teal shirt, work trousers, ochre scarf and practical hat.",
+			"brief": "Free human: angular painted face, short informal hair, rust utility jacket, teal casual shirt, patched work trousers and practical shoes. Hatless civilian workwear.",
 			"file": "human.png",
-			"sha256": "1419a43717277beaa133186b0e6286a03053819c85e6aa4e3d6f34f8edd69d2b"
+			"sha256": "f456ef63341394e982432f13a74c699925207b7611c82f7e05f4811be3d67f31"
 		},
 		{
 			"body": "synthetic",
@@ -20,10 +20,10 @@
 	"schema": 1,
 	"sources": {
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
-		"res://art/characters/player_bake.gd": "56d989876a80ac4f2ad84bdac120d219275ba0ff51ff42502fbddc992b1252c8",
+		"res://art/characters/player_bake.gd": "26b99cf87408122439429b03f45f3f33344548bf80559d7fe4419e371bbe17c8",
 		"res://art/characters/player_rig.gd": "8816452026528b05b49709f75f1e7170f9761f90bcaedb2c4c8b2d71cdd0f3a4",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
-		"res://art/models/candidates/free_human.glb": "8b131e404a0155cae8eec586cbd22f5f19750238059f561074fdcbf1583d6f13",
+		"res://art/models/candidates/free_human.glb": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff",
 		"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
 		"res://art/models/free_human_source.gd": "7a83f137ed1c447db363b7f3b960e662a074df30b70ec52d4ee8bd738af313ba",
 		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
