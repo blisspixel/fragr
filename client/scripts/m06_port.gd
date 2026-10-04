@@ -61,6 +61,9 @@ func configure_map(info: Dictionary) -> void:
 					Vector3(0.1, 0.45, 0.024), Color("923b32"))
 				seal.basis = transform.basis
 	_geometry = M06MissionState.geometry_for(info)
+	var workmanship: M06Workmanship = M06Workmanship.new()
+	_root.add_child(workmanship)
+	workmanship.build(info)
 	ArenaSky.mark_world(self)
 
 func _window_frame(host: Dictionary) -> void:
