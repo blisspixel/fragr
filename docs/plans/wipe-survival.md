@@ -195,7 +195,8 @@ free lives or ammunition. Existing valid resume returns the same parked/dead
 state, not a fresh inventory. Explicit leave has no refund.
 
 Spectators stay default and never affect progress or spend stock. They can join
-when a safe paid deployment is possible or queue for the next round. Human,
+when a safe deployment can spend an actual reinforcement charge, or queue for
+the next round. Human,
 agent and rule-bot seats share one Action/wire/controller seam. MCP observes
 strategic facts and submits discrete intent slowly; local controllers remain on
 the tick. There is no second campaign tool or privileged combat channel.

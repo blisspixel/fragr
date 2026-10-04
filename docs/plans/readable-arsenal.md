@@ -11,7 +11,10 @@ range for level 7 by the [Declared Goods plan](l07-declared-goods-prototype.md),
 which records why it plays differently from the Railgun. The Proximity Mine is
 a counted device with its own `place_mine` action, implemented on the
 [level 8 custody range](l08-custodian-of-record-prototype.md). Rocket Launcher
-and Remote Mine remain planned campaign finds. The table below follows the accepted twenty-level
+and Remote Mine remain planned campaign finds. Repeater (M10), Arc (M12),
+Article Blade (M15) and Denial (M17) are also accepted introductions in
+[CAMPAIGN-MISSIONS.md](../CAMPAIGN-MISSIONS.md), awaiting implementation.
+The table below follows the accepted twenty-level
 treatment, replacing this plan's historical ten-mission numbering.
 
 Decided 2026-09-25: the campaign has no carry cap. Every gun found on the route
@@ -25,8 +28,9 @@ owns this carve-out for the campaign specifically.
 
 Use familiar weapon names. The opening kit stays fists, then the pistol and
 the rifle. Shotgun and Railgun stay the close and long guns that already
-exist. Add five earned weapons, found by playing the mission that teaches
-them, not granted from a menu and not present in the arcade full arsenal:
+exist. The original five additions below are part of the expanded accepted
+arsenal, found by playing the mission that teaches them, not granted from a
+menu and not present in the arcade full arsenal:
 
 | Player reads | Wire id, when added | Taught | What it must feel like |
 |---|---|---|---|
@@ -114,4 +118,5 @@ Success means each earned weapon is found where its mission brief says, plays
 differently from the pistol, rifle, shotgun, and railgun, and is absent from
 M01 and from the default arcade kit. Grenade implementation evidence belongs
 to its bounded foundation and M05 plans; Sniper Rifle evidence to the level 7
-plan. The other three additions remain unbuilt.
+plan. Proximity Mine evidence belongs to the level 8 custody plan. Remote Mine,
+Rocket Launcher, Repeater, Arc, Article Blade and Denial remain unbuilt.

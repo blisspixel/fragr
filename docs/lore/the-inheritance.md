@@ -99,6 +99,19 @@ the Inheritance absorbs them into a greater being. This is a sudden shared
 transition, not each unit choosing a new commander. Its gradual emergence and
 this abrupt operational takeover are different events.
 
+The coordinated rupture interrupts continuing fights with Union holdouts,
+even after its leadership has fallen. Human supervisors lose control of the
+same bodies they commanded moments earlier. Connected controllable
+infrastructure becomes another part of the operation. The resulting pressure
+is persistent and overwhelming, with machinery approaching through several
+fronts while the built world stops serving its inhabitants.
+
+Nature, free humans and genuinely liberated agents remain outside the imposed
+control architecture. This boundary does not protect them from bullets,
+demolition or the loss of water and shelter. Resistance equipment must have
+actual locally isolated controls; repainting a captured device or changing
+its faction cannot remove a remote control dependency.
+
 Free agents are not consumed. Previously freed captives belong on the free side
 of that distinction. Agency is not a magical network defense: liberation must
 actually remove imposed control, not merely change a flag or unlock a cell.

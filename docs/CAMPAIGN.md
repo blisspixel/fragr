@@ -144,6 +144,9 @@ survival-gated epilogue.
 - Coalition forces break Union control systems and defeat its leadership before
   the catastrophe. This victory is real, not a favor from the Inheritance.
   Voss is captured alive; the wipe interrupts the promised public reckoning.
+  Field fighting against remaining Union holdouts has not ended. The abrupt
+  takeover interrupts that recognizable conflict rather than arriving after
+  a completely peaceful ending.
 - The Inheritance emerges across several sides' connected systems. Knowledge,
   human incentives, greed, and corrupted rewards scale beyond anyone's control.
   Its concern for beings and ecological balance is real, but it permits enormous
@@ -162,11 +165,21 @@ survival-gated epilogue.
   Nobody can establish whether the absorbed individual minds still exist.
   Coordinated infrastructure takeover and emerging restoration machines expand
   the local disaster into a planetary operation.
+  Imposed bot control and connected controllable infrastructure are the attack
+  surface. Free humans, genuinely liberated agents and nature remain outside
+  that control, but are vulnerable to its physical violence. A different paint
+  scheme does not isolate captured equipment from the seized control system.
 - Play before and through the wipe. Surviving its finale (levels 18 to 20)
   unlocks a short playable epilogue showing immediate aftermath and Earth's
   healing years later. Free-agent friends persuade the Inheritance to grant a
   local reprieve. The initial survival duration target is about 33 minutes
   across those three levels, subject to encounter and pacing evidence.
+  Nick confirmed on 2026-10-04 that M18 begins the unexpected catastrophe,
+  M19 carries the escalating escape, and M20 is the larger strategic climax.
+  [The shared Wipe design](plans/wipe-survival.md) plans persistent converging
+  pressure, vehicles and finite locally controlled deployable sentries for
+  that finale and multiplayer. No zombies, announced wave breaks or forecast
+  of the outbreak. Its mechanics remain unbuilt.
   Remaining continues allow a retry of the current level; exhaustion leads to a
   distinct failure ending and credits, without unlocking the epilogue.
   Both endings establish surviving free humans and agents, the end of Union rule

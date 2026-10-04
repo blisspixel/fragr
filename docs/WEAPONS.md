@@ -1,6 +1,6 @@
 # The weapons
 
-Player-facing names, as of 2026-10-02: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
+Player-facing names, as of 2026-10-04: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
 Sniper Rifle. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
 `flechette`, `scatter`, `rail`, `shiv` and `sniper`. Ammunition is Doom style (2026-09-24): one
 count per type, no magazines and no reload. Pistol and Rifle share Bullets, the
@@ -8,8 +8,11 @@ Shotgun uses Shells and the Railgun and Sniper Rifle use Cells. A Sniper Rifle, 
 Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
 missions. Level 5's prototype implements counted grenades through a separate
 throw control, capped at six; they leave gun selection unchanged. The Sniper
-Rifle is implemented on its development range for level 7. The other three
-additions remain unbuilt. They are not in M01 or the default arcade kit.
+Rifle is implemented in level 7. Level 8 implements counted Proximity Mines,
+capped at four, through a separate place control. Rocket Launcher and Remote
+Mine remain unbuilt. Repeater, Arc, Article Blade and Denial are also accepted
+later campaign finds awaiting implementation. These additions are not in M01
+or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
 the proposal table below are that rocket launcher and that proximity mine, not
@@ -36,7 +39,7 @@ automatically, and any pickup of that type makes it live again at once. M01 deat
 offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
-through the five authored development missions.
+through the connected authored development missions, including M07 and M08.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
@@ -78,7 +81,7 @@ There is one number per ammunition type and it is everything you carry. A shot s
 | 7 | **Repeater** | Heavy full auto | 14 | 0.10 s | 60 | Bullets | Pad |
 | 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
 | 9 | **Arc** | Energy, ignores armour | 18 | 0.15 s | 40 | Cells | Pad, outer ring |
-| 10 | **Proximity tin** | Thrown, placed | 90 at centre | 1.5 s to arm | 3 carried | none | Pad |
+| 10 | **Proximity Mine** (implemented) | Thrown, sticks | Up to 130, covered 4.5 m falloff | 2 s to arm, 0.2 s triggered fuse | 4 carried maximum | none | M08 |
 | 11 | **Article Blade** | Melee upgrade | 70 | 0.45 s | 12 swings | none | Plinth, near centre |
 | 12 | **Denial** | Signature | 250 | 1.25 s | 5, no refill | none | Plinth, centre |
 
@@ -96,12 +99,15 @@ It bounces rather than detonating on contact and can hurt its owner. The
 
 ## Placed explosives
 
-The proximity tin remains planned. Add a remote-detonated charge as its proposed
-paired gadget: throw or place it, move away, then trigger a deliberate ambush.
-Use one shared placed-explosive implementation with explicit trigger behavior,
-rather than separate damage systems. Final carry limits, damage, blast radius
-and availability need prototype evidence; the table does not define remote-charge
-balance. Both are game devices with readable silhouettes and arming feedback.
+The Proximity Mine is implemented in M08: forty-tick arming, a two-metre body
+trip, four-tick fuse and the shared covered blast path. Its independent carry
+cap is four; a placed device goes dark with its owner. See the
+[custody prototype](plans/l08-custodian-of-record-prototype.md) for evidence.
+The remote-detonated charge remains its planned paired gadget: throw or place
+it, move away, then trigger a deliberate ambush. Reuse the existing swept
+contact and blast helpers with a separately validated trigger policy. Its final
+limits and balance still need prototype evidence. Both are game devices with
+readable silhouettes and arming feedback.
 
 Teach placement in a safe setting, then give enemies routes that reward a trap.
 Later encounters can use an obvious demolition target with a nearby usable charge,

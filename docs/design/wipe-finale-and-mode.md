@@ -174,6 +174,16 @@ Safe resupply means reduced exposure, not a sealed bunker until the clock ends.
 The final refuge perimeter is visibly defined from arrival. The exception later
 has a local physical boundary, and machines can be seen continuing beyond it.
 
+The larger district cannot rely on scenery appearing as the player approaches.
+Prepare its geometry, materials and required stage resources before readiness.
+Inspect continuous approaches, turns, vehicle movement and return peeks on
+first-use and warmed runs; a set of stills cannot establish absence of pop-in.
+Future distance/LOD optimization must preserve visible walls and silhouettes.
+An intentional collapse has a local tell and matching authoritative world
+change, distinct from a loading or culling failure. Retain exact frame/camera
+and source receipts for the reported office-wall regression before claiming it
+resolved across the wider world.
+
 ## Twelve minutes of continuous catastrophe
 
 The initial M20 hypothesis uses eight internal 90-second budget windows. These
