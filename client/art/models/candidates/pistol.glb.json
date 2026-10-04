@@ -1,6 +1,11 @@
 {
 	"authored_triangles": {
 		"CurvedBlade": 60,
+		"FrontSight": 60,
+		"RearSightLeft": 60,
+		"RearSightRight": 60,
+		"SlideSeamLeft": 60,
+		"SlideSeamRight": 60,
 		"SpringGuide": 120
 	},
 	"maps_max_pixels": 1024,
@@ -26,8 +31,8 @@
 		"Trigger": 176
 	},
 	"original_triangles": 5154,
-	"prepare_sha256": "d0c4e1bf5d416c20a2df8219d66a0dd285a18d235c677070bb129558e7f817be",
-	"prepared_sha256": "b7463eea8ca234a2343ea9eeaa2d4c4f259a49502511491c3c7b2e244dd31df2",
+	"prepare_sha256": "4f53975e4465f60ce8e05b12d567dbd2ade27bf37aa6f3a243c38b40fdebd4c6",
+	"prepared_sha256": "6b53c545e6efb89cb1e43f19c0e6f012b6590424ae2e37fe8fc82111e660d543",
 	"raw_sha256": "9c097088ab52e63730d6ec4494180c4663b812016035c490a06a19bf51a51318",
 	"runtime_selected": false,
 	"schema": 1

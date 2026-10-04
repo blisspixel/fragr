@@ -34,7 +34,7 @@ func _run() -> void:
 	var camera: Camera3D = Camera3D.new()
 	camera.fov = 58.0
 	viewport.add_child(camera)
-	camera.position = Vector3(0.0, 0.055, 0.125)
+	camera.position = Vector3(0.075, 0.055, 0.125)
 	camera.look_at(Vector3(0.0, -0.120, -0.182))
 	var source: RefCounted = Source.new()
 	var gun: Node3D = source.build(true)

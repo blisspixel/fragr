@@ -130,3 +130,47 @@ chrome-like candidate; gloves remain angular at play scale. The HUD texture
 is still an overlay, so the close-wall comparison does not establish world
 mesh near clipping. Runtime selection and exported-package checks remain
 open. No paid source, ammunition policy or server outcome changes here.
+
+## Three-quarter readability revision
+
+The fifth pair's held view still reads as a long, weakly differentiated slide.
+The third offline revision preserves that entire trial and the prior source
+while moving the bake camera 75 mm to the side. The actual muzzle projects
+near column 113 on the unchanged 224x180 canvas. It exposes the right ejection
+port, slide cuts, trigger contact and walnut grip instead of viewing only
+the upper spine. Gameplay camera and weapon transforms remain unchanged.
+
+All 5,154 reviewed triangles remain. The original 180 local trigger/guide
+triangles remain separately counted. Five bounded dark sight/seam pieces add
+300 triangles, giving 5,634 total gun triangles. These use matte charcoal and
+stay inside the original sidearm envelope. Broad per-face top and side value
+groups clarify the source geometry without adding reflective scratches.
+Prepared source SHA-256:
+`6b53c545e6efb89cb1e43f19c0e6f012b6590424ae2e37fe8fc82111e660d543`.
+
+A new meaningful material gate caught preserved vertex colors with the
+imported material's paint flag disabled. The offline source presenter now
+duplicates and activates its local slide material. The failed proof and
+first studio bake remain retained. The actual corrected rebake lives in
+`candidate-three-quarter-v3-active/`; source and inherited registration logs
+`test-v3-source-active.log` and `test-v3-registration-active.log` exit 0 with
+clean errors and their PASS markers. The source contract checks the real
+active material flag, contrasting vertex groups, dark trim bounds and every
+prior raw count, mechanism, alpha, full-height and bottom-edge assertion.
+
+The sixth played comparison completes eight nonblank states and nine ordinary
+arrivals. Exactly one actual Pistol solid impact at tick 280 leaves 49 from
+50 Bullets, with canonical release sequence 852 preceding the capture. Nine
+same-sample pairs last 17 to 19 ms across ticks 203 through 477. Full-size
+held, fire, close-wall and pickup pairs are inspected, with visibly clearer
+slide side, sights and grip. `played-pair-6/` preserves the complete manifest,
+trace, camera and picture-hash receipts. `source-pairing.json` binds the actual
+map, route, wrapper, native helper, GLB and bake hashes.
+
+The private process owner now records the actual renderer exit code through
+the documented [process exit API](https://docs.godotengine.org/en/stable/classes/class_os.html#class-os-method-get-process-exit-code).
+`process-receipt.json` records exit 0, no timeout and cleanup of owned children.
+The clean tour log and complete manifest provide separate successful content
+evidence. Selected WeaponArt is restored to SHA-256
+`1610df85e0bf1eac6e0d00b0f9f028861856d054bdaca593da1356b255eb246a`.
+No runtime selection, package acceptance or campaign completion is claimed.

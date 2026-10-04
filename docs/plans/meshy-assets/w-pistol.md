@@ -24,6 +24,10 @@ Muzzle, trigger grip, support contact; separate slide if visible.
 The reviewed source now lives at `client/art/models/candidates/pistol.glb`.
 It preserves all 5,154 source triangles across Body, Slide, Trigger and Hammer,
 with a separate 60-triangle curved trigger blade and 120-triangle recoil guide.
+Five bounded dark sight/seam parts add 300 triangles separately, for 5,634
+total gun triangles. Broad face-painted top and side groups keep the slide
+readable without chrome. The held bake uses a modest three-quarter view that
+exposes the actual ejection port and grip while preserving muzzle registration.
 The front recoil plug moves with the slide through 12 mm; the actual barrel,
 bore marker and receiver stay fixed within the recoiling gun. Local work
 gloves maintain grip and index contact below the slide and sight line.

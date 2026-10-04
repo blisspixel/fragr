@@ -67,5 +67,17 @@ The fifth matched comparison completes the same eight states and nine
 ordinary arrivals with exactly one actual 50-to-49 shot. All nine temporary
 presentation pairs restore the selected textures exactly. Parent art review,
 runtime selection and package acceptance remain open.
+The fifth played pair retains a long, poorly differentiated held slide despite
+the quieter material. A further offline revision will use a modest
+three-quarter view, dark sight/panel boundaries and controlled charcoal value
+steps. It must retain the actual aiming direction, fixed bottom registration,
+all raw triangles, source mechanisms and every existing pixel threshold.
+The prior source receipts, artwork and comparisons remain retained. Runtime
+selection stays open until those actual views are reviewed again.
+That third offline revision now passes active vertex-paint, bounded hardware,
+source, motion and unchanged candidate registration gates. The sixth actual
+comparison completes the same eight states and nine arrivals, preserving
+exactly one 50-to-49 shot, restored textures and camera facts. Runtime art
+review, selection and exported-package acceptance remain open.
 [Source evidence](../evidence/pistol-source-refinement-20261004.md) records
 exact geometry, hashes, checks and the retained failures.

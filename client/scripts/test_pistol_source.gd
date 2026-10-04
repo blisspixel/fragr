@@ -46,6 +46,26 @@ func _run() -> void:
 	var fixed_guide: Transform3D = guide.transform
 	var slide: Node3D = gun.get_node("Slide") as Node3D
 	var slide_rest: Transform3D = slide.transform
+	var slide_mesh: MeshInstance3D = slide.get_node("SlideMesh") as MeshInstance3D
+	var plane_colors: PackedColorArray = slide_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	var low_plane: float = INF
+	var high_plane: float = 0.0
+	for plane: Color in plane_colors:
+		low_plane = minf(low_plane, plane.get_luminance())
+		high_plane = maxf(high_plane, plane.get_luminance())
+	_check((slide_mesh.get_active_material(0) as StandardMaterial3D).vertex_color_use_as_albedo
+		and low_plane < 0.35 and high_plane > 0.80,
+		"slide retains contrasting authored sight and machined plane groups")
+	for name: String in ["SlideSeamLeft", "SlideSeamRight", "RearSightLeft", "RearSightRight", "FrontSight"]:
+		var trim: MeshInstance3D = slide.get_node(name) as MeshInstance3D
+		var finish: StandardMaterial3D = trim.get_active_material(0) as StandardMaterial3D
+		var trim_bounds: AABB = trim.transform * trim.get_aabb()
+		_check(trim.mesh.get_faces().size() / 3 == 60 and trim_bounds.position.z > -0.183
+			and trim_bounds.end.z < 0.018 and trim_bounds.position.x > -0.023 and trim_bounds.end.x < 0.023,
+			"deliberate sight and slide edges remain bounded independently counted hardware")
+		_check(finish.albedo_color.get_luminance() < 0.20 and finish.metallic == 0.0
+			and finish.roughness > 0.90 and finish.albedo_texture == null,
+			"sight edges retain quiet dark boundaries without specular grain")
 	var trigger: Node3D = gun.get_node("Trigger") as Node3D
 	var hammer: Node3D = gun.get_node("Hammer") as Node3D
 	var trigger_rest: Transform3D = trigger.transform

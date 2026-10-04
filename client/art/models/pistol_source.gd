@@ -10,6 +10,12 @@ func build(hands: bool = false) -> Node3D:
 	if _packed == null:
 		_packed = load(SOURCE) as PackedScene
 	var gun: Node3D = _packed.instantiate() as Node3D
+	# Embedded vertex paint survives source export. Explicitly enable it on
+	# the local material because the scene import does not carry that flag.
+	var slide_mesh: MeshInstance3D = gun.get_node("Slide/SlideMesh") as MeshInstance3D
+	var slide_finish: StandardMaterial3D = slide_mesh.get_active_material(0).duplicate() as StandardMaterial3D
+	slide_finish.vertex_color_use_as_albedo = true
+	slide_mesh.material_override = slide_finish
 	for name: String in ["Slide", "Trigger", "Hammer"]:
 		var part: Node3D = gun.get_node(name) as Node3D
 		gun.set_meta(name.to_lower() + "_rest", part.transform)

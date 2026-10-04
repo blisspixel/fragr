@@ -89,6 +89,7 @@ func _run() -> void:
 	material.metallic = 0.06
 	material.roughness = 0.96
 	material.normal_scale = 0.20
+	material.vertex_color_use_as_albedo = true
 	var gun: Node3D = Node3D.new()
 	gun.name = "Pistol"
 	root.add_child(gun)
@@ -113,8 +114,19 @@ func _run() -> void:
 			if groups[_root(parents, indices[face])] != group:
 				continue
 			group_counts[group] = group_counts.get(group, 0) + 1
+			var face_center: Vector3 = Vector3.ZERO
+			var face_normal: Vector3 = Vector3.ZERO
+			for offset: int in range(3):
+				face_center += basis * (vertices[indices[face + offset]] - origin) * METRES / 3.0
+				face_normal += basis * normals[indices[face + offset]] / 3.0
+			var plane: Color = Color.WHITE
+			if group == "Slide":
+				plane = Color(1.20, 1.20, 1.16) if face_normal.y > 0.55 else Color(0.63, 0.65, 0.65)
+				if face_center.y > 0.023:
+					plane = Color(0.27, 0.29, 0.29)
 			for offset: int in range(3):
 				var index: int = indices[face + offset]
+				surface.set_color(plane)
 				surface.set_normal(basis * normals[index])
 				surface.set_uv(uv[index])
 				surface.add_vertex(basis * (vertices[index] - pivot) * METRES)
@@ -128,6 +140,14 @@ func _run() -> void:
 	var g: RefCounted = Workshop.new()
 	var edge: StandardMaterial3D = g.material("pistol_machined_trigger", Color("626b65"), 0.10, 0.91)
 	var guide: StandardMaterial3D = g.material("pistol_spring_guide", Color("525951"), 0.06, 0.95)
+	var trim: StandardMaterial3D = g.material("pistol_sight_and_seam", Color("202725"), 0.0, 0.98)
+	trim.albedo_texture = null
+	for side: float in [-1.0, 1.0]:
+		g.block(gun.get_node("Slide"), "SlideSeamLeft" if side < 0.0 else "SlideSeamRight",
+			Vector3(0.001, 0.003, 0.140), trim, Vector3(side * 0.0167, -0.011, -0.088))
+		g.block(gun.get_node("Slide"), "RearSightLeft" if side < 0.0 else "RearSightRight",
+			Vector3(0.004, 0.003, 0.006), trim, Vector3(side * 0.006, 0.026, -0.003))
+	g.block(gun.get_node("Slide"), "FrontSight", Vector3(0.003, 0.003, 0.009), trim, Vector3(0, 0.025, -0.168))
 	# The reviewed front recoil plug follows the slide. Its guide stays on the
 	# receiver, independently from the fixed barrel and open muzzle bore.
 	g.cylinder(gun.get_node("Body"), "SpringGuide", 0.0018, 0.032, guide, Vector3(0.0012, -0.016, -0.166), 10)
@@ -138,7 +158,7 @@ func _run() -> void:
 		Vector2(0.000, -0.026), Vector2(-0.003, -0.025), Vector2(-0.001, -0.016),
 		Vector2(-0.003, -0.010), Vector2(-0.005, -0.004)]), 0.0042, edge)
 	var additions: Dictionary[String, int] = {}
-	for name: String in ["SpringGuide", "CurvedBlade"]:
+	for name: String in ["SpringGuide", "CurvedBlade", "SlideSeamLeft", "SlideSeamRight", "RearSightLeft", "RearSightRight", "FrontSight"]:
 		var piece: MeshInstance3D = gun.find_child(name, true, false) as MeshInstance3D
 		additions[name] = piece.mesh.get_faces().size() / 3
 	var muzzle: Marker3D = Marker3D.new()
