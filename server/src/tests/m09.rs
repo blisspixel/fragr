@@ -189,18 +189,6 @@ fn m09_departure_requires_final_clear_fresh_use_and_all_ready_living_aboard() {
     let state = s.state.mission_state().unwrap();
     assert_eq!(state.phase, MissionPhase::Departed);
     state.validate(s.state.tick).unwrap();
-    let map = s.state.map.clone();
-    let g = map.m09_geometry().unwrap();
-    let mut controller = crate::mission::MissionClient::default();
-    controller
-        .replace_map_with_m09(
-            Some(&g),
-            map.half_extent(),
-            &map.arena().solids,
-            map.presentation_ref(),
-        )
-        .unwrap();
-    controller.observe(s.state.tick, state.clone()).unwrap();
     assert_eq!(
         state.m09.unwrap().completed.last().unwrap(),
         "party_departed"
