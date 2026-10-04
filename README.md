@@ -8,8 +8,9 @@ while the match continues. A Rust server decides every game outcome; the Godot
 client presents it; agents use the same action channel through an MCP adapter.
 
 Get the [latest development release](https://github.com/blisspixel/fragr/releases/latest).
-The current published release is [v0.72.0](https://github.com/blisspixel/fragr/releases/tag/v0.72.0),
-with loading-first presentation and the optional ten-seat Sabotage profile.
+The current published release is [v0.73.0](https://github.com/blisspixel/fragr/releases/tag/v0.73.0),
+with nine campaign prototypes, the refined Pistol and hatless civilian,
+loading-first presentation and the optional ten-seat Sabotage profile.
 All eight main CI jobs and the three desktop package checks passed.
 See the [roadmap](docs/ROADMAP.md) for the build order and the
 [changelog](CHANGELOG.md) for shipped changes.
@@ -18,8 +19,8 @@ See the [roadmap](docs/ROADMAP.md) for the build order and the
 
 | Choose | What you get | Start here |
 |---|---|---|
-| **The campaign** | Levels 1 to 9 in this development source, from the Annex 67 intake to the lunar Common Carrier berth. The published v0.72.0 has levels 1 to 8. Three continues per episode and a local save at each level's entry. | **Single Player > Recall Notice**, then **Continue Run** after each departure |
-| **Practice and Development** | Any built level on its own, without touching your run, including the source-only level 9 | **Single Player > Practice and Development** |
+| **The campaign** | Levels 1 to 9, from the Annex 67 intake to the lunar Common Carrier berth. Three continues per episode and a local save at each level's entry. | **Single Player > Recall Notice**, then **Continue Run** after each departure |
+| **Practice and Development** | Any built level on its own, without touching your run | **Single Player > Practice and Development** |
 | **Calibration** | Episode 0's arena challenge against named bots, with the Host, objectives and an Auditor | `./tools/solo_scrap.sh` |
 | **Multiplayer** | Six arenas for free-for-all and team deathmatch. Capture the flag on Arena Duel, Directive 17 and Sector 9. Sabotage on Sector 9: plant or defuse a charge, one life a round. Humans, agents and spectators share one server-owned match. | Run a server, then choose **Multiplayer** |
 
@@ -96,9 +97,12 @@ full mission-route acceptance. This runtime increment shipped in
 implementation CI and all three desktop package checks passing. Its cast batch
 used 160 included model credits. The Enforcer is integrated with level 9;
 Crawler refinement remains in flight. The latest October 4 free account check
-reports 2,550 available with a 15-credit uncertain hold, leaving 2,535 usable;
-tracked net consumption is 520 credits, including the new Jammer candidate
-under inspection. The [full asset plan](docs/plans/meshy-full-game-assets.md)
+reports 2,480 available with a 15-credit uncertain hold, leaving 2,465 usable;
+tracked net consumption is 590 credits, including the Jammer and the first
+Railgun/Sniper Rifle candidates under local refinement. The
+[precision source receipt](docs/evidence/precision-weapon-references-20261004.md)
+records their actual geometry, eight inspected views and 70 included credits.
+The [full asset plan](docs/plans/meshy-full-game-assets.md)
 owns the per-object briefs and budget scenarios.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
 and [campaign results](docs/plans/campaign-results.md) shipped in that same
@@ -120,7 +124,11 @@ and [evidence](docs/evidence/m09-passenger-manifest-20261004.md) distinguish
 real completion, historical unknown outcomes and remaining art and play gates.
 [PR #353](https://github.com/blisspixel/fragr/pull/353) selects the refined
 Pistol after source, paired live presentation, full client, CI and desktop
-package checks. Parallel development continues on Rifle and Jammer craft,
+package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) selects
+the refined Rifle on main after accepted source and played comparisons,
+complete local client checks, all eight exact-head CI jobs and all three
+desktop package checks. That increment follows the published v0.73.0 build.
+Parallel development continues on Jammer and precision-weapon craft,
 the Repeater foundation, a Kitchen map with
 an unresolved first-use wall-rendering defect, and a Garage whose full walking
 route passes but vehicle craft and fresh human fun remain open.

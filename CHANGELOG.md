@@ -6,6 +6,17 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+The civilian Rifle now uses its refined walnut and charcoal source for held,
+firing and pickup pictures. Its real bolt has a bounded stroke, gloves contact
+the grips and the muzzle has a physical hollow liner. Source inspection,
+paired ordinary play, the unchanged viewmodel gates, complete local client
+checks, all eight exact-head CI jobs and all three desktop package checks
+passed before [PR #356](https://github.com/blisspixel/fragr/pull/356) merged.
+Weapon rules and ammunition behavior are unchanged. This increment follows
+the published v0.73.0 desktop build.
+
+## v0.73.0 (2026-10-04)
+
 Passenger Manifest extends the campaign prototype through level 9. The lunar
 Common Carrier berth has supported gantries, service galleries and sealed
 glazing, ordered encounters and human Union Enforcers with server-owned contact
@@ -19,6 +30,11 @@ uses readable painted materials, coherent moving hardware and registered held,
 firing and pickup frames. Each increment passed its local gates, complete CI
 and all three desktop package checks before merging to main. Level 9 remains a
 development prototype with final casting, art and fresh-player review open.
+
+All eight main CI jobs passed at `72dfd263`. Tagged Windows, Linux and macOS
+packages passed their checks; uploaded SHA-256 digests match the release
+checksum manifest. The release was published on 2026-10-04. The next Rifle
+presentation and further weapon source candidates remain separate work.
 
 ## v0.72.0 (2026-10-04)
 

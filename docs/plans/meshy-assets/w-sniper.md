@@ -1,6 +1,6 @@
 # Sniper Rifle
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: in flight, 2026-10-04. Conversion reference and first source inspected; compact preparation and selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation.
 Stable ID: `W-sniper`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -15,11 +15,17 @@ Owners: [WEAPONS.md](../../../docs/WEAPONS.md), [guns.md](../../../docs/lore/gun
 
 Existing reference basis: [weapon_sniper.png](../../../client/art/production-20261003/weapon_sniper.png). These are design candidates, not approved orthographic sheets or completed models. Review every side and correct conflicts against the owners above.
 
+Selected conversion input: [sniper-stylized-v1.png](../../../client/art/weapons/references/sniper-stylized-v1.png), 1254 x 1254, SHA-256 `5c8ad97c3251ef1594c40a4986f6847b9a42e19653dc59525542aea5a0009442`. The complete isolated gun has muted walnut thumbhole furniture, a long charcoal barrel, compact aligned optic and identifiable bolt hardware. It retains practical civilian precision-rifle identity without inheriting Union uniform colors. Keep the original library image as history.
+
+The single perspective establishes silhouette and material intent. It does not prove hidden bolt geometry, scope lenses, exact dimensions or independent mechanisms. Prepared maps must quiet fine photographic wear and studio reflections. Inspect the actual barrel bore, both optical ends, stock support and two hand contacts in front, side and back views. Reference pixels were preserved while optional application metadata was normalized; see the [reference receipt](../../evidence/precision-weapon-references-20261004.md).
+
+The first Ultra stage, task `01a108c9-876e-7788-b33f-d1abcf06b6ab`, reported 35 included credits. Retained raw SHA-256: `4a1d5a0e405410feb385514a6878cf0b9476c298fbcf3456d8674e4797998bcb`. Measured source: 11,835 triangles, 13,792 vertices, one mesh/material, embedded 4096-pixel PBR maps, no bones or animations, 31,423,384 bytes. Raw dimensions are about 1.902 x 0.457 x 0.134 units; normalization is not proof of intended metre scale. All four views imported and rendered cleanly. Walnut furniture, the thumbhole, compact optical tube, long barrel and bolt handle are present. The map is too glossy for selection; physical lens/bore depth and independent bolt clearance remain to be measured.
+
 Record the selected reference paths and hashes, front/side/back silhouette, scale, intended material roles and independently moving parts. Named faces and proposed mechanics require a reviewed identity/role sheet. Remove studio/background artifacts from conversion inputs. Prior wrong-side antennas, unsuitable cloth-panel and water outputs remain historical.
 
 ## Parts and motion
 
-Muzzle, both grips, scope optical axis and bolt; retain unscoped readability.
+Muzzle, both grips, scope optical axis and bolt; retain unscoped readability. Separate a usable rigid bolt from the body locally, with measured travel and chamber clearance. Optical and barrel axes must agree. A visible bolt does not introduce magazines, reload input or a new ammunition rule.
 
 Author rigid weapon mechanisms, grips and effects locally. Humanoid rigging does not apply to guns or equipment. One accepted source supplies held, pickup and icon views.
 
@@ -31,7 +37,6 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 
 ## Credit reservation and next operation
 
-Reserve at most 35 credits for a first 7.1 textured candidate, or 15 for a suitable inspected Smart Topology candidate. The shared revision reserve is separate. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
+The first candidate consumed its 35-credit allowance. Next work is local topology, compact maps and mechanism preparation, with no extra paid stage planned. Any justified replacement must use the separate shared revision reserve. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.
-
