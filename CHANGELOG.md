@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.73.0 (2026-10-04)
 
 Passenger Manifest extends the campaign prototype through level 9. The lunar
 Common Carrier berth has supported gantries, service galleries and sealed
@@ -19,6 +19,11 @@ uses readable painted materials, coherent moving hardware and registered held,
 firing and pickup frames. Each increment passed its local gates, complete CI
 and all three desktop package checks before merging to main. Level 9 remains a
 development prototype with final casting, art and fresh-player review open.
+
+All eight main CI jobs passed at `72dfd263`. Tagged Windows, Linux and macOS
+packages passed their checks; uploaded SHA-256 digests match the release
+checksum manifest. The release was published on 2026-10-04. The next Rifle
+presentation and further weapon source candidates remain separate work.
 
 ## v0.72.0 (2026-10-04)
 

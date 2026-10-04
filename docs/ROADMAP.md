@@ -309,9 +309,10 @@ The phases below are the long shape. The sequence that follows is the build orde
 quality for the work. Nick authorized parallel game development alongside
 substantial model production. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
-The current release is [v0.72.0](https://github.com/blisspixel/fragr/releases/tag/v0.72.0),
-including [PR #351](https://github.com/blisspixel/fragr/pull/351), with all eight
-main CI jobs and three desktop package checks passing. Current independent
+The current release is [v0.73.0](https://github.com/blisspixel/fragr/releases/tag/v0.73.0),
+including the M09 prototype, refined Pistol and hatless civilian. All eight
+main CI jobs and three tagged desktop package checks passed; uploaded digests
+match the checksum manifest ([release receipt](evidence/release-v073-20261004.md)). Current independent
 lanes are Rifle/Jammer craft, the Repeater foundation, Kitchen and Garage. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
@@ -340,8 +341,9 @@ map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
 asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-0. **Nick plays v0.72.0.** The current desktop release includes the new Clerk,
-   sealed buildings, civilian finishes, restored level 7, loading-first and
+0. **Nick plays v0.73.0.** The current desktop release includes the new Clerk,
+   sealed buildings, civilian finishes, restored level 7, the supported M09
+   berth and Enforcers, refined Pistol, hatless civilian, loading-first and
    optional ten-seat Sabotage. Review the built campaign, Sabotage with
    bots and capture the flag, using the watch list in the
    [polish plan](plans/campaign-polish-20261002.md).
