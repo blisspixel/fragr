@@ -33,3 +33,11 @@ Reference approval is separate from source topology, independent mechanisms,
 compact maps, hand contact, registration, actual played comparison, full client
 checks, CI and desktop packaging. Current gun art stays selected until those
 gates pass. One perspective cannot prove hidden geometry or exact dimensions.
+
+The two full-size conversion references passed visual review on 2026-10-04.
+Both keep their existing weapon identities with angular painted forms and
+distinct material families. Native pixel comparison confirmed that metadata
+normalization did not change either decoded image. Their selected paths,
+hashes, limits and measured-part acceptance requirements now live in the two
+asset briefs and [reference receipt](../evidence/precision-weapon-references-20261004.md).
+No new model, rig, atlas or runtime selection is claimed by this checkpoint.
