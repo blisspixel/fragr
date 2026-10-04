@@ -1,6 +1,6 @@
 # Pistol
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: in flight, 2026-10-04. Source route: **New source candidate**, inspected and refined offline. Runtime selection remains open. Included in the first bounded production allocation.
 Stable ID: `W-pistol`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -21,6 +21,21 @@ Record the selected reference paths and hashes, front/side/back silhouette, scal
 
 Muzzle, trigger grip, support contact; separate slide if visible.
 
+The reviewed source now lives at `client/art/models/candidates/pistol.glb`.
+It preserves all 5,154 source triangles across Body, Slide, Trigger and Hammer,
+with a separate 60-triangle curved trigger blade and 120-triangle recoil guide.
+The front recoil plug moves with the slide through 12 mm; the actual barrel,
+bore marker and receiver stay fixed within the recoiling gun. Local work
+gloves maintain grip and index contact below the slide and sight line.
+Prepared maps are embedded at 1K, with nearest sampling and no generated LOD.
+The source is 24 cm long, about 20 cm high and less than 5 cm wide.
+
+The [bounded refinement plan](../pistol-source-refinement-20261004.md)
+owns source checks and the actual presentation comparison. Its 224x180 held
+and fire canvases and 36x26 pickup canvas come from this source, without a
+magazine, reload, ammunition grant or altered shot timing. Candidate pixels
+remain offline until the played comparison and packaging gates pass.
+
 Author rigid weapon mechanisms, grips and effects locally. Humanoid rigging does not apply to guns or equipment. One accepted source supplies held, pickup and icon views.
 
 ## Integration and acceptance
@@ -34,4 +49,3 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 Reserve at most 35 credits for a first 7.1 textured candidate, or 15 for a suitable inspected Smart Topology candidate. The shared revision reserve is separate. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.
-
