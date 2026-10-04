@@ -39,6 +39,39 @@ publishes TCP 6767. It writes no campaign run file. Local Single Player owns
 its separate loopback process and run storage; do not point that menu at the
 dedicated container.
 
+## Optional 5v5 Sabotage
+
+The opt-in profile is implemented with focused local checks; combined
+integration CI remains open. Start a source-built dedicated host with:
+
+```bash
+fragr-server --mode sabotage --map 4 --bots 4 --sabotage-five-v-five
+```
+
+All ten fighter seats are shared by humans, agents and rule bots, with at most
+five on either side. The unchanged default of four bots leaves six external
+seats; `--bots 0` leaves ten. `--bots 10` deliberately fills the room and does
+not evict bots for a human or agent. More than ten initial bots is a startup
+error. Internal bot refill shares this same capacity. Advertise the profile
+in your room description; no new discovery field is sent in this increment.
+
+Fresh admission, first round and fresh post-death rounds start with selected
+Tack/Pistol and fifty finite Bullets. Stronger guns come from the map.
+Survivors keep their guns and ammunition without repeated sidearm grants.
+Weapon-only mutators are rejected for this profile; generic matches retain
+their current behavior. Friendly fire and Golden Rail remain compatible.
+
+A full room refuses fighters with `match_full` before Welcome. The client
+shows a localized refusal and Return; choose Watch from the menu to connect
+as a spectator. Spectators consume no fighter seat. A vacant-seat join during
+Live waits out that round until the next Muster, with zero additional lives.
+A resumable drop holds its seat, side and exact inventory for 200 server ticks
+(ten seconds at 20 Hz). Resume reuses that seat. Explicit Leave or grace expiry
+frees it for the next participant. Skill and control role do not affect admission.
+
+Standalone elimination, additional objective maps and Liberation remain
+planned. This flag adds no buy shop, reload system or mandatory full roster.
+
 ## Connect
 
 - On the same machine, the Godot client can use `127.0.0.1:6767`.

@@ -10,6 +10,9 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+#[cfg(test)]
+mod five_seats_tests;
+
 /// Connections include spectators, which have no player identity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -35,6 +38,8 @@ pub struct GameSession {
     sent_loadouts: HashMap<Uuid, (crate::protocol::WeaponType, u64)>,
     sent_records: HashMap<Uuid, protocol::PlayerRecord>,
     pub resume: Arc<ResumeTable>,
+    participant_slots: Option<Arc<tokio::sync::Semaphore>>,
+    bot_seats: HashMap<Uuid, tokio::sync::OwnedSemaphorePermit>,
 }
 
 impl GameSession {
@@ -65,6 +70,8 @@ impl GameSession {
             sent_loadouts: HashMap::new(),
             sent_records: HashMap::new(),
             resume: Arc::new(ResumeTable::new()),
+            participant_slots: None,
+            bot_seats: HashMap::new(),
         }
     }
 
@@ -86,10 +93,18 @@ impl GameSession {
     /// Raises `min_bots` to at least the resulting rule-bot count so solo stays stocked.
     /// Refreshes sticky Warmup Host roster intro for mid-join.
     pub fn spawn_bots(&mut self, count: usize) {
+        let slots = self.configure_sabotage_seats();
         let bot_configs = Self::rule_bot_roster();
 
         let start_index = self.bots.len();
         for i in 0..count {
+            let seat = match &slots {
+                Some(slots) => match Arc::clone(slots).try_acquire_owned() {
+                    Ok(seat) => Some(seat),
+                    Err(_) => break,
+                },
+                None => None,
+            };
             let bot_id = self.state.new_entity_id();
             let config_index = start_index + i;
             let (bot_name, behavior) = bot_configs
@@ -107,6 +122,12 @@ impl GameSession {
                 Role::Agent,
                 protocol::BodyKind::for_roster_slot(config_index),
             );
+            if !self.state.players.iter().any(|player| player.id == bot_id) {
+                continue;
+            }
+            if let Some(seat) = seat {
+                self.bot_seats.insert(bot_id, seat);
+            }
             let bot_controller = BotController::new(bot_id, behavior);
             self.bots.push(bot_controller.clone());
             self.state.bots.push(bot_controller);
@@ -159,6 +180,8 @@ impl GameSession {
 
     /// Spawn rule bots until `bots.len() >= min_bots`. No-op when already stocked or min is 0.
     pub fn ensure_min_bots(&mut self) {
+        self.bot_seats
+            .retain(|id, _| self.state.players.iter().any(|player| player.id == *id));
         if self.min_bots == 0 {
             return;
         }
@@ -172,6 +195,18 @@ impl GameSession {
             self.min_bots
         );
         self.spawn_bots(need);
+    }
+
+    /// Initialize the optional fixed roster before network admission or bot spawn.
+    pub(crate) fn configure_sabotage_seats(&mut self) -> Option<Arc<tokio::sync::Semaphore>> {
+        if self.state.config.rules.mode() != protocol::GameMode::Sabotage
+            || !self.state.config.sabotage.five_vs_five
+        {
+            return None;
+        }
+        Some(Arc::clone(self.participant_slots.get_or_insert_with(
+            || Arc::new(tokio::sync::Semaphore::new(10)),
+        )))
     }
 
     /// Names are display labels, never credentials for reclaiming another seat.

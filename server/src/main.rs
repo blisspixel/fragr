@@ -87,6 +87,10 @@ struct Args {
     #[arg(long, value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     sabotage_format: Option<fragr_server::protocol::SabotageFormat>,
 
+    /// Limit Sabotage to ten seated fighters, five per side. Spectators remain welcome.
+    #[arg(long, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    sabotage_five_v_five: bool,
+
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
     #[arg(long)]
@@ -283,7 +287,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         return Err("--sabotage-format requires --mode sabotage".into());
     }
     let mut match_config = match_config(rules, args.frag_limit, args.no_round_events);
+    if args.sabotage_five_v_five && args.mode != fragr_server::protocol::GameMode::Sabotage {
+        return Err("--sabotage-five-v-five requires --mode sabotage".into());
+    }
     if let Some(config) = match_config.as_mut() {
+        config.sabotage.five_vs_five = args.sabotage_five_v_five;
         if let Some(format) = args.sabotage_format {
             config.sabotage.format = format;
         }

@@ -326,3 +326,6 @@ msgstr "SIDES SWAPPED: EVERYONE CHANGES UNIFORM"
 
 msgid "SABOTAGE_SWAPPED_JOB"
 msgstr "YOU NOW {job}"
+
+msgid "SABOTAGE_MATCH_FULL"
+msgstr "This 5v5 match has ten fighter seats. Return to the menu and choose Watch, or join when a seat opens."

@@ -1218,6 +1218,17 @@ impl GameState {
         role: Role,
         body: crate::protocol::BodyKind,
     ) {
+        if self.config.rules.mode() == crate::protocol::GameMode::Sabotage
+            && self.config.sabotage.five_vs_five
+            && self
+                .players
+                .iter()
+                .filter(|player| player.contestant())
+                .count()
+                >= 10
+        {
+            return;
+        }
         if !self.admit_campaign_owner(id) {
             return;
         }
@@ -1386,6 +1397,11 @@ impl GameState {
     fn set_actor_action(&mut self, id: Uuid, mut action: Action, companion_intent: bool) {
         if let Some(player) = self.players.iter_mut().find(|p| p.id == id) {
             if player.is_campaign_companion() != companion_intent {
+                return;
+            }
+            if player.eliminated {
+                player.clear_input();
+                player.just_fired = false;
                 return;
             }
             if !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign) {
@@ -1671,6 +1687,10 @@ impl GameState {
         let muster = self.muster_hold();
         for player in &mut self.players {
             player.just_fired = false;
+            if player.eliminated {
+                player.clear_input();
+                continue;
+            }
             if matches!(
                 player.campaign,
                 Some(CampaignActor::Companion {
@@ -3239,6 +3259,7 @@ impl GameState {
             if player.respawn_timer.is_some()
                 || player.hp <= 0
                 || player.is_boss
+                || player.eliminated
                 || player.is_campaign_enemy()
                 || player.is_campaign_companion()
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)

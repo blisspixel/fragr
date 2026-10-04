@@ -182,6 +182,13 @@ two seconds and never admits rejected connections.
 Development mission servers admit at most four participants, sharing slots across human and
 agent roles. Spectators do not take slots. A full party rejects additional
 participants with `party_full` before `Welcome`; disconnect returns the seat.
+An opt-in `--sabotage-five-v-five` host shares ten fighter seats between human,
+agent and rule-bot roles, with five per side. Overflow receives the existing
+`error` shape with `match_full` before `Welcome`; spectators do not consume a
+fighter seat. A resumable drop holds that seat for the existing 200-tick grace.
+Explicit leave or grace expiry frees it. The client maps `match_full` to a
+localized hard stop and Return, with no automatic fighter retry; Watch may
+connect as a spectator. No new capability or discovery field is added.
 Local campaign and `--campaign-run` hosts reserve one lifetime combat seat instead.
 After its first successful admission, additional fighters receive `run_seat_closed`,
 including after the owner disconnects. Spectators remain admissible. Callsigns
