@@ -4,6 +4,32 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+The cast gains four coherent stylized production sources and rigs. The free
+human's selectable body uses a prepared skin and gait, painted angular face,
+worn leather jacket, work trousers and civilian accessories. Sweeper, Auditor
+and Latch motion and live presentation continue through their own acceptance
+gates. Production used 160 included model credits, with no new cash charge.
+
+Incoming fire gains short spatial pass-by cues and fading pixel damage
+bearings from resolved server shots. Finite shot segments, authoritative cover,
+local ownership and a bounded voice pool govern feedback. Actual two-client
+range shots exercise each bearing and a non-damaging near miss. Broader room
+acoustics and listening acceptance remain open.
+
+Local campaign departure shows actual kills, secrets, deaths and server elapsed
+time after story presentation. Readiness and retries own the clock; completion
+freezes it. Capability 33 gates the new record field for older clients. A real
+M01 route reaches its tally and durable onward save. Authored par is not yet
+available and is omitted.
+
+Low Water's west court gains three sealed residential buildings with domestic
+windows, varied roof heights and roof edges. Solid bodies and upper silhouettes
+use authoritative collision. The full mission route retains all 28 guards and
+departure; an optional roof route has a verified ordinary return. Older M04
+saves tied to the previous map hash remain incompatible.
+
 ## v0.70.0 (2026-10-03)
 
 The Clerk's replacement source has angular painted facial planes, a black

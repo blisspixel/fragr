@@ -56,6 +56,16 @@ The [stylized Clerk evidence](docs/evidence/union-stylized-20261003.md) shows
 angular painted faces, black field uniforms, red issue markings and paired
 normals in a live Persons Unknown guard-room test. Union outfits are recognizable;
 buildings keep their own materials. The remaining cast still needs refinement.
+The [October 4 cast buildout](docs/plans/cast-model-buildout-20261004.md)
+continues with coherent Sweeper, Auditor, free-human and Latch models and rigs.
+The civilian skin and idle/walking strip pass local source and body checks;
+role motion, live Latch and combined acceptance remain in flight. This batch
+used 160 included model credits. A free live check reports 2,745 remaining,
+with a separate 15-credit uncertain hold retained.
+The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
+and [campaign results](docs/plans/campaign-results.md) are implemented locally
+with real server-shot and mission-completion evidence. Their combined CI and
+main integration remain pending.
 The [Low Water detail](docs/evidence/m04-inhabited-world-20261003.md) and
 [lunar port workmanship](docs/evidence/m06-world-workmanship-20261003.md) passes
 add civilian care, shared charging, domestic windows and maintained cargo equipment.
