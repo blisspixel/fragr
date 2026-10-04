@@ -124,6 +124,50 @@ events. Retry keeps the same entry seed; join/leave cannot reroll stock or
 resources. Readable local warnings must precede any route-changing event.
 Human rematches should test learning and counterplay, not only novelty.
 
+## Cooperative combined arms is a separate profile
+
+Nick's subsequent accepted direction adds cooperative combined arms, working
+name Liberation, alongside competitive PvP and the separate Wipe catastrophe.
+Humans and free agents collaborate against explicitly Union-controlled forces.
+This does not make authored campaign missions mandatory co-op. The parent owns
+the canonical mode proposal and ordering; this research adds layout implications
+only. No new controller or runtime decision service is built here.
+
+Use Launch Works and Holdfast Atoll as the first two candidate venues under
+their vehicle prerequisites. Begin with four participants; an eight-participant
+profile needs its own capacity and fun proof. Enemy population remains explicitly
+bounded and measured. The 24-total-fighter PvP recommendation cannot silently
+become 24 enemies plus unbounded allies in this profile.
+
+Native bots can be allied fighters as well as enemies. Human, agent, native bot
+and spectator are control roles, not fictional factions. An issued conscious
+body's imposed control, a free agent's autonomy and current hostility require
+explicit server-owned identity. Do not turn every robot into Union opposition,
+infer a rescue from a cosmetic repaint, or call a bot-count increase a free
+agent coalition. Paid decision services remain developer tools, outside the
+ordinary tick and player-runtime requirement.
+
+Adapt the same foot routes and counters to a finite assault: choose a depot
+breach or shoreline landing, secure a real forward anchor, recover finite
+vehicle stock, then advance through a defended objective. Supply, rescue,
+release and actual evacuation remain separate facts. Captives and optional
+allies cannot softlock a match through their walking speed. An anchor belongs
+to the cooperative party only after the declared physical clear/use condition;
+defenders and reinforcements enter through reviewed actual routes, without
+appearing behind a player. Losing all vehicles leaves a supported infantry
+retake and exit. Enemy quantity or hit-point inflation cannot substitute for
+readable role combinations and counterplay.
+
+Acceptance adds four-seat then independently eight-seat actual runs, humans
+and agents on the same input door, an allied native bot, all optional allies
+absent, blocked rescue paths, destroyed stock and a lost forward anchor.
+Test watch/join/leave and parked resume without duplicating seat inventory,
+rescues, stock or reinforcement allowance. Choose and review a bounded death,
+reinforcement and late-join rule before implementing it; do not borrow campaign
+continues or Wipe's proposed wrapper by implication. A mixed-role mechanical
+run establishes authority and lifecycle, while human repeat sessions establish
+whether a coordinated breach and vehicle escape are enjoyable.
+
 ## Acceptance protocol
 
 These are proposed review gates inside the owning map/mode plan. Existing CI,
