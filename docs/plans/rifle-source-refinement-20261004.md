@@ -1,10 +1,20 @@
 # Civilian Rifle source and presentation refinement
 
-Status: **in flight**, 2026-10-04. Plan precedes implementation.
-Source, fourth studio and ordinary paired presentation accepted. Exact accepted
-held, fire and pickup pictures are selected locally; focused source and
-canonical viewmodel checks pass. Combined client, public CI and package gates
-remain open.
+Status: **shipped** on main through [PR #356](https://github.com/blisspixel/fragr/pull/356),
+2026-10-04. This increment follows the published v0.73.0 desktop build.
+Source, fourth studio and ordinary paired presentation are accepted. Exact
+held, fire and pickup pictures are selected. Complete local client checks,
+all eight exact-head CI jobs and all three desktop package checks passed.
+
+The final reviewed head was `1138c619de4e236518e6ee22c223e3b497f94584`,
+including current main. Its implementation trees match the original full
+local-check head `534518c025d600dfc6e11e8bd89404f928e586cc`.
+[CI](https://github.com/blisspixel/fragr/actions/runs/37235897411) and
+[desktop packages](https://github.com/blisspixel/fragr/actions/runs/37235935240)
+passed on that final head. Main became `53b5c0367122d2cd8a7d0eb34ad187cea32ffabc`.
+The first full local run's audio resource-retirement error remains recorded;
+an unchanged complete repeat passed 257 scripts, 121 harnesses and import
+with a clean exit and logs. Fresh human feel remains separate from these gates.
 Spend: $0 in this refinement. The shared production receipt owns the existing
 15-credit source. No new source, rig, renewal or account operation here.
 

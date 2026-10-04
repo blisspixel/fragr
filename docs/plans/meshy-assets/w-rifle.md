@@ -1,6 +1,6 @@
 # Rifle
 
-Status: **in flight**, 2026-10-04. Source route: **New source candidate**. Reviewed source and ordinary paired presentation are accepted. Exact held, fire and pickup pictures are selected locally, with integration and package gates pending.
+Status: **shipped** on main through [PR #356](https://github.com/blisspixel/fragr/pull/356), 2026-10-04, for the next desktop release. Source route: **New source candidate**. Reviewed source and ordinary paired presentation are accepted. Exact held, fire and pickup pictures are selected, with complete local client, all eight exact-head CI and all three desktop package checks passing.
 Stable ID: `W-rifle`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
