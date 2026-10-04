@@ -15,6 +15,11 @@ pub(crate) fn gait(identity: Option<CampaignActor>) -> f32 {
             phase: EnemyPhase::Leaping,
             ..
         }) => 1.15,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Enforcer,
+            phase: EnemyPhase::Charging,
+            ..
+        }) => 1.6,
         Some(CampaignActor::Union { kind, .. }) => enemy::gait(kind),
         _ => 1.0,
     }
@@ -455,6 +460,18 @@ impl Encounters {
             .iter_mut()
             .find(|(_, enemy)| enemy.id == id)
             .and_then(|(_, enemy)| enemy.claim_notary_photo_target())
+    }
+    pub(crate) fn claim_enforcer_contact(&mut self, id: Uuid) -> bool {
+        self.enemies
+            .iter_mut()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.claim_enforcer_contact())
+    }
+    pub(crate) fn enforcer_fell(&self, id: Uuid, feet: [f32; 3]) -> bool {
+        self.enemies
+            .iter()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.enforcer_fell(feet))
     }
 }
 

@@ -666,7 +666,9 @@ pub const M08_GAMEPLAY_VERSION: u32 = 31;
 pub const M07_GAMEPLAY_VERSION: u32 = 32;
 /// Optional frozen mission elapsed time on completed private records.
 pub const MISSION_RESULTS_GAMEPLAY_VERSION: u32 = 33;
-pub const GAMEPLAY_VERSION: u32 = MISSION_RESULTS_GAMEPLAY_VERSION;
+/// Passenger Manifest and its committed human Enforcer charge.
+pub const M09_GAMEPLAY_VERSION: u32 = 34;
+pub const GAMEPLAY_VERSION: u32 = M09_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

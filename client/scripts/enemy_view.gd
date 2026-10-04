@@ -133,6 +133,9 @@ func _plate_part(part_name: String, size: Vector3, offset: Vector3, colour: Colo
 
 ## Per-kind atlas source. Delivered art replaces a placeholder in one table.
 static func atlas_path(kind: String) -> String:
+	# Provisional human role source until its authored powered-armor atlas passes.
+	if kind == "enforcer":
+		return "res://assets/characters/union/clerk.png"
 	if kind == "ranged_sweeper":
 		return L07Assets.RANGED_SWEEPER_ATLAS
 	return "res://assets/characters/union/%s.png" % kind
@@ -140,7 +143,7 @@ static func atlas_path(kind: String) -> String:
 func advance(delta: float, distance: float) -> void:
 	elapsed += delta
 	shot_age += delta
-	if actor.get("phase") == "moving" and distance >= 0.0 and distance < 2.0:
+	if actor.get("phase") in ["moving", "charging"] and distance >= 0.0 and distance < 2.0:
 		var stride: float = CrawlerAnimation.STRIDE_METRES if _kind == "crawler" else EnemyAnimation.STRIDE_METRES
 		travel = fposmod(travel + distance, stride)
 
@@ -157,10 +160,19 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 		body.frame = JammerAnimation.frame(actor, tick, elapsed, facing)
 	elif _kind == "crawler":
 		body.frame = CrawlerAnimation.frame(actor, tick, elapsed, travel, facing)
+	elif _kind == "enforcer" and actor.get("phase") == "charging":
+		body.frame = provisional_charge_frame(travel, facing)
 	else:
 		var custody: int = custody_frame(actor, weapon, tick, elapsed, facing, _standing)
 		body.frame = custody if custody >= 0 else EnemyAnimation.frame(actor, weapon, tick, elapsed,
 			travel, shot_age, facing)
+
+## Existing unarmed gait is provisional until powered-armor source poses pass.
+## Playback cannot advance the authoritative charge phase or cause a hit.
+static func provisional_charge_frame(distance: float, facing: int) -> int:
+	return posmod(facing, EnemyAnimation.DIRECTIONS) * EnemyAnimation.poses() \
+		+ EnemyAnimation.pose_frame("walk", true,
+			fposmod(distance / EnemyAnimation.STRIDE_METRES, 1.0))
 
 ## Custody poses over the shared baked layout: the Auditor's channel is the
 ## seated cell of its own atlas, which an Auditor never otherwise uses, and a

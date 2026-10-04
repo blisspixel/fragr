@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `33`; omission means `1`. Discovery-only maps first
+  and the Godot client send `34`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -165,6 +165,11 @@ Initial handshake message. Must be sent immediately after connection.
   This adds no map admission requirement. The existing private unicast seam
   omits the optional field for earlier recipients so their strict readers keep
   the original version-1 shape.
+  Version 34 adds the human powered-armor `enforcer` Union kind and its
+  committed `charging` phase. Every map placing an Enforcer requires 34 for
+  humans, agents and spectators. Other maps retain their earlier requirements.
+  Passenger Manifest's mission boundary is reserved for the same capability;
+  its development implementation remains in flight.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -1322,14 +1327,15 @@ Human and external-agent participants are allies. Union `kind` is `clerk` (human
 security), `sweeper` (bot), `heavy_sweeper` (armored bot), `turret` (fixed
 equipment), `crawler` (low constrained bot), `jammer` (stationary service
 transmitter), `notary` (flying Office patrol equipment), `auditor` (human custody
-officer with a shield plate) or `ranged_sweeper` (stationary marksman bot,
-capability 30). Names are labels, never a
+officer with a shield plate), `ranged_sweeper` (stationary marksman bot,
+capability 30) or `enforcer` (human elite in issued powered armor, capability
+34). Names are labels, never a
 targeting rule. Current
 campaign identity describes these introductory encounters; it does not implement
 Inheritance takeover, additional companions or the complete co-op lifecycle.
 
 Phases are `idle`, `moving`, `windup`, `leaping`, `firing`, `recovery`, `hit`, `dead`
-and, for an `auditor` only, `channeling`.
+and, for an `auditor` only, `channeling`, or for an `enforcer` only, `charging`.
 Their start/end are authoritative simulation ticks at 20 Hz. Idle and moving
 have no fixed duration (`phase_ends == phase_started`); other phases may be
 interrupted by hits, lost sight or death. A firing animation never causes damage.
@@ -1346,6 +1352,20 @@ charge before one Rail shot, and broken sight during `windup` or `firing` ends
 the attack in `recovery` without a shot. Its `hit` follows the same heavy-hit
 rule for 10 ticks. Windup and recovery durations per difficulty are in
 [the difficulty plan](plans/difficulty-and-rewards.md).
+
+An `enforcer` has 140 HP and uses Fists for its actual contact attack. It
+approaches at 0.45 times ordinary player speed. With supported feet, clear
+target sight within 8 m and a feet-height difference at most 0.5 m, its
+windup locks one horizontal bearing. Windup lasts 32, 24 or 20 ticks on
+Assisted, Standard or Severe. Its 14-tick charge moves at 1.6 times ordinary
+player speed, never follows a dodge, and lands at most one 30-damage contact.
+Normal cover and living-body sweeps bound its 1.5 m knockback. Recovery lasts
+44, 36 or 30 ticks. Ordinary hits leave the charge committed; a heavy 40-damage
+tick interrupts into a 16-tick hit, at most once per attack cycle. A real
+descent over 2.5 m after a supported charge launch defeats the suit through
+normal self-damage, with no invented participant frag. An already falling
+body cannot launch or claim this counter. The client presents these ticks and
+resolved contact facts; provisional poses are not final role art acceptance.
 
 A `ranged_sweeper` has 70 HP and carries the `Sniper`. It never changes
 position. It sees a participant within 90 units when either the body centre or

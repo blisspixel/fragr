@@ -20,6 +20,17 @@ func _run() -> void:
 		{"id": "human", "campaign": {"side": "participant"}},
 		{"id": "agent", "campaign": {"side": "participant"}}, actor.duplicate(true)]}
 	_check(ActorState.validation_error(snapshot).is_empty(), "valid campaign identity accepted")
+	var charge: Dictionary = _actor()
+	charge["hp"] = 140
+	charge["campaign"]["kind"] = "enforcer"
+	charge["campaign"]["phase"] = "charging"
+	_check(ActorState.validation_error({"tick":12, "players":[charge]}).is_empty(),
+		"authoritative human Enforcer charging accepted")
+	for wrong_role: String in ["clerk", "sweeper", "crawler", "auditor"]:
+		var wrong_charge: Dictionary = charge.duplicate(true)
+		wrong_charge["campaign"]["kind"] = wrong_role
+		_check(not ActorState.validation_error({"tick":12, "players":[wrong_charge]}).is_empty(),
+			"charging phase cannot rename another role: " + wrong_role)
 	var seated: Dictionary = _actor()
 	seated["campaign"]["phase"] = "idle"
 	seated["campaign"]["seated"] = true

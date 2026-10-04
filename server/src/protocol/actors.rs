@@ -23,6 +23,8 @@ pub enum EnemyKind {
     /// Stationary marksman bot with an antenna mast: a scope glint, a held
     /// aim, then one precision shot.
     RangedSweeper,
+    /// Committed human elite with issued powered armor and a locked charge.
+    Enforcer,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,6 +40,8 @@ pub enum EnemyPhase {
     Dead,
     /// An Auditor holding a repair channel on a disabled body.
     Channeling,
+    /// An Enforcer's straight, committed ground charge.
+    Charging,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

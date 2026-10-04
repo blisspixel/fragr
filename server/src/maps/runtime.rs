@@ -300,6 +300,14 @@ impl RuntimeMap {
             pickup.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Sniper)
         })
     }
+    pub fn requires_enforcer_contract(&self) -> bool {
+        self.encounters().iter().any(|group| {
+            group
+                .enemies
+                .iter()
+                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Enforcer)
+        })
+    }
 
     pub fn equipment_policy(&self) -> crate::protocol::EquipmentPolicy {
         match self {

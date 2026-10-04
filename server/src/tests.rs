@@ -6924,6 +6924,7 @@ mod vertical_aim {
 }
 mod auditor;
 mod encounters;
+mod enforcer;
 mod heavy_turret;
 mod jammer;
 mod m01;

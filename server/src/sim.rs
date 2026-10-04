@@ -761,6 +761,24 @@ fn crawler_contact_time(
     target_to: [f32; 3],
     target_height: f32,
 ) -> Option<f32> {
+    attack_contact_time(
+        crawler_from,
+        crawler_to,
+        target_from,
+        target_to,
+        crate::combat::CRAWLER_HEIGHT,
+        target_height,
+    )
+}
+
+fn attack_contact_time(
+    crawler_from: [f32; 3],
+    crawler_to: [f32; 3],
+    target_from: [f32; 3],
+    target_to: [f32; 3],
+    attacker_height: f32,
+    target_height: f32,
+) -> Option<f32> {
     let dx = crawler_from[0] - target_from[0];
     let dz = crawler_from[2] - target_from[2];
     let vx = crawler_to[0] - crawler_from[0] - (target_to[0] - target_from[0]);
@@ -790,7 +808,7 @@ fn crawler_contact_time(
 
     let dy = crawler_from[1] - target_from[1];
     let vy = crawler_to[1] - crawler_from[1] - (target_to[1] - target_from[1]);
-    let lower = -crate::combat::CRAWLER_HEIGHT + crate::movement::CONTACT_EPSILON;
+    let lower = -attacker_height + crate::movement::CONTACT_EPSILON;
     let upper = target_height - crate::movement::CONTACT_EPSILON;
     if vy.abs() <= f32::EPSILON {
         if dy < lower || dy > upper {
@@ -1798,6 +1816,27 @@ impl GameState {
         // shot on the same frame can still trade its already-landed contact.
         let crawler_contacts = self.crawler_contacts(&before, arena);
         self.resolve_player_contacts(contact_before, dt, arena);
+        let fallen: Vec<usize> = self
+            .players
+            .iter()
+            .enumerate()
+            .filter_map(|(index, p)| {
+                (p.hp > 0
+                    && crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign)
+                    && self
+                        .encounters
+                        .enforcer_fell(p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z]))
+                .then_some(index)
+            })
+            .collect();
+        for index in fallen {
+            // A real committed descent defeats this heavy suit. Resolve normal
+            // self damage: it awards no invented participant frag or gun hit.
+            let damage = self.players[index]
+                .hp
+                .saturating_add(self.players[index].armor);
+            self.resolve_fighter_hit(index, index, damage, None);
+        }
 
         // Target intent takes precedence after movement, for every controller role.
         // Applied after movement/turn so agents can still strafe while locking aim.
@@ -2006,12 +2045,26 @@ impl GameState {
             self.damage_m08_node(shooter, solid, end, normal, damage);
         }
         for (attacker, victim, trace) in crawler_contacts {
+            let enforcer = matches!(
+                self.players[attacker].campaign,
+                Some(CampaignActor::Union {
+                    kind: crate::protocol::EnemyKind::Enforcer,
+                    ..
+                })
+            );
+            let damage = if enforcer {
+                crate::encounters::enemy::CHARGE_DAMAGE
+            } else {
+                WeaponType::Fists.damage()
+            };
             self.players[attacker].statistics.attack(WeaponType::Fists);
-            let (hp, armor, died) =
-                self.resolve_fighter_hit(attacker, victim, WeaponType::Fists.damage(), Some(trace));
+            let (hp, armor, died) = self.resolve_fighter_hit(attacker, victim, damage, Some(trace));
             self.players[attacker]
                 .statistics
                 .hit(WeaponType::Fists, hp, armor, u64::from(died));
+            if enforcer && hp + armor > 0 && !died {
+                self.enforcer_knockback(attacker, victim, arena);
+            }
         }
 
         self.tick_grenades(dt);
@@ -2040,15 +2093,31 @@ impl GameState {
         let mut contacts = Vec::new();
         for attacker in 0..self.players.len() {
             let crawler = &self.players[attacker];
+            let enforcer = matches!(
+                crawler.campaign,
+                Some(CampaignActor::Union {
+                    kind: crate::protocol::EnemyKind::Enforcer,
+                    phase: EnemyPhase::Charging,
+                    ..
+                })
+            );
             if crawler.hp <= 0
-                || !matches!(
+                || !crate::mission::actor_active(
+                    self.mission.as_ref(),
+                    crawler.id,
                     crawler.campaign,
-                    Some(CampaignActor::Union {
-                        kind: crate::protocol::EnemyKind::Crawler,
-                        phase: EnemyPhase::Leaping,
-                        ..
-                    })
                 )
+                || crawler.respawn_timer.is_some()
+                || crawler.detached
+                || (!enforcer
+                    && !matches!(
+                        crawler.campaign,
+                        Some(CampaignActor::Union {
+                            kind: crate::protocol::EnemyKind::Crawler,
+                            phase: EnemyPhase::Leaping,
+                            ..
+                        })
+                    ))
             {
                 continue;
             }
@@ -2078,13 +2147,25 @@ impl GameState {
                     }
                     let b0 = before[victim];
                     let b1 = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-                    let t = crawler_contact_time(
-                        a0,
-                        a1,
-                        b0,
-                        b1,
-                        crate::combat::target_height(target.campaign),
-                    )?;
+                    let attacker_height = crate::combat::target_height(crawler.campaign);
+                    let t = if enforcer {
+                        attack_contact_time(
+                            a0,
+                            a1,
+                            b0,
+                            b1,
+                            attacker_height,
+                            crate::combat::target_height(target.campaign),
+                        )
+                    } else {
+                        crawler_contact_time(
+                            a0,
+                            a1,
+                            b0,
+                            b1,
+                            crate::combat::target_height(target.campaign),
+                        )
+                    }?;
                     let af = a0[1] + (a1[1] - a0[1]) * t;
                     let bf = b0[1] + (b1[1] - b0[1]) * t;
                     let ax = a0[0] + (a1[0] - a0[0]) * t;
@@ -2092,7 +2173,7 @@ impl GameState {
                     let bx = b0[0] + (b1[0] - b0[0]) * t;
                     let bz = b0[2] + (b1[2] - b0[2]) * t;
                     let horizontal = (bx - ax).hypot(bz - az);
-                    let origin = [ax, af + crate::combat::CRAWLER_HEIGHT * 0.5, az];
+                    let origin = [ax, af + attacker_height * 0.5, az];
                     let end = [
                         bx,
                         bf + crate::combat::target_height(target.campaign) * 0.5,
@@ -2117,12 +2198,63 @@ impl GameState {
                 })
                 .min_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
             if let Some((_, _, victim, trace)) = best {
-                if self.encounters.claim_crawler_contact(crawler.id) {
+                if if enforcer {
+                    self.encounters.claim_enforcer_contact(crawler.id)
+                } else {
+                    self.encounters.claim_crawler_contact(crawler.id)
+                } {
                     contacts.push((attacker, victim, trace));
                 }
             }
         }
         contacts
+    }
+
+    /// Move the victim through the same swept solids and living contacts as
+    /// ordinary movement. The shove cannot teleport through cover or a person.
+    fn enforcer_knockback(
+        &mut self,
+        attacker: usize,
+        victim: usize,
+        arena: &crate::movement::Arena,
+    ) {
+        let yaw = self.players[attacker].yaw;
+        let player = &self.players[victim];
+        let mut moved = crate::movement::MoveState {
+            x: player.x,
+            y: player.y - PLAYER_FLOOR_Y,
+            z: player.z,
+            vx: yaw.cos() * crate::encounters::enemy::CHARGE_SHOVE / 0.05,
+            vz: yaw.sin() * crate::encounters::enemy::CHARGE_SHOVE / 0.05,
+            vy: player.vy,
+            yaw: player.yaw,
+        };
+        let height = crate::combat::target_height(player.campaign);
+        let blockers = self.contact_bodies();
+        // Six fixed small sweeps retain a partial shove up to a wall instead
+        // of refusing the entire 1.5 m displacement. No global movement rule
+        // changes, extra navigation searches or unbounded collision loop.
+        for _ in 0..6 {
+            moved.vx = yaw.cos() * crate::encounters::enemy::CHARGE_SHOVE / 0.05;
+            moved.vz = yaw.sin() * crate::encounters::enemy::CHARGE_SHOVE / 0.05;
+            let proposed =
+                crate::movement::integrate_with_height(moved, false, 0.05 / 6.0, arena, height);
+            moved = contact::move_body(
+                &player.id.to_string(),
+                moved,
+                proposed,
+                height,
+                0.05 / 6.0,
+                arena,
+                &blockers,
+            );
+        }
+        let player = &mut self.players[victim];
+        player.x = moved.x;
+        player.y = moved.y + PLAYER_FLOOR_Y;
+        player.z = moved.z;
+        player.vy = moved.vy;
+        player.reset_movement_baseline();
     }
 
     /// An Auditor's shield plate halves traced damage arriving within
