@@ -1,14 +1,14 @@
 extends SceneTree
 
 const Rig = preload("res://art/characters/machines.gd")
-const SweeperSource = preload("res://art/models/sweeper_source.gd")
+const SweeperSource = preload("res://art/models/sweeper_skinned_source.gd")
 const ClerkSource = preload("res://art/models/clerk_source.gd")
 const NORMAL_SHADER: Shader = preload("res://art/models/normal_bake.gdshader")
 const KINDS: Dictionary[String, Dictionary] = {
 	"clerk": {"model": "skinned human security source with authored combat poses and paired view normals",
 		"brief": "Stylized angular human face, black peaked service cap and high-collar uniform, dark steel plates and a clear red band with a fictional registry seal."},
-	"sweeper": {"model": "contoured articulated issued bot source with paired view normals",
-		"brief": "Manufactured graphite shells, recessed optical slit, service battery louvers, distinct joint caps, finger articulation and restrained red issue strips."},
+	"sweeper": {"model": "skinned angular issued bot with two-handed rifle poses and paired view normals",
+		"brief": "Dark steel shells, recessed red optical slit, exposed mechanical joints and red issue panels. Earlier rigid GLB remains the separate mechanical library."},
 	"heavy_sweeper": {"model": "articulated heavy bot rig",
 		"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps."},
 	"turret": {"model": "fixed turret rig",
@@ -23,6 +23,55 @@ func _initialize() -> void:
 	call_deferred("bake")
 
 func bake() -> void:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var selected: String = ""
+	var retained: Array[Dictionary] = []
+	var retained_receipt: Dictionary = {}
+	var retained_kinds: Array[String] = []
+	if not args.is_empty():
+		if args.size() != 2 or args[0] != "--kind" or not KINDS.has(args[1]):
+			push_error("character_bake: require no arguments or --kind with a registered cast")
+			quit(1)
+			return
+		selected = args[1]
+		var prior_path: String = OUTPUT + "manifest.json"
+		var prior: Variant = JSON.parse_string(FileAccess.get_file_as_string(prior_path))
+		if not prior is Dictionary or not prior.get("entries") is Array or not prior.get("sources") is Dictionary:
+			push_error("character_bake: partial bake requires an existing receipt")
+			quit(1)
+			return
+		retained_receipt = {"sha256": FileAccess.get_sha256(prior_path), "sources": prior["sources"]}
+		var expected_files: Array[String] = []
+		for kind: String in KINDS:
+			expected_files.append(kind + ".png")
+			if kind in ["clerk", "sweeper"]:
+				expected_files.append(kind + "_normals.png")
+		var seen: Dictionary[String, bool] = {}
+		for entry: Variant in prior["entries"]:
+			if not entry is Dictionary or not entry.get("file") is String or not entry.get("sha256") is String:
+				push_error("character_bake: invalid retained entry")
+				quit(1)
+				return
+			var file: String = entry["file"]
+			if not expected_files.has(file) or seen.has(file):
+				push_error("character_bake: unregistered or duplicate retained output")
+				quit(1)
+				return
+			seen[file] = true
+			if file in [selected + ".png", selected + "_normals.png"]:
+				continue
+			if file.get_file() != file or FileAccess.get_sha256(OUTPUT + file) != entry["sha256"]:
+				push_error("character_bake: retained output disagrees with its receipt")
+				quit(1)
+				return
+			retained.append(entry)
+		if seen.size() != expected_files.size():
+			push_error("character_bake: existing receipt omits a registered cast output")
+			quit(1)
+			return
+		for kind: String in KINDS:
+			if kind != selected:
+				retained_kinds.append(kind)
 	root.size = Vector2i(640, 480)
 	var viewport: SubViewport = SubViewport.new()
 	viewport.size = Vector2i.ONE * EnemyAnimation.TILE
@@ -55,8 +104,12 @@ func bake() -> void:
 	var rig: RefCounted = Rig.new()
 	var sweeper: RefCounted = SweeperSource.new()
 	var clerk: RefCounted = ClerkSource.new()
-	var entries: Array[Dictionary] = []
+	var entries: Array[Dictionary] = retained.duplicate()
+	var rendered_kinds: Array[String] = []
 	for kind: String in KINDS:
+		if not selected.is_empty() and kind != selected:
+			continue
+		rendered_kinds.append(kind)
 		var atlas: Image = Image.create(EnemyAnimation.COLUMNS * EnemyAnimation.TILE,
 			EnemyAnimation.rows() * EnemyAnimation.TILE, false, Image.FORMAT_RGBA8)
 		var normals: Image = Image.create(atlas.get_width(), atlas.get_height(), false, Image.FORMAT_RGBA8)
@@ -70,11 +123,11 @@ func bake() -> void:
 						progress = float(index) / count
 					var action: String = str(clip["action"])
 					var unarmed: bool = bool(clip["unarmed"])
-					var model: Node3D = sweeper.build_pose(true, action, progress, unarmed) if kind == "sweeper" else \
+					var model: Node3D = sweeper.build_pose(action, progress, unarmed) if kind == "sweeper" else \
 						(clerk.build_pose(action, progress, unarmed) if kind == "clerk" else rig.build_machine(kind, action, progress, unarmed))
+					viewport.add_child(model)
 					if kind in ["sweeper", "clerk"]:
 						_albedo(model)
-					viewport.add_child(model)
 					model.rotation_degrees.y = direction * 45.0
 					await process_frame
 					await RenderingServer.frame_post_draw
@@ -120,6 +173,7 @@ func bake() -> void:
 	for source: String in ["res://art/characters/geometry.gd", "res://art/characters/rig.gd",
 		"res://art/characters/machines.gd", "res://art/characters/bake.gd", "res://scripts/enemy_animation.gd",
 		"res://scripts/model_geometry.gd", "res://art/models/sweeper_source.gd", "res://art/models/normal_bake.gdshader",
+		"res://art/models/sweeper_skinned_source.gd", "res://art/models/candidates/sweeper.glb", "res://art/models/candidates/sweeper.glb.import",
 		"res://art/models/clerk_source.gd", "res://art/models/candidates/clerk.glb",
 		"res://assets/models/finishes/wood.png", "res://assets/models/finishes/metal.png", "res://assets/models/finishes/enamel.png"]:
 		sources[source] = FileAccess.get_sha256(source)
@@ -129,7 +183,8 @@ func bake() -> void:
 		"format":"RGBA8 PNG, nearest sampling, no mipmaps", "sources":sources,
 		"tile_pixels":EnemyAnimation.TILE, "poses":EnemyAnimation.poses(),
 		"directions":EnemyAnimation.DIRECTIONS, "columns":EnemyAnimation.COLUMNS,
-		"rows":EnemyAnimation.rows(), "clips":EnemyAnimation.CLIPS, "entries":entries
+		"rows":EnemyAnimation.rows(), "clips":EnemyAnimation.CLIPS, "entries":entries,
+		"rendered_kinds":rendered_kinds, "retained_kinds":retained_kinds, "retained_receipt":retained_receipt
 	}, "\t") + "\n"):
 		push_error("character_bake: could not write manifest")
 		quit(1)
@@ -139,7 +194,7 @@ func bake() -> void:
 	display.queue_free()
 	await process_frame
 	await RenderingServer.frame_post_draw
-	print("character_bake: PASS (", entries.size(), " atlases)")
+	print("character_bake: PASS (%d rendered, %d retained atlases)" % [entries.size() - retained.size(), retained.size()])
 	quit()
 
 func _albedo(node: Node) -> void:
