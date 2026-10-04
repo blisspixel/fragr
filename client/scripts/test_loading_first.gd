@@ -1,5 +1,6 @@
 extends SceneTree
 
+const TOUR = preload("res://scripts/qa_tour.gd")
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -82,10 +83,24 @@ func _run() -> void:
 	_check(not scene.controls_blocked() and scene.place_armed and scene.throw_armed,
 		"dismissal cannot block and disarm the next action while deferred deletion is pending")
 	_check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "automation never captures the pointer")
+	var retiring: Array[WeakRef] = []
+	for node: Node in scene.find_children("*", "AudioStreamPlayer", true, false):
+		var voice: AudioStreamPlayer = node as AudioStreamPlayer
+		if voice.has_stream_playback():
+			retiring.append(weakref(voice.get_stream_playback()))
+	_check(not retiring.is_empty(), "the actual radio playback is observed before scene retirement")
 	scene.queue_free()
 	await process_frame
-	# Scene teardown stops the radio; allow its mixer to release the decoder.
-	await create_timer(0.1).timeout
+	# Use the existing tour's actual mixer-retirement boundary. Process frames
+	# and a guessed delay do not establish that an MP3 decoder has released.
+	var deadline: int = Time.get_ticks_msec() + 2000
+	while not retiring.is_empty() and Time.get_ticks_msec() < deadline:
+		for index: int in range(retiring.size() - 1, -1, -1):
+			if TOUR.audio_reference_retired(retiring[index]):
+				retiring.remove_at(index)
+		if not retiring.is_empty():
+			await create_timer(0.01).timeout
+	_check(retiring.is_empty(), "all actual radio playbacks retire within the existing two-second bound")
 	remove_meta("fragr_boot")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(str(get_meta("fragr_settings_path"))))
 	if _failures == 0:

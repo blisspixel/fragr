@@ -10,7 +10,8 @@ flag plays on Arena Duel, Directive 17 and Sector 9
 on Sector 9 ([plan](plans/sabotage-mode.md)); a human match remains open.
 Its optional [5v5 profile](plans/sabotage-five-seats.md) is implemented and
 tested locally, with ten shared fighter seats and finite Pistol fresh starts;
-combined integration CI remains open.
+[PR #351](https://github.com/blisspixel/fragr/pull/351) records complete
+integration and package verdicts. Human match acceptance remains open.
 Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style

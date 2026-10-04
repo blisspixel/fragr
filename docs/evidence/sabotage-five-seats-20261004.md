@@ -1,6 +1,8 @@
 # Optional 5v5 Sabotage seats and finite Pistol
 
-2026-10-04. Implemented and tested locally, not yet integrated or shipped.
+2026-10-04. Implemented and tested locally. Main integration, full CI and
+desktop package verdicts are tracked on
+[PR #351](https://github.com/blisspixel/fragr/pull/351).
 Initial source checkpoint: `fb9e419df92ef9fa2d5955ccfecda54619dc833e`, rebased onto
 main `f409ff3726e1b5e3f251cb3a11281ab4502695d1`. Spend: $0.
 
@@ -85,7 +87,23 @@ running the mode survey. Serializing the subsequent checks passed without
 source or threshold changes. The initial CLI failure message lacked its mode
 name; the final error explicitly identifies five versus five Sabotage.
 
+The first Linux integration run passed the new admission and loading harnesses
+but caught an M02 local test racing the deferred loading reveal. Authoritative
+mission readiness can arrive before the first drawn world frame. The test now
+waits, within its existing bounded deadline, for the actual unblocked client
+input boundary before asserting movement availability. It retains the mission,
+HUD, child ownership and no-run-file checks. No production timing, fixed sleep
+or assertion threshold changed. The failed run remains recorded on the PR.
+
+The first macOS integration run exposed an MP3 playback still owned by the
+mixer after the loading harness's guessed 100 ms teardown delay. That harness
+now observes actual playback weak references using the existing tour retirement
+helper and its two-second bound. It requires real playback to be captured and
+every captured playback to release, instead of suppressing resource errors or
+claiming that a fixed number of frames proves retirement.
+
 This is not a standalone elimination mode, a new room-discovery packet, a buy
 shop, a required full roster or proof of human enjoyment. Complete workspace
-CI, coverage, integration with other pending gameplay work and main selection
-remain open. No renderer or GPU performance claim is made.
+CI and coverage verdicts belong to the linked integration PR. Integration with
+other pending gameplay work and human match acceptance remain open. No renderer
+or GPU performance claim is made.

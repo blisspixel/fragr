@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## v0.72.0 (proposed, 2026-10-04)
+## v0.72.0 (2026-10-04)
 
 An optional `--sabotage-five-v-five` host profile bounds Sector 9 Sabotage to
 ten shared fighter seats, five per side. Humans, agents and rule bots share
@@ -17,7 +17,7 @@ players may choose Watch. Generic matches keep their existing behavior.
 Eliminated participants can no longer move, jump, swap, fire or claim supplies
 before their next real round. Committed finite devices retain their existing
 lifecycle. Focused simulation, socket and client admission checks pass locally;
-combined integration and release CI remain open. Standalone elimination,
+complete CI and desktop package verdicts are recorded on PR #351. Standalone elimination,
 additional objective maps and Liberation remain planned.
 
 ## v0.71.1 (2026-10-04)

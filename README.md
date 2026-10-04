@@ -45,7 +45,8 @@ Fresh fighters start with a Pistol and fifty finite Bullets, stronger weapons
 come from the map, and survivors carry their weapons and ammunition.
 Humans, agents and bots share the ten seats; spectators remain welcome.
 [Hosting details](infra/docs/HOME-LAN.md#optional-5v5-sabotage) cover overflow,
-late joins and reconnects. Focused local checks pass; integration CI remains open.
+late joins and reconnects. [PR #351](https://github.com/blisspixel/fragr/pull/351)
+records focused checks, complete CI and desktop package verification.
 Source checkouts also include development ranges for the Jammer, the Sniper
 Rifle and the custody devices; [server/maps/README.md](server/maps/README.md)
 lists them and how to run each one.

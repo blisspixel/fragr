@@ -1,7 +1,9 @@
 # Optional five versus five Sabotage admission
 
-**Status:** implemented, 2026-10-04. Focused local checks pass; combined
-integration, complete CI and shipping remain open. Plan preceded implementation.
+**Status:** implemented, 2026-10-04. Focused local checks pass. Main integration,
+complete CI and desktop shipping follow
+[PR #351](https://github.com/blisspixel/fragr/pull/351). Human match acceptance
+remains open. Plan preceded implementation.
 **Spend:** $0. No rendering or external calls required.
 
 ## Goal and scope
@@ -87,8 +89,9 @@ and loading harnesses cover the full-room packet, localized refusal, no resume,
 visible Return and deliberate spectator Hello; native sockets prove spectator
 admission at actual capacity.
 
-Integration, complete CI, public host documentation and player-facing room
-profile discovery remain separate parent-owned gates. The server sends no
+Public host documentation is included. Complete CI and package verdicts are
+recorded on the integration PR; player-facing room profile discovery remains
+separate work. The server sends no
 new profile field in this cut; a host must advertise the optional room rule.
 
 Local receipts and scope are recorded in

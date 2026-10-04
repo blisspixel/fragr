@@ -444,7 +444,8 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    - [Optional 5v5 Sabotage](plans/sabotage-five-seats.md) is implemented and
      tested locally: ten shared fighter seats, finite Pistol fresh starts,
      survivor carry, exact parked resume and localized full-room refusal.
-     Combined integration and complete CI remain open. Generic matches retain
+     [PR #351](https://github.com/blisspixel/fragr/pull/351) records complete
+     CI and package verification; human match acceptance remains open. Generic matches retain
      their existing limits and inventory policy.
    - [Competitive and community scope](plans/competitive-and-community.md):
      standalone 5v5 elimination and additional plant/defuse layouts remain

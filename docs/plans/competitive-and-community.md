@@ -16,7 +16,8 @@ Deathmatch, team deathmatch, CTF and Sector 9 Sabotage are built. A local
 frags, a plant and an attacker elimination win, with no spawn deaths. It did
 not exercise defuse, a whole match, human enjoyment or enforced seat caps.
 The optional five-per-side admission and finite Pistol profile is now
-implemented and tested locally, with combined integration CI open.
+implemented and tested locally, with complete integration and package verdicts
+tracked on [PR #351](https://github.com/blisspixel/fragr/pull/351).
 Standalone elimination, additional objective layouts, Liberation, vehicles
 and automatic abuse bans remain planned.
 
@@ -59,7 +60,7 @@ owned Tack/Pistol with fifty finite Bullets. Stronger guns are map pickups.
 Survivors retain their carried weapons and ammunition without a repeated
 sidearm refill, and parked resume retains exact inventory. The
 [bounded profile](sabotage-five-seats.md) is implemented and tested locally;
-combined integration and CI remain open. Generic Sabotage keeps its existing
+the integration PR records full verification. Generic Sabotage keeps its existing
 survivor carry and empty fresh starts.
 
 ## Liberation: cooperative combined arms
