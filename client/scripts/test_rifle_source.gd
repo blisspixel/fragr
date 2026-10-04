@@ -109,8 +109,10 @@ func _run() -> void:
 		and receipt.get("prepare_sha256") == FileAccess.get_sha256("res://../tools/prepare_rifle_source.gd")
 		and receipt.get("raw_sha256") == "5d53e8995a825b4e594c9b812759dcb070342bfddc73bd64ba351ea9a0576394"
 		and receipt.get("runtime_selected") == false, "exact source and preparation receipts stay offline")
-	_check(WeaponArt.IDLE["Flechette"].resource_path == "res://assets/weapons/viewmodels/rifle_idle.png",
-		"runtime Rifle stays unchanged while source review remains open")
+	_check(WeaponArt.IDLE["Flechette"].resource_path == "res://assets/weapons/rifle-source-20261004/rifle_idle.png"
+		and WeaponArt.FIRE["Flechette"].resource_path == "res://assets/weapons/rifle-source-20261004/rifle_fire.png"
+		and WeaponArt.PROFILE["Flechette"].resource_path == "res://assets/weapons/rifle-source-20261004/rifle.png",
+		"selected Rifle pictures use the packaged asset boundary")
 	_check_frames()
 	gun.free()
 	await process_frame
@@ -154,6 +156,17 @@ func _check_frames() -> void:
 			if b.a > 0.99 and b.r > a.r + 0.20 and b.g > a.g + 0.15 and b.b < 0.75:
 				flash += 1
 	_check(flash >= 10, "actual coherent firing pixels show a readable muzzle flash")
+	var packaged: String = "res://assets/weapons/rifle-source-20261004/"
+	var selection: Variant = JSON.parse_string(FileAccess.get_file_as_string(packaged + "selection.json"))
+	_check(selection is Dictionary and selection.get("runtime_selected") == true
+		and selection.get("source_sha256") == receipt.get("source_sha256")
+		and selection.get("bake_sha256") == receipt.get("bake_sha256")
+		and selection.get("presenter_sha256") == receipt.get("presenter_sha256"),
+		"selection receipt binds the accepted source and actual bake")
+	for name: String in ["rifle_idle.png", "rifle_fire.png", "rifle.png"]:
+		_check(FileAccess.get_sha256(packaged + name) == FileAccess.get_sha256(path + name)
+			and selection is Dictionary and selection.get("frames", {}).get(name) == FileAccess.get_sha256(packaged + name),
+			"selected " + name + " is the exact accepted picture")
 
 func _distance_to_surface(point: Vector3, mesh: MeshInstance3D) -> float:
 	var faces: PackedVector3Array = mesh.mesh.get_faces()

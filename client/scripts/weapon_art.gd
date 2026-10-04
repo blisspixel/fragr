@@ -19,7 +19,7 @@ extends RefCounted
 const IDLE: Dictionary[String, Texture2D] = {
 	"Fists": preload("res://assets/weapons/viewmodels/fists_idle.png"),
 	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol_idle.png"),
-	"Flechette": preload("res://assets/weapons/viewmodels/rifle_idle.png"),
+	"Flechette": preload("res://assets/weapons/rifle-source-20261004/rifle_idle.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_idle.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_idle.png"),
 	"Sniper": preload("res://assets/weapons/viewmodels/sniper_idle.png"),
@@ -30,7 +30,7 @@ const IDLE: Dictionary[String, Texture2D] = {
 ## drawn from its own idle, so the two register on the same full canvas.
 const FIRE: Dictionary[String, Texture2D] = {
 	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol_fire.png"),
-	"Flechette": preload("res://assets/weapons/viewmodels/rifle_fire.png"),
+	"Flechette": preload("res://assets/weapons/rifle-source-20261004/rifle_fire.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_fire.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_fire.png"),
 	"Sniper": preload("res://assets/weapons/viewmodels/sniper_fire.png"),
@@ -71,7 +71,7 @@ const MINE_DEVICE_METRES: float = 0.34
 ## Side profiles: the world pickup and the gun a fighter holds.
 const PROFILE: Dictionary[String, Texture2D] = {
 	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol.png"),
-	"Flechette": preload("res://assets/weapons/pickups/rifle.png"),
+	"Flechette": preload("res://assets/weapons/rifle-source-20261004/rifle.png"),
 	"Scatter": preload("res://assets/weapons/pickups/shotgun.png"),
 	"Rail": preload("res://assets/weapons/pickups/railgun.png"),
 	"Sniper": preload("res://assets/weapons/pickups/sniper.png"),

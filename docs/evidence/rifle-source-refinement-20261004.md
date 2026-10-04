@@ -1,7 +1,8 @@
 # Civilian Rifle source refinement evidence
 
 Date: 2026-10-04. Status: **in flight**, source and actual paired presentation
-accepted. Runtime selection and integration remain open. This cut spends $0; the shared production receipt owns
+accepted. Exact accepted pictures are selected locally; integration remains
+open. This cut spends $0; the shared production receipt owns
 the earlier 15-credit source.
 
 ## Source and physical mechanism
@@ -110,8 +111,21 @@ WeaponArt; `same-sample-pairs.json` binds each picture and measured camera.
 
 ## Remaining acceptance
 
-Runtime selection, full combined client checks, public CI and exported
-packages remain later gates. First-person art is a HUD picture. The actual
+The selected WeaponArt idle, fire and pickup paths reference exact packaged
+copies of the fourth bake. `selection.json` binds source, presenter, baker and
+all three pictures; offline candidate receipts remain unchanged history.
+Selected `test_rifle_source.gd` and canonical `test_viewmodel.gd` both exit 0
+with clean PASS logs. A newly added selected-boundary assertion first used an
+incorrect constant name and was refused during parsing; the failure is kept
+as `test-selected-source.log`, and the corrected selected check passes as
+`test-selected-source-fixed.log`. No production assertion was weakened.
+
+![Selected held Rifle](../images/rifle-source-20261004/held.png)
+![One resolved Rifle shot](../images/rifle-source-20261004/fire.png)
+![Unclaimed Rifle pickup](../images/rifle-source-20261004/pickup.png)
+
+Full combined client checks, public CI and exported packages remain later
+gates. First-person art is a HUD picture. The actual
 close-wall collision stop does not prove near-plane behavior of a live
 three-dimensional gun. This range does not prove campaign completion,
 whole-arsenal quality or hardware frame rate. Original art and every rejected

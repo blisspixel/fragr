@@ -1,8 +1,10 @@
 # Civilian Rifle source and presentation refinement
 
 Status: **in flight**, 2026-10-04. Plan precedes implementation.
-Source, fourth studio and ordinary paired presentation accepted; runtime
-selection, combined client and package gates remain open.
+Source, fourth studio and ordinary paired presentation accepted. Exact accepted
+held, fire and pickup pictures are selected locally; focused source and
+canonical viewmodel checks pass. Combined client, public CI and package gates
+remain open.
 Spend: $0 in this refinement. The shared production receipt owns the existing
 15-credit source. No new source, rig, renewal or account operation here.
 

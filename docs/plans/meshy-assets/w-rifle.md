@@ -1,6 +1,6 @@
 # Rifle
 
-Status: **in flight**, 2026-10-04. Source route: **New source candidate**. The first inspected source is in offline refinement; runtime Rifle art remains unchanged.
+Status: **in flight**, 2026-10-04. Source route: **New source candidate**. Reviewed source and ordinary paired presentation are accepted. Exact held, fire and pickup pictures are selected locally, with integration and package gates pending.
 Stable ID: `W-rifle`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -27,7 +27,9 @@ stroke; barrel, stock, handguard, guard and magazine remain fixed. Plain
 mechanic gloves are local geometry. There is no reload or new weapon mechanic.
 See the [bounded source plan](../rifle-source-refinement-20261004.md) and
 [source evidence](../../evidence/rifle-source-refinement-20261004.md) for exact
-hashes and acceptance gates. Studio and actual played acceptance remain open.
+hashes and acceptance gates. The fourth studio and eight-state actual played
+comparison pass; canonical viewmodel and selected source checks pass without
+changing registration, gameplay transforms or weapon mechanics.
 
 Author rigid weapon mechanisms, grips and effects locally. Humanoid rigging does not apply to guns or equipment. One accepted source supplies held, pickup and icon views.
 
