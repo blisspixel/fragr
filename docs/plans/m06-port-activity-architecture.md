@@ -1,7 +1,9 @@
 # Working freight and customs rooms
 
-**Status:** implemented, 2026-10-03. Local structural and played-route evidence
-is recorded; parent integration owns full CI and publication.
+**Status:** shipped with main integration of
+[PR #347](https://github.com/blisspixel/fragr/pull/347), 2026-10-03.
+Local structural, craft and played-route evidence is recorded; the combined
+integration owns complete CI and desktop publication.
 **Spend:** $0. Existing offline sources and local geometry only.
 
 ## Goal and room composition

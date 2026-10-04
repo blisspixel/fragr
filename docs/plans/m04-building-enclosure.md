@@ -1,6 +1,6 @@
 # M04 building enclosure
 
-**Status:** implemented, 2026-10-03;
+**Status:** shipped with main integration of PR #347, 2026-10-03;
 [PR #343](https://github.com/blisspixel/fragr/pull/343) records the reviewed source
 and all eight passing CI jobs. Combined main integration is consolidated into
 [PR #347](https://github.com/blisspixel/fragr/pull/347), with its own complete gate.

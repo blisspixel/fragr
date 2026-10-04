@@ -38,9 +38,11 @@ SHA256 `a54543c362f3c89e2e2d9636d22dd1d5cda2dc320646c0ba52d239939c6bcd3f`.
 The previous release executable remains unchanged. Private logs are retained
 under `.agents/art-playthrough-20261003/combined-round-*`.
 
-The complete client checker runs against that matching bundled server, with
-isolated settings, records and run storage. Its final verdict and the fresh
-combined CI gate remain required before claiming this integration complete.
+The complete client checker passes against that matching bundled server, with
+isolated settings, records and run storage: 232 script parses, 108 harnesses,
+exit 0, its own PASS marker and no script, runtime or shutdown errors. The
+fresh combined CI and main gates belong to PR #347; earlier scoped CI cannot
+substitute for that gate.
 Passing routes establish authoring correctness, not fresh-player fun, final
 whole-game art quality, broad hardware performance or twenty completed levels.
 

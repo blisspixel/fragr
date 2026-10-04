@@ -1,6 +1,6 @@
 # M07 to M08 durable campaign carry
 
-**Status:** implemented, 2026-10-03. Written before implementation; combined
+**Status:** shipped with main integration of PR #347, 2026-10-03. Written before implementation; combined
 main integration is tracked in [PR #347](https://github.com/blisspixel/fragr/pull/347).
 **Spend:** $0. Local source work and checks only.
 
