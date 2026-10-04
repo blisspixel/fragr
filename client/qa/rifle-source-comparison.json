@@ -1,0 +1,15 @@
+{
+  "comment": "Diagnostic presentation comparison, not a campaign route. Same authored map, game camera, scale, resolution and venue light for selected and candidate art. Ordinary walking, real discovery, finite ammunition and exactly one resolved shot.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name":"unclaimed_approach","scene":"res://scenes/main.tscn","join":"human","camera":"first_person","look_at":[-4,0.35,0]},
+    {"name":"ordinary_claim","camera":"first_person","walk_to":[[-4,0,0]],"look_at":[10,1.65,0]},
+    {"name":"held_idle","camera":"first_person","weapon":"Flechette","expect_equipment":{"selected":"flechette","ammo":60},"look_at":[10,1.65,0]},
+    {"name":"resolved_fire","camera":"first_person","look_at":[10,1.65,0],"trigger":"fire","probe":"FpMuzzle","single_shot":true,"strip_frames":1,"note":"One actual resolved firing sample, paired selected/candidate presentations in a frozen client frame; not a temporal animation strip."},
+    {"name":"close_wall","camera":"first_person","walk_to":[[-0.65,0,0]],"expect_equipment":{"selected":"flechette","ammo":59},"look_at":[0,1.65,0]},
+    {"name":"occluded_pickup","camera":"first_person","walk_to":[[-2,0,0]],"look_at":[3,0.35,0]},
+    {"name":"peek_return","camera":"first_person","walk_to":[[-1,0,2.5],[1.3,0,2.5],[2.8,0,2]],"expect_equipment":{"selected":"flechette","ammo":59},"look_at":[3,0.35,0]},
+    {"name":"ordinary_return","camera":"first_person","walk_to":[[1.3,0,2.5],[-1,0,2.5],[-4,0,0]],"expect_equipment":{"selected":"flechette","ammo":59},"look_at":[10,1.65,0]}
+  ]
+}

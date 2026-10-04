@@ -1,0 +1,13 @@
+{
+	"bake_sha256": "1064273982663d37e00601484227e3f98c68bec7f0f33c8a2b68531268427773",
+	"frames": {
+		"rifle.png": "7a44ac16a25138380e89e8ef41bad1f9700ad48ba224715d78cc6fdfe6f37765",
+		"rifle_fire.png": "41bc5547fe69b8cbd115542edbc80a2840e5bb3272377a87dfb066a8a279791a",
+		"rifle_idle.png": "a0b0abe8e1c52e678a80596db98de814577be5bde40de60441dc6d5d9de9ec6b"
+	},
+	"presenter_sha256": "72cea62516137aa5d7cea5e9ac99b3ce3ce620ff2caec422876520f3c1453e9f",
+	"renderer": "gl_compatibility",
+	"runtime_selected": false,
+	"schema": 1,
+	"source_sha256": "152628e4b61afd772c21b72158218c73821948e809ec1a21b36f1159bb0b462e"
+}

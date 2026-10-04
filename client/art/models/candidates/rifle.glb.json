@@ -1,0 +1,36 @@
+{
+	"authored_triangles": {
+		"BoreLiner": 192,
+		"BoreLip": 192
+	},
+	"maps_max_pixels": 1024,
+	"material_policy": {
+		"albedo_cluster_pixels": 4,
+		"metallic": 0.06,
+		"metallic_map": false,
+		"normal_scale": 0.2,
+		"roughness": 0.96,
+		"roughness_map": false
+	},
+	"mechanism": {
+		"bolt_travel_m": 0.03,
+		"fixed_guard_island": 5343,
+		"moving_bolt_islands": [
+			5149,
+			6173
+		],
+		"trigger_island": 5719
+	},
+	"metres_per_raw_unit": 0.94,
+	"original_groups": {
+		"Body": 5818,
+		"Bolt": 216,
+		"Trigger": 88
+	},
+	"original_triangles": 6122,
+	"prepare_sha256": "53ed35b507ded408f257745d00a44b89abd4644a004d1300a5543db67ab60881",
+	"prepared_sha256": "152628e4b61afd772c21b72158218c73821948e809ec1a21b36f1159bb0b462e",
+	"raw_sha256": "5d53e8995a825b4e594c9b812759dcb070342bfddc73bd64ba351ea9a0576394",
+	"runtime_selected": false,
+	"schema": 1
+}
