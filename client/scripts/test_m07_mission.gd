@@ -2,6 +2,7 @@ extends SceneTree
 
 const PLAYER: String = "00000000-0000-0000-0000-000000000002"
 var failures: int = 0
+var _retiring_chimes: Array[WeakRef] = []
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -140,11 +141,13 @@ func _presentation(info: Dictionary, first: Dictionary, post: Dictionary, end: D
 	town.apply_state(first["state"])
 	town._process(0.0)
 	_check(town.chime_count == 1 and notices == [tr("WORLD_M07_CURFEW_PA")], "the first chime reads the PA line once")
+	_track_chime(town)
 	await create_timer(0.1).timeout
 	town._process(M07Town.CHIME_SECONDS * 0.5)
 	_check(town.chime_count == 1, "no second chime before the interval")
 	town._process(M07Town.CHIME_SECONDS * 0.5)
 	_check(town.chime_count == 2 and notices.size() == 1, "chime repeats every thirty seconds without repeating the PA text")
+	_track_chime(town)
 	await create_timer(0.1).timeout
 	town.apply_state(post["state"])
 	_check(town.lamps_lit_count == 1 and notices.back() == tr("WORLD_M07_LATCH_LINE"), "a real post clear lights the first lamp and gives Latch's line")
@@ -171,6 +174,10 @@ func _presentation(info: Dictionary, first: Dictionary, post: Dictionary, end: D
 	joiner.configure_map(info)
 	joiner.apply_state(post["state"])
 	_check(joiner.lamps_lit_count == 3, "joining after the post shows the finished lamp line at once")
+	# Retire any playback the automatic presenter process started, including a
+	# late join's first chime, before dropping the corresponding nodes.
+	_track_chime(town)
+	_track_chime(joiner)
 	town.configure_map({})
 	_check(town._root == null and town.lamps.is_empty() and town.figure == null and town.chime_count == 0, "map handoff clears the town")
 	town.configure_map(MissionState.geometry_for(info))
@@ -179,5 +186,20 @@ func _presentation(info: Dictionary, first: Dictionary, post: Dictionary, end: D
 	town.queue_free()
 	joiner.queue_free()
 	await process_frame
-	# Let the audio thread retire the stopped chime playback before exit.
-	await create_timer(0.1).timeout
+	# Mixer retirement is independent of process frames. Observe the actual
+	# release as the rendered tour does, instead of guessing a fixed delay.
+	var deadline: int = Time.get_ticks_msec() + 2000
+	while not _retiring_chimes.is_empty() and Time.get_ticks_msec() < deadline:
+		for index: int in range(_retiring_chimes.size() - 1, -1, -1):
+			if _chime_retired(_retiring_chimes[index]):
+				_retiring_chimes.remove_at(index)
+		if not _retiring_chimes.is_empty():
+			await create_timer(0.01).timeout
+	_check(_retiring_chimes.is_empty(), "stopped chime playbacks retire before process exit")
+
+func _track_chime(town: M07Town) -> void:
+	if is_instance_valid(town.chime) and town.chime.has_stream_playback():
+		_retiring_chimes.append(weakref(town.chime.get_stream_playback()))
+
+static func _chime_retired(reference: WeakRef) -> bool:
+	return reference.get_ref() == null
