@@ -2,7 +2,8 @@
 
 **Status:** in flight, 2026-10-03. Written before source work. Milestone B
 (Sniper Rifle, Ranged Sweeper and their range) is on main. The restored level,
-run carry, entry and presentation are under full route verification.
+run carry, entry and presentation pass the full ordinary-input rendered route.
+Fresh-player, difficulty, pacing and final art acceptance remain open.
 **Spend:** $0. No paid generation, cloud or provider call. Existing textures,
 the existing audio library, local GDScript rigs and bakes only.
 
@@ -379,11 +380,9 @@ street capture clears those Clerks with 80 HP remaining. A later pass also
 confirms a participant Shotgun kill on the first Sweeper, then records the
 second Sweeper killing that participant during the ordinary search walk.
 Subsequent ordinary-input captures clear the entire opening patrol. The
-furthest full route reaches 21 of 29 states, through the plaza, post, actual
-Sniper Rifle pickup, real window windup cancellation, scoped kill, window
-arrival, roof overlook and both pairs of cut Sweepers. It clears 20 required
-guards and reaches the first remaining rim marksman with 100 HP, 30 Armor and
-nine Cells. The remaining rim guards and whole-route acceptance remain open.
+final full route passes all 29 states, through the plaza, post, actual Sniper
+Rifle pickup, real window windup cancellation, scoped kill, window arrival,
+roof overlook, all cut guards, ordinary rim climb and fresh freight departure.
 
 The route refinement exposes the existing target selector's distance
 bound as an optional, validated `engagement_distance` in the combat capture
@@ -447,7 +446,20 @@ retirement assertions pass; the macOS portability rerun passes. The latest
 complete fresh local client gate passes all 225 scripts and 104 harnesses
 without error logs.
 
-The whole rendered route, fresh-player teaching, difficulty, pacing, par and
-final art and audio acceptance remain
-open. M08 is available as a separate development mission; durable M07 to M08
-carry remains the next bounded change after M07 route acceptance.
+The final capture uses zero bots, standard difficulty and seed 42. All 13
+combat states pass with their 25 named required guards confirmed by resolved
+shots. The server record contains 25 kills, zero deaths and zero dry triggers.
+The participant reaches the actual freight prompt and a fresh Use produces
+`party_departed`, ending alive at 15 HP, zero Armor and one Cell. The window
+probe observes cover canceling the committed windup without a registered
+shot through its original deadline. All 29 captures have nonblank world
+frames. The renderer and owned server exit cleanly, with no script errors or
+resource leaks, on Compatibility rendering at 1280 by 720 on an AMD Radeon
+780M. This is route evidence, not hardware performance or fresh-player proof.
+
+Fresh-player teaching, difficulty, pacing, par and final art and audio
+acceptance remain open. In particular, the east rim crossing consumes most
+of the participant's remaining health, and one Cell remains at departure.
+M08 is available as a separate development mission; durable M07 to M08 carry
+is the next bounded change. It must retain actual mine counts and strictly
+upgrade the new saved-run version rather than merely enabling M08 admission.
