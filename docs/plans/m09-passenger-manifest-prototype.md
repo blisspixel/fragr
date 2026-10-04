@@ -1,6 +1,8 @@
 # Passenger Manifest prototype
 
-Status: in flight, started 2026-10-04 from main a6407616.
+Status: in flight, started 2026-10-04 from main a6407616. The bounded playable
+prototype and structural route are implemented and tested locally, not shipped;
+final art, fresh-player and difficulty acceptance remain open.
 
 The accepted level 9 brief in [Passenger Manifest](../campaign/l09-passenger-manifest.md)
 owns this Episode II finale. Its destination is Tern's recognizable Common
@@ -259,3 +261,30 @@ an optional challenge badge and accepts a zero-fall departure prompt. The first
 regression attempt incorrectly expected exactly zero HP on lethal overkill;
 the corrected test requires an actual damaging resolved shot with HP at or below
 zero. Both logs are retained privately. Focused client boundary/HUD proof passes.
+
+## Complete local route and structural checkpoint
+
+The later frozen source `bf69b408` includes current main `61e84585`, the optional
+Severe fix and [the approved berth structure](m09-berth-structure.md). It
+supersedes the earlier open-route checkpoint above. Both the initial gameplay
+baseline and the byte-identical changed-geometry repeat complete every one of
+the 27 ordinary-input states, all eight fights, 21 guards and seven Enforcers,
+then release the crew, raise the hatch and depart through a fresh physical Use.
+The final renderer has a numeric exit 0 receipt and owned-process cleanup.
+No participant death or dry trigger occurs. Actual final health is 70 HP and
+finite equipment is retained; optional crew are not yet aboard at departure.
+
+The final native workspace passes with 913 server tests and three existing
+ignored tests, all 17 owned-child integrations, six five-seat integrations
+and every other suite. Workspace all-target Clippy, matching release build,
+22 focused M09 gates and actual older-reader refusal pass. Complete changed
+source client checks are still running. Source, binary, map and route hashes,
+retained failures and inspected hardware views are in
+[the evidence](../evidence/m09-passenger-manifest-20261004.md).
+
+The supported galleries, receiving threshold, service shelters and pressure
+glazing establish this bounded architectural pass while retaining broad
+combat width. Final Common Carrier hull art, civilian casting, maintenance
+shortcuts, authored par, fresh-player pacing and the difficulty matrix remain
+open. The level is a locally accepted development prototype, not shipped or
+fully polished; M10 remains pending.

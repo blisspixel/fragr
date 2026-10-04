@@ -1,7 +1,8 @@
 # Passenger Manifest prototype evidence
 
 Date: 2026-10-04. Status: Implemented and tested locally, not shipped.
-Architectural refinement and fresh-player acceptance remain in flight.
+The bounded structural route passes locally; final art and fresh-player
+acceptance remain in flight.
 
 The frozen gameplay baseline is `42c00dcc41dc5af5c4348d508a35bb1d1c9f6315`,
 including current main `61e84585`. The matching isolated release server SHA256
@@ -72,3 +73,47 @@ matching client checker pass. These are baseline results, before the separate
 berth structure pass; remote CI and packages are parent integration gates.
 Maintenance shortcuts, reviewed par, fresh-player fun and the complete
 difficulty matrix remain open. This evidence does not claim a finished game.
+
+## Supported berth repeat
+
+The changed architecture is frozen at
+`bf69b40886d076100f47a229c8560a8fd611c5b7`, still including main `61e84585`.
+Its matching isolated native SHA256 is
+`c447ae8c59eda45aa954b532a44410f57e91df82feb2efc68648865fb879c109`;
+the map SHA256 is
+`4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381`.
+The 27-state route retains the exact baseline bytes and hash above. Receipts,
+complete manifest, clean client logs and inspected captures live under
+`.agents/m09-passenger-manifest-evidence/route-v4/`.
+
+The Radeon 780M Compatibility repeat passes every state and all eight original
+combat probes, with all 21 guards and seven Enforcers. Actual crew release,
+ordered arrivals, raised hatch and fresh party departure pass without any
+removed guard, widened arrival or changed supply. The completed server record
+has zero deaths, zero dry triggers, four secrets and 2,967 elapsed ticks
+(148.35 seconds). Final equipment and 70 HP match the baseline. Optional crew
+are released but not yet aboard; that outcome remains explicitly false.
+The receipt records actual numeric renderer exit 0, and both owned processes
+are cleaned. This resolves the earlier exit-value receipt limitation.
+
+Full-size entry, office, north gantry, east gantry and hatch views were
+inspected. The covered receiving threshold, structural columns, open gallery
+undersides and service shelters make the large volume and usable routes more
+legible. Six framed pressure panes attach to the actual registered roof;
+native tests prove body and ray blocking in both hatch worlds. The two controls
+now display passenger-manifest and Common Carrier instructions from their
+strict physical decoration kinds. The volume and original fight widths remain.
+
+Twenty-two focused native checks, actual older-role child admission refusal,
+client boundary and rendered-sign checks, workspace all-target Clippy and the
+matching release build pass. The first identifier and 51-piece topology
+candidate failures are retained; the final 31-piece structure stays within the
+unchanged navigation construction bound. The full changed-source workspace
+passes: 913 server tests (three existing ignored), all 17 owned-child tests,
+six five-seat integrations and every other workspace suite. The complete
+matching client repeat is still running at this checkpoint.
+
+Repetitive surface treatment, the provisional carrier hull, final civilian
+casting, maintenance shortcuts, reviewed par and fresh-player pacing remain
+open. This acceptance establishes the bounded architecture and mission
+operation, not final art or a finished campaign.

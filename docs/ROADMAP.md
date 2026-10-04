@@ -307,20 +307,31 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Next, as of 2026-10-04.** The order is set by what most raises fun and
 quality for the work. Nick authorized parallel game development alongside
-substantial model production. The current independent lanes are M04 residential
-architecture, directional combat feedback, campaign results and cast sources.
-Earlier M04, M06 and M07 improvements shipped in v0.70.0. Shared integration
-and art direction stay coordinated through
-[PR #348](https://github.com/blisspixel/fragr/pull/348), one short-lived branch;
-rendered tours take turns on the same GPU. Every level, built or planned,
+substantial model production. M04 roofs, combat feedback, campaign results and
+the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
+The current release is [v0.72.0](https://github.com/blisspixel/fragr/releases/tag/v0.72.0),
+including [PR #351](https://github.com/blisspixel/fragr/pull/351), with all eight
+main CI jobs and three desktop package checks passing. Current independent
+lanes are M09, Pistol/Rifle craft, Kitchen and Garage. The
+[M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
+27-state, 21-guard structural combat route and strict archive-to-berth carry
+passing locally; final hull art, shortcuts and fresh-player acceptance remain
+open, and the source is unshipped. The Pistol candidate is selected locally
+after its played comparison, while complete integration checks remain open;
+Rifle compact preparation and mechanical presentation continue. Kitchen's
+eight-pad route and actual four-fighter match pass, but its first-use white-wall
+art defect remains unresolved. Garage's ordinary 15-state route passes with
+no deaths; vehicle/surface craft and fresh human fun remain open. Shared
+integration and art direction stay coordinated, and rendered tours take turns
+on the same GPU. Every level, built or planned,
 must pass the [maximum-fun checks](MAP-DESIGN.md#maximum-fun-first). Every
 map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
 asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-0. **Nick plays v0.70.0.** The current desktop release includes the new Clerk,
-   sealed buildings, civilian finishes and restored level 7. Review levels 1
-   to 6, Sabotage with
+0. **Nick plays v0.72.0.** The current desktop release includes the new Clerk,
+   sealed buildings, civilian finishes, restored level 7, loading-first and
+   optional ten-seat Sabotage. Review the built campaign, Sabotage with
    bots and capture the flag, using the watch list in the
    [polish plan](plans/campaign-polish-20261002.md).
    *Why:* automation proved the routes work; only a person can say whether it

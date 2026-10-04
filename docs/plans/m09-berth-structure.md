@@ -1,6 +1,6 @@
 # Passenger Manifest berth structure
 
-Status: In flight. Scope approved 2026-10-04.
+Status: implemented locally, not shipped. Scope approved 2026-10-04.
 
 The original M09 prototype has a clean 27-state ordinary-input completion
 baseline at source `42c00dcc`: all 21 guards, seven Enforcers, crew release,
@@ -60,7 +60,8 @@ body and ray refusal at real columns, every original route, all four actual
 crew contact/boarding rosters, low-resource safe entry, strict carry and the
 optional Severe challenge. The actual child ingress test protects every older
 role before Welcome. Client boundary and physical keyed-sign rendering pass.
-Full rendered changed-geometry acceptance remains open.
+The full changed-geometry route passes at source `bf69b408` on the matching
+native build. Every original state, guard and arrival is retained.
 
 The roof already contains an authoritative pressure-glass solid. Three
 registered mullions replace the initial two exterior ribs, forming six visible
@@ -69,4 +70,24 @@ body crossing and resolved rays. A local face tint attaches to that actual
 registered pane through the shared decoration offset, leaving other venues'
 glass unchanged. Client checks prove bounds and teardown. The carrier name
 now attaches to the actual stepped stern face rather than its occluded old
-keel face. Final hardware views remain required.
+keel face. Actual full-size entry and service-gallery views show the framed
+pane and its surrounding sealed roof, rather than a bare roof opening.
+
+## Accepted local repeat
+
+The byte-identical 27-state route passes all eight fights, 21 guards, seven
+Enforcers, physical crew release, hatch raise and fresh party departure on
+Radeon 780M Compatibility. The actual renderer exit is 0, both owned processes
+are cleaned, and participant records show no deaths or dry triggers. Native
+elapsed time is 2,967 ticks, not a reviewed par. Final health and finite
+equipment match the earlier baseline. Optional crew have not reached boarding
+when the player leaves, which remains an honest optional outcome.
+
+The full-size views show supported circulation and shelter without shrinking
+the useful fight width. The carrier still uses a provisional block hull and
+surface materials remain repetitive. Detailed ship art and fresh-player
+acceptance remain separate work. Exact hashes and both full-route receipts
+are recorded in [the mission evidence](../evidence/m09-passenger-manifest-20261004.md).
+Focused boundary, movement, actual contact and compatibility gates pass;
+the full changed-source workspace passes with 913 server tests (three existing
+ignored) and every integration suite. Complete client checks are still running.
