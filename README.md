@@ -124,7 +124,11 @@ and [evidence](docs/evidence/m09-passenger-manifest-20261004.md) distinguish
 real completion, historical unknown outcomes and remaining art and play gates.
 [PR #353](https://github.com/blisspixel/fragr/pull/353) selects the refined
 Pistol after source, paired live presentation, full client, CI and desktop
-package checks. Parallel development continues on Rifle and Jammer craft,
+package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) selects
+the refined Rifle on main after accepted source and played comparisons,
+complete local client checks, all eight exact-head CI jobs and all three
+desktop package checks. That increment follows the published v0.73.0 build.
+Parallel development continues on Jammer and precision-weapon craft,
 the Repeater foundation, a Kitchen map with
 an unresolved first-use wall-rendering defect, and a Garage whose full walking
 route passes but vehicle craft and fresh human fun remain open.

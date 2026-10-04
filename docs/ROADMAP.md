@@ -313,7 +313,7 @@ The current release is [v0.73.0](https://github.com/blisspixel/fragr/releases/ta
 including the M09 prototype, refined Pistol and hatless civilian. All eight
 main CI jobs and three tagged desktop package checks passed; uploaded digests
 match the checksum manifest ([release receipt](evidence/release-v073-20261004.md)). Current independent
-lanes are Rifle/Jammer craft, the Repeater foundation, Kitchen and Garage. The
+lanes are Jammer and precision-weapon craft, the Repeater foundation, Kitchen and Garage. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain
@@ -323,8 +323,9 @@ The refined Pistol and hatless civilian are on main through
 [PR #352](https://github.com/blisspixel/fragr/pull/352), with complete local
 client checks, all eight CI jobs and all three desktop package checks passing
 on their reviewed heads. The Rifle's accepted source and played comparison
-passed complete local checking; its refreshed main-based branch awaits new
-exact-head CI and package gates in [PR #356](https://github.com/blisspixel/fragr/pull/356).
+passed complete local checking, all eight exact-head CI jobs and all three
+desktop package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356)
+merged the selected art to main after v0.73.0 was published.
 The corrected Jammer candidate consumed 35 included credits, passed mechanical
 source inspection and continues through pixel baking and played acceptance.
 The [precision weapon pass](plans/precision-weapon-references-20261004.md)
