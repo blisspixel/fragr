@@ -492,8 +492,8 @@ func _check_aim_pitch() -> void:
 	tour.camera = camera
 	var relay: Callable = _relay_pitch_frame.bind(tour)
 	process_frame.connect(relay)
-	var requests: Array[float] = [-PI * 0.5, PI * 0.5, -0.7, 0.0, 0.45]
-	var accepted: Array[float] = [-ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT, -0.7, 0.0, 0.45]
+	var requests: Array[float] = [-PI * 0.5, PI * 0.5, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT, -0.7, 0.0, 0.45]
+	var accepted: Array[float] = [-ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT, -ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT, -0.7, 0.0, 0.45]
 	for index: int in range(requests.size()):
 		manager.latest_snapshot = {"players": [
 			{"id": "another-human", "pitch": requests[index]},
