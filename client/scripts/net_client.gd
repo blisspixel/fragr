@@ -1,5 +1,6 @@
 extends Node
 
+# Version 33 understands completed mission elapsed time on private records.
 # Version 32 understands M07 Declared Goods; 31 M08 Custodian of Record.
 # Version 30 understands the found Sniper Rifle and the Ranged Sweeper; 29 the
 # Proximity Mine and Auditor; 28 Sabotage rounds, presented in full;
@@ -17,7 +18,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 32
+const GAMEPLAY_VERSION: int = 33
 
 signal connected_to_server
 signal disconnected_from_server

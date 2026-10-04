@@ -61,6 +61,7 @@ fn statistics_survive_continue_while_attempt_counts_restart() {
     let before = state.player_record(id).unwrap();
     assert_eq!(before.total.attacks(), 1);
     assert_eq!(before.total.alive_ticks, 1);
+    assert_eq!(state.mission.as_ref().unwrap().started_at, Some(0));
     before.validate_for(Some(id), None).unwrap();
     die(&mut state, id);
     let death = state.player_record(id).unwrap();
@@ -75,6 +76,7 @@ fn statistics_survive_continue_while_attempt_counts_restart() {
     );
     let request = request(&state);
     assert!(state.continue_mission(id, request));
+    assert_eq!(state.mission.as_ref().unwrap().started_at, Some(state.tick));
     let retry = state.player_record(id).unwrap();
     retry.validate_for(Some(id), Some(&death)).unwrap();
     assert_eq!(retry.total, before.total);
@@ -91,6 +93,10 @@ fn statistics_survive_continue_while_attempt_counts_restart() {
     assert_eq!(played.total.attacks(), 2);
     assert_eq!(played.attempt.attacks(), 1);
     assert!(!state.continue_mission(id, request));
+    assert_eq!(
+        state.mission.as_ref().unwrap().started_at,
+        Some(state.tick - 1)
+    );
     assert_eq!(played.total, state.player_record(id).unwrap().total);
 }
 

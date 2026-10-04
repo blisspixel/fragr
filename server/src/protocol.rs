@@ -664,7 +664,9 @@ pub const M08_GAMEPLAY_VERSION: u32 = 31;
 /// Declared Goods: strict M07 geometry and facts, the depot freight departure
 /// and retained earlier outcomes. Required only on M07.
 pub const M07_GAMEPLAY_VERSION: u32 = 32;
-pub const GAMEPLAY_VERSION: u32 = M07_GAMEPLAY_VERSION;
+/// Optional frozen mission elapsed time on completed private records.
+pub const MISSION_RESULTS_GAMEPLAY_VERSION: u32 = 33;
+pub const GAMEPLAY_VERSION: u32 = MISSION_RESULTS_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

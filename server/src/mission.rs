@@ -49,6 +49,7 @@ pub(crate) struct MissionRun {
     phase: MissionPhase,
     changed_at: u64,
     started: bool,
+    started_at: Option<u64>,
     ready: HashSet<Uuid>,
 }
 
@@ -70,6 +71,7 @@ impl MissionRun {
             phase: MissionPhase::Briefing,
             changed_at: 0,
             started: false,
+            started_at: None,
             ready: HashSet::new(),
         })
     }
@@ -221,6 +223,7 @@ impl GameState {
             };
             run.changed_at = self.tick;
             run.started = true;
+            run.started_at = Some(self.tick);
             tracing::info!(members = party.len(), "Campaign party ready");
         }
         self.ensure_m03_companion();
@@ -285,6 +288,7 @@ impl GameState {
         // An accepted solo retry is already a live attempt, even if the owner
         // dies again before the encounter controller gets its next tick.
         run.started = run.solo.is_some();
+        run.started_at = (run.phase != MissionPhase::Briefing).then_some(self.tick);
         for player in &mut self.players {
             player.interaction_requested = false;
         }
@@ -390,6 +394,15 @@ impl GameState {
         self.mission
             .as_ref()
             .is_some_and(|run| run.phase == MissionPhase::Departed)
+    }
+
+    /// The successful attempt's server clock, excluding briefing and later
+    /// result viewing. Terminal changed_at is already owned by departure.
+    pub(crate) fn mission_elapsed_ticks(&self) -> Option<u64> {
+        let run = self.mission.as_ref()?;
+        (run.phase == MissionPhase::Departed)
+            .then(|| run.changed_at.checked_sub(run.started_at?))
+            .flatten()
     }
 
     pub(crate) fn advance_mission(&mut self) {

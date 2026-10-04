@@ -106,6 +106,7 @@ var records: PlayerRecords
 var _record_save_warning: bool = false
 var role_transition: bool = false
 var shot_effects: ShotEffects = null
+var incoming_feedback: IncomingCombatFeedback = null
 var grenade_effects: GrenadeEffects
 var auditor_channels: AuditorChannels
 var last_shot_tick: int = -1
@@ -115,6 +116,8 @@ var _leaving: bool = false
 var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
+var campaign_results: CampaignResults
+var _results_played: Dictionary[String, bool] = {}
 var _interludes_played: Dictionary[String, bool] = {}
 var _opening_finished: bool = false
 var _opening_release: bool = false
@@ -165,6 +168,10 @@ func _ready():
 	input_device.name = "InputDevice"
 	add_child(input_device)
 	shot_effects = ShotEffects.new()
+	incoming_feedback = IncomingCombatFeedback.new()
+	incoming_feedback.name = "IncomingCombatFeedback"
+	add_child(incoming_feedback)
+	incoming_feedback.setup(hud)
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
 	grenade_effects = GrenadeEffects.new()
@@ -373,6 +380,8 @@ func _on_map_info(info: Dictionary) -> void:
 	if shot_effects != null:
 		shot_effects.clear()
 	current_map_info = info.duplicate(true)
+	if incoming_feedback != null:
+		incoming_feedback.configure_map(info)
 	# The rule set arrives with the map; a campaign map has none.
 	if hud and hud.has_method("set_match_rules"):
 		hud.set_match_rules(MatchRules.parse(info.get("rules")))
@@ -466,7 +475,7 @@ func controls_blocked() -> bool:
 func _mission_controls_blocked() -> bool:
 	if not is_human_player:
 		return false
-	if _awaiting_map or _opening_release or _retry_snapshot_tick >= 0 or is_instance_valid(opening) or is_instance_valid(interlude):
+	if _awaiting_map or _opening_release or _retry_snapshot_tick >= 0 or is_instance_valid(opening) or is_instance_valid(interlude) or is_instance_valid(campaign_results):
 		return true
 	if not _mission_map():
 		return false
@@ -553,6 +562,7 @@ func _exit_tree() -> void:
 
 func _on_record_received(data: Dictionary) -> void:
 	_report_record_save(records.accept(data, "local" if local_match != null else "external"))
+	_try_campaign_results()
 
 func _report_record_save(result: Error) -> void:
 	if result != OK and not _record_save_warning:
@@ -794,11 +804,13 @@ func _arm_continue() -> void:
 func _onward_available() -> bool:
 	if not is_human_player or local_match == null or not local_match.has_durable_run() or _leaving:
 		return false
-	if is_instance_valid(interlude) or is_instance_valid(departure_review) or is_instance_valid(opening):
+	if is_instance_valid(interlude) or is_instance_valid(departure_review) or is_instance_valid(opening) or is_instance_valid(campaign_results):
 		return false
 	var state: Dictionary = net_client.mission.get("state", {})
 	var run: Variant = state.get("run")
-	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete"
+	var result: Dictionary = CampaignResult.select(net_client.record, state, net_client.player_id)
+	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete" \
+		and not result.is_empty() and _results_played.has(result["key"])
 
 ## The prompt appears only after every held control is released, so the key
 ## that dismissed the departure scene cannot also leave the mission.
@@ -972,6 +984,8 @@ func _clear_predicted_pawn() -> void:
 
 
 func _reset_prediction_for_connection(reason: String) -> void:
+	if incoming_feedback != null:
+		incoming_feedback.reset()
 	local_prediction.reset(reason, true)
 	_clear_predicted_pawn()
 	_adopt_local_spawn_snapshot = is_human_player
@@ -1110,6 +1124,7 @@ func _on_mission_received(state: Dictionary) -> void:
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
+	_try_campaign_results()
 
 func _m05_departure_available() -> bool:
 	var value: Dictionary = net_client.mission.get("state", {})
@@ -1172,6 +1187,40 @@ func _on_interlude_completed() -> void:
 	if is_instance_valid(interlude):
 		interlude.queue_free()
 	interlude = null
+	_clear_story_input()
+	_try_campaign_results()
+
+func _try_campaign_results() -> void:
+	if not is_human_player or local_match == null or net_client == null or _leaving or is_instance_valid(opening) or is_instance_valid(interlude) or is_instance_valid(campaign_results):
+		return
+	var result: Dictionary = CampaignResult.select(net_client.record, net_client.mission.get("state", {}), net_client.player_id)
+	if result.is_empty() or _results_played.has(result["key"]):
+		return
+	# A record may arrive before mission state. Give the existing story hook its
+	# first opportunity regardless of which wire update completed the pair.
+	play_departure_scene(net_client.mission["state"])
+	if is_instance_valid(interlude):
+		return
+	_results_played[result["key"]] = true
+	_onward_armed = false
+	_onward_released = false
+	_clear_story_input()
+	campaign_results = CampaignResults.new(result)
+	campaign_results.completed.connect(_on_campaign_results_completed)
+	add_child(campaign_results)
+
+func _on_campaign_results_completed() -> void:
+	_close_campaign_results()
+	_onward_armed = false
+	_onward_released = false
+	_clear_story_input()
+
+func _close_campaign_results() -> void:
+	if is_instance_valid(campaign_results):
+		campaign_results.queue_free()
+	campaign_results = null
+
+func _clear_story_input() -> void:
 	pending_jump = false
 	pending_interact = false
 	pending_throw = false
@@ -1325,6 +1374,7 @@ func _on_server_error(message: String) -> void:
 
 func _clear_world() -> void:
 	_close_departure_review()
+	_close_campaign_results()
 	if grenade_effects != null:
 		grenade_effects.reset()
 	if auditor_channels != null:
@@ -2015,6 +2065,8 @@ func _set_human_fp(enabled: bool) -> void:
 	_refresh_fp_target()
 
 func _clear_fp_state() -> void:
+	if incoming_feedback != null:
+		incoming_feedback.reset()
 	local_prediction.reset("role", true)
 	_adopt_local_spawn_snapshot = false
 	_clear_predicted_pawn()
@@ -2131,6 +2183,20 @@ func _process_shot_results(results, tick: int) -> void:
 		shot_effects.ingest(tick, results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
+	var feedback_camera: Camera3D = get_viewport().get_camera_3d()
+	var feedback_pawn: Node = players.get(my_id)
+	var feedback_fp: bool = is_human_player and not role_transition \
+		and net_client.connection_state == WebSocketPeer.STATE_OPEN and local_fp_pawn_id == my_id \
+		and is_instance_valid(feedback_pawn) and camera != null and bool(camera.get("fp_mode")) \
+		and is_instance_valid(feedback_camera) and not _awaiting_map and not _opening_release \
+		and _retry_snapshot_tick < 0 and not is_instance_valid(opening) \
+		and not is_instance_valid(interlude) and not is_instance_valid(campaign_results) \
+		and get_node_or_null("LoadingCard") == null \
+		and (local_hp_seen <= 0 or not _mission_controls_blocked())
+	if incoming_feedback != null:
+		incoming_feedback.ingest(tick, results, my_id,
+			feedback_camera.global_transform if is_instance_valid(feedback_camera) else Transform3D.IDENTITY,
+			feedback_fp, local_hp_seen > 0)
 	_play_shot_impacts(results)
 	# A scatter blast arrives as one result per struck fighter plus one for its
 	# missed pellets. A fighter fires at most once a tick, so fold each

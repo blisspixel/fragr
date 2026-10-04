@@ -340,6 +340,60 @@ fn completed_mission_records_cannot_rewrite_the_attempt_or_run_allowance() {
 }
 
 #[test]
+fn completion_elapsed_is_optional_strict_and_terminal() {
+    let mut record: PlayerRecord =
+        serde_json::from_str(include_str!("../../../client/golden/player_record.json")).unwrap();
+    assert!(serde_json::to_value(&record)
+        .unwrap()
+        .get("mission_elapsed_ticks")
+        .is_none());
+    record.mission_elapsed_ticks = Some(10);
+    assert!(
+        record.validate_for(Some(record.player_id), None).is_err(),
+        "arena has no mission clock"
+    );
+    record.scope = RecordScope::Mission {
+        mission: crate::protocol::MissionId::RecallNotice,
+        attempt: 1,
+        rules: crate::protocol::CampaignRules::default(),
+        run: None,
+    };
+    record.validate_for(Some(record.player_id), None).unwrap();
+    let mut changed = record.clone();
+    changed.mission_elapsed_ticks = Some(11);
+    assert!(changed
+        .validate_for(Some(record.player_id), Some(&record))
+        .is_err());
+    changed.mission_elapsed_ticks = None;
+    assert!(changed
+        .validate_for(Some(record.player_id), Some(&record))
+        .is_err());
+    for status in [
+        RecordStatus::Active,
+        RecordStatus::Continue,
+        RecordStatus::Failed,
+        RecordStatus::Abandoned,
+    ] {
+        changed = record.clone();
+        changed.status = status;
+        assert!(changed.validate_for(Some(record.player_id), None).is_err());
+    }
+    changed = record.clone();
+    changed.mission_elapsed_ticks = Some(record.tick + 1);
+    assert!(changed.validate_for(Some(record.player_id), None).is_err());
+    for invalid in [
+        serde_json::Value::Null,
+        serde_json::json!(-1),
+        serde_json::json!(0.5),
+        serde_json::json!("10"),
+    ] {
+        let mut data = serde_json::to_value(&record).unwrap();
+        data["mission_elapsed_ticks"] = invalid;
+        assert!(serde_json::from_value::<PlayerRecord>(data).is_err());
+    }
+}
+
+#[test]
 fn protected_targets_and_friendlies_never_count_as_damaging_attacks() {
     let (mut state, a, b) = arena();
     state.spawn_shields.insert(b, 10);
@@ -396,6 +450,57 @@ async fn record_delivery_respects_advertised_client_capability() {
         current_rx.try_recv(),
         Ok(ServerMessage::Record(_))
     ));
+}
+
+#[tokio::test]
+async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
+    use std::sync::Arc;
+    use tokio::sync::{mpsc, Mutex};
+    let mut record: PlayerRecord =
+        serde_json::from_str(include_str!("../../../client/golden/player_record.json")).unwrap();
+    record.scope = RecordScope::Mission {
+        mission: crate::protocol::MissionId::RecallNotice,
+        attempt: 1,
+        rules: crate::protocol::CampaignRules::default(),
+        run: None,
+    };
+    let legacy_bytes = serde_json::to_vec(&ServerMessage::Record(record.clone())).unwrap();
+    record.mission_elapsed_ticks = Some(10);
+    let (legacy_tx, mut legacy_rx) = mpsc::channel(4);
+    let (current_tx, mut current_rx) = mpsc::channel(4);
+    let clients = Arc::new(Mutex::new(vec![
+        crate::net::ClientSession::new(
+            Uuid::from_u128(901),
+            legacy_tx,
+            crate::protocol::M07_GAMEPLAY_VERSION,
+        ),
+        crate::net::ClientSession::new(
+            Uuid::from_u128(902),
+            current_tx,
+            crate::protocol::MISSION_RESULTS_GAMEPLAY_VERSION,
+        ),
+    ]));
+    crate::session::send_unicasts(
+        &clients,
+        &Default::default(),
+        &[
+            (
+                Recipient::Client(Uuid::from_u128(901)),
+                ServerMessage::Record(record.clone()),
+            ),
+            (
+                Recipient::Client(Uuid::from_u128(902)),
+                ServerMessage::Record(record.clone()),
+            ),
+        ],
+    )
+    .await;
+    let legacy = legacy_rx.try_recv().unwrap();
+    assert_eq!(serde_json::to_vec(&legacy).unwrap(), legacy_bytes);
+    assert_eq!(
+        serde_json::to_vec(&current_rx.try_recv().unwrap()).unwrap(),
+        serde_json::to_vec(&ServerMessage::Record(record)).unwrap()
+    );
 }
 
 #[test]

@@ -19,7 +19,7 @@ static func key(record: Dictionary) -> String:
 	return "%s/%s/%d" % [record["session_id"], record["player_id"], int(record["round"])]
 
 static func validation_error(data: Dictionary, owner: Variant, previous: Dictionary = {}) -> String:
-	if data.size() != (16 if data.has("type") else 15) or (data.has("type") and data["type"] != "record") \
+	if data.size() != (16 if data.has("type") else 15) + int(data.has("mission_elapsed_ticks")) or (data.has("type") and data["type"] != "record") \
 		or data.get("version") != VERSION or data.get("ticks_per_second") != 20 \
 		or not MissionState._uuid(data.get("session_id")) or not MissionState._uuid(data.get("player_id")) \
 		or data.get("player_id") != owner or data.get("role") not in ["human", "agent"] \
@@ -39,6 +39,10 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 		return INVALID
 	if not contains(data["total"], data["attempt"]) or not _valid_scope(data):
 		return INVALID
+	if data.has("mission_elapsed_ticks") and (not EquipmentState.integer(data["mission_elapsed_ticks"], EquipmentState.MAX_EXACT_INTEGER) \
+		or data["status"] != "complete" or data["scope"]["kind"] != "mission" \
+		or int(data["mission_elapsed_ticks"]) > int(data["tick"]) - int(data["round_started_at"])):
+		return INVALID
 	if not previous.is_empty():
 		if data["session_id"] != previous["session_id"] or data["player_id"] != previous["player_id"] \
 			or int(data["tick"]) < int(previous["tick"]) or int(data["round"]) < int(previous["round"]):
@@ -54,7 +58,8 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 			if attempt < old_attempt or (attempt == old_attempt and not contains(data["attempt"], previous["attempt"])):
 				return INVALID
 			if terminal(previous) and (data["status"] != previous["status"] or data["total"] != previous["total"] \
-				or data["scope"] != previous["scope"] or data["attempt"] != previous["attempt"]):
+				or data["scope"] != previous["scope"] or data["attempt"] != previous["attempt"] \
+				or data.get("mission_elapsed_ticks") != previous.get("mission_elapsed_ticks")):
 				return INVALID
 	return ""
 

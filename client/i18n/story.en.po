@@ -3,6 +3,33 @@ msgstr ""
 "Language: en\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "RESULT_COMPLETE"
+msgstr "MISSION COMPLETE"
+
+msgid "RESULT_ATTEMPT"
+msgstr "ATTEMPT {number}"
+
+msgid "RESULT_ALL_ATTEMPTS"
+msgstr "ALL ATTEMPTS"
+
+msgid "RESULT_KILLS"
+msgstr "KILLS"
+
+msgid "RESULT_SECRETS"
+msgstr "SECRETS"
+
+msgid "RESULT_DEATHS"
+msgstr "DEATHS"
+
+msgid "RESULT_TIME"
+msgstr "ATTEMPT TIME"
+
+msgid "RESULT_TIME_UNAVAILABLE"
+msgstr "UNAVAILABLE"
+
+msgid "RESULT_CONTINUE"
+msgstr "CONTINUE"
+
 msgid "CAPTION_CRAWLER_SCRABBLE"
 msgstr "[Mechanical claws scrabble nearby]"
 

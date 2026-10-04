@@ -276,8 +276,23 @@ pub struct PlayerRecord {
     pub role: Role,
     pub scope: RecordScope,
     pub status: RecordStatus,
+    /// Successful mission attempt: readiness to authoritative departure.
+    /// Absent on historical records and every noncompleted mission/arena.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "mission_elapsed"
+    )]
+    pub mission_elapsed_ticks: Option<u64>,
     pub total: CombatCounts,
     pub attempt: CombatCounts,
+}
+
+fn mission_elapsed<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<u64>, D::Error> {
+    // Missing historical fields use Default; a present null is not a duration.
+    u64::deserialize(deserializer).map(Some)
 }
 
 impl PlayerRecord {
@@ -302,6 +317,13 @@ impl PlayerRecord {
         }
         self.total.validate()?;
         self.attempt.validate()?;
+        if self.mission_elapsed_ticks.is_some_and(|elapsed| {
+            self.status != RecordStatus::Complete
+                || !matches!(self.scope, RecordScope::Mission { .. })
+                || elapsed > self.tick - self.round_started_at
+        }) {
+            return Err("invalid mission completion elapsed time");
+        }
         if self.total.alive_ticks > self.tick - self.entered_at {
             return Err("record active time exceeds participation window");
         }
@@ -354,6 +376,7 @@ impl PlayerRecord {
                         && (self.status != old.status
                             || self.total != old.total
                             || self.attempt != old.attempt
+                            || self.mission_elapsed_ticks != old.mission_elapsed_ticks
                             || self.scope != old.scope)))
             {
                 return Err("record regressed or rewrote a terminal result");
