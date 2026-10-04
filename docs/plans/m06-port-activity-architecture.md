@@ -93,3 +93,9 @@ additional images are labeled separately in the evidence. The earlier complete
 open. The corrected gauge pointers have an explicit layering regression and
 refreshed final art captures. Repeat full headless checks pass 226 scripts and
 104 harnesses, all 331 expected labels present and no errors.
+
+The scoped branch is rebased onto main
+`abbd2d7d24f53d74a4ba5760176204c55132869a`, retaining identical map/presenter
+bytes. Fresh import and four focused M06 harnesses pass after rebasing. The
+recorded full client counts are from before this rebase; full branch CI and
+shared status/index updates belong to integration.

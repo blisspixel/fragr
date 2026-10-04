@@ -132,6 +132,11 @@ regression requires each entire pointer to sit visibly ahead of its dial face.
 The full client checker is repeated for the final finish: 226 scripts and 104
 harnesses pass, all 331 expected labels are present and no errors remain.
 `craft-full-client-receipt.json` binds that result to the final presenter source.
+These complete client checks precede rebasing the scoped branch onto main
+`abbd2d7d24f53d74a4ba5760176204c55132869a`. The rebase leaves this map and
+presenter byte-for-byte unchanged. A fresh post-rebase import and all four
+focused M06 harnesses pass with no errors, recorded in the `rebased-*` logs.
+Full branch CI remains an integration gate.
 
 A separate later ten-state art-view subset uses ordinary dock entry, the actual
 freight fight and five physical playing-distance/near inspection states. It
