@@ -56,6 +56,19 @@ Community hosting uses the existing dedicated process and access lists.
 bans with UTC expiry. Expiring moderation is not a reason to invent account
 identity, a hosted matchmaking service or a map-specific access system.
 
+Mixed human and agent rosters are a first-class target. Controller, physical
+body and faction are separate canonical facts: sides are readable through
+issued identity, not a claim that conscious agents are less legitimate players.
+Map acceptance needs human comprehension and actual agent navigation, supply
+claims, site selection and retakes on the same authoritative action channel.
+Strong aim or reaction speed is not evidence of cheating. Optional host rules
+can define a room without forcing human-only ranked play or an account service.
+Non-invasive host moderation should act on clear repeated hard abuse, not agent
+strength; map design must not invent an aim-based automatic-ban policy.
+The playtest planner's wrong-floor supply arrival was a real limitation, now
+addressed in a separate focused checkpoint, not evidence that objective agents
+already play every proposed venue competently.
+
 ## Three original objective venues
 
 All dimensions and timing windows below are starting hypotheses, not measured
