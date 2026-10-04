@@ -14,9 +14,32 @@ class ApproachProbe extends QaCombat:
 		defenses += 1
 		fired = fired or allow_fire
 
+class PitchNetwork extends Node:
+	var player_id: String = "local-human"
+
+class PitchManager extends Node:
+	var is_human_player: bool = true
+	var latest_snapshot: Dictionary = {}
+	var net_client: Node
+
+class PitchTour extends TOUR:
+	var manager: Node
+	var camera: Node
+	func _initialize() -> void:
+		pass
+	func _game_manager() -> Node:
+		return manager
+	func _spectator_camera() -> Node:
+		return camera
+
 var _failures: int = 0
 
 func _initialize() -> void:
+	set_meta("fragr_automated", true)
+	call_deferred("_run")
+
+func _run() -> void:
+	await _check_aim_pitch()
 	_check_engagement_distance()
 	_check_focused_route()
 	_check_m06_gallery_contact()
@@ -458,6 +481,38 @@ func _initialize() -> void:
 	if _failures == 0:
 		print("test_qa_combat: PASS")
 	quit(0 if _failures == 0 else 1)
+
+func _check_aim_pitch() -> void:
+	var tour: PitchTour = PitchTour.new()
+	var manager: PitchManager = PitchManager.new()
+	var network: PitchNetwork = PitchNetwork.new()
+	var camera: Node3D = preload("res://scripts/spectator_cam.gd").new()
+	manager.net_client = network
+	tour.manager = manager
+	tour.camera = camera
+	var relay: Callable = _relay_pitch_frame.bind(tour)
+	process_frame.connect(relay)
+	var requests: Array[float] = [-PI * 0.5, PI * 0.5, -0.7, 0.0, 0.45]
+	var accepted: Array[float] = [-ServerYaw.PITCH_LIMIT, ServerYaw.PITCH_LIMIT, -0.7, 0.0, 0.45]
+	for index: int in range(requests.size()):
+		manager.latest_snapshot = {"players": [
+			{"id": "another-human", "pitch": requests[index]},
+			{"id": network.player_id, "pitch": accepted[index]}]}
+		await tour._set_aim_pitch(requests[index])
+		_check(not tour._failed, "real pitch helper acknowledges the local human's bounded or ordinary snapshot")
+		_check(is_equal_approx(float(camera.get("fp_pitch")), accepted[index]),
+			"real pitch helper sets the camera to the attainable target")
+		_check(is_equal_approx(float(camera.call("consume_pitch")), accepted[index]),
+			"ordinary camera action input agrees with the acknowledged target")
+	process_frame.disconnect(relay)
+	await process_frame
+	tour.free()
+	camera.free()
+	network.free()
+	manager.free()
+
+func _relay_pitch_frame(tour: PitchTour) -> void:
+	tour.process_frame.emit()
 
 func _check_engagement_distance() -> void:
 	_check(QaCombat.valid_engagement_distance({}) and QaCombat.valid_engagement_distance({"engagement_distance": 10})
