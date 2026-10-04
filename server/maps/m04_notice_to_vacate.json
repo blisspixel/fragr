@@ -7,6 +7,54 @@
   "equipment": "discovery",
   "solids": [
     {
+      "id": "workshop_roof_shell",
+      "min": [22, 4, -32],
+      "max": [34, 4.35, -18],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_roof_shell",
+      "min": [-35, 4, -8],
+      "max": [-23, 4.35, 14],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_roof_east_south",
+      "min": [-23, 4, -8],
+      "max": [-22, 4.35, 0],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_roof_east_north",
+      "min": [-23, 4, 4],
+      "max": [-22, 4.35, 14],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_shutter_pocket_roof",
+      "min": [-23, 6.2, 0],
+      "max": [-22, 6.5, 4],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_shutter_pocket_back",
+      "min": [-23, 4.35, 0],
+      "max": [-22.8, 6.2, 4],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_shutter_pocket_south",
+      "min": [-23, 4.35, -0.2],
+      "max": [-22, 6.2, 0],
+      "surface": "enamel"
+    },
+    {
+      "id": "clinic_shutter_pocket_north",
+      "min": [-23, 4.35, 4],
+      "max": [-22, 6.2, 4.2],
+      "surface": "enamel"
+    },
+    {
       "id": "tram_workshop",
       "min": [
         22,

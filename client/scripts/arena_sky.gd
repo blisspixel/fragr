@@ -194,6 +194,8 @@ static func preset_for(map_name: String) -> Preset:
 		return moon_port()
 	if key.contains("custodian of record") or key.contains("custody device range"):
 		return moon_archive()
+	if key.contains("declared goods"):
+		return moon_town()
 	if key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
@@ -234,6 +236,17 @@ static func moon_archive() -> Preset:
 	preset.practical_range = 11.0
 	preset.view_fill_energy = 0.5
 	preset.contrast = 1.1
+	return preset
+
+## The curfew town: the port's lunar light with darker fill, colder practicals
+## and every window dark until the lamp line is lit.
+static func moon_town() -> Preset:
+	var preset: Preset = moon_port()
+	preset.scene_fill_energy = 0.07
+	preset.practical_color = Color("d9e0dc")
+	preset.practical_energy = 1.6
+	preset.practical_range = 10.0
+	preset.view_fill_energy = 0.48
 	return preset
 
 static func low_water() -> Preset:

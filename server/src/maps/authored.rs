@@ -16,6 +16,7 @@ pub(crate) mod m03;
 pub(crate) mod m04;
 pub(crate) mod m05;
 pub(crate) mod m06;
+pub(crate) mod m07;
 pub(crate) mod m08;
 mod mission;
 mod supplies;
@@ -43,6 +44,7 @@ pub struct AuthoredMap {
     pub(super) m08: Option<Arc<m08::Prepared>>,
     /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
     pub(super) m08_stage: u8,
+    pub(super) m07: Option<Arc<m07::Prepared>>,
     pub(super) freight_open: bool,
     pub(super) clinic_open: bool,
     pub(super) mast_shutdown: bool,
@@ -75,6 +77,7 @@ struct Document {
     m06: Option<m06::Definition>,
     #[serde(default)]
     m08: Option<m08::Definition>,
+    m07: Option<m07::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -309,13 +312,19 @@ impl AuthoredMap {
                 "M03 cancellation belongs to the fallen runtime world",
             ));
         }
-        // Ballistic pressure windows belong to the two registered glass missions.
+        // Ballistic pressure windows belong to the registered glass missions.
         if presentation.ground == MapSurface::InspectionGlass
             || (doc.m02.is_none()
                 && doc.m06.is_none()
+                && doc.m07.is_none()
                 && presentation.solids.contains(&MapSurface::InspectionGlass))
         {
-            return Err(invalid("inspection glass belongs to an M02 or M06 solid"));
+            return Err(invalid(
+                "inspection glass belongs to an M02, M06 or M07 solid",
+            ));
+        }
+        if doc.m07.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m07()) {
+            return Err(invalid("M07 registered panels require Declared Goods"));
         }
         if doc.m06.is_none()
             && presentation.decorations.iter().any(|p| {
@@ -423,6 +432,7 @@ impl AuthoredMap {
                 || doc.m03.is_some()
                 || doc.m04.is_some()
                 || doc.m05.is_some()
+                || doc.m07.is_some()
                 || doc.map_id != 1006
                 || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
         {
@@ -437,11 +447,27 @@ impl AuthoredMap {
                 || doc.m04.is_some()
                 || doc.m05.is_some()
                 || doc.m06.is_some()
+                || doc.m07.is_some()
                 || doc.map_id != 1008
                 || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
         {
             return Err(invalid(
                 "M08 requires map1008, discovery and no other mission",
+            ));
+        }
+        if doc.m07.is_some()
+            && (mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.m05.is_some()
+                || doc.m06.is_some()
+                || doc.m08.is_some()
+                || doc.map_id != 1007
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery)
+        {
+            return Err(invalid(
+                "M07 requires map1007, discovery and no other mission",
             ));
         }
         for spawn in &doc.spawns {
@@ -464,6 +490,20 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m07 = doc
+            .m07
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let m08 = doc
             .m08
             .map(|definition| {
@@ -551,6 +591,8 @@ impl AuthoredMap {
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
         let navigation = if let Some(prepared) = &m08 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m07 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m06 {
             prepared.navigation.clone()
@@ -676,6 +718,7 @@ impl AuthoredMap {
             m06,
             m08,
             m08_stage: 0,
+            m07,
             freight_open: false,
             clinic_open: false,
             mast_shutdown: false,

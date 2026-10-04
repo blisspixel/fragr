@@ -1,5 +1,6 @@
 extends Node
 
+# Version 32 understands M07 Declared Goods; 31 M08 Custodian of Record.
 # Version 30 understands the found Sniper Rifle and the Ranged Sweeper; 29 the
 # Proximity Mine and Auditor; 28 Sabotage rounds, presented in full;
 # 27 the M06 lunar port; 23 to 26 the Jammer, M03 to M05 and grenades;
@@ -16,7 +17,7 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. Older servers
 # remain playable.
-const GAMEPLAY_VERSION: int = 31
+const GAMEPLAY_VERSION: int = 32
 
 signal connected_to_server
 signal disconnected_from_server
@@ -384,6 +385,12 @@ func _handle_message(text: String):
 				disconnect_from_server()
 				server_error.emit(MissionState.INVALID)
 				return
+			if geometry.get("id") == MissionState.M07_ID and mission_geometry.get("id") == MissionState.M07_ID \
+				and geometry.get("map_id") == mission_geometry.get("map_id") \
+				and not M07MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M06_ID and mission_geometry.get("id") == MissionState.M06_ID \
 				and geometry.get("map_id") == mission_geometry.get("map_id") \
 				and not M06MissionState.same_contract(mission_geometry, geometry):
@@ -415,7 +422,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M08_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry

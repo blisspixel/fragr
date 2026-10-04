@@ -94,8 +94,8 @@ func _run() -> void:
 		var arrival: Dictionary = StoryScene.load_scene(StoryScene.BEFORE_MISSION[mission])
 		_expect(not arrival.is_empty(), "arrival scene exists for " + mission)
 		for shot: Dictionary in arrival.get("shots", []):
-			if mission in [MissionState.M03_ID, MissionState.M08_ID]:
-				# Reader-paced keyed pages; level 8 adds no generated narration.
+			if mission in [MissionState.M03_ID, MissionState.M07_ID, MissionState.M08_ID]:
+				# These arrivals use keyed pages with reader pacing.
 				_expect(shot.get("timing") == "reader" and not shot.has("narration"), "reader-paced arrival keeps its keyed scene: " + mission)
 			else:
 				_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "voiced arrival has its committed narration with text fallback: " + mission)

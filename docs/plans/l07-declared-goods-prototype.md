@@ -1,8 +1,9 @@
 # L07 Declared Goods prototype
 
-**Status:** in flight, 2026-10-02. Written before source work. Milestone B
-(Sniper Rifle, Ranged Sweeper and their range) lands first; the level, run
-carry, entry and presentation follow in a second pull request.
+**Status:** in flight, 2026-10-03. Written before source work. Milestone B
+(Sniper Rifle, Ranged Sweeper and their range) is on main. The restored level,
+run carry, entry and presentation pass the full ordinary-input rendered route.
+Fresh-player, difficulty, pacing and final art acceptance remain open.
 **Spend:** $0. No paid generation, cloud or provider call. Existing textures,
 the existing audio library, local GDScript rigs and bakes only.
 
@@ -358,3 +359,110 @@ breath beat, about 13 seconds, with the overlook climb next at about 11
 seconds. These are estimates from route geometry, not a measured play
 session. Whether the crater climax is the moment people talk about needs
 human play.
+
+### Restoration on current source, 2026-10-03
+
+The retained level bundle is reconciled with the current archive mission,
+living-body contact, character art and strict historical save readers. M07
+uses capability 32; M08 retains 31 and campaign rules remain revision 3.
+Version 8 explicitly upgrades historical version 7 documents, archives their
+exact bytes, and promotes completed M06 into M07 without an episode refill.
+Both static mission envelopes remain separate. An absent envelope is omitted
+on earlier maps rather than emitted as null.
+
+The opening patrol now places its porch Clerk on the supported ground lane.
+A server regression walks an actual participant through the ordinary supply
+pickups, confirms that finding the Shotgun selects it, reselects the Rifle,
+and clears all three Clerks while alive in the 25 second street window.
+Each confirmed death comes from a resolved shot. The rendered route splits
+the Shotgun pickup from Rifle selection for the same reason. Its revised
+street capture clears those Clerks with 80 HP remaining. A later pass also
+confirms a participant Shotgun kill on the first Sweeper, then records the
+second Sweeper killing that participant during the ordinary search walk.
+Subsequent ordinary-input captures clear the entire opening patrol. The
+final full route passes all 29 states, through the plaza, post, actual Sniper
+Rifle pickup, real window windup cancellation, scoped kill, window arrival,
+roof overlook, all cut guards, ordinary rim climb and fresh freight departure.
+
+The route refinement exposes the existing target selector's distance
+bound as an optional, validated `engagement_distance` in the combat capture
+manifest. All 13 M07 combat states now use a supported weapon band: the five
+ordinary Rifle states select within 30 metres against its 40 metre reach, and
+the eight Sniper Rifle states select within 75 metres against its 90 metre
+reach. A visible distant guard no longer stops ordinary search-route walking.
+Other captures keep the current unlimited selector by default. Boundary tests
+reject malformed distances and prove
+that a distant visible guard is excluded until actual movement brings it into
+the requested band. Short-range search reuses the existing no-fire approach
+defense against committed tells. A harness proves that defense and preserves
+the default search behavior. Capture diagnostics explicitly retain participant
+death even if the development mission resets the pawn. These changes affect
+capture inputs only; server reach, damage,
+enemy intent and the 25 second combat window remain authoritative.
+
+Focused server and store checks pass 16 tests, including M06, Sniper and M08
+reader refusal on M07. Warning-denied workspace Clippy passes. The M07 client
+boundary, real owned child launch, version 7 preview and M06 transition
+harnesses pass. The menu harness now covers the M07 saved continuation and
+its separate practice entry while retaining the pending M08 carry boundary.
+The first full client pass exposed the absent-envelope serialization defect
+and stale menu, story, archive capability and presenter-owned decoration
+expectations. All were corrected. The complete fresh client gate passes import,
+all 224 scripts and all 103 harnesses. The latest complete workspace tests pass,
+including 864 server tests with three ignored tests. The focused distance and
+search-defense harness passes after its final edits.
+
+The exact failed plaza capture preserved a visible Notary at 40 to 48 metres
+and resolved Rifle traces that ended at range. A failed post capture preserved
+15 Rifle rounds spent before its gate cleared. The current route includes a
+normal walking detour to the existing 40-round bend stock. It also collects
+the existing plaza Health and side-street Armor and Health before the post.
+Every current detour passes the shared ordinary movement proof. Supplies,
+enemy roster, attack timing and damage remain unchanged. Failed captures now
+preserve bounded samples of participant positions, actual loadout, required
+guard positions and line of sight, plus resolved shots and route progress.
+
+The first rim peek stopped at actual feet just inside its shield edge. The
+guard was within the Sniper band but covered, so the capture correctly refused
+to fire. The west and east opening peeks now have 1.25 metres of edge clearance.
+A server regression proves the rejected feet remain covered and both revised
+peeks expose their guards throughout a conservative square containing the
+capture's 0.5 metre arrival tolerance. The route still requires ordinary
+supported movement and actual resolved kills.
+
+Inspected captures show the post's walls and ceiling, its enclosed upper room
+and the deliberate firing window with a sill and lintel. The surrounding
+pressure-dome streets are outdoors. This establishes the shell's rendered
+presence, not final environment art acceptance.
+
+The macOS client gate initially reported a successful M07 harness followed by
+a leaked chime playback at process exit. The harness now observes actual
+playback release inside the existing two-second retirement bound. The shared
+tour uses the same synchronous weak-reference predicate so its temporary
+reference cannot remain across an await. A focused harness plays the actual
+committed chime, replaces its live playback, stops and frees the owner, and
+requires both playback references to release. Both this test and the M07
+retirement assertions pass; the macOS portability rerun passes. The latest
+complete fresh local client gate passes all 225 scripts and 104 harnesses
+without error logs.
+
+The final capture uses zero bots, standard difficulty and seed 42. All 13
+combat states pass with their 25 named required guards confirmed by resolved
+shots. The server record contains 25 kills, zero deaths and zero dry triggers.
+The participant reaches the actual freight prompt and a fresh Use produces
+`party_departed`, ending alive at 15 HP, zero Armor and one Cell. The window
+probe observes cover canceling the committed windup without a registered
+shot through its original deadline. All 29 captures have nonblank world
+frames. The renderer and owned server exit cleanly, with no script errors or
+resource leaks, on Compatibility rendering at 1280 by 720 on an AMD Radeon
+780M. This is route evidence, not hardware performance or fresh-player proof.
+
+Fresh-player teaching, difficulty, pacing, par and final art and audio
+acceptance remain open. In particular, the east rim crossing consumes most
+of the participant's remaining health, and one Cell remains at departure.
+The separate [durable M07-to-M08 carry](m07-m08-save-carry.md) now retains actual
+mine counts, strictly upgrades historical documents and proves real owned-child
+continuation and entry-anchor retries. The original mission review in
+[PR #345](https://github.com/blisspixel/fragr/pull/345) has all eight CI jobs
+passing. Its accepted source and the carry are consolidated into
+[PR #347](https://github.com/blisspixel/fragr/pull/347), with fresh combined CI.

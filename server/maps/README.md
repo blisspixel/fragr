@@ -114,6 +114,23 @@ belong to the [server plan](../../docs/plans/m05-server-authoring.md) and
 [bounded tram plan](../../docs/plans/m05-bounded-tram.md); full pacing, optional
 jump routes and fresh-player acceptance remain separate gates.
 
+`m07_declared_goods.json` authors level 7's curfew town under its pressure
+dome and the crater cut toward the custody depot. Five ordered encounters hold
+25 required guards: the curfew patrol on the ring, woken by taking the
+Shotgun from its stall, two Notaries and three Clerks at the market vault, four
+Clerks and a Turret at the curfew post, one Ranged Sweeper for the roof-window
+lesson, then five rim marksmen and four Sweepers in the cut, two of them coming
+in behind from the cut's end bays. A practice entry finds a personal Rifle at
+the tunnel. The post's rack grants the Sniper Rifle and its Cells before the
+firing step and sill. Staggered berms, shields and containers hide
+each cover stop from the whole rim, and tests find a walk across the cut that
+no more than two marksmen watch at once. There are no doors. Three secrets
+carry one marked pickup each: a Railgun in the vault roof cache, Bullets in the
+chalk 67 alley and Cells on the berm ledge reached from the second shield's
+steps. `m07` binds the five Arrival
+objectives, the freight departure, boarding and Latch's start; it requires
+capability 32.
+
 `m06_port_of_entry.json` authors level 6's compact static lunar dock, freight
 hall, customs galleries, optional service branch and transit departure. Six
 ordered encounters contain 18 required guards; the independent service branch

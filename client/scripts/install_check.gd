@@ -53,6 +53,20 @@ func _ready() -> void:
 			if not ResourceLoader.exists(str(shot.get("image", "")), "Texture2D"):
 				_finish(false, "the M06 story illustrations are missing")
 				return
+	# Level 7's pages reuse existing keyed text and stills; they carry no narration.
+	for id: String in ["m07_arrival", "l07_l08"]:
+		var scene: Dictionary = StoryScene.load_scene(id)
+		if scene.is_empty():
+			_finish(false, "the M07 story manifests are missing or invalid")
+			return
+		for key: String in StoryScene.catalog_keys(scene):
+			if TranslationServer.translate(key) == key:
+				_finish(false, "the M07 localized story copy is missing")
+				return
+		for shot: Dictionary in scene["shots"]:
+			if not ResourceLoader.exists(str(shot.get("image", "")), "Texture2D"):
+				_finish(false, "the M07 story illustrations are missing")
+				return
 	var lunar_bed: AudioStreamWAV = load("res://assets/story/ambience/lunar_port_utility.wav") as AudioStreamWAV
 	if lunar_bed == null or lunar_bed.loop_mode != AudioStreamWAV.LOOP_FORWARD:
 		_finish(false, "the lunar utility loop is missing or not looping")

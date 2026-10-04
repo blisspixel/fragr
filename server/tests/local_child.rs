@@ -264,12 +264,16 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
         .unwrap()
         .remove("level_start_continues");
     legacy.as_object_mut().unwrap().remove("body");
-    // A historical v2 document has no counted-grenade field. Keep this a valid
+    // A historical v2 document has neither explosive count. Keep this a valid
     // legacy save so the first refusal proves the requested mission is wrong.
     legacy["step"]["entry"]["equipment"]
         .as_object_mut()
         .unwrap()
         .remove("grenades");
+    legacy["step"]["entry"]["equipment"]
+        .as_object_mut()
+        .unwrap()
+        .remove("proximity_mines");
     let entry = legacy["step"]["entry"].clone();
     legacy["step"] = serde_json::json!({
         "kind":"awaiting_mission",
@@ -437,7 +441,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 7);
+        assert_eq!(live["version"], 9);
         assert_eq!(live["step"]["mission"], "scheduled_service");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -578,7 +582,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 7);
+        assert_eq!(live["version"], 9);
         assert_eq!(live["step"]["mission"], "notice_to_vacate");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -751,7 +755,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
         drop(child);
         let mut live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 7);
+        assert_eq!(live["version"], 9);
         assert_eq!(live["remaining_continues"], expected_continues);
         assert_eq!(live["level_start_continues"], 3);
         assert_eq!(live["m05_outcome"], prior["m05_outcome"]);
@@ -892,7 +896,7 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 7);
+        assert_eq!(live["version"], 9);
         assert_eq!(live["step"]["entry"]["equipment"]["grenades"], 0);
         assert_eq!(live["m04_outcome"], prior["m04_outcome"]);
         assert_eq!(live["step"]["mission"], "no_forwarding_address");

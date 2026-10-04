@@ -97,6 +97,7 @@ pub enum MissionId {
     NoForwardingAddress,
     PortOfEntry,
     CustodianOfRecord,
+    DeclaredGoods,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -490,6 +491,8 @@ pub struct MissionState {
     pub m06: Option<super::M06ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m08: Option<super::M08ObjectiveState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m07: Option<super::M07ObjectiveState>,
 }
 
 impl MissionState {
@@ -499,6 +502,9 @@ impl MissionState {
         }
         if self.id != MissionId::CustodianOfRecord && self.m08.is_some() {
             return Err("M08 facts require M08 mission");
+        }
+        if self.id != MissionId::DeclaredGoods && self.m07.is_some() {
+            return Err("M07 facts require M07 mission");
         }
         if self.id != MissionId::NoForwardingAddress && self.m05.is_some() {
             return Err("M05 facts require M05 mission");
@@ -526,6 +532,7 @@ impl MissionState {
             MissionId::NoForwardingAddress => self.validate_m05(tick)?,
             MissionId::PortOfEntry => self.validate_m06()?,
             MissionId::CustodianOfRecord => self.validate_m08()?,
+            MissionId::DeclaredGoods => self.validate_m07()?,
         }
         if let Some(run) = self.run {
             run.validate_attempt(self.attempt)?;
@@ -578,6 +585,13 @@ impl MissionState {
                             .is_some_and(|f| f.completed.len() == super::M08_OBJECTIVE_IDS.len())
                         && !self.party.is_empty()
                         && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
+                        || (self.id == MissionId::DeclaredGoods
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m07.as_ref().is_some_and(|f| {
+                                f.completed.len() == super::M07_OBJECTIVE_IDS.len()
+                            })
+                            && !self.party.is_empty()
+                            && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
                         || (self.id == MissionId::PortOfEntry
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m06.as_ref().is_some_and(|f| f.completed.len() == 6)
@@ -820,6 +834,7 @@ mod m02_wire_tests {
             m05: None,
             m06: None,
             m08: None,
+            m07: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

@@ -2,8 +2,10 @@
 
 **Status:** in flight, 2026-10-02. Written before source work. The Proximity
 Mine, the Auditor and their range land first; the archive level and its
-presentation follow; M07 to M08 run carry lands only after level 7's carry is
-on `main`.
+presentation follow. The strict [M07-to-M08 carry](m07-m08-save-carry.md) is
+implemented with actual mines and owned local continuation/retry checks, and
+lands with the restored M07 through [PR #347](https://github.com/blisspixel/fragr/pull/347).
+Fresh-player, full played quality and final art acceptance remain open.
 **Spend:** $0. No paid generation, cloud or provider call. Existing textures,
 the twenty-one Moon and offworld tiles, local GDScript rigs and bakes and the
 existing audio library only.

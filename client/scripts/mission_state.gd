@@ -8,6 +8,7 @@ const M04_ID: String = "notice_to_vacate"
 const M05_ID: String = "no_forwarding_address"
 const M06_ID: String = "port_of_entry"
 const M08_ID: String = "custodian_of_record"
+const M07_ID: String = "declared_goods"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
 ## Records keep their earned revision; current live facts require revision 3.
@@ -19,6 +20,8 @@ const INVALID: String = "The server sent invalid mission state. Connection close
 static func map_error(info: Dictionary) -> String:
 	if info.has("m08"):
 		return M08MissionState.map_error(info)
+	if info.has("m07"):
+		return M07MissionState.map_error(info)
 	if info.has("m06"):
 		return M06MissionState.map_error(info)
 	if info.has("m05"):
@@ -71,6 +74,8 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 	var claimed: Variant = message.get("state")
 	if geometry.get("id") == M08_ID or (claimed is Dictionary and claimed.get("id") == M08_ID):
 		return M08MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M07_ID or (claimed is Dictionary and claimed.get("id") == M07_ID):
+		return M07MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M06_ID or (claimed is Dictionary and claimed.get("id") == M06_ID):
 		return M06MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M05_ID or (claimed is Dictionary and claimed.get("id") == M05_ID):
@@ -213,6 +218,8 @@ static func m02_map_error(info: Dictionary) -> String:
 static func geometry_for(info: Dictionary) -> Dictionary:
 	if info.has("m08"):
 		return M08MissionState.geometry_for(info)
+	if info.has("m07"):
+		return M07MissionState.geometry_for(info)
 	if info.has("m06"):
 		return M06MissionState.geometry_for(info)
 	if info.has("m05"):

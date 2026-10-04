@@ -115,6 +115,34 @@ fn authored_m04_shutter_and_shortcuts_preserve_physical_routes() {
 }
 
 #[test]
+fn authored_m04_enclosed_rooms_stop_vertical_shots_and_keep_open_air_routes() {
+    let (closed, opened) = worlds();
+    for world in [&closed, &opened] {
+        for room in [[-29.0, 1.6, 6.0], [28.0, 1.6, -23.0]] {
+            assert!(
+                !crate::combat::line_of_sight(room, [room[0], 8.0, room[2]], &world.arena().solids),
+                "room roof must use the actual shot volumes"
+            );
+        }
+        assert!(crate::combat::line_of_sight(
+            [0.0, 1.6, 24.0],
+            [0.0, 8.0, 24.0],
+            &world.arena().solids
+        ));
+        assert!(crate::combat::line_of_sight(
+            [-22.25, 6.0, 2.0],
+            [-22.25, 6.15, 2.0],
+            &world.arena().solids
+        ));
+        assert!(!crate::combat::line_of_sight(
+            [-22.25, 6.0, 2.0],
+            [-22.25, 7.0, 2.0],
+            &world.arena().solids
+        ));
+    }
+}
+
+#[test]
 fn authored_m04_court_roofs_survive_real_waypoint_arrival_tolerance() {
     let (closed, opened) = worlds();
     let tour: serde_json::Value =

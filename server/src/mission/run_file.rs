@@ -10,11 +10,14 @@ use uuid::Uuid;
 
 mod legacy;
 pub(crate) mod store;
-use legacy::{RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6};
+use legacy::{
+    RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
+    RunDocumentV8,
+};
 
-/// Version 7 adds playable M06 and its optional route outcome.
-/// Versions 2 through 6 upgrade explicitly; version 1 remains incompatible.
-pub(super) const RUN_FILE_VERSION: u32 = 7;
+/// Version 9 carries actual finite mines and enables M08 after M07.
+/// Versions 2 through 8 upgrade explicitly; version 1 remains incompatible.
+pub(super) const RUN_FILE_VERSION: u32 = 9;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -22,6 +25,7 @@ const M05_MISSION: &str = "no_forwarding_address";
 const M06_MISSION: &str = "port_of_entry";
 const M07_MISSION: &str = "declared_goods";
 const M09_MISSION: &str = "passenger_manifest";
+const M08_MISSION: &str = "custodian_of_record";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -210,6 +214,7 @@ impl RunDocument {
         }
     }
 
+    #[cfg(test)]
     pub fn promote_m02(&self, m02_hash: [u8; 32]) -> Result<Self, &'static str> {
         self.promote_next(MissionId::PersonsUnknown, m02_hash)
     }
@@ -225,9 +230,8 @@ impl RunDocument {
             MissionId::NoticeToVacate => (MissionId::ScheduledService, M04_MISSION),
             MissionId::NoForwardingAddress => (MissionId::NoticeToVacate, M05_MISSION),
             MissionId::PortOfEntry => (MissionId::NoForwardingAddress, M06_MISSION),
-            MissionId::CustodianOfRecord => {
-                return Err("saved runs do not reach Custodian of Record yet")
-            }
+            MissionId::CustodianOfRecord => (MissionId::DeclaredGoods, M08_MISSION),
+            MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
         let SavedStep::AwaitingMission {
@@ -242,7 +246,11 @@ impl RunDocument {
             || next_mission != next
             || (!matches!(
                 mission,
-                MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
+                MissionId::NoticeToVacate
+                    | MissionId::NoForwardingAddress
+                    | MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -255,7 +263,8 @@ impl RunDocument {
         promoted.content_sha256 = content_hash;
         promoted.level_start_continues = self.remaining_continues;
         // Only the completed M05 edge enters Episode II. Reopening a promoted
-        // entry or retrying it never passes this edge again.
+        // entry or retrying it never passes this edge again. M07 continues the
+        // same episode with whatever allowance M06 left.
         if mission == MissionId::PortOfEntry {
             promoted.remaining_continues = CAMPAIGN_CONTINUES;
             promoted.level_start_continues = CAMPAIGN_CONTINUES;
@@ -286,20 +295,13 @@ impl RunDocument {
     }
 
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
-        if self.stage_mission() == MissionId::CustodianOfRecord
-            || matches!(
-                &self.step,
-                SavedStep::AwaitingMission {
-                    completed_mission: MissionId::CustodianOfRecord,
-                    ..
-                }
-            )
-        {
-            return Err("saved runs do not reach Custodian of Record yet");
-        }
         let completed_m03 = matches!(
             self.stage_mission(),
-            MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
+            MissionId::NoticeToVacate
+                | MissionId::NoForwardingAddress
+                | MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
+                | MissionId::CustodianOfRecord
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -311,7 +313,10 @@ impl RunDocument {
         }
         let completed_m04 = matches!(
             self.stage_mission(),
-            MissionId::NoForwardingAddress | MissionId::PortOfEntry
+            MissionId::NoForwardingAddress
+                | MissionId::PortOfEntry
+                | MissionId::DeclaredGoods
+                | MissionId::CustodianOfRecord
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -321,8 +326,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m04_outcome {
             outcome.validate()?;
         }
-        let completed_m05 = self.stage_mission() == MissionId::PortOfEntry
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m05 = matches!(
+            self.stage_mission(),
+            MissionId::PortOfEntry | MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
         if completed_m05 != self.m05_outcome.is_some() {
@@ -331,9 +338,12 @@ impl RunDocument {
         if let Some(outcome) = &self.m05_outcome {
             outcome.validate()?;
         }
-        let completed_m06 = matches!(&self.step, SavedStep::AwaitingMission {
-            completed_mission: MissionId::PortOfEntry, next_mission, ..
-        } if next_mission == M07_MISSION);
+        let completed_m06 = matches!(
+            self.stage_mission(),
+            MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
+                completed_mission: MissionId::PortOfEntry, next_mission, ..
+            } if next_mission == M07_MISSION);
         if completed_m06 != self.m06_outcome.is_some() {
             return Err("saved prisoner-route outcome does not match completed M06");
         }
@@ -376,6 +386,8 @@ impl RunDocument {
                         | (MissionId::NoticeToVacate, M05_MISSION)
                         | (MissionId::NoForwardingAddress, M06_MISSION)
                         | (MissionId::PortOfEntry, M07_MISSION)
+                        | (MissionId::DeclaredGoods, M08_MISSION)
+                        | (MissionId::CustodianOfRecord, M09_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -384,7 +396,14 @@ impl RunDocument {
                 {
                     return Err("M01 run has the wrong continue baseline");
                 }
-                Self::validate_carried_finds(exit)?;
+                Self::validate_carried_finds(
+                    exit,
+                    matches!(
+                        *completed_mission,
+                        MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+                    ),
+                    *completed_mission == MissionId::CustodianOfRecord,
+                )?;
                 exit.validate()
             }
         }
@@ -394,15 +413,28 @@ impl RunDocument {
         if mission == MissionId::RecallNotice && self.level_start_continues != CAMPAIGN_CONTINUES {
             return Err("M01 run has the wrong continue baseline");
         }
-        Self::validate_carried_finds(entry)?;
+        Self::validate_carried_finds(
+            entry,
+            mission == MissionId::CustodianOfRecord,
+            mission == MissionId::CustodianOfRecord,
+        )?;
         entry.validate()
     }
 
-    /// The Sniper Rifle is first found in Declared Goods. No saved stage before
-    /// that mission can carry it, so a forged copy never becomes an unlock.
-    fn validate_carried_finds(entry: &SavedEntry) -> Result<(), &'static str> {
-        if entry.equipment.weapons.contains(&WeaponType::Sniper)
-            || entry.equipment.selected == WeaponType::Sniper
+    /// The Sniper Rifle is first found in Declared Goods. Only the exit of a
+    /// completed M07 or a later stage can carry it; every earlier stage,
+    /// including an M07 entry or retry, refuses a forged copy.
+    fn validate_carried_finds(
+        entry: &SavedEntry,
+        sniper_found: bool,
+        mines_found: bool,
+    ) -> Result<(), &'static str> {
+        if !mines_found && entry.equipment.proximity_mines != 0 {
+            return Err("saved equipment carries mines before their mission");
+        }
+        if !sniper_found
+            && (entry.equipment.weapons.contains(&WeaponType::Sniper)
+                || entry.equipment.selected == WeaponType::Sniper)
         {
             return Err("saved equipment carries a weapon its stage cannot contain");
         }
@@ -445,6 +477,7 @@ impl GameState {
                     MissionId::NoForwardingAddress => M06_MISSION,
                     MissionId::PortOfEntry => M07_MISSION,
                     MissionId::CustodianOfRecord => M09_MISSION,
+                    MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
                 exit: solo
@@ -472,7 +505,11 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::NoticeToVacate | MissionId::NoForwardingAddress | MissionId::PortOfEntry
+                MissionId::NoticeToVacate
+                    | MissionId::NoForwardingAddress
+                    | MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -489,7 +526,10 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::NoForwardingAddress | MissionId::PortOfEntry
+                MissionId::NoForwardingAddress
+                    | MissionId::PortOfEntry
+                    | MissionId::DeclaredGoods
+                    | MissionId::CustodianOfRecord
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -505,7 +545,10 @@ impl GameState {
                     released_workers: self.m05_released_worker_ids(),
                     evacuated_workers: self.m05_evacuated_worker_ids(),
                 })
-            } else if mission == MissionId::PortOfEntry {
+            } else if matches!(
+                mission,
+                MissionId::PortOfEntry | MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+            ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
                     evacuated_workers: solo.carried_evacuated_workers.clone(),
@@ -513,11 +556,22 @@ impl GameState {
             } else {
                 None
             },
-            m06_outcome: (solo.state.status == CampaignRunStatus::Complete
-                && mission == MissionId::PortOfEntry)
-                .then(|| M06Outcome {
+            m06_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::PortOfEntry
+            {
+                Some(M06Outcome {
                     prisoner_route_marked: self.m06_prisoner_route_marked(),
-                }),
+                })
+            } else if matches!(
+                mission,
+                MissionId::DeclaredGoods | MissionId::CustodianOfRecord
+            ) {
+                Some(M06Outcome {
+                    prisoner_route_marked: solo.carried_prisoner_route_marked,
+                })
+            } else {
+                None
+            },
         };
         document.validate(content_sha256)?;
         Ok(Some(document))
@@ -533,6 +587,7 @@ pub(super) fn historical_value(document: &RunDocument) -> serde_json::Value {
 
 #[cfg(test)]
 pub(super) fn remove_historical_grenades(value: &mut serde_json::Value) {
+    remove_historical_mines(value);
     for entry_key in ["entry", "exit"] {
         if let Some(equipment) = value
             .get_mut("step")
@@ -547,6 +602,26 @@ pub(super) fn remove_historical_grenades(value: &mut serde_json::Value) {
                 Some(0)
             );
             equipment.remove("grenades");
+        }
+    }
+}
+
+#[cfg(test)]
+pub(super) fn remove_historical_mines(value: &mut serde_json::Value) {
+    for entry_key in ["entry", "exit"] {
+        if let Some(equipment) = value
+            .get_mut("step")
+            .and_then(|step| step.get_mut(entry_key))
+            .and_then(|entry| entry.get_mut("equipment"))
+            .and_then(serde_json::Value::as_object_mut)
+        {
+            assert_eq!(
+                equipment
+                    .get("proximity_mines")
+                    .and_then(serde_json::Value::as_u64),
+                Some(0)
+            );
+            equipment.remove("proximity_mines");
         }
     }
 }

@@ -64,6 +64,9 @@ func configure_map(info: Dictionary) -> void:
 	var workmanship: M06Workmanship = M06Workmanship.new()
 	_root.add_child(workmanship)
 	workmanship.build(info)
+	var activity: M06PortActivity = M06PortActivity.new()
+	_root.add_child(activity)
+	activity.build(info)
 	ArenaSky.mark_world(self)
 
 func _window_frame(host: Dictionary) -> void:

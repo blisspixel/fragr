@@ -19,11 +19,15 @@ pub(crate) struct SavedEquipment {
     pub weapons: Vec<WeaponType>,
     pub ammo: Vec<AmmoCount>,
     pub grenades: u16,
+    pub proximity_mines: u16,
     pub personal_claims: Vec<String>,
 }
 
 impl SavedEquipment {
     pub fn validate(&self) -> Result<(), &'static str> {
+        if self.proximity_mines > crate::protocol::MINE_CARRY_CAP {
+            return Err("invalid saved proximity mine count");
+        }
         crate::protocol::validate_equipment(
             self.selected,
             &self.weapons,
@@ -57,6 +61,7 @@ impl Inventory {
             weapons: state.weapons,
             ammo: state.ammo,
             grenades: state.grenades,
+            proximity_mines: state.proximity_mines,
             personal_claims: state.personal_claims,
         };
         saved.validate().ok()?;
@@ -81,8 +86,7 @@ impl Inventory {
         }
         self.claims = saved.personal_claims.iter().cloned().collect();
         self.grenades = saved.grenades;
-        // Saved entries predate any mission that carries mines.
-        self.mines = 0;
+        self.mines = saved.proximity_mines;
         self.dry_latched = false;
         self.revision += 1;
         Ok(())

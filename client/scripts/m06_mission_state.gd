@@ -24,7 +24,7 @@ static func map_error(info: Dictionary) -> String:
 	if not M03MissionState._exact(value, ["objectives", "service", "departure", "boarding", "companion_start"]) \
 		or info.get("map_id") != MAP_ID or info.get("geometry_version") != 2 \
 		or info.get("mission") != null or info.get("m02_objectives") != null \
-		or info.has("m03") or info.has("m04") or info.has("m05") \
+		or info.has("m03") or info.has("m04") or info.has("m05") or info.has("m07") \
 		or (info.has("m02_side_ward") and (not info["m02_side_ward"] is bool or info["m02_side_ward"])) \
 		or not MapGeometry._number(info.get("half_extent")) \
 		or not info.get("presentation") is Dictionary or not info["presentation"].get("decorations") is Array:

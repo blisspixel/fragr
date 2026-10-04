@@ -19,6 +19,33 @@ cargo locking straps, overhead services, restrained practical lighting and
 customs work details. Both bounded passes have clean full-mission rendered routes
 and passing implementation CI. Their broader architecture and art remain in progress.
 
+Port of Entry gains a loaded freight weighing assembly, customs terminals,
+luggage inspection and records storage. Pressure-case lids have chamfered seams,
+grips, cam locks and visible gauges; the weighing beam has measuring heads and
+controls. Substantial bodies use authoritative collision. The clean 31-state
+structural route retains all 21 guards, the Rail lane, Turret lesson and actual
+departure; separate final art views inspect the later surface refinement.
+
+Real clinic and workshop roof slabs enclose Low Water's rooms, with a closed
+raised-shutter housing and unchanged open-air court. A clean 29-state route
+confirms all 28 guards, patient release and actual roof departure with no deaths
+or HP lost. The capture route's return crossing stays on its supported platform
+and explicitly traverses the existing stair tread. Shots collide with the
+rendered roofs; existing mission rules and movement remain authoritative.
+
+Low Water trim and lunar dwelling/deck materials retain their own quiet colors.
+Union outfits and explicit security equipment keep black/red. Actual before/after
+art subsets confirm the material separation without changing map geometry.
+
+Declared Goods joins the campaign with its curfew town, Sniper Rifle window
+lesson, crater cut and freight departure. The clean 29-state route defeats all
+25 required guards and confirms actual window cancellation and departure. The
+route ends at 15 HP and one Cell, leaving a fresh-player pacing concern.
+Continue Run now reaches Custodian of Record without a continue refill.
+Version 9 saves actual finite mine counts; strict historical upgrades preserve
+exact source archives, and retries restore the mission-entry anchor. M09 remains
+unplayable. These are development prototypes with final art and fun acceptance open.
+
 The Clerk source and rig consumed 40 existing model credits, bringing locally
 tracked net consumption to 165. The free account check reports 2,905 available
 credits; the prior uncertain 15-credit reservation remains held. No new cash

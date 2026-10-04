@@ -48,21 +48,21 @@ func apply_map_info(info: Dictionary) -> void:
 	for kind: int in range(4):
 		_materials.append(ArenaMaterials.make(map_id, kind))
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
-	var venue: String = "moon_port" if (info.get("m06") is Dictionary or info.get("m08") is Dictionary) else ("low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else "")
+	var venue: String = "moon_port" if (info.get("m06") is Dictionary or info.get("m08") is Dictionary) else "moon_town" if info.get("m07") is Dictionary else ("low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else "")
 	if venue.is_empty() and map_id in [1001, 1002, 1003]:
 		venue = "earth_yard" if map_id == 1003 else "earth_union"
 	var authored_materials: Dictionary[String, Material] = {}
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:
 			authored_materials[surface] = ArenaMaterials.authored(surface, venue)
-		_materials[0] = authored_materials[presentation["ground"]]
+		_materials[0] = ArenaMaterials.ground(authored_materials[presentation["ground"]], presentation["ground"], venue)
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
 	_build_shell(_half_extent)
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
-	if venue == "moon_port":
+	if venue in ["moon_port", "moon_town"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:

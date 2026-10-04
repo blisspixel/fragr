@@ -85,6 +85,7 @@ var m04_town: M04Town
 var m05_town: M05Town
 var m06_port: M06Port
 var m08_archive: M08Archive
+var m07_town: M07Town
 var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
@@ -255,6 +256,11 @@ func _ready():
 	m08_archive = M08Archive.new()
 	m08_archive.name = "M08Archive"
 	add_child(m08_archive)
+	m07_town = M07Town.new()
+	m07_town.name = "M07Town"
+	m07_town.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m07_town)
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
@@ -351,14 +357,16 @@ func _on_map_info(info: Dictionary) -> void:
 	var m05: bool = info.get("m05") is Dictionary
 	var m06: bool = info.get("m06") is Dictionary
 	var m08: bool = info.get("m08") is Dictionary
+	var m07: bool = info.get("m07") is Dictionary
 	if local_match != null:
 		var expected_m02: bool = local_match.mission == MissionState.M02_ID
 		var expected_m03: bool = local_match.mission == MissionState.M03_ID
 		var expected_m04: bool = local_match.mission == MissionState.M04_ID
 		var expected_m05: bool = local_match.mission == MissionState.M05_ID
 		var expected_m06: bool = local_match.mission == MissionState.M06_ID
+		var expected_m07: bool = local_match.mission == MissionState.M07_ID
 		var expected_m08: bool = local_match.mission == MissionState.M08_ID
-		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m08 != expected_m08 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m08 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
+		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m07 != expected_m07 or m08 != expected_m08 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m07 and not m08 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
 			_on_local_failure("LOCAL_SERVER_INVALID_READY")
 			return
 	last_shot_tick = -1
@@ -380,9 +388,9 @@ func _on_map_info(info: Dictionary) -> void:
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
-	elif m03 or m04 or m05 or m06 or m08:
+	elif m03 or m04 or m05 or m06 or m07 or m08:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
-			var scene_id: String = MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
+			var scene_id: String = MissionState.M07_ID if m07 else MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
 			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
@@ -392,7 +400,7 @@ func _on_map_info(info: Dictionary) -> void:
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m08) and local_match != null and not local_match.has_durable_run()
+		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m07 or m08) and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 		arena_cover.apply_m05({})
@@ -411,6 +419,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m06_port.configure_map(info)
 	if m08_archive != null:
 		m08_archive.configure_map(info)
+	if m07_town != null:
+		m07_town.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
 	if settings != null:
 		RenderQuality.apply_practicals(self, settings)
@@ -474,7 +484,7 @@ func _mission_controls_blocked() -> bool:
 
 ## Mission maps carry M01 geometry or the M02 objective marker.
 func _mission_map() -> bool:
-	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary
+	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary or current_map_info.get("m07") is Dictionary
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -1095,6 +1105,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m06_port.apply_state(state)
 	if m08_archive != null:
 		m08_archive.apply_state(state)
+	if m07_town != null:
+		m07_town.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -1368,6 +1380,8 @@ func _clear_world() -> void:
 		m06_port.clear_map()
 	if m08_archive != null:
 		m08_archive.clear_map()
+	if m07_town != null:
+		m07_town.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()

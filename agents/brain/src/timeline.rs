@@ -237,6 +237,7 @@ mod tests {
             m05: None,
             m06: None,
             m08: None,
+            m07: None,
         }
     }
 

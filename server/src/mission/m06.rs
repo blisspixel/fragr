@@ -139,6 +139,7 @@ impl GameState {
                     .unwrap_or_default(),
             }),
             m08: None,
+            m07: None,
         })
     }
     pub(super) fn advance_m06(&mut self) {

@@ -112,7 +112,7 @@ func _run() -> void:
 	if not await _saved_transition(owned):
 		return
 	if failures == 0:
-		print("test_m06_local: PASS development isolation and v6 saved M05-M06 carry, arrival/readiness release, v7 promotion/refill and owned cleanup")
+		print("test_m06_local: PASS development isolation and v6 saved M05-M06 carry, arrival/readiness release, v8 promotion/refill and owned cleanup")
 	quit(0 if failures == 0 else 1)
 
 func _saved_transition(owned: LocalMatch) -> bool:
@@ -194,14 +194,14 @@ func _saved_transition(owned: LocalMatch) -> bool:
 		return false
 	var saved_bytes: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
 	var saved: Variant = JSON.parse_string(saved_bytes)
-	_check(saved is Dictionary and saved["version"] == 7 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
-		"actual child atomically persists upgraded v7 identity and current rules")
+	_check(saved is Dictionary and saved["version"] == 9 and saved["id"] == RUN_ID and saved["rules"]["revision"] == MissionState.RULES_REVISION,
+		"actual child atomically persists upgraded v8 identity and current rules")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M06_ID \
 			and saved["m03_outcome"]["liberated_cars"] == fixture["m03_outcome"]["liberated_cars"] \
 			and saved["m04_outcome"]["rescued_patients"] == fixture["m04_outcome"]["rescued_patients"] \
 			and int(saved["m04_outcome"]["photos_completed"]) == 2 and saved["m05_outcome"] == fixture["m05_outcome"]
-			and int(saved["remaining_continues"]) == 3 and int(saved["level_start_continues"]) == 3, "v7 entry retains authored outcomes and new episode baseline: " + JSON.stringify(saved))
+			and int(saved["remaining_continues"]) == 3 and int(saved["level_start_continues"]) == 3, "v8 entry retains authored outcomes and new episode baseline: " + JSON.stringify(saved))
 	var archives: Array[String] = []
 	for filename: String in DirAccess.get_files_at(run_directory):
 		if filename.begins_with("run.prior-") and filename.ends_with(".json"):
@@ -220,7 +220,7 @@ func _saved_transition(owned: LocalMatch) -> bool:
 func _reopen_spent_entry(owned: LocalMatch, saved: Dictionary, original: String, archives: Array[String]) -> bool:
 	# A legitimate already-spent entry must remain spent when resumed.
 	# Preserve the writer's integer tokens. Godot's JSON parser reads them as
-	# floats, and reserializing that dictionary would create invalid v7 bytes.
+	# floats, and reserializing that dictionary would create invalid v8 bytes.
 	var field: String = '"remaining_continues":3'
 	_check(original.count(field) == 1, "actual writer has one exact episode allowance field")
 	if original.count(field) != 1:
@@ -228,7 +228,7 @@ func _reopen_spent_entry(owned: LocalMatch, saved: Dictionary, original: String,
 		return false
 	var bytes: String = original.replace(field, '"remaining_continues":2')
 	var file: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
-	_check(file != null, "isolated already-spent v7 entry is writable")
+	_check(file != null, "isolated already-spent v8 entry is writable")
 	if file == null:
 		return false
 	file.store_string(bytes)
@@ -259,7 +259,7 @@ func _reopen_spent_entry(owned: LocalMatch, saved: Dictionary, original: String,
 	for filename: String in DirAccess.get_files_at(run_directory):
 		if filename.begins_with("run.prior-") and filename.ends_with(".json"):
 			after_archives.append(filename)
-	_check(after_archives == archives, "reopening current v7 entry creates no second migration archive")
+	_check(after_archives == archives, "reopening current v8 entry creates no second migration archive")
 	current_scene.queue_free()
 	await process_frame
 	await create_timer(0.5).timeout

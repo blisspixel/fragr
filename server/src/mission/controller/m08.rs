@@ -21,6 +21,7 @@ impl MissionClient {
             || self.m04_map.is_some()
             || self.m05_map.is_some()
             || self.m06_map.is_some()
+            || self.m07_map.is_some()
         {
             return Err("M08 cannot share another mission map");
         }

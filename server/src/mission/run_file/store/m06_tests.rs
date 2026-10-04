@@ -3,7 +3,9 @@ use crate::inventory::Inventory;
 use crate::mission::run_file::{M03Outcome, M04Outcome, M05Outcome, SavedEntry, SavedStep};
 use crate::protocol::{BodyKind, CampaignDifficulty, CampaignRules, EquipmentPolicy, WeaponType};
 
-const HASHES: [[u8; 32]; 6] = [[1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32]];
+const HASHES: ContentHashes = [
+    [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32],
+];
 
 fn completed_workshop() -> RunDocument {
     let mut document = RunDocument::new(
@@ -52,20 +54,16 @@ fn completed_workshop() -> RunDocument {
 fn historical_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 6.into();
+    super::super::remove_historical_mines(&mut value);
     serde_json::to_vec_pretty(&value).unwrap()
 }
 
 fn probe(bytes: &[u8]) -> RunProbe {
-    RunStore::inspect_bytes(
-        bytes, HASHES[0], HASHES[1], HASHES[2], HASHES[3], HASHES[4], HASHES[5],
-    )
+    RunStore::inspect_bytes(bytes, HASHES)
 }
 
 fn open(directory: &Path) -> RunStore {
-    RunStore::open_with_hashes(
-        directory, HASHES[0], HASHES[1], HASHES[2], HASHES[3], HASHES[4], HASHES[5],
-    )
-    .unwrap()
+    RunStore::open_with_hashes(directory, HASHES).unwrap()
 }
 
 #[test]
@@ -131,10 +129,7 @@ fn historical_v6_preview_keeps_counts_then_atomic_promotion_refills_once() {
 }
 
 fn open_lock_refused(directory: &Path) -> bool {
-    RunStore::open_with_hashes(
-        directory, HASHES[0], HASHES[1], HASHES[2], HASHES[3], HASHES[4], HASHES[5],
-    )
-    .is_err()
+    RunStore::open_with_hashes(directory, HASHES).is_err()
 }
 
 #[test]
