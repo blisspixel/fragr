@@ -1,6 +1,8 @@
 # Free human civilian revision
 
-Status: **in flight**, 2026-10-04. Continues the existing art-excellence rung.
+Status: **shipped** on main in [PR #352](https://github.com/blisspixel/fragr/pull/352),
+2026-10-04. Continues the existing art-excellence rung. Broader civilian variety
+remains catalog work.
 
 Nick rejected the overly literal cowboy treatment on October 4. Freedom-loving
 character and American influence describe personal values, voluntary association
@@ -40,4 +42,5 @@ new default source does not mean every civilian role has been completed.
 The [production and live receipt](../evidence/free-human-civilian-20261004.md)
 records the completed 40-credit source/rig stages, four-view inspection,
 24-bone source contract, eight-cell bake and clean actual 32-state live tour.
-Full client, implementation CI and exported package gates remain open.
+Complete local client checking, all eight implementation CI jobs and all three
+desktop package checks passed on reviewed head `52779322` before main integration.
