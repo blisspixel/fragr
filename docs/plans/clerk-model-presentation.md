@@ -8,6 +8,11 @@ bounded source selection within the existing roadmap's art rung, not broader
 art acceptance.
 [Rendered evidence](../evidence/clerk-model-20261003.md) records the scope.
 
+Nick subsequently rejected photographic human treatment and requested stronger
+black/red outfits. The [Union revision](union-field-uniform.md) replaces that
+look with deliberately stylized anatomy and materials. The shipped rig and
+presentation checks remain useful; this source is not final art acceptance.
+
 ## Goal
 
 Turn the reviewed humanoid source into a detailed directional Clerk without

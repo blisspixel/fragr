@@ -1,5 +1,21 @@
 # Character references
 
+## Union field guard direction, 2026-10-03
+
+[union-field-guard-v2.png](union-field-guard-v2.png) is a new production reference
+for the stylized Union Clerk revision, SHA-256
+`ed58d20398cb201e6fdd247f536b142350159eae00a36bb1ae038aa0afa50434`.
+The public PNG keeps identical decoded pixels with optional software metadata
+removed. The original production input is retained privately, SHA-256
+`818d5e2b1d5e038f15b8cb600298f432951f8cd3a081c955c437067393313189`.
+Angular painted facial planes, a black high-collar uniform, dark steel plates,
+service cap and deep-red bands replace the photographic human direction.
+The three-bar seal is fictional. Black and red identify outfits and issued
+equipment, not the palette of every building. This is a reviewed production
+candidate, not a completed sprite, selected runtime model or final cast approval.
+The [bounded plan](../../../../docs/plans/union-field-uniform.md) owns conversion,
+motion, directional rendering and played acceptance.
+
 ## Supplied free-duo look direction, 2026-10-01
 
 [free-duo-reference.png](free-duo-reference.png) is the owner-provided reference

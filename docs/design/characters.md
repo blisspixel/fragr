@@ -12,6 +12,12 @@ Use stable actor/role IDs in reference records. Distinguish proposed, reviewed,
 implemented and recorded details. A generation or temporary narration voice
 does not approve a new character identity.
 
+All cast art shares deliberately stylized modern retro FPS forms: angular
+painted faces, broad readable material values and coherent pixel detail. Human
+characters are not photographic people. Union issue is black cloth and dark
+steel with clearly visible red bands or seals, severe service headgear and
+fictional repeated insignia. Preserve individual role silhouettes and tells.
+
 | Reference field | Record once and reuse |
 |---|---|
 | Identity | Stable role ID, working/public name, body type, canon/proposal status |

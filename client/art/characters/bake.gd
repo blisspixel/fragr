@@ -6,7 +6,7 @@ const ClerkSource = preload("res://art/models/clerk_source.gd")
 const NORMAL_SHADER: Shader = preload("res://art/models/normal_bake.gdshader")
 const KINDS: Dictionary[String, Dictionary] = {
 	"clerk": {"model": "skinned human security source with authored combat poses and paired view normals",
-		"brief": "Visible human face, open helmet, charcoal cloth, issued bone armor and restrained red seal."},
+		"brief": "Stylized angular human face, black peaked service cap and high-collar uniform, dark steel plates and a clear red band with a fictional registry seal."},
 	"sweeper": {"model": "contoured articulated issued bot source with paired view normals",
 		"brief": "Manufactured graphite shells, recessed optical slit, service battery louvers, distinct joint caps, finger articulation and restrained red issue strips."},
 	"heavy_sweeper": {"model": "articulated heavy bot rig",

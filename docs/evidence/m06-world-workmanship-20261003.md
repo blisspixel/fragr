@@ -1,8 +1,9 @@
 # Port of Entry workmanship evidence
 
 Recorded 2026-10-03. [Bounded plan](../plans/m06-world-workmanship.md).
-**Status:** implemented, local structural checks and inspected route complete;
-full CI and integration pending.
+**Status:** shipped in [PR #342](https://github.com/blisspixel/fragr/pull/342),
+with local structural checks, full client checks and an inspected route complete.
+All eight implementation CI checks pass.
 **Spend:** $0, no generation calls.
 
 The local M06 presenter adds surface-mounted locking straps, cargo edge rails and
@@ -101,6 +102,10 @@ meaningful activity need authored geometry where they would block shots or feet.
 
 ## Remaining gates
 
-Full client checks, full CI, main integration and desktop publication belong to the parent
-increment. Fresh-player feedback, difficulty acceptance, subjective art quality
+Full local client checks pass 222 scripts and 102 harnesses with clean logs.
+The retained log SHA-256 is
+`bf32dfc3fc2c8708a38d728c215ef5964fef85c365e65e1e1c4047d607c39dce`.
+Main integration shipped in [PR #342](https://github.com/blisspixel/fragr/pull/342),
+with all eight [implementation CI checks](https://github.com/blisspixel/fragr/actions/runs/37165892071)
+passing. Desktop publication remains separate. Fresh-player feedback, difficulty acceptance, subjective art quality
 and broader hardware performance remain separate from this presentation pass.

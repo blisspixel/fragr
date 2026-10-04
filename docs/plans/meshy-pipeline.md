@@ -4,8 +4,9 @@
 The full [implementation CI](https://github.com/blisspixel/fragr/actions/runs/37156405220)
 passes. Native tooling and the first model pilot are proven. Runtime art acceptance
 remains in flight under art excellence; the
-[Clerk presentation](clerk-model-presentation.md) records the selected human
-source and its bounded played increment.
+[initial Clerk presentation](clerk-model-presentation.md) records the technical
+integration. The [Union uniform revision](union-field-uniform.md) replaces its
+photographic direction with a deliberately stylized black/red source.
 
 ## Goal and scope
 
@@ -20,9 +21,16 @@ Godot; a generated mesh is not a finished asset or final campaign acceptance.
 The [completed pilot evidence](../evidence/meshy-pilot-20261003.md) records four
 model candidates, a character rig with walk/run clips and seven rendered GLBs.
 It consumed 125 net credits with 15 additional credits held conservatively after
-a refused request. The live account reports 2,975 credits. The Clerk subsequently
+a refused request. The pilot's final account check reported 2,975 credits. The Clerk subsequently
 supplies the selected directional sprites through PR #340; the weapon and prop
 remain candidates. The topology generator comparison was not submitted.
+
+The subsequent stylized Clerk model and rig consumed 40 credits under a separate
+bounded plan. Its final free checker reports 2,905 available credits and the
+unchanged 15-credit local hold. Net locally tracked consumption is 165; a separate
+30-credit account decrease has no local production receipt. The new source,
+directional poses, lighting and guard-room replay are
+[recorded separately](../evidence/union-stylized-20261003.md).
 
 No new cash purchases, top-ups, runtime API calls or paid CI calls. Server
 simulation, collision and campaign facts remain unchanged. Animation authoring,
