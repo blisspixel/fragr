@@ -1,8 +1,8 @@
 # Low Water inhabited-world presentation
 
 Local implementation evidence, 2026-10-03. The
-[bounded plan](../plans/m04-inhabited-world-polish.md) remains in flight until
-the rendered log gate and integration pass.
+[bounded plan](../plans/m04-inhabited-world-polish.md) is implemented with clean
+local rendered evidence; full CI and main integration remain pending.
 
 The M04-specific source gives existing furniture recognizable activities:
 shared charging cables, shaped hollow spools and contact repair tools; clean
@@ -11,7 +11,7 @@ bread at the shared meal table. Two clinic beds have maintained linen. Nine
 sealed court windows have warm wood frames and cloth accents. All details use
 angular geometry, restrained color and nearest-filtered finish variation.
 Nothing imports photographs, adds blocking furniture, changes actor feet or
-creates a new interaction. The source merges to one mesh with eight finish
+creates a new interaction. The source merges 172 authored pieces to one mesh with eight finish
 surfaces and follows the existing venue light layer.
 
 ![Shared charging and repair activity](../screenshots/m04-inhabited-20261003/charging-bench.png)
@@ -40,13 +40,22 @@ the visit to the full-health meal-table medkit does not prove a third claim.
 All 26 captures were nonblank and the four selected frames were inspected.
 
 The first run's shutdown printed two 349,524-byte Compatibility texture leaks.
-Therefore this is completed route evidence, **not a clean rendered PASS**.
+That receipt is completed route evidence, **not a clean rendered PASS**.
 The identical signature predates this source in multiple older tours and was
 previously diagnosed as pending sky radiance retirement in the
 [M06 client plan](../plans/m06-client-prototype.md). Diagnostic logs and the
-full receipt are under ignored `.agents/level4-capture-20261003/`. Focused
-renderer isolation and a clean full repeat remain required. Headless results
-do not substitute for that gate. Full CI and main integration remain open.
+full receipt are under ignored `.agents/level4-capture-20261003/`.
+
+Standalone real Compatibility rendering of the exact possession source then
+drew all eight surfaces and retired its world cleanly, with no errors or leaks
+(`.agents/level4-detail-render-check.log`). No source change was required.
+The subsequent full 26-state repeat at the same code revision exited cleanly
+with every combat and departure check intact, under
+`.agents/level4-capture-clean-20261003/`. The selected images above are inspected
+frames from this clean repeat. Its record retains zero deaths, ten HP lost,
+two claimed secrets and zero completed photographs. This closes the local
+rendered gate without suppressing the earlier error or weakening assertions.
+Full CI and main integration remain open.
 
 The captures also expose larger architecture work. The clinic at x[-35,-22],
 z[-8,14] and workshop at x[22,34], z[-32,-18] have perimeter slabs without

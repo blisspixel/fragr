@@ -1,6 +1,6 @@
 # Low Water inhabited world polish
 
-Status: in flight, 2026-10-03. This bounded presentation pass follows the
+Status: implemented, 2026-10-03; full CI and main integration pending. This bounded presentation pass follows the
 [level 4 brief](../campaign/l04-notice-to-vacate.md),
 [Earth direction](../design/earth.md) and [art bible](../ART_STORY_BIBLE.md).
 
@@ -37,8 +37,10 @@ ordinary M04 route rather than maintaining a second copy.
 [Rendered evidence](../evidence/m04-inhabited-world-20261003.md) records the
 completed 26-state ordinary-input route and four inspected frames. The initial
 run failed its log gate on the known Compatibility sky texture-retirement
-signature. This gate stays open until renderer isolation and a clean repeat;
-completion facts do not cancel shutdown errors. Full CI and main integration
-remain root-owned pending gates. The same captures identify missing clinic and
+signature. Standalone rendering and retirement of the exact possession source
+exited cleanly; the full repeated tour also exited cleanly with no errors,
+all 28 named defenders, released patients and actual departure. No source
+change or weaker assertion was needed. Full CI and main integration remain
+pending. The same captures identify missing clinic and
 workshop ceilings and thin court frontage for a separate authoritative
 architecture increment.
