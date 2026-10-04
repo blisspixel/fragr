@@ -2183,7 +2183,8 @@ func _process_shot_results(results, tick: int) -> void:
 		shot_effects.ingest(tick, results)
 	var my_id = str(net_client.player_id) if net_client.player_id != null else ""
 	var followed_id = "" if is_human_player else _followed_player_id()
-	var feedback_camera: Camera3D = get_viewport().get_camera_3d()
+	var feedback_viewport: Viewport = get_viewport()
+	var feedback_camera: Camera3D = feedback_viewport.get_camera_3d() if feedback_viewport != null else null
 	var feedback_pawn: Node = players.get(my_id)
 	var feedback_fp: bool = is_human_player and not role_transition \
 		and net_client.connection_state == WebSocketPeer.STATE_OPEN and local_fp_pawn_id == my_id \

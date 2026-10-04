@@ -113,6 +113,12 @@ func _manager_order(record: Dictionary, record_first: bool) -> void:
 	Input.action_press("ui_accept")
 	Input.parse_input_event(press)
 	await process_frame
+	# Input dispatch and queue_free finish at separate frame boundaries.
+	# Bound retirement explicitly rather than assuming the first resumed frame.
+	for frame: int in range(2):
+		if not is_instance_valid(view):
+			break
+		await process_frame
 	_check(not is_instance_valid(view) and manager.campaign_results == null, "fresh input closes and retires actual tally")
 	_check(beneath.heard == 0, "tally dismissal consumes the actual viewport input")
 	manager._arm_onward()
