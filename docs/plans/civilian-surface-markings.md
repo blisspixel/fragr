@@ -1,6 +1,9 @@
 # Civilian surface markings
 
-Recorded 2026-10-03. **Status:** in progress. **Spend:** $0.
+Recorded 2026-10-03. **Status:** implemented, with
+[local evidence](../evidence/civilian-surface-markings-20261003.md).
+[PR #347](https://github.com/blisspixel/fragr/pull/347) owns final combined
+integration and CI. **Spend:** $0.
 
 ## Goal
 
