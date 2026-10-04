@@ -1,7 +1,7 @@
 # Optional 5v5 Sabotage seats and finite Pistol
 
 2026-10-04. Implemented and tested locally, not yet integrated or shipped.
-Source checkpoint: `fb9e419df92ef9fa2d5955ccfecda54619dc833e`, rebased onto
+Initial source checkpoint: `fb9e419df92ef9fa2d5955ccfecda54619dc833e`, rebased onto
 main `f409ff3726e1b5e3f251cb3a11281ab4502695d1`. Spend: $0.
 
 ## Proven scope
@@ -43,6 +43,15 @@ waiting Sabotage seats on a real weapon pad and resolved generic FFA/TDM
 TwoLives elimination on a health pad. Exactly the existing life allocation
 returns at the next round. Committed grenade/mine lifetimes are unchanged.
 
+The reviewed admission refinement recognizes the actual `match_full` packet
+through the existing localized client hard-stop path. Headless client tests
+prove the failed loading card presents the useful message and Return, suppresses
+automatic fighter resume, and allows a deliberate spectator reconnect/Hello
+without reusing a fighter token. This combines with the native full-room
+spectator socket proof; it is not a recorded human menu walkthrough.
+An additional owner-boundary test proves a stale profile flag cannot grant the
+Pistol in FFA or an authored campaign, or before a Sabotage instance exists.
+
 ## Local verification
 
 The following commands used `--locked`, a private target directory and two
@@ -50,7 +59,7 @@ build jobs. Logs remain in ignored local diagnostics under `.agents/`.
 
 | Gate | Result |
 |---|---|
-| `cargo test -p fragr-server --lib five_seats` | Six tests pass |
+| `cargo test -p fragr-server --lib five_seats` | Seven tests pass, including the owner boundary |
 | `cargo test -p fragr-server --test sabotage_five_seats` | Six tests pass, actual sockets |
 | `cargo test -p fragr-server --lib sabotage` | 35 tests pass |
 | `cargo test -p fragr-server --lib session` | 39 tests pass, includes profile tests |
@@ -59,6 +68,10 @@ build jobs. Logs remain in ignored local diagnostics under `.agents/`.
 | `cargo test -p fragr-server --lib sim::mine` | Ten tests pass, existing owner/reset lifetimes |
 | Server and playtest all-target Clippy with `-D warnings` | Pass |
 | Workspace formatting check and `git diff --check` | Pass |
+| Pinned headless client import | Pass, clean errors |
+| `test_kick_reasons` | PASS, localized full-room packet and spectator reconnect |
+| `test_loading_first` | PASS, matching error and visible Return |
+| `test_resume` and `test_join_ticket` | Both PASS, clean errors |
 
 ## Retained failures and limits
 

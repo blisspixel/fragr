@@ -161,7 +161,7 @@ impl GameState {
 
     /// The fresh arsenal a fighter starts a life with under these rules.
     fn fresh_inventory(&self) -> (crate::inventory::Inventory, WeaponType) {
-        if self.config.sabotage.five_vs_five {
+        if self.sabotage_active() && self.sabotage.is_some() && self.config.sabotage.five_vs_five {
             let mut inventory = crate::inventory::Inventory::new(EquipmentPolicy::Discovery);
             inventory.grant_weapon(WeaponType::Tack);
             return (inventory, WeaponType::Tack);
@@ -975,4 +975,41 @@ fn place(player: &mut Player, point: [f32; 4]) {
     player.lives = Some(1);
     player.fire_cooldown = 0;
     player.inventory.release_trigger();
+}
+
+#[cfg(test)]
+mod five_start_owner_tests {
+    use super::*;
+
+    #[test]
+    fn five_seats_fresh_inventory_requires_real_sabotage_owner() {
+        let mut arena = GameState::with_map(crate::sim::MapKind::Sector9, false);
+        arena.config.sabotage.five_vs_five = true;
+        assert_eq!(arena.config.rules.mode(), GameMode::Ffa);
+        assert!(arena.sabotage.is_none());
+        let (inventory, selected) = arena.fresh_inventory();
+        assert_eq!(selected, WeaponType::Fists);
+        assert!(!inventory.owns(WeaponType::Tack));
+
+        let map = crate::maps::AuthoredMap::read(
+            include_str!("../../maps/m06_port_of_entry.json").as_bytes(),
+        )
+        .unwrap();
+        let mut campaign = GameState::with_authored_map(map);
+        // A stale internal option must not turn an authored campaign into a
+        // competitive equipment owner, even if its rules also name Sabotage.
+        campaign.config.sabotage.five_vs_five = true;
+        campaign.config.rules = crate::rules::RuleSet::new(GameMode::Sabotage, &[], false).unwrap();
+        assert!(!campaign.sabotage_active());
+        let (inventory, selected) = campaign.fresh_inventory();
+        assert_eq!(selected, WeaponType::Fists);
+        assert!(!inventory.owns(WeaponType::Tack));
+
+        arena.config.rules = crate::rules::RuleSet::new(GameMode::Sabotage, &[], false).unwrap();
+        // A prepared instance is required, not the rules label alone.
+        assert!(arena.sabotage_active());
+        assert_eq!(arena.fresh_inventory().1, WeaponType::Fists);
+        arena.reset_sabotage();
+        assert_eq!(arena.fresh_inventory().1, WeaponType::Tack);
+    }
 }

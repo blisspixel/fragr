@@ -39,6 +39,13 @@ acceptance still open:
 The twenty-level story in five episodes is in [CAMPAIGN.md](docs/CAMPAIGN.md),
 and the build order is in the [roadmap](docs/ROADMAP.md). Sabotage starts with
 `cargo run -p fragr-server --release --locked -- --mode sabotage --map 4 --bots 8`.
+For the optional 5v5 profile, add `--sabotage-five-v-five` and choose `--bots 4`
+to leave six external fighter seats, or `--bots 0` to leave all ten open.
+Fresh fighters start with a Pistol and fifty finite Bullets, stronger weapons
+come from the map, and survivors carry their weapons and ammunition.
+Humans, agents and bots share the ten seats; spectators remain welcome.
+[Hosting details](infra/docs/HOME-LAN.md#optional-5v5-sabotage) cover overflow,
+late joins and reconnects. Focused local checks pass; integration CI remains open.
 Source checkouts also include development ranges for the Jammer, the Sniper
 Rifle and the custody devices; [server/maps/README.md](server/maps/README.md)
 lists them and how to run each one.

@@ -54,10 +54,10 @@ func _run() -> void:
 	await process_frame
 	_check(card.visible and card.waiting_for_world, "another map's snapshot cannot release the curtain")
 	scene._queue_world_reveal({"map_id": 1})
-	scene._on_server_error("A failed connection remains observable.")
+	scene.net_client._handle_message(JSON.stringify({"type": "error", "code": "match_full", "message": "ignored remote text"}))
 	await process_frame
 	await process_frame
-	_check(card.visible and card.failed and card._return.visible and card._hint.text.contains("failed connection"),
+	_check(card.visible and card.failed and card._return.visible and card._hint.text == tr("SABOTAGE_MATCH_FULL"),
 		"an error cancels queued reveal and offers return without exposing the world")
 	scene._begin_world_load()
 	scene._queue_world_reveal({"map_id": 1})

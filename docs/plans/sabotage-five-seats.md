@@ -35,6 +35,8 @@ failed ordinary-action and socket record receipts.
 
 - Overflow receives an existing-shaped Error with `match_full` before Welcome.
   No fighter identity, player body, statistics entry or resume token is granted.
+  The client treats it as a localized hard stop, offers Return and permits a
+  deliberate Watch connection as a spectator without silently retrying a fighter.
 - Vacant-seat joins use existing side balancing, counting all seated bodies,
   including eliminated and disconnected parked participants. No side exceeds
   five. Side choice never depends on human versus agent control or callsign.
@@ -79,6 +81,11 @@ Pistol fire and exact spent-ammo resume, real stronger-weapon pad claims,
 survivor carry and fresh post-death inventory. Elimination tests cover both
 late Sabotage seats and generic FFA/TDM TwoLives, including queued jump/swap
 input and passive pickups. Preserve existing committed-device tests.
+At the equipment owner, require an actual prepared Sabotage instance rather
+than a stale internal flag on FFA or an authored campaign. The existing kick
+and loading harnesses cover the full-room packet, localized refusal, no resume,
+visible Return and deliberate spectator Hello; native sockets prove spectator
+admission at actual capacity.
 
 Integration, complete CI, public host documentation and player-facing room
 profile discovery remain separate parent-owned gates. The server sends no

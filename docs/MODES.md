@@ -2,12 +2,15 @@
 
 The canonical list of modes. The roadmap sequences them, the plans build them, this says what each one is.
 
-**Implementation status, 2026-10-02:** free-for-all Scrap, team deathmatch,
+**Implementation status, 2026-10-04:** free-for-all Scrap, team deathmatch,
 six host mutators and Episode 0 exist; a host picks the mode and mutators at
 launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Capture the
 flag plays on Arena Duel, Directive 17 and Sector 9
 ([plan](plans/capture-the-flag.md)); a human match remains open. Sabotage plays
 on Sector 9 ([plan](plans/sabotage-mode.md)); a human match remains open.
+Its optional [5v5 profile](plans/sabotage-five-seats.md) is implemented and
+tested locally, with ten shared fighter seats and finite Pistol fresh starts;
+combined integration CI remains open.
 Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
@@ -118,7 +121,7 @@ starts with a random attacker and falls where its carrier dies. Planting takes
 three seconds of held Use inside a site's ring and defusing six at the charge;
 movement, release or damage restarts either. A planted charge runs 35 seconds
 and its clock replaces the round's. Survivors carry their weapons and armour
-into the next round; the fallen start empty and leave their best gun on the
+into the next round; generic Sabotage's fallen start empty and leave their best gun on the
 floor. Sides change uniform at half: halves of four, first to five, or halves
 of eight, first to nine, with extra time when level. Rule bots stage, push,
 plant, anchor, rotate, retake and defuse, and agents read the same objective
@@ -126,13 +129,24 @@ through MCP. Evidence and the rules as built are in
 [the Sabotage plan](plans/sabotage-mode.md); the design is in
 [the replayability plan](plans/replayability.md#the-flagship-rescue-and-sabotage).
 
+The host may opt into `--sabotage-five-v-five`: ten fighter seats, five per
+side, shared by humans, agents and rule bots. Fresh admission, the first round
+and post-death rounds give the selected Tack/Pistol and fifty finite Bullets.
+Stronger guns are map pickups. Survivors retain carried guns and ammo without
+a repeated sidearm refill, and parked resume retains exact inventory. Full
+rooms refuse fighters before Welcome and offer Watch or return; spectators
+consume no fighter seats. A vacant-seat join during Live waits for the next
+Muster. Weapon-only mutators conflict with this profile and fail at startup.
+Generic Sabotage remains unchanged. See the
+[hosting contract](../infra/docs/HOME-LAN.md#optional-5v5-sabotage).
+
 
 ### Competitive 5v5 and Liberation
 
 The accepted multiplayer direction includes explicit five-per-side elimination
 and plant/defuse on multiple original maps. Sector 9 Sabotage is built;
-strict seat caps, standalone elimination and additional objective layouts are
-not. The [competitive/community plan](plans/competitive-and-community.md)
+the optional strict seat profile is implemented locally. Standalone elimination,
+additional objective layouts and Liberation remain planned. The [competitive/community plan](plans/competitive-and-community.md)
 links the classic-map research and records admission, equipment and playtest
 decisions without adding another global build order.
 
@@ -287,9 +301,13 @@ The challenges are specific and mostly ridiculous: finish an episode on the hard
 
 Mutators are host settings from the start, not unlocks. Built (2026-09-25): Licence to Kill (any damaging hit kills), Golden Rail (one gold Railgun on the map that kills in one hit; kill the holder and it returns to its pad), Rail Only, Shotgun Only, Fists Only, and Two Lives (last fighter or side standing). Open Weights is still proposed. They cost almost nothing to build and they are where a lot of the fun actually is. Beating the campaign unlocks only the silly ones, in the old tradition: big heads, low gravity, double speed.
 
-## Every life starts empty
+## Equipment follows the venue and profile
 
-Whichever mode you are in, you begin with your fists. The pistol is on the floor beside the spawn, about two seconds away, and picking it up is the first thing you do every life rather than something you already have.
+Discovery venues start with fists and make finding a gun part of their opening.
+Legacy full-arsenal maps and weapon-only mutators retain their existing host
+starts. Optional 5v5 Sabotage starts fresh fighters with the basic Pistol and
+fifty Bullets; stronger weapons are contested on the map, survivors keep their
+carry and reconnects do not refill it.
 
 In an episode that is the classic opening: the first room hands you a gun and it is a moment. In a scrap it is a window, a few seconds each life where you are holding nothing, which is the only reason a punch kill is possible and the only reason finding a knife means anything.
 
