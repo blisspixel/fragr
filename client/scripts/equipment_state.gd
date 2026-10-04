@@ -133,7 +133,7 @@ static func cycle(state: Dictionary, current: String, step: int) -> String:
 	return cycle_owned(carried_names(state), current, step)
 
 ## Slot one draws the Shiv when carried, and a second press while holding it
-## goes back to fists. Every other slot names one gun.
+## goes back to fists. Slot four cycles owned Rifle/Repeater; other slots name one gun.
 static func slot_if_owned(carried: Array, slot: int, current: String = "") -> String:
 	if slot < 1 or slot > SLOTS.size():
 		return ""

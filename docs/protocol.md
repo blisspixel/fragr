@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `34`; omission means `1`. Discovery-only maps first
+  and the Godot client send `35`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -170,6 +170,14 @@ Initial handshake message. Must be sent immediately after connection.
   humans, agents and spectators. Other maps retain their earlier requirements.
   Passenger Manifest uses the same capability for its strict `m09` geometry,
   ordered crew release and all-party berth departure.
+  Version 35 adds the genuine `repeater` weapon, finite Bullets and server-owned
+  held-fire warmup, plus participant record revision 2 with eight weapon
+  columns. Every map granting a Repeater requires 35 for all roles before
+  Welcome. Existing arcade kits and campaign stages through M09 never grant it.
+  Older admitted readers on compatible maps receive revision 1 only when actual
+  Repeater counts are zero; unsupported ownership or nonzero counts refuse
+  delivery rather than losing facts. Warmup state remains private; no new action,
+  cycle fact or borrowed weapon presentation is introduced.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -684,7 +692,7 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
-- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"`.
+- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"` | `"repeater"`.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
@@ -950,18 +958,29 @@ in `Snapshot.players[].weapon`; ammunition does not.
 ```
 
 `weapons` lists owned weapons exactly once, including fists, in the order
-fists, tack, flechette, scatter, rail, shiv, sniper. The `shiv` is found, not issued: a
+fists, tack, flechette, scatter, rail, shiv, sniper, repeater. Earlier indices
+never change. The `shiv` is found, not issued: a
 pool-less melee weapon (35 damage, 6 tick cooldown, 2.2 unit reach) that spends
 nothing and has no ammunition count. Picking it up again adds nothing. The
 `sniper` (capability 30) is also found, never issued: hitscan with 70 damage,
 a 32 tick cooldown, a 0.004 radian cone and 90 unit reach, spending one Cell per
 shot. It shares the Cells pool with the Railgun but never its damage or its
-beam; its scope is client presentation and changes no action field. `ammo` contains
-all three unique pools: `bullets` (Tack and Flechette, cap 200), `shells`
+beam; its scope is client presentation and changes no action field.
+The `repeater` requires capability 35. Its CPU prototype holds existing `fire`
+for six warmup ticks before ordinary traced shots with a two-tick cooldown,
+14 direct damage, 35 unit reach and a 0.035-radian cone. Each actual shot spends
+one Bullet; warmup spends nothing. Release, accepted weapon change, inactivity,
+death, leave and attempt reset clear the private cycle. These constants await
+played feel and real art/audio acceptance. No current campaign find or default
+arcade kit grants the weapon. Six physical keys remain unchanged: key 3 selects
+Shotgun, and repeated key 4 cycles the owned Rifle/Repeater family. The existing
+wheel includes Repeater beside Rifle without changing wire or record indices.
+`ammo` contains
+all three unique pools: `bullets` (Tack, Flechette and Repeater, cap 200), `shells`
 (Scatter, cap 50) and `cells` (Rail and Sniper, cap 100 since capability 12). There are no magazines and no
 reload: one shot, including a seven-pellet scatter blast, spends one unit from
 its pool, and fists need nothing. A weapon pickup adds Tack 50, Flechette 60,
-Scatter 12, Rail 10 or Sniper 8 units. The magazine-era `reserves` and `reload` fields are
+Scatter 12, Rail 10, Sniper 8 or Repeater 60 units. The magazine-era `reserves` and `reload` fields are
 gone and a message carrying them is refused whole.
 `personal_claims` hides introductory supplies only for their claimant. IDs follow
 the authored map contract. `dry_fire_count` advances once per held empty trigger,
@@ -2115,10 +2134,10 @@ content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
 under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
 refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v10 after validating their historical revision
+M01/M02/M03 documents migrate to v11 after validating their historical revision
 2 rules and exact content hash. The upgrade promotes rules to revision 3 with
 exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v10 with zero historical grenades. Strict v6 documents preserve
+3 and upgrade to v11 with zero historical grenades. Strict v6 documents preserve
 their real grenade counts and M05 release/boarding outcomes; they cannot forge
 playable M06 or its future route outcome. Old shapes reject grenade
 fields and forged M05 stages. Exact source bytes are archived before replacement;
@@ -2135,7 +2154,7 @@ M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
 M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
 M09 is supported; M10 cannot launch.
-Version 10 retains completed
+Version 11 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2143,8 +2162,8 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v10 saved equipment object requires independent `grenades`
-from zero to six. Versions 9 and 10 require actual `proximity_mines` from zero
+Every v6 through v11 saved equipment object requires independent `grenades`
+from zero to six. Versions 9 through 11 require actual `proximity_mines` from zero
 to four. Historical v2 through v8 equipment never has a mine field; an explicit
 strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
@@ -2157,7 +2176,7 @@ promotion carries HP, armor, equipment, grenades and mines without an episode
 refill; only old-map personal supply claims clear. M09 retry restores that
 entry anchor and retains all earlier outcomes. Completion stores the actual
 exit at pending M10; no Episode III refill or playable M10 is implied.
-Version 10 also requires `m08_outcome` at that completed edge. Native
+Version 11 retains version 10's required `m08_outcome` at that completed edge. Native
 completion emits `{"kind":"recorded","custody_released":bool,
 "recovered_mind_secured":bool,"captives_evacuated":bool}` from actual mission
 progress. Evacuation requires release. The cabinet fact says a copy was
@@ -2168,11 +2187,18 @@ have no M08 outcome. Both tagged forms refuse extra fields. Historical
 absence never becomes invented false values, counts or a mission gate.
 Episode II continues refill
 only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Strict v7 documents upgrade to v10 and cannot forge an M07 stage or a carried
+Strict v7 documents upgrade to v11 and cannot forge an M07 stage or a carried
 Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
 Sniper, then promote into M08 without a refill. V8 refuses playable M08.
 Strict v9 preserves all actual equipment and earlier outcomes. Its exact
 shape refuses `m08_outcome`, even null, and any playable M09 stage before upgrade.
+Strict v10 upgrades through an exact historical shape, preserving recorded or
+historically unrecorded M08 outcomes and actual equipment counts. Versions 2
+through 10 refuse Repeater selection or ownership, including forged historical
+fields. Current v11 likewise refuses Repeater ownership throughout supported
+stages through M09 and the pending M10 edge; no authored M10 find is implied.
+Every writable upgrade archives the exact old bytes under the existing lock;
+format migration grants no gun, ammunition, grenade, mine or continue refill.
 Read-only preview preserves source bytes; writable migration archives exact
 bytes under the existing writer lock before atomic replacement. Unknown future
 versions, forged older M04/M05/M06/M07/M08 states and
@@ -2297,7 +2323,7 @@ or status change sends immediately. The record's tick can precede the latest
 snapshot. No record is delivered during initial arena warmup or to someone who
 joins after a round has already ended without participating.
 
-The version-1 record includes `session_id`, `player_id`, `round`, `tick`,
+The current version-2 record includes `session_id`, `player_id`, `round`, `tick`,
 `entered_at`, `round_started_at`, `ticks_per_second` (20), `map_id`, `map_name`,
 `role`, `scope`, `status`, `total` and `attempt`. Its identity is the session UUID,
 player UUID and round number, never a callsign. `entered_at` is the admission tick
@@ -2307,6 +2333,17 @@ The [shared format fixture](../client/golden/player_record.json) is read by Rust
 MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.json)
 covers the sixth slot and a found secret on both sides, and the
 [Sniper fixture](../client/golden/player_record_sniper.json) the seventh.
+Those fixtures retain historical revision 1. Current revision 2 requires exactly
+eight weapon entries, with Repeater appended after Sniper. Revision 1 accepts
+only its strict five/six/seven-column shapes and refuses an eighth even when
+zero. Unknown revisions and a revision change within one record are refused.
+The private per-recipient sender uses revision 2 for capability 35 or later;
+earlier compatible readers receive revision 1 only when total and attempt
+Repeater counts are genuinely empty. Nonzero new counts close incompatible
+delivery instead of being truncated or assigned to Rifle. The unversioned
+standalone CombatCounts format stays historical five/six/seven columns and
+refuses serialization with nonzero Repeater counts; eight columns belong to
+the explicit revision 2 record envelope.
 
 Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
 `attempt`, `rules` and nullable `run` (the solo run contract above). Calibration
@@ -2324,22 +2361,23 @@ successful attempt from the party's readiness to authoritative departure,
 including time spent dead within that attempt, excluding briefing and later
 story/results viewing. Accepted retry starts a fresh clock. Completion freezes
 this value. It cannot exceed `tick - round_started_at`, appear on a noncompleted
-or nonmission record, or change after terminal delivery. Historical version-1
-records omit it and retain their exact shape; absence means unavailable time,
+or nonmission record, or change after terminal delivery. Earlier historical
+records omit it and retain their exact shape. Revision 1 delivery to capability
+33 or 34 may include it; earlier recipients omit it. Absence means unavailable time,
 not zero. No runtime par is currently authored. The completion tally uses the
 existing attempt and total resolved counts, and never counts client-side kills.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
-`dry_triggers` and five `weapons` entries in fists, Tack, flechette, scatter, rail
-order, plus a sixth Shiv entry once the Shiv has attacked and a seventh Sniper
-entry once the Sniper has attacked. A writer sends the shortest prefix that
-holds every non-zero entry. Readers accept five, six or seven entries and treat
-missing later entries as zero, so retained history keeps its shape and no slot
-changes meaning. `secrets`, present only when nonzero,
+`dry_triggers` and eight `weapons` entries in fists, Tack, flechette, scatter,
+rail, Shiv, Sniper and Repeater order. A historical revision 1 writer sends
+the shortest five/six/seven-entry prefix holding every nonzero old entry.
+Revision 1 readers treat missing later old entries as zero, so retained history
+keeps its shape and no slot changes meaning. `secrets`, present only when nonzero,
 counts distinct authored secrets found: `total` over the whole run, `attempt`
 this attempt. Finding a restored secret again after a continue raises `attempt`
 but not `total`. It cannot exceed `alive_ticks`. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
-`armor_damage`. Every weapon resolves one attack per accepted trigger; the
+`armor_damage`. Every resolved gun shot counts one attack; Repeater warmup
+counts none and held fire counts each actual shot separately. The
 scatter's attack is seven pellets and counts once, as one damaging attack when
 any pellet hurt anyone. Its kills are bounded by seven per damaging attack; every
 other weapon's kills are bounded by its damaging attacks.
@@ -2351,7 +2389,7 @@ one shot receives each death credit. Dry triggers are latched pulls on an empty
 count, separate from accepted attacks; cooldown denials are neither.
 
 An optional `grenades` column has the same five count fields, defaults to zero
-for historical record version 1 and is omitted while unused. It leaves the six
+for historical record version 1 and is omitted while unused. It leaves existing
 gun indices unchanged. Aggregate totals include this column. One launch counts
 one attack, one blast that damages any other eligible body counts one damaging
 attack, and at most 256 kills can belong to it. Actual self HP/armor loss counts
