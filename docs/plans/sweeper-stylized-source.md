@@ -1,6 +1,6 @@
 # Stylized Sweeper source and poses
 
-Status: **in flight**, 2026-10-04. Base: main `a8611d04`.
+Status: **implemented**, 2026-10-04. Base: main `a8611d04`.
 
 Integrate the reviewed angular dark-steel/red bot body into the existing standing
 character bake. The current articulated source remains the comparison, not a
@@ -66,6 +66,24 @@ ordinary-input played combat, including windup/fire/hit/death at game scale.
 Source, baked atlases and actual runtime use are separate acceptance gates.
 Complete client checks and eventual full CI precede integration. Record exact
 source and output hashes, inspected frames, attempts and remaining limitations.
+
+## Local result
+
+Source checkpoint `6c7e68923010876dbc6172cfd9cceb45e168192b` passes the focused
+skin, standing-atlas, retained Clerk and historical model harnesses. Clean
+ordinary-input three-state proofs retain the named Clerk and two Sweeper kills,
+finite supplies and all five required rendered combat phases. The close repeat
+reaches five ordinary walking arrivals, retains 100 HP and 37 bullets, and
+exits 0 without errors. Actual frame 27 shows a partially cabinet-occluded
+settled body at 6.09 m. A clearer body frame from the earlier rejected texture
+retirement run is preserved and labeled separately. No scene observer,
+retirement override or gameplay/lifetime change is used.
+
+Exact source/bake hashes, eight inspected images and failed attempts are in
+[the evidence receipt](../evidence/sweeper-stylized-source-20261004.md).
+This is one source role's local art acceptance, not a full M01 departure proof.
+The complete combined client checker and implementation CI remain integration
+gates; no release or shipped claim is made here.
 
 ## Risks
 
