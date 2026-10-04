@@ -93,6 +93,13 @@ checked 2026-10-04, describes camera-based listening, Effects-compatible bus
 routing, stereo panning and explicit stopping. This slice uses that established
 spatial player path and does not claim an HRTF implementation.
 
+The first slice's component harness, reproducible cue bake and actual two-client
+resolved-shot capture are recorded in
+[the bounded acceptance evidence](../evidence/directional-feedback-20261004.md).
+The inspected local source combination uses the coordinated manager hooks;
+main integration and CI remain separate gates. The plan remains in flight for
+the additional audio and listening work listed above.
+
 ## Verification
 
 - **Harness tests:**
