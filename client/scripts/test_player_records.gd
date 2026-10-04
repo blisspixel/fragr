@@ -43,6 +43,19 @@ func _run() -> void:
 		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "weapon slots must be five, six or seven")
 	var scoped: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://golden/player_record_sniper.json"))
 	_check(PlayerRecord.validation_error(scoped, scoped["player_id"]).is_empty(), "shared seven-slot Sniper record validates")
+	var current: Dictionary = scoped.duplicate(true)
+	current["version"] = PlayerRecord.VERSION
+	for field: String in ["total", "attempt"]:
+		current[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has explicit eighth Repeater column")
+	_check(not PlayerRecord.validation_error(current, current["player_id"], scoped).is_empty(), "negotiated record version cannot change inside one connection")
+	var forged_legacy: Dictionary = current.duplicate(true)
+	forged_legacy["version"] = PlayerRecord.LEGACY_VERSION
+	_check(not PlayerRecord.validation_error(forged_legacy, forged_legacy["player_id"]).is_empty(), "legacy record refuses zero eighth column")
+	for size: int in [5, 6, 7, 9]:
+		var wrong_current: Dictionary = current.duplicate(true)
+		wrong_current["attempt"]["weapons"].resize(size)
+		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact eight columns")
 	_check(PlayerRecord.weapon_count(scoped["total"], 6, "kills") == 1 and PlayerRecord.weapon_count(found["total"], 6, "attacks") == 0, "a six-slot record reads as no Sniper use")
 	var overkill: Dictionary = scoped.duplicate(true)
 	overkill["total"]["weapons"][6]["kills"] = 3

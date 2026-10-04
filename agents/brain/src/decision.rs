@@ -198,6 +198,7 @@ pub fn campaign_questions(owned: &[WeaponType]) -> BTreeMap<String, Question> {
                 "Pistol for deliberate short and mid-range shots with finite bullets."
             }
             WeaponType::Flechette => "Rifle for sustained mid-range fire with finite bullets.",
+            WeaponType::Repeater => "Distinct sustained-fire gun. Hold through warmup, then fire with finite shared bullets. Release or switch restarts warmup.",
             WeaponType::Scatter => "Shotgun for a close guard, with finite shells.",
             WeaponType::Rail => {
                 "One heavy slow shot for a distant exposed guard, with finite cells."

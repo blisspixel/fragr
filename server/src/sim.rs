@@ -5,6 +5,7 @@ mod enclosed_tests;
 pub mod grenade;
 pub mod mine;
 mod modes;
+pub(crate) mod repeater;
 pub mod sabotage;
 pub mod traveling_shot;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
@@ -609,6 +610,7 @@ pub struct Player {
     place_requested: bool,
     mine_cooldown: u32,
     pub fire_cooldown: u32,
+    pub(crate) repeater_cycle: repeater::RepeaterCycle,
     pub respawn_timer: Option<u32>,
     pub just_fired: bool,
     pub role: Role,
@@ -662,6 +664,7 @@ impl Player {
     }
 
     pub(crate) fn clear_input(&mut self) {
+        self.repeater_cycle.reset();
         self.pending_action = Action::default();
         self.jump_requested = false;
         self.interaction_requested = false;
@@ -716,6 +719,7 @@ impl Player {
             place_requested: false,
             mine_cooldown: 0,
             fire_cooldown: 0,
+            repeater_cycle: repeater::RepeaterCycle::default(),
             respawn_timer: None,
             just_fired: false,
             weapon: if policy == crate::protocol::EquipmentPolicy::Discovery {
@@ -1747,6 +1751,9 @@ impl GameState {
 
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
                 if player.inventory.select(player.weapon, new_weapon) {
+                    if player.weapon != new_weapon {
+                        player.repeater_cycle.reset();
+                    }
                     player.weapon = new_weapon;
                 }
             }
@@ -1926,14 +1933,21 @@ impl GameState {
                 || player.hp <= 0
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
             {
+                player.repeater_cycle.reset();
                 continue;
             }
 
-            if player.pending_action.fire
-                && player.fire_cooldown == 0
-                && !grenade_launches.contains(&player.id)
-                && !mine_placements.contains(&player.id)
-            {
+            let suppressed =
+                grenade_launches.contains(&player.id) || mine_placements.contains(&player.id);
+            let fire_permitted = player.repeater_cycle.step(
+                player.weapon,
+                player.pending_action.fire,
+                true,
+                suppressed,
+                player.inventory.usable(player.weapon),
+                self.tick,
+            );
+            if fire_permitted && player.fire_cooldown == 0 {
                 if matches!(
                     player.campaign,
                     Some(CampaignActor::Union {
@@ -2370,6 +2384,7 @@ impl GameState {
             victim.statistics.hurt(hp_damage, absorbed as u64, died);
             let victim_was_boss = victim.is_boss;
             if died {
+                victim.repeater_cycle.reset();
                 victim.inventory.release_trigger();
                 victim.throw_requested = false;
                 victim.place_requested = false;
@@ -2758,6 +2773,7 @@ impl GameState {
             player.armor = 0;
             player.respawn_timer = None;
             player.fire_cooldown = 0;
+            player.repeater_cycle.reset();
             if let Some(weapon) = player.inventory.only() {
                 player.weapon = weapon;
             }
@@ -3240,6 +3256,7 @@ impl GameState {
             pending_action: Action::default(),
             jump_requested: false,
             fire_cooldown: 0,
+            repeater_cycle: repeater::RepeaterCycle::default(),
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -3586,6 +3603,7 @@ impl GameState {
             pending_action: Action::default(),
             jump_requested: false,
             fire_cooldown: 0,
+            repeater_cycle: repeater::RepeaterCycle::default(),
             interaction_requested: false,
             throw_requested: false,
             grenade_cooldown: 0,
@@ -4355,7 +4373,7 @@ impl BotController {
             WeaponType::Rail => 0.22,
             WeaponType::Sniper => 0.12,
             WeaponType::Scatter => 0.55,
-            WeaponType::Flechette => 0.40,
+            WeaponType::Flechette | WeaponType::Repeater => 0.40,
         };
 
         match self.behavior {

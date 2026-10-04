@@ -23,7 +23,9 @@ the stream and resets warmup; weapon switch, inactivity, death, leave and
 attempt reset also clear it. An empty pool produces no damage or successful
 shot. Ordinary finite inventory caps and dry-trigger accounting remain intact.
 
-The server owns the cycle and any presentation facts. The client cannot infer
+The server owns the private cycle. No new warmup wire fact or presenter is added
+in this CPU foundation, as approved on 2026-10-04. A later actual weapon
+presentation needs its own strict fact and acceptance gate. The client cannot infer
 hits or successful fire from warmup/trigger hold. Test the shared equipment
 controller against a genuine ranged target and the finite pool; no MCP hot path.
 
@@ -37,7 +39,7 @@ server facts. No reload, magazine or new firing action is introduced.
 
 ## Record and capability boundary
 
-Propose capability 35, subject to the parent's allocation review. Maps granting
+Capability 35 is allocated for this foundation, reviewed on 2026-10-04. Maps granting
 Repeater require it for every role before admission, including spectators.
 Existing maps retain their requirements. New clients accept an explicit record
 revision 2 with eight weapon columns, while strict historical revision 1
@@ -74,7 +76,7 @@ Own the appended weapon constants, inventory/controller decisions and a small
 server cycle helper called from ordinary sim fire resolution/reset. Extend
 strict record types and the existing per-recipient sender, old-save parsing
 and current equipment validation only as required. Client work is strict
-equipment/record/cycle boundaries and family selection tests, not a viewmodel,
+equipment/record boundaries and family selection tests, not a viewmodel,
 sound or map. Coordinate exact shared source paths before later integration.
 
 ## Verification and limits
@@ -82,7 +84,7 @@ sound or map. Coordinate exact shared source paths before later integration.
 - Actual GameState warmup and held fire with exact shot times, damage, ammo and
   weapon-specific records; release/restart, cover, selection, dry pool and reset.
 - Shared human/agent equipment intent, family-key/wheel ownership and unchanged
-  earlier slots; malformed and stale cycle facts refused.
+  earlier slots; no cycle facts or borrowed visual representation emitted.
 - Strict revision 1 five/six/seven-column fixtures, forged zero eighth column,
   revision 2 exact eight columns, actual older-recipient wire and unsupported
   map admission. Terminal records remain immutable and counts bounded.
