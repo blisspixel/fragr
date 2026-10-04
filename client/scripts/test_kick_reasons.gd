@@ -9,11 +9,17 @@ extends SceneTree
 ## and _admission_error, and docs/protocol.md's close-code table.
 
 const KICK_KEYS: Dictionary = {
+	"match_full": "SABOTAGE_MATCH_FULL",
 	"rate_limited": "NET_RATE_LIMITED",
 	"malformed": "NET_MALFORMED",
 	"address_banned": "NET_ADDRESS_BANNED",
 	"address_not_allowed": "NET_ADDRESS_NOT_ALLOWED",
 }
+
+class CaptureNetwork extends "res://scripts/net_client.gd":
+	var sent: Array[Dictionary] = []
+	func send_json(data: Dictionary) -> void:
+		sent.append(data.duplicate(true))
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -29,6 +35,8 @@ func _run() -> void:
 	if not _check_message_mapping():
 		return
 	if not _check_kicks_block_resume():
+		return
+	if not _check_full_match_can_watch():
 		return
 	if not _check_idle_timeout_keeps_resume():
 		return
@@ -59,6 +67,37 @@ func _check_message_mapping() -> bool:
 			network.free()
 			return false
 		seen_messages.append(actual)
+	network.free()
+	return true
+
+func _check_full_match_can_watch() -> bool:
+	var network: CaptureNetwork = CaptureNetwork.new()
+	network.role = "human"
+	network._resume_token = "v1.previous"
+	network.player_id = "previous"
+	var seen: Array[String] = []
+	network.server_error.connect(func(message: String) -> void: seen.append(message))
+	network._handle_message(JSON.stringify({"type": "error", "code": "match_full", "message": "untrusted remote text"}))
+	if seen != [tr("SABOTAGE_MATCH_FULL")] or network.player_id != null or not network._leaving or network.is_processing():
+		_fail("full match packet did not retire the fighter and show localized refusal")
+		network.free()
+		return false
+	if network._try_resume():
+		_fail("full match packet silently retried the fighter")
+		network.free()
+		return false
+	network.set_server_host("127.0.0.1:1")
+	if not network.connect_to_server("spectator", "Watch probe"):
+		_fail("a deliberate spectator reconnect remained blocked")
+		network.free()
+		return false
+	network.send_hello()
+	if network._leaving or network.sent.size() != 1 or network.sent[0].get("role") != "spectator" or network.sent[0].has("resume"):
+		_fail("spectator reconnect reused the refused fighter seat")
+		network.disconnect_from_server()
+		network.free()
+		return false
+	network.disconnect_from_server()
 	network.free()
 	return true
 

@@ -300,6 +300,7 @@ func _close_message(code: String) -> String:
 	match code:
 		"run_seat_closed": return tr("RUN_SEAT_CLOSED")
 		"party_full": return tr("MISSION_PARTY_FULL")
+		"match_full": return tr("SABOTAGE_MATCH_FULL")
 		"unsupported_geometry", "unsupported_gameplay": return "This server needs a newer client. Update to join."
 		"connection_limit": return "This server is not taking more connections."
 		"address_limit": return "Too many connections from this address."

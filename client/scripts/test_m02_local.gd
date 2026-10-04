@@ -63,6 +63,10 @@ func _run() -> void:
 	var owned: LocalMatch = LocalMatch.for_tree(self)
 	_expect(owned.mission == MissionState.M02_ID and owned.state == LocalMatch.State.RUNNING, "the owned child is the M02 development child")
 	_expect(not is_instance_valid(current_scene.opening), "the graybox has no story page yet")
+	# Server readiness can arrive before the loading curtain's deferred drawn
+	# frame. Wait for the actual client input boundary, without a fixed delay.
+	if not await _until(func() -> bool: return not current_scene.controls_blocked(), "the drawn arrival releases participant controls"):
+		return
 	var state: Dictionary = current_scene.mission_hud.state
 	_expect(not state.has("run") and state["m02"]["current"]["id"] == "ward_reached"
 		and not state["m02"]["ward_secured"] and not state["m02"]["side_ward_secured"]

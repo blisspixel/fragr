@@ -8,6 +8,8 @@ use crate::protocol::{SabotageFormat, Team, TeamScores};
 /// host or a test can shape them; the defaults are the design's numbers.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SabotageConfig {
+    /// Optional host profile. Dead and parked fighters still occupy seats.
+    pub five_vs_five: bool,
     pub format: SabotageFormat,
     /// Held in the spawn zones before weapons go live.
     pub muster_ticks: u32,
@@ -28,6 +30,7 @@ pub struct SabotageConfig {
 impl Default for SabotageConfig {
     fn default() -> Self {
         Self {
+            five_vs_five: false,
             format: SabotageFormat::default(),
             muster_ticks: 20 * 10,
             live_ticks: 20 * 105,

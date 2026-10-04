@@ -147,6 +147,23 @@ async fn run_server_impl(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
+    if let Some(config) = options
+        .match_config
+        .as_ref()
+        .filter(|config| config.sabotage.five_vs_five)
+    {
+        if config.rules.mode() != crate::protocol::GameMode::Sabotage || options.bots > 10 {
+            return Err(
+                "five versus five requires Sabotage and at most ten initial rule bots".into(),
+            );
+        }
+        if config.rules.only_weapon().is_some() {
+            return Err(
+                "five versus five Sabotage requires the finite Pistol start, without weapon-only mutators"
+                    .into(),
+            );
+        }
+    }
     if options
         .match_config
         .as_ref()
@@ -377,6 +394,10 @@ async fn run_server_impl(
             }
         }
     };
+    session.state.seed(options.seed);
+    if let Some(config) = options.match_config {
+        session.state.apply_config(config);
+    }
     let live = std::sync::Arc::new(tokio::sync::RwLock::new(session.state.live_status(0)));
     let mut net_server = NetServer::bind_with_requirements(
         &options.bind,
@@ -387,6 +408,9 @@ async fn run_server_impl(
     .await?;
     if twisted && !discovery {
         net_server.open_arena_seats();
+    }
+    if let Some(slots) = session.configure_sabotage_seats() {
+        net_server.set_sabotage_seats(slots);
     }
     net_server.share_status(std::sync::Arc::clone(&live));
     net_server.share_resume(std::sync::Arc::clone(&session.resume));
@@ -420,10 +444,6 @@ async fn run_server_impl(
         net_server.accept_loop().await;
     });
 
-    session.state.seed(options.seed);
-    if let Some(config) = options.match_config {
-        session.state.apply_config(config);
-    }
     if !session.state.map.is_authored() {
         tracing::info!("Rules: {}", session.state.config.rules.name());
     }

@@ -441,9 +441,16 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
    which measures every preset.
 6. **Multiplayer depth.**
+   - [Optional 5v5 Sabotage](plans/sabotage-five-seats.md) is implemented and
+     tested locally: ten shared fighter seats, finite Pistol fresh starts,
+     survivor carry, exact parked resume and localized full-room refusal.
+     [PR #351](https://github.com/blisspixel/fragr/pull/351) records complete
+     CI and package verification; human match acceptance remains open. Generic matches retain
+     their existing limits and inventory policy.
    - [Competitive and community scope](plans/competitive-and-community.md):
-     explicit 5v5 elimination and plant/defuse, with original Sector 9,
-     Low Water and Custody Archive objective layouts. Apply the linked classic
+     standalone 5v5 elimination and additional plant/defuse layouts remain
+     planned. Sector 9 is built; Low Water and Custody Archive objective venues
+     remain planned. Apply the linked classic
      map research and prove rotations, retakes and side balance in play.
    - Rescue.
    - The [vehicle](plans/vehicles.md) rungs toward the flagship island,
