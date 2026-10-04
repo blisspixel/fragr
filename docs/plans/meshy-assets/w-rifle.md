@@ -1,6 +1,6 @@
 # Rifle
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: **in flight**, 2026-10-04. Source route: **New source candidate**. The first inspected source is in offline refinement; runtime Rifle art remains unchanged.
 Stable ID: `W-rifle`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -21,6 +21,14 @@ Record the selected reference paths and hashes, front/side/back silhouette, scal
 
 Muzzle and both grips; separate bolt where useful; reliable character attachment.
 
+The inspected source preserves 6,122 triangles across Body, Bolt and Trigger.
+Prepared length is 0.94 m. The real bolt and handle have a bounded 30 mm
+stroke; barrel, stock, handguard, guard and magazine remain fixed. Plain
+mechanic gloves are local geometry. There is no reload or new weapon mechanic.
+See the [bounded source plan](../rifle-source-refinement-20261004.md) and
+[source evidence](../../evidence/rifle-source-refinement-20261004.md) for exact
+hashes and acceptance gates. Studio and actual played acceptance remain open.
+
 Author rigid weapon mechanisms, grips and effects locally. Humanoid rigging does not apply to guns or equipment. One accepted source supplies held, pickup and icon views.
 
 ## Integration and acceptance
@@ -31,7 +39,9 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 
 ## Credit reservation and next operation
 
-Reserve at most 35 credits for a first 7.1 textured candidate, or 15 for a suitable inspected Smart Topology candidate. The shared revision reserve is separate. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
+The shared production receipt owns the inspected 15-credit source. Current
+refinement uses local geometry, compact maps and a reproducible bake at $0.
+No further generation or rigging stage is needed for this first trial. The
+shared revision reserve and production allocation remain separate.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.
-
