@@ -1,6 +1,8 @@
 # M04 west residential facades
 
-Status: **in flight**, 2026-10-04. Base: main `a8611d04`.
+Status: **implemented**, 2026-10-04. Base: main `a8611d04`.
+Implementation: `098ea633`. [Local evidence](../evidence/m04-residential-facades-20261004.md).
+Integration, complete CI and historical-save policy remain with the parent.
 
 The west habitation court currently has personal windows on a five-metre wall,
 but no homes behind that wall. Build three adjoining, sealed domestic volumes
@@ -49,3 +51,23 @@ must form readable homes. No new rooms, entrances or mission gates are promised.
 Authored geometry changes the content hash. Existing run-file hash validation
 must remain strict; historical save compatibility needs an explicit integration
 decision, not a silently relaxed validator.
+
+## Local result
+
+The 32-state ordinary-input tour passes six probes, all 28 guards, 134 walking
+arrivals, clinic release and actual departure. It records zero deaths, 100 HP
+lost and 150 armor lost. The north roof is truthfully reachable from the existing
+exit-deck jump onto the north wall; native integration proves ordinary return
+around the tank. The original stair route remains the live capture route.
+
+Both clinic worlds pass 27 focused unit checks and two real local-child carry
+checks. Complete server verification passes 873 unit tests with three existing
+ignored, 18 binary tests and 26 integration tests. Server Clippy and formatting
+pass. Complete client verification passes 233 scripts, 108 harnesses and all
+342 expected labels, with exit zero and clean error logs.
+
+The additional Windows fake-checker sweep was deliberately canceled after its
+first scenario passed because repeated shell spawning was slow. Its partial log
+is retained, not accepted as the complete verifier self-test. The full normal
+Linux CI verifier gate remains required before integration. No renderer or
+owned native server remains running.
