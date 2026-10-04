@@ -244,11 +244,15 @@ updated runtime atlas. Body
 customization remains available, and a selected free agent body is not always Latch.
 
 The selectable human now uses `../models/free_human_source.gd` and its prepared
-24-bone civilian skin, an angular painted face, worn leather, teal shirt, work
-trousers, ochre scarf and practical hat. Its sampler removes horizontal root
+24-bone civilian skin, an angular painted face, short informal hair, rust utility
+jacket, teal casual shirt, patched work trousers and practical shoes. The default
+has no hat or neckerchief. Its sampler removes horizontal root
 travel and keeps both hands relaxed and empty. `player_rig.gd` retains the
 separate selectable synthetic body, which is not always Latch. Both bodies
 share the existing strip field and fixed feet and carry no Union issue.
+The [civilian revision receipt](../../../docs/evidence/free-human-civilian-20261004.md)
+records its source, bake and actual live survey. Earlier hat-and-scarf inputs
+remain historical; wardrobe variety is separate cast work.
 The synthetic body is a bone shell over a
 gunmetal frame with a leather harness, an ember scarf, rust repair plates, two
 round cyan lenses and one magenta-tipped antenna. Both are outlined in outline

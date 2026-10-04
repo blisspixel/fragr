@@ -1,5 +1,17 @@
 # Character references
 
+## Civilian wardrobe revision, 2026-10-04
+
+The current default human reference is [free-human-civilian-v3.png](free-human-civilian-v3.png):
+short informal hair, a rust utility jacket, teal casual layer, patched trousers
+and practical shoes. It has no hat or neckerchief. Freedom-loving values do
+not prescribe a Western costume or faction uniform. The newer character and
+cast text controls wardrobe; earlier references below remain historical.
+The [receipt](../../../../docs/evidence/free-human-civilian-20261004.md) records
+the new source, suitable rig, compact preparation and played acceptance.
+Public reference normalization preserves identical decoded pixels and removes
+optional application metadata; the original conversion input remains private.
+
 ## Cast production references, 2026-10-04
 
 Four new references continue the angular painted style of the field guard:

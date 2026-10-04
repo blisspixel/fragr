@@ -36,3 +36,8 @@ resource checks and all implementation CI before runtime selection and merge.
 The art bible and character/cast/voice guides must carry the corrected direction
 in the same change. Wider civilian variety remains separate catalog work; one
 new default source does not mean every civilian role has been completed.
+
+The [production and live receipt](../evidence/free-human-civilian-20261004.md)
+records the completed 40-credit source/rig stages, four-view inspection,
+24-bone source contract, eight-cell bake and clean actual 32-state live tour.
+Full client, implementation CI and exported package gates remain open.
