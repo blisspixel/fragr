@@ -8,6 +8,7 @@ extends SceneTree
 ## A comparison sheet beside the Union Clerk and Sweeper goes to .agents/.
 
 const Rig = preload("res://art/characters/player_rig.gd")
+const HumanSource = preload("res://art/models/free_human_source.gd")
 const OUTPUT: String = "res://assets/characters/free/"
 const IDLE_FRAMES: int = 4
 const WALK_FRAMES: int = 4
@@ -15,7 +16,7 @@ const WALK_FRAMES: int = 4
 const BREATH: Array[float] = [0.0, 0.012, 0.02, 0.01]
 const OUTLINE: Color = Color8(58, 42, 72)
 const BODIES: Dictionary[String, String] = {
-	"human": "Free human: bone shirt, open warm-leather jacket, rust scarf, cyan patch and armband, visible face and hair.",
+	"human": "Free human: angular painted face, worn leather jacket, teal shirt, work trousers, ochre scarf and practical hat.",
 	"synthetic": "Free embodied agent: bone shell over a gunmetal frame, leather harness, ember scarf, rust repair plates, round cyan lenses, magenta-tipped antenna.",
 }
 
@@ -68,7 +69,14 @@ func _bake() -> void:
 	var environment: WorldEnvironment = WorldEnvironment.new()
 	environment.environment = Environment.new()
 	environment.environment.background_mode = Environment.BG_CLEAR_COLOR
+	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment.environment.ambient_light_color = Color("d1ccc1")
+	environment.environment.ambient_light_energy = 0.55
 	viewport.add_child(environment)
+	var light: DirectionalLight3D = DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-25, -25, 0)
+	light.light_energy = 1.4
+	viewport.add_child(light)
 	var camera: Camera3D = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.size = EnemyAnimation.VIEW_SIZE
@@ -81,6 +89,7 @@ func _bake() -> void:
 	display.size = Vector2(480, 480)
 	root.add_child(display)
 	var rig: RefCounted = Rig.new()
+	var human: RefCounted = HumanSource.new()
 	var tile: int = EnemyAnimation.TILE
 	var frames: int = IDLE_FRAMES + WALK_FRAMES
 	var entries: Array[Dictionary] = []
@@ -90,7 +99,8 @@ func _bake() -> void:
 		for frame: int in range(frames):
 			var walking: bool = frame >= IDLE_FRAMES
 			var progress: float = float(frame - IDLE_FRAMES) / WALK_FRAMES if walking else 0.0
-			var model: Node3D = rig.build_pose(kind == "synthetic", "walk" if walking else "idle", progress, true)
+			var action: String = "walk" if walking else "idle"
+			var model: Node3D = human.build_pose(action, progress, true) if kind == "human" else rig.build_pose(true, action, progress, true)
 			if not walking:
 				(model.get_child(0) as Node3D).position.y += BREATH[frame]
 			var image: Image = await _capture(model)
@@ -114,6 +124,8 @@ func _bake() -> void:
 	var sources: Dictionary[String, String] = {}
 	for source: String in ["res://art/characters/geometry.gd", "res://art/characters/rig.gd",
 		"res://art/characters/player_rig.gd", "res://art/characters/player_bake.gd",
+		"res://art/models/free_human_source.gd", "res://art/models/clerk_source.gd",
+		"res://art/models/candidates/free_human.glb",
 		"res://scripts/enemy_animation.gd"]:
 		sources[source] = FileAccess.get_sha256(source)
 	var manifest: FileAccess = FileAccess.open(OUTPUT + "manifest.json", FileAccess.WRITE)

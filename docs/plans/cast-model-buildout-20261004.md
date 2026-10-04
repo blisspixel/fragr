@@ -58,3 +58,28 @@ runtime selection. Keep whole-game art and subjective acceptance open.
 Shared integration also carries independently verified combat feedback,
 campaign results and residential architecture. The roadmap remains the sole
 build order; this plan describes only the bounded asset work.
+
+## Actual production, 2026-10-04
+
+All four textured candidates and their humanoid rig stages completed. Each
+model reports 35 credits consumed and each rig reports 5, exactly 160 for
+the batch. A subsequent free account check reports 2,745 available credits;
+the retained 15-credit uncertain hold leaves 2,730 available for new work.
+No new cash charge, additional animation purchase or top-up occurred.
+The [reference receipt](../../client/art/characters/references/cast-20261004.json)
+records individual inputs and charges.
+
+Actual four-sided renders on the local Windows compatibility renderer show
+12,458 Sweeper triangles, 12,367 Auditor triangles, 11,888 free-human triangles
+and 12,378 Latch triangles. Every source has 4096-pixel albedo plus normal,
+metallic and roughness maps. These are measured candidate counts, not a
+claim about other hardware or final runtime art.
+
+The prepared free human keeps its 24-bone skin and retained gait with embedded
+1K maps. The eight-cell idle/walking strip was baked and inspected. Focused
+source and participant-body harnesses pass, including distinct cache identity,
+actual foot movement, stationary walking root, unarmed civilian stance, map
+budget, palette, retained strip hashes and the existing wire/body boundary.
+The unchanged Clerk pose regression also passes after sharing its loader.
+Sweeper, Auditor and live Latch source integration continue independently;
+their posed and played acceptance and the full combined checks remain open.

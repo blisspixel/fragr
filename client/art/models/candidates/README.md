@@ -1,5 +1,31 @@
 # Prepared model sources
 
+## Free human
+
+`free_human.glb` is the October 4 stylized civilian source. It retains a
+24-bone skin, a walking clip and embedded 1024-pixel PBR maps. The pose sampler
+removes horizontal root travel when it uses the clip for the runtime strip.
+Its SHA-256 is
+`8b131e404a0155cae8eec586cbd22f5f19750238059f561074fdcbf1583d6f13`.
+The measured unrigged candidate has 11,888 triangles. It uses an angular
+painted face, warm worn leather, a teal shirt, work trousers, ochre scarf and
+a practical hat. The source is unarmed and carries no gameplay collision.
+
+Preparation reuses `tools/prepare_clerk_source.gd` with its retained walking
+GLB, output path and `FreeHuman` as the optional third argument. The preparer
+retains non-Clerk colors, skin and gait, removes optional software metadata,
+and preserves legal copyright. The import preset keeps images embedded.
+`../free_human_source.gd` shares the existing pose cache, walking sampler and
+arm solver while keeping the human's separate source identity and relaxed
+empty-hand stance. `../../characters/player_bake.gd` renders the existing
+eight-cell selectable strip with explicit studio illumination; the source
+scene is excluded from desktop packages.
+
+Focused source and live-body boundary harnesses pass. Inspected bake views
+show the civilian and issued bodies at the same camera scale. Whole-cast,
+venue-light and fresh-player acceptance remain open under the
+[cast plan](../../../../docs/plans/cast-model-buildout-20261004.md).
+
 ## Clerk
 
 `clerk.glb` is the stylized black-and-red humanoid revision from October 3.
