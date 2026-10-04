@@ -1,0 +1,13 @@
+{
+	"bake_sha256": "357e2fe263fa2d1d49594e7572a6b95776c4678d725e37f8a7c4142a7e90ca86",
+	"frames": {
+		"pistol.png": "c5a359fd7447e54796800e848c43d5f0f80ebe69558eddaa0c2c3b1c97f785df",
+		"pistol_fire.png": "a6ef022b9502f4a59c586458e275368c1af83dacc5e1a095f5b392fb2467b888",
+		"pistol_idle.png": "85e5d287d48ccdc623bc3db22e26ad9d823b33c455d0cff88d8bcf5fd1f68e68"
+	},
+	"presenter_sha256": "ef1d4ed65ba7c0eb02f0ef4498cd416ced8beb9ac0a039022d4b9fed3e28db1c",
+	"renderer": "gl_compatibility",
+	"runtime_selected": false,
+	"schema": 1,
+	"source_sha256": "6b53c545e6efb89cb1e43f19c0e6f012b6590424ae2e37fe8fc82111e660d543"
+}
