@@ -1,6 +1,6 @@
 # Water pump
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: **in flight**, 2026-10-04. Complete-port reference and all-side raw source inspection passed, using 35 actual included credits. Local preparation and runtime selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation. The [source receipt](../../evidence/world-prop-sources-20261004.md) records the task, geometry and allowance.
 Stable ID: `E-water-pump`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -14,6 +14,8 @@ Owners: [earth.md](../../../docs/design/earth.md), [moon.md](../../../docs/desig
 ## References
 
 Existing reference basis: [prop_water_pump.png](../../../client/art/production-20261003/prop_water_pump.png). These are design candidates, not approved orthographic sheets or completed models. Review every side and correct conflicts against the owners above.
+
+Selected input: [water-pump-stylized-v1.png](../../../client/art/world-props/references/water-pump-stylized-v1.png), 1254 x 1254, SHA-256 `b0d7bbe95bee3b542b552b01aa4826be6f61bbe61c2c4a219fda72f92da2b302`. Sage impeller and rear motor share a supported steel skid, with a protected gauge and two complete hollow coupling flanges. Cropped pipe ends from the original reference are removed; adjoining world pipes remain authored geometry. Quiet photographic wear and validate both physical ports, mounting contacts and hidden motor construction locally.
 
 Record the selected reference paths and hashes, front/side/back silhouette, scale, intended material roles and independently moving parts. Named faces and proposed mechanics require a reviewed identity/role sheet. Remove studio/background artifacts from conversion inputs. Prior wrong-side antennas, unsuitable cloth-panel and water outputs remain historical.
 
@@ -34,4 +36,3 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 Reserve at most 35 credits for a first 7.1 textured candidate, or 15 for a suitable inspected Smart Topology candidate. The shared revision reserve is separate. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.
-

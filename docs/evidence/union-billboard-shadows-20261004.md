@@ -1,7 +1,9 @@
 # Union billboard shadow repair, 2026-10-04
 
-Status: implemented, locally rendered and complete client passed. Integration
-CI and package acceptance remain separate gates. Spend: $0.
+Status: shipped on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
+following rendered, complete local client, all eight exact-head CI and all
+three desktop package/install checks. The next desktop release remains separate.
+Spend: $0.
 
 ## Defect and correction
 
@@ -89,5 +91,8 @@ Current main `621bd1b90e3b8fa4063215d9854745d60608dd95` was then merged
 normally as `94b1e437b7131ee7e01070b8e0a64ea901a8b5b0`. Its additional
 precision-reference documents and images change no runtime source. Final import
 passed with exit 0 and clean logs. The actual captured shader and harness hashes
-still match the final source. Integration CI and package gates remain pending;
-the separate art candidate remains parked.
+still match the final source. Final source `5df5c9ed63b06b1ece007ec5ae7bcb0ccd3646d4`
+passed all eight CI jobs in run `37241561906` and all three desktop package/install
+jobs in run `37241560724`. PR #359 merged normally to
+`5e595deac21f8b34512624135750da49051039e1`, with the expected source tree and
+Nick Seal author verified. The separate art candidate remains parked.
