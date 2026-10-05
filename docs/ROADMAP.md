@@ -315,8 +315,8 @@ The current release is [v0.73.0](https://github.com/blisspixel/fragr/releases/ta
 including the M09 prototype, refined Pistol and hatless civilian. All eight
 main CI jobs and three tagged desktop package checks passed; uploaded digests
 match the checksum manifest ([release receipt](evidence/release-v073-20261004.md)). Current independent
-lanes are the selected Sniper and Repeater foundation review, Jammer and
-Railgun craft, Kitchen and Garage. The
+lanes are crew departure and campaign continuation, companion contact fixes,
+Jammer and Railgun craft, Kitchen and Garage. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain

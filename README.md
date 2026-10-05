@@ -147,9 +147,11 @@ The [Union shadow repair](docs/evidence/union-billboard-shadows-20261004.md)
 is also on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
 with rendered regression, complete client, all eight CI and all three package
 checks passing. It preserves real shadows while removing diagonal body bands.
-The current arsenal review combines selected Sniper art with the
-[Repeater foundation](docs/plans/repeater-foundation.md). Complete local client
-checks pass; final combined CI and desktop packages remain pending. Repeater
+Main combines selected Sniper art with the
+[Repeater foundation](docs/plans/repeater-foundation.md) through
+[PR #358](https://github.com/blisspixel/fragr/pull/358). Complete local client
+checks, all eight exact-head CI jobs and all three desktop package checks pass.
+The next desktop release remains pending. Repeater
 has real finite-ammunition behavior and strict compatibility, but no current
 campaign grant, selected art or accepted human feel. Parallel development
 continues on Jammer and Railgun craft, a Kitchen map with

@@ -42,6 +42,12 @@ passes 258 scripts and 122 harnesses with numeric exit 0 and clean logs. These
 offline sources add no runtime selection or native change. Final integration
 CI and desktop package checks remain required before main integration.
 
+After normal composition with main `d1d13562`, runtime scripts, selected assets,
+native source and manifests remain identical to that main. A fresh composed
+import and the existing Sniper source, Sniper selection, viewmodel and equipment
+harnesses pass with clean numeric exits. This is an incremental composition
+check alongside the complete base checker, not a second complete local run.
+
 ![Scrubber service face](../screenshots/world-prop-preparation-20261004/AirScrubber-view-2.png)
 
 ![Pump with supported skid](../screenshots/world-prop-preparation-20261004/WaterPump-view-0.png)
