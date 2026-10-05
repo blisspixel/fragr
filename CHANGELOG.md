@@ -6,6 +6,19 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Desktop multiplayer hosting and optional bot-fill work remain in flight. Their
+  acceptance and release gates are recorded in [the trial plan](docs/plans/multiplayer-first-playable.md).
+
+## v0.76.0 (2026-10-05)
+
+Ten connected campaign prototypes now include Common Carrier, retained crew
+outcomes, supported companion yielding and bounded static-corner recovery.
+The weapon family shares consistent drawn hands, and Tern's provisional
+synthetic body appears in both ship scenes. All eight fresh main CI jobs and
+all three tagged desktop package checks passed. The three downloaded ZIP files
+were independently rehashed against the published checksum manifest and digests.
+The campaign, final cast and broader art pass remain unfinished.
+
 - Match the Sniper's leather gloves to the drawn weapon family, restore the
   Shiv's shared resting hand scale and show Tern's provisional synthetic body
   in both berth and ship scenes. Combat timing, scope and crew facts stay intact.

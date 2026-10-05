@@ -450,9 +450,13 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    Sabotage. Their server rules already exist. Finish the practical route from
    the desktop menu to a shared match, rather than claiming bot tests finish
    the player experience.
-   - Give the packaged app a real Host flow using its matching server, plus
+    - Give the packaged app a real Host flow using its matching server, plus
      address-based Watch and Join. Reuse owned process readiness and shutdown;
-     keep the match running when the host watches or returns to the menu.
+      keep the match running when the host watches or returns to the menu.
+    - Offer no bots, fixed bots or optional automatic population fill. Humans
+      and external agents have equal priority over server-owned filler bots.
+      Preserve reserved reconnect seats and active-round outcomes through the
+      [bounded bot-fill contract](plans/bot-fill.md).
    - Verify two independent clients, shared scoring and rounds, team identity,
      weapons, plant/defuse and results. Exercise leave/rejoin, resumed drops,
      full seats, spectating and clean host shutdown. Keep actual human fun,

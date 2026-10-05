@@ -1,15 +1,16 @@
 # Passenger Manifest crew departure and transit
 
-Status: implemented departure capture, integration in flight, 2026-10-04.
+Status: **shipped** departure capture in PR 367, included in v0.76.0. Updated 2026-10-05.
 Frozen source `12e966af` passes all eight exact-head CI jobs and all three
 desktop package checks. The [combined integration](crew-companion-integration.md)
-owns its composition with the companion correction; M10 transit remains planned.
+records its accepted composition with the companion correction. M10 transit
+subsequently shipped in PR 369, keeping later arrival separate from this receipt.
 Implementation lane is based on clean frozen
 Repeater PR 358 head `aa22c412`, whose initial identical runtime passed all
 eight CI jobs and three packages. The capture checkpoint is implemented and
 tested locally, with [retained evidence](../evidence/m09-crew-receipt-20261004.md).
-It is unmerged; composed CI and packages remain open. No paid request or new
-rendering is claimed. The actual M10 transit checkpoint remains planned.
+The composed source, fresh main and release packages passed their gates.
+No paid request or new rendering is claimed for this receipt change.
 This is a bounded prerequisite inside the existing M10
 campaign rung, not another global build order.
 

@@ -1,6 +1,6 @@
 # Crew receipt, companion and corner-recovery integration
 
-Status: implemented on main, 2026-10-05. PR 367 merged normally at
+Status: **shipped** on main and included in v0.76.0, 2026-10-05. PR 367 merged normally at
 `400595d06b6b268a64b0321015ae23921e597567`, with the expected composed tree.
 The earlier two-source checkpoint passed formatting, all-target Clippy,
 1,483 workspace tests, release, deterministic benchmark, complete
@@ -12,8 +12,8 @@ checks and all ten checker fault controls. The
 the exact inputs and matching native. Extended exact-head CI and three desktop
 package gates passed at final source `696cf8bef955efd8c04d1e6c6bea3d8d44ce4d18`.
 Fresh merged-main CI run `37314598583` also passed all eight jobs on its first
-attempt. These are implementation and verification receipts, not a claim that
-a later release tag or its tagged packages have been published.
+attempt. The later [v0.76.0 release](https://github.com/blisspixel/fragr/releases/tag/v0.76.0)
+passed all tagged desktop package gates, with independently verified downloads.
 This bounded composition started from restored
 main `6c4df5b3afd30ade456955148c9c438580e31831`. It combines companion
 checkpoint `2a601c66bb0878ac91111fde9d2e512c62b30238` and crew receipt
