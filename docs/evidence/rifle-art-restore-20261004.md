@@ -3,8 +3,8 @@
 Status: **in flight**. The player rejected the source-derived Rifle framing
 and style despite its earlier technical passes. This correction restores the
 retained preferred idle, firing and pickup pictures; no paid operation or
-weapon-rule change occurs. Complete client, exact-head CI and desktop package
-acceptance remain pending.
+weapon-rule change occurs. Complete local client checks pass; final exact-head
+CI, desktop package and main integration acceptance remain pending.
 
 ## Exact earlier artwork
 
@@ -35,5 +35,11 @@ swap and three-resolution assertions remain unchanged.
 
 The complete checker uses an owned copy of the unchanged matching private
 server, SHA-256 `ec469482cfa336212c4a77e42bdea4fc683ec2d79f772f0310c0ca47056c3a58`.
-The historical root native is untouched. Full checker results remain pending;
-technical success does not decide subjective art quality.
+The historical root native is untouched. The unchanged complete checker exits
+zero with clean error logs, 260 parsed scripts, 124 passing harnesses and its
+aggregate PASS marker. Full log SHA-256:
+`991836b5094a2218a1c41d1f78242bbb82fab98b3347857e7ff1919ab1b9a60b`.
+All three desktop package checks passed at source head `a827b1c8`. The final
+publication also corrects this release-history prose, without changing any
+client implementation, asset, server or test. Final exact-head remote gates
+are repeated separately; technical success does not decide subjective art quality.

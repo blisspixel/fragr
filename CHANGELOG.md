@@ -28,14 +28,13 @@ Version 11 saves archive exact older bytes and reject unsupported ownership.
 Current campaign and arcade kits do not grant Repeater. Its own art, cues,
 campaign lesson and human feel acceptance remain pending.
 
-The civilian Rifle now uses its refined walnut and charcoal source for held,
-firing and pickup pictures. Its real bolt has a bounded stroke, gloves contact
-the grips and the muzzle has a physical hollow liner. Source inspection,
-paired ordinary play, the unchanged viewmodel gates, complete local client
-checks, all eight exact-head CI jobs and all three desktop package checks
-passed before [PR #356](https://github.com/blisspixel/fragr/pull/356) merged.
-Weapon rules and ammunition behavior are unchanged. This increment follows
-the published v0.73.0 desktop build.
+The source-derived civilian Rifle was selected in
+[PR #356](https://github.com/blisspixel/fragr/pull/356) after source, paired
+ordinary play, unchanged viewmodel, complete local client, eight CI and three
+desktop package checks. The player subsequently rejected its framing and
+style, so the earlier pictures are restored. The model's bounded real bolt,
+glove-contact and hollow-bore proofs remain offline alongside the rejected bake.
+Weapon rules and ammunition behavior are unchanged.
 
 ## v0.73.0 (2026-10-04)
 
