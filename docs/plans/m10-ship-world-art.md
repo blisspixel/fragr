@@ -1,8 +1,8 @@
 # Common Carrier ship furnishing
 
 Status: in flight, 2026-10-05. This isolated art lane starts from prototype
-`b0e6eb91`, with the prototype's remote and final composed played gates still
-open. It belongs to the existing campaign rung. It does not change mission
+`b0e6eb91`, whose exact eight CI jobs and three desktop package checks passed.
+Its final composed played gate remains open. It belongs to the existing campaign rung. It does not change mission
 authority, carry, actors, difficulty or the 28-state combat route.
 
 ## Source-true problem
@@ -121,8 +121,9 @@ caused a retained parse failure and was corrected. The initial overly precise
 normal comparison failures are retained with measured import drift; they do
 not change any previously existing acceptance threshold.
 
-Only the offline candidate is added. Runtime/host reconciliation, actual room
-lighting, packaged availability and played selection remain open. Details:
+This first checkpoint added only the offline candidate. The separately tested
+physical and packaged candidate below now reconciles the host. Actual room
+lighting and played selection remain open. Details:
 [workbench source evidence](../evidence/m10-workbench-preparation-20261005.md).
 
 ## Authorized physical furnishing increment
@@ -159,3 +160,28 @@ platform coordinates; independently parsed server f32 values are exactly equal.
 The repeat proof retains both hashes and those four representation differences.
 The original accepted map bytes are restored until the actual bench geometry
 increment, so this tool repair alone does not change any content hash or save.
+
+## Physical and packaged candidate
+
+The one old bench envelope is now replaced by twelve measured worktop, cabinet,
+rear-rack and support solids, raising the total from 112 to 123 within the
+128-solid ceiling. All other 111 native solids, mission facts, supplies, crew,
+encounters and the literal 28-state route remain unchanged. The new map hash
+is `d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d`.
+This is an explicit geometry amendment, not an unchanged-map art claim.
+
+The packaged model is byte-identical to the prepared candidate. The fixed
+`ShipFurnishings` presenter selects it only after matching all twelve received
+physical pieces. Missing, changed or duplicate hosts keep visible proxies.
+The install gate validates the actual packaged model, embedded paint/normal
+surface and measured dimensions without any offline inheritance.
+
+Focused resource/fallback checks pass. The actual local native launch and
+reopen test also passes with the accepted server map, exact proxy substitution,
+world-light layer, source orientation, changed/duplicate-host refusal and map
+rebuild retirement. Existing finite carry, death/continue and exact-byte
+historical archive assertions remain intact. Full workspace checks are in
+flight. Combine the corrected character shot-occlusion source and reviewed
+README handoff before one matching full client check and one ordinary 28-state
+hardware route, including actual bench lighting review. Existing prototype
+CI/package receipts remain historical proof for their exact prior head.

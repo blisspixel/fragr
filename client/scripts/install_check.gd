@@ -20,6 +20,13 @@ func _init(local: LocalMatch) -> void:
 	_local = local
 
 func _ready() -> void:
+	var workbench: Node3D = ShipFurnishings.instantiate_source()
+	var workbench_problem: String = ShipFurnishings.source_error(workbench)
+	if workbench != null:
+		workbench.free()
+	if not workbench_problem.is_empty():
+		_finish(false, "the packaged ship workbench is missing or invalid")
+		return
 	# Live cast resources belong in the export, unlike offline source-art tools.
 	if not ResourceLoader.exists(LatchSource.LATCH_SOURCE, "PackedScene"):
 		_finish(false, "the live Latch mesh is missing from this build")

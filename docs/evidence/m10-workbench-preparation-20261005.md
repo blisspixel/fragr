@@ -36,8 +36,29 @@ logs and their PASS markers. Private diagnostics retain the parse failure,
 measured normal-precision failures, corrected proof and original-source repeat
 under `.agents/m10-workbench-*` and `.agents/m10-original-props-*`.
 
-The source remains offline and excluded from desktop runtime exports. Its
-dimensions do not match the prototype's wider, lower opaque bench envelope.
-Removing that visible slab while keeping broad collision would be misleading.
-Actual host/casing reconciliation, physical and shot coverage, source lighting,
-packaged resource checks and played acceptance are required before selection.
+The retained candidate stays in the offline library. A byte-identical copy is
+now packaged at `client/assets/models/repair_workbench.glb` in the separate
+local ship-furnishing increment. Its measured twelve-piece physical host
+replaces the prototype's wider, lower opaque bench envelope. Focused body,
+support and shot-ray checks pass, including the real knee opening and blocked
+cabinet/worktop rays. The source is not shipped or accepted as final room art.
+
+`test_ship_furnishings` passes with clean logs and numeric exit zero, checking
+the real packaged source, normal-map and geometry refusal, legacy omitted
+heights and unmatched/malformed/other-map fallback. The matching native
+`test_m10_local` also passes: it validates actual server-delivered host facts,
+exactly twelve replaced proxy pieces, orientation/world light, ambiguous-host
+refusal and source retirement on map rebuild, then preserves all existing
+finite carry, death/continue, reopen and strict historical byte assertions.
+
+The changed map SHA256 is
+`d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d`;
+the optimized private server SHA256 is
+`62dc52346df03870a6491b6e323872dd6955dda5e21d04891486d0f1e5fa2f84`.
+Private logs retain the focused native/resource and actual process proof at
+`.agents/m10-workbench-native-v1.log`, `m10-ship-furnishings-v1.log` and
+`m10-workbench-accepted-map-v1.log`. All other 111 native solid shapes and
+non-solid authored facts compare equal to the retained prior map; the literal
+28-state route stays byte-identical. Actual room lighting, complete composed
+client checks, corrected character shot blocking, ordinary full combat route
+and exported desktop install checks remain open.

@@ -74,7 +74,7 @@ func _inhabited() -> void:
 	_box("bunk_fore", [5.4, 4.8, -17.1], [7.3, 5.3, -15.9], "enamel")
 	_box("bunk_aft", [5.4, 4.8, -12.7], [7.3, 5.3, -11.5], "enamel")
 	_box("galley_counter", [4.5, 4.8, -5.8], [7.3, 5.9, -4.5], "records_tile")
-	_box("passenger_repair_bench", [4.5, 4.8, -9.8], [7.3, 5.65, -8.6], "lift_panel")
+	_repair_bench()
 	_box("command_console", [1.5, 7.6, -16.8], [3.5, 8.5, -16.0], "lift_panel")
 	_box("forward_lashed_cargo", [3.0, 2.0, -12.0], [5.5, 3.8, -10.8], "enamel")
 	_box("cargo_transfer_stack", [-3.2, 2.0, -5.8], [-1.1, 3.8, -4.4], "enamel")
@@ -85,6 +85,23 @@ func _inhabited() -> void:
 		var feet: float = 4.8 + level * 2.8
 		_box("freight_fore_rail_%d" % level, [-1.8, feet, -3.15], [1.8, feet + 0.95, -3.0], "lift_panel")
 		_box("freight_aft_rail_%d" % level, [-1.8, feet, 5.0], [1.8, feet + 0.95, 5.15], "lift_panel")
+
+func _repair_bench() -> void:
+	# Bounds follow the prepared source's actual cabinet/worktop cross-sections.
+	# The open knee space remains open for rays, not an invisible full crate.
+	_box("repair_worktop", [5.02, 5.61, -9.72], [6.78, 5.70, -8.87], "lift_panel")
+	_box("repair_cabinet_port", [5.05, 4.94, -9.55], [5.51, 5.62, -8.90], "lift_panel")
+	_box("repair_cabinet_starboard", [6.29, 4.94, -9.55], [6.75, 5.62, -8.90], "lift_panel")
+	_box("repair_rack_back", [5.14, 5.69, -9.714], [6.66, 5.91, -9.650], "lift_panel")
+	# The eight grounded feet have measured positions on the actual source.
+	for index: int in range(8):
+		var source_foot: Vector2 = [Vector2(.8451,.3764),Vector2(.8402,-.2610),
+			Vector2(.3753,.3041),Vector2(.3861,-.2572),Vector2(-.3908,-.2557),
+			Vector2(-.3773,.3263),Vector2(-.8394,-.2553),Vector2(-.8402,.3815)][index]
+		var x: float = 5.9 - source_foot.x
+		var z: float = -9.2 - source_foot.y
+		_box("repair_support_%d" % index, [x - .04, 4.8, z - .04],
+			[x + .04, 4.95, z + .04], "service_steel")
 
 func _detail(solid: String, face: String, kind: String, center: Array, size: Array) -> Dictionary:
 	return {"solid": solid, "face": face, "kind": kind, "center": center, "size": size}
