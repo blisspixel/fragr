@@ -190,8 +190,8 @@ func _automatic(mode: String) -> bool:
 	watcher.snapshot_received.connect(func(data: Dictionary) -> void:
 		snapshots.clear()
 		snapshots.append(data))
-	if not await _until(func() -> bool: return not snapshots.is_empty()
-		and snapshots.back().get("players", []).size() == target, "automatic server fills its actual initial roster"):
+	if not await _until(func() -> bool:
+		return not snapshots.is_empty() and snapshots.back().get("players", []).size() == target, "automatic server fills its actual initial roster"):
 		return false
 	var human: Node = _peer(owner.url, "human", "AutoHuman")
 	var agent: Node = _peer(owner.url, "agent", "AutoAgent")
@@ -199,9 +199,8 @@ func _automatic(mode: String) -> bool:
 	var agent_maps: Array[Dictionary] = []
 	human.map_info_received.connect(func(data: Dictionary) -> void: human_maps.append(data))
 	agent.map_info_received.connect(func(data: Dictionary) -> void: agent_maps.append(data))
-	if not await _until(func() -> bool: return human.player_id != null and agent.player_id != null
-		and not human_maps.is_empty() and not agent_maps.is_empty(),
-		"automatic hosted room admits both actual human and external agent"):
+	if not await _until(func() -> bool:
+		return human.player_id != null and agent.player_id != null and not human_maps.is_empty() and not agent_maps.is_empty(), "automatic hosted room admits both actual human and external agent"):
 		return false
 	var human_id: String = human.player_id
 	var agent_id: String = agent.player_id
@@ -209,8 +208,7 @@ func _automatic(mode: String) -> bool:
 		var ids: Array[String] = []
 		for pawn: Dictionary in snapshots.back().get("players", []):
 			ids.append(pawn["id"])
-		return ids.size() == target and human_id in ids and agent_id in ids,
-		"both external participants replace filler bots in the same authoritative roster"):
+		return ids.size() == target and human_id in ids and agent_id in ids, "both external participants replace filler bots in the same authoritative roster"):
 		return false
 	_expect(human_maps.back().get("rules", {}).get("mode") == mode
 		and agent_maps.back().get("rules", {}).get("mode") == mode, "automatic participants receive the selected authoritative mode")
@@ -220,13 +218,11 @@ func _automatic(mode: String) -> bool:
 		var ids: Array[String] = []
 		for pawn: Dictionary in snapshots.back().get("players", []):
 			ids.append(pawn["id"])
-		return ids.size() == target and human_id not in ids and agent_id not in ids,
-		"automatic roster refills after explicit human and agent Leave"):
+		return ids.size() == target and human_id not in ids and agent_id not in ids, "automatic roster refills after explicit human and agent Leave"):
 		return false
 	watcher.leave_match()
 	(current_scene._root.get_node("StopServer") as Button).pressed.emit()
-	if not await _until(func() -> bool: return owner.state == LocalHost.State.IDLE,
-		"automatic Host menu Stop retires its canonical lease"):
+	if not await _until(func() -> bool: return owner.state == LocalHost.State.IDLE, "automatic Host menu Stop retires its canonical lease"):
 		return false
 	_expect(not OS.is_process_running(pid) and unrelated.is_listening(), "automatic Stop retires only its owned PID")
 	print("test_desktop_host: owned_stop auto_", mode, " pid=", pid, " retired=", not OS.is_process_running(pid))
