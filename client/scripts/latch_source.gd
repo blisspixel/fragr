@@ -14,14 +14,29 @@ func pose_live(body: Node3D, stride: float, moving: bool, armed: bool, release: 
 	var sway: float = sin(stride) * 3.0 if moving else 0.0
 	var right: Vector3 = Vector3(-27, 96 + sway, 12)
 	var left: Vector3 = Vector3(27, 96 - sway, 12)
+	var right_pole: Vector3 = Vector3(-58, 109, 3)
+	var left_pole: Vector3 = Vector3(56, 109, 3)
+	if release == 0.0:
+		# The free hands hang beside the body; the imported chain uses centimeters.
+		var left_shift: Vector3 = _shoulder_shift(skeleton, "LeftArm")
+		left = Vector3(27, 85 - sway, 8) + left_shift
+		left_pole = Vector3(25, 110, 8) + left_shift
+		if not armed:
+			var right_shift: Vector3 = _shoulder_shift(skeleton, "RightArm")
+			right = Vector3(-27, 85 + sway, 8) + right_shift
+			right_pole = Vector3(-25, 110, 8) + right_shift
 	if armed:
 		right = Vector3(-28, 130, 44) if firing else Vector3(-28, 122, 35)
 	right = right.lerp(Vector3(-26, 132, 43), release)
 	left = left.lerp(Vector3(30, 111, 18), release)
-	_two_bone(skeleton, "RightArm", "RightForeArm", "RightHand", right, Vector3(-58, 109, 3))
-	_two_bone(skeleton, "LeftArm", "LeftForeArm", "LeftHand", left, Vector3(56, 109, 3))
+	_two_bone(skeleton, "RightArm", "RightForeArm", "RightHand", right, right_pole)
+	_two_bone(skeleton, "LeftArm", "LeftForeArm", "LeftHand", left, left_pole)
 	_turn(skeleton, "RightHand", Vector3.RIGHT, -0.35 * release)
 	_turn(skeleton, "RightHand", Vector3.FORWARD, -0.18 * release)
+
+func _shoulder_shift(skeleton: Skeleton3D, name: String) -> Vector3:
+	var bone: int = skeleton.find_bone(name)
+	return skeleton.get_bone_global_pose(bone).origin - skeleton.get_bone_global_rest(bone).origin
 
 func bone_transform(body: Node3D, name: String) -> Transform3D:
 	var skeleton: Skeleton3D = body.get_node("Armature/Skeleton3D") as Skeleton3D
