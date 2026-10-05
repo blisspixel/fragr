@@ -57,6 +57,19 @@ passes sixteen and the grenade suite preserves shielded-owner self damage.
 Denied-warning workspace Clippy and formatting pass. Full workspace, matching
 client checks and the ordinary rendered witness remain pending at source freeze.
 
+The first complete workspace attempt retained one real consequence:
+963 server tests passed, one failed and three were ignored. A shielded participant
+now intersects the Notary's real burst, so the old photograph predicate counted
+that protected target. The bounded follow-up restores the existing positive
+spawn-shield exclusion only at the photograph fact boundary. The body stays
+opaque and the burst remains real. Its existing target wire has hit true with
+zero damage and unchanged HP; neutral contacts still have no target and hit
+false. The owning test now observes actual emitted bursts, zero photographs,
+zero participant damage and an untouched rear agent, retaining dry and invalid
+target controls. `photo-preservation-v3.log` passes that real fixture. The first
+full failure and later diagnostic fixture mistakes remain retained. Final full
+workspace and matching client results are still pending.
+
 ## Visible provisional figures
 
 The companion and existing moving civilian contact owners are reused. Archive

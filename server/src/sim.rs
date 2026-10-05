@@ -2002,6 +2002,10 @@ impl GameState {
                             && p.hp > 0
                             && p.is_participant()
                             && crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign)
+                            && !self
+                                .spawn_shields
+                                .get(&p.id)
+                                .is_some_and(|ticks| *ticks > 0)
                     })
                 {
                     self.note_notary_photograph();

@@ -97,3 +97,11 @@ source results distinct from the pending ordinary rendered release witness and
 final full integration checks. The witness also records the actual companion
 presenter, packaged skinned source, visible meshes and source hash; technical
 3D routing alone does not establish accepted character appearance.
+
+The complete workspace exposed one photograph-fact dependency: making a
+protected participant opaque must not make it eligible for a Notary photograph.
+Retain the prior positive shield exclusion in the photograph predicate only.
+Actual protected bursts remain physical target hits with zero damage; the
+owning regression keeps zero photographs, unchanged front and rear HP and the
+original dry/invalid controls. The focused correction passes; final full checks
+and the ordinary hardware witness remain open.
