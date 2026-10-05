@@ -27,9 +27,21 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
+The latest free reconciliation on 2026-10-05 reports **2,125 available**, the
+unchanged **15-credit uncertain hold**, and **2,110 usable**. The shared glove,
+distinct Edda and Splice sources and Edda's first rig consumed 110 included
+credits. Tracked consumption is 945; the first 900-credit allocation has used
+620, leaving 280. These are justified current-game quality trials inside the
+existing contingency, not accepted replacements or an expanded generation cap.
+The [cast receipt](../evidence/named-cast-source-production-20261005.md) records
+actual four-sided sources and a rejected satchel skin weight in walking; the
+[glove receipt](../evidence/work-glove-source-20261005.md) records the shared hand
+source. Local repair, motion and played selection remain open. No pack is
+needed for these preparation stages. The older readings below remain history.
+
 The earlier October 4 reconciliation reported 2,305 available, 15 held and
 2,290 usable, with 765 tracked credits and 440 used inside the first allocation.
-Its dated source receipts remain unchanged. The latest production reconciliation
+Its dated source receipts remain unchanged. The later October 4 reconciliation
 on 2026-10-04 reports **2,235 API credits**, **15 uncertain credits held**, and
 **2,220 usable**. Enforcer,
 Crawler, Pistol, Rifle, the bounded civilian revision and the corrected Jammer
