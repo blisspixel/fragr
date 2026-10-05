@@ -35,6 +35,8 @@ mod m09_tests;
 #[cfg(test)]
 mod m10_geometry_tests;
 #[cfg(test)]
+mod m11_geometry_tests;
+#[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
