@@ -10,7 +10,7 @@ Use a calmer free-left arm and unarmed-right arm, consistent with the lean civil
 
 ## Scope and ownership
 
-Only `client/scripts/latch_source.gd`, its existing owning harness, this plan and a unique evidence note. Keep the raw and selected GLB byte-identical. No Rust authority, movement, body eligibility, HP, weapon, snapshot, skin, material, walking clip, named-cast or story changes. No paid service, new hand rig, dependency, runtime asset selection or general documentation change.
+Only `client/scripts/latch_source.gd`, the narrow ward-context hook in `latch_view.gd`, the existing owning harness, this plan and a unique evidence note. Keep the raw and selected GLB byte-identical. No Rust authority, movement, body eligibility, HP, weapon, snapshot, skin, material, walking clip, named-cast or story changes. No paid service, new hand rig, dependency, runtime asset selection or general documentation change.
 
 At first, preserve the exact armed and firing right-hand target and pole, all release poses and hand turns. Tune the unarmed hand endpoints and free-arm elbow pole using measured skeleton centimeter units and actual fixed segment lengths. The existing two-bone solver and whole imported chain remain the sole pose seam. Preserve sampled walking hips/legs/feet and all resolved Tack flash and weapon registration behavior. Release takes its existing gesture once active; inspect the idle-to-release transition separately rather than claiming new continuity.
 
@@ -25,3 +25,7 @@ Extend the owning `test_latch_source.gd` harness with actual imported skeleton c
 CPU tests prove preserved geometry and bounded pose behavior, not visual quality. Request a serialized owned fixture GPU lease before comparing unchanged-source old/new at the same ordinary light and camera, including idle, armed idle, following, firing and release. Root must inspect full player-distance and close views. A later ordinary played view still owns actual gameplay pose acceptance. Retain failures and distinguish candidate evidence from selected main.
 
 No server or GPU process is authorized by this plan. All work is $0. No package or shipped claim until reviewed integration and required client/CI checks.
+
+## Measured boundary correction before promotion
+
+The first frozen source candidate and same-camera fixture preserve every positive release pose but reveal a visible elbow jump from relaxed zero to the original 0.01 gesture. Retain that failed continuity evidence. The reviewed correction adds one explicit presenter context: `pose_release`, including progress zero, requests the exact prior ward pose; `advance` restores the relaxed live-following context. Pass this decision through one defaulted source-pose flag rather than deriving it from an actor name, mission outcome or frame counter. Verify zero and all positive ward poses on the actual weighted surface, plus release-to-following-to-release switching, before a corrected serialized fixture. The frozen hand batch is unaffected.
