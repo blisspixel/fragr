@@ -1,0 +1,49 @@
+# Latch calm-pose local candidate
+
+Status: corrected local source-pose candidate, October 5, 2026. Same-camera fixture review passes; full client and ordinary played acceptance remain open. First rejected boundary and incomplete launcher receipt remain retained. This is separate from the frozen hand and named-body integration batch.
+
+Base is main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. The [plan](../plans/latch-calm-pose-20261005.md) precedes code. The independent private read-only audit reproduces the actual pawn/view transform chain and records 22 actual weighted source samples. Its inspected M07 image and current tracked GLB, view, pawn and old source are byte-identical to image client `94a270f2e406944ced574df2cfe6f0fee12eec16`.
+
+## Bounded candidate and measured preservation
+
+The selected 1.799972 m chassis, material maps, UVs, skin weights, walking clip and attachments remain unchanged. Only the free-left and unarmed-right hand endpoints and elbow poles are calmer. Targets follow actual shoulder displacement during sampled walking; the existing solver keeps fixed segment lengths. Armed and firing right-hand targets/poles remain exactly original, as do all positive release poses and hand turns.
+
+Independent headless measurement gives idle elbow outboard spread 7.30/7.69 cm, compared with original 20.03/21.11 cm. Upper-arm angles from down change from 57/58 degrees to 38/42 degrees. Eight actual following samples give free-left 30.71 to 50.13 degrees and outboard spread 6.36 to 8.34 cm, compared with original approximately 58 to 76 degrees. This is measurement, not visual approval.
+
+An independent old/new 22-sample comparison passes exact selected GLB/view/pawn identities, weighted floor and height at every sample, all sampled release joints, armed right joints and measured grip/offset controls. Armed idle and firing sampled Tack-grip proximity to 837 real dominant hand triangles remains 1.80/3.01 mm, with displaced controls 376/369 mm. Sampled proximity does not prove finger closure or an exact palm contact surface.
+
+The existing owning source harness now checks actual imported arm lengths, torso-side free elbows, an actual old raised-elbow negative control, unchanged head/legs/feet over eight walk phases, original armed/firing right-chain transforms and all weighted release vertices. All existing source skin/clip, Tack registration, resolved flash, expression, actor lighting and near-clip PBR assertions remain.
+
+## Local CPU receipts
+
+Godot 4.7.2 headless import, touched-script parsing and `test_latch_source`, `test_latch_near_clip`, `test_m02_mission` exit 0 with clean logs and each own PASS. Private `.agents/cpu/` retains the import, parse, harness and full-chain measurement logs. The independent comparison is `independent-compare.log`. `git diff --check` passes. No server or GPU process ran for these receipts.
+
+## Open acceptance
+
+The first fixture produced 36 source-pose images and its own PASS with clean logs. Actual full-size zero-to-0.01 views show a visible elbow jump, rejected despite exact positive gesture comparisons. Its console launcher and actual renderer both retired, but the wrapper captured a null exit code for the launcher, so that lifecycle receipt remains incomplete and is not claimed as a clean numeric child exit.
+
+The corrected candidate gives `pose_release`, including zero, an explicit ward context that preserves every original weighted release vertex. Ordinary `advance` switches back to relaxed live-following context. Actual zero/0.01/0.5/1 weighted-surface comparisons and bidirectional context switching pass the owning harness, alongside near-camera and M02 tests.
+
+## Corrected controlled rendering
+
+The source implementation is frozen at `fad2cae00500c77d16061f9be22df964a5122753`. One direct actual renderer process produced 36 images, 18 old/new pose pairs, then retired with numeric exit 0, clean logs and its own PASS in 3.49 seconds. The wrapper held that exact process and a 60-second wall cap. No console launcher, server, desktop pointer or gameplay was involved. Earlier failed launcher and transition evidence is not relabeled as passing.
+
+Both versions use the same selected source, feet, 1280 by 720 viewport, 75-degree perspective, 3.35 m and 6.71 m cameras, ambient 0.35 plus one warm directional light 1.4, and exact pose parameters. The retained original pose adapter removes only its global class declaration and accepts an ignored final context flag; its original implementation and exact original file remain retained. The independent check verifies all 36 PNG hashes/resolutions and all 18 camera/parameter pairs. All eight ward pairs, including zero and 0.01 at both distances, have pixel-identical old/new PNGs.
+
+Actual full and player-distance inspection finds a calmer free arm with the same lean adult chassis; the retained armed wrist and gesture remain recognizable. This is a source fixture, not a played M07 frame, proof of closed fingers, motion perception, frame rate or final character-art acceptance. Current main remains unchanged.
+
+- [Previous armed idle](../screenshots/latch-calm-pose-20261005/full_idle_armed_old.png) and [candidate armed idle](../screenshots/latch-calm-pose-20261005/full_idle_armed_new.png).
+- [Candidate following phase](../screenshots/latch-calm-pose-20261005/full_following_three_quarters_new.png).
+- [Preserved ward zero](../screenshots/latch-calm-pose-20261005/full_release_zero_new.png) and [preserved ward 0.01](../screenshots/latch-calm-pose-20261005/full_release_001_new.png).
+
+Private `.agents/pose-fixture/second/receipt.json` binds the frozen head, source/table/camera and per-image hashes. Numeric exit, logs and independent pixel-equality proof are retained beside it. These published frames are exact copies of those images; none was retouched or presented as gameplay.
+
+## Required derived-library regeneration
+
+The first unchanged full checker exits 1: all 271 scripts parse and 128 harnesses pass, but the existing model-assets harness rejects stale Latch source/view fingerprints. This failure remains in `.agents/cpu/full-client-first.log` and its failed receipt. The validator and its assertions are unchanged.
+
+The dependent library `latch.glb` was genuinely regenerated through the existing model bake `_export` seam, then reimported. Its complete binary chunk is byte-identical to the archived previous output. Every accessor, mesh, UV, normal, material/image, weight, skin binding and animation remains identical, independently checked again on both actual imported mesh arrays and bindings. Four arm node rotations change to the relaxed unarmed pose; two empty generated simulator node names also change. The selected live `latch_stylized.glb` retains exact SHA `8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951`. This is an openly declared derived-library dependency, not a new selected chassis.
+
+Only the generated Latch entry and the two changed source hashes are refreshed in the existing manifest. The dependent studio image uses the original 1200 by 900 viewport, orthographic 2.2 m camera, original position/aim, ambient and two lights through the existing capture seam. Owned renderer 19560 retires with actual numeric exit 0, clean logs and its own PASS, without a server. Actual preview inspection shows the same adult chassis with lowered free arms. No unrelated library export is regenerated.
+
+Private `.agents/library-before/` preserves old GLB/preview/manifest, real export and preview logs, independent binary/import proof and output hashes. Unchanged `test_model_assets`, `test_latch_source` and `test_latch_near_clip` each pass cleanly with numeric exit 0 after import. A fresh complete client check remains pending on this generated-output checkpoint.
