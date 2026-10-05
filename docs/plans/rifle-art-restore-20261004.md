@@ -1,9 +1,11 @@
 # Restore the preferred Rifle pictures
 
-Status: **in flight**, 2026-10-04. Plan precedes implementation. The current
-source-derived Rifle presentation is rejected by the player despite its prior
-technical acceptance. Restore the retained earlier art immediately; no paid
-generation, weapon-rule change or source deletion belongs in this correction.
+Status: **shipped** in [PR #364](https://github.com/blisspixel/fragr/pull/364),
+2026-10-04. Complete local client checks, all eight exact-head CI jobs and all
+three desktop package checks passed. The source-derived Rifle presentation was
+rejected by the player despite its prior technical acceptance. The retained
+earlier art is restored. No paid generation, weapon-rule change or source
+deletion belongs in this correction.
 
 ## Bounded change
 

@@ -1,6 +1,11 @@
 # Supported companion platform yielding, 2026-10-04
 
-Status: implemented and locally verified, integration gates pending.
+Status: implemented and locally verified, combined integration gates pending.
+Frozen `2a601c66` passes all eight exact-head
+[CI jobs](https://github.com/blisspixel/fragr/actions/runs/37258304204) and all
+three [desktop package checks](https://github.com/blisspixel/fragr/actions/runs/37258324627).
+The [combined integration](../plans/crew-companion-integration.md) retains those
+historical receipts while checking the crew and companion composition separately.
 Spend: $0. Source: `481c4aec`, refreshed onto main `d1d13562` at `83bb388b`.
 The first publication refresh merges main `cc8efcc8` normally. Server, protocol,
 maps, selected client runtime, all harnesses and checker bytes match the immutable

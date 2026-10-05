@@ -1,6 +1,11 @@
 # Crew receipt and companion integration
 
-Status: in flight, 2026-10-04. This bounded composition starts from restored
+Status: implemented and locally verified, integration in flight, 2026-10-04.
+Formatting, all-target Clippy, 1,483 workspace tests, release, deterministic
+benchmark and complete 260-script/124-harness client checks pass. The
+[integration receipt](../evidence/crew-companion-integration-20261004.md) binds
+the exact inputs and matching native. Final exact-head CI and three desktop
+package gates remain open. This bounded composition starts from restored
 main `6c4df5b3afd30ade456955148c9c438580e31831`. It combines companion
 checkpoint `2a601c66bb0878ac91111fde9d2e512c62b30238` and crew receipt
 checkpoint `12e966af20cc5d6441ea7819897648cdacb8da08` through normal merges.

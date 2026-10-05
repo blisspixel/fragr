@@ -1,7 +1,10 @@
 # M09 immutable crew departure receipt
 
 Status: implemented and tested locally, 2026-10-04. Composed source `fbd4adce` is
-unmerged; remote CI and desktop packages remain open. This is the departure
+unmerged. The later frozen `12e966af` checkpoint passes all eight exact-head
+[CI jobs](https://github.com/blisspixel/fragr/actions/runs/37258359245) and all
+three desktop package checks. Its [combined integration](../plans/crew-companion-integration.md)
+remains separately gated. This is the departure
 capture prerequisite in [the crew transit plan](../plans/m09-crew-transit.md),
 not implemented M10 transit. No paid calls or new rendered tour ran.
 

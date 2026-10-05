@@ -1,6 +1,10 @@
 # Supported companion yielding on narrow platforms
 
-Status: in flight. Spend: $0. Base: `ea75b16f` companion stand-off checkpoint.
+Status: implemented, integration in flight. Spend: $0. Base: `ea75b16f`
+companion stand-off checkpoint. Frozen source `2a601c66` passes all eight
+exact-head CI jobs and all three desktop package checks. The
+[combined integration](crew-companion-integration.md) now owns composition
+with the crew receipt; this source is not yet merged to main.
 
 ## Recorded problem
 

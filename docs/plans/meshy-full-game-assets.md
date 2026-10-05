@@ -27,13 +27,22 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest production reconciliation on 2026-10-04 reports **2,305 API
-credits**, **15 uncertain credits held**, and **2,290 usable**. Enforcer,
+The earlier October 4 reconciliation reported 2,305 available, 15 held and
+2,290 usable, with 765 tracked credits and 440 used inside the first allocation.
+Its dated source receipts remain unchanged. The latest production reconciliation
+on 2026-10-04 reports **2,235 API credits**, **15 uncertain credits held**, and
+**2,220 usable**. Enforcer,
 Crawler, Pistol, Rifle, the bounded civilian revision and the corrected Jammer
 candidate, followed by the first Railgun and Sniper Rifle sources and three
 inhabited-world props, then the distinct civilian free agent and repair bench,
-consumed 440 included credits inside the first 900-credit allocation, leaving
-460 within that ceiling. Total tracked consumption is 765 credits.
+and then the separate Repeater and replacement Rifle Ultra stages consumed
+510 included credits inside the first 900-credit allocation, leaving 390 within
+that ceiling. Total tracked consumption is 835 credits. The historical
+30-credit unassigned difference remains separate. Each latest Ultra stage
+consumed 35 included credits; both new sources remain unpublished and offline.
+The existing selected Rifle stays restored. There is no new cash, top-up or
+paid rig in this reconciliation. The single retained production ledger owns
+the sanitized stage receipts; no missing public asset link is implied.
 The Jammer task `01a10891-f9a6-76b4-9ba1-85f035260e77` consumed 35 credits
 for a textured 7.1 Ultra candidate; mechanical and played acceptance remain
 open. No humanoid rig was requested for its four-foot/four-petal machinery.
@@ -44,8 +53,8 @@ the subsequent account reconciliation. The
 prepared held, firing and pickup art after source and ordinary played
 comparison checks, then merged on main in
 [PR #358](https://github.com/blisspixel/fragr/pull/358) after all eight exact-head
-CI jobs and all three desktop package checks passed. The next desktop release
-remains pending. The Railgun
+CI jobs and all three desktop package checks passed. The selected Sniper is
+included in the corrected v0.75.0 desktop release. The Railgun
 source remains parked, with preparation and played acceptance open.
 These receipts do not establish finished game coverage. The
 [production receipt](../evidence/asset-production-20261004.md) records actual

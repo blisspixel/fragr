@@ -6,6 +6,15 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Preserve physical companion clearance with bounded supported stand-off and
+  short yielding, including the narrow signal-box platform. Living bodies,
+  finite support fire, ordinary walking and original mission gates remain.
+
+- Record immutable Passenger Manifest crew release and actual aboard-at-
+  departure facts alongside the finite player exit. Strict version 12 saves
+  archive exact older bytes and retain missing historical crew facts as unknown.
+  Common Carrier transit and level 10 remain unimplemented.
+
 - Restore the earlier Rifle idle, firing and pickup artwork after the player
   rejected the source-derived presentation. Retain its model, bake and physical
   checks offline; ammunition, timing and all other weapon art stay unchanged.
