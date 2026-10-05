@@ -63,7 +63,7 @@ released hand/HOME tree, producing client `bca3608c7b5065959d58d89ad72a6a8e381d9
 Its runtime/native source matches accepted main `f1e36315` except for the
 bounded Latch presenter correction. The owned immutable native helper remains
 SHA `0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7`.
-No map, QA state, authority, supply, difficulty rule or source model is changed.
+No map, QA state, authority, supply, difficulty rule or selected chassis is changed.
 
 The first 20 states of canonical `client/qa/m07_declared_goods.json` run with
 seed 42 and Assisted difficulty, using ordinary discovery, walking and combat.
