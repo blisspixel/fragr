@@ -179,7 +179,9 @@ func pose_release(progress: float) -> void:
 	_pose_source()
 
 func advance(delta: float, travel: float, phase: String) -> void:
-	_ward_pose = false
+	# During M02 release the visible server pawn replaces the hidden tableau.
+	# Retain its previous zero-release pose until ordinary following begins.
+	_ward_pose = phase == "releasing"
 	_moving = travel > 0.0 and travel < 2.0
 	_firing = phase == "firing"
 	if _moving:

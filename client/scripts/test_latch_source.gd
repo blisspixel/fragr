@@ -3,6 +3,7 @@ extends SceneTree
 var failures: int = 0
 
 func _initialize() -> void:
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _check(value: bool, message: String) -> void:
@@ -15,6 +16,7 @@ func _run() -> void:
 	root.add_child(view)
 	_check_relaxed_pose(view)
 	_check_ward_context(view)
+	_check_live_release_pawn()
 	var skeleton: Skeleton3D = view._source_body.get_node("Armature/Skeleton3D") as Skeleton3D
 	var mesh: MeshInstance3D = view._source_body.get_node("Armature/Skeleton3D/char1") as MeshInstance3D
 	_check(mesh.skin != null and skeleton.get_bone_count() == 24, "the live source has weighted skin")
@@ -159,6 +161,76 @@ func _check_ward_context(view: LatchView) -> void:
 
 func _joint_body(source: RefCounted, body: Node3D, name: String) -> Vector3:
 	return (source.bone_transform(body, name) as Transform3D).origin
+
+## Exercise the visible pawn path, not the hidden ward's pose_release helper.
+func _check_live_release_pawn() -> void:
+	var pawn: Node3D = load("res://scenes/player.tscn").instantiate() as Node3D
+	root.add_child(pawn)
+	pawn.set_process(false)
+	pawn.set_player_data("ally", "Latch")
+	var state: Dictionary = {"id": "ally", "name": "Latch", "x": 2.0, "y": 1.5,
+		"z": 3.0, "yaw": 0.0, "hp": 100, "weapon": "Tack", "just_fired": false,
+		"campaign": {"side": "companion", "kind": "latch", "phase": "releasing", "phase_started": 10}}
+	_check(ActorState.validation_error({"tick": 10, "players": [state]}) == "",
+		"release fixture is a valid authoritative companion snapshot")
+	pawn.update_state(state, 10)
+	pawn.snap_authoritative_position()
+	var live: LatchView = pawn.latch_view as LatchView
+	var reference: Node3D = load(LatchSource.LATCH_SOURCE).instantiate() as Node3D
+	root.add_child(reference)
+	var mesh: MeshInstance3D = live._source_body.get_node("Armature/Skeleton3D/char1") as MeshInstance3D
+	var material: Material = mesh.material_override
+	for moving: bool in [false, true]:
+		if moving:
+			state["x"] = 2.2
+			pawn.update_state(state, 11)
+		pawn._process(0.05)
+		_check(pawn.visible and live.visible and pawn.is_campaign_companion
+			and not pawn.body.visible and not pawn.weapon_sprite.visible and not live._gun.visible,
+			"actual releasing pawn presents its live skin with both weapon presenters hidden")
+		_legacy_pose(live._source, reference, live._stride, live._moving, false, 0.0)
+		var actual: PackedVector3Array = _skin_points(live._source_body)
+		var previous: PackedVector3Array = _skin_points(reference)
+		var greatest_error: float = 0.0
+		for vertex: int in range(actual.size()):
+			greatest_error = maxf(greatest_error, actual[vertex].distance_to(previous[vertex]))
+		_check(actual.size() == previous.size() and greatest_error < 0.00001,
+			"actual stationary and moving releasing pawn preserves every legacy weighted vertex")
+		_check(mesh.material_override == material and live.scale == Vector3.ONE
+			and live._source_body.scale == reference.scale and live.position.y == -1.5,
+			"release context preserves materials, source scale and server-feet registration")
+		if not moving:
+			var bounds: AABB = AABB(actual[0], Vector3.ZERO)
+			for point: Vector3 in actual:
+				bounds = bounds.expand(point)
+			_check(absf(bounds.position.y) < 0.00001 and absf(bounds.size.y - 1.799972) < 0.00001,
+				"actual stationary releasing pawn keeps adult weighted height and grounded feet")
+	state["campaign"]["phase"] = "following"
+	pawn.update_state(state, 12)
+	pawn.snap_authoritative_position()
+	pawn._process(0.05)
+	var shoulder: Vector3 = _joint(live, "LeftArm")
+	var elbow: Vector3 = _joint(live, "LeftForeArm")
+	_check(not live._ward_pose and live._gun.visible and absf(elbow.x) - absf(shoulder.x) < 0.1,
+		"actual release-to-following snapshot selects calm free arm and restores Tack")
+	for phase: String in ["following", "firing"]:
+		state["campaign"]["phase"] = phase
+		pawn.update_state(state, 13)
+		pawn._process(0.05)
+		_legacy_pose(live._source, reference, live._stride, live._moving, true, 0.0, phase == "firing")
+		var skeleton: Skeleton3D = live._source_body.get_node("Armature/Skeleton3D") as Skeleton3D
+		var previous_skeleton: Skeleton3D = reference.get_node("Armature/Skeleton3D") as Skeleton3D
+		for name: String in ["RightArm", "RightForeArm", "RightHand", "Hips", "LeftLeg", "LeftFoot", "RightLeg", "RightFoot"]:
+			_check(skeleton.get_bone_global_pose(skeleton.find_bone(name)).is_equal_approx(
+				previous_skeleton.get_bone_global_pose(previous_skeleton.find_bone(name))),
+				"actual following/firing pawn retains armed right chain and gait: " + name)
+	state["campaign"]["phase"] = "releasing"
+	pawn.update_state(state, 14)
+	pawn._process(0.05)
+	_check(live._ward_pose and not live._gun.visible,
+		"a later actual releasing snapshot restores prior context instead of inheriting following")
+	reference.free()
+	pawn.free()
 
 ## Retained main 0b03dc2c pose contract, used only as an actual-source control.
 func _legacy_pose(source: RefCounted, body: Node3D, stride: float, moving: bool, armed: bool, release: float, firing: bool = false) -> void:

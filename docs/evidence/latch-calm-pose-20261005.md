@@ -89,3 +89,15 @@ selected Tern model.
 ![Following beside the lamp line](../screenshots/latch-calm-pose-20261005/14_lamp_line.png)
 
 ![Actual cut combat and armed companion](../screenshots/latch-calm-pose-20261005/20_cut_sweepers.png)
+
+## Visible M02 release-pawn correction, October 5
+
+Review of frozen `15184ef2` identifies a release path missing from the earlier ward-only comparison: the ward tableau is hidden while the actual server companion is presented with phase `releasing`. PlayerPawn forwards that phase through its ordinary process call. Its unconditional live-context reset incorrectly selects the new calmer zero pose during release. The reviewed M07 prefix and ward fixtures above remain prior-checkpoint evidence, not proof of this boundary.
+
+Plan checkpoint `f90beb0e` precedes the correction. A new owning test instantiates the real player scene, accepts a valid companion snapshot, then invokes its actual process path. Against unchanged `15184ef2`, both stationary and walking complete weighted release surfaces fail the retained previous-pose comparison, and a later return to release inherits the wrong context. The numeric exit 1 and all three failures remain in private `.agents/release-boundary/pawn-first-failure.log`.
+
+The narrow correction requests original zero-release context when `advance` receives actual phase `releasing`. Following still uses the calmer free arm; firing preserves its original armed right chain. The regression now passes complete stationary/walking release skin equality, live visibility and hidden weapon presenters, adult height and feet, unchanged source scale/materials, subsequent following/firing chains and return-to-release context. Existing direct zero/positive ward gesture, weighted gait, palm, flash and PBR checks remain. Source, near-clip and M02 owning harnesses each exit 0 with clean logs and their own PASS.
+
+The dependent Latch library is genuinely regenerated again through the existing `_export` seam, then imported and independently compared with the archived `15184ef2` output. The complete output is byte-identical, SHA `7ead44f5acd175ad48ff11f520e4a0dd11a2882f64f6443d12238567c2aab6fc`, including all binary geometry/maps/weights/clips and JSON pose declarations. All six imported mesh arrays, transforms and skin bindings also remain identical. The constructed default pose is unchanged, so its existing studio image remains exact. The selected live chassis retains SHA `8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951`. Only the actual changed view-source fingerprint is refreshed in the unweakened manifest. Export, import, independent comparison and the unchanged model-assets harness pass with numeric exit 0 and clean logs.
+
+Private `.agents/release-boundary/` binds the first failing test, corrected focused logs, archived output/manifest and actual export verification. Fresh complete client checks, the ordinary M02 release witness and final public exact-head gates are pending for this correction. No server, renderer, paid request or runtime chassis replacement is used by these CPU receipts.

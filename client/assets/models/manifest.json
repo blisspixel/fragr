@@ -74,7 +74,7 @@
 		"res://assets/shaders/latch_near_clip.gdshader": "3d83749b972ca6a5c898804b3866fdb7f9262390d5dd34dfee5e10e4b4225937",
 		"res://scripts/facility_geometry.gd": "cf169e96605f837b59695babda7675159dfb5829f4c0161af5dac152046f45c3",
 		"res://scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
-		"res://scripts/latch_view.gd": "065a6dfb9c726a2aad9eb73573e1e69f4aaae368c135aec5d1e611e7cfa8cdde",
+		"res://scripts/latch_view.gd": "e3b494b252f312dcd80331d16e6aace5d65aaab4d6b75d2cd4de7f4cab64bfcc",
 		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 	}
 }
