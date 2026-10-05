@@ -1007,3 +1007,60 @@ msgstr "CREW / DECK 2\nBUNKS AND GALLEY"
 
 msgid "WORLD_M10_COMMAND_DECK"
 msgstr "COMMAND / DECK 3\nFLIGHT AND SHIP SYSTEMS"
+
+msgid "HOST_CREATE"
+msgstr "Host a match"
+
+msgid "HOST_USE_RUNNING"
+msgstr "Check server on this computer"
+
+msgid "HOST_SABOTAGE"
+msgstr "5v5 Sabotage"
+
+msgid "HOST_RUNNING"
+msgstr "Your %s match is running. Leaving to the menu keeps it running."
+
+msgid "HOST_LAN_ADDRESS"
+msgstr "Friends: enter this computer's LAN address and port %d. Allow that TCP port on your LAN firewall."
+
+msgid "HOST_LOOPBACK_ONLY"
+msgstr "Same computer only. Choose LAN hosting to invite another computer."
+
+msgid "HOST_STOP"
+msgstr "Stop server"
+
+msgid "HOST_STARTING"
+msgstr "Starting your server."
+
+msgid "HOST_STOPPING"
+msgstr "Stopping your server."
+
+msgid "HOST_MODE"
+msgstr "Mode"
+
+msgid "HOST_MAP"
+msgstr "Map"
+
+msgid "HOST_BOTS"
+msgstr "Starting bots"
+
+msgid "HOST_ALLOW_LAN"
+msgstr "Allow players on this LAN"
+
+msgid "HOST_PORT"
+msgstr "TCP port"
+
+msgid "HOST_FINITE_SEATS"
+msgstr "5v5 has ten shared fighter seats. Bots take seats too; zero bots leaves every seat for players."
+
+msgid "HOST_START"
+msgstr "Start server"
+
+msgid "HOST_INVALID_SETTINGS"
+msgstr "Choose a supported mode, map, bot count and port."
+
+msgid "HOST_INVALID_ADDRESS"
+msgstr "Enter a host address, host:port, or a ws:// or wss:// server origin."
+
+msgid "HOST_INVALID_RULES"
+msgstr "This server returned an unsupported match mode."

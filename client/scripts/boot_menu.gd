@@ -24,6 +24,13 @@ var _console: FragrConsole = null
 var _settings: FragrSettings
 var _name_edit: LineEdit = null
 var _local_match: LocalMatch
+var _local_host: LocalHost
+var _host_settings: Dictionary = {"mode": "tdm", "map_id": 1, "bots": 4, "lan": false, "port": 0}
+var _host_mode: OptionButton
+var _host_map: OptionButton
+var _host_bots: SpinBox
+var _host_lan: CheckButton
+var _host_port: SpinBox
 var _launch_pending: bool = false
 ## A finished mission asked to continue the run; cleared once it starts or the
 ## saved run turns out to have nothing playable next.
@@ -40,6 +47,8 @@ func _ready() -> void:
 	MouseCapture.release()
 	_local_match = LocalMatch.for_tree(get_tree())
 	_local_match.stop()
+	_local_host = LocalHost.for_tree(get_tree())
+	_local_host.state_changed.connect(_on_host_state_changed)
 	_local_match.mission_ready.connect(_on_local_ready)
 	_local_match.state_changed.connect(_on_local_state_changed)
 	_local_match.run_preview_changed.connect(_on_run_preview_changed)
@@ -171,8 +180,8 @@ func _show(page: String) -> void:
 	if _probe != null:
 		_probe.cancel_request()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile"] else 154))
-	_tagline.visible = page not in ["records", "settings", "profile", "single", "practice"]
+	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile", "multi", "host"] else 154))
+	_tagline.visible = page not in ["records", "settings", "profile", "single", "practice", "multi", "host"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
@@ -188,6 +197,8 @@ func _show(page: String) -> void:
 			_page_new_confirm()
 		"multi":
 			_page_multi()
+		"host":
+			_page_host()
 		"settings":
 			_page_settings()
 		"profile":
@@ -535,17 +546,17 @@ func _on_local_ready(address: String) -> void:
 		_launch("campaign", address, _campaign_run_mode)
 
 func _page_multi() -> void:
-	_label("A server is a program you run. Anyone can host one.")
+	_button(tr("HOST_CREATE"), func() -> void: _show("host"))
 	_label("Host")
 	_host_edit = LineEdit.new()
 	_host_edit.name = "HostAddress"
-	_host_edit.text = OS.get_environment("FRAGR_SERVER")
+	_host_edit.text = _local_host.url if _local_host.state == LocalHost.State.RUNNING else OS.get_environment("FRAGR_SERVER")
 	if _host_edit.text.is_empty():
-		_host_edit.text = LOOPBACK
+		_host_edit.text = _local_host.url if _local_host.state == LocalHost.State.RUNNING else LOOPBACK
 	_host_edit.custom_minimum_size = Vector2(0.0, 36.0)
 	_root.add_child(_host_edit)
 	_button("Check host", _probe_host)
-	_button("Use local server", func() -> void:
+	_button(tr("HOST_USE_RUNNING"), func() -> void:
 		_host_edit.text = LOOPBACK
 		_probe_host()
 	)
@@ -560,6 +571,102 @@ func _page_multi() -> void:
 	_label("The host chooses the arena and rules. You watch in this app, then join.")
 	_button("Back", func() -> void: _show("main"))
 	_probe_host()
+
+func _on_host_state_changed() -> void:
+	if _page == "host":
+		_show("host")
+
+func _host_option(label: String, name_text: String) -> OptionButton:
+	var row: HBoxContainer = HBoxContainer.new()
+	_root.add_child(row)
+	var text: Label = Label.new()
+	text.text = label
+	text.custom_minimum_size.x = 210.0
+	row.add_child(text)
+	var option: OptionButton = OptionButton.new()
+	option.name = name_text
+	option.custom_minimum_size.y = 42.0
+	option.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(option)
+	return option
+
+func _page_host() -> void:
+	if _local_host.state == LocalHost.State.RUNNING:
+		var mode_text: String = tr("HOST_SABOTAGE") if _local_host.settings["mode"] == "sabotage" else tr("MODE_TDM")
+		_label(tr("HOST_RUNNING") % mode_text)
+		_label(_local_host.url)
+		if _local_host.settings["lan"]:
+			_label(tr("HOST_LAN_ADDRESS") % int(_local_host.settings["port"]))
+		else:
+			_label(tr("HOST_LOOPBACK_ONLY"))
+		_button("Watch", func() -> void: _launch("spectate", _local_host.url)).name = "WatchHosted"
+		_button("Join", func() -> void: _launch("join", _local_host.url)).name = "JoinHosted"
+		_button(tr("HOST_STOP"), _local_host.stop).name = "StopServer"
+		_button("Back", func() -> void: _show("multi"))
+		return
+	if _local_host.state in [LocalHost.State.STARTING, LocalHost.State.STOPPING]:
+		_label(tr("HOST_STARTING" if _local_host.state == LocalHost.State.STARTING else "HOST_STOPPING"))
+		if _local_host.state == LocalHost.State.STARTING:
+			_button("Cancel", _local_host.stop)
+		_button("Back", func() -> void: _show("multi"))
+		return
+	if not _local_host.error_key.is_empty():
+		_label(tr(_local_host.error_key))
+	_host_mode = _host_option(tr("HOST_MODE"), "HostMode")
+	_host_mode.add_item(tr("MODE_TDM"))
+	_host_mode.add_item(tr("HOST_SABOTAGE"))
+	_host_mode.select(1 if _host_settings["mode"] == "sabotage" else 0)
+	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
+	_rebuild_host_maps()
+	_host_mode.item_selected.connect(func(_index: int) -> void: _rebuild_host_maps())
+	var bots_row: HBoxContainer = HBoxContainer.new()
+	_root.add_child(bots_row)
+	var bots_label: Label = Label.new()
+	bots_label.text = tr("HOST_BOTS")
+	bots_label.custom_minimum_size.x = 210.0
+	bots_row.add_child(bots_label)
+	_host_bots = SpinBox.new()
+	_host_bots.name = "HostBots"
+	_host_bots.min_value = 0
+	_host_bots.max_value = 10
+	_host_bots.step = 1
+	_host_bots.value = _host_settings["bots"]
+	bots_row.add_child(_host_bots)
+	_host_lan = CheckButton.new()
+	_host_lan.name = "HostLAN"
+	_host_lan.text = tr("HOST_ALLOW_LAN")
+	_host_lan.button_pressed = _host_settings["lan"]
+	_root.add_child(_host_lan)
+	_host_port = SpinBox.new()
+	_host_port.name = "HostPort"
+	_host_port.prefix = tr("HOST_PORT") + " "
+	_host_port.min_value = 1
+	_host_port.max_value = 65535
+	_host_port.step = 1
+	_host_port.value = _host_settings["port"] if _host_settings["lan"] else 6767
+	_host_port.editable = _host_lan.button_pressed
+	_root.add_child(_host_port)
+	_host_lan.toggled.connect(func(enabled: bool) -> void: _host_port.editable = enabled)
+	_label(tr("HOST_FINITE_SEATS"))
+	_button(tr("HOST_START"), _start_host).name = "StartServer"
+	_button("Back", func() -> void: _show("multi"))
+
+func _rebuild_host_maps() -> void:
+	_host_map.clear()
+	if _host_mode.selected == 1:
+		_host_map.add_item("Sector 9", 4)
+		return
+	var names: Array[String] = ["Arena Duel", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
+	for index: int in names.size():
+		_host_map.add_item(names[index], index + 1)
+	var selected: int = int(_host_settings["map_id"]) - 1
+	_host_map.select(clampi(selected, 0, names.size() - 1))
+
+func _start_host() -> void:
+	_host_settings = {"mode": "sabotage" if _host_mode.selected == 1 else "tdm",
+		"map_id": _host_map.get_selected_id(), "bots": int(_host_bots.value),
+		"lan": _host_lan.button_pressed, "port": int(_host_port.value) if _host_lan.button_pressed else 0}
+	_local_host.start_host(_host_settings)
 
 func _probe_host() -> void:
 	if _watch_button != null:
@@ -576,7 +683,11 @@ func _probe_host() -> void:
 		add_child(_probe)
 		_probe.request_completed.connect(_on_status_completed)
 	_probe.cancel_request()
-	var err: Error = _probe.request("http://%s/status" % _host_address())
+	var endpoint: Dictionary = ServerEndpoint.parse(_host_address())
+	if endpoint.is_empty():
+		_match_line.text = tr("HOST_INVALID_ADDRESS")
+		return
+	var err: Error = _probe.request(endpoint["status_url"])
 	if err != OK and _match_line != null:
 		_match_line.text = "This host did not answer."
 
@@ -598,7 +709,12 @@ func _apply_status(parsed: Variant) -> void:
 		_match_line.text = "This host did not answer."
 		return
 	var data: Dictionary = parsed
-	if int(data.get("schema_version", 0)) != 2:
+	if not EquipmentState.integer(data.get("schema_version"), 2) or data["schema_version"] != 2:
+		_match_line.text = "This host did not return a match line."
+		return
+	if not data.get("kind") is String or not data.get("map") is String \
+		or not EquipmentState.integer(data.get("fighters"), 4294967295) \
+		or not EquipmentState.integer(data.get("connections"), 4294967295):
 		_match_line.text = "This host did not return a match line."
 		return
 	var kind: String = str(data.get("kind", ""))
@@ -610,6 +726,12 @@ func _apply_status(parsed: Variant) -> void:
 		return
 	var kind_line: String = "Mission" if kind == "campaign" else "Arena"
 	_match_line.text = "%s. %s. %d fighters. %d connections." % [map_name, kind_line, fighters, connections]
+	if kind == "arena" and data.has("mode"):
+		var rules: Dictionary = MatchRules.parse({"mode": data.get("mode", "ffa"), "mutators": data.get("mutators", [])})
+		if rules.is_empty():
+			_match_line.text = tr("HOST_INVALID_RULES")
+			return
+		_match_line.text += " " + MatchRules.chip_text(rules)
 	_watch_button.disabled = false
 	_join_button.disabled = false
 
@@ -723,9 +845,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String, run_mode: String = "") -> void:
+	var endpoint: Dictionary = ServerEndpoint.parse(host)
+	if endpoint.is_empty():
+		_status.text = tr("HOST_INVALID_ADDRESS")
+		return
 	var boot: Dictionary = {
 		"mode": mode,
-		"host": host,
+		"host": endpoint["game_url"],
 	}
 	if mode == "campaign":
 		boot["run_mode"] = run_mode

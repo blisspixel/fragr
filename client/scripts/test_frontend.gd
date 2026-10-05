@@ -168,6 +168,19 @@ func _run() -> void:
 	menu._apply_status(with_ops)
 	_check(menu._match_line.text == "Tripoint Works. Arena. 8 fighters. 6 connections.", "additive health and ops fields keep the schema 2 match line")
 	_check(not menu._join_button.disabled, "operator fields do not close watch or join")
+	with_ops["mode"] = "tdm"
+	with_ops["mutators"] = ["rail-only"]
+	menu._apply_status(with_ops)
+	_check(menu._match_line.text.contains(tr("MODE_TDM")) and menu._match_line.text.contains(tr("MUTATOR_RAIL_ONLY")),
+		"existing authoritative mode and mutators are visible before joining")
+	with_ops["mode"] = "unknown-future-mode"
+	menu._apply_status(with_ops)
+	_check(menu._watch_button.disabled and menu._join_button.disabled, "unsupported status mode cannot advertise a readable match")
+	with_ops["mode"] = "tdm"
+	for invalid: Variant in ["8", true, 2.5, -1]:
+		with_ops["fighters"] = invalid
+		menu._apply_status(with_ops)
+		_check(menu._watch_button.disabled and menu._join_button.disabled, "malformed fighter counts do not enable admission controls")
 	menu._apply_status({"schema_version": 1, "map": "Arena Duel", "fighters": 1, "connections": 1})
 	_check(menu._watch_button.disabled and menu._join_button.disabled, "schema 1 does not open watch or join")
 	menu._apply_status(null)

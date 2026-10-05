@@ -1,6 +1,6 @@
 # Multiplayer desktop host and join flow
 
-Status: planned, 2026-10-05. Base: `f1e3631526bac070278459af652dea6f83c7872c`.
+Status: in flight, 2026-10-05. Base: `f1e3631526bac070278459af652dea6f83c7872c`.
 
 Nick prioritized usable multiplayer hosting and human testing before remaining
 campaign work. This bounded increment belongs to the existing multiplayer rung
@@ -32,9 +32,15 @@ The separate server increment owns only `server/src/local.rs` and `main.rs`:
 an explicit desktop arena flag, existing bounded stdin shutdown/EOF lease and
 typed readiness wrapping `run_server` with existing parsed match options.
 Before implementation, both sides must agree on the exact flag and readiness
-fields. The proposed interface is `--desktop-host`, with the existing bind,
-mode, map, bot and 5v5 flags. A versioned one-line arena readiness record gives
-the real bound address and connection URL plus validated requested settings.
+fields. The agreed interface is `--desktop-host`, with the existing bind,
+mode, map, bot and 5v5 flags. A strict one-line `ArenaReady` record has exactly
+`version: 1`, `kind: "arena"`, `url`, `listen`, `map_id` (integer 1 through 6),
+`mode` (`tdm` or `sabotage`), `five_vs_five` (boolean), `bots` (integer 0 through
+10) and `gameplay_version: 36`. It gives the real bound IPv4 address and nonzero
+port; `url` uses loopback for the host's own connection even for a LAN listener.
+TDM permits the six registered maps; Sabotage requires map 4 and the 5v5 flag.
+Loopback may request port zero, while wildcard LAN binding requires an explicit
+nonzero port. The server plan is [Desktop arena child](desktop-arena-child.md).
 Logs stay on stderr. Regular dedicated-server stdin semantics are unchanged.
 
 No campaign control, writer, save shape, gameplay capability, mode arithmetic,
