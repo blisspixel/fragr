@@ -6936,6 +6936,7 @@ mod m01;
 mod modes;
 mod pellets;
 mod redactor;
+mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;

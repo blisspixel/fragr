@@ -74,6 +74,31 @@ The M10 ship-art leaf owns its furnishing and source geometry independently.
 
 ## Verification and acceptance
 
+### Remote supply and control connection
+
+The next bounded device checkpoint adds an authored `remote_mine` grant through
+the existing supply loader and claim lifecycle, with a positive amount no greater
+than six, ordinary standing/claim-height/cover checks, capped real gains,
+personal or contested claims and normal campaign reset. A placed device still
+uses the separate finite stock. Finding this supply reserves content capability
+37; it must not make the incomplete mission playable at capability 36.
+
+Human placement and deliberate triggering use the existing discrete input
+channel, settings and rebindable controls. The proposed default keys are V for
+placing a remote charge and H for triggering armed owned charges. V's existing
+spectator camera action is in a disjoint context; H is unclaimed. Controller
+right shoulder places and right D-pad triggers, preserving the existing grenade,
+proximity mine and weapon controls. Existing custom bindings must retain their
+keys, with new actions taking only defaults nobody claimed. A press held through
+opening, loading, pause or role change needs release; a short genuine press is
+latched until an actual successful send. Dry placement and triggering with zero
+carried stock keep their already-proved separate server rules.
+
+Strict supply cases, actual finite personal/contested claims and the existing
+input/settings/control-blocking harnesses precede presentation. The remote
+pickup/device has its own local mechanical art task; it must not be silently
+recolored proximity-mine artwork or a generic final model claim.
+
 ### Redactor prototype boundary
 
 The first behavioral source uses an ordinary 1.8 m human volume and the existing

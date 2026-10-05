@@ -28,6 +28,8 @@ const TOKENS: Dictionary = {
 	"fire": "fire",
 	"grenade": "throw_grenade",
 	"mine": "place_mine",
+	"remote": "place_remote_mine",
+	"detonator": "trigger_remote_mines",
 	"jump": "jump",
 	"join": "join_as_human",
 	"leave": "leave_match",

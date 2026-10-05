@@ -67,6 +67,12 @@ func _run() -> void:
 	var mine_drawn: bool = WeaponArt.SUPPLY.has("proximity_mine")
 	_check(label.text == "+3 MINES" and icon.visible == mine_drawn and label.visible == not mine_drawn,
 		"a mine supply names its mines and swaps to art by table: " + label.text)
+	pickup.setup("armory_remotes", "", Vector3.ZERO, "remote_mine", 4)
+	var remote_drawn: bool = WeaponArt.SUPPLY.has("remote_mine")
+	_check(label.text == "+4 REMOTE CHARGES" and icon.visible == remote_drawn and label.visible == not remote_drawn,
+		"remote stock names its independent charges and uses only its own art entry: " + label.text)
+	if not remote_drawn:
+		_check(not icon.visible and body.visible, "unfinished remote art remains an explicit fallback")
 	pickup.setup("golden_rail", "Rail", Vector3.ZERO, "golden_rail")
 	_check(icon.visible and label.visible and label.text == TranslationServer.translate("PICKUP_GOLDEN_RAIL"),
 		"the golden Railgun keeps its one name above its sprite")

@@ -305,6 +305,9 @@ msgstr "+{amount} GRENADES"
 msgid "HUD_PICKUP_MINES"
 msgstr "+{amount} MINES"
 
+msgid "HUD_PICKUP_REMOTES"
+msgstr "+{amount} REMOTE CHARGES"
+
 msgid "HUD_SECRET_FOUND"
 msgstr "SECRET FOUND"
 

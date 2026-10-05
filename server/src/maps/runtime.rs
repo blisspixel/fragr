@@ -364,7 +364,10 @@ impl RuntimeMap {
                 .enemies
                 .iter()
                 .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Redactor)
-        })
+        }) || self
+            .pickups()
+            .iter()
+            .any(|pickup| matches!(pickup.kind, crate::sim::PickupKind::RemoteMine { .. }))
     }
 
     pub fn requires_enforcer_contract(&self) -> bool {

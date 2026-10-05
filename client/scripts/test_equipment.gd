@@ -188,11 +188,13 @@ func _run() -> void:
 	early.apply({})
 	var early_stock: Dictionary = state.duplicate(true)
 	early_stock["grenades"] = 4
+	early_stock["remote_mines"] = 3
 	early.apply(early_stock)
 	root.add_child(early)
 	_check(early.grenade_counts.visible and early.grenade_counts.text == "4", "inventory applied before ready hydrates the later counter safely")
+	_check(early.remote_counts.visible and early.remote_counts.text == "3", "remote stock hydrates independently before ready")
 	early.apply({})
-	_check(not early.grenade_counts.visible and not early.visible, "before-ready clear and later disconnect share the same lifecycle")
+	_check(not early.grenade_counts.visible and not early.remote_counts.visible and not early.visible, "before-ready clear and later disconnect share the same lifecycle")
 	early.free()
 	var display: EquipmentHud = EquipmentHud.new()
 	root.add_child(display)
@@ -200,19 +202,25 @@ func _run() -> void:
 	display.visible = true
 	display._process(0.0)
 	_check(display.counts.text == "0" and display.glyph_pool == "bullets" and display.counts.modulate != Color.WHITE, "an empty pistol shows a dimmed bullet and a red zero")
-	_check(display.get_child_count() == 3 and not display.grenade_counts.visible and not display.mine_counts.visible, "gun number and independent hidden grenade and mine counters, no caption words")
+	_check(display.get_child_count() == 4 and not display.grenade_counts.visible and not display.mine_counts.visible and not display.remote_counts.visible, "gun number and independent hidden grenade, proximity and remote counters, no caption words")
 	var stocked: Dictionary = state.duplicate(true)
 	stocked["grenades"] = 4
+	stocked["remote_mines"] = 2
 	display.apply(stocked)
 	_check(display.grenade_counts.visible and display.grenade_counts.text == "4" and display.counts.text == "0", "grenade stock appears independently from bullet ammunition")
+	_check(display.remote_counts.visible and display.remote_counts.text == "2" and not display.mine_counts.visible,
+		"remote stock never appears as proximity stock")
 	var decoded: Variant = JSON.parse_string(JSON.stringify(stocked))
 	_check(decoded is Dictionary and EquipmentState.validation_error(decoded, "self").is_empty(), "a wire round trip keeps the stock valid")
 	if decoded is Dictionary:
 		display.apply(decoded)
 		_check(display.grenade_counts.text == "4", "a JSON-decoded grenade count prints a whole number, got " + display.grenade_counts.text)
+		_check(display.remote_counts.text == "2", "JSON-decoded remote stock prints a whole count")
 	stocked["grenades"] = 0
+	stocked.erase("remote_mines")
 	display.apply(stocked)
 	_check(display.grenade_counts.visible and display.grenade_counts.text == "0", "after discovery empty grenade stock stays visible")
+	_check(display.remote_counts.visible and display.remote_counts.text == "0", "omitted depleted remote stock remains a visible distinct zero")
 	_check(EquipmentState.display_name("flechette") == "Rifle" and EquipmentState.display_name("Flechette") == "Rifle" and EquipmentState.display_name("tack") == "Pistol" and EquipmentState.display_name("scatter") == "Shotgun" and EquipmentState.display_name("rail") == "Railgun", "guns use familiar names")
 	_check(EquipmentState.pool_name("bullets") == "Bullets" and EquipmentState.pool_name("shells") == "Shells" and EquipmentState.pool_name("cells") == "Cells", "ammo uses familiar names")
 	armed["selected"] = "scatter"

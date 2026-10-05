@@ -57,6 +57,8 @@ var action_state = {
 	"interact": false,
 	"throw_grenade": false,
 	"place_mine": false,
+	"place_remote_mine": false,
+	"trigger_remote_mines": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -78,6 +80,10 @@ var pending_throw: bool = false
 var throw_armed: bool = true
 var pending_place: bool = false
 var place_armed: bool = true
+var pending_remote_place: bool = false
+var remote_place_armed: bool = true
+var pending_remote_trigger: bool = false
+var remote_trigger_armed: bool = true
 var mission_hud: MissionHud
 var m02_ward: M02Ward
 var m03_yard: M03Yard
@@ -359,6 +365,10 @@ func _on_map_info(info: Dictionary) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	_reset_crawler_cues()
 	if jammer_audio != null:
 		jammer_audio.reset()
@@ -534,12 +544,16 @@ func _on_opening_completed() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
 
 func _opening_input_released() -> bool:
-	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "move_forward", "move_back", "move_left", "move_right"]:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "move_forward", "move_back", "move_left", "move_right"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -571,6 +585,8 @@ func _on_loading_dismissed() -> void:
 	# next action tick. A key held through the curtain still needs release.
 	throw_armed = not Input.is_action_pressed("throw_grenade")
 	place_armed = not Input.is_action_pressed("place_mine")
+	remote_place_armed = not Input.is_action_pressed("place_remote_mine")
+	remote_trigger_armed = not Input.is_action_pressed("trigger_remote_mines")
 
 func _begin_world_load() -> void:
 	_world_load_generation += 1
@@ -859,6 +875,10 @@ func _try_continue(event: InputEvent) -> bool:
 			throw_armed = false
 			pending_place = false
 			place_armed = false
+			pending_remote_place = false
+			remote_place_armed = false
+			pending_remote_trigger = false
+			remote_trigger_armed = false
 			pending_weapon_swap = null
 			interact_held = false
 			return true
@@ -915,16 +935,28 @@ func _input(_event):
 		throw_armed = true
 	if _event.is_action_released("place_mine"):
 		place_armed = true
+	if _event.is_action_released("place_remote_mine"):
+		remote_place_armed = true
+	if _event.is_action_released("trigger_remote_mines"):
+		remote_trigger_armed = true
 	if controls_blocked():
 		pending_throw = false
 		throw_armed = false
 		pending_place = false
 		place_armed = false
+		pending_remote_place = false
+		remote_place_armed = false
+		pending_remote_trigger = false
+		remote_trigger_armed = false
 		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
 	if is_human_player and place_armed and _event.is_action_pressed("place_mine") and not _event.is_echo():
 		pending_place = true
+	if is_human_player and remote_place_armed and _event.is_action_pressed("place_remote_mine") and not _event.is_echo():
+		pending_remote_place = true
+	if is_human_player and remote_trigger_armed and _event.is_action_pressed("trigger_remote_mines") and not _event.is_echo():
+		pending_remote_trigger = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
 	if is_human_player and _event.is_action_pressed("interact"):
@@ -958,6 +990,10 @@ func change_role(play: bool) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	net_client.leave_match()
 	is_human_player = play
@@ -1065,6 +1101,10 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 
 
 func _apply_local_prediction() -> void:
@@ -1107,6 +1147,12 @@ func _send_local_action(now_usec: int) -> bool:
 	if not Input.is_action_pressed("place_mine") and not pending_place:
 		place_armed = true
 	action_state.place_mine = place_armed and (pending_place or Input.is_action_pressed("place_mine"))
+	if not Input.is_action_pressed("place_remote_mine") and not pending_remote_place:
+		remote_place_armed = true
+	action_state.place_remote_mine = remote_place_armed and (pending_remote_place or Input.is_action_pressed("place_remote_mine"))
+	if not Input.is_action_pressed("trigger_remote_mines") and not pending_remote_trigger:
+		remote_trigger_armed = true
+	action_state.trigger_remote_mines = remote_trigger_armed and (pending_remote_trigger or Input.is_action_pressed("trigger_remote_mines"))
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 	# zero for humans and remain the path for agents and older clients.
@@ -1121,7 +1167,11 @@ func _send_local_action(now_usec: int) -> bool:
 		throw_armed = false
 		pending_place = false
 		place_armed = false
-		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine"]:
+		pending_remote_place = false
+		remote_place_armed = false
+		pending_remote_trigger = false
+		remote_trigger_armed = false
+		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines"]:
 			action_state[key] = false
 		pending_weapon_swap = null
 	action_state.turn_left = false
@@ -1150,6 +1200,8 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_interact = false
 		pending_throw = false
 		pending_place = false
+		pending_remote_place = false
+		pending_remote_trigger = false
 		pending_weapon_swap = null
 	return true
 
@@ -1224,6 +1276,10 @@ func _offer_m05_departure() -> bool:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	return true
 
 func _close_departure_review() -> void:
@@ -1301,6 +1357,10 @@ func _clear_story_input() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	pending_weapon_swap = null
 
@@ -1498,6 +1558,10 @@ func _clear_world() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")

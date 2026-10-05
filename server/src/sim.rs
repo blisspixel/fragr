@@ -418,6 +418,9 @@ pub enum PickupKind {
     ProximityMine {
         count: u16,
     },
+    RemoteMine {
+        count: u16,
+    },
     Ammo {
         pool: crate::protocol::AmmoPool,
         rounds: u16,
@@ -432,6 +435,7 @@ impl PickupKind {
         match self {
             PickupKind::Grenade { .. } => "grenade",
             PickupKind::ProximityMine { .. } => "proximity_mine",
+            PickupKind::RemoteMine { .. } => "remote_mine",
             PickupKind::Ammo { .. } => "ammo",
             PickupKind::Weapon(_) => "weapon",
             PickupKind::Health => "health",
@@ -476,9 +480,9 @@ impl ArenaPickup {
             .map(|w| w.name().to_string())
             .unwrap_or_default();
         let amount = match self.kind {
-            PickupKind::Grenade { count } | PickupKind::ProximityMine { count } => {
-                Some(i32::from(count))
-            }
+            PickupKind::Grenade { count }
+            | PickupKind::ProximityMine { count }
+            | PickupKind::RemoteMine { count } => Some(i32::from(count)),
             PickupKind::Weapon(_) => None,
             PickupKind::Health | PickupKind::Armor => Some(self.amount),
             PickupKind::Ammo { rounds, .. } => Some(i32::from(rounds)),
@@ -507,7 +511,9 @@ impl ArenaPickup {
 
     fn respawn_ticks(&self) -> u32 {
         match self.kind {
-            PickupKind::Grenade { .. } | PickupKind::ProximityMine { .. } => 200,
+            PickupKind::Grenade { .. }
+            | PickupKind::ProximityMine { .. }
+            | PickupKind::RemoteMine { .. } => 200,
             PickupKind::Ammo { .. } => 200,
             PickupKind::Weapon(_) => PICKUP_RESPAWN_TICKS,
             PickupKind::Health | PickupKind::Armor => HEALTH_PICKUP_RESPAWN_TICKS,
@@ -3420,6 +3426,7 @@ impl GameState {
                         | PickupKind::Ammo { .. }
                         | PickupKind::Grenade { .. }
                         | PickupKind::ProximityMine { .. }
+                        | PickupKind::RemoteMine { .. }
                 )
             });
         }
@@ -3477,6 +3484,11 @@ impl GameState {
                     PickupKind::ProximityMine { .. } => {
                         player.inventory.only().is_none()
                             && player.inventory.mines() < crate::protocol::MINE_CARRY_CAP
+                    }
+                    PickupKind::RemoteMine { .. } => {
+                        player.inventory.only().is_none()
+                            && player.inventory.remote_mines()
+                                < crate::protocol::REMOTE_MINE_CARRY_CAP
                     }
                     PickupKind::Health => player.hp < PLAYER_MAX_HP,
                     PickupKind::Armor => player.armor < PLAYER_MAX_ARMOR,
@@ -3548,6 +3560,14 @@ impl GameState {
                         String::new(),
                         Some(i32::from(gained)),
                         format!("+{gained} proximity mines"),
+                    )
+                }
+                PickupKind::RemoteMine { count } => {
+                    let gained = player.inventory.grant_remote_mines(count);
+                    (
+                        String::new(),
+                        Some(i32::from(gained)),
+                        format!("+{gained} remote mines"),
                     )
                 }
                 PickupKind::Weapon(w) => {

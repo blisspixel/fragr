@@ -108,6 +108,8 @@ func _label_text() -> String:
 		return tr("PICKUP_GRENADES").format({"amount": amount})
 	if pickup_kind == "proximity_mine":
 		return tr("PICKUP_MINES").format({"amount": amount})
+	if pickup_kind == "remote_mine":
+		return tr("PICKUP_REMOTES").format({"amount": amount})
 	if pickup_kind == "golden_rail":
 		return tr("PICKUP_GOLDEN_RAIL")
 	if weapon_name != "":
