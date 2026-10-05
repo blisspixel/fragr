@@ -43,7 +43,7 @@ func _run() -> void:
 	await process_frame
 	await menu._show("practice")
 	var selector: OptionButton = menu._root.get_node("DevelopmentMission")
-	_check(selector.item_count == 8 and selector.selected == 5, "compact selector includes all eight development missions and defaults to M07")
+	_check(selector.item_count == 9 and selector.selected == 5 and selector.get_item_text(8) == tr("M10_PROTOTYPE_TITLE"), "compact selector adds the ship while retaining the M07 default and old indices")
 	selector.select(3)
 	_check(selector.get_item_text(selector.selected) == tr("M05_PROTOTYPE_TITLE"), "M05 retains its exact selectable entry index")
 	selector.grab_focus()
