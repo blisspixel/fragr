@@ -41,4 +41,7 @@ checks, pickups and shot effects pass with clean zero exits and owning markers.
 An initial private launcher requested nonexistent scope/pickup harness names;
 its failed logs are retained. The owning scope checks are in
 `test_ranged_sweeper_tell.gd`, not a second standalone scope test.
-Ordinary M07 discovery and firing, final integration and packages remain open.
+The [dated played receipt](../evidence/sniper-hand-continuity-20261005.md)
+records twenty unchanged ordinary M07 states through discovery, scoped marksman
+and unscoped Sweeper combat, with literal inspected images and process retirement.
+Final combined integration and packages remain open.
