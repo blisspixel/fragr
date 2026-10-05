@@ -4,7 +4,8 @@ const Metadata = preload("res://art/models/glb_metadata.gd")
 const SPECS: Array[Dictionary] = [
 	{"id":"air-scrubber", "name":"AirScrubber", "sha":"c6e435c6bf06f2dde238f5f3ee7fc20dc389fc6fab9319e5504a6ce45fe72997", "triangles":11910, "vertices":17576, "axis":1, "metres":1.65},
 	{"id":"water-pump", "name":"WaterPump", "sha":"631dabc2bb87b34a386e52434dfc0e46cdda079c323b789944d84302420d7e30", "triangles":11880, "vertices":16875, "axis":0, "metres":1.20},
-	{"id":"community-radio", "name":"CommunityRadio", "sha":"aac13efc917e53540911bba5cefa9fedd6f08086eb181ea579d37e44d78b2412", "triangles":11646, "vertices":14791, "axis":0, "metres":0.38}]
+	{"id":"community-radio", "name":"CommunityRadio", "sha":"aac13efc917e53540911bba5cefa9fedd6f08086eb181ea579d37e44d78b2412", "triangles":11646, "vertices":14791, "axis":0, "metres":0.38},
+	{"id":"repair-workbench", "name":"RepairWorkbench", "sha":"37c149f3b6c402a349e283f4e49ab3baded27bfba5932a86b058556dc8537682", "triangles":10567, "vertices":14872, "axis":1, "metres":0.90, "worktop_source_xz":Vector2(0.0,-0.2)}]
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -12,14 +13,21 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
-	if args.size() != 2 or not DirAccess.dir_exists_absolute(args[0]) or DirAccess.make_dir_recursive_absolute(args[1]) != OK:
-		_fail("require source directory and writable preparation directory")
+	if args.size() < 2 or args.size() > 3 or not DirAccess.dir_exists_absolute(args[0]) or DirAccess.make_dir_recursive_absolute(args[1]) != OK:
+		_fail("require source directory, writable preparation directory and optional exact source id")
 		return
+	var selected: Array[Dictionary] = []
 	for spec: Dictionary in SPECS:
+		if (args.size() == 2 and spec["id"] != "repair-workbench") or (args.size() == 3 and args[2] == spec["id"]):
+			selected.append(spec)
+	if selected.is_empty():
+		_fail("unknown source id")
+		return
+	for spec: Dictionary in selected:
 		if not _prepare(args[0], args[1], spec):
 			return
 	await process_frame
-	print("prepare_world_prop_sources: PASS (3 fixed compact sources; physical placement and selection remain open)")
+	print("prepare_world_prop_sources: PASS (%d fixed compact sources; physical placement and selection remain open)" % selected.size())
 	quit(0)
 
 func _prepare(source_dir: String, output_dir: String, spec: Dictionary) -> bool:
@@ -63,6 +71,16 @@ func _prepare(source_dir: String, output_dir: String, spec: Dictionary) -> bool:
 	var bounds: AABB = mesh.mesh.get_aabb()
 	var pivot: Vector3 = Vector3(bounds.get_center().x, bounds.position.y, bounds.get_center().z)
 	var scale: float = float(spec["metres"]) / bounds.size[int(spec["axis"])]
+	var worktop_source_height: float = 0.0
+	if spec.has("worktop_source_xz"):
+		var point: Vector2 = spec["worktop_source_xz"]
+		var worktop: Vector3 = _first_hit(vertices,indices,Vector3(point.x,bounds.end.y + 1.0,point.y),Vector3(point.x,bounds.position.y - 1.0,point.y))
+		worktop_source_height = worktop.y - bounds.position.y
+		if not worktop.is_finite() or worktop_source_height < 0.94 or worktop_source_height > 0.95:
+			original.free()
+			_fail("reviewed physical worktop sample changed")
+			return false
+		scale = float(spec["metres"]) / worktop_source_height
 	var basis: Basis = Basis(Vector3.UP, PI)
 	var offset: Vector3 = Vector3(0.0, 0.012, 0.0) if spec["id"] == "water-pump" else Vector3.ZERO
 	var material: StandardMaterial3D = mesh.get_active_material(0) as StandardMaterial3D
@@ -147,6 +165,7 @@ func _prepare(source_dir: String, output_dir: String, spec: Dictionary) -> bool:
 			"raw_triangles":spec["triangles"], "retained_triangles":spec["triangles"], "authored_triangles":supports.size() * 12, "replaced_triangles":0,
 			"provisional_dimension_m":spec["metres"], "dimension_axis":spec["axis"], "metres_per_source_unit":scale,
 			"source_pivot":[pivot.x,pivot.y,pivot.z], "body_offset_m":[offset.x,offset.y,offset.z], "mounting_supports":supports, "fixed_source":true, "runtime_selected":false,
+			"dimension_kind":"worktop_height" if worktop_source_height > 0.0 else "bounds_extent", "worktop_source_height_m":worktop_source_height,
 			"floor_contacts_accepted":false, "independent_uv_winding_proof":false, "maps_max_pixels":1024}, "\t") + "\n")
 		receipt.close()
 	else:
@@ -185,6 +204,13 @@ func _quiet(image: Image, id: String) -> void:
 					finish = Color("5b7768").lerp(Color("91ad93"),value)
 				else:
 					finish = Color("34393a").lerp(Color("7b827b"),value)
+			elif id == "repair-workbench":
+				if average.r > average.g * 1.12 and average.g > average.b * 1.12:
+					finish = Color("654735").lerp(Color("b48f64"),value)
+				elif average.g > average.r * 1.02 and average.g > average.b * 1.04 and average.get_luminance() > 0.2:
+					finish = Color("546e64").lerp(Color("93a998"),value)
+				else:
+					finish = Color("303a37").lerp(Color("92968a"),value)
 			else:
 				if average.r > average.g * 1.18 and average.g > average.b * 1.12:
 					finish = Color("6b4b34").lerp(Color("aa7a4d"),value)

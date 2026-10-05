@@ -1,6 +1,6 @@
 # Common Carrier ship furnishing
 
-Status: planned, 2026-10-05. This isolated art lane starts from prototype
+Status: in flight, 2026-10-05. This isolated art lane starts from prototype
 `b0e6eb91`, with the prototype's remote and final composed played gates still
 open. It belongs to the existing campaign rung. It does not change mission
 authority, carry, actors, difficulty or the 28-state combat route.
@@ -99,3 +99,26 @@ runtime services. Preserve matching packaged copyright notices.
 
 The pass is complete only when the actual inhabited room views are accepted.
 It does not close named casting, Repeater discovery, story or fresh-player fun.
+
+## First source checkpoint
+
+The workbench is prepared offline at a measured 0.90 m worktop height. Actual
+export/reimport retains all 10,567 source triangles, face area, winding and UVs;
+four bottom quadrants are supported without added pads. Its whole bounding
+box is 1.8153 x 1.13595 x 1.0396 m. Normal packing introduces a measured maximum
+direction drift of 0.0002434; the new independent orientation check bounds this
+at 0.0005 and rejects a 0.01-radian rotation and complete reversal. Existing
+position/UV/winding and support gates retain their original strictness.
+
+The helper's default operation still prepares only its original three sources;
+their resulting GLBs compare byte-for-byte equal to the existing candidates.
+The bench requires an explicit exact selector; an unknown selector refuses
+before creating any model. All positive preparation/proof runs exit numeric
+zero with clean logs and PASS markers. A first placement of a material branch
+caused a retained parse failure and was corrected. The initial overly precise
+normal comparison failures are retained with measured import drift; they do
+not change any previously existing acceptance threshold.
+
+Only the offline candidate is added. Runtime/host reconciliation, actual room
+lighting, packaged availability and played selection remain open. Details:
+[workbench source evidence](../evidence/m10-workbench-preparation-20261005.md).
