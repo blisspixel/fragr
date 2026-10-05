@@ -1,0 +1,265 @@
+{
+    "references":  [
+                       {
+                           "alpha":  0,
+                           "decoded_pixels_equal":  true,
+                           "height":  2880,
+                           "id":  "edda",
+                           "normalized_sha256":  "1ba1f101f560e89a95aa92b9362e54cdf69bb50d1938c6f59e69464716816787",
+                           "raw_sha256":  "c9e4659719a9d25fa5ed0f18b3037ee53039f297f52206e398021b029abcaa45",
+                           "width":  2880
+                       },
+                       {
+                           "alpha":  0,
+                           "decoded_pixels_equal":  true,
+                           "height":  2880,
+                           "id":  "splice",
+                           "normalized_sha256":  "8b517b8d8305a0fd30f6b7874815f1016bbe54e7a20ae251a3f9e4249cfef78e",
+                           "raw_sha256":  "4ef615d65691e04a98ebed6a807b034be0a1fcb7e14a4f0bbd23eafb5cea993c",
+                           "width":  2880
+                       }
+                   ],
+    "credits":  {
+                    "uncertain_hold":  15,
+                    "usable":  2110,
+                    "available_api":  2125,
+                    "used_inside_first_allocation":  620,
+                    "tracked_total_consumed":  945,
+                    "allocation_remaining":  280
+                },
+    "renderer":  "gl_compatibility",
+    "rig":  {
+                "outputs":  [
+                                {
+                                    "bounds":  {
+                                                   "position":  [
+                                                                    -0.387942105531693,
+                                                                    -0.000000115416980861482,
+                                                                    -0.198759570717812
+                                                                ],
+                                                   "size":  [
+                                                                0.772379636764526,
+                                                                1.7999724149704,
+                                                                0.391353577375412
+                                                            ]
+                                               },
+                                    "bytes":  30134044,
+                                    "name":  "edda-named-v1-rig-0",
+                                    "sha256":  "b0fb61917f53be5ddf393b4e7cbd450072c7aa939ea932e1dbc9f4c55d5ecc42",
+                                    "stats":  {
+                                                  "animations":  [
+                                                                     {
+                                                                         "length":  0.0333333350718021,
+                                                                         "name":  "Armature|clip0|baselayer"
+                                                                     }
+                                                                 ],
+                                                  "bones":  24,
+                                                  "materials":  [
+                                                                    {
+                                                                        "albedo_size":  [
+                                                                                            4096,
+                                                                                            4096
+                                                                                        ],
+                                                                        "metallic_map":  true,
+                                                                        "normal_enabled":  true,
+                                                                        "roughness_map":  true
+                                                                    }
+                                                                ],
+                                                  "meshes":  1,
+                                                  "triangles":  14694,
+                                                  "vertices":  17561
+                                              }
+                                },
+                                {
+                                    "bounds":  {
+                                                   "position":  [
+                                                                    -0.387942105531693,
+                                                                    -0.000000115416980861482,
+                                                                    -0.198759570717812
+                                                                ],
+                                                   "size":  [
+                                                                0.772379636764526,
+                                                                1.7999724149704,
+                                                                0.391353577375412
+                                                            ]
+                                               },
+                                    "bytes":  30114076,
+                                    "name":  "edda-named-v1-rig-1",
+                                    "sha256":  "bb5511f280147bb3f4fa81db6ce1b42a58cb10daebdf486def6a807d3286693f",
+                                    "stats":  {
+                                                  "animations":  [
+                                                                     {
+                                                                         "length":  1.06666660308838,
+                                                                         "name":  "Armature|walking_man|baselayer"
+                                                                     }
+                                                                 ],
+                                                  "bones":  24,
+                                                  "materials":  [
+                                                                    {
+                                                                        "albedo_size":  [
+                                                                                            4096,
+                                                                                            4096
+                                                                                        ],
+                                                                        "metallic_map":  true,
+                                                                        "normal_enabled":  true,
+                                                                        "roughness_map":  true
+                                                                    }
+                                                                ],
+                                                  "meshes":  1,
+                                                  "triangles":  14694,
+                                                  "vertices":  17561
+                                              }
+                                },
+                                {
+                                    "bounds":  {
+                                                   "position":  [
+                                                                    -0.387942105531693,
+                                                                    -0.000000115416980861482,
+                                                                    -0.198759570717812
+                                                                ],
+                                                   "size":  [
+                                                                0.772379636764526,
+                                                                1.7999724149704,
+                                                                0.391353577375412
+                                                            ]
+                                               },
+                                    "bytes":  30103480,
+                                    "name":  "edda-named-v1-rig-2",
+                                    "sha256":  "241b41b8f4a96a6ea3fe997687437ac46876b9ce272ca7d5d84ba09fd8ef0ade",
+                                    "stats":  {
+                                                  "animations":  [
+                                                                     {
+                                                                         "length":  0.666666686534882,
+                                                                         "name":  "Armature|running|baselayer"
+                                                                     }
+                                                                 ],
+                                                  "bones":  24,
+                                                  "materials":  [
+                                                                    {
+                                                                        "albedo_size":  [
+                                                                                            4096,
+                                                                                            4096
+                                                                                        ],
+                                                                        "metallic_map":  true,
+                                                                        "normal_enabled":  true,
+                                                                        "roughness_map":  true
+                                                                    }
+                                                                ],
+                                                  "meshes":  1,
+                                                  "triangles":  14694,
+                                                  "vertices":  17561
+                                              }
+                                }
+                            ],
+                "consumed_credits":  5,
+                "task_id":  "01a10c5d-16d6-770e-be03-50550dfec461",
+                "walking_satchel_defect":  true,
+                "accepted_for_runtime":  false
+            },
+    "schema":  1,
+    "owned_renderer_exit_codes":  [
+                                      0,
+                                      0,
+                                      0
+                                  ],
+    "runtime_selected":  false,
+    "inspected_raw_views":  8,
+    "hardware":  "AMD Radeon 780M",
+    "sources":  [
+                    {
+                        "runtime_selected":  false,
+                        "consumed_credits":  35,
+                        "task_id":  "01a10c56-b434-743b-b502-68e6a20f03a4",
+                        "actual":  {
+                                       "bounds":  {
+                                                      "position":  [
+                                                                       -0.409932017326355,
+                                                                       -0.951689064502716,
+                                                                       -0.210026070475578
+                                                                   ],
+                                                      "size":  [
+                                                                   0.816161036491394,
+                                                                   1.9020299911499,
+                                                                   0.413540154695511
+                                                               ]
+                                                  },
+                                       "bytes":  29421392,
+                                       "name":  "edda",
+                                       "sha256":  "1f68658b7328fa362d5ea785e3df98baed3fdf645e15ad48adbc3683926dfdcf",
+                                       "stats":  {
+                                                     "animations":  [
+
+                                                                    ],
+                                                     "bones":  0,
+                                                     "materials":  [
+                                                                       {
+                                                                           "albedo_size":  [
+                                                                                               4096,
+                                                                                               4096
+                                                                                           ],
+                                                                           "metallic_map":  true,
+                                                                           "normal_enabled":  true,
+                                                                           "roughness_map":  true
+                                                                       }
+                                                                   ],
+                                                     "meshes":  1,
+                                                     "triangles":  14694,
+                                                     "vertices":  17558
+                                                 }
+                                   },
+                        "id":  "edda"
+                    },
+                    {
+                        "runtime_selected":  false,
+                        "consumed_credits":  35,
+                        "task_id":  "01a10c58-f991-7703-9cd9-69527c78f6d4",
+                        "actual":  {
+                                       "bounds":  {
+                                                      "position":  [
+                                                                       -0.475128024816513,
+                                                                       -0.948779046535492,
+                                                                       -0.193764060735703
+                                                                   ],
+                                                      "size":  [
+                                                                   0.956132054328918,
+                                                                   1.89848899841309,
+                                                                   0.393854022026062
+                                                               ]
+                                                  },
+                                       "bytes":  37778976,
+                                       "name":  "splice",
+                                       "sha256":  "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1",
+                                       "stats":  {
+                                                     "animations":  [
+
+                                                                    ],
+                                                     "bones":  0,
+                                                     "materials":  [
+                                                                       {
+                                                                           "albedo_size":  [
+                                                                                               4096,
+                                                                                               4096
+                                                                                           ],
+                                                                           "metallic_map":  true,
+                                                                           "normal_enabled":  true,
+                                                                           "roughness_map":  true
+                                                                       }
+                                                                   ],
+                                                     "meshes":  1,
+                                                     "triangles":  16602,
+                                                     "vertices":  27283
+                                                 }
+                                   },
+                        "id":  "splice"
+                    }
+                ],
+    "date":  "2026-10-05",
+    "inspected_walking_samples":  4,
+    "image_reservations_usd":  {
+                                   "remaining_from_user_report_estimate":  12.546,
+                                   "edda":  0.625,
+                                   "glove":  0.622,
+                                   "new_total":  1.874,
+                                   "splice":  0.627
+                               }
+}

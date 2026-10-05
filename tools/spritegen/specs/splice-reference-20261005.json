@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Proposed Splice reference only. No paid request has been submitted by this spec.",
+    "Root owns exact live price, balance, durable reservation and serialized request. Proposed request cap: $0.65.",
+    "This is a distinct named civilian proposal. The existing anonymous worker reference remains separate and unselected."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/splice-reference-20261005",
+  "style": "original high-quality stylized mechanical person for a modern boomer shooter with pixel surfaces, broad angular sculpted shapes, quiet matte painted panels, coherent stepped pixel clusters, bone shell, ordinary warm dark steel joints, one rust replacement panel and a small muted magenta personal accent, clear chassis-versus-joint values, practical circa-2070 retro-futuristic repair craft, even neutral illumination, no photographic material noise, tiny scattered wear dots, shiny robot plastic or military armor",
+  "view": "one isolated full-body character, near-orthographic front three-quarter view with only a slight turn, neutral unobscured A pose with arms slightly away from torso and open empty hands, head and all fingers and both feet fully visible, grounded horizontal feet baseline, generous equal framing margin, plain neutral gray background, no floor platform, scene, labels, collage, diagram or text",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "frames": [
+    {
+      "id": "splice_technician_reference_v1",
+      "subject": "Splice, an individual free embodied person maintaining Low Water's workshop and infrastructure, compact civilian proportions within an ordinary human-sized body. Modest narrow shoulders, short practical torso and lean separated articulated limbs. A small horizontal CRT-like face frame wider than tall with two soft amber pixel eyes and a subtle wry mouth, no antenna. Maintained bone painted outer panels over warm dark steel mechanical joints, no large chest plate or fighting armor. One broad rust-colored replacement forearm on anatomical left, viewer right in the front view. Muted magenta wrist band on anatomical right, viewer left in the front view. Low-profile offset tool rack attached at anatomical left rear hip with two secured blunt practical hand tools in closed sockets, not held in the hands, not a backpack or gun. Rack is attached visibly and does not obscure joints or legs. Short utility belt and one deliberate rectangular repair plate, few large seams and purposeful fasteners. Two arms, two separate mechanical hands with four fingers and a thumb each, two legs and two grounded industrial shoes. Visible coherent shoulder, elbow, wrist, hip and knee pivots with real attached collars; no floating cables or fragments. Friendly impatient competence, a scrappy technician who would rather work and hang out than fight. No gun, integrated weapon, peaked cap, army shoulder plates, national symbols, black-red issued uniform, red attack optic, skull face or writing. Do not copy Latch's tall face frame or left antenna, or a broad Union Sweeper silhouette. No dense realistic scratches or random exposed wires; large painted panels and clear hand contacts matter more than surface noise."
+    }
+  ]
+}
