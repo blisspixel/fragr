@@ -6,6 +6,10 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Restore the earlier Rifle idle, firing and pickup artwork after the player
+  rejected the source-derived presentation. Retain its model, bake and physical
+  checks offline; ammunition, timing and all other weapon art stay unchanged.
+
 - Prepare compact air-scrubber, water-pump and community-radio source candidates,
   retaining their geometry and verifying physical floor support. Record inspected
   civilian-worker and repair-workbench sources and 70 included credits. All twelve

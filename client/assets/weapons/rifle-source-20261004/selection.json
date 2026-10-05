@@ -8,8 +8,11 @@
 	},
 	"presenter_sha256": "72cea62516137aa5d7cea5e9ac99b3ce3ce620ff2caec422876520f3c1453e9f",
 	"renderer": "gl_compatibility",
-	"runtime_selected": true,
+	"runtime_selected": false,
 	"schema": 1.0,
 	"selected_date": "2026-10-04",
+	"unselected_date": "2026-10-04",
+	"unselected_reason": "Player rejected the source-derived framing and style; earlier Rifle pictures restored.",
+	"restoration_evidence": "docs/evidence/rifle-art-restore-20261004.md",
 	"source_sha256": "152628e4b61afd772c21b72158218c73821948e809ec1a21b36f1159bb0b462e"
 }
