@@ -48,7 +48,7 @@ func apply_map_info(info: Dictionary) -> void:
 	for kind: int in range(4):
 		_materials.append(ArenaMaterials.make(map_id, kind))
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
-	var venue: String = "moon_port" if (info.get("m06") is Dictionary or info.get("m08") is Dictionary) else "moon_town" if info.get("m07") is Dictionary else ("low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else "")
+	var venue: String = "common_carrier" if info.get("m10") is Dictionary else ("moon_port" if (info.get("m06") is Dictionary or info.get("m08") is Dictionary) else "moon_town" if info.get("m07") is Dictionary else ("low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else ""))
 	if venue.is_empty() and map_id in [1001, 1002, 1003]:
 		venue = "earth_yard" if map_id == 1003 else "earth_union"
 	var authored_materials: Dictionary[String, Material] = {}
@@ -62,11 +62,15 @@ func apply_map_info(info: Dictionary) -> void:
 	_build_shell(_half_extent)
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
-	if venue in ["moon_port", "moon_town"]:
+	if venue in ["moon_port", "moon_town", "common_carrier"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:
 				boundary.visible = false
+	if venue == "common_carrier":
+		# The authored sealed hull supplies every usable floor. The generic
+		# outside arena plane would turn the command window into a courtyard.
+		get_node("MapFloor").visible = false
 	var solids: Array = info.get("solids", [])
 	for index: int in range(solids.size()):
 		var material: Material = null

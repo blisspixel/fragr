@@ -2434,7 +2434,12 @@ authenticated public ranking or achievement authority. No background telemetry
 or paid runtime generation is involved.
 ### Common Carrier prototype contract
 
-Capability 36 gates all roles before Welcome on Common Carrier (map 1010).
+Capability 36 gates all roles before Welcome on Common Carrier (map 1010),
+and on any authored source exposing registered `m10_ship_confirmation`,
+`m10_cargo_deck`, `m10_passenger_deck` or `m10_command_deck` panels. A panel
+alone never creates mission authority. M10 confirmation binds only the registered
+ship control, not a generic lift panel. The sealed command window uses existing
+ballistic inspection-glass solids; there is no exterior route or vacuum rule.
 MapInfo carries strict `m10` with four ordered arrival objectives, a physical
 `departure` Use target and `boarding` region, current `pilot` feet,
 `companion_start`, and four canonical passenger markers. It cannot share

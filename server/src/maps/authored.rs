@@ -331,10 +331,11 @@ impl AuthoredMap {
                 && doc.m06.is_none()
                 && doc.m07.is_none()
                 && doc.m09.is_none()
+                && doc.m10.is_none()
                 && presentation.solids.contains(&MapSurface::InspectionGlass))
         {
             return Err(invalid(
-                "inspection glass belongs to an M02, M06, M07 or M09 solid",
+                "inspection glass belongs to an M02, M06, M07, M09 or M10 solid",
             ));
         }
         if doc.m07.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m07()) {

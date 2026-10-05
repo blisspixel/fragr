@@ -107,8 +107,11 @@ Mine. [Story arc](story-arc.md).
 | III Common Cause | The Common Carrier, three decks | Repeater | 12 min | 5:00 | 0 |
 
 **Premise.** Four days toward Mars. The ship is full of freed people, evidence,
-opinions and one galley. Edda and Splice are aboard if they were saved; Orrin,
-if recovered, is restored and missing the last months. The Union still lists
+opinions and one galley. Edda and Splice are aboard only from the actual
+recorded released-crew transit. Unknown historical boarding remains unknown;
+Tern is the current pilot independently of that history. Recovered Orrin is
+still a secured backup until an explicit restoration event is authored and
+resolved, never an inferred restored person or missing-memory claim. The Union still lists
 the ship as impounded, and a custody tender has been riding alongside since the
 Moon. This morning it sends a boarding party.
 

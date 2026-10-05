@@ -82,7 +82,10 @@ static func authored(surface: String, venue: String = "") -> Material:
 	# its venue's quiet paint rather than the shader's default warning pinline.
 	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("565753"), Color("82917f"), Color("343e40")]
 	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("8b1e1e"), Color("354d42"), Color("7eaaa0")]
-	if venue == "low_water":
+	if venue == "common_carrier":
+		bases = [Color("787468"), Color("c9bd9f"), Color("46514f"), Color("849283"), Color("394c4e")]
+		accents = [Color("666756"), Color("82745f"), Color("798172"), Color("617164"), Color("71928c")]
+	elif venue == "low_water":
 		bases = [Color("788078"), Color("bd9c80"), Color("537574"), Color("adc0aa"), Color("49534c")]
 		accents = [Color("5a655f"), Color("6f6554"), Color("aa7451"), Color("577165"), Color("b6a579")]
 	elif venue in ["moon_port", "moon_town"]:
@@ -91,7 +94,7 @@ static func authored(surface: String, venue: String = "") -> Material:
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
-	if venue == "low_water" or (venue == "moon_town" and surface == "enamel"):
+	if venue in ["low_water", "common_carrier"] or (venue == "moon_town" and surface == "enamel"):
 		material.set_shader_parameter("warning_color", accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)

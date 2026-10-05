@@ -482,3 +482,43 @@ rosters with server movement. Guard-disabled structural fixtures remain
 explicitly separate from an ordinary complete combat route. Request a GPU
 lease only after matching geometry/native and meaningful CPU checks pass.
 Orrin remains a secured backup until a separately authored restoration event.
+
+## Inhabited source checkpoint
+
+The bounded source now has 112 authoritative solids, three supported decks,
+both walking stairs, a physically sealed command pane, enclosed side bunks,
+galley, repair bench, lashed cargo and service cover. Four owning keyed panel
+kinds and eight wall lights pass their registration budgets. Real standing
+shot rays prove pressure sealing and cargo cover while retaining an exposed
+handling aisle. Maps that expose the new panel kinds without mission facts
+also require capability 36 before Welcome for humans, agents and spectators.
+The actual admitted ship selects quiet civilian materials, reviewed local
+textures and a space backdrop; generic arena floor, boundary walls and an
+industrial skyline cannot obscure its hull or window.
+
+The complete locked workspace passes 943 server tests, all 18 real local-child
+tests and the other workspace suites, retaining three preexisting ignored
+server cases. Format and all-target workspace Clippy pass. Actual crew-contact
+fixtures cover every recorded Edda/Splice combination and historical unknown
+transit through both stairs and the cabin. They use real movement, the existing
+controller and body avoidance, and real finite supply claims that remain
+consumed after 400 ticks. Guards are explicitly disabled in these structural
+fixtures, so they do not prove combat. Retained failures rejected a waypoint
+inside the partition clearance and a diagonal blocked by current Edda and a
+berth crew member. Supported lateral doorway approaches fix the test route
+without changing bodies, geometry, guards or arrival tolerances.
+
+A fresh matching private executable passes the actual two-child M10 local
+launch, accepted-map presentation, strict v12 migration archive, separate
+berth/transit facts, finite carry, real mine use, real enemy death and canonical
+continue checks. The earlier failed full client run remains retained. Its
+corrected frontend, story and ship controls pass focused checks; the complete
+updated client run is still required.
+
+The owning 28-state ordinary-input tour requires all 17 authored guards exactly
+once across the same four groups, actual supported stairs and room approaches,
+finite supplies and fresh shared departure. Probes use actual owned Tack or
+Scatter ranges and real tell defense. Full combat survival and departure,
+hardware inspection, final civilian casting, ledger and bunk argument scenes,
+selected Repeater source and cues, its actual lesson and fresh human pacing
+remain open. This checkpoint does not claim a complete authored M10.

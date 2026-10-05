@@ -234,3 +234,182 @@ fn m10_transit_refuses_forged_current_and_historical_ownership_or_arrivals() {
         ));
     }
 }
+
+#[test]
+fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes() {
+    use crate::navigation::{NavigationGoal, Navigator};
+    use crate::protocol::Action;
+    let source = crate::maps::AuthoredSource::Mission(MissionId::CommonCarrier)
+        .load()
+        .unwrap();
+    assert_eq!(
+        crate::maps::RuntimeMap::Authored(source.clone())
+            .encounters()
+            .iter()
+            .map(|g| g.enemies.len())
+            .sum::<usize>(),
+        17
+    );
+    // Structural/contact proof only, using the production map and roster.
+    // Disable placed guards as an explicit fixture, never combat acceptance.
+    fn tick_without_guards(state: &mut GameState) {
+        let guards: Vec<_> = state
+            .players
+            .iter()
+            .filter(|p| p.is_campaign_enemy() && p.hp > 0)
+            .map(|p| (p.id, [p.x, p.y - PLAYER_FLOOR_Y, p.z]))
+            .collect();
+        for (id, feet) in guards {
+            state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+            state.encounters.hit(id, feet, state.tick, true);
+        }
+        state.tick(0.05);
+    }
+    for (edda, splice, known) in [
+        (false, false, true),
+        (true, false, true),
+        (false, true, true),
+        (true, true, true),
+        (true, true, false),
+    ] {
+        let mut before = m09_receipt_tests::completed_berth(edda, splice);
+        if !known {
+            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
+        }
+        let promoted = before
+            .promote_next(
+                MissionId::CommonCarrier,
+                crate::maps::RuntimeMap::Authored(source.clone())
+                    .content_sha256()
+                    .unwrap(),
+            )
+            .unwrap();
+        let mut state = GameState::with_authored_map(source.clone());
+        state.load_campaign_run(&promoted).unwrap();
+        let id = Uuid::new_v4();
+        state.add_player(id, "Crew contact route".into(), Role::Human);
+        assert!(state.acknowledge_mission(
+            id,
+            MissionReady {
+                id: MissionId::CommonCarrier,
+                attempt: 1
+            }
+        ));
+        let mut contacts = Vec::new();
+        state.append_civilian_contacts(&mut contacts);
+        assert_eq!(
+            contacts.len(),
+            1 + if known {
+                2 + usize::from(edda) + usize::from(splice)
+            } else {
+                0
+            }
+        );
+        assert!(contacts.iter().any(|b| b.key == "m10/tern"));
+        let mut navigator = Navigator::default();
+        for target in [
+            [0.0, 4.8, -12.1],
+            [3.5, 4.8, -12.1],
+            [3.5, 4.8, -14.0],
+            [5.5, 4.8, -14.0],
+            [3.5, 4.8, -14.0],
+            [3.5, 4.8, -12.1],
+            [0.0, 4.8, -12.1],
+            [0.0, 4.8, -15.0],
+            [-4.45, 4.8, -14.5],
+            [0.0, 2.0, -12.0],
+            [3.2, 2.0, -14.0],
+            [4.6, 2.0, -14.0],
+            [-4.0, 2.0, 1.0],
+            [5.8, 2.0, -1.0],
+            [0.0, 2.0, 14.0],
+            [0.0, 7.6, 14.0],
+            [-4.0, 7.6, 1.0],
+            [0.0, 7.6, -15.0],
+            [0.0, 4.8, -16.0],
+        ] {
+            let mut arrived = false;
+            for _ in 0..1200 {
+                let p = state.players.iter().find(|p| p.id == id).unwrap();
+                let here = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+                if (here[0] - target[0]).hypot(here[2] - target[2]) < 0.3
+                    && (here[1] - target[1]).abs() < 0.1
+                {
+                    arrived = true;
+                    break;
+                }
+                let action = navigator.steer(
+                    state.map.navigation(),
+                    here,
+                    NavigationGoal {
+                        feet: target,
+                        combat: false,
+                    },
+                    Action {
+                        forward: true,
+                        ..Default::default()
+                    },
+                    state.tick,
+                    true,
+                );
+                let action = navigator.avoid_bodies(
+                    &state.current_arena(),
+                    id,
+                    &state.contact_bodies(),
+                    action,
+                    state.tick,
+                );
+                assert!(!action.jump, "the actual crew routes remain walking routes");
+                state.set_action(id, action);
+                tick_without_guards(&mut state);
+                state.take_events();
+                assert!(
+                    state.players.iter().find(|p| p.id == id).unwrap().hp >= 39,
+                    "structural/contact fixture cannot cause damage"
+                );
+            }
+            let p = state.players.iter().find(|p| p.id == id).unwrap();
+            assert!(
+                arrived,
+                "crew edda={edda} splice={splice} known={known}, target={target:?} stalled at {:?}",
+                [p.x, p.y - PLAYER_FLOOR_Y, p.z]
+            );
+        }
+        assert_eq!(
+            state.campaign_run_document().unwrap().unwrap().m10_transit,
+            promoted.m10_transit
+        );
+        assert!(
+            state
+                .pickups
+                .iter()
+                .filter(|p| [
+                    "passenger_medical",
+                    "cargo_bullets",
+                    "cargo_shells",
+                    "repair_medical"
+                ]
+                .contains(&p.id.as_str()))
+                .all(|p| !p.available),
+            "ordinary contact-safe arrivals claim the actual finite supplies"
+        );
+        for _ in 0..400 {
+            tick_without_guards(&mut state);
+            state.take_events();
+        }
+        assert!(
+            state
+                .pickups
+                .iter()
+                .filter(|p| [
+                    "passenger_medical",
+                    "cargo_bullets",
+                    "cargo_shells",
+                    "repair_medical"
+                ]
+                .contains(&p.id.as_str()))
+                .all(|p| !p.available),
+            "campaign supplies never respawn while the mission continues"
+        );
+    }
+}

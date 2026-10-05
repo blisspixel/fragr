@@ -210,6 +210,9 @@ static func preset_for(map_name: String) -> Preset:
 
 static func carrier() -> Preset:
 	var preset: Preset = facility()
+	preset.sky_top = Color("060910")
+	preset.sky_horizon = Color("0b111a")
+	preset.ground_horizon = Color("060910")
 	preset.practical_color = Color("ffe1b1")
 	preset.practical_energy = 1.3
 	preset.practical_range = 8.0

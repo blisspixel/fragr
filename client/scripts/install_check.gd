@@ -87,6 +87,16 @@ func _ready() -> void:
 			if not ResourceLoader.exists(str(shot.get("image", "")), "Texture2D"):
 				_finish(false, "the M07 story illustrations are missing")
 				return
+	# M10 deliberately retains keyed reader-paced text until its own voice/art gate.
+	for id: String in ["m10_arrival", "l10_l11"]:
+		var scene: Dictionary = StoryScene.load_scene(id)
+		if scene.is_empty():
+			_finish(false, "the ship story manifests are missing or invalid")
+			return
+		for key: String in StoryScene.catalog_keys(scene):
+			if TranslationServer.translate(key) == key:
+				_finish(false, "the ship story copy is missing")
+				return
 	var lunar_bed: AudioStreamWAV = load("res://assets/story/ambience/lunar_port_utility.wav") as AudioStreamWAV
 	if lunar_bed == null or lunar_bed.loop_mode != AudioStreamWAV.LOOP_FORWARD:
 		_finish(false, "the lunar utility loop is missing or not looping")

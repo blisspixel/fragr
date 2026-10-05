@@ -24,7 +24,7 @@ static func map_error(info: Dictionary) -> String:
 		or value["objectives"].size() != OBJECTIVES.size() \
 		or not M03MissionState._region(value["boarding"], half) \
 		or not M04MissionState._control(value["departure"], info["presentation"]["decorations"], half,
-			["lift_control"]) \
+			["m10_ship_confirmation"]) \
 		or not M03MissionState._inside(value["departure"]["approach"], value["boarding"]) \
 		or not MissionState._point(value["pilot"], half) or not MissionState._point(value["companion_start"], half):
 		return MissionState.INVALID

@@ -995,3 +995,15 @@ msgstr "Everyone aboard: confirm at the forward control."
 
 msgid "M10_USE_DEPARTURE"
 msgstr "{use}: confirm the ship is secured."
+
+msgid "WORLD_M10_SHIP_CONFIRMATION"
+msgstr "COMMON CARRIER\nCONFIRM SHIP CLEAR"
+
+msgid "WORLD_M10_CARGO_DECK"
+msgstr "CARGO / DECK 1\nKEEP TRANSFER AISLE CLEAR"
+
+msgid "WORLD_M10_PASSENGER_DECK"
+msgstr "CREW / DECK 2\nBUNKS AND GALLEY"
+
+msgid "WORLD_M10_COMMAND_DECK"
+msgstr "COMMAND / DECK 3\nFLIGHT AND SHIP SYSTEMS"

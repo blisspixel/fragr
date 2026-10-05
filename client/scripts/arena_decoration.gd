@@ -13,6 +13,10 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"lift_control": "WORLD_LIFT_CONTROL",
 	"m09_crew_manifest": "WORLD_M09_CREW_MANIFEST",
 	"m09_board_carrier": "WORLD_M09_BOARD_CARRIER",
+	"m10_ship_confirmation": "WORLD_M10_SHIP_CONFIRMATION",
+	"m10_cargo_deck": "WORLD_M10_CARGO_DECK",
+	"m10_passenger_deck": "WORLD_M10_PASSENGER_DECK",
+	"m10_command_deck": "WORLD_M10_COMMAND_DECK",
 	"m03_schedule_board": "WORLD_M03_SCHEDULE_BOARD",
 	"m03_schedule_cancelled": "WORLD_M03_SCHEDULE_CANCELLED",
 	"m03_platform_car": "WORLD_M03_PLATFORM_CAR",
@@ -122,7 +126,7 @@ static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release", "m09_crew_manifest", "m09_board_carrier": return 3
+		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release", "m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation": return 3
 		"gate_locked", "m08_seal_locked": return 7
 		"gate_open", "m08_seal_open": return 8
 		"m03_schedule_cancelled": return 7

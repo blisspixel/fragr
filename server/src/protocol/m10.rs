@@ -97,7 +97,7 @@ impl M10MapGeometry {
         };
         if !half.is_finite() || half <= 0.0 || self.objectives.len() != M10_OBJECTIVE_IDS.len() || self.objectives.iter().zip(M10_OBJECTIVE_IDS).any(|(o,id)| o.id != id || !matches!(&o.action, MissionObjectiveAction::Arrival {region, feet} if region.valid(half) && point(*feet) && region.contains(*feet)))
             || !self.boarding.valid(half) || !self.boarding.contains(self.departure.approach) || !point(self.departure.approach) || !point(self.pilot) || !point(self.companion_start)
-            || self.departure.point(present, solids).is_none() || present.decorations.get(self.departure.decoration).is_none_or(|p| p.kind != MapDecorationKind::LiftControl)
+            || self.departure.point(present, solids).is_none() || present.decorations.get(self.departure.decoration).is_none_or(|p| p.kind != MapDecorationKind::M10ShipConfirmation)
             || self.passengers.len() != 4 || self.passengers.iter().zip(["berth_crew_a","berth_crew_b","edda","splice"]).any(|(p,id)| p.id != id || !point(p.feet)) {
             return Err("invalid M10 map geometry");
         }

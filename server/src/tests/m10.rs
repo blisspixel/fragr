@@ -376,3 +376,86 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
     stop_tx.send(()).unwrap();
     server.await.unwrap().unwrap();
 }
+
+#[tokio::test]
+async fn m10_registered_panels_require_current_readers_even_without_mission_facts() {
+    use futures_util::{SinkExt, StreamExt};
+    use std::time::Duration;
+    use tokio_tungstenite::{connect_async, tungstenite::Message};
+    for kind in [
+        "m10_ship_confirmation",
+        "m10_cargo_deck",
+        "m10_passenger_deck",
+        "m10_command_deck",
+    ] {
+        let path = std::env::temp_dir().join(format!("fragr-ship-panel-{}.json", Uuid::new_v4()));
+        let source = serde_json::json!({"version":1,"map_id":1042,"name":"Registered panel boundary","half_extent":16,"ground":"concrete","equipment":"discovery",
+            "solids":[{"id":"panel_host","min":[-2,0,-5],"max":[2,3,-4],"surface":"enamel"}],
+            "decorations":[{"solid":"panel_host","face":"south","kind":kind,"center":[0,0],"size":[1,1]}],
+            "spawns":[{"id":"entry","feet":[0,0,0],"yaw":0}], "landmarks":[{"id":"inspection","feet":[0,0,1]}]});
+        let bytes = serde_json::to_vec(&source).unwrap();
+        AuthoredMap::read(bytes.as_slice()).unwrap();
+        std::fs::write(&path, bytes).unwrap();
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+        let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(crate::run::run_server(
+            crate::run::ServerOptions {
+                bind: "127.0.0.1:0".into(),
+                bots: 0,
+                authored: Some(AuthoredSource::File(path.clone())),
+                ..Default::default()
+            },
+            async {
+                let _ = stop_rx.await;
+            },
+            Some(ready_tx),
+        ));
+        let address = tokio::time::timeout(Duration::from_secs(30), ready_rx)
+            .await
+            .unwrap()
+            .unwrap();
+        for version in [35, 36] {
+            for role in ["human", "agent", "spectator"] {
+                let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+                socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string())).await.unwrap();
+                tokio::time::timeout(Duration::from_secs(5), async {
+                    let mut welcomed = false;
+                    loop {
+                        let Message::Text(text) = socket.next().await.unwrap().unwrap() else {
+                            continue;
+                        };
+                        let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+                        if version == 35 {
+                            assert_eq!(
+                                value["type"], "error",
+                                "legacy reader must be refused before Welcome for {kind}/{role}"
+                            );
+                            assert_eq!(value["code"], "unsupported_gameplay");
+                            break;
+                        }
+                        match value["type"].as_str().unwrap() {
+                            "welcome" => welcomed = true,
+                            "map_info" => {
+                                assert!(welcomed);
+                                assert_eq!(value["presentation"]["decorations"][0]["kind"], kind);
+                                assert!(
+                                    value.get("m10").is_none(),
+                                    "a registered sign never invents mission authority"
+                                );
+                                break;
+                            }
+                            "error" => panic!("current panel reader refused: {value}"),
+                            _ => {}
+                        }
+                    }
+                })
+                .await
+                .expect("bounded registered panel delivery");
+                let _ = socket.close(None).await;
+            }
+        }
+        stop_tx.send(()).unwrap();
+        server.await.unwrap().unwrap();
+        std::fs::remove_file(path).unwrap();
+    }
+}

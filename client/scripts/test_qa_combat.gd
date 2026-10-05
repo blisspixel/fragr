@@ -86,6 +86,13 @@ func _run() -> void:
 		and QaCombat.approach_focus_point({"players": []}, "intro_turret") == Vector3.INF, "missing or defeated actor cannot invent a capture target")
 	_check(TOUR.valid_walks([{"expect_m06_completed": ["freight_cleared"], "expect_m06_prisoner_route_marked": false}]), "M06 expectations accept an exact prefix and typed marker")
 	_check(TOUR.valid_walks([{"expect_m09_completed": ["loading_cleared"], "expect_m09_crew_released": false, "expect_m09_charge_falls": 0}]), "M09 expectations retain actual ordered facts")
+	for prefix_size: int in range(M10MissionState.OBJECTIVES.size() + 2):
+		var ship_order: Array[String] = M10MissionState.OBJECTIVES.duplicate()
+		ship_order.append(M10MissionState.DEPARTURE)
+		_check(TOUR.valid_walks([{"expect_m10_completed": ship_order.slice(0, prefix_size)}]), "M10 accepts every actual ordered completion prefix")
+	for invalid_m10: Variant in ["forward_secured", {}, ["service_secured"], ["forward_secured", "forward_secured"], ["forward_secured", "service_secured", "aft_secured", "passengers_secured", "party_departed", "party_departed"]]:
+		_check(not TOUR.valid_walks([{"expect_m10_completed": invalid_m10}]), "malformed or reordered ship acceptance is refused")
+	_check_m10_route()
 	for invalid_m09: Dictionary in [{"expect_m09_completed": ["lesson_cleared"]}, {"expect_m09_hatch_open": "true"}, {"expect_m09_charge_falls": 8}, {"expect_m09_charge_falls": 0.5}]:
 		_check(not TOUR.valid_walks([invalid_m09]), "malformed berth acceptance requirement is refused")
 	for invalid_m06: Dictionary in [{"expect_m06_completed": ["rail_lane_cleared"]}, {"expect_m06_prisoner_route_marked": "false"}, {"expect_m06_carried_photos": -1}, {"expect_m06_carried_patients": ["edda", "edda"]}]:
@@ -907,6 +914,31 @@ func _check_jammer_launch() -> void:
 	launch["players"][1]["just_fired"] = true
 	observer._observe(launch)
 	_check(observer.enemy_shots == 2, "a later pulse remains independently observable")
+
+func _check_m10_route() -> void:
+	var tour: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://qa/m10_common_carrier.json"))
+	var map: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m10_common_carrier.json"))
+	if not tour is Dictionary or not tour.get("states") is Array or not map is Dictionary or not map.get("encounters") is Array:
+		_check(false, "owning M10 route and actual native source must parse")
+		return
+	_check(TOUR.valid_walks(tour["states"]), "actual M10 route retains strict walking and fact expectations")
+	var authored: Array[String] = []
+	for group: Dictionary in map["encounters"]:
+		for enemy: Dictionary in group["enemies"]:
+			authored.append(enemy["id"])
+	var required: Array[String] = []
+	for state: Dictionary in tour["states"]:
+		if state.get("combat") is Dictionary:
+			var combat: Dictionary = state["combat"]
+			_check(combat.get("target_required_only") == true and combat.get("evade_tells") == true, "ship fights retain bounded targets and real tell defense")
+			for guard: String in combat["required"]:
+				_check(not required.has(guard), "a guard cannot satisfy two ship probes")
+				required.append(guard)
+			_check(combat.get("engagement_distance") == (12 if state.get("weapon") == "Scatter" else 35), "ship probes use the actual owned weapon range")
+	authored.sort()
+	required.sort()
+	_check(required == authored and required.size() == 17, "all seventeen original native ship guards remain required exactly once")
+	_check(tour["states"].back().get("expect_m10_completed") == ["forward_secured", "service_secured", "aft_secured", "passengers_secured", "party_departed"], "played acceptance still ends with real shared departure")
 
 func _check(ok: bool, message: String) -> void:
 	if not ok:

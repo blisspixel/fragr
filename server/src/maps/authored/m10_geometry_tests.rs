@@ -62,9 +62,12 @@ fn m10_collision_shell_has_three_supported_decks_and_a_sealed_freight_volume() {
         map.mission.is_none(),
         "collision work alone is not a mission"
     );
+    assert_eq!(map.supplies.len(), 8, "only authored finite ship stock");
     assert!(
-        map.supplies.is_empty(),
-        "no gun grant before the lesson contract"
+        map.supplies
+            .iter()
+            .all(|s| !matches!(s.kind, crate::sim::PickupKind::Weapon(_))),
+        "no gun grant before the real lesson presentation"
     );
     assert!(map.arena.solids.len() <= 128);
     for (feet, expected_ceiling) in [
@@ -90,6 +93,24 @@ fn m10_collision_shell_has_three_supported_decks_and_a_sealed_freight_volume() {
         [0.0, 12.0, 1.0],
         &map.arena.solids,
     ));
+    for height in [7.0, 8.8, 9.8] {
+        assert!(
+            !crate::combat::line_of_sight(
+                [0.0, height, -17.0],
+                [0.0, height, -20.0],
+                &map.arena.solids
+            ),
+            "fore bulkhead and command pane remain physically pressure sealed at {height}"
+        );
+    }
+    assert!(
+        !crate::combat::line_of_sight([3.5, 3.55, -14.0], [3.5, 3.55, -10.0], &map.arena.solids),
+        "cargo cover blocks a real standing-height shot"
+    );
+    assert!(
+        crate::combat::line_of_sight([0.0, 3.55, -14.0], [0.0, 3.55, -10.0], &map.arena.solids),
+        "cargo handling aisle retains the exposed alternative"
+    );
     assert!(!crate::combat::line_of_sight(
         [-7.0, 6.0, 14.0],
         [-10.0, 6.0, 14.0],

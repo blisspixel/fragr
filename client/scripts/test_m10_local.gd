@@ -52,6 +52,34 @@ func _playing() -> bool:
 func _gear() -> Dictionary:
 	return current_scene.net_client.equipment if current_scene != null and current_scene.has_method("change_role") else {}
 
+func _ship_presentation(game: Node) -> void:
+	var cover: ArenaCover = game.arena_cover
+	var info: Dictionary = game.current_map_info
+	_check(cover != null and cover._solid_views.size() == info["solids"].size(), "actual accepted ship solids have matching presentation")
+	_check(not (cover.get_node("MapFloor") as Node3D).visible, "sealed ship does not draw an outside arena floor")
+	for index: int in range(4):
+		_check(not (cover.get_node("MapBoundary%d" % index) as Node3D).visible, "outside arena boundary cannot hide the pressure window")
+	_check(cover.get_node("Backdrop").get_child_count() == 0, "actual ship has no borrowed industrial skyline")
+	var pane: bool = false
+	for index: int in range(info["presentation"]["solids"].size()):
+		var surface: String = info["presentation"]["solids"][index]
+		var material: Material = cover._solid_views[index].material_override
+		if surface == "inspection_glass":
+			pane = material is StandardMaterial3D and (material as StandardMaterial3D).transparency == BaseMaterial3D.TRANSPARENCY_ALPHA
+		elif surface == "service_steel":
+			_check(material is ShaderMaterial and (material as ShaderMaterial).get_shader_parameter("trim_glow") == 0.0 \
+				and (material as ShaderMaterial).get_shader_parameter("tile_enabled") == true, "actual accepted ship selects quiet reviewed working steel")
+	_check(pane, "actual sealed command pane uses registered transparent glass")
+	var signs: Array[String] = []
+	var lamps: int = 0
+	for detail: Dictionary in info["presentation"]["decorations"]:
+		if detail["kind"] == "strip_light":
+			lamps += 1
+		elif str(detail["kind"]).begins_with("m10_"):
+			signs.append(detail["kind"])
+			_check(ArenaDecoration.SIGN_KEYS.has(detail["kind"]) and tr(ArenaDecoration.SIGN_KEYS[detail["kind"]]) != ArenaDecoration.SIGN_KEYS[detail["kind"]], "actual ship sign has its own localized purpose")
+	_check(lamps == 8 and signs == ["m10_cargo_deck", "m10_passenger_deck", "m10_command_deck", "m10_ship_confirmation"], "actual accepted map retains bounded lights and four owning ship panels")
+
 func _run() -> void:
 	var preferences: FragrSettings = FragrSettings.new(settings_path)
 	preferences.set_value("video", "display_mode", 0)
@@ -110,6 +138,7 @@ func _run() -> void:
 	_check(_gear()["personal_claims"].is_empty() and game.net_client.accepted_body == "synthetic", "old claims clear while saved body persists")
 	_check(game.mission_hud.state["m10"]["carried_archive"] == fixture["m08_outcome"] and game.m10_ship._figures.size() == 5 and game.mission_hud.state["m10"]["transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "actual archive facts and only released crew arrive aboard the ship")
 	_check(game.mission_hud.state["run"]["continues"] == 3, "exactly one Episode III refill")
+	_ship_presentation(game)
 	if not await _until(func() -> bool: return game._has_local_input_target() and game.place_armed, "actual pawn input is armed after the story release frame"):
 		return
 	Input.action_press("place_mine")

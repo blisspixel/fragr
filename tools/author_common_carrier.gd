@@ -24,10 +24,15 @@ func _initialize() -> void:
 	_box("pressure_roof", [-8.0, 10.1, -18.0], [8.0, 10.4, 18.0], "enamel")
 	_box("pressure_west", [-8.0, 0.0, -18.0], [-7.8, 10.4, 18.0], "enamel")
 	_box("pressure_east", [7.8, 0.0, -18.0], [8.0, 10.4, 18.0], "enamel")
-	_box("pressure_fore", [-7.8, 0.0, -18.0], [7.8, 10.4, -17.8], "enamel")
+	_box("pressure_fore", [-7.8, 0.0, -18.0], [7.8, 8.05, -17.8], "enamel")
+	_box("fore_window_head", [-7.8, 9.55, -18.0], [7.8, 10.4, -17.8], "enamel")
+	_box("fore_window_port", [-7.8, 8.05, -18.0], [-4.0, 9.55, -17.8], "enamel")
+	_box("fore_window_starboard", [4.0, 8.05, -18.0], [7.8, 9.55, -17.8], "enamel")
+	_box("fore_pressure_glass", [-4.0, 8.05, -18.0], [4.0, 9.55, -17.8], "inspection_glass")
 	_box("pressure_aft", [-7.8, 0.0, 17.8], [7.8, 10.4, 18.0], "enamel")
 	_stairs("west", -7.45, -16.0, 1.0)
 	_stairs("east", 3.65, 16.0, -1.0)
+	_inhabited()
 	var landmarks: Array[Dictionary] = [
 		{"id": "passenger_hall", "feet": [0.0, 4.8, -15.0]},
 		{"id": "forward_cargo", "feet": [0.0, 2.0, -12.0]},
@@ -43,6 +48,7 @@ func _initialize() -> void:
 		"version": 1, "map_id": 1010, "name": "Common Carrier",
 		"half_extent": 24, "ground": "service_steel", "equipment": "discovery",
 		"solids": _solids, "landmarks": landmarks,
+		"decorations": _details(), "supplies": _supplies(),
 		"m10": _mission(), "encounters": _encounters(),
 		"spawns": [{"id": "passenger_entry", "feet": [0.0, 4.8, -15.0], "yaw": 0.0}],
 	}
@@ -58,6 +64,61 @@ func _initialize() -> void:
 
 func _box(id: String, lower: Array, upper: Array, surface: String = "service_steel") -> void:
 	_solids.append({"id": id, "min": lower, "max": upper, "surface": surface})
+
+func _inhabited() -> void:
+	# The side cabin uses the hull and deck slabs for its outer shell. Its
+	# ordinary 2.2-metre doorway connects to the passenger hall without a gate.
+	_box("bunk_wall_fore", [4.3, 4.8, -17.8], [4.5, 7.4, -15.1], "enamel")
+	_box("bunk_wall_aft", [4.3, 4.8, -12.9], [4.5, 7.4, -11.0], "enamel")
+	_box("bunk_end", [4.3, 4.8, -11.0], [7.8, 7.4, -10.8], "enamel")
+	_box("bunk_fore", [5.4, 4.8, -17.1], [7.3, 5.3, -15.9], "enamel")
+	_box("bunk_aft", [5.4, 4.8, -12.7], [7.3, 5.3, -11.5], "enamel")
+	_box("galley_counter", [4.5, 4.8, -5.8], [7.3, 5.9, -4.5], "records_tile")
+	_box("passenger_repair_bench", [4.5, 4.8, -9.8], [7.3, 5.65, -8.6], "lift_panel")
+	_box("command_console", [1.5, 7.6, -16.8], [3.5, 8.5, -16.0], "lift_panel")
+	_box("forward_lashed_cargo", [3.0, 2.0, -12.0], [5.5, 3.8, -10.8], "enamel")
+	_box("cargo_transfer_stack", [-3.2, 2.0, -5.8], [-1.1, 3.8, -4.4], "enamel")
+	_box("service_power_bank", [2.8, 2.0, 0.0], [4.8, 3.8, 2.5], "lift_panel")
+	_box("service_coolant_bank", [-4.8, 2.0, 9.3], [-3.0, 3.8, 11.0], "service_steel")
+	# Short rails explain the freight drop while the side aisles stay open.
+	for level: int in range(2):
+		var feet: float = 4.8 + level * 2.8
+		_box("freight_fore_rail_%d" % level, [-1.8, feet, -3.15], [1.8, feet + 0.95, -3.0], "lift_panel")
+		_box("freight_aft_rail_%d" % level, [-1.8, feet, 5.0], [1.8, feet + 0.95, 5.15], "lift_panel")
+
+func _detail(solid: String, face: String, kind: String, center: Array, size: Array) -> Dictionary:
+	return {"solid": solid, "face": face, "kind": kind, "center": center, "size": size}
+
+func _details() -> Array[Dictionary]:
+	var details: Array[Dictionary] = [
+		_detail("forward_lashed_cargo", "north", "m10_cargo_deck", [0.0, 0.2], [1.8, 0.6]),
+		_detail("bunk_wall_fore", "west", "m10_passenger_deck", [0.0, 0.35], [1.8, 0.6]),
+		_detail("fore_window_starboard", "south", "m10_command_deck", [0.0, 0.0], [2.0, 0.55]),
+	]
+	for spec: Array in [["pressure_west", "east", 14.0, 3.6], ["pressure_east", "west", -3.0, 3.6],
+		["pressure_west", "east", -12.0, 3.6], ["pressure_east", "west", -14.0, 6.4],
+		["pressure_west", "east", 0.0, 6.4], ["pressure_east", "west", 16.0, 6.4],
+		["pressure_east", "west", -14.0, 9.1], ["pressure_west", "east", -12.0, 9.1]]:
+		details.append(_detail(spec[0], spec[1], "strip_light", [spec[2], float(spec[3]) - 5.2], [1.2, 0.25]))
+	return details
+
+func _supply(id: String, feet: Array, kind: String, amount: int, pool: String = "", secret: bool = false) -> Dictionary:
+	var grant: Dictionary = {"kind": kind, "amount": amount}
+	if not pool.is_empty():
+		grant["pool"] = pool
+	return {"id": id, "feet": feet, "grant": grant, "claim": "contested", "secret": secret}
+
+func _supplies() -> Array[Dictionary]:
+	return [
+		_supply("passenger_medical", [5.5, 4.8, -14.0], "health", 50),
+		_supply("cargo_bullets", [3.2, 2.0, -14.0], "ammo", 60, "bullets"),
+		_supply("cargo_shells", [4.6, 2.0, -14.0], "ammo", 12, "shells"),
+		_supply("repair_medical", [5.8, 2.0, -1.0], "health", 30),
+		_supply("aft_medical", [-3.0, 2.0, 15.0], "health", 40),
+		_supply("crew_armor", [-2.8, 7.6, -15.5], "armor", 50, "", true),
+		_supply("surplus_bullets", [5.7, 4.8, -7.0], "ammo", 60, "bullets", true),
+		_supply("surplus_shells", [7.1, 4.8, -7.0], "ammo", 12, "shells", true),
+	]
 
 func _cut(pieces: Array[Rect2], hole: Rect2) -> Array[Rect2]:
 	var output: Array[Rect2] = []
@@ -118,7 +179,7 @@ func _mission() -> Dictionary:
 		"passengers": [{"id": "berth_crew_a", "feet": [2.0, 4.8, -16.0]}, {"id": "berth_crew_b", "feet": [-2.0, 4.8, -16.0]},
 			{"id": "edda", "feet": [2.0, 4.8, -14.0]}, {"id": "splice", "feet": [-2.0, 4.8, -14.0]}],
 		"departure": {"requires_encounter": groups[3], "approach": [0.0, 4.8, -16.0], "boarding": _region([0.0, 4.8, -16.0], 1.2),
-			"panel": {"solid": "pressure_fore", "face": "south", "kind": "lift_control", "center": [0.0, 1.1], "size": [0.7, 0.6]}}}
+			"panel": {"solid": "pressure_fore", "face": "south", "kind": "m10_ship_confirmation", "center": [0.0, 2.275], "size": [0.7, 0.6]}}}
 
 func _enemy(id: String, kind: String, feet: Array) -> Dictionary:
 	return {"id": id, "kind": kind, "feet": feet, "yaw": 0.0}

@@ -22,7 +22,7 @@ static func fixture_map() -> Dictionary:
 		passengers.append({"id": M10MissionState.PASSENGERS[i], "feet": [-6 + i * 3, 0, 6]})
 	return {"type": "map_info", "map_id": 1010, "map_name": "Common Carrier", "geometry_version": 2, "half_extent": 24,
 		"solids": [{"min_x": -2, "max_x": 2, "min_z": -2, "max_z": -1, "bottom": 0, "top": 3}],
-		"presentation": {"ground": "service_steel", "solids": ["enamel"], "decorations": [{"solid": 0, "face": "north", "center": [0, 0], "size": [1, 1], "kind": "lift_control"}]},
+		"presentation": {"ground": "service_steel", "solids": ["enamel"], "decorations": [{"solid": 0, "face": "north", "center": [0, 0], "size": [1, 1], "kind": "m10_ship_confirmation"}]},
 		"m10": {"objectives": objectives, "departure": {"decoration": 0, "approach": [0, 0, -4]}, "boarding": {"min": [-1, 0, -5], "max": [1, 2, -3]},
 			"pilot": [-4, 0, -4], "companion_start": [4, 0, -4], "passengers": passengers}}
 
@@ -43,6 +43,9 @@ static func fixture_state(info: Dictionary, done: int = 0, arrivals: Array[Strin
 
 func _run() -> void:
 	var info: Dictionary = fixture_map()
+	var wrong_control: Dictionary = info.duplicate(true)
+	wrong_control["presentation"]["decorations"][0]["kind"] = "lift_control"
+	_check(not M10MissionState.map_error(wrong_control).is_empty(), "generic lift panel cannot impersonate the ship confirmation")
 	_check(MissionState.map_error(info).is_empty(), "M10 owns a separate map contract")
 	var geometry: Dictionary = MissionState.geometry_for(info)
 	var first: Dictionary = fixture_state(info)
