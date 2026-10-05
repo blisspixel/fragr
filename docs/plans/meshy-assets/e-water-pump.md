@@ -1,6 +1,6 @@
 # Water pump
 
-Status: **in flight**, 2026-10-04. Complete-port reference and all-side raw source inspection passed, using 35 actual included credits. Local preparation and runtime selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation. The [source receipt](../../evidence/world-prop-sources-20261004.md) records the task, geometry and allowance.
+Status: **in flight**, 2026-10-04. Complete-port reference and all-side raw source inspection passed, using 35 actual included credits. Compact fixed preparation retains all original geometry, UVs and winding and adds four physically joined floor mounts; [preparation evidence](../../evidence/world-prop-preparation-20261004.md) records reproduced hashes and support checks. Played placement and runtime selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation. The [source receipt](../../evidence/world-prop-sources-20261004.md) records the task, geometry and allowance.
 Stable ID: `E-water-pump`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
