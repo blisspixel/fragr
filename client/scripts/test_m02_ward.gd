@@ -21,7 +21,9 @@ func _check(ok: bool, message: String) -> void:
 		push_error("test_m02_ward: " + message)
 
 func _map() -> Dictionary:
-	return {"map_id": M02Ward.MAP_ID, "map_name": M02Ward.MAP_NAME, "m02_objectives": 3}
+	return {"map_id": M02Ward.MAP_ID, "map_name": M02Ward.MAP_NAME, "m02_objectives": 3,
+		"geometry_version": 2, "half_extent": 40.0,
+		"solids": [{"min_x": 8.0, "max_x": 9.0, "bottom": 0.0, "top": 2.6, "min_z": -13.0, "max_z": -9.0}]}
 
 func _state(attempt: int, secured: bool, released: bool, side_secured: bool = false) -> Dictionary:
 	return {"id": MissionState.M02_ID, "attempt": attempt, "m02": {
@@ -124,8 +126,8 @@ func _run() -> void:
 	_check(ward._latch.visible,
 		"an observed local release keeps Latch visible before its first releasing snapshot")
 	ward.set_companion_phase("releasing")
-	_check(ward._latch.visible and ward._latch is LatchView,
-		"the tableau keeps the shared Latch chassis while the server pawn releases")
+	_check(not ward._latch.visible and ward._latch is LatchView,
+		"the actual releasing snapshot hands the visible body to the authoritative pawn")
 	ward._process(M02Ward.CROSS_END)
 	_check(ward._second_left.position.x > -0.5 and ward._caption_key != "M02_LATCH_SPEECH",
 		"Latch crosses the ward before the second door moves or speech begins")
@@ -288,8 +290,8 @@ func _run() -> void:
 	_check(not ward._latch.visible,
 		"a first snapshot without the companion does not briefly resurrect fixed Latch")
 	ward.set_companion_phase("releasing")
-	_check(ward._latch.visible,
-		"a releasing snapshot resolves a state-first late join to the ward tableau")
+	_check(not ward._latch.visible,
+		"a releasing snapshot resolves a state-first late join to the authoritative pawn")
 	ward.set_companion_phase("firing")
 	_check(not ward._latch.visible and ward._transfer_list.visible,
 		"a late observer sees the moving ally without a duplicate ward figure")

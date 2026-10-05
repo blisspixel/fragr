@@ -1352,9 +1352,9 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		for sample_index: int in range(_companion_strip_samples.size()):
 			var observation: Dictionary = _companion_strip_samples[sample_index]
 			var phase: String = str(observation.get("phase", ""))
-			var moving: bool = phase in ["following", "firing"]
-			if observation.is_empty() or observation.get("pawn_visible") != moving \
-				or observation.get("ward_visible") == moving or observation.get("followable") == true:
+			var presenting: bool = phase in ["releasing", "following", "firing"]
+			if observation.is_empty() or observation.get("pawn_visible") != presenting \
+				or observation.get("ward_visible") == presenting or observation.get("followable") == true:
 				push_error("qa_tour: companion strip handoff disagreed with the server: " + JSON.stringify(observation))
 				_failed = true
 			if phase == "releasing":

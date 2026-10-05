@@ -24,6 +24,7 @@ mod m08;
 mod m08_qa;
 mod m09;
 mod roster;
+mod shot_occlusion;
 mod spawns;
 
 #[tokio::test]

@@ -306,6 +306,19 @@ func _run() -> void:
 	game._process_shot_results([_blast("a", "fighter", 4, 40), _blast("b", "fighter", 2, 20), _blast("", "range", 1, 0)], 9)
 	_check(hud.fired.size() == blast_hud + 1 and hud.hits.size() == blast_hits + 1 and hud.fired.back() == "Scatter", "one blast is one kick and one hit marker")
 	_check(effects.active_count() >= 7, "the blast reaches the world as seven pellets")
+	# A neutral body stops a resolved ray without a participant ID or health.
+	# Physical impact evidence and damaging hit confirmation are independent.
+	var neutral: Dictionary = _shot("fighter", "flechette")
+	neutral["hit"] = false
+	neutral["damage"] = 0
+	var neutral_fires: int = hud.fired.size()
+	var neutral_hits: int = hud.hits.size()
+	effects.clear()
+	game._process_shot_results([neutral], 10)
+	_check(effects.active_count() == 1 and effects.impact_count() == 1
+		and effects.has_shot_from("self", "fighter"), "a no-health neutral body impact retains its resolved endpoint")
+	_check(hud.fired.size() == neutral_fires + 1 and hud.hits.size() == neutral_hits,
+		"a neutral body stop shows actual fire but grants no damaging hit marker")
 	game._clear_world()
 	_check(effects.active_count() == 0, "role teardown clears world effects")
 	game._process_shot_results([_shot()], 1)

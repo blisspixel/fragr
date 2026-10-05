@@ -1554,14 +1554,16 @@ func _on_snapshot_received(data):
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
 	var companion_phase: String = ""
+	var companion_started: int = -1
 	for player_data: Dictionary in player_list:
 		if ActorState.is_companion(player_data):
 			companion_phase = str(player_data["campaign"]["phase"])
+			companion_started = int(player_data["campaign"]["phase_started"])
 			break
 	if companion_phase.is_empty() and net_client.mission.get("state", {}).get("phase") == "departed":
 		companion_phase = "departed"
 	if m02_ward != null:
-		m02_ward.set_companion_phase(companion_phase)
+		m02_ward.set_companion_phase(companion_phase, companion_started, int(data.get("tick", 0)))
 	var participant_list: Array[Dictionary] = ActorState.participants(player_list)
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left", 0)
@@ -1647,9 +1649,9 @@ func _on_snapshot_received(data):
 		if players.has(id):
 			players[id].update_state(player_data, int(tick))
 			if players[id].is_campaign_companion:
-				# The fixed figure owns the full release tableau. The server pawn
-				# takes over at the same feet when it starts following.
-				players[id].visible = companion_phase != "releasing"
+				# Every real companion snapshot owns the visible body, including
+				# the stationary release phase and its authoritative shot stop.
+				players[id].visible = true
 	
 	for id in players.keys():
 		if not current_ids.has(id):
