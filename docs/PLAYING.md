@@ -45,9 +45,10 @@ with a found Railgun and Turret flanks. **Declared Goods** continues through
 level 7's curfew town and Sniper lesson. **Custodian of Record** brings level 8's
 archive, Proximity Mine, Auditor and optional custody rescues. **Passenger
 Manifest** is level 9: release the Common Carrier crew and fight to the boarding
-hatch. All nine have independent practice entries and connected saved-run
+hatch. **Common Carrier** is level 10 aboard the ship, with ordered encounters,
+bridge controls and a finite remote armory. All ten have independent practice entries and connected saved-run
 progression. These remain development prototypes, with final art and
-fresh-player acceptance open. Level 10 and the rest of the twenty-level
+fresh-player acceptance open. Levels 11 through 20 of the twenty-level
 campaign remain in development. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
 
@@ -62,7 +63,14 @@ cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4 --solo-broa
 godot --path client res://scenes/main.tscn -- --solo
 ```
 
-**Multiplayer** connects to a separately hosted server. The host chooses
+**Multiplayer** connects to a shared server. In builds containing the new
+desktop controls, **Host** starts Team Deathmatch or 5v5 Sector 9 Sabotage
+with the bundled server. **Join** connects to someone else's server or your
+existing hosted match. Choose Watch or Join after readiness. Host controls
+default to this computer only; enable LAN access to invite peers using your
+LAN address and selected port. Leaving or returning to the menu preserves
+the match; **Stop server** or closing the app ends your owned host.
+Older releases require a separately started server. The host chooses
 the arena and rules. Spectators, humans, agents and rule bots share the same
 authoritative match. The current release includes free-for-all and team
 deathmatch, six arenas, capture the flag on Arena Duel, Directive 17 and Sector 9,

@@ -28,7 +28,8 @@ Join menu pages, narrow match orchestration and focused tests. Reuse
 executable lookup, with a shared narrow extraction if needed, rather than
 inventing another search policy.
 
-The separate server increment owns only `server/src/local.rs` and `main.rs`:
+The separate server increment owns `server/src/local.rs`, `main.rs` and a
+narrow `run.rs` accept-task ownership fix:
 an explicit desktop arena flag, existing bounded stdin shutdown/EOF lease and
 typed readiness wrapping `run_server` with existing parsed match options.
 Before implementation, both sides must agree on the exact flag and readiness

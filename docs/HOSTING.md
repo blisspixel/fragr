@@ -11,6 +11,22 @@ keeps cloud deployment at plan-only status.
 
 ## Start a match
 
+In a build containing the desktop Host controls, choose **Multiplayer > Host**.
+Select **Team Deathmatch** and an arena, or **5v5 Sabotage** on Sector 9.
+Choose zero to ten rule bots, then **Start server**. Watch or Join becomes
+available after the bundled server reports readiness. The default is local
+to this computer on an available port. Enable **Allow LAN players** and choose
+a port to invite another machine; peers enter your LAN address and that port
+in Multiplayer. The app shows its own loopback connection address, not a
+detected external address. Existing releases before this increment use the
+dedicated command below.
+
+Leaving a fighter seat or returning to the menu keeps your server running
+for everyone else. **Stop server** explicitly ends the hosted match. Closing
+the app also ends its owned server. Campaign saves are separate. A dedicated
+process is preferable when the match must continue after the host closes
+the game.
+
 ```bash
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4
 ```
@@ -39,6 +55,9 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4 --mutator gol
 # Development CTF match on Sector 9, first side to three captures.
 # Arena Duel is `--map 1` and Directive 17 is `--map 3`. The other arenas have no stands.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --capture-limit 3 --bots 6
+
+# Optional ten-seat Sabotage, five per side; four bots leave six seats.
+cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 4
 ```
 
 One server keeps one rule set for its lifetime. Two weapon mutators cannot
@@ -76,8 +95,8 @@ The host pings idle sessions and closes one that sends nothing, including no
 automatic pong, for 45 seconds. Flooding or repeated unreadable frames can
 also close a connection. Audit logs for joins, refusals, kicks and bans use
 `RUST_LOG=fragr_server::audit=info` without logging tickets or resume tokens.
-`GET /status` on the game port is a host probe, not a web client. CTF is in
-draft review and needs a human match before it can be called accepted.
+`GET /status` on the game port is a host probe, not a web client. Implemented
+modes still need fresh human matches to establish clarity and fun.
 
 ## Server options
 
@@ -89,10 +108,12 @@ draft review and needs a human match before it can be called accepted.
 | `--map-rotate` | Alternate arenas between rounds. |
 | `--map-file <PATH>` | Authored development map; requires `--bots 0` and no arcade overrides. |
 | `--local-mission <ID>` | Desktop-owned mission on a loopback port with readiness and stdin lease. |
+| `--desktop-host` | App-owned TDM or 5v5 Sector 9 arena with typed readiness and a stdin lease; the desktop menu sets this flag. |
 | `--run-mode <MODE>` | `new` or `resume` for a local mission run. |
 | `--local-run-preview` | Read-only campaign save compatibility for the menu. |
 | `--solo-broadcast` | Episode 0 Calibration in Arena Duel. |
-| `--mode <MODE>` | `ffa`, `tdm`, or `ctf`. CTF runs on Arena Duel, Directive 17, or Sector 9, with no rotation. |
+| `--mode <MODE>` | `ffa`, `tdm`, `ctf`, or `sabotage`. CTF runs on Arena Duel, Directive 17, or Sector 9. Sabotage runs on Sector 9. Objective modes have no rotation. |
+| `--sabotage-five-v-five` | Optional Sabotage shared ten-seat profile, at most five per side, with pistol starts and map weapon upgrades. |
 | `--mutator <ID>` | Repeatable: `rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`. |
 | `--friendly-fire` | Allow team damage in TDM. |
 | `--frag-limit <N>` | Fighter limit in FFA or side limit in TDM; unavailable in CTF. |

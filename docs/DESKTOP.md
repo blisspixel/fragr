@@ -18,9 +18,14 @@ fonts and linked Rust crates. The radio library makes the packages large.
 On macOS you can also remove the downloaded-file quarantine flag from an
 archive you trust with `xattr -dr com.apple.quarantine fragr.app`.
 
-Single Player launches the bundled server. Multiplayer and arena practice
-connect to a separately hosted server, usually on port 6767. The same bundled
-`fragr-server` can host one. See [Dedicated hosting](HOSTING.md).
+Single Player launches the bundled campaign server. Builds containing the
+desktop Host controls offer **Multiplayer > Host** for Team Deathmatch or
+5v5 Sabotage using the same bundled executable. The menu keeps the match
+alive while you watch, leave a fighter seat or return to the menu. Use
+**Stop server** to end it; closing the app also ends its owned match.
+Older releases connect to a separately started server. Multiplayer Join and
+arena practice can still use a dedicated server, usually on port 6767.
+See [hosting](HOSTING.md) for LAN invitations and dedicated commands.
 
 ## Check an installation
 
