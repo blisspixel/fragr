@@ -622,3 +622,21 @@ cabin medkit and upper-deck armor once, with exact 89 HP and 67 armor and
 unchanged ammunition and explosives. These are movement and supply proofs,
 not completed combat. Actual client ACK preflight, fresh native, complete
 client checks and the 28-state combat departure remain open.
+
+## Cargo handling approach
+
+The repaired full route reaches nine states, defeats all four first guards
+with 14 resolved damaging Rifle attacks, then stalls on the original direct
+service approach from the forward arrival to (-4, 2, 1). The retained
+center (-3.019265, 2, -6.527389) lies beside the cargo transfer stack and
+low west stair undersides. No service encounter activates. Keep the original
+destination and activation region, all five service guards, all 17 total
+guards and every combat, supply and departure gate. The actual 31 HP and
+zero armor at this boundary remain a pacing risk, not a reason to grant stock.
+
+First reproduce the obstruction through shared authoritative movement and
+identify the cargo versus stair collision. Prove supported open-side approach
+anchors around the same solids, retaining all original destinations and
+walking tolerances. Validate actual client ACK/contact and ordered encounters
+headlessly before any further full hardware lease. No geometry, collision,
+health, ammo, difficulty or combat timing change belongs to this correction.

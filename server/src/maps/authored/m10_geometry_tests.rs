@@ -6,6 +6,73 @@ use crate::sim::{GameState, PLAYER_FLOOR_Y};
 const SOURCE: &[u8] = include_bytes!("../../../maps/m10_common_carrier.json");
 
 #[test]
+fn m10_service_approach_routes_around_the_actual_cargo_and_stair_corner() {
+    use crate::movement::{live_step, MoveInput, MoveState};
+    fn straight(arena: &Arena, mut body: MoveState, target: [f32; 3]) -> (MoveState, bool) {
+        for _ in 0..300 {
+            if (body.x - target[0]).hypot(body.z - target[2]) <= 0.3
+                && (body.y - target[1]).abs() <= 0.03
+            {
+                return (body, true);
+            }
+            body = live_step(
+                body,
+                &MoveInput {
+                    forward: true,
+                    yaw: (target[2] - body.z).atan2(target[0] - body.x),
+                    ..MoveInput::default()
+                },
+                5.0,
+                0.05,
+                arena,
+            );
+        }
+        (body, false)
+    }
+    let map = AuthoredMap::read(SOURCE).unwrap();
+    let from = MoveState {
+        x: 0.0,
+        y: 2.0,
+        z: -8.0,
+        vx: 0.0,
+        vz: 0.0,
+        vy: 0.0,
+        yaw: 0.0,
+    };
+    let target = [-4.0, 2.0, 1.0];
+    let (blocked, arrived) = straight(&map.arena, from, target);
+    assert!(
+        !arrived,
+        "a direct diagonal is blocked by real cargo and stair cover"
+    );
+    assert!(
+        (blocked.x + 3.019265).hypot(blocked.z + 6.527389) < 0.4,
+        "shared collision reproduces the played corner: {blocked:?}"
+    );
+    // Causal geometry fixture only, never a production obstacle removal.
+    let document: Document = serde_json::from_slice(SOURCE).unwrap();
+    let cargo_index = document
+        .solids
+        .iter()
+        .position(|s| s.id == "cargo_transfer_stack")
+        .unwrap();
+    let mut without_cargo = map.arena.clone();
+    without_cargo.solids.remove(cargo_index);
+    assert!(straight(&without_cargo, from, target).1);
+    let mut body = from;
+    for destination in [[0.0, 2.0, -2.0], [-4.0, 2.0, -2.0], target] {
+        let (next, arrived) = straight(&map.arena, body, destination);
+        assert!(
+            arrived,
+            "open-side walking failed at {destination:?}: {next:?}"
+        );
+        assert!((next.y - 2.0).abs() <= 0.03, "ordinary lower-deck support");
+        body = next;
+    }
+    assert_eq!(map.arena.solids.len(), 112);
+}
+
+#[test]
 fn m10_each_stair_flight_and_turn_has_a_real_navigation_connection() {
     let doc: Document = serde_json::from_slice(SOURCE).unwrap();
     let arena = Arena {
