@@ -1,10 +1,12 @@
-# Crew receipt and companion integration
+# Crew receipt, companion and corner-recovery integration
 
-Status: implemented and locally verified, integration in flight, 2026-10-04.
-Formatting, all-target Clippy, 1,483 workspace tests, release, deterministic
-benchmark and complete 260-script/124-harness client checks pass. The
+Status: implemented, extended integration in flight, 2026-10-05.
+The earlier two-source checkpoint passed formatting, all-target Clippy,
+1,483 workspace tests, release, deterministic benchmark, complete
+260-script/124-harness client checks and all eight CI and three package gates.
+The third-input extension repeats complete composition checks. The
 [integration receipt](../evidence/crew-companion-integration-20261004.md) binds
-the exact inputs and matching native. Final exact-head CI and three desktop
+the exact inputs and matching native. Extended exact-head CI and three desktop
 package gates remain open. This bounded composition starts from restored
 main `6c4df5b3afd30ade456955148c9c438580e31831`. It combines companion
 checkpoint `2a601c66bb0878ac91111fde9d2e512c62b30238` and crew receipt
@@ -36,6 +38,26 @@ checks. Preserve the earlier frozen receipts. Refresh the existing integration
 receipt, single Full build order and plan index, then freeze one final source
 and require all eight exact-head CI and three desktop package checks again.
 No gameplay thresholds, collision, difficulty or art selection change.
+
+### Full-clear M02 witness correction
+
+The first composed workspace run retains a failed retry witness: attempt 2
+actually departs with the dock Clerk still alive, so its unchanged 24-defeat
+assertion correctly rejects the run. The exact prior archived owning test
+passes; matching read-only traces reproduce the new failure. At the final
+boundary there is no active static escape lease. Ordinary left strafing on the
+Clerk's committed tell enters the intentionally ungated departure arrival
+before the finite Shotgun fires again. Canonical departure rules stay intact.
+
+Compare earliest action divergence before correcting the owning full-clear
+route helper. It may choose supported alternate ordinary strafing or hold
+while a live final guard remains, using the real authoritative departure
+arrival and shared movement/contact integration. Preserve target, aim, fire,
+equipment, all 24 asserted defeats, actual wipe and attempt 2, existing timing
+budgets and all physical collision. Add a meaningful exact-boundary regression
+and prove normal exit resumes after guards die. This is a stronger encounter
+witness, not a new mandatory mission gate or a production policy correction.
+Retain the first failure and both original/candidate control traces separately.
 
 Preserve the bounded supported companion stand-off and short-yield movement,
 including both delivered-contact regressions and the original finite combat
