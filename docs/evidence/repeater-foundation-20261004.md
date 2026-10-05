@@ -92,8 +92,18 @@ corrected source. A private launcher referencing a nonexistent old harness
 name failed before the corrected existing RangedSweeper and install harnesses
 ran; this launcher failure is retained and is not counted as a source pass.
 
-Remote full combination CI, coverage, desktop packages and played feel are unclaimed.
-No paid requests or GPU rendering ran. A real articulated Repeater asset,
+The final combined source at `fc1641a7` includes current main `2399c00d`, its
+Union shadow repair and the accepted Sniper source at `74727a54`. The complete
+checker passes import, 260 scripts and all 124 harnesses with exit 0, its final
+PASS marker and no error lines. The exact Sniper pictures and selection receipt
+are unchanged from its accepted checkpoint. Native source remains unchanged
+from the tested foundation; the private release hash above remains exact.
+The Sniper's separate source and ordinary played-comparison evidence is in
+[its refinement receipt](sniper-source-refinement-20261004.md).
+
+Earlier frozen foundation heads passed all eight CI jobs and all three desktop
+packages. Final combined remote CI, coverage and desktop packages remain open.
+No paid requests or GPU rendering ran for the Repeater foundation. A real articulated Repeater asset,
 truthful cues, strict presentation facts and an isolated played lesson remain
 required before production selection. M10 crew transit and its map are outside
 this foundation.

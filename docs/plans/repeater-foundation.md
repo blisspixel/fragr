@@ -136,3 +136,10 @@ the corrected focused regression and complete client repeat pass.
 These checks establish this CPU foundation, not a final Repeater balance or
 accepted M10 lesson. Repeater art, truthful cues and presentation, played feel,
 M10 boarding/carry and mission geometry remain separate gates.
+
+The final arsenal review also includes the accepted Sniper art checkpoint
+`74727a54` and current main `2399c00d`. Complete combined client checks pass
+import, 260 scripts and all 124 harnesses, exit 0 and no errors. The original
+native proof and private release hash remain exact. Final combined CI and
+three desktop packages are pending; Sniper's source and ordinary played
+comparison are separate evidence from this CPU foundation.

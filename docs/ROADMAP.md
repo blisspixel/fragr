@@ -313,7 +313,8 @@ The current release is [v0.73.0](https://github.com/blisspixel/fragr/releases/ta
 including the M09 prototype, refined Pistol and hatless civilian. All eight
 main CI jobs and three tagged desktop package checks passed; uploaded digests
 match the checksum manifest ([release receipt](evidence/release-v073-20261004.md)). Current independent
-lanes are Jammer and precision-weapon craft, the Repeater foundation, Kitchen and Garage. The
+lanes are the selected Sniper and Repeater foundation review, Jammer and
+Railgun craft, Kitchen and Garage. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain
@@ -334,7 +335,16 @@ The corrected Jammer candidate consumed 35 included credits, passed mechanical
 source inspection and continues through pixel baking and played acceptance.
 The [precision weapon pass](plans/precision-weapon-references-20261004.md)
 adds two inspected sources for 70 included credits; compact preparation and
-selection remain open. Three [inhabited-world prop sources](evidence/world-prop-sources-20261004.md)
+played selection remain open for the Railgun. The
+[Sniper refinement](evidence/sniper-source-refinement-20261004.md) selects its
+prepared held, firing and pickup pictures after source and ordinary played
+comparison checks. The combined Sniper and
+[Repeater foundation](plans/repeater-foundation.md) passes the complete local
+client checker; exact combined CI and desktop packages remain pending. The
+Repeater has genuine finite-ammunition fire, capability 35, explicit record
+revision 2 and strict version 11 save compatibility. It has no current campaign
+or arcade grant; its own art, cues and played feel remain open. Three
+[inhabited-world prop sources](evidence/world-prop-sources-20261004.md)
 add an assembled scrubber, complete-port pump and civilian radio for 105 actual
 credits, with all twelve raw views inspected. Local preparation and placement
 remain open. The latest account check reports 2,375 available,
