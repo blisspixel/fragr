@@ -575,3 +575,22 @@ processes exit zero and are cleaned. This is a causal client regression, not
 hardware or full combat evidence. The next rendered 28-state route retains
 the byte-identical corrected weapon manifest, all 17 guards, finite kit, same
 geometry and fresh shared departure. That full combat verdict remains open.
+
+## Crew aisle route preflight
+
+The corrected full rendered route passes entry, the finite cabin medkit and
+the passenger hall, then fails the west stair approach at its unchanged
+15-second ordinary walking bound. An exact headless client trace confirms
+the diagonal approaches the gap between current Splice and berth crew B.
+The player retains 89 HP and only the first four dormant guards are present.
+Do not change living contact, crew eligibility, guards, supplies or timing.
+
+Before another GPU route, prove ordinary client walking and server ACKs for
+all four recorded Edda/Splice rosters and historical unknown through supported
+lateral crew aisles and both stair transfers. Retain every original route
+destination, arrival, all 17 combat requirements and fresh departure. Add
+only supported intermediate waypoints. Audit the remaining fore crew-row
+diagonals and upper stair opening so the whole route uses walking surfaces.
+The failed rendered and diagnostic attempts remain retained. The cabin's
+storage-box bed shape, repeated surfaces and cloned cast are final-art
+limitations, rather than accepted finished rooms or casting.
