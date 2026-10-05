@@ -444,9 +444,9 @@ async fn run_server_impl(
     crate::metrics::mark_process_start();
     let mut tracker = crate::metrics::StatusTracker::new(net_server.traffic_totals(), TICK);
 
-    tokio::spawn(async move {
+    let mut accept_task = AbortOnDrop(tokio::spawn(async move {
         net_server.accept_loop().await;
-    });
+    }));
 
     if !session.state.map.is_authored() {
         tracing::info!("Rules: {}", session.state.config.rules.name());
@@ -566,11 +566,15 @@ async fn run_server_impl(
         }
     }
     drop(access_reload);
+    // The listener belongs to this runner. Normal shutdown observes its
+    // retirement; early returns still schedule abort through the owning guard.
+    accept_task.0.abort();
+    let _ = (&mut accept_task.0).await;
 
     Ok(())
 }
 
-/// Ends the list reloader with the loop, including on an early error return.
+/// Ends an owned background task with the loop, including early error returns.
 struct AbortOnDrop(tokio::task::JoinHandle<()>);
 
 impl Drop for AbortOnDrop {
