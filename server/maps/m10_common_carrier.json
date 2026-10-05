@@ -1,0 +1,1383 @@
+{
+  "equipment": "discovery",
+  "ground": "service_steel",
+  "half_extent": 24,
+  "landmarks": [
+    {
+      "feet": [
+        0.0,
+        4.8,
+        -15.0
+      ],
+      "id": "passenger_hall"
+    },
+    {
+      "feet": [
+        0.0,
+        2.0,
+        -12.0
+      ],
+      "id": "forward_cargo"
+    },
+    {
+      "feet": [
+        -4.0,
+        2.0,
+        1.0
+      ],
+      "id": "lower_service"
+    },
+    {
+      "feet": [
+        0.0,
+        2.0,
+        14.0
+      ],
+      "id": "aft_hold"
+    },
+    {
+      "feet": [
+        0.0,
+        7.6,
+        -15.0
+      ],
+      "id": "command_approach"
+    },
+    {
+      "feet": [
+        -4.0,
+        7.6,
+        1.0
+      ],
+      "id": "upper_overlook"
+    },
+    {
+      "feet": [
+        0.0,
+        7.6,
+        14.0
+      ],
+      "id": "aft_gallery"
+    },
+    {
+      "feet": [
+        6.65,
+        4.8,
+        14.5
+      ],
+      "id": "east_middle_landing"
+    },
+    {
+      "feet": [
+        -4.45,
+        4.8,
+        -14.5
+      ],
+      "id": "west_middle_landing"
+    }
+  ],
+  "map_id": 1010,
+  "name": "Common Carrier",
+  "solids": [
+    {
+      "id": "lower_pressure_floor",
+      "max": [
+        8.0,
+        2.0,
+        18.0
+      ],
+      "min": [
+        -8.0,
+        1.7,
+        -18.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_0",
+      "max": [
+        -7.65000009536743,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        -7.80000019073486,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_1",
+      "max": [
+        -2.0,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        -3.45000028610229,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_2",
+      "max": [
+        -3.45000028610229,
+        4.8,
+        -16.0
+      ],
+      "min": [
+        -7.65000009536743,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_3",
+      "max": [
+        -3.45000028610229,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        -7.65000009536743,
+        4.6,
+        -3.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_4",
+      "max": [
+        3.45000004768372,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        2.0,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_5",
+      "max": [
+        7.80000019073486,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        7.64999961853027,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_6",
+      "max": [
+        7.64999961853027,
+        4.8,
+        3.0
+      ],
+      "min": [
+        3.45000004768372,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_7",
+      "max": [
+        7.64999961853027,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        3.45000004768372,
+        4.6,
+        16.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_8",
+      "max": [
+        2.0,
+        4.8,
+        -3.0
+      ],
+      "min": [
+        -2.0,
+        4.6,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_1_9",
+      "max": [
+        2.0,
+        4.8,
+        17.7999992370605
+      ],
+      "min": [
+        -2.0,
+        4.6,
+        5.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_0",
+      "max": [
+        -7.65000009536743,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        -7.80000019073486,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_1",
+      "max": [
+        -2.0,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        -3.45000028610229,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_2",
+      "max": [
+        -3.45000028610229,
+        7.6,
+        -16.0
+      ],
+      "min": [
+        -7.65000009536743,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_3",
+      "max": [
+        -3.45000028610229,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        -7.65000009536743,
+        7.4,
+        -3.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_4",
+      "max": [
+        3.45000004768372,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        2.0,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_5",
+      "max": [
+        7.80000019073486,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        7.64999961853027,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_6",
+      "max": [
+        7.64999961853027,
+        7.6,
+        3.0
+      ],
+      "min": [
+        3.45000004768372,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_7",
+      "max": [
+        7.64999961853027,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        3.45000004768372,
+        7.4,
+        16.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_8",
+      "max": [
+        2.0,
+        7.6,
+        -3.0
+      ],
+      "min": [
+        -2.0,
+        7.4,
+        -17.7999992370605
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "deck_2_9",
+      "max": [
+        2.0,
+        7.6,
+        17.7999992370605
+      ],
+      "min": [
+        -2.0,
+        7.4,
+        5.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "pressure_roof",
+      "max": [
+        8.0,
+        10.4,
+        18.0
+      ],
+      "min": [
+        -8.0,
+        10.1,
+        -18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_west",
+      "max": [
+        -7.8,
+        10.4,
+        18.0
+      ],
+      "min": [
+        -8.0,
+        0.0,
+        -18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_east",
+      "max": [
+        8.0,
+        10.4,
+        18.0
+      ],
+      "min": [
+        7.8,
+        0.0,
+        -18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_fore",
+      "max": [
+        7.8,
+        10.4,
+        -17.8
+      ],
+      "min": [
+        -7.8,
+        0.0,
+        -18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_aft",
+      "max": [
+        7.8,
+        10.4,
+        18.0
+      ],
+      "min": [
+        -7.8,
+        0.0,
+        17.8
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_stair_spine",
+      "max": [
+        -5.35,
+        10.1,
+        -6.0
+      ],
+      "min": [
+        -5.65,
+        2.0,
+        -13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_return_0",
+      "max": [
+        -3.55,
+        4.8,
+        -13.0
+      ],
+      "min": [
+        -7.45,
+        4.6,
+        -16.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_turn_0",
+      "max": [
+        -3.55,
+        3.4,
+        -3.0
+      ],
+      "min": [
+        -7.45,
+        3.2,
+        -6.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_0",
+      "max": [
+        -5.65,
+        2.2,
+        -12.0
+      ],
+      "min": [
+        -7.45,
+        2.02,
+        -13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_0",
+      "max": [
+        -3.55,
+        4.8,
+        -12.0
+      ],
+      "min": [
+        -5.35,
+        4.62,
+        -13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_1",
+      "max": [
+        -5.65,
+        2.4,
+        -11.0
+      ],
+      "min": [
+        -7.45,
+        2.22,
+        -12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_1",
+      "max": [
+        -3.55,
+        4.6,
+        -11.0
+      ],
+      "min": [
+        -5.35,
+        4.42,
+        -12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_2",
+      "max": [
+        -5.65,
+        2.6,
+        -10.0
+      ],
+      "min": [
+        -7.45,
+        2.42,
+        -11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_2",
+      "max": [
+        -3.55,
+        4.4,
+        -10.0
+      ],
+      "min": [
+        -5.35,
+        4.22,
+        -11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_3",
+      "max": [
+        -5.65,
+        2.8,
+        -9.0
+      ],
+      "min": [
+        -7.45,
+        2.62,
+        -10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_3",
+      "max": [
+        -3.55,
+        4.2,
+        -9.0
+      ],
+      "min": [
+        -5.35,
+        4.02,
+        -10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_4",
+      "max": [
+        -5.65,
+        3.0,
+        -8.0
+      ],
+      "min": [
+        -7.45,
+        2.82,
+        -9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_4",
+      "max": [
+        -3.55,
+        4.0,
+        -8.0
+      ],
+      "min": [
+        -5.35,
+        3.82,
+        -9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_5",
+      "max": [
+        -5.65,
+        3.2,
+        -7.0
+      ],
+      "min": [
+        -7.45,
+        3.02,
+        -8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_5",
+      "max": [
+        -3.55,
+        3.8,
+        -7.0
+      ],
+      "min": [
+        -5.35,
+        3.62,
+        -8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_0_6",
+      "max": [
+        -5.65,
+        3.4,
+        -6.0
+      ],
+      "min": [
+        -7.45,
+        3.22,
+        -7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_0_6",
+      "max": [
+        -3.55,
+        3.6,
+        -6.0
+      ],
+      "min": [
+        -5.35,
+        3.42,
+        -7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_return_1",
+      "max": [
+        -3.55,
+        7.6,
+        -13.0
+      ],
+      "min": [
+        -7.45,
+        7.4,
+        -16.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_turn_1",
+      "max": [
+        -3.55,
+        6.2,
+        -3.0
+      ],
+      "min": [
+        -7.45,
+        6.0,
+        -6.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_0",
+      "max": [
+        -5.65,
+        5.0,
+        -12.0
+      ],
+      "min": [
+        -7.45,
+        4.82,
+        -13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_0",
+      "max": [
+        -3.55,
+        7.6,
+        -12.0
+      ],
+      "min": [
+        -5.35,
+        7.42,
+        -13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_1",
+      "max": [
+        -5.65,
+        5.2,
+        -11.0
+      ],
+      "min": [
+        -7.45,
+        5.02,
+        -12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_1",
+      "max": [
+        -3.55,
+        7.4,
+        -11.0
+      ],
+      "min": [
+        -5.35,
+        7.22,
+        -12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_2",
+      "max": [
+        -5.65,
+        5.4,
+        -10.0
+      ],
+      "min": [
+        -7.45,
+        5.22,
+        -11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_2",
+      "max": [
+        -3.55,
+        7.2,
+        -10.0
+      ],
+      "min": [
+        -5.35,
+        7.02,
+        -11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_3",
+      "max": [
+        -5.65,
+        5.6,
+        -9.0
+      ],
+      "min": [
+        -7.45,
+        5.42,
+        -10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_3",
+      "max": [
+        -3.55,
+        7.0,
+        -9.0
+      ],
+      "min": [
+        -5.35,
+        6.82,
+        -10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_4",
+      "max": [
+        -5.65,
+        5.8,
+        -8.0
+      ],
+      "min": [
+        -7.45,
+        5.62,
+        -9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_4",
+      "max": [
+        -3.55,
+        6.8,
+        -8.0
+      ],
+      "min": [
+        -5.35,
+        6.62,
+        -9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_5",
+      "max": [
+        -5.65,
+        6.0,
+        -7.0
+      ],
+      "min": [
+        -7.45,
+        5.82,
+        -8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_5",
+      "max": [
+        -3.55,
+        6.6,
+        -7.0
+      ],
+      "min": [
+        -5.35,
+        6.42,
+        -8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_first_1_6",
+      "max": [
+        -5.65,
+        6.2,
+        -6.0
+      ],
+      "min": [
+        -7.45,
+        6.02,
+        -7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "west_second_1_6",
+      "max": [
+        -3.55,
+        6.4,
+        -6.0
+      ],
+      "min": [
+        -5.35,
+        6.22,
+        -7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_stair_spine",
+      "max": [
+        5.75,
+        10.1,
+        13.0
+      ],
+      "min": [
+        5.45,
+        2.0,
+        6.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_return_0",
+      "max": [
+        7.55,
+        4.8,
+        16.0
+      ],
+      "min": [
+        3.65,
+        4.6,
+        13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_turn_0",
+      "max": [
+        7.55,
+        3.4,
+        6.0
+      ],
+      "min": [
+        3.65,
+        3.2,
+        3.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_0",
+      "max": [
+        5.45,
+        2.2,
+        13.0
+      ],
+      "min": [
+        3.65,
+        2.02,
+        12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_0",
+      "max": [
+        7.55,
+        4.8,
+        13.0
+      ],
+      "min": [
+        5.75,
+        4.62,
+        12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_1",
+      "max": [
+        5.45,
+        2.4,
+        12.0
+      ],
+      "min": [
+        3.65,
+        2.22,
+        11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_1",
+      "max": [
+        7.55,
+        4.6,
+        12.0
+      ],
+      "min": [
+        5.75,
+        4.42,
+        11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_2",
+      "max": [
+        5.45,
+        2.6,
+        11.0
+      ],
+      "min": [
+        3.65,
+        2.42,
+        10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_2",
+      "max": [
+        7.55,
+        4.4,
+        11.0
+      ],
+      "min": [
+        5.75,
+        4.22,
+        10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_3",
+      "max": [
+        5.45,
+        2.8,
+        10.0
+      ],
+      "min": [
+        3.65,
+        2.62,
+        9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_3",
+      "max": [
+        7.55,
+        4.2,
+        10.0
+      ],
+      "min": [
+        5.75,
+        4.02,
+        9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_4",
+      "max": [
+        5.45,
+        3.0,
+        9.0
+      ],
+      "min": [
+        3.65,
+        2.82,
+        8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_4",
+      "max": [
+        7.55,
+        4.0,
+        9.0
+      ],
+      "min": [
+        5.75,
+        3.82,
+        8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_5",
+      "max": [
+        5.45,
+        3.2,
+        8.0
+      ],
+      "min": [
+        3.65,
+        3.02,
+        7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_5",
+      "max": [
+        7.55,
+        3.8,
+        8.0
+      ],
+      "min": [
+        5.75,
+        3.62,
+        7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_0_6",
+      "max": [
+        5.45,
+        3.4,
+        7.0
+      ],
+      "min": [
+        3.65,
+        3.22,
+        6.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_0_6",
+      "max": [
+        7.55,
+        3.6,
+        7.0
+      ],
+      "min": [
+        5.75,
+        3.42,
+        6.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_return_1",
+      "max": [
+        7.55,
+        7.6,
+        16.0
+      ],
+      "min": [
+        3.65,
+        7.4,
+        13.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_turn_1",
+      "max": [
+        7.55,
+        6.2,
+        6.0
+      ],
+      "min": [
+        3.65,
+        6.0,
+        3.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_0",
+      "max": [
+        5.45,
+        5.0,
+        13.0
+      ],
+      "min": [
+        3.65,
+        4.82,
+        12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_0",
+      "max": [
+        7.55,
+        7.6,
+        13.0
+      ],
+      "min": [
+        5.75,
+        7.42,
+        12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_1",
+      "max": [
+        5.45,
+        5.2,
+        12.0
+      ],
+      "min": [
+        3.65,
+        5.02,
+        11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_1",
+      "max": [
+        7.55,
+        7.4,
+        12.0
+      ],
+      "min": [
+        5.75,
+        7.22,
+        11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_2",
+      "max": [
+        5.45,
+        5.4,
+        11.0
+      ],
+      "min": [
+        3.65,
+        5.22,
+        10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_2",
+      "max": [
+        7.55,
+        7.2,
+        11.0
+      ],
+      "min": [
+        5.75,
+        7.02,
+        10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_3",
+      "max": [
+        5.45,
+        5.6,
+        10.0
+      ],
+      "min": [
+        3.65,
+        5.42,
+        9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_3",
+      "max": [
+        7.55,
+        7.0,
+        10.0
+      ],
+      "min": [
+        5.75,
+        6.82,
+        9.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_4",
+      "max": [
+        5.45,
+        5.8,
+        9.0
+      ],
+      "min": [
+        3.65,
+        5.62,
+        8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_4",
+      "max": [
+        7.55,
+        6.8,
+        9.0
+      ],
+      "min": [
+        5.75,
+        6.62,
+        8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_5",
+      "max": [
+        5.45,
+        6.0,
+        8.0
+      ],
+      "min": [
+        3.65,
+        5.82,
+        7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_5",
+      "max": [
+        7.55,
+        6.6,
+        8.0
+      ],
+      "min": [
+        5.75,
+        6.42,
+        7.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_first_1_6",
+      "max": [
+        5.45,
+        6.2,
+        7.0
+      ],
+      "min": [
+        3.65,
+        6.02,
+        6.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "east_second_1_6",
+      "max": [
+        7.55,
+        6.4,
+        7.0
+      ],
+      "min": [
+        5.75,
+        6.22,
+        6.0
+      ],
+      "surface": "service_steel"
+    }
+  ],
+  "spawns": [
+    {
+      "feet": [
+        0.0,
+        4.8,
+        -15.0
+      ],
+      "id": "passenger_entry",
+      "yaw": 0.0
+    }
+  ],
+  "version": 1
+}

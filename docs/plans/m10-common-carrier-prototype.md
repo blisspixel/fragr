@@ -3,7 +3,8 @@
 Status: in flight, 2026-10-04. Native promotion work is authorized in isolated
 branch `feat/m10-common-carrier`, based on crew receipt `32dd8ea2`. The frozen
 Repeater and crew branches remain unchanged. This lane submits no paid calls
-or GPU work. Its source dependencies remain unmerged; source composition and
+or GPU work. The Repeater foundation is now merged at main `d1d13562`; the separate crew
+receipt PR 363 is frozen at `de694b25` with remote gates pending. Source composition and
 final acceptance must precede any publication or playability claim.
 The initial outline came from M09 `01912934`, now shipped in v0.73.0.
 This is one bounded level under the existing campaign build order.
@@ -19,11 +20,11 @@ rescue numbers; those finds belong to M11 in the active expansion.
 [Ship direction](../design/space.md), [cast](../lore/cast.md) and
 [voice](../lore/voice.md) own construction, identity and ordinary-life tone.
 
-Shipped main has seven weapon identities, six number-key slots and strict
-participant-record v1 readers accepting five, six or seven columns. Repeater
-foundation PR 358 appends index 7, private finite warmup, capability 35, record
-revision 2 and save version 11; its complete local checks pass but remote
-acceptance and merge remain pending. Its presentation and lesson are unbuilt.
+Shipped main has eight weapon identities, six number-key slots and strict
+participant-record revision 2, with preserved revision 1 readers accepting
+five, six or seven columns. The accepted Repeater foundation appends index 7,
+private finite warmup, capability 35 and save version 11. Actual Repeater
+presentation and the M10 lesson remain unbuilt.
 M09's shipped v10 run file preserves earlier outcomes and actual equipment,
 but no M09 crew outcome. The separately tested v12 capture checkpoint retains
 real released crew and the immutable aboard-at-departure subset, or explicit
@@ -72,10 +73,13 @@ merely to make a room look busy.
 
 Proposed blockout allocation, subject to actual shared-body tests:
 
-- Retain the roughly 16 by 36 m main hull footprint. Reserve two longitudinal
-  stair trunks near opposite sides, approximately 2.8 by 7.2 m each, with
-  1.8 m clear treads and usable landings. Their separation produces a real
-  return flank instead of two adjacent doors onto the same shot line.
+- Retain the roughly 16 by 36 m main hull footprint. The initial collision
+  source reserves two separated 4.2 by 13 m stair trunks, each with two
+  1.8 m clear flights, seven 0.2 m rises per flight, 1 m service treads and 3 m return landings.
+  Identically oriented flights stack 2.8 m apart. The earlier 2.8 m-wide
+  straight-flight proposal could not supply paired 1.8 m lanes and safe
+  returning headroom. One trunk is forward port, the other aft starboard,
+  producing useful alternate approaches rather than adjacent doors.
 - Keep a central cargo/service opening approximately 4 by 8 m, with supported
   galleries and railings outside the walking clearance. This taller volume
   explains freight handling and exposes recognizable deck edges; it is not
@@ -86,12 +90,21 @@ Proposed blockout allocation, subject to actual shared-body tests:
   gallery rather than another full floor of repeated boxes.
 - A preliminary floor spacing of 2.8 m gives floors at 2.0, 4.8 and 7.6 m,
   with at least 2.4 m clear standing headroom after slabs. The roof would need
-  to reach approximately 10.2 m. This does not fit M09's present 9 m upper
-  envelope unchanged. Review a raised deckhouse/exterior refinement before
-  treating this allocation as accepted; do not silently shrink bodies or
-  clip a ceiling to make three decks fit.
+  to reach approximately 10.2 m. The accepted raised-deckhouse direction uses
+  a 10.1 m roof underside and 10.4 m outer roof in the initial collision source.
+  The provisional M09 keel's 9 m sides require coherent exterior refinement;
+  its existing upper freight and stern neck already rise above that keel.
+  Never shrink bodies or clip a ceiling to make three decks fit.
 
-These measurements are blockout proposals, not checked geometry. Prototype
+The generated initial collision source has 92 solids, no mission authority or
+weapon grants yet. It is not registered as playable Common Carrier. Initial
+native geometry and actual-server walking checks pass: strict authored loading,
+sealed three-deck headroom, both flights and turns, forward/reverse walking
+in both trunks and the complete cargo/command return. Actual movement uses
+no jumps and causes no damage. Earlier 0.4 m treads had no canonical navigation
+nodes; a subsequent 2 m turning landing still lacked a clear grid connection
+around its divider. Both failures are retained. These are collision checks,
+not authored fight, visual, transit or fresh-player acceptance. Prototype
 the stair run, 180-degree landings and every deck return with real 1.8 m
 bodies before decoration. Both ordinary routes must support retreat and
 finite supplies, while open cargo lanes remain wide enough for the intended
@@ -259,7 +272,11 @@ Use `RunDocument::promote_next` and the existing `RunStore` lock, original-byte
 archive and atomic replacement. Add Common Carrier's private entry identity
 only as needed to represent the canonical saved transition. Until the authored
 M10 destination exists and validates, native launch must refuse before Ready;
-the identity alone cannot make the level playable or grant a gun.
+the identity alone cannot make the level playable or grant a gun. Build the
+real authored collision/objective leaf and use its exact source hash through
+the existing fixed campaign-content table, rather than adding an alternate
+optional-hash framework solely for this intermediate stage. Capability 36 is
+reserved for the strict M10 map/mission facts and all-role pre-delivery gate.
 
 The proposed strict version 13 document preserves the v12 M09 receipt without
 altering its released set or actual berth subset. A separate transit outcome is:
