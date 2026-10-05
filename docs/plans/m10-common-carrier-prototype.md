@@ -640,3 +640,16 @@ anchors around the same solids, retaining all original destinations and
 walking tolerances. Validate actual client ACK/contact and ordered encounters
 headlessly before any further full hardware lease. No geometry, collision,
 health, ammo, difficulty or combat timing change belongs to this correction.
+
+The actual headless client validates the service anchors and all five service
+guard deaths, then rejects the old repair intermediate (5.8, 2, 5). It is
+inside the east stair landing underside, with only 1.2 m of body clearance.
+A full canonical waypoint audit independently rejects this point and the
+old command intermediate (-4, 7.6, -10) in the west stair opening. Replace
+only these two impossible intermediates, using the lower fore service aisle
+and the supported upper inside aisle. Keep the actual medkit, secret armor,
+objective arrivals, all guards and departure unchanged. The return from the
+medkit also uses the same fore-side aisle around the actual power bank.
+This supersedes retaining impossible test intermediates, never real mission
+objectives or supplied stock. The failed client and old-shape physical audit
+remain recorded; new ordinary client whole-route validation is required.

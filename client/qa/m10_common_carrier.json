@@ -422,9 +422,14 @@
       "camera": "first_person",
       "walk_to": [
         [
+          0,
+          2,
+          -2
+        ],
+        [
           5.8,
           2,
-          5
+          -2
         ],
         [
           5.8,
@@ -443,6 +448,16 @@
       "name": "m10_service_arrival",
       "camera": "first_person",
       "walk_to": [
+        [
+          5.8,
+          2,
+          -2
+        ],
+        [
+          0,
+          2,
+          -2
+        ],
         [
           -3,
           2,
@@ -606,7 +621,12 @@
       "camera": "first_person",
       "walk_to": [
         [
-          -4,
+          -2.8,
+          7.6,
+          1
+        ],
+        [
+          -2.8,
           7.6,
           -10
         ],

@@ -6,6 +6,30 @@ use crate::sim::{GameState, PLAYER_FLOOR_Y};
 const SOURCE: &[u8] = include_bytes!("../../../maps/m10_common_carrier.json");
 
 #[test]
+fn m10_tour_waypoints_have_actual_body_clearance_and_support() {
+    let map = AuthoredMap::read(SOURCE).unwrap();
+    let tour: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../client/qa/m10_common_carrier.json"
+    ))
+    .unwrap();
+    let mut invalid = Vec::new();
+    for state in tour["states"].as_array().unwrap() {
+        if let Some(points) = state["walk_to"].as_array() {
+            for point in points {
+                let feet = std::array::from_fn(|i| point[i].as_f64().unwrap() as f32);
+                if !standing(&map.arena, feet) {
+                    invalid.push((state["name"].as_str().unwrap(), feet));
+                }
+            }
+        }
+    }
+    assert!(
+        invalid.is_empty(),
+        "unsupported or body-obstructed authored tour points: {invalid:?}"
+    );
+}
+
+#[test]
 fn m10_service_approach_routes_around_the_actual_cargo_and_stair_corner() {
     use crate::movement::{live_step, MoveInput, MoveState};
     fn straight(arena: &Arena, mut body: MoveState, target: [f32; 3]) -> (MoveState, bool) {
