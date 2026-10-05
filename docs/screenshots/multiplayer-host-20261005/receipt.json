@@ -131,13 +131,13 @@
                                "images":  [
                                               {
                                                   "literal_capture":  true,
-                                                  "sha256":  "3372671e7d6135ef2c11af8aecf48a3fc8a59ceb2af05340a9905208c1f9c80e",
-                                                  "name":  "host-tdm.png"
+                                                  "name":  "host-tdm.png",
+                                                  "sha256":  "23b9cb8fca08757c90d21fecd46726338bb457a5373912255067c9e76c2ed83f"
                                               },
                                               {
                                                   "literal_capture":  true,
-                                                  "sha256":  "655f95e398cfecfa0ed27a318e6956813bd98ace94873ab495cf93f324b1e31f",
-                                                  "name":  "host-sabotage-small.png"
+                                                  "name":  "host-sabotage-small.png",
+                                                  "sha256":  "9b567e4024ba0c0dda1ac192b128c43f73d66cc4a77d48281e9272120d8bbbd8"
                                               }
                                           ],
                                "receipt_sha256":  "8a684a6c0b919e0e8897636d085067f0b0bf7d0d0d78a84cd2246283a01dd3cf",

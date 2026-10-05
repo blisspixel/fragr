@@ -206,6 +206,19 @@ fighter seat. A resumable drop holds that seat for the existing 200-tick grace.
 Explicit leave or grace expiry frees it. The client maps `match_full` to a
 localized hard stop and Return, with no automatic fighter retry; Watch may
 connect as a spectator. No new capability or discovery field is added.
+
+Optional `--bot-policy auto --bots 0 --fill-target N` hosts use plain TDM or
+Sabotage without mutators. Their desired total counts fighters and reserved
+resume seats, but not spectators. Only trusted server-owned rule bots may yield
+to validated humans or external agents. The existing `error` shape uses
+`bot_fill_next_round` when a full active Sabotage room has no safely replaceable
+bot. Ordinary late admission retains zero lives until the next Muster. Failed
+or expired prepared admission uses `bot_fill_cancelled`; preparation may already
+have delivered Welcome, so the client discards its offered pawn/token and
+hard-stops automatic fighter resume. Watch remains available. These codes add
+no snapshot fields or gameplay capability. A successful admission followed by
+an ordinary drop retains the existing resume semantics.
+
 Local campaign and `--campaign-run` hosts reserve one lifetime combat seat instead.
 After its first successful admission, additional fighters receive `run_seat_closed`,
 including after the owner disconnects. Spectators remain admissible. Callsigns

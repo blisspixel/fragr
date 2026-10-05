@@ -1,4 +1,4 @@
-# Dedicated hosting
+# Hosting fragr
 
 [Back to the README](../README.md) | [Home LAN](../infra/docs/HOME-LAN.md) |
 [Cheap VPS](../infra/docs/CHEAP-VPS.md) | [Transport](TRANSPORT.md)
@@ -69,7 +69,7 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --mode tdm --bots 0 --
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
 ```
 
-Automatic fill is available for TDM and Sabotage. Its target is a desired
+Automatic fill is available for plain TDM and Sabotage, without mutators. Its target is a desired
 population, not an additional admission limit. Spectators do not count, while
 reserved reconnect seats do. In a full active Sabotage round, replacement can
 wait until the next round if removing a bot would change the outcome or cancel
@@ -122,7 +122,7 @@ modes still need fresh human matches to establish clarity and fun.
 | `--bind <ADDR>` | Address, default `0.0.0.0:6767`. |
 | `--bots <N>` | Rule bots to stock, default 4. |
 | `--bot-policy <POLICY>` | `fixed` (default), `none` or `auto`. None and auto require `--bots 0`. |
-| `--fill-target <N>` | Auto's desired total fighters, 1 through 10; zero for fixed/none. Auto is limited to TDM and Sabotage. |
+| `--fill-target <N>` | Auto's desired total fighters, 1 through 10; zero for fixed/none. Auto is limited to plain TDM and Sabotage, without mutators. |
 | `--map <ID>` | Arena ID or name; map 1 is Arena Duel. |
 | `--map-rotate` | Alternate arenas between rounds. |
 | `--map-file <PATH>` | Authored development map; requires `--bots 0` and no arcade overrides. |

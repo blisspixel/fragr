@@ -67,6 +67,7 @@ fragr-server --mode sabotage --map 4 --sabotage-five-v-five --bots 0 --bot-polic
 ```
 
 Humans and external agents replace eligible server-owned bots equally. A
+host using automatic fill must use the plain rules, without mutators. A
 reserved reconnect seat stays occupied. Safe replacement preserves existing
 round lives, objectives and committed explosives. If every bot is currently
 protected, the server visibly refuses the join until a later round; Watch
