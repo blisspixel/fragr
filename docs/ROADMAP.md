@@ -338,12 +338,14 @@ quality for the work. Nick authorized parallel game development alongside
 substantial model production. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
-prototype, refined Pistol and hatless civilian. The latest release verified
-before this composition was [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0), exact
-restored source `6c4df5b3`, including the earlier Rifle pictures and selected
-Sniper refinement. All eight main CI jobs and all three tagged desktop package
-checks passed. Independently rehashed downloaded ZIPs match the checksum
-manifest and uploaded digests. The original map 5 stress failure and unchanged
+prototype, refined Pistol and hatless civilian. The latest published release is
+[v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0), exact main
+`f1e36315`, with ten campaign prototypes, the restored earlier Rifle pictures,
+drawn Sniper/Pistol hands, corrected Shiv scale, synthetic Tern fallback and
+Latch's home image. Fresh main passes all eight jobs in
+[run 37350606366](https://github.com/blisspixel/fragr/actions/runs/37350606366).
+The preceding v0.75.0 package receipt retains its independently rehashed ZIPs,
+checksum manifest and uploaded digests. The original map 5 stress failure and unchanged
 passing rerun remain distinct in the [integration receipt](evidence/crew-companion-integration-20261004.md).
 The [crew, companion and corner-recovery composition](plans/crew-companion-integration.md)
 is on main through [PR #367](https://github.com/blisspixel/fragr/pull/367), after
@@ -359,10 +361,14 @@ CI jobs and all three desktop packages passed before merge. Main now has ten
 campaign prototypes; v0.75.0 has nine. Current independent lanes are M11's
 authoritative Remote Mine and Redactor foundations, weapon hand continuity,
 named-cast preparation, Jammer and Railgun craft, Kitchen and Garage. M11 remains
-in development; it is not a playable released mission. The next hand pass
-corrects the Shiv's whole-hand enlargement, matches the Sniper's glove treatment
-to the drawn Shotgun family and corrects Tern's provisional synthetic body in
-both ship scenes. Its combined acceptance remains in flight. The
+in development; it is not a playable released mission. The hand/HOME pass
+shipped in [PR #370](https://github.com/blisspixel/fragr/pull/370) and v0.76.0,
+after all eight reviewed-head CI and three desktop package gates passed.
+The [relaxed Latch follow-up](plans/latch-calm-pose-20261005.md) has complete
+local client checks and an inspected ordinary 20-state M07 prefix passing;
+its public integration remains open. The [named Tern source trial](plans/tern-source-reference-20261005.md)
+has reviewed geometry and sampled rig motion, but material/role preparation
+and M09/M10 played selection remain open. Neither follow-up is in v0.76.0. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain

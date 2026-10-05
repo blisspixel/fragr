@@ -30,6 +30,8 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`latch-calm-pose-20261005.md`](./latch-calm-pose-20261005.md) | **implemented**, public integration in flight | Calmer free arms with exact ward context and unchanged chassis; complete client and ordinary 20-state M07 prefix pass. |
+| [`tern-source-reference-20261005.md`](./tern-source-reference-20261005.md) | **in flight**, source only | Distinct reviewed civilian pilot reference, source and rig, 40 included credits; measured weights/motion pass, finishing and M09/M10 runtime selection remain open. |
 | [`work-glove-source.md`](./work-glove-source.md) | **in flight** | Inspected five-digit work glove for measured local articulation and held-weapon comparison; no selected replacement. |
 | [`edda-splice-cast-sources-20261005.md`](./edda-splice-cast-sources-20261005.md) | **in flight** | Distinct civilian source candidates and an inspected Edda rig with retained satchel skin defect; role motion and played selection remain open. |
 | [`crew-companion-integration.md`](./crew-companion-integration.md) | **implemented**, integration in flight | Normal composition of immutable M09 departure receipts, supported companion yielding and bounded static-cover escape on restored main. Complete three-source local checks pass; exact-head CI and three packages remain gated. |

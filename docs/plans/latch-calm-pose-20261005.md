@@ -1,6 +1,6 @@
 # Latch relaxed idle and following pose
 
-Status: **in flight**, isolated local presentation candidate from main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. No runtime promotion, public branch or played acceptance yet.
+Status: **implemented**, public integration in flight. Local source candidate starts from main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`; complete client checks and a normally composed ordinary M07 prefix pass. No public promotion or release of this pose correction yet.
 
 ## Goal and measured trigger
 
@@ -41,3 +41,5 @@ Regenerate only the derived Latch GLB through the existing `_export` seam, indep
 Actual regenerated library and preview are frozen at `c6fc21caf66fcf7f28daa0e1e447acdbfce6239b`. Independent complete binary/accessor and actual imported mesh/binding comparisons pass; only four intended arm-node rotations and two empty generated simulator names differ. The selected chassis remains byte-identical. Canonical studio rendering retires with numeric exit 0 and clean logs, and all owning model/source/near-clip checks pass unchanged.
 
 The subsequent unchanged full client checker passes all 271 scripts and 129 harnesses with numeric exit 0 and clean logs on that frozen checkpoint, using the verified matching owned immutable native helper. The first full failure stays retained. The [evidence](../evidence/latch-calm-pose-20261005.md) binds source, generated outputs, controlled frames, logs and remaining limits. This plan remains in flight until the integration owner completes composed ordinary following review and public CI/package acceptance; no whole-campaign or shipped claim follows from local proof.
+
+The dated [ordinary M07 follow-up](../evidence/latch-calm-pose-20261005.md#ordinary-m07-following-october-5) now records normally composed client `bca3608c`, all 20 unchanged canonical prefix states, real walking/combat and inspected following views, with numeric exit 0 and owned retirement. This closes the bounded ordinary following view; exact public CI/package integration remains open. The prior hand/HOME tree is released as v0.76.0, which does not include this pose or select Tern's new source.

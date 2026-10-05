@@ -1,6 +1,6 @@
 # Latch calm-pose local candidate
 
-Status: corrected local source-pose candidate, October 5, 2026. Same-camera fixture review and complete local client checks pass. Composed ordinary-play review and public integration remain separate gates. First rejected boundary, incomplete launcher receipt and full-check manifest failure remain retained. This is separate from the hand and named-body integration batch.
+Status: implemented local source-pose correction, October 5, 2026. Same-camera fixture review, complete local client checks and a composed ordinary M07 prefix pass. Exact public integration gates remain open. First rejected boundary, incomplete launcher receipt and full-check manifest failure remain retained. This follows the released hand and named-body integration batch.
 
 Base is main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. The [plan](../plans/latch-calm-pose-20261005.md) precedes code. The independent private read-only audit reproduces the actual pawn/view transform chain and records 22 actual weighted source samples. Its inspected M07 image and current tracked GLB, view, pawn and old source are byte-identical to image client `94a270f2e406944ced574df2cfe6f0fee12eec16`.
 
@@ -55,3 +55,37 @@ The unchanged complete checker on frozen runtime/assets `c6fc21caf66fcf7f28daa0e
 The exact private log is `.agents/cpu/full-client-repeat.log`; `full-client-repeat-receipt.json` independently binds numeric exit, aggregate counts, clean logs, frozen source/derived output hashes, selected chassis identity and native hash. The first complete check and its failed receipt remain unchanged. The generated GLB is SHA `7ead44f5acd175ad48ff11f520e4a0dd11a2882f64f6443d12238567c2aab6fc`; canonical preview is SHA `c2c302013ddbeda19abae1b1feaf4e5d725cb3897b76c07e801f4a162cb46a37`.
 
 Only evidence/plan text follows this runtime freeze. Composed ordinary M07 following, final visual review, exact-head public CI, packages and release acceptance belong to the integration owner. A source fixture or complete headless suite does not claim whole-campaign motion quality or performance.
+
+## Ordinary M07 following, October 5
+
+The integration owner normally composes the frozen pose correction with the
+released hand/HOME tree, producing client `bca3608c7b5065959d58d89ad72a6a8e381d9d75`.
+Its runtime/native source matches accepted main `f1e36315` except for the
+bounded Latch presenter correction. The owned immutable native helper remains
+SHA `0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7`.
+No map, QA state, authority, supply, difficulty rule or source model is changed.
+
+The first 20 states of canonical `client/qa/m07_declared_goods.json` run with
+seed 42 and Assisted difficulty, using ordinary discovery, walking and combat.
+Every retained prefix state matches its original canonical state, and actual
+walking arrivals pass. Renderer 34768 exits 0 with clean logs; it and owned
+server 8152 retire. This is a bounded prefix, not full M07 completion or
+departure, a fresh-player pacing study, closed-finger proof or performance claim.
+
+Full-size arrival, lamp-line and cut-combat inspection shows the same adult
+bone/cyan-screen chassis, calmer free arm while following, and retained armed
+right-hand presentation. The three images below are literal unmodified copies
+of that run, at its actual 1280 by 720 resolution. The
+[public receipt](../screenshots/latch-calm-pose-20261005/m07-played-receipt.json)
+binds each PNG, exact played client, selected/derived source hashes, native,
+canonical/prefix/captured manifests, difficulty, seed, visible companion facts
+and original log/retirement receipt. Earlier rejected fixtures and manifest
+failure remain history. Public exact-head CI/package review is still required;
+v0.76.0 contains the preceding hand/HOME tree, not this pose correction or a
+selected Tern model.
+
+![Ordinary tunnel arrival with Latch](../screenshots/latch-calm-pose-20261005/01_tunnel_arrival.png)
+
+![Following beside the lamp line](../screenshots/latch-calm-pose-20261005/14_lamp_line.png)
+
+![Actual cut combat and armed companion](../screenshots/latch-calm-pose-20261005/20_cut_sweepers.png)

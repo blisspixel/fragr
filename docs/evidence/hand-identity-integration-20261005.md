@@ -85,3 +85,9 @@ desktop package/install checks pass in run `37347345243`. Fresh main CI is
 run `37350606366`. The feature branch is deleted. This follow-up records
 integration without relabeling the original snapshots or their limited
 renderer evidence as a new mission playthrough or finished named cast.
+
+Fresh main `f1e36315` subsequently passes all eight jobs in
+[run 37350606366](https://github.com/blisspixel/fragr/actions/runs/37350606366).
+[v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0) is published
+from that exact main, containing this hand/HOME increment. Later relaxed
+Latch poses and Tern's new source model are not selected by that release.
