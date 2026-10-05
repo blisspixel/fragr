@@ -152,7 +152,7 @@ var crawler_caption: CrawlerCaption
 const FP_MUZZLE_SECONDS: float = 0.07
 ## One Shiv thrust: out toward the crosshair and back inside the 0.30 s cooldown.
 const FP_STAB_SECONDS: float = 0.22
-## The blade fills less of its canvas than the guns, so it is held a little larger.
+## Resting glove texels use the same display scale as the other held weapons.
 const FP_SHIV_SCALE: float = 1.0
 var fp_stab_timer: float = 0.0
 ## Full width of the vitals bars, so a fill can be scaled against it.
