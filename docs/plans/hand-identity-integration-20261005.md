@@ -13,13 +13,13 @@ their original source, negative controls and dated evidence. The Sniper selects
 a registered drawn idle/fire pair with the Shotgun leather/cuff family, while
 its existing world pickup and historical mechanical source stay intact. Shiv
 resting scale becomes 1.0 without changing its finite animation or attack.
-M09 Tern and Splice use the existing provisional synthetic strip; Edda and both
+M09 and M10 Tern and Splice use the existing provisional synthetic strip; Edda and both
 human berth crew retain their human strip. This does not complete named casting.
 
 Only the owning presenter/source/test seams and scoped evidence are composed.
 Preserve every existing gun's resolved fire, scope release, bottom anchoring,
 aspect and motion checks, unsupported-weapon refusal and the six physical keys.
-Preserve M09 actual feet, eligibility, held-release and hatch facts. No native
+Preserve M09 and M10 actual feet, eligibility, held-release, transit and hatch facts. No native
 authority, carry, capability, save shape, map, difficulty, Repeater grant,
 runtime service or paid stage changes are authorized here.
 
@@ -47,3 +47,17 @@ for its exact source and recorded native, not a fresh M10 composition or human
 feel test. The inherited hand/character audit still owns unresolved casting
 and visual concerns. Update only scoped status after actual checks; do not
 declare every hand, character, mission or asset finished.
+
+## First composition checks
+
+Normal merges retain all three reviewed inputs. One `test_viewmodel.gd`
+collision is resolved by keeping both the Shiv actual hand-scale check and the
+Sniper member of the complete aspect/motion loop. All original known/unsupported
+gun assertions remain. M10's same Tern body error is independently reproduced
+and corrected through its existing presenter, without any native change.
+
+Cold import and seven focused harnesses pass: M09, M10, Sniper source, complete
+viewmodel, ranged/scope tell, weapon pickup and shot effects. A private launcher
+mistyped the pickup harness name and stopped after five passes; that failure
+is retained and the actual registered pickup harness is then run successfully.
+Complete composed client, source equality and public gates remain open.

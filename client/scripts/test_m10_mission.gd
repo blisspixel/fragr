@@ -93,8 +93,16 @@ func _run() -> void:
 	ship.configure_map(info)
 	ship.apply_state(first["state"])
 	_check(ship._figures.keys() == ["tern"], "unknown history stages only current pilot")
+	var actual_pilot: Sprite3D = ship._figures["tern"]
+	_check(actual_pilot.texture == load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)), "current pilot retains an embodied-agent body even with unknown historical transit")
 	ship.apply_state(fixture_state(info, 0, ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"])["state"])
 	_check(ship._figures.size() == 5 and ship._figures.has("edda") and ship._figures.has("splice"), "only recorded actual arrivals appear")
+	for id: String in ["tern", "splice"]:
+		var actual_agent: Sprite3D = ship._figures[id]
+		_check(actual_agent.texture == load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)), id + " retains its embodied-agent body on the ship")
+	for id: String in ["edda", "berth_crew_a", "berth_crew_b"]:
+		var actual_human: Sprite3D = ship._figures[id]
+		_check(actual_human.texture == load(PlayerBody.strip_path(PlayerBody.HUMAN)), id + " retains the human ship body fallback")
 	ship.clear_map()
 	_check(ship._geometry.is_empty() and ship._figures.is_empty() and ship.get_child_count() == 0, "map retirement removes all occupants")
 	ship.queue_free()

@@ -28,3 +28,25 @@ Logs are retained under `.agents/tern-body-identity-20261005/.agents/` as
 `m09-before.log` and `m09-after.log`. Cold headless import exits 0. No hardware
 renderer, native child or provider operation was needed. Source is ready for
 review, with combined integration and any later named-art selection still open.
+
+## Ship continuity extension
+
+The next local integration review finds the same conditional in `m10_ship.gd`:
+only Splice selects the synthetic strip, so the current mandatory pilot Tern
+borrows a human body. Extend the same narrow correction to the ship, preserving
+unknown historical transit versus current pilot presence and all recorded
+passenger eligibility, positions, tints and geometry. First add actual figure
+texture assertions to the owning M10 harness and retain the old failure. Then
+verify corrected Tern/Splice and unchanged Edda/human crew, including the unknown
+history pilot. No server, body-contact authority, map or save change belongs here.
+Full combined client and public gates remain required before promotion.
+
+The original ship conditional fails exactly two new actual texture assertions:
+Tern with unknown history and Tern with recorded arrivals. Splice and all human
+checks remain passing. The corrected conditional then passes the complete M10
+owning harness, numeric zero and error-clean, with the existing history,
+eligibility, retirement and mission gates intact. Private logs are
+`.agents/hand-integration-m10-before-v1.log` and
+`.agents/hand-integration-test_m10_mission-v1.log`. This local fix selects only
+the established provisional body strip; no named portrait, mesh or authority
+fact is created.
