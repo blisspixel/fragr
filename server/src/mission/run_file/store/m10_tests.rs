@@ -670,3 +670,138 @@ fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes()
         );
     }
 }
+
+#[test]
+fn m10_actual_transit_bodies_stop_shots_and_unknown_people_do_not() {
+    use crate::maps::EnemyPlacement;
+    use crate::protocol::{Action, EnemyKind, ShotImpact, WeaponType};
+    let source = crate::maps::AuthoredSource::Mission(MissionId::CommonCarrier)
+        .load()
+        .unwrap();
+    let geometry = crate::maps::RuntimeMap::Authored(source.clone())
+        .m10_geometry()
+        .unwrap()
+        .clone();
+    let mut places = vec![("tern".to_owned(), geometry.pilot)];
+    places.extend(geometry.passengers.iter().map(|p| (p.id.clone(), p.feet)));
+    for (edda, splice, known) in [
+        (false, false, true),
+        (true, false, true),
+        (false, true, true),
+        (true, true, true),
+        (true, true, false),
+    ] {
+        let mut before = m09_receipt_tests::completed_berth(edda, splice);
+        if !known {
+            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
+        }
+        let promoted = before
+            .promote_next(
+                MissionId::CommonCarrier,
+                crate::maps::RuntimeMap::Authored(source.clone())
+                    .content_sha256()
+                    .unwrap(),
+            )
+            .unwrap();
+        for (name, feet) in &places {
+            // Diagnostic rear guard and fixed firing lane use actual authored
+            // civilian feet and the ordinary resolved shot owner. This is not
+            // a route, encounter-roster or fresh-player difficulty fixture.
+            let mut state = GameState::with_authored_map(source.clone());
+            state.load_campaign_run(&promoted).unwrap();
+            let shooter = Uuid::from_u128(1010);
+            state.add_player(shooter, "ship shot visitor".into(), Role::Human);
+            assert!(state.acknowledge_mission(
+                shooter,
+                MissionReady {
+                    id: MissionId::CommonCarrier,
+                    attempt: 1,
+                }
+            ));
+            let rear = state.spawn_campaign_enemy(&EnemyPlacement {
+                id: "diagnostic_rear_guard".into(),
+                kind: EnemyKind::Clerk,
+                feet: [feet[0] + 1.2, feet[1], feet[2]],
+                yaw: 0.0,
+                seated: false,
+                hover: None,
+            });
+            let rear_hp_before = state.players.iter().find(|p| p.id == rear).unwrap().hp;
+            let owner = state.players.iter_mut().find(|p| p.id == shooter).unwrap();
+            assert!(owner.inventory.owns(WeaponType::Sniper));
+            [owner.x, owner.y, owner.z] = [feet[0] - 1.2, feet[1] + PLAYER_FLOOR_Y, feet[2]];
+            owner.vy = 0.0;
+            owner.fire_cooldown = 0;
+            let mut expected_equipment =
+                owner.inventory.saved_equipment(WeaponType::Sniper).unwrap();
+            let cell = expected_equipment
+                .ammo
+                .iter_mut()
+                .find(|count| count.pool == crate::protocol::AmmoPool::Cells)
+                .unwrap();
+            assert!(cell.rounds > 0);
+            cell.rounds -= 1;
+            state.spawn_shields.clear();
+            let mut before_contacts = Vec::new();
+            state.append_civilian_contacts(&mut before_contacts);
+            let expected = name == "tern" || promoted.m10_transit.as_ref().unwrap().arrived(name);
+            let key = format!("m10/{name}");
+            assert_eq!(before_contacts.iter().any(|p| p.key == key), expected);
+            state.set_action(
+                shooter,
+                Action {
+                    fire: true,
+                    weapon_swap: Some(WeaponType::Sniper),
+                    yaw: Some(0.0),
+                    pitch: Some(0.0),
+                    ..Default::default()
+                },
+            );
+            state.tick(0.0);
+            let shots: Vec<_> = state
+                .shot_results
+                .iter()
+                .filter(|shot| shot.shooter_id == shooter)
+                .collect();
+            assert_eq!(shots.len(), 1, "actual finite Sniper round for {key}");
+            let shot = shots[0];
+            let owner = state.players.iter().find(|p| p.id == shooter).unwrap();
+            assert_eq!(owner.weapon, WeaponType::Sniper);
+            assert_eq!(
+                owner.inventory.saved_equipment(owner.weapon).unwrap(),
+                expected_equipment,
+                "one stopped or landed shot spends exactly one real Cell"
+            );
+            let rear_hp = state.players.iter().find(|p| p.id == rear).unwrap().hp;
+            if expected {
+                assert_eq!(shot.target_id, None, "civilian has no invented pawn HP");
+                assert_eq!(shot.target_hp_after, None);
+                assert_eq!(shot.damage, 0);
+                assert!(!shot.hit && !shot.killed);
+                assert_eq!(
+                    rear_hp, rear_hp_before,
+                    "real rear guard is occluded by {key}"
+                );
+                let trace = shot.trace.as_ref().unwrap();
+                assert!(matches!(trace.impact, ShotImpact::Fighter { .. }));
+                assert!((trace.end[0] - feet[0]).abs() <= crate::movement::RADIUS + 0.01);
+            } else {
+                assert_eq!(shot.target_id, Some(rear), "no phantom missing {key}");
+                assert!(shot.hit && shot.damage > 0 && rear_hp < rear_hp_before);
+            }
+            let mut after_contacts = Vec::new();
+            state.append_civilian_contacts(&mut after_contacts);
+            assert_eq!(before_contacts.len(), after_contacts.len());
+            for (before, after) in before_contacts.iter().zip(after_contacts) {
+                assert_eq!(before.key, after.key);
+                assert_eq!(before.from, after.from, "fire does not move real crew");
+                assert_eq!(before.height, after.height);
+                assert_eq!(before.radius, after.radius);
+            }
+            assert_eq!(
+                state.campaign_run_document().unwrap().unwrap().m10_transit,
+                promoted.m10_transit
+            );
+        }
+    }
+}

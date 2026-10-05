@@ -22,14 +22,15 @@ Local play and self-hosting need no account or paid service.
 
 The latest desktop release is
 [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0).
-The campaign currently has nine connected development levels, with mission-entry
-saves, finite ammunition and three continues per episode. The finished target
+That release has nine connected development levels. Source builds add the tenth,
+Common Carrier, with mission-entry saves, finite ammunition and three continues
+per episode. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
 
 | Choose | What you can play | Start here |
 |---|---|---|
-| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, and ship boarding | **Single Player > Recall Notice**, then **Continue Run** |
+| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding and the source-build ship interior | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
 | Multiplayer | Six arenas, free-for-all, team deathmatch, capture the flag on three maps, and Sector 9 plant/defuse | **Multiplayer**, connected to a running server |
 | Calibration | A separate arena challenge against named bots with the Host and objectives | `./tools/solo_scrap.sh` |

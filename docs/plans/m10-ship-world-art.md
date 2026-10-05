@@ -186,3 +186,17 @@ and all-target Clippy with denied warnings pass. Combine the corrected character
 README handoff before one matching full client check and one ordinary 28-state
 hardware route, including actual bench lighting review. Existing prototype
 CI/package receipts remain historical proof for their exact prior head.
+
+The local composition now preserves all three independent contact branches:
+M10's actual pilot/arrived passengers, M08's staged residents and the lunar port
+and town residents. A focused actual-shot fixture passes all four recorded
+crew rosters plus historical unknown, firing the carried Sniper through each
+authored person position toward a real diagnostic rear guard. Present people
+stop the ray with no invented pawn/HP/damage facts; absent people leave the
+rear target reachable. Both outcomes spend exactly one Cell, preserve other
+inventory, leave crew feet intact and retain transit facts. The initial fixture
+incorrectly assumed a Clerk had 100 HP; its retained failure is corrected by
+comparing the actual initial HP. This changes no production health or rules.
+All 21 focused M10 tests and the actual all-role child check pass on the
+composed source. Complete composed checks and played/light acceptance remain
+open.
