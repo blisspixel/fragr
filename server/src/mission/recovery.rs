@@ -271,6 +271,7 @@ impl GameState {
                 || run.m07.is_some()
                 || run.m09.is_some()
                 || run.m10.is_some()
+                || run.m11.is_some()
             {
                 MissionPhase::InProgress
             } else {

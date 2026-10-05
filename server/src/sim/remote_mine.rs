@@ -210,6 +210,15 @@ pub fn trigger_owned(
 }
 
 impl GameState {
+    pub(super) fn retire_dead_remote_owners(&mut self) {
+        let players = &self.players;
+        self.remote_mines.retain(|mine| {
+            players.iter().any(|player| {
+                player.id == mine.state.owner_id && player.hp > 0 && player.respawn_timer.is_none()
+            })
+        });
+    }
+
     pub(crate) fn clear_remote_mines(&mut self) {
         self.remote_mines.clear();
         for player in &mut self.players {

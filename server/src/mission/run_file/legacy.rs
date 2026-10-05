@@ -68,6 +68,7 @@ impl RunDocumentV10 {
             m08_outcome: self.m08_outcome,
             m09_outcome: completed_m09.then_some(M09Outcome::HistoricalUnrecorded {}),
             m10_transit: None,
+            m11_outcome: None,
         };
         document.validate(
             *hashes
@@ -194,6 +195,7 @@ impl RunDocumentV9 {
             m08_outcome: completed_m08.then_some(M08Outcome::HistoricalUnrecorded {}),
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         document.validate(
             *hashes
@@ -250,6 +252,7 @@ impl RunDocumentV8 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -315,6 +318,7 @@ impl RunDocumentV7 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -378,6 +382,7 @@ impl RunDocumentV6 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -515,7 +520,18 @@ pub(crate) struct RunDocumentV13 {
 
 impl RunDocumentV13 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
-        if self.version != 13 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != 13
+            || self.rules.revision != CAMPAIGN_RULES_REVISION
+            || match &self.step {
+                SavedStep::MissionEntry { mission, .. }
+                | SavedStep::PendingContinue { mission, .. }
+                | SavedStep::Failed { mission, .. }
+                | SavedStep::Abandoned { mission, .. } => *mission == MissionId::RightOfSearch,
+                SavedStep::AwaitingMission {
+                    completed_mission, ..
+                } => *completed_mission == MissionId::RightOfSearch,
+            }
+        {
             return Err("unsupported historical campaign rules");
         }
         let document = RunDocument {
@@ -535,6 +551,7 @@ impl RunDocumentV13 {
             m08_outcome: self.m08_outcome,
             m09_outcome: self.m09_outcome,
             m10_transit: self.m10_transit,
+            m11_outcome: None,
         };
         document.validate(
             *hashes
@@ -678,6 +695,7 @@ impl RunDocumentV5 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -770,6 +788,7 @@ impl RunDocumentV4 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         document.validate(expected)?;
         Ok(document)
@@ -815,6 +834,7 @@ impl RunDocumentV3 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
@@ -885,6 +905,7 @@ impl RunDocumentV2 {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         };
         document.validate(m01_hash)?;
         Ok(document)
@@ -940,6 +961,7 @@ impl RunDocumentV12 {
             m08_outcome: self.m08_outcome,
             m09_outcome: self.m09_outcome,
             m10_transit: None,
+            m11_outcome: None,
         };
         document.validate(
             *hashes

@@ -145,7 +145,9 @@ impl Ready {
             url: format!("ws://{address}"),
             // M06 adds a distinct envelope; earlier mission readers retain
             // their existing capability boundary and unchanged rules.
-            gameplay_version: if mission == MissionId::CommonCarrier {
+            gameplay_version: if mission == MissionId::RightOfSearch {
+                crate::protocol::M11_GAMEPLAY_VERSION
+            } else if mission == MissionId::CommonCarrier {
                 crate::protocol::M10_GAMEPLAY_VERSION
             } else if mission == MissionId::PassengerManifest {
                 crate::protocol::M09_GAMEPLAY_VERSION
@@ -399,5 +401,17 @@ mod tests {
         .unwrap();
         assert_eq!(m08.gameplay_version, crate::protocol::M08_GAMEPLAY_VERSION);
         assert_eq!(m08.mission, MissionId::CustodianOfRecord);
+        let m11 = Ready::new(
+            MissionId::RightOfSearch,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(m11.gameplay_version, crate::protocol::M11_GAMEPLAY_VERSION);
+        assert!(
+            m11.gameplay_version > crate::protocol::GAMEPLAY_VERSION,
+            "source-only readiness must not advertise the earlier compatible contract"
+        );
     }
 }

@@ -15,8 +15,8 @@ const MAX_RUN_BYTES: u64 = 65_536;
 const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
-/// Playable campaign stages with bundled content, in mission order.
-pub(crate) const CAMPAIGN_STAGES: usize = 10;
+/// Internally supported save stages, independent of network capability admission.
+pub(crate) const CAMPAIGN_STAGES: usize = 11;
 /// Bundled content hashes for every playable campaign stage.
 pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 
@@ -32,6 +32,7 @@ pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = [
     MissionId::CustodianOfRecord,
     MissionId::PassengerManifest,
     MissionId::CommonCarrier,
+    MissionId::RightOfSearch,
 ];
 
 /// Index of a playable mission in [`ContentHashes`].
@@ -47,7 +48,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::CustodianOfRecord => 7,
         MissionId::PassengerManifest => 8,
         MissionId::CommonCarrier => 9,
-        MissionId::RightOfSearch => CAMPAIGN_STAGES,
+        MissionId::RightOfSearch => 10,
     }
 }
 
@@ -529,6 +530,7 @@ mod tests {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -612,7 +614,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -635,7 +637,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32]
+                    [101; 32], [102; 32], [103; 32]
                 ]
             )
             .unwrap(),
@@ -766,7 +768,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -813,7 +815,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -874,7 +876,7 @@ mod tests {
             &directory,
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -937,7 +939,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -985,7 +987,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32]
+                    [101; 32], [102; 32], [103; 32]
                 ]
             )
             .unwrap(),
@@ -1002,7 +1004,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -1054,7 +1056,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32]
+                    [101; 32], [102; 32], [103; 32]
                 ]
             )
             .unwrap(),
@@ -1111,5 +1113,7 @@ mod m09_receipt_tests;
 mod m09_tests;
 #[cfg(test)]
 mod m10_tests;
+#[cfg(test)]
+mod m11_tests;
 #[cfg(test)]
 mod remote_tests;

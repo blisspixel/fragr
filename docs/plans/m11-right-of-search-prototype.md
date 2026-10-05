@@ -362,6 +362,29 @@ Capability 37, locked M10-to-M11 carry, shared controller/client admission,
 ordinary full combat, accepted Redactor motion and composed renderer/package
 gates remain open. The current client still refuses this development mission.
 
+The next bounded component is the existing locked save edge from completed M10
+to M11. It keeps actual equipment, body, difficulty, continues and immutable
+crew/history receipts, clears old-map personal claims, and adds no Episode III
+refill. Version 14 gains strict completed-M11 choices and one-blast/bridge
+elapsed facts. Earlier documents remain exact pre-M11 shapes with no remote
+stock or invented M11 outcomes. M11 entry can retain a Repeater found in M10,
+but Remote Mines become valid only at M11 exit after their actual find. Retry
+restores finite entry stock and resets current choices/devices; M12 remains a
+string-only unavailable destination. Positive promotion/load/retry/exit,
+interrupted archive/reopen/stale-writer and malformed/historical negative
+controls must pass before this source component is checkpointed. This does not
+advertise capability 37 or replace the pending client and played gates.
+
+That save component now passes all 72 owning run-file checks, including known
+and unrecorded histories, exact interrupted archives, real finite pickups,
+pending-continue reopen, explicit retry and exhausted allowance. Warning-denied
+server all-target Clippy, formatting and whitespace checks pass. A real frozen
+campaign owner-death device gap was caught and corrected without advancing
+Remote Mine fuses. [The carry receipt](../evidence/m11-save-carry-20261005.md)
+retains failed boundaries and distinguishes actual save progression from full
+finite combat. The eleven-stage internal roster does not advertise capability
+37. The shared controller and live client remain the next component.
+
 The next lifecycle checkpoint connects RightOfSearch identity, the existing
 MissionRun/readiness/reset/state writer, exact group-backed arrivals, optional
 physical transfer/document interactions and fresh all-party stern use. The

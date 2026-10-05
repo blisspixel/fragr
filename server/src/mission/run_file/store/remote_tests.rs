@@ -78,7 +78,7 @@ fn remote_v13_refuses_forged_count_even_zero_and_current_pre_find_carry() {
 }
 
 #[test]
-fn m11_pending_carry_refuses_current_and_historical_identity_without_indexing_unbuilt_hash() {
+fn m11_carry_refuses_incomplete_ship_edge_wrong_hash_and_historical_identity() {
     let before = m09_receipt_tests::completed_berth(true, true);
     let source = before
         .promote_next(

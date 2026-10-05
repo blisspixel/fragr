@@ -10,14 +10,16 @@ use uuid::Uuid;
 
 mod legacy;
 mod m09_outcome;
+mod m11_outcome;
 pub(crate) mod store;
 use legacy::{
     RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2, RunDocumentV3,
     RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
 pub(crate) use m09_outcome::M09Outcome;
+pub(crate) use m11_outcome::M11Outcome;
 
-/// Version 14 reserves independent remote stock, upgrading exact version 13.
+/// Version 14 carries M11 and independent remote stock, upgrading exact version 13.
 /// M10 transit and its one Episode III refill remain owned by the locked edge.
 pub(super) const RUN_FILE_VERSION: u32 = 14;
 const M02_MISSION: &str = "persons_unknown";
@@ -212,6 +214,12 @@ pub(crate) struct RunDocument {
     pub m09_outcome: Option<M09Outcome>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m10_transit: Option<crate::protocol::M10Transit>,
+    #[serde(
+        default,
+        deserialize_with = "m11_outcome::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m11_outcome: Option<M11Outcome>,
 }
 
 impl RunDocument {
@@ -246,7 +254,7 @@ impl RunDocument {
             MissionId::CustodianOfRecord => (MissionId::DeclaredGoods, M08_MISSION),
             MissionId::PassengerManifest => (MissionId::CustodianOfRecord, M09_MISSION),
             MissionId::CommonCarrier => (MissionId::PassengerManifest, M10_MISSION),
-            MissionId::RightOfSearch => return Err("M11 carry is not implemented"),
+            MissionId::RightOfSearch => (MissionId::CommonCarrier, M11_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -269,6 +277,7 @@ impl RunDocument {
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -330,6 +339,7 @@ impl RunDocument {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
         }
     }
 
@@ -343,6 +353,7 @@ impl RunDocument {
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
+                | MissionId::RightOfSearch
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -360,6 +371,7 @@ impl RunDocument {
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
+                | MissionId::RightOfSearch
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -376,6 +388,7 @@ impl RunDocument {
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
+                | MissionId::RightOfSearch
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
@@ -391,6 +404,7 @@ impl RunDocument {
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
+                | MissionId::RightOfSearch
         ) || matches!(&self.step, SavedStep::AwaitingMission {
                 completed_mission: MissionId::PortOfEntry, next_mission, ..
             } if next_mission == M07_MISSION);
@@ -399,7 +413,7 @@ impl RunDocument {
         }
         let completed_m08 = matches!(
             self.stage_mission(),
-            MissionId::PassengerManifest | MissionId::CommonCarrier
+            MissionId::PassengerManifest | MissionId::CommonCarrier | MissionId::RightOfSearch
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
@@ -409,8 +423,10 @@ impl RunDocument {
         if let Some(outcome) = &self.m08_outcome {
             outcome.validate()?;
         }
-        let completed_m09 = self.stage_mission() == MissionId::CommonCarrier
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m09 = matches!(
+            self.stage_mission(),
+            MissionId::CommonCarrier | MissionId::RightOfSearch
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PassengerManifest, next_mission, ..
         } if next_mission == M10_MISSION);
         if completed_m09 != self.m09_outcome.is_some() {
@@ -419,7 +435,11 @@ impl RunDocument {
         if let Some(outcome) = &self.m09_outcome {
             outcome.validate(self)?;
         }
-        if (self.stage_mission() == MissionId::CommonCarrier) != self.m10_transit.is_some() {
+        if matches!(
+            self.stage_mission(),
+            MissionId::CommonCarrier | MissionId::RightOfSearch
+        ) != self.m10_transit.is_some()
+        {
             return Err("saved transit does not match M10");
         }
         if let Some(transit) = &self.m10_transit {
@@ -435,6 +455,15 @@ impl RunDocument {
             {
                 return Err("saved M10 arrivals disagree with the immutable berth release");
             }
+        }
+        let completed_m11 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::RightOfSearch, next_mission, ..
+        } if next_mission == M12_MISSION);
+        if completed_m11 != self.m11_outcome.is_some() {
+            return Err("saved tender outcome does not match completed M11");
+        }
+        if let Some(outcome) = &self.m11_outcome {
+            outcome.validate()?;
         }
         if self.version != RUN_FILE_VERSION
             || self.id.is_nil()
@@ -479,6 +508,7 @@ impl RunDocument {
                         | (MissionId::CustodianOfRecord, M09_MISSION)
                         | (MissionId::PassengerManifest, M10_MISSION)
                         | (MissionId::CommonCarrier, M11_MISSION)
+                        | (MissionId::RightOfSearch, M12_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -495,14 +525,20 @@ impl RunDocument {
                             | MissionId::CustodianOfRecord
                             | MissionId::PassengerManifest
                             | MissionId::CommonCarrier
+                            | MissionId::RightOfSearch
                     ),
                     matches!(
                         *completed_mission,
                         MissionId::CustodianOfRecord
                             | MissionId::PassengerManifest
                             | MissionId::CommonCarrier
+                            | MissionId::RightOfSearch
                     ),
-                    *completed_mission == MissionId::CommonCarrier,
+                    matches!(
+                        *completed_mission,
+                        MissionId::CommonCarrier | MissionId::RightOfSearch
+                    ),
+                    *completed_mission == MissionId::RightOfSearch,
                 )?;
                 exit.validate()
             }
@@ -520,13 +556,16 @@ impl RunDocument {
                 MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ),
             matches!(
                 mission,
                 MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ),
+            mission == MissionId::RightOfSearch,
             false,
         )?;
         entry.validate()
@@ -540,10 +579,11 @@ impl RunDocument {
         sniper_found: bool,
         mines_found: bool,
         repeater_found: bool,
+        remotes_found: bool,
     ) -> Result<(), &'static str> {
-        // Right of Search is still unimplemented in this foundation. Every
-        // currently supported stage predates the Remote Mine find.
-        if entry.equipment.remote_mines != 0 {
+        // Mission-start retry stock predates the M11 discovery. Only a real
+        // completed M11 exit may contain the independently counted charges.
+        if !remotes_found && entry.equipment.remote_mines != 0 {
             return Err("saved equipment carries remote mines before their mission");
         }
         if !repeater_found
@@ -638,6 +678,7 @@ impl GameState {
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -660,6 +701,7 @@ impl GameState {
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -682,6 +724,7 @@ impl GameState {
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
@@ -702,6 +745,7 @@ impl GameState {
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
                     | MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
             ) {
                 Some(M06Outcome {
                     prisoner_route_marked: solo.carried_prisoner_route_marked,
@@ -720,7 +764,7 @@ impl GameState {
                 })
             } else if matches!(
                 mission,
-                MissionId::PassengerManifest | MissionId::CommonCarrier
+                MissionId::PassengerManifest | MissionId::CommonCarrier | MissionId::RightOfSearch
             ) {
                 solo.carried_archive.clone()
             } else {
@@ -736,13 +780,25 @@ impl GameState {
                         .filter(|outcome| matches!(outcome, M09Outcome::Recorded { .. }))
                         .ok_or("completed M09 lacks its actual departure receipt")?,
                 )
-            } else if mission == MissionId::CommonCarrier {
+            } else if matches!(mission, MissionId::CommonCarrier | MissionId::RightOfSearch) {
                 solo.carried_berth.clone()
             } else {
                 None
             },
-            m10_transit: if mission == MissionId::CommonCarrier {
+            m10_transit: if matches!(mission, MissionId::CommonCarrier | MissionId::RightOfSearch) {
                 solo.carried_transit.clone()
+            } else {
+                None
+            },
+            m11_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::RightOfSearch
+            {
+                Some(M11Outcome::capture(
+                    &run.m11
+                        .as_ref()
+                        .ok_or("completed M11 lacks progress")?
+                        .challenges,
+                )?)
             } else {
                 None
             },
@@ -838,6 +894,7 @@ mod tests {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

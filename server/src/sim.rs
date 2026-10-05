@@ -1701,6 +1701,9 @@ impl GameState {
 
         self.update_encounters();
         if self.mission_departed() || self.campaign_run_frozen() {
+            // A frozen continue never advances device fuses. Dead ownership
+            // still retires Remote Mines immediately, without a late blast.
+            self.retire_dead_remote_owners();
             for player in &mut self.players {
                 player.just_fired = false;
             }
