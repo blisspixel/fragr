@@ -19,6 +19,9 @@ func _column(weapon_name: String) -> int:
 		"Tack":
 			# Both retained frames have an opaque grip and right wrist at 144.
 			return 144
+		"Sniper":
+			# The registered drawn pair has its right cuff at this column.
+			return 174
 	return 112
 
 func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> void:
@@ -30,11 +33,54 @@ func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> v
 	if texel_y >= 0 and texel_y < image.get_height():
 		_check(image.get_pixel(column, texel_y).a > 0.99, context + ": weapon stock must cover the bottom pixel")
 
+## Compare actual selected controls rather than their constants: one texel of
+## the same player's resting glove must have the same display scale. Stabbing
+## still deliberately reaches forward, then returns to that resting scale.
+func _source_span(weapon: TextureRect, a: Vector2, b: Vector2) -> float:
+	var fit: float = minf(weapon.size.x / weapon.texture.get_width(), weapon.size.y / weapon.texture.get_height())
+	var transform: Transform2D = root.get_stretch_transform() * weapon.get_global_transform_with_canvas()
+	return (transform * (a * fit)).distance_to(transform * (b * fit))
+
+func _check_shiv_transformed_bottom(weapon: TextureRect) -> void:
+	var image: Image = weapon.texture.get_image()
+	var fit: float = minf(weapon.size.x / image.get_width(), weapon.size.y / image.get_height())
+	var inset: Vector2 = (weapon.size - Vector2(image.get_size()) * fit) * 0.5
+	var transform: Transform2D = root.get_stretch_transform() * weapon.get_global_transform_with_canvas()
+	var bottom: float = root.size.y
+	var wrist_base: Vector2 = transform * (inset + Vector2(190, image.get_height()) * fit)
+	_check(wrist_base.y > bottom + 2.0, "actual transformed Shiv wrist base remains below the physical window")
+	var sample: Vector2 = (transform.affine_inverse() * Vector2(wrist_base.x, bottom - 1.0) - inset) / fit
+	_check(sample.y >= 0.0 and sample.y < image.get_height(), "actual physical bottom samples the Shiv picture during use")
+	if sample.y >= 0.0 and sample.y < image.get_height():
+		_check(image.get_pixel(190, floori(sample.y)).a > 0.99, "actual transformed Shiv wrist is opaque at the physical bottom")
+
+func _check_shiv_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.set_fp_walk_speed(0.0)
+	hud.head_bob_enabled = false
+	hud._process(1.0)
+	hud.set_fp_weapon("Scatter")
+	var reference: float = _source_span(weapon, Vector2(51, 163), Vector2(83, 178)) / Vector2(51, 163).distance_to(Vector2(83, 178))
+	hud.set_fp_weapon("Shiv")
+	var rest: float = _source_span(weapon, Vector2(164, 160), Vector2(191, 150)) / Vector2(164, 160).distance_to(Vector2(191, 150))
+	_check(is_equal_approx(rest, reference), "resting Shiv glove texels match the Shotgun display scale at this aspect")
+	var blade_rest: float = _source_span(weapon, Vector2(106, 44), Vector2(142, 98))
+	_check(blade_rest > reference * 60.0, "unchanged Shiv blade retains its substantial diagonal silhouette")
+	hud.show_fire_juice("Shiv")
+	var longest: float = blade_rest
+	for frame: int in range(60):
+		hud._process(1.0 / 120.0)
+		longest = maxf(longest, _source_span(weapon, Vector2(106, 44), Vector2(142, 98)))
+		_check_shiv_transformed_bottom(weapon)
+	_check(longest > blade_rest * 1.15, "ordinary resolved use still reaches forward visibly")
+	var settled: float = _source_span(weapon, Vector2(164, 160), Vector2(191, 150)) / Vector2(164, 160).distance_to(Vector2(191, 150))
+	_check(is_equal_approx(settled, reference), "resolved use settles to the same player's glove scale")
+	hud.head_bob_enabled = true
+
 ## Each gun shows its drawn fire frame for the shot, the Shotgun pumps after
 ## it, and every gun settles back to its idle pose.
 func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
-	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail"]:
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper"]:
 		hud.set_fp_weapon(weapon_name)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
 		hud.show_fire_juice(weapon_name)
@@ -127,7 +173,8 @@ func _run() -> void:
 	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080)]:
 		root.size = viewport_size
 		await process_frame
-		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Shiv"]:
+		_check_shiv_hand_scale(hud, weapon)
+		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Sniper", "Shiv"]:
 			hud.call("set_fp_weapon", weapon_name)
 			_check_bottom(weapon, weapon_name + " swap", _column(weapon_name))
 			hud.call("set_fp_walk_speed", MoveStep.TOP_SPEED)

@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "date": "2026-10-05",
+  "scope": "Actual standalone seven-weapon HUD, presentation only",
+  "source_commit": "d5098c1c7aec78405b20e5f47ebaf8764f398656",
+  "runtime_commit": "988ef19045f1f1c75dc93a5b3d6f4bfeb27af5c3",
+  "renderer_pid": 30964,
+  "exit_code": 0,
+  "error_clean": true,
+  "owned_process_retired": true,
+  "server": false,
+  "pointer_capture": false,
+  "inspected": true,
+  "actual_frames": 63,
+  "aspects": [
+    [
+      1280,
+      720
+    ],
+    [
+      1024,
+      768
+    ],
+    [
+      2560,
+      1080
+    ]
+  ],
+  "poses": [
+    "rest",
+    "use",
+    "bob"
+  ],
+  "full_private_capture_manifest_sha256": "9744f9a643863fd1c43018b98e743cb83ddf91adc99ab9adda9233353810b352",
+  "fixture_sha256": "9f29acf2954f58a9599bb3a497e8de53995f53ee17a56339f791da2e34af73d5",
+  "sheet_method": "Unscaled 480x260 crops of actual 1280x720 frames. Top: Pistol, Rifle, Shotgun, Railgun. Bottom: Sniper, Fists, Shiv. Empty last cell. Fists use samples the deliberate 2.1 punch extension with its separate timer.",
+  "retained_prior_failures": "Private v1 sampled Fists near the start instead of peak. First sheet conversion emitted RGB/RGBA errors despite exit zero. Neither is accepted as PASS.",
+  "gameplay_claim": false,
+  "performance_claim": false,
+  "selected_files": [
+    {
+      "file": "actual-hands-rest-sheet-v2.png",
+      "sha256": "3babd7f7118dd30c699e9fd3a271140d0ce6582c84362b44a286bc817efd5040",
+      "width": 1920,
+      "height": 520,
+      "byte_identical": true,
+      "kind": "unscaled crop comparison sheet"
+    },
+    {
+      "file": "actual-hands-use-sheet-v2.png",
+      "sha256": "d95b06353ded4105a75c0fa8cec52e013a908078b2e0058eb1d057800c13ff8e",
+      "width": 1920,
+      "height": 520,
+      "byte_identical": true,
+      "kind": "unscaled crop comparison sheet"
+    },
+    {
+      "file": "actual-hands-bob-sheet-v2.png",
+      "sha256": "6661621b57a67335c0ab56ebd79bbb93b2d4e924d66c41e47712e8b1c4d8625f",
+      "width": 1920,
+      "height": 520,
+      "byte_identical": true,
+      "kind": "unscaled crop comparison sheet"
+    },
+    {
+      "file": "1024x768_Sniper_rest.png",
+      "sha256": "5648ab4788ebd5f9cb78cc725e8d813609597f529aa3ab509ad95ed2920356f9",
+      "width": 1024,
+      "height": 768,
+      "byte_identical": true,
+      "kind": "literal full frame"
+    },
+    {
+      "file": "2560x1080_Shiv_use.png",
+      "sha256": "57a81504f4f1b6e75fa10eecfbe6b9c51d00825fa7caa54f32574241c412422e",
+      "width": 2560,
+      "height": 1080,
+      "byte_identical": true,
+      "kind": "literal full frame"
+    }
+  ]
+}

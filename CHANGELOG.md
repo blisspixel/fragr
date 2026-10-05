@@ -6,6 +6,10 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Match the Sniper's leather gloves to the drawn weapon family, restore the
+  Shiv's shared resting hand scale and show Tern's provisional synthetic body
+  in both berth and ship scenes. Combat timing, scope and crew facts stay intact.
+
 - Escape supported static-cover corners with a bounded ordinary movement lease,
   preserving combat intent, deliberate drops and existing stuck thresholds.
   Retain the original intermittent report's attribution limit. The M02

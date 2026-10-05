@@ -1,5 +1,30 @@
 # Weapon and character continuity audit
 
+## Dated follow-up, 2026-10-05
+
+Main `0b03dc2c` now includes the drawn Pistol and corrected home Latch still
+through [PR #369](https://github.com/blisspixel/fragr/pull/369). Their owning
+[played and story receipt](pistol-and-latch-continuity-20261005.md) supersedes
+the original home/Pistol findings below. This is current source status, not
+a new desktop release claim.
+
+The separate local successor `988ef190` passes the complete client suite
+(271 scripts, 129 harnesses). It composes the
+[drawn Sniper's ordinary M07 witness](sniper-hand-continuity-20261005.md), the
+[Shiv resting-scale correction](../plans/shiv-hand-scale-20261005.md), and
+[Tern's provisional synthetic identity in M09 and M10](../plans/tern-body-identity-20261005.md).
+The [combined seven-weapon hardware HUD comparison](hand-identity-integration-20261005.md)
+also passes 63 actual rest/use/bob frames across three aspects, with five
+inspected public copies. It is a presentation fixture, not a gameplay or
+performance claim. Those corrections are locally verified; exact combined CI, desktop packages
+and main promotion remain open at this snapshot. They do not finish named
+casting, every hand pose or fresh-player feel. The
+[integration plan](../plans/hand-identity-integration-20261005.md) owns the
+bounded composition. The original snapshot, tables and hashes below are
+retained unchanged as dated evidence.
+
+## Original audit snapshot
+
 Status: complete read-only audit, 2026-10-05. Corrections and played acceptance
 remain open. This audit uses the proposed Pistol
 selection snapshot `8879b5ee`, not a claim that its artwork has shipped.

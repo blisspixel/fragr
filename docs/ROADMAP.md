@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-04)
+## Where we are (2026-10-05)
 
 [Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
 matching client/server packages and immutable build checks. Bounded development branches use pull requests with
@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 9 are playable development prototypes, with
+**Campaign.** Levels 1 to 10 are playable development prototypes on main, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -39,7 +39,12 @@ Proximity Mine and repairing Auditor, with a separate practice entry. The
 [M09 berth prototype](plans/m09-passenger-manifest-prototype.md) shipped in
 [PR #354](https://github.com/blisspixel/fragr/pull/354) and v0.73.0, with a
 complete 27-state, 21-guard structural combat route and version 10 saved carry.
-M10 through M20 remain unbuilt. Fresh-player, difficulty and final art acceptance
+The [M10 Common Carrier prototype](evidence/m10-common-carrier-20261005.md)
+merged in [PR #369](https://github.com/blisspixel/fragr/pull/369), with its complete
+28-state route, all 17 guards and departure passing. Version 13 retains actual
+crew transit separately from the immutable M09 boarding record. All eight
+reviewed-head CI jobs and all three desktop package checks passed before merge.
+M11 through M20 remain unbuilt. Fresh-player, difficulty and final art acceptance
 remain open for every level. The full build order below owns current sequencing.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
@@ -102,13 +107,17 @@ or cloud apply ran.
 
 **Latest asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
 and Splice model sources plus Edda's first rig consumed 110 included credits.
-The free checker reports 2,125 available, 15 held and 2,110 usable. Tracked
-consumption is 945, with 620 used and 280 remaining in the first allocation.
+The subsequent Redactor source and first rig consumed 35 and 5 included credits.
+The free checker now reports 2,085 available, 15 held and 2,070 usable. Tracked
+consumption is 985. The first allocation remains separately recorded at 620 used
+and 280 remaining; the Redactor trial does not silently expand that allocation.
 The [cast receipt](evidence/named-cast-source-production-20261005.md) retains a
 satchel skin defect found in walking; the [glove source](evidence/work-glove-source-20261005.md)
-needs measured local articulation. None is selected runtime artwork. Three new
-image reservations total $1.874, leaving an estimated $12.546 against Nick's
-latest $14.42 report, not an independently verified balance. No cash, renewal,
+needs measured local articulation. None is selected runtime artwork. Against
+Nick's subsequent $12.60 dashboard report, completed Pistol, home-image,
+Redactor-reference and Sniper requests total $1.546 in retained price estimates,
+leaving an estimated $11.054. This is not an independently verified API balance
+or per-request billing receipt. No cash, renewal,
 top-up or overage was enabled.
 
 **Shipped and proven on the tip:**
@@ -140,7 +149,7 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, levels 9 to 20, the planned console, Ultra graphics and the player-facing rendered benchmark, wider directional combat acoustics, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, levels 11 to 20, the planned console, Ultra graphics and the player-facing rendered benchmark, wider directional combat acoustics, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -156,7 +165,7 @@ Resolved 2026-09-26: the map 5 opening spawn flake (v0.57.1 shields the round op
 
 ## What is next, in order (as of 2026-09-26)
 
-The current sequence is the [full build order](#full-build-order-2026-09-27) below. This section records increments that already shipped. It is not the queue.
+The current sequence is the [full build order](#full-build-order) below. This section records increments that already shipped. It is not the queue.
 
 **Active milestone: [local excellence](plans/local-excellence.md).** The first
 increment shipped in [v0.15.0](https://github.com/blisspixel/fragr/releases/tag/v0.15.0):
@@ -314,6 +323,8 @@ under #197.
 
 The phases below are the long shape. The sequence that follows is the build order. Each rung is there because the rung before it is what makes the next one true. A green harness is not a finished mission. A scripted clear is not a fresh player.
 
+<a id="full-build-order"></a>
+
 ## Full build order (updated 2026-10-05)
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
@@ -323,27 +334,31 @@ quality for the work. Nick authorized parallel game development alongside
 substantial model production. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
-prototype, refined Pistol and hatless civilian. The current published release
-is [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0), exact
+prototype, refined Pistol and hatless civilian. The latest release verified
+before this composition was [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0), exact
 restored source `6c4df5b3`, including the earlier Rifle pictures and selected
 Sniper refinement. All eight main CI jobs and all three tagged desktop package
 checks passed. Independently rehashed downloaded ZIPs match the checksum
 manifest and uploaded digests. The original map 5 stress failure and unchanged
 passing rerun remain distinct in the [integration receipt](evidence/crew-companion-integration-20261004.md).
-Current independent
-lanes are the [bounded crew, companion and corner-recovery composition](plans/crew-companion-integration.md),
-campaign continuation, Jammer and Railgun craft, Kitchen and Garage. Its frozen
-inputs retain actual M09 departure crew facts, supported companion yielding
-and the separately reviewed bounded static-cover escape. The earlier two-source
-composition passed all eight exact-head CI and all three desktop package checks.
-The new three-source composition passes complete local workspace and matching
-260-script/124-harness client checks; exact-head CI and three desktop package
-gates remain in flight. Its test-only M02 full-clear witness preserves all 24
-required guards outside the valid ungated exit. The corner correction preserves deliberate drops and all
-stress thresholds; the original intermittent report lacks height and action
-history, so its precise cause remains unproven.
-M10 transit is outside this composition and current main; its separate prototype
-remains in flight. The
+The [crew, companion and corner-recovery composition](plans/crew-companion-integration.md)
+is on main through [PR #367](https://github.com/blisspixel/fragr/pull/367), after
+all eight reviewed-head CI and all three desktop package gates passed. Its
+M02 witness retains all 24 required guards and the valid ungated exit. The
+corner correction preserves deliberate drops and stress thresholds; the original
+intermittent report lacks height and action history, so its precise cause remains
+unproven. The [M10 prototype](evidence/m10-common-carrier-20261005.md), truthful
+repair-bench collision, opaque living-character shot blocking, drawn Pistol,
+Latch's corrected home image and refreshed README captures are on main through
+[PR #369](https://github.com/blisspixel/fragr/pull/369). All eight reviewed-head
+CI jobs and all three desktop packages passed before merge. Main now has ten
+campaign prototypes; v0.75.0 has nine. Current independent lanes are M11's
+authoritative Remote Mine and Redactor foundations, weapon hand continuity,
+named-cast preparation, Jammer and Railgun craft, Kitchen and Garage. M11 remains
+in development; it is not a playable released mission. The next hand pass
+corrects the Shiv's whole-hand enlargement, matches the Sniper's glove treatment
+to the drawn Shotgun family and corrects Tern's provisional synthetic body in
+both ship scenes. Its combined acceptance remains in flight. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain
@@ -388,7 +403,7 @@ all source geometry and passes grounded pump-support proof. Played placement
 remains open. The [distinct civilian worker and repair bench](evidence/civilian-first-sources-20261004.md)
 complete the twelve first-candidate slots for another 70 actual included credits,
 with all eight raw views inspected. Skin/mechanism preparation and selection
-remain open. The latest October 4 account check reports 2,235 available,
+remain open. The historical October 4 account check reported 2,235 available,
 15 held and 2,220 usable, with 835 tracked credits consumed and the historical
 30-credit unassigned difference separate. A Repeater Ultra source and a
 replacement Rifle Ultra source consumed 35 credits each and remain offline.
@@ -524,7 +539,7 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      simplify what reads complicated.
    - Refine the shipped end-of-level tally: kills, secrets, deaths and time against par.
 
-   *Why:* settle the loop and the briefs before levels 9 to 20 are built.
+    *Why:* settle the loop and the briefs before levels 11 to 20 are built.
 5. **[Graphics options and Ultra lighting](plans/graphics-options-and-lighting.md),**
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
    which measures every preset.
