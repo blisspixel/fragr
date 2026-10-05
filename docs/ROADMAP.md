@@ -460,8 +460,8 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    - Make the dedicated launch instructions and server controls usable now.
      Reuse authoritative damage/movement, validated ingress, existing access
      lists and health metrics. Skill and agent control never imply cheating.
-     [Fair play](plans/fair-play.md) retains temporary and optional abuse-ban
-     work without intrusive player software.
+     [Fair play](plans/fair-play.md) documents existing bans with expiry and
+     planned optional abuse bans, without intrusive player software.
    - Close blocking feedback on these two modes and their built maps before
      expanding the campaign. Additional maps/modes remain below; no cloud
      account, paid inference or paid asset service is required for this slice.

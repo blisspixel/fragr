@@ -20,9 +20,8 @@ Local play and self-hosting need no account or paid service.
 
 ## Play now
 
-The latest desktop release is
-[v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0),
-with ten connected development levels through Common Carrier, mission-entry
+Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
+The campaign has ten connected development levels through Common Carrier, mission-entry
 saves, finite ammunition and three continues per episode. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
@@ -31,7 +30,7 @@ still in progress; see the [current build order](docs/ROADMAP.md#full-build-orde
 |---|---|---|
 | Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding and the ship interior | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
-| Multiplayer | Six arenas, free-for-all, team deathmatch, capture the flag on three maps, and Sector 9 plant/defuse | **Multiplayer**, connected to a running server |
+| Multiplayer | Host team deathmatch on six arenas or 5v5 plant/defuse on Sector 9; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Host**, or enter a running server's address |
 | Calibration | A separate arena challenge against named bots with the Host and objectives | `./tools/solo_scrap.sh` |
 
 Sabotage also has an optional 5v5 profile: start with a Pistol, find stronger
@@ -40,10 +39,13 @@ weapons on the map, and carry surviving equipment between rounds.
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
 
-The immediate development priority is a complete multiplayer host-and-join
-experience for team deathmatch and 5v5 plant/defuse, before more campaign levels.
-The [playable multiplayer plan](docs/plans/multiplayer-first-playable.md)
-separates existing rules from the hosting and player-test gates still in progress.
+Source builds include **Multiplayer > Host** for team deathmatch and 5v5
+plant/defuse. Watch, join or return to the menu while your match keeps running;
+**Stop server** ends it. Enable **Allow LAN players** to invite another computer.
+Releases before v0.77.0 use the [dedicated server launch](docs/HOSTING.md).
+Multiplayer testing and refinement take priority over more campaign levels;
+the [playable multiplayer plan](docs/plans/multiplayer-first-playable.md)
+records the remaining release and player-test gates.
 
 ## In game
 
