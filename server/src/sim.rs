@@ -5,6 +5,7 @@ mod enclosed_tests;
 pub mod grenade;
 pub mod mine;
 mod modes;
+pub mod remote_mine;
 pub(crate) mod repeater;
 pub mod sabotage;
 pub mod traveling_shot;

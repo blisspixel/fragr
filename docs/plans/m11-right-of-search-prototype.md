@@ -150,6 +150,26 @@ retained as a failed setup; the absolute-path import and focused harness are
 clean. These types are not yet delivered in snapshots or admitted through input,
 and no inventory, flight, blast, save carry or live device is claimed.
 
+The next source component implements actual swept sticking flight, exact
+arming, owner-specific multi-charge commitment and one terminal detonation
+outcome. It extracts the existing mine flight without changing contact rules.
+Early commands are refused without later queuing, invalid clocks reject a whole
+multi-charge command, and invalid contact transitions leave the original state
+intact. The component remains outside live `GameState` admission and blast
+resolution until finite inventory, records and carry are wired together. No
+owner lifecycle, gunfire integration, live equipment delivery or played proof
+is inferred from these component checks.
+
+Six owning component tests now pass, alongside all ten existing mine tests and
+the broader simulation selection: 45 passed, one retained ignored capture.
+The tests cover real wall/floor/ceiling sticking, exact 40-tick arming and
+four-tick commitment, no early-command queue, owner isolation, a single terminal
+outcome, bounded flight, bad clocks and deltas, atomic deadline overflow and
+hitch displacement clamping. Formatter and server all-target warning-denied
+Clippy pass on the final source. One preceding lint failure in the extracted
+contact-coordinate loop was corrected with an equivalent iterator; its receipt
+is retained, with no lint suppression or altered contact tolerance.
+
 The next concrete work is the actual Remote Mine contract, Redactor, typed
 mission and strict carry. No new gadget, enemy, wire, save promotion, runtime
 presentation or renderer proof is claimed yet. The frozen M10 dependency remains
