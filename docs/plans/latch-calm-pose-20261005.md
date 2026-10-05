@@ -10,7 +10,7 @@ Use a calmer free-left arm and unarmed-right arm, consistent with the lean civil
 
 ## Scope and ownership
 
-Only `client/scripts/latch_source.gd`, the narrow ward-context hook in `latch_view.gd`, the existing owning harness, this plan and a unique evidence note. Keep the raw and selected GLB byte-identical. No Rust authority, movement, body eligibility, HP, weapon, snapshot, skin, material, walking clip, named-cast or story changes. No paid service, new hand rig, dependency, runtime asset selection or general documentation change.
+Only `client/scripts/latch_source.gd`, the narrow ward-context hook in `latch_view.gd`, the existing owning harness, required derived Latch library export/preview/manifest, this plan and a unique evidence note. Keep the raw and selected GLB byte-identical. No Rust authority, movement, body eligibility, HP, weapon, snapshot, skin, material, walking clip, named-cast or story changes. No paid service, new hand rig, dependency, runtime asset selection or general documentation change.
 
 At first, preserve the exact armed and firing right-hand target and pole, all release poses and hand turns. Tune the unarmed hand endpoints and free-arm elbow pole using measured skeleton centimeter units and actual fixed segment lengths. The existing two-bone solver and whole imported chain remain the sole pose seam. Preserve sampled walking hips/legs/feet and all resolved Tack flash and weapon registration behavior. Release takes its existing gesture once active; inspect the idle-to-release transition separately rather than claiming new continuity.
 
@@ -29,3 +29,9 @@ No server or GPU process is authorized by this plan. All work is $0. No package 
 ## Measured boundary correction before promotion
 
 The first frozen source candidate and same-camera fixture preserve every positive release pose but reveal a visible elbow jump from relaxed zero to the original 0.01 gesture. Retain that failed continuity evidence. The reviewed correction adds one explicit presenter context: `pose_release`, including progress zero, requests the exact prior ward pose; `advance` restores the relaxed live-following context. Pass this decision through one defaulted source-pose flag rather than deriving it from an actor name, mission outcome or frame counter. Verify zero and all positive ward poses on the actual weighted surface, plus release-to-following-to-release switching, before a corrected serialized fixture. The frozen hand batch is unaffected.
+
+## Owning generated-library dependency
+
+The first unchanged full client checker completes with numeric exit 1: all 271 scripts parse and 128 harnesses pass, but `test_model_assets` correctly refuses the old Latch source/view fingerprints in the model manifest. Keep that failure and every assertion. `client/art/models/bake.gd` derives `assets/models/latch.glb` from a constructed LatchView, whereas live runtime loads the separate unchanged `latch_stylized.glb`.
+
+Regenerate only the derived Latch GLB through the existing `_export` seam, independently compare imported geometry/UV/normal/skin/weights/maps/clip and unchanged selected-source SHA, then update only its actual output entry and the two changed source fingerprints. Render the dependent `latch_studio.png` through the existing capture seam with the exact original library camera/lights. Do not rewrite unrelated weapon, Sweeper or fixture exports or alter the manifest validator. Import the actual output, rerun the owning model harness and repeat the unchanged full checker. The derived preview/export change is an explicit scoped dependency, not a selected-source replacement or a hash-only repair.
