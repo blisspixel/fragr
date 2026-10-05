@@ -55,9 +55,11 @@ in the real room. Source vertices cannot extend a large walk-blocking object
 beyond authoritative collision. Any retained invisible broad solid must gain
 a corresponding opaque casing. Do not fake empty space with a source model
 inside an invisible crate. Preserve body headroom, all supply feet, shot lanes,
-stair access and actor contact. The authored map/hash and all 112 solids stay
-unchanged for this initial art increment; an incompatible source fit is a
-reported design boundary, not permission to silently edit geometry.
+stair access and actor contact. All objectives, pickups, crew feet, stairs and
+guard definitions stay unchanged. The initially proposed unchanged collision
+has been superseded by the authorized narrow workbench decomposition below;
+other geometry stays unchanged. The new authored hash and actual route are
+independent acceptance gates.
 
 ## Owning implementation seams
 
@@ -122,3 +124,31 @@ not change any previously existing acceptance threshold.
 Only the offline candidate is added. Runtime/host reconciliation, actual room
 lighting, packaged availability and played selection remain open. Details:
 [workbench source evidence](../evidence/m10-workbench-preparation-20261005.md).
+
+## Authorized physical furnishing increment
+
+The measured 1.815 m bench cannot truthfully replace the old 2.8 m solid by
+just hiding its visible slab. Narrowly decompose that one authoritative host
+around its actual cabinet, worktop and rear-rack shape. Keep the working
+surface near 0.90 m, physically supported, with the true knee opening visible
+and accurate for shots. The standing player still cannot walk through a
+0.90 m-high tabletop; the opening does not imply a new crouch mechanic.
+Measured support parts remain separately counted within the existing
+128-solid ceiling. Preserve every other object, objective, supply, crew foot,
+stair, encounter and difficulty fact. No combat or arrival assertion changes.
+
+Before regenerating source, correct the authoring generator's stale return
+platform endpoints. The accepted map already joins west at -3.450000286 m and
+east at 3.450000048 m on both heights; the generator still recreates the old
+0.10/0.20 m gaps. Prove regeneration retains these exact supported joins and
+that the physical-art delta is confined to the measured bench decomposition.
+Archive old map/hash, generate a fresh content hash and matching private
+native, and validate owned save fixtures against the new map. Do not mutate
+the frozen prototype PR to make the old capture look current.
+
+Require actual body/ray tests for the tabletop, cabinets and knee opening,
+supported access around the source, all four recorded optional-crew rosters
+and historical unknown. The unchanged literal route and actual full 28-state
+combat/departure must pass on matching source before art selection. Final
+composed shot-body blocking remains a required prerequisite. Hardware work
+uses a serialized parent lease and owned process retirement.
