@@ -100,6 +100,17 @@ with the same 15-credit hold. Source preparation and played acceptance continue
 under the [cast plan](plans/cast-model-buildout-20261004.md). No new cash charge
 or cloud apply ran.
 
+**Latest asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
+and Splice model sources plus Edda's first rig consumed 110 included credits.
+The free checker reports 2,125 available, 15 held and 2,110 usable. Tracked
+consumption is 945, with 620 used and 280 remaining in the first allocation.
+The [cast receipt](evidence/named-cast-source-production-20261005.md) retains a
+satchel skin defect found in walking; the [glove source](evidence/work-glove-source-20261005.md)
+needs measured local articulation. None is selected runtime artwork. Three new
+image reservations total $1.874, leaving an estimated $12.546 against Nick's
+latest $14.42 report, not an independently verified balance. No cash, renewal,
+top-up or overage was enabled.
+
 **Shipped and proven on the tip:**
 
 - Rust authoritative server at 20 Hz with hitscan combat, respawn, round scoring, six maps with heightfield movement, weapon and health pads, a mid-round boss, and eight named rule bots with four behaviors.
