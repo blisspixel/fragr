@@ -1,8 +1,9 @@
 # Tern reference and named body continuity
 
 Status: in flight, 2026-10-05. Bounded reference/source planning from main
-`0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. No submitted request, selected
-reference, finished model or runtime change is claimed.
+`0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. One reviewed conversion reference
+exists and the serialized production owner has submitted one bounded source.
+Source geometry, rig, motion and runtime acceptance remain open.
 
 ## Goal and existing-source audit
 
@@ -127,8 +128,8 @@ Only the serialized production owner may perform paid calls. Reuse the existing
 account output directory and locked ledger, exact free live balance/uncertain
 hold checks, separate accepted task IDs, bounded caps and immediate downloads.
 No new cash, paid animation library, rig retry loop, renewal, top-up or overage.
-This lane adds no dependency, protocol, runtime code, GPU job, request or global
-catalog/index update. A finished spec is not an accepted image or model.
+This planning lane adds no dependency, protocol, runtime code, GPU job or global
+catalog/index update. Production requests remain with the serialized owner.
 
 ## Free preparation result
 
@@ -141,7 +142,35 @@ making a request. Spec SHA-256 is
 `.agents/tern-brief-checks/` retains the exact prompt, checksum, 190-brief
 inventory, tracked source inventory and unchanged style-control hashes.
 
-This is a source/reference preflight only. No returned image, source geometry,
-rig, consumed credit, current account reading, GPU frame or runtime selection
-is recorded. The separate body-type fallback correction remains its own
-checkpoint and does not delay this reference preparation.
+The original preflight was completed before production. Its exact right-panel
+spec remains intact as history. The separate body-type fallback correction
+remains its own checkpoint and does not establish named artwork.
+
+## Reviewed reference and bounded source handoff
+
+The production owner completed one native reference at an estimated $0.631,
+within its $0.64 request cap and existing approved prepaid allowance. The
+unmirrored original is
+`art/raw/tern-reference-20261005/tern_civilian_pilot_reference_v1_0.png`, SHA-256
+`f56845b26d6a3c652df9f4eab8bf0e3c3dcee36257fa139cbd5963e1fb68811c`.
+Actual review finds lean angular gunmetal proportions, compact warm optics,
+supported civilian harness and a small ember panel distinct from Latch and
+Splice. It is an accepted model-conversion reference proposal, not a portrait,
+finished model or runtime cast.
+
+The small orange panel appears on the anatomical **left** shoulder (viewer
+right), whereas the submitted reference spec proposed anatomical right.
+Canonical lore had no panel side. Preserve the actual original and explicitly
+adopt left as the reviewed visual proposal for this source trial; do not mirror
+it silently or label the returned reference right-sided.
+
+The production owner reports accepted bounded source task
+`01a10d1c-a284-75f9-a27a-4b40ae0002f3`, cap 35 included credits and $0.70
+conservative equivalent, after fresh 2,085 available/15 held preflight. The
+shared source spec is `art/raw/meshy-pilot-20261003/tern-source-20261005.json`,
+SHA-256 `9d265d3187b1a72d84a58bb521889c12d3d47e075fa5c405948a811b7bd6f705`.
+This is task acceptance, not a measured completed debit or downloaded geometry.
+The production ledger owner retains the initial changed-CDN guard refusal
+separately; it did not submit a source and is not a passing request. No rig is
+submitted or accepted here. Actual full source inspection still precedes any
+five-credit rig or pose work.
