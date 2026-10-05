@@ -44,8 +44,9 @@ func _check(condition: bool, message: String) -> void:
 		failures += 1
 		push_error("test_local_host: " + message)
 
-func _config(lan: bool = false, sabotage: bool = false) -> Dictionary:
-	return {"mode": "sabotage" if sabotage else "tdm", "map_id": 4, "bots": 4,
+func _config(lan: bool = false, sabotage: bool = false, policy: String = "fixed") -> Dictionary:
+	return {"mode": "sabotage" if sabotage else "tdm", "map_id": 4, "bots": 4 if policy == "fixed" else 0,
+		"bot_policy": policy, "fill_target": 4 if policy == "auto" else 0,
 		"lan": lan, "port": 6767 if lan else 0}
 
 func _ready_record(config: Dictionary) -> Dictionary:
@@ -53,28 +54,47 @@ func _ready_record(config: Dictionary) -> Dictionary:
 	return {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:" + str(port),
 		"listen": ("0.0.0.0" if config["lan"] else "127.0.0.1") + ":" + str(port),
 		"map_id": config["map_id"], "mode": config["mode"], "five_vs_five": config["mode"] == "sabotage",
-		"bots": config["bots"], "gameplay_version": 36}
+		"bots": config["bots"], "bot_policy": config["bot_policy"], "fill_target": config["fill_target"], "gameplay_version": 36}
 
 func _run() -> void:
-	for lan: bool in [false, true]:
-		for sabotage: bool in [false, true]:
-			var config: Dictionary = _config(lan, sabotage)
-			var ready: Dictionary = _ready_record(config)
-			_check(LocalHost.valid_settings(config), "both presets validate explicit binding")
-			_check(LocalHost.parse_ready(JSON.stringify(ready).to_ascii_buffer(), config) == JSON.parse_string(JSON.stringify(ready)),
-				"real binding and preset metadata accepted")
-			var args: PackedStringArray = LocalHost.arguments_for(config)
-			_check(args[0] == "--desktop-host" and args[1] == "--bind" \
-				and args[2] == (ready["listen"] if lan else "127.0.0.1:0"), "binding choice is always explicit")
-			_check(args.has("--sabotage-five-v-five") == sabotage, "only Sabotage opts into 5v5")
+	for policy: String in ["fixed", "none", "auto"]:
+		for lan: bool in [false, true]:
+			for sabotage: bool in [false, true]:
+				_test_profile(_config(lan, sabotage, policy))
+	var zero: Dictionary = _config()
+	zero["bots"] = 0
+	_check(LocalHost.valid_settings(zero), "fixed zero remains compatible")
+	_test_profile(zero)
+	for policy: String in ["none", "auto"]:
+		var contradictory: Dictionary = _config(false, false, policy)
+		contradictory["bots"] = 1
+		_check(not LocalHost.valid_settings(contradictory), "non-fixed policy refuses a fixed bot count")
+	var automatic: Dictionary = _config(false, false, "auto")
+	for invalid_target: Variant in [0, 11, -1, 1.5, true, "4"]:
+		var invalid: Dictionary = automatic.duplicate()
+		invalid["fill_target"] = invalid_target
+		_check(not LocalHost.valid_settings(invalid), "automatic target must be a bounded positive integer")
+	for target: int in [1, 10]:
+		automatic["fill_target"] = target
+		_test_profile(automatic)
+	for policy: String in ["fixed", "none"]:
+		var contradictory: Dictionary = _config(false, false, policy)
+		contradictory["fill_target"] = 1
+		_check(not LocalHost.valid_settings(contradictory), "inactive automatic target must be zero")
 	var config: Dictionary = _config()
 	for item: Dictionary in [{"key": "mode", "value": "ffa"}, {"key": "bots", "value": 11},
 		{"key": "bots", "value": -1}, {"key": "map_id", "value": 7}, {"key": "port", "value": 6767},
-		{"key": "lan", "value": "true"}, {"key": "bots", "value": 2.5}, {"key": "extra", "value": true}]:
+		{"key": "lan", "value": "true"}, {"key": "bots", "value": 2.5}, {"key": "extra", "value": true},
+		{"key": "bot_policy", "value": "adaptive"}, {"key": "bot_policy", "value": true},
+		{"key": "fill_target", "value": true}]:
 		var invalid: Dictionary = config.duplicate()
 		invalid[item["key"]] = item["value"]
 		_check(not LocalHost.valid_settings(invalid) and LocalHost.arguments_for(invalid).is_empty(),
 			"refuse malformed settings before process creation")
+	for field: String in config:
+		var missing: Dictionary = config.duplicate()
+		missing.erase(field)
+		_check(not LocalHost.valid_settings(missing), "all seven settings fields are required")
 	var wrong_sabotage: Dictionary = _config(false, true)
 	wrong_sabotage["map_id"] = 1
 	_check(not LocalHost.valid_settings(wrong_sabotage), "Sabotage requires existing site map")
@@ -84,6 +104,8 @@ func _run() -> void:
 		{"key": "listen", "value": "0.0.0.0:32123"}, {"key": "map_id", "value": 1},
 		{"key": "mode", "value": "sabotage"}, {"key": "five_vs_five", "value": 1},
 		{"key": "five_vs_five", "value": true}, {"key": "bots", "value": 5},
+		{"key": "bot_policy", "value": "auto"}, {"key": "bot_policy", "value": true},
+		{"key": "fill_target", "value": 1}, {"key": "fill_target", "value": true}, {"key": "fill_target", "value": 1.5},
 		{"key": "gameplay_version", "value": 35}, {"key": "extra", "value": true}]:
 		var forged: Dictionary = record.duplicate()
 		forged[item["key"]] = item["value"]
@@ -94,6 +116,22 @@ func _run() -> void:
 		missing.erase(field)
 		_check(LocalHost.parse_ready(JSON.stringify(missing).to_ascii_buffer(), config).is_empty(),
 			"every readiness field is required")
+	await _test_lifetime(config, record)
+
+func _test_profile(config: Dictionary) -> void:
+	var ready: Dictionary = _ready_record(config)
+	_check(LocalHost.valid_settings(config), "both presets validate explicit binding")
+	_check(LocalHost.parse_ready(JSON.stringify(ready).to_ascii_buffer(), config) == JSON.parse_string(JSON.stringify(ready)),
+		"real binding and preset metadata accepted")
+	var args: PackedStringArray = LocalHost.arguments_for(config)
+	_check(args[0] == "--desktop-host" and args[1] == "--bind" \
+		and args[2] == (ready["listen"] if config["lan"] else "127.0.0.1:0"), "binding choice is always explicit")
+	_check(args.has("--sabotage-five-v-five") == (config["mode"] == "sabotage"), "only Sabotage opts into 5v5")
+	_check(args[args.find("--bots") + 1] == str(config["bots"])
+		and args[args.find("--bot-policy") + 1] == config["bot_policy"]
+		and args[args.find("--fill-target") + 1] == str(config["fill_target"]), "native flags carry the complete explicit bot policy")
+
+func _test_lifetime(config: Dictionary, record: Dictionary) -> void:
 	var fixture: Fixture = Fixture.new()
 	var child: FakeProcess = FakeProcess.new()
 	fixture.process = child

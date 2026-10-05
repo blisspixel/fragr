@@ -10,6 +10,7 @@ extends SceneTree
 
 const KICK_KEYS: Dictionary = {
 	"match_full": "SABOTAGE_MATCH_FULL",
+	"bot_fill_next_round": "BOT_FILL_NEXT_ROUND",
 	"rate_limited": "NET_RATE_LIMITED",
 	"malformed": "NET_MALFORMED",
 	"address_banned": "NET_ADDRESS_BANNED",

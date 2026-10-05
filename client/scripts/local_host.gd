@@ -43,11 +43,18 @@ static func valid_settings(value: Variant) -> bool:
 	if not value is Dictionary:
 		return false
 	var data: Dictionary = value
-	if data.size() != 5 or not data.get("mode") is String \
+	if data.size() != 7 or not data.get("mode") is String \
 		or data["mode"] not in ["tdm", "sabotage"] or not data.get("lan") is bool \
+		or not data.get("bot_policy") is String or data["bot_policy"] not in ["none", "fixed", "auto"] \
 		or not EquipmentState.integer(data.get("map_id"), 6) or data["map_id"] < 1 \
 		or not EquipmentState.integer(data.get("bots"), 10) \
+		or not EquipmentState.integer(data.get("fill_target"), 10) \
 		or not EquipmentState.integer(data.get("port"), 65535):
+		return false
+	if data["bot_policy"] == "fixed":
+		if data["fill_target"] != 0:
+			return false
+	elif data["bots"] != 0 or (data["fill_target"] < 1 if data["bot_policy"] == "auto" else data["fill_target"] != 0):
 		return false
 	if data["mode"] == "sabotage" and data["map_id"] != 4:
 		return false
@@ -58,7 +65,8 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 		return PackedStringArray()
 	var bind: String = ("0.0.0.0" if value["lan"] else "127.0.0.1") + ":" + str(int(value["port"]))
 	var args: PackedStringArray = PackedStringArray(["--desktop-host", "--bind", bind,
-		"--mode", value["mode"], "--map", str(int(value["map_id"])), "--bots", str(int(value["bots"]))])
+		"--mode", value["mode"], "--map", str(int(value["map_id"])), "--bots", str(int(value["bots"])),
+		"--bot-policy", value["bot_policy"], "--fill-target", str(int(value["fill_target"]))])
 	if value["mode"] == "sabotage":
 		args.append("--sabotage-five-v-five")
 	return args
@@ -98,11 +106,13 @@ static func parse_ready(bytes: PackedByteArray, requested: Dictionary) -> Dictio
 	if parser.parse(bytes.get_string_from_ascii()) != OK or not parser.data is Dictionary:
 		return {}
 	var data: Dictionary = parser.data
-	if data.size() != 9 or not EquipmentState.integer(data.get("version"), 1) or data["version"] != 1 \
+	if data.size() != 11 or not EquipmentState.integer(data.get("version"), 1) or data["version"] != 1 \
 		or data.get("kind") != "arena" or data.get("mode") != requested["mode"] \
 		or not data.get("five_vs_five") is bool or data["five_vs_five"] != (requested["mode"] == "sabotage") \
 		or not EquipmentState.integer(data.get("map_id"), 6) or data["map_id"] != requested["map_id"] \
 		or not EquipmentState.integer(data.get("bots"), 10) or data["bots"] != requested["bots"] \
+		or not data.get("bot_policy") is String or data["bot_policy"] != requested["bot_policy"] \
+		or not EquipmentState.integer(data.get("fill_target"), 10) or data["fill_target"] != requested["fill_target"] \
 		or not EquipmentState.integer(data.get("gameplay_version"), GAMEPLAY_VERSION) \
 		or data["gameplay_version"] != GAMEPLAY_VERSION or not data.get("listen") is String:
 		return {}

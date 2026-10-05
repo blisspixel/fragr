@@ -91,11 +91,13 @@ func _peer(address: String, role: String, callsign: String) -> Node:
 	_expect(peer.connect_to_server(role, callsign), "second real socket starts")
 	return peer
 
-func _start(mode: String, bots: int) -> LocalHost:
+func _start(mode: String, bots: int, policy: String = "fixed", target: int = 0) -> LocalHost:
 	await current_scene._show("host")
 	current_scene._host_mode.select(1 if mode == "sabotage" else 0)
 	current_scene._host_mode.item_selected.emit(current_scene._host_mode.selected)
-	current_scene._host_bots.value = bots
+	current_scene._host_bot_policy.select(["fixed", "none", "auto"].find(policy))
+	current_scene._host_bot_policy.item_selected.emit(current_scene._host_bot_policy.selected)
+	current_scene._host_bots.value = target if policy == "auto" else bots
 	(current_scene._root.get_node("StartServer") as Button).pressed.emit()
 	var owner: LocalHost = LocalHost.for_tree(self)
 	if not await _until(func() -> bool: return owner.state == LocalHost.State.RUNNING, "actual native arena reaches validated readiness"):
@@ -105,7 +107,7 @@ func _start(mode: String, bots: int) -> LocalHost:
 	return owner
 
 func _preset(mode: String) -> bool:
-	var owner: LocalHost = await _start(mode, 0)
+	var owner: LocalHost = await _start(mode, 0, "none")
 	if owner == null:
 		return false
 	var pid: int = owner.process._pid
@@ -175,6 +177,62 @@ func _preset(mode: String) -> bool:
 	print("test_desktop_host: " + mode + " real two-client lifetime PASS")
 	return true
 
+func _automatic(mode: String) -> bool:
+	var target: int = 10 if mode == "sabotage" else 4
+	var owner: LocalHost = await _start(mode, 0, "auto", target)
+	if owner == null:
+		return false
+	var pid: int = owner.process._pid
+	_expect(owner.settings["bot_policy"] == "auto" and owner.settings["bots"] == 0
+		and owner.settings["fill_target"] == target, "real automatic readiness retains the requested total target")
+	var watcher: Node = _peer(owner.url, "spectator", "AutoWatch")
+	var snapshots: Array[Dictionary] = []
+	watcher.snapshot_received.connect(func(data: Dictionary) -> void:
+		snapshots.clear()
+		snapshots.append(data))
+	if not await _until(func() -> bool: return not snapshots.is_empty()
+		and snapshots.back().get("players", []).size() == target, "automatic server fills its actual initial roster"):
+		return false
+	var human: Node = _peer(owner.url, "human", "AutoHuman")
+	var agent: Node = _peer(owner.url, "agent", "AutoAgent")
+	var human_maps: Array[Dictionary] = []
+	var agent_maps: Array[Dictionary] = []
+	human.map_info_received.connect(func(data: Dictionary) -> void: human_maps.append(data))
+	agent.map_info_received.connect(func(data: Dictionary) -> void: agent_maps.append(data))
+	if not await _until(func() -> bool: return human.player_id != null and agent.player_id != null
+		and not human_maps.is_empty() and not agent_maps.is_empty(),
+		"automatic hosted room admits both actual human and external agent"):
+		return false
+	var human_id: String = human.player_id
+	var agent_id: String = agent.player_id
+	if not await _until(func() -> bool:
+		var ids: Array[String] = []
+		for pawn: Dictionary in snapshots.back().get("players", []):
+			ids.append(pawn["id"])
+		return ids.size() == target and human_id in ids and agent_id in ids,
+		"both external participants replace filler bots in the same authoritative roster"):
+		return false
+	_expect(human_maps.back().get("rules", {}).get("mode") == mode
+		and agent_maps.back().get("rules", {}).get("mode") == mode, "automatic participants receive the selected authoritative mode")
+	human.leave_match()
+	agent.leave_match()
+	if not await _until(func() -> bool:
+		var ids: Array[String] = []
+		for pawn: Dictionary in snapshots.back().get("players", []):
+			ids.append(pawn["id"])
+		return ids.size() == target and human_id not in ids and agent_id not in ids,
+		"automatic roster refills after explicit human and agent Leave"):
+		return false
+	watcher.leave_match()
+	(current_scene._root.get_node("StopServer") as Button).pressed.emit()
+	if not await _until(func() -> bool: return owner.state == LocalHost.State.IDLE,
+		"automatic Host menu Stop retires its canonical lease"):
+		return false
+	_expect(not OS.is_process_running(pid) and unrelated.is_listening(), "automatic Stop retires only its owned PID")
+	print("test_desktop_host: owned_stop auto_", mode, " pid=", pid, " retired=", not OS.is_process_running(pid))
+	print("test_desktop_host: auto " + mode + " actual human and agent fill PASS")
+	return true
+
 func _run() -> void:
 	_expect(unrelated.listen(0, "127.0.0.1") == OK, "unrelated listener starts")
 	_expect(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "ordinary boot scene loads")
@@ -182,6 +240,8 @@ func _run() -> void:
 	await process_frame
 	for mode: String in ["tdm", "sabotage"]:
 		if not await _preset(mode):
+			return
+		if not await _automatic(mode):
 			return
 	# A filled preset is watchable, while the server refuses an eleventh fighter.
 	var owner: LocalHost = await _start("sabotage", 10)

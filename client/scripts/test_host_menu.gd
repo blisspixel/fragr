@@ -54,6 +54,28 @@ func _run() -> void:
 		"TDM offers all six registered maps with Arena Duel default")
 	_check(not menu._host_lan.button_pressed and not menu._host_port.editable,
 		"hosting defaults to this computer rather than opening LAN")
+	_check(menu._host_bot_policy.selected == 0 and menu._host_bots.value == 4,
+		"fixed four remains the initial bot profile")
+	menu._host_bots.value = 7
+	menu._host_bot_policy.select(2)
+	menu._host_bot_policy.item_selected.emit(2)
+	_check(menu._host_bots_label.text == tr("HOST_TOTAL_FIGHTERS") and menu._host_bots.value == 4
+		and menu._host_bots.min_value == 1 and menu._host_bots_row.visible,
+		"automatic fill clearly asks for desired total fighters")
+	menu._host_bots.value = 10
+	menu._host_bot_policy.select(1)
+	menu._host_bot_policy.item_selected.emit(1)
+	_check(not menu._host_bots_row.visible and menu._host_bots.value == 0,
+		"explicit no bots hides the unused count")
+	menu._host_bot_policy.select(0)
+	menu._host_bot_policy.item_selected.emit(0)
+	_check(menu._host_bots.value == 7 and menu._host_bots.min_value == 0
+		and menu._host_bots_label.text == tr("HOST_BOT_COUNT"), "fixed count survives policy switching and accepts zero")
+	menu._host_bot_policy.select(2)
+	menu._host_bot_policy.item_selected.emit(2)
+	_check(menu._host_bots.value == 10, "automatic target survives policy switching")
+	menu._host_bot_policy.select(1)
+	menu._host_bot_policy.item_selected.emit(1)
 	menu._host_mode.select(1)
 	menu._host_mode.item_selected.emit(1)
 	_check(menu._host_map.item_count == 1 and menu._host_map.get_selected_id() == 4,
@@ -66,11 +88,12 @@ func _run() -> void:
 	var start: Button = menu._root.get_node("StartServer")
 	start.pressed.emit()
 	_check(owner.state == LocalHost.State.STARTING and child.args == PackedStringArray([
-		"--desktop-host", "--bind", "0.0.0.0:16867", "--mode", "sabotage", "--map", "4", "--bots", "0", "--sabotage-five-v-five"]),
+		"--desktop-host", "--bind", "0.0.0.0:16867", "--mode", "sabotage", "--map", "4", "--bots", "0",
+		"--bot-policy", "none", "--fill-target", "0", "--sabotage-five-v-five"]),
 		"ordinary menu activation starts exact first preset through canonical native flags")
 	_check(menu._root.get_node_or_null("JoinHosted") == null, "starting child is not presented as joinable")
 	var ready: Dictionary = {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:16867", "listen": "0.0.0.0:16867",
-		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "gameplay_version": 36}
+		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "bot_policy": "none", "fill_target": 0, "gameplay_version": 36}
 	child.output = (JSON.stringify(ready) + "\n").to_ascii_buffer()
 	owner._process(0)
 	await process_frame

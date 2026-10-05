@@ -1042,7 +1042,34 @@ msgid "HOST_MAP"
 msgstr "Map"
 
 msgid "HOST_BOTS"
-msgstr "Starting bots"
+msgstr "Bots"
+
+msgid "HOST_BOTS_FIXED"
+msgstr "Fixed bots"
+
+msgid "HOST_BOTS_NONE"
+msgstr "No bots"
+
+msgid "HOST_BOTS_AUTO"
+msgstr "Automatic fill"
+
+msgid "HOST_BOT_COUNT"
+msgstr "Bot count"
+
+msgid "HOST_TOTAL_FIGHTERS"
+msgstr "Total fighters"
+
+msgid "HOST_AUTO_PRIORITY"
+msgstr "Bots fill toward the total. Humans and agents take priority; spectators do not count."
+
+msgid "HOST_NO_BOTS_HINT"
+msgstr "All fighter seats are available to humans and agents."
+
+msgid "HOST_AUTO_SUMMARY"
+msgstr "Automatic fill: target %d total fighters. Humans and agents take priority."
+
+msgid "HOST_FIXED_SUMMARY"
+msgstr "Fixed bots: %d."
 
 msgid "HOST_ALLOW_LAN"
 msgstr "Allow players on this LAN"

@@ -188,7 +188,7 @@ func _start_arena() -> void:
 	_phase = "starting"
 	_deadline = Time.get_ticks_msec() + TIMEOUT_MS
 	var options: Dictionary = {"mode": "tdm" if _preset == 0 else "sabotage",
-		"map_id": 1 if _preset == 0 else 4, "bots": 0, "lan": false, "port": 0}
+		"map_id": 1 if _preset == 0 else 4, "bots": 0, "bot_policy": "none", "fill_target": 0, "lan": false, "port": 0}
 	if not _host.start_host(options):
 		_finish(false, "the bundled server could not start its arena preset")
 		return

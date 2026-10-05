@@ -25,10 +25,16 @@ var _settings: FragrSettings
 var _name_edit: LineEdit = null
 var _local_match: LocalMatch
 var _local_host: LocalHost
-var _host_settings: Dictionary = {"mode": "tdm", "map_id": 1, "bots": 4, "lan": false, "port": 0}
+var _host_settings: Dictionary = {"mode": "tdm", "map_id": 1, "bots": 4, "bot_policy": "fixed", "fill_target": 0, "lan": false, "port": 0}
 var _host_mode: OptionButton
 var _host_map: OptionButton
 var _host_bots: SpinBox
+var _host_bot_policy: OptionButton
+var _host_bots_row: HBoxContainer
+var _host_bots_label: Label
+var _host_bot_hint: Label
+var _host_bot_counts: Dictionary = {"fixed": 4, "auto": 4}
+var _host_bot_selection: String = "fixed"
 var _host_lan: CheckButton
 var _host_port: SpinBox
 var _launch_pending: bool = false
@@ -594,6 +600,7 @@ func _page_host() -> void:
 	if _local_host.state == LocalHost.State.RUNNING:
 		var mode_text: String = tr("HOST_SABOTAGE") if _local_host.settings["mode"] == "sabotage" else tr("MODE_TDM")
 		_label(tr("HOST_RUNNING") % mode_text)
+		_label(_host_bot_summary(_local_host.settings))
 		_label(_local_host.url)
 		if _local_host.settings["lan"]:
 			_label(tr("HOST_LAN_ADDRESS") % int(_local_host.settings["port"]))
@@ -619,19 +626,25 @@ func _page_host() -> void:
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
 	_rebuild_host_maps()
 	_host_mode.item_selected.connect(func(_index: int) -> void: _rebuild_host_maps())
-	var bots_row: HBoxContainer = HBoxContainer.new()
-	_root.add_child(bots_row)
-	var bots_label: Label = Label.new()
-	bots_label.text = tr("HOST_BOTS")
-	bots_label.custom_minimum_size.x = 210.0
-	bots_row.add_child(bots_label)
+	_host_bot_policy = _host_option(tr("HOST_BOTS"), "HostBotPolicy")
+	for key: String in ["HOST_BOTS_FIXED", "HOST_BOTS_NONE", "HOST_BOTS_AUTO"]:
+		_host_bot_policy.add_item(tr(key))
+	_host_bot_selection = _host_settings["bot_policy"]
+	_host_bot_policy.select(["fixed", "none", "auto"].find(_host_bot_selection))
+	_host_bots_row = HBoxContainer.new()
+	_root.add_child(_host_bots_row)
+	_host_bots_label = Label.new()
+	_host_bots_label.custom_minimum_size.x = 210.0
+	_host_bots_row.add_child(_host_bots_label)
 	_host_bots = SpinBox.new()
 	_host_bots.name = "HostBots"
 	_host_bots.min_value = 0
 	_host_bots.max_value = 10
 	_host_bots.step = 1
-	_host_bots.value = _host_settings["bots"]
-	bots_row.add_child(_host_bots)
+	_host_bots_row.add_child(_host_bots)
+	if _host_bot_selection != "none":
+		_host_bot_counts[_host_bot_selection] = _host_settings["fill_target"] if _host_bot_selection == "auto" else _host_settings["bots"]
+	_host_bot_policy.item_selected.connect(func(_index: int) -> void: _rebuild_host_bots(true))
 	_host_lan = CheckButton.new()
 	_host_lan.name = "HostLAN"
 	_host_lan.text = tr("HOST_ALLOW_LAN")
@@ -647,9 +660,26 @@ func _page_host() -> void:
 	_host_port.editable = _host_lan.button_pressed
 	_root.add_child(_host_port)
 	_host_lan.toggled.connect(func(enabled: bool) -> void: _host_port.editable = enabled)
-	_label(tr("HOST_FINITE_SEATS"))
+	_host_bot_hint = _label(tr("HOST_FINITE_SEATS"))
+	_rebuild_host_bots(false)
 	_button(tr("HOST_START"), _start_host).name = "StartServer"
 	_button("Back", func() -> void: _show("multi"))
+
+func _rebuild_host_bots(remember: bool) -> void:
+	if remember and _host_bot_selection != "none":
+		_host_bot_counts[_host_bot_selection] = int(_host_bots.value)
+	_host_bot_selection = ["fixed", "none", "auto"][_host_bot_policy.selected]
+	_host_bots_row.visible = _host_bot_selection != "none"
+	_host_bots_label.text = tr("HOST_TOTAL_FIGHTERS" if _host_bot_selection == "auto" else "HOST_BOT_COUNT")
+	_host_bots.min_value = 1 if _host_bot_selection == "auto" else 0
+	_host_bots.value = _host_bot_counts[_host_bot_selection] if _host_bot_selection != "none" else 0
+	_host_bot_hint.text = tr("HOST_AUTO_PRIORITY" if _host_bot_selection == "auto" else "HOST_NO_BOTS_HINT" if _host_bot_selection == "none" else "HOST_FINITE_SEATS")
+
+func _host_bot_summary(profile: Dictionary) -> String:
+	match profile["bot_policy"]:
+		"auto": return tr("HOST_AUTO_SUMMARY") % int(profile["fill_target"])
+		"none": return tr("HOST_BOTS_NONE")
+	return tr("HOST_FIXED_SUMMARY") % int(profile["bots"])
 
 func _rebuild_host_maps() -> void:
 	_host_map.clear()
@@ -664,7 +694,8 @@ func _rebuild_host_maps() -> void:
 
 func _start_host() -> void:
 	_host_settings = {"mode": "sabotage" if _host_mode.selected == 1 else "tdm",
-		"map_id": _host_map.get_selected_id(), "bots": int(_host_bots.value),
+		"map_id": _host_map.get_selected_id(), "bots": int(_host_bots.value) if _host_bot_selection == "fixed" else 0,
+		"bot_policy": _host_bot_selection, "fill_target": int(_host_bots.value) if _host_bot_selection == "auto" else 0,
 		"lan": _host_lan.button_pressed, "port": int(_host_port.value) if _host_lan.button_pressed else 0}
 	_local_host.start_host(_host_settings)
 

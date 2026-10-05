@@ -329,3 +329,6 @@ msgstr "YOU NOW {job}"
 
 msgid "SABOTAGE_MATCH_FULL"
 msgstr "This 5v5 match has ten fighter seats. Return to the menu and choose Watch, or join when a seat opens."
+
+msgid "BOT_FILL_NEXT_ROUND"
+msgstr "All fighter seats are committed to this round. Choose Watch, or try joining at the start of the next round."

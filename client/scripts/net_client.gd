@@ -297,6 +297,7 @@ func _close_message(code: String) -> String:
 		"run_seat_closed": return tr("RUN_SEAT_CLOSED")
 		"party_full": return tr("MISSION_PARTY_FULL")
 		"match_full": return tr("SABOTAGE_MATCH_FULL")
+		"bot_fill_next_round": return tr("BOT_FILL_NEXT_ROUND")
 		"unsupported_geometry", "unsupported_gameplay": return "This server needs a newer client. Update to join."
 		"connection_limit": return "This server is not taking more connections."
 		"address_limit": return "Too many connections from this address."
