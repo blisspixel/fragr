@@ -91,7 +91,29 @@ pub(super) fn goal(
     let feet = [me.from.x, me.from.y, me.from.z];
     let gap = (feet[0] - leader[0]).hypot(feet[2] - leader[2]);
     let close = gap < YIELD_CLEARANCE && (feet[1] - leader[1]).abs() < me.height;
-    if !close && gap <= STAND_OFF + FOLLOW_TOLERANCE && (feet[1] - leader[1]).abs() < 0.1 {
+    if m02_slot && !close {
+        // M02 already has an authored lateral slot. Keep its exact return-route
+        // placement and tolerance instead of changing ordinary support timing.
+        let point = [(leader[0] - 2.4).max(-13.0), leader[1], leader[2] + 1.2];
+        let support = arena.support_height(point[0], point[2], point[1] + STEP_UP);
+        if (support - point[1]).abs() <= 0.1
+            && !arena.blocked_at(point[0], point[2], point[1] + STEP_UP)
+            && (point[0] - leader[0]).hypot(point[2] - leader[2]) >= RADIUS * 2.0 + 0.1
+            && !occupied(point, me, bodies)
+        {
+            return ((feet[0] - point[0]).hypot(feet[2] - point[2]) > FOLLOW_TOLERANCE
+                || (feet[1] - point[1]).abs() > 0.1)
+                .then_some(NavigationGoal {
+                    feet: point,
+                    combat: false,
+                });
+        }
+    }
+    if !m02_slot
+        && !close
+        && gap <= STAND_OFF + FOLLOW_TOLERANCE
+        && (feet[1] - leader[1]).abs() < 0.1
+    {
         return None;
     }
     let away = (feet[2] - leader[2]).atan2(feet[0] - leader[0]);

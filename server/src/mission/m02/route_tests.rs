@@ -2711,8 +2711,19 @@ fn a_wipe_resets_the_objective_and_the_fights() {
     assert_eq!(
         walker.defeated.len(),
         ENEMIES,
-        "{:?}",
-        walker.defeated_names
+        "{:?}; actual attempt {}; captured roster {:?}; living {:?}; companion shots {} kills {}",
+        walker.defeated_names,
+        session.state.mission_state().unwrap().attempt,
+        walker.attempt_enemies.as_ref().map(BTreeSet::len),
+        session
+            .state
+            .players
+            .iter()
+            .filter(|p| p.hp > 0)
+            .map(|p| (&p.name, p.hp, [p.x, p.y, p.z]))
+            .collect::<Vec<_>>(),
+        walker.companion_shots,
+        walker.companion_kills
     );
     assert_eq!(session.state.mission_state().unwrap().attempt, 2);
 }

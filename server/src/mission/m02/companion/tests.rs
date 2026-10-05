@@ -237,6 +237,13 @@ fn companion_stand_off_is_deterministic_clear_and_holds_formation() {
         [me.x, 0.0, me.z],
         first.feet
     ));
+    assert_eq!(
+        formation::goal(&arena, me, [0.0, 0.0, 0.0], true, &bodies)
+            .unwrap()
+            .feet,
+        [-2.4, 0.0, 1.2],
+        "M02 retains the exact authored west-forward slot"
+    );
     place(&mut state, ally, [2.4, 0.0, 0.0]);
     let me = state.players.iter().find(|p| p.id == ally).unwrap();
     assert!(formation::goal(&arena, me, [0.0, 0.0, 0.0], false, &state.contact_bodies()).is_none());

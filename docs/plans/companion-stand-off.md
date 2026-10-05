@@ -22,6 +22,13 @@ safe short retreat using actual static movement and current body contact;
 otherwise hold if none is valid. Candidate count and forecast steps have
 fixed bounds. Existing Navigator owns longer routes and cached search.
 
+M02 retains its exact west-forward authored slot and 0.65 m tolerance when
+that slot is supported and clear. Normalizing its offset and using the new
+generic hold distance caused the first workspace run's retry to die and
+restart a third attempt. That failed receipt is retained. The corrected
+M02-specific path passes all 39 focused M02 tests, including the unchanged
+24-guard second-attempt retry, ordinary human/agent departure and Severe route.
+
 The change adds no protocol, save shape, rules revision, input type or new
 configuration. No teleport, body noncollision, damage, speed, difficulty,
 geometry, civilian route or new mission gate is allowed. No art promotion.
