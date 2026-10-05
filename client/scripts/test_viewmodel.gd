@@ -19,6 +19,9 @@ func _column(weapon_name: String) -> int:
 		"Tack":
 			# Both retained frames have an opaque grip and right wrist at 144.
 			return 144
+		"Sniper":
+			# The registered drawn pair has its right cuff at this column.
+			return 174
 	return 112
 
 func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> void:
@@ -34,7 +37,7 @@ func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> v
 ## it, and every gun settles back to its idle pose.
 func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
-	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail"]:
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper"]:
 		hud.set_fp_weapon(weapon_name)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
 		hud.show_fire_juice(weapon_name)
@@ -127,7 +130,7 @@ func _run() -> void:
 	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080)]:
 		root.size = viewport_size
 		await process_frame
-		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Shiv"]:
+		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Sniper", "Shiv"]:
 			hud.call("set_fp_weapon", weapon_name)
 			_check_bottom(weapon, weapon_name + " swap", _column(weapon_name))
 			hud.call("set_fp_walk_speed", MoveStep.TOP_SPEED)
