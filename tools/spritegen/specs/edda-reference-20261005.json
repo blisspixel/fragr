@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Proposed Edda reference only. No paid request has been submitted by this spec.",
+    "Root owns exact live price, balance, durable reservation and serialized request. Proposed request cap: $0.65.",
+    "Named facial identity remains proposed until review. Existing realistic medic image is historical role context, not a conversion input."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/edda-reference-20261005",
+  "style": "original high-quality stylized 3D boomer-shooter character concept, sculpted angular forms with broad painted values and coherent stepped pixel clusters, deliberately simplified expressive facial planes, matte bone, dark warm gunmetal, warm leather and one muted cyan accent, readable material separation, practical circa-2070 retro-futurism, calm even neutral illumination, no photographic skin, pores, fabric weave, random scratch speckles, glossy plastic or military costume",
+  "view": "one isolated full-body character, near-orthographic front three-quarter view with only a slight turn, neutral unobscured A pose with arms slightly away from torso and open empty hands, entire head, fingers and both shoes visible, grounded horizontal feet baseline, generous equal framing margin, plain neutral gray background, no floor platform, scene, labels, collage, diagram or text",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "frames": [
+    {
+      "id": "edda_clinician_reference_v1",
+      "subject": "Edda Vale, an ordinary human clinician from the free community of Low Water, a calm capable adult person with an individual simplified angular painted face and hair gathered neatly clear of work. Bone-colored practical waist-and-chest apron over dark civilian work shirt and trousers, sleeves ending at wrists, practical closed worn leather shoes. Apron is a clear broad shape reaching just below the knees with a simple central split for walking and two large flat working pockets. Broad warm brown leather medical satchel at anatomical left hip, viewer right in the front view, secured by a clearly attached diagonal shoulder strap and two simple broad latches. Satchel is closed, no loose bottles or tiny items. A small muted cyan repair patch on one pocket is a personal choice. Two human arms, two human hands, two legs and two shoes, modest ordinary proportions. Both hands remain empty and visibly separate from apron and satchel. Personhood and patient care, not a combat medic or magical healer. No gun, armor, helmet, hat, cowboy accessories, glowing pickup color, recognizable service emblem, cross symbol, military insignia or writing. Keep clothing maintained with only a few broad deliberate repair patches; no dirty photographic long coat, dramatic damage or busy medical clutter. Proposed face only, not an established age, ethnicity or voice."
+    }
+  ]
+}
