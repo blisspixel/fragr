@@ -13,6 +13,7 @@ mod m07;
 mod m08;
 mod m09;
 mod m10;
+mod m11;
 mod mission;
 mod rules;
 mod sabotage;
@@ -56,6 +57,9 @@ pub use m09::{
 };
 pub use m10::{
     M10MapGeometry, M10ObjectiveState, M10PassengerGeometry, M10Transit, M10_OBJECTIVE_IDS,
+};
+pub use m11::{
+    M11ChallengeState, M11MapGeometry, M11ObjectiveState, M11_OBJECTIVE_IDS, M11_SIGNAL_TICKS,
 };
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,

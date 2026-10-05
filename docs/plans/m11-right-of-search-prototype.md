@@ -76,7 +76,7 @@ The M10 ship-art leaf owns its furnishing and source geometry independently.
 
 ### Remote supply and control connection
 
-The next bounded device checkpoint adds an authored `remote_mine` grant through
+The bounded device checkpoint adds an authored `remote_mine` grant through
 the existing supply loader and claim lifecycle, with a positive amount no greater
 than six, ordinary standing/claim-height/cover checks, capped real gains,
 personal or contested claims and normal campaign reset. A placed device still
@@ -173,6 +173,24 @@ desktop package gates before main. GPU captures need a coordinated lease;
 all failures and exact owned process retirement remain evidence.
 
 ## Implementation checkpoints
+
+Latest source checkpoint: remote supply claims, human controls and separate HUD
+counts are implemented and tested in `44a7dcec`. The
+[supply/control evidence](../evidence/m11-remote-supply-controls-20261005.md)
+records four actual native cases, three clean client harnesses and the retained
+claim-order fixture failure. The independent Redactor behavior remains the
+tested `a7ea9451` checkpoint. The paragraphs below retain each earlier component
+boundary chronologically; they do not revoke later implementation evidence.
+
+The next typed boundary defines six ordered tender arrivals, separate optional
+transfer/document interactions and a fresh party stern release. Three anonymous
+persons are a bounded local staging choice, not approved names or new rescue
+history. Counter-boarding records its actual activation and one resolved
+charge's maximum actual registered boarder kills. The bridge has a provisional
+1200-tick response window from that activation. Missed brief facts never impose
+a hidden reset or departure lock, and Severe clock fairness still needs an
+actual full route with combat, cover and stairs. Capability 37 remains reserved
+until the complete map/mission, current carry, presentation and acceptance pass.
 
 The architectural source is implemented as a non-mission study,
 `server/maps/test/m11_tender_structure.json`, ID 1111. It is not the canonical
@@ -301,8 +319,9 @@ Clippy also pass on this checkpoint. The earlier full locked workspace receipt
 belongs to the stock checkpoint; it is not substituted for a future full M11
 run after the live-device changes.
 
-Right of Search remains unavailable. Capability 37 negotiation, the real human
-controls, separate device presentation, source pickups, Redactor, typed M11
-objective/carry contract, complete client and ordinary rendered learning/route
-acceptance remain required. This development leaf must not be integrated as a
-completed or playable M11 merely because its components pass.
+Right of Search remains unavailable. The native gadget, independent supply,
+human controls and behavioral Redactor now have owning local checks. Capability
+37 negotiation, separate world-device presentation, the typed mission/carry
+connection, selected Redactor motion/tell art, complete client and ordinary
+rendered learning/route acceptance remain required. This development leaf must
+not be integrated as completed or playable M11 merely because components pass.

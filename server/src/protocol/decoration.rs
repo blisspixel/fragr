@@ -51,6 +51,9 @@ pub enum MapDecorationKind {
     M10CargoDeck,
     M10PassengerDeck,
     M10CommandDeck,
+    M11TransferRelease,
+    M11RecordsDocument,
+    M11SternRelease,
     /// M02 gate signal: red lamp over a closed shutter pictogram. Authored only
     /// through a gate, which flips it to `GateOpen` in every world where it is raised.
     GateLocked,
@@ -130,6 +133,13 @@ pub enum MapDecorationKind {
 }
 
 impl MapDecorationKind {
+    pub fn is_m11(self) -> bool {
+        matches!(
+            self,
+            Self::M11TransferRelease | Self::M11RecordsDocument | Self::M11SternRelease
+        )
+    }
+
     pub fn is_m10(self) -> bool {
         matches!(
             self,

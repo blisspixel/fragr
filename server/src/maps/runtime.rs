@@ -359,15 +359,18 @@ impl RuntimeMap {
     }
 
     pub fn requires_m11_contract(&self) -> bool {
-        self.encounters().iter().any(|group| {
-            group
-                .enemies
+        self.presentation_ref()
+            .is_some_and(|p| p.decorations.iter().any(|d| d.kind.is_m11()))
+            || self.encounters().iter().any(|group| {
+                group
+                    .enemies
+                    .iter()
+                    .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Redactor)
+            })
+            || self
+                .pickups()
                 .iter()
-                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Redactor)
-        }) || self
-            .pickups()
-            .iter()
-            .any(|pickup| matches!(pickup.kind, crate::sim::PickupKind::RemoteMine { .. }))
+                .any(|pickup| matches!(pickup.kind, crate::sim::PickupKind::RemoteMine { .. }))
     }
 
     pub fn requires_enforcer_contract(&self) -> bool {
