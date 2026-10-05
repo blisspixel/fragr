@@ -6,6 +6,12 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Escape supported static-cover corners with a bounded ordinary movement lease,
+  preserving combat intent, deliberate drops and existing stuck thresholds.
+  Retain the original intermittent report's attribution limit. The M02
+  all-guard retry witness now dodges outside the real departure boundary until
+  its required guards clear, without adding a mandatory gameplay exit gate.
+
 - Preserve physical companion clearance with bounded supported stand-off and
   short yielding, including the narrow signal-box platform. Living bodies,
   finite support fire, ordinary walking and original mission gates remain.
@@ -13,7 +19,16 @@ Release history, newest first. Planned work stays in
 - Record immutable Passenger Manifest crew release and actual aboard-at-
   departure facts alongside the finite player exit. Strict version 12 saves
   archive exact older bytes and retain missing historical crew facts as unknown.
-  Common Carrier transit and level 10 remain unimplemented.
+  Common Carrier transit and level 10 are outside this composition and current
+  main; the separate prototype remains in flight.
+
+## v0.75.0 (2026-10-04)
+
+The corrected public download includes the prior Sniper refinement and Repeater
+foundation, while restoring the earlier held Rifle presentation. All eight
+main CI jobs and three tagged desktop package checks pass. The three downloaded
+ZIPs were independently verified against the published checksums and digests.
+The crew, companion and static-corner composition above remains unshipped.
 
 - Restore the earlier Rifle idle, firing and pickup artwork after the player
   rejected the source-derived presentation. Retain its model, bake and physical

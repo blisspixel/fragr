@@ -30,7 +30,8 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`crew-companion-integration.md`](./crew-companion-integration.md) | **implemented**, integration in flight | Normal composition of immutable M09 departure receipts and supported companion yielding on restored main; complete local workspace/client pass, with exact-head CI and desktop packages gated. |
+| [`crew-companion-integration.md`](./crew-companion-integration.md) | **implemented**, integration in flight | Normal composition of immutable M09 departure receipts, supported companion yielding and bounded static-cover escape on restored main. Complete three-source local checks pass; exact-head CI and three packages remain gated. |
+| [`static-corner-recovery.md`](./static-corner-recovery.md) | **implemented**, integration in flight | Supported bounded escape preserves combat intent and deliberate drops. Independent complete checks pass; original intermittent map 5 attribution remains open. |
 | [`m09-crew-transit.md`](./m09-crew-transit.md) | **implemented**, integration in flight | Immutable release and actual aboard-at-confirmation receipt with strict historical migration; M10 transit and actual destination arrival remain planned. |
 | [`companion-platform-yield.md`](./companion-platform-yield.md) | **implemented**, integration in flight | Supported short yielding resolves both delivered-contact regressions while preserving physical bodies and finite combat. Historical full M03 proof retains its declared QA route changes. |
 | [`companion-stand-off.md`](./companion-stand-off.md) | **implemented**, extended by platform yield | Supported bounded stand-off formation, with the second platform contact defect retained and addressed by the following checkpoint. |

@@ -303,11 +303,11 @@ under #197.
 
 The phases below are the long shape. The sequence that follows is the build order. Each rung is there because the rung before it is what makes the next one true. A green harness is not a finished mission. A scripted clear is not a fresh player.
 
-## Full build order (updated 2026-10-04)
+## Full build order (updated 2026-10-05)
 
 **Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
-**Next, as of 2026-10-04.** The order is set by what most raises fun and
+**Next, as of 2026-10-05.** The order is set by what most raises fun and
 quality for the work. Nick authorized parallel game development alongside
 substantial model production. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
@@ -320,12 +320,19 @@ checks passed. Independently rehashed downloaded ZIPs match the checksum
 manifest and uploaded digests. The original map 5 stress failure and unchanged
 passing rerun remain distinct in the [integration receipt](evidence/crew-companion-integration-20261004.md).
 Current independent
-lanes are the [bounded crew and companion composition](plans/crew-companion-integration.md),
+lanes are the [bounded crew, companion and corner-recovery composition](plans/crew-companion-integration.md),
 campaign continuation, Jammer and Railgun craft, Kitchen and Garage. Its frozen
-inputs retain actual M09 departure crew facts and supported companion yielding;
-complete composed local workspace and client checks pass; exact-head CI and
-desktop package gates remain in flight.
-M10 transit remains unimplemented. The
+inputs retain actual M09 departure crew facts, supported companion yielding
+and the separately reviewed bounded static-cover escape. The earlier two-source
+composition passed all eight exact-head CI and all three desktop package checks.
+The new three-source composition passes complete local workspace and matching
+260-script/124-harness client checks; exact-head CI and three desktop package
+gates remain in flight. Its test-only M02 full-clear witness preserves all 24
+required guards outside the valid ungated exit. The corner correction preserves deliberate drops and all
+stress thresholds; the original intermittent report lacks height and action
+history, so its precise cause remains unproven.
+M10 transit is outside this composition and current main; its separate prototype
+remains in flight. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain

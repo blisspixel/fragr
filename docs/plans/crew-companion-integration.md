@@ -4,7 +4,9 @@ Status: implemented, extended integration in flight, 2026-10-05.
 The earlier two-source checkpoint passed formatting, all-target Clippy,
 1,483 workspace tests, release, deterministic benchmark, complete
 260-script/124-harness client checks and all eight CI and three package gates.
-The third-input extension repeats complete composition checks. The
+The third-input extension passes formatting, all-target Clippy, 1,487 workspace
+tests, release, deterministic benchmark, complete 260-script/124-harness client
+checks and all ten checker fault controls. The
 [integration receipt](../evidence/crew-companion-integration-20261004.md) binds
 the exact inputs and matching native. Extended exact-head CI and three desktop
 package gates remain open. This bounded composition starts from restored
@@ -63,7 +65,8 @@ Preserve the bounded supported companion stand-off and short-yield movement,
 including both delivered-contact regressions and the original finite combat
 rules. Preserve the immutable M09 release and actual aboard-at-confirmation
 receipt, strict version 12 storage and exact historical byte archives. M10
-transit and historical unknown crew arrivals remain unimplemented.
+transit is not part of this composition or current main; its separate prototype
+remains in flight. Historical unknown crew arrivals remain unknown.
 
 Keep restored held Rifle artwork and every other selected asset unchanged.
 Jammer, Railgun and replacement Rifle candidates stay offline. No new map,
