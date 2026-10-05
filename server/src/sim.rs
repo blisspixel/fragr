@@ -1391,6 +1391,11 @@ impl GameState {
         }
     }
 
+    pub(crate) fn owns_committed_devices(&self, id: Uuid) -> bool {
+        self.grenades.iter().any(|grenade| grenade.owner_id == id)
+            || self.mines.iter().any(|mine| mine.owner_id == id)
+    }
+
     pub fn remove_player(&mut self, id: Uuid) {
         self.drop_flag_from(id);
         self.drop_charge_from(id);

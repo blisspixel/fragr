@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::{mpsc, watch, Mutex, Semaphore};
+use tokio::sync::{mpsc, watch, Mutex, OwnedSemaphorePermit, Semaphore};
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
 use tokio_tungstenite::{accept_async_with_config, tungstenite::Message};
 use uuid::Uuid;
@@ -446,6 +446,7 @@ pub struct NetServer {
     gameplay_version: u32,
     party_slots: Option<Arc<Semaphore>>,
     five_vs_five: bool,
+    auto_fill: bool,
     solo_run: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     admission: Arc<Admission>,
@@ -458,7 +459,77 @@ pub struct NetServer {
 
 type AccessWatch = watch::Receiver<Arc<crate::access::AccessPolicy>>;
 
+pub struct JoinIdentity {
+    pub client_id: Uuid,
+    pub player_id: Uuid,
+    pub role: Role,
+    pub name: String,
+    pub body: crate::protocol::BodyKind,
+}
+
+struct AutoJoinGuard {
+    client_id: Uuid,
+    gate: crate::bot_fill::AdmissionGate,
+    game_tx: mpsc::UnboundedSender<GameCommand>,
+    resume: Arc<crate::resume::ResumeTable>,
+    player_id: Option<Uuid>,
+    armed: bool,
+}
+
+impl Drop for AutoJoinGuard {
+    fn drop(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let mut state = self.gate.lock().unwrap_or_else(|error| error.into_inner());
+        if state.phase == crate::bot_fill::AdmissionPhase::Pending {
+            state.phase = crate::bot_fill::AdmissionPhase::Cancelled;
+        }
+        if let Some(id) = self.player_id {
+            self.resume.forget(id);
+        }
+        let _ = self.game_tx.send(GameCommand::CancelAutoJoin {
+            client_id: self.client_id,
+        });
+    }
+}
+
+fn fill_rejection(reason: crate::bot_fill::FillRefusal) -> ServerMessage {
+    let (code, message) = match reason {
+        crate::bot_fill::FillRefusal::Full => (
+            "match_full",
+            "This match has ten occupied fighter seats. Join as a spectator or wait for a seat.",
+        ),
+        crate::bot_fill::FillRefusal::NextRound => (
+            "bot_fill_next_round",
+            "All fighter seats are currently committed. Watch or join at the next round.",
+        ),
+        crate::bot_fill::FillRefusal::Cancelled => (
+            "bot_fill_cancelled",
+            "Fighter admission expired. Please try joining again.",
+        ),
+    };
+    ServerMessage::Error {
+        code: code.into(),
+        message: message.into(),
+    }
+}
+
 pub enum GameCommand {
+    PrepareAutoJoin {
+        client_id: Uuid,
+        gate: crate::bot_fill::AdmissionGate,
+        reply: tokio::sync::oneshot::Sender<Result<(), crate::bot_fill::FillRefusal>>,
+    },
+    CommitAutoJoin {
+        identity: JoinIdentity,
+        reply: tokio::sync::oneshot::Sender<
+            Result<OwnedSemaphorePermit, crate::bot_fill::FillRefusal>,
+        >,
+    },
+    CancelAutoJoin {
+        client_id: Uuid,
+    },
     Connected {
         id: Uuid,
         role: Role,
@@ -548,6 +619,7 @@ impl NetServer {
             gameplay_version,
             solo_run: false,
             five_vs_five: false,
+            auto_fill: false,
             solo_bound_body: None,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
                 .then(|| Arc::new(Semaphore::new(crate::protocol::MISSION_PARTY_LIMIT))),
@@ -570,6 +642,10 @@ impl NetServer {
 
     pub(crate) fn share_resume(&mut self, resume: std::sync::Arc<crate::resume::ResumeTable>) {
         self.resume = resume;
+    }
+
+    pub(crate) fn set_auto_fill(&mut self) {
+        self.auto_fill = true;
     }
 
     pub(crate) fn set_join_secret(
@@ -668,6 +744,7 @@ impl NetServer {
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
                     let five_vs_five = self.five_vs_five;
+                    let auto_fill = self.auto_fill;
                     let solo_bound_body = self.solo_bound_body;
                     let admission = Arc::clone(&self.admission);
                     let status = Arc::clone(&self.status);
@@ -718,6 +795,7 @@ impl NetServer {
                                 party_slots,
                                 solo_run,
                                 five_vs_five,
+                                auto_fill,
                                 solo_bound_body,
                                 handshake_timeout,
                                 hello_timeout,
@@ -870,6 +948,7 @@ struct HelloPolicy {
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
     five_vs_five: bool,
+    auto_fill: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     handshake_timeout: Duration,
     hello_timeout: Duration,
@@ -1185,7 +1264,50 @@ async fn handle_connection(
                         name = ?audit_name(&name),
                     );
                 } else {
-                    _party_seat = if r != Role::Spectator {
+                    let mut auto_join =
+                        if policy.auto_fill && policy.five_vs_five && r != Role::Spectator {
+                            let guard = AutoJoinGuard {
+                                client_id,
+                                gate: crate::bot_fill::admission_gate(),
+                                game_tx: game_tx.clone(),
+                                resume: Arc::clone(&policy.resume),
+                                player_id: None,
+                                armed: true,
+                            };
+                            let (reply, receiver) = tokio::sync::oneshot::channel();
+                            game_tx.send(GameCommand::PrepareAutoJoin {
+                                client_id,
+                                gate: Arc::clone(&guard.gate),
+                                reply,
+                            })?;
+                            let deadline = guard
+                                .gate
+                                .lock()
+                                .unwrap_or_else(|error| error.into_inner())
+                                .deadline;
+                            let result = tokio::time::timeout_at(
+                                tokio::time::Instant::from_std(deadline),
+                                receiver,
+                            )
+                            .await
+                            .ok()
+                            .and_then(Result::ok)
+                            .unwrap_or(Err(crate::bot_fill::FillRefusal::Cancelled));
+                            if let Err(reason) = result {
+                                drop(guard);
+                                return reject_connection(
+                                    ws_sink,
+                                    ws_stream,
+                                    fill_rejection(reason),
+                                    peer,
+                                )
+                                .await;
+                            }
+                            Some(guard)
+                        } else {
+                            None
+                        };
+                    _party_seat = if r != Role::Spectator && auto_join.is_none() {
                         match policy.party_slots {
                             Some(ref slots) => match Arc::clone(slots).try_acquire_owned() {
                                 Ok(seat) => Some(seat),
@@ -1216,6 +1338,9 @@ async fn handle_connection(
                     } else {
                         None
                     };
+                    if let Some(guard) = auto_join.as_mut() {
+                        guard.player_id = player_id;
+                    }
                     let issued = if r != Role::Spectator && resume.is_some() {
                         keep_pawn = true;
                         player_id.map(|id| policy.resume.arm(id, r))
@@ -1235,9 +1360,48 @@ async fn handle_connection(
                         body: player_id.map(|_| accepted_body),
                     };
 
-                    send_welcome(&mut ws_sink, &welcome, &traffic).await?;
+                    if let Some(guard) = auto_join.as_ref() {
+                        let deadline = guard
+                            .gate
+                            .lock()
+                            .unwrap_or_else(|error| error.into_inner())
+                            .deadline;
+                        tokio::time::timeout_at(
+                            tokio::time::Instant::from_std(deadline),
+                            send_welcome(&mut ws_sink, &welcome, &traffic),
+                        )
+                        .await??;
+                    } else {
+                        send_welcome(&mut ws_sink, &welcome, &traffic).await?;
+                    }
 
-                    let mut clients_lock = clients.lock().await;
+                    let mut clients_lock = if let Some(guard) = auto_join.as_ref() {
+                        let deadline = guard
+                            .gate
+                            .lock()
+                            .unwrap_or_else(|error| error.into_inner())
+                            .deadline;
+                        match tokio::time::timeout_at(
+                            tokio::time::Instant::from_std(deadline),
+                            clients.lock(),
+                        )
+                        .await
+                        {
+                            Ok(lock) => lock,
+                            Err(_) => {
+                                drop(auto_join);
+                                return reject_connection(
+                                    ws_sink,
+                                    ws_stream,
+                                    fill_rejection(crate::bot_fill::FillRefusal::Cancelled),
+                                    peer,
+                                )
+                                .await;
+                            }
+                        }
+                    } else {
+                        clients.lock().await
+                    };
                     clients_lock.push(ClientSession::with_shutdown(
                         client_id,
                         tx.clone(),
@@ -1248,13 +1412,56 @@ async fn handle_connection(
                     drop(clients_lock);
 
                     let logged_name = audit_name(&name);
-                    game_tx.send(GameCommand::Connected {
-                        id: client_id,
-                        role: r,
-                        name,
-                        player_id,
-                        body: accepted_body,
-                    })?;
+                    if let Some(guard) = auto_join.as_mut() {
+                        let (reply, receiver) = tokio::sync::oneshot::channel();
+                        game_tx.send(GameCommand::CommitAutoJoin {
+                            identity: JoinIdentity {
+                                client_id,
+                                player_id: player_id.expect("fighter admission"),
+                                role: r,
+                                name,
+                                body: accepted_body,
+                            },
+                            reply,
+                        })?;
+                        let deadline = guard
+                            .gate
+                            .lock()
+                            .unwrap_or_else(|error| error.into_inner())
+                            .deadline;
+                        let result = tokio::time::timeout_at(
+                            tokio::time::Instant::from_std(deadline),
+                            receiver,
+                        )
+                        .await
+                        .ok()
+                        .and_then(Result::ok)
+                        .unwrap_or(Err(crate::bot_fill::FillRefusal::Cancelled));
+                        match result {
+                            Ok(seat) => {
+                                _party_seat = Some(seat);
+                                guard.armed = false;
+                            }
+                            Err(reason) => {
+                                drop(auto_join);
+                                return reject_connection(
+                                    ws_sink,
+                                    ws_stream,
+                                    fill_rejection(reason),
+                                    peer,
+                                )
+                                .await;
+                            }
+                        }
+                    } else {
+                        game_tx.send(GameCommand::Connected {
+                            id: client_id,
+                            role: r,
+                            name,
+                            player_id,
+                            body: accepted_body,
+                        })?;
+                    }
                     if policy.solo_run {
                         if let Some(seat) = _party_seat.take() {
                             seat.forget();

@@ -1,0 +1,114 @@
+{
+	"canonical_manifest": "client/qa/m07_declared_goods.json",
+	"canonical_manifest_sha256": "117b14212bbab3faf26f023357289ffed9d98cfdcce5dbacd7069170ff42758a",
+	"canonical_states": 20.0,
+	"clean": true,
+	"client_commit": "bca3608c7b5065959d58d89ad72a6a8e381d9d75",
+	"difficulty": "assisted",
+	"frames": [
+		{
+			"companion": {
+				"followable": false,
+				"pawn_visible": true,
+				"phase": "following",
+				"phase_started": 184.0,
+				"position": [
+					-63.345497,
+					1.5,
+					-61.480263
+				],
+				"tick": 210.0,
+				"ward_visible": false
+			},
+			"file": "01_tunnel_arrival.png",
+			"height": 720,
+			"local_feet": [
+				-66.0,
+				0.0,
+				-62.5
+			],
+			"selected_weapon": "Fists",
+			"sha256": "dda24a030e725fd20cf7afaff78435bd176f127842fa51562f3d01fe6e089308",
+			"state": "tunnel_arrival",
+			"width": 1280
+		},
+		{
+			"companion": {
+				"followable": false,
+				"pawn_visible": true,
+				"phase": "following",
+				"phase_started": 1897.0,
+				"position": [
+					-7.9991307,
+					1.5,
+					-10.4948
+				],
+				"tick": 2435.0,
+				"ward_visible": false
+			},
+			"file": "14_lamp_line.png",
+			"height": 720,
+			"local_feet": [
+				-12.1824836730957,
+				0.0,
+				-12.0731601715088
+			],
+			"selected_weapon": "Sniper",
+			"sha256": "0bb182115420517013111e37f418072a36793b2210e37ed01470615b89ae5bc5",
+			"state": "lamp_line",
+			"width": 1280
+		},
+		{
+			"companion": {
+				"followable": false,
+				"pawn_visible": true,
+				"phase": "following",
+				"phase_started": 1897.0,
+				"position": [
+					4.4999933,
+					5.5,
+					8.225867
+				],
+				"tick": 3269.0,
+				"ward_visible": false
+			},
+			"file": "20_cut_sweepers.png",
+			"height": 720,
+			"local_feet": [
+				5.74985074996948,
+				4.0,
+				10.8407831192017
+			],
+			"selected_weapon": "Sniper",
+			"sha256": "c3daa000ead2b463d2dee2c24a09b347a305999b625591c08787813179e82fdd",
+			"state": "cut_sweepers",
+			"width": 1280
+		}
+	],
+	"full_mission": false,
+	"native_source_equivalent_to": "f1e3631526bac070278459af652dea6f83c7872c",
+	"original_private_receipt_sha256": "c427a01d8ec882ef84f4c9138df65956dfb71fb6e7244549399ce7b0d80ea99b",
+	"owned_processes_retired": true,
+	"prefix_manifest_sha256": "edb3831dc440dfa16f23068468b58dc41068f751c1e52a12ed26a1d33683e8c1",
+	"qa_manifest_sha256": "3323c0d2fbfaeec598f4322531e37b0131bb8be4af4d0f7f9e0266be5accae4e",
+	"renderer_exit": 0.0,
+	"renderer_pid": 34768.0,
+	"retained_log_sha256": {
+		"client": "348d112eda63bc895ebe3931285e7d78a145b3faf55eb77f22e655f00d836517",
+		"client_error": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		"server": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		"server_error": "ec084875ec3a1d3d4850e6d959202093065c13cd819056f62f73398b51d6d2ce"
+	},
+	"reused_native_sha256": "0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7",
+	"schema": 1.0,
+	"scope": "Unchanged canonical M07 first twenty states, ordinary discovery/combat and Latch following. Not full mission, pacing, finger closure or performance acceptance.",
+	"seed": 42.0,
+	"server_pid": 8152.0,
+	"source_sha256": {
+		"client/assets/models/latch.glb": "7ead44f5acd175ad48ff11f520e4a0dd11a2882f64f6443d12238567c2aab6fc",
+		"client/assets/models/latch_stylized.glb": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
+		"client/assets/models/manifest.json": "02ef0c7d6ee5950c963eba8976c8abe6664f20cd09489a6fc84f8f11c0cc453d",
+		"client/scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
+		"client/scripts/latch_view.gd": "065a6dfb9c726a2aad9eb73573e1e69f4aaae368c135aec5d1e611e7cfa8cdde"
+	}
+}

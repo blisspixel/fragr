@@ -66,6 +66,8 @@ pub(crate) struct LocalRunConfig {
 pub struct ServerOptions {
     pub bind: String,
     pub bots: usize,
+    pub bot_policy: crate::bot_fill::BotPolicy,
+    pub fill_target: usize,
     pub map: MapKind,
     /// Authored file or bundled mission, mutually exclusive with arcade rules.
     pub authored: Option<crate::maps::AuthoredSource>,
@@ -93,6 +95,8 @@ impl Default for ServerOptions {
         ServerOptions {
             bind: "0.0.0.0:6767".to_string(),
             bots: 4,
+            bot_policy: crate::bot_fill::BotPolicy::Fixed,
+            fill_target: 0,
             map: MapKind::default(),
             authored: None,
             difficulty: None,
@@ -144,6 +148,7 @@ async fn run_server_impl(
     local_run: Option<LocalRunConfig>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Complete bounded topology construction before advertising readiness.
+    options.validate_bot_policy()?;
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
@@ -416,6 +421,10 @@ async fn run_server_impl(
     if let Some(slots) = session.configure_sabotage_seats() {
         net_server.set_sabotage_seats(slots);
     }
+    if options.bot_policy == crate::bot_fill::BotPolicy::Auto {
+        session.set_auto_fill(options.fill_target);
+        net_server.set_auto_fill();
+    }
     net_server.share_status(std::sync::Arc::clone(&live));
     net_server.share_resume(std::sync::Arc::clone(&session.resume));
     session.resume.note_tick(session.state.tick);
@@ -444,9 +453,9 @@ async fn run_server_impl(
     crate::metrics::mark_process_start();
     let mut tracker = crate::metrics::StatusTracker::new(net_server.traffic_totals(), TICK);
 
-    tokio::spawn(async move {
+    let mut accept_task = AbortOnDrop(tokio::spawn(async move {
         net_server.accept_loop().await;
-    });
+    }));
 
     if !session.state.map.is_authored() {
         tracing::info!("Rules: {}", session.state.config.rules.name());
@@ -549,6 +558,9 @@ async fn run_server_impl(
             }
 
             Some(cmd) = game_rx.recv() => {
+                if let crate::net::GameCommand::CancelAutoJoin { client_id } = &cmd {
+                    clients.lock().await.retain(|client| client.id != *client_id);
+                }
                 session.apply_command(cmd);
                 persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
                 let unicasts = session.take_unicasts();
@@ -566,11 +578,15 @@ async fn run_server_impl(
         }
     }
     drop(access_reload);
+    // The listener belongs to this runner. Normal shutdown observes its
+    // retirement; early returns still schedule abort through the owning guard.
+    accept_task.0.abort();
+    let _ = (&mut accept_task.0).await;
 
     Ok(())
 }
 
-/// Ends the list reloader with the loop, including on an early error return.
+/// Ends an owned background task with the loop, including early error returns.
 struct AbortOnDrop(tokio::task::JoinHandle<()>);
 
 impl Drop for AbortOnDrop {

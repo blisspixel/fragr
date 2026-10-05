@@ -1,0 +1,360 @@
+{
+	"actual_pose_samples": [
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1000.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1000.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1017.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1028.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1038.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1048.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1058.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1068.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1078.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1088.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1098.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1108.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1118.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1128.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1138.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1148.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1158.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1168.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1178.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1193.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1203.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": false,
+			"moving": false,
+			"original_release_context": true,
+			"pawn_visible": true,
+			"phase": "releasing",
+			"release_progress": 0.0,
+			"stride": 0.0,
+			"tick": 1213.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": true,
+			"moving": true,
+			"original_release_context": false,
+			"pawn_visible": true,
+			"phase": "following",
+			"release_progress": 0.0,
+			"stride": 0.644837573170662,
+			"tick": 1223.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": true,
+			"moving": true,
+			"original_release_context": false,
+			"pawn_visible": true,
+			"phase": "following",
+			"release_progress": 0.0,
+			"stride": 17.6937235929072,
+			"tick": 1233.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": true,
+			"moving": true,
+			"original_release_context": false,
+			"pawn_visible": true,
+			"phase": "following",
+			"release_progress": 0.0,
+			"stride": 36.4833410345018,
+			"tick": 1243.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": true,
+			"moving": true,
+			"original_release_context": false,
+			"pawn_visible": true,
+			"phase": "following",
+			"release_progress": 0.0,
+			"stride": 54.3552887998521,
+			"tick": 1253.0,
+			"ward_visible": false
+		},
+		{
+			"gun_visible": true,
+			"moving": true,
+			"original_release_context": false,
+			"pawn_visible": true,
+			"phase": "following",
+			"release_progress": 0.0,
+			"stride": 55.3094009310007,
+			"tick": 1259.0,
+			"ward_visible": false
+		}
+	],
+	"actual_releasing_samples": 22.0,
+	"canonical_manifest": "client/qa/m02-shot-occlusion.json",
+	"canonical_manifest_sha256": "e6e9f1a5da95281abaef3ef2ea0cd273a880d32530625e6a48a5baca45c0cf98",
+	"canonical_states": 13.0,
+	"clean": true,
+	"client_commit": "e800480056a1663fd0c78150792fd4fe08442825",
+	"difficulty": "assisted",
+	"frames": [
+		{
+			"file": "12_latch_release.png",
+			"height": 720,
+			"kind": "ordinary played frame",
+			"sha256": "8079492202c513e35cc1e370eda9e04126353ca9d5eac4d84b33083c45c2a562",
+			"width": 1280
+		},
+		{
+			"file": "13_authoritative_releasing_body_before.png",
+			"height": 720,
+			"kind": "ordinary played frame",
+			"sha256": "619f58fcc238e11a10ccae0a60af157bfafcb449467b36544c14f0eea2b6873a",
+			"width": 1280
+		},
+		{
+			"file": "13_authoritative_releasing_body_strip.png",
+			"height": 180,
+			"kind": "24 observed tiles",
+			"sha256": "46244bb0546f09cbad8d78ff35b5347ff3092dc5ade5c6474720956833ecc721",
+			"width": 7680
+		}
+	],
+	"full_mission": false,
+	"native_source_equivalent_to": "f1e3631526bac070278459af652dea6f83c7872c",
+	"observer_sha256": "d292c8ae2606fb790be2d24da5bc32dca4527b923fb538d340e435c785465abc",
+	"original_private_receipt_sha256": "aa29e935a039b1ca87240d58fbc159de9c84d4cb9c357aba820ec57e07d6e647",
+	"owned_processes_retired": true,
+	"pose_receipt_sha256": "aaf8ec0f56c342978668c076ba2e64e5e48978970f53992c719435d4d1b1fb39",
+	"qa_manifest_sha256": "45b4c95bd7d5a4ce6a2b9e84dac0fe2696d1a5babbe973ac06e44e16e7b259f8",
+	"renderer_exit": 0.0,
+	"renderer_pid": 3908.0,
+	"retained_log_sha256": {
+		"client-error.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		"client.log": "087e54865691a7f5222d693f673131da90249aab39b3452fab9cb584c723fbff",
+		"server-error.log": "fbb217e97fb5be34b902f1c8497a685391db2d89ae4f61034de069fcfb40856d",
+		"server.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+	},
+	"reused_native_sha256": "0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7",
+	"schema": 1.0,
+	"scope": "Ordinary unchanged thirteen-state M02 release witness. Prior visible zero-release arm context, followed by calm following; no new release gesture, full mission, finger closure or performance acceptance.",
+	"seed": 42.0,
+	"server_pid": 19296.0,
+	"source_sha256": {
+		"client/assets/models/latch.glb": "7ead44f5acd175ad48ff11f520e4a0dd11a2882f64f6443d12238567c2aab6fc",
+		"client/assets/models/latch_stylized.glb": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
+		"client/assets/models/manifest.json": "36df68bb4cda656451cd3eb4aa9ea7ad75df85de443862ecae95d08dd0235246",
+		"client/scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
+		"client/scripts/latch_view.gd": "e3b494b252f312dcd80331d16e6aace5d65aaab4d6b75d2cd4de7f4cab64bfcc",
+		"client/scripts/player_pawn.gd": "69dde82e57699d1a1ede359369792426f82ee57b6f3480ee655524aee8bb63ed",
+		"client/scripts/test_latch_source.gd": "a3eab59cbaa2edc0b4b78eba7746bd03d253a1d94176dc7d3c11860a55d2f002"
+	}
+}

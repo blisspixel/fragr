@@ -74,3 +74,20 @@ Fresh main `0b03dc2c` passes all eight CI jobs in run `37343037510` before
 this successor is published. Exact final-head CI, all three exported
 desktop/install checks and main promotion remain open. Broader hand poses,
 named casting, ship art and fresh-player pacing are not closed by this check.
+
+## Integration follow-up, October 5
+
+[PR #370](https://github.com/blisspixel/fragr/pull/370) is merged to main
+`f1e36315`, retaining the exact reviewed tree
+`bcdd0915650d609c04d271dc5ce61549e8e0586e` of frozen `038c71e8`.
+All eight reviewed-source CI jobs pass in run `37347346822`; all three
+desktop package/install checks pass in run `37347345243`. Fresh main CI is
+run `37350606366`. The feature branch is deleted. This follow-up records
+integration without relabeling the original snapshots or their limited
+renderer evidence as a new mission playthrough or finished named cast.
+
+Fresh main `f1e36315` subsequently passes all eight jobs in
+[run 37350606366](https://github.com/blisspixel/fragr/actions/runs/37350606366).
+[v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0) is published
+from that exact main, containing this hand/HOME increment. Later relaxed
+Latch poses and Tern's new source model are not selected by that release.

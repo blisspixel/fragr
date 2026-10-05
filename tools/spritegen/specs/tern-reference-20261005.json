@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "Proposed C-tern reference only. No request has been submitted and no reference is selected.",
+    "The serialized production owner must verify exact native price, live balance and durable reservation before one request. Proposed reference cap: $0.65 existing prepaid credit.",
+    "Canonical anchors: free embodied civilian pilot, lean adult proportions, compact head, flight harness, gunmetal and small ember shoulder panel. Exact head, optics, strap construction and shoulder side are proposals."
+  ],
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/tern-reference-20261005",
+  "style": "original exceptional modern boomer-shooter mechanical character concept, deliberately stylized angular sculpted forms with broad painted values and coherent stepped pixel clusters, quiet gunmetal paint and warm dark steel joints, purposeful lighter metal edges and one small ember-orange personal panel, civilian practical circa-2070 retro-futurism, controlled sparse seams and maintained personal repairs, excellent anatomy and material craft, even neutral light, no photographic grain or dense realistic noise, no glossy toy plastic or generic box body",
+  "view": "one isolated full-body character, near-orthographic front three-quarter view with only a slight turn, neutral unobscured A pose with arms slightly away from torso and empty open hands, compact head and all digits and both feet fully visible, grounded horizontal feet baseline, generous equal margin, plain neutral gray background, no second figure, environment, platform, collage, diagram, labels or text",
+  "technical": "clean opaque game-character conversion reference, complete connected silhouette with visibly separate limbs and extremities, quiet painted material planes and crisp contours, even studio light without cast shadows or glare concealing limbs, plain neutral gray background with no checkerboard or floor contact shadow, no baked depth of field",
+  "negative": "photographic material, dense scratch speckling, tiny loose wires, flesh or human face, Western costume, hat, cap, neckerchief, flag, national emblem, army armor, buff chest, broad powered shoulders, issued black and red bands, red attack visor, skull face, tall bone CRT head, left-ear antenna, magenta wrist band, rust replacement forearm, tool rack, huge backpack, oxygen tank, closed space helmet, gun, fused console, weapon in hand, missing thumb, merged fingers, floating hardware, detached limbs, chopped feet, energy halo, motion trail, text, signature, watermark, border, collage",
+  "params": {
+    "quality": "high",
+    "resolution": "4k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false
+  },
+  "frames": [
+    {
+      "id": "tern_civilian_pilot_reference_v1",
+      "subject": "Tern, an original free embodied mechanical person and the civilian pilot of the Common Carrier, with quiet practiced ship-handling competence and dry friendly humor. A lean ordinary 1.8-metre adult biped, modest narrow shoulders and chest, relatively long practical legs, compact head, neither miniature nor buff military robot. Proposed compact low beveled gunmetal head casing, shallow recessed smoke-dark horizontal face window with two subdued warm bone pixel optics and a minimal calm expression, no tall square monitor frame, no antenna or headwear. Broad maintained gunmetal painted torso and limb panels over visible warm dark steel articulated joints; restrained lighter metal edge planes, a few broad purposeful service seams and readable attached collars. A supported civilian flight harness: two dark practical webbing straps over the actual shoulders, small quiet waist buckle and attached short side loops, all close to the chassis with open elbow and hip clearance, not armor or a combat vest. One small ember-orange painted panel on anatomical right shoulder, viewer left in a front view, a personal identification detail rather than a faction band. Two clearly separate arms, five recognizable articulated mechanical digits including thumb on each empty hand, visible coherent wrist/palm joins and complete elbow pivots. Two lean legs with attached hip and knee collars and two grounded practical industrial shoes with clear soles and ankle joints. Every plate and strap is physically supported, no floating fragments or exposed wire spaghetti. The same chassis should feel plausible at a ship console, restrained in a lunar berth, walking aboard and waving through a cockpit window. This image shows only the unrestrained standing reference, not a scene or attack. No human face, uniform, hat, military bulk, gun, space suit, built-in vehicle, tool rack, magenta wrist, large rust forearm, bone CRT head or left antenna copied from other named friends. Quiet broad painted surfaces and excellent coherent pixel-game craft, no dense realistic wear, chrome glare or smooth empty toy boxes."
+    }
+  ]
+}

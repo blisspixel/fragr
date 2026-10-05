@@ -2344,6 +2344,8 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         difficulty: None,
         bind: "127.0.0.1:0".to_string(),
         bots: 0,
+        bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+        fill_target: 0,
         map: config.map,
         map_rotate: false,
         match_config: Some(match_config),

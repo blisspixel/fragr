@@ -83,3 +83,19 @@ This presentation fixture implies no new mission route, human feel or completed
 named cast. Fresh main `0b03dc2c` passes all eight CI jobs in run `37343037510`.
 Parent review, exact final eight-job CI, three desktop package/install checks
 and main promotion remain open before the successor can ship.
+
+## Integration follow-up, October 5
+
+The composition is **shipped** in [PR #370](https://github.com/blisspixel/fragr/pull/370).
+Frozen `038c71e8` passes all eight CI jobs in run `37347346822` and all three
+desktop package/install checks in run `37347345243`. Main `f1e36315` has the
+identical reviewed tree `bcdd0915650d609c04d271dc5ce61549e8e0586e`; its fresh
+CI run is `37350606366`. The feature branch is deleted. The earlier sections
+retain their original local checkpoints and open-gate status at those times.
+Named casting and additional played pose acceptance remain separate work.
+
+Fresh main `f1e36315` subsequently passes all eight jobs in
+[run 37350606366](https://github.com/blisspixel/fragr/actions/runs/37350606366).
+[v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0) is published
+from that main tree, including this hand/HOME increment. The relaxed Latch
+pose follow-up and Tern source trial are separate, not contents of that release.

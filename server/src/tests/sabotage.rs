@@ -155,6 +155,62 @@ fn plant_at_a(state: &mut GameState) -> Uuid {
 }
 
 #[test]
+fn empty_muster_waits_for_the_delayed_first_fighter_without_scoring() {
+    for five_vs_five in [false, true] {
+        for role in [Role::Human, Role::Agent] {
+            let mut state = arena(SabotageConfig {
+                five_vs_five,
+                ..quick()
+            });
+            state.start_round();
+            let events = run(&mut state, 1000);
+            let wire = state.snapshot().sabotage.unwrap();
+            assert_eq!((wire.round, wire.phase), (1, SabotagePhase::Muster));
+            assert_eq!((wire.score.union, wire.score.coalition), (0, 0));
+            assert_eq!(wire.clock_ticks, 4);
+            assert!(state.sabotage.as_ref().unwrap().result.is_none());
+            assert!(!kinds(&events).contains(&SabotageEventKind::Live));
+            assert!(round_end(&events).is_none());
+
+            let id = Uuid::from_u128(1);
+            state.add_player(id, "Delayed first fighter".into(), role);
+            assert!(player(&state, id).standing());
+            run(&mut state, 3);
+            assert_eq!(phase(&state), SabotagePhase::Muster);
+            let events = run(&mut state, 1);
+            assert_eq!(phase(&state), SabotagePhase::Live);
+            assert!(kinds(&events).contains(&SabotageEventKind::Live));
+            assert!(player(&state, id).standing());
+            assert!(round_end(&events).is_none());
+        }
+    }
+}
+
+#[test]
+fn parked_only_muster_keeps_full_clock_until_a_fighter_returns() {
+    let mut state = arena(quick());
+    let id = join(&mut state, 1);
+    state.start_round();
+    run(&mut state, 2);
+    state.players[0].detached = true;
+    let events = run(&mut state, 1000);
+    let wire = state.snapshot().sabotage.unwrap();
+    assert_eq!(
+        (wire.round, wire.phase, wire.clock_ticks),
+        (1, SabotagePhase::Muster, 4)
+    );
+    assert_eq!((wire.score.union, wire.score.coalition), (0, 0));
+    assert!(state.sabotage.as_ref().unwrap().result.is_none());
+    assert!(round_end(&events).is_none());
+    state.players[0].detached = false;
+    run(&mut state, 3);
+    assert_eq!(phase(&state), SabotagePhase::Muster);
+    run(&mut state, 1);
+    assert_eq!(phase(&state), SabotagePhase::Live);
+    assert!(player(&state, id).standing());
+}
+
+#[test]
 fn a_round_opens_in_muster_with_side_spawns_and_one_carrier() {
     let mut state = arena(SabotageConfig::default());
     let ids: Vec<Uuid> = (1..=6).map(|n| join(&mut state, n)).collect();

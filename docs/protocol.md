@@ -25,7 +25,7 @@ snapshot already contains that fighter. A queued snapshot can predate the join.
 Wait for validated map data and a snapshot containing the welcomed `player_id`
 before initializing position or aim. Match by UUID, never roster index or name.
 
-**MCP agent-adapter session tools:** boot Hello-on-start remains valid. First-class tools `join` (Hello/Welcome, optional name, idempotent), `leave` (clean WebSocket disconnect; `isError` if not connected), and `round_state` (round fields from last snapshot + recent `round_start` / `round_end`) are documented in `agent-adapter/README.md`. There is no separate on-wire Leave message; leave is disconnect.
+**MCP agent-adapter session tools:** boot Hello-on-start remains valid. First-class tools `join` (Hello/Welcome, optional name, idempotent), `leave` (clean WebSocket disconnect; `isError` if not connected), and `round_state` (round fields from last snapshot + recent `round_start` / `round_end`) are documented in `agent-adapter/README.md`. Leave sends `{"type":"leave"}` and closes the WebSocket, marking that teardown as nonresumable.
 
 **Names and resume:** display names are not identity credentials. Joining
 never evicts an existing fighter by name. The server removes control characters,
@@ -34,7 +34,8 @@ trims names to 24 Unicode scalars, uses `Player` for an empty result, and append
 label appears in snapshots and events; use player UUIDs for ownership. A client
 that sends `resume` keeps that same pawn across a dropped socket for 200 ticks
 (ten seconds). Input stops while the socket is gone. The body can still be shot.
-`leave` removes it immediately. A hello without `resume` still removes the pawn
+An explicit Leave followed by socket close removes the pawn at teardown rather
+than parking it. A hello without `resume` still removes the pawn
 on close, which is what older clients do. The resume token is not a join ticket
 and does not rewind ticks, input sequence, or inventory.
 
@@ -206,6 +207,19 @@ fighter seat. A resumable drop holds that seat for the existing 200-tick grace.
 Explicit leave or grace expiry frees it. The client maps `match_full` to a
 localized hard stop and Return, with no automatic fighter retry; Watch may
 connect as a spectator. No new capability or discovery field is added.
+
+Optional `--bot-policy auto --bots 0 --fill-target N` hosts use plain TDM or
+Sabotage without mutators. Their desired total counts fighters and reserved
+resume seats, but not spectators. Only trusted server-owned rule bots may yield
+to validated humans or external agents. The existing `error` shape uses
+`bot_fill_next_round` when a full active Sabotage room has no safely replaceable
+bot. Ordinary late admission retains zero lives until the next Muster. Failed
+or expired prepared admission uses `bot_fill_cancelled`; preparation may already
+have delivered Welcome, so the client discards its offered pawn/token and
+hard-stops automatic fighter resume. Watch remains available. These codes add
+no snapshot fields or gameplay capability. A successful admission followed by
+an ordinary drop retains the existing resume semantics.
+
 Local campaign and `--campaign-run` hosts reserve one lifetime combat seat instead.
 After its first successful admission, additional fighters receive `run_seat_closed`,
 including after the owner disconnects. Spectators remain admissible. Callsigns
@@ -219,7 +233,9 @@ hello each have five seconds. The process holds at most 64 connections, and
 hello releases its slot. Further inbound text, including actions, is limited
 to a burst of 64 and 256 per second. Extra messages are dropped and the player
 stays connected. A client that asked for resume keeps its pawn for ten seconds
-after a drop. `{"type":"leave"}` removes that pawn immediately. The grace
+after a drop. Send `{"type":"leave"}` and close the socket to remove that pawn
+without resume grace. Sending Leave alone marks the eventual teardown; it does
+not release a seat while the socket remains open. The grace
 does not rewind the simulation. When it ends, the leave is the same as a
 disconnect: a solo run whose owner is gone becomes abandoned.
 

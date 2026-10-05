@@ -1,7 +1,6 @@
 # Static corner recovery
 
-Status: implemented and independently verified, composed integration in flight,
-2026-10-05.
+Status: **shipped** in PR 367 and included in v0.76.0, 2026-10-05.
 
 Reclamation Gulch's twelve-client roster retained stationary episodes beside two east-ridge stair flights. The original report lacks height, target and action history, so it does not establish which controller branch caused those episodes. The unchanged main-job repeat passed. Separate actual-map diagnostics prove that ordinary non-forward combat intent can remain pinned at the recorded supported ground positions while a diagonal outward move can escape through unchanged geometry.
 
@@ -18,6 +17,6 @@ The bounded original twelve-client case and one candidate case are separate
 timing receipts, not deterministic counterfactuals. Socket participants have
 independently assigned identities and asynchronous admission order. The
 [composed integration](crew-companion-integration.md) repeats complete owning
-gates against crew and companion changes before main acceptance. This is a
+gates against crew and companion changes and passed main acceptance. This is a
 scoped controller correction; the original intermittent CI episode's
 attribution remains open.

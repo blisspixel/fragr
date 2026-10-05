@@ -10,6 +10,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+mod fill;
 #[cfg(test)]
 mod five_seats_tests;
 
@@ -40,6 +41,8 @@ pub struct GameSession {
     pub resume: Arc<ResumeTable>,
     participant_slots: Option<Arc<tokio::sync::Semaphore>>,
     bot_seats: HashMap<Uuid, tokio::sync::OwnedSemaphorePermit>,
+    auto_fill_target: Option<usize>,
+    auto_reservations: HashMap<Uuid, fill::Reservation>,
 }
 
 impl GameSession {
@@ -72,6 +75,8 @@ impl GameSession {
             resume: Arc::new(ResumeTable::new()),
             participant_slots: None,
             bot_seats: HashMap::new(),
+            auto_fill_target: None,
+            auto_reservations: HashMap::new(),
         }
     }
 
@@ -133,7 +138,7 @@ impl GameSession {
             self.state.bots.push(bot_controller);
             tracing::info!("Spawned bot: {} ({:?}, {})", display_name, behavior, bot_id);
         }
-        if self.bots.len() > self.min_bots {
+        if self.auto_fill_target.is_none() && self.bots.len() > self.min_bots {
             self.min_bots = self.bots.len();
         }
         if let Some(mission) = self.state.mission_state() {
@@ -180,6 +185,11 @@ impl GameSession {
 
     /// Spawn rule bots until `bots.len() >= min_bots`. No-op when already stocked or min is 0.
     pub fn ensure_min_bots(&mut self) {
+        self.expire_auto_reservations();
+        if self.auto_fill_target.is_some() {
+            self.reconcile_auto_fill();
+            return;
+        }
         self.bot_seats
             .retain(|id, _| self.state.players.iter().any(|player| player.id == *id));
         if self.min_bots == 0 {
@@ -312,6 +322,23 @@ impl GameSession {
     /// Join/leave push PlayerJoined / PlayerLeft events onto the sim event queue.
     pub fn apply_command(&mut self, cmd: GameCommand) {
         match cmd {
+            GameCommand::PrepareAutoJoin {
+                client_id,
+                gate,
+                reply,
+            } => {
+                self.prepare_auto_join(client_id, gate, reply);
+            }
+            GameCommand::CommitAutoJoin { identity, reply } => {
+                self.commit_auto_join(identity, reply);
+            }
+            GameCommand::CancelAutoJoin { client_id } => {
+                self.auto_reservations.remove(&client_id);
+                if let Some(player_id) = self.client_to_player.remove(&client_id) {
+                    self.resume.forget(player_id);
+                    self.remove_pawn(player_id);
+                }
+            }
             GameCommand::Connected {
                 id,
                 role,

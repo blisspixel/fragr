@@ -20,6 +20,7 @@ pub mod sim;
 mod statistics;
 pub mod trace;
 
+pub mod bot_fill;
 #[cfg(test)]
 mod enclosed_fixture;
 #[cfg(test)]

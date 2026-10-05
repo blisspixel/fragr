@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{CommandFactory, FromArgMatches, Parser};
 use fragr_server::run::{run_server, ServerOptions};
 use std::path::PathBuf;
 use tracing_subscriber::EnvFilter;
@@ -13,6 +13,14 @@ struct Args {
 
     #[arg(long, default_value = "4")]
     bots: usize,
+
+    /// Fixed rule bots, no bots, or automatic total fighter population.
+    #[arg(long, value_enum, default_value = "fixed", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    bot_policy: fragr_server::bot_fill::BotPolicy,
+
+    /// Desired total fighter count for automatic fill, 1 through 10.
+    #[arg(long, default_value = "0", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    fill_target: usize,
 
     /// Map: 1/arena, 2/compliance-yard, 3/directive-17, 4/sector-9,
     /// 5/reclamation-gulch, 6/tripoint-works.
@@ -29,6 +37,11 @@ struct Args {
     #[arg(group = "campaign_source")]
     #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
+
+    /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
+    /// on stdout; stdin shutdown or EOF ends only this explicit child.
+    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format"])]
+    desktop_host: bool,
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
     #[arg(long, value_enum, requires = "local_mission")]
@@ -159,7 +172,13 @@ fn parse_budget_fraction(raw: &str) -> Result<f64, String> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     fragr_server::metrics::mark_process_start();
-    let args = Args::parse();
+    let matches = Args::command().get_matches();
+    let args = Args::from_arg_matches(&matches)?;
+    if args.desktop_host
+        && matches.value_source("bind") != Some(clap::parser::ValueSource::CommandLine)
+    {
+        return Err("--desktop-host requires an explicit --bind address".into());
+    }
     // In benchmark mode the JSON report is the only thing on stdout, so logs
     // go to stderr and only warnings survive.
     init_tracing(args.bench.is_some() || args.local_run_preview);
@@ -307,6 +326,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
+        bot_policy: args.bot_policy,
+        fill_target: args.fill_target,
         map,
         authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
         difficulty: args.difficulty,
@@ -319,7 +340,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         join_secret,
         access,
     };
-    run_server(options, std::future::pending::<()>(), None).await
+    if args.desktop_host {
+        fragr_server::local::serve_arena(options, std::io::stdin(), std::io::stdout()).await
+    } else {
+        run_server(options, std::future::pending::<()>(), None).await
+    }
 }
 
 /// Arcade rules from the host's flags. None keeps the plain defaults, which
@@ -844,6 +869,8 @@ mod tests {
                     difficulty: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
+                    bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+                    fill_target: 0,
                     map: fragr_server::sim::MapKind::ArenaDuel,
                     map_rotate: false,
                     match_config: None,

@@ -27,7 +27,7 @@
 		},
 		{
 			"file": "latch.glb",
-			"sha256": "a2694417a93f7555037bffab3abe251a7085e913459f7d48567b0c9863a6b9e4"
+			"sha256": "7ead44f5acd175ad48ff11f520e4a0dd11a2882f64f6443d12238567c2aab6fc"
 		},
 		{
 			"file": "latch_stylized.glb",
@@ -73,8 +73,8 @@
 		"res://assets/models/latch_stylized.glb": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
 		"res://assets/shaders/latch_near_clip.gdshader": "3d83749b972ca6a5c898804b3866fdb7f9262390d5dd34dfee5e10e4b4225937",
 		"res://scripts/facility_geometry.gd": "cf169e96605f837b59695babda7675159dfb5829f4c0161af5dac152046f45c3",
-		"res://scripts/latch_source.gd": "dc2cc6ab7bc98bdc769b0c0639f8af129c3e1bbb6222a53538201e11c87cceed",
-		"res://scripts/latch_view.gd": "2c73256ed67f762ca6840a90ee8e13329137b8d8b20ea2dc36de5ab71c3e8206",
+		"res://scripts/latch_source.gd": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
+		"res://scripts/latch_view.gd": "e3b494b252f312dcd80331d16e6aace5d65aaab4d6b75d2cd4de7f4cab64bfcc",
 		"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 	}
 }

@@ -287,12 +287,16 @@ jobs:
           "$server" --bench 4 --bench-ticks 200 --seed 42 > "$RUNNER_TEMP/bench.json"
           echo "bundled server bench: $(wc -c < "$RUNNER_TEMP/bench.json") bytes of JSON"
           # The exported game boots its main scene, finds the bundled server beside
-          # itself and asks it for a run preview in an empty run directory.
+          # itself, asks for a run preview, and verifies both owned arena presets.
           export FRAGR_RUN_DIR="$RUNNER_TEMP/fragr-runs"
           mkdir -p "$FRAGR_RUN_DIR"
           out=$("$game" --headless -- --check-install 2>&1) && status=0 || status=$?
           printf '%s\n' "$out" | grep -v 'Unreferenced static string' || true
           [ "$status" -eq 0 ] || { echo "install check exited $status"; exit 1; }
+          if grep -qE 'SCRIPT ERROR|Parse Error|(^|[[:space:]])ERROR:' <<<"$out"; then
+            echo "install check reported a script or runtime error"
+            exit 1
+          fi
           grep -q 'fragr install check: PASS' <<<"$out"
       - name: Record the Windows executable icon
         if: matrix.platform == 'windows-x86_64'

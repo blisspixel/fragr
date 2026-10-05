@@ -3,6 +3,180 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::time::{timeout, Duration};
 use tokio_tungstenite::connect_async;
 
+#[tokio::test]
+async fn automatic_admission_validates_before_reservation_and_keeps_watchers_open() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server =
+        NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
+            .await
+            .unwrap();
+    server.set_sabotage_seats(Arc::new(Semaphore::new(0)));
+    server.set_auto_fill();
+    let secret = Arc::new(
+        crate::join_ticket::JoinSecret::from_env_value("0123456789abcdef")
+            .unwrap()
+            .unwrap(),
+    );
+    server.set_join_secret(Arc::clone(&secret));
+    let valid_ticket =
+        crate::join_ticket::mint(&secret, Role::Agent, crate::join_ticket::unix_now() + 60)
+            .unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    for (version, code, ticket) in [
+        (
+            crate::protocol::GAMEPLAY_VERSION - 1,
+            "unsupported_gameplay",
+            valid_ticket.as_str(),
+        ),
+        (
+            crate::protocol::GAMEPLAY_VERSION,
+            "join_rejected",
+            "invalid",
+        ),
+    ] {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"agent", "name":"Dead Air Dan", "geometry_version":2, "gameplay_version":version,"ticket":ticket}).to_string())).await.unwrap();
+        let message = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(admission_code(message), code);
+        assert!(
+            commands.try_recv().is_err(),
+            "invalid hello must never ask to yield a bot"
+        );
+    }
+    let (mut watcher, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    watcher.send(Message::Text(serde_json::json!({"type":"hello", "role":"spectator", "name":"Watcher", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string())).await.unwrap();
+    let message = timeout(Duration::from_secs(2), watcher.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(message.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: None,
+            ..
+        }
+    ));
+    assert!(matches!(
+        timeout(Duration::from_secs(2), commands.recv())
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected {
+            player_id: None,
+            ..
+        })
+    ));
+    watcher.close(None).await.unwrap();
+    accept.abort();
+    let _ = accept.await;
+}
+
+#[tokio::test]
+async fn automatic_abandoned_welcome_cancels_only_its_request_and_resume_arm() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let table = Arc::new(crate::resume::ResumeTable::new());
+    let abandoned = Uuid::from_u128(101);
+    let retained = Uuid::from_u128(102);
+    let abandoned_token = table.arm(abandoned, Role::Human);
+    let retained_token = table.arm(retained, Role::Agent);
+    let abandoned_nonce = table.open(&abandoned_token).unwrap().2;
+    let retained_nonce = table.open(&retained_token).unwrap().2;
+    let gate = crate::bot_fill::admission_gate();
+    let client_id = Uuid::from_u128(1);
+    let guard = AutoJoinGuard {
+        client_id,
+        gate: Arc::clone(&gate),
+        game_tx: tx,
+        resume: Arc::clone(&table),
+        player_id: Some(abandoned),
+        armed: true,
+    };
+    // Cancellation after an offered Welcome must invalidate that offered arm,
+    // not create a resumable pawn or affect another participant's reservation.
+    drop(guard);
+    assert_eq!(
+        gate.lock().unwrap().phase,
+        crate::bot_fill::AdmissionPhase::Cancelled
+    );
+    assert!(
+        matches!(commands.try_recv().unwrap(), GameCommand::CancelAutoJoin { client_id: id } if id == client_id)
+    );
+    assert!(commands.try_recv().is_err());
+    table.park(abandoned, None, 0);
+    assert!(table
+        .claim(abandoned, abandoned_nonce, Role::Human)
+        .is_none());
+    table.park(retained, None, 0);
+    assert!(table.claim(retained, retained_nonce, Role::Agent).is_some());
+}
+
+#[tokio::test]
+async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels_exact_request() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server =
+        NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
+            .await
+            .unwrap();
+    server.set_sabotage_seats(Arc::new(Semaphore::new(0)));
+    server.set_auto_fill();
+    let address = server.local_addr().unwrap();
+    let clients = Arc::clone(&server.clients);
+    let held_registry = clients.lock().await;
+    let accept = tokio::spawn(server.accept_loop());
+    let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"human", "name":"Held registration", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string())).await.unwrap();
+    let request = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    let (client_id, gate) = match request {
+        GameCommand::PrepareAutoJoin {
+            client_id,
+            gate,
+            reply,
+        } => {
+            reply.send(Ok(())).unwrap();
+            (client_id, gate)
+        }
+        _ => panic!("expected bounded preparation"),
+    };
+    let message = timeout(Duration::from_secs(2), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(message.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome { .. }
+    ));
+    let rejection = timeout(Duration::from_secs(3), socket.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert_eq!(admission_code(rejection), "bot_fill_cancelled");
+    assert!(
+        matches!(timeout(Duration::from_secs(2), commands.recv()).await.unwrap(), Some(GameCommand::CancelAutoJoin { client_id: cancelled }) if cancelled == client_id)
+    );
+    assert_eq!(
+        gate.lock().unwrap().phase,
+        crate::bot_fill::AdmissionPhase::Cancelled
+    );
+    assert!(
+        held_registry.is_empty(),
+        "timeout must not register a client or send Commit"
+    );
+    assert!(commands.try_recv().is_err());
+    drop(held_registry);
+    accept.abort();
+    let _ = accept.await;
+}
+
 struct StalledSink;
 
 impl futures_util::Sink<Message> for StalledSink {

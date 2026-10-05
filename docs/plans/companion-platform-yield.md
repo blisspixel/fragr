@@ -1,10 +1,10 @@
 # Supported companion yielding on narrow platforms
 
-Status: implemented, integration in flight. Spend: $0. Base: `ea75b16f`
+Status: **shipped** in PR 367, included in v0.76.0. Spend: $0. Base: `ea75b16f`
 companion stand-off checkpoint. Frozen source `2a601c66` passes all eight
 exact-head CI jobs and all three desktop package checks. The
 [combined integration](crew-companion-integration.md) now owns composition
-with the crew receipt; this source is not yet merged to main.
+with the crew receipt; composed source, fresh main and release package gates passed.
 
 ## Recorded problem
 

@@ -2,7 +2,7 @@
 use crate::maps::AuthoredSource;
 use crate::mission::run_file::store::{RunProbe, RunStore};
 use crate::mission::run_file::SavedStep;
-use crate::protocol::{BodyKind, CampaignDifficulty, MissionId};
+use crate::protocol::{BodyKind, CampaignDifficulty, GameMode, MissionId};
 use crate::run::{run_local_server, run_server, LocalRunConfig, ServerOptions};
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, BufReader, Read, Write};
@@ -167,6 +167,101 @@ impl Ready {
     }
 }
 
+/// Separate from campaign readiness: no mission identity or durable run is
+/// implied by hosting an arena. The normal wire still owns every match fact.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ArenaReady {
+    pub version: u32,
+    pub kind: String,
+    pub url: String,
+    pub listen: String,
+    pub map_id: u32,
+    pub mode: GameMode,
+    pub five_vs_five: bool,
+    pub bots: usize,
+    pub bot_policy: crate::bot_fill::BotPolicy,
+    pub fill_target: usize,
+    pub gameplay_version: u32,
+}
+
+impl ArenaReady {
+    fn new(options: &ServerOptions, address: SocketAddr) -> io::Result<Self> {
+        let expected = validate_arena_options(options)?;
+        if address.ip() != expected.ip()
+            || address.port() == 0
+            || (expected.port() != 0 && address.port() != expected.port())
+        {
+            return Err(io::Error::other(
+                "arena child readiness does not match its listener",
+            ));
+        }
+        let config = options
+            .match_config
+            .as_ref()
+            .expect("validated arena rules");
+        Ok(Self {
+            version: 1,
+            kind: "arena".into(),
+            url: format!("ws://127.0.0.1:{}", address.port()),
+            listen: address.to_string(),
+            map_id: options.map.id(),
+            mode: config.rules.mode(),
+            five_vs_five: config.sabotage.five_vs_five,
+            bots: options.bots,
+            bot_policy: options.bot_policy,
+            fill_target: options.fill_target,
+            gameplay_version: crate::protocol::GAMEPLAY_VERSION,
+        })
+    }
+
+    fn write(&self, mut output: impl Write) -> io::Result<()> {
+        serde_json::to_writer(&mut output, self)?;
+        output.write_all(b"\n")?;
+        output.flush()
+    }
+}
+
+fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
+    options.validate_bot_policy().map_err(io::Error::other)?;
+    let address: SocketAddr = options.bind.parse().map_err(|_| {
+        io::Error::other("desktop host requires an IPv4 loopback or wildcard address")
+    })?;
+    if address.ip() != Ipv4Addr::LOCALHOST
+        && (address.ip() != Ipv4Addr::UNSPECIFIED || address.port() == 0)
+    {
+        return Err(io::Error::other(
+            "desktop host requires IPv4 loopback or a wildcard with a chosen nonzero port",
+        ));
+    }
+    if options.bots > 10
+        || options.authored.is_some()
+        || options.difficulty.is_some()
+        || options.campaign_run
+        || options.map_rotate
+        || options.solo_broadcast
+    {
+        return Err(io::Error::other("invalid desktop arena profile"));
+    }
+    let config = options
+        .match_config
+        .as_ref()
+        .ok_or_else(|| io::Error::other("desktop host requires TDM or five-per-side Sabotage"))?;
+    let valid_mode = match config.rules.mode() {
+        GameMode::Tdm => !config.sabotage.five_vs_five,
+        GameMode::Sabotage => {
+            config.sabotage.five_vs_five && options.map == crate::sim::MapKind::Sector9
+        }
+        _ => false,
+    };
+    if !valid_mode || !config.rules.mutators().is_empty() || config.rules.friendly_fire() {
+        return Err(io::Error::other(
+            "desktop host requires an unmodified TDM or five-per-side Sabotage profile",
+        ));
+    }
+    Ok(address)
+}
+
 #[derive(Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 enum Control {
@@ -189,6 +284,70 @@ fn read_lease(input: impl Read) -> io::Result<()> {
     serde_json::from_slice::<Control>(&frame)
         .map(|Control::Shutdown {}| ())
         .map_err(|_| io::Error::other("invalid local parent control"))
+}
+
+/// The desktop parent owns this arena process, including an explicit LAN
+/// listener. It uses the same bounded lease as campaign children, but never
+/// opens campaign storage or modifies ordinary dedicated-server stdin policy.
+pub async fn serve_arena(
+    options: ServerOptions,
+    input: impl Read + Send + 'static,
+    output: impl Write,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    validate_arena_options(&options)?;
+    let ready_options = options.clone();
+    let (owner_tx, mut owner_rx) = oneshot::channel();
+    std::thread::Builder::new()
+        .name("arena-parent".into())
+        .spawn(move || {
+            let _ = owner_tx.send(read_lease(input));
+        })?;
+    let (ready_tx, mut ready_rx) = oneshot::channel();
+    let (stop_tx, stop_rx) = oneshot::channel();
+    let server = run_server(
+        options,
+        async {
+            let _ = stop_rx.await;
+        },
+        Some(ready_tx),
+    );
+    tokio::pin!(server);
+    let address = tokio::select! {
+        biased;
+        owner = &mut owner_rx => { owner??; return Ok(()); },
+        result = &mut server => return result,
+        ready = &mut ready_rx => ready?,
+    };
+    // A parent that closed its lease while the map was preparing must not
+    // receive a stale readiness record.
+    match owner_rx.try_recv() {
+        Ok(owner) => {
+            let _ = stop_tx.send(());
+            server.await?;
+            owner?;
+            return Ok(());
+        }
+        Err(oneshot::error::TryRecvError::Closed) => {
+            let _ = stop_tx.send(());
+            server.await?;
+            return Err(io::Error::other("arena parent lease reader closed").into());
+        }
+        Err(oneshot::error::TryRecvError::Empty) => {}
+    }
+    if let Err(error) = ArenaReady::new(&ready_options, address).and_then(|r| r.write(output)) {
+        let _ = stop_tx.send(());
+        server.await?;
+        return Err(error.into());
+    }
+    tokio::select! {
+        result = &mut server => result,
+        owner = &mut owner_rx => {
+            let _ = stop_tx.send(());
+            server.await?;
+            owner??;
+            Ok(())
+        }
+    }
 }
 
 /// Only this explicit mode gives stdin process-lifetime meaning. A dedicated
@@ -291,6 +450,215 @@ pub async fn serve_with_mode(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn arena_options() -> ServerOptions {
+        ServerOptions {
+            bind: "127.0.0.1:0".into(),
+            bots: 0,
+            match_config: Some(crate::sim::MatchConfig {
+                rules: crate::rules::RuleSet::new(GameMode::Tdm, &[], false).unwrap(),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn arena_ready_matches_the_actual_listener_and_strict_schema() {
+        let options = arena_options();
+        let ready = ArenaReady::new(&options, "127.0.0.1:43210".parse().unwrap()).unwrap();
+        assert_eq!(ready.map_id, options.map.id());
+        assert_eq!(ready.mode, GameMode::Tdm);
+        assert!(!ready.five_vs_five);
+        assert_eq!(ready.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        let mut bytes = Vec::new();
+        ready.write(&mut bytes).unwrap();
+        assert_eq!(bytes.iter().filter(|c| **c == b'\n').count(), 1);
+        assert_eq!(serde_json::from_slice::<ArenaReady>(&bytes).unwrap(), ready);
+        let mut value = serde_json::to_value(&ready).unwrap();
+        assert_eq!(value.as_object().unwrap().len(), 11);
+        assert_eq!(value["bot_policy"], "fixed");
+        assert_eq!(value["fill_target"], 0);
+        value["extra"] = true.into();
+        assert!(serde_json::from_value::<ArenaReady>(value).is_err());
+        for actual in ["0.0.0.0:43210", "127.0.0.1:0"] {
+            assert!(ArenaReady::new(&options, actual.parse().unwrap()).is_err());
+        }
+        let chosen = ServerOptions {
+            bind: "0.0.0.0:43210".into(),
+            ..options
+        };
+        let lan = ArenaReady::new(&chosen, "0.0.0.0:43210".parse().unwrap()).unwrap();
+        assert_eq!(lan.url, "ws://127.0.0.1:43210");
+        assert_eq!(lan.listen, "0.0.0.0:43210");
+        assert!(ArenaReady::new(&chosen, "0.0.0.0:43211".parse().unwrap()).is_err());
+    }
+
+    #[test]
+    fn desktop_profile_rejects_non_arena_sources_and_invisible_rule_changes() {
+        let base = arena_options();
+        for address in [
+            "0.0.0.0:0",
+            "[::1]:6767",
+            "192.0.2.1:6767",
+            "localhost:6767",
+        ] {
+            let options = ServerOptions {
+                bind: address.into(),
+                ..base.clone()
+            };
+            assert!(validate_arena_options(&options).is_err());
+        }
+        for changed in [
+            ServerOptions {
+                bots: 11,
+                ..base.clone()
+            },
+            ServerOptions {
+                authored: Some(AuthoredSource::Mission(MissionId::RecallNotice)),
+                ..base.clone()
+            },
+            ServerOptions {
+                difficulty: Some(CampaignDifficulty::Standard),
+                ..base.clone()
+            },
+            ServerOptions {
+                campaign_run: true,
+                ..base.clone()
+            },
+            ServerOptions {
+                map_rotate: true,
+                ..base.clone()
+            },
+            ServerOptions {
+                solo_broadcast: true,
+                ..base.clone()
+            },
+            ServerOptions {
+                match_config: None,
+                ..base.clone()
+            },
+        ] {
+            assert!(validate_arena_options(&changed).is_err());
+        }
+        for (mode, mutators, friendly_fire, five, map, accepted) in [
+            (
+                GameMode::Tdm,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::ArenaDuel,
+                true,
+            ),
+            (
+                GameMode::Tdm,
+                vec![],
+                false,
+                true,
+                crate::sim::MapKind::ArenaDuel,
+                false,
+            ),
+            (
+                GameMode::Ffa,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::ArenaDuel,
+                false,
+            ),
+            (
+                GameMode::Ctf,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::ArenaDuel,
+                false,
+            ),
+            (
+                GameMode::Tdm,
+                vec![crate::protocol::Mutator::RailOnly],
+                false,
+                false,
+                crate::sim::MapKind::ArenaDuel,
+                false,
+            ),
+            (
+                GameMode::Tdm,
+                vec![],
+                true,
+                false,
+                crate::sim::MapKind::ArenaDuel,
+                false,
+            ),
+            (
+                GameMode::Sabotage,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::Sector9,
+                false,
+            ),
+            (
+                GameMode::Sabotage,
+                vec![],
+                false,
+                true,
+                crate::sim::MapKind::ArenaDuel,
+                false,
+            ),
+            (
+                GameMode::Sabotage,
+                vec![],
+                false,
+                true,
+                crate::sim::MapKind::Sector9,
+                true,
+            ),
+        ] {
+            let mut options = base.clone();
+            options.map = map;
+            let config = options.match_config.as_mut().unwrap();
+            config.rules = crate::rules::RuleSet::new(mode, &mutators, friendly_fire).unwrap();
+            config.sabotage.five_vs_five = five;
+            assert_eq!(validate_arena_options(&options).is_ok(), accepted);
+        }
+    }
+
+    struct FailedWriter;
+    impl Write for FailedWriter {
+        fn write(&mut self, _bytes: &[u8]) -> io::Result<usize> {
+            Err(io::Error::other("closed readiness pipe"))
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[tokio::test]
+    async fn failed_readiness_output_retires_its_bound_listener() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        drop(listener);
+        let options = ServerOptions {
+            bind: address.to_string(),
+            ..arena_options()
+        };
+        let (sender, receiver) = std::sync::mpsc::channel();
+        struct Lease(std::sync::mpsc::Receiver<()>);
+        impl Read for Lease {
+            fn read(&mut self, _buffer: &mut [u8]) -> io::Result<usize> {
+                let _ = self.0.recv();
+                Ok(0)
+            }
+        }
+        let result = serve_arena(options, Lease(receiver), FailedWriter).await;
+        drop(sender);
+        assert!(result.is_err());
+        assert!(
+            std::net::TcpListener::bind(address).is_ok(),
+            "listener leaked after failed readiness"
+        );
+    }
 
     #[test]
     fn bundled_byte_hash_matches_the_strict_runtime_loader() {

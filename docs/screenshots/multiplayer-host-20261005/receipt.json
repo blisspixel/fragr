@@ -1,0 +1,198 @@
+{
+    "static_ui_receipt_sha256":  "ca3ebab93fc0187b45a1fa1ab8a72b26ef2e7175852d2d3ea2d8550ce96249be",
+    "images":  [
+                   {
+                       "literal_capture":  true,
+                       "sha256":  "3372671e7d6135ef2c11af8aecf48a3fc8a59ceb2af05340a9905208c1f9c80e",
+                       "name":  "host-tdm.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "sha256":  "655f95e398cfecfa0ed27a318e6956813bd98ace94873ab495cf93f324b1e31f",
+                       "name":  "host-sabotage-small.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "sha256":  "44ef4d9fef1252f81b9c5d3321a234d0633cfecb4b71d687d5f15bef5818c069",
+                       "name":  "04_sabotage_use_prompt.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "sha256":  "603c6bbf469cb64355ac6dd8fee6af9702f20b4c3e74edd19330daefe49dea14",
+                       "name":  "07_sabotage_planted_world.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "sha256":  "b75c2a6c3409bf7596f99f939be8f0ede54de4220a209377b276f987b8213abd",
+                       "name":  "08_sabotage_detonated.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "sha256":  "79c0190d31ab792c6ceb16d8329e13a693e86d473b75199bd8f83f09ddb2ca09",
+                       "name":  "independent_desktop_shared_match.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "name":  "two-desktop-sabotage-attack-result.png",
+                       "sha256":  "1f816e3a576cd7f0d3428fa752446fd97de94e0f4239f6073a2b788c4a531f12"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "name":  "two-desktop-sabotage-defend-result.png",
+                       "sha256":  "630dfb79622057a4b905a6a74b76d0a37518bc92aa870d3035e4fd4c59fda76e"
+                   }
+               ],
+    "work_date":  "2026-10-05",
+    "two_desktop_first_tick":  264,
+    "two_desktop_unique_matching_ticks":  504,
+    "static_ui_source":  "e82893e3b13686b795d00552e6101414af31992b",
+    "static_ui_scope":  "Clean source, all three bot policies in both presets and Multiplayer at three actual window sizes. All 21 literal frames inspected; no native server launched.",
+    "scope":  "Source desktop witnesses on one Windows computer; exported packages and physical LAN require separate verification",
+    "retained_failures":  "Original Windows private port predicate, unchanged TDM ACK-gap failure, instrumented mixed-party fixture failures, scene decoder retirement failure and empty-room Sabotage two-desktop score failure remain retained separately. Prepared fixture and empty-Muster tests pass at dff with unfiltered coverage 93.66 percent. Final auto-fill source and composed release verification remain separate gates. The complete Linux client checker at 170933 additionally failed on fresh-MapInfo timing and stale retired-PID queries. Test-only 6473 retains mode, deadline, actual audio and unrelated-listener assertions while adding portable retained ownership, closed-pipe and exact-port listener proof. Final composed workflow gates own execution.",
+    "schema":  1,
+    "two_desktop_last_tick":  769,
+    "cases":  [
+                  {
+                      "claims":  [
+                                     "Unchanged one-state canonical moving/fire route passed its actual expectations",
+                                     "Strict owned desktop host used map 1 and one rule bot",
+                                     "Stop retired owned native and listener refused with Windows socket error 10061"
+                                 ],
+                      "native_source":  "ae4ad91870d0f3fb5c60bc4aa11eee2da8c94d62",
+                      "clean_errors":  true,
+                      "limits":  [
+                                     "This successful run did not resolve a kill",
+                                     "No human enjoyment or performance target approval"
+                                 ],
+                      "canonical_path":  "client/qa/websocket-moving-combat.json",
+                      "name":  "TDM moving combat",
+                      "exact_owned_retirement":  true,
+                      "numeric_exit":  0,
+                      "client_commit":  "dbe28271140caa4be75cd78ba4fe37a31852f9f4",
+                      "canonical_states":  1,
+                      "log_sha256":  {
+                                         "client-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                         "client.log":  "d3599512d75af1b274df431b38e3241656aa4a206562a6b8dc1779cd2c0beb21"
+                                     },
+                      "canonical_sha256":  "6f8092867ef9654953244ea9dd0410d5cd37bccc8e4fbc7be92dcc0bb9c0a3ed",
+                      "native_sha256":  "a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb",
+                      "own_pass":  true,
+                      "receipt_sha256":  "2d1865a4cd1958bb1355eff1216ddbbd7c68c55f0e5204753f544bccb4ca1790"
+                  },
+                  {
+                      "claims":  [
+                                     "Unchanged eight-state route traversed map 4 and held Use to plant",
+                                     "Real authoritative detonation awarded Free Coalition round 1 with Union 0, Free Coalition 1",
+                                     "Strict optional 5v5 preset, zero rule bots, owned child retirement and socket refusal proved"
+                                 ],
+                      "native_source":  "ae4ad91870d0f3fb5c60bc4aa11eee2da8c94d62",
+                      "clean_errors":  true,
+                      "limits":  [
+                                     "No defuse proof",
+                                     "No contested ten-player match or human enjoyment proof"
+                                 ],
+                      "canonical_path":  "client/qa/sabotage_plant.json",
+                      "name":  "Sabotage plant and detonation",
+                      "exact_owned_retirement":  true,
+                      "numeric_exit":  0,
+                      "client_commit":  "dbe28271140caa4be75cd78ba4fe37a31852f9f4",
+                      "canonical_states":  8,
+                      "log_sha256":  {
+                                         "client-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                         "client.log":  "86954953ef765a360d6e7e8781b013aba31309128277b90c23f9d680e16d52c2"
+                                     },
+                      "canonical_sha256":  "25f089e13d949edf8e42454e20a39ef791b4a441c83f76f9c53caa7833435246",
+                      "native_sha256":  "a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb",
+                      "own_pass":  true,
+                      "receipt_sha256":  "bc7deb58745313347cddbcbd5b71cadf26106d5f7a5c408a64a352033d6b2849"
+                  },
+                  {
+                      "claims":  [
+                                     "Two separate actual Windows GUI processes each joined as a distinct human-role participant",
+                                     "504 unique server ticks had byte-equivalent parsed players and team scores in both app witnesses",
+                                     "Both rendered apps and the owned native retired, listener refusal proved"
+                                 ],
+                      "native_source":  "ae4ad91870d0f3fb5c60bc4aa11eee2da8c94d62",
+                      "clean_errors":  true,
+                      "limits":  [
+                                     "Both apps ran on one physical computer over loopback",
+                                     "Primary final frame is near a wall, do not use it as a README hero",
+                                     "No physical two-machine LAN proof or human enjoyment proof"
+                                 ],
+                      "canonical_path":  "client/qa/websocket-moving-combat.json",
+                      "name":  "Two independent desktop apps",
+                      "exact_owned_retirement":  true,
+                      "numeric_exit":  0,
+                      "client_commit":  "dbe28271140caa4be75cd78ba4fe37a31852f9f4",
+                      "canonical_states":  1,
+                      "log_sha256":  {
+                                         "secondary.log":  "de208bc250717fcfcbbdeb2e11055c44cfd906455a6171ad0ad634537266b1c7",
+                                         "client-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                         "client.log":  "3603d7c0ebdcb57ffff5a86104a0783261e2c0a38332f6c8c2eb7ced55176da8",
+                                         "secondary-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                                     },
+                      "canonical_sha256":  "6f8092867ef9654953244ea9dd0410d5cd37bccc8e4fbc7be92dcc0bb9c0a3ed",
+                      "native_sha256":  "a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb",
+                      "own_pass":  true,
+                      "receipt_sha256":  "e05061a4c2e8732248a8f1c54ef615d9770503e76f7cb340c67817ecb74e2687"
+                  },
+                  {
+                      "name":  "Two desktops share Sabotage detonation",
+                      "client_commit":  "fc8b9d6f968c746b6621edf0876c49518e1145a0",
+                      "native_source":  "cd3a17e53913498c3b271ff36b52c0b1a659309f",
+                      "native_sha256":  "8619918a00b94edaacc89f4a16cfdad39989d119d4285c9fdd50b3de2ca59e76",
+                      "canonical_path":  "client/qa/sabotage_plant.json",
+                      "canonical_sha256":  "25f089e13d949edf8e42454e20a39ef791b4a441c83f76f9c53caa7833435246",
+                      "canonical_states":  8,
+                      "numeric_exit":  0,
+                      "secondary_numeric_exit":  0,
+                      "clean_errors":  true,
+                      "own_pass":  true,
+                      "exact_owned_retirement":  true,
+                      "refusal_socket_error":  10061,
+                      "unique_matching_ticks":  501,
+                      "first_matching_tick":  1111,
+                      "last_matching_tick":  1624,
+                      "unique_matching_detonation_result_ticks":  21,
+                      "score":  {
+                                    "coalition":  1,
+                                    "union":  0
+                                },
+                      "charge_status":  "detonated",
+                      "receipt_sha256":  "e3b33ddd89ec04c1b75af3dfeebe54e1635b16b1632fa7165f439ede6045c45e",
+                      "independent_review_sha256":  "ff6e1fe6dd59e8930363ee0311dc6e39790c8e72849dc5011da03db9bd6e0e9b",
+                      "log_sha256":  {
+                                         "secondary.log":  "e7821379279297db9aff88ef104418cc7877b0ff01d3d167ed3a261471a7c717",
+                                         "client-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                         "client.log":  "4d07f6cf53fbc7a3e470f8e0707ab32922b85f96ef9db73cdbfe74135bf6fa24",
+                                         "secondary-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                                     },
+                      "claims":  [
+                                     "Two independent rendered human participants shared the unchanged eight-state route and authoritative 0:1 round-one detonation result",
+                                     "501 unique shared ticks included 21 matching nonzero result ticks",
+                                     "Both actual apps and the owned native retired; the stopped listener refused connections"
+                                 ],
+                      "limits":  [
+                                     "One physical Windows computer over loopback",
+                                     "No defuse, contested ten-player match, physical LAN or human enjoyment proof"
+                                 ]
+                  }
+              ],
+    "previous_static_ui":  {
+                               "images":  [
+                                              {
+                                                  "literal_capture":  true,
+                                                  "name":  "host-tdm.png",
+                                                  "sha256":  "23b9cb8fca08757c90d21fecd46726338bb457a5373912255067c9e76c2ed83f"
+                                              },
+                                              {
+                                                  "literal_capture":  true,
+                                                  "name":  "host-sabotage-small.png",
+                                                  "sha256":  "9b567e4024ba0c0dda1ac192b128c43f73d66cc4a77d48281e9272120d8bbbd8"
+                                              }
+                                          ],
+                               "receipt_sha256":  "8a684a6c0b919e0e8897636d085067f0b0bf7d0d0d78a84cd2246283a01dd3cf",
+                               "source":  "4fc50a6aec8125e8f772ddc9a43facffd12e4f4e"
+                           },
+    "static_ui_frames":  21
+}

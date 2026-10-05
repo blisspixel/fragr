@@ -41,8 +41,13 @@ dedicated container.
 
 ## Optional 5v5 Sabotage
 
-The opt-in profile is implemented with focused local checks; combined
-integration CI remains open. Start a source-built dedicated host with:
+The opt-in profile is implemented and shipped in the existing game. In a
+build containing the desktop Host controls, choose **Multiplayer > Host**,
+select **5v5 Sabotage**, enable **Allow LAN players** and choose a port.
+After Start server reports readiness, peers use the host's LAN address and
+that port. Keep the app open to retain this owned match. Stop server ends it;
+returning to the menu does not. Earlier desktop releases can join a dedicated
+host started with:
 
 ```bash
 fragr-server --mode sabotage --map 4 --bots 4 --sabotage-five-v-five
@@ -51,15 +56,29 @@ fragr-server --mode sabotage --map 4 --bots 4 --sabotage-five-v-five
 All ten fighter seats are shared by humans, agents and rule bots, with at most
 five on either side. The unchanged default of four bots leaves six external
 seats; `--bots 0` leaves ten. `--bots 10` deliberately fills the room and does
-not evict bots for a human or agent. More than ten initial bots is a startup
+not evict bots under the default fixed policy. More than ten initial bots is a startup
 error. Internal bot refill shares this same capacity. Advertise the profile
 in your room description; no new discovery field is sent in this increment.
+
+For optional automatic fill, select it in Host or use:
+
+```bash
+fragr-server --mode sabotage --map 4 --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
+```
+
+Humans and external agents replace eligible server-owned bots equally. A
+host using automatic fill must use the plain rules, without mutators. A
+reserved reconnect seat stays occupied. Safe replacement preserves existing
+round lives, objectives and committed explosives. If every bot is currently
+protected, the server visibly refuses the join until a later round; Watch
+remains available. No extra eleventh fighter or transferred bot life is created.
 
 Fresh admission, first round and fresh post-death rounds start with selected
 Tack/Pistol and fifty finite Bullets. Stronger guns come from the map.
 Survivors keep their guns and ammunition without repeated sidearm grants.
 Weapon-only mutators are rejected for this profile; generic matches retain
-their current behavior. Friendly fire and Golden Rail remain compatible.
+their current behavior. Dedicated CLI hosts can still enable friendly fire
+and Golden Rail. The desktop preset offers the plain profile.
 
 A full room refuses fighters with `match_full` before Welcome. The client
 shows a localized refusal and Return; choose Watch from the menu to connect

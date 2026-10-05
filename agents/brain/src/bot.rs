@@ -1586,6 +1586,8 @@ mod tests {
             authored: None,
             bind: "127.0.0.1:0".to_string(),
             bots,
+            bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+            fill_target: 0,
             map: MapKind::default(),
             map_rotate: false,
             solo_broadcast: false,
