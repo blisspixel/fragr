@@ -141,12 +141,19 @@ func _run() -> void:
 		var result_bounds: AABB = _bounds(all_vertices)
 		_check(absf(result_bounds.position.y) < 0.00001,"actual floor pivot")
 		var measured_worktop: float = 0.0
+		var worktop_samples: Array[Dictionary] = []
 		if worktop_source_height > 0.0:
 			var point: Vector2 = spec["worktop_source_xz"]
 			var transformed: Vector3 = Basis(Vector3.UP,PI) * (Vector3(point.x,raw_bounds.position.y,point.y) - origin) * scale
 			var hit: Vector3 = _first_hit(bv,bi,transformed + Vector3.UP * 2.0,transformed - Vector3.UP)
 			measured_worktop = hit.y
 			_check(hit.is_finite() and absf(hit.y - float(spec["metres"])) < 0.00001,"actual worktop height after export/reimport")
+			for sample: Vector2 in [Vector2(0.0,-0.2),Vector2(0.0,0.2),Vector2(-0.4,-0.2),Vector2(0.4,-0.2)]:
+				var raw_top: Vector3 = _first_hit(av,ai,Vector3(sample.x,raw_bounds.end.y + 1.0,sample.y),Vector3(sample.x,raw_bounds.position.y - 1.0,sample.y))
+				var expected_point: Vector3 = Basis(Vector3.UP,PI) * (raw_top - origin) * scale
+				var prepared_top: Vector3 = _first_hit(bv,bi,Vector3(expected_point.x,2.0,expected_point.z),Vector3(expected_point.x,-1.0,expected_point.z))
+				_check(raw_top.is_finite() and prepared_top.is_finite() and prepared_top.distance_to(expected_point) < 0.00001 and absf(prepared_top.y - float(spec["metres"])) < 0.001,"four independently supported working-surface samples")
+				worktop_samples.append({"raw_xz":[sample.x,sample.y],"height_m":prepared_top.y})
 		else:
 			_check(absf(result_bounds.size[int(spec["axis"])] - float(spec["metres"])) < 0.00001,"actual provisional dimension")
 		var floor_quadrants: Dictionary = {}
@@ -154,7 +161,7 @@ func _run() -> void:
 			if vertex.y <= 0.002:
 				floor_quadrants[Vector2i(1 if vertex.x >= 0.0 else -1,1 if vertex.z >= 0.0 else -1)] = true
 		_check(floor_quadrants.size() == 4,"real bottom surfaces reach four support quadrants")
-		rows.append({"id":spec["id"],"raw_sha256":spec["sha"],"prepared_sha256":FileAccess.get_sha256(prepared_path),"retained_triangles":bi.size()/3,"authored_triangles":authored,"orientation_preserving_multiset_matches":expected==actual,"position_and_uv_quantization":0.00001,"max_imported_normal_direction_error":normal_error,"normal_direction_tolerance":NORMAL_DIRECTION_TOLERANCE,"retained_source_area_m2":original_area,"prepared_area_m2":prepared_area,"worktop_height_m":measured_worktop,"floor_support_quadrants":floor_quadrants.size(),"actual_bounds_m":[result_bounds.size.x,result_bounds.size.y,result_bounds.size.z],"supports":supports,"provisional_scale":true,"runtime_selected":false})
+		rows.append({"id":spec["id"],"raw_sha256":spec["sha"],"prepared_sha256":FileAccess.get_sha256(prepared_path),"retained_triangles":bi.size()/3,"authored_triangles":authored,"orientation_preserving_multiset_matches":expected==actual,"position_and_uv_quantization":0.00001,"max_imported_normal_direction_error":normal_error,"normal_direction_tolerance":NORMAL_DIRECTION_TOLERANCE,"retained_source_area_m2":original_area,"prepared_area_m2":prepared_area,"worktop_height_m":measured_worktop,"worktop_samples":worktop_samples,"floor_support_quadrants":floor_quadrants.size(),"actual_bounds_m":[result_bounds.size.x,result_bounds.size.y,result_bounds.size.z],"supports":supports,"provisional_scale":true,"runtime_selected":false})
 		raw.free()
 		prepared.free()
 	var file: FileAccess = FileAccess.open(args[2],FileAccess.WRITE)
