@@ -11,6 +11,7 @@ extends SceneTree
 const KICK_KEYS: Dictionary = {
 	"match_full": "SABOTAGE_MATCH_FULL",
 	"bot_fill_next_round": "BOT_FILL_NEXT_ROUND",
+	"bot_fill_cancelled": "BOT_FILL_CANCELLED",
 	"rate_limited": "NET_RATE_LIMITED",
 	"malformed": "NET_MALFORMED",
 	"address_banned": "NET_ADDRESS_BANNED",
@@ -72,19 +73,30 @@ func _check_message_mapping() -> bool:
 	return true
 
 func _check_full_match_can_watch() -> bool:
+	for code: String in ["match_full", "bot_fill_next_round", "bot_fill_cancelled"]:
+		for role: String in ["human", "agent"]:
+			if not _check_refusal_can_watch(code, role):
+				return false
+	return true
+
+func _check_refusal_can_watch(code: String, role: String) -> bool:
 	var network: CaptureNetwork = CaptureNetwork.new()
-	network.role = "human"
-	network._resume_token = "v1.previous"
-	network.player_id = "previous"
+	network.role = role
+	network._handle_message(JSON.stringify({"type": "welcome", "role": role,
+		"player_id": "previous", "body": "human", "resume": "v1.previous"}))
+	if network.player_id != "previous" or network._resume_token != "v1.previous":
+		_fail("refusal fixture did not receive its actual Welcome token")
+		network.free()
+		return false
 	var seen: Array[String] = []
 	network.server_error.connect(func(message: String) -> void: seen.append(message))
-	network._handle_message(JSON.stringify({"type": "error", "code": "match_full", "message": "untrusted remote text"}))
-	if seen != [tr("SABOTAGE_MATCH_FULL")] or network.player_id != null or not network._leaving or network.is_processing():
-		_fail("full match packet did not retire the fighter and show localized refusal")
+	network._handle_message(JSON.stringify({"type": "error", "code": code, "message": "untrusted remote text"}))
+	if seen != [tr(str(KICK_KEYS[code]))] or network.player_id != null or not network._leaving or network.is_processing():
+		_fail(code + " packet did not retire the fighter and show localized refusal")
 		network.free()
 		return false
 	if network._try_resume():
-		_fail("full match packet silently retried the fighter")
+		_fail(code + " packet silently retried the fighter")
 		network.free()
 		return false
 	network.set_server_host("127.0.0.1:1")
