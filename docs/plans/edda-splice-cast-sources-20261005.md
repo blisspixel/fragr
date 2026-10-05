@@ -1,7 +1,7 @@
 # Edda and Splice, distinct survivor sources
 
-Status: planned, 2026-10-05. This bounded leaf prepares two references and source
-briefs. It submits no paid request and changes no selected art or mission rules.
+Status: in flight, 2026-10-05. Two references and source candidates are inspected.
+Edda's first rig needs local weight repair. No selected art or mission rules change.
 Base: `400595d06b6b268a64b0321015ae23921e597567`.
 
 ## Purpose and scope
@@ -68,8 +68,10 @@ packing and evacuation gestures. No weapon or fantasy healer costume.
 Splice has a compact horizontal framed screen, friendly amber pixel expression,
 modest narrow shoulders and a short practical torso. Bone shell, ordinary dark
 steel joints and one broad rust replacement forearm distinguish the construction.
-An offset low-profile tool rack at the anatomical left rear hip and a muted
-magenta band on the anatomical right wrist are proposed orientation anchors.
+The prompt proposed an offset rack at the anatomical left rear hip and a muted
+magenta band on the anatomical right wrist. The reviewed reference instead puts
+the rack on the anatomical right hip; retain that actual orientation. The band
+stays on the right wrist and the replacement forearm on the left.
 The rack carries two secured blunt tools, not a gun or shoulder backpack. The
 screen has no antenna or duplicated Latch face frame. Compact proportions must
 fit the existing human-sized visual/contact envelope; do not shorten server
@@ -114,7 +116,7 @@ would require a new inspected justification and another explicit 5-credit
 reservation. These are planning maxima, not submitted usage or a renewal.
 
 Each proposed source uses the existing native path, a textured Ultra request,
-2k geometry, 4k source textures and 12,000 requested triangles, capped at 35
+2k geometry, 4k source textures and 16,000 requested triangles, capped at 35
 credits and the established $0.70 operation equivalent. Actual output counts
 and reported consumption win over requested settings.
 
@@ -128,5 +130,10 @@ each result in the single ledger. No top-up, overage or new cash is authorized.
 
 ## Current result
 
-Plan authored before prompt records. All production, rig, source, animation and
-played acceptance gates remain open. No new image, model or paid rig exists yet.
+Plan authored before prompt records. Root reviewed both references and actual
+four-sided model imports, then separately requested Edda's 5-credit rig after
+checking the humanoid limb layout. Actual walking reveals a satchel skin defect;
+the default rig is unsuitable for selection. Splice has no paid rig. The
+[production receipt](../evidence/named-cast-source-production-20261005.md) records
+tasks, actual geometry, reviewed views and the later account reconciliation.
+Local preparation, role motion and ordinary played acceptance remain open.
