@@ -169,8 +169,26 @@ The production owner reports accepted bounded source task
 conservative equivalent, after fresh 2,085 available/15 held preflight. The
 shared source spec is `art/raw/meshy-pilot-20261003/tern-source-20261005.json`,
 SHA-256 `9d265d3187b1a72d84a58bb521889c12d3d47e075fa5c405948a811b7bd6f705`.
-This is task acceptance, not a measured completed debit or downloaded geometry.
 The production ledger owner retains the initial changed-CDN guard refusal
 separately; it did not submit a source and is not a passing request. No rig is
 submitted or accepted here. Actual full source inspection still precedes any
 five-credit rig or pose work.
+
+The source subsequently completed at 35 actual included credits. The original
+download is `art/raw/meshy-pilot-20261003/tern-civilian-pilot-v1-ultra-0.glb`,
+SHA-256 `59c8af0212285f6b575fa37a91c45bbe79cb970b972b85dbe0efc07a1dc8003a`.
+The production owner reports a fresh free balance of 2,050 available and the
+unchanged 15-credit uncertain hold. This balance is not permission to rig an
+unreviewed source.
+
+Independent headless import exits 0 with clean logs and its own PASS. Actual
+geometry is one mesh/surface, 12,456 triangles and 19,102 vertices, no skin or
+animation; albedo/normal are 4K and packed metal/roughness is 2K. Unprepared
+bounds are 1.189627 by 1.901100 by 0.343320 model units with minimum Y=-0.950329,
+not grounded ordinary 1.8 m placement. At 0.00001 position-quantization units
+the source has 6,138 welded positions and one connected island, with no
+near-zero-area triangles or invalid/short normals detected. Private
+`.agents/tern-brief-checks/source-geometry.json` records the exact measurements.
+These are topology and map facts, not proof of separated fingers, acceptable
+joint motion, silhouette, original paint quality or humanoid rig eligibility.
+Actual four-angle source review is still required before a five-credit rig.
