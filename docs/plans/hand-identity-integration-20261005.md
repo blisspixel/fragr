@@ -61,3 +61,19 @@ viewmodel, ranged/scope tell, weapon pickup and shot effects. A private launcher
 mistyped the pickup harness name and stopped after five passes; that failure
 is retained and the actual registered pickup harness is then run successfully.
 Complete composed client, source equality and public gates remain open.
+
+## Complete local client acceptance
+
+Frozen `988ef19045f1f1c75dc93a5b3d6f4bfeb27af5c3` passes the complete checker,
+numeric zero, clean errors, all 271 scripts and 129 harnesses. Its complete
+Rust source, maps and QA files equal accepted main `0b03dc2c`; the immutable
+private native is reused without a build. All four changed runtime presenter
+files and their owning tests are included. The private source/full-client
+receipts bind that exact head and native. Subsequent roadmap and audit updates
+are documentation only, preserving the checked runtime.
+
+The input sources' earlier actual HUD and ordinary M07 witnesses remain
+separately dated. A final combined hardware HUD comparison is being reviewed
+by the parent; it does not imply a new mission route or a completed named cast.
+The branch remains local pending fresh main CI, parent review and exact final
+eight-job CI plus three desktop package/install checks.
