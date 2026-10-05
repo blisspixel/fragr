@@ -1,0 +1,68 @@
+{
+    "date":  "2026-10-05",
+    "base_source":  "400595d06b6b268a64b0321015ae23921e597567",
+    "reference_only":  true,
+    "existing_inputs":  [
+                            {
+                                "path":  "client/art/production-20261003/character_free_human_medic.png",
+                                "sha256":  "4e12acca0ac46ee7055cc4d3d4466d602d66c68230294428f32a9f425ba99063",
+                                "bytes":  710045
+                            },
+                            {
+                                "path":  "client/art/characters/references/free-human-civilian-v3.png",
+                                "sha256":  "654aa7d5bc57e7c7264b56e16b627257be5cad69fd6b10db1d20574691270cf0",
+                                "bytes":  1708122
+                            },
+                            {
+                                "path":  "client/art/characters/references/civilian-agent/worker-stylized-v1.png",
+                                "sha256":  "98672cb5e1b8d2f7a17cc9c8c95f34c3f33dbc48447413f17395e2387a01568c",
+                                "bytes":  1492317
+                            },
+                            {
+                                "path":  "docs/screenshots/civilian-first-sources-20261004/free-agent-worker-stylized-v1-ultra-0-view-0.png",
+                                "sha256":  "b9978eefc92e99931fb23cad754e1e2b33e58900057df1b318bf396b4a27ee2e",
+                                "bytes":  226540
+                            },
+                            {
+                                "path":  "client/art/models/candidates/free_human.glb",
+                                "sha256":  "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff",
+                                "bytes":  6143304
+                            },
+                            {
+                                "path":  "client/art/models/free_human_source.gd",
+                                "sha256":  "7a83f137ed1c447db363b7f3b960e662a074df30b70ec52d4ee8bd738af313ba",
+                                "bytes":  751
+                            },
+                            {
+                                "path":  "client/scripts/m05_town.gd",
+                                "sha256":  "b94080a684ee4e853ad0ef987853ccbca0771e9abd43c1b69ea8a056b5159529",
+                                "bytes":  6079
+                            },
+                            {
+                                "path":  "client/scripts/m09_berth.gd",
+                                "sha256":  "6729a14e512a59c4fcc08e6d66b889e711a508431b83ec69bd4acb8c4e77d2bf",
+                                "bytes":  6879
+                            }
+                        ],
+    "separate_m10_prototype":  {
+                                   "source":  "65f340ff5756b7293d44c8c76f0e7b42006280e6",
+                                   "selected_on_main":  false,
+                                   "path":  "client/scripts/m10_ship.gd",
+                                   "sha256":  "01201dd6b4f05557e25eed4942ae7c682e6cbb58d52c83bb4ed55c90210e6b8e"
+                               },
+    "proposed_specs":  [
+                           {
+                               "path":  "tools/spritegen/specs/edda-reference-20261005.json",
+                               "sha256":  "823efdadb3935d4cd061788aca03b5f10953e1acaa10617998ed85020b59d74e",
+                               "submitted":  false
+                           },
+                           {
+                               "path":  "tools/spritegen/specs/splice-reference-20261005.json",
+                               "sha256":  "4629788783bae3d39e1e136152de3236510acfd9417772856e110e19c8c91056",
+                               "submitted":  false
+                           }
+                       ],
+    "new_paid_requests":  0,
+    "new_credits_consumed":  0,
+    "runtime_changes":  0
+}
