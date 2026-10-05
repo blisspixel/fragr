@@ -125,6 +125,12 @@ func _run() -> void:
 	berth.configure_map(info)
 	berth.apply_state(fixture_state(info, 0, ["edda", "splice"])["state"])
 	_check(berth.state_applied == 1 and berth._crew.size() == 5, "only actual carried cast is shown")
+	for id: String in ["tern", "splice"]:
+		var synthetic: Sprite3D = berth._crew[id]
+		_check(synthetic.texture == load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)), id + " retains an embodied-agent body rather than borrowing a human strip")
+	for id: String in ["edda", "berth_crew_a", "berth_crew_b"]:
+		var human: Sprite3D = berth._crew[id]
+		_check(human.texture == load(PlayerBody.strip_path(PlayerBody.HUMAN)), id + " retains the existing human body fallback")
 	var tern: Sprite3D = berth._crew["tern"]
 	var earlier_position: Vector3 = tern.position
 	berth.apply_state(bad["state"])
