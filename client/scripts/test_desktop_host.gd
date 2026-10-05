@@ -132,6 +132,7 @@ func _preset(mode: String) -> bool:
 	if not await _until(func() -> bool: return _menu() and owner.state == LocalHost.State.IDLE, "explicit match Stop returns to menu and ends owned lease"):
 		return false
 	_expect(not OS.is_process_running(pid) and unrelated.is_listening(), "Stop retires only owned PID")
+	print("test_desktop_host: owned_stop ", mode, " pid=", pid, " retired=", not OS.is_process_running(pid))
 	_expect(not DirAccess.dir_exists_absolute(run_directory), "hosting creates no campaign directory or save")
 	print("test_desktop_host: " + mode + " real two-client lifetime PASS")
 	return true
@@ -170,6 +171,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	_expect(not OS.is_process_running(pid), "retiring app host owner closes and retires its native child")
+	print("test_desktop_host: app_owner pid=", pid, " retired=", not OS.is_process_running(pid))
 	_expect(unrelated.is_listening() and not DirAccess.dir_exists_absolute(run_directory), "app owner cleanup preserves unrelated listener and campaign storage")
 	var campaign: LocalMatch = root.get_node_or_null("LocalMatch") as LocalMatch
 	if campaign != null:
