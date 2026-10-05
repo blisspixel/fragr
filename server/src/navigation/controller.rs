@@ -364,6 +364,14 @@ impl Navigator {
             }
             Some([pose.x - me.from.x, pose.z - me.from.z])
         };
+        let Some(original) = forecast(&action) else {
+            // Preserve a deliberate route drop before any remembered escape.
+            if recovering_static {
+                self.avoidance_motion = None;
+                self.avoidance_until = 0;
+            }
+            return action;
+        };
         if recovering_static {
             if let Some([forward, back, left, right]) = self.avoidance_motion {
                 let mut continued = action.clone();
@@ -377,11 +385,6 @@ impl Navigator {
             }
             self.avoidance_motion = None;
         }
-        let Some(original) = forecast(&action) else {
-            // Preserve a deliberate route drop; alternative crowd passing never
-            // introduces a new unsupported step on a grounded actor's behalf.
-            return action;
-        };
         let progress = (original[0] * dx + original[1] * dz) / length;
         if progress >= length * 5.0 && !stalled {
             self.avoidance_until = 0;
@@ -1330,8 +1333,24 @@ mod tests {
                 1
             ))
             .unwrap(),
-            serde_json::to_value(drop).unwrap()
+            serde_json::to_value(&drop).unwrap()
         );
+        nav.avoidance_motion = Some([false, true, false, true]);
+        nav.avoidance_until = 20;
+        assert_eq!(
+            serde_json::to_value(nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                std::slice::from_ref(&mover),
+                drop.clone(),
+                2
+            ))
+            .unwrap(),
+            serde_json::to_value(drop).unwrap(),
+            "an active escape lease must not redirect a deliberate unsupported drop"
+        );
+        assert!(nav.avoidance_motion.is_none());
+        assert_eq!(nav.avoidance_until, 0);
         nav.avoidance_motion = Some([false, true, false, true]);
         nav.avoidance_until = 20;
         let jump = Action {
@@ -1346,7 +1365,7 @@ mod tests {
                 Uuid::from_u128(1),
                 &[mover],
                 jump.clone(),
-                2
+                3
             ))
             .unwrap(),
             serde_json::to_value(jump).unwrap()
