@@ -2,8 +2,10 @@
 
 Status: in flight, 2026-10-04. Implementation lane is based on clean frozen
 Repeater PR 358 head `aa22c412`, whose initial identical runtime passed all
-eight CI jobs and three packages. Root approved the capture checkpoint after
-review. No implementation acceptance, paid request or rendering is claimed.
+eight CI jobs and three packages. The capture checkpoint is implemented and
+tested locally, with [retained evidence](../evidence/m09-crew-receipt-20261004.md).
+It is unmerged; remote CI and packages remain open. No paid request or new
+rendering is claimed. The actual M10 transit checkpoint remains planned.
 This is a bounded prerequisite inside the existing M10
 campaign rung, not another global build order.
 
@@ -25,8 +27,8 @@ feet inside the open hatch's boarding region. After departure it stops; merely
 setting that flag true would invent a berth arrival. The accepted old route's
 zero-aboard receipt must remain exact.
 
-`campaign_run_document` retains earlier outcomes and the actual exit through
-the existing locked writer, but has no M09 crew outcome. `promote_next` supports
+Before this capture increment, `campaign_run_document` retained earlier
+outcomes and the actual exit without an M09 crew outcome. `promote_next` supports
 only through M09; completed M09 honestly awaits unplayable Common Carrier.
 There is no existing post-departure transit state to reuse without an explicit
 new private contract. M10 geometry and readiness cannot be asserted built.
