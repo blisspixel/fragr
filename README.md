@@ -20,17 +20,16 @@ Local play and self-hosting need no account or paid service.
 
 ## Play now
 
-The latest desktop release verified before this composition was
-[v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0).
-That release has nine connected development levels. Source builds add the tenth,
-Common Carrier, with mission-entry saves, finite ammunition and three continues
-per episode. The finished target
+The latest desktop release is
+[v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0),
+with ten connected development levels through Common Carrier, mission-entry
+saves, finite ammunition and three continues per episode. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
 
 | Choose | What you can play | Start here |
 |---|---|---|
-| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding and the source-build ship interior | **Single Player > Recall Notice**, then **Continue Run** |
+| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding and the ship interior | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
 | Multiplayer | Six arenas, free-for-all, team deathmatch, capture the flag on three maps, and Sector 9 plant/defuse | **Multiplayer**, connected to a running server |
 | Calibration | A separate arena challenge against named bots with the Host and objectives | `./tools/solo_scrap.sh` |
@@ -40,6 +39,11 @@ weapons on the map, and carry surviving equipment between rounds.
 [Host setup and rules](infra/docs/HOME-LAN.md#optional-5v5-sabotage) explain seats,
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
+
+The immediate development priority is a complete multiplayer host-and-join
+experience for team deathmatch and 5v5 plant/defuse, before more campaign levels.
+The [playable multiplayer plan](docs/plans/multiplayer-first-playable.md)
+separates existing rules from the hosting and player-test gates still in progress.
 
 ## In game
 

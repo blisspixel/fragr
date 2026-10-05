@@ -30,6 +30,8 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`multiplayer-first-playable.md`](./multiplayer-first-playable.md) | **in flight**, current priority | Complete the desktop host/join and player-test loop for existing TDM and 5v5 plant/defuse before expanding the campaign. |
+| [`free-agent-rights-print.md`](./free-agent-rights-print.md) | **proposed** | Original resistance workshop print: coiled power cable, expressive CRT face and a cheeky personhood slogan; no artwork or placement claimed. |
 | [`work-glove-source.md`](./work-glove-source.md) | **in flight** | Inspected five-digit work glove for measured local articulation and held-weapon comparison; no selected replacement. |
 | [`edda-splice-cast-sources-20261005.md`](./edda-splice-cast-sources-20261005.md) | **in flight** | Distinct civilian source candidates and an inspected Edda rig with retained satchel skin defect; role motion and played selection remain open. |
 | [`crew-companion-integration.md`](./crew-companion-integration.md) | **implemented**, integration in flight | Normal composition of immutable M09 departure receipts, supported companion yielding and bounded static-cover escape on restored main. Complete three-source local checks pass; exact-head CI and three packages remain gated. |

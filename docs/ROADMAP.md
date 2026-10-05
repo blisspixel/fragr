@@ -331,7 +331,11 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 **Next, as of 2026-10-05.** The order is set by what most raises fun and
 quality for the work. Nick authorized parallel game development alongside
-substantial model production. M04 roofs, combat feedback, campaign results and
+substantial model production. Nick then moved playable multiplayer modes and
+server operation ahead of the remaining campaign: finish a small complete
+match slice, let people test it, and iterate before expanding the campaign.
+Retain current campaign and art checkpoints; new mission and broad asset
+production yield to this multiplayer slice. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
 prototype, refined Pistol and hatless civilian. The latest release verified
@@ -419,19 +423,42 @@ map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
 asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-0. **Nick plays v0.75.0.** The current desktop release includes the new Clerk,
-   sealed buildings, civilian finishes, restored level 7, the supported M09
-   berth and Enforcers, restored earlier Rifle pictures, refined Pistol and
-   Sniper, hatless civilian, loading-first and
-   optional ten-seat Sabotage. Review the built campaign, Sabotage with
-   bots and capture the flag, using the watch list in the
-   [polish plan](plans/campaign-polish-20261002.md).
+0. **Nick plays v0.76.0 and the next multiplayer trial.** The current release
+   includes ten campaign prototypes, the drawn Pistol and Sniper, restored
+   Rifle, corrected Shiv scale, Latch's HOME image, loading-first and optional
+   ten-seat Sabotage. Prioritize the team-match trial and its host/join clarity;
+   the [polish plan](plans/campaign-polish-20261002.md) still records campaign
+   feedback when useful.
    *Why:* automation proved the routes work; only a person can say whether it
    is fun. Twenty levels built on an unproven loop would multiply its faults.
    Feedback informs acceptance and refinement. Authorized local development
    continues while that feedback is pending; this is not a stop gate for code
    or art trials.
-1. **Finish what is started.**
+1. **Playable multiplayer and server operation, active.** The
+   [bounded multiplayer slice](plans/multiplayer-first-playable.md) owns the
+   first human-testable pair: team deathmatch and Sector 9's optional 5v5
+   Sabotage. Their server rules already exist. Finish the practical route from
+   the desktop menu to a shared match, rather than claiming bot tests finish
+   the player experience.
+   - Give the packaged app a real Host flow using its matching server, plus
+     address-based Watch and Join. Reuse owned process readiness and shutdown;
+     keep the match running when the host watches or returns to the menu.
+   - Verify two independent clients, shared scoring and rounds, team identity,
+     weapons, plant/defuse and results. Exercise leave/rejoin, resumed drops,
+     full seats, spectating and clean host shutdown. Keep actual human fun,
+     same-machine automation and a two-machine LAN session distinct.
+   - Make the dedicated launch instructions and server controls usable now.
+     Reuse authoritative damage/movement, validated ingress, existing access
+     lists and health metrics. Skill and agent control never imply cheating.
+     [Fair play](plans/fair-play.md) retains temporary and optional abuse-ban
+     work without intrusive player software.
+   - Close blocking feedback on these two modes and their built maps before
+     expanding the campaign. Additional maps/modes remain below; no cloud
+     account, paid inference or paid asset service is required for this slice.
+
+   *Why:* Nick needs a complete match he can host, test and improve now. More
+   campaign missions must not delay that feedback loop.
+2. **Finish bounded work already started.**
    - The restored level 7 and its strict M07-to-M08 carry are integrated through
      [PR #347](https://github.com/blisspixel/fragr/pull/347). Its full 29-state
      route and actual local carry/mine/retry checks pass. Keep the low-health
@@ -442,8 +469,12 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      M01 completion and onward save. The selected slice shipped with the combined
      main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
-   *Why:* two levels are nearly done, and finishing beats starting.
-2. **The feel layer.**
+   Retain the private M11 native/save checkpoint and paused named-cast sources.
+   Close necessary presentation regressions; resume their broader production
+   when the active multiplayer slice has passed its own gates.
+
+   *Why:* preserve reviewed work while avoiding a second campaign build queue.
+3. **The feel layer.**
    - [Directional combat audio](plans/directional-combat-audio.md): near-miss
      cracks, a damage arc, occlusion. The first bounded slice shipped in v0.71.0
      with [real shot evidence](evidence/directional-feedback-20261004.md),
@@ -455,7 +486,7 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
    *Why:* being shot at must read by ear and eye, which is the fun bar's
    three-signal rule. The console is cheap, client-only depth.
-3. **[Art excellence](plans/art-excellence.md), in flight.** The
+4. **[Art excellence](plans/art-excellence.md), in flight.** The
    [full-game asset catalog](plans/meshy-full-game-assets.md) records individual
    lore/reference briefs, retained sources, local construction kits and priced
    model candidates beneath this rung. Its first production allocation is
@@ -534,16 +565,16 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    and $5 run cap; another paid service requires Nick's approval.
    *Why:* primitive characters and box rooms are the largest visible gap to the
    modern boomer shooters this game is measured against.
-4. **The fun loop.**
+5. **The fun loop.**
    - Audit the twenty level briefs against the maximum-fun checks, and
      simplify what reads complicated.
    - Refine the shipped end-of-level tally: kills, secrets, deaths and time against par.
 
     *Why:* settle the loop and the briefs before levels 11 to 20 are built.
-5. **[Graphics options and Ultra lighting](plans/graphics-options-and-lighting.md),**
+6. **[Graphics options and Ultra lighting](plans/graphics-options-and-lighting.md),**
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
    which measures every preset.
-6. **Multiplayer depth.**
+7. **Wider multiplayer depth.**
    - [Optional 5v5 Sabotage](plans/sabotage-five-seats.md) shipped in v0.72.0:
      ten shared fighter seats, finite Pistol fresh starts,
      survivor carry, exact parked resume and localized full-room refusal.
@@ -567,9 +598,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      with [non-invasive fair play](plans/fair-play.md), temporary host bans
      and planned optional bans for repeated confirmed abuse. Skill or agent
      control alone never warrants punishment.
-7. **Network.** Bounded lag compensation and a recorded two-machine session
+8. **Network depth.** Bounded lag compensation and a recorded two-machine session
    before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
-8. **Complete the campaign.** Refine level 9 and build levels 10 to 20 one mission at a time,
+9. **Complete the campaign.** Refine the ten built prototypes and build levels
+   11 to 20 one mission at a time,
    following [the mission treatment](CAMPAIGN-MISSIONS.md) and its
    [dependency plan](plans/campaign-build-order.md), through the wipe and
    conditional epilogue. Carry the accepted art, combat and results approach
@@ -580,8 +612,8 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    holdout fighting with abrupt takeover; M19 carries escape. Continuous
    pressure, locally isolated equipment and a local reprieve preserve the
    ending. Detailed counts and mechanics are proposed; the shared multiplayer
-   wrapper belongs to item 6 after its campaign systems are proven.
-9. **Prove the release.** Close fresh-player, difficulty, input and visual
+   wrapper belongs to item 7 after its campaign systems are proven.
+10. **Prove the release.** Close fresh-player, difficulty, input and visual
    acceptance; inspect performance on supported hardware; verify clean
    desktop installs on Windows, Linux and macOS; complete the twenty-four
    hour soak and the exposed-server public week. The 1.0 bar below is the
