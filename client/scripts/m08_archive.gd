@@ -25,6 +25,7 @@ const NOISE_PATTERN: Array[float] = [0.12, 0.12, 0.12, 0.12, 0.12, 0.12, 0.5, 0.
 
 var _root: Node3D
 var _geometry: Dictionary = {}
+var _neutral_layout: Dictionary = {}
 var _solids: Array = []
 var node_lamps: Array[MeshInstance3D] = []
 var node_arms: Array[MeshInstance3D] = []
@@ -38,12 +39,11 @@ var fall_left: float = 0.0
 var _machine_fallen: bool = false
 var _noise_clock: float = 0.0
 var _noise_on: bool = false
-var _bay_feet: Vector3 = Vector3.ZERO
-var _lane_feet: Vector3 = Vector3.ZERO
 var state_applied: int = 0
 
 func clear_map() -> void:
 	_geometry.clear()
+	_neutral_layout.clear()
 	_solids.clear()
 	node_lamps.clear()
 	node_arms.clear()
@@ -71,6 +71,7 @@ func configure_map(info: Dictionary) -> void:
 	_root.name = "CustodyArchiveDetails"
 	add_child(_root)
 	_solids = info["solids"]
+	_neutral_layout = M08NeutralBodies.layout(info)
 	var m08: Dictionary = info["m08"]
 	_records_machinery()
 	_hall_light()
@@ -83,8 +84,6 @@ func configure_map(info: Dictionary) -> void:
 			"m08_registry":
 				_registry(transform, host)
 			"m08_bay_release":
-				_bay_feet = transform.origin + transform.basis.z * 2.0
-				_bay_feet.y = MoveStep.solid_bottom(host)
 				_lower_bays(transform)
 			"m08_cold_cabinet":
 				cabinet_lamp = _box("ColdCabinetLamp", transform.origin + transform.basis.z * 0.05 + Vector3.UP * 0.9,
@@ -94,8 +93,6 @@ func configure_map(info: Dictionary) -> void:
 				noise_lamp = _box("NoiseRhythmLamp", transform.origin + transform.basis.z * 0.04 - transform.basis.y * 0.7,
 					Vector3(0.18, 0.18, 0.06), NOISE_LAMP, true)
 			"m08_freight_departure":
-				_lane_feet = transform.origin + transform.basis.z * 2.5
-				_lane_feet.y = 0.0
 				_lane_lights(transform)
 	_machine(m08)
 	_upper_bays(m08)
@@ -143,12 +140,11 @@ func _jackets(host: Dictionary) -> void:
 		jacket.material_override = possession_material(TEXTILE)
 	_box("JacketSix", Vector3(17.4, floor_y + 0.26, 15.4), Vector3(0.22, 0.02, 0.22), Color("c9a15a"), true)
 
-func _registry(transform: Transform3D, host: Dictionary) -> void:
+func _registry(transform: Transform3D, _host: Dictionary) -> void:
 	_box("RegistryCase", transform.origin + transform.basis.y * 0.62 + transform.basis.x * 0.6,
 		Vector3(0.55, 0.32, 0.4), Color("5a4a3a"))
 	# Renn stands behind the desk, across it from the party.
-	var behind: Vector3 = transform.origin - transform.basis.z * 1.5 - transform.basis.x * 0.6
-	behind.y = MoveStep.solid_bottom(host) + EnemyAnimation.CENTRE_HEIGHT
+	var behind: Vector3 = _neutral_layout["renn"] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
 	renn = _figure("RennProvisional", behind, Color("8f9aa2"))
 	renn.visible = false
 
@@ -166,9 +162,8 @@ func _lower_bays(transform: Transform3D) -> void:
 		Vector3(1.0, 0.02, 0.7), Color("b8aa87"))
 	cloth.material_override = possession_material(MEAL_CLOTH)
 	for index: int in range(4):
-		var captive: Sprite3D = _figure("CaptiveProvisional", _bay_feet + transform.basis.x * (-4.5 + index * 3.0) + transform.basis.z * -1.2,
+		var captive: Sprite3D = _figure("CaptiveProvisional", _neutral_layout["held"][index] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT,
 			CAPTIVE_TINTS[index])
-		captive.position.y = _bay_feet.y + EnemyAnimation.CENTRE_HEIGHT
 		captives.append(captive)
 
 func _upper_bays(m08: Dictionary) -> void:
@@ -221,8 +216,8 @@ func apply_state(state: Dictionary) -> void:
 	var released: bool = bool(facts["custody_released"])
 	for index: int in range(captives.size()):
 		# Released captives walk to the freight lane and wait there.
-		var waiting: Vector3 = _lane_feet + Vector3(-3.0 + index * 2.0, EnemyAnimation.CENTRE_HEIGHT, -3.5)
-		captives[index].position = waiting if released else captives[index].position
+		var feet: Vector3 = _neutral_layout["released" if released else "held"][index]
+		captives[index].position = feet + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
 	_set_shutters(bool(facts["seal_open"]))
 	if is_instance_valid(cabinet_lamp):
 		_tint(cabinet_lamp, CABINET_TAKEN if facts["recovered_mind_secured"] else CABINET_COLD)

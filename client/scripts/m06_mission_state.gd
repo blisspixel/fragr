@@ -30,6 +30,8 @@ static func map_error(info: Dictionary) -> String:
 		or not info.get("presentation") is Dictionary or not info["presentation"].get("decorations") is Array:
 		return MissionState.INVALID
 	var half: float = float(info["half_extent"])
+	if not MoonResidentBodies.validation_error(info).is_empty():
+		return MissionState.INVALID
 	if half < 2.0 or half > MapGeometry.MAX_HALF or not value["objectives"] is Array \
 		or value["objectives"].size() != OBJECTIVES.size() \
 		or not _arrival(value["service"], SERVICE, half) \

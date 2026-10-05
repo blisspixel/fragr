@@ -134,7 +134,7 @@ static func _active(actor: Dictionary, mission: Dictionary) -> bool:
 	return false
 
 ## Narrow live snapshot inputs before using them as speculative obstacles.
-static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}) -> Dictionary:
+static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}, archive_neutrals: Dictionary = {}, residents: Array[Dictionary] = []) -> Dictionary:
 	var bodies: Array[Dictionary] = []
 	var rows: Variant = snapshot.get("players")
 	if not EquipmentState.integer(snapshot.get("tick"), EquipmentState.MAX_EXACT_INTEGER) or not rows is Array or rows.size() > MAX_BODIES or not ActorState.validation_error(snapshot).is_empty():
@@ -160,7 +160,7 @@ static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}) -> Dic
 			elif actor["campaign"]["kind"] == "notary":
 				height = 0.7
 		bodies.append(stationary(str(actor["id"]), Vector3(float(actor["x"]), float(actor["y"]) - FLOOR_OFFSET, float(actor["z"])), height))
-	if not _append_civilians(mission, bodies):
+	if not _append_civilians(mission, bodies, archive_neutrals, residents):
 		return {"error": INVALID, "bodies": []}
 	return {"error": "", "bodies": bodies}
 
@@ -175,7 +175,7 @@ static func _append_feet(key: String, value: Variant, bodies: Array[Dictionary])
 
 ## Mission boundaries already validate authored routes. Narrow the retained
 ## feet again here, and use exactly the server's deterministic body keys.
-static func _append_civilians(mission: Dictionary, bodies: Array[Dictionary]) -> bool:
+static func _append_civilians(mission: Dictionary, bodies: Array[Dictionary], archive_neutrals: Dictionary = {}, residents: Array[Dictionary] = []) -> bool:
 	if mission.get("phase") != "in_progress":
 		return true
 	var m02: Variant = mission.get("m02")
@@ -212,6 +212,19 @@ static func _append_civilians(mission: Dictionary, bodies: Array[Dictionary]) ->
 				return false
 			seen[row["id"]] = true
 			if not _append_feet(field + "/" + str(row["id"]), row.get("feet"), bodies):
+				return false
+	var m08: Variant = mission.get("m08")
+	if m08 is Dictionary:
+		if archive_neutrals.is_empty() or not m08.get("custodian_joined") is bool or not m08.get("custody_released") is bool:
+			return false
+		for person: Dictionary in M08NeutralBodies.people(archive_neutrals, m08["custodian_joined"], m08["custody_released"]):
+			var feet: Vector3 = person["feet"]
+			if not _append_feet(person["key"], [feet.x, feet.y, feet.z], bodies):
+				return false
+	if mission.get("m06") is Dictionary or mission.get("m07") is Dictionary:
+		for resident: Dictionary in residents:
+			var feet: Vector3 = resident["feet"]
+			if not _append_feet(resident["key"], [feet.x, feet.y, feet.z], bodies):
 				return false
 	return true
 
