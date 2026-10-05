@@ -89,6 +89,30 @@ func _check_throw(hud: CanvasLayer, weapon: TextureRect) -> void:
 	for frame: int in range(60):
 		hud._process(1.0 / 120.0)
 
+func _check_missing_art(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.set_fp_weapon("Sniper")
+	hud.update_scope(1.0, "Sniper", true, true)
+	_check(hud.sniper_scope.scoped() and not weapon.visible, "known scoped Sniper hides its held frame")
+	hud.set_fp_weapon("Repeater")
+	_check(not weapon.visible and weapon.texture == null and hud.current_fp_weapon == "", "unsupported Repeater clears the prior gun rather than borrowing it")
+	hud.update_scope(1.0, "Repeater", false, true)
+	_check(not hud.sniper_scope.scoped() and not weapon.visible, "scope release cannot reveal the prior Sniper for Repeater")
+	for unsupported: String in ["Repeater", "Unsupported"]:
+		hud.show_fire_juice(unsupported)
+		_check(not hud.fp_muzzle.visible and hud.fp_muzzle_timer == 0.0 and is_inf(hud.fp_shot_age), "unsupported resolved fire has no borrowed frame or generic old-gun flash")
+	hud._process(0.2)
+	_check(not weapon.visible and weapon.texture == null and not hud.melee_view.visible, "unsupported gun remains absent through presentation updates")
+	hud.set_fp_weapon("Flechette")
+	_check(weapon.visible and weapon.texture == WeaponArt.IDLE["Flechette"], "known selected Rifle returns with its actual idle frame")
+	hud.show_fire_juice("Flechette")
+	_check(weapon.texture == WeaponArt.FIRE["Flechette"] and not hud.fp_muzzle.visible, "known selected Rifle retains its actual resolved fire frame")
+	hud._process(0.03)
+	var age: float = hud.fp_shot_age
+	hud.show_fire_juice("Unsupported")
+	_check(hud.fp_shot_age == age and weapon.texture == WeaponArt.FIRE["Flechette"] and not hud.fp_muzzle.visible, "unsupported fire cannot replace an existing known Rifle shot")
+	hud._process(0.5)
+	_check(weapon.texture == WeaponArt.IDLE["Flechette"], "known Rifle still settles to its own idle after unsupported fire")
+
 func _run() -> void:
 	set_meta("fragr_settings_path", "user://test-viewmodel-%d.cfg" % OS.get_process_id())
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
@@ -99,6 +123,7 @@ func _run() -> void:
 	hud.set_process(false)
 	hud.call("set_fp_juice", true)
 	var weapon: TextureRect = hud.get_node("FpWeapon")
+	_check_missing_art(hud, weapon)
 	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080)]:
 		root.size = viewport_size
 		await process_frame

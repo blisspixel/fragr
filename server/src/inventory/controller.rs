@@ -139,6 +139,7 @@ pub fn control_action_with_target_filter(
         .filter(|weapon| weapon.ammo_pool().is_some())
         .or_else(|| {
             [
+                WeaponType::Repeater,
                 WeaponType::Flechette,
                 WeaponType::Tack,
                 WeaponType::Scatter,

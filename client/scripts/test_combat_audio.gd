@@ -159,6 +159,17 @@ func _check_shotgun(pawn: Node3D) -> void:
 
 func _check_melee_and_impact(pawn: Node3D) -> void:
 	var fire: AudioStreamPlayer3D = pawn.get_node("FireSound")
+	for weapon: String in ["Repeater", "UnsupportedGun"]:
+		pawn.show_muzzle_flash("Flechette")
+		_check(fire.playing and fire.stream == pawn.fire_streams["Flechette"], "known gun establishes actual prior voice")
+		pawn.show_muzzle_flash(weapon)
+		_check(not fire.playing and fire.stream == null, "unsupported gun clears prior voice instead of replaying Rifle")
+	pawn.is_campaign_companion = true
+	pawn.show_muzzle_flash("Tack")
+	_check(fire.playing and fire.stream == pawn.fire_streams["Tack"], "companion known resolved gun retains its real cue")
+	pawn.show_muzzle_flash("Repeater")
+	_check(not fire.playing and fire.stream == null, "companion unsupported gun also clears prior voice")
+	pawn.is_campaign_companion = false
 	for weapon: String in ["Fists", "Shiv"]:
 		fire.stop()
 		pawn.show_muzzle_flash(weapon)

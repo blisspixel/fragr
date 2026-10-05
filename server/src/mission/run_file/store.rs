@@ -1,7 +1,7 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
 use super::{
-    RunDocument, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6,
-    RunDocumentV7, RunDocumentV8, RunDocumentV9,
+    RunDocument, RunDocumentV10, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5,
+    RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
 use crate::protocol::MissionId;
 use sha2::{Digest, Sha256};
@@ -213,6 +213,16 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(10) => {
+                let legacy: RunDocumentV10 = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(hashes) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -242,7 +252,7 @@ impl RunStore {
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
         Ok(matches!(
             value.get("version").and_then(serde_json::Value::as_u64),
-            Some(2..=9)
+            Some(2..=10)
         ))
     }
 

@@ -56,9 +56,9 @@ impl AmmoPool {
 }
 
 impl WeaponType {
-    /// Wire and record order. The Shiv and then the Sniper are appended so the
+    /// Wire and record order. Shiv, Sniper and Repeater are appended so the
     /// five original record slots keep their meaning.
-    pub const ALL: [Self; 7] = [
+    pub const ALL: [Self; 8] = [
         Self::Fists,
         Self::Tack,
         Self::Flechette,
@@ -66,6 +66,7 @@ impl WeaponType {
         Self::Rail,
         Self::Shiv,
         Self::Sniper,
+        Self::Repeater,
     ];
     pub const ARCADE: [Self; 3] = [Self::Flechette, Self::Rail, Self::Scatter];
 
@@ -78,6 +79,7 @@ impl WeaponType {
             Self::Rail => 4,
             Self::Shiv => 5,
             Self::Sniper => 6,
+            Self::Repeater => 7,
         }
     }
 
@@ -85,7 +87,7 @@ impl WeaponType {
     pub const fn ammo_pool(self) -> Option<AmmoPool> {
         match self {
             Self::Fists | Self::Shiv => None,
-            Self::Tack | Self::Flechette => Some(AmmoPool::Bullets),
+            Self::Tack | Self::Flechette | Self::Repeater => Some(AmmoPool::Bullets),
             Self::Scatter => Some(AmmoPool::Shells),
             Self::Rail | Self::Sniper => Some(AmmoPool::Cells),
         }
@@ -102,6 +104,7 @@ impl WeaponType {
             // Eight slow shots: the rack teaches the verb without banking a
             // second Railgun pool.
             Self::Sniper => 8,
+            Self::Repeater => 60,
         }
     }
 }

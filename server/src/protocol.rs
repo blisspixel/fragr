@@ -69,8 +69,8 @@ pub use sabotage::{
     SabotageState, SiteId, MAX_CALLOUTS, MAX_CALLOUT_ID,
 };
 pub use statistics::{
-    CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, RECORD_TICKS_PER_SECOND,
-    RECORD_VERSION,
+    CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, LEGACY_RECORD_VERSION,
+    RECORD_TICKS_PER_SECOND, RECORD_VERSION,
 };
 pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, OpsStatus, ProcessInfo, RoleCounts,
@@ -466,6 +466,8 @@ pub enum WeaponType {
     Shiv,
     /// Level 7 find: slow, tight, long precision hitscan fed by Cells.
     Sniper,
+    /// Sustained-fire discovery prototype with server-owned warmup.
+    Repeater,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -492,6 +494,7 @@ impl WeaponType {
             // One aimed hit answers one 70 HP Ranged Sweeper. A Sweeper needs
             // two, where one Rail hit drops it: the Rail owns the middle.
             WeaponType::Sniper => 70,
+            WeaponType::Repeater => 14,
             WeaponType::Scatter => 10,
         }
     }
@@ -536,6 +539,7 @@ impl WeaponType {
             WeaponType::Flechette => 4,
             WeaponType::Rail => 20,
             WeaponType::Sniper => 32,
+            WeaponType::Repeater => 2,
             WeaponType::Scatter => 12,
         }
     }
@@ -554,6 +558,7 @@ impl WeaponType {
             // Far precision: 0.23 degrees keeps every ray inside a 0.5 m body
             // radius out to the full 90 m reach.
             WeaponType::Sniper => 0.004,
+            WeaponType::Repeater => 0.035,
             // Pellet cone: 5.4 degrees. Every pellet lands inside a body at
             // four units and about half of them still do at eight.
             WeaponType::Scatter => 0.095,
@@ -570,6 +575,7 @@ impl WeaponType {
             WeaponType::Flechette => 40.0,
             WeaponType::Rail => 60.0,
             WeaponType::Sniper => 90.0,
+            WeaponType::Repeater => 35.0,
             WeaponType::Scatter => 12.0,
         }
     }
@@ -583,6 +589,7 @@ impl WeaponType {
             WeaponType::Flechette => (8.0, 28.0),
             WeaponType::Rail => (18.0, 45.0),
             WeaponType::Sniper => (40.0, 88.0),
+            WeaponType::Repeater => (7.0, 26.0),
             WeaponType::Scatter => (2.0, 10.0),
         }
     }
@@ -595,6 +602,7 @@ impl WeaponType {
             WeaponType::Flechette => "Flechette",
             WeaponType::Rail => "Rail",
             WeaponType::Sniper => "Sniper",
+            WeaponType::Repeater => "Repeater",
             WeaponType::Scatter => "Scatter",
         }
     }
@@ -673,7 +681,9 @@ pub const M07_GAMEPLAY_VERSION: u32 = 32;
 pub const MISSION_RESULTS_GAMEPLAY_VERSION: u32 = 33;
 /// Passenger Manifest and its committed human Enforcer charge.
 pub const M09_GAMEPLAY_VERSION: u32 = 34;
-pub const GAMEPLAY_VERSION: u32 = M09_GAMEPLAY_VERSION;
+/// Repeater identity, server warmup and strict eight-column record revision 2.
+pub const REPEATER_GAMEPLAY_VERSION: u32 = 35;
+pub const GAMEPLAY_VERSION: u32 = REPEATER_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }

@@ -39,6 +39,17 @@ func _run() -> void:
 	ladder["weapons"] = ["fists", "tack", "flechette", "scatter", "rail"]
 	_check(EquipmentState.cycle(ladder, "tack", 1) == "scatter" and EquipmentState.cycle(ladder, "scatter", 1) == "flechette" and EquipmentState.cycle(ladder, "flechette", 1) == "rail" and EquipmentState.cycle(ladder, "rail", 1) == "fists", "the wheel walks fists, pistol, shotgun, rifle, railgun")
 	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 2) == "tack" and EquipmentState.slot_if_owned(EquipmentState.carried_names(state), 3) == "" and EquipmentState.slot_if_owned(EquipmentState.carried_names(ladder), 4) == "flechette", "number keys select a carried gun and ignore the rest")
+	var automatic: Dictionary = ladder.duplicate(true)
+	automatic["weapons"].append("repeater")
+	automatic["selected"] = "repeater"
+	_check(EquipmentState.validation_error(automatic, "self").is_empty(), "real Repeater is a distinct owned gun")
+	var family: Array[String] = EquipmentState.carried_names(automatic)
+	_check(EquipmentState.slot_if_owned(family, 4, "flechette") == "repeater" and EquipmentState.slot_if_owned(family, 4, "repeater") == "flechette", "key four cycles the two owned automatic guns")
+	_check(EquipmentState.slot_if_owned(family, 3, "repeater") == "scatter" and EquipmentState.SLOTS.size() == 6, "shotgun key three and all six physical slots stay unchanged")
+	_check(EquipmentState.cycle(automatic, "flechette", 1) == "repeater" and EquipmentState.cycle(automatic, "repeater", 1) == "rail", "wheel places Repeater after Rifle")
+	family.erase("flechette")
+	_check(EquipmentState.slot_if_owned(family, 4, "tack") == "repeater" and EquipmentState.slot_if_owned(family, 4, "repeater") == "repeater", "sole automatic family ownership always selects the real gun")
+	_check("repeater" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("repeater") == 7, "arcade kit and seven historical indices remain unchanged")
 	var found: Dictionary = state.duplicate(true)
 	found["weapons"] = ["fists", "tack", "shiv"]
 	found["selected"] = "shiv"

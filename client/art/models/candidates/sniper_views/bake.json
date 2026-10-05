@@ -1,0 +1,23 @@
+{
+	"bake_sha256": "8b3bd932c7fe6206bb15b595dbd0b178ff1f2e8607da4a0141188a72090f946c",
+	"frames": {
+		"sniper.png": "b459e5de5b45f13c0b081b7c1c4a56ecf76d3acd1927806ce9770d314ea0d8ec",
+		"sniper_fire.png": "ee65bb71c4e2ce151703937732d76f6f9a383e75cd4f042de472d6c510bbbc19",
+		"sniper_idle.png": "4b1da75e12e786d426884de9444731663695de8f8ffdddb23130969ff411d077"
+	},
+	"presenter_sha256": "f4c0c8614c4fb0dc102c583aab035b5fd1dbc1c0f401dc55398a787b00fc9141",
+	"renderer": "gl_compatibility",
+	"runtime_selected": false,
+	"schema": 1,
+	"source_sha256": "859f136bdde598471ccdb418c24d2d25f84d1fe08dff181a76c1116e317db726",
+	"times": [
+		1.6,
+		0.0,
+		0.07,
+		0.2,
+		0.48,
+		0.6,
+		0.85,
+		1.1
+	]
+}
