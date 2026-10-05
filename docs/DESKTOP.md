@@ -32,8 +32,11 @@ See [hosting](HOSTING.md) for LAN invitations and dedicated commands.
 The packaged client accepts `fragr.exe --headless -- --check-install` on
 Windows, `./fragr.x86_64 --headless -- --check-install` on Linux, or
 `fragr.app/Contents/MacOS/fragr --headless -- --check-install` on macOS.
-It checks that the game finds its bundled server and prints PASS
-or FAIL. CI runs this check before release packaging. It is a headless check;
+It checks exported resources, finds the bundled server, reads its campaign run
+preview and starts TDM then 5v5 Sabotage through the actual desktop Host path.
+Each preset must supply strict readiness and a matching validated spectator map
+and snapshot, then retire its owned native process after Stop. It prints PASS
+or FAIL. The package workflow runs it after unpacking each archive. It is a headless check;
 it does not establish a playable boot on every clean desktop. The
 [release plan](plans/desktop-release.md) records the remaining platform
 evidence.

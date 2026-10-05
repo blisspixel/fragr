@@ -1,7 +1,7 @@
 class_name InstallCheck
 extends Node
 ## `fragr --headless -- --check-install` asks the bundled fragr-server for a run
-## preview through the boot menu's LocalMatch, prints one verdict line and quits.
+## preview, then verifies owned arena readiness, real snapshots and shutdown.
 ## In an exported build the server must sit beside the game executable.
 
 signal finished(passed: bool)
@@ -12,6 +12,15 @@ const TIMEOUT_MS: int = 15000
 var quit_when_done: bool = true
 var _local: LocalMatch
 var _deadline: int = 0
+var _phase: String = "preview"
+var _host: LocalHost
+var _owns_host: bool = false
+var _host_pid: int = -1
+var _preset: int = 0
+var _peer: Node
+var _map: Dictionary = {}
+var _snapshot: Dictionary = {}
+var _preview_status: String = ""
 
 static func requested() -> bool:
 	return FLAG in OS.get_cmdline_user_args()
@@ -125,7 +134,38 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _deadline > 0 and Time.get_ticks_msec() > _deadline:
-		_finish(false, "run preview timed out")
+		_finish(false, _phase + " timed out")
+		return
+	if _deadline <= 0 or _phase == "preview":
+		return
+	if _host.state == LocalHost.State.FAILED:
+		_finish(false, "the arena child failed during " + _phase)
+		return
+	if _phase == "starting" and _host.state == LocalHost.State.RUNNING:
+		_connect_arena()
+	elif _phase == "wire" and not _map.is_empty() and not _snapshot.is_empty():
+		var map_id: int = 1 if _preset == 0 else 4
+		var mode: String = "tdm" if _preset == 0 else "sabotage"
+		var rules: Dictionary = MatchRules.parse(_map.get("rules"))
+		if _map.get("map_id") != map_id or _snapshot.get("map_id") != map_id or rules.get("mode") != mode:
+			_finish(false, "the arena wire did not match its ready preset")
+			return
+		_close_peer()
+		_host.stop()
+		_phase = "stopping"
+		_deadline = Time.get_ticks_msec() + TIMEOUT_MS
+	elif _phase == "stopping" and _host.state == LocalHost.State.IDLE:
+		if OS.is_process_running(_host_pid):
+			_finish(false, "the owned arena process survived Stop")
+			return
+		print("fragr install check: arena ", "tdm" if _preset == 0 else "5v5 sabotage", " ready, wire and owned Stop PASS")
+		_owns_host = false
+		_host_pid = -1
+		if _preset == 0:
+			_preset = 1
+			_start_arena()
+		else:
+			_finish(true, "server %s answered %s; TDM and 5v5 Sabotage ready, wire and owned Stop passed" % [_local.executable_path(), _preview_status])
 
 func _on_preview() -> void:
 	var status: String = str(_local.run_preview.get("status", ""))
@@ -134,12 +174,64 @@ func _on_preview() -> void:
 	if status.is_empty() or status == "unavailable":
 		_finish(false, "the server did not answer a run preview")
 		return
-	_finish(true, "server %s answered %s" % [_local.executable_path(), status])
+	_preview_status = status
+	_local.run_preview_changed.disconnect(_on_preview)
+	_host = LocalHost.for_tree(get_tree())
+	_start_arena()
+
+func _start_arena() -> void:
+	if _host.executable_path() != _local.executable_path():
+		_finish(false, "the arena and campaign resolved different bundled servers")
+		return
+	_map.clear()
+	_snapshot.clear()
+	_phase = "starting"
+	_deadline = Time.get_ticks_msec() + TIMEOUT_MS
+	var options: Dictionary = {"mode": "tdm" if _preset == 0 else "sabotage",
+		"map_id": 1 if _preset == 0 else 4, "bots": 0, "lan": false, "port": 0}
+	if not _host.start_host(options):
+		_finish(false, "the bundled server could not start its arena preset")
+		return
+	_owns_host = true
+	_host_pid = _host.process._pid
+
+func _connect_arena() -> void:
+	_peer = load("res://scripts/net_client.gd").new()
+	add_child(_peer)
+	_peer.map_info_received.connect(func(info: Dictionary) -> void: _map = info.duplicate(true))
+	_peer.snapshot_received.connect(func(info: Dictionary) -> void: _snapshot = info.duplicate(true))
+	_peer.server_error.connect(func(_message: String) -> void: _finish(false, "the arena wire was refused or invalid"))
+	_peer.set_server_host(_host.url)
+	_phase = "wire"
+	_deadline = Time.get_ticks_msec() + TIMEOUT_MS
+	if not _peer.connect_to_server("spectator", "InstallCheck"):
+		_finish(false, "the arena socket did not connect")
+
+func _close_peer() -> void:
+	if is_instance_valid(_peer):
+		_peer.leave_match()
+		_peer.queue_free()
+	_peer = null
+
+func _exit_tree() -> void:
+	_close_peer()
+	if _owns_host and is_instance_valid(_host):
+		_host.stop()
+		_host.process.dispose()
+	_owns_host = false
 
 func _finish(passed: bool, detail: String) -> void:
 	if _deadline < 0:
 		return
 	_deadline = -1
+	_close_peer()
+	if _owns_host and is_instance_valid(_host):
+		_host.stop()
+		_host.process.dispose()
+		if _host_pid > 0 and OS.is_process_running(_host_pid):
+			passed = false
+			detail = "the failed check could not retire its owned arena process"
+	_owns_host = false
 	if _local.run_preview_changed.is_connected(_on_preview):
 		_local.run_preview_changed.disconnect(_on_preview)
 	if passed:
