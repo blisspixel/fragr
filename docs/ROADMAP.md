@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 8 are playable development prototypes, with
+**Campaign.** Levels 1 to 9 are playable development prototypes, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -35,10 +35,12 @@ Custodian of Record, without a continue refill. Version 9 retains actual mine
 counts and strictly upgrades historical v2-v8 documents with exact-byte archives.
 Owned client checks prove actual mine placement and mission-entry restoration.
 The [level 8 prototype](plans/l08-custodian-of-record-prototype.md) retains its
-Proximity Mine and repairing Auditor, with a separate practice entry. M09 is
-not playable. Combined integration is tracked in
-[PR #347](https://github.com/blisspixel/fragr/pull/347); fresh-player, difficulty
-and final art acceptance remain open for every level.
+Proximity Mine and repairing Auditor, with a separate practice entry. The
+[M09 berth prototype](plans/m09-passenger-manifest-prototype.md) shipped in
+[PR #354](https://github.com/blisspixel/fragr/pull/354) and v0.73.0, with a
+complete 27-state, 21-guard structural combat route and version 10 saved carry.
+M10 through M20 remain unbuilt. Fresh-player, difficulty and final art acceptance
+remain open for every level. The full build order below owns current sequencing.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
 capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
@@ -336,9 +338,14 @@ The [precision weapon pass](plans/precision-weapon-references-20261004.md)
 adds two inspected sources for 70 included credits; compact preparation and
 selection remain open. Three [inhabited-world prop sources](evidence/world-prop-sources-20261004.md)
 add an assembled scrubber, complete-port pump and civilian radio for 105 actual
-credits, with all twelve raw views inspected. Local preparation and placement
-remain open. The latest account check reports 2,375 available,
-15 held and 2,360 usable, with 695 tracked credits consumed. Kitchen's
+credits, with all twelve raw views inspected. Their
+[compact fixed preparation](evidence/world-prop-preparation-20261004.md) retains
+all source geometry and passes grounded pump-support proof. Played placement
+remains open. The [distinct civilian worker and repair bench](evidence/civilian-first-sources-20261004.md)
+complete the twelve first-candidate slots for another 70 actual included credits,
+with all eight raw views inspected. Skin/mechanism preparation and selection
+remain open. The latest account check reports 2,305 available,
+15 held and 2,290 usable, with 765 tracked credits consumed. Kitchen's
 eight-pad route and actual four-fighter match pass, but its first-use white-wall
 art defect remains unresolved. Garage's ordinary 15-state route passes with
 no deaths; vehicle/surface craft and fresh human fun remain open. Shared

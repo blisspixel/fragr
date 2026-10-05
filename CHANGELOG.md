@@ -6,6 +6,12 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Prepare compact air-scrubber, water-pump and community-radio source candidates,
+  retaining their geometry and verifying physical floor support. Record inspected
+  civilian-worker and repair-workbench sources and 70 included credits. All twelve
+  first-source slots now have candidates; played placement, animation and wider
+  environment coverage remain in flight.
+
 The civilian Rifle now uses its refined walnut and charcoal source for held,
 firing and pickup pictures. Its real bolt has a bounded stroke, gloves contact
 the grips and the muzzle has a physical hollow liner. Source inspection,

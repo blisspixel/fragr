@@ -1,7 +1,9 @@
 # Inhabited-world prop references and first sources
 
 Status: **in flight**, 2026-10-04. All three references and raw source stages
-are inspected, with 105 actual included credits reconciled. Local preparation
+are inspected, with 105 actual included credits reconciled. Compact fixed
+candidates now pass independent retained-geometry and floor-support checks under
+the [preparation plan](world-prop-preparation-20261004.md). Authored placement
 and runtime selection remain open. The [source receipt](../evidence/world-prop-sources-20261004.md)
 records measured geometry, all-side views and the remaining allowance.
 This increment follows the existing full-game asset allocation.

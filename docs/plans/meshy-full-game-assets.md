@@ -27,13 +27,13 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest production reconciliation on 2026-10-04 reports **2,375 API
-credits**, **15 uncertain credits held**, and **2,360 usable**. Enforcer,
+The latest production reconciliation on 2026-10-04 reports **2,305 API
+credits**, **15 uncertain credits held**, and **2,290 usable**. Enforcer,
 Crawler, Pistol, Rifle, the bounded civilian revision and the corrected Jammer
 candidate, followed by the first Railgun and Sniper Rifle sources and three
-inhabited-world props, consumed 370 included credits inside the first
-900-credit allocation, leaving 530 within that ceiling. Total tracked consumption
-is 695 credits.
+inhabited-world props, then the distinct civilian free agent and repair bench,
+consumed 440 included credits inside the first 900-credit allocation, leaving
+460 within that ceiling. Total tracked consumption is 765 credits.
 The Jammer task `01a10891-f9a6-76b4-9ba1-85f035260e77` consumed 35 credits
 for a textured 7.1 Ultra candidate; mechanical and played acceptance remain
 open. No humanoid rig was requested for its four-foot/four-petal machinery.
@@ -47,8 +47,13 @@ operations, inspection and remaining acceptance; the later
 [civilian revision receipt](../evidence/free-human-civilian-20261004.md) records
 its additional 40 credits and its dated balance. The [world-prop receipt](../evidence/world-prop-sources-20261004.md)
 records the scrubber, pump and radio, their twelve raw views and 105 actual
-credits. No pack is needed for the remaining two first candidates in this
-allocation: non-Latch free agent and repair workbench.
+credits. Their [compact fixed preparation](../evidence/world-prop-preparation-20261004.md)
+retains source geometry and passes grounded mounting support proof, with played
+placement still open. The [civilian source receipt](../evidence/civilian-first-sources-20261004.md)
+records the two remaining first candidates, eight inspected views and 70 actual
+included credits. All twelve first-source slots have candidates; skin/mechanism
+preparation, wider world coverage and individual selection still require work.
+No pack is needed for the current refinement stages.
 
 The planning baseline before this production batch on 2026-10-04 was
 **2,745 API credits**, with the retained **15-credit uncertain hold**, leaving
