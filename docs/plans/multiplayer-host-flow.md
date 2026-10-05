@@ -34,10 +34,14 @@ an explicit desktop arena flag, existing bounded stdin shutdown/EOF lease and
 typed readiness wrapping `run_server` with existing parsed match options.
 Before implementation, both sides must agree on the exact flag and readiness
 fields. The agreed interface is `--desktop-host`, with the existing bind,
-mode, map, bot and 5v5 flags. A strict one-line `ArenaReady` record has exactly
+mode, map, bot and 5v5 flags. A strict one-line `ArenaReady` record has eleven fields:
 `version: 1`, `kind: "arena"`, `url`, `listen`, `map_id` (integer 1 through 6),
 `mode` (`tdm` or `sabotage`), `five_vs_five` (boolean), `bots` (integer 0 through
-10) and `gameplay_version: 36`. It gives the real bound IPv4 address and nonzero
+10), `bot_policy` (`none`, `fixed` or `auto`), `fill_target` and
+`gameplay_version: 36`. Fixed bots allow zero through ten and require a zero
+fill target. No bots requires both counts zero. Automatic fill requires zero
+initial bots and a total fighter target from one through ten. It gives the real
+bound IPv4 address and nonzero
 port; `url` uses loopback for the host's own connection even for a LAN listener.
 TDM permits the six registered maps; Sabotage requires map 4 and the 5v5 flag.
 Loopback may request port zero, while wildcard LAN binding requires an explicit
@@ -45,15 +49,18 @@ nonzero port. The server plan is [Desktop arena child](desktop-arena-child.md).
 Logs stay on stderr. Regular dedicated-server stdin semantics are unchanged.
 
 No campaign control, writer, save shape, gameplay capability, mode arithmetic,
-seat policy, team choice, tick transport or match scoring changes belong here.
+team choice, tick transport or match scoring changes belong here. The paired
+[bot-fill increment](bot-fill.md) owns automatic roster replacement and its
+safe admission boundaries.
 No new maps, public server browser, cloud deployment, automatic firewall rules,
-router configuration, ticket distribution or bot eviction are included.
+router configuration or ticket distribution are included.
 
 ## Human flow and lifetime
 
 1. Multiplayer offers Host and Join. Host initially offers TDM on registered
    arcade maps or 5v5 Sabotage on Sector 9. Select an actual supported map and
-   a finite initial bot count; 5v5 cannot exceed ten shared fighter seats.
+   no bots, a finite fixed count or automatic total fighter fill; 5v5 cannot
+   exceed ten shared fighter seats.
 2. Same-machine hosting binds loopback on an available port. LAN hosting is an
    explicit option with a chosen port, normally 6767. Show the actual port and
    instruct peers to use the host's LAN address. Never advertise wildcard
@@ -137,11 +144,11 @@ audio, manually replace teardown, relax the bound or suppress exit errors.
 Verify the real native lifecycle test with clean logs, then repeat the complete
 combined client checker on the corrected frozen source.
 
-### Optional automatic bot fill, proposed 2026-10-05
+### Optional automatic bot fill, agreed 2026-10-05
 
 Nick requested automatic bot fill as an option alongside fixed bots and no
 bots. Preserve the current fixed-four-bot default. The Host page will offer
-three choices: "No bots", "Fixed bots" and "Automatic fill". Reuse the existing
+three choices: "No bots", "Fixed bots" and "Automatic fill". The client reuses the existing
 count control, labeled "Bot count" for fixed bots and "Total fighters" for
 automatic fill. Hide it for no bots. Automatic fill targets the combined
 fighter population, not a minimum number of bots. State that humans and agents
@@ -149,23 +156,25 @@ take priority. Spectators do not count toward that target. A running Host page
 must show the accepted policy and configured count rather than imply a current
 roster size from the startup record.
 
-The proposed boundary keeps the fixed count in `bots`, adds an explicit
+The agreed boundary keeps the fixed count in `bots`, adds an explicit
 `bot_policy` (`none`, `fixed` or `auto`) and an automatic `fill_target`. The
-inactive count must be zero, no bots requires both counts zero, and active
-counts are integers from 1 through 10. The same advertised policy and requested
+inactive count must be zero, no bots requires both counts zero, fixed bots allow
+zero through ten and automatic targets are integers from one through ten.
+The same advertised policy and requested
 counts must appear in strict native readiness and match the validated local
-settings before Watch or Join is enabled. Agree the exact native flags and
-readiness fields with the server owner before implementation; this proposal
-does not establish their final names. Reuse the existing LocalHost settings,
+settings before Watch or Join is enabled. The exact flags are `--bot-policy`
+and `--fill-target`, alongside `--bots`. Automatic fill supports plain TDM and
+Sabotage and rejects mutators before binding. Reuse the existing LocalHost settings,
 native lookup, endpoint parser and process lease.
 
 The server owns all roster changes, admission and team assignment through the
 existing Session and match seams. Human and agent admission has equal priority
 over automatic filler bots, without evicting another participant or weakening
 tickets, bans, resume or ten-seat Sabotage limits. Fixed bots preserve their
-existing admission behavior. The separate server plan must define the safe
-roster transition points and treatment of reserved resume seats and active
-Sabotage rounds before this client option can ship.
+existing admission behavior. The [accepted server plan](bot-fill.md) defines safe
+roster transition points, protected actions and reserved resume seats. Failed
+or cancelled admission keeps the original bot and world intact. Active Sabotage
+can refuse an unsafe replacement until the next round.
 
 Client acceptance must reject unknown policies, malformed or mismatched counts
 and readiness that advertises a different policy. Exercise all three menu
@@ -176,7 +185,8 @@ also needs a played human and agent arrival/departure witness with server-owned
 rosters and outcomes. Reinspect minimum window fit after the added control,
 then rerun the complete combined checker and three packaged install gates on
 the final frozen source. Existing evidence remains scoped to its recorded
-policy and source; no new implementation or verification is claimed here.
+policy and source. New verification records must bind to the matching client,
+native source and immutable executable.
 
 ## Documentation, spend and remaining limits
 
