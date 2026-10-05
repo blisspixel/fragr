@@ -2134,10 +2134,10 @@ content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
 under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
 refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v11 after validating their historical revision
+M01/M02/M03 documents migrate to v12 after validating their historical revision
 2 rules and exact content hash. The upgrade promotes rules to revision 3 with
 exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v11 with zero historical grenades. Strict v6 documents preserve
+3 and upgrade to v12 with zero historical grenades. Strict v6 documents preserve
 their real grenade counts and M05 release/boarding outcomes; they cannot forge
 playable M06 or its future route outcome. Old shapes reject grenade
 fields and forged M05 stages. Exact source bytes are archived before replacement;
@@ -2154,7 +2154,7 @@ M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
 M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
 M09 is supported; M10 cannot launch.
-Version 11 retains completed
+Version 12 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2162,8 +2162,8 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v11 saved equipment object requires independent `grenades`
-from zero to six. Versions 9 through 11 require actual `proximity_mines` from zero
+Every v6 through v12 saved equipment object requires independent `grenades`
+from zero to six. Versions 9 through 12 require actual `proximity_mines` from zero
 to four. Historical v2 through v8 equipment never has a mine field; an explicit
 strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
@@ -2176,7 +2176,7 @@ promotion carries HP, armor, equipment, grenades and mines without an episode
 refill; only old-map personal supply claims clear. M09 retry restores that
 entry anchor and retains all earlier outcomes. Completion stores the actual
 exit at pending M10; no Episode III refill or playable M10 is implied.
-Version 11 retains version 10's required `m08_outcome` at that completed edge. Native
+Version 12 retains version 10's required `m08_outcome` at that completed edge. Native
 completion emits `{"kind":"recorded","custody_released":bool,
 "recovered_mind_secured":bool,"captives_evacuated":bool}` from actual mission
 progress. Evacuation requires release. The cabinet fact says a copy was
@@ -2185,17 +2185,32 @@ Strict v9 completion upgrades to `{"kind":"historical_unrecorded"}` because
 its old shape never recorded those choices. Earlier or unfinished stages
 have no M08 outcome. Both tagged forms refuse extra fields. Historical
 absence never becomes invented false values, counts or a mission gate.
+At completed M09's pending-M10 edge, version 12 requires private `m09_outcome`.
+Native completion captures `{"kind":"recorded","released_crew":[...],
+"aboard_at_departure":[...]}` once at the accepted physical departure. Released
+crew follow the actual canonical present roster: Tern and two berth crew,
+plus Edda only with the authored recorded clinic rescue and Splice only with
+actual recorded workshop evacuation. Aboard-at-departure is an ordered unique
+subset whose real feet were inside the hatch region at confirmation. Later
+body observations cannot rewrite it or the finite player exit.
+Strict v10/v11 completed-M09 upgrades retain `{"kind":"historical_unrecorded"}`;
+missing old choices do not become invented crew or empty boarding counts.
+Both old readers refuse `m09_outcome`, even null, and both tagged current forms
+refuse extra fields. Earlier/unfinished M09 has no crew outcome. This receipt
+does not mark transit complete, grant any arrival or implement M10; released
+crew's distinct short transition belongs to the future canonical promotion.
+No live M09 wire field, capability or optional crew wait gate changes here.
 Episode II continues refill
 only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Strict v7 documents upgrade to v11 and cannot forge an M07 stage or a carried
+Strict v7 documents upgrade to v12 and cannot forge an M07 stage or a carried
 Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
 Sniper, then promote into M08 without a refill. V8 refuses playable M08.
 Strict v9 preserves all actual equipment and earlier outcomes. Its exact
 shape refuses `m08_outcome`, even null, and any playable M09 stage before upgrade.
-Strict v10 upgrades through an exact historical shape, preserving recorded or
+Strict v10/v11 upgrade through their exact historical shape, preserving recorded or
 historically unrecorded M08 outcomes and actual equipment counts. Versions 2
-through 10 refuse Repeater selection or ownership, including forged historical
-fields. Current v11 likewise refuses Repeater ownership throughout supported
+through 11 refuse Repeater selection or ownership, including forged historical
+fields. Current v12 likewise refuses Repeater ownership throughout supported
 stages through M09 and the pending M10 edge; no authored M10 find is implied.
 Every writable upgrade archives the exact old bytes under the existing lock;
 format migration grants no gun, ammunition, grenade, mine or continue refill.

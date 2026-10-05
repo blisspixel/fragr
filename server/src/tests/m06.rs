@@ -649,7 +649,16 @@ fn m06_companion_follows_but_does_not_fire_at_registered_solo_lessons() {
         !intent.action.fire,
         "the isolated Turret remains the participant's lesson"
     );
-    assert!(intent.goal.is_some());
+    assert!(
+        intent.goal.is_none(),
+        "a supported 2 m stand-off holds rather than closing the player's body"
+    );
+    assert!(
+        !intent.action.forward
+            && !intent.action.back
+            && !intent.action.left
+            && !intent.action.right
+    );
 }
 
 #[test]

@@ -9,15 +9,17 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod legacy;
+mod m09_outcome;
 pub(crate) mod store;
 use legacy::{
-    RunDocumentV10, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6,
-    RunDocumentV7, RunDocumentV8, RunDocumentV9,
+    RunDocumentV10, RunDocumentV11, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5,
+    RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
+pub(crate) use m09_outcome::M09Outcome;
 
-/// Version 11 freezes historical gun ownership while preparing Repeater.
-/// Actual archive choices and unknown v9 history remain unchanged.
-pub(super) const RUN_FILE_VERSION: u32 = 11;
+/// Version 12 retains actual berth departure and historical missing crew facts.
+/// Transit remains pending until its genuine M10 handoff exists.
+pub(super) const RUN_FILE_VERSION: u32 = 12;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -204,6 +206,8 @@ pub(crate) struct RunDocument {
     pub m06_outcome: Option<M06Outcome>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m08_outcome: Option<M08Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m09_outcome: Option<M09Outcome>,
 }
 
 impl RunDocument {
@@ -299,6 +303,7 @@ impl RunDocument {
             m05_outcome: None,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
         }
     }
 
@@ -369,6 +374,15 @@ impl RunDocument {
         }
         if let Some(outcome) = &self.m08_outcome {
             outcome.validate()?;
+        }
+        let completed_m09 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::PassengerManifest, next_mission, ..
+        } if next_mission == M10_MISSION);
+        if completed_m09 != self.m09_outcome.is_some() {
+            return Err("saved berth outcome does not match completed M09");
+        }
+        if let Some(outcome) = &self.m09_outcome {
+            outcome.validate(self)?;
         }
         if self.version != RUN_FILE_VERSION
             || self.id.is_nil()
@@ -634,6 +648,19 @@ impl GameState {
             } else {
                 None
             },
+            m09_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::PassengerManifest
+            {
+                Some(
+                    run.m09
+                        .as_ref()
+                        .and_then(|p| p.departure_outcome.clone())
+                        .filter(|outcome| matches!(outcome, M09Outcome::Recorded { .. }))
+                        .ok_or("completed M09 lacks its actual departure receipt")?,
+                )
+            } else {
+                None
+            },
         };
         document.validate(content_sha256)?;
         Ok(Some(document))
@@ -724,6 +751,7 @@ mod tests {
             m05_outcome: None,
             m06_outcome: None,
             m08_outcome: None,
+            m09_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

@@ -122,7 +122,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 11 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
+	_check(saved is Dictionary and saved["version"] == 12 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
 	_check(saved is Dictionary and saved["m08_outcome"] == {"kind": "historical_unrecorded"}, "unknown history persists on disk")
 	var archives: Array[String] = []
@@ -130,6 +130,65 @@ func _run() -> void:
 		if filename.begins_with("run.prior-"):
 			archives.append(filename)
 	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "migration archive is exact historical source")
+	# Reopen a strict v11 M09 entry through the actual saved-run process path.
+	# Its absent crew outcome is an unfinished mission, never a guessed rescue.
+	if not saved is Dictionary:
+		quit(1)
+		return
+	# Preserve native integer literals: parsing and stringifying them here
+	# would turn strict integer fields into floating-point JSON numbers.
+	var native_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
+	_check(native_source.count('"version":12,') == 1, "native current version marker is unique")
+	var retry_source: String = native_source.replace('"version":12,', '"version":11,') + "\n \n"
+	file = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
+	_check(file != null, "owned historical M09 retry fixture is writable after child exit")
+	if file == null:
+		quit(1)
+		return
+	file.store_string(retry_source)
+	file.close()
+	file = null
+	_check(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "real retry boot scene")
+	await process_frame
+	await process_frame
+	current_scene._show("single")
+	if not await _until(func() -> bool: return owned.run_preview.get("status") == "ready" and owned.run_preview.get("mission") == MissionState.M09_ID, "actual preview recognizes strict v11 M09 entry"):
+		print("test_m09_local: retry preview ", owned.run_preview, " owned state ", owned.state)
+		return
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == retry_source, "preview never rewrites v11 retry bytes")
+	resume = current_scene._root.get_node_or_null("PassengerManifestSaved") as Button
+	_check(resume != null and not resume.disabled, "real M09 retry button remains available")
+	if resume == null:
+		quit(1)
+		return
+	resume.pressed.emit()
+	if not await _until(func() -> bool: return current_scene != null and current_scene.has_method("change_role") and current_scene.current_map_id == 1009, "fresh owned child reaches actual M09 retry"):
+		return
+	game = current_scene
+	_check(game._opening_finished and not is_instance_valid(game.opening), "ordinary saved mission retry does not replay its arrival")
+	if not await _until(_playing, "retry uses the existing server readiness boundary"):
+		return
+	if not await _until(func() -> bool: return not _gear().is_empty(), "retry loadout acknowledgement"):
+		return
+	_check(_gear()["proximity_mines"] == 3 and _gear()["grenades"] == 2 and EquipmentState.ammo(_gear(), "cells") == 1, "actual retry restores its anchor without ammo or explosive refill")
+	_check(game.mission_hud.state["run"]["continues"] == 1 and game.net_client.accepted_body == "synthetic", "reopen preserves allowance and body")
+	owned.stop()
+	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "reopened owned child exits cleanly"):
+		return
+	current_scene.queue_free()
+	await process_frame
+	await create_timer(0.5).timeout
+	var retry_saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
+	_check(retry_saved is Dictionary and retry_saved["version"] == 12 and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
+	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "strict v11 real-process retry preserves every entry count")
+	archives.clear()
+	for filename: String in DirAccess.get_files_at(run_directory):
+		if filename.begins_with("run.prior-"):
+			archives.append(filename)
+	var exact_retry_archive: bool = false
+	for filename: String in archives:
+		exact_retry_archive = exact_retry_archive or FileAccess.get_file_as_string(run_directory.path_join(filename)) == retry_source
+	_check(archives.size() == 2 and exact_retry_archive, "actual process archives exact v11 bytes once")
 	if failures == 0:
 		print("test_m09_local: PASS")
 	quit(0 if failures == 0 else 1)
