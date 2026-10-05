@@ -10,6 +10,7 @@ pub(super) struct M09Progress {
     pub(super) crew: Vec<M09CrewState>,
     pub(super) route_points: Vec<usize>,
     pub(super) charge_falls: u8,
+    pub(super) departure_outcome: Option<run_file::M09Outcome>,
 }
 
 impl M09Progress {
@@ -29,6 +30,7 @@ impl M09Progress {
             route_points: vec![1; crew.len()],
             crew,
             charge_falls: 0,
+            departure_outcome: None,
         }
     }
 }
@@ -234,6 +236,10 @@ impl GameState {
             None
         };
         if let Some(run) = &mut self.mission {
+            if let Some(progress) = &mut run.m09 {
+                progress.departure_outcome =
+                    Some(run_file::M09Outcome::capture(&progress.crew, &g.boarding));
+            }
             run.phase = MissionPhase::Departed;
             run.changed_at = self.tick;
             if let Some(solo) = &mut run.solo {
