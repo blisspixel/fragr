@@ -63,6 +63,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::DeclaredGoods => "declared_goods",
                         MissionId::PassengerManifest => "passenger_manifest",
                         MissionId::CommonCarrier => "common_carrier",
+                        MissionId::RightOfSearch => "right_of_search",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,

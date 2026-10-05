@@ -53,6 +53,28 @@ impl Grenade {
 
 #[cfg(test)]
 impl GameState {
+    pub(crate) fn test_remote_blast(
+        &mut self,
+        owner: Uuid,
+        serial: u32,
+        position: [f32; 3],
+        radius: f32,
+        peak: f32,
+    ) {
+        self.projectile_serial = self.projectile_serial.max(serial);
+        let arena = self.current_arena().into_owned();
+        self.resolve_blast(
+            &Blast {
+                id: serial,
+                owner_id: owner,
+                position,
+                radius,
+                peak,
+                source: BlastSource::RemoteMine,
+            },
+            &arena,
+        );
+    }
     fn resolve_explosion(&mut self, grenade: &Grenade, arena: &Arena) {
         self.resolve_blast(&grenade.blast(), arena);
     }
@@ -190,6 +212,14 @@ impl GameState {
             return;
         };
         let mut hits = Vec::new();
+        let mut m11_kills = Vec::new();
+        let remote_participant = matches!(blast.source, BlastSource::RemoteMine)
+            && self.players[owner].is_participant()
+            && crate::mission::actor_active(
+                self.mission.as_ref(),
+                blast.owner_id,
+                self.players[owner].campaign,
+            );
         let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
         for target in 0..self.players.len() {
             if hits.len() == 256 {
@@ -225,6 +255,9 @@ impl GameState {
                 hp_total += hp;
                 armor_total += armor;
                 kills += u64::from(died);
+                if remote_participant && died {
+                    m11_kills.push(player.id);
+                }
             }
         }
         let statistics = &mut self.players[owner].statistics;
@@ -240,6 +273,9 @@ impl GameState {
             radius: blast.radius,
             hits,
         });
+        if remote_participant {
+            self.note_m11_remote_blast(blast.id, &m11_kills);
+        }
     }
 }
 

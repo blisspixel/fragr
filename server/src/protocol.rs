@@ -825,6 +825,7 @@ mod geometry_tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -945,6 +946,12 @@ pub enum ServerMessage {
         m09: Option<M09MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m10: Option<M10MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m11: Option<M11MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

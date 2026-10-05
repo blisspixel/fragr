@@ -20,6 +20,7 @@ mod m07;
 mod m08;
 mod m09;
 mod m10;
+mod m11;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -47,6 +48,7 @@ pub(crate) struct MissionRun {
     m07: Option<m07::M07Progress>,
     m09: Option<m09::M09Progress>,
     m10: Option<m10::M10Progress>,
+    m11: Option<m11::M11Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -73,6 +75,7 @@ impl MissionRun {
                 .m09_geometry()
                 .map(|g| m09::M09Progress::new(&g, false, false)),
             m10: map.m10_geometry().map(|_| m10::M10Progress::default()),
+            m11: map.m11_geometry().map(|_| m11::M11Progress::default()),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -227,6 +230,7 @@ impl GameState {
                 || run.m07.is_some()
                 || run.m09.is_some()
                 || run.m10.is_some()
+                || run.m11.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -245,6 +249,7 @@ impl GameState {
         self.ensure_m07_companion();
         self.ensure_m09_companion();
         self.ensure_m10_companion();
+        self.ensure_m11_companion();
     }
 
     pub(crate) fn note_mission_started(&mut self) {
@@ -254,6 +259,7 @@ impl GameState {
     }
 
     pub(crate) fn reset_mission(&mut self) {
+        let projectile_serial = self.current_projectile_serial();
         let Some(run) = self.mission.as_mut().filter(|run| run.started) else {
             return;
         };
@@ -281,6 +287,10 @@ impl GameState {
             .initial_map
             .m10_geometry()
             .map(|_| m10::M10Progress::default());
+        run.m11 = run.initial_map.m11_geometry().map(|_| m11::M11Progress {
+            last_remote_blast: projectile_serial,
+            ..m11::M11Progress::default()
+        });
         run.m09 = run.initial_map.m09_geometry().map(|g| {
             m09::M09Progress::new(
                 &g,
@@ -304,6 +314,7 @@ impl GameState {
                 || run.m07.is_some()
                 || run.m09.is_some()
                 || run.m10.is_some()
+                || run.m11.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -331,10 +342,14 @@ impl GameState {
         self.ensure_m07_companion();
         self.ensure_m09_companion();
         self.ensure_m10_companion();
+        self.ensure_m11_companion();
     }
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m11.is_some() {
+            return self.m11_mission_state();
+        }
         if run.m10.is_some() {
             return self.m10_mission_state();
         }
@@ -420,6 +435,7 @@ impl GameState {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
         })
     }
 
@@ -446,6 +462,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m11.is_some()) {
+            self.advance_m11();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m10.is_some()) {
             self.advance_m10();
             return;

@@ -47,6 +47,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::CustodianOfRecord => 7,
         MissionId::PassengerManifest => 8,
         MissionId::CommonCarrier => 9,
+        MissionId::RightOfSearch => CAMPAIGN_STAGES,
     }
 }
 
@@ -265,10 +266,10 @@ impl RunStore {
             Some(_) => return RunProbe::Incompatible,
             None => return RunProbe::Corrupt,
         };
-        if document
-            .validate(hashes[stage_index(document.stage_mission())])
-            .is_err()
-        {
+        let Some(expected) = hashes.get(stage_index(document.stage_mission())) else {
+            return RunProbe::Incompatible;
+        };
+        if document.validate(*expected).is_err() {
             return RunProbe::Incompatible;
         }
         RunProbe::Compatible(Box::new(document))
@@ -306,7 +307,7 @@ impl RunStore {
         before_replace: impl FnOnce(&Path) -> io::Result<()>,
     ) -> io::Result<PathBuf> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let source = read_bounded(&self.directory.join(RUN_NAME))?;
         if !matches!(
@@ -356,8 +357,11 @@ impl RunStore {
         Ok(archive)
     }
 
-    fn expected_hash(&self, document: &RunDocument) -> [u8; 32] {
-        self.hashes[stage_index(document.stage_mission())]
+    fn expected_hash(&self, document: &RunDocument) -> io::Result<[u8; 32]> {
+        self.hashes
+            .get(stage_index(document.stage_mission()))
+            .copied()
+            .ok_or_else(|| invalid("campaign mission carry is not implemented"))
     }
 
     pub fn save(&self, document: &RunDocument) -> io::Result<()> {
@@ -376,7 +380,7 @@ impl RunStore {
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<Option<PathBuf>> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let prior = self.directory.join(RUN_NAME);
         let archived = if prior.try_exists()? {
@@ -418,7 +422,7 @@ impl RunStore {
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<()> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let bytes = serde_json::to_vec(document)
             .map_err(|_| invalid("campaign run document could not be encoded"))?;

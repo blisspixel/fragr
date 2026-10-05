@@ -1172,6 +1172,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m07,
             m09,
             m10,
+            m11,
             map_name,
             half_extent,
             solids,
@@ -1181,6 +1182,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             rules,
             sabotage,
         }) => {
+            if m11.is_some() {
+                return Err("M11 control connection is not implemented".into());
+            }
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             if let Some(layout) = sabotage.as_ref() {
                 layout.validate()?;

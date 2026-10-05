@@ -348,3 +348,27 @@ retained. The bounded direct intent preserves Session body avoidance and
 ordinary collision, without changing the shared navigator. Sixteen focused
 M11 checks pass. [The source receipt](../evidence/m11-authored-tender-20261005.md)
 keeps actual mission admission, renderer proof and fairness gates explicitly open.
+
+The native lifecycle checkpoint connects exact M11 MapInfo/MissionState,
+readiness, ordered arrivals, physical choices, fresh party departure, retry
+and actual one-blast challenge attribution. Twenty-two focused checks pass;
+the corrected full locked workspace passes 1042 server unit tests, three
+existing ignored captures and all 18 local-process tests. Warning-denied server
+all-target Clippy, formatting and whitespace checks pass. Three focused client
+harnesses pass after a clean private headless import. The failed exhaustive
+adapter compile, dated M08 enum assertion and pre-import client receipts remain
+retained in [the lifecycle evidence](../evidence/m11-native-lifecycle-20261005.md).
+Capability 37, locked M10-to-M11 carry, shared controller/client admission,
+ordinary full combat, accepted Redactor motion and composed renderer/package
+gates remain open. The current client still refuses this development mission.
+
+The next lifecycle checkpoint connects RightOfSearch identity, the existing
+MissionRun/readiness/reset/state writer, exact group-backed arrivals, optional
+physical transfer/document interactions and fresh all-party stern use. The
+counter-boarding clock starts once from real group activation. A resolved
+Remote Mine blast can credit only distinct currently living registered members
+of that group killed by that one blast. Retry clears clocks and attribution;
+gunfire, covered survivors, unrelated actors, overkill and separate charges
+cannot manufacture the three-kill receipt. Missing the provisional signal
+window records a miss but never creates an extra departure lock. Capability 37
+stays unadvertised while save/client/controller/art gates are incomplete.

@@ -76,3 +76,26 @@ fn remote_v13_refuses_forged_count_even_zero_and_current_pre_find_carry() {
         RunProbe::Compatible(_)
     ));
 }
+
+#[test]
+fn m11_pending_carry_refuses_current_and_historical_identity_without_indexing_unbuilt_hash() {
+    let before = m09_receipt_tests::completed_berth(true, true);
+    let source = before
+        .promote_next(
+            crate::protocol::MissionId::CommonCarrier,
+            m09_tests::HASHES[9],
+        )
+        .unwrap();
+    assert!(source
+        .promote_next(crate::protocol::MissionId::RightOfSearch, [42; 32])
+        .is_err());
+    for version in [13, super::super::RUN_FILE_VERSION] {
+        let mut forged = serde_json::to_value(&source).unwrap();
+        forged["version"] = version.into();
+        forged["step"]["mission"] = "right_of_search".into();
+        assert!(matches!(
+            RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
+            RunProbe::Incompatible
+        ));
+    }
+}

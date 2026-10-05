@@ -17,8 +17,8 @@ use legacy::{
 };
 pub(crate) use m09_outcome::M09Outcome;
 
-/// Version 13 keeps berth confirmation distinct from committed M10 arrivals.
-/// Only the locked M09-to-M10 edge records transit and the Episode III refill.
+/// Version 14 reserves independent remote stock, upgrading exact version 13.
+/// M10 transit and its one Episode III refill remain owned by the locked edge.
 pub(super) const RUN_FILE_VERSION: u32 = 14;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
@@ -29,6 +29,7 @@ const M07_MISSION: &str = "declared_goods";
 const M09_MISSION: &str = "passenger_manifest";
 const M10_MISSION: &str = "common_carrier";
 const M11_MISSION: &str = "right_of_search";
+const M12_MISSION: &str = "terms_of_cooperation";
 const M08_MISSION: &str = "custodian_of_record";
 
 pub(crate) use crate::protocol::M08Outcome;
@@ -245,6 +246,7 @@ impl RunDocument {
             MissionId::CustodianOfRecord => (MissionId::DeclaredGoods, M08_MISSION),
             MissionId::PassengerManifest => (MissionId::CustodianOfRecord, M09_MISSION),
             MissionId::CommonCarrier => (MissionId::PassengerManifest, M10_MISSION),
+            MissionId::RightOfSearch => return Err("M11 carry is not implemented"),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -600,6 +602,7 @@ impl GameState {
                     MissionId::CustodianOfRecord => M09_MISSION,
                     MissionId::PassengerManifest => M10_MISSION,
                     MissionId::CommonCarrier => M11_MISSION,
+                    MissionId::RightOfSearch => M12_MISSION,
                     MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),

@@ -160,6 +160,7 @@ fn m11_authored_all_targets_supplies_guards_and_returns_have_real_routes() {
     // not a claim that a participant has completed the thirteen-guard mission.
     let mut unpopulated = map.as_ref().clone();
     unpopulated.encounters.clear();
+    unpopulated.m11 = None;
     walk(
         &Arc::new(unpopulated),
         entry,

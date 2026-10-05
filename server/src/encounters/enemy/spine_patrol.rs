@@ -104,6 +104,13 @@ mod tests {
         session.state.players[0].z = -24.3;
         session.state.players[0].y = 0.3 + PLAYER_FLOOR_Y;
         session.state.players[0].yaw = 0.0;
+        assert!(session.state.acknowledge_mission(
+            id,
+            crate::protocol::MissionReady {
+                id: crate::protocol::MissionId::RightOfSearch,
+                attempt: 1,
+            }
+        ));
         let mut previous: Option<f32> = None;
         let mut forwards = false;
         let mut backwards = false;
@@ -114,7 +121,7 @@ mod tests {
                 .state
                 .players
                 .iter()
-                .filter(|p| p.id != id)
+                .filter(|p| matches!(p.campaign, Some(CampaignActor::Union { .. })))
                 .collect();
             file.sort_by(|a, b| a.z.total_cmp(&b.z));
             assert_eq!(file.len(), 3);

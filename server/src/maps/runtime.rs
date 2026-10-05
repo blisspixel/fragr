@@ -252,8 +252,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m10_objectives()
-            .map(|_| crate::protocol::MissionId::CommonCarrier)
+        self.m11_objectives()
+            .map(|_| crate::protocol::MissionId::RightOfSearch)
+            .or_else(|| {
+                self.m10_objectives()
+                    .map(|_| crate::protocol::MissionId::CommonCarrier)
+            })
             .or_else(|| self.mission().map(|mission| mission.id))
             .or_else(|| {
                 self.m02_objectives()

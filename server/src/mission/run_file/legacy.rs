@@ -69,7 +69,11 @@ impl RunDocumentV10 {
             m09_outcome: completed_m09.then_some(M09Outcome::HistoricalUnrecorded {}),
             m10_transit: None,
         };
-        document.validate(hashes[store::stage_index(document.stage_mission())])?;
+        document.validate(
+            *hashes
+                .get(store::stage_index(document.stage_mission()))
+                .ok_or("mission was not supported by this historical version")?,
+        )?;
         Ok(document)
     }
 }
@@ -191,7 +195,11 @@ impl RunDocumentV9 {
             m09_outcome: None,
             m10_transit: None,
         };
-        document.validate(hashes[store::stage_index(document.stage_mission())])?;
+        document.validate(
+            *hashes
+                .get(store::stage_index(document.stage_mission()))
+                .ok_or("mission was not supported by this historical version")?,
+        )?;
         Ok(document)
     }
 }
@@ -250,7 +258,11 @@ impl RunDocumentV8 {
         ) {
             return Err("M08 was not supported by version 8");
         }
-        document.validate(hashes[store::stage_index(mission)])?;
+        document.validate(
+            *hashes
+                .get(store::stage_index(mission))
+                .ok_or("mission was not supported by this historical version")?,
+        )?;
         Ok(document)
     }
 }
@@ -311,7 +323,11 @@ impl RunDocumentV7 {
         ) {
             return Err("mission was not supported by version 7");
         }
-        document.validate(hashes[store::stage_index(mission)])?;
+        document.validate(
+            *hashes
+                .get(store::stage_index(mission))
+                .ok_or("mission was not supported by this historical version")?,
+        )?;
         Ok(document)
     }
 }
@@ -373,7 +389,8 @@ impl RunDocumentV6 {
             MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord
             | MissionId::PassengerManifest
-            | MissionId::CommonCarrier => return Err("M08 was not supported by version 6"),
+            | MissionId::CommonCarrier
+            | MissionId::RightOfSearch => return Err("M08 was not supported by version 6"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -519,7 +536,11 @@ impl RunDocumentV13 {
             m09_outcome: self.m09_outcome,
             m10_transit: self.m10_transit,
         };
-        document.validate(hashes[store::stage_index(document.stage_mission())])?;
+        document.validate(
+            *hashes
+                .get(store::stage_index(document.stage_mission()))
+                .ok_or("mission was not supported by this historical version")?,
+        )?;
         Ok(document)
     }
 }
@@ -668,7 +689,8 @@ impl RunDocumentV5 {
             | MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord
             | MissionId::PassengerManifest
-            | MissionId::CommonCarrier => return Err("M05 was not supported by version 5"),
+            | MissionId::CommonCarrier
+            | MissionId::RightOfSearch => return Err("M05 was not supported by version 5"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -712,7 +734,8 @@ impl RunDocumentV4 {
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
-                | MissionId::CommonCarrier => return Err("mission was not supported by version 4"),
+                | MissionId::CommonCarrier
+                | MissionId::RightOfSearch => return Err("mission was not supported by version 4"),
             },
             SavedStep::AwaitingMission {
                 completed_mission, ..
@@ -726,7 +749,8 @@ impl RunDocumentV4 {
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
-                | MissionId::CommonCarrier => return Err("mission was not supported by version 4"),
+                | MissionId::CommonCarrier
+                | MissionId::RightOfSearch => return Err("mission was not supported by version 4"),
             },
         };
         let document = RunDocument {
@@ -802,7 +826,8 @@ impl RunDocumentV3 {
             | MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord
             | MissionId::PassengerManifest
-            | MissionId::CommonCarrier => return Err("M05 was not supported by version 3"),
+            | MissionId::CommonCarrier
+            | MissionId::RightOfSearch => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");
@@ -916,7 +941,11 @@ impl RunDocumentV12 {
             m09_outcome: self.m09_outcome,
             m10_transit: None,
         };
-        document.validate(hashes[store::stage_index(document.stage_mission())])?;
+        document.validate(
+            *hashes
+                .get(store::stage_index(document.stage_mission()))
+                .ok_or("mission was not supported by this historical version")?,
+        )?;
         Ok(document)
     }
 }

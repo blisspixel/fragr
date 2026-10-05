@@ -895,6 +895,9 @@ mod crawler_contact_tests {
 }
 
 impl GameState {
+    pub(crate) fn current_projectile_serial(&self) -> u32 {
+        self.projectile_serial
+    }
     pub(crate) fn use_replay_ids(&mut self) {
         assert!(
             self.players.is_empty(),
@@ -1519,6 +1522,7 @@ impl GameState {
             m07: self.map.m07_geometry(),
             m09: self.map.m09_geometry(),
             m10: self.map.m10_geometry(),
+            m11: self.map.m11_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),

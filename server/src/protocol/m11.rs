@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 const MAX_EXACT_JSON_INTEGER: u64 = (1_u64 << 53) - 1;
 
-fn present<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+pub(super) fn present<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
 where
     D: serde::Deserializer<'de>,
     T: Deserialize<'de>,

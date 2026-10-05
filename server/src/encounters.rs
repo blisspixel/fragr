@@ -45,6 +45,11 @@ pub(crate) struct Encounters {
 }
 
 impl Encounters {
+    pub(crate) fn registered_in_group(&self, id: Uuid, group: usize) -> bool {
+        self.enemies
+            .iter()
+            .any(|(g, enemy)| *g == group && enemy.id == id)
+    }
     pub(crate) fn is_complete(&self, index: usize) -> bool {
         matches!(self.groups.get(index), Some(Group::Complete))
     }

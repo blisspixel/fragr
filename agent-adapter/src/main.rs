@@ -2292,6 +2292,7 @@ mod tests {
                 m07: None,
                 m09: None,
                 m10: None,
+                m11: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),
