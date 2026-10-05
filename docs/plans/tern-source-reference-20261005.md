@@ -2,8 +2,9 @@
 
 Status: in flight, 2026-10-05. Bounded reference/source planning from main
 `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. One reviewed conversion reference
-exists and the serialized production owner has submitted one bounded source.
-Source geometry, rig, motion and runtime acceptance remain open.
+exists and the serialized production owner completed one bounded source and
+one separately reviewed rig. Static and eight-phase source-motion inspection
+pass; local finishing, authored pilot poses and runtime acceptance remain open.
 
 ## Goal and existing-source audit
 
@@ -170,9 +171,9 @@ conservative equivalent, after fresh 2,085 available/15 held preflight. The
 shared source spec is `art/raw/meshy-pilot-20261003/tern-source-20261005.json`,
 SHA-256 `9d265d3187b1a72d84a58bb521889c12d3d47e075fa5c405948a811b7bd6f705`.
 The production ledger owner retains the initial changed-CDN guard refusal
-separately; it did not submit a source and is not a passing request. No rig is
-submitted or accepted here. Actual full source inspection still precedes any
-five-credit rig or pose work.
+separately; it did not submit a source and is not a passing request. At that
+initial handoff no rig had been submitted; actual source inspection preceded
+the separately recorded rig below.
 
 The source subsequently completed at 35 actual included credits. The original
 download is `art/raw/meshy-pilot-20261003/tern-civilian-pilot-v1-ultra-0.glb`,
@@ -191,4 +192,47 @@ near-zero-area triangles or invalid/short normals detected. Private
 `.agents/tern-brief-checks/source-geometry.json` records the exact measurements.
 These are topology and map facts, not proof of separated fingers, acceptable
 joint motion, silhouette, original paint quality or humanoid rig eligibility.
-Actual four-angle source review is still required before a five-credit rig.
+Actual four-angle source review was still required at that inventory checkpoint.
+
+## Reviewed source and independent rig inventory
+
+The production owner subsequently inspected four actual source angles and
+accepted the lean civilian silhouette and separated limbs for one bounded
+rig. Original materials remain glossy and the head optics dim; these source
+finishing issues are open. The rig completed at five actual included credits,
+task `01a10d2b-f9c0-7430-b653-91c3561c3cf3`, height 1.8 m. Source plus rig total
+40 included credits, with no new cash. The owner's latest free checker records
+2,045 available and the unchanged 15-credit uncertain hold, 2,030 usable.
+
+Retained rig files in `art/raw/meshy-pilot-20261003/`:
+
+| File | SHA-256 | Clip |
+|---|---|---|
+| `tern-civilian-pilot-v1-rig-0.glb` | `5a96b69bd4a551b7779217bdd3f5f0b2b69af4a4f677907d38f0b048bb1c6c2b` | 0.033333 s base |
+| `tern-civilian-pilot-v1-rig-1.glb` | `9c9b3a8af8fee7c5f3d3fe52254871a4a6e022ed5dd56cbfb1f9cb9e9096ef89` | 1.066667 s walk |
+| `tern-civilian-pilot-v1-rig-2.glb` | `3517307bdb4c989202f94b6e106f0b109c241f8603b1328c221d27bab4481ceb` | 0.666667 s run |
+
+An independent headless import/weighted-surface measurement exits 0 with clean
+logs and its own PASS. All three files have one mesh, 12,456 triangles,
+19,106 vertices and 24 bones. Every vertex weight is finite, nonnegative and
+normalized, and every nonzero influence references a valid skin binding.
+Actual weighted resting height is 1.79997265 m, with minimum Y=-0.000000123 m.
+The hand bones have no finger joints. Original 4K albedo/normal and packed
+metal/roughness remain present; no finishing changes or new source are made.
+
+Eight phases per actual clip retain whole-chain hips/head/feet/hand coordinates
+and weighted surface bounds. Walk minimum Y ranges from 0.00696 to 0.02290 m,
+with height 1.7473 to 1.8080 m. Run minimum Y ranges from 0.00798 to 0.07905 m,
+with height 1.6973 to 1.7424 m. These are sampled clip bob/deformation, not
+proof of runtime foot registration, a scale defect or console/grip contact.
+Private `.agents/tern-brief-checks/rig-measurements.json` and its log bind all
+original hashes, weights, bone inventory and 24 actual phase samples.
+
+The production owner's controlled renderer retired with numeric exit 0, clean
+logs and its own PASS after 24 source views. Full-size source and eight walk/run
+phases showed no obvious explosive bends. The first post-render hash validator
+failed because it reused a reserved shell variable; its failure is retained.
+The independent corrected validator passes all original/local/import hashes
+and all 24 PNG hashes. This is source-only evidence. Finger closure, seated
+console contact, calm pilot posture, release/boarding gestures, head optics,
+ordinary M09/M10 play, packaged loading and runtime selection remain open.
