@@ -1,6 +1,6 @@
 use super::*;
 use crate::maps::AuthoredSource;
-use crate::movement::{Arena, Solid};
+use crate::movement::{Arena, Solid, RADIUS};
 use crate::navigation::Navigation;
 use crate::protocol::{MissionReady, Role};
 use crate::session::GameSession;
@@ -141,6 +141,132 @@ fn companion_recorded_roof_wedge_opens_with_real_session_walking() {
     }
 }
 
+fn recorded_signal_box() -> (GameSession, Uuid, Uuid) {
+    let (mut session, id, companion) = recorded_roof();
+    session.state.map = session.state.map.prepared_m03_world().unwrap();
+    session
+        .state
+        .mission
+        .as_mut()
+        .unwrap()
+        .m03
+        .as_mut()
+        .unwrap()
+        .mast_hp = 0;
+    place(&mut session.state, id, [18.015797, 3.5, 18.246605]);
+    place(&mut session.state, companion, [18.906883, 3.5, 17.79277]);
+    (session, id, companion)
+}
+
+#[test]
+fn companion_recorded_signal_box_hold_blocks_the_entire_arrival_disk() {
+    let (mut held, id, companion) = recorded_signal_box();
+    let ally = held
+        .state
+        .players
+        .iter()
+        .find(|p| p.id == companion)
+        .unwrap();
+    // The delivered stationary ally is closer than combined clearance minus
+    // the exact existing half-metre QA arrival disk, not a near timeout miss.
+    assert!((ally.x - 18.5).hypot(ally.z - 18.0) + 0.5 < RADIUS * 2.0);
+    let start = [18.015797, 18.246605];
+    for _ in 0..40 {
+        held.state
+            .set_action(id, toward(&held.state, id, [18.5, 18.0]));
+        held.state
+            .set_companion_action(companion, Action::default());
+        held.state.tick(0.05);
+    }
+    let walker = held.state.players.iter().find(|p| p.id == id).unwrap();
+    assert!((walker.x - start[0]).hypot(walker.z - start[1]) < 0.001);
+    assert_eq!(walker.y, PLAYER_FLOOR_Y + 3.5);
+
+    let (mut without, id, companion) = recorded_signal_box();
+    without.state.players.retain(|p| p.id != companion);
+    for _ in 0..4 {
+        without
+            .state
+            .set_action(id, toward(&without.state, id, [18.5, 18.0]));
+        without.state.tick(0.05);
+    }
+    let walker = without.state.players.iter().find(|p| p.id == id).unwrap();
+    assert!((walker.x - 18.5).hypot(walker.z - 18.0) < 0.5);
+    assert_eq!(walker.y, PLAYER_FLOOR_Y + 3.5);
+}
+
+#[test]
+fn companion_recorded_signal_box_yields_with_supported_real_session_input() {
+    for _repeat in 0..2 {
+        let (mut live, id, companion) = recorded_signal_box();
+        let first = live.state.m02_companion_intent().unwrap().1;
+        assert!(first.goal.is_none());
+        assert!(first.action.forward && !first.action.fire && !first.action.jump);
+        let mut arrived = false;
+        for _ in 0..80 {
+            live.state
+                .set_action(id, toward(&live.state, id, [18.5, 18.0]));
+            live.tick_messages(0.05);
+            let walker = live.state.players.iter().find(|p| p.id == id).unwrap();
+            let ally = live
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == companion)
+                .unwrap();
+            assert_eq!(walker.hp, 100);
+            assert_eq!(walker.y, PLAYER_FLOOR_Y + 3.5);
+            assert_eq!(
+                ally.y,
+                PLAYER_FLOOR_Y + 3.5,
+                "yield must retain the supported raised floor"
+            );
+            assert!((walker.x - ally.x).hypot(walker.z - ally.z) >= 0.9999);
+            if (walker.x - 18.5).hypot(walker.z - 18.0) < 0.5 {
+                arrived = true;
+                break;
+            }
+        }
+        assert!(
+            arrived,
+            "recorded supported goal must arrive with Latch retained: {:?}",
+            live.state
+                .players
+                .iter()
+                .filter(|p| p.id == id || p.id == companion)
+                .map(|p| (&p.name, [p.x, p.y, p.z]))
+                .collect::<Vec<_>>()
+        );
+    }
+}
+
+#[test]
+fn companion_short_yield_can_use_one_supported_quarter_step_deterministically() {
+    let (state, _, ally) = local_scene([1.1, 3.0, 0.0], [0.0, 3.0, 0.0]);
+    let me = state.players.iter().find(|p| p.id == ally).unwrap();
+    let bodies = state.contact_bodies();
+    let arena = Arena {
+        half: 10.0,
+        solids: vec![Solid {
+            min_x: -0.5,
+            max_x: 1.4,
+            min_z: -0.26,
+            max_z: 0.26,
+            bottom: 0.0,
+            top: 3.0,
+        }],
+    };
+    assert!(formation::goal(&arena, me, [0.0, 3.0, 0.0], false, &bodies).is_none());
+    let first = formation::short_yield(&arena, me, [0.0, 3.0, 0.0], &bodies).unwrap();
+    assert_eq!(first.yaw, Some(0.0));
+    assert!(first.forward && !first.fire && !first.jump);
+    for _ in 0..100 {
+        let repeated = formation::short_yield(&arena, me, [0.0, 3.0, 0.0], &bodies).unwrap();
+        assert_eq!(repeated.yaw, first.yaw);
+    }
+    assert!(formation::short_yield(&arena, me, [-2.0, 3.0, 0.0], &bodies).is_none());
+}
+
 fn local_scene(feet: [f32; 3], leader: [f32; 3]) -> (GameState, Uuid, Uuid) {
     let mut state = GameState::new();
     let id = Uuid::from_u128(1);
@@ -211,6 +337,7 @@ fn companion_local_yield_respects_support_corners_and_no_retreat() {
         ],
     };
     assert!(formation::goal(&confined, me, [0.0, 3.0, 0.0], false, &bodies).is_none());
+    assert!(formation::short_yield(&confined, me, [0.0, 3.0, 0.0], &bodies).is_none());
 }
 
 #[test]

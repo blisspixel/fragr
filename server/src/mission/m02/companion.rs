@@ -178,13 +178,19 @@ impl GameState {
             CompanionPhase::Firing
         } else {
             if let Some(leader) = leader_feet {
+                let arena = self.current_arena();
+                let bodies = self.contact_bodies();
                 intent.goal = formation::goal(
-                    &self.current_arena(),
+                    &arena,
                     companion,
                     leader,
                     self.mission.as_ref().is_some_and(|run| run.m02.is_some()),
-                    &self.contact_bodies(),
+                    &bodies,
                 );
+                if intent.goal.is_none() {
+                    intent.action = formation::short_yield(&arena, companion, leader, &bodies)
+                        .unwrap_or_default();
+                }
             }
             CompanionPhase::Following
         };

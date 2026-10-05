@@ -1,6 +1,7 @@
 //! Fixed local formation probes. Session retains the one bounded route search.
 use crate::movement::{contact::ContactBody, Arena, MoveInput, RADIUS, STEP_UP};
 use crate::navigation::{Navigation, NavigationGoal};
+use crate::protocol::Action;
 use crate::sim::Player;
 
 const STAND_OFF: f32 = 2.4;
@@ -29,7 +30,13 @@ fn occupied(point: [f32; 3], me: &ContactBody, bodies: &[ContactBody]) -> bool {
 
 /// A close retreat must remain supported and traverse the actual body scene.
 /// Four ordinary quarter-metre steps are the entire local forecast budget.
-fn safe_yield(arena: &Arena, me: &ContactBody, bodies: &[ContactBody], yaw: f32) -> bool {
+fn safe_yield(
+    arena: &Arena,
+    me: &ContactBody,
+    bodies: &[ContactBody],
+    yaw: f32,
+    steps: u8,
+) -> bool {
     let mut pose = me.from;
     // A one-metre retreat cannot reach a body initially more than 2.5 m away.
     // Keep local contact work independent of a distant encounter roster.
@@ -43,7 +50,7 @@ fn safe_yield(arena: &Arena, me: &ContactBody, bodies: &[ContactBody], yaw: f32)
         })
         .cloned()
         .collect();
-    for _ in 0..4 {
+    for _ in 0..steps {
         let proposed = crate::movement::live_step_with_height(
             pose,
             &MoveInput {
@@ -139,7 +146,7 @@ pub(super) fn goal(
             || (point[0] - leader[0]).hypot(point[2] - leader[2]) < YIELD_CLEARANCE
             || occupied(point, me, bodies)
             || !Navigation::walkable_in(arena, origin, point)
-            || (close && !safe_yield(arena, me, bodies, yaw))
+            || (close && !safe_yield(arena, me, bodies, yaw, 4))
         {
             continue;
         }
@@ -147,6 +154,51 @@ pub(super) fn goal(
             feet: point,
             combat: false,
         });
+    }
+    None
+}
+
+/// A narrow supported ledge may have room for a short ordinary step but not
+/// the full formation circle. This fallback uses the same action channel and
+/// forecasts at most two quarter-metre steps, without a grid/search request.
+pub(super) fn short_yield(
+    arena: &Arena,
+    companion: &Player,
+    leader: [f32; 3],
+    bodies: &[ContactBody],
+) -> Option<Action> {
+    let me = bodies
+        .iter()
+        .find(|body| body.key == companion.id.to_string())?;
+    let feet = [me.from.x, me.from.y, me.from.z];
+    let gap = (feet[0] - leader[0]).hypot(feet[2] - leader[2]);
+    if gap >= YIELD_CLEARANCE || (feet[1] - leader[1]).abs() >= me.height {
+        return None;
+    }
+    let away = (feet[2] - leader[2]).atan2(feet[0] - leader[0]);
+    for steps in [2_u8, 1] {
+        let length = f32::from(steps) * 0.25;
+        for offset in DIRECTIONS {
+            let yaw = away + offset;
+            let point = [
+                feet[0] + yaw.cos() * length,
+                feet[1],
+                feet[2] + yaw.sin() * length,
+            ];
+            let floor = arena.support_height(point[0], point[2], feet[1] + STEP_UP);
+            if (floor - feet[1]).abs() > 0.1
+                || (point[0] - leader[0]).hypot(point[2] - leader[2]) <= gap + 0.05
+                || occupied(point, me, bodies)
+                || !safe_yield(arena, me, bodies, yaw, steps)
+            {
+                continue;
+            }
+            return Some(Action {
+                forward: true,
+                yaw: Some(yaw),
+                ..Default::default()
+            });
+        }
     }
     None
 }
