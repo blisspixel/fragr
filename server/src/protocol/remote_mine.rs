@@ -31,6 +31,32 @@ pub struct RemoteMineState {
 }
 
 impl RemoteMineState {
+    /// Bound a complete snapshot collection, including shared projectile ids
+    /// already used by the current proximity-mine collection.
+    pub fn validate_set(
+        remotes: &[Self],
+        mines: &[super::MineState],
+        tick: u64,
+    ) -> Result<(), &'static str> {
+        if remotes.len() > 32 {
+            return Err("too many live Remote Mines");
+        }
+        let mut ids: std::collections::BTreeSet<u32> = mines.iter().map(|mine| mine.id).collect();
+        let mut owners = std::collections::BTreeMap::<Uuid, usize>::new();
+        for remote in remotes {
+            remote.validate(tick)?;
+            if !ids.insert(remote.id) {
+                return Err("Remote Mine id aliases a placed device");
+            }
+            let count = owners.entry(remote.owner_id).or_default();
+            *count += 1;
+            if *count > 4 {
+                return Err("too many owned Remote Mines");
+            }
+        }
+        Ok(())
+    }
+
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
         let finite = self
             .position
@@ -89,6 +115,37 @@ mod tests {
             phase_started: 60,
             phase_ends: 60 + duration,
         }
+    }
+
+    #[test]
+    fn remote_collection_refuses_aliases_owner_overflow_and_global_overflow() {
+        let mut remotes = Vec::new();
+        for id in 1..=32 {
+            let mut remote = state(RemoteMinePhase::Armed);
+            remote.id = id;
+            remote.owner_id = Uuid::from_u128(u128::from((id - 1) / 4 + 1));
+            remotes.push(remote);
+        }
+        RemoteMineState::validate_set(&remotes, &[], 60).unwrap();
+        let mut over = remotes.clone();
+        over.push(state(RemoteMinePhase::Armed));
+        assert!(RemoteMineState::validate_set(&over, &[], 60).is_err());
+        let mut over = remotes[..5].to_vec();
+        over[4].owner_id = over[0].owner_id;
+        assert!(RemoteMineState::validate_set(&over, &[], 60).is_err());
+        let mut alias = remotes[..2].to_vec();
+        alias[1].id = alias[0].id;
+        assert!(RemoteMineState::validate_set(&alias, &[], 60).is_err());
+        let proximity = super::super::MineState {
+            id: 1,
+            owner_id: Uuid::from_u128(55),
+            position: [0.0, 0.12, 0.0],
+            normal: [0.0, 1.0, 0.0],
+            phase: super::super::MinePhase::Armed,
+            phase_started: 50,
+            phase_ends: 50,
+        };
+        assert!(RemoteMineState::validate_set(&remotes, &[proximity], 60).is_err());
     }
 
     #[test]

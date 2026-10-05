@@ -185,6 +185,7 @@ impl GameState {
     pub(crate) fn clear_traveling_shots(&mut self) {
         self.clear_grenades();
         self.clear_mines();
+        self.clear_remote_mines();
         self.traveling_shots.clear();
     }
 }

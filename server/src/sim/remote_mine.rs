@@ -1,6 +1,6 @@
 //! Sticking flight and deliberate detonation for independently counted charges.
 //! Admission, owned stock and resolved blast application remain with GameState.
-use super::{grenade, mine};
+use super::{grenade, mine, GameState, PLAYER_FLOOR_Y};
 use crate::movement::Arena;
 use crate::protocol::{RemoteMinePhase, RemoteMineState};
 use uuid::Uuid;
@@ -209,5 +209,149 @@ pub fn trigger_owned(
     Ok(count)
 }
 
+impl GameState {
+    pub(crate) fn clear_remote_mines(&mut self) {
+        self.remote_mines.clear();
+        for player in &mut self.players {
+            player.remote_place_requested = false;
+            player.remote_trigger_requested = false;
+            player.remote_cooldown = 0;
+        }
+    }
+
+    pub(super) fn remote_mine_states(&self) -> Vec<RemoteMineState> {
+        self.remote_mines
+            .iter()
+            .map(|mine| mine.state.clone())
+            .collect()
+    }
+
+    /// Count exactly one admitted placement. Earlier explosive placements
+    /// own this attack frame; every refusal preserves stock and counters.
+    pub(super) fn place_remote_mines(&mut self, launched: &[Uuid]) -> Vec<Uuid> {
+        if !self
+            .players
+            .iter()
+            .any(|player| player.remote_place_requested)
+        {
+            return Vec::new();
+        }
+        let arena = self.current_arena().into_owned();
+        let mut placed = Vec::new();
+        for player in &mut self.players {
+            let requested = std::mem::take(&mut player.remote_place_requested);
+            if !requested
+                || launched.contains(&player.id)
+                || player.hp <= 0
+                || player.detached
+                || !player.is_participant()
+                || player.remote_cooldown > 0
+                || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
+                || self.remote_mines.len() >= LIVE_GLOBAL
+                || self
+                    .remote_mines
+                    .iter()
+                    .filter(|mine| mine.state.owner_id == player.id)
+                    .count()
+                    >= LIVE_PER_OWNER
+            {
+                continue;
+            }
+            let Some(serial) = self.projectile_serial.checked_add(1) else {
+                continue;
+            };
+            let origin = [
+                player.x,
+                player.y - PLAYER_FLOOR_Y + crate::combat::eye_height(player.campaign),
+                player.z,
+            ];
+            let Ok(device) = RemoteMine::launch(
+                serial,
+                player.id,
+                origin,
+                [player.yaw, player.pitch],
+                self.tick,
+                &arena,
+            ) else {
+                continue;
+            };
+            if !player.inventory.try_place_remote_mine() {
+                continue;
+            }
+            self.projectile_serial = serial;
+            self.remote_mines.push(device);
+            player.remote_cooldown = PLACE_COOLDOWN;
+            player.statistics.remote_mine_attack();
+            placed.push(player.id);
+        }
+        placed
+    }
+
+    /// Consume a fresh trigger, never retain it until a later charge arms.
+    pub(super) fn trigger_remote_mines(&mut self) {
+        for player in &mut self.players {
+            let requested = std::mem::take(&mut player.remote_trigger_requested);
+            if !requested
+                || player.hp <= 0
+                || player.detached
+                || !player.is_participant()
+                || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
+            {
+                continue;
+            }
+            if let Err(reason) = trigger_owned(&mut self.remote_mines, player.id, self.tick) {
+                tracing::warn!(reason, "Remote Mine trigger refused invalid device state");
+            }
+        }
+    }
+
+    pub(super) fn tick_remote_mines(&mut self, dt: f32) {
+        if self.remote_mines.is_empty() {
+            return;
+        }
+        let arena = self.current_arena().into_owned();
+        let tick = self.tick;
+        let mut live = std::mem::take(&mut self.remote_mines);
+        live.retain(|mine| self.remote_owner_alive(mine.state.owner_id));
+        let mut survivors = Vec::with_capacity(live.len());
+        for mut mine in live {
+            // A preceding charge may kill an owner in the same tick. Their
+            // remaining owned devices go dark rather than becoming grenades.
+            if !self.remote_owner_alive(mine.state.owner_id) {
+                continue;
+            }
+            match mine.advance(tick, dt, &arena) {
+                Ok(RemoteStep::Live) => survivors.push(mine),
+                Ok(RemoteStep::Detonate) => self.resolve_blast(
+                    &grenade::Blast {
+                        id: mine.state.id,
+                        owner_id: mine.state.owner_id,
+                        position: mine.state.position,
+                        radius: BLAST_RADIUS,
+                        peak: BLAST_DAMAGE,
+                        source: grenade::BlastSource::RemoteMine,
+                    },
+                    &arena,
+                ),
+                Ok(RemoteStep::Expired | RemoteStep::Removed) => {}
+                Err(reason) => {
+                    tracing::warn!(reason, "Remote Mine removed after invalid device tick");
+                }
+            }
+        }
+        survivors.retain(|mine| self.remote_owner_alive(mine.state.owner_id));
+        self.remote_mines = survivors;
+    }
+
+    fn remote_owner_alive(&self, owner: Uuid) -> bool {
+        self.players
+            .iter()
+            .any(|player| player.id == owner && player.hp > 0 && player.respawn_timer.is_none())
+    }
+}
+
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod live_tests;

@@ -207,6 +207,10 @@ func send_action(action: Dictionary):
 		msg["throw_grenade"] = true
 	if action.get("place_mine", false):
 		msg["place_mine"] = true
+	if action.get("place_remote_mine", false):
+		msg["place_remote_mine"] = true
+	if action.get("trigger_remote_mines", false):
+		msg["trigger_remote_mines"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
 	# Client-owned facing and the input number the server acknowledges. Both are

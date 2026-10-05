@@ -543,6 +543,7 @@ pub struct GameState {
     traveling_shots: Vec<traveling_shot::TravelingShot>,
     grenades: Vec<grenade::Grenade>,
     mines: Vec<mine::Mine>,
+    remote_mines: Vec<remote_mine::RemoteMine>,
     explosion_results: Vec<crate::protocol::ExplosionResult>,
     projectile_serial: u32,
     /// Remaining ticks of Continuance compliance slow (0 = none).
@@ -610,6 +611,9 @@ pub struct Player {
     grenade_cooldown: u32,
     place_requested: bool,
     mine_cooldown: u32,
+    remote_place_requested: bool,
+    remote_trigger_requested: bool,
+    remote_cooldown: u32,
     pub fire_cooldown: u32,
     pub(crate) repeater_cycle: repeater::RepeaterCycle,
     pub respawn_timer: Option<u32>,
@@ -671,6 +675,8 @@ impl Player {
         self.interaction_requested = false;
         self.throw_requested = false;
         self.place_requested = false;
+        self.remote_place_requested = false;
+        self.remote_trigger_requested = false;
         self.reset_movement_baseline();
     }
 
@@ -719,6 +725,9 @@ impl Player {
             grenade_cooldown: 0,
             place_requested: false,
             mine_cooldown: 0,
+            remote_place_requested: false,
+            remote_trigger_requested: false,
+            remote_cooldown: 0,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
             respawn_timer: None,
@@ -1404,6 +1413,7 @@ impl GameState {
         self.players.retain(|p| p.id != id);
         self.grenades.retain(|grenade| grenade.owner_id != id);
         self.mines.retain(|mine| mine.owner_id != id);
+        self.remote_mines.retain(|mine| mine.state().owner_id != id);
         self.scores.remove(&id);
         self.refresh_mission_readiness();
         self.update_encounters();
@@ -1454,6 +1464,10 @@ impl GameState {
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
             player.place_requested |= action.place_mine && !player.pending_action.place_mine;
+            player.remote_place_requested |=
+                action.place_remote_mine && !player.pending_action.place_remote_mine;
+            player.remote_trigger_requested |=
+                action.trigger_remote_mines && !player.pending_action.trigger_remote_mines;
             player.pending_action = action;
         }
     }
@@ -1735,6 +1749,7 @@ impl GameState {
             }
             player.grenade_cooldown = player.grenade_cooldown.saturating_sub(1);
             player.mine_cooldown = player.mine_cooldown.saturating_sub(1);
+            player.remote_cooldown = player.remote_cooldown.saturating_sub(1);
 
             if let Some(timer) = player.respawn_timer.as_mut() {
                 *timer = timer.saturating_sub(1);
@@ -1926,6 +1941,13 @@ impl GameState {
 
         let grenade_launches = self.launch_grenades();
         let mine_placements = self.place_mines(&grenade_launches);
+        let previous_placements: Vec<Uuid> = grenade_launches
+            .iter()
+            .chain(&mine_placements)
+            .copied()
+            .collect();
+        let remote_placements = self.place_remote_mines(&previous_placements);
+        self.trigger_remote_mines();
         let mut hits = Vec::new();
         let mut jammer_launches = Vec::new();
         for i in 0..self.players.len() {
@@ -1939,8 +1961,9 @@ impl GameState {
                 continue;
             }
 
-            let suppressed =
-                grenade_launches.contains(&player.id) || mine_placements.contains(&player.id);
+            let suppressed = grenade_launches.contains(&player.id)
+                || mine_placements.contains(&player.id)
+                || remote_placements.contains(&player.id);
             let fire_permitted = player.repeater_cycle.step(
                 player.weapon,
                 player.pending_action.fire,
@@ -2110,6 +2133,7 @@ impl GameState {
 
         self.tick_grenades(dt);
         self.tick_mines(dt);
+        self.tick_remote_mines(dt);
         self.update_campaign_run();
         self.advance_mission();
         self.advance_m02_evacuation(dt);
@@ -2390,6 +2414,8 @@ impl GameState {
                 victim.inventory.release_trigger();
                 victim.throw_requested = false;
                 victim.place_requested = false;
+                victim.remote_place_requested = false;
+                victim.remote_trigger_requested = false;
                 // Victim streak dies with them; boss does not respawn.
                 ended_streak = std::mem::take(&mut victim.killstreak);
                 lost_golden = std::mem::take(&mut victim.golden);
@@ -2858,6 +2884,7 @@ impl GameState {
             projectiles: self.projectile_states(),
             grenades: self.grenade_states(),
             mines: self.mine_states(),
+            remote_mines: self.remote_mine_states(),
             auditors: self.encounters.auditor_states(),
             explosions: self.explosion_results.clone(),
             mode_name: if self.map.is_authored() {
@@ -3264,6 +3291,9 @@ impl GameState {
             grenade_cooldown: 0,
             place_requested: false,
             mine_cooldown: 0,
+            remote_place_requested: false,
+            remote_trigger_requested: false,
+            remote_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3611,6 +3641,9 @@ impl GameState {
             grenade_cooldown: 0,
             place_requested: false,
             mine_cooldown: 0,
+            remote_place_requested: false,
+            remote_trigger_requested: false,
+            remote_cooldown: 0,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3855,6 +3888,7 @@ impl Default for GameState {
             traveling_shots: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             explosion_results: Vec::new(),
             projectile_serial: 0,
             compliance_ticks_left: 0,

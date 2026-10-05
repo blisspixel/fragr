@@ -56,8 +56,10 @@ static func validation_error(snapshot: Dictionary) -> String:
 		return INVALID
 	var tick: int = int(snapshot["tick"])
 	var mines: Variant = snapshot.get("mines", [])
+	var remotes: Variant = snapshot.get("remote_mines", [])
 	var auditors: Variant = snapshot.get("auditors", [])
-	if not mines is Array or mines.size() > MAX_MINES or not auditors is Array or auditors.size() > MAX_AUDITORS:
+	if not mines is Array or mines.size() > MAX_MINES or not remotes is Array or remotes.size() > MAX_MINES \
+		or not auditors is Array or auditors.size() > MAX_AUDITORS:
 		return INVALID
 	var seen: Array[int] = []
 	for mine: Variant in mines:
@@ -84,6 +86,15 @@ static func validation_error(snapshot: Dictionary) -> String:
 			"tripped":
 				if absf(length - 1.0) > 0.001 or window != TRIP_TICKS:
 					return INVALID
+	var remote_owners: Dictionary[String, int] = {}
+	for remote: Variant in remotes:
+		if not remote_state_valid(remote, tick) or int(remote["id"]) in seen:
+			return INVALID
+		seen.append(int(remote["id"]))
+		var owner: String = str(remote["owner_id"])
+		remote_owners[owner] = int(remote_owners.get(owner, 0)) + 1
+		if remote_owners[owner] > 4:
+			return INVALID
 	var ids: Array[String] = []
 	for auditor: Variant in auditors:
 		if not auditor is Dictionary or auditor.size() not in [2, 3] or not auditor.has("id") or not auditor.has("repairs_left") \

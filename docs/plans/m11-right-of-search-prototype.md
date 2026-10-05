@@ -111,7 +111,7 @@ Root reviews the final composed source and requires all exact-head CI and three
 desktop package gates before main. GPU captures need a coordinated lease;
 all failures and exact owned process retirement remain evidence.
 
-## Current checkpoint
+## Implementation checkpoints
 
 The architectural source is implemented as a non-mission study,
 `server/maps/test/m11_tender_structure.json`, ID 1111. It is not the canonical
@@ -204,3 +204,44 @@ brain fixtures also explicitly initialize the new remote count to zero; decision
 behavior is unchanged. The failed first receipt and successful second receipt
 are retained separately. These checks do not replace the pending matching
 complete client, capability, live device, mission or renderer gates.
+
+The next checkpoint wires actual Remote Mines into `GameState`: fresh placement
+and trigger latches, finite admission, shared serials, per-owner/global limits,
+ordinary sticking flight and covered blast application. Successful placement
+consumes that attack frame after existing grenade and proximity placement
+priority. Refused or held requests spend nothing. A trigger affects currently
+armed owned charges only, never later-armed charges or another owner's device.
+Owner death, leave and shared reset clear the actual devices. Empty worlds return
+before cloning collision geometry. No gun index, contact rule or older weapon
+timing changes.
+
+Snapshot facts, strict bounded collection readers, native control, adapter act
+schema and client sending use the existing input/observation seams. Independent
+record totals, attempt containment and the service-record panel label remote
+placements and effective damage separately. Historical record shape refuses a
+remote column even when it is forged as zero. Current zero columns stay omitted.
+The first record fixture incorrectly claimed 20 active frames at tick zero;
+its failed receipt is retained and the valid fixture now supplies tick 20.
+No active-time or numeric boundary was relaxed.
+
+Twenty-four focused server checks pass, including seven actual live Remote Mine
+fixtures and the existing M02 remote-use boundary. They prove held and short
+presses, exact arming/commitment, real wall sticking, body/gunfire nontrigger,
+covered effective armor/HP damage, owner-specific multi-charge detonation,
+priority/refusal, current snapshots, empty-carry deliberate control, death,
+leave, reset, invalid launch and serial exhaustion. The adapter's remote
+control/observation test passes; broader sim checks pass 52 tests with one
+existing ignored capture, and all 22 participant-record checks pass. Focused
+client custody and service-record harnesses pass with clean logs, including the
+actual separate service-record line and ratio. These are source and headless
+checks, not a rendered gadget, current campaign grant or balance endorsement.
+Final formatter, diff whitespace checks and warning-denied workspace all-target
+Clippy also pass on this checkpoint. The earlier full locked workspace receipt
+belongs to the stock checkpoint; it is not substituted for a future full M11
+run after the live-device changes.
+
+Right of Search remains unavailable. Capability 37 negotiation, the real human
+controls, separate device presentation, source pickups, Redactor, typed M11
+objective/carry contract, complete client and ordinary rendered learning/route
+acceptance remain required. This development leaf must not be integrated as a
+completed or playable M11 merely because its components pass.

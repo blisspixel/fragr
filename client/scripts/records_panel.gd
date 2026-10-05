@@ -134,6 +134,8 @@ func _show_record(index: int) -> void:
 		lines.append(tr("RECORD_WEAPON").format({"weapon": tr("RECORD_GRENADES"), "hits": PlayerRecord.grenade_count(total, "damaging_attacks"), "attacks": PlayerRecord.grenade_count(total, "attacks"), "percent": "%.1f" % (100.0 * PlayerRecord.grenade_count(total, "damaging_attacks") / PlayerRecord.grenade_count(total, "attacks"))}))
 	if PlayerRecord.mine_count(total, "attacks") > 0:
 		lines.append(tr("RECORD_WEAPON").format({"weapon": tr("RECORD_MINES"), "hits": PlayerRecord.mine_count(total, "damaging_attacks"), "attacks": PlayerRecord.mine_count(total, "attacks"), "percent": "%.1f" % (100.0 * PlayerRecord.mine_count(total, "damaging_attacks") / PlayerRecord.mine_count(total, "attacks"))}))
+	if PlayerRecord.remote_mine_count(total, "attacks") > 0:
+		lines.append(tr("RECORD_WEAPON").format({"weapon": tr("RECORD_REMOTE_MINES"), "hits": PlayerRecord.remote_mine_count(total, "damaging_attacks"), "attacks": PlayerRecord.remote_mine_count(total, "attacks"), "percent": "%.1f" % (100.0 * PlayerRecord.remote_mine_count(total, "damaging_attacks") / PlayerRecord.remote_mine_count(total, "attacks"))}))
 	if PlayerRecord.sum_combat(total, "attacks") == 0:
 		lines.append(tr("RECORD_NO_ATTACKS"))
 	if PlayerRecord.secrets(total) > 0:

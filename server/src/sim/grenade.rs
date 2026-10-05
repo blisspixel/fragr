@@ -25,6 +25,7 @@ pub(super) struct Blast {
 pub(super) enum BlastSource {
     Grenade,
     Mine,
+    RemoteMine,
 }
 
 pub(super) struct Grenade {
@@ -230,6 +231,7 @@ impl GameState {
         match blast.source {
             BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
             BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+            BlastSource::RemoteMine => statistics.remote_mine_hit(hp_total, armor_total, kills),
         }
         self.explosion_results.push(ExplosionResult {
             id: blast.id,

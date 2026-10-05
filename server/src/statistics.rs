@@ -111,6 +111,22 @@ impl CombatLedger {
             counts.mines.kills += kills;
         });
     }
+
+    pub fn remote_mine_attack(&mut self) {
+        self.update(|counts| counts.remote_mines.attacks += 1);
+    }
+
+    pub fn remote_mine_hit(&mut self, hp: u64, armor: u64, kills: u64) {
+        if hp + armor == 0 {
+            return;
+        }
+        self.update(|counts| {
+            counts.remote_mines.damaging_attacks += 1;
+            counts.remote_mines.hp_damage += hp;
+            counts.remote_mines.armor_damage += armor;
+            counts.remote_mines.kills += kills;
+        });
+    }
 }
 
 impl GameState {

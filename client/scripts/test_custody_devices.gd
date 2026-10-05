@@ -41,6 +41,25 @@ func _run() -> void:
 	if remote_vectors is Array:
 		for vector: Dictionary in remote_vectors:
 			_check(CustodyFacts.remote_state_valid(vector["state"], int(vector["tick"])) == vector["valid"], "remote boundary: " + str(vector["name"]))
+	var remote_snapshot: Dictionary = {"tick": 70, "remote_mines": [{"id": 11, "owner_id": OWNER, "position": [2, 0.12, 0], "normal": [0, 1, 0], "phase": "armed", "phase_started": 50, "phase_ends": 50}]}
+	_check(CustodyFacts.validation_error(remote_snapshot).is_empty(), "actual armed remote snapshot validates")
+	var duplicate_remote: Dictionary = remote_snapshot.duplicate(true)
+	duplicate_remote["remote_mines"].append(duplicate_remote["remote_mines"][0].duplicate(true))
+	_check(not CustodyFacts.validation_error(duplicate_remote).is_empty(), "duplicate remote id is refused")
+	var shared_id: Dictionary = _mine(70, "armed", 50)
+	shared_id["remote_mines"] = remote_snapshot["remote_mines"].duplicate(true)
+	shared_id["remote_mines"][0]["id"] = 7
+	_check(not CustodyFacts.validation_error(shared_id).is_empty(), "placed device ids never alias across mine kinds")
+	var five_remote: Dictionary = remote_snapshot.duplicate(true)
+	for index: int in range(4):
+		var remote: Dictionary = remote_snapshot["remote_mines"][0].duplicate(true)
+		remote["id"] = 12 + index
+		five_remote["remote_mines"].append(remote)
+	_check(not CustodyFacts.validation_error(five_remote).is_empty(), "fifth live remote for an owner is refused")
+	for remote_patch: Dictionary in [{"phase": "tripped"}, {"phase_started": 71}, {"position": [1025, 0, 0]}, {"extra": true}]:
+		var remote_bad: Dictionary = remote_snapshot.duplicate(true)
+		remote_bad["remote_mines"][0].merge(remote_patch, true)
+		_check(not CustodyFacts.validation_error(remote_bad).is_empty(), "malformed remote snapshot: " + str(remote_patch))
 	for phase: String in CustodyFacts.MINE_PHASES:
 		_check(CustodyFacts.validation_error(_mine(50, phase, 10)).is_empty(), "actual %s mine accepted" % phase)
 	for patch: Dictionary in [{"id": 0}, {"owner_id": "bad"}, {"position": [NAN, 0, 0]}, {"normal": [0, 0, 0]},

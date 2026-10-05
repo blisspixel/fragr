@@ -1061,6 +1061,12 @@ pub struct Action {
     /// Rising-edge proximity mine placement, independent of selected weapon.
     #[serde(default, skip_serializing_if = "is_false")]
     pub place_mine: bool,
+    /// Rising-edge placement from the independent Remote Mine stock.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub place_remote_mine: bool,
+    /// Rising-edge trigger of every currently armed owned Remote Mine.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub trigger_remote_mines: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
     /// Target aim takes precedence after movement: player body centre or world
@@ -1195,6 +1201,8 @@ pub struct Snapshot {
     pub grenades: Vec<GrenadeState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mines: Vec<MineState>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub remote_mines: Vec<RemoteMineState>,
     /// Living campaign Auditors and their repair channels.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub auditors: Vec<AuditorState>,
@@ -1637,6 +1645,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
@@ -1819,6 +1828,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
