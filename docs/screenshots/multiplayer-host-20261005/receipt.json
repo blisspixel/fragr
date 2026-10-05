@@ -48,7 +48,7 @@
     "static_ui_source":  "e82893e3b13686b795d00552e6101414af31992b",
     "static_ui_scope":  "Clean source, all three bot policies in both presets and Multiplayer at three actual window sizes. All 21 literal frames inspected; no native server launched.",
     "scope":  "Source desktop witnesses on one Windows computer; exported packages and physical LAN require separate verification",
-    "retained_failures":  "Original Windows private port predicate, unchanged TDM ACK-gap failure, instrumented mixed-party fixture failures, scene decoder retirement failure and empty-room Sabotage two-desktop score failure remain retained separately. Prepared fixture and empty-Muster tests pass at dff with unfiltered coverage 93.66 percent. Final auto-fill source and composed release verification remain separate gates.",
+    "retained_failures":  "Original Windows private port predicate, unchanged TDM ACK-gap failure, instrumented mixed-party fixture failures, scene decoder retirement failure and empty-room Sabotage two-desktop score failure remain retained separately. Prepared fixture and empty-Muster tests pass at dff with unfiltered coverage 93.66 percent. Final auto-fill source and composed release verification remain separate gates. The complete Linux client checker at 170933 additionally failed on fresh-MapInfo timing and stale retired-PID queries. Test-only 6473 retains mode, deadline, actual audio and unrelated-listener assertions while adding portable retained ownership, closed-pipe and exact-port listener proof. Final composed workflow gates own execution.",
     "schema":  1,
     "two_desktop_last_tick":  769,
     "cases":  [

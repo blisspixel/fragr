@@ -88,6 +88,25 @@ a contested ten-player match or human enjoyment. The earlier TDM moving route
 still has no resolved kill; authoritative TDM scoring and plant/defuse have their
 separate server and semantic playtest checks.
 
+### Full Linux checker fixture correction
+
+Public source `170933df` passes all three extracted desktop package and install
+checks in [run 37381173537](https://github.com/blisspixel/fragr/actions/runs/37381173537).
+Its complete Linux client checker in [run 37381173466](https://github.com/blisspixel/fragr/actions/runs/37381173466)
+fails the desktop lifecycle fixture. Role change clears the presenter's old map;
+Welcome can precede the fresh MapInfo. The fixture asserted the mode too early.
+It also queried an already retired PID, which the Unix process API reports as
+an error. These failures are retained and do not count as a whole-client pass.
+
+Test-only correction `6473e758` waits for fresh validated map data under the
+existing deadline before the unchanged mode assertion. It retains the actual
+process owner across Stop or owner deletion, checks retired ownership and closed
+pipes, and rebinds the exact captured loopback port to prove listener closure.
+All five radio-retirement checks, unrelated-listener protection and live PID
+checks remain. Independent source review and a clean parse pass; final composed
+CI owns full Linux, Windows and macOS execution. Production client and native
+trees are unchanged, preserving the played witnesses' stated runtime scope.
+
 ## Literal captures
 
 The Host controls below come from clean source `e82893e3`. All three bot

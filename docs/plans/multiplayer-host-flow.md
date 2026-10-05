@@ -193,6 +193,16 @@ native source and immutable executable.
 
 ## Documentation, spend and remaining limits
 
+The first composed public head `170933df` passes all three packaged install
+checks but fails the full Linux desktop fixture: human Welcome arrives before
+fresh presenter MapInfo, and querying a saved PID after owner retirement produces
+a Unix error. Retain this failed whole check. Test-only `6473e758` waits for the
+fresh validated map within the existing bound, keeps the explicit mode assertion
+and verifies retained process ownership, closed pipes and exact-port rebind after
+each Stop. It keeps all five actual radio references and unrelated-listener
+checks. No production behavior, deadline or error filter changes. The final
+composed CI and package gates must execute this correction before promotion.
+
 After actual behavior exists, update `HOSTING.md`, `DESKTOP.md`, `PLAYING.md`
 and `infra/docs/HOME-LAN.md` with desktop hosting and exact dedicated commands.
 Correct the stale omitted Sabotage/profile options and historical open-CI
