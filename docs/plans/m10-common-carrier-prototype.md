@@ -594,3 +594,31 @@ diagonals and upper stair opening so the whole route uses walking surfaces.
 The failed rendered and diagnostic attempts remain retained. The cabin's
 storage-box bed shape, repeated surfaces and cloned cast are final-art
 limitations, rather than accepted finished rooms or casting.
+
+## Measured landing joins
+
+The live client preflight confirms the fore boarding aisle avoids the actual
+crew choke. It also exposes structural gaps at both levels: each west return
+platform stops 0.10 m short of the adjoining deck, and each east platform
+starts 0.20 m beyond it. An ordinary upper side-entry falls from 7.6 m to the
+lower deck. Preserve that failure, its server ACK trace, the old map bytes
+and content hash before editing the four existing platform endpoints.
+
+Join only those measured gaps in authoritative solids. Keep all 112 solids,
+the stair openings, headroom, physics, all guards and finite stock unchanged.
+Prove actual side-entry and transfers in both directions, plus ordinary client
+crew routes for every recorded roster and historical unknown. Freeze the new
+authored content hash and matching executable, verify canonical save promotion
+and retries against it, then rerun relevant native and complete client gates.
+The next full route must report the changed authored layout accurately and
+retain all original combat, arrival and departure assertions.
+
+The focused native correction passes all 16 M10 tests and its actual local
+child admission test. The ready-session proof now walks all four recorded
+crew rosters and historical unknown across both repaired side joins at each
+deck height, both stairs and all three decks. First guards remain alive and
+inactive; future guards remain absent. Normal arrivals claim the finite
+cabin medkit and upper-deck armor once, with exact 89 HP and 67 armor and
+unchanged ammunition and explosives. These are movement and supply proofs,
+not completed combat. Actual client ACK preflight, fresh native, complete
+client checks and the 28-state combat departure remain open.

@@ -340,6 +340,51 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
             [3.5, 4.8, -12.1],
             [0.0, 4.8, -12.1],
             [0.0, 4.8, -15.0],
+            [0.0, 4.8, -17.2],
+            [-4.45, 4.8, -17.2],
+            [-4.45, 4.8, -14.5],
+            [-4.45, 3.4, -4.5],
+            [-6.55, 3.4, -4.5],
+            [-6.55, 2.0, -14.5],
+            [-6.55, 3.4, -4.5],
+            [-4.45, 3.4, -4.5],
+            [-4.45, 4.8, -14.5],
+            [-4.45, 4.8, -13.2],
+            [-2.8, 4.8, -13.2],
+            [-4.45, 4.8, -13.2],
+            [-4.45, 4.8, -14.5],
+            [-6.55, 4.8, -14.5],
+            [-6.55, 6.2, -4.5],
+            [-4.45, 6.2, -4.5],
+            [-4.45, 7.6, -14.5],
+            [-2.8, 7.6, -14.5],
+            [-4.0, 7.6, -14.5],
+            [-2.8, 7.6, -14.5],
+            [-2.8, 7.6, 14.0],
+            [0.0, 7.6, 14.0],
+            [6.65, 7.6, 14.5],
+            [0.0, 7.6, 14.0],
+            [6.65, 7.6, 14.5],
+            [6.65, 6.2, 4.5],
+            [4.55, 6.2, 4.5],
+            [4.55, 4.8, 14.5],
+            [0.0, 4.8, 14.0],
+            [4.55, 4.8, 14.5],
+            [4.55, 6.2, 4.5],
+            [6.65, 6.2, 4.5],
+            [6.65, 7.6, 14.5],
+            [0.0, 7.6, 14.0],
+            [-2.8, 7.6, 14.0],
+            [-2.8, 7.6, -14.5],
+            [-4.0, 7.6, -14.5],
+            [-4.45, 7.6, -14.5],
+            [-4.45, 6.2, -4.5],
+            [-6.55, 6.2, -4.5],
+            [-6.55, 4.8, -14.5],
+            [-4.45, 4.8, -14.5],
+            [-4.45, 4.8, -17.2],
+            [0.0, 4.8, -17.2],
+            [0.0, 4.8, -15.0],
         ] {
             let mut arrived = false;
             for _ in 0..300 {
@@ -384,8 +429,8 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
         let player = session.state.players.iter().find(|p| p.id == id).unwrap();
         assert_eq!(
             (player.hp, player.armor),
-            (89, 17),
-            "actual finite cabin medkit, no other damage or grant"
+            (89, 67),
+            "actual finite cabin medkit and crew armor, no damage or invented grant"
         );
         assert_eq!(
             player
@@ -402,6 +447,16 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
                 .find(|p| p.id == "passenger_medical")
                 .unwrap()
                 .available
+        );
+        assert!(
+            !session
+                .state
+                .pickups
+                .iter()
+                .find(|p| p.id == "crew_armor")
+                .unwrap()
+                .available,
+            "the ordinary upper aisle claims the real finite armor"
         );
         for _ in 0..400 {
             session.tick_messages(0.05);
@@ -516,6 +571,8 @@ fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes()
             [3.5, 4.8, -12.1],
             [0.0, 4.8, -12.1],
             [0.0, 4.8, -15.0],
+            [0.0, 4.8, -17.2],
+            [-4.45, 4.8, -17.2],
             [-4.45, 4.8, -14.5],
             [0.0, 2.0, -12.0],
             [3.2, 2.0, -14.0],
