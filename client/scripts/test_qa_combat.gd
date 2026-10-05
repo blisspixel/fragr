@@ -927,9 +927,19 @@ func _check_m10_route() -> void:
 		for enemy: Dictionary in group["enemies"]:
 			authored.append(enemy["id"])
 	var required: Array[String] = []
+	var selected: String = "Sniper"
+	_check(tour.get("combat_travel") == false, "ship travel combat requires an explicit scoped opt-in")
 	for state: Dictionary in tour["states"]:
 		if state.has("weapon"):
 			_check(state["weapon"] in ["Flechette", "Scatter"], "ship route selects only actual carried weapons")
+			selected = state["weapon"]
+		if TOUR.combat_travel_enabled(tour, state):
+			_check(selected == "Flechette", "travel selector's 24 metre band stays inside the actual owned gun range")
+			var targets: Variant = state.get("combat_travel_targets")
+			_check(targets is Array and not targets.is_empty(), "active ship travel requires explicit authored hostile targets")
+			if targets is Array:
+				for target: String in targets:
+					_check(authored.has(target), "travel combat cannot borrow an unauthored or friendly target")
 		if state.get("combat") is Dictionary:
 			var combat: Dictionary = state["combat"]
 			_check(combat.get("target_required_only") == true and combat.get("evade_tells") == true, "ship fights retain bounded targets and real tell defense")

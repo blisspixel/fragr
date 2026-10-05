@@ -712,3 +712,15 @@ restricted to that group's five real guards. Every original waypoint, gate
 and finite stock remains. This addresses measured omitted return fire at
 encounter approaches, without changing the genuine difficulty or pretending
 different fresh processes have identical attack timing.
+
+The revised CPU replay proves all 17 real deaths, then exposes an obsolete
+test assumption: the final defense state expects only three objectives even
+after its own ordinary approach enters the original passenger arrival region
+and travel has killed all four guards. The server correctly records the fourth
+objective earlier during that supported route. Require the full four-objective
+prefix at the defense state, retaining the next actual arrival and fresh Use
+departure. Add a focused route safety regression requiring scoped travel to
+use the real carried Flechette and explicit existing hostile IDs; its 24 m
+selector must stay inside the actual weapon range. This corrects the expected
+authority facts, rather than delaying a valid completion or accepting fewer
+objectives. That failed replay never attempted departure and remains retained.

@@ -1095,7 +1095,8 @@
       "expect_m10_completed": [
         "forward_secured",
         "service_secured",
-        "aft_secured"
+        "aft_secured",
+        "passengers_secured"
       ],
       "note": "Final actual four-body defense includes the real Enforcer. All seventeen original mission guards remain mandatory."
     },
