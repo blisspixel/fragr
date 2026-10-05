@@ -8,8 +8,10 @@ art rung in the [Full build order](../ROADMAP.md#full-build-order).
 The subsequent explicit direction is to use the Shotgun's successful drawn
 first-person image workflow. Flat sprites are acceptable. The Pistol's model
 reconstruction and live-3D presentation experiment are stopped. The current
-replacement is a new coherent drawn idle/fire pair, with ordinary played and
-final integration acceptance still required. Existing world models and
+replacement is a new coherent drawn idle/fire pair. A seven-state ordinary
+discovery and combat prefix has passed; final integration acceptance remains
+required. The [dated receipt](../evidence/pistol-and-latch-continuity-20261005.md)
+includes literal gameplay captures and the corrected home scene. Existing world models and
 mechanical source receipts are retained separately.
 
 ## Observed problem
@@ -67,11 +69,11 @@ already supports it.
    recognizable metal, wood and leather values, useful bevel highlights and
    shape normals. Keep nearest sampling and pixel clusters without globally
    crushing every material into the same dull value range.
-3. Use the reviewed five-digit glove source and purposeful local finger
-   pivots. The source is a left glove despite its request label; any right-hand
-   mirror must repair winding and normals. Fit the palm, thumb, wrist and
-   trigger finger to actual geometry. Test visible joints, grip contact and
-   moving-part clearance, then inspect the hands in motion.
+3. Match the same player's palms, finger thickness, wrist width and sleeve
+   materials across drawn weapons. Compare actual HUD-sized rest and fire
+   frames, bob and supported aspects; matching canvas dimensions alone is
+   insufficient. The retained five-digit glove source is a left glove, not a
+   finished hand rig, and does not require reviving the stopped model workflow.
 4. Compare several first-person compositions against the same live camera and
    HUD: clear aim direction, visible side planes, believable scale and a small
    amount of screen coverage. The weapon must read well at normal distance

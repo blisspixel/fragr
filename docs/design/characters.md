@@ -1,6 +1,6 @@
 # Character, voice and scene continuity
 
-Production contract, updated 2026-10-04. [Cast](../lore/cast.md) owns roles and the
+Production contract, updated 2026-10-05. [Cast](../lore/cast.md) owns roles and the
 visual anchors; [voice](../lore/voice.md) owns registers and recorded wording.
 The owner-provided [free-duo reference](../../client/art/characters/references/free-duo-reference.png),
 accepted 2026-10-01, anchors the look direction below. The later approved text
@@ -83,6 +83,13 @@ acceptance and wider cast refinement remain open. Their implementation does
 not approve later portraits or voices. Apply this identity to later reference
 sheets, poses and casting briefs while preserving the existing gameplay
 contracts; a shared civilian source does not establish a named person's face.
+
+The October 5 home correction uses Latch's same canonical screen, anatomical-left
+antenna, lean adult proportions and unequal repairs. Its
+[dated visual receipt](../evidence/pistol-and-latch-continuity-20261005.md) records
+the ordinary story screen at three aspect ratios. Other portraits and named
+gameplay bodies require their own identity review; this one correction does not
+approve generic crew stand-ins.
 
 The duo shows two free people, not a required player pairing or a coalition
 uniform. A selectable agent body does not automatically depict Latch, and the
