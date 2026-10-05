@@ -18,6 +18,7 @@ pub(super) struct M02Progress {
 
 mod companion;
 mod evacuation;
+pub(crate) mod tableau;
 pub(crate) use evacuation::validate_route as validate_m02_evacuation_route;
 
 impl M02Progress {

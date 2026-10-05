@@ -6,6 +6,10 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Match the Sniper's leather gloves to the drawn weapon family, restore the
+  Shiv's shared resting hand scale and show Tern's provisional synthetic body
+  in both berth and ship scenes. Combat timing, scope and crew facts stay intact.
+
 - Escape supported static-cover corners with a bounded ordinary movement lease,
   preserving combat intent, deliberate drops and existing stuck thresholds.
   Retain the original intermittent report's attribution limit. The M02
@@ -19,8 +23,25 @@ Release history, newest first. Planned work stays in
 - Record immutable Passenger Manifest crew release and actual aboard-at-
   departure facts alongside the finite player exit. Strict version 12 saves
   archive exact older bytes and retain missing historical crew facts as unknown.
-  Common Carrier transit and level 10 are outside this composition and current
-  main; the separate prototype remains in flight.
+
+- Extend the local campaign prototype through Common Carrier, with a sealed
+  three-deck ship, two stairs, four ordered objectives and finite carried stock.
+  Strict version 13 promotion records released crew finishing boarding separately
+  from the immutable berth subset; historical unknowns remain unknown. Tern is
+  the current pilot, and optional arrivals require recorded outcomes. A measured
+  repair workbench replaces its broad proxy with twelve matching physical parts.
+  Full ordinary 28-state combat and departure pass locally. Repeater discovery,
+  final interior craft and fresh-player difficulty remain open; M11 is pending.
+
+- Let eligible living people and companions stop resolved hitscan and traveling
+  pulses through their authoritative bodies, without inventing neutral HP,
+  damage or faction. Preserve guarded photographs and actual release visibility.
+
+- Replace the rejected Pistol first-person view with a coherent drawn idle/fire
+  pair, retaining combat and world-model behavior. Correct the home still to the
+  current lean screen-faced Latch. Ordinary Pistol combat, story playback and
+  three aspect ratios pass; other hand and named-character inconsistencies remain
+  tracked separately.
 
 ## v0.75.0 (2026-10-04)
 

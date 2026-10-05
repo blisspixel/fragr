@@ -36,7 +36,7 @@ func apply_state(state: Dictionary) -> void:
 		if not _figures.has(id):
 			var figure: Sprite3D = Sprite3D.new()
 			figure.name = "ShipOccupant_" + id
-			figure.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if id == "splice" else PlayerBody.HUMAN)) as Texture2D
+			figure.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if id in ["tern", "splice"] else PlayerBody.HUMAN)) as Texture2D
 			figure.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
 			figure.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 			figure.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y

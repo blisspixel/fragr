@@ -8,33 +8,33 @@ extends RefCounted
 ## are in `res://assets/art-pass-20261002-manifest.json`, and for the redrawn
 ## Rifle in `res://assets/art-pass-2-20261002-manifest.json`. All are palette
 ## sprites drawn with nearest sampling.
-## The selected civilian Pistol frames are baked from the reviewed local
-## source in `res://art/models/candidates/pistol.glb`; source and bake hashes
-## are retained beside it. They preserve existing shot and pickup timing.
+## The Pistol's first-person pictures follow the Shotgun's drawn sprite style.
+## Its separate local model still supplies the world pickup profile. The new
+## sprite source and selection hashes are in pistol-sprite-20261005/selection.json.
 ##
-## "Sniper" is the existing Level 7 Sniper Rifle. Its reviewed walnut and
-## charcoal source supplies held, fire and pickup pictures without changing
-## finite Cells, scope behavior or the existing server shot timing.
+## "Sniper" is the existing Level 7 Sniper Rifle. Its drawn held/fire pair
+## matches the Shotgun glove family; the separate walnut/charcoal source still
+## supplies its pickup. Finite Cells, scope and server shot timing are unchanged.
 
 ## First-person pose at rest. Fists and the Shiv keep their own animation.
 const IDLE: Dictionary[String, Texture2D] = {
 	"Fists": preload("res://assets/weapons/viewmodels/fists_idle.png"),
-	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol_idle.png"),
+	"Tack": preload("res://assets/weapons/pistol-sprite-20261005/pistol_idle.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/rifle_idle.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_idle.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_idle.png"),
-	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper_idle.png"),
+	"Sniper": preload("res://assets/weapons/sniper-sprite-20261005/sniper_idle.png"),
 	"Shiv": preload("res://assets/weapons/viewmodels/shiv_idle.png"),
 }
 
 ## The frame at the instant of the shot, its muzzle flash painted in. Each was
 ## drawn from its own idle, so the two register on the same full canvas.
 const FIRE: Dictionary[String, Texture2D] = {
-	"Tack": preload("res://assets/weapons/pistol-source-20261004/pistol_fire.png"),
+	"Tack": preload("res://assets/weapons/pistol-sprite-20261005/pistol_fire.png"),
 	"Flechette": preload("res://assets/weapons/viewmodels/rifle_fire.png"),
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_fire.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_fire.png"),
-	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper_fire.png"),
+	"Sniper": preload("res://assets/weapons/sniper-sprite-20261005/sniper_fire.png"),
 }
 
 ## A follow-through after the shot: the Shotgun's pump stroke.

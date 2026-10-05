@@ -730,3 +730,21 @@ use the real carried Flechette and explicit existing hostile IDs; its 24 m
 selector must stay inside the actual weapon range. This corrects the expected
 authority facts, rather than delaying a valid completion or accepting fewer
 objectives. That failed replay never attempted departure and remains retained.
+
+## Final composed local route
+
+The reviewed companion and opaque character-shot behavior, measured workbench
+host and drawn Pistol are now composed. Frozen source `4375358f` passes one
+fresh ordinary 28-state hardware route, all 17 actual guard deaths, four
+objectives and fresh shared departure with the original finite carry fixture.
+The exact QA file remains unchanged; the bench map change is explicitly
+registered and tested. Completed save13 retains actual inventory and distinct
+berth/transit facts. Final native workspace and the matching complete client
+checker pass. Literal captures and exact receipts are in the
+[dated evidence](../evidence/m10-common-carrier-20261005.md).
+
+Final-head CI and all three desktop packages remain promotion gates. The
+authored collision, objectives, carry and completion prototype has local
+acceptance, not final ship art or fresh-player feel acceptance. Repeater
+discovery, source/cue/lesson, named cast, story craft, inhabited equipment and
+the difficulty matrix remain open. M11 remains unplayable in this source.

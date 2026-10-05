@@ -383,7 +383,14 @@ fn empty_throw_allows_gun_fire_and_self_only_blast_has_no_outgoing_credit() {
     assert_eq!(state.player_record(owner).unwrap().total.attacks(), 1);
     state.players[0].hp = 20;
     state.players[0].killstreak = 4;
+    state
+        .spawn_shields
+        .insert(owner, crate::sim::SPAWN_SHIELD_TICKS);
     state.resolve_explosion(&grenade([0.0, 0.5, 0.0], [0.0; 3]), &arena(vec![]));
+    assert!(
+        state.players[0].hp <= 0,
+        "incoming spawn immunity must not cancel environmental self damage"
+    );
     assert_eq!(state.scores[&owner], 0);
     assert_eq!(state.players[0].killstreak, 0);
     assert_eq!(state.player_record(owner).unwrap().total.grenades.kills, 0);

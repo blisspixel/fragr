@@ -56,6 +56,34 @@ func _ship_presentation(game: Node) -> void:
 	var cover: ArenaCover = game.arena_cover
 	var info: Dictionary = game.current_map_info
 	_check(cover != null and cover._solid_views.size() == info["solids"].size(), "actual accepted ship solids have matching presentation")
+	var bench_host: Dictionary = ShipFurnishings.matched_host(info)
+	_check(not bench_host.is_empty(), "accepted server map has the measured physical bench host")
+	var bench: Node3D = cover.get_node_or_null("RepairWorkbench") as Node3D
+	_check(bench != null and ShipFurnishings.source_error(bench).is_empty(), "actual accepted map presents the packaged measured workbench")
+	if bench != null and not bench_host.is_empty():
+		_check(bench.position.distance_to(bench_host["origin"]) < 0.0001 and absf(bench.rotation.y - PI) < 0.0001, "source working face and feet register to the accepted host")
+		for child: Node in bench.find_children("*", "MeshInstance3D", true, false):
+			_check((child as MeshInstance3D).layers == 2, "workbench belongs to world lighting layer")
+		for index: int in range(info["solids"].size()):
+			_check(cover._solid_views[index].visible == not (index in bench_host["indices"]), "only measured proxy pieces are replaced by actual source art")
+		var changed: Dictionary = info.duplicate(true)
+		changed["solids"][bench_host["indices"][1]]["max_x"] += 0.02
+		_check(ShipFurnishings.matched_host(changed).is_empty(), "changed physical cabinet cannot silently keep the old source fit")
+		changed = info.duplicate(true)
+		changed["solids"].append(changed["solids"][bench_host["indices"][1]].duplicate(true))
+		changed["presentation"]["solids"].append("lift_panel")
+		_check(ShipFurnishings.matched_host(changed).is_empty(), "ambiguous duplicated host refuses source selection")
+		var replacement: ArenaCover = ArenaCover.new()
+		root.add_child(replacement)
+		replacement.apply_map_info(info)
+		var old_source: WeakRef = weakref(replacement.get_node("RepairWorkbench"))
+		replacement.apply_map_info(changed)
+		_check(replacement.get_node_or_null("RepairWorkbench") == null, "a map rebuild with unmatched host retains physical fallback")
+		for view: MeshInstance3D in replacement._solid_views:
+			_check(view.visible, "fallback does not hide unmatched collision pieces")
+		await process_frame
+		_check(old_source.get_ref() == null, "map rebuild retires the old source and its resources")
+		replacement.free()
 	_check(not (cover.get_node("MapFloor") as Node3D).visible, "sealed ship does not draw an outside arena floor")
 	for index: int in range(4):
 		_check(not (cover.get_node("MapBoundary%d" % index) as Node3D).visible, "outside arena boundary cannot hide the pressure window")
@@ -138,7 +166,7 @@ func _run() -> void:
 	_check(_gear()["personal_claims"].is_empty() and game.net_client.accepted_body == "synthetic", "old claims clear while saved body persists")
 	_check(game.mission_hud.state["m10"]["carried_archive"] == fixture["m08_outcome"] and game.m10_ship._figures.size() == 5 and game.mission_hud.state["m10"]["transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "actual archive facts and only released crew arrive aboard the ship")
 	_check(game.mission_hud.state["run"]["continues"] == 3, "exactly one Episode III refill")
-	_ship_presentation(game)
+	await _ship_presentation(game)
 	if not await _until(func() -> bool: return game._has_local_input_target() and game.place_armed, "actual pawn input is armed after the story release frame"):
 		return
 	Input.action_press("place_mine")
@@ -188,6 +216,7 @@ func _run() -> void:
 	_check(_gear()["proximity_mines"] == 3 and _gear()["grenades"] == 2 and EquipmentState.ammo(_gear(), "cells") == 1, "retry restores actual finite entry, not spent live inventory")
 	_check(game.mission_hud.state["run"]["continues"] == 3 and game.net_client.accepted_body == "synthetic", "reopen does not refill or alter identity")
 	_check(game.mission_hud.state["m10"]["transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "reopen never duplicates transit")
+	await _ship_presentation(game)
 	# Real ordinary movement crosses the forward activation boundary. This
 	# death/continue fixture does not fire, clear guards or claim fight success.
 	if not await _until(func() -> bool: return game._has_local_input_target() and not game.controls_blocked(), "retry input is live before entering danger"):

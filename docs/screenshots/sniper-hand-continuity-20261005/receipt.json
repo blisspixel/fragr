@@ -1,0 +1,41 @@
+{
+    "full_mission_route":  false,
+    "difficulty":  "assisted",
+    "owned_processes_retired":  true,
+    "date":  "2026-10-05",
+    "native_source_commit":  "400595d06b6b268a64b0321015ae23921e597567",
+    "captures":  [
+                     {
+                         "sha256":  "0733c9aee07ce25336e872dc8d61409e64da0823323939df86b7e1acb80e1a4b",
+                         "edited":  false,
+                         "file":  "sniper-interior.png"
+                     },
+                     {
+                         "sha256":  "19bdce1ee9a723b3877d5632248f85fa9ba411bf4128948a7d7d88720605f865",
+                         "edited":  false,
+                         "file":  "sniper-fire.png"
+                     },
+                     {
+                         "sha256":  "2f0477c51dae21f605905a05da5e55fb3e565d61a297a63de6ff56f1094512e8",
+                         "edited":  false,
+                         "file":  "sniper-and-latch.png"
+                     }
+                 ],
+    "prefix_manifest_sha256":  "f61e3715079ec317589eb990948687359c032e72380d365f3627ac2eb4dd829c",
+    "renderer":  "OpenGL Compatibility",
+    "seed":  42,
+    "resolution":  [
+                       1280,
+                       720
+                   ],
+    "schema":  1,
+    "clean":  true,
+    "qa_manifest_sha256":  "9c1ad1ca38cd496502cadf37820a5a084bdaad2e63c22a59a649bcc5c5be9a9c",
+    "canonical_manifest_sha256":  "117b14212bbab3faf26f023357289ffed9d98cfdcce5dbacd7069170ff42758a",
+    "client_commit":  "94a270f2e406944ced574df2cfe6f0fee12eec16",
+    "native_sha256":  "a04418b6f9ddd6a50e9697f31d2a921cc29998fdad61ff6df30737aa100eeb3f",
+    "device":  "AMD Radeon 780M",
+    "godot":  "4.7.2-stable",
+    "renderer_exit":  0,
+    "canonical_states":  20
+}

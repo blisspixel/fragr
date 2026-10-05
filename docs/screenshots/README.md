@@ -5,12 +5,41 @@ The `tour_*.png` files are the arena tour captured by
 The `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
-proof of good art. The README embeds four files and no more: `tour_menu_16x9.png`,
-`m01_intake_16x9.png`, `tour_multiplayer_16x9.png`, and `tour_combat_follow_16x9.png`.
-A player-visible change refreshes the one of those four that shows the surface,
-in the same change. The other files in this directory stay as tour evidence.
+proof of good art. The README uses four actual gameplay stills under
+`readme-20261005/`: `shotgun-combat.png`, `low-water-combat.png`,
+`lunar-town.png` and `multiplayer-combat.png`. Refresh a selected still when its
+shown presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
+
+## Current README gallery, October 5, 2026
+
+The four current stills were captured afresh against main `400595d0`, using
+its matching private release server. The later asset-receipt main `d511a0ed`
+has byte-identical runtime source and selected artwork. Each selected PNG is
+copied without cropping, retouching or resolution changes. The
+[capture receipt](readme-20261005/receipt.json) records exact image, route,
+QA-manifest and native hashes. All owned processes retired after numeric exit
+zero and clean script/runtime logs. Godot 4.7.2-stable, Windows, OpenGL
+Compatibility, AMD Radeon 780M, 1280x720 and seed 42 were used.
+
+| Image | Actual captured state |
+|---|---|
+| Shotgun combat | Resolved Shotgun hit and muzzle flash in Persons Unknown's guard room, after ordinary weapon discovery |
+| Low Water combat | Resolved restored-Rifle hit beside the market eviction notice |
+| Lunar town | Ordinary tunnel-mouth view of Declared Goods' pressure dome, inhabited blocks and depot tower |
+| Multiplayer | A watched Free-side team in a live ten-bot 5v5 Sector 9 Sabotage round; humans and agents can join this format, but this captured roster is rule bots |
+
+The campaign captures use assisted difficulty and unchanged prefixes of the
+canonical ordinary-input routes: five M02 states, six M04 states and sixteen
+M07 states. They preserve finite discovery, combat, enemy requirements and
+walking collision. They do not claim completed missions, fresh-player fun,
+final art or hardware performance. The multiplayer capture does not establish
+competitive map balance. No new asset is selected by this documentation change.
+Additional lunar-port and Arena Duel captures were inspected and retained
+privately; they were not selected for the README.
+
+## Earlier tours and evidence
 
 On 2026-10-03 the [art production pass](../plans/art-excellence.md) refreshed
 and inspected all 32 standard tour states, publishing fourteen selected

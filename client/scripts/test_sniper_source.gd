@@ -230,13 +230,32 @@ func _check_selection() -> void:
 		and receipt.get("bake_sha256") == FileAccess.get_sha256("res://../tools/preview_sniper_source.gd"),
 		"selection binds the actual accepted source, presenter and baker")
 	var textures: Dictionary[String, Texture2D] = {
-		"sniper_idle.png": Art.IDLE["Sniper"], "sniper_fire.png": Art.FIRE["Sniper"], "sniper.png": Art.PROFILE["Sniper"]}
+		"sniper_idle.png": load(SELECTED + "sniper_idle.png"),
+		"sniper_fire.png": load(SELECTED + "sniper_fire.png"), "sniper.png": Art.PROFILE["Sniper"]}
 	for label: String in textures:
 		var texture: Texture2D = textures[label]
 		_check(texture.resource_path == SELECTED + label and not texture.get_image().has_mipmaps()
 			and receipt.get("frames", {}).get(label) == FileAccess.get_sha256(SELECTED + label)
 			and FileAccess.get_sha256(SELECTED + label) == FileAccess.get_sha256("res://art/models/candidates/sniper_views/" + label),
-			"live " + label + " uses the exact reviewed pixel picture without mipmaps")
+			"historical " + label + " retains the exact source bake without mipmaps")
+	var drawn_path: String = "res://assets/weapons/sniper-sprite-20261005/"
+	var drawn: Variant = JSON.parse_string(FileAccess.get_file_as_string(drawn_path + "selection.json"))
+	_check(drawn is Dictionary and drawn.get("runtime_selected") == true
+		and drawn.get("registration_tool_sha256") == FileAccess.get_sha256("res://../tools/register_sniper_sprite.gd"),
+		"drawn selection binds its independent registration recipe")
+	for label: String in ["sniper_idle.png", "sniper_fire.png"]:
+		var texture: Texture2D = Art.IDLE["Sniper"] if label == "sniper_idle.png" else Art.FIRE["Sniper"]
+		var picture: Image = texture.get_image()
+		_check(texture.resource_path == drawn_path + label and picture.get_size() == Vector2i(241, 180)
+			and not picture.has_mipmaps() and drawn is Dictionary
+			and drawn.get("frames", {}).get(label) == FileAccess.get_sha256(drawn_path + label),
+			"selected drawn " + label + " uses the registered canvas and exact picture")
+		for y: int in range(picture.get_height()):
+			for x: int in range(picture.get_width()):
+				var alpha: float = picture.get_pixel(x, y).a
+				_check(alpha == 0.0 or alpha == 1.0, "drawn pair retains hard alpha without a background rectangle")
+		_check(picture.get_pixel(0, 0).a == 0.0 and picture.get_used_rect().end.y == 180,
+			"drawn source keeps clear background and connected bottom wrists")
 	_check(Art.frame_after_shot("Sniper", 0.0) == Art.FIRE["Sniper"]
 		and Art.frame_after_shot("Sniper", 0.079) == Art.FIRE["Sniper"]
 		and Art.frame_after_shot("Sniper", 0.080) == Art.IDLE["Sniper"]

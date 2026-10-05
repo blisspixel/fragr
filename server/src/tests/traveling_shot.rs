@@ -178,7 +178,7 @@ fn the_point_does_not_steer_toward_a_body_that_leaves_its_line() {
 }
 
 #[test]
-fn a_spawn_shield_does_not_stop_the_point() {
+fn a_spawn_shield_stops_the_point_without_damage() {
     let mut state = range(json!([]));
     let shooter = place(&mut state, "Shooter", 0.0, 0.0, 0.0);
     let target = place(&mut state, "Target", 2.0, 0.0, 0.0);
@@ -186,7 +186,11 @@ fn a_spawn_shield_does_not_stop_the_point() {
     assert!(state.launch_traveling_shot(shooter));
     advance(&mut state, ticks_to_reach(2.0));
     assert_eq!(hp(&state, target), PLAYER_MAX_HP);
-    assert!(state.snapshot().projectiles[0].x > 1.5);
+    assert!(state.snapshot().projectiles.is_empty());
+    assert!(!state
+        .events
+        .iter()
+        .any(|event| matches!(event, GameEvent::Hit { .. })));
 }
 
 #[test]

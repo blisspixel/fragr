@@ -77,6 +77,8 @@ func apply_map_info(info: Dictionary) -> void:
 		if not presentation.is_empty():
 			material = authored_materials[presentation["solids"][index]]
 		_add_solid(solids[index], material)
+	if venue == "common_carrier":
+		ShipFurnishings.build(self, info, _solid_views)
 	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))))
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent, venue)

@@ -137,7 +137,69 @@ fn m10_service_approach_routes_around_the_actual_cargo_and_stair_corner() {
         assert!((next.y - 2.0).abs() <= 0.03, "ordinary lower-deck support");
         body = next;
     }
-    assert_eq!(map.arena.solids.len(), 112);
+    assert_eq!(map.arena.solids.len(), 123);
+}
+
+#[test]
+fn m10_workbench_has_real_cabinets_worktop_and_open_knee_rays() {
+    let map = AuthoredMap::read(SOURCE).unwrap();
+    assert_eq!(map.arena.solids.len(), 123);
+    assert!(map.arena.solids.len() <= 128);
+    let doc: Document = serde_json::from_slice(SOURCE).unwrap();
+    assert!(!doc.solids.iter().any(|s| s.id == "passenger_repair_bench"));
+    assert_eq!(
+        doc.solids
+            .iter()
+            .filter(|s| s.id.starts_with("repair_"))
+            .count(),
+        12
+    );
+
+    let rays = &map.arena.solids;
+    assert!(
+        crate::combat::line_of_sight([5.9, 5.25, -10.5], [5.9, 5.25, -8.0], rays),
+        "actual knee opening must not retain the old invisible crate"
+    );
+    for x in [5.25, 6.55] {
+        assert!(
+            !crate::combat::line_of_sight([x, 5.25, -10.5], [x, 5.25, -8.0], rays),
+            "actual cabinet remains cover at {x}"
+        );
+    }
+    for y in [5.65, 5.80] {
+        assert!(
+            !crate::combat::line_of_sight([5.9, y, -10.5], [5.9, y, -8.0], rays),
+            "worktop and rack remain physical at {y}"
+        );
+    }
+    assert!(
+        crate::combat::line_of_sight([5.9, 6.1, -10.5], [5.9, 6.1, -8.0], rays),
+        "source rack does not become an invisible tall wall"
+    );
+    assert!((map.arena.support_height(5.9, -9.2, 5.71) - 5.70).abs() < 0.001);
+
+    let from = MoveState {
+        x: 5.9,
+        y: 4.8,
+        z: -8.0,
+        vx: 0.0,
+        vy: 0.0,
+        vz: 0.0,
+        yaw: 0.0,
+    };
+    let (stopped, through) = straight(&map.arena, from, [5.9, 4.8, -10.0]);
+    assert!(
+        !through,
+        "standing players cannot crouch through the low worktop"
+    );
+    assert!((stopped.y - 4.8).abs() < 0.03);
+    let beside = MoveState { x: 4.5, ..from };
+    let (moved, arrived) = straight(&map.arena, beside, [4.5, 4.8, -10.0]);
+    assert!(
+        arrived,
+        "actual side access must remain grounded: {moved:?}"
+    );
+    assert!((moved.y - 4.8).abs() < 0.03);
 }
 
 #[test]

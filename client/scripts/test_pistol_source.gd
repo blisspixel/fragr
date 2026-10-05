@@ -112,19 +112,31 @@ func _run() -> void:
 		and bake.get("presenter_sha256") == FileAccess.get_sha256("res://art/models/pistol_source.gd")
 		and bake.get("bake_sha256") == FileAccess.get_sha256("res://../tools/preview_pistol_source.gd")
 		and bake.get("runtime_selected") == false, "selected pixels match their historical candidate source and bake receipt")
-	for entry: Array in [[WeaponArt.IDLE["Tack"], "pistol_idle.png"],
-		[WeaponArt.FIRE["Tack"], "pistol_fire.png"], [WeaponArt.PROFILE["Tack"], "pistol.png"]]:
+	for label: String in ["pistol_idle.png", "pistol_fire.png", "pistol.png"]:
+		var historical: String = "res://assets/weapons/pistol-source-20261004/" + label
+		_check(FileAccess.get_sha256(historical) == bake.get("frames", {}).get(label),
+			"historical packaged source picture retains its exact offline bake")
+	_check(WeaponArt.PROFILE["Tack"].resource_path == "res://assets/weapons/pistol-source-20261004/pistol.png",
+		"world pickup profile retains the separate prepared source")
+	for entry: Array in [[WeaponArt.IDLE["Tack"], "pistol_idle.png", "2ae7bcceaee5a84f35fb6356ae1ee06d136d59e189be81b85d2995b2e6bc789d"],
+		[WeaponArt.FIRE["Tack"], "pistol_fire.png", "0269daa3ba571aceee3245b832df679f22f77211c0bf935dd80725ddbf09b9da"]]:
 		var selected: Texture2D = entry[0] as Texture2D
-		_check(selected.resource_path.begins_with("res://assets/weapons/pistol-source-20261004/")
-			and FileAccess.get_sha256(selected.resource_path) == bake.get("frames", {}).get(entry[1]),
-			"packaged runtime picture exactly matches reviewed offline bake")
+		_check(selected.resource_path == "res://assets/weapons/pistol-sprite-20261005/" + str(entry[1])
+			and FileAccess.get_sha256(selected.resource_path) == entry[2],
+			"first-person presentation uses the coherent drawn sprite family shared with the Shotgun")
+	var sprite_receipt: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/weapons/pistol-sprite-20261005/selection.json"))
+	_check(sprite_receipt is Dictionary and sprite_receipt.get("runtime_selected") == true
+		and sprite_receipt.get("frames") is Dictionary
+		and sprite_receipt["frames"].get("pistol_idle") == FileAccess.get_sha256(WeaponArt.IDLE["Tack"].resource_path)
+		and sprite_receipt["frames"].get("pistol_fire") == FileAccess.get_sha256(WeaponArt.FIRE["Tack"].resource_path),
+		"sprite selection binds both actual packaged pictures")
 	var selection: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/weapons/pistol-source-20261004/selection.json"))
 	_check(selection is Dictionary and selection.get("runtime_selected") == true
 		and selection.get("source_sha256") == bake.get("source_sha256")
 		and selection.get("bake_sha256") == bake.get("bake_sha256")
 		and selection.get("presenter_sha256") == bake.get("presenter_sha256")
 		and selection.get("frames") == bake.get("frames"),
-		"runtime selection receipt binds the actual reviewed source and all three pictures")
+		"historical selection receipt retains the source and all three pictures")
 	for label: String in ["pistol_idle.png", "pistol_fire.png", "pistol.png"]:
 		var path: String = directory.path_join(label)
 		var texture: Texture2D = load(path) as Texture2D

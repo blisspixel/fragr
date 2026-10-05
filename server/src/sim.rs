@@ -1945,6 +1945,11 @@ impl GameState {
         self.advance_m05_captives(dt);
         self.advance_m09_crew(dt);
 
+        let mut civilian_shot_bodies = Vec::new();
+        self.append_civilian_contacts(&mut civilian_shot_bodies);
+        let mut tableau_shot_boxes = Vec::new();
+        self.append_m02_tableau_shots(&mut civilian_shot_bodies, &mut tableau_shot_boxes);
+
         let grenade_launches = self.launch_grenades();
         let mine_placements = self.place_mines(&grenade_launches);
         let previous_placements: Vec<Uuid> = grenade_launches
@@ -1994,7 +1999,11 @@ impl GameState {
                     player.statistics.attack(player.weapon);
                     let shooter = player.id;
                     let photo_target = self.encounters.claim_notary_photo_target(shooter);
-                    hits.push((i, self.check_hitscan(i, arena), photo_target));
+                    hits.push((
+                        i,
+                        self.check_hitscan(i, arena, &civilian_shot_bodies, &tableau_shot_boxes),
+                        photo_target,
+                    ));
                 } else if player.inventory.dry_fire_count() > dry_before {
                     player.statistics.dry_trigger();
                 }
@@ -2024,6 +2033,10 @@ impl GameState {
                             && p.hp > 0
                             && p.is_participant()
                             && crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign)
+                            && !self
+                                .spawn_shields
+                                .get(&p.id)
+                                .is_some_and(|ticks| *ticks > 0)
                     })
                 {
                     self.note_notary_photograph();
@@ -2151,7 +2164,7 @@ impl GameState {
         self.reap_dead_boss();
         self.react_to_last_standing();
         self.tick_ctf();
-        self.tick_traveling_shots(dt, arena);
+        self.tick_traveling_shots(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
         // Last: every death this tick, including traveling shots, counts.
         self.tick_sabotage();
     }
@@ -2373,7 +2386,15 @@ impl GameState {
         let shooter_name = self.players[shooter_idx].name.clone();
         let shooter_id = self.players[shooter_idx].id;
         let self_hit = shooter_idx == victim_idx && trace.is_none();
-        let hostile = self_hit || self.damage_lands(shooter_idx, victim_idx);
+        // Incoming immunity does not remove a living body from ray collision.
+        // Environmental self damage retains the existing explosive rule.
+        let immune = !self_hit
+            && (self.players[victim_idx].is_campaign_companion()
+                || self
+                    .spawn_shields
+                    .get(&self.players[victim_idx].id)
+                    .is_some_and(|ticks| *ticks > 0));
+        let hostile = self_hit || (!immune && self.damage_lands(shooter_idx, victim_idx));
         let shooter_team = self.players[shooter_idx].team;
         let victim_team = self.players[victim_idx].team;
         let teammates = shooter_team.is_some() && shooter_team == victim_team;
@@ -2615,6 +2636,8 @@ impl GameState {
         &mut self,
         shooter_idx: usize,
         arena: &crate::movement::Arena,
+        civilians: &[crate::movement::contact::ContactBody],
+        tableau: &[crate::movement::Solid],
     ) -> ResolvedShot {
         let shooter = &self.players[shooter_idx];
         let origin = [
@@ -2632,7 +2655,7 @@ impl GameState {
             .map(|_| {
                 let samples = [self.next_f32(), self.next_f32()];
                 let ray = crate::combat::Ray::dispersed(origin, yaw, pitch, spread, samples);
-                self.resolve_pellet(shooter_idx, arena, ray, weapon)
+                self.resolve_pellet(shooter_idx, arena, ray, weapon, civilians, tableau)
             })
             .collect();
         ResolvedShot {
@@ -2648,6 +2671,8 @@ impl GameState {
         arena: &crate::movement::Arena,
         ray: crate::combat::Ray,
         weapon: WeaponType,
+        civilians: &[crate::movement::contact::ContactBody],
+        tableau: &[crate::movement::Solid],
     ) -> ResolvedPellet {
         let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
         let mut cover_distance = f32::INFINITY;
@@ -2669,25 +2694,39 @@ impl GameState {
             }
         }
         let mut closest_idx = None;
-        // Companion fire must never consume a ray on a friendly body. The
-        // earlier support preflight uses a centered ray before movement, while
-        // this resolved ray includes spread and current participant positions.
-        let companion_shot = self.players[shooter_idx].is_campaign_companion();
+        for body in tableau {
+            if let Some(hit) = ray.solid(body, closest_dist) {
+                if hit.distance < cover_distance
+                    && (hit.distance < closest_dist || matches!(impact, ShotImpact::Range))
+                {
+                    closest_dist = hit.distance;
+                    impact = ShotImpact::Fighter { normal: hit.normal };
+                }
+            }
+        }
+        for civilian in civilians {
+            if let Some(hit) = ray.fighter_with_height(
+                [civilian.from.x, civilian.from.y, civilian.from.z],
+                civilian.radius,
+                civilian.height,
+                closest_dist,
+            ) {
+                if hit.distance < cover_distance
+                    && (hit.distance < closest_dist || matches!(impact, ShotImpact::Range))
+                {
+                    closest_dist = hit.distance;
+                    impact = ShotImpact::Fighter { normal: hit.normal };
+                }
+            }
+        }
         for (i, target) in self.players.iter().enumerate() {
-            if i == shooter_idx
-                || target.hp <= 0
-                || target.respawn_timer.is_some()
-                || target.is_campaign_companion()
-                || (companion_shot && target.is_participant())
-                || !crate::mission::actor_active(self.mission.as_ref(), target.id, target.campaign)
-                || self.spawn_shields.get(&target.id).is_some_and(|t| *t > 0)
-            {
+            if i == shooter_idx || !self.contact_eligible(target) {
                 continue;
             }
             let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
             if let Some(hit) = ray.actor(feet, target.campaign, closest_dist) {
                 if hit.distance < cover_distance
-                    && (closest_idx.is_none() || hit.distance < closest_dist)
+                    && (hit.distance < closest_dist || matches!(impact, ShotImpact::Range))
                 {
                     closest_dist = hit.distance;
                     closest_idx = Some(i);
@@ -2698,7 +2737,7 @@ impl GameState {
         let distance = closest_dist.min(cover_distance);
         ResolvedPellet {
             target: closest_idx,
-            solid: if closest_idx.is_none() {
+            solid: if matches!(impact, ShotImpact::Solid { .. }) {
                 cover_solid
             } else {
                 None

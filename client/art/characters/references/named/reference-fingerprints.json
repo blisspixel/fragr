@@ -1,0 +1,23 @@
+{
+	"references": [
+		{
+			"alpha": 0,
+			"decoded_pixels_equal": true,
+			"height": 2880,
+			"id": "edda",
+			"normalized_sha256": "1ba1f101f560e89a95aa92b9362e54cdf69bb50d1938c6f59e69464716816787",
+			"raw_sha256": "c9e4659719a9d25fa5ed0f18b3037ee53039f297f52206e398021b029abcaa45",
+			"width": 2880
+		},
+		{
+			"alpha": 0,
+			"decoded_pixels_equal": true,
+			"height": 2880,
+			"id": "splice",
+			"normalized_sha256": "8b517b8d8305a0fd30f6b7874815f1016bbe54e7a20ae251a3f9e4249cfef78e",
+			"raw_sha256": "4ef615d65691e04a98ebed6a807b034be0a1fcb7e14a4f0bbd23eafb5cea993c",
+			"width": 2880
+		}
+	],
+	"schema": 1
+}
