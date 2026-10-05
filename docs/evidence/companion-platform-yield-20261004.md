@@ -2,12 +2,23 @@
 
 Status: implemented and locally verified, integration gates pending.
 Spend: $0. Source: `481c4aec`, refreshed onto main `d1d13562` at `83bb388b`.
-Publication refresh merges main `cc8efcc8` normally. Server, protocol, maps,
-selected client runtime, all harnesses and checker bytes match the immutable
-tested runtime. Only parked world-prop sources, ignored references and
-documentation are new. Focused imports, M03 validation and loading checks pass.
+The first publication refresh merges main `cc8efcc8` normally. Server, protocol,
+maps, selected client runtime, all harnesses and checker bytes match the immutable
+tested runtime at that checkpoint. Only parked world-prop sources, ignored
+references and documentation are new. Focused imports, M03 validation and loading checks pass.
 The [refresh receipt](../screenshots/companion-platform-yield-20261004/refresh-receipt.json)
 binds the exact native and records the source comparison.
+
+The final normal refresh onto restored-Rifle main `6c4df5b3` retains its complete
+client tree exactly. Authoritative source, protocol and maps remain byte-identical
+to tested source `83bb388b`, binding the same private native. The selected Rifle
+presentation changes with main; historical M03 screenshots retain the earlier
+framing and are not a fresh playthrough of the restored art. Fresh headless import,
+Rifle source, weapon pickup, M03 mission and loading harnesses all pass with clean
+exit 0. The [restoration refresh receipt](../screenshots/companion-platform-yield-20261004/restore-refresh-receipt.json)
+distinguishes those facts from the immutable full checker and first publication's
+eight CI jobs and three desktop-package passes. Exact final CI and package gates
+are rerun on the refreshed head before merge.
 
 The first stand-off checkpoint completed M03, but a matching candidate-atlas
 comparison then stopped after eighteen states on the narrow raised signal-box
@@ -133,8 +144,10 @@ but fails the unchanged final kill gate after eighteen states. One Sweeper
 remains behind the train, out of sight, after all four western search points
 are exhausted. Actual inputs are idle, health is 100, finite bullets remain
 189 and no dry trigger occurs. This is separate search coverage debt, not a
-model combat change. A matched ordinary search-return comparison is pending;
-that failed receipt is retained and no candidate art is selected.
+model combat change. A separately reviewed matched ordinary search-return pair
+later completes all original states and guards with two declared west-return
+search points. That art evidence remains a separate checkpoint; the failed
+receipt is retained and no candidate art is selected by this source correction.
 
 Unfiltered coverage, exact integration CI and desktop package acceptance
 remain parent gates. Prepared Jammer requires its own matching complete route
