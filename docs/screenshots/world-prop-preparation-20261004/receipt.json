@@ -1,0 +1,157 @@
+{
+    "error_clean":  true,
+    "cash_charges":  0,
+    "placement_accepted":  false,
+    "renderer":  "gl_compatibility",
+    "owned_process_retired":  true,
+    "retained_position_uv_winding_proof":  true,
+    "schema":  1,
+    "inspected_views":  12,
+    "prepared_models":  [
+                            {
+                                "actual_bounds_m":  [
+                                                        1.20883011817932,
+                                                        1.64999997615814,
+                                                        1.2087676525116
+                                                    ],
+                                "authored_triangles":  0,
+                                "floor_support_quadrants":  4,
+                                "id":  "air-scrubber",
+                                "orientation_preserving_multiset_matches":  true,
+                                "position_and_uv_quantization":  0.00001,
+                                "prepared_sha256":  "8bbf03292f4907f5e3fe55c356b70d797ea5966d5696ee19910f9323fe4bf608",
+                                "provisional_scale":  true,
+                                "raw_sha256":  "c6e435c6bf06f2dde238f5f3ee7fc20dc389fc6fab9319e5504a6ce45fe72997",
+                                "retained_triangles":  11910,
+                                "runtime_selected":  false,
+                                "supports":  [
+
+                                             ]
+                            },
+                            {
+                                "actual_bounds_m":  [
+                                                        1.20000028610229,
+                                                        0.638294816017151,
+                                                        0.482725709676743
+                                                    ],
+                                "authored_triangles":  48,
+                                "floor_support_quadrants":  4,
+                                "id":  "water-pump",
+                                "orientation_preserving_multiset_matches":  true,
+                                "position_and_uv_quantization":  0.00001,
+                                "prepared_sha256":  "a8d5bda85d95f12bdbbe8ae6e3d6f1dd11ea5fe36d830da6d67787b550b40b46",
+                                "provisional_scale":  true,
+                                "raw_sha256":  "631dabc2bb87b34a386e52434dfc0e46cdda079c323b789944d84302420d7e30",
+                                "retained_triangles":  11880,
+                                "runtime_selected":  false,
+                                "supports":  [
+                                                 {
+                                                     "bounds_min_m":  [
+                                                                          -0.388466507196426,
+                                                                          0.0,
+                                                                          -0.209123268723488
+                                                                      ],
+                                                     "joined_source":  true,
+                                                     "name":  "MountingPad0",
+                                                     "size_m":  [
+                                                                    0.100000023841858,
+                                                                    0.0232282672077417,
+                                                                    0.0600000023841858
+                                                                ]
+                                                 },
+                                                 {
+                                                     "bounds_min_m":  [
+                                                                          -0.400887310504913,
+                                                                          0.0,
+                                                                          0.142319649457932
+                                                                      ],
+                                                     "joined_source":  true,
+                                                     "name":  "MountingPad1",
+                                                     "size_m":  [
+                                                                    0.100000023841858,
+                                                                    0.0191125441342592,
+                                                                    0.0600000023841858
+                                                                ]
+                                                 },
+                                                 {
+                                                     "bounds_min_m":  [
+                                                                          0.347811788320541,
+                                                                          0.0,
+                                                                          -0.234525948762894
+                                                                      ],
+                                                     "joined_source":  true,
+                                                     "name":  "MountingPad2",
+                                                     "size_m":  [
+                                                                    0.100000023841858,
+                                                                    0.0153536004945636,
+                                                                    0.0600000023841858
+                                                                ]
+                                                 },
+                                                 {
+                                                     "bounds_min_m":  [
+                                                                          0.347964465618134,
+                                                                          0.0,
+                                                                          0.179655000567436
+                                                                      ],
+                                                     "joined_source":  true,
+                                                     "name":  "MountingPad3",
+                                                     "size_m":  [
+                                                                    0.100000023841858,
+                                                                    0.0158218704164028,
+                                                                    0.0600000023841858
+                                                                ]
+                                                 }
+                                             ]
+                            },
+                            {
+                                "actual_bounds_m":  [
+                                                        0.379999935626984,
+                                                        0.371116995811462,
+                                                        0.179039716720581
+                                                    ],
+                                "authored_triangles":  0,
+                                "floor_support_quadrants":  4,
+                                "id":  "community-radio",
+                                "orientation_preserving_multiset_matches":  true,
+                                "position_and_uv_quantization":  0.00001,
+                                "prepared_sha256":  "e026c2e2ff25609f5ce7f256b8487a90f9dc354d7f78aa0c2a72d3f6503a5dfd",
+                                "provisional_scale":  true,
+                                "raw_sha256":  "aac13efc917e53540911bba5cefa9fedd6f08086eb181ea579d37e44d78b2412",
+                                "retained_triangles":  11646,
+                                "runtime_selected":  false,
+                                "supports":  [
+
+                                             ]
+                            }
+                        ],
+    "renderer_exit":  0,
+    "runtime_selected":  false,
+    "images":  [
+                   {
+                       "sha256":  "f0b12435957bc6afaecf3e8128954180af8d15af81b95cca54c51f316c96e463",
+                       "file":  "AirScrubber-view-0.png"
+                   },
+                   {
+                       "sha256":  "afc012026f868cbfc4dcbb470618f5400e24156d40bfcc8000d4b498e493c0bd",
+                       "file":  "AirScrubber-view-2.png"
+                   },
+                   {
+                       "sha256":  "67fa5c62956b8bb3941206ac84716a9f29712e64dd82f98ba9268e0a2d2a9074",
+                       "file":  "WaterPump-view-0.png"
+                   },
+                   {
+                       "sha256":  "9443ef9420395a4d6d15e3fdfae9bde429c899528307585b93a783da045d7564",
+                       "file":  "WaterPump-view-2.png"
+                   },
+                   {
+                       "sha256":  "a9ba0f74313971272322f2102802fd16f8f42b6c742eb75ab5876667e8a7b2af",
+                       "file":  "CommunityRadio-view-0.png"
+                   },
+                   {
+                       "sha256":  "eae528abcbda7d1fa7e990e4a0413270d983f394575ee7dee5d735ea2757ff43",
+                       "file":  "CommunityRadio-view-2.png"
+                   }
+               ],
+    "extra_paid_stages":  0,
+    "negative_uv_winding_detached_and_hovering_controls":  true
+}
