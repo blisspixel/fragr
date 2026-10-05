@@ -443,3 +443,42 @@ actual enemy damage kills the player, and the existing continue input restores
 monotonic ticks and transit. No guards, player damage or inventory are granted
 by the client. These are migration, lifecycle and retry checks, not a won
 combat route or final ship art acceptance.
+
+## Bounded inhabited pass, authorized 2026-10-04
+
+After the immutable first full client run, normally compose restored main
+6c4df5b3. Retain its three failed harness receipts: the older practice selector
+expected eight entries, the pending destination still expected M10, and the
+arrival policy incorrectly assumed new M10 keyed pages had narration. Explicit
+M10 saved entry, arrival versus retry, exact ninth selector label, preserved
+older indices/default and pending M11 no-launch assertions now pass focused
+checks. The entire updated client still needs its complete clean rerun.
+
+The next source pass adds one physically solid pressure window in the existing
+upper fore wall, enclosed side bunks, a galley and repair bench, cargo cover,
+service equipment blocks and a command console. Keep the existing hull size,
+three floors, both traversable stairs, all 17 guards, held input rules and
+fresh shared departure. No exterior route or jumping shortcut is introduced.
+Four registered M10 keyed panels distinguish cargo, passengers, command and
+ship confirmation; all maps exposing these kinds require capability 36 before
+Welcome for every role. Existing pressure glass registration is extended only
+to the actual M10 authority source.
+
+Use the existing accepted-map material mapper for a quiet civilian ship palette
+and reviewed local pressure-bone, worn-deck, repair-plate and ceramic textures.
+The accepted M10 geometry selects that venue explicitly. Generic outside arena
+walls/floor and industrial skyline are hidden or omitted only for this sealed
+spaceborne interior. Eight bounded wall fixtures supply practical light.
+Package checks must retain the keyed text-only M10 manifests and current cast.
+No selected new world mesh or final exterior craft is claimed.
+
+Finite contested stock is claimed through ordinary pickups. Candidate supplies
+are an optional passenger medkit, cargo Bullets and Shells, two later repair
+medkits and crew armor/surplus stock. Nothing refills at entry; no grenade/mine
+replacement or Repeater grant is added. The exact quantities need real fight
+evidence before acceptance. Prove support, pressure seal, headroom, real shot
+cover, supply consumption and all four recorded plus unknown crew-contact
+rosters with server movement. Guard-disabled structural fixtures remain
+explicitly separate from an ordinary complete combat route. Request a GPU
+lease only after matching geometry/native and meaningful CPU checks pass.
+Orrin remains a secured backup until a separately authored restoration event.
