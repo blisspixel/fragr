@@ -11,14 +11,15 @@ dedicated hosting remains available. No cloud account or paid runtime is needed.
 
 ## Actual desktop witnesses
 
-All played witnesses used source `dbe28271140caa4be75cd78ba4fe37a31852f9f4`,
+The earlier played witnesses below used source `dbe28271140caa4be75cd78ba4fe37a31852f9f4`,
 native source `ae4ad91870d0f3fb5c60bc4aa11eee2da8c94d62` and native SHA-256
 `a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb`.
 They ran through real owned Host readiness, ordinary networking and presentation
 on Windows using Godot 4.7.2 Compatibility and Radeon 780M. Automation supplied
 ordinary movement, fire and Use. It did not grant equipment or teleport players.
-The later install-check and package-smoke changes preserve ordinary gameplay,
-native and asset bytes.
+The install-check and package-smoke changes at that checkpoint preserved
+ordinary gameplay, native and asset bytes. Later server corrections have
+their own source and verification scope.
 
 | Witness | Observed result | Limit |
 |---|---|---|
@@ -36,15 +37,33 @@ binds original captures, canonical routes, logs and private lifecycle receipts
 by SHA-256. Original failures remain retained: an early private Windows
 closed-port predicate was invalid, and a later TDM run failed the unchanged
 ACK-gap expectation. The quiet passing route did not weaken that expectation.
-The server's instrumented mixed-party campaign fixture also failed during
-parallel coverage; that regression gate remains open until corrected and proven.
+The server's instrumented mixed-party campaign fixture failed two whole
+coverage runs. Precomputing its exact worlds and navigation before live sockets
+preserves every timing and gameplay assertion. The corrected native checkpoint
+`dff0b39b` passes the full 991-test server suite and unfiltered workspace line
+coverage at 93.66 percent. The original failures remain separate from that proof.
+
+A later two-desktop Sabotage attempt exposed a real empty-room defect: the
+opening round advanced before either fighter joined, producing 1:1 after the
+eventual detonation. The same native checkpoint keeps empty or parked-only
+Muster at round one until an attached contestant arrives. Its regression tests
+cover delayed humans, agents, spectators, resume and one rule bot. A new rendered
+two-desktop result still requires the final paired native/client source.
+
+The complete combined client checker at `f38ce343` passed 132 of 133 harnesses
+but correctly failed on a music decoder still alive at exit. The owning fixture
+now requires its five actual playback references to retire after ordinary scene
+exit. Its focused real-native run passes with clean logs; final composed whole
+client and package gates remain required.
 
 ## Literal captures
 
-The Host controls below were inspected at an earlier source checkpoint,
-`4fc50a6a`, with owning harness/documentation changes present. No native match
-was launched for that static UI witness. All nine pages at three window sizes
-fit their controls; the small Sabotage image is an actual 800x600 window.
+The Host controls below come from clean source `e82893e3`. All three bot
+choices in both presets and the Multiplayer page were captured at three actual
+window sizes. All 21 literal frames pass layout checks and independent visual
+review. The real renderer exits 0 with clean logs and retires. No native match
+was launched for this static witness. The small Sabotage image is an actual
+800x600 window; earlier static source bindings remain in the curated receipt.
 
 ![Team Deathmatch Host controls](../screenshots/multiplayer-host-20261005/host-tdm.png)
 
