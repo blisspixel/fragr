@@ -82,6 +82,19 @@ func _playing(map_id: int) -> bool:
 	return current_scene != null and current_scene.has_method("change_role") \
 		and current_scene.current_map_id == map_id and not current_scene.latest_snapshot.is_empty()
 
+func _child_retired(child: LocalProcess, address: String) -> bool:
+	if child._pid != -1 or child.running() or child._stdio != null or child._stderr != null:
+		return false
+	var endpoint: Dictionary = ServerEndpoint.parse(address)
+	if endpoint.is_empty():
+		return false
+	# The owner has already reaped its child. Rebind the actual listener rather
+	# than asking the operating system about an integer PID it no longer owns.
+	var released: TCPServer = TCPServer.new()
+	var available: bool = released.listen(int(endpoint["port"]), "127.0.0.1") == OK
+	released.stop()
+	return available
+
 func _peer(address: String, role: String, callsign: String) -> Node:
 	var peer: Node = load("res://scripts/net_client.gd").new()
 	root.add_child(peer)
@@ -111,6 +124,7 @@ func _preset(mode: String) -> bool:
 	if owner == null:
 		return false
 	var pid: int = owner.process._pid
+	var child: LocalProcess = owner.process
 	var address: String = owner.url
 	var map_id: int = 4 if mode == "sabotage" else 1
 	(current_scene._root.get_node("WatchHosted") as Button).pressed.emit()
@@ -136,6 +150,9 @@ func _preset(mode: String) -> bool:
 		return own_id in ids and partner_id in ids, "both actual human pawns share one server snapshot"):
 		return false
 	_expect(partner.mission.is_empty() and current_scene.net_client.mission.is_empty(), "arena participants never receive campaign state")
+	if not await _until(func() -> bool:
+		return _playing(map_id) and not current_scene.current_map_info.is_empty() and current_scene.current_map_info.get("map_id") == map_id, "human role handoff receives its fresh validated map before checking rules"):
+		return false
 	_expect(current_scene.current_map_info.get("rules", {}).get("mode") == mode, "authoritative map confirms selected mode")
 	_expect(current_scene.pause_menu.hosting_server, "gameplay recognizes its persistent root owner")
 	if mode == "sabotage":
@@ -171,8 +188,9 @@ func _preset(mode: String) -> bool:
 		return false
 	if not await _await_radio_retirement():
 		return false
-	_expect(not OS.is_process_running(pid) and unrelated.is_listening(), "Stop retires only owned PID")
-	print("test_desktop_host: owned_stop ", mode, " pid=", pid, " retired=", not OS.is_process_running(pid))
+	var retired: bool = _child_retired(child, address)
+	_expect(retired and unrelated.is_listening(), "Stop retires only owned PID and releases its actual listener")
+	print("test_desktop_host: owned_stop ", mode, " pid=", pid, " retired=", retired)
 	_expect(not DirAccess.dir_exists_absolute(run_directory), "hosting creates no campaign directory or save")
 	print("test_desktop_host: " + mode + " real two-client lifetime PASS")
 	return true
@@ -183,6 +201,8 @@ func _automatic(mode: String) -> bool:
 	if owner == null:
 		return false
 	var pid: int = owner.process._pid
+	var child: LocalProcess = owner.process
+	var address: String = owner.url
 	_expect(owner.settings["bot_policy"] == "auto" and owner.settings["bots"] == 0
 		and owner.settings["fill_target"] == target, "real automatic readiness retains the requested total target")
 	var watcher: Node = _peer(owner.url, "spectator", "AutoWatch")
@@ -224,8 +244,9 @@ func _automatic(mode: String) -> bool:
 	(current_scene._root.get_node("StopServer") as Button).pressed.emit()
 	if not await _until(func() -> bool: return owner.state == LocalHost.State.IDLE, "automatic Host menu Stop retires its canonical lease"):
 		return false
-	_expect(not OS.is_process_running(pid) and unrelated.is_listening(), "automatic Stop retires only its owned PID")
-	print("test_desktop_host: owned_stop auto_", mode, " pid=", pid, " retired=", not OS.is_process_running(pid))
+	var retired: bool = _child_retired(child, address)
+	_expect(retired and unrelated.is_listening(), "automatic Stop retires only its owned PID and releases its actual listener")
+	print("test_desktop_host: owned_stop auto_", mode, " pid=", pid, " retired=", retired)
 	print("test_desktop_host: auto " + mode + " actual human and agent fill PASS")
 	return true
 
@@ -265,11 +286,15 @@ func _run() -> void:
 	if not await _await_radio_retirement():
 		return
 	# Root-node retirement exercises the app-shutdown owner boundary with a real child.
+	var child: LocalProcess = owner.process
+	var address: String = owner.url
+	_expect(child._pid == pid and child.running(), "app shutdown starts with its exact owned live child")
 	owner.queue_free()
 	await process_frame
 	await process_frame
-	_expect(not OS.is_process_running(pid), "retiring app host owner closes and retires its native child")
-	print("test_desktop_host: app_owner pid=", pid, " retired=", not OS.is_process_running(pid))
+	var retired: bool = _child_retired(child, address)
+	_expect(retired, "retiring app host owner closes and retires its native child and listener")
+	print("test_desktop_host: app_owner pid=", pid, " retired=", retired)
 	_expect(unrelated.is_listening() and not DirAccess.dir_exists_absolute(run_directory), "app owner cleanup preserves unrelated listener and campaign storage")
 	var campaign: LocalMatch = root.get_node_or_null("LocalMatch") as LocalMatch
 	if campaign != null:
