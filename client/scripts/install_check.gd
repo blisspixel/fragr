@@ -180,6 +180,9 @@ func _on_preview() -> void:
 	_start_arena()
 
 func _start_arena() -> void:
+	if _host.executable_path() != _local.executable_path():
+		_finish(false, "the arena and campaign resolved different bundled servers")
+		return
 	_map.clear()
 	_snapshot.clear()
 	_phase = "starting"
