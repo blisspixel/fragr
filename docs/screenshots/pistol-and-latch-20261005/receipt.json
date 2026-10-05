@@ -1,0 +1,37 @@
+{
+    "captures":  [
+                     {
+                         "sha256":  "79712c0888bca8a215d8eb1dcfd0f5954862f524aa1c4bb4a461c9d2ab397ec7",
+                         "edited":  false,
+                         "file":  "pistol-combat.png"
+                     },
+                     {
+                         "sha256":  "4b402d665f206c46b5f59a922cd6fccea1ca5fc7fc999a71491792afa6496e0d",
+                         "edited":  false,
+                         "file":  "pistol-fire.png"
+                     },
+                     {
+                         "sha256":  "cf544b7fd06cb17ae75ae802b655a49206eb61abce7deefeb43ecdc8abfab46a",
+                         "edited":  false,
+                         "file":  "home.png"
+                     }
+                 ],
+    "home_source_sha256":  "e7caf907a9dde4657c47a4a9370a820dc305921c598b9879f97547aa7709899d",
+    "device":  "AMD Radeon 780M",
+    "full_mission_route":  false,
+    "godot":  "4.7.2-stable",
+    "renderer":  "OpenGL Compatibility",
+    "ordinary_pistol_prefix_states":  7,
+    "schema":  1,
+    "home_aspects":  [
+                         "1280x720",
+                         "1024x768",
+                         "2560x1080"
+                     ],
+    "paid_model_calls":  0,
+    "owned_processes_retired":  true,
+    "native_source_commit":  "400595d06b6b268a64b0321015ae23921e597567",
+    "date":  "2026-10-05",
+    "native_sha256":  "a04418b6f9ddd6a50e9697f31d2a921cc29998fdad61ff6df30737aa100eeb3f",
+    "pistol_source_commit":  "8879b5eeb4e60de699984dfc74362833fb4f6eed"
+}

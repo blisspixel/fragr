@@ -2,7 +2,7 @@
     "schema":  1,
     "date":  "2026-10-05",
     "runtime_selected":  true,
-    "selection_status":  "local integration, played and CI acceptance pending",
+    "selection_status":  "Selected locally after seven-state ordinary discovery and combat proof; final CI and packages owned by integration",
     "plan":  "docs/plans/first-person-weapon-quality.md",
     "format":  "241x180 RGBA, hard alpha, nearest sampling, no mipmaps",
     "palette_sha256":  "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
