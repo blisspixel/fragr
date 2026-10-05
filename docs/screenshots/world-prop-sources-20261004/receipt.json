@@ -1,0 +1,134 @@
+{
+    "images":  [
+                   {
+                       "sha256":  "de02e0445324e3ca1383437a9a441bb590faf5a87971df936a18f788e3c5bf97",
+                       "file":  "air-scrubber-front.png"
+                   },
+                   {
+                       "sha256":  "d48cc322d74b7ad3c60dcb5fba5ae349ae8306d5152113ebde8ec8985f2604a5",
+                       "file":  "air-scrubber-rear.png"
+                   },
+                   {
+                       "sha256":  "b0c7572811d710e251531a7e900d14aaa6e95751cd0c64bcb4d349df11d573ee",
+                       "file":  "water-pump-front.png"
+                   },
+                   {
+                       "sha256":  "31b39f14e00f5171c876c0ea91b86cd0db7a2be22f03708607db2ab1271432ce",
+                       "file":  "water-pump-rear.png"
+                   },
+                   {
+                       "sha256":  "a1d62482a8f06e29b8d63abacee173161f9435f0c6f42c799b4bc520a5296ae1",
+                       "file":  "community-radio-front.png"
+                   },
+                   {
+                       "sha256":  "dc11fea23df6b2efd5905600e17039ed6b0ee185ee5fcedbc77ba661638f4dcb",
+                       "file":  "community-radio-rear.png"
+                   }
+               ],
+    "source_inspection":  {
+                              "error_clean":  true,
+                              "owned_pid":  33676,
+                              "timed_out":  false,
+                              "pass_marker":  true,
+                              "exit_code":  0
+                          },
+    "sources":  [
+                    {
+                        "raw_bounds":  {
+                                           "position":  [
+                                                            -0.696901977062225,
+                                                            -0.951807022094727,
+                                                            -0.685163915157318
+                                                        ],
+                                           "size":  [
+                                                        1.39368295669556,
+                                                        1.90231609344482,
+                                                        1.39361095428467
+                                                    ]
+                                       },
+                        "id":  "air-scrubber",
+                        "triangles":  11910,
+                        "runtime_selected":  false,
+                        "animations":  [
+
+                                       ],
+                        "reference_sha256":  "45b4dc33837d6332933599cd5a8737479fb2662af43cc276808ab6acd628b379",
+                        "actual_credits":  35,
+                        "bones":  0,
+                        "meshes":  1,
+                        "task_id":  "01a10903-e32c-75a8-8061-95947cec0c7f",
+                        "source_sha256":  "c6e435c6bf06f2dde238f5f3ee7fc20dc389fc6fab9319e5504a6ce45fe72997",
+                        "vertices":  17576
+                    },
+                    {
+                        "raw_bounds":  {
+                                           "position":  [
+                                                            -0.950735032558441,
+                                                            -0.495701998472214,
+                                                            -0.383209973573685
+                                                        ],
+                                           "size":  [
+                                                        1.89575695991516,
+                                                        0.989418983459473,
+                                                        0.762609004974365
+                                                    ]
+                                       },
+                        "id":  "water-pump",
+                        "triangles":  11880,
+                        "runtime_selected":  false,
+                        "animations":  [
+
+                                       ],
+                        "reference_sha256":  "b0d7bbe95bee3b542b552b01aa4826be6f61bbe61c2c4a219fda72f92da2b302",
+                        "actual_credits":  35,
+                        "bones":  0,
+                        "meshes":  1,
+                        "task_id":  "01a10906-70cc-74df-b81a-b18589d2a413",
+                        "source_sha256":  "631dabc2bb87b34a386e52434dfc0e46cdda079c323b789944d84302420d7e30",
+                        "vertices":  16875
+                    },
+                    {
+                        "raw_bounds":  {
+                                           "position":  [
+                                                            -0.951581060886383,
+                                                            -0.932313144207001,
+                                                            -0.44481298327446
+                                                        ],
+                                           "size":  [
+                                                        1.9023060798645,
+                                                        1.85783720016479,
+                                                        0.896285057067871
+                                                    ]
+                                       },
+                        "id":  "community-radio",
+                        "triangles":  11646,
+                        "runtime_selected":  false,
+                        "animations":  [
+
+                                       ],
+                        "reference_sha256":  "49fc5736b4e092349938c14d08cab4d3ac2f1c7521af3b756cdbc782745857ea",
+                        "actual_credits":  35,
+                        "bones":  0,
+                        "meshes":  1,
+                        "task_id":  "01a10908-a014-7751-a8ac-5b0943ddf379",
+                        "source_sha256":  "aac13efc917e53540911bba5cefa9fedd6f08086eb181ea579d37e44d78b2412",
+                        "vertices":  14791
+                    }
+                ],
+    "runtime_selected":  false,
+    "inspected_views":  12,
+    "date":  "2026-10-04",
+    "credits":  {
+                    "first_allocation_used":  370,
+                    "tracked_consumed":  695,
+                    "uncertain_held":  15,
+                    "usable":  2360,
+                    "new_cash_charges":  0,
+                    "actual_this_batch":  105,
+                    "first_allocation_cap":  900,
+                    "first_allocation_remaining":  530,
+                    "available":  2375
+                },
+    "schema":  1,
+    "renderer":  "gl_compatibility"
+}

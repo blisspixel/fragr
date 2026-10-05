@@ -1,6 +1,6 @@
 # Community radio
 
-Status: planned asset brief, 2026-10-04. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: **in flight**, 2026-10-04. Practical civilian reference and all-side raw source inspection passed, using 35 actual included credits. Local preparation and runtime selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation. The [source receipt](../../evidence/world-prop-sources-20261004.md) records the task, geometry and allowance.
 Stable ID: `E-community-radio`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -14,6 +14,8 @@ Owners: [earth.md](../../../docs/design/earth.md), [characters.md](../../../docs
 ## References
 
 Existing reference basis: [prop_neighborhood_radio.png](../../../client/art/production-20261003/prop_neighborhood_radio.png). These are design candidates, not approved orthographic sheets or completed models. Review every side and correct conflicts against the owners above.
+
+Selected input: [community-radio-stylized-v1.png](../../../client/art/world-props/references/community-radio-stylized-v1.png), 1254 x 1254, SHA-256 `49fc5736b4e092349938c14d08cab4d3ac2f1c7521af3b756cdbc782745857ea`. The portable charcoal/sage civilian set has walnut cheeks, attached handle and aerial, rectangular speaker, narrow analog tuning strip, two substantial knobs and three tactile buttons. It replaces the original ornate circular display for this conversion. Quiet fine wear, measure scale and inspect aerial/knob support before any local articulation. Optional audio never gates progress.
 
 Record the selected reference paths and hashes, front/side/back silhouette, scale, intended material roles and independently moving parts. Named faces and proposed mechanics require a reviewed identity/role sheet. Remove studio/background artifacts from conversion inputs. Prior wrong-side antennas, unsuitable cloth-panel and water outputs remain historical.
 
@@ -34,4 +36,3 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 Reserve at most 35 credits for a first 7.1 textured candidate, or 15 for a suitable inspected Smart Topology candidate. The shared revision reserve is separate. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.
-
