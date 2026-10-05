@@ -114,7 +114,10 @@ fn pre_repeater_step(step: SavedStep) -> Result<SavedStep, &'static str> {
 fn deserialize_pre_repeater_step<'de, D: serde::Deserializer<'de>>(
     decoder: D,
 ) -> Result<SavedStep, D::Error> {
-    pre_repeater_step(SavedStep::deserialize(decoder)?).map_err(serde::de::Error::custom)
+    pre_repeater_step(convert_step(LegacyStep::<PreRemoteEquipment>::deserialize(
+        decoder,
+    )?))
+    .map_err(serde::de::Error::custom)
 }
 
 /// Exact version 9 shape, including real finite mines but no archive outcomes.
@@ -396,6 +399,7 @@ impl From<LegacyEquipment> for SavedEquipment {
             ammo: old.ammo,
             grenades: 0,
             proximity_mines: 0,
+            remote_mines: 0,
             personal_claims: old.personal_claims,
         }
     }
@@ -420,8 +424,103 @@ impl From<PreMineEquipment> for SavedEquipment {
             ammo: old.ammo,
             grenades: old.grenades,
             proximity_mines: 0,
+            remote_mines: 0,
             personal_claims: old.personal_claims,
         }
+    }
+}
+
+/// Exact equipment from versions 9 through 13. Even a zero-valued forged
+/// remote field is refused before assigning historical zero.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PreRemoteEquipment {
+    selected: WeaponType,
+    weapons: Vec<WeaponType>,
+    ammo: Vec<crate::protocol::AmmoCount>,
+    grenades: u16,
+    proximity_mines: u16,
+    personal_claims: Vec<String>,
+}
+
+impl From<PreRemoteEquipment> for SavedEquipment {
+    fn from(old: PreRemoteEquipment) -> Self {
+        Self {
+            selected: old.selected,
+            weapons: old.weapons,
+            ammo: old.ammo,
+            grenades: old.grenades,
+            proximity_mines: old.proximity_mines,
+            remote_mines: 0,
+            personal_claims: old.personal_claims,
+        }
+    }
+}
+
+fn deserialize_pre_remote_step<'de, D: serde::Deserializer<'de>>(
+    decoder: D,
+) -> Result<SavedStep, D::Error> {
+    Ok(convert_step(LegacyStep::<PreRemoteEquipment>::deserialize(
+        decoder,
+    )?))
+}
+
+/// Exact version 13 fields, including real M10 transit and Repeater carry,
+/// but no Remote Mine inventory or playable M11.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct RunDocumentV13 {
+    pub version: u32,
+    pub id: Uuid,
+    pub starting_continues: u8,
+    pub remaining_continues: u8,
+    pub level_start_continues: u8,
+    pub body: Option<BodyKind>,
+    pub rules: CampaignRules,
+    pub content_sha256: [u8; 32],
+    #[serde(deserialize_with = "deserialize_pre_remote_step")]
+    pub step: SavedStep,
+    #[serde(default)]
+    pub m03_outcome: Option<M03Outcome>,
+    #[serde(default)]
+    pub m04_outcome: Option<M04Outcome>,
+    #[serde(default)]
+    pub m05_outcome: Option<M05Outcome>,
+    #[serde(default)]
+    pub m06_outcome: Option<M06Outcome>,
+    #[serde(default)]
+    pub m08_outcome: Option<M08Outcome>,
+    #[serde(default)]
+    pub m09_outcome: Option<M09Outcome>,
+    #[serde(default)]
+    pub m10_transit: Option<crate::protocol::M10Transit>,
+}
+
+impl RunDocumentV13 {
+    pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
+        if self.version != 13 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+            return Err("unsupported historical campaign rules");
+        }
+        let document = RunDocument {
+            version: RUN_FILE_VERSION,
+            id: self.id,
+            starting_continues: self.starting_continues,
+            remaining_continues: self.remaining_continues,
+            level_start_continues: self.level_start_continues,
+            body: self.body,
+            rules: self.rules,
+            content_sha256: self.content_sha256,
+            step: self.step,
+            m03_outcome: self.m03_outcome,
+            m04_outcome: self.m04_outcome,
+            m05_outcome: self.m05_outcome,
+            m06_outcome: self.m06_outcome,
+            m08_outcome: self.m08_outcome,
+            m09_outcome: self.m09_outcome,
+            m10_transit: self.m10_transit,
+        };
+        document.validate(hashes[store::stage_index(document.stage_mission())])?;
+        Ok(document)
     }
 }
 
@@ -819,5 +918,39 @@ impl RunDocumentV12 {
         };
         document.validate(hashes[store::stage_index(document.stage_mission())])?;
         Ok(document)
+    }
+}
+
+#[cfg(test)]
+mod remote_boundary_tests {
+    use super::*;
+
+    #[test]
+    fn remote_historical_equipment_requires_absence_before_assigning_zero() {
+        let equipment = serde_json::json!({
+            "selected":"tack", "weapons":["fists","tack"],
+            "ammo":[{"pool":"bullets","rounds":50},{"pool":"shells","rounds":12},{"pool":"cells","rounds":10}],
+            "grenades":3,"proximity_mines":2,"personal_claims":["real_stock"]
+        });
+        let old = serde_json::from_value::<PreRemoteEquipment>(equipment.clone()).unwrap();
+        let saved = SavedEquipment::from(old);
+        assert_eq!(
+            (saved.grenades, saved.proximity_mines, saved.remote_mines),
+            (3, 2, 0)
+        );
+        assert_eq!(saved.selected, WeaponType::Tack);
+        saved.validate().unwrap();
+        for bad in [
+            serde_json::json!(0),
+            serde_json::json!(6),
+            serde_json::Value::Null,
+        ] {
+            let mut forged = equipment.clone();
+            forged["remote_mines"] = bad;
+            assert!(serde_json::from_value::<PreRemoteEquipment>(forged).is_err());
+        }
+        let mut missing = equipment;
+        missing.as_object_mut().unwrap().remove("proximity_mines");
+        assert!(serde_json::from_value::<PreRemoteEquipment>(missing).is_err());
     }
 }

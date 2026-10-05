@@ -25,6 +25,14 @@ func _state() -> Dictionary:
 func _run() -> void:
 	var state: Dictionary = _state()
 	_check(EquipmentState.validation_error(state, "self").is_empty(), "valid private state is accepted")
+	var remote_stock: Dictionary = state.duplicate(true)
+	remote_stock["remote_mines"] = 6
+	remote_stock["proximity_mines"] = 4
+	_check(EquipmentState.validation_error(remote_stock, "self").is_empty(), "remote and proximity stock remain independent bounded counts")
+	for value: Variant in [-1, 0, 7, 1.5, NAN, "2", null]:
+		var bad_remote: Dictionary = state.duplicate(true)
+		bad_remote["remote_mines"] = value
+		_check(not EquipmentState.validation_error(bad_remote, "self").is_empty(), "remote stock requires a positive bounded wire integer: " + str(value))
 	for value: Variant in [-1, 7, 1.5, NAN, "2"]:
 		var bad_stock: Dictionary = state.duplicate(true)
 		bad_stock["grenades"] = value

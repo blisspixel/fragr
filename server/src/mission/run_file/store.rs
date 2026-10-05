@@ -1,7 +1,8 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
 use super::{
-    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV2, RunDocumentV3,
-    RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
+    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2,
+    RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8,
+    RunDocumentV9,
 };
 use crate::protocol::MissionId;
 use sha2::{Digest, Sha256};
@@ -245,6 +246,16 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(13) => {
+                let legacy: RunDocumentV13 = match serde_json::from_value(value) {
+                    Ok(legacy) => legacy,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(hashes) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -274,7 +285,7 @@ impl RunStore {
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
         Ok(matches!(
             value.get("version").and_then(serde_json::Value::as_u64),
-            Some(2..=12)
+            Some(2..=13)
         ))
     }
 
@@ -1096,3 +1107,5 @@ mod m09_receipt_tests;
 mod m09_tests;
 #[cfg(test)]
 mod m10_tests;
+#[cfg(test)]
+mod remote_tests;

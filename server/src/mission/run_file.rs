@@ -12,14 +12,14 @@ mod legacy;
 mod m09_outcome;
 pub(crate) mod store;
 use legacy::{
-    RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV2, RunDocumentV3, RunDocumentV4,
-    RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
+    RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2, RunDocumentV3,
+    RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
 pub(crate) use m09_outcome::M09Outcome;
 
 /// Version 13 keeps berth confirmation distinct from committed M10 arrivals.
 /// Only the locked M09-to-M10 edge records transit and the Episode III refill.
-pub(super) const RUN_FILE_VERSION: u32 = 13;
+pub(super) const RUN_FILE_VERSION: u32 = 14;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -539,6 +539,11 @@ impl RunDocument {
         mines_found: bool,
         repeater_found: bool,
     ) -> Result<(), &'static str> {
+        // Right of Search is still unimplemented in this foundation. Every
+        // currently supported stage predates the Remote Mine find.
+        if entry.equipment.remote_mines != 0 {
+            return Err("saved equipment carries remote mines before their mission");
+        }
         if !repeater_found
             && (entry.equipment.weapons.contains(&WeaponType::Repeater)
                 || entry.equipment.selected == WeaponType::Repeater)

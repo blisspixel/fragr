@@ -153,7 +153,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 13 and saved["step"]["mission"] == MissionState.M10_ID, "locked writer stores current M10 entry")
+	_check(saved is Dictionary and saved["version"] == 14 and saved["step"]["mission"] == MissionState.M10_ID, "locked writer stores current M10 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
 	_check(saved is Dictionary and saved["m08_outcome"] == fixture["m08_outcome"] and saved["m09_outcome"] == fixture["m09_outcome"] and saved["m10_transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "original zero-aboard receipt remains separate from real transit arrivals")
 	var archives: Array[String] = []
@@ -228,7 +228,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var retry_saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(retry_saved is Dictionary and retry_saved["version"] == 13 and retry_saved["m09_outcome"] == fixture["m09_outcome"] and retry_saved["m10_transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "unfinished ship retry preserves actual earlier crew history")
+	_check(retry_saved is Dictionary and retry_saved["version"] == 14 and retry_saved["m09_outcome"] == fixture["m09_outcome"] and retry_saved["m10_transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "unfinished ship retry preserves actual earlier crew history")
 	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "real-process retry preserves every entry count")
 	archives.clear()
 	for filename: String in DirAccess.get_files_at(run_directory):

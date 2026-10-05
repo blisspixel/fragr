@@ -170,7 +170,27 @@ Clippy pass on the final source. One preceding lint failure in the extracted
 contact-coordinate loop was corrected with an equivalent iterator; its receipt
 is retained, with no lint suppression or altered contact tolerance.
 
-The next concrete work is the actual Remote Mine contract, Redactor, typed
-mission and strict carry. No new gadget, enemy, wire, save promotion, runtime
-presentation or renderer proof is claimed yet. The frozen M10 dependency remains
-unchanged. This is one mission implementation plan, not a second project queue.
+The next stock component adds the independent six-count inventory and current
+private loadout boundary, with zero omitted. The reserved version 14 save
+boundary uses an exact version 13 decoder and strict pre-remote equipment
+conversion for earlier documents. Valid historical counts become zero only
+after their original shape passes; even a forged zero remote field is rejected.
+The current earlier mission stages still refuse nonzero Remote Mine carry.
+This source work does not grant Right of Search, a remote-control input or any
+new device in a player's world. Actual admission, blast records and the complete
+M11 promotion remain required before this leaf can be accepted.
+
+The stock checkpoint passes 15 focused remote tests and all 66 owning run-file
+tests, including existing M01-M10 transitions, retries, crew contacts and
+historical archives. The existing client equipment harness passes with distinct
+six-charge/four-proximity counts and malformed-value controls. The version 13
+upgrade retains actual M09/M10 crew history and exact source bytes through an
+interrupted write, successful archive and reopen. This is source and headless
+evidence. The changed current-version expectations in the M10 local client
+harness still require a fresh matching native and full composed checker; no
+packaged or played save-version acceptance is claimed at this checkpoint.
+
+The next concrete work is the actual Remote Mine integration, Redactor and
+typed mission. No live gadget, new enemy, playable save promotion, runtime
+presentation or renderer proof is claimed yet. This is one mission
+implementation plan, not a second project queue.
