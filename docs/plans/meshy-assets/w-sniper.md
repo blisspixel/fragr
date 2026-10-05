@@ -1,6 +1,6 @@
 # Sniper Rifle
 
-Status: in flight, 2026-10-04. Conversion reference and first source inspected; compact preparation and selection remain open. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: **shipped** on main, next desktop release, 2026-10-04. Compact source and ordinary played comparison accepted; exact held/fire/pickup pictures selected in [PR #358](https://github.com/blisspixel/fragr/pull/358), with all eight exact-head CI jobs and all three desktop package checks passing. Source route: **New source candidate**. Included in the first bounded production allocation.
 Stable ID: `W-sniper`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -21,7 +21,7 @@ The single perspective establishes silhouette and material intent. It does not p
 
 The first Ultra stage, task `01a108c9-876e-7788-b33f-d1abcf06b6ab`, reported 35 included credits. Retained raw SHA-256: `4a1d5a0e405410feb385514a6878cf0b9476c298fbcf3456d8674e4797998bcb`. Measured source: 11,835 triangles, 13,792 vertices, one mesh/material, embedded 4096-pixel PBR maps, no bones or animations, 31,423,384 bytes. Raw dimensions are about 1.902 x 0.457 x 0.134 units; normalization is not proof of intended metre scale. All four views imported and rendered cleanly. Walnut furniture, the thumbhole, compact optical tube, long barrel and bolt handle are present. The map is too glossy for selection; physical lens/bore depth and independent bolt clearance remain to be measured.
 
-Record the selected reference paths and hashes, front/side/back silhouette, scale, intended material roles and independently moving parts. Named faces and proposed mechanics require a reviewed identity/role sheet. Remove studio/background artifacts from conversion inputs. Prior wrong-side antennas, unsuitable cloth-panel and water outputs remain historical.
+The [bounded refinement](../sniper-source-refinement-20261004.md) measures and repairs the fused joint and optical ends, records retained/replaced/clipped/authored triangles separately, embeds matte 1K maps, and proves actual bolt travel, recess depth and connected glove contact with displacement negative controls. The 1.18 m source length is provisional. The [inspection and played evidence](../../evidence/sniper-source-refinement-20261004.md) retains rejected stages and the accepted same-sample held, resolved fire, close-wall and pickup comparisons. Original art and raw source remain retained.
 
 ## Parts and motion
 
@@ -37,6 +37,6 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 
 ## Credit reservation and next operation
 
-The first candidate consumed its 35-credit allowance. Next work is local topology, compact maps and mechanism preparation, with no extra paid stage planned. Any justified replacement must use the separate shared revision reserve. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
+The first candidate consumed its 35-credit allowance. Local preparation and selection add $0; next work is full client and package verification, with no extra paid stage planned. Any justified replacement must use the separate shared revision reserve. The first allocation is capped at 900 included credits across twelve new sources, suitable rigs and justified revisions.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.

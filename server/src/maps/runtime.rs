@@ -334,6 +334,12 @@ impl RuntimeMap {
             pickup.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Sniper)
         })
     }
+    pub fn requires_repeater_contract(&self) -> bool {
+        self.pickups().iter().any(|pickup| {
+            pickup.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Repeater)
+        })
+    }
+
     pub fn requires_enforcer_contract(&self) -> bool {
         self.encounters().iter().any(|group| {
             group

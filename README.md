@@ -112,6 +112,11 @@ All twelve first-source slots have candidates, with 460 credits still available
 inside the first 900-credit allocation; this does not imply finished game art. The
 [precision source receipt](docs/evidence/precision-weapon-references-20261004.md)
 records their actual geometry, eight inspected views and 70 included credits.
+The [Sniper refinement](docs/evidence/sniper-source-refinement-20261004.md)
+selects prepared held, firing and pickup art on main through
+[PR #358](https://github.com/blisspixel/fragr/pull/358), with all eight CI jobs
+and all three desktop package checks passing;
+the Railgun source remains parked pending preparation and played acceptance.
 The [full asset plan](docs/plans/meshy-full-game-assets.md)
 owns the per-object briefs and budget scenarios.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
@@ -142,8 +147,12 @@ The [Union shadow repair](docs/evidence/union-billboard-shadows-20261004.md)
 is also on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
 with rendered regression, complete client, all eight CI and all three package
 checks passing. It preserves real shadows while removing diagonal body bands.
-Parallel development continues on Jammer and precision-weapon craft,
-the Repeater foundation, a Kitchen map with
+The current arsenal review combines selected Sniper art with the
+[Repeater foundation](docs/plans/repeater-foundation.md). Complete local client
+checks pass; final combined CI and desktop packages remain pending. Repeater
+has real finite-ammunition behavior and strict compatibility, but no current
+campaign grant, selected art or accepted human feel. Parallel development
+continues on Jammer and Railgun craft, a Kitchen map with
 an unresolved first-use wall-rendering defect, and a Garage whose full walking
 route passes but vehicle craft and fresh human fun remain open.
 

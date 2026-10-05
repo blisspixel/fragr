@@ -3,7 +3,9 @@ use super::{CampaignRules, CampaignRunState, MissionId, Role, WeaponType};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub const RECORD_VERSION: u32 = 1;
+pub const RECORD_VERSION: u32 = 2;
+pub const LEGACY_RECORD_VERSION: u32 = 1;
+mod record_wire;
 pub const RECORD_TICKS_PER_SECOND: u32 = 20;
 const MAX_EXACT_JSON_INTEGER: u64 = (1_u64 << 53) - 1;
 
@@ -64,6 +66,11 @@ mod weapon_counts {
         counts: &[WeaponCounts; SLOTS],
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
+        if counts[WeaponType::Repeater.index()] != WeaponCounts::default() {
+            return Err(serde::ser::Error::custom(
+                "Repeater counters require participant record revision 2",
+            ));
+        }
         // The shortest prefix that still holds every non-zero column.
         let used = counts
             .iter()
@@ -83,7 +90,9 @@ mod weapon_counts {
             }
             fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
                 let mut counts = [WeaponCounts::default(); SLOTS];
-                for (index, count) in counts.iter_mut().enumerate() {
+                // Standalone retained counts keep their original unversioned
+                // seven-column ceiling. Record revision 2 uses record_wire.
+                for (index, count) in counts.iter_mut().take(7).enumerate() {
                     match seq.next_element()? {
                         Some(value) => *count = value,
                         None if index >= LEGACY => return Ok(counts),
@@ -91,7 +100,7 @@ mod weapon_counts {
                     }
                 }
                 if seq.next_element::<IgnoredAny>()?.is_some() {
-                    return Err(A::Error::invalid_length(SLOTS + 1, &self));
+                    return Err(A::Error::invalid_length(8, &self));
                 }
                 Ok(counts)
             }
@@ -260,7 +269,7 @@ impl RecordStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[serde(try_from = "record_wire::Wire", into = "record_wire::Wire")]
 pub struct PlayerRecord {
     pub version: u32,
     pub session_id: Uuid,
@@ -301,7 +310,10 @@ impl PlayerRecord {
         owner: Option<Uuid>,
         previous: Option<&Self>,
     ) -> Result<(), &'static str> {
-        if self.version != RECORD_VERSION
+        if !matches!(self.version, LEGACY_RECORD_VERSION | RECORD_VERSION)
+            || (self.version == LEGACY_RECORD_VERSION
+                && (self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
+                    || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()))
             || self.ticks_per_second != RECORD_TICKS_PER_SECOND
             || owner != Some(self.player_id)
             || self.role == Role::Spectator
@@ -355,7 +367,10 @@ impl PlayerRecord {
             _ => {}
         }
         if let Some(old) = previous {
-            if self.session_id != old.session_id || self.player_id != old.player_id {
+            if self.session_id != old.session_id
+                || self.player_id != old.player_id
+                || self.version != old.version
+            {
                 return Err("record identity changed within a connection");
             }
             if self.tick < old.tick || self.round < old.round {
@@ -383,6 +398,18 @@ impl PlayerRecord {
             }
         }
         Ok(())
+    }
+
+    /// Only a genuinely unused new column may use the historical wire shape.
+    pub fn legacy_record(&self) -> Result<Self, &'static str> {
+        if self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
+            || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()
+        {
+            return Err("Repeater counts cannot be delivered to a historical reader");
+        }
+        let mut record = self.clone();
+        record.version = LEGACY_RECORD_VERSION;
+        Ok(record)
     }
 }
 

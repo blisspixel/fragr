@@ -1,6 +1,80 @@
 //! Strict historical save shapes. Versions before 6 have no grenade fields.
 use super::*;
 
+/// Exact v10 shape. It records M08 choices but predates Repeater ownership.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct RunDocumentV10 {
+    pub version: u32,
+    pub id: Uuid,
+    pub starting_continues: u8,
+    pub remaining_continues: u8,
+    pub level_start_continues: u8,
+    pub body: Option<BodyKind>,
+    pub rules: CampaignRules,
+    pub content_sha256: [u8; 32],
+    #[serde(deserialize_with = "deserialize_pre_repeater_step")]
+    pub step: SavedStep,
+    #[serde(default)]
+    pub m03_outcome: Option<M03Outcome>,
+    #[serde(default)]
+    pub m04_outcome: Option<M04Outcome>,
+    #[serde(default)]
+    pub m05_outcome: Option<M05Outcome>,
+    #[serde(default)]
+    pub m06_outcome: Option<M06Outcome>,
+    #[serde(default)]
+    pub m08_outcome: Option<M08Outcome>,
+}
+
+impl RunDocumentV10 {
+    pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
+        if self.version != 10 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+            return Err("unsupported historical campaign rules");
+        }
+        let document = RunDocument {
+            version: RUN_FILE_VERSION,
+            id: self.id,
+            starting_continues: self.starting_continues,
+            remaining_continues: self.remaining_continues,
+            level_start_continues: self.level_start_continues,
+            body: self.body,
+            rules: self.rules,
+            content_sha256: self.content_sha256,
+            step: self.step,
+            m03_outcome: self.m03_outcome,
+            m04_outcome: self.m04_outcome,
+            m05_outcome: self.m05_outcome,
+            m06_outcome: self.m06_outcome,
+            m08_outcome: self.m08_outcome,
+        };
+        document.validate(hashes[store::stage_index(document.stage_mission())])?;
+        Ok(document)
+    }
+}
+
+fn pre_repeater_step(step: SavedStep) -> Result<SavedStep, &'static str> {
+    let entry = match &step {
+        SavedStep::MissionEntry { entry, .. }
+        | SavedStep::PendingContinue { entry, .. }
+        | SavedStep::Failed { entry, .. }
+        | SavedStep::Abandoned { entry, .. } => entry,
+        SavedStep::AwaitingMission { exit, .. } => exit,
+    };
+    if entry.equipment.selected == WeaponType::Repeater
+        || entry.equipment.weapons.contains(&WeaponType::Repeater)
+    {
+        return Err("historical saves cannot carry Repeater");
+    }
+    Ok(step)
+}
+
+fn deserialize_pre_repeater_step<'de, D: serde::Deserializer<'de>>(
+    decoder: D,
+) -> Result<SavedStep, D::Error> {
+    pre_repeater_step(SavedStep::deserialize(decoder)?).map_err(serde::de::Error::custom)
+}
+
 /// Exact version 9 shape, including real finite mines but no archive outcomes.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -13,6 +87,7 @@ pub(crate) struct RunDocumentV9 {
     pub body: Option<BodyKind>,
     pub rules: CampaignRules,
     pub content_sha256: [u8; 32],
+    #[serde(deserialize_with = "deserialize_pre_repeater_step")]
     pub step: SavedStep,
     #[serde(default)]
     pub m03_outcome: Option<M03Outcome>,
@@ -346,17 +421,19 @@ enum LegacyStep<E> {
 fn deserialize_legacy_step<'de, D: serde::Deserializer<'de>>(
     decoder: D,
 ) -> Result<SavedStep, D::Error> {
-    Ok(convert_step(LegacyStep::<LegacyEquipment>::deserialize(
+    pre_repeater_step(convert_step(LegacyStep::<LegacyEquipment>::deserialize(
         decoder,
     )?))
+    .map_err(serde::de::Error::custom)
 }
 
 fn deserialize_pre_mine_step<'de, D: serde::Deserializer<'de>>(
     decoder: D,
 ) -> Result<SavedStep, D::Error> {
-    Ok(convert_step(LegacyStep::<PreMineEquipment>::deserialize(
+    pre_repeater_step(convert_step(LegacyStep::<PreMineEquipment>::deserialize(
         decoder,
     )?))
+    .map_err(serde::de::Error::custom)
 }
 
 fn convert_step<E: Into<SavedEquipment>>(step: LegacyStep<E>) -> SavedStep {

@@ -1562,6 +1562,14 @@ func set_fp_weapon(weapon_name: String) -> void:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
 		fp_weapon.visible = false
+		fp_weapon.texture = null
+		current_fp_weapon = ""
+		fp_shot_age = INF
+		fp_muzzle_timer = 0.0
+		fp_kick_timer = 0.0
+		fp_stab_timer = 0.0
+		if fp_muzzle != null:
+			fp_muzzle.visible = false
 		melee_view.reset()
 		return
 	var changed = weapon_name != current_fp_weapon
@@ -1731,7 +1739,7 @@ func _fp_muzzle_flash(weapon_name: String) -> void:
 	fp_muzzle_timer = FP_MUZZLE_SECONDS
 
 func _fp_fire_kick(weapon_name: String) -> void:
-	if not fp_juice_enabled:
+	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
 		return
 	if weapon_name == "Fists":
 		melee_view.punch()

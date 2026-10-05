@@ -565,9 +565,10 @@ func show_muzzle_flash(weapon: String):
 	if is_campaign_companion:
 		if latch_view != null:
 			latch_view.shot()
-		if fire_sound and fire_streams.has(weapon):
-			fire_sound.stream = fire_streams[weapon]
-			fire_sound.play()
+		if fire_sound:
+			fire_sound.stream = fire_streams.get(weapon)
+			if fire_sound.stream != null:
+				fire_sound.play()
 		return
 	if enemy_view != null:
 		enemy_view.shot()
@@ -582,8 +583,7 @@ func show_muzzle_flash(weapon: String):
 			fire_sound.play()
 		return
 	if fire_sound:
-		if fire_streams.has(weapon):
-			fire_sound.stream = fire_streams[weapon]
+		fire_sound.stream = fire_streams.get(weapon)
 		if is_campaign_enemy and campaign_actor.get("kind") == "ranged_sweeper" and ranged_fire_stream != null:
 			fire_sound.stream = ranged_fire_stream
 		if fire_sound.stream:

@@ -803,18 +803,35 @@ pub async fn send_unicasts(
             continue;
         };
         if let Some(client) = clients_lock.iter_mut().find(|c| c.id == client_id) {
+            if client.gameplay_version < protocol::REPEATER_GAMEPLAY_VERSION
+                && matches!(msg, ServerMessage::Loadout(loadout) if loadout.owns(protocol::WeaponType::Repeater))
+            {
+                client.request_close();
+                continue;
+            }
             if matches!(msg, ServerMessage::Record(_))
                 && client.gameplay_version < protocol::AMMO_GAMEPLAY_VERSION
             {
                 continue;
             }
             let delivered = if let ServerMessage::Record(record) = msg {
-                if client.gameplay_version < protocol::MISSION_RESULTS_GAMEPLAY_VERSION
-                    && record.mission_elapsed_ticks.is_some()
-                {
-                    let mut legacy_record = record.clone();
-                    legacy_record.mission_elapsed_ticks = None;
-                    Some(ServerMessage::Record(legacy_record))
+                let mut compatible =
+                    if client.gameplay_version < protocol::REPEATER_GAMEPLAY_VERSION {
+                        match record.legacy_record() {
+                            Ok(record) => record,
+                            Err(_) => {
+                                client.request_close();
+                                continue;
+                            }
+                        }
+                    } else {
+                        record.clone()
+                    };
+                if client.gameplay_version < protocol::MISSION_RESULTS_GAMEPLAY_VERSION {
+                    compatible.mission_elapsed_ticks = None;
+                }
+                if &compatible != record {
+                    Some(ServerMessage::Record(compatible))
                 } else {
                     None
                 }

@@ -2,7 +2,9 @@ class_name PlayerRecord
 extends RefCounted
 
 ## Mirror of protocol/statistics.rs. Display and persistence share this boundary.
-const VERSION: int = 1
+const VERSION: int = 2
+const LEGACY_VERSION: int = 1
+const LEGACY_MAX_WEAPONS: int = 7
 const STATUSES: Array[String] = ["active", "continue", "complete", "failed", "abandoned"]
 const COUNTS: Array[String] = ["alive_ticks", "deaths", "hp_lost", "armor_lost", "dry_triggers"]
 const WEAPON_COUNTS: Array[String] = ["attacks", "damaging_attacks", "kills", "hp_damage", "armor_damage"]
@@ -20,7 +22,7 @@ static func key(record: Dictionary) -> String:
 
 static func validation_error(data: Dictionary, owner: Variant, previous: Dictionary = {}) -> String:
 	if data.size() != (16 if data.has("type") else 15) + int(data.has("mission_elapsed_ticks")) or (data.has("type") and data["type"] != "record") \
-		or data.get("version") != VERSION or data.get("ticks_per_second") != 20 \
+		or (data.get("version") != LEGACY_VERSION and data.get("version") != VERSION) or data.get("ticks_per_second") != 20 \
 		or not MissionState._uuid(data.get("session_id")) or not MissionState._uuid(data.get("player_id")) \
 		or data.get("player_id") != owner or data.get("role") not in ["human", "agent"] \
 		or data.get("status") not in STATUSES:
@@ -33,7 +35,7 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 	if int(data["round"]) < 1 or int(data["round"]) > 4294967295 or int(data["map_id"]) < 1 or int(data["map_id"]) > 4294967295 \
 		or not data.get("map_name") is String or data["map_name"].is_empty() or data["map_name"].length() > 128:
 		return INVALID
-	if not valid_counts(data.get("total")) or not valid_counts(data.get("attempt")):
+	if not valid_counts(data.get("total"), int(data["version"])) or not valid_counts(data.get("attempt"), int(data["version"])):
 		return INVALID
 	if int(data["total"]["alive_ticks"]) > int(data["tick"]) - int(data["entered_at"]):
 		return INVALID
@@ -44,7 +46,7 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 		or int(data["mission_elapsed_ticks"]) > int(data["tick"]) - int(data["round_started_at"])):
 		return INVALID
 	if not previous.is_empty():
-		if data["session_id"] != previous["session_id"] or data["player_id"] != previous["player_id"] \
+		if data["session_id"] != previous["session_id"] or data["player_id"] != previous["player_id"] or data["version"] != previous["version"] \
 			or int(data["tick"]) < int(previous["tick"]) or int(data["round"]) < int(previous["round"]):
 			return INVALID
 		if data["round"] == previous["round"]:
@@ -63,8 +65,13 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 				return INVALID
 	return ""
 
-static func valid_counts(value: Variant) -> bool:
-	if not value is Dictionary or not value.get("weapons") is Array 		or (value["weapons"].size() < LEGACY_WEAPONS or value["weapons"].size() > EquipmentState.WEAPONS.size()):
+static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
+	if not value is Dictionary or not value.get("weapons") is Array:
+		return false
+	var width: int = value["weapons"].size()
+	if (record_version == LEGACY_VERSION and (width < LEGACY_WEAPONS or width > LEGACY_MAX_WEAPONS)) \
+		or (record_version == VERSION and width != EquipmentState.WEAPONS.size()) \
+		or record_version not in [LEGACY_VERSION, VERSION]:
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")

@@ -684,7 +684,7 @@ fn m01_secret_shiv_is_found_once_per_run_and_restores_on_continue() {
     assert_eq!(equipment_bullets(&run), bullets);
     let record = run.session.state.player_record(run.id).unwrap();
     assert_eq!(record.total.weapon(WeaponType::Shiv).attacks, 3);
-    let json = serde_json::to_value(&record).unwrap();
+    let json = serde_json::to_value(record.legacy_record().unwrap()).unwrap();
     assert_eq!(json["total"]["weapons"].as_array().unwrap().len(), 6);
     assert_eq!(json["total"]["secrets"], 1);
     record.validate_for(Some(run.id), None).unwrap();
