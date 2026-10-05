@@ -30,6 +30,24 @@ impl MissionProbe {
         }
     }
 
+    fn prepared_worlds(&self) -> [std::sync::Arc<crate::navigation::Navigation>; 2] {
+        self.maps.each_ref().map(|expected| {
+            let ServerMessage::MapInfo {
+                half_extent,
+                solids,
+                ..
+            } = serde_json::from_value(expected.clone()).unwrap()
+            else {
+                panic!("fixture stores MapInfo");
+            };
+            crate::navigation::Navigation::shared(crate::movement::Arena {
+                half: half_extent,
+                solids,
+            })
+            .unwrap()
+        })
+    }
+
     fn ingest(&mut self, message: &ServerMessage) {
         match message {
             ServerMessage::MapInfo {
@@ -245,9 +263,10 @@ async fn drive(
     reached: tokio::sync::mpsc::UnboundedSender<()>,
     proceed: tokio::sync::watch::Receiver<bool>,
     finish: tokio::sync::oneshot::Receiver<()>,
+    mut probe: MissionProbe,
+    worlds: [std::sync::Arc<crate::navigation::Navigation>; 2],
 ) -> Vec<usize> {
     let mut socket = connect(&url, role).await;
-    let mut probe = MissionProbe::new();
     let mut navigator = crate::navigation::Navigator::default();
     let mut world = None;
     let mut id = None;
@@ -257,18 +276,10 @@ async fn drive(
         probe.ingest(&message);
         match message {
             ServerMessage::Welcome { player_id, .. } => id = player_id,
-            ServerMessage::MapInfo {
-                half_extent,
-                solids,
-                ..
-            } => {
-                world = Some(
-                    crate::navigation::Navigation::shared(crate::movement::Arena {
-                        half: half_extent,
-                        solids,
-                    })
-                    .unwrap(),
-                );
+            ServerMessage::MapInfo { .. } => {
+                // ingest checked the complete actual MapInfo before selection.
+                // Never build topology while this runtime owns live sockets.
+                world = Some(worlds[*probe.revisions.last().unwrap()].clone());
                 navigator.clear();
             }
             ServerMessage::Mission { state, .. } => {
@@ -334,6 +345,12 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
         serde_json::to_vec(&super::tests::definition()).unwrap(),
     )
     .unwrap();
+    // Prepare both geometry revisions and all observers before sockets become
+    // live. The timed walk must not include a shared topology-cache wait.
+    let human_probe = MissionProbe::new();
+    let agent_probe = MissionProbe::new();
+    let spectator_probe = MissionProbe::new();
+    let worlds = human_probe.prepared_worlds();
     let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
     let (stop_tx, stop_rx) = tokio::sync::oneshot::channel();
     let server = tokio::spawn(crate::run::run_server(
@@ -359,6 +376,8 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
         reached_tx.clone(),
         proceed_rx.clone(),
         human_finish_rx,
+        human_probe,
+        worlds.clone(),
     ));
     let agent = tokio::spawn(drive(
         url.clone(),
@@ -366,13 +385,15 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
         reached_tx,
         proceed_rx,
         agent_finish_rx,
+        agent_probe,
+        worlds,
     ));
     tokio::time::timeout(Duration::from_secs(20), reached_rx.recv())
         .await
         .expect("party reaches record")
         .unwrap();
     let mut spectator = connect(&url, Role::Spectator).await;
-    let mut probe = MissionProbe::new();
+    let mut probe = spectator_probe;
     let mut saw_progress = false;
     let mut saw_departure = false;
     tokio::time::timeout(Duration::from_secs(20), async {

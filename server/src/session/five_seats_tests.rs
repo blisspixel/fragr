@@ -26,6 +26,71 @@ fn assert_pistol(player: &crate::sim::Player) {
 }
 
 #[test]
+fn five_seats_watcher_waits_for_delayed_first_human_without_phantom_round() {
+    let mut session = make_session(true);
+    session.state.start_round();
+    session.apply_command(GameCommand::Connected {
+        id: Uuid::from_u128(1),
+        role: Role::Spectator,
+        name: "Waiting watcher".into(),
+        player_id: None,
+        body: protocol::BodyKind::Human,
+    });
+    assert!(session.state.players.is_empty());
+    for _ in 0..100 {
+        session.tick_messages(DT);
+    }
+    let wire = session.state.snapshot().sabotage.unwrap();
+    assert_eq!(
+        (wire.round, wire.phase, wire.clock_ticks),
+        (1, SabotagePhase::Muster, 2)
+    );
+    assert_eq!((wire.score.union, wire.score.coalition), (0, 0));
+    assert!(session.state.sabotage.as_ref().unwrap().result.is_none());
+
+    let id = Uuid::from_u128(2);
+    session.apply_command(GameCommand::Connected {
+        id,
+        role: Role::Human,
+        name: "Delayed first human".into(),
+        player_id: Some(id),
+        body: protocol::BodyKind::Human,
+    });
+    assert_pistol(&session.state.players[0]);
+    assert!(!session.state.players[0].eliminated);
+    session.tick_messages(DT);
+    assert_eq!(
+        session.state.snapshot().sabotage.unwrap().phase,
+        SabotagePhase::Muster
+    );
+    session.tick_messages(DT);
+    let wire = session.state.snapshot().sabotage.unwrap();
+    assert_eq!((wire.round, wire.phase), (1, SabotagePhase::Live));
+    assert_eq!((wire.score.union, wire.score.coalition), (0, 0));
+    assert!(!session.state.players[0].eliminated);
+}
+
+#[test]
+fn five_seats_single_rule_bot_starts_without_a_two_side_quorum() {
+    let mut session = make_session(true);
+    session.state.start_round();
+    for _ in 0..100 {
+        session.tick_messages(DT);
+    }
+    session.spawn_bots(1);
+    assert_eq!(session.state.players.len(), 1);
+    session.tick_messages(DT);
+    assert_eq!(
+        session.state.snapshot().sabotage.unwrap().phase,
+        SabotagePhase::Muster
+    );
+    session.tick_messages(DT);
+    let wire = session.state.snapshot().sabotage.unwrap();
+    assert_eq!((wire.round, wire.phase), (1, SabotagePhase::Live));
+    assert_eq!((wire.score.union, wire.score.coalition), (0, 0));
+}
+
+#[test]
 fn five_seats_pistol_first_round_survivor_carry_and_real_post_death_reset() {
     use protocol::WeaponType;
     let mut session = make_session(true);

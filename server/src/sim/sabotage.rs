@@ -498,12 +498,20 @@ impl GameState {
         self.pickups
             .retain(|pad| !pad.id.starts_with(DROPPED_WEAPON_PREFIX) || pad.available);
 
-        if sab.phase == SabotagePhase::Muster
-            && self.tick.saturating_sub(sab.phase_started) >= u64::from(config.muster_ticks)
-        {
-            sab.phase = SabotagePhase::Live;
-            sab.phase_started = self.tick;
-            self.push_sabotage(&sab, SabotageEventKind::Live, None, None);
+        if sab.phase == SabotagePhase::Muster {
+            if !self
+                .players
+                .iter()
+                .any(|p| p.contestant() && p.team.is_some() && !p.detached)
+            {
+                // Empty or parked-only rooms retain the full joining countdown.
+                sab.phase_started = self.tick;
+            } else if self.tick.saturating_sub(sab.phase_started) >= u64::from(config.muster_ticks)
+            {
+                sab.phase = SabotagePhase::Live;
+                sab.phase_started = self.tick;
+                self.push_sabotage(&sab, SabotageEventKind::Live, None, None);
+            }
         }
 
         self.carry_charge(&mut sab);
