@@ -564,3 +564,14 @@ preexisting ignored cases. Format, complete all-target workspace Clippy,
 matching optimized server build, clean client import and the focused QA
 harness pass. The complete corrected client rerun and ordinary full tour are
 the next acceptance gates.
+
+The immutable corrected source completed the entire client checker with clean
+exit zero: all 264 scripts and 126 harnesses pass. The fresh private executable
+also passes the actual two-child local migration, finite carry, damage and
+retry harness. A separate headless replay of the exact earlier client cabin
+approach now passes ordinary camera input and server acknowledgements with
+the same 39 HP carry and only the original four guards present. Both owned
+processes exit zero and are cleaned. This is a causal client regression, not
+hardware or full combat evidence. The next rendered 28-state route retains
+the byte-identical corrected weapon manifest, all 17 guards, finite kit, same
+geometry and fresh shared departure. That full combat verdict remains open.
