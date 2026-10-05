@@ -1,6 +1,11 @@
 # Shotgun
 
 Status: planned asset brief, 2026-10-04. Source route: **Reuse existing paid source**. Demand follows the roadmap and the relevant mission or map.
+
+On October 5 the user confirmed that the current drawn first-person Shotgun
+looks good and that flat image presentation is acceptable. Retain its selected
+idle, fire and pump pictures. The parked model is a separate source opportunity;
+conversion to a live 3D first-person view is not an acceptance requirement.
 Stable ID: `W-shotgun`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -34,4 +39,3 @@ Inspect front/side/back and real moving parts. Compare the old and new asset at 
 Zero new generation credits for this brief. Retain prior paid consumption separately; local preparation and refinement still require work. Do not treat this brief as a submitted request.
 
 Before every paid stage, use the existing native free balance checker and shared account ledger, retain uncertain holds and price the exact options. Record actual reported consumption. No new cash, renewal, pack purchase, top-up or overage is authorized by this plan.
-

@@ -5,6 +5,13 @@ appearance. Earlier source, CI and package passes remain technical evidence;
 they do not close this visual acceptance gate. This pass follows the existing
 art rung in the [Full build order](../ROADMAP.md#full-build-order).
 
+The subsequent explicit direction is to use the Shotgun's successful drawn
+first-person image workflow. Flat sprites are acceptable. The Pistol's model
+reconstruction and live-3D presentation experiment are stopped. The current
+replacement is a new coherent drawn idle/fire pair, with ordinary played and
+final integration acceptance still required. Existing world models and
+mechanical source receipts are retained separately.
+
 ## Observed problem
 
 The current Pistol view reads as a muddy gray slide with an awkward grip and
@@ -15,8 +22,10 @@ material separation. `pistol_source.gd` constructs gloves from primitive palms,
 rods and sleeves. `preview_pistol_source.gd` renders seven poses at 896x720,
 reduces them to 224x180, then retains only idle and fire pictures for gameplay.
 
-These are actual source facts. Their contribution to the poor result is an
-art-review inference, not a measured single-cause experiment. The existing
+These are actual source facts. Nine controlled material/framing renders then
+confirmed that retained source maps recover metal detail under the same light,
+geometry and unchanged primitive hands. That does not repair the poor grip or
+close art acceptance. The experiment is retained privately and stopped. The existing
 prepared geometry may be usable; another paid model does not by itself fix
 framing, hands, surface finish or lost motion. Retain the original source and
 all rejected comparisons without treating exact source-triangle preservation
@@ -67,11 +76,13 @@ already supports it.
    HUD: clear aim direction, visible side planes, believable scale and a small
    amount of screen coverage. The weapon must read well at normal distance
    from the screen and across supported aspect ratios.
-5. Compare retained sprite presentation with an actual animated 3D first-person
-   experiment using the same source. A 3D experiment remains opt-in until
-   clipping, pixel treatment, lighting, scope, player/spectator visibility,
-   resolved-shot timing and renderer cost pass. Do not turn it into a second
-   combat authority or change ammunition, recoil outcomes or weapon cooldown.
+5. Use the Shotgun's drawn sprite workflow for first-person weapon replacements.
+   Generate a purposeful idle from the accepted visual style, then derive its
+   fire image from that exact idle. Reduce both on the same full canvas with
+   the registered palette, hard alpha and nearest filtering. Check grip,
+   silhouette, registration, muzzle origin, moving-part read and settled idle.
+   Preserve resolved-shot timing, ammunition and weapon cooldown. A live 3D
+   view is not required for this work.
 6. Inspect ordinary discovery, walking, close walls and resolved shots in both
    a daylight venue and an interior. Reject conspicuous shape, texture or hand
    flaws even when technical gates pass. Select the better result only after
@@ -85,7 +96,10 @@ this finishing pass introduces no new cash, renewal, top-up or overage.
 
 ## Acceptance still open
 
-Current Pistol remains selected pending a demonstrably better replacement.
+The replacement sprite pair is selected locally; main still has the rejected
+Pistol until the combined integration passes. Four completed image requests
+used an estimated $0.410 prepaid allowance, with no model credits consumed.
+The raw request reservations, IDs and sources remain in the native ledger.
 The existing refined Shotgun and restored Rifle are comparison controls.
 The new glove is an inspected source, not a completed hand rig or runtime asset.
 M02's companion presentation is being audited separately against the actual

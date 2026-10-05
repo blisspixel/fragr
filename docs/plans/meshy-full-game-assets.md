@@ -13,6 +13,18 @@ The catalog has **190 individual asset and construction-kit briefs**: 35 cast/ro
 | Retained paid sources | 7 | Clerk, Sweeper, Auditor, free human, Latch, Shotgun candidate and yard generator candidate |
 | Local/derived | 84 | 17 cast variants/retained mechanical roles, 24 equipment briefs and 43 construction/detail briefs |
 
+This route split is the original planning baseline, not a current count of
+missing paid sources. The subsequent production receipts below track generated
+candidates and selected assets separately. Every one of the 190 linked briefs
+still has to meet its own practical integration and visual acceptance gate.
+
+First-person weapon art may use the successful drawn Shotgun workflow. Nick
+explicitly accepted that image presentation on October 5 and rejected the
+model-derived Pistol view. A generated model is not required for every held
+weapon picture. The [weapon-quality correction](first-person-weapon-quality.md)
+tracks the new coherent Pistol sprites; Meshy remains useful for character,
+world and independently moving machinery sources.
+
 Selected Clerk/Sweeper/Auditor atlases, the free-human strip and live Latch are distinct from older library exports. The parked Shotgun and generator need actual refinement and selection. The [147-image source library](../../client/art/production-20261003/README.md) supplies 28 prop designs, 14 character designs, 14 weapon designs/finishes and venue references; images are not finished models. The full M02 and Auditor route gates remain open.
 
 The [Wipe design](wipe-survival.md) adds a larger M20 mobile survival stand, placeable automatic sentries and shared multiplayer systems. M18's unresolved Union fighting is interrupted by the unexpected takeover; M19 carries the escalating escape. Threat pressure is continuous, without announced shopping breaks or an outbreak forecast. Its one additional model family is E-portable-sentry; jeep, motorcycle, jetpack, restoration machines and waterworks are already counted. Locally isolated resistance equipment requires an explicit control boundary, not merely different paint. This is planned gameplay, not implemented waves, vehicles or deployments.
