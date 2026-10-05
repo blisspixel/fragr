@@ -36,6 +36,11 @@ func _blast(radius: float, damage: int) -> Dictionary:
 
 func _run() -> void:
 	# Strict facts.
+	var remote_vectors: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://golden/remote_mine_vectors.json"))
+	_check(remote_vectors is Array and remote_vectors.size() == 18, "shared remote boundary vectors load")
+	if remote_vectors is Array:
+		for vector: Dictionary in remote_vectors:
+			_check(CustodyFacts.remote_state_valid(vector["state"], int(vector["tick"])) == vector["valid"], "remote boundary: " + str(vector["name"]))
 	for phase: String in CustodyFacts.MINE_PHASES:
 		_check(CustodyFacts.validation_error(_mine(50, phase, 10)).is_empty(), "actual %s mine accepted" % phase)
 	for patch: Dictionary in [{"id": 0}, {"owner_id": "bad"}, {"position": [NAN, 0, 0]}, {"normal": [0, 0, 0]},

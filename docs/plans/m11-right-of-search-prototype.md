@@ -17,7 +17,7 @@ The level's required new systems are actual separately counted Remote Mines
 and the Redactor's observable distortion, commitment and decloak. Existing
 proximity mines and enemy skins are not substitutes. An architectural checkpoint
 is explicitly a non-mission development study until these systems, typed mission
-   facts, persistence, presentation and played gates are implemented together.
+facts, persistence, presentation and played gates are implemented together.
 
 ## Canon and scope
 
@@ -86,6 +86,17 @@ locked commitment, interruption/recovery, damage, cover, route budget and death.
 Both use normal sim ticks and preserve current rules unless an intentional
 revision is reviewed with matching client validation.
 
+The initial remote prototype uses an independent carry cap of six, four live
+charges per owner and 32 globally, with the existing 15-tick placement admission.
+After real swept surface contact, arming is 40 ticks. A fresh trigger starts a
+four-tick visible detonation commitment on every currently armed owned charge;
+flying and still-arming charges are not silently queued. Holding the trigger
+does not detonate a later-armed charge. The shared 4.5 m, 130 peak covered mine
+blast is the initial bounded balance, subject to played acceptance. Every
+admitted placement owns one attack record; resolved damage is never credited to
+a proximity-mine column. Device death/leave/reset cleanup follows owned mines,
+not committed grenades. These are prototype constants, not a balance claim.
+
 Mission tests require every ordered objective and actual stern departure,
 finite equipment and actual counter-boarding outcomes; failure, continue,
 M10-to-M11 carry, exact legacy migration and missing-current-source refusals.
@@ -129,6 +140,15 @@ millimetre coordinates, and the negative control actually removes body clearance
 The first PowerShell checker also rejected ordinary compiler stderr; its owning
 process wrapper now retains a handle and reads the actual numeric cargo exit.
 No acceptance threshold or movement rule was changed.
+
+The independent Remote Mine state boundary now validates flying, arming, armed
+and deliberately triggered phases in native code and the existing client
+custody-device harness. Eighteen shared valid and malformed vectors agree;
+three owning native tests, the focused client harness and warning-denied server
+Clippy pass. The first client import used an invalid relative log path and is
+retained as a failed setup; the absolute-path import and focused harness are
+clean. These types are not yet delivered in snapshots or admitted through input,
+and no inventory, flight, blast, save carry or live device is claimed.
 
 The next concrete work is the actual Remote Mine contract, Redactor, typed
 mission and strict carry. No new gadget, enemy, wire, save promotion, runtime

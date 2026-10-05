@@ -27,6 +27,7 @@ pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
 };
+mod remote_mine;
 pub use explosive::{
     ExplosionHit, ExplosionResult, GrenadeState, MinePhase, MineState, MINE_ARMING_TICKS,
     MINE_TRIP_TICKS,
@@ -63,6 +64,10 @@ pub use mission::{
     MissionGeometry, MissionId, MissionMember, MissionObjective, MissionObjectiveAction,
     MissionPhase, MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES,
     CAMPAIGN_RULES_REVISION, M03_MAST_MAX_HP, M03_MAX_CARS, MISSION_PARTY_LIMIT, USE_DISTANCE,
+};
+pub use remote_mine::{
+    RemoteMinePhase, RemoteMineState, REMOTE_MINE_ARMING_TICKS, REMOTE_MINE_CARRY_CAP,
+    REMOTE_MINE_TRIGGER_TICKS,
 };
 pub use rules::{
     GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
