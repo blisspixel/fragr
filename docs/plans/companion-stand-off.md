@@ -47,3 +47,18 @@ private target with two build jobs. Only after those gates, request a rendered
 full M03 ordinary route lease against the exact new native and current source.
 All original goals, finite supplies, named guards and departure gates remain.
 Root owns full CI, package acceptance, shared index and integration.
+
+## Local checkpoint
+
+Corrected source `d0bf6be9` passes formatting, warning-denied workspace Clippy,
+all 1,463 workspace tests (917 server library tests, three existing ignored)
+and the existing sixteen-bot benchmark assertions. The owned native hash is
+`7e348dc7ec1ece5604fc0f76f35ae82d28d500b7900e64e0f76a6d7283b71c63`.
+Its first rendered original-art M03 route completes all 21 states, 88 ordinary
+walking arrivals, 22 named guards and actual departure, with zero deaths.
+The north receipt retains both captive bodies and collidable Latch through
+the original goal. All four historical bypass points and two restricted
+combat-travel opt-ins remain explicitly recorded, with unchanged original
+goals and outcome gates. [Evidence](../evidence/companion-stand-off-20261004.md)
+retains the prior failures, finite resources and inspected frames. Full client
+and integration gates remain pending; this plan stays in flight.
