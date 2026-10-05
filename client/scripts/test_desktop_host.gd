@@ -21,7 +21,7 @@ func _finalize() -> void:
 		if is_instance_valid(peer):
 			peer.leave_match()
 			peer.free()
-	var owner: LocalHost = root.get_node_or_null("LocalHost") as LocalHost
+	var owner: LocalHost = root.get_node_or_null("LocalHost") as LocalHost if root != null else null
 	if owner != null:
 		owner.process.request_stop()
 		owner.process.dispose()
