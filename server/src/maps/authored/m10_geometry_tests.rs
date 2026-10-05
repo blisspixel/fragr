@@ -1,9 +1,75 @@
 use super::*;
+use crate::movement::{live_step, MoveInput, MoveState};
 use crate::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
 use crate::protocol::{Action, Role};
 use crate::sim::{GameState, PLAYER_FLOOR_Y};
 
 const SOURCE: &[u8] = include_bytes!("../../../maps/m10_common_carrier.json");
+
+fn straight(arena: &Arena, mut body: MoveState, target: [f32; 3]) -> (MoveState, bool) {
+    for _ in 0..300 {
+        if (body.x - target[0]).hypot(body.z - target[2]) <= 0.3
+            && (body.y - target[1]).abs() <= 0.03
+        {
+            return (body, true);
+        }
+        body = live_step(
+            body,
+            &MoveInput {
+                forward: true,
+                yaw: (target[2] - body.z).atan2(target[0] - body.x),
+                ..MoveInput::default()
+            },
+            5.0,
+            0.05,
+            arena,
+        );
+    }
+    (body, false)
+}
+
+#[test]
+fn m10_tour_literal_segments_use_the_actual_open_working_aisles() {
+    let map = AuthoredMap::read(SOURCE).unwrap();
+    let tour: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../client/qa/m10_common_carrier.json"
+    ))
+    .unwrap();
+    let mut previous = [0.0, 4.8, -12.1];
+    let mut invalid = Vec::new();
+    for state in tour["states"].as_array().unwrap() {
+        if let Some(points) = state["walk_to"].as_array() {
+            for point in points {
+                let target = std::array::from_fn(|i| point[i].as_f64().unwrap() as f32);
+                // Independent literal-segment fixtures, not a completed fight
+                // or living-contact proof. Actual combat can end off-anchor.
+                let from = MoveState {
+                    x: previous[0],
+                    y: previous[1],
+                    z: previous[2],
+                    vx: 0.0,
+                    vz: 0.0,
+                    vy: 0.0,
+                    yaw: 0.0,
+                };
+                let (body, arrived) = straight(&map.arena, from, target);
+                if !arrived {
+                    invalid.push((
+                        state["name"].as_str().unwrap(),
+                        previous,
+                        target,
+                        [body.x, body.y, body.z],
+                    ));
+                }
+                previous = target;
+            }
+        }
+    }
+    assert!(
+        invalid.is_empty(),
+        "blocked authored route segments: {invalid:?}"
+    );
+}
 
 #[test]
 fn m10_tour_waypoints_have_actual_body_clearance_and_support() {
@@ -31,28 +97,6 @@ fn m10_tour_waypoints_have_actual_body_clearance_and_support() {
 
 #[test]
 fn m10_service_approach_routes_around_the_actual_cargo_and_stair_corner() {
-    use crate::movement::{live_step, MoveInput, MoveState};
-    fn straight(arena: &Arena, mut body: MoveState, target: [f32; 3]) -> (MoveState, bool) {
-        for _ in 0..300 {
-            if (body.x - target[0]).hypot(body.z - target[2]) <= 0.3
-                && (body.y - target[1]).abs() <= 0.03
-            {
-                return (body, true);
-            }
-            body = live_step(
-                body,
-                &MoveInput {
-                    forward: true,
-                    yaw: (target[2] - body.z).atan2(target[0] - body.x),
-                    ..MoveInput::default()
-                },
-                5.0,
-                0.05,
-                arena,
-            );
-        }
-        (body, false)
-    }
     let map = AuthoredMap::read(SOURCE).unwrap();
     let from = MoveState {
         x: 0.0,

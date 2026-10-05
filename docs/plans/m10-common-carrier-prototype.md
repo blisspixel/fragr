@@ -1,9 +1,8 @@
 # Common Carrier prototype
 
-Status: in flight, 2026-10-04. Native promotion work is authorized in isolated
+Status: in flight, 2026-10-05. Native promotion work is authorized in isolated
 branch `feat/m10-common-carrier`, based on crew receipt `32dd8ea2`. The frozen
-Repeater and crew branches remain unchanged. This lane submits no paid calls
-or GPU work. The Repeater foundation is merged, and this prototype was normally
+Repeater and crew branches remain unchanged. This lane submits no paid calls. Hardware work uses bounded approved leases. The Repeater foundation is merged, and this prototype was normally
 composed with main `cc8efcc8`. The separate crew receipt PR 363 is frozen at
 `501e8a80`, with eight CI jobs and all three desktop packages passing. Parent
 integration remains separate. Final acceptance must precede publication or a
@@ -653,3 +652,14 @@ medkit also uses the same fore-side aisle around the actual power bank.
 This supersedes retaining impossible test intermediates, never real mission
 objectives or supplied stock. The failed client and old-shape physical audit
 remain recorded; new ordinary client whole-route validation is required.
+
+The next real client CPU trace passes the medkit and service objective, then
+reproduces the aft-stock straight lane blocked by the actual coolant bank.
+A shared live-step audit of every consecutive literal QA route segment finds
+exactly that edge and the later lower-return edge, which inadvertently climbs
+the west stair instead of reaching the lower service floor. Add supported
+side anchors around the coolant bank and reuse the already played forward
+lower arrival and open service aisle for the return. Keep both original
+real destinations and all 28 states, guard rosters, stock and objective gates.
+The segment audit is geometry evidence without living actors or combat;
+ordinary actual-client full-route validation remains a separate required gate.
