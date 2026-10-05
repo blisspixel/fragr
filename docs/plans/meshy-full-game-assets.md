@@ -27,25 +27,31 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest production reconciliation on 2026-10-04 reports **2,480 API
-credits**, **15 uncertain credits held**, and **2,465 usable**. Enforcer,
+The latest production reconciliation on 2026-10-04 reports **2,375 API
+credits**, **15 uncertain credits held**, and **2,360 usable**. Enforcer,
 Crawler, Pistol, Rifle, the bounded civilian revision and the corrected Jammer
-candidate, followed by the first Railgun and Sniper Rifle sources, consumed
-265 included credits inside the first 900-credit allocation, leaving 635
-within that ceiling. Total tracked consumption is 590 credits.
+candidate, followed by the first Railgun and Sniper Rifle sources and three
+inhabited-world props, consumed 370 included credits inside the first
+900-credit allocation, leaving 530 within that ceiling. Total tracked consumption
+is 695 credits.
 The Jammer task `01a10891-f9a6-76b4-9ba1-85f035260e77` consumed 35 credits
 for a textured 7.1 Ultra candidate; mechanical and played acceptance remain
 open. No humanoid rig was requested for its four-foot/four-petal machinery.
 The [precision weapon receipt](../evidence/precision-weapon-references-20261004.md)
 records two serialized 35-credit source stages, eight inspected raw views and
-the subsequent account reconciliation. Neither precision weapon is selected
-runtime art; local preparation and played acceptance remain open.
+the subsequent account reconciliation. The
+[Sniper refinement](../evidence/sniper-source-refinement-20261004.md) selects
+prepared held, firing and pickup art after source and ordinary played
+comparison checks; final combined CI and packages remain pending. The Railgun
+source remains parked, with preparation and played acceptance open.
 These receipts do not establish finished game coverage. The
 [production receipt](../evidence/asset-production-20261004.md) records actual
 operations, inspection and remaining acceptance; the later
 [civilian revision receipt](../evidence/free-human-civilian-20261004.md) records
-its additional 40 credits and its dated balance. No pack is needed for the
-remaining five first candidates in this allocation.
+its additional 40 credits and its dated balance. The [world-prop receipt](../evidence/world-prop-sources-20261004.md)
+records the scrubber, pump and radio, their twelve raw views and 105 actual
+credits. No pack is needed for the remaining two first candidates in this
+allocation: non-Latch free agent and repair workbench.
 
 The planning baseline before this production batch on 2026-10-04 was
 **2,745 API credits**, with the retained **15-credit uncertain hold**, leaving
