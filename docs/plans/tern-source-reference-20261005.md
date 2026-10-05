@@ -129,3 +129,19 @@ hold checks, separate accepted task IDs, bounded caps and immediate downloads.
 No new cash, paid animation library, rig retry loop, renewal, top-up or overage.
 This lane adds no dependency, protocol, runtime code, GPU job, request or global
 catalog/index update. A finished spec is not an accepted image or model.
+
+## Free preparation result
+
+The existing native `prompts` command accepts exactly one frame with an
+explicitly absent credential file, numeric exit 0. It assembles the complete
+subject/style/view/technical/negative prompt without accessing credentials or
+making a request. Spec SHA-256 is
+`701330814825e9eaf4ca87db8c0d9174f764e0d298f82cfda98b32da026a6313`.
+`git diff --check` passes. Private
+`.agents/tern-brief-checks/` retains the exact prompt, checksum, 190-brief
+inventory, tracked source inventory and unchanged style-control hashes.
+
+This is a source/reference preflight only. No returned image, source geometry,
+rig, consumed credit, current account reading, GPU frame or runtime selection
+is recorded. The separate body-type fallback correction remains its own
+checkpoint and does not delay this reference preparation.
