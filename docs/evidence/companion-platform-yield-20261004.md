@@ -2,6 +2,12 @@
 
 Status: implemented and locally verified, integration gates pending.
 Spend: $0. Source: `481c4aec`, refreshed onto main `d1d13562` at `83bb388b`.
+Publication refresh merges main `cc8efcc8` normally. Server, protocol, maps,
+selected client runtime, all harnesses and checker bytes match the immutable
+tested runtime. Only parked world-prop sources, ignored references and
+documentation are new. Focused imports, M03 validation and loading checks pass.
+The [refresh receipt](../screenshots/companion-platform-yield-20261004/refresh-receipt.json)
+binds the exact native and records the source comparison.
 
 The first stand-off checkpoint completed M03, but a matching candidate-atlas
 comparison then stopped after eighteen states on the narrow raised signal-box
@@ -99,6 +105,9 @@ contract removes exactly those six declared changes before checking the
 original semantic route hash. The route SHA-256 remains
 `8271192cdb67c7fa1a0d16b8077edfa486004fadc635d1467f268f6441fba390`.
 The extra platform receipt is a read-only observer, not a gameplay control.
+Public JSON is compacted without changing any nested facts, map or contact
+entries. All 120-tick sections and original raw hashes are retained; a
+parsed before/after semantic equality check passes for every formatted file.
 
 Godot 4.7.2-stable Compatibility rendering runs at 1280 by 720 on the inspected
 Radeon 780M. Renderer PID 11176 exits zero with clean script/resource logs;
