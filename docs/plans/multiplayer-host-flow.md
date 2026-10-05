@@ -121,6 +121,22 @@ assembly change. Three platform PASS results must bind to the final source.
 This headless protocol and process smoke does not establish rendered combat,
 human fun, two-machine LAN operation or every desktop's GPU support.
 
+### Hosted scene audio retirement, 2026-10-05
+
+The combined client checker at `f38ce34346890abc66ae390b7cf0cbeff92d0586`
+completed all 133 harnesses, but the desktop host lifecycle test left one MP3
+decoder alive at process exit. Its lifecycle assertions and own PASS marker
+did not make the error log clean. Retain that failed run as evidence.
+
+Before each ordinary gameplay Leave or Stop in that test, capture a weak
+reference to the actual radio playback. Keep production audio and ordinary
+scene teardown unchanged. Reuse the existing playback retirement check and its
+two-second bound, require every captured decoder to retire after scene exit,
+and assert all references are retired before final PASS and quit. Do not mute
+audio, manually replace teardown, relax the bound or suppress exit errors.
+Verify the real native lifecycle test with clean logs, then repeat the complete
+combined client checker on the corrected frozen source.
+
 ## Documentation, spend and remaining limits
 
 After actual behavior exists, update `HOSTING.md`, `DESKTOP.md`, `PLAYING.md`
