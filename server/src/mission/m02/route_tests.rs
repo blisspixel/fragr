@@ -1545,6 +1545,16 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
     let (shooter, intent) = state.m02_companion_intent().unwrap();
     assert_eq!(shooter, companion_id);
     assert!(
+        intent.goal.is_none(),
+        "firing discards the previous formation route"
+    );
+    assert!(
+        !intent.action.forward
+            && !intent.action.back
+            && !intent.action.left
+            && !intent.action.right
+    );
+    assert!(
         intent.action.fire,
         "visible active ward guard receives bounded support"
     );

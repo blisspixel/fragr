@@ -1,0 +1,42 @@
+# Supported companion stand-off
+
+Status: in flight. Spend: $0. Base: main `2399c00d`.
+
+## Goal and evidence
+
+Prevent Latch from closing the participant's available walking space while
+preserving real character collision. The recorded M03 north exit freezes with
+two released roof captives and Latch beside the participant. Removing only
+Latch from the stationary-contact mirror permits the original goal in 41
+ticks. The current follower targets exact participant feet with a 0.65 m
+tolerance, inside the combined 1 m body clearance. Failed QA route evidence and
+its four explicit bypass points remain historical facts, not gameplay fixes.
+
+## Bounded implementation
+
+Reuse `mission/m02/companion.rs` for M02, M03, M04, M06 and M07. Keep finite
+support shots, threat eligibility, ranges, cooldown, mission phases and the
+existing Session navigation search budget unchanged. Select supported local
+stand-off candidates outside body clearance. When already close, select a
+safe short retreat using actual static movement and current body contact;
+otherwise hold if none is valid. Candidate count and forecast steps have
+fixed bounds. Existing Navigator owns longer routes and cached search.
+
+The change adds no protocol, save shape, rules revision, input type or new
+configuration. No teleport, body noncollision, damage, speed, difficulty,
+geometry, civilian route or new mission gate is allowed. No art promotion.
+Idle, firing and release transitions must discard stale movement intent.
+
+## Verification and acceptance
+
+Prove a trapped participant/captive/companion fixture with actual Session and
+GameState contact integration, including the original northbound walking
+goal, all bodies retained and ordinary movement. Test supported raised floors,
+corners, no valid retreat, distant following, held formation, active fighting
+and release/frozen/no-leader resets. Check M02's ward return and M03/M04/M06/M07
+mission suites. Run workspace tests, warning-denied Clippy, formatting and the
+existing benchmark assertion. Build a new owned release native in a unique
+private target with two build jobs. Only after those gates, request a rendered
+full M03 ordinary route lease against the exact new native and current source.
+All original goals, finite supplies, named guards and departure gates remain.
+Root owns full CI, package acceptance, shared index and integration.
