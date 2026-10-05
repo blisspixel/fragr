@@ -1,6 +1,6 @@
 # Latch calm-pose local candidate
 
-Status: corrected local source-pose candidate, October 5, 2026. Same-camera fixture review passes; full client and ordinary played acceptance remain open. First rejected boundary and incomplete launcher receipt remain retained. This is separate from the frozen hand and named-body integration batch.
+Status: corrected local source-pose candidate, October 5, 2026. Same-camera fixture review and complete local client checks pass. Composed ordinary-play review and public integration remain separate gates. First rejected boundary, incomplete launcher receipt and full-check manifest failure remain retained. This is separate from the hand and named-body integration batch.
 
 Base is main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. The [plan](../plans/latch-calm-pose-20261005.md) precedes code. The independent private read-only audit reproduces the actual pawn/view transform chain and records 22 actual weighted source samples. Its inspected M07 image and current tracked GLB, view, pawn and old source are byte-identical to image client `94a270f2e406944ced574df2cfe6f0fee12eec16`.
 
@@ -46,4 +46,12 @@ The dependent library `latch.glb` was genuinely regenerated through the existing
 
 Only the generated Latch entry and the two changed source hashes are refreshed in the existing manifest. The dependent studio image uses the original 1200 by 900 viewport, orthographic 2.2 m camera, original position/aim, ambient and two lights through the existing capture seam. Owned renderer 19560 retires with actual numeric exit 0, clean logs and its own PASS, without a server. Actual preview inspection shows the same adult chassis with lowered free arms. No unrelated library export is regenerated.
 
-Private `.agents/library-before/` preserves old GLB/preview/manifest, real export and preview logs, independent binary/import proof and output hashes. Unchanged `test_model_assets`, `test_latch_source` and `test_latch_near_clip` each pass cleanly with numeric exit 0 after import. A fresh complete client check remains pending on this generated-output checkpoint.
+Private `.agents/library-before/` preserves old GLB/preview/manifest, real export and preview logs, independent binary/import proof and output hashes. Unchanged `test_model_assets`, `test_latch_source` and `test_latch_near_clip` each pass cleanly with numeric exit 0 after import.
+
+## Complete local checker after actual regeneration
+
+The unchanged complete checker on frozen runtime/assets `c6fc21caf66fcf7f28daa0e1e447acdbfce6239b` exits 0, with clean logs, all 271 script parses and all 129 harnesses passing. The matching owned immutable native helper is SHA `0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7`; Rust, maps, Cargo manifests/lock, adapter and agent source remain identical to the base. No native rebuild or protected helper replacement occurs.
+
+The exact private log is `.agents/cpu/full-client-repeat.log`; `full-client-repeat-receipt.json` independently binds numeric exit, aggregate counts, clean logs, frozen source/derived output hashes, selected chassis identity and native hash. The first complete check and its failed receipt remain unchanged. The generated GLB is SHA `7ead44f5acd175ad48ff11f520e4a0dd11a2882f64f6443d12238567c2aab6fc`; canonical preview is SHA `c2c302013ddbeda19abae1b1feaf4e5d725cb3897b76c07e801f4a162cb46a37`.
+
+Only evidence/plan text follows this runtime freeze. Composed ordinary M07 following, final visual review, exact-head public CI, packages and release acceptance belong to the integration owner. A source fixture or complete headless suite does not claim whole-campaign motion quality or performance.
