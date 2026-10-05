@@ -6,6 +6,7 @@ class_name PauseMenu
 
 signal resume_requested
 signal leave_requested
+signal stop_server_requested
 
 var _open: bool = false
 var _panel: Panel = null
@@ -16,6 +17,7 @@ var _leave_button: Button = null
 var local_campaign: bool = false
 ## A development mission keeps no run, so leaving never promises a save.
 var development_mission: bool = false
+var hosting_server: bool = false
 var preferences: FragrSettings
 var _settings_panel: SettingsPanel
 var _settings_frame: PanelContainer
@@ -76,6 +78,10 @@ func _build() -> void:
 		close()
 		leave_requested.emit()
 	)
+	if hosting_server:
+		_add_button(tr("HOST_STOP"), func() -> void:
+			close()
+			stop_server_requested.emit())
 	_add_button("Quit to desktop", func() -> void: get_tree().quit())
 
 	var hint: Label = Label.new()

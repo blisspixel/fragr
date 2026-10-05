@@ -63,6 +63,9 @@ static func for_tree(tree: SceneTree) -> LocalMatch:
 	return owner
 
 func executable_path() -> String:
+	return find_executable_path()
+
+static func find_executable_path() -> String:
 	var filename: String = "fragr-server.exe" if OS.get_name() == "Windows" else "fragr-server"
 	var candidates: Array[String] = [OS.get_executable_path().get_base_dir().path_join(filename)]
 	if OS.has_feature("editor"):

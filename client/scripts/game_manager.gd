@@ -479,6 +479,9 @@ func _setup_frontend() -> void:
 	pause_menu.preferences = settings
 	pause_menu.name = "PauseMenu"
 	pause_menu.leave_requested.connect(_on_leave_requested)
+	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
+	pause_menu.hosting_server = host != null and host.state == LocalHost.State.RUNNING and host.url == net_client.server_url
+	pause_menu.stop_server_requested.connect(_on_stop_server_requested)
 	add_child(pause_menu)
 
 func _apply_preferences() -> void:
@@ -600,6 +603,12 @@ func _reveal_world_after_draw(generation: int) -> void:
 	var card: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
 	if card != null and not card.failed:
 		card.finish_loading(is_human_player and not _mission_map())
+
+func _on_stop_server_requested() -> void:
+	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
+	if host != null and host.state == LocalHost.State.RUNNING and host.url == net_client.server_url:
+		host.stop()
+	_on_leave_requested()
 
 func _on_leave_requested() -> void:
 	if _leaving:
