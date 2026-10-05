@@ -20,7 +20,7 @@ Local play and self-hosting need no account or paid service.
 
 ## Play now
 
-The latest desktop release is
+The latest desktop release verified before this composition was
 [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0).
 That release has nine connected development levels. Source builds add the tenth,
 Common Carrier, with mission-entry saves, finite ammunition and three continues

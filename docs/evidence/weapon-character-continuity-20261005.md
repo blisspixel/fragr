@@ -13,7 +13,10 @@ The separate local successor `988ef190` passes the complete client suite
 [drawn Sniper's ordinary M07 witness](sniper-hand-continuity-20261005.md), the
 [Shiv resting-scale correction](../plans/shiv-hand-scale-20261005.md), and
 [Tern's provisional synthetic identity in M09 and M10](../plans/tern-body-identity-20261005.md).
-Those corrections are locally verified; exact combined CI, desktop packages
+The [combined seven-weapon hardware HUD comparison](hand-identity-integration-20261005.md)
+also passes 63 actual rest/use/bob frames across three aspects, with five
+inspected public copies. It is a presentation fixture, not a gameplay or
+performance claim. Those corrections are locally verified; exact combined CI, desktop packages
 and main promotion remain open at this snapshot. They do not finish named
 casting, every hand pose or fresh-player feel. The
 [integration plan](../plans/hand-identity-integration-20261005.md) owns the

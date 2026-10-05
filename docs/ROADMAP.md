@@ -334,8 +334,8 @@ quality for the work. Nick authorized parallel game development alongside
 substantial model production. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
-prototype, refined Pistol and hatless civilian. The current published release
-is [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0), exact
+prototype, refined Pistol and hatless civilian. The latest release verified
+before this composition was [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0), exact
 restored source `6c4df5b3`, including the earlier Rifle pictures and selected
 Sniper refinement. All eight main CI jobs and all three tagged desktop package
 checks passed. Independently rehashed downloaded ZIPs match the checksum

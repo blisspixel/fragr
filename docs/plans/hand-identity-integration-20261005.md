@@ -73,7 +73,13 @@ receipts bind that exact head and native. Subsequent roadmap and audit updates
 are documentation only, preserving the checked runtime.
 
 The input sources' earlier actual HUD and ordinary M07 witnesses remain
-separately dated. A final combined hardware HUD comparison is being reviewed
-by the parent; it does not imply a new mission route or a completed named cast.
-The branch remains local pending fresh main CI, parent review and exact final
-eight-job CI plus three desktop package/install checks.
+separately dated. The final combined hardware HUD comparison passes all 63
+actual frames across seven weapons, three aspects and rest/use/bob, on
+documentation head `d5098c1c` with runtime identical to `988ef190`. Its five
+inspected public copies, unscaled crop method, exact receipt and retained
+earlier capture/conversion failures are recorded in the
+[owning evidence](../evidence/hand-identity-integration-20261005.md).
+This presentation fixture implies no new mission route, human feel or completed
+named cast. Fresh main `0b03dc2c` passes all eight CI jobs in run `37343037510`.
+Parent review, exact final eight-job CI, three desktop package/install checks
+and main promotion remain open before the successor can ship.

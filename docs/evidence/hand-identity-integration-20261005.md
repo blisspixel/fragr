@@ -42,6 +42,35 @@ The earlier selected source receipts remain independently useful:
 [Sniper ordinary discovery and combat](sniper-hand-continuity-20261005.md),
 [Shiv actual HUD comparison](../plans/shiv-hand-scale-20261005.md), and
 [both Tern presenters](../plans/tern-body-identity-20261005.md).
-Combined hardware HUD inspection, exact final-head CI, all three exported
+Combined hardware HUD inspection passes on documentation head `d5098c1c`,
+with runtime bytes exactly matching checked `988ef190`. The actual standalone
+HUD produces 63 frames: seven weapons, rest/use/bob and three aspect ratios.
+Renderer 30964 exits zero with clean errors and is retired. No server or pointer
+capture is used. The leather/cuff family and shared resting scale read coherently;
+Fists retain their deliberate 2.1 punch extension. This fixture does not measure
+gameplay, performance or human feel.
+
+The [five-image receipt](../screenshots/hand-identity-integration-20261005/receipt.json)
+binds byte-identical copies to the private 63-frame hash manifest and exact
+fixture. The comparison sheets contain unscaled 480 by 260 crops from actual
+1280 by 720 frames, with Pistol, Rifle, Shotgun and Railgun above Sniper, Fists
+and Shiv. The other two images are literal full frames. The earlier private
+Fists sample was near the start instead of peak; a first sheet conversion
+reported RGB/RGBA errors despite exit zero. Both failures remain retained and
+are not PASS. The corrected v2 samples the separate Fists timer and its sheet
+conversion exits zero with clean errors.
+
+![Actual HUD resting hands](../screenshots/hand-identity-integration-20261005/actual-hands-rest-sheet-v2.png)
+
+![Actual HUD firing, punch and stab poses](../screenshots/hand-identity-integration-20261005/actual-hands-use-sheet-v2.png)
+
+![Actual HUD moving hands](../screenshots/hand-identity-integration-20261005/actual-hands-bob-sheet-v2.png)
+
+![Literal 4:3 Sniper resting frame](../screenshots/hand-identity-integration-20261005/1024x768_Sniper_rest.png)
+
+![Literal ultrawide Shiv use frame](../screenshots/hand-identity-integration-20261005/2560x1080_Shiv_use.png)
+
+Fresh main `0b03dc2c` passes all eight CI jobs in run `37343037510` before
+this successor is published. Exact final-head CI, all three exported
 desktop/install checks and main promotion remain open. Broader hand poses,
 named casting, ship art and fresh-player pacing are not closed by this check.
