@@ -1,6 +1,6 @@
 # M09 immutable crew departure receipt
 
-Status: implemented and tested locally, 2026-10-04. Source `0f28099b` is
+Status: implemented and tested locally, 2026-10-04. Composed source `fbd4adce` is
 unmerged; remote CI and desktop packages remain open. This is the departure
 capture prerequisite in [the crew transit plan](../plans/m09-crew-transit.md),
 not implemented M10 transit. No paid calls or new rendered tour ran.
@@ -55,6 +55,12 @@ facts and unbuilt transit fields refuse.
   122 harnesses, exit 0, final PASS and no errors at `0f28099b`. The matching
   private release server SHA-256 is
   `1c9546af1a4a3909248d99ca765359d228e79445892a594959f94f103f770def`.
+  After normal composition with main `d1d13562`, the complete client checker also
+  passes all 260 scripts and 124 harnesses at `fbd4adce`, clean exit 0, final
+  PASS and no errors. Focused M09 local, strict receipt, equipment, viewmodel
+  and both selected Sniper harnesses pass. The native source and executable
+  remain identical to the prior proof. The selected Sniper image bytes are
+  retained unchanged. Documentation-only updates preserve that runtime proof.
   Source includes accepted Union shadow main `5e595dea`; it does not overwrite
   the root or the separate arsenal native executable.
 
