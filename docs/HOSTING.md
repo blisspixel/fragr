@@ -13,7 +13,10 @@ keeps cloud deployment at plan-only status.
 
 In a build containing the desktop Host controls, choose **Multiplayer > Host**.
 Select **Team Deathmatch** and an arena, or **5v5 Sabotage** on Sector 9.
-Choose zero to ten rule bots, then **Start server**. Watch or Join becomes
+Choose **No bots**, **Fixed bots** or **Automatic fill**, then **Start server**.
+Fixed bots keeps the requested bot count, four by default. Automatic fill
+targets the total number of fighters, including humans and agents, and makes
+room for either by replacing eligible server bots. Watch or Join becomes
 available after the bundled server reports readiness. The default is local
 to this computer on an available port. Enable **Allow LAN players** and choose
 a port to invite another machine; peers enter your LAN address and that port
@@ -58,7 +61,21 @@ cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode ctf --c
 
 # Optional ten-seat Sabotage, five per side; four bots leave six seats.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 4
+
+# TDM with automatic fill toward eight total fighters.
+cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --mode tdm --bots 0 --bot-policy auto --fill-target 8
+
+# Bot-filled 5v5, with equal human and external-agent admission priority.
+cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --map 4 --mode sabotage --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
 ```
+
+Automatic fill is available for TDM and Sabotage. Its target is a desired
+population, not an additional admission limit. Spectators do not count, while
+reserved reconnect seats do. In a full active Sabotage round, replacement can
+wait until the next round if removing a bot would change the outcome or cancel
+a committed device or objective action. The refusal says to try next round;
+Watch remains available. Ordinary late joiners wait for the next Muster with
+the existing round rules. Fixed bots retain their existing seat behavior.
 
 One server keeps one rule set for its lifetime. Two weapon mutators cannot
 combine; Golden Rail also cannot combine with Licence to Kill, Shotgun Only
@@ -104,6 +121,8 @@ modes still need fresh human matches to establish clarity and fun.
 |---|---|
 | `--bind <ADDR>` | Address, default `0.0.0.0:6767`. |
 | `--bots <N>` | Rule bots to stock, default 4. |
+| `--bot-policy <POLICY>` | `fixed` (default), `none` or `auto`. None and auto require `--bots 0`. |
+| `--fill-target <N>` | Auto's desired total fighters, 1 through 10; zero for fixed/none. Auto is limited to TDM and Sabotage. |
 | `--map <ID>` | Arena ID or name; map 1 is Arena Duel. |
 | `--map-rotate` | Alternate arenas between rounds. |
 | `--map-file <PATH>` | Authored development map; requires `--bots 0` and no arcade overrides. |

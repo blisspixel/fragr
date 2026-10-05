@@ -56,9 +56,21 @@ fragr-server --mode sabotage --map 4 --bots 4 --sabotage-five-v-five
 All ten fighter seats are shared by humans, agents and rule bots, with at most
 five on either side. The unchanged default of four bots leaves six external
 seats; `--bots 0` leaves ten. `--bots 10` deliberately fills the room and does
-not evict bots for a human or agent. More than ten initial bots is a startup
+not evict bots under the default fixed policy. More than ten initial bots is a startup
 error. Internal bot refill shares this same capacity. Advertise the profile
 in your room description; no new discovery field is sent in this increment.
+
+For optional automatic fill, select it in Host or use:
+
+```bash
+fragr-server --mode sabotage --map 4 --sabotage-five-v-five --bots 0 --bot-policy auto --fill-target 10
+```
+
+Humans and external agents replace eligible server-owned bots equally. A
+reserved reconnect seat stays occupied. Safe replacement preserves existing
+round lives, objectives and committed explosives. If every bot is currently
+protected, the server visibly refuses the join until a later round; Watch
+remains available. No extra eleventh fighter or transferred bot life is created.
 
 Fresh admission, first round and fresh post-death rounds start with selected
 Tack/Pistol and fifty finite Bullets. Stronger guns come from the map.

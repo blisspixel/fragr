@@ -70,6 +70,10 @@ existing hosted match. Choose Watch or Join after readiness. Host controls
 default to this computer only; enable LAN access to invite peers using your
 LAN address and selected port. Leaving or returning to the menu preserves
 the match; **Stop server** or closing the app ends your owned host.
+Choose no bots, a fixed count or automatic fill toward a total fighter count.
+Automatic fill gives humans and agents equal priority over eligible filler
+bots. If a full Sabotage room cannot safely replace a bot during the current
+round, watch and try joining at the next round.
 Older releases require a separately started server. The host chooses
 the arena and rules. Spectators, humans, agents and rule bots share the same
 authoritative match. The current release includes free-for-all and team
