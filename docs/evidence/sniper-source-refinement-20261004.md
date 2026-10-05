@@ -1,7 +1,10 @@
 # Sniper Rifle source refinement and selected pictures
 
-Status: **in flight**, 2026-10-04. Reviewed pixel pictures selected locally;
-full integration and package gates remain open. No whole-arsenal claim.
+Status: **shipped** on main, next desktop release, 2026-10-04. Reviewed pixel
+pictures selected through [PR #358](https://github.com/blisspixel/fragr/pull/358),
+source `17706484`, main `d1d13562`. All eight exact-head CI jobs
+(`37248043090`) and all three desktop package/install checks (`37248042020`)
+passed. No whole-arsenal claim.
 The [bounded plan](../plans/sniper-source-refinement-20261004.md) preceded the
 work. Local preparation and inspection use $0 in additional charges.
 
@@ -118,5 +121,6 @@ actual live frame and pickup routing and retain original artwork.
 ## Remaining acceptance
 
 Full client integration, installed export and exact-head CI/three desktop
-packages remain open. Wider human feel, campaign coverage and the remaining
-arsenal are separate work. These inspected pictures do not prove performance.
+packages passed before main integration. The next desktop release remains open.
+Wider human feel, campaign coverage and the remaining arsenal are separate work.
+These inspected pictures do not prove performance.

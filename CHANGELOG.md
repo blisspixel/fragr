@@ -6,6 +6,12 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+- Prepare compact air-scrubber, water-pump and community-radio source candidates,
+  retaining their geometry and verifying physical floor support. Record inspected
+  civilian-worker and repair-workbench sources and 70 included credits. All twelve
+  first-source slots now have candidates; played placement, animation and wider
+  environment coverage remain in flight.
+
 The Sniper Rifle selects its refined wood and charcoal source for held, firing
 and pickup pictures after source, motion and ordinary played-comparison checks.
 Its Cells, scope, six physical weapon keys and combat timing stay unchanged.

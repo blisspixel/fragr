@@ -1,9 +1,13 @@
 # Repeater foundation checks
 
-Status: implemented locally, 2026-10-04. This is a CPU-only behavior and compatibility
+Status: **shipped** on main, next desktop release, 2026-10-04. This is a behavior and compatibility
 foundation from frozen M09 `01912934`, not an accepted M10 lesson or selected
 weapon presentation. Source checkpoint `2b867d3c`, integration assertions
-`9941449c` / `05121e50` and presentation correction `950b7e03` are unmerged.
+`9941449c` / `05121e50` and presentation correction `950b7e03` are retained
+in the final combined source `17706484`, merged at main `d1d13562` through
+[PR #358](https://github.com/blisspixel/fragr/pull/358). All eight CI jobs
+(`37248043090`) and all three desktop package/install checks (`37248042020`)
+passed on that exact source. The next desktop release remains pending.
 The final combined source includes accepted main `53b5c036`, with the civilian,
 Pistol and Rifle presentation intact.
 

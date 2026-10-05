@@ -1,6 +1,6 @@
 # Sniper Rifle source refinement
 
-Status: **in flight**, 2026-10-04. Plan precedes implementation.
+Status: **shipped** on main through [PR #358](https://github.com/blisspixel/fragr/pull/358), next desktop release, 2026-10-04. Plan preceded implementation. Exact source, ordinary played comparison, full client, all eight CI jobs and all three desktop package checks passed.
 Spend: $0 in this local refinement. The shared precision receipt owns the
 existing 35-credit source; no further generation or rig stage is requested.
 

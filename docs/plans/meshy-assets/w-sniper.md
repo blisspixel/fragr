@@ -1,6 +1,6 @@
 # Sniper Rifle
 
-Status: in flight, 2026-10-04. Compact source and ordinary played comparison accepted; exact held/fire/pickup pictures selected locally, with full integration and packages pending. Source route: **New source candidate**. Included in the first bounded production allocation.
+Status: **shipped** on main, next desktop release, 2026-10-04. Compact source and ordinary played comparison accepted; exact held/fire/pickup pictures selected in [PR #358](https://github.com/blisspixel/fragr/pull/358), with all eight exact-head CI jobs and all three desktop package checks passing. Source route: **New source candidate**. Included in the first bounded production allocation.
 Stable ID: `W-sniper`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design

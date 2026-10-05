@@ -1,0 +1,139 @@
+{
+    "error_clean":  true,
+    "rig_requests":  0,
+    "cash_charges":  0,
+    "credits":  {
+                    "first_allocation_ceiling":  900,
+                    "actual_this_batch":  70,
+                    "usable":  2290,
+                    "tracked_total_consumed":  765,
+                    "uncertain_hold":  15,
+                    "remaining_inside_allocation":  460,
+                    "available_api":  2305,
+                    "used_inside_allocation":  440
+                },
+    "pricing_verified_date":  "2026-10-04",
+    "renderer":  "gl_compatibility",
+    "owned_process_retired":  true,
+    "schema":  1,
+    "inspected_views":  8,
+    "runtime_selected":  false,
+    "images":  [
+                   {
+                       "sha256":  "b9978eefc92e99931fb23cad754e1e2b33e58900057df1b318bf396b4a27ee2e",
+                       "file":  "free-agent-worker-stylized-v1-ultra-0-view-0.png"
+                   },
+                   {
+                       "sha256":  "155a7039645cf62388994a6ee1f37ee445bd5e8e44d7ae252f0d6cca348c0527",
+                       "file":  "free-agent-worker-stylized-v1-ultra-0-view-2.png"
+                   },
+                   {
+                       "sha256":  "da618fec1845e68c0fc35dcacb832cf15f448c05ff0b80f8060acd34132e326c",
+                       "file":  "repair-workbench-stylized-v1-ultra-0-view-0.png"
+                   },
+                   {
+                       "sha256":  "fe5f2dc89bb132f71e146e6c38e606365fdb6f5c285286ebaeea67201a49b511",
+                       "file":  "repair-workbench-stylized-v1-ultra-0-view-2.png"
+                   }
+               ],
+    "sources":  [
+                    {
+                        "raw_bounds":  {
+                                           "position":  [
+                                                            -0.45566201210022,
+                                                            -0.950845062732697,
+                                                            -0.198766946792603
+                                                        ],
+                                           "size":  [
+                                                        0.91615903377533,
+                                                        1.90044713020325,
+                                                        0.403382003307343
+                                                    ]
+                                       },
+                        "id":  "free-agent-worker-stylized-v1-ultra",
+                        "local_preparation_accepted":  false,
+                        "consumed_credits":  35,
+                        "actual_stats":  {
+                                             "animations":  [
+
+                                                            ],
+                                             "bones":  0,
+                                             "materials":  [
+                                                               {
+                                                                   "albedo_size":  [
+                                                                                       4096,
+                                                                                       4096
+                                                                                   ],
+                                                                   "metallic_map":  true,
+                                                                   "normal_enabled":  true,
+                                                                   "roughness_map":  true
+                                                               }
+                                                           ],
+                                             "meshes":  1,
+                                             "triangles":  12462,
+                                             "vertices":  20849
+                                         },
+                        "runtime_selected":  false,
+                        "source_sha256":  "8685599f6fe4ee8e0fc0b6f6854f00a1a178b8f211636b2043db7ef549be897b",
+                        "reference_sha256":  "98672cb5e1b8d2f7a17cc9c8c95f34c3f33dbc48447413f17395e2387a01568c",
+                        "bytes":  34259300,
+                        "task_id":  "01a1096b-8d97-77cb-a30d-c1e18615402a",
+                        "reference_path":  "client/art/characters/references/civilian-agent/worker-stylized-v1.png"
+                    },
+                    {
+                        "raw_bounds":  {
+                                           "position":  [
+                                                            -0.951411962509155,
+                                                            -0.595243990421295,
+                                                            -0.54839301109314
+                                                        ],
+                                           "size":  [
+                                                        1.90160691738129,
+                                                        1.18995785713196,
+                                                        1.08903503417969
+                                                    ]
+                                       },
+                        "id":  "repair-workbench-stylized-v1-ultra",
+                        "local_preparation_accepted":  false,
+                        "consumed_credits":  35,
+                        "actual_stats":  {
+                                             "animations":  [
+
+                                                            ],
+                                             "bones":  0,
+                                             "materials":  [
+                                                               {
+                                                                   "albedo_size":  [
+                                                                                       4096,
+                                                                                       4096
+                                                                                   ],
+                                                                   "metallic_map":  true,
+                                                                   "normal_enabled":  true,
+                                                                   "roughness_map":  true
+                                                               }
+                                                           ],
+                                             "meshes":  1,
+                                             "triangles":  10567,
+                                             "vertices":  14872
+                                         },
+                        "runtime_selected":  false,
+                        "source_sha256":  "37c149f3b6c402a349e283f4e49ab3baded27bfba5932a86b058556dc8537682",
+                        "reference_sha256":  "e50412ea7bc717e4efa16842761d969193790941b5f8e82d03c4b987ba503f9e",
+                        "bytes":  32095604,
+                        "task_id":  "01a1096d-f6de-76f3-a753-46af909a41f9",
+                        "reference_path":  "client/art/world-props/references/repair-workbench-stylized-v1.png"
+                    }
+                ],
+    "renderer_exit":  0,
+    "requested":  {
+                      "target_polycount":  12000,
+                      "ai_model":  "meshy-7.1",
+                      "image_enhancement":  false,
+                      "worker_pose_mode":  "a-pose",
+                      "operation_equivalent_usd_cap":  0.7,
+                      "geometry_resolution":  "2k",
+                      "bench_pose_mode":  "",
+                      "texture_resolution":  "4k",
+                      "operation_credit_cap":  35
+                  }
+}
