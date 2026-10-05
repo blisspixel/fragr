@@ -62,7 +62,7 @@ func _peer(address: String, role: String, callsign: String) -> Node:
 	return peer
 
 func _start(mode: String, bots: int) -> LocalHost:
-	current_scene._show("host")
+	await current_scene._show("host")
 	current_scene._host_mode.select(1 if mode == "sabotage" else 0)
 	current_scene._host_mode.item_selected.emit(current_scene._host_mode.selected)
 	current_scene._host_bots.value = bots
@@ -95,12 +95,12 @@ func _preset(mode: String) -> bool:
 	current_scene.change_role(true)
 	if not await _until(func() -> bool: return current_scene.net_client.player_id != null and current_scene.is_human_player, "watcher joins through normal human path"):
 		return false
-	var own_id: int = int(current_scene.net_client.player_id)
-	var partner_id: int = int(partner.player_id)
+	var own_id: String = current_scene.net_client.player_id
+	var partner_id: String = partner.player_id
 	if not await _until(func() -> bool:
-		var ids: Array[int] = []
+		var ids: Array[String] = []
 		for pawn: Dictionary in snapshots.back().get("players", []):
-			ids.append(int(pawn["id"]))
+			ids.append(pawn["id"])
 		return own_id in ids and partner_id in ids, "both actual human pawns share one server snapshot"):
 		return false
 	_expect(partner.mission.is_empty() and current_scene.net_client.mission.is_empty(), "arena participants never receive campaign state")
@@ -124,7 +124,7 @@ func _preset(mode: String) -> bool:
 	_expect(owner.state == LocalHost.State.RUNNING and OS.is_process_running(pid), "server survives menu return")
 	_expect(partner.connection_state == WebSocketPeer.STATE_OPEN and partner.player_id == partner_id, "other human remains connected across host menu return")
 	partner.leave_match()
-	current_scene._show("host")
+	await current_scene._show("host")
 	(current_scene._root.get_node("JoinHosted") as Button).pressed.emit()
 	if not await _until(func() -> bool: return _playing(map_id) and current_scene.net_client.player_id != null, "host can rejoin its surviving server from menu"):
 		return false

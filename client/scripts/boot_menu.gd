@@ -213,7 +213,7 @@ func _show(page: String) -> void:
 		"launch":
 			_page_launch()
 	await get_tree().process_frame
-	if _page != page:
+	if not is_inside_tree() or _page != page:
 		return
 	if page == "settings" and _page == page:
 		(_root.get_node("SettingsPanel") as SettingsPanel).focus_first()
