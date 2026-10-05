@@ -3,9 +3,11 @@
 Status: in flight, 2026-10-04. Native promotion work is authorized in isolated
 branch `feat/m10-common-carrier`, based on crew receipt `32dd8ea2`. The frozen
 Repeater and crew branches remain unchanged. This lane submits no paid calls
-or GPU work. The Repeater foundation is now merged at main `d1d13562`; the separate crew
-receipt PR 363 is frozen at `de694b25` with remote gates pending. Source composition and
-final acceptance must precede any publication or playability claim.
+or GPU work. The Repeater foundation is merged, and this prototype was normally
+composed with main `cc8efcc8`. The separate crew receipt PR 363 is frozen at
+`501e8a80`, with eight CI jobs and all three desktop packages passing. Parent
+integration remains separate. Final acceptance must precede publication or a
+complete-mission claim.
 The initial outline came from M09 `01912934`, now shipped in v0.73.0.
 This is one bounded level under the existing campaign build order.
 
@@ -388,7 +390,7 @@ floor/gallery pairs, an aft Heavy Sweeper and bounded freight-shaft Notary,
 and the passenger return. No Redactor or remote mine is reassigned from M11.
 All current authored placements and physical confirmation pass strict loading.
 
-Save version 13 will retain the immutable M09 receipt and a separate strict
+Save version 13 retains the immutable M09 receipt and a separate strict
 M10 transit fact, absent before actual promotion. Recorded arrivals must equal
 actual released IDs; unknown historical receipts remain unknown. Pilot Tern's
 current appearance is independent of unknown historical boarding. Optional
@@ -419,3 +421,25 @@ entry, and spawning uses the existing companion lifecycle. Native source and
 all new map facts still need complete workspace and real owned-process checks,
 full ordinary combat, hardware inspection, inhabited room dressing, finite
 supply pacing and actual Repeater source/cues before mission acceptance.
+
+## Real launch and continue checkpoint
+
+The composed native workspace passes 941 server tests, all 17 then-existing
+real local-child tests and the other workspace suites, with three previously
+ignored server tests unchanged. Format and all-target Clippy pass. A first
+real M10 client launch exposed a missing CLI value-parser registration, despite
+the existing dispatch branch. That failure is retained. The corrected executable
+and added child regression prove capability 35 refusal for all three roles,
+capability 36 ship-world delivery before facts and owned shutdown.
+
+The actual two-child M10 local harness passes with clean logs. It upgrades an
+exact strict v12 completed M09 fixture once, preserves its empty berth boarding
+subset, commits all five actually released crew as separate transit arrivals,
+refills continues once, carries 39 HP, 17 armor, one Cell, two grenades and
+three mines, and spends one mine through ordinary input. Reopening restores
+the unchanged finite entry. Ordinary movement activates the first real fight;
+actual enemy damage kills the player, and the existing continue input restores
+39 HP and the entry counts while reducing continues to two and retaining
+monotonic ticks and transit. No guards, player damage or inventory are granted
+by the client. These are migration, lifecycle and retry checks, not a won
+combat route or final ship art acceptance.
