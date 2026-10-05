@@ -990,6 +990,8 @@
     {
       "name": "m10_surplus_stock",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["passenger_clerk_a", "passenger_clerk_b", "passenger_sweeper", "passenger_enforcer"],
       "walk_to": [
         [
           0,
@@ -1032,6 +1034,8 @@
     {
       "name": "m10_passenger_defense",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["passenger_clerk_a", "passenger_clerk_b", "passenger_sweeper", "passenger_enforcer"],
       "walk_to": [
         [
           3.5,

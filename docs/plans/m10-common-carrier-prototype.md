@@ -686,3 +686,16 @@ The Notary retains its original named death confirmation. Record this explicit i
 policy correction rather than claiming the earlier no-fire route unchanged.
 Validate the complete actual CPU route first, then seek a new bounded hardware
 lease; CPU cadence alone does not establish rendered pacing or human fun.
+
+The revised actual replay confirms all 13 earlier kills, then reproduces the
+same no-fire input policy during the final passenger room's real activation,
+resupply and combat approach. The retained resolved timeline identifies two
+Clerk hits, both Enforcer charges and the final Sweeper shot. The participant
+has 76 HP and 50 armor before activation, claims the real surplus rounds,
+then dies with 139 bullets and 50 shells without attacking the final guards.
+Apply the same existing scoped travel-fire option to surplus stock and the
+passenger defense approach, restricted to that group's four named enemies.
+Preserve every stock and objective destination, authoritative kill and death
+check, all 17 guards and the fresh departure. Record these two additional
+opt-ins and the failed replay; no resource, geometry or timing adjustment is
+justified by a test that withholds ordinary return fire in an active room.
