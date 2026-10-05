@@ -2402,6 +2402,9 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::MissionContinue { .. } => "MissionContinue".into(),
         crate::net::GameCommand::Detached { .. } => "Detached".into(),
         crate::net::GameCommand::Resume { .. } => "Resume".into(),
+        crate::net::GameCommand::PrepareAutoJoin { .. } => "PrepareAutoJoin".into(),
+        crate::net::GameCommand::CommitAutoJoin { .. } => "CommitAutoJoin".into(),
+        crate::net::GameCommand::CancelAutoJoin { .. } => "CancelAutoJoin".into(),
     }
 }
 
