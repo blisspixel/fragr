@@ -62,3 +62,10 @@ non-solid authored facts compare equal to the retained prior map; the literal
 28-state route stays byte-identical. Actual room lighting, complete composed
 client checks, corrected character shot blocking, ordinary full combat route
 and exported desktop install checks remain open.
+
+The complete locked workspace run also passes, including 960 server library
+tests and all 18 local-child tests, with the same three pre-existing ignored
+tests. Workspace formatting and all-target Clippy with denied warnings pass.
+The complete log is retained at `.agents/m10-workbench-full-native-v1.log`.
+These checks bind the bench checkpoint; the final composition must repeat
+source-sensitive gates after character shot-occlusion integration.

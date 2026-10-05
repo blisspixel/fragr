@@ -180,8 +180,9 @@ Focused resource/fallback checks pass. The actual local native launch and
 reopen test also passes with the accepted server map, exact proxy substitution,
 world-light layer, source orientation, changed/duplicate-host refusal and map
 rebuild retirement. Existing finite carry, death/continue and exact-byte
-historical archive assertions remain intact. Full workspace checks are in
-flight. Combine the corrected character shot-occlusion source and reviewed
+historical archive assertions remain intact. Workspace formatting, locked tests
+(960 server tests plus 18 actual local-child tests, three pre-existing ignored)
+and all-target Clippy with denied warnings pass. Combine the corrected character shot-occlusion source and reviewed
 README handoff before one matching full client check and one ordinary 28-state
 hardware route, including actual bench lighting review. Existing prototype
 CI/package receipts remain historical proof for their exact prior head.
