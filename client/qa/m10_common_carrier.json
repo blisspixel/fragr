@@ -1,0 +1,1157 @@
+{
+  "comment": "Common Carrier bounded prototype acceptance. Canonical M09-to-M10 locked promotion from a clearly labelled representative strict v12 departure fixture, Standard, synthetic body, 39 HP,17armor,76Bullets,32Shells,oneCell,two grenades,three mines. Actual crew release and berth subset remain separate from transit. All17guards/fourorderedgroups,real stairs/cover/finite claims/death/freshdeparture are strict. No Repeater grant, borrowed art, par or fresh human fun claim.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {
+      "name": "m10_passenger_entry",
+      "camera": "first_person",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "radio_off": true,
+      "look_at": [
+        2,
+        6,
+        -16
+      ],
+      "expect_m10_completed": [],
+      "note": "Actual canonical promotion of the labelled finite carry fixture. Current crew staging remains distinct from immutable berth boarding facts."
+    },
+    {
+      "name": "m10_cabin_stock",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "walk_to": [
+        [
+          0,
+          4.8,
+          -12.1
+        ],
+        [
+          3.5,
+          4.8,
+          -12.1
+        ],
+        [
+          3.5,
+          4.8,
+          -14
+        ],
+        [
+          5.5,
+          4.8,
+          -14
+        ]
+      ],
+      "expect_equipment": {
+        "selected": "flechette",
+        "ammo": 76,
+        "grenades": 2,
+        "proximity_mines": 3
+      },
+      "look_at": [
+        6.4,
+        5.3,
+        -16.4
+      ],
+      "note": "Ordinary supported lateral approach past the actual released crew and through the wide cabin door to the finite passenger medkit."
+    },
+    {
+      "name": "m10_passenger_hall",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          3.5,
+          4.8,
+          -14
+        ],
+        [
+          3.5,
+          4.8,
+          -12.1
+        ],
+        [
+          0,
+          4.8,
+          -12.1
+        ],
+        [
+          0,
+          4.8,
+          -15
+        ]
+      ],
+      "look_at": [
+        -2,
+        6,
+        -14
+      ],
+      "note": "Return by the supported door and hall aisle; crew bodies retain normal contact."
+    },
+    {
+      "name": "m10_west_stair_down",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          4.8,
+          -17.2
+        ],
+        [
+          -4.45,
+          4.8,
+          -17.2
+        ],
+        [
+          -4.45,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          3.4,
+          -4.5
+        ],
+        [
+          -6.55,
+          3.4,
+          -4.5
+        ],
+        [
+          -6.55,
+          2,
+          -14.5
+        ]
+      ],
+      "look_at": [
+        0,
+        3.6,
+        -14
+      ],
+      "note": "First real pressure stair to the lower cargo deck, without jumps or exterior shortcuts."
+    },
+    {
+      "name": "m10_cargo_stock",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -6.55,
+          2,
+          -15.5
+        ],
+        [
+          0,
+          2,
+          -15.5
+        ],
+        [
+          3.2,
+          2,
+          -14
+        ],
+        [
+          4.6,
+          2,
+          -14
+        ]
+      ],
+      "expect_equipment": {
+        "selected": "flechette",
+        "ammo": 136
+      },
+      "look_at": [
+        4.2,
+        3.1,
+        -11.4
+      ],
+      "note": "Ordinary finite cargo rounds and shells approached outside the deliberate first encounter threshold."
+    },
+    {
+      "name": "m10_forward_lower",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          2,
+          -15.5
+        ],
+        [
+          0,
+          2,
+          -14
+        ]
+      ],
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "forward_clerk_a",
+          "forward_clerk_b",
+          "forward_sweeper_a"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            0,
+            2,
+            -14
+          ],
+          [
+            0,
+            2,
+            -12
+          ],
+          [
+            0,
+            2,
+            -9
+          ],
+          [
+            0,
+            2,
+            -7
+          ]
+        ]
+      },
+      "expect_m10_completed": [],
+      "note": "All three actual lower boarders must die to real resolved shots. The separated gallery Sweeper remains alive for the next deck."
+    },
+    {
+      "name": "m10_west_stair_return",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["forward_sweeper_b"],
+      "walk_to": [
+        [
+          -6.55,
+          2,
+          -14.5
+        ],
+        [
+          -6.55,
+          3.4,
+          -4.5
+        ],
+        [
+          -4.45,
+          3.4,
+          -4.5
+        ],
+        [
+          -4.45,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          4.8,
+          -17.2
+        ],
+        [
+          0,
+          4.8,
+          -17.2
+        ],
+        [
+          0,
+          4.8,
+          -12.1
+        ]
+      ],
+      "look_at": [
+        2,
+        6,
+        -7
+      ],
+      "note": "Traverse the same supported stair to obtain a real firing line to the upper boarder."
+    },
+    {
+      "name": "m10_forward_gallery",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "forward_sweeper_b"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            0,
+            4.8,
+            -12.1
+          ],
+          [
+            0,
+            4.8,
+            -10
+          ],
+          [
+            0,
+            4.8,
+            -8.1
+          ]
+        ]
+      },
+      "expect_m10_completed": [],
+      "note": "The fourth original forward guard is required; floors retain real shot cover."
+    },
+    {
+      "name": "m10_forward_arrival",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          4.8,
+          -17.2
+        ],
+        [
+          -4.45,
+          4.8,
+          -17.2
+        ],
+        [
+          -4.45,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          3.4,
+          -4.5
+        ],
+        [
+          -6.55,
+          3.4,
+          -4.5
+        ],
+        [
+          -6.55,
+          2,
+          -14.5
+        ],
+        [
+          0,
+          2,
+          -8
+        ]
+      ],
+      "expect_m10_completed": [
+        "forward_secured"
+      ],
+      "look_at": [
+        -4,
+        3.6,
+        1
+      ],
+      "note": "Actual lower arrival completes the first objective only after all four forward guards."
+    },
+    {
+      "name": "m10_service_defense",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["service_crawler_a", "service_crawler_b", "service_crawler_c", "service_clerk", "service_sweeper"],
+      "walk_to": [
+        [
+          0,
+          2,
+          -2
+        ],
+        [
+          -4,
+          2,
+          -2
+        ],
+        [
+          -4,
+          2,
+          1
+        ]
+      ],
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "service_crawler_a",
+          "service_crawler_b",
+          "service_crawler_c",
+          "service_clerk",
+          "service_sweeper"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            -4,
+            2,
+            1
+          ],
+          [
+            -4,
+            2,
+            6
+          ],
+          [
+            0,
+            2,
+            7
+          ],
+          [
+            0,
+            2,
+            11
+          ],
+          [
+            -2,
+            2,
+            13
+          ]
+        ]
+      },
+      "look_at": [
+        -3,
+        3.5,
+        8
+      ],
+      "note": "Three real Crawlers and the original Clerk and Sweeper. Actual death fails; no difficulty or contact concession."
+    },
+    {
+      "name": "m10_repair_stock",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          2,
+          -2
+        ],
+        [
+          5.8,
+          2,
+          -2
+        ],
+        [
+          5.8,
+          2,
+          -1
+        ]
+      ],
+      "look_at": [
+        3.8,
+        3.1,
+        1.3
+      ],
+      "note": "Use the supported service aisle for the later finite medkit, around the authoritative power equipment."
+    },
+    {
+      "name": "m10_service_arrival",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          5.8,
+          2,
+          -2
+        ],
+        [
+          0,
+          2,
+          -2
+        ],
+        [
+          -3,
+          2,
+          8
+        ]
+      ],
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured"
+      ],
+      "look_at": [
+        0,
+        3.6,
+        14
+      ],
+      "note": "Actual service arrival after all five guards, with finite carry intact."
+    },
+    {
+      "name": "m10_aft_stock",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -2,
+          2,
+          8
+        ],
+        [
+          -2,
+          2,
+          12
+        ],
+        [
+          -3,
+          2,
+          15
+        ]
+      ],
+      "look_at": [
+        0,
+        3.6,
+        14
+      ],
+      "note": "Optional aft medkit before deliberate ascent to the next encounter. No NPC wait."
+    },
+    {
+      "name": "m10_east_middle",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          4.55,
+          2,
+          14.5
+        ],
+        [
+          4.55,
+          3.4,
+          4.5
+        ],
+        [
+          6.65,
+          3.4,
+          4.5
+        ],
+        [
+          6.65,
+          4.8,
+          14.5
+        ]
+      ],
+      "look_at": [
+        0,
+        6.2,
+        14
+      ],
+      "note": "The opposite supported stair gives a second route through the working ship."
+    },
+    {
+      "name": "m10_east_upper",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          4.55,
+          4.8,
+          14.5
+        ],
+        [
+          4.55,
+          6.199999999999999,
+          4.5
+        ],
+        [
+          6.65,
+          6.199999999999999,
+          4.5
+        ],
+        [
+          6.65,
+          7.6,
+          14.5
+        ]
+      ],
+      "look_at": [
+        0,
+        9.1,
+        14
+      ],
+      "note": "Continue into the raised command and service gallery without unsupported deck changes."
+    },
+    {
+      "name": "m10_aft_upper",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          7.6,
+          14
+        ]
+      ],
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "aft_clerk"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            0,
+            7.6,
+            14
+          ],
+          [
+            -3,
+            7.6,
+            14
+          ]
+        ]
+      },
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured"
+      ],
+      "note": "Wake the third original group and defeat its actual upper Clerk; lower and airborne bodies remain required."
+    },
+    {
+      "name": "m10_freight_overlook",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["aft_heavy", "aft_sweeper", "aft_notary"],
+      "walk_to": [
+        [
+          -4,
+          7.6,
+          14
+        ],
+        [
+          -4,
+          7.6,
+          1
+        ]
+      ],
+      "look_at": [
+        0,
+        4,
+        1
+      ],
+      "note": "Observe the open freight volume from a supported side gallery with sealed roof and real deck rails."
+    },
+    {
+      "name": "m10_command_stock",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["aft_heavy", "aft_sweeper", "aft_notary"],
+      "walk_to": [
+        [
+          -2.8,
+          7.6,
+          1
+        ],
+        [
+          -2.8,
+          7.6,
+          -10
+        ],
+        [
+          -2.8,
+          7.6,
+          -15.5
+        ]
+      ],
+      "look_at": [
+        2,
+        9,
+        -15
+      ],
+      "note": "Actual finite crew armor and mandatory current Tern. Pressure glass seals the command view; there is no exterior traversal."
+    },
+    {
+      "name": "m10_lower_return",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["aft_heavy", "aft_sweeper", "aft_notary"],
+      "walk_to": [
+        [
+          -4.45,
+          7.6,
+          -14.5
+        ],
+        [
+          -4.45,
+          6.2,
+          -4.5
+        ],
+        [
+          -6.55,
+          6.2,
+          -4.5
+        ],
+        [
+          -6.55,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          3.4,
+          -4.5
+        ],
+        [
+          -6.55,
+          3.4,
+          -4.5
+        ],
+        [
+          -6.55,
+          2,
+          -14.5
+        ],
+        [
+          0,
+          2,
+          -8
+        ],
+        [
+          0,
+          2,
+          -2
+        ],
+        [
+          -4,
+          2,
+          -2
+        ],
+        [
+          -4,
+          2,
+          1
+        ],
+        [
+          0,
+          2,
+          6.2
+        ]
+      ],
+      "look_at": [
+        0,
+        5.2,
+        1
+      ],
+      "note": "Both stair flights and the walking cargo aisle remain usable during the same live fight."
+    },
+    {
+      "name": "m10_aft_notary",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "aft_notary"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            0,
+            2,
+            6.2
+          ],
+          [
+            0,
+            2,
+            6
+          ],
+          [
+            -3,
+            2,
+            6
+          ]
+        ]
+      },
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured"
+      ],
+      "note": "The real bounded hovering Notary must be shot through the freight opening, using ordinary gun range."
+    },
+    {
+      "name": "m10_aft_heavy",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          2,
+          10
+        ]
+      ],
+      "weapon": "Scatter",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "aft_heavy"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 12,
+        "search_route": [
+          [
+            0,
+            2,
+            10
+          ],
+          [
+            0,
+            2,
+            13
+          ],
+          [
+            2,
+            2,
+            14
+          ]
+        ]
+      },
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured"
+      ],
+      "note": "The original Heavy Sweeper must have a real confirmed death. Earlier active-fight travel may defeat it with finite Flechette rounds; a surviving target uses finite shells within the actual 12 m Scatter band."
+    },
+    {
+      "name": "m10_aft_middle",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          4.55,
+          2,
+          14.5
+        ],
+        [
+          4.55,
+          3.4,
+          4.5
+        ],
+        [
+          6.65,
+          3.4,
+          4.5
+        ],
+        [
+          6.65,
+          4.8,
+          14.5
+        ]
+      ],
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "aft_sweeper"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            6.65,
+            4.8,
+            14.5
+          ],
+          [
+            2,
+            4.8,
+            14
+          ],
+          [
+            0,
+            4.8,
+            14
+          ]
+        ]
+      },
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured"
+      ],
+      "note": "The original middle-deck Sweeper requires its own supported firing line."
+    },
+    {
+      "name": "m10_aft_arrival",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          4.55,
+          4.8,
+          14.5
+        ],
+        [
+          4.55,
+          6.199999999999999,
+          4.5
+        ],
+        [
+          6.65,
+          6.199999999999999,
+          4.5
+        ],
+        [
+          6.65,
+          7.6,
+          14.5
+        ],
+        [
+          0,
+          7.6,
+          14
+        ]
+      ],
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured",
+        "aft_secured"
+      ],
+      "look_at": [
+        0,
+        9,
+        -15
+      ],
+      "note": "The third arrival accepts only after all four actual aft guards, including the airborne Notary."
+    },
+    {
+      "name": "m10_passenger_return",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -4,
+          7.6,
+          14
+        ],
+        [
+          -2.8,
+          7.6,
+          14
+        ],
+        [
+          -2.8,
+          7.6,
+          -14.5
+        ],
+        [
+          -4,
+          7.6,
+          -14.5
+        ],
+        [
+          -4.45,
+          7.6,
+          -14.5
+        ],
+        [
+          -4.45,
+          6.2,
+          -4.5
+        ],
+        [
+          -6.55,
+          6.2,
+          -4.5
+        ],
+        [
+          -6.55,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          4.8,
+          -14.5
+        ],
+        [
+          -4.45,
+          4.8,
+          -17.2
+        ],
+        [
+          0,
+          4.8,
+          -17.2
+        ],
+        [
+          0,
+          4.8,
+          -15
+        ]
+      ],
+      "look_at": [
+        2,
+        6,
+        -14
+      ],
+      "note": "Return to the inhabited passenger deck while optional current crew keep real contact."
+    },
+    {
+      "name": "m10_surplus_stock",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["passenger_clerk_a", "passenger_clerk_b", "passenger_sweeper", "passenger_enforcer"],
+      "walk_to": [
+        [
+          0,
+          4.8,
+          -12.1
+        ],
+        [
+          3.5,
+          4.8,
+          -12.1
+        ],
+        [
+          3.5,
+          4.8,
+          -10
+        ],
+        [
+          3.5,
+          4.8,
+          -7
+        ],
+        [
+          5.7,
+          4.8,
+          -7
+        ],
+        [
+          7.1,
+          4.8,
+          -7
+        ]
+      ],
+      "look_at": [
+        6.2,
+        5.4,
+        -5.1
+      ],
+      "note": "Actual finite optional surplus beside the galley and repair bench. This is ordinary pickup input, without a gun grant."
+    },
+    {
+      "name": "m10_passenger_defense",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["passenger_clerk_a", "passenger_clerk_b", "passenger_sweeper", "passenger_enforcer"],
+      "walk_to": [
+        [
+          3.5,
+          4.8,
+          -7
+        ],
+        [
+          3.5,
+          4.8,
+          -12.1
+        ],
+        [
+          0,
+          4.8,
+          -12
+        ]
+      ],
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "passenger_clerk_a",
+          "passenger_clerk_b",
+          "passenger_sweeper",
+          "passenger_enforcer"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            0,
+            4.8,
+            -12
+          ],
+          [
+            0,
+            4.8,
+            -10
+          ],
+          [
+            0,
+            4.8,
+            -8
+          ],
+          [
+            3.5,
+            4.8,
+            -12.1
+          ]
+        ]
+      },
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured",
+        "aft_secured",
+        "passengers_secured"
+      ],
+      "note": "Final actual four-body defense includes the real Enforcer. All seventeen original mission guards remain mandatory."
+    },
+    {
+      "name": "m10_passenger_arrival",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          4.8,
+          -12
+        ]
+      ],
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured",
+        "aft_secured",
+        "passengers_secured"
+      ],
+      "look_at": [
+        0,
+        6.3,
+        -17.8
+      ],
+      "note": "Actual passenger arrival completes the fourth objective; no crew timing requirement."
+    },
+    {
+      "name": "m10_shared_departure",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          4.8,
+          -16
+        ]
+      ],
+      "expect_prompt": true,
+      "interact": "party_departed",
+      "expect_m10_completed": [
+        "forward_secured",
+        "service_secured",
+        "aft_secured",
+        "passengers_secured",
+        "party_departed"
+      ],
+      "expect_equipment": {
+        "grenades": 2,
+        "proximity_mines": 3
+      },
+      "look_at": [
+        0,
+        6.3,
+        -17.8
+      ],
+      "note": "Fresh ordinary Use at the registered ship confirmation, actual participant alive and aboard. M11 remains pending and unavailable."
+    }
+  ]
+}

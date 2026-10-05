@@ -11,7 +11,11 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+pub(crate) use m08::M08NeutralLayout;
+mod moon_residents;
+pub(crate) use moon_residents::moon_residents;
 mod m09;
+mod m10;
 mod mission;
 mod rules;
 mod sabotage;
@@ -51,6 +55,9 @@ pub use m08::{
 pub use m09::{
     M08Outcome, M09CrewGeometry, M09CrewState, M09MapGeometry, M09ObjectiveState, M09_CREW_IDS,
     M09_CREW_STEP, M09_OBJECTIVE_IDS,
+};
+pub use m10::{
+    M10MapGeometry, M10ObjectiveState, M10PassengerGeometry, M10Transit, M10_OBJECTIVE_IDS,
 };
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
@@ -683,7 +690,8 @@ pub const MISSION_RESULTS_GAMEPLAY_VERSION: u32 = 33;
 pub const M09_GAMEPLAY_VERSION: u32 = 34;
 /// Repeater identity, server warmup and strict eight-column record revision 2.
 pub const REPEATER_GAMEPLAY_VERSION: u32 = 35;
-pub const GAMEPLAY_VERSION: u32 = REPEATER_GAMEPLAY_VERSION;
+pub const M10_GAMEPLAY_VERSION: u32 = 36;
+pub const GAMEPLAY_VERSION: u32 = M10_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -804,6 +812,7 @@ mod geometry_tests {
             m08: None,
             m07: None,
             m09: None,
+            m10: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -922,6 +931,8 @@ pub enum ServerMessage {
         m07: Option<M07MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m09: Option<M09MapGeometry>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        m10: Option<M10MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

@@ -7,6 +7,9 @@ use super::{
 use crate::movement::Solid;
 use serde::{Deserialize, Serialize};
 
+mod neutral;
+pub(crate) use neutral::M08NeutralLayout;
+
 /// The required chain, in order. `machine_wrecked` is the support-node Shoot
 /// objective; every other step is an arrival bound to its cleared group.
 pub const M08_OBJECTIVE_IDS: [&str; 7] = [
@@ -123,6 +126,7 @@ impl M08MapGeometry {
                     if region.valid(half) && point(*feet) && region.contains(*feet))
         };
         let presentation = presentation.ok_or("M08 presentation missing")?;
+        M08NeutralLayout::read(half, solids, presentation)?;
         let arrivals = [0, 1, 2, 3, 5, 6].map(|i| M08_OBJECTIVE_IDS[i]);
         let mut solids_used = std::collections::HashSet::new();
         if !half.is_finite()

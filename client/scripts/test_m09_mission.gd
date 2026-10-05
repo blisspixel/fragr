@@ -164,7 +164,7 @@ func _run() -> void:
 	_check(not hud._evac_badge.visible, "Standard does not inherit the Severe optional badge")
 	hud.queue_free()
 	_check(StoryScene.exists("m09_arrival") and StoryScene.exists("l09_l10") and StoryScene.BEFORE_MISSION.get(MissionState.M09_ID) == "m09_arrival", "arrival and departure reuse the story boundary")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == 34 and LocalMatch.NEXT_MISSION == "common_carrier", "the berth is playable and M10 stays pending")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == 34 and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == 36 and LocalMatch.NEXT_MISSION == "right_of_search", "M10 uses its own capability and M11 stays pending")
 	await process_frame
 	await process_frame
 	if failures == 0:

@@ -953,3 +953,57 @@ msgstr "PASSENGER MANIFEST\nRELEASE BERTH CREW"
 
 msgid "WORLD_M09_BOARD_CARRIER"
 msgstr "COMMON CARRIER\nCONFIRM DEPARTURE"
+
+msgid "MISSION_M10_TITLE"
+msgstr "COMMON CARRIER"
+
+msgid "M10_PROTOTYPE_TITLE"
+msgstr "Common Carrier prototype"
+
+msgid "M10_RUN_DESCRIPTION"
+msgstr "Learn the three-deck ship and repel its boarding party. Your finite supplies continue from the berth."
+
+msgid "M10_LOCAL_STARTING"
+msgstr "Preparing the Common Carrier..."
+
+msgid "M10_NEXT_TITLE"
+msgstr "RIGHT OF SEARCH"
+
+msgid "M10_NEXT_PENDING"
+msgstr "Right of Search is not playable yet. This completed run is retained."
+
+msgid "M10_WAITING"
+msgstr "Everyone confirms when ready."
+
+msgid "M10_DEPARTED"
+msgstr "The ship is secured."
+
+msgid "M10_OBJECTIVE_FORWARD_SECURED"
+msgstr "Clear the forward cargo approach."
+
+msgid "M10_OBJECTIVE_SERVICE_SECURED"
+msgstr "Clear the service deck."
+
+msgid "M10_OBJECTIVE_AFT_SECURED"
+msgstr "Clear the aft gallery."
+
+msgid "M10_OBJECTIVE_PASSENGERS_SECURED"
+msgstr "Return and secure the passenger hall."
+
+msgid "M10_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Everyone aboard: confirm at the forward control."
+
+msgid "M10_USE_DEPARTURE"
+msgstr "{use}: confirm the ship is secured."
+
+msgid "WORLD_M10_SHIP_CONFIRMATION"
+msgstr "COMMON CARRIER\nCONFIRM SHIP CLEAR"
+
+msgid "WORLD_M10_CARGO_DECK"
+msgstr "CARGO / DECK 1\nKEEP TRANSFER AISLE CLEAR"
+
+msgid "WORLD_M10_PASSENGER_DECK"
+msgstr "CREW / DECK 2\nBUNKS AND GALLEY"
+
+msgid "WORLD_M10_COMMAND_DECK"
+msgstr "COMMAND / DECK 3\nFLIGHT AND SHIP SYSTEMS"

@@ -20,6 +20,13 @@ func _init(local: LocalMatch) -> void:
 	_local = local
 
 func _ready() -> void:
+	var workbench: Node3D = ShipFurnishings.instantiate_source()
+	var workbench_problem: String = ShipFurnishings.source_error(workbench)
+	if workbench != null:
+		workbench.free()
+	if not workbench_problem.is_empty():
+		_finish(false, "the packaged ship workbench is missing or invalid")
+		return
 	# Live cast resources belong in the export, unlike offline source-art tools.
 	if not ResourceLoader.exists(LatchSource.LATCH_SOURCE, "PackedScene"):
 		_finish(false, "the live Latch mesh is missing from this build")
@@ -86,6 +93,16 @@ func _ready() -> void:
 		for shot: Dictionary in scene["shots"]:
 			if not ResourceLoader.exists(str(shot.get("image", "")), "Texture2D"):
 				_finish(false, "the M07 story illustrations are missing")
+				return
+	# M10 deliberately retains keyed reader-paced text until its own voice/art gate.
+	for id: String in ["m10_arrival", "l10_l11"]:
+		var scene: Dictionary = StoryScene.load_scene(id)
+		if scene.is_empty():
+			_finish(false, "the ship story manifests are missing or invalid")
+			return
+		for key: String in StoryScene.catalog_keys(scene):
+			if TranslationServer.translate(key) == key:
+				_finish(false, "the ship story copy is missing")
 				return
 	var lunar_bed: AudioStreamWAV = load("res://assets/story/ambience/lunar_port_utility.wav") as AudioStreamWAV
 	if lunar_bed == null or lunar_bed.loop_mode != AudioStreamWAV.LOOP_FORWARD:

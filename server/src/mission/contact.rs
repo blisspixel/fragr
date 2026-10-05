@@ -79,6 +79,54 @@ impl GameState {
                 bodies.push(civilian(format!("m05/{}", captive.id), captive.feet));
             }
         }
+        if let Some(p) = &run.m08 {
+            let presentation = self
+                .map
+                .presentation_ref()
+                .expect("validated M08 presentation");
+            let layout = crate::protocol::M08NeutralLayout::read(
+                self.map.arena().half,
+                &self.map.arena().solids,
+                presentation,
+            )
+            .expect("validated M08 neutral layout");
+            for (key, feet) in layout.people(p.index >= 2, p.custody_released) {
+                bodies.push(civilian(key.into(), feet));
+            }
+        }
+        if run.m06.is_some() || run.m07.is_some() {
+            if let Some(presentation) = self.map.presentation_ref() {
+                for (key, feet) in crate::protocol::moon_residents(
+                    if run.m06.is_some() {
+                        crate::protocol::MissionId::PortOfEntry
+                    } else {
+                        crate::protocol::MissionId::DeclaredGoods
+                    },
+                    self.map.arena().half,
+                    &self.map.arena().solids,
+                    presentation,
+                )
+                .expect("validated resident panel layout")
+                {
+                    bodies.push(civilian(key, feet));
+                }
+            }
+        }
+        if run.m10.is_some() {
+            if let Some(g) = run.initial_map.m10_geometry() {
+                bodies.push(civilian("m10/tern".into(), g.pilot));
+                for p in &g.passengers {
+                    if run
+                        .solo
+                        .as_ref()
+                        .and_then(|s| s.carried_transit.as_ref())
+                        .is_some_and(|t| t.arrived(&p.id))
+                    {
+                        bodies.push(civilian(format!("m10/{}", p.id), p.feet));
+                    }
+                }
+            }
+        }
         if let Some(p) = &run.m09 {
             for crew in &p.crew {
                 bodies.push(civilian(format!("m09/{}", crew.id), crew.feet));
@@ -94,6 +142,109 @@ mod tests {
     use crate::protocol::{M05TramPhase, MissionId, MissionReady, Role};
     use crate::sim::PLAYER_FLOOR_Y;
     use uuid::Uuid;
+
+    #[test]
+    fn m08_neutral_contacts_follow_exact_visibility_release_and_lifecycle() {
+        let map = AuthoredSource::Mission(MissionId::CustodianOfRecord)
+            .load()
+            .unwrap();
+        let mut game = GameState::with_authored_map(map);
+        let id = Uuid::from_u128(808);
+        game.add_player(id, "archive visitor".into(), Role::Human);
+        let mut bodies = Vec::new();
+        game.append_civilian_contacts(&mut bodies);
+        assert!(bodies.is_empty(), "briefing has no active neutral contacts");
+        assert!(game.acknowledge_mission(
+            id,
+            MissionReady {
+                id: MissionId::CustodianOfRecord,
+                attempt: 1
+            }
+        ));
+        game.tick(0.0);
+        let layout = crate::protocol::M08NeutralLayout::read(
+            game.map.arena().half,
+            &game.map.arena().solids,
+            game.map.presentation_ref().unwrap(),
+        )
+        .unwrap();
+        for (index, released, count) in [
+            (0, false, 4),
+            (1, false, 4),
+            (2, false, 5),
+            (4, true, 5),
+            (7, true, 5),
+        ] {
+            let p = game.mission.as_mut().unwrap().m08.as_mut().unwrap();
+            p.index = index;
+            p.custody_released = released;
+            bodies.clear();
+            game.append_civilian_contacts(&mut bodies);
+            assert_eq!(bodies.len(), count);
+            for (body, (key, feet)) in bodies.iter().zip(layout.people(index >= 2, released)) {
+                assert_eq!(body.key, key);
+                assert_eq!([body.from.x, body.from.y, body.from.z], feet);
+                assert_eq!(body.from, body.proposed);
+                assert_eq!(body.height, crate::movement::BODY_HEIGHT);
+                assert_eq!(body.radius, crate::movement::RADIUS);
+            }
+            assert!(
+                !bodies.iter().any(|b| b.key.contains("orrin")),
+                "backup case is not a person body"
+            );
+        }
+        game.mission.as_mut().unwrap().phase = MissionPhase::Departed;
+        bodies.clear();
+        game.append_civilian_contacts(&mut bodies);
+        assert!(
+            bodies.is_empty(),
+            "departed mission freezes neutral contact participation"
+        );
+    }
+
+    #[test]
+    fn m08_neutral_registry_corner_retains_real_walking_clearance() {
+        let map = AuthoredSource::Mission(MissionId::CustodianOfRecord)
+            .load()
+            .unwrap();
+        let mut game = GameState::with_authored_map(map);
+        let id = Uuid::from_u128(809);
+        game.add_player(id, "registry walker".into(), Role::Human);
+        assert!(game.acknowledge_mission(
+            id,
+            MissionReady {
+                id: MissionId::CustodianOfRecord,
+                attempt: 1
+            }
+        ));
+        game.tick(0.0);
+        game.mission.as_mut().unwrap().m08.as_mut().unwrap().index = 2;
+        let walker = game.players.iter_mut().find(|p| p.id == id).unwrap();
+        walker.x = -15.4;
+        walker.y = 3.0 + PLAYER_FLOOR_Y;
+        walker.z = -9.6;
+        walker.vy = 0.0;
+        game.set_action(
+            id,
+            crate::protocol::Action {
+                forward: true,
+                yaw: Some(0.0),
+                ..Default::default()
+            },
+        );
+        for _ in 0..20 {
+            game.tick(0.05);
+        }
+        let walker = game.players.iter().find(|p| p.id == id).unwrap();
+        assert!(
+            walker.x > -11.5,
+            "ordinary contact integration walks past Renn beside the desk"
+        );
+        assert!(
+            (walker.y - PLAYER_FLOOR_Y - 3.0).abs() < 0.001,
+            "walker remains on actual gallery support"
+        );
+    }
 
     #[test]
     fn actor_contact_real_tram_refuses_rider_against_living_edge_body() {

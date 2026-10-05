@@ -19,6 +19,8 @@ pub(super) struct SoloRun {
     /// M06's optional prisoner route, retained unchanged through M07.
     pub carried_prisoner_route_marked: bool,
     pub carried_archive: Option<crate::protocol::M08Outcome>,
+    pub carried_berth: Option<super::run_file::M09Outcome>,
+    pub carried_transit: Option<crate::protocol::M10Transit>,
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
@@ -116,6 +118,8 @@ impl GameState {
                 continues: CAMPAIGN_CONTINUES,
                 level_start_continues: CAMPAIGN_CONTINUES,
             },
+            carried_berth: None,
+            carried_transit: None,
             owner: None,
             carried_recall_cars: Vec::new(),
             carried_patients: Vec::new(),
@@ -192,6 +196,8 @@ impl GameState {
             .as_ref()
             .is_some_and(|outcome| outcome.prisoner_route_marked);
         solo.carried_archive = document.m08_outcome.clone();
+        solo.carried_berth = document.m09_outcome.clone();
+        solo.carried_transit = document.m10_transit.clone();
         if let Some(progress) = &mut run.m09 {
             let g = run
                 .initial_map
@@ -264,6 +270,7 @@ impl GameState {
                 || run.m08.is_some()
                 || run.m07.is_some()
                 || run.m09.is_some()
+                || run.m10.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -379,6 +386,7 @@ impl GameState {
         self.ensure_m08_companion();
         self.ensure_m07_companion();
         self.ensure_m09_companion();
+        self.ensure_m10_companion();
         self.shot_results.clear();
         tracing::info!(
             attempt = request.attempt + 1,

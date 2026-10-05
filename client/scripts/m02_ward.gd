@@ -1,8 +1,8 @@
 class_name M02Ward
 extends Node3D
 
-## A noncombat, render-only reading of the M02 mission facts. The server owns
-## the ward win and release. Reconnect, retry and skip rebuild from those facts.
+## The server owns the ward win, release and shot bodies. Reconnect, retry and
+## skip rebuild presentation from those facts without inventing actor feet.
 const MAP_ID: int = 1002
 const MAP_NAME: String = "Persons Unknown: ward graybox"
 const FIRST_FEET: Vector3 = Vector3(7.55, 0.0, -10.0)
@@ -24,6 +24,8 @@ const MACHINE_FADE_SECONDS: float = 0.18
 const MACHINE_VOLUME_DB: float = -18.0
 
 var _built: bool = false
+var _tableau_layout: Dictionary = {}
+var _companion_open: float = 0.0
 var _seen_state: bool = false
 var _attempt: int = 0
 var _secured: bool = false
@@ -77,6 +79,10 @@ func configure_map(info: Dictionary) -> void:
 		return
 	if _built:
 		return
+	_tableau_layout = M02TableauBodies.layout(info)
+	if _tableau_layout.is_empty():
+		clear_map()
+		return
 	_build()
 	_set_visual(0.0, false)
 	_set_side_present(false)
@@ -97,6 +103,8 @@ func clear_map() -> void:
 	_side_right_bars.clear()
 	_side_lamp = null
 	_built = false
+	_tableau_layout.clear()
+	_companion_open = 0.0
 	_seen_state = false
 	_attempt = 0
 	_secured = false
@@ -138,6 +146,8 @@ func apply_state(state: Dictionary) -> void:
 		# receive the following pawn first; retain that handoff on first state.
 		var first_snapshot_moving: bool = not _seen_state and _companion_phase_known and _companion_moving
 		var state_first_release: bool = not _seen_state and released and not _companion_phase_known
+		if _seen_state and attempt != _attempt:
+			_companion_open = 0.0
 		_seen_state = true
 		_attempt = attempt
 		_secured = secured
@@ -151,7 +161,11 @@ func apply_state(state: Dictionary) -> void:
 		_sync_audio_snapshot()
 		if has_evacuation:
 			_apply_evacuation(progress["evacuation"], true)
-		set_companion_phase("unresolved" if state_first_release else ("following" if first_snapshot_moving else "releasing"))
+		if first_snapshot_moving:
+			_companion_moving = true
+			_latch.visible = false
+		else:
+			set_companion_phase("unresolved" if state_first_release else "tableau")
 		if released:
 			_show_caption("M02_RELEASE_RECAP", 8.0)
 		else:
@@ -178,18 +192,22 @@ func apply_state(state: Dictionary) -> void:
 		_apply_evacuation(progress["evacuation"], false)
 
 ## A snapshot owns the transition from tableau figure to moving companion.
-## The fixed figure stays through the full server releasing phase, including
-## a skipped scene or a late observer, so exactly one Latch is visible.
-func set_companion_phase(phase: String) -> void:
+## An actual releasing pawn already has authoritative feet. Its snapshot takes
+## over immediately; the local restraints and captions keep their own timing.
+func set_companion_phase(phase: String, started: int = -1, tick: int = -1) -> void:
 	if phase in ["releasing", "following", "firing", "departed"]:
 		_companion_phase_known = true
 		_awaiting_companion_snapshot = false
 	elif phase == "unresolved":
 		_awaiting_companion_snapshot = true
-	_companion_moving = phase in ["following", "firing", "departed", "unresolved"] \
+	_companion_moving = phase in ["releasing", "following", "firing", "departed", "unresolved"] \
 		or (_awaiting_companion_snapshot and phase.is_empty())
 	if is_instance_valid(_latch):
 		_latch.visible = not _companion_moving
+	if phase in ["releasing", "following", "firing", "departed"]:
+		_companion_open = M02TableauBodies.opening(phase, started, tick)
+		if is_instance_valid(_other_captive):
+			_other_captive.position.x = -0.12 + _companion_open * 0.12
 
 func _process(delta: float) -> void:
 	if not _built:
@@ -269,7 +287,7 @@ func _set_visual(seconds: float, released: bool) -> void:
 	var open: float = clampf((seconds - CROSS_END) / (SECOND_OPEN_END - CROSS_END), 0.0, 1.0) if released else 0.0
 	_second_left.position.x = -0.3 - open * 0.68
 	_second_right.position.x = 0.3 + open * 0.68
-	_other_captive.position.x = -0.12 + open * 0.12
+	_other_captive.position.x = -0.12 + _companion_open * 0.12
 	_transfer_list.visible = released and seconds >= LIST_REVEAL
 
 func _set_machine_stopped(stopped: bool) -> void:
@@ -340,12 +358,12 @@ func _build() -> void:
 	var door: StandardMaterial3D = _material(Color("46504e"))
 	_latch = LatchView.new()
 	_latch.name = "Latch"
-	_latch.position = FIRST_FEET
+	_latch.position = _tableau_layout["first"]
 	_latch.rotation.y = -PI / 2.0
 	_root.add_child(_latch)
 	_notary = NotaryView.new()
 	_notary.name = "NotaryBehindGlass"
-	_notary.position = NOTARY_CENTER
+	_notary.position = _tableau_layout["notary"]
 	_notary.scale = Vector3.ONE * 1.2
 	_notary.rotation.y = -PI / 2.0
 	_root.add_child(_notary)
@@ -358,13 +376,13 @@ func _build() -> void:
 	_first_right = _bar(first, "RightLatch", 0.43, door)
 	var second: Node3D = Node3D.new()
 	second.name = "SecondRestraint"
-	second.position = BAY_FEET
+	second.position = _tableau_layout["bay"]
 	second.rotation.y = -PI / 2.0
 	_root.add_child(second)
 	_box(second, "Back", Vector3(0.0, 1.25, -0.39), Vector3(1.75, 2.5, 0.1), steel)
 	for side: float in [-0.92, 0.92]:
 		_box(second, "Rail", Vector3(side, 1.25, -0.15), Vector3(0.12, 2.5, 0.32), bone)
-	_other_captive = _figure("SecondCaptive", muted, steel, _material(Color("778e88")))
+	_other_captive = M02TableauBodies.figure(muted, steel, _material(Color("778e88")))
 	_other_captive.position = Vector3(-0.12, 0.0, -0.21)
 	_second_left = _door(second, "LeftDoor", -0.3, door)
 	_second_right = _door(second, "RightDoor", 0.3, door)

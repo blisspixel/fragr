@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "map_id": 1006,
+      "half_extent": 52,
+      "geometry_version": 2,
+      "solids": [{"min_x": -35, "max_x": -34, "min_z": 10, "max_z": 25, "bottom": 0.9, "top": 4.5}],
+      "presentation": {"ground": "concrete", "solids": ["inspection_glass"], "decorations": [{"solid": 0, "face": "east", "center": [0, 0], "size": [4, 1], "kind": "m06_family_window"}]},
+      "expected": [[-36.7, 0, 17], [-36.7, 0, 20]]
+    },
+    {
+      "map_id": 1007,
+      "half_extent": 64,
+      "geometry_version": 2,
+      "solids": [{"min_x": -43, "max_x": -42, "min_z": -21, "max_z": -18, "bottom": 1, "top": 2.8}],
+      "presentation": {"ground": "service_steel", "solids": ["inspection_glass"], "decorations": [{"solid": 0, "face": "east", "center": [0, 0], "size": [2.6, 1.6], "kind": "m07_window_figure"}]},
+      "expected": [[-43.7, 0, -19.5]]
+    }
+  ]
+}

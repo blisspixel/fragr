@@ -1,61 +1,107 @@
 {
-  "version": 1,
-  "reviewed_on": "2026-09-26",
-  "purpose": "Offline illustrated stills for the M01 opening scene (client/assets/story/scenes/opening.json)",
-  "entries": [
-    {
-      "scene": "home",
-      "file": "workshop.png",
-      "format": "png",
-      "width": 637,
-      "height": 360,
-      "source_frame": "m01_opening_home_explore_01",
-      "model": "marketing-studio/image",
-      "request": {
-        "aspect_ratio": "16:9",
-        "enhance_prompt": false,
-        "prompt": "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, a modest shared home and repair workshop in Earth's Perimeter, a cramped but cared-for room with repaired cupboards, mismatched chairs, an everyday cooking corner and a heavy workbench carrying disassembled ordinary communications equipment, Latch alone at the workbench using a small hand tool with calm self-directed attention, Latch is a conscious free embodied AI person in a practical midweight mechanical chassis, unequal repaired forearm plates, worn bone enamel over dark steel joints and one small muted cyan patch on the upper chest, compact plain mechanical head without a human face or skull features, precise expressive hands and an easy familiar stance, individual patched workmanship distinct from standardized Union security bots, warm work lamp against a cool dusk window, a few unpaid paper bills pinned by the door but no legible writing, lived-in friendship implied by two different work stools and shared belongings, the player is outside the image, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
-        "quality": "low",
-        "resolution": "2k"
-      },
-      "request_id": "bb679946-71c1-4798-96d6-57e83a0ad807",
-      "estimated_usd": 0.024,
-      "source_sha256": "cb985c62744e1de387b9a00550e23e39879efb90016cb65749d704972dd1cf12",
-      "sha256": "9258247d09f7a046875b53f924d1e1c659182307e9162014314682d941bdddde",
-      "reduction": {
-        "tool": "tools/spritegen",
-        "height": 360,
-        "trim": false,
-        "palette": null,
-        "reason": "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
-      }
-    },
-    {
-      "scene": "annex",
-      "file": "annex.png",
-      "format": "png",
-      "width": 637,
-      "height": 360,
-      "source_frame": "m01_opening_annex_explore_01",
-      "model": "marketing-studio/image",
-      "request": {
-        "aspect_ratio": "16:9",
-        "enhance_prompt": false,
-        "prompt": "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, Annex 67 intake building in Earth's Perimeter, a compact severe concrete administrative facade with repeated bone panels and institutional grey-green metal doors, dim amber office windows, deep steel service conduits and a worn loading approach, a recessed side service entrance is the clear visual destination at the right third, an empty rectangular identifier plate above that door reserved for later localized lettering, distant controlled front-entry lanes suggest how the institution processes people, restrained dark red rectangular administrative seals with no historical emblems, the viewpoint is from an ordinary side street at dusk approaching the service door, readable grounded layout and practical light, no Latch, no Mara, no captive awaiting rescue in a window, no depicted player body, no landing craft or invented escape route, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
-        "quality": "low",
-        "resolution": "2k"
-      },
-      "request_id": "2081d28b-3820-4c27-8467-3952463cf28e",
-      "estimated_usd": 0.024,
-      "source_sha256": "7f07021310f222a081e9b2f34c316eea12ea55ce99eabb35d7e04fcbc7ce3b1c",
-      "sha256": "28d58c4c639ecf83f99afe233eeb0e479c0846ed19490f8905347c7da91e9be4",
-      "reduction": {
-        "tool": "tools/spritegen",
-        "height": 360,
-        "trim": false,
-        "palette": null,
-        "reason": "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
-      }
-    }
-  ]
+    "version":  1,
+    "reviewed_on":  "2026-10-05",
+    "purpose":  "Offline illustrated stills for the M01 opening scene (client/assets/story/scenes/opening.json)",
+    "entries":  [
+                    {
+                        "scene":  "home",
+                        "file":  "workshop.png",
+                        "format":  "png",
+                        "width":  637,
+                        "height":  360,
+                        "source_frame":  "opening_home_latch_continuity_v1",
+                        "model":  "marketing-studio/image",
+                        "request_id":  "ec934426-8202-43c3-9e18-2685522e60bf",
+                        "estimated_usd":  0.094,
+                        "source_sha256":  "1d526f5f2fd841886641fb3e894dde1955ed483a6f81ee795d3dd011975350cf",
+                        "sha256":  "e7caf907a9dde4657c47a4a9370a820dc305921c598b9879f97547aa7709899d",
+                        "reviewed_on":  "2026-10-05",
+                        "purpose":  "Match canonical Latch while preserving the home, working action and story framing",
+                        "reference_files":  [
+                                                {
+                                                    "file":  "client/assets/story/stills/opening/workshop.png",
+                                                    "source_commit":  "d511a0ed14e0385c0f9a079917079b1b07537818",
+                                                    "sha256":  "9258247d09f7a046875b53f924d1e1c659182307e9162014314682d941bdddde",
+                                                    "role":  "existing scene"
+                                                },
+                                                {
+                                                    "file":  "client/art/characters/references/latch-stylized-v2.png",
+                                                    "sha256":  "0dfea3de518111bd761b7e8ae191d133aa3a7220d248c52f37eab16b948a4b72",
+                                                    "role":  "canonical identity"
+                                                }
+                                            ],
+                        "request":  {
+                                        "aspect_ratio":  "16:9",
+                                        "quality":  "medium",
+                                        "resolution":  "2k",
+                                        "enhance_prompt":  false,
+                                        "prompt":  "Edit the FIRST reference, the existing home workshop story illustration. Preserve its exact composition, room architecture, furniture placement, lighting, pixel illustration style and cinematic view. The SECOND reference is the precise canonical identity of Latch, the same conscious free civilian robot seen later in the game. Replace only the mismatched robot at the workbench with that exact recognizable character, expressed in the FIRST picture\u0027s deliberate painted pixel clusters and scene lighting. This is character continuity within the same scene, not a new home design or pasted studio photograph., The single robot at the bench is Latch, an ordinary adult-height roughly1.8metre lean civilian chassis, not a muscular security bot. Keep the relaxed working pose at the same bench and same approximate character framing. Slim articulated shoulders and lean torso, bone enamel over dark steel joints, broad copper-rust repair plate on anatomicalLEFT chest and LEFT shoulder, mostlyboneRIGHT forearm and copper-rustLEFT forearm, small muted cyan service cable accents. Head is an unmistakable tall rectangular portrait CRT-like screen slightly taller than wide, bone rectangular housing, dark charcoal face with two gentle cyan pixel eyes and a small friendly cyan pixel smile, recognizable as the exact second-reference face. One slender antenna rises from the anatomicalLEFT ear, viewerRIGHT when facing front. Head angled only slightly down toward the work so its actual front screen, eyes and friendly expression remain visible to the camera. Exactly two arms and two finely articulated robot hands calmly working on the communications unit, five distinct digits on each, no gloves or warbot weapon. Scale the shoulders, hands and bench naturally as an adult person at work. Keep the chest and shoulder shapes modest, retain individual unequal repairs and remove the old featureless rounded faceplate completely. Only a few broad painted repair marks, no dense gritty scratches. Warm work lamp illuminates the same individual who is later rescued in M02., Preserve the dusk window, quiet cooking corner, practical cupboards, two different seats, workbench, tools, ordinary communications equipment and warm work lamp. Maintain 16:9 landscape and dark visually quiet lower quarter for existing subtitles. Opaque full-frame environment, no border or interface. No player, another character, text, readable paper writing, insignia or logos. No photorealism, noise, heavy damage, random surface speckles or studio backdrop. Preserve the story of calm self-directed repair work at home.. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery."
+                                    },
+                        "reduction":  {
+                                          "tool":  "tools/spritegen",
+                                          "height":  360,
+                                          "trim":  false,
+                                          "palette":  null,
+                                          "reason":  "Preserve scene illumination and the same painted pixel illustration style."
+                                      },
+                        "runtime_selected":  true,
+                        "story_render_acceptance":  "Ordinary HOME ScenePlayer inspected at three aspect ratios, clean zero exit; final integration CI remains separate"
+                    },
+                    {
+                        "scene":  "annex",
+                        "file":  "annex.png",
+                        "format":  "png",
+                        "width":  637,
+                        "height":  360,
+                        "source_frame":  "m01_opening_annex_explore_01",
+                        "model":  "marketing-studio/image",
+                        "request":  {
+                                        "aspect_ratio":  "16:9",
+                                        "enhance_prompt":  false,
+                                        "prompt":  "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, Annex 67 intake building in Earth\u0027s Perimeter, a compact severe concrete administrative facade with repeated bone panels and institutional grey-green metal doors, dim amber office windows, deep steel service conduits and a worn loading approach, a recessed side service entrance is the clear visual destination at the right third, an empty rectangular identifier plate above that door reserved for later localized lettering, distant controlled front-entry lanes suggest how the institution processes people, restrained dark red rectangular administrative seals with no historical emblems, the viewpoint is from an ordinary side street at dusk approaching the service door, readable grounded layout and practical light, no Latch, no Mara, no captive awaiting rescue in a window, no depicted player body, no landing craft or invented escape route, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
+                                        "quality":  "low",
+                                        "resolution":  "2k"
+                                    },
+                        "request_id":  "2081d28b-3820-4c27-8467-3952463cf28e",
+                        "estimated_usd":  0.024,
+                        "source_sha256":  "7f07021310f222a081e9b2f34c316eea12ea55ce99eabb35d7e04fcbc7ce3b1c",
+                        "sha256":  "28d58c4c639ecf83f99afe233eeb0e479c0846ed19490f8905347c7da91e9be4",
+                        "reduction":  {
+                                          "tool":  "tools/spritegen",
+                                          "height":  360,
+                                          "trim":  false,
+                                          "palette":  null,
+                                          "reason":  "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
+                                      }
+                    }
+                ],
+    "historical_home_entries":  [
+                                    {
+                                        "scene":  "home",
+                                        "file":  "workshop.png",
+                                        "format":  "png",
+                                        "width":  637,
+                                        "height":  360,
+                                        "source_frame":  "m01_opening_home_explore_01",
+                                        "model":  "marketing-studio/image",
+                                        "request":  {
+                                                        "aspect_ratio":  "16:9",
+                                                        "enhance_prompt":  false,
+                                                        "prompt":  "original retro science-fiction FPS story illustration, deliberate crisp pixel clusters and broad readable forms, chunky industrial design, stepped contours, matte painted materials, restrained palette of worn bone white, dark steel, desaturated rust and institutional grey-green, small purposeful ember and muted cyan accents, practical directional lighting, an inhabited ordinary place rather than a fantasy spectacle, a modest shared home and repair workshop in Earth\u0027s Perimeter, a cramped but cared-for room with repaired cupboards, mismatched chairs, an everyday cooking corner and a heavy workbench carrying disassembled ordinary communications equipment, Latch alone at the workbench using a small hand tool with calm self-directed attention, Latch is a conscious free embodied AI person in a practical midweight mechanical chassis, unequal repaired forearm plates, worn bone enamel over dark steel joints and one small muted cyan patch on the upper chest, compact plain mechanical head without a human face or skull features, precise expressive hands and an easy familiar stance, individual patched workmanship distinct from standardized Union security bots, warm work lamp against a cool dusk window, a few unpaid paper bills pinned by the door but no legible writing, lived-in friendship implied by two different work stools and shared belongings, the player is outside the image, wide cinematic landscape composition in 16:9, strong foreground middle distance and background, meaningful action in the middle and upper two thirds, lower quarter kept dark and visually quiet for subtitles without an empty graphic panel, opaque full environment filling the image edge to edge, visible background scenery and grounded cast shadows, readable at 1280 by 720, no written words or captions, leave any notices or signs blank for localized text added separately, no watermark or decorative border. Avoid: photorealism, smooth airbrushed shading, blurry pixel edges, tiny noisy surface detail, neon flood, lens flare, excessive bloom, depth of field blur, captions, lettering, logos, signature, watermark, decorative border, comic panels, interface overlays, historical political emblems, gore, skull robots, fantasy armor, a visible player character or player hands.",
+                                                        "quality":  "low",
+                                                        "resolution":  "2k"
+                                                    },
+                                        "request_id":  "bb679946-71c1-4798-96d6-57e83a0ad807",
+                                        "estimated_usd":  0.024,
+                                        "source_sha256":  "cb985c62744e1de387b9a00550e23e39879efb90016cb65749d704972dd1cf12",
+                                        "sha256":  "9258247d09f7a046875b53f924d1e1c659182307e9162014314682d941bdddde",
+                                        "reduction":  {
+                                                          "tool":  "tools/spritegen",
+                                                          "height":  360,
+                                                          "trim":  false,
+                                                          "palette":  null,
+                                                          "reason":  "Preserve scene lighting and readable room detail; flat base-swatch reduction failed visual review."
+                                                      }
+                                    }
+                                ]
 }

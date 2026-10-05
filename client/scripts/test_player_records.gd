@@ -98,8 +98,10 @@ func _run() -> void:
 	berth["scope"]["mission"] = MissionState.M09_ID
 	berth["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M09 private record retains version one and exact run baseline")
-	berth["scope"]["mission"] = "common_carrier"
-	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M10 cannot forge a playable participant record")
+	berth["scope"]["mission"] = MissionState.M10_ID
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M10 records bind the authored ship mission")
+	berth["scope"]["mission"] = "right_of_search"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M11 cannot forge a playable participant record")
 	yard["scope"]["mission"] = MissionState.M04_ID
 	yard["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")

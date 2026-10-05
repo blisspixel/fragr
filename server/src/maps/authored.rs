@@ -19,6 +19,7 @@ pub(crate) mod m06;
 pub(crate) mod m07;
 pub(crate) mod m08;
 pub(crate) mod m09;
+pub(crate) mod m10;
 mod mission;
 mod supplies;
 
@@ -31,6 +32,8 @@ mod encounters_tests;
 mod m02_tests;
 #[cfg(test)]
 mod m09_tests;
+#[cfg(test)]
+mod m10_geometry_tests;
 #[cfg(test)]
 mod tests;
 
@@ -46,6 +49,7 @@ pub struct AuthoredMap {
     pub(super) m06: Option<Arc<m06::Prepared>>,
     pub(super) m08: Option<Arc<m08::Prepared>>,
     pub(super) m09: Option<Arc<m09::Prepared>>,
+    pub(super) m10: Option<Arc<m10::Prepared>>,
     pub(super) hatch_open: bool,
     /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
     pub(super) m08_stage: u8,
@@ -85,6 +89,8 @@ struct Document {
     #[serde(default)]
     m09: Option<m09::Definition>,
     m07: Option<m07::Definition>,
+    #[serde(default)]
+    m10: Option<m10::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -325,10 +331,11 @@ impl AuthoredMap {
                 && doc.m06.is_none()
                 && doc.m07.is_none()
                 && doc.m09.is_none()
+                && doc.m10.is_none()
                 && presentation.solids.contains(&MapSurface::InspectionGlass))
         {
             return Err(invalid(
-                "inspection glass belongs to an M02, M06, M07 or M09 solid",
+                "inspection glass belongs to an M02, M06, M07, M09 or M10 solid",
             ));
         }
         if doc.m07.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m07()) {
@@ -434,6 +441,23 @@ impl AuthoredMap {
                 "M09 requires map1009, discovery and no other mission",
             ));
         }
+        if doc.m10.is_some()
+            && (doc.map_id != 1010
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                || doc.mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.m05.is_some()
+                || doc.m06.is_some()
+                || doc.m07.is_some()
+                || doc.m08.is_some()
+                || doc.m09.is_some())
+        {
+            return Err(invalid(
+                "M10 requires map1010, discovery and no other mission",
+            ));
+        }
         let mission = doc
             .mission
             .map(|definition| definition.prepare(&arena, &solid_ids, &mut presentation))
@@ -514,6 +538,20 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        let m10 = doc
+            .m10
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let m09 = doc
             .m09
             .map(|definition| {
@@ -628,7 +666,9 @@ impl AuthoredMap {
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &m09 {
+        let navigation = if let Some(prepared) = &m10 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m09 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m08 {
             prepared.navigation.clone()
@@ -760,6 +800,7 @@ impl AuthoredMap {
             m06,
             m08,
             m09,
+            m10,
             hatch_open: false,
             m08_stage: 0,
             m07,

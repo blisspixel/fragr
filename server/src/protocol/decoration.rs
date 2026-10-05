@@ -47,6 +47,10 @@ pub enum MapDecorationKind {
     LiftControl,
     M09CrewManifest,
     M09BoardCarrier,
+    M10ShipConfirmation,
+    M10CargoDeck,
+    M10PassengerDeck,
+    M10CommandDeck,
     /// M02 gate signal: red lamp over a closed shutter pictogram. Authored only
     /// through a gate, which flips it to `GateOpen` in every world where it is raised.
     GateLocked,
@@ -126,6 +130,16 @@ pub enum MapDecorationKind {
 }
 
 impl MapDecorationKind {
+    pub fn is_m10(self) -> bool {
+        matches!(
+            self,
+            Self::M10ShipConfirmation
+                | Self::M10CargoDeck
+                | Self::M10PassengerDeck
+                | Self::M10CommandDeck
+        )
+    }
+
     /// Registered panels that belong only to Declared Goods.
     pub fn is_m07(self) -> bool {
         matches!(

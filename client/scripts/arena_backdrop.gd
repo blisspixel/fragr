@@ -7,6 +7,9 @@ const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
+	if venue == "common_carrier":
+		# An in-transit pressure ship has no surrounding industrial streets.
+		return
 	if venue == "moon_port":
 		var lunar: MoonBackdrop = MoonBackdrop.new()
 		lunar.build(half)

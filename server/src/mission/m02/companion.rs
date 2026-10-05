@@ -2,7 +2,7 @@
 use super::*;
 use crate::combat::{aim_at, line_of_sight, target_height, Ray};
 use crate::protocol::{Action, CompanionPhase, LookAt};
-use crate::sim::{BotIntent, Player, PLAYER_RADIUS};
+use crate::sim::{BotIntent, Player};
 
 mod formation;
 #[cfg(test)]
@@ -17,7 +17,14 @@ fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
 }
 
 /// Match the finite hitscan body test before committing a limited support shot.
-fn clear_support_ray(state: &GameState, origin: [f32; 3], target: &Player) -> bool {
+fn clear_support_ray(
+    state: &GameState,
+    companion: Uuid,
+    origin: [f32; 3],
+    target: &Player,
+    civilians: &[crate::movement::contact::ContactBody],
+    tableau: &[crate::movement::Solid],
+) -> bool {
     let target_feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
     let centre = [
         target.x,
@@ -32,26 +39,27 @@ fn clear_support_ray(state: &GameState, origin: [f32; 3], target: &Player) -> bo
         return false;
     };
     !state.players.iter().any(|participant| {
-        participant.campaign == Some(CampaignActor::Participant {})
-            && participant.hp > 0
-            && participant.respawn_timer.is_none()
-            && crate::mission::actor_active(
-                state.mission.as_ref(),
-                participant.id,
-                participant.campaign,
-            )
-            && !state
-                .spawn_shields
-                .get(&participant.id)
-                .is_some_and(|ticks| *ticks > 0)
+        participant.id != companion
+            && participant.id != target.id
+            && state.contact_eligible(participant)
             && ray
-                .fighter_with_height(
+                .actor(
                     [participant.x, participant.y - PLAYER_FLOOR_Y, participant.z],
-                    PLAYER_RADIUS,
-                    target_height(participant.campaign),
+                    participant.campaign,
                     hostile.distance,
                 )
                 .is_some_and(|hit| hit.distance < hostile.distance)
+    }) && !tableau.iter().any(|body| {
+        ray.solid(body, hostile.distance)
+            .is_some_and(|hit| hit.distance < hostile.distance)
+    }) && !civilians.iter().any(|body| {
+        ray.fighter_with_height(
+            [body.from.x, body.from.y, body.from.z],
+            body.radius,
+            body.height,
+            hostile.distance,
+        )
+        .is_some_and(|hit| hit.distance < hostile.distance)
     })
 }
 
@@ -101,6 +109,10 @@ impl GameState {
             && support_shots < MAX_SUPPORT_SHOTS
             && last_support_tick
                 .is_none_or(|last| self.tick.saturating_sub(last) >= SUPPORT_COOLDOWN);
+        let mut civilians = Vec::new();
+        self.append_civilian_contacts(&mut civilians);
+        let mut tableau = Vec::new();
+        self.append_m02_tableau_shots(&mut civilians, &mut tableau);
         let target = can_fire
             .then(|| {
                 self.players
@@ -136,7 +148,7 @@ impl GameState {
                                 p.z,
                             ],
                             &self.map.arena().solids,
-                        ) && clear_support_ray(self, origin, p)
+                        ) && clear_support_ray(self, id, origin, p, &civilians, &tableau)
                     })
                     .min_by(|a, b| {
                         distance(feet, [a.x, a.y, a.z]).total_cmp(&distance(feet, [b.x, b.y, b.z]))

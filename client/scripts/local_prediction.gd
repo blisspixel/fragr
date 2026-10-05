@@ -14,6 +14,8 @@ const MAX_CORRECTION_SAMPLES: int = 4096
 
 var arena: Dictionary = {}
 var _tram_geometry: Dictionary = {}
+var _archive_neutrals: Dictionary = {}
+var _moon_residents: Array[Dictionary] = []
 var _tram_samples: Array[Dictionary] = []
 var _tram_attempt: int = -1
 var _contact_samples: Array[Dictionary] = []
@@ -49,6 +51,8 @@ var fallback_reason: String = "no_ack"
 func configure_map(info: Dictionary) -> void:
 	reset("map", true)
 	arena.clear()
+	_archive_neutrals = M08NeutralBodies.layout(info) if info.get("m08") is Dictionary and M08MissionState.map_error(info).is_empty() else {}
+	_moon_residents = MoonResidentBodies.read(info)
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
@@ -340,7 +344,7 @@ func accept_snapshot(snapshot: Dictionary, player_id: String, mission: Dictionar
 		else:
 			_contact_samples.clear()
 	_contact_player_id = player_id
-	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission)
+	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission, _archive_neutrals, _moon_residents)
 	contact_error = str(parsed["error"])
 	if not contact_error.is_empty():
 		var problem: String = contact_error

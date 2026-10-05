@@ -31,6 +31,7 @@ impl MissionClient {
         };
         if self.m07_map.is_some()
             || self.m09_map.is_some()
+            || self.m10_map.is_some()
             || self.geometry.is_some()
             || self.m02_map.is_some()
             || self.m03_map.is_some()

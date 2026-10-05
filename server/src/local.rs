@@ -62,6 +62,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::CustodianOfRecord => "custodian_of_record",
                         MissionId::DeclaredGoods => "declared_goods",
                         MissionId::PassengerManifest => "passenger_manifest",
+                        MissionId::CommonCarrier => "common_carrier",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -143,7 +144,9 @@ impl Ready {
             url: format!("ws://{address}"),
             // M06 adds a distinct envelope; earlier mission readers retain
             // their existing capability boundary and unchanged rules.
-            gameplay_version: if mission == MissionId::PassengerManifest {
+            gameplay_version: if mission == MissionId::CommonCarrier {
+                crate::protocol::M10_GAMEPLAY_VERSION
+            } else if mission == MissionId::PassengerManifest {
                 crate::protocol::M09_GAMEPLAY_VERSION
             } else if mission == MissionId::DeclaredGoods {
                 crate::protocol::M07_GAMEPLAY_VERSION

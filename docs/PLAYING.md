@@ -39,6 +39,18 @@ reader-paced pages; dismissing an arrival waits for held gameplay input to
 release before combat starts. Fresh-player pacing and mission acceptance remain
 open.
 
+**No Forwarding Address** continues through level 5's workshop, finite grenades
+and moving freight tram. **Port of Entry** starts Episode II at the lunar port,
+with a found Railgun and Turret flanks. **Declared Goods** continues through
+level 7's curfew town and Sniper lesson. **Custodian of Record** brings level 8's
+archive, Proximity Mine, Auditor and optional custody rescues. **Passenger
+Manifest** is level 9: release the Common Carrier crew and fight to the boarding
+hatch. All nine have independent practice entries and connected saved-run
+progression. These remain development prototypes, with final art and
+fresh-player acceptance open. Level 10 and the rest of the twenty-level
+campaign remain in development. The [campaign contract](CAMPAIGN.md) and
+[roadmap](ROADMAP.md) own the current scope and build order.
+
 **Calibration** is a separate Episode 0 arena challenge. Run
 `./tools/solo_scrap.sh` from the repository root. It starts the Host-led
 challenge with four named bots. Set `FRAGR_SOLO_BROADCAST=0` for plain Solo
@@ -53,7 +65,11 @@ godot --path client res://scenes/main.tscn -- --solo
 **Multiplayer** connects to a separately hosted server. The host chooses
 the arena and rules. Spectators, humans, agents and rule bots share the same
 authoritative match. The current release includes free-for-all and team
-deathmatch, six arenas and Rail Only, Shotgun Only, Fists Only, Licence to
+deathmatch, six arenas, capture the flag on Arena Duel, Directive 17 and Sector 9,
+and Sector 9 Sabotage (plant or defuse a charge, one life per round). The optional
+5v5 Sabotage profile starts fighters with a Pistol and finite Bullets; stronger
+weapons come from the map. See [5v5 host setup](../infra/docs/HOME-LAN.md#optional-5v5-sabotage).
+Current mutators include Rail Only, Shotgun Only, Fists Only, Licence to
 Kill, Golden Rail and Two Lives mutators. The Host runs the round and reacts
 to first blood, streaks and close finishes. See the
 [hosting guide](HOSTING.md) to run a server.
@@ -78,7 +94,7 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Use | Enter | F | B |
 | Jump | Space | Space | A |
 | Campaign continue | Enter | Enter | A after releasing held inputs |
-| Weapons | [ and ], or 1 through 5 | Wheel, [ and ], or 1 through 5 | LB and RB |
+| Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB |
 | Speak | T | T | Y |
 | Join or leave | J or L | J or L | A while watching, or match menu |
 | Spectator fighter and view | F and V | F and V | D-pad right and Back |
@@ -93,9 +109,11 @@ still decides hits. The [input plan](plans/input-all-devices.md) records
 the behavior and verification.
 
 The numbered weapon order is fists or found Shiv, pistol, shotgun, rifle,
-railgun. The wheel and bracket keys skip guns you do not own. Campaign ammo
+railgun and sniper. Key 4 cycles owned automatic-family weapons when both are
+available; the Repeater foundation is not granted in current campaign maps.
+The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type with no magazines or reload. Pistol and Rifle share
-Bullets; Shotgun uses Shells; Railgun uses Cells. A seven-pellet Shotgun blast
+Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
 costs one shell. Arcade maps provide the full basic arsenal. A mission control
 requires you to stand near it and aim at it before pressing Use.
 
@@ -107,70 +125,51 @@ start without grenades; authored supply claims provide them where registered.
 
 ## Solo runs and local records
 
-Recall Notice offers three mission-start continues. Death presents an explicit
-retry; the fourth death ends the run. Exit to Menu retains the run at mission
-entry, including a pending continue. **Continue Run** reopens a compatible
-save; it does not resume the mid-mission position. After M01 departure, the
-same run starts M02 with its saved body, health, armor, weapons, ammunition and
-remaining Episode I continues. M02 starts at attempt 1 even if M01 used a
-continue. M02 death restarts M02 at its own entry only after you accept the
-retry. Completing M02 saves Scheduled Service as the next destination;
-Continue Run carries the same body, equipment, health, armor and remaining
-allowance into M03. M03 retry restores its entry and resets mast and rescues.
-Completing M03 saves Notice to Vacate as the next destination. **Continue Run**
-opens M04 with the same body, health, armor, weapons, ammunition and remaining
-allowance, plus the optional recall car outcomes. Its arrival pages play on this
-new mission transition; restarting an existing M04 entry skips the replay.
-M04 begins at attempt 1. An accepted retry restores its own entry and resets
-encounters, the clinic shutter, patient travel and photographs, preserving the
-carried M03 choices. Completing M04 retains its rescued-patient and photograph
-outcomes for **No Forwarding Address**. Continue Run opens M05 with the same
-body, equipment, remaining allowance and prior choices. Its workshop has
-counted hand grenades, and its tram carries supported riders along the trench;
-you can also walk the service aisle. Retry restores the M05 entry, guards,
-held captives, closed freight gate and parked tram. Releasing workers does
-not mean they are physically aboard. Ship departure saves those two outcomes
-separately at the **Port of Entry** destination. Continue Run enters that lunar
-port with the exact M05 exit and earlier outcomes, refilling Episode II to three
-continues once. Preview and historical-file upgrade do not refill; reopening or
-retrying M06 preserves its existing allowance. Its optional service marker is
-an extra route outcome, never a transit departure requirement. Completion leaves
-the run pending **Declared Goods**, which is not yet playable.
-Separate M02 through M06 practice entries have no durable run and preserve an
-existing campaign save.
-**Start New Run** archives the previous run after confirmation.
-The pause menu's **Leave match** returns to the menu and keeps this local
-save for Continue Run.
+Recall Notice offers three mission-start continues per episode. Death presents
+an explicit retry; exhausting the allowance ends the run. **Continue Run**
+reopens the saved mission entry, including body, difficulty, health, armor,
+weapons, ammunition, grenades, mines and remaining continues. It does not resume
+a mid-mission position. Leaving for the menu retains that entry; **Start New
+Run** archives the previous run after confirmation.
+
+Completing each built mission saves the next destination. Episode II refills
+continues once when entering Port of Entry after level 5. Source builds also
+refill Episode III once on entering Common Carrier after level 9. Reopening, previewing
+or retrying does not refill them. Retry resets the current mission's encounters,
+devices and local outcomes while preserving earlier recorded choices.
+Practice entries leave the durable campaign save untouched.
+
+Rescuing people and seeing them actually depart are separate facts. The workshop
+records release and boarding independently. The archive retains custody and
+recovered-mind outcomes. Passenger Manifest keeps an immutable receipt of crew
+released and feet actually aboard at departure confirmation. Missing historical
+facts stay unknown. In source builds, entering level 10 completes boarding for
+the actually released eligible crew without an escort wait, retaining transit
+arrivals separately from the original berth receipt. The current pilot Tern is
+present even when old transit facts are unknown; optional Edda and Splice require
+recorded arrival. Orrin remains a secured backup, without an inferred restoration.
+The ship has three inhabited development decks and four ordered fights. Its art,
+Repeater discovery, story and fresh-player pacing remain in progress. Level 11
+is the saved next destination but is not playable yet. The
+[ship prototype plan](plans/m10-common-carrier-prototype.md) explains the boundary.
 
 The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-The run records ID, difficulty, body, continues and entry equipment. A changed
-authored map or rules revision can make an old run incompatible; the old file
-stays until you choose to archive it. New Run archives are named
-`run.prior-<id>.json`; migration keeps exact prior bytes under a
-content-addressed `run.prior-<digest>.json` name.
-To recover one, close the game, keep a copy of the current `run.json`, and
-copy the archive back as `run.json`. It still must match the installed mission
-content and rules. Compatible v2 M01, v3 M01/M02 and v4 M01/M02/M03 saves
-explicitly upgrade to v7 on a valid resume. Their known historical rules revision
-2 upgrades to current revision 3; the installed authored content must still
-match. Exact prior bytes remain in the migration archive. A v4 completed-M03
-save can therefore continue into M04 without losing body, entry equipment,
-remaining allowance or recall car choices. Compatible v5 saves keep revision 3
-and all earlier outcomes, assigning zero historical grenades. A completed v5
-M04 exit can enter M05 without losing body, equipment or earlier choices. Old
-save shapes reject invented grenade fields and unsupported later mission states.
-Strict v6 saves retain their actual grenade counts and distinct workshop release
-and boarding outcomes through M06. Unknown revisions and v1
-magazine-era saves remain incompatible. Current live authored missions require
-matching client and server, with capability 27 for M06 and 26 for earlier missions. The
-[run file plan](plans/campaign-run-file.md) and
-[carry plan](plans/m01-m02-run-carry.md) record the original recovery rules;
-the [M05 plan](plans/m05-no-forwarding-address-prototype.md) records the shipped
-previous boundary, and the [M06 plan](plans/m06-port-of-entry-prototype.md)
-tracks the new migration and episode transition acceptance.
+Current source writes version 13 saves; desktop v0.75.0 writes version 12.
+Supported historical saves upgrade
+strictly, retaining exact original bytes in a content-addressed
+`run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1
+saves remain incompatible. A changed mission content hash or rules revision can
+also prevent resuming; the old file stays until you choose to archive it.
+
+To recover an archive, close the game, keep a copy of `run.json`, and copy the
+archive back as `run.json`. It must still match the installed mission and rules.
+Keep client and server from the same release. Migration and compatibility
+details belong to the [run file plan](plans/campaign-run-file.md),
+[carry plan](plans/m01-m02-run-carry.md) and
+[Passenger Manifest plan](plans/m09-passenger-manifest-prototype.md).
 
 The **Service Record** stores the latest 256 campaign, arena and practice
 records on this device. It shows kills, deaths, effective damage, time alive,

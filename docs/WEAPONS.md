@@ -41,11 +41,12 @@ automatically, and any pickup of that type makes it live again at once. M01 deat
 offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
-through the connected authored development missions, including M07 through M09.
-Save version 12 preserves actual counts through the existing locked writer;
-strict historical version 11 and earlier upgrades archive exact original bytes
-and refuse forged Repeater ownership. Current supported stages through M09 and
-the pending M10 edge likewise cannot acquire it from a save.
+through the connected authored development missions, including the M10 prototype.
+Save version 13 preserves actual counts through the existing locked writer;
+strict historical version 12 and earlier upgrades archive exact original bytes
+and refuse forged Repeater ownership. Supported entries through M10 likewise
+refuse ownership before its completed edge. The current M10 prototype grants no
+Repeater; its actual source, cue and discovery lesson remain open.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 

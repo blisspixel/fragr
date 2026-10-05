@@ -42,6 +42,7 @@ var figure_hand: MeshInstance3D
 var figure_active: bool = false
 var _figure_clock: float = 0.0
 var _figure_origin: Vector3 = Vector3.ZERO
+var _resident_feet: Array[Dictionary] = []
 var _figure_glass: Vector3 = Vector3.ZERO
 var _figure_out: Vector3 = Vector3.ZERO
 var listener_position: Vector3 = Vector3.INF
@@ -76,6 +77,7 @@ func clear_map() -> void:
 
 func configure_map(info: Dictionary) -> void:
 	clear_map()
+	_resident_feet = MoonResidentBodies.read(info)
 	if not info.get("m07") is Dictionary or not MapGeometry.validation_error(info).is_empty() \
 		or not MissionState.map_error(info).is_empty():
 		return
@@ -240,7 +242,7 @@ func _window_figure(placed: Transform3D, host: Dictionary) -> void:
 	var floor_y: float = float(host.get("bottom", MoveStep.GROUND_Y)) - 1.0
 	_figure_glass = placed.origin - _figure_out * (MapDecoration.OFFSET + thickness)
 	_figure_glass.y = floor_y
-	_figure_origin = _figure_glass - _figure_out * 0.7
+	_figure_origin = _resident_feet[0]["feet"]
 	figure = Node3D.new()
 	figure.name = "WindowFigure"
 	_root.add_child(figure)

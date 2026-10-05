@@ -18,6 +18,7 @@ pub(super) struct M02Progress {
 
 mod companion;
 mod evacuation;
+pub(crate) mod tableau;
 pub(crate) use evacuation::validate_route as validate_m02_evacuation_route;
 
 impl M02Progress {
@@ -173,6 +174,7 @@ impl GameState {
             m08: None,
             m07: None,
             m09: None,
+            m10: None,
             m02: Some(M02ObjectiveState {
                 completed,
                 total: u8::try_from(prepared.len()).ok()?,

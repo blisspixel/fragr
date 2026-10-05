@@ -70,6 +70,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::DeclaredGoods => {
                 include_bytes!("../maps/m07_declared_goods.json")
             }
+            crate::protocol::MissionId::CommonCarrier => {
+                include_bytes!("../maps/m10_common_carrier.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -100,6 +103,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::CustodianOfRecord) => {
                 AuthoredMap::read(include_bytes!("../maps/m08_custodian_of_record.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::CommonCarrier) => {
+                AuthoredMap::read(include_bytes!("../maps/m10_common_carrier.json").as_slice())
             }
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())

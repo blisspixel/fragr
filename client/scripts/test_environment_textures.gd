@@ -39,6 +39,12 @@ func _run() -> void:
 	var repair: ShaderMaterial = ArenaMaterials.authored("enamel", "low_water") as ShaderMaterial
 	_check(repair.get_shader_parameter("detail_enabled") == true and repair.get_shader_parameter("tile_enabled") == true, "existing grounded repair layer and new repeating albedo coexist")
 	_civilian_boundaries()
+	for surface: String in ["enamel", "service_steel", "lift_panel", "records_tile"]:
+		var ship: ShaderMaterial = ArenaMaterials.authored(surface, "common_carrier") as ShaderMaterial
+		_check(ship.get_shader_parameter("tile_enabled") == true and ship.get_shader_parameter("trim_glow") == 0.0, "ship selects reviewed local tiles and quiet nonemissive markings: " + surface)
+		_check(ship.get_shader_parameter("warning_color") == ship.get_shader_parameter("accent_color"), "ship warning paint matches its civilian material: " + surface)
+	_check(EnvironmentTextures.path_for("service_steel", "common_carrier") == EnvironmentTextures.MOON + "moon_repair_plate.png", "ship working steel has no borrowed issued archive texture")
+	_check(EnvironmentTextures.path_for("enamel", "common_carrier") == EnvironmentTextures.MOON + "moon_pressure_bone.png", "ship shells retain reviewed pressure paint")
 	await _town_ground_assignment()
 	var plain: ShaderMaterial = ArenaMaterials.authored("enamel", "unknown") as ShaderMaterial
 	_check(plain.get_shader_parameter("tile_enabled") != true, "unknown venue keeps established fallback")

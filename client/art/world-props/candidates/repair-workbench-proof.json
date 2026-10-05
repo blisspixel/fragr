@@ -1,0 +1,59 @@
+{
+	"failures": 0,
+	"models": [
+		{
+			"actual_bounds_m": [
+				1.8152939081192,
+				1.13594603538513,
+				1.03960418701172
+			],
+			"authored_triangles": 0,
+			"floor_support_quadrants": 4,
+			"id": "repair-workbench",
+			"max_imported_normal_direction_error": 0.000243393762502819,
+			"normal_direction_tolerance": 0.0005,
+			"orientation_preserving_multiset_matches": true,
+			"position_and_uv_quantization": 0.00001,
+			"prepared_area_m2": 10.547969738773,
+			"prepared_sha256": "4b5daf71e1378b13fd281493f7d94feee9da824cd5f93ac2cbd68493d0663783",
+			"provisional_scale": true,
+			"raw_sha256": "37c149f3b6c402a349e283f4e49ab3baded27bfba5932a86b058556dc8537682",
+			"retained_source_area_m2": 10.547969329254,
+			"retained_triangles": 10567,
+			"runtime_selected": false,
+			"supports": [],
+			"worktop_height_m": 0.900000095367432,
+			"worktop_samples": [
+				{
+					"height_m": 0.900000095367432,
+					"raw_xz": [
+						0.0,
+						-0.200000002980232
+					]
+				},
+				{
+					"height_m": 0.899821639060974,
+					"raw_xz": [
+						0.0,
+						0.200000002980232
+					]
+				},
+				{
+					"height_m": 0.900346159934998,
+					"raw_xz": [
+						-0.400000005960464,
+						-0.200000002980232
+					]
+				},
+				{
+					"height_m": 0.899683713912964,
+					"raw_xz": [
+						0.400000005960464,
+						-0.200000002980232
+					]
+				}
+			]
+		}
+	],
+	"schema": 1
+}

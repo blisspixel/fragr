@@ -43,7 +43,9 @@ static func fixture_map(seal_open: bool = false, fallen: bool = false) -> Dictio
 			"decorations": [
 				{"solid": 6, "face": "north", "center": [0, 0], "size": [1.4, 1], "kind": "m08_freight_departure"},
 				{"solid": 1, "face": "east", "center": [0, 0.5], "size": [1.2, 1], "kind": "m08_seal_open" if seal_open else "m08_seal_locked"},
-				{"solid": 6, "face": "south", "center": [0, 0], "size": [3, 1], "kind": "m08_authorized_noise"}]},
+				{"solid": 6, "face": "south", "center": [0, 0], "size": [3, 1], "kind": "m08_authorized_noise"},
+				{"solid": 6, "face": "north", "center": [0, 0], "size": [2.6, 0.9], "kind": "m08_registry"},
+				{"solid": 6, "face": "south", "center": [0, 0], "size": [1.6, 1.2], "kind": "m08_bay_release"}]},
 		"m08": {"objectives": objectives, "nodes": nodes, "machine": 0, "seal": 1,
 			"bays": _arrival(M08MissionState.BAYS, 10, 3), "cabinet": _arrival(M08MissionState.CABINET, 14, 6),
 			"departure": {"decoration": 0, "approach": [0, 0, 32.5]},
@@ -141,7 +143,7 @@ func _run() -> void:
 	_check(StoryScene.BEFORE_MISSION.get(MissionState.M08_ID) == "m08_arrival" and StoryScene.exists("m08_arrival")
 		and StoryScene.AFTER_MISSION.get(MissionState.M08_ID) == "l08_l09" and StoryScene.exists("l08_l09"), "keyed arrival and departure pages exist")
 	_check(tr("MISSION_M08_TITLE") != "MISSION_M08_TITLE" and tr("WORLD_M08_AUTHORIZED_NOISE") != "WORLD_M08_AUTHORIZED_NOISE", "archive words are keyed")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M08_ID) == 31 and NET.GAMEPLAY_VERSION == 35, "the archive retains capability 31 while the client supports the Repeater contract")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M08_ID) == 31 and NET.GAMEPLAY_VERSION == 36, "the archive retains capability 31 while the client supports the Repeater contract")
 	await process_frame
 	if failures == 0:
 		print("test_m08_mission: PASS strict archive contract, stage flags, node targets, rescues, HUD, presenter and pages")

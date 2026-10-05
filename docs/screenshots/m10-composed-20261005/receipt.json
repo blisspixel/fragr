@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-05",
+  "source_commit": "4375358f93c3a1f5fa9c86c7e42bbb3804f96b7f",
+  "native_sha256": "0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7",
+  "map_sha256": "d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d",
+  "qa_sha256": "461196774c46d1a835179eab66cf7366857f4cc1edf65cd9c9a17c63d5810b58",
+  "device": "AMD Radeon(TM) 780M",
+  "renderer": "gl_compatibility",
+  "width": 1280.0,
+  "height": 720.0,
+  "seed": 42,
+  "difficulty": "standard",
+  "fixture": "Representative strict v12 M09 departure, not a played preceding campaign",
+  "route": {
+    "states": 28,
+    "pending_mission": "right_of_search",
+    "exact_old_archive_sha256": "b25e0eb3b6876aaf818d5d16e7d0efbb294e5523de92382826f294f3feb0ba4c",
+    "exit": {
+      "hp": 85,
+      "armor": 0,
+      "equipment": {
+        "selected": "flechette",
+        "weapons": [
+          "fists",
+          "flechette",
+          "scatter",
+          "sniper"
+        ],
+        "ammo": [
+          {
+            "pool": "bullets",
+            "rounds": 113
+          },
+          {
+            "pool": "shells",
+            "rounds": 50
+          },
+          {
+            "pool": "cells",
+            "rounds": 1
+          }
+        ],
+        "grenades": 2,
+        "proximity_mines": 3,
+        "personal_claims": []
+      }
+    },
+    "manifest_sha256": "7822c556e6bc5ac823d3a1fab10b17551d34a8e47a463f6f538223e0779632e3",
+    "record": {
+      "kills": 17,
+      "mission_elapsed_ticks": 3431,
+      "version": 2,
+      "secrets": 3,
+      "attacks": 83,
+      "deaths": 0
+    },
+    "server_exit_code": 0,
+    "transit": {
+      "kind": "recorded",
+      "arrived_crew": [
+        "tern",
+        "berth_crew_a",
+        "berth_crew_b",
+        "edda",
+        "splice"
+      ]
+    },
+    "berth_outcome": {
+      "kind": "recorded",
+      "released_crew": [
+        "tern",
+        "berth_crew_a",
+        "berth_crew_b",
+        "edda",
+        "splice"
+      ],
+      "aboard_at_departure": []
+    },
+    "objectives": [
+      "forward_secured",
+      "service_secured",
+      "aft_secured",
+      "passengers_secured",
+      "party_departed"
+    ],
+    "completed_save_version": 13,
+    "confirmed_guard_death_ticks": {
+      "forward_clerk_a": 651,
+      "forward_clerk_b": 643,
+      "forward_sweeper_a": 667,
+      "forward_sweeper_b": 781,
+      "service_clerk": 1233,
+      "service_crawler_a": 1201,
+      "service_crawler_b": 1213,
+      "service_crawler_c": 1229,
+      "service_sweeper": 1263,
+      "aft_clerk": 1913,
+      "aft_notary": 2026,
+      "aft_heavy": 2068,
+      "aft_sweeper": 2135,
+      "passenger_clerk_a": 3374,
+      "passenger_clerk_b": 3386,
+      "passenger_enforcer": 3346,
+      "passenger_sweeper": 3362
+    },
+    "renderer_exit_code": 0,
+    "error_clean": true,
+    "owned_processes_retired": true
+  },
+  "bench_light": {
+    "manifest_sha256": "a3156796db0bf2a94acdc944871586d2991e3046837d22011b07ec7735fb4682",
+    "states": 3,
+    "owned_processes_retired": true,
+    "kind": "Passive overview, not combat or traversal",
+    "error_clean": true,
+    "server_exit_code": 0,
+    "renderer_exit_code": 0
+  },
+  "complete_client": {
+    "scripts": 271,
+    "numeric_exit": 0,
+    "harnesses": 129,
+    "aggregate": "Godot checks: PASS",
+    "error_clean": true,
+    "log_sha256": "c5e6ae4301bbcce01f6c0729f14bfd5d0c9b098c00bdb76d2731c80692df8018"
+  },
+  "captures": [
+    {
+      "file": "forward-combat.png",
+      "sha256": "011544c15ed824fade5181e714063926e4cd5304ed9b9682beab16b2b55afcf8"
+    },
+    {
+      "file": "freight-overlook.png",
+      "sha256": "fde52ff65d0d8e5e91c76d6e43abc38b8d5e36c747d7a694ee9bb80551b4fb54"
+    },
+    {
+      "file": "departure.png",
+      "sha256": "0a8beebd88755a4dd8963d4d8c6771265a46549c9eabd73f4de2a9b2887ce3c8"
+    },
+    {
+      "file": "bench-working-face.png",
+      "sha256": "ba4e6ba0951c92257053c8cab50e7939727a8a8d68a5f90ad7402fc22c681359"
+    },
+    {
+      "file": "bench-floor-support.png",
+      "sha256": "30c4b77e5ab22eafde7b3adfbd8beb62719b55520179c55e5fb91de337fce04d"
+    }
+  ]
+}

@@ -3,7 +3,7 @@ use crate::mission::run_file::{M09Outcome, SavedStep};
 use crate::protocol::MissionId;
 use m09_tests::HASHES;
 
-fn completed_berth(edda: bool, splice: bool) -> RunDocument {
+pub(super) fn completed_berth(edda: bool, splice: bool) -> RunDocument {
     let mut archive = m09_tests::completed_archive();
     if !edda {
         archive
@@ -138,7 +138,7 @@ fn m09_receipt_current_shape_requires_completed_stage_and_exact_eligible_release
 }
 
 #[test]
-fn m09_receipt_historical_fields_and_unbuilt_transit_facts_refuse_strictly() {
+fn m09_receipt_historical_fields_and_missing_transit_facts_refuse_strictly() {
     let document = completed_berth(false, false);
     for version in [10, 11] {
         for outcome in [
@@ -170,8 +170,20 @@ fn m09_receipt_historical_fields_and_unbuilt_transit_facts_refuse_strictly() {
     let exit = m10["step"]["exit"].clone();
     m10["step"] =
         serde_json::json!({"kind":"mission_entry","mission":"common_carrier","entry":exit});
-    assert!(matches!(
-        RunStore::inspect_bytes(&serde_json::to_vec(&m10).unwrap(), HASHES),
-        RunProbe::Corrupt
-    ));
+    m10["content_sha256"] = serde_json::json!(HASHES[9]);
+    assert!(
+        matches!(
+            RunStore::inspect_bytes(&serde_json::to_vec(&m10).unwrap(), HASHES),
+            RunProbe::Incompatible
+        ),
+        "current M10 identity and matching content cannot bypass required transit"
+    );
+    m10["version"] = 12.into();
+    assert!(
+        matches!(
+            RunStore::inspect_bytes(&serde_json::to_vec(&m10).unwrap(), HASHES),
+            RunProbe::Corrupt
+        ),
+        "exact v12 reader refuses any M10 identity before migration"
+    );
 }
