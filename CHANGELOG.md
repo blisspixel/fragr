@@ -6,6 +6,18 @@ Release history, newest first. Planned work stays in
 
 ## Unreleased
 
+The Sniper Rifle selects its refined wood and charcoal source for held, firing
+and pickup pictures after source, motion and ordinary played-comparison checks.
+Its Cells, scope, six physical weapon keys and combat timing stay unchanged.
+
+A Repeater foundation adds genuine finite-ammunition fire and bounded warmup.
+Owned Rifle and Repeater share physical key 4 without renumbering earlier guns.
+Capability 35 gates unsupported clients; record revision 2 retains eight weapon
+columns while genuine-zero legacy delivery preserves strict revision 1 shapes.
+Version 11 saves archive exact older bytes and reject unsupported ownership.
+Current campaign and arcade kits do not grant Repeater. Its own art, cues,
+campaign lesson and human feel acceptance remain pending.
+
 The civilian Rifle now uses its refined walnut and charcoal source for held,
 firing and pickup pictures. Its real bolt has a bounded stroke, gloves contact
 the grips and the muzzle has a physical hollow liner. Source inspection,

@@ -39,8 +39,11 @@ for a textured 7.1 Ultra candidate; mechanical and played acceptance remain
 open. No humanoid rig was requested for its four-foot/four-petal machinery.
 The [precision weapon receipt](../evidence/precision-weapon-references-20261004.md)
 records two serialized 35-credit source stages, eight inspected raw views and
-the subsequent account reconciliation. Neither precision weapon is selected
-runtime art; local preparation and played acceptance remain open.
+the subsequent account reconciliation. The
+[Sniper refinement](../evidence/sniper-source-refinement-20261004.md) selects
+prepared held, firing and pickup art after source and ordinary played
+comparison checks; final combined CI and packages remain pending. The Railgun
+source remains parked, with preparation and played acceptance open.
 These receipts do not establish finished game coverage. The
 [production receipt](../evidence/asset-production-20261004.md) records actual
 operations, inspection and remaining acceptance; the later

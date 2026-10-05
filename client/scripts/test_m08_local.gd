@@ -110,7 +110,7 @@ func _run() -> void:
 	if not await _stop(owned):
 		return
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 10 and saved["step"]["mission"] == MissionState.M08_ID, "child atomically writes current M08 entry")
+	_check(saved is Dictionary and saved["version"] == 11 and saved["step"]["mission"] == MissionState.M08_ID, "child atomically writes current M08 entry")
 	if not saved is Dictionary:
 		quit(1)
 		return

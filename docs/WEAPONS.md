@@ -10,8 +10,10 @@ missions. Level 5's prototype implements counted grenades through a separate
 throw control, capped at six; they leave gun selection unchanged. The Sniper
 Rifle is implemented in level 7. Level 8 implements counted Proximity Mines,
 capped at four, through a separate place control. Rocket Launcher and Remote
-Mine remain unbuilt. Repeater, Arc, Article Blade and Denial are also accepted
-later campaign finds awaiting implementation. These additions are not in M01
+Mine remain unbuilt. Repeater has a locally implemented CPU-only combat and
+compatibility foundation, with its M10 find, actual art/audio and played feel
+still open. Arc, Article Blade and Denial remain accepted later finds awaiting
+implementation. These additions are not in M01
 or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
@@ -39,7 +41,11 @@ automatically, and any pickup of that type makes it live again at once. M01 deat
 offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
-through the connected authored development missions, including M07 and M08.
+through the connected authored development missions, including M07 through M09.
+Save version 11 preserves actual counts through the existing locked writer;
+strict historical version 10 and earlier upgrades archive exact original bytes
+and refuse forged Repeater ownership. Current supported stages through M09 and
+the pending M10 edge likewise cannot acquire it from a save.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
 
@@ -78,7 +84,7 @@ There is one number per ammunition type and it is everything you carry. A shot s
 | 5 | **Scatter** (shipped) | Close shred | 7 pellets of 10, each falling to 4 | 0.60 s | 12 | Shells | Pad |
 | 6 | **Rail** (shipped) | Long precision | 80 | 1.00 s | 10 | Cells | Pad |
 | 6b | **Sniper** (implemented) | Far precision, scoped, 90 m reach | 70 | 1.60 s | 8 | Cells | Level 7 rack, campaign only |
-| 7 | **Repeater** | Heavy full auto | 14 | 0.10 s | 60 | Bullets | Pad |
+| 7 | **Repeater** (CPU foundation, feel candidate) | Held full auto after 0.30 s warmup | 14 | 0.10 s | 60 | Bullets | M10 lesson planned; no production find |
 | 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
 | 9 | **Arc** | Energy, ignores armour | 18 | 0.15 s | 40 | Cells | Pad, outer ring |
 | 10 | **Proximity Mine** (implemented) | Thrown, sticks | Up to 130, covered 4.5 m falloff | 2 s to arm, 0.2 s triggered fuse | 4 carried maximum | none | M08 |
@@ -94,6 +100,28 @@ is already separate counted equipment: cap six, forty active ticks to detonation
 four-metre blast radius and up to 100 damage with falloff and solid occlusion.
 It bounces rather than detonating on contact and can hurt its owner. The
 [grenade foundation](plans/hand-grenade-foundation.md) records its verified seam.
+
+The genuine Repeater uses six server ticks of held-fire warmup, then ordinary
+traced shots with a two-tick cooldown, 35 m reach and 0.035-radian spread. Each
+actual shot spends one shared Bullet; warmup spends none. Release, weapon
+change, inactivity, death, leave and attempt reset clear the private cycle.
+It keeps its own damage and weapon counters rather than aliasing Rifle.
+These numbers are a CPU prototype, pending an isolated played lesson. Maps
+granting it require capability 35 for humans, agents and spectators. Default
+full-arsenal arcade kits still contain their original three guns, and existing
+campaign stages never grant it. Unknown gun art stays absent and unsupported
+fire cues clear the prior stream; another gun's body or sound is not a stand-in.
+See [the foundation](plans/repeater-foundation.md) and its
+[local evidence](evidence/repeater-foundation-20261004.md).
+
+Six physical weapon keys remain unchanged: key 1 Fists/Shiv, key 2 Pistol, key 3
+Shotgun, key 4 Rifle, key 5 Railgun and key 6 Sniper Rifle. Repeated key 4 cycles
+the owned Rifle/Repeater family, while the existing wheel includes Repeater
+beside Rifle. Shiv retains its existing melee-family selection. Repeater is
+appended at wire/record index 7; no earlier index changes. Current participant
+record revision 2 uses exactly eight columns. Strict historical revision 1
+keeps five/six/seven columns and can be delivered to older compatible clients
+only when actual Repeater counts are zero.
 
 **The Scatter is seven pellets.** Each blast fires seven seeded rays inside a 0.095 radian (5.4 degree) half-angle cone, Doom's pellet count. Every pellet is tested against cover and fighters on its own and falls off by its own distance: full 10 damage to 4 metres, then linearly to 4 at its 12 metre reach. Point blank all seven land for 70, so two blasts kill a bare fighter in 0.60 s and three go through full armour in 1.20 s. At four metres every pellet still lands; at eight about half do; a waist-high sill stops the pellets that hit it. The blast costs one shell however many pellets land.
 
@@ -114,7 +142,7 @@ Later encounters can use an obvious demolition target with a nearby usable charg
 never a hidden bomb hunt or a finicky wiring puzzle. Multiplayer needs visible
 counterplay, bounded active devices and explicit owner/death/round cleanup rules.
 Server authority covers placement, arming, detonation, cover-blocked splash and
-damage. Cosmetics cannot hide the device or its tell. Mines, remote charges and
+damage. Cosmetics cannot hide the device or its tell. Remote charges and
 rockets remain unbuilt. Reuse the counted grenade's server-owned projectile,
 covered blast and cleanup seams when their bounded plans reach implementation.
 

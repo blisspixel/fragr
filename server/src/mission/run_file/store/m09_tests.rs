@@ -46,6 +46,148 @@ fn v9_bytes(document: &RunDocument) -> Vec<u8> {
 }
 
 #[test]
+fn strict_v10_upgrade_archives_exact_bytes_and_preserves_real_m09_carry() {
+    let source = completed_archive()
+        .promote_next(MissionId::PassengerManifest, HASHES[8])
+        .unwrap();
+    let mut value = serde_json::to_value(&source).unwrap();
+    value["version"] = 10.into();
+    let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
+    bytes.extend_from_slice(b"\n \n");
+    let directory = std::env::temp_dir().join(format!("fragr-v10-repeater-{}", Uuid::new_v4()));
+    let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();
+    fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+    let loaded = store.load().unwrap().unwrap();
+    assert_eq!(loaded, source);
+    assert!(store.needs_upgrade().unwrap());
+    let archive = store.archive_and_save(&loaded, &loaded).unwrap();
+    assert_eq!(fs::read(archive).unwrap(), bytes);
+    assert!(!store.needs_upgrade().unwrap());
+    drop(store);
+    let reopened = RunStore::open_with_hashes(&directory, HASHES).unwrap();
+    assert_eq!(reopened.load().unwrap().unwrap(), source);
+    assert!(source
+        .promote_next(MissionId::PassengerManifest, HASHES[8])
+        .is_err());
+    let SavedStep::MissionEntry { entry, .. } = &source.step else {
+        panic!("M09 entry")
+    };
+    assert_eq!(
+        (
+            entry.hp,
+            entry.armor,
+            entry.equipment.grenades,
+            entry.equipment.proximity_mines
+        ),
+        (39, 17, 2, 3)
+    );
+    drop(reopened);
+    fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn strict_historical_and_current_pre_m10_documents_refuse_repeater_ownership() {
+    let source = completed_archive()
+        .promote_next(MissionId::PassengerManifest, HASHES[8])
+        .unwrap();
+    for version in [9, 10, super::super::RUN_FILE_VERSION] {
+        for selected in [false, true] {
+            let mut value = serde_json::to_value(&source).unwrap();
+            value["version"] = version.into();
+            if version == 9 {
+                value.as_object_mut().unwrap().remove("m08_outcome");
+            }
+            let equipment = &mut value["step"]["entry"]["equipment"];
+            equipment["weapons"]
+                .as_array_mut()
+                .unwrap()
+                .push("repeater".into());
+            if selected {
+                equipment["selected"] = "repeater".into();
+            }
+            let probe = RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), HASHES);
+            if version == super::super::RUN_FILE_VERSION {
+                assert!(
+                    matches!(probe, RunProbe::Incompatible),
+                    "current valid shape must refuse unsupported mission ownership"
+                );
+            } else {
+                assert!(
+                    matches!(probe, RunProbe::Corrupt),
+                    "historical shape must refuse impossible gun identity before upgrade"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn every_strict_v2_through_v8_reader_refuses_future_gun_before_migration() {
+    let initial = RunDocument::new(
+        Uuid::new_v4(),
+        crate::protocol::CampaignRules::default(),
+        HASHES[0],
+    );
+    for version in 2..=8 {
+        let mut baseline = serde_json::to_value(&initial).unwrap();
+        baseline["version"] = version.into();
+        for key in [
+            "m03_outcome",
+            "m04_outcome",
+            "m05_outcome",
+            "m06_outcome",
+            "m08_outcome",
+        ] {
+            baseline.as_object_mut().unwrap().remove(key);
+        }
+        if version <= 4 {
+            baseline["rules"]["revision"] = 2.into();
+        }
+        if version == 2 {
+            baseline.as_object_mut().unwrap().remove("body");
+            baseline
+                .as_object_mut()
+                .unwrap()
+                .remove("level_start_continues");
+        }
+        baseline["step"]["entry"]["equipment"]
+            .as_object_mut()
+            .unwrap()
+            .remove("proximity_mines");
+        if version < 6 {
+            baseline["step"]["entry"]["equipment"]
+                .as_object_mut()
+                .unwrap()
+                .remove("grenades");
+        }
+        assert!(
+            matches!(
+                RunStore::inspect_bytes(&serde_json::to_vec(&baseline).unwrap(), HASHES),
+                RunProbe::Compatible(_)
+            ),
+            "valid v{version} fixture must upgrade first"
+        );
+        for selected in [false, true] {
+            let mut forged = baseline.clone();
+            forged["step"]["entry"]["equipment"]["weapons"]
+                .as_array_mut()
+                .unwrap()
+                .push("repeater".into());
+            if selected {
+                forged["step"]["entry"]["equipment"]["selected"] = "repeater".into();
+            }
+            assert!(
+                matches!(
+                    RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), HASHES),
+                    RunProbe::Corrupt
+                ),
+                "forged v{version} gun must fail shape validation"
+            );
+        }
+    }
+}
+
+#[test]
 fn strict_v9_archive_completion_retains_unknown_choices_and_exact_source_bytes() {
     let directory = std::env::temp_dir().join(format!("fragr-v9-custody-{}", Uuid::new_v4()));
     let store = RunStore::open_with_hashes(&directory, HASHES).unwrap();

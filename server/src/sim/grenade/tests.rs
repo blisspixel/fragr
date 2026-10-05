@@ -230,7 +230,7 @@ fn explosion_effective_armor_hp_self_death_and_posthumous_credit() {
     assert_eq!(record.total.grenades.damaging_attacks, 1);
     assert_eq!(
         record.total.weapons,
-        [crate::protocol::WeaponCounts::default(); 7]
+        [crate::protocol::WeaponCounts::default(); crate::protocol::WeaponType::ALL.len()]
     );
     record.validate_for(Some(owner), None).unwrap();
     let events = state.take_events();

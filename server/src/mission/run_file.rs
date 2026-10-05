@@ -11,13 +11,13 @@ use uuid::Uuid;
 mod legacy;
 pub(crate) mod store;
 use legacy::{
-    RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
-    RunDocumentV8, RunDocumentV9,
+    RunDocumentV10, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6,
+    RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
 
-/// Version 10 retains actual archive choices, with explicitly unknown history
-/// for strict version 9 completions. Version 1 remains incompatible.
-pub(super) const RUN_FILE_VERSION: u32 = 10;
+/// Version 11 freezes historical gun ownership while preparing Repeater.
+/// Actual archive choices and unknown v9 history remain unchanged.
+pub(super) const RUN_FILE_VERSION: u32 = 11;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -464,6 +464,11 @@ impl RunDocument {
         sniper_found: bool,
         mines_found: bool,
     ) -> Result<(), &'static str> {
+        if entry.equipment.weapons.contains(&WeaponType::Repeater)
+            || entry.equipment.selected == WeaponType::Repeater
+        {
+            return Err("Repeater ownership requires its unbuilt campaign stage");
+        }
         if !mines_found && entry.equipment.proximity_mines != 0 {
             return Err("saved equipment carries mines before their mission");
         }

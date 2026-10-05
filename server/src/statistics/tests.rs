@@ -503,6 +503,60 @@ async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
     );
 }
 
+#[tokio::test]
+async fn repeater_record_delivery_keeps_strict_legacy_shape_and_refuses_real_new_counts() {
+    use std::sync::Arc;
+    use tokio::sync::{mpsc, Mutex};
+    let (mut state, a, b) = arena();
+    state.tick(0.05);
+    let record = state.player_record(a).unwrap();
+    let (old_tx, mut old_rx) = mpsc::channel(4);
+    let (new_tx, mut new_rx) = mpsc::channel(4);
+    let clients = Arc::new(Mutex::new(vec![
+        crate::net::ClientSession::new(a, old_tx, crate::protocol::M09_GAMEPLAY_VERSION),
+        crate::net::ClientSession::new(b, new_tx, crate::protocol::REPEATER_GAMEPLAY_VERSION),
+    ]));
+    let send = |record: PlayerRecord| {
+        vec![
+            (Recipient::Client(a), ServerMessage::Record(record.clone())),
+            (Recipient::Client(b), ServerMessage::Record(record)),
+        ]
+    };
+    crate::session::send_unicasts(&clients, &Default::default(), &send(record.clone())).await;
+    let ServerMessage::Record(old) = old_rx.try_recv().unwrap() else {
+        panic!("old record")
+    };
+    let old_json = serde_json::to_value(&old).unwrap();
+    assert_eq!(old_json["version"], 1);
+    assert_eq!(old_json["total"]["weapons"].as_array().unwrap().len(), 5);
+    assert_eq!(old.total, record.total);
+    assert!(!clients.lock().await[0].is_closing());
+    let ServerMessage::Record(new) = new_rx.try_recv().unwrap() else {
+        panic!("new record")
+    };
+    assert_eq!(new.version, 2);
+    assert_eq!(
+        serde_json::to_value(new).unwrap()["total"]["weapons"]
+            .as_array()
+            .unwrap()
+            .len(),
+        8
+    );
+    let mut actual = record;
+    actual.total.weapons[WeaponType::Repeater.index()].attacks = 1;
+    crate::session::send_unicasts(&clients, &Default::default(), &send(actual.clone())).await;
+    assert!(
+        old_rx.try_recv().is_err(),
+        "actual new counts must never be truncated for older readers"
+    );
+    assert!(
+        clients.lock().await[0].is_closing(),
+        "unsupported recipient must be closed rather than silently lose actual facts"
+    );
+    assert!(!clients.lock().await[1].is_closing());
+    assert!(matches!(new_rx.try_recv(), Ok(ServerMessage::Record(new)) if new == actual));
+}
+
 #[test]
 fn late_join_records_preserve_their_participation_window() {
     let mut state = GameState::new();

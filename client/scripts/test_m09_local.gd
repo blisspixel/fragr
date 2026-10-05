@@ -122,7 +122,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 10 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
+	_check(saved is Dictionary and saved["version"] == 11 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
 	_check(saved is Dictionary and saved["m08_outcome"] == {"kind": "historical_unrecorded"}, "unknown history persists on disk")
 	var archives: Array[String] = []
