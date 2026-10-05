@@ -1,6 +1,6 @@
 # Rifle
 
-Status: **shipped** on main through [PR #356](https://github.com/blisspixel/fragr/pull/356), 2026-10-04, for the next desktop release. Source route: **New source candidate**. Reviewed source and ordinary paired presentation are accepted. Exact held, fire and pickup pictures are selected, with complete local client, all eight exact-head CI and all three desktop package checks passing.
+Status: **in flight**, retained offline source, 2026-10-04. Source route: **New source candidate**. Prior selection shipped in [PR #356](https://github.com/blisspixel/fragr/pull/356) with technical checks, but the player rejected its framing and style. The [bounded restoration](../rifle-art-restore-20261004.md) returns the earlier Rifle pictures. Mechanical source and historical bake proofs remain; future visual acceptance is open.
 Stable ID: `W-rifle`. Parent: [full-game asset plan](../meshy-full-game-assets.md).
 
 ## Lore, use and design
@@ -28,8 +28,9 @@ mechanic gloves are local geometry. There is no reload or new weapon mechanic.
 See the [bounded source plan](../rifle-source-refinement-20261004.md) and
 [source evidence](../../evidence/rifle-source-refinement-20261004.md) for exact
 hashes and acceptance gates. The fourth studio and eight-state actual played
-comparison pass; canonical viewmodel and selected source checks pass without
-changing registration, gameplay transforms or weapon mechanics.
+comparison passed the earlier technical gates without changing registration,
+gameplay transforms or weapon mechanics. Their held presentation is now rejected;
+source and bake remain offline while runtime uses the earlier pictures.
 
 Author rigid weapon mechanisms, grips and effects locally. Humanoid rigging does not apply to guns or equipment. One accepted source supplies held, pickup and icon views.
 

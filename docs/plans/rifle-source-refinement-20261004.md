@@ -1,10 +1,12 @@
 # Civilian Rifle source and presentation refinement
 
-Status: **shipped** on main through [PR #356](https://github.com/blisspixel/fragr/pull/356),
-2026-10-04. This increment follows the published v0.73.0 desktop build.
-Source, fourth studio and ordinary paired presentation are accepted. Exact
-held, fire and pickup pictures are selected. Complete local client checks,
-all eight exact-head CI jobs and all three desktop package checks passed.
+Status: **in flight**, source retained offline, 2026-10-04. Prior selection
+shipped through [PR #356](https://github.com/blisspixel/fragr/pull/356), then the
+player rejected the held framing and style. The
+[bounded restoration](rifle-art-restore-20261004.md) returns the earlier pictures.
+All physical source and historical checks remain; future presentation needs
+fresh player acceptance. The following exact-head receipts describe the prior
+selection, not current aesthetic approval.
 
 The final reviewed head was `1138c619de4e236518e6ee22c223e3b497f94584`,
 including current main. Its implementation trees match the original full

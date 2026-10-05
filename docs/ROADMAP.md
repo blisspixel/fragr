@@ -328,7 +328,10 @@ client checks, all eight CI jobs and all three desktop package checks passing
 on their reviewed heads. The Rifle's accepted source and played comparison
 passed complete local checking, all eight exact-head CI jobs and all three
 desktop package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356)
-merged the selected art to main after v0.73.0 was published.
+merged the selected art to main after v0.73.0 was published. The player then
+rejected its framing and style. The [bounded restoration](plans/rifle-art-restore-20261004.md)
+returns the earlier Rifle pictures; the rejected source and all physical proofs
+remain offline. Subjective art acceptance stays open despite technical passes.
 The [shared Union shadow repair](evidence/union-billboard-shadows-20261004.md)
 is on main through [PR #359](https://github.com/blisspixel/fragr/pull/359), with
 rendered original/corrected controls, complete client, all eight CI jobs and
