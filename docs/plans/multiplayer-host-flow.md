@@ -99,6 +99,28 @@ CLI/lease tests before review. Final combined CI and all three desktop exports
 and install checks bind to one frozen head. A source-only test does not prove
 the extracted package can host.
 
+### Packaged host protocol smoke, 2026-10-05
+
+The existing install check verifies exported resources, the adjacent native
+executable and a campaign run preview. It does not start an arena. Extend that
+same `--check-install` path, after its retained preview gate, to start TDM on
+Arena Duel and then 5v5 Sabotage on Sector 9 through `LocalHost`. Use zero bots,
+loopback ephemeral ports, the existing strict readiness parser and the existing
+bundled executable lookup. A real spectator `NetClient` must accept each map's
+validated mode and geometry and receive a matching snapshot. Then leave that
+socket, request owned Stop and require IDLE plus the returned native PID's
+retirement before the next preset or final PASS.
+
+Keep each startup, wire and stop phase bounded. Failure closes the owned socket
+and native lease; cleanup targets only the returned owned process. Never alter
+the campaign run or grant gameplay resources. Retain the current missing-server
+and resource failures, and the actual native install harness. The release
+workflow already invokes the exported check from each freshly unpacked Windows,
+Linux and macOS package, so this needs no second launch configuration or package
+assembly change. Three platform PASS results must bind to the final source.
+This headless protocol and process smoke does not establish rendered combat,
+human fun, two-machine LAN operation or every desktop's GPU support.
+
 ## Documentation, spend and remaining limits
 
 After actual behavior exists, update `HOSTING.md`, `DESKTOP.md`, `PLAYING.md`
