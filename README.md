@@ -139,10 +139,11 @@ and [evidence](docs/evidence/m09-passenger-manifest-20261004.md) distinguish
 real completion, historical unknown outcomes and remaining art and play gates.
 [PR #353](https://github.com/blisspixel/fragr/pull/353) selects the refined
 Pistol after source, paired live presentation, full client, CI and desktop
-package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) selects
-the refined Rifle on main after accepted source and played comparisons,
-complete local client checks, all eight exact-head CI jobs and all three
-desktop package checks. That increment follows the published v0.73.0 build.
+package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) previously
+selected the source-derived Rifle after technical checks. The player rejected
+its framing and style; the [restoration](docs/plans/rifle-art-restore-20261004.md)
+returns the retained earlier idle, fire and pickup pictures. The physical source
+and its proofs remain offline. Technical checks do not establish aesthetic acceptance.
 The [Union shadow repair](docs/evidence/union-billboard-shadows-20261004.md)
 is also on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
 with rendered regression, complete client, all eight CI and all three package
