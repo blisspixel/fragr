@@ -1,8 +1,11 @@
 extends SceneTree
 
+const TOUR = preload("res://scripts/qa_tour.gd")
+
 ## Actual menu/native/socket ownership, separate from renderer or human fun.
 var failures: int = 0
 var peers: Array[Node] = []
+var retiring_radio: Array[WeakRef] = []
 var settings_path: String
 var run_directory: String
 var unrelated: TCPServer = TCPServer.new()
@@ -47,6 +50,33 @@ func _until(condition: Callable, description: String) -> bool:
 
 func _menu() -> bool:
 	return current_scene != null and current_scene.has_method("_start_host")
+
+func _remember_radio() -> bool:
+	var radio: Node = current_scene.radio
+	var player: AudioStreamPlayer = radio.player if radio != null else null
+	var live: bool = player != null and player.stream is AudioStreamMP3 and player.has_stream_playback()
+	_expect(live, "ordinary hosted gameplay has actual MP3 radio playback")
+	if not live:
+		quit(1)
+		return false
+	retiring_radio.append(weakref(player.get_stream_playback()))
+	return true
+
+func _radio_retired() -> bool:
+	for playback: WeakRef in retiring_radio:
+		if not TOUR.audio_reference_retired(playback):
+			return false
+	return true
+
+func _await_radio_retirement() -> bool:
+	var deadline: int = Time.get_ticks_msec() + 2000
+	while not _radio_retired() and Time.get_ticks_msec() < deadline:
+		await create_timer(0.01).timeout
+	var retired: bool = _radio_retired()
+	_expect(retired, "ordinary gameplay exit retires every captured radio decoder within two seconds")
+	if not retired:
+		quit(1)
+	return retired
 
 func _playing(map_id: int) -> bool:
 	return current_scene != null and current_scene.has_method("change_role") \
@@ -118,8 +148,12 @@ func _preset(mode: String) -> bool:
 	if not await _until(func() -> bool: return not current_scene.is_human_player and current_scene.net_client.role == "spectator", "Leave returns the host to watching"):
 		return false
 	_expect(owner.state == LocalHost.State.RUNNING and OS.is_process_running(pid), "watch/leave preserves owned server")
+	if not _remember_radio():
+		return false
 	current_scene.pause_menu.leave_requested.emit()
 	if not await _until(_menu, "Exit to menu retires gameplay only"):
+		return false
+	if not await _await_radio_retirement():
 		return false
 	_expect(owner.state == LocalHost.State.RUNNING and OS.is_process_running(pid), "server survives menu return")
 	_expect(partner.connection_state == WebSocketPeer.STATE_OPEN and partner.player_id == partner_id, "other human remains connected across host menu return")
@@ -128,8 +162,12 @@ func _preset(mode: String) -> bool:
 	(current_scene._root.get_node("JoinHosted") as Button).pressed.emit()
 	if not await _until(func() -> bool: return _playing(map_id) and current_scene.net_client.player_id != null, "host can rejoin its surviving server from menu"):
 		return false
+	if not _remember_radio():
+		return false
 	current_scene.pause_menu.stop_server_requested.emit()
 	if not await _until(func() -> bool: return _menu() and owner.state == LocalHost.State.IDLE, "explicit match Stop returns to menu and ends owned lease"):
+		return false
+	if not await _await_radio_retirement():
 		return false
 	_expect(not OS.is_process_running(pid) and unrelated.is_listening(), "Stop retires only owned PID")
 	print("test_desktop_host: owned_stop ", mode, " pid=", pid, " retired=", not OS.is_process_running(pid))
@@ -163,8 +201,12 @@ func _run() -> void:
 	(current_scene._root.get_node("WatchHosted") as Button).pressed.emit()
 	if not await _until(func() -> bool: return _playing(4), "full 5v5 server still accepts spectator"):
 		return
+	if not _remember_radio():
+		return
 	current_scene.pause_menu.leave_requested.emit()
 	if not await _until(_menu, "filled match leaves to menu"):
+		return
+	if not await _await_radio_retirement():
 		return
 	# Root-node retirement exercises the app-shutdown owner boundary with a real child.
 	owner.queue_free()
@@ -183,6 +225,9 @@ func _run() -> void:
 			peer.queue_free()
 	peers.clear()
 	await process_frame
+	_expect(retiring_radio.size() == 5 and _radio_retired(), "all five actual hosted scene radio decoders are retired before quit")
+	if failures == 0:
+		print("test_desktop_host: five actual radio decoders retired PASS")
 	if failures == 0:
 		print("test_desktop_host: PASS")
 	quit(0 if failures == 0 else 1)
