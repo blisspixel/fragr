@@ -135,8 +135,11 @@ func _run() -> void:
 	if not saved is Dictionary:
 		quit(1)
 		return
-	saved["version"] = 11
-	var retry_source: String = JSON.stringify(saved) + "\n \n"
+	# Preserve native integer literals: parsing and stringifying them here
+	# would turn strict integer fields into floating-point JSON numbers.
+	var native_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
+	_check(native_source.count('"version":12,') == 1, "native current version marker is unique")
+	var retry_source: String = native_source.replace('"version":12,', '"version":11,') + "\n \n"
 	file = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
 	_check(file != null, "owned historical M09 retry fixture is writable after child exit")
 	if file == null:
@@ -150,6 +153,7 @@ func _run() -> void:
 	await process_frame
 	current_scene._show("single")
 	if not await _until(func() -> bool: return owned.run_preview.get("status") == "ready" and owned.run_preview.get("mission") == MissionState.M09_ID, "actual preview recognizes strict v11 M09 entry"):
+		print("test_m09_local: retry preview ", owned.run_preview, " owned state ", owned.state)
 		return
 	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == retry_source, "preview never rewrites v11 retry bytes")
 	resume = current_scene._root.get_node_or_null("PassengerManifestSaved") as Button
@@ -158,11 +162,11 @@ func _run() -> void:
 		quit(1)
 		return
 	resume.pressed.emit()
-	if not await _until(func() -> bool: return current_scene != null and current_scene.has_method("change_role") and current_scene.current_map_id == 1009 and is_instance_valid(current_scene.opening), "fresh owned child reaches M09 retry briefing"):
+	if not await _until(func() -> bool: return current_scene != null and current_scene.has_method("change_role") and current_scene.current_map_id == 1009, "fresh owned child reaches actual M09 retry"):
 		return
 	game = current_scene
-	game.opening._skip.pressed.emit()
-	if not await _until(_playing, "retry preserves story dismissal and readiness"):
+	_check(game._opening_finished and not is_instance_valid(game.opening), "ordinary saved mission retry does not replay its arrival")
+	if not await _until(_playing, "retry uses the existing server readiness boundary"):
 		return
 	if not await _until(func() -> bool: return not _gear().is_empty(), "retry loadout acknowledgement"):
 		return
