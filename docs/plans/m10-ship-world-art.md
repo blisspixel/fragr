@@ -152,3 +152,10 @@ and historical unknown. The unchanged literal route and actual full 28-state
 combat/departure must pass on matching source before art selection. Final
 composed shot-body blocking remains a required prerequisite. Hardware work
 uses a serialized parent lease and owned process retirement.
+
+The corrected generator emits all 112 actual native solids and all other map
+facts unchanged. Its JSON writer shortens the last decimal digits of four
+platform coordinates; independently parsed server f32 values are exactly equal.
+The repeat proof retains both hashes and those four representation differences.
+The original accepted map bytes are restored until the actual bench geometry
+increment, so this tool repair alone does not change any content hash or save.

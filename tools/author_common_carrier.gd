@@ -148,8 +148,12 @@ func _stairs(label: String, first_x: float, origin_z: float, direction: float) -
 		[first_x + 2.1, 10.1, maxf(origin_z + direction * 3.0, turn_begin)])
 	for level: int in range(2):
 		var base: float = 2.0 + level * 2.8
-		_box("%s_return_%d" % [label, level], [first_x, base + 2.6, lower_z],
-			[second_x + 1.8, base + 2.8, upper_z])
+		# Match the actual Rect2-cut deck edges at both heights. Leaving the
+		# earlier 0.10/0.20-metre gaps causes real unsupported side transfers.
+		var return_min_x: float = 3.450000047683716 if label == "east" else first_x
+		var return_max_x: float = -3.450000286102295 if label == "west" else second_x + 1.8
+		_box("%s_return_%d" % [label, level], [return_min_x, base + 2.6, lower_z],
+			[return_max_x, base + 2.8, upper_z])
 		_box("%s_turn_%d" % [label, level], [first_x, base + 1.2, minf(turn_begin, turn_end)],
 			[second_x + 1.8, base + 1.4, maxf(turn_begin, turn_end)])
 		for step: int in range(7):
