@@ -663,3 +663,26 @@ lower arrival and open service aisle for the return. Keep both original
 real destinations and all 28 states, guard rosters, stock and objective gates.
 The segment audit is geometry evidence without living actors or combat;
 ordinary actual-client full-route validation remains a separate required gate.
+
+## Active aft fight travel
+
+The next ordinary CPU replay passes 21 states and eleven real guard kills,
+then dies during the Heavy search. The Heavy has followed the earlier upper
+tour onto the east middle landing, outside line of sight from the scripted
+lower search. The still-living middle Sweeper attacks through the freight
+opening while the route deliberately suppresses travel fire and permits
+only the Heavy target. The player enters that search with 92 HP, no armor,
+44 shells and 99 bullets, then dies after ten enemy shots without firing.
+Keep this failure and its actual damage/resource pressure visible.
+
+Use the existing per-state combat-travel opt-in only for the freight overlook,
+command stock and lower return, with the three named active aft guards.
+Ordinary owned Flechette rounds, its real range and existing bounded targeting
+are sufficient; no kit, cover, AI, health, difficulty or combat timing changes.
+The original named Heavy, middle Sweeper and Notary death checks remain, as
+do every destination, all 17 guards, finite claims and fresh departure. A
+guard defeated during travel still needs its real server-confirmed death.
+The Notary retains its original named death confirmation. Record this explicit input
+policy correction rather than claiming the earlier no-fire route unchanged.
+Validate the complete actual CPU route first, then seek a new bounded hardware
+lease; CPU cadence alone does not establish rendered pacing or human fun.

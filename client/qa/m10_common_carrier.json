@@ -607,6 +607,8 @@
     {
       "name": "m10_freight_overlook",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["aft_heavy", "aft_sweeper", "aft_notary"],
       "walk_to": [
         [
           -4,
@@ -629,6 +631,8 @@
     {
       "name": "m10_command_stock",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["aft_heavy", "aft_sweeper", "aft_notary"],
       "walk_to": [
         [
           -2.8,
@@ -656,6 +660,8 @@
     {
       "name": "m10_lower_return",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["aft_heavy", "aft_sweeper", "aft_notary"],
       "walk_to": [
         [
           -4.45,
@@ -807,7 +813,7 @@
         "forward_secured",
         "service_secured"
       ],
-      "note": "Original Heavy Sweeper defeated with finite shells inside the actual 12 m Scatter band."
+      "note": "The original Heavy Sweeper must have a real confirmed death. Earlier active-fight travel may defeat it with finite Flechette rounds; a surviving target uses finite shells within the actual 12 m Scatter band."
     },
     {
       "name": "m10_aft_middle",
