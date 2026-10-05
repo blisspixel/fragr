@@ -356,7 +356,7 @@ repair-bench collision, opaque living-character shot blocking, drawn Pistol,
 Latch's corrected home image and refreshed README captures are on main through
 [PR #369](https://github.com/blisspixel/fragr/pull/369). All eight reviewed-head
 CI jobs and all three desktop packages passed before merge. Main now has ten
-campaign prototypes; v0.75.0 has nine. Current independent lanes are M11's
+campaign prototypes; v0.75.0 has nine. Before the priority change, independent lanes were M11's
 authoritative Remote Mine and Redactor foundations, weapon hand continuity,
 named-cast preparation, Jammer and Railgun craft, Kitchen and Garage. M11 remains
 in development; it is not a playable released mission. The next hand pass
@@ -431,9 +431,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    feedback when useful.
    *Why:* automation proved the routes work; only a person can say whether it
    is fun. Twenty levels built on an unproven loop would multiply its faults.
-   Feedback informs acceptance and refinement. Authorized local development
-   continues while that feedback is pending; this is not a stop gate for code
-   or art trials.
+   Feedback informs acceptance and refinement. Authorized multiplayer work and
+   necessary regression fixes continue while that feedback is pending; human
+   review is not a stop gate for local development.
 1. **Playable multiplayer and server operation, active.** The
    [bounded multiplayer slice](plans/multiplayer-first-playable.md) owns the
    first human-testable pair: team deathmatch and Sector 9's optional 5v5
