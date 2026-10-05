@@ -7,6 +7,11 @@ checks passed on reviewed head `131701bc` before main integration.
 Spend: $0 in this refinement. The parent production receipt owns the existing
 15-credit candidate; no new request or subscription operation is authorized here.
 
+On October 5 the user rejected the current played Pistol appearance. The
+shipped implementation and its technical evidence remain history; visual
+acceptance is reopened in the [first-person weapon quality pass](first-person-weapon-quality.md).
+Current pictures remain selected until a better replacement passes actual play.
+
 ## Bounded goal
 
 Refine the accepted W-pistol candidate into a coherent offline source and
