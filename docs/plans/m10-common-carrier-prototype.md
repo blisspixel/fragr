@@ -1,12 +1,18 @@
 # Common Carrier prototype
 
-Status: in flight, 2026-10-05. Native promotion work is authorized in isolated
-branch `feat/m10-common-carrier`, based on crew receipt `32dd8ea2`. The frozen
-Repeater and crew branches remain unchanged. This lane submits no paid calls. Hardware work uses bounded approved leases. The Repeater foundation is merged, and this prototype was normally
-composed with main `cc8efcc8`. The separate crew receipt PR 363 is frozen at
-`501e8a80`, with eight CI jobs and all three desktop packages passing. Parent
-integration remains separate. Final acceptance must precede publication or a
-complete-mission claim.
+Status: in flight, 2026-10-05. The bounded playable prototype is implemented
+and tested locally on branch `feat/m10-common-carrier`. Source `eb0cb88a`
+normally composes accepted main `400595d0`, including the crew receipt,
+companion stand-off and static corner navigation. Complete matching workspace
+checks and the client checker pass. The prior `65f340ff` hardware route passes
+all 28 states and all 17 guards; its map and route bytes match the composed
+source. That capture predates the new companion/navigation implementation.
+Exact-head CI and desktop packages remain integration gates. The complete
+composed ordinary-input hardware route remains a merge gate, including the
+reviewed shot-body blocking integration when it lands. The complete
+M10 mission remains in flight until its Repeater lesson, story, furnishing,
+distinct casting and fresh-player acceptance pass. Details and source binding:
+[prototype evidence](../evidence/m10-common-carrier-20261005.md).
 The initial outline came from M09 `01912934`, now shipped in v0.73.0.
 This is one bounded level under the existing campaign build order.
 
@@ -26,11 +32,11 @@ participant-record revision 2, with preserved revision 1 readers accepting
 five, six or seven columns. The accepted Repeater foundation appends index 7,
 private finite warmup, capability 35 and save version 11. Actual Repeater
 presentation and the M10 lesson remain unbuilt.
-M09's shipped v10 run file preserves earlier outcomes and actual equipment,
-but no M09 crew outcome. The separately tested v12 capture checkpoint retains
-real released crew and the immutable aboard-at-departure subset, or explicit
-historical missing facts. That receipt does not complete transit.
-Completed M09 currently waits for unplayable `common_carrier`.
+Accepted main's v12 capture retains real released crew and the immutable
+aboard-at-departure subset, or explicit historical missing facts. That receipt
+does not complete transit. This prototype's v13 locked promotion supplies
+actual M10 transit and a playable destination. Completed M10 waits for
+unplayable `right_of_search`.
 No existing boarding fact, cabinet fact or legacy prose supplies the missing
 M10 systems automatically.
 
