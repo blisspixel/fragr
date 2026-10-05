@@ -236,6 +236,206 @@ fn m10_transit_refuses_forged_current_and_historical_ownership_or_arrivals() {
 }
 
 #[test]
+fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
+    use crate::protocol::{Action, AmmoCount, AmmoPool, WeaponType};
+    use crate::session::GameSession;
+    let source = crate::maps::AuthoredSource::Mission(MissionId::CommonCarrier)
+        .load()
+        .unwrap();
+    for (edda, splice, known) in [
+        (false, false, true),
+        (true, false, true),
+        (false, true, true),
+        (true, true, true),
+        (true, true, false),
+    ] {
+        let mut before = m09_receipt_tests::completed_berth(edda, splice);
+        if !known {
+            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
+        }
+        let SavedStep::AwaitingMission { exit, .. } = &mut before.step else {
+            panic!("actual departure fixture");
+        };
+        // Exact representative carry used by the retained ordinary tours.
+        exit.equipment.weapons = vec![
+            WeaponType::Fists,
+            WeaponType::Flechette,
+            WeaponType::Scatter,
+            WeaponType::Sniper,
+        ];
+        exit.equipment.ammo = vec![
+            AmmoCount {
+                pool: AmmoPool::Bullets,
+                rounds: 76,
+            },
+            AmmoCount {
+                pool: AmmoPool::Shells,
+                rounds: 32,
+            },
+            AmmoCount {
+                pool: AmmoPool::Cells,
+                rounds: 1,
+            },
+        ];
+        let promoted = before
+            .promote_next(
+                MissionId::CommonCarrier,
+                crate::maps::RuntimeMap::Authored(source.clone())
+                    .content_sha256()
+                    .unwrap(),
+            )
+            .unwrap();
+        let mut session = GameSession::with_authored_map(source.clone());
+        session.state.seed(42);
+        session.state.load_campaign_run(&promoted).unwrap();
+        let id = Uuid::from_u128(1010);
+        session
+            .state
+            .add_player(id, "Actual cabin walker".into(), Role::Human);
+        for _ in 0..40 {
+            session.tick_messages(0.05);
+        }
+        assert!(session.state.acknowledge_mission(
+            id,
+            MissionReady {
+                id: MissionId::CommonCarrier,
+                attempt: 1,
+            }
+        ));
+        for _ in 0..40 {
+            session.tick_messages(0.05);
+        }
+        let facts = session.state.mission_state().unwrap().m10.unwrap();
+        assert_eq!(
+            facts.passengers.len(),
+            if known {
+                2 + usize::from(edda) + usize::from(splice)
+            } else {
+                0
+            }
+        );
+        assert_eq!(
+            facts.passengers.iter().any(|p| p.id == "edda"),
+            known && edda
+        );
+        assert_eq!(
+            facts.passengers.iter().any(|p| p.id == "splice"),
+            known && splice
+        );
+        let initial_equipment = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .inventory
+            .saved_equipment(WeaponType::Sniper)
+            .unwrap();
+        for target in [
+            [0.0, 4.8, -12.1],
+            [3.5, 4.8, -12.1],
+            [3.5, 4.8, -14.0],
+            [5.5, 4.8, -14.0],
+            [3.5, 4.8, -14.0],
+            [3.5, 4.8, -12.1],
+            [0.0, 4.8, -12.1],
+            [0.0, 4.8, -15.0],
+        ] {
+            let mut arrived = false;
+            for _ in 0..300 {
+                let player = session.state.players.iter().find(|p| p.id == id).unwrap();
+                let here = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
+                if (here[0] - target[0]).hypot(here[2] - target[2]) <= 0.3
+                    && (here[1] - target[1]).abs() <= 0.03
+                {
+                    arrived = true;
+                    break;
+                }
+                // The same direct ordinary walk as QA, without a controller
+                // detour, teleports, disabled guards or collision exceptions.
+                session.state.set_action(
+                    id,
+                    Action {
+                        forward: true,
+                        yaw: Some((target[2] - here[2]).atan2(target[0] - here[0])),
+                        ..Action::default()
+                    },
+                );
+                session.tick_messages(0.05);
+                let guards: Vec<_> = session
+                    .state
+                    .players
+                    .iter()
+                    .filter(|p| p.is_campaign_enemy())
+                    .collect();
+                assert_eq!(guards.len(), 4, "only the original first group is placed");
+                assert!(guards
+                    .iter()
+                    .all(|p| p.hp > 0 && !session.state.encounters.is_active_enemy(p.id)));
+            }
+            let player = session.state.players.iter().find(|p| p.id == id).unwrap();
+            assert!(
+                arrived,
+                "edda={edda} splice={splice} known={known} target={target:?} stalled at {:?}",
+                [player.x, player.y - PLAYER_FLOOR_Y, player.z]
+            );
+            session.state.set_action(id, Action::default());
+        }
+        let player = session.state.players.iter().find(|p| p.id == id).unwrap();
+        assert_eq!(
+            (player.hp, player.armor),
+            (89, 17),
+            "actual finite cabin medkit, no other damage or grant"
+        );
+        assert_eq!(
+            player
+                .inventory
+                .saved_equipment(WeaponType::Sniper)
+                .unwrap(),
+            initial_equipment
+        );
+        assert!(
+            !session
+                .state
+                .pickups
+                .iter()
+                .find(|p| p.id == "passenger_medical")
+                .unwrap()
+                .available
+        );
+        for _ in 0..400 {
+            session.tick_messages(0.05);
+        }
+        assert!(
+            !session
+                .state
+                .pickups
+                .iter()
+                .find(|p| p.id == "passenger_medical")
+                .unwrap()
+                .available
+        );
+        assert_eq!(
+            session
+                .state
+                .campaign_run_document()
+                .unwrap()
+                .unwrap()
+                .m10_transit,
+            promoted.m10_transit
+        );
+        assert!(session
+            .state
+            .mission_state()
+            .unwrap()
+            .m10
+            .unwrap()
+            .completed
+            .is_empty());
+    }
+}
+
+#[test]
 fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes() {
     use crate::navigation::{NavigationGoal, Navigator};
     use crate::protocol::Action;

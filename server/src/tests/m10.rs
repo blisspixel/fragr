@@ -158,6 +158,65 @@ fn m10_safe_entry_readiness_does_not_start_fights_or_clone_crew() {
 }
 
 #[test]
+fn m10_places_only_the_current_ordered_group_before_its_actual_activation() {
+    let (mut s, id) = fixture(CampaignDifficulty::Standard);
+    ready(&mut s, id);
+    tick(&mut s, 40);
+    for (index, expected_total) in [4, 9, 13, 17].into_iter().enumerate() {
+        let definitions = s.state.map.encounters();
+        let expected: Vec<_> = definitions[..=index]
+            .iter()
+            .flat_map(|g| g.enemies.iter().map(|e| e.id.clone()))
+            .collect();
+        let actual: Vec<_> = s
+            .state
+            .players
+            .iter()
+            .filter(|p| p.is_campaign_enemy())
+            .map(|p| p.name.clone())
+            .collect();
+        assert_eq!(actual.len(), expected_total);
+        assert!(expected.iter().all(|name| actual.contains(name)));
+        assert!(
+            definitions[index + 1..]
+                .iter()
+                .flat_map(|g| &g.enemies)
+                .all(|e| !actual.contains(&e.id)),
+            "future guards cannot block or be shot awake"
+        );
+        let current: Vec<_> = s
+            .state
+            .players
+            .iter()
+            .filter(|p| definitions[index].enemies.iter().any(|e| e.id == p.name))
+            .collect();
+        assert_eq!(current.len(), [4, 5, 4, 4][index]);
+        assert!(current
+            .iter()
+            .all(|p| p.hp > 0 && s.state.contact_eligible(p)));
+        assert!(
+            current
+                .iter()
+                .all(|p| !s.state.encounters.is_active_enemy(p.id)),
+            "placement is not activation; deliberate entry still owns the next fight"
+        );
+        // Explicit authority fixture, not a combat playthrough. The existing
+        // helper crosses the real trigger and resolves this group's deaths.
+        clear_boundary(&mut s, id, index);
+    }
+    assert_eq!(
+        s.state
+            .mission_state()
+            .unwrap()
+            .m10
+            .unwrap()
+            .completed
+            .len(),
+        4
+    );
+}
+
+#[test]
 fn m10_departure_requires_each_group_all_ready_living_aboard_and_a_fresh_use() {
     for difficulty in [CampaignDifficulty::Standard, CampaignDifficulty::Severe] {
         let (mut s, id) = fixture(difficulty);

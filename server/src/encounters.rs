@@ -125,7 +125,8 @@ impl Encounters {
                 || map.m06_objectives().is_some()
                 || map.m07_objectives().is_some()
                 || map.m08_objectives().is_some()
-                || map.m09_objectives().is_some())
+                || map.m09_objectives().is_some()
+                || map.m10_objectives().is_some())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
                         .iter()

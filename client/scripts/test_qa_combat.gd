@@ -928,6 +928,8 @@ func _check_m10_route() -> void:
 			authored.append(enemy["id"])
 	var required: Array[String] = []
 	for state: Dictionary in tour["states"]:
+		if state.has("weapon"):
+			_check(state["weapon"] in ["Flechette", "Scatter"], "ship route selects only actual carried weapons")
 		if state.get("combat") is Dictionary:
 			var combat: Dictionary = state["combat"]
 			_check(combat.get("target_required_only") == true and combat.get("evade_tells") == true, "ship fights retain bounded targets and real tell defense")

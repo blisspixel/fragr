@@ -517,8 +517,50 @@ updated client run is still required.
 
 The owning 28-state ordinary-input tour requires all 17 authored guards exactly
 once across the same four groups, actual supported stairs and room approaches,
-finite supplies and fresh shared departure. Probes use actual owned Tack or
+finite supplies and fresh shared departure. Probes use actual owned Flechette or
 Scatter ranges and real tell defense. Full combat survival and departure,
 hardware inspection, final civilian casting, ledger and bunk argument scenes,
 selected Repeater source and cues, its actual lesson and fresh human pacing
 remain open. This checkpoint does not claim a complete authored M10.
+
+## Ordered placement correction
+
+The immutable inhabited source passed the complete client checker with 264
+scripts and 126 harnesses. Two real ordinary-input tours remain failed: the
+first requested unowned Tack, which the server correctly refused; the second
+used the actual carried Flechette but stalled at the cabin approach. An actual
+ready-session trace found the later passenger Enforcer already collidable in
+the hall before its predecessor encounters completed. M10 was absent from the
+existing delayed ordered-placement condition used by M04 through M09.
+
+Add M10 to that exact server condition, preserving the first four guards, all
+17 enemies, four ordered fights, activation triggers and difficulty timing.
+Before another renderer run, prove actual ready Session traversal of the
+unchanged cabin and finite medkit path with all four recorded crew rosters and
+historical unknown. Keep the first group alive and inactive, require future
+group bodies absent, and prove each later group is placed only after its real
+predecessor completes. Authority fixtures that seed deaths remain separate
+from ordinary combat acceptance. Correct the owning tour to request only the
+actually carried Flechette or Scatter and strengthen that selector assertion.
+Retain both failed tours and the headless causal trace; freeze a fresh matching
+native and source before requesting the next full combat lease.
+
+The existing inhabited source completed its full client check cleanly: 264
+scripts and 126 harnesses. The focused corrected server run passes 16 M10
+tests and the actual M10 child test. New ready-session regressions walk the
+unchanged cabin approaches with every supported crew roster, keep the first
+four guards alive and inactive, preserve exact ammunition and explosives,
+claim the finite 50 HP medkit normally and leave transit unchanged. A separate
+authority fixture proves cumulative placed rosters of 4, 9, 13 and 17 only
+after each predecessor completes, while deliberate entry still owns activation.
+Restoring the old missing-M10 condition makes the new live regression fail
+with 17 placed guards instead of four. That mutation failure is retained.
+Complete corrected native/client checks and the full ordinary combat route
+remain required; these regressions do not prove a won mission.
+
+The corrected full workspace now passes 945 server tests, all 18 actual
+local-child tests and every other workspace suite, with the same three
+preexisting ignored cases. Format, complete all-target workspace Clippy,
+matching optimized server build, clean client import and the focused QA
+harness pass. The complete corrected client rerun and ordinary full tour are
+the next acceptance gates.

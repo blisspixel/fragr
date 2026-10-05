@@ -21,7 +21,7 @@
     {
       "name": "m10_cabin_stock",
       "camera": "first_person",
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "walk_to": [
         [
           0,
@@ -172,7 +172,7 @@
           -14
         ]
       ],
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
@@ -249,7 +249,7 @@
     {
       "name": "m10_forward_gallery",
       "camera": "first_person",
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
@@ -329,7 +329,7 @@
           1
         ]
       ],
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
@@ -511,7 +511,7 @@
           14
         ]
       ],
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
@@ -648,7 +648,7 @@
     {
       "name": "m10_aft_notary",
       "camera": "first_person",
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
@@ -749,7 +749,7 @@
           14.5
         ]
       ],
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
@@ -933,7 +933,7 @@
           -12
         ]
       ],
-      "weapon": "Tack",
+      "weapon": "Flechette",
       "combat": {
         "kind": "union",
         "required": [
