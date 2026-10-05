@@ -108,15 +108,19 @@ or cloud apply ran.
 **Latest asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
 and Splice model sources plus Edda's first rig consumed 110 included credits.
 The subsequent Redactor source and first rig consumed 35 and 5 included credits.
-The free checker now reports 2,085 available, 15 held and 2,070 usable. Tracked
-consumption is 985. The first allocation remains separately recorded at 620 used
-and 280 remaining; the Redactor trial does not silently expand that allocation.
+Tern's distinct pilot source and first rig subsequently consumed another 35
+and 5 included credits. The free checker now reports 2,045 available, 15 held
+and 2,030 usable. Tracked consumption is 1,025. The first allocation remains
+separately recorded at 620 used and 280 remaining; the Redactor and Tern trials
+do not silently expand that allocation. Tern's source geometry and supplied
+motion views are inspected; material finishing, seated/held poses and played
+selection remain open.
 The [cast receipt](evidence/named-cast-source-production-20261005.md) retains a
 satchel skin defect found in walking; the [glove source](evidence/work-glove-source-20261005.md)
 needs measured local articulation. None is selected runtime artwork. Against
 Nick's subsequent $12.60 dashboard report, completed Pistol, home-image,
-Redactor-reference and Sniper requests total $1.546 in retained price estimates,
-leaving an estimated $11.054. This is not an independently verified API balance
+Redactor-reference, Sniper and Tern-reference requests total $2.177 in retained
+price estimates, leaving an estimated $10.423. This is not an independently verified API balance
 or per-request billing receipt. No cash, renewal,
 top-up or overage was enabled.
 
