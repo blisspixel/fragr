@@ -47,8 +47,17 @@ goal while the held-body and body-removal controls pass. The corrected fixture
 passes twice with Latch and support retained. All thirteen focused companion
 tests pass, including the first north-captive trap, finite support-fire rules,
 solo lesson exclusions, no-retreat refusal and deterministic quarter-step
-selection. Current-main workspace, native, rendered route and client gates
-remain pending.
+selection. Refreshed source `83bb388b` passes formatting, warning-denied
+workspace Clippy, all 1,480 workspace tests (934 server library tests, three
+existing ignored), release build and benchmark assertions. Its unique native
+is `525fa9bde3e5fd99ac00ad49d34b7e354437e54b8bb634256faeaa437a7d0fb0`.
+The current selected-art ordinary M03 proof completes all 21 states, 88 arrivals,
+22 guards and actual departure with zero deaths or dry triggers. Delivered
+facts prove both original north and raised-platform goals with Latch and the
+captives present. The immutable full client checker exits zero with all 260
+scripts and 124 harnesses passing. Final integration gates remain pending.
+Candidate Jammer is still privately selected only for
+its separate matched acceptance route.
 
 ## Acceptance
 
