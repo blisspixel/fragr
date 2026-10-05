@@ -1,19 +1,19 @@
 # Desktop-owned arena server
 
-Status: in flight, October 5, 2026. Native child ownership is implemented, and the owning tests plus nine local verification gates passed. Full workspace coverage remains open after the instrumented mixed-party fixture failures below. The companion client host flow has separate acceptance gates.
+Status: in flight, October 5, 2026. Native child ownership, prepared fixture topology and empty Sabotage Muster corrections passed all thirteen local native gates at `dff0b39ba232ad94c83713870706d05871873fb1`, including 93.66 percent unfiltered workspace line coverage. The optional automatic-fill follow-up is being verified separately. The companion client host flow, packages and physical LAN trial have separate acceptance gates.
 
-The packaged Multiplayer menu can probe and join a server, but its local-server button does not launch one. TDM and the optional ten-seat Sabotage room already have authoritative rules and socket tests. This change supplies the missing desktop-owned native process rather than rebuilding those modes.
+The desktop-owned process supplies the native server for the companion Multiplayer Host flow. TDM and the optional ten-seat Sabotage room reuse existing authoritative rules and socket seams.
 
 ## Contract
 
 An explicit `--desktop-host` process reuses the existing bounded stdin lease and `run_server` readiness callback. JSON shutdown or stdin EOF ends only this owned child. Ordinary dedicated servers retain their independent lifetime. Campaign children, saves, readiness records and local run storage remain unchanged.
 
-The first desktop profiles are TDM on the existing six built-in maps and five-per-side Sabotage on Sector 9 (map 4). The desktop process accepts zero through ten initial bots, an IPv4 loopback bind with an optional ephemeral port, or an explicit `0.0.0.0` LAN bind with a nonzero port. It rejects campaign, benchmark, solo, rotation and other profile-changing flags. Existing parsed match rules and options remain the authority.
+The first desktop profiles are TDM on the existing six built-in maps and five-per-side Sabotage on Sector 9 (map 4). Bot policies are `fixed`, `none` and `auto`, defined in [bot-fill.md](bot-fill.md). Fixed accepts zero through ten initial bots with `--fill-target 0`; none requires both counts zero; auto requires `--bots 0` and a total fighter target from one through ten. Automatic fill supports plain TDM and Sabotage only and rejects mutators. The desktop process accepts an IPv4 loopback bind with an optional ephemeral port, or an explicit `0.0.0.0` LAN bind with a nonzero port. It rejects campaign, benchmark, solo, rotation and other profile-changing flags. Existing parsed match rules and options remain the authority.
 
 After actual map preparation and listener bind, stdout emits exactly one newline-terminated strict `ArenaReady` object:
 
 ```json
-{"version":1,"kind":"arena","url":"ws://127.0.0.1:6767","listen":"0.0.0.0:6767","map_id":4,"mode":"sabotage","five_vs_five":true,"bots":4,"gameplay_version":36}
+{"version":1,"kind":"arena","url":"ws://127.0.0.1:6767","listen":"0.0.0.0:6767","map_id":4,"mode":"sabotage","five_vs_five":true,"bots":0,"bot_policy":"auto","fill_target":10,"gameplay_version":36}
 ```
 
 `listen` is the actual listener address, while `url` is the host player's loopback connection. The capability is the current compiled constant, not a new gameplay capability. Diagnostics go to stderr. No readiness is emitted on invalid configuration, failed bind or parent cancellation during startup.
@@ -30,7 +30,7 @@ Run owning tests, locked workspace tests, warning-denied Clippy, formatting, the
 
 ## Audit boundaries
 
-Five-seat Sabotage starts fresh entrants with the finite Pistol supply, keeps survivors' equipment and reserves ten combined bot/human/agent seats. It has no ready quorum and does not evict bots for humans. TDM currently uses its existing full-arsenal policy. This change does not silently introduce Pistol-only TDM, automatic bot replacement, map geometry, mutators, a second navigation/controller, or a new operator API.
+Five-seat Sabotage starts fresh entrants with the finite Pistol supply, keeps survivors' equipment and reserves ten combined bot/human/agent seats. It has no ready quorum. Fixed bots retain their seats. Automatic fill may yield only trusted, safe rule bots through the bounded admission transaction in [bot-fill.md](bot-fill.md); humans and external agents have equal priority, and unsafe full live rooms visibly refuse until a later round. Parked pawns keep their slots through the existing resume grace. TDM uses its existing full-arsenal policy. This change introduces no map geometry, new mutator, second navigation/controller or operator API.
 
 ## Mixed-party fixture preparation follow-up
 
@@ -40,7 +40,7 @@ Source inspection shows that each live driver constructs a MissionProbe, which l
 
 The authorized scope now also includes a minimal test-only preparation change in `server/src/mission/wire_tests.rs`. Create all three probes and retain the exact closed/open fixture topologies before starting the server or connecting live sockets. A driver may select a retained topology only after the actual MapInfo passes the existing complete geometry, presentation and mission comparison. Preserve both 20-second progress/departure waits, the five-second fighter completion bound, real human/agent/spectator sockets, ordinary actions and every party, map-order, aboard and departure assertion. Change no production navigation, cache, controller, transport, geometry or lifetime code.
 
-Review the test-only diff, run the meaningful mixed-party wire case, then rerun the full unfiltered workspace coverage command with its unchanged default test parallelism and 90 percent floor in a coordinated quiet window. Retain both failed whole runs and both isolated launcher records. Keep local native evidence, composed renderer/client evidence, desktop packaging and a physical two-machine human LAN trial distinct. The immutable local Windows native input remains SHA-256 `a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb`; the protected older root binary remains untouched.
+The prepared fixture and empty-host correction subsequently passed the unchanged full coverage command at dff0, with 991 server tests passed, none failed and three existing ignored. Retain both earlier failed whole runs and both isolated launcher records. All thirteen actual Cargo gates returned zero; the original diagnostic wrapper failed while publishing final metadata after its children retired, so an independent receipt binds the completed gate outputs and wrapper retirement. Keep local native evidence, composed renderer/client evidence, desktop packaging and a physical two-machine human LAN trial distinct. Historical immutable Windows inputs are retained separately: ae4 SHA-256 `a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb` and dff0 SHA-256 `66d269351d0077cf3216acfd6ce5b60b40c9a50fe2081685aef2af66c04cc795`. Both precede the strict eleven-field policy contract. The protected older root binary remains untouched.
 
 ## Empty Sabotage host follow-up
 

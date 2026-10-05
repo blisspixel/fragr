@@ -14,6 +14,14 @@ struct Args {
     #[arg(long, default_value = "4")]
     bots: usize,
 
+    /// Fixed rule bots, no bots, or automatic total fighter population.
+    #[arg(long, value_enum, default_value = "fixed", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    bot_policy: fragr_server::bot_fill::BotPolicy,
+
+    /// Desired total fighter count for automatic fill, 1 through 10.
+    #[arg(long, default_value = "0", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    fill_target: usize,
+
     /// Map: 1/arena, 2/compliance-yard, 3/directive-17, 4/sector-9,
     /// 5/reclamation-gulch, 6/tripoint-works.
     #[arg(long, default_value = "1")]
@@ -318,6 +326,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let options = ServerOptions {
         bind: args.bind,
         bots: args.bots,
+        bot_policy: args.bot_policy,
+        fill_target: args.fill_target,
         map,
         authored: args.map_file.map(fragr_server::maps::AuthoredSource::File),
         difficulty: args.difficulty,
@@ -859,6 +869,8 @@ mod tests {
                     difficulty: None,
                     bind: "127.0.0.1:0".to_string(),
                     bots: 1,
+                    bot_policy: fragr_server::bot_fill::BotPolicy::Fixed,
+                    fill_target: 0,
                     map: fragr_server::sim::MapKind::ArenaDuel,
                     map_rotate: false,
                     match_config: None,

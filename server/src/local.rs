@@ -180,6 +180,8 @@ pub struct ArenaReady {
     pub mode: GameMode,
     pub five_vs_five: bool,
     pub bots: usize,
+    pub bot_policy: crate::bot_fill::BotPolicy,
+    pub fill_target: usize,
     pub gameplay_version: u32,
 }
 
@@ -207,6 +209,8 @@ impl ArenaReady {
             mode: config.rules.mode(),
             five_vs_five: config.sabotage.five_vs_five,
             bots: options.bots,
+            bot_policy: options.bot_policy,
+            fill_target: options.fill_target,
             gameplay_version: crate::protocol::GAMEPLAY_VERSION,
         })
     }
@@ -219,6 +223,7 @@ impl ArenaReady {
 }
 
 fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
+    options.validate_bot_policy().map_err(io::Error::other)?;
     let address: SocketAddr = options.bind.parse().map_err(|_| {
         io::Error::other("desktop host requires an IPv4 loopback or wildcard address")
     })?;
@@ -471,6 +476,9 @@ mod tests {
         assert_eq!(bytes.iter().filter(|c| **c == b'\n').count(), 1);
         assert_eq!(serde_json::from_slice::<ArenaReady>(&bytes).unwrap(), ready);
         let mut value = serde_json::to_value(&ready).unwrap();
+        assert_eq!(value.as_object().unwrap().len(), 11);
+        assert_eq!(value["bot_policy"], "fixed");
+        assert_eq!(value["fill_target"], 0);
         value["extra"] = true.into();
         assert!(serde_json::from_value::<ArenaReady>(value).is_err());
         for actual in ["0.0.0.0:43210", "127.0.0.1:0"] {

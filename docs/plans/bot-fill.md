@@ -18,6 +18,8 @@ Add `--bot-policy` and `--fill-target` to the existing CLI. An omitted policy is
 
 Automatic fill is scoped to arena TDM and Sabotage in this item. Reject auto for authored missions, campaign/solo-run profiles and other match modes before binding. Existing fixed behavior in those other entry points remains unchanged. None retains their existing explicit zero-bot constraints.
 
+The accepted first profiles are plain TDM and Sabotage. Reject automatic fill with any mutator before binding: limited-life elimination and a held golden weapon require additional retirement rules outside this scope. Preserve every existing fixed and no-bot mutator combination.
+
 Client settings become exactly seven fields: current `mode`, `map_id`, `bots`, `lan`, `port`, plus `bot_policy` and `fill_target`. Native arena readiness becomes exactly eleven fields: current version/kind/url/listen/map_id/mode/five_vs_five/bots/gameplay_version, plus those two fields. Validate enum, integer bounds, policy/count consistency and exact requested equality at both boundaries. Retain readiness version 1 with a deliberately paired package update; older native children fail the strict check visibly. Do not loosen unknown-field validation. No game WebSocket schema or gameplay revision is needed if match facts and join timing remain unchanged. This local child profile is configuration, not client gameplay authority.
 
 Host offers Fixed bots, No bots, Automatic fill. Use one count control, labelled Bot count for fixed and Total fighters for auto, hidden for none. Default remains fixed four. Summaries distinguish the selected policy and desired count; they do not claim that an actual participant roster was observed. Preserve supported small-window fit and loading-first behavior.
