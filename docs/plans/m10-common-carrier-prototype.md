@@ -320,7 +320,7 @@ Recorded Edda and Splice arrivals follow actual M09 release plus their accepted
 clinic-team and workshop-evacuation eligibility. The unknown case does not
 reconstruct their travel from eligibility alone. Any unconditional Tern staging
 in historical runs is an authored appearance rule, never a recorded arrival.
-Review that narrow staging before the M10 story/presenter checkpoint.
+Tern's current pilot staging is accepted independently of unknown history.
 
 Orrin's recovered cabinet does not prove restoration or continuity. The active
 brief asks for a restored person with missing recent memories, so M10 needs an
@@ -379,3 +379,44 @@ Repeater model/motion/sound and final ship craft stay candidate gates until
 their own references, source, package and played checks pass. No new asset
 family, paid request, runtime service, zero-gravity, vacuum damage, vehicle,
 decompression, Remote Mine, Redactor or M11 map is added by this outline.
+
+## Native contract checkpoint
+
+The owned prototype reserves capability 36 for the actual M10 map/facts, required
+before all-role Welcome. Its current encounter candidate is 17 guards in four
+ordered groups (4, 5, 4, 4), including a three-Crawler service pack, forward
+floor/gallery pairs, an aft Heavy Sweeper and bounded freight-shaft Notary,
+and the passenger return. No Redactor or remote mine is reassigned from M11.
+All current authored placements and physical confirmation pass strict loading.
+
+Save version 13 will retain the immutable M09 receipt and a separate strict
+M10 transit fact, absent before actual promotion. Recorded arrivals must equal
+actual released IDs; unknown historical receipts remain unknown. Pilot Tern's
+current appearance is independent of unknown historical boarding. Optional
+passengers appear only from actual Recorded arrivals. Strict v12 and every
+earlier reader must refuse forged M10 stages or transit fields, archive exact
+bytes and preserve finite entry and one Episode III refill. M10 retry uses
+that entry and the already-committed transit. Orrin remains a secured backup.
+## CPU prototype evidence, 2026-10-04
+
+Twelve focused native tests pass on the current prototype, including real
+capability 35 refusal for human, agent and spectator before Welcome, accepted
+capability 36 map-before-mission delivery, strict map-bound controller facts,
+readiness-safe entry and actual anchored continue. Seeded authority fixtures
+clear the same 17-body roster explicitly; they are not combat playthroughs.
+They prove all-ready living party departure, physical aimed use and refusal
+of a held use through peer arrival. No optional challenge gates departure.
+
+The client import and M10, M09, M08, participant-record and shared mission
+harnesses pass with clean logs. Unknown transit presents current Tern alone;
+all four Recorded optional rosters, fake restored Orrin, duplicate arrivals,
+map mismatch, rewinds, disappearing archive facts and map retirement are
+checked. Essential arrival/departure text uses the existing consumed-input
+story/readiness boundary. Civilian strips remain provisional casting.
+
+A new Latch marker at the first stair-side candidate was refused by strict
+supported reachability. The final marker is at the supported east passenger
+entry, and spawning uses the existing companion lifecycle. Native source and
+all new map facts still need complete workspace and real owned-process checks,
+full ordinary combat, hardware inspection, inhabited room dressing, finite
+supply pacing and actual Repeater source/cues before mission acceptance.

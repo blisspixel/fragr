@@ -392,3 +392,12 @@ msgstr "COMMON CARRIER"
 
 msgid "STORY_L09_L10_PASSAGE"
 msgstr "The impounded ship leaves the Moon. Four days to Mars.\n\nThe transfer evidence goes under Tern's bunk."
+
+msgid "STORY_M10_ARRIVAL_SHIP"
+msgstr "The Common Carrier smells of warm wiring and somebody's reheated supper. Tern is at the controls. The freight shaft runs through three decks; the stairs still work."
+
+msgid "STORY_M10_ARRIVAL_BOARDERS"
+msgstr "A Union tender has found the ship. Clear the forward cargo approach, the service deck, and the aft galleries. Keep a way back to the passenger hall."
+
+msgid "STORY_M10_DEPARTURE_SECURED"
+msgstr "The boarding party is gone. Tern keeps the ship moving, and the passenger hall is quiet again. Whatever is waiting near Mars can wait until everyone has had a breath."

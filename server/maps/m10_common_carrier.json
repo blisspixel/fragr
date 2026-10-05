@@ -1,4 +1,302 @@
 {
+  "encounters": [
+    {
+      "enemies": [
+        {
+          "feet": [
+            -2.0,
+            2.0,
+            -10.0
+          ],
+          "id": "forward_clerk_a",
+          "kind": "clerk",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            2.0,
+            2.0,
+            -10.0
+          ],
+          "id": "forward_clerk_b",
+          "kind": "clerk",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            -2.0,
+            2.0,
+            -7.0
+          ],
+          "id": "forward_sweeper_a",
+          "kind": "sweeper",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            2.0,
+            4.8,
+            -7.0
+          ],
+          "id": "forward_sweeper_b",
+          "kind": "sweeper",
+          "yaw": 0.0
+        }
+      ],
+      "id": "forward_boarders",
+      "regions": [
+        {
+          "max": [
+            2.0,
+            2.3,
+            -10.0
+          ],
+          "min": [
+            -2.0,
+            1.9,
+            -14.0
+          ]
+        },
+        {
+          "max": [
+            2.0,
+            5.1,
+            -7.0
+          ],
+          "min": [
+            -2.0,
+            4.7,
+            -11.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "forward_boarders",
+      "enemies": [
+        {
+          "feet": [
+            -5.0,
+            2.0,
+            2.0
+          ],
+          "id": "service_crawler_a",
+          "kind": "crawler",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            -5.0,
+            2.0,
+            8.0
+          ],
+          "id": "service_crawler_b",
+          "kind": "crawler",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            -2.0,
+            2.0,
+            12.0
+          ],
+          "id": "service_crawler_c",
+          "kind": "crawler",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            2.0,
+            2.0,
+            8.0
+          ],
+          "id": "service_clerk",
+          "kind": "clerk",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            0.0,
+            2.0,
+            10.0
+          ],
+          "id": "service_sweeper",
+          "kind": "sweeper",
+          "yaw": 0.0
+        }
+      ],
+      "id": "service_crawlers",
+      "regions": [
+        {
+          "max": [
+            -2.0,
+            2.3,
+            3.0
+          ],
+          "min": [
+            -6.0,
+            1.9,
+            -1.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "service_crawlers",
+      "enemies": [
+        {
+          "feet": [
+            3.0,
+            2.0,
+            14.0
+          ],
+          "id": "aft_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            0.0,
+            4.8,
+            14.0
+          ],
+          "id": "aft_sweeper",
+          "kind": "sweeper",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            -3.0,
+            7.6,
+            14.0
+          ],
+          "id": "aft_clerk",
+          "kind": "clerk",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            0.0,
+            4.0,
+            1.0
+          ],
+          "hover": {
+            "approach": [
+              0.0,
+              2.0,
+              6.2
+            ],
+            "band": [
+              3.5,
+              6.5
+            ],
+            "patrol": [
+              [
+                0.0,
+                4.0,
+                0.0
+              ],
+              [
+                0.0,
+                5.0,
+                2.0
+              ]
+            ],
+            "volume": {
+              "max": [
+                0.7,
+                6.0,
+                3.0
+              ],
+              "min": [
+                -0.7,
+                4.0,
+                -1.0
+              ]
+            }
+          },
+          "id": "aft_notary",
+          "kind": "notary",
+          "yaw": 0.0
+        }
+      ],
+      "id": "aft_boarders",
+      "regions": [
+        {
+          "max": [
+            2.0,
+            7.9,
+            16.0
+          ],
+          "min": [
+            -2.0,
+            7.5,
+            12.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "aft_boarders",
+      "enemies": [
+        {
+          "feet": [
+            -2.0,
+            4.8,
+            -9.0
+          ],
+          "id": "passenger_clerk_a",
+          "kind": "clerk",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            2.0,
+            4.8,
+            -9.0
+          ],
+          "id": "passenger_clerk_b",
+          "kind": "clerk",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            -2.0,
+            4.8,
+            -12.0
+          ],
+          "id": "passenger_sweeper",
+          "kind": "sweeper",
+          "yaw": 0.0
+        },
+        {
+          "feet": [
+            2.0,
+            4.8,
+            -12.0
+          ],
+          "id": "passenger_enforcer",
+          "kind": "enforcer",
+          "yaw": 0.0
+        }
+      ],
+      "id": "passenger_defense",
+      "regions": [
+        {
+          "max": [
+            2.0,
+            5.1,
+            -10.0
+          ],
+          "min": [
+            -2.0,
+            4.7,
+            -14.0
+          ]
+        }
+      ]
+    }
+  ],
   "equipment": "discovery",
   "ground": "service_steel",
   "half_extent": 24,
@@ -76,6 +374,171 @@
       "id": "west_middle_landing"
     }
   ],
+  "m10": {
+    "companion_start": [
+      3.0,
+      4.8,
+      -15.0
+    ],
+    "departure": {
+      "approach": [
+        0.0,
+        4.8,
+        -16.0
+      ],
+      "boarding": {
+        "max": [
+          1.2,
+          5.1,
+          -14.8
+        ],
+        "min": [
+          -1.2,
+          4.7,
+          -17.2
+        ]
+      },
+      "panel": {
+        "center": [
+          0.0,
+          1.1
+        ],
+        "face": "south",
+        "kind": "lift_control",
+        "size": [
+          0.7,
+          0.6
+        ],
+        "solid": "pressure_fore"
+      },
+      "requires_encounter": "passenger_defense"
+    },
+    "objectives": [
+      {
+        "approach": [
+          0.0,
+          2.0,
+          -8.0
+        ],
+        "arrival": {
+          "max": [
+            1.0,
+            2.3,
+            -7.0
+          ],
+          "min": [
+            -1.0,
+            1.9,
+            -9.0
+          ]
+        },
+        "id": "forward_secured",
+        "requires_encounter": "forward_boarders"
+      },
+      {
+        "approach": [
+          -3.0,
+          2.0,
+          8.0
+        ],
+        "arrival": {
+          "max": [
+            -2.0,
+            2.3,
+            9.0
+          ],
+          "min": [
+            -4.0,
+            1.9,
+            7.0
+          ]
+        },
+        "id": "service_secured",
+        "requires_encounter": "service_crawlers"
+      },
+      {
+        "approach": [
+          0.0,
+          7.6,
+          14.0
+        ],
+        "arrival": {
+          "max": [
+            1.0,
+            7.9,
+            15.0
+          ],
+          "min": [
+            -1.0,
+            7.5,
+            13.0
+          ]
+        },
+        "id": "aft_secured",
+        "requires_encounter": "aft_boarders"
+      },
+      {
+        "approach": [
+          0.0,
+          4.8,
+          -12.0
+        ],
+        "arrival": {
+          "max": [
+            1.0,
+            5.1,
+            -11.0
+          ],
+          "min": [
+            -1.0,
+            4.7,
+            -13.0
+          ]
+        },
+        "id": "passengers_secured",
+        "requires_encounter": "passenger_defense"
+      }
+    ],
+    "passengers": [
+      {
+        "feet": [
+          2.0,
+          4.8,
+          -16.0
+        ],
+        "id": "berth_crew_a"
+      },
+      {
+        "feet": [
+          -2.0,
+          4.8,
+          -16.0
+        ],
+        "id": "berth_crew_b"
+      },
+      {
+        "feet": [
+          2.0,
+          4.8,
+          -14.0
+        ],
+        "id": "edda"
+      },
+      {
+        "feet": [
+          -2.0,
+          4.8,
+          -14.0
+        ],
+        "id": "splice"
+      }
+    ],
+    "pilot": [
+      2.0,
+      7.6,
+      -15.0
+    ]
+  },
   "map_id": 1010,
   "name": "Common Carrier",
   "solids": [

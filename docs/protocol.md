@@ -88,7 +88,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `35`; omission means `1`. Discovery-only maps first
+  and the Godot client send `36`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -178,6 +178,10 @@ Initial handshake message. Must be sent immediately after connection.
   Repeater counts are zero; unsupported ownership or nonzero counts refuse
   delivery rather than losing facts. Warmup state remains private; no new action,
   cycle fact or borrowed weapon presentation is introduced.
+  Version 36 adds Common Carrier's strict m10 map and ordered mission facts,
+  current pilot/passengers and explicit transit history. Every role requires 36
+  before Welcome on that map. It adds no Repeater art, automatic grant or new
+  combat channel.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
@@ -2153,8 +2157,8 @@ M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
 M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
 M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
-M09 is supported; M10 cannot launch.
-Version 12 retains completed
+M09 and the in-flight M10 prototype are supported; pending M11 `right_of_search` cannot launch.
+Version 13 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2162,8 +2166,8 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v12 saved equipment object requires independent `grenades`
-from zero to six. Versions 9 through 12 require actual `proximity_mines` from zero
+Every v6 through v13 saved equipment object requires independent `grenades`
+from zero to six. Versions 9 through 13 require actual `proximity_mines` from zero
 to four. Historical v2 through v8 equipment never has a mine field; an explicit
 strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
@@ -2304,7 +2308,7 @@ Resume promotes completed M08 under the same lock without an episode refill.
 Actual inventory, body and archive outcomes carry; historical v9 choices remain
 explicitly unknown. Readiness does not activate the loading fight at spawn.
 Ordinary movement obtains the Tack before crossing its authored activation
-boundary. Completion saves pending `common_carrier`; M10 is unavailable.
+boundary. Completion saves pending `common_carrier`; the prototype promotes it under the same writer lock.
 
 The port is chosen by the OS. Diagnostics use stderr. The parent validates the
 exact version, mission, requested difficulty, gameplay capability and loopback endpoint before using
@@ -2428,3 +2432,40 @@ with local-process versus external-server provenance. Its own format version is
 separate from wire capabilities. Local files and external hosts are not an
 authenticated public ranking or achievement authority. No background telemetry
 or paid runtime generation is involved.
+### Common Carrier prototype contract
+
+Capability 36 gates all roles before Welcome on Common Carrier (map 1010).
+MapInfo carries strict `m10` with four ordered arrival objectives, a physical
+`departure` Use target and `boarding` region, current `pilot` feet,
+`companion_start`, and four canonical passenger markers. It cannot share
+another mission map. MapInfo precedes corresponding mission facts; controller
+steering stays blocked until fresh matching facts arrive. The static geometry
+and actor markers cannot change within that map contract.
+
+Mission id `common_carrier` uses `briefing`, `in_progress` and `departed`.
+Its strict `m10` facts contain `completed`, `current` until departed, `transit`,
+current `pilot`, the actual `passengers` subset and optional `carried_archive`.
+Four ordered native encounter clears and actual arrival precede fresh physical
+confirmation by every ready living participant aboard. Crew waiting and
+optional difficulty challenges do not gate confirmation. Current Tern is the
+ship's pilot even when historical transit facts are unknown; this is a current
+appearance, never a fabricated recorded release or evacuation. Optional Edda
+and Splice markers require actual Recorded arrivals. A secured cabinet does
+not establish restored Orrin or continuity of a person.
+
+Strict local save version 13 preserves immutable v12 `m09_outcome` and adds
+`m10_transit` only with actual M10 entry and subsequent states. `Recorded`
+arrivals equal the already-recorded actual released crew set. The original
+`aboard_at_departure` subset remains unchanged. `HistoricalUnrecorded` retains
+unknown old history, never empty invented arrivals or eligibility-derived
+travel. This canonical locked M09-to-M10 promotion completes boarding during
+the short transition, clears old-map personal claim IDs and refills Episode III
+continues to three once. Actual HP, armor, body, selection, weapons, ammunition,
+grenades and mines carry unchanged; retry anchors that M10 entry.
+
+The exact strict v12 reader and v10/v11 and earlier readers retain byte
+archives. Historical M10 stages, new transit fields, null future fields and
+Repeater ownership refuse. Current M10 entry cannot forge a gun from completed
+M09; only actual completed M10 equipment may carry the Repeater onward.
+M10 completion retains pending `right_of_search` honestly. Full played combat,
+actual Repeater source/cues and final ship presentation remain acceptance gates.

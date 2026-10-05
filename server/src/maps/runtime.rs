@@ -29,6 +29,16 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m10_objectives(&self) -> Option<&super::authored::m10::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m10.as_deref(),
+        }
+    }
+    pub fn m10_geometry(&self) -> Option<crate::protocol::M10MapGeometry> {
+        self.m10_objectives().map(|p| p.geometry.clone())
+    }
+
     pub(crate) fn m09_objectives(&self) -> Option<&super::authored::m09::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -231,8 +241,9 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.mission()
-            .map(|mission| mission.id)
+        self.m10_objectives()
+            .map(|_| crate::protocol::MissionId::CommonCarrier)
+            .or_else(|| self.mission().map(|mission| mission.id))
             .or_else(|| {
                 self.m02_objectives()
                     .map(|_| crate::protocol::MissionId::PersonsUnknown)

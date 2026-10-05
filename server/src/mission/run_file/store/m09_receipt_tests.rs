@@ -3,7 +3,7 @@ use crate::mission::run_file::{M09Outcome, SavedStep};
 use crate::protocol::MissionId;
 use m09_tests::HASHES;
 
-fn completed_berth(edda: bool, splice: bool) -> RunDocument {
+pub(super) fn completed_berth(edda: bool, splice: bool) -> RunDocument {
     let mut archive = m09_tests::completed_archive();
     if !edda {
         archive

@@ -23,6 +23,7 @@ mod m07;
 mod m08;
 mod m08_qa;
 mod m09;
+mod m10;
 mod roster;
 mod spawns;
 

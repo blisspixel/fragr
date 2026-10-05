@@ -110,7 +110,11 @@ fn m10_collision_shell_has_three_supported_decks_and_a_sealed_freight_volume() {
 }
 
 fn walk(map: &Arc<AuthoredMap>, from: [f32; 3], waypoints: &[[f32; 3]]) {
-    let mut state = GameState::with_authored_map(map.clone());
+    // This fixture proves collision walking, independently of authored combat.
+    let mut walking_map = map.as_ref().clone();
+    walking_map.encounters.clear();
+    walking_map.m10 = None;
+    let mut state = GameState::with_authored_map(Arc::new(walking_map));
     state.config.time_limit_ticks = None;
     state.config.boss_spawn_ticks = None;
     state.config.compliance_ping_ticks = None;
@@ -210,4 +214,48 @@ fn m10_both_stair_trunks_and_cargo_routes_use_real_server_walking() {
             [0.0, 4.8, -15.0],
         ],
     );
+}
+
+#[test]
+fn m10_authored_defense_binds_real_decks_roles_crew_and_a_physical_confirmation() {
+    let map = AuthoredMap::read(SOURCE).unwrap();
+    let geometry = crate::maps::RuntimeMap::Authored(map.clone())
+        .m10_geometry()
+        .unwrap();
+    assert_eq!(
+        map.encounters
+            .iter()
+            .map(|g| g.enemies.len())
+            .collect::<Vec<_>>(),
+        [4, 5, 4, 4]
+    );
+    assert_eq!(
+        geometry
+            .objectives
+            .iter()
+            .map(|o| o.id.as_str())
+            .collect::<Vec<_>>(),
+        crate::protocol::M10_OBJECTIVE_IDS
+    );
+    assert!(standing(&map.arena, geometry.pilot));
+    for person in &geometry.passengers {
+        assert!(standing(&map.arena, person.feet));
+    }
+    for (field, bad) in [
+        ("map_id", serde_json::json!(1009)),
+        ("equipment", serde_json::json!("full_arsenal")),
+    ] {
+        let mut forged: serde_json::Value = serde_json::from_slice(SOURCE).unwrap();
+        forged[field] = bad;
+        assert!(AuthoredMap::read(serde_json::to_vec(&forged).unwrap().as_slice()).is_err());
+    }
+    let mut forged: serde_json::Value = serde_json::from_slice(SOURCE).unwrap();
+    forged["m10"]["objectives"][0]["requires_encounter"] = "passenger_defense".into();
+    assert!(AuthoredMap::read(serde_json::to_vec(&forged).unwrap().as_slice()).is_err());
+    let mut forged: serde_json::Value = serde_json::from_slice(SOURCE).unwrap();
+    forged["m10"]["passengers"][0]["id"] = "orrin".into();
+    assert!(AuthoredMap::read(serde_json::to_vec(&forged).unwrap().as_slice()).is_err());
+    let mut forged: serde_json::Value = serde_json::from_slice(SOURCE).unwrap();
+    forged["encounters"][1]["enemies"][0]["kind"] = "clerk".into();
+    assert!(AuthoredMap::read(serde_json::to_vec(&forged).unwrap().as_slice()).is_err());
 }

@@ -1,34 +1,32 @@
-//! Curfew town progression, the window lesson and the depot freight exit.
+//! Common Carrier ordered boarding defense and fresh party confirmation.
 use super::*;
-use crate::protocol::{M07ObjectiveState, MissionObjective, MissionObjectiveAction};
+use crate::protocol::{M10ObjectiveState, MissionObjective, MissionObjectiveAction};
 
 #[derive(Default)]
-pub(super) struct M07Progress {
+pub(super) struct M10Progress {
     pub(super) index: usize,
-    pub(super) support_shots: u8,
-    pub(super) last_support_tick: Option<u64>,
 }
 
 /// Ordered Arrival objectives before the shared departure.
-const OBJECTIVES: usize = crate::protocol::M07_OBJECTIVE_IDS.len();
+const OBJECTIVES: usize = crate::protocol::M10_OBJECTIVE_IDS.len();
 
 impl GameState {
-    pub(crate) fn ensure_m07_companion(&mut self) {
+    pub(crate) fn ensure_m10_companion(&mut self) {
         if self
             .mission
             .as_ref()
-            .is_some_and(|r| r.m07.is_some() && r.phase == MissionPhase::InProgress)
+            .is_some_and(|r| r.m10.is_some() && r.phase == MissionPhase::InProgress)
         {
-            if let Some(g) = self.map.m07_geometry() {
+            if let Some(g) = self.map.m10_geometry() {
                 self.spawn_campaign_companion(g.companion_start, false);
             }
         }
     }
 
-    pub(super) fn m07_mission_state(&self) -> Option<MissionState> {
+    pub(super) fn m10_mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
-        let p = run.m07.as_ref()?;
-        let prepared = run.initial_map.m07_objectives()?;
+        let p = run.m10.as_ref()?;
+        let prepared = run.initial_map.m10_objectives()?;
         let g = &prepared.geometry;
         let party: Vec<_> = self
             .players
@@ -72,7 +70,7 @@ impl GameState {
             })
         };
         let departure_ready = p.index == OBJECTIVES
-            && self.encounters.is_complete(prepared.departure_encounter)
+            && self.encounters.is_complete(OBJECTIVES - 1)
             && !party.is_empty()
             && party.iter().all(|m| m.ready && m.alive && m.aboard);
         let prompts = if departure_ready
@@ -98,8 +96,9 @@ impl GameState {
         };
         let solo = run.solo.as_ref();
         Some(MissionState {
+            m07: None,
             m08: None,
-            id: MissionId::DeclaredGoods,
+            id: MissionId::CommonCarrier,
             run: solo.map(|s| s.state),
             rules: run.rules,
             attempt: run.attempt,
@@ -113,34 +112,34 @@ impl GameState {
             m05: None,
             m06: None,
             m09: None,
-            m10: None,
-            m07: Some(M07ObjectiveState {
+            m10: Some(M10ObjectiveState {
                 completed,
                 current,
-                carried_recall_cars: solo
-                    .map(|s| s.carried_recall_cars.clone())
-                    .unwrap_or_default(),
-                carried_patients: solo.map(|s| s.carried_patients.clone()).unwrap_or_default(),
-                carried_photos: solo.map_or(0, |s| s.carried_photos),
-                carried_released_workers: solo
-                    .map(|s| s.carried_released_workers.clone())
-                    .unwrap_or_default(),
-                carried_evacuated_workers: solo
-                    .map(|s| s.carried_evacuated_workers.clone())
-                    .unwrap_or_default(),
-                carried_prisoner_route_marked: solo
-                    .is_some_and(|s| s.carried_prisoner_route_marked),
+                transit: solo
+                    .and_then(|s| s.carried_transit.clone())
+                    .unwrap_or(crate::protocol::M10Transit::HistoricalUnrecorded {}),
+                pilot: g.pilot,
+                passengers: g
+                    .passengers
+                    .iter()
+                    .filter(|p| {
+                        solo.and_then(|s| s.carried_transit.as_ref())
+                            .is_some_and(|t| t.arrived(&p.id))
+                    })
+                    .cloned()
+                    .collect(),
+                carried_archive: solo.and_then(|s| s.carried_archive.clone()),
             }),
         })
     }
 
-    pub(super) fn advance_m07(&mut self) {
+    pub(super) fn advance_m10(&mut self) {
         let requests: HashSet<_> = self
             .players
             .iter_mut()
             .filter_map(|p| std::mem::take(&mut p.interaction_requested).then_some(p.id))
             .collect();
-        let Some(state) = self.m07_mission_state() else {
+        let Some(state) = self.m10_mission_state() else {
             return;
         };
         if state.phase != MissionPhase::InProgress || self.campaign_run_frozen() {
@@ -149,10 +148,10 @@ impl GameState {
         let Some(run) = &self.mission else {
             return;
         };
-        let Some(prepared) = run.initial_map.m07_objectives() else {
+        let Some(prepared) = run.initial_map.m10_objectives() else {
             return;
         };
-        let Some(progress) = &run.m07 else {
+        let Some(progress) = &run.m10 else {
             return;
         };
         let arrived = |action: &MissionObjectiveAction| {
@@ -161,37 +160,29 @@ impl GameState {
                     && run.ready.contains(&p.id) && region.contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])))
         };
         let advance = progress.index < OBJECTIVES
-            && self
-                .encounters
-                .is_complete(prepared.encounters[progress.index])
+            && self.encounters.is_complete(progress.index)
             && (arrived(&prepared.geometry.objectives[progress.index].action)
-                || super::arrival_passed(
-                    &self.encounters,
-                    &prepared.encounters,
-                    progress.index,
-                    || {
-                        self.players.iter().any(|p| {
-                            p.is_participant()
-                                && p.hp > 0
-                                && p.respawn_timer.is_none()
-                                && run.ready.contains(&p.id)
-                                && prepared.geometry.boarding.contains([
-                                    p.x,
-                                    p.y - PLAYER_FLOOR_Y,
-                                    p.z,
-                                ])
-                        })
-                    },
-                ));
+                || super::arrival_passed(&self.encounters, &[0, 1, 2, 3], progress.index, || {
+                    self.players.iter().any(|p| {
+                        p.is_participant()
+                            && p.hp > 0
+                            && p.respawn_timer.is_none()
+                            && run.ready.contains(&p.id)
+                            && prepared
+                                .geometry
+                                .boarding
+                                .contains([p.x, p.y - PLAYER_FLOOR_Y, p.z])
+                    })
+                }));
         if advance {
             let reached = prepared.geometry.objectives[progress.index].id.clone();
             if let Some(run) = &mut self.mission {
-                if let Some(progress) = &mut run.m07 {
+                if let Some(progress) = &mut run.m10 {
                     progress.index += 1;
                     run.changed_at = self.tick;
                 }
             }
-            tracing::info!(objective = %reached, "Declared Goods objective reached");
+            tracing::info!(objective = %reached, "Common Carrier objective reached");
             return;
         }
         if !state
@@ -230,6 +221,6 @@ impl GameState {
                 solo.state.status = crate::protocol::CampaignRunStatus::Complete;
             }
         }
-        tracing::info!("Depot freight departure confirmed");
+        tracing::info!("Common Carrier ship secured");
     }
 }

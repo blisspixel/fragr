@@ -1,0 +1,14 @@
+{
+  "format": 1,
+  "shots": [
+    {
+      "timing": "reader",
+      "caption_key": "STORY_M10_DEPARTURE_SECURED",
+      "id": "SECURED",
+      "hold": 1.0
+    }
+  ],
+  "skip_key": "STORY_SKIP_SCENE",
+  "id": "l10_l11",
+  "title_key": "MISSION_M10_TITLE"
+}

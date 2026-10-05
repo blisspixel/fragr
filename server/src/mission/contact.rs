@@ -79,6 +79,21 @@ impl GameState {
                 bodies.push(civilian(format!("m05/{}", captive.id), captive.feet));
             }
         }
+        if run.m10.is_some() {
+            if let Some(g) = run.initial_map.m10_geometry() {
+                bodies.push(civilian("m10/tern".into(), g.pilot));
+                for p in &g.passengers {
+                    if run
+                        .solo
+                        .as_ref()
+                        .and_then(|s| s.carried_transit.as_ref())
+                        .is_some_and(|t| t.arrived(&p.id))
+                    {
+                        bodies.push(civilian(format!("m10/{}", p.id), p.feet));
+                    }
+                }
+            }
+        }
         if let Some(p) = &run.m09 {
             for crew in &p.crew {
                 bodies.push(civilian(format!("m09/{}", crew.id), crew.feet));

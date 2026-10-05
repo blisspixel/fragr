@@ -43,6 +43,7 @@ func _initialize() -> void:
 		"version": 1, "map_id": 1010, "name": "Common Carrier",
 		"half_extent": 24, "ground": "service_steel", "equipment": "discovery",
 		"solids": _solids, "landmarks": landmarks,
+		"m10": _mission(), "encounters": _encounters(),
 		"spawns": [{"id": "passenger_entry", "feet": [0.0, 4.8, -15.0], "yaw": 0.0}],
 	}
 	var file: FileAccess = FileAccess.open("res://../server/maps/m10_common_carrier.json", FileAccess.WRITE)
@@ -101,3 +102,43 @@ func _stairs(label: String, first_x: float, origin_z: float, direction: float) -
 			_box("%s_second_%d_%d" % [label, level, step],
 				[second_x, second_top - 0.18, minf(from_z, to_z)],
 				[second_x + 1.8, second_top, maxf(from_z, to_z)])
+
+func _region(feet: Array, width: float = 1.0) -> Dictionary:
+	return {"min": [feet[0] - width, feet[1] - 0.1, feet[2] - width],
+		"max": [feet[0] + width, feet[1] + 0.3, feet[2] + width]}
+
+func _mission() -> Dictionary:
+	var ids: Array[String] = ["forward_secured", "service_secured", "aft_secured", "passengers_secured"]
+	var groups: Array[String] = ["forward_boarders", "service_crawlers", "aft_boarders", "passenger_defense"]
+	var approaches: Array[Array] = [[0.0, 2.0, -8.0], [-3.0, 2.0, 8.0], [0.0, 7.6, 14.0], [0.0, 4.8, -12.0]]
+	var objectives: Array[Dictionary] = []
+	for i: int in range(4):
+		objectives.append({"id": ids[i], "requires_encounter": groups[i], "approach": approaches[i], "arrival": _region(approaches[i])})
+	return {"objectives": objectives, "pilot": [2.0, 7.6, -15.0], "companion_start": [3.0, 4.8, -15.0],
+		"passengers": [{"id": "berth_crew_a", "feet": [2.0, 4.8, -16.0]}, {"id": "berth_crew_b", "feet": [-2.0, 4.8, -16.0]},
+			{"id": "edda", "feet": [2.0, 4.8, -14.0]}, {"id": "splice", "feet": [-2.0, 4.8, -14.0]}],
+		"departure": {"requires_encounter": groups[3], "approach": [0.0, 4.8, -16.0], "boarding": _region([0.0, 4.8, -16.0], 1.2),
+			"panel": {"solid": "pressure_fore", "face": "south", "kind": "lift_control", "center": [0.0, 1.1], "size": [0.7, 0.6]}}}
+
+func _enemy(id: String, kind: String, feet: Array) -> Dictionary:
+	return {"id": id, "kind": kind, "feet": feet, "yaw": 0.0}
+
+func _encounters() -> Array[Dictionary]:
+	var notary: Dictionary = _enemy("aft_notary", "notary", [0.0, 4.0, 1.0])
+	notary["hover"] = {"volume": {"min": [-0.7, 4.0, -1.0], "max": [0.7, 6.0, 3.0]}, "band": [3.5, 6.5],
+		"patrol": [[0.0, 4.0, 0.0], [0.0, 5.0, 2.0]], "approach": [0.0, 2.0, 6.2]}
+	return [
+		{"id": "forward_boarders", "regions": [_region([0.0, 2.0, -12.0], 2.0), _region([0.0, 4.8, -9.0], 2.0)], "enemies": [
+			_enemy("forward_clerk_a", "clerk", [-2.0, 2.0, -10.0]), _enemy("forward_clerk_b", "clerk", [2.0, 2.0, -10.0]),
+			_enemy("forward_sweeper_a", "sweeper", [-2.0, 2.0, -7.0]), _enemy("forward_sweeper_b", "sweeper", [2.0, 4.8, -7.0])]},
+		{"id": "service_crawlers", "after": "forward_boarders", "regions": [_region([-4.0, 2.0, 1.0], 2.0)], "enemies": [
+			_enemy("service_crawler_a", "crawler", [-5.0, 2.0, 2.0]), _enemy("service_crawler_b", "crawler", [-5.0, 2.0, 8.0]),
+			_enemy("service_crawler_c", "crawler", [-2.0, 2.0, 12.0]), _enemy("service_clerk", "clerk", [2.0, 2.0, 8.0]),
+			_enemy("service_sweeper", "sweeper", [0.0, 2.0, 10.0])]},
+		{"id": "aft_boarders", "after": "service_crawlers", "regions": [_region([0.0, 7.6, 14.0], 2.0)], "enemies": [
+			_enemy("aft_heavy", "heavy_sweeper", [3.0, 2.0, 14.0]), _enemy("aft_sweeper", "sweeper", [0.0, 4.8, 14.0]),
+			_enemy("aft_clerk", "clerk", [-3.0, 7.6, 14.0]), notary]},
+		{"id": "passenger_defense", "after": "aft_boarders", "regions": [_region([0.0, 4.8, -12.0], 2.0)], "enemies": [
+			_enemy("passenger_clerk_a", "clerk", [-2.0, 4.8, -9.0]), _enemy("passenger_clerk_b", "clerk", [2.0, 4.8, -9.0]),
+			_enemy("passenger_sweeper", "sweeper", [-2.0, 4.8, -12.0]), _enemy("passenger_enforcer", "enforcer", [2.0, 4.8, -12.0])]},
+	]

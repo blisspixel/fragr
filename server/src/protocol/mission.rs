@@ -99,6 +99,7 @@ pub enum MissionId {
     CustodianOfRecord,
     DeclaredGoods,
     PassengerManifest,
+    CommonCarrier,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -496,10 +497,15 @@ pub struct MissionState {
     pub m07: Option<super::M07ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m09: Option<super::M09ObjectiveState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m10: Option<super::M10ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if self.id != MissionId::CommonCarrier && self.m10.is_some() {
+            return Err("M10 facts require M10 mission");
+        }
         if self.id != MissionId::PassengerManifest && self.m09.is_some() {
             return Err("M09 facts require M09 mission");
         }
@@ -540,6 +546,7 @@ impl MissionState {
             MissionId::CustodianOfRecord => self.validate_m08()?,
             MissionId::DeclaredGoods => self.validate_m07()?,
             MissionId::PassengerManifest => self.validate_m09()?,
+            MissionId::CommonCarrier => self.validate_m10()?,
         }
         if let Some(run) = self.run {
             run.validate_attempt(self.attempt)?;
@@ -584,14 +591,22 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::PassengerManifest
+                    (self.id == MissionId::CommonCarrier
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self.m09.as_ref().is_some_and(|f| {
-                            f.completed.len() == 2
-                                || f.completed.len() == 8
-                                    && !self.party.is_empty()
-                                    && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
-                        }))
+                        && self
+                            .m10
+                            .as_ref()
+                            .is_some_and(|f| f.completed.len() == super::M10_OBJECTIVE_IDS.len())
+                        && !self.party.is_empty()
+                        && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
+                        || (self.id == MissionId::PassengerManifest
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m09.as_ref().is_some_and(|f| {
+                                f.completed.len() == 2
+                                    || f.completed.len() == 8
+                                        && !self.party.is_empty()
+                                        && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                            }))
                         || (self.id == MissionId::CustodianOfRecord
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m08.as_ref().is_some_and(|f| {
@@ -850,6 +865,7 @@ mod m02_wire_tests {
             m08: None,
             m07: None,
             m09: None,
+            m10: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

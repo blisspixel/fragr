@@ -115,6 +115,7 @@ impl Encounters {
         state.ensure_m08_companion();
         state.ensure_m07_companion();
         state.ensure_m09_companion();
+        state.ensure_m10_companion();
         state.note_mission_started();
         for (index, definition) in definitions.iter().enumerate() {
             // M04 introduces each airborne threat in order. Do not expose a

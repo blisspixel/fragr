@@ -67,6 +67,7 @@ impl RunDocumentV10 {
             m06_outcome: self.m06_outcome,
             m08_outcome: self.m08_outcome,
             m09_outcome: completed_m09.then_some(M09Outcome::HistoricalUnrecorded {}),
+            m10_transit: None,
         };
         document.validate(hashes[store::stage_index(document.stage_mission())])?;
         Ok(document)
@@ -74,6 +75,27 @@ impl RunDocumentV10 {
 }
 
 fn pre_repeater_step(step: SavedStep) -> Result<SavedStep, &'static str> {
+    if matches!(
+        &step,
+        SavedStep::MissionEntry {
+            mission: MissionId::CommonCarrier,
+            ..
+        } | SavedStep::PendingContinue {
+            mission: MissionId::CommonCarrier,
+            ..
+        } | SavedStep::Failed {
+            mission: MissionId::CommonCarrier,
+            ..
+        } | SavedStep::Abandoned {
+            mission: MissionId::CommonCarrier,
+            ..
+        } | SavedStep::AwaitingMission {
+            completed_mission: MissionId::CommonCarrier,
+            ..
+        }
+    ) {
+        return Err("historical saves cannot contain M10");
+    }
     let entry = match &step {
         SavedStep::MissionEntry { entry, .. }
         | SavedStep::PendingContinue { entry, .. }
@@ -164,6 +186,7 @@ impl RunDocumentV9 {
             m06_outcome: self.m06_outcome,
             m08_outcome: completed_m08.then_some(M08Outcome::HistoricalUnrecorded {}),
             m09_outcome: None,
+            m10_transit: None,
         };
         document.validate(hashes[store::stage_index(document.stage_mission())])?;
         Ok(document)
@@ -215,11 +238,12 @@ impl RunDocumentV8 {
             m06_outcome: self.m06_outcome,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         let mission = document.stage_mission();
         if matches!(
             mission,
-            MissionId::CustodianOfRecord | MissionId::PassengerManifest
+            MissionId::CustodianOfRecord | MissionId::PassengerManifest | MissionId::CommonCarrier
         ) {
             return Err("M08 was not supported by version 8");
         }
@@ -275,6 +299,7 @@ impl RunDocumentV7 {
             m06_outcome: self.m06_outcome,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -333,6 +358,7 @@ impl RunDocumentV6 {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -343,7 +369,8 @@ impl RunDocumentV6 {
             MissionId::PortOfEntry => return Err("M06 was not supported by version 6"),
             MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord
-            | MissionId::PassengerManifest => return Err("M08 was not supported by version 6"),
+            | MissionId::PassengerManifest
+            | MissionId::CommonCarrier => return Err("M08 was not supported by version 6"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -530,6 +557,7 @@ impl RunDocumentV5 {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -540,7 +568,8 @@ impl RunDocumentV5 {
             | MissionId::PortOfEntry
             | MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord
-            | MissionId::PassengerManifest => return Err("M05 was not supported by version 5"),
+            | MissionId::PassengerManifest
+            | MissionId::CommonCarrier => return Err("M05 was not supported by version 5"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -583,9 +612,8 @@ impl RunDocumentV4 {
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
-                | MissionId::PassengerManifest => {
-                    return Err("mission was not supported by version 4")
-                }
+                | MissionId::PassengerManifest
+                | MissionId::CommonCarrier => return Err("mission was not supported by version 4"),
             },
             SavedStep::AwaitingMission {
                 completed_mission, ..
@@ -598,9 +626,8 @@ impl RunDocumentV4 {
                 | MissionId::PortOfEntry
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
-                | MissionId::PassengerManifest => {
-                    return Err("mission was not supported by version 4")
-                }
+                | MissionId::PassengerManifest
+                | MissionId::CommonCarrier => return Err("mission was not supported by version 4"),
             },
         };
         let document = RunDocument {
@@ -619,6 +646,7 @@ impl RunDocumentV4 {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         document.validate(expected)?;
         Ok(document)
@@ -663,6 +691,7 @@ impl RunDocumentV3 {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
@@ -673,7 +702,8 @@ impl RunDocumentV3 {
             | MissionId::PortOfEntry
             | MissionId::DeclaredGoods
             | MissionId::CustodianOfRecord
-            | MissionId::PassengerManifest => return Err("M05 was not supported by version 3"),
+            | MissionId::PassengerManifest
+            | MissionId::CommonCarrier => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");
@@ -730,8 +760,64 @@ impl RunDocumentV2 {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         };
         document.validate(m01_hash)?;
+        Ok(document)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct RunDocumentV12 {
+    pub version: u32,
+    pub id: Uuid,
+    pub starting_continues: u8,
+    pub remaining_continues: u8,
+    pub level_start_continues: u8,
+    pub body: Option<BodyKind>,
+    pub rules: CampaignRules,
+    pub content_sha256: [u8; 32],
+    #[serde(deserialize_with = "deserialize_pre_repeater_step")]
+    pub step: SavedStep,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m03_outcome: Option<M03Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m04_outcome: Option<M04Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m05_outcome: Option<M05Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m06_outcome: Option<M06Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m08_outcome: Option<M08Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m09_outcome: Option<M09Outcome>,
+}
+
+impl RunDocumentV12 {
+    pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
+        if self.version != 12 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+            return Err("unsupported historical campaign rules");
+        }
+        let document = RunDocument {
+            version: RUN_FILE_VERSION,
+            id: self.id,
+            starting_continues: self.starting_continues,
+            remaining_continues: self.remaining_continues,
+            level_start_continues: self.level_start_continues,
+            body: self.body,
+            rules: self.rules,
+            content_sha256: self.content_sha256,
+            step: self.step,
+            m03_outcome: self.m03_outcome,
+            m04_outcome: self.m04_outcome,
+            m05_outcome: self.m05_outcome,
+            m06_outcome: self.m06_outcome,
+            m08_outcome: self.m08_outcome,
+            m09_outcome: self.m09_outcome,
+            m10_transit: None,
+        };
+        document.validate(hashes[store::stage_index(document.stage_mission())])?;
         Ok(document)
     }
 }

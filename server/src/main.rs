@@ -178,6 +178,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "port_of_entry" => fragr_server::protocol::MissionId::PortOfEntry,
             "custodian_of_record" => fragr_server::protocol::MissionId::CustodianOfRecord,
             "passenger_manifest" => fragr_server::protocol::MissionId::PassengerManifest,
+            "common_carrier" => fragr_server::protocol::MissionId::CommonCarrier,
             "declared_goods" => fragr_server::protocol::MissionId::DeclaredGoods,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };

@@ -12,14 +12,14 @@ mod legacy;
 mod m09_outcome;
 pub(crate) mod store;
 use legacy::{
-    RunDocumentV10, RunDocumentV11, RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5,
-    RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
+    RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV2, RunDocumentV3, RunDocumentV4,
+    RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
 };
 pub(crate) use m09_outcome::M09Outcome;
 
-/// Version 12 retains actual berth departure and historical missing crew facts.
-/// Transit remains pending until its genuine M10 handoff exists.
-pub(super) const RUN_FILE_VERSION: u32 = 12;
+/// Version 13 keeps berth confirmation distinct from committed M10 arrivals.
+/// Only the locked M09-to-M10 edge records transit and the Episode III refill.
+pub(super) const RUN_FILE_VERSION: u32 = 13;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
 const M04_MISSION: &str = "notice_to_vacate";
@@ -28,6 +28,7 @@ const M06_MISSION: &str = "port_of_entry";
 const M07_MISSION: &str = "declared_goods";
 const M09_MISSION: &str = "passenger_manifest";
 const M10_MISSION: &str = "common_carrier";
+const M11_MISSION: &str = "right_of_search";
 const M08_MISSION: &str = "custodian_of_record";
 
 pub(crate) use crate::protocol::M08Outcome;
@@ -208,6 +209,8 @@ pub(crate) struct RunDocument {
     pub m08_outcome: Option<M08Outcome>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m09_outcome: Option<M09Outcome>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub m10_transit: Option<crate::protocol::M10Transit>,
 }
 
 impl RunDocument {
@@ -241,6 +244,7 @@ impl RunDocument {
             MissionId::PortOfEntry => (MissionId::NoForwardingAddress, M06_MISSION),
             MissionId::CustodianOfRecord => (MissionId::DeclaredGoods, M08_MISSION),
             MissionId::PassengerManifest => (MissionId::CustodianOfRecord, M09_MISSION),
+            MissionId::CommonCarrier => (MissionId::PassengerManifest, M10_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -262,6 +266,7 @@ impl RunDocument {
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -276,9 +281,27 @@ impl RunDocument {
         // Only the completed M05 edge enters Episode II. Reopening a promoted
         // entry or retrying it never passes this edge again. M07 continues the
         // same episode with whatever allowance M06 left.
-        if mission == MissionId::PortOfEntry {
+        if matches!(mission, MissionId::PortOfEntry | MissionId::CommonCarrier) {
             promoted.remaining_continues = CAMPAIGN_CONTINUES;
             promoted.level_start_continues = CAMPAIGN_CONTINUES;
+        }
+        if mission == MissionId::CommonCarrier {
+            promoted.m10_transit = Some(
+                match self
+                    .m09_outcome
+                    .as_ref()
+                    .ok_or("M10 promotion requires the berth receipt")?
+                {
+                    M09Outcome::Recorded { released_crew, .. } => {
+                        crate::protocol::M10Transit::Recorded {
+                            arrived_crew: released_crew.clone(),
+                        }
+                    }
+                    M09Outcome::HistoricalUnrecorded {} => {
+                        crate::protocol::M10Transit::HistoricalUnrecorded {}
+                    }
+                },
+            );
         }
         promoted.step = SavedStep::MissionEntry { mission, entry };
         promoted.validate(content_hash)?;
@@ -304,6 +327,7 @@ impl RunDocument {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
         }
     }
 
@@ -316,6 +340,7 @@ impl RunDocument {
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
+                | MissionId::CommonCarrier
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -332,6 +357,7 @@ impl RunDocument {
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
+                | MissionId::CommonCarrier
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -347,6 +373,7 @@ impl RunDocument {
                 | MissionId::DeclaredGoods
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
+                | MissionId::CommonCarrier
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
@@ -358,15 +385,20 @@ impl RunDocument {
         }
         let completed_m06 = matches!(
             self.stage_mission(),
-            MissionId::DeclaredGoods | MissionId::CustodianOfRecord | MissionId::PassengerManifest
+            MissionId::DeclaredGoods
+                | MissionId::CustodianOfRecord
+                | MissionId::PassengerManifest
+                | MissionId::CommonCarrier
         ) || matches!(&self.step, SavedStep::AwaitingMission {
                 completed_mission: MissionId::PortOfEntry, next_mission, ..
             } if next_mission == M07_MISSION);
         if completed_m06 != self.m06_outcome.is_some() {
             return Err("saved prisoner-route outcome does not match completed M06");
         }
-        let completed_m08 = self.stage_mission() == MissionId::PassengerManifest
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m08 = matches!(
+            self.stage_mission(),
+            MissionId::PassengerManifest | MissionId::CommonCarrier
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
         if completed_m08 != self.m08_outcome.is_some() {
@@ -375,7 +407,8 @@ impl RunDocument {
         if let Some(outcome) = &self.m08_outcome {
             outcome.validate()?;
         }
-        let completed_m09 = matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m09 = self.stage_mission() == MissionId::CommonCarrier
+            || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PassengerManifest, next_mission, ..
         } if next_mission == M10_MISSION);
         if completed_m09 != self.m09_outcome.is_some() {
@@ -383,6 +416,23 @@ impl RunDocument {
         }
         if let Some(outcome) = &self.m09_outcome {
             outcome.validate(self)?;
+        }
+        if (self.stage_mission() == MissionId::CommonCarrier) != self.m10_transit.is_some() {
+            return Err("saved transit does not match M10");
+        }
+        if let Some(transit) = &self.m10_transit {
+            transit.validate()?;
+            if !matches!((&self.m09_outcome, transit), (Some(M09Outcome::Recorded {released_crew,..}), crate::protocol::M10Transit::Recorded {arrived_crew}) if released_crew == arrived_crew)
+                && !matches!(
+                    (&self.m09_outcome, transit),
+                    (
+                        Some(M09Outcome::HistoricalUnrecorded {}),
+                        crate::protocol::M10Transit::HistoricalUnrecorded {}
+                    )
+                )
+            {
+                return Err("saved M10 arrivals disagree with the immutable berth release");
+            }
         }
         if self.version != RUN_FILE_VERSION
             || self.id.is_nil()
@@ -426,6 +476,7 @@ impl RunDocument {
                         | (MissionId::DeclaredGoods, M08_MISSION)
                         | (MissionId::CustodianOfRecord, M09_MISSION)
                         | (MissionId::PassengerManifest, M10_MISSION)
+                        | (MissionId::CommonCarrier, M11_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -441,11 +492,15 @@ impl RunDocument {
                         MissionId::DeclaredGoods
                             | MissionId::CustodianOfRecord
                             | MissionId::PassengerManifest
+                            | MissionId::CommonCarrier
                     ),
                     matches!(
                         *completed_mission,
-                        MissionId::CustodianOfRecord | MissionId::PassengerManifest
+                        MissionId::CustodianOfRecord
+                            | MissionId::PassengerManifest
+                            | MissionId::CommonCarrier
                     ),
+                    *completed_mission == MissionId::CommonCarrier,
                 )?;
                 exit.validate()
             }
@@ -460,12 +515,17 @@ impl RunDocument {
             entry,
             matches!(
                 mission,
-                MissionId::CustodianOfRecord | MissionId::PassengerManifest
+                MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ),
             matches!(
                 mission,
-                MissionId::CustodianOfRecord | MissionId::PassengerManifest
+                MissionId::CustodianOfRecord
+                    | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ),
+            false,
         )?;
         entry.validate()
     }
@@ -477,11 +537,13 @@ impl RunDocument {
         entry: &SavedEntry,
         sniper_found: bool,
         mines_found: bool,
+        repeater_found: bool,
     ) -> Result<(), &'static str> {
-        if entry.equipment.weapons.contains(&WeaponType::Repeater)
-            || entry.equipment.selected == WeaponType::Repeater
+        if !repeater_found
+            && (entry.equipment.weapons.contains(&WeaponType::Repeater)
+                || entry.equipment.selected == WeaponType::Repeater)
         {
-            return Err("Repeater ownership requires its unbuilt campaign stage");
+            return Err("Repeater ownership requires completed M10");
         }
         if !mines_found && entry.equipment.proximity_mines != 0 {
             return Err("saved equipment carries mines before their mission");
@@ -532,6 +594,7 @@ impl GameState {
                     MissionId::PortOfEntry => M07_MISSION,
                     MissionId::CustodianOfRecord => M09_MISSION,
                     MissionId::PassengerManifest => M10_MISSION,
+                    MissionId::CommonCarrier => M11_MISSION,
                     MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
@@ -566,6 +629,7 @@ impl GameState {
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -587,6 +651,7 @@ impl GameState {
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -608,6 +673,7 @@ impl GameState {
                     | MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
@@ -627,6 +693,7 @@ impl GameState {
                 MissionId::DeclaredGoods
                     | MissionId::CustodianOfRecord
                     | MissionId::PassengerManifest
+                    | MissionId::CommonCarrier
             ) {
                 Some(M06Outcome {
                     prisoner_route_marked: solo.carried_prisoner_route_marked,
@@ -643,7 +710,10 @@ impl GameState {
                     recovered_mind_secured: progress.recovered_mind_secured,
                     captives_evacuated: progress.captives_evacuated,
                 })
-            } else if mission == MissionId::PassengerManifest {
+            } else if matches!(
+                mission,
+                MissionId::PassengerManifest | MissionId::CommonCarrier
+            ) {
                 solo.carried_archive.clone()
             } else {
                 None
@@ -658,6 +728,13 @@ impl GameState {
                         .filter(|outcome| matches!(outcome, M09Outcome::Recorded { .. }))
                         .ok_or("completed M09 lacks its actual departure receipt")?,
                 )
+            } else if mission == MissionId::CommonCarrier {
+                solo.carried_berth.clone()
+            } else {
+                None
+            },
+            m10_transit: if mission == MissionId::CommonCarrier {
+                solo.carried_transit.clone()
             } else {
                 None
             },
@@ -752,6 +829,7 @@ mod tests {
             m06_outcome: None,
             m08_outcome: None,
             m09_outcome: None,
+            m10_transit: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

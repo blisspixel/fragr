@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "shots": [
+    {
+      "timing": "reader",
+      "caption_key": "STORY_M10_ARRIVAL_SHIP",
+      "id": "SHIP",
+      "hold": 1.0
+    },
+    {
+      "timing": "reader",
+      "caption_key": "STORY_M10_ARRIVAL_BOARDERS",
+      "id": "BOARDERS",
+      "hold": 1.0
+    }
+  ],
+  "skip_key": "STORY_SKIP_SCENE",
+  "id": "m10_arrival",
+  "title_key": "MISSION_M10_TITLE"
+}
