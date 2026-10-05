@@ -693,6 +693,9 @@ pub const M09_GAMEPLAY_VERSION: u32 = 34;
 /// Repeater identity, server warmup and strict eight-column record revision 2.
 pub const REPEATER_GAMEPLAY_VERSION: u32 = 35;
 pub const M10_GAMEPLAY_VERSION: u32 = 36;
+/// Reserved Right of Search contract, including deliberate charges and Redactor.
+/// Current content does not advertise this until the full mission is prepared.
+pub const M11_GAMEPLAY_VERSION: u32 = 37;
 pub const GAMEPLAY_VERSION: u32 = M10_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1

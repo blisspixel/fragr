@@ -7,6 +7,7 @@ use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 mod enforcer;
+mod redactor;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
 /// Damage from one tick at or above this staggers an armored body. A Rail hit,
@@ -94,6 +95,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Auditor => (120, WeaponType::Tack),
         EnemyKind::RangedSweeper => (70, WeaponType::Sniper),
         EnemyKind::Enforcer => (140, WeaponType::Fists),
+        EnemyKind::Redactor => (90, WeaponType::Shiv),
     }
 }
 
@@ -106,6 +108,7 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         EnemyKind::Crawler => 0.7,
         EnemyKind::Auditor => 0.4,
         EnemyKind::Enforcer => 0.45,
+        EnemyKind::Redactor => 0.6,
     }
 }
 
@@ -117,7 +120,8 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::Crawler
         | EnemyKind::Jammer
         | EnemyKind::Auditor
-        | EnemyKind::RangedSweeper => 1,
+        | EnemyKind::RangedSweeper
+        | EnemyKind::Redactor => 1,
         EnemyKind::Enforcer => 1,
         EnemyKind::Sweeper | EnemyKind::Notary => 3,
         EnemyKind::HeavySweeper => 4,
@@ -133,7 +137,8 @@ fn stun(kind: EnemyKind) -> u64 {
         | EnemyKind::Jammer
         | EnemyKind::Notary
         | EnemyKind::Auditor
-        | EnemyKind::RangedSweeper => 6,
+        | EnemyKind::RangedSweeper
+        | EnemyKind::Redactor => 6,
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Enforcer => 16,
         EnemyKind::Turret => 10,
@@ -205,6 +210,10 @@ pub(super) struct EnemyController {
     dead_until: u64,
     /// The charge's original supported height, retained through recovery.
     charge_floor: Option<f32>,
+    /// Redactor only: one held, supported lateral approach per visible pursuit.
+    redactor_approach: Option<(Uuid, [f32; 3])>,
+    redactor_approach_until: u64,
+    redactor_approached: bool,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -239,6 +248,10 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Enforcer, CampaignDifficulty::Assisted) => (32, 44),
         (EnemyKind::Enforcer, CampaignDifficulty::Standard) => (24, 36),
         (EnemyKind::Enforcer, CampaignDifficulty::Severe) => (20, 30),
+        // New role prototype tuning; the earlier roles retain their exact tells.
+        (EnemyKind::Redactor, CampaignDifficulty::Assisted) => (24, 30),
+        (EnemyKind::Redactor, CampaignDifficulty::Standard) => (18, 24),
+        (EnemyKind::Redactor, CampaignDifficulty::Severe) => (14, 18),
     }
 }
 
@@ -393,6 +406,9 @@ impl EnemyController {
             channel_target: None,
             dead_until: tick,
             charge_floor: None,
+            redactor_approach: None,
+            redactor_approach_until: 0,
+            redactor_approached: false,
         }
     }
 
@@ -420,6 +436,8 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.redactor_approach = None;
+        self.redactor_approached = false;
         self.photograph_pending = None;
         self.seated = false;
         if self.kind != EnemyKind::Enforcer || died {
@@ -723,6 +741,11 @@ impl EnemyController {
                 }
             }
         }
+        if self.kind == EnemyKind::Redactor {
+            if let Some(intent) = self.redactor_approach(state, target, feet, tick) {
+                return intent;
+            }
+        }
         if tick <= self.search_until
             && (feet[0] - self.last_known[0]).hypot(feet[2] - self.last_known[2]) > 0.6
         {
@@ -773,6 +796,7 @@ impl EnemyController {
     }
 
     fn begin_windup(&mut self, aim: (f32, f32), tick: u64, windup: u64, action: &mut Action) {
+        self.redactor_approach = None;
         self.photograph_pending = None;
         self.aim = aim;
         self.head = aim.0;

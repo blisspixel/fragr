@@ -26,6 +26,19 @@ func _run() -> void:
 	charge["campaign"]["phase"] = "charging"
 	_check(ActorState.validation_error({"tick":12, "players":[charge]}).is_empty(),
 		"authoritative human Enforcer charging accepted")
+	var redactor: Dictionary = _actor()
+	redactor["hp"] = 90
+	redactor["campaign"]["kind"] = "redactor"
+	for redactor_phase: String in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]:
+		redactor["campaign"]["phase"] = redactor_phase
+		redactor["hp"] = 0 if redactor_phase == "dead" else 90
+		_check(ActorState.validation_error({"tick":12, "players":[redactor]}).is_empty(),
+			"accept ordinary Redactor phase " + redactor_phase)
+	redactor["hp"] = 90
+	for impossible_phase: String in ["leaping", "charging", "channeling", "invisible"]:
+		redactor["campaign"]["phase"] = impossible_phase
+		_check(not ActorState.validation_error({"tick":12, "players":[redactor]}).is_empty(),
+			"reject unsupported Redactor phase " + impossible_phase)
 	for wrong_role: String in ["clerk", "sweeper", "crawler", "auditor"]:
 		var wrong_charge: Dictionary = charge.duplicate(true)
 		wrong_charge["campaign"]["kind"] = wrong_role

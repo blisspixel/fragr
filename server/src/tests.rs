@@ -6935,6 +6935,7 @@ mod jammer;
 mod m01;
 mod modes;
 mod pellets;
+mod redactor;
 mod sabotage;
 mod shiv;
 mod sniper;

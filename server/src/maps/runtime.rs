@@ -358,6 +358,15 @@ impl RuntimeMap {
                 .is_some_and(|p| p.decorations.iter().any(|d| d.kind.is_m10()))
     }
 
+    pub fn requires_m11_contract(&self) -> bool {
+        self.encounters().iter().any(|group| {
+            group
+                .enemies
+                .iter()
+                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Redactor)
+        })
+    }
+
     pub fn requires_enforcer_contract(&self) -> bool {
         self.encounters().iter().any(|group| {
             group

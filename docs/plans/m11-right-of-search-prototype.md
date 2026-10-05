@@ -74,6 +74,42 @@ The M10 ship-art leaf owns its furnishing and source geometry independently.
 
 ## Verification and acceptance
 
+### Redactor prototype boundary
+
+The first behavioral source uses an ordinary 1.8 m human volume and the existing
+Shiv ray, not an invented ranged weapon, invisible noncolliding pawn or direct
+damage through a rack. Prototype health is 90, gait is 0.6 of ordinary speed,
+one strike per commitment, and normal damaging hits interrupt it. Initial
+Assisted/Standard/Severe tell/recovery windows are 24/30, 18/24 and 14/18 ticks.
+These new-role constants are provisional tuning, not canon approval, and leave
+every existing role's values and campaign rules revision unchanged.
+
+An exposed approach can choose a supported short lateral point, held for at most
+60 ticks, then use the existing shared navigation/controller budget. Each
+candidate must leave ordinary headroom and body clearance. No private path
+search, hidden live-target knowledge, teleport or extra attack is added. A locked
+windup stops movement, keeps its original yaw/pitch, and loses the attack if
+cover breaks sight; otherwise the normal resolved Shiv ray can still miss a
+strafe or a participant who retreats beyond range. Recovery and hit/death states
+retain the regular shared lifecycle.
+
+Moving red optics and broad heat distortion are required visible presentation,
+including with sound muted. The actual source model is in a separate inspected
+asset lane; an unaccepted generic or tinted guard must not become its selected
+skin. Actor-boundary and ordinary native combat proof precede any rendered
+claim. The Redactor's mesh/poses/tell/readability and full M11 remain open until
+that actual source is accepted and played.
+
+The behavioral checkpoint has nine focused native tests and the existing strict
+actor client harness passing, with warning-denied server Clippy and a complete
+locked workspace pass (996 server unit tests, three existing ignored diagnostics,
+all 18 local child-process tests). The
+[owning evidence](../evidence/m11-redactor-prototype-20261005.md) distinguishes
+ordinary movement/combat proof, retained fixture failures and still-open source,
+motion, muted tell, mission and packaged-play acceptance. Capability 37 is only
+reserved; current advertised capability 36 deliberately refuses network startup
+for this incomplete role-bearing content before readiness.
+
 The first checkpoint requires strict-source boundary failures, actual standing
 clearance, shot-blocking with open-lane controls, bidirectional navigation to
 every required room/supply/return, and ordinary `GameState` integration with

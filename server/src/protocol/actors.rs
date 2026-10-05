@@ -25,6 +25,8 @@ pub enum EnemyKind {
     RangedSweeper,
     /// Committed human elite with issued powered armor and a locked charge.
     Enforcer,
+    /// Ordinary human covert guard with a visible approach and locked close strike.
+    Redactor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

@@ -348,7 +348,9 @@ async fn run_server_impl(
             .iter()
             .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
     });
-    let required_gameplay = if session.state.map.requires_m10_contract() {
+    let required_gameplay = if session.state.map.requires_m11_contract() {
+        crate::protocol::M11_GAMEPLAY_VERSION
+    } else if session.state.map.requires_m10_contract() {
         crate::protocol::M10_GAMEPLAY_VERSION
     } else if session.state.map.requires_repeater_contract() {
         crate::protocol::REPEATER_GAMEPLAY_VERSION
