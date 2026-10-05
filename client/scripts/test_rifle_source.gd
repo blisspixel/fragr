@@ -109,10 +109,7 @@ func _run() -> void:
 		and receipt.get("prepare_sha256") == FileAccess.get_sha256("res://../tools/prepare_rifle_source.gd")
 		and receipt.get("raw_sha256") == "5d53e8995a825b4e594c9b812759dcb070342bfddc73bd64ba351ea9a0576394"
 		and receipt.get("runtime_selected") == false, "exact source and preparation receipts stay offline")
-	_check(WeaponArt.IDLE["Flechette"].resource_path == "res://assets/weapons/rifle-source-20261004/rifle_idle.png"
-		and WeaponArt.FIRE["Flechette"].resource_path == "res://assets/weapons/rifle-source-20261004/rifle_fire.png"
-		and WeaponArt.PROFILE["Flechette"].resource_path == "res://assets/weapons/rifle-source-20261004/rifle.png",
-		"selected Rifle pictures use the packaged asset boundary")
+	_check_restored_selection()
 	_check_frames()
 	gun.free()
 	await process_frame
@@ -158,15 +155,34 @@ func _check_frames() -> void:
 	_check(flash >= 10, "actual coherent firing pixels show a readable muzzle flash")
 	var packaged: String = "res://assets/weapons/rifle-source-20261004/"
 	var selection: Variant = JSON.parse_string(FileAccess.get_file_as_string(packaged + "selection.json"))
-	_check(selection is Dictionary and selection.get("runtime_selected") == true
+	_check(selection is Dictionary and selection.get("runtime_selected") == false
+		and selection.get("unselected_date") == "2026-10-04"
 		and selection.get("source_sha256") == receipt.get("source_sha256")
 		and selection.get("bake_sha256") == receipt.get("bake_sha256")
 		and selection.get("presenter_sha256") == receipt.get("presenter_sha256"),
-		"selection receipt binds the accepted source and actual bake")
+		"unselected historical receipt still binds the exact source and actual bake")
 	for name: String in ["rifle_idle.png", "rifle_fire.png", "rifle.png"]:
 		_check(FileAccess.get_sha256(packaged + name) == FileAccess.get_sha256(path + name)
 			and selection is Dictionary and selection.get("frames", {}).get(name) == FileAccess.get_sha256(packaged + name),
-			"selected " + name + " is the exact accepted picture")
+			"retained offline " + name + " remains the exact previously selected picture")
+
+func _check_restored_selection() -> void:
+	var selected: Dictionary[String, Texture2D] = {
+		"res://assets/weapons/viewmodels/rifle_idle.png": WeaponArt.IDLE["Flechette"],
+		"res://assets/weapons/viewmodels/rifle_fire.png": WeaponArt.FIRE["Flechette"],
+		"res://assets/weapons/pickups/rifle.png": WeaponArt.PROFILE["Flechette"]}
+	var hashes: Dictionary[String, String] = {
+		"res://assets/weapons/viewmodels/rifle_idle.png": "92b7ef9d7bd8d3216c3967c9ea943aa726b7c04889bb9492ca649f0a6d6cabc0",
+		"res://assets/weapons/viewmodels/rifle_fire.png": "837e6c05025705111b48a234c36a8515b1253925ec772af0b22759ffe9853099",
+		"res://assets/weapons/pickups/rifle.png": "18a053a4c21edeba0d7916486d182917be6f531e063bca904d5de38f5648b957"}
+	for path: String in selected:
+		_check(selected[path].resource_path == path and FileAccess.get_sha256(path) == hashes[path],
+			"actual selected Rifle path and pixels match retained pre-source artwork: " + path)
+	_check(WeaponArt.frame_after_shot("Flechette", 0.0) == WeaponArt.FIRE["Flechette"]
+		and WeaponArt.frame_after_shot("Flechette", WeaponArt.FIRE_SECONDS) == WeaponArt.IDLE["Flechette"],
+		"ordinary resolved-shot presentation uses restored fire then idle without changing timing")
+	_check(WeaponArt.pickup_texture("weapon", "Flechette", "") == WeaponArt.PROFILE["Flechette"],
+		"world pickup uses the same restored Rifle profile")
 
 func _distance_to_surface(point: Vector3, mesh: MeshInstance3D) -> float:
 	var faces: PackedVector3Array = mesh.mesh.get_faces()

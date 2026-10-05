@@ -1,8 +1,11 @@
 # Civilian Rifle source refinement evidence
 
-Date: 2026-10-04. Status: **in flight**, source and actual paired presentation
-accepted. Exact accepted pictures are selected locally; integration remains
-open. This cut spends $0; the shared production receipt owns
+Date: 2026-10-04. Status: **in flight**, source retained offline. The prior
+source and paired presentation passed technical acceptance and shipped in
+PR #356; the player subsequently rejected the framing and style. Earlier Rifle
+pictures are restored through the [bounded correction](rifle-art-restore-20261004.md).
+The evidence below is retained history, not current visual approval.
+This cut spends $0; the shared production receipt owns
 the earlier 15-credit source.
 
 ## Source and physical mechanism
@@ -109,9 +112,9 @@ false and only the owned server was cleaned. Native helper SHA-256:
 `source-pairing.json` binds native, source, map, route, wrapper and unchanged
 WeaponArt; `same-sample-pairs.json` binds each picture and measured camera.
 
-## Remaining acceptance
+## Historical selection and later rejection
 
-The selected WeaponArt idle, fire and pickup paths reference exact packaged
+At the original selection, WeaponArt idle, fire and pickup paths referenced exact packaged
 copies of the fourth bake. `selection.json` binds source, presenter, baker and
 all three pictures; offline candidate receipts remain unchanged history.
 Selected `test_rifle_source.gd` and canonical `test_viewmodel.gd` both exit 0
@@ -120,12 +123,13 @@ incorrect constant name and was refused during parsing; the failure is kept
 as `test-selected-source.log`, and the corrected selected check passes as
 `test-selected-source-fixed.log`. No production assertion was weakened.
 
-![Selected held Rifle](../images/rifle-source-20261004/held.png)
+![Previously selected held Rifle, now rejected](../images/rifle-source-20261004/held.png)
 ![One resolved Rifle shot](../images/rifle-source-20261004/fire.png)
 ![Unclaimed Rifle pickup](../images/rifle-source-20261004/pickup.png)
 
-Full combined client checks, public CI and exported packages remain later
-gates. First-person art is a HUD picture. The actual
+Full combined client checks, public CI and exported packages subsequently passed
+as recorded in the source plan. The player still rejected the result, so those
+passes do not imply current aesthetic acceptance. First-person art is a HUD picture. The actual
 close-wall collision stop does not prove near-plane behavior of a live
 three-dimensional gun. This range does not prove campaign completion,
 whole-arsenal quality or hardware frame rate. Original art and every rejected
