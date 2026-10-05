@@ -1,6 +1,6 @@
 # First-person weapon quality
 
-Status: in flight, 2026-10-05. The user rejected the current Pistol's played
+Status: in flight, 2026-10-05. The user rejected the prior model-derived Pistol's played
 appearance. Earlier source, CI and package passes remain technical evidence;
 they do not close this visual acceptance gate. This pass follows the existing
 art rung in the [Full build order](../ROADMAP.md#full-build-order).
@@ -14,9 +14,9 @@ required. The [dated receipt](../evidence/pistol-and-latch-continuity-20261005.m
 includes literal gameplay captures and the corrected home scene. Existing world models and
 mechanical source receipts are retained separately.
 
-## Observed problem
+## Rejected baseline
 
-The current Pistol view reads as a muddy gray slide with an awkward grip and
+The rejected Pistol view reads as a muddy gray slide with an awkward grip and
 wood-like hands. `prepare_pistol_source.gd` globally reduces the albedo to 256
 pixels before enlarging to 1K, disables metallic/roughness maps, and sets
 metallic 0.06, roughness 0.96 and normal strength 0.20. Those choices suppress
@@ -32,6 +32,12 @@ prepared geometry may be usable; another paid model does not by itself fix
 framing, hands, surface finish or lost motion. Retain the original source and
 all rejected comparisons without treating exact source-triangle preservation
 as a reason to keep defective geometry.
+
+The selected local image pair supersedes that baseline. The independent
+[hand and character audit](../evidence/weapon-character-continuity-20261005.md)
+still identifies a flat tan Sniper glove, the enlarged Shiv hand and provisional
+named casting. The corrected home still addresses its separate old Latch
+depiction. It does not establish consistency for every weapon or character.
 
 ## Research checked October 5, 2026
 

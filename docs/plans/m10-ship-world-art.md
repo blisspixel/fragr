@@ -200,3 +200,21 @@ comparing the actual initial HP. This changes no production health or rules.
 All 21 focused M10 tests and the actual all-role child check pass on the
 composed source. Complete composed checks and played/light acceptance remain
 open.
+
+## Final local furnishing acceptance
+
+Frozen combined source `4375358f` now passes the matching complete client
+checker (271 scripts, 129 harnesses), final native workspace (984 server
+library tests, all 18 binary tests and other suites), formatting and all-target
+Clippy. One fresh ordinary 28-state hardware route proves all 17 actual guard
+deaths and shared departure with the original finite carry and unchanged QA
+file. The explicit bench geometry amendment is included. A separate three-view
+passive inspection shows readable wood/green metal, the true knee opening and
+grounded feet in the actual venue lighting. Its cameras do not establish combat
+or traversal. Literal captures and hashes are linked from the owning evidence.
+
+The measured workbench is accepted as a bounded local furnishing candidate.
+Exact final-head CI and all three desktop package/install gates remain open
+before shipping. This plan stays in flight for scrubber/pump/radio integration,
+the provisional bed, useful personal possessions and broader inhabited ship
+craft. Fresh-player pacing, cast, Repeater and story acceptance remain open.

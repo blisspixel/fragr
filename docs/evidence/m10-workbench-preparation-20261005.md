@@ -69,3 +69,15 @@ tests. Workspace formatting and all-target Clippy with denied warnings pass.
 The complete log is retained at `.agents/m10-workbench-full-native-v1.log`.
 These checks bind the bench checkpoint; the final composition must repeat
 source-sensitive gates after character shot-occlusion integration.
+
+The final local composition now passes the complete ordinary 28-state ship
+route with all 17 actual guard deaths and shared departure on the new geometry,
+as well as the matching complete client checker (271 scripts, 129 harnesses).
+The real room-light inspection passes three separately labelled passive views.
+The wood/green-metal source reads clearly, its visible cabinets and knee opening
+match the authored host, and its feet remain grounded. The five literal
+[current-source captures and receipt](../screenshots/m10-composed-20261005/receipt.json)
+retain those facts. Final native composition passes 984 server library tests,
+all 18 binary tests, workspace suites, formatting and denied-warning Clippy.
+Exact final-head desktop exports and CI remain open, and scrubber/pump/radio,
+bunk craft, casting and the broader inhabited-room pass remain separate work.

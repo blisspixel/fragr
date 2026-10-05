@@ -127,3 +127,51 @@ reviewed par, fresh-player fun and the full difficulty matrix are also open.
 The route uses a representative campaign carry fixture. Standalone development
 entry does not establish a fresh campaign kit or human pacing. Subsequent
 shot-body or companion changes require fresh composed played acceptance.
+
+## Final composed local acceptance
+
+The later frozen source `4375358f93c3a1f5fa9c86c7e42bbb3804f96b7f`
+combines the reviewed companion behavior, authoritative opaque character shots,
+measured workbench geometry and drawn Pistol pair. Its optimized private server
+SHA256 is `0832b465cc7fa5db7b68a3e423dea51ca789be0aff407d81254bdc7e7f4a21a7`.
+The workbench amendment changes the map hash to
+`d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d`.
+All other 111 solid shapes and mission facts remain equal; the original
+28-state QA file retains its prior exact hash.
+
+One fresh ordinary hardware route passes all 28 states, all 17 named actual
+guard deaths, four ordered objectives and fresh shared departure. It uses the
+same representative finite v12 carry fixture, Standard difficulty and seed 42.
+The server record contains 83 attacks, 17 kills, zero deaths, three secrets and
+3,431 mission ticks. The completed v13 save retains 85 HP, zero armor, 113
+Bullets, 50 Shells, one Cell, two grenades and three mines. The actual empty
+M09 berth subset remains separate from five recorded transit arrivals, and the
+original v12 bytes compare exactly with the migration archive. M11 remains a
+pending destination. Both owned processes exit numeric zero with clean errors
+and are retired. This is a fresh composed gameplay proof; the earlier `65f`
+capture remains separately preserved.
+
+The matching complete client checker passes 271 scripts and all 129 harnesses,
+with clean errors, numeric exit zero and `Godot checks: PASS`. The final native
+workspace checks pass 984 server library tests, the same three pre-existing
+ignored tests, all 18 binary/local-child tests and all other workspace suites.
+Formatting, all-target Clippy with denied warnings and the optimized build pass.
+The native tree remains byte-identical after subsequent Pistol/story/doc-only
+composition. The corrected home still then passes a clean final import and
+the story manifest, ScenePlayer and campaign opening harnesses independently.
+
+Five literal current-source screenshots and a bounded machine-readable
+[receipt](../screenshots/m10-composed-20261005/receipt.json) bind the actual
+geometry, route, authoritative deaths, save, record and process retirement.
+Private complete logs remain under `.agents/m10-final-composed-*` and the
+rendered run under `.agents/m10-ship-world-art-evidence/route-v6/`.
+The separate three-view bench inspection is passive presentation evidence,
+not an additional combat route or human playtest.
+
+The workbench's warm wood surface, green cabinets, knee opening and grounded
+feet read in actual room light. The slab bed, repeated surfaces, plain service
+equipment, named casting and controls remain provisional. Different authentic
+resource consumption from the earlier render does not establish a difficulty
+regression or human feel acceptance. Exact final-head CI and all three desktop
+packages remain required before promotion; fresh-player pacing, Repeater
+discovery, voice/story craft and the full difficulty matrix remain open.
