@@ -557,9 +557,9 @@ func _page_multi() -> void:
 	_root.add_child(_host_edit)
 	_button("Check host", _probe_host)
 	_button(tr("HOST_USE_RUNNING"), func() -> void:
-		_host_edit.text = LOOPBACK
+		_host_edit.text = _local_host.url if _local_host.state == LocalHost.State.RUNNING else LOOPBACK
 		_probe_host()
-	)
+	).name = "UseRunningServer"
 	_match_line = _label("Checking the host.")
 	_match_line.name = "MatchLine"
 	_watch_button = _button("Watch", func() -> void: _launch("spectate", _host_address()))

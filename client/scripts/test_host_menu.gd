@@ -79,6 +79,9 @@ func _run() -> void:
 	await menu._show("multi")
 	_check(child.alive and owner.state == LocalHost.State.RUNNING and menu._host_edit.text == owner.url,
 		"returning to Multiplayer keeps hosting and offers the real dynamic host address")
+	menu._host_edit.text = "remote.example:6767"
+	(menu._root.get_node("UseRunningServer") as Button).pressed.emit()
+	_check(menu._host_edit.text == owner.url, "check-this-computer uses the actual hosted port rather than assuming6767")
 	menu.queue_free()
 	await process_frame
 	_check(child.alive and owner.state == LocalHost.State.RUNNING, "boot scene retirement does not stop shared arena")
