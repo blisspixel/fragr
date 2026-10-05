@@ -1,9 +1,185 @@
 use super::*;
+use crate::movement::EYE_HEIGHT;
 use crate::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
 use crate::protocol::{Action, Role};
 use crate::sim::{GameState, PLAYER_FLOOR_Y};
 
 const SOURCE: &[u8] = include_bytes!("../../../maps/test/m11_tender_structure.json");
+const MISSION_SOURCE: &[u8] = include_bytes!("../../../maps/m11_right_of_search.json");
+
+#[test]
+fn m11_authored_tender_prepares_exact_actors_targets_stocks_and_window_cover() {
+    let map = AuthoredMap::read(MISSION_SOURCE).unwrap();
+    assert_eq!(map.id, 1011);
+    assert_eq!(map.arena.solids.len(), 107);
+    assert_eq!(
+        map.encounters
+            .iter()
+            .map(|g| g.enemies.len())
+            .sum::<usize>(),
+        13
+    );
+    assert_eq!(map.supplies.len(), 8);
+    let prepared = map.m11.as_ref().unwrap();
+    prepared
+        .geometry
+        .validate(map.arena.half, &map.arena.solids, Some(&map.presentation))
+        .unwrap();
+    assert_eq!(prepared.geometry.transfer_people.len(), 3);
+    for feet in &prepared.geometry.transfer_people {
+        assert!(standing(&map.arena, *feet));
+    }
+    for target in [
+        &prepared.geometry.transfer_release,
+        &prepared.geometry.records_document,
+        &prepared.geometry.departure,
+    ] {
+        assert!(standing(&map.arena, target.approach));
+        let point = target.point(&map.presentation, &map.arena.solids).unwrap();
+        let eye = [
+            target.approach[0],
+            target.approach[1] + EYE_HEIGHT,
+            target.approach[2],
+        ];
+        assert!(crate::combat::line_of_sight(eye, point, &map.arena.solids));
+    }
+    assert_eq!(
+        map.presentation
+            .solids
+            .iter()
+            .filter(|surface| **surface == crate::protocol::MapSurface::InspectionGlass)
+            .count(),
+        5
+    );
+    assert!(
+        !crate::combat::line_of_sight([-8.0, 1.9, 6.0], [-12.0, 1.9, 6.0], &map.arena.solids),
+        "observation glass retains world shot interception"
+    );
+    let runtime = crate::maps::RuntimeMap::Authored(map);
+    assert!(runtime.requires_m11_contract());
+    assert!(runtime.m11_geometry().is_some());
+    assert_eq!(
+        crate::protocol::GAMEPLAY_VERSION,
+        36,
+        "unfinished typed mission still refuses network admission"
+    );
+}
+
+#[test]
+fn m11_authored_targets_people_and_patrol_refuse_real_boundary_defects() {
+    let original: serde_json::Value = serde_json::from_slice(MISSION_SOURCE).unwrap();
+    for (field, value) in [
+        ("cycle_ticks", serde_json::json!(239)),
+        ("spacing", serde_json::json!(1.0)),
+        ("from", serde_json::json!([1, 0.3, -22])),
+    ] {
+        let mut bad = original.clone();
+        bad["m11"]["spine_patrol"][field] = value;
+        assert!(
+            AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err(),
+            "invalid patrol {field}"
+        );
+    }
+    let mut bad = original.clone();
+    bad["m11"]["spine_patrol"]["cycle_ticks"] = 240.into();
+    bad["m11"]["spine_patrol"]["to"] = serde_json::json!([0, 0.3, -6]);
+    assert!(
+        AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice())
+            .unwrap_err()
+            .to_string()
+            .contains("cadence"),
+        "a cadence cannot outrun the actual Clerk walking step"
+    );
+    bad = original.clone();
+    bad["encounters"][0]["enemies"][1]["feet"][2] = (-23.1).into();
+    assert!(AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err());
+    bad = original.clone();
+    bad["m11"]["transfer_people"][0][0] = 8.35.into();
+    assert!(
+        AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err(),
+        "a transfer body cannot overlap the restraint bench"
+    );
+    bad = original.clone();
+    bad["m11"]["records_document"]["approach"] = serde_json::json!([3.4, 0.3, 17]);
+    assert!(
+        AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err(),
+        "reachable is not physically usable from five metres away"
+    );
+    bad = original.clone();
+    bad["m11"]["departure"]["panel"]["kind"] = "m11_transfer_release".into();
+    assert!(AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err());
+    bad = original.clone();
+    bad["solids"].as_array_mut().unwrap().push(serde_json::json!({"id":"blocked_patrol","min":[-0.6,0.3,-18.1],"max":[0.6,2.3,-17.9],"surface":"service_steel"}));
+    assert!(
+        AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err(),
+        "routeable endpoints cannot permit a solid through the fixed march"
+    );
+    bad = original;
+    bad["map_id"] = 1111.into();
+    assert!(AuthoredMap::read(serde_json::to_vec(&bad).unwrap().as_slice()).is_err());
+}
+
+#[test]
+fn m11_authored_all_targets_supplies_guards_and_returns_have_real_routes() {
+    let map = AuthoredMap::read(MISSION_SOURCE).unwrap();
+    let prepared = map.m11.as_ref().unwrap();
+    let entry = map.spawns[0].feet;
+    let mut count = 0;
+    for feet in prepared
+        .geometry
+        .objectives
+        .iter()
+        .filter_map(|o| match o.action {
+            crate::protocol::MissionObjectiveAction::Arrival { feet, .. } => Some(feet),
+            _ => None,
+        })
+        .chain([
+            prepared.geometry.transfer_release.approach,
+            prepared.geometry.records_document.approach,
+            prepared.geometry.departure.approach,
+        ])
+        .chain(prepared.geometry.transfer_people.iter().copied())
+        .chain(map.supplies.iter().map(|p| [p.x, p.floor, p.z]))
+        .chain(
+            map.encounters
+                .iter()
+                .flat_map(|g| g.enemies.iter().map(|p| p.feet)),
+        )
+    {
+        for (from, to) in [(entry, feet), (feet, entry)] {
+            assert_eq!(
+                prepared.navigation.route(from, to, SEARCH_LIMIT).status,
+                RouteStatus::Complete,
+                "unreachable {from:?} to {to:?}"
+            );
+            count += 1;
+        }
+    }
+    assert_eq!(count, 66);
+    // This owning fixture isolates geometry and ordinary integration. It is
+    // not a claim that a participant has completed the thirteen-guard mission.
+    let mut unpopulated = map.as_ref().clone();
+    unpopulated.encounters.clear();
+    walk(
+        &Arc::new(unpopulated),
+        entry,
+        &[
+            [-4.0, 0.3, -24.3],
+            [0.0, 0.3, -17.5],
+            [4.0, 0.3, -8.0],
+            [4.3, 0.3, -13.5],
+            [3.5, 0.3, 12.0],
+            [7.9, 0.3, 17.0],
+            [0.0, 0.3, 14.0],
+            [3.0, 1.5, 27.0],
+            [16.8, 1.5, 27.5],
+            [-8.0, 1.5, 27.0],
+            [-8.0, 0.3, 10.0],
+            [-4.0, 0.3, -25.0],
+            entry,
+        ],
+    );
+}
 
 #[test]
 fn m11_structure_is_an_explicit_nonmission_with_finite_stock() {

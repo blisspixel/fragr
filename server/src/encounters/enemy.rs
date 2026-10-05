@@ -8,6 +8,7 @@ use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 mod enforcer;
 mod redactor;
+mod spine_patrol;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
 /// Damage from one tick at or above this staggers an armored body. A Rail hit,
@@ -214,6 +215,8 @@ pub(super) struct EnemyController {
     redactor_approach: Option<(Uuid, [f32; 3])>,
     redactor_approach_until: u64,
     redactor_approached: bool,
+    /// Only the authored tender's three-Clerk file, before combat is noticed.
+    spine_march: Option<spine_patrol::SpineMarch>,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -409,6 +412,7 @@ impl EnemyController {
             redactor_approach: None,
             redactor_approach_until: 0,
             redactor_approached: false,
+            spine_march: None,
         }
     }
 
@@ -422,7 +426,26 @@ impl EnemyController {
         }
     }
 
+    pub(super) fn with_spine_march(
+        mut self,
+        patrol: Option<crate::maps::SpinePatrol>,
+        member: usize,
+    ) -> Self {
+        if self.kind == EnemyKind::Clerk && member < 3 {
+            self.spine_march =
+                patrol.map(|parameters| spine_patrol::SpineMarch::new(parameters, member));
+        }
+        self
+    }
+
+    pub(super) fn end_spine_march(&mut self) {
+        self.spine_march = None;
+    }
+
     pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
+        if let Some(march) = &mut self.spine_march {
+            march.start(tick);
+        }
         self.seated = false;
         self.alarmed = true;
         self.last_known = position;
@@ -436,6 +459,7 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.end_spine_march();
         self.redactor_approach = None;
         self.redactor_approached = false;
         self.photograph_pending = None;
@@ -560,6 +584,7 @@ impl EnemyController {
                 .flatten()
             });
         if let Some(target) = target {
+            self.end_spine_march();
             self.target = Some(target.id);
             self.last_known = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
             self.search_until = tick.saturating_add(100);
@@ -602,6 +627,28 @@ impl EnemyController {
         }
         if matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Recovery) && tick < self.until {
             return BotIntent::default();
+        }
+        if let Some(destination) = self
+            .spine_march
+            .as_ref()
+            .and_then(|march| march.destination(tick))
+        {
+            if self.phase != EnemyPhase::Moving {
+                self.enter(EnemyPhase::Moving, tick, 0);
+            }
+            // The loader proves the entire straight file corridor. A moving
+            // sub-grid march target must not be repeatedly snapped to routing
+            // cells. Use ordinary walking; Session still forecasts body
+            // avoidance and integration still owns walls, support and contact.
+            let dx = destination[0] - feet[0];
+            let dz = destination[2] - feet[2];
+            let half_step =
+                crate::movement::TOP_SPEED * gait(self.kind) * crate::movement::DT_LIVE * 0.5;
+            if dx.hypot(dz) > half_step {
+                action.forward = true;
+                action.yaw = Some(dz.atan2(dx));
+            }
+            return BotIntent { action, goal: None };
         }
         if self.phase == EnemyPhase::Channeling {
             // The Auditor holds still and faces the body, plate away from a flank.

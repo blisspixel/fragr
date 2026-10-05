@@ -29,6 +29,7 @@ use std::sync::OnceLock;
 
 mod authored;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
+pub(crate) use authored::m11::SpinePatrol;
 mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;

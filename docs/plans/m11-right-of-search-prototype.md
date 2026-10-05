@@ -192,6 +192,16 @@ a hidden reset or departure lock, and Severe clock fairness still needs an
 actual full route with combat, cover and stairs. Capability 37 remains reserved
 until the complete map/mission, current carry, presentation and acceptance pass.
 
+The authored binding uses four encounters: three Clerks in the mine lesson,
+two Sweepers and the midpoint Turret, one Redactor, and six counter-boarders
+(three Clerks, two Sweepers, one Enforcer). The first file shares a fixed
+320-tick round-trip cadence and 1.4 m spacing through a validated nine-metre
+spine segment. Ordinary movement, support and character collision still own
+their feet. Seeing a participant or a real damaging alarm retires the march
+into the existing combat controller; no invisible target knowledge, snapped
+trajectory or noncolliding patrol is introduced. These are prototype staging
+choices to be measured in actual play, not accepted final balance.
+
 The architectural source is implemented as a non-mission study,
 `server/maps/test/m11_tender_structure.json`, ID 1111. It is not the canonical
 M11 mission identity. Its 95 solids form a 20 by 64 metre pressure hull, a 4.4
@@ -325,3 +335,16 @@ human controls and behavioral Redactor now have owning local checks. Capability
 connection, selected Redactor motion/tell art, complete client and ordinary
 rendered learning/route acceptance remain required. This development leaf must
 not be integrated as completed or playable M11 merely because components pass.
+
+The next authored checkpoint binds the 107-solid tender to thirteen guards,
+eight finite stocks, three physical panels and six exact ordered arrivals.
+Five observation windows retain real collision and shot interception. Sixty-six
+bidirectional routes and ordinary geometry-only walking pass. The opening
+three-Clerk file uses one authored cadence on a strictly validated straight
+segment; a 720-tick actual Session fixture proves supported walking, spacing,
+pauses, return and ordinary visible combat after a doorway peek. Its first
+moving grid-goal lane drift and floor-boundary activation failures remain
+retained. The bounded direct intent preserves Session body avoidance and
+ordinary collision, without changing the shared navigator. Sixteen focused
+M11 checks pass. [The source receipt](../evidence/m11-authored-tender-20261005.md)
+keeps actual mission admission, renderer proof and fairness gates explicitly open.

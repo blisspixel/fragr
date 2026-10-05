@@ -29,6 +29,17 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m11_objectives(&self) -> Option<&super::authored::m11::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m11.as_deref(),
+        }
+    }
+
+    pub fn m11_geometry(&self) -> Option<crate::protocol::M11MapGeometry> {
+        self.m11_objectives().map(|p| p.geometry.clone())
+    }
+
     pub(crate) fn m10_objectives(&self) -> Option<&super::authored::m10::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
