@@ -1,0 +1,89 @@
+{
+    "schema":  1,
+    "date":  "2026-10-05",
+    "runtime_selected":  true,
+    "selection_status":  "local integration, played and CI acceptance pending",
+    "plan":  "docs/plans/first-person-weapon-quality.md",
+    "format":  "241x180 RGBA, hard alpha, nearest sampling, no mipmaps",
+    "palette_sha256":  "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+    "reduction":  "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff",
+    "estimated_total_usd":  0.41,
+    "new_cash_charges":  0,
+    "meshy_credits_consumed":  0,
+    "billing_reconciliation":  "completed requests priced by API, estimated prepaid usage, not an account billing receipt",
+    "reference_files":  [
+                            {
+                                "file":  "client/assets/weapons/viewmodels/shotgun_idle.png",
+                                "sha256":  "d66c7e0aa94818adcd3e30f26de18c7e426ec8e5a08c1914fcbe1d3b66756011",
+                                "role":  "drawing style"
+                            },
+                            {
+                                "file":  "client/assets/weapons/viewmodels/pistol_idle.png",
+                                "sha256":  "de4de92b19be89a8db8489d7cce1788866ef1f2e55700407950227a4f64e5e57",
+                                "role":  "compact framing"
+                            }
+                        ],
+    "fire_reference_raw_sha256":  "4ea0e9a7ad775d7cdb19d432ef6094c5069c6961db1df21ff5070664d982e1ef",
+    "frames":  {
+                   "pistol_idle":  "2ae7bcceaee5a84f35fb6356ae1ee06d136d59e189be81b85d2995b2e6bc789d",
+                   "pistol_fire":  "0269daa3ba571aceee3245b832df679f22f77211c0bf935dd80725ddbf09b9da"
+               },
+    "requests":  [
+                     {
+                         "frame_id":  "pistol_sprite_idle_a",
+                         "request_id":  "06aa9787-2623-408e-bfa2-96f669239e37",
+                         "model":  "marketing-studio/image",
+                         "estimated_usd":  0.11,
+                         "downloaded":  true,
+                         "raw_file":  "art/raw/pistol-sprite-repair-20261005/idles/pistol_sprite_idle_a_0.png",
+                         "raw_sha256":  "4ea0e9a7ad775d7cdb19d432ef6094c5069c6961db1df21ff5070664d982e1ef",
+                         "selected":  true,
+                         "prompt":  "excellent first-person pixel art weapon sprite for an original modern boomer shooter with circa-2070 practical retro-futurism. Match the first reference Shotgun\u0027s hand-painted pixel aesthetic, crisp deliberate stepped clusters, clear bevel highlights and readable shapes. Use the second reference only for the compact pistol framing and supported two-hand grip. Clean purposeful dark steel, restrained walnut, warm leather, bone edge highlights and deep shadow. No photographic textures, fuzzy noise or scratches. Render the actual view seen by the player looking down over the pistol from behind, not a side-profile inventory illustration. Flat even illumination with painted directional material highlights. Draw a new compact plausible civilian semiautomatic pistol, never the Shotgun or a rifle., A handsome classic civilian single-stack hammer-fired sidearm evolved into a maintained 2070 workshop firearm. Coherent slab-sided charcoal blued-steel slide, straight recognizable barrel axis, compact rear iron sight, small front iron sight, clean rectangular ejection port on the right, small exposed hammer behind the slide, a slim walnut grip mostly hidden by the fitted leather grip. Use a few large cool steel highlights to describe the slide\u0027s broad top and side planes, dark mechanical recesses, walnut only on grip panels. Compact balanced proportions, clearly a pistol rather than the long fantasy gun in the reference. Quiet mechanical polish, purposeful robust machining, no attachments or science-fiction glow. Idle pose, hammer at rest, no flash or cartridge. Make the silhouette and hand grip convincing even reduced to 180 pixels high., Entire background solid pure magenta #FF00FF, no pattern, checkerboard, gradient or shadow. One weapon held by exactly two anatomical hands in full-finger worn brown leather work gloves with understated stitched seams and rust-brown jacket cuffs. Trigger hand holds the grip; support hand wraps the trigger hand below the guard. Hands connect naturally to forearms entering through the bottom edge. Both wrists stay below the moving slide. Weapon centered near the lower middle and angled slightly enough to reveal a narrow left side plane; sights and barrel extend toward the upper middle, leave clear margin above and either side. No cropped muzzle, clipped side edges, disconnected fingers, fused glove lumps, giant wrist boxes, visible palms covering the receiver, writing, emblems, logo, border or scenery.. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+                         "quality":  "medium",
+                         "resolution":  "2k",
+                         "aspect_ratio":  "4:3"
+                     },
+                     {
+                         "frame_id":  "pistol_sprite_idle_b",
+                         "request_id":  "eafde245-2bdc-4e10-b1bd-959e54a8c657",
+                         "model":  "marketing-studio/image",
+                         "estimated_usd":  0.109,
+                         "downloaded":  true,
+                         "raw_file":  "art/raw/pistol-sprite-repair-20261005/idles/pistol_sprite_idle_b_0.png",
+                         "raw_sha256":  "ada8ba60b5c64fc8cc5e69d61c351169a675273066f77f8545314db45480b086",
+                         "selected":  false,
+                         "prompt":  "excellent first-person pixel art weapon sprite for an original modern boomer shooter with circa-2070 practical retro-futurism. Match the first reference Shotgun\u0027s hand-painted pixel aesthetic, crisp deliberate stepped clusters, clear bevel highlights and readable shapes. Use the second reference only for the compact pistol framing and supported two-hand grip. Clean purposeful dark steel, restrained walnut, warm leather, bone edge highlights and deep shadow. No photographic textures, fuzzy noise or scratches. Render the actual view seen by the player looking down over the pistol from behind, not a side-profile inventory illustration. Flat even illumination with painted directional material highlights. Draw a new compact plausible civilian semiautomatic pistol, never the Shotgun or a rifle., A compact practical civilian hammer-fired sidearm, maintained and repaired by free humans around 2070. Recognizable straight blued-steel slide and barrel, large clean dark rear sight notch and small front sight, modest exposed hammer at rear, a slightly sage-charcoal receiver and one restrained warm walnut grip panel mostly hidden beneath the fitted gloves. Broad angular painted planes with cool light steel edges and deep black recesses, a tiny ochre repair pin on the side only, no ornament. Balanced compact handgun proportions, slightly shorter slide than the second reference. Actual plausible two-handed grip, readable separate finger joints and natural cuffs. Idle pose, no muzzle flash or cartridge. Keep the same confident drawing quality as the Shotgun., Entire background solid pure magenta #FF00FF, no pattern, checkerboard, gradient or shadow. One weapon held by exactly two anatomical hands in full-finger worn brown leather work gloves with understated stitched seams and rust-brown jacket cuffs. Trigger hand holds the grip; support hand wraps the trigger hand below the guard. Hands connect naturally to forearms entering through the bottom edge. Both wrists stay below the moving slide. Weapon centered near the lower middle and angled slightly enough to reveal a narrow left side plane; sights and barrel extend toward the upper middle, leave clear margin above and either side. No cropped muzzle, clipped side edges, disconnected fingers, fused glove lumps, giant wrist boxes, visible palms covering the receiver, writing, emblems, logo, border or scenery.. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+                         "quality":  "medium",
+                         "resolution":  "2k",
+                         "aspect_ratio":  "4:3"
+                     },
+                     {
+                         "frame_id":  "pistol_sprite_fire_a",
+                         "request_id":  "2d973467-d066-43e1-a9f9-2a8dbda6dd6f",
+                         "model":  "marketing-studio/image",
+                         "estimated_usd":  0.096,
+                         "downloaded":  true,
+                         "raw_file":  "art/raw/pistol-sprite-repair-20261005/fire/pistol_sprite_fire_a_0.png",
+                         "raw_sha256":  "8d5008ffedfa7b027e1de2e9ac277feafe62c09d274fd6228a4aa0b8a1b4f9ce",
+                         "selected":  true,
+                         "prompt":  "edit this exact first-person pixel-art handgun image into its matching firing frame for the same game. Preserve the same charcoal blued-steel civilian pistol, wood grip, small exposed hammer, both brown leather full-finger work gloves and rust jacket cuffs. Preserve the exact original camera angle, picture dimensions, weapon size, position, first-person perspective and hand placement. Preserve the existing hand-painted broad pixel clusters, cool steel edges, dark recesses and deliberate warm leather stitching. This is a coherent two-frame animation, not a new gun illustration., At the instant of a resolved pistol shot: a compact crisp ember-orange muzzle flash with a bright bone-yellow-white core bursts from the actual front muzzle at the very far end of the barrel, not from the sight or the rear hammer. A small five-point angular flash, much narrower than a shotgun blast. Slide shifts backward a small distance along its actual barrel axis, showing a thin dark barrel gap at the muzzle. Gun recoils upward only a few source pixels; both gloves and cuffs stay locked to the original hand placement. One small brass casing just clear of the right-side ejection port. No blood, new leather patches or altered fingers., Whole background remains exactly pure solid magenta #FF00FF with no checkerboard, gradient, scenery, shadows or text. Exactly two hands, unchanged natural supported grip, both wrist entry points unchanged at the bottom edge. No new attachments, symbols, insignia or lettering. Muzzle flash contained entirely inside the canvas with clear margin above. Do not enlarge the gun or change the silhouette of the gloves or sleeves. No photographic smoke, blurry effects, noisy speckles, transparent effects or photographic texture.. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+                         "quality":  "medium",
+                         "resolution":  "2k",
+                         "aspect_ratio":  "4:3"
+                     },
+                     {
+                         "frame_id":  "pistol_sprite_fire_b",
+                         "request_id":  "c267bcf6-301e-44da-9594-529cad301609",
+                         "model":  "marketing-studio/image",
+                         "estimated_usd":  0.095,
+                         "downloaded":  true,
+                         "raw_file":  "art/raw/pistol-sprite-repair-20261005/fire/pistol_sprite_fire_b_0.png",
+                         "raw_sha256":  "05da4539ede47270cce120d10f2d0c609f24dcb56cb8d23caf9ba9859f4ab0f0",
+                         "selected":  false,
+                         "prompt":  "edit this exact first-person pixel-art handgun image into its matching firing frame for the same game. Preserve the same charcoal blued-steel civilian pistol, wood grip, small exposed hammer, both brown leather full-finger work gloves and rust jacket cuffs. Preserve the exact original camera angle, picture dimensions, weapon size, position, first-person perspective and hand placement. Preserve the existing hand-painted broad pixel clusters, cool steel edges, dark recesses and deliberate warm leather stitching. This is a coherent two-frame animation, not a new gun illustration., The same instant of firing, strict match to the reference pose: compact triangular orange blast with a bone-white core at the actual front muzzle, a short backward slide movement, one clearly separated small brass case on the right. Keep the handgun and the two gloves fixed at their original positions and original size; moving only the slide inside the original gun silhouette. No smoke cloud, giant flames, lens effects, red glove stains, extra fingers or changed receiver. Everything retains the same crisp confident painted-pixel style., Whole background remains exactly pure solid magenta #FF00FF with no checkerboard, gradient, scenery, shadows or text. Exactly two hands, unchanged natural supported grip, both wrist entry points unchanged at the bottom edge. No new attachments, symbols, insignia or lettering. Muzzle flash contained entirely inside the canvas with clear margin above. Do not enlarge the gun or change the silhouette of the gloves or sleeves. No photographic smoke, blurry effects, noisy speckles, transparent effects or photographic texture.. Avoid: photorealistic, 3d render, smooth shading, gradient, blur, anti-aliasing, drop shadow, cast shadow, ambient occlusion, specular, glossy, reflection, rim light, lens flare, bloom, depth of field, text, signature, watermark, frame, border, background scenery.",
+                         "quality":  "medium",
+                         "resolution":  "2k",
+                         "aspect_ratio":  "4:3"
+                     }
+                 ]
+}
