@@ -88,7 +88,13 @@ impl GameState {
         true
     }
 
-    pub(super) fn tick_traveling_shots(&mut self, dt: f32, arena: &crate::movement::Arena) {
+    pub(super) fn tick_traveling_shots(
+        &mut self,
+        dt: f32,
+        arena: &crate::movement::Arena,
+        civilians: &[crate::movement::contact::ContactBody],
+        tableau: &[crate::movement::Solid],
+    ) {
         if self.traveling_shots.is_empty() {
             return;
         }
@@ -123,21 +129,29 @@ impl GameState {
                 }
             }
             let mut victim: Option<usize> = None;
+            for body in tableau {
+                if let Some(hit) = ray.solid(body, limit) {
+                    if hit.distance <= limit {
+                        limit = hit.distance;
+                        solid = true;
+                    }
+                }
+            }
+            for civilian in civilians {
+                if let Some(hit) = ray.fighter_with_height(
+                    [civilian.from.x, civilian.from.y, civilian.from.z],
+                    civilian.radius,
+                    civilian.height,
+                    limit,
+                ) {
+                    if hit.distance <= limit {
+                        limit = hit.distance;
+                        solid = true;
+                    }
+                }
+            }
             for (index, target) in self.players.iter().enumerate() {
-                if target.id == shot.shooter_id
-                    || target.hp <= 0
-                    || target.respawn_timer.is_some()
-                    || target.is_campaign_companion()
-                    || !crate::mission::actor_active(
-                        self.mission.as_ref(),
-                        target.id,
-                        target.campaign,
-                    )
-                    || self
-                        .spawn_shields
-                        .get(&target.id)
-                        .is_some_and(|ticks| *ticks > 0)
-                {
+                if target.id == shot.shooter_id || !self.contact_eligible(target) {
                     continue;
                 }
                 let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];

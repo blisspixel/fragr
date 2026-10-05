@@ -554,19 +554,66 @@ fn notary_dry_or_invalid_target_never_creates_a_photograph() {
     for variant in 0..3 {
         let (mut s, id) = fixture(CampaignDifficulty::Standard);
         let drone = notary(&mut s);
+        let rear = Uuid::from_u128(4005);
         if variant == 0 {
             let p = s.state.players.iter_mut().find(|p| p.id == drone).unwrap();
             while p.inventory.try_fire(WeaponType::Tack) {}
         } else if variant == 1 {
+            s.state.add_player(rear, "Rear witness".into(), Role::Agent);
+            assert!(s.state.acknowledge_mission(
+                rear,
+                MissionReady {
+                    id: MissionId::NoticeToVacate,
+                    attempt: 1,
+                }
+            ));
+            place(&mut s, rear, [-2.0, 0.0, 0.0]);
+            s.state.spawn_shields.remove(&rear);
             s.state.spawn_shields.insert(id, 100);
         } else {
             s.state.set_action(id, Action::default());
             let p = s.state.players.iter_mut().find(|p| p.id == id).unwrap();
             p.campaign = None;
         }
-        advance(&mut s, 20);
+        let mut bursts = Vec::new();
+        for _ in 0..20 {
+            advance(&mut s, 1);
+            bursts.extend(
+                s.state
+                    .shot_results
+                    .iter()
+                    .filter(|r| r.shooter_id == drone)
+                    .cloned(),
+            );
+        }
         assert_eq!(s.state.m04_photos_completed(), 0);
-        assert!(s.state.shot_results.iter().all(|r| r.shooter_id != drone));
+        if variant == 1 {
+            assert!(
+                !bursts.is_empty(),
+                "shield does not erase actual emitted burst"
+            );
+            assert!(
+                bursts.iter().all(|r| r.target_id == Some(id)
+                    && r.hit
+                    && r.damage == 0
+                    && matches!(
+                        r.trace.as_ref().unwrap().impact,
+                        crate::protocol::ShotImpact::Fighter { .. }
+                    )),
+                "actual protected-burst facts: {bursts:?}"
+            );
+            assert_eq!(body(&s, id).hp, 100);
+            assert_eq!(
+                body(&s, rear).hp,
+                100,
+                "opaque shield stops burst before rear agent"
+            );
+        } else {
+            assert!(
+                bursts.is_empty(),
+                "dry or invalid target must not emit burst"
+            );
+        }
     }
 }
 

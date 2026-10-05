@@ -12,6 +12,7 @@ const SURFACES: String = "res://assets/environment/moon/surfaces/"
 var _root: Node3D
 var _geometry: Dictionary = {}
 var residents: Array[Sprite3D] = []
+var _resident_feet: Array[Dictionary] = []
 var _service_lamp: MeshInstance3D
 var _water_material: ShaderMaterial
 var _water_seconds: float = 0.0
@@ -19,6 +20,7 @@ var _water_seconds: float = 0.0
 func clear_map() -> void:
 	_geometry.clear()
 	residents.clear()
+	_resident_feet.clear()
 	_service_lamp = null
 	_water_material = null
 	_water_seconds = 0.0
@@ -29,6 +31,7 @@ func clear_map() -> void:
 
 func configure_map(info: Dictionary) -> void:
 	clear_map()
+	_resident_feet = MoonResidentBodies.read(info)
 	if not info.get("m06") is Dictionary or not MapGeometry.validation_error(info).is_empty() \
 		or not MissionState.map_error(info).is_empty():
 		return
@@ -160,7 +163,7 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 		resident.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 		resident.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		resident.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		resident.position = centre + Vector3(0.8, EnemyAnimation.CENTRE_HEIGHT, -0.5 + index * 3.0)
+		resident.position = _resident_feet[index]["feet"] + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
 		resident.modulate = Color("d8c6a0") if index == 0 else Color("a9bcac")
 		_root.add_child(resident)
 		residents.append(resident)

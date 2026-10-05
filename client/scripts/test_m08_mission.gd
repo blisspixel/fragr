@@ -43,7 +43,9 @@ static func fixture_map(seal_open: bool = false, fallen: bool = false) -> Dictio
 			"decorations": [
 				{"solid": 6, "face": "north", "center": [0, 0], "size": [1.4, 1], "kind": "m08_freight_departure"},
 				{"solid": 1, "face": "east", "center": [0, 0.5], "size": [1.2, 1], "kind": "m08_seal_open" if seal_open else "m08_seal_locked"},
-				{"solid": 6, "face": "south", "center": [0, 0], "size": [3, 1], "kind": "m08_authorized_noise"}]},
+				{"solid": 6, "face": "south", "center": [0, 0], "size": [3, 1], "kind": "m08_authorized_noise"},
+				{"solid": 6, "face": "north", "center": [0, 0], "size": [2.6, 0.9], "kind": "m08_registry"},
+				{"solid": 6, "face": "south", "center": [0, 0], "size": [1.6, 1.2], "kind": "m08_bay_release"}]},
 		"m08": {"objectives": objectives, "nodes": nodes, "machine": 0, "seal": 1,
 			"bays": _arrival(M08MissionState.BAYS, 10, 3), "cabinet": _arrival(M08MissionState.CABINET, 14, 6),
 			"departure": {"decoration": 0, "approach": [0, 0, 32.5]},

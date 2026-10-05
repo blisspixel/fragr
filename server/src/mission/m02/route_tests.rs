@@ -1783,7 +1783,13 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
             .hp,
         100
     );
-    assert!(state.players.iter().find(|p| p.id == id).unwrap().hp < hp);
+    assert_eq!(state.players.iter().find(|p| p.id == id).unwrap().hp, hp);
+    assert!(
+        state.shot_results.iter().any(|shot| {
+            shot.shooter_id == target_id && shot.target_id == Some(companion_id) && shot.damage == 0
+        }),
+        "the immune companion stops the actual incoming ray"
+    );
     for enemy in state
         .players
         .iter_mut()
@@ -1866,10 +1872,17 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
             .support_shots,
         1
     );
+    state
+        .spawn_shields
+        .insert(id, crate::sim::SPAWN_SHIELD_TICKS);
+    assert!(
+        !state.m02_companion_intent().unwrap().1.action.fire,
+        "a shielded living participant still blocks support preflight"
+    );
 }
 
 #[test]
-fn companion_spread_cannot_turn_a_clear_support_shot_into_a_participant_hit() {
+fn companion_spread_stops_on_a_participant_without_friendly_damage() {
     let (mut state, participant_id) = ward_test_state();
     at_frame_facing_control(&mut state, participant_id);
     state.update_encounters();
@@ -1934,18 +1947,18 @@ fn companion_spread_cannot_turn_a_clear_support_shot_into_a_participant_hit() {
             .hp,
         participant_hp
     );
-    assert!(state
-        .snapshot()
-        .shot_results
-        .iter()
-        .all(|shot| { shot.shooter_id != companion_id || shot.target_id != Some(participant_id) }));
     let shot = state
         .snapshot()
         .shot_results
         .into_iter()
-        .find(|shot| shot.shooter_id == companion_id && shot.target_id == Some(target_id))
-        .expect("the shot passes through the participant and reaches the target");
-    assert!(shot.damage > 0);
+        .find(|shot| shot.shooter_id == companion_id && shot.target_id == Some(participant_id))
+        .expect("the actual spread ray stops at the nearer participant");
+    assert_eq!(shot.damage, 0);
+    assert!(!shot.killed);
+    assert!(!state
+        .shot_results
+        .iter()
+        .any(|shot| shot.shooter_id == companion_id && shot.target_id == Some(target_id)));
     let trace = shot.trace.unwrap();
     let delta: [f32; 3] = std::array::from_fn(|i| trace.end[i] - trace.origin[i]);
     let length = delta.iter().map(|v| v * v).sum::<f32>().sqrt();
@@ -1958,7 +1971,7 @@ fn companion_spread_cannot_turn_a_clear_support_shot_into_a_participant_hit() {
             [5.25, 0.0, -11.05],
             crate::sim::PLAYER_RADIUS,
             crate::combat::FIGHTER_HEIGHT,
-            length,
+            length + 0.001,
         )
         .is_some(),
         "the actual spread ray crosses the unshielded participant"

@@ -58,6 +58,7 @@ impl M06MapGeometry {
                 if region.valid(half) && point(*feet) && region.contains(*feet))
         };
         let presentation = presentation.ok_or("M06 presentation missing")?;
+        super::moon_residents(super::MissionId::PortOfEntry, half, solids, presentation)?;
         if !half.is_finite()
             || half <= 0.0
             || self.objectives.len() != M06_OBJECTIVE_IDS.len()

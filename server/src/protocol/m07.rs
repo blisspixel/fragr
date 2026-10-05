@@ -56,6 +56,7 @@ impl M07MapGeometry {
                 if region.valid(half) && point(*feet) && region.contains(*feet))
         };
         let presentation = presentation.ok_or("M07 presentation missing")?;
+        super::moon_residents(super::MissionId::DeclaredGoods, half, solids, presentation)?;
         if !half.is_finite()
             || half <= 0.0
             || self.objectives.len() != M07_OBJECTIVE_IDS.len()
