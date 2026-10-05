@@ -1,6 +1,6 @@
 # Latch calm-pose local candidate
 
-Status: CPU proof only, October 5, 2026. Same-camera rendering, release continuity review and ordinary played acceptance remain open. This is separate from the frozen hand and named-body integration batch.
+Status: corrected CPU candidate, October 5, 2026. First same-camera fixture is retained with a rejected release boundary and incomplete child-exit receipt. Corrected rendering and ordinary played acceptance remain open. This is separate from the frozen hand and named-body integration batch.
 
 Base is main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. The [plan](../plans/latch-calm-pose-20261005.md) precedes code. The independent private read-only audit reproduces the actual pawn/view transform chain and records 22 actual weighted source samples. Its inspected M07 image and current tracked GLB, view, pawn and old source are byte-identical to image client `94a270f2e406944ced574df2cfe6f0fee12eec16`.
 
@@ -20,4 +20,6 @@ Godot 4.7.2 headless import, touched-script parsing and `test_latch_source`, `te
 
 ## Open acceptance
 
-At release progress zero the calm candidate differs from the former raised idle; every positive release preserves the prior gesture. This may create a visible zero-to-positive jump. Capture that actual boundary before deciding whether a separate ward context is necessary. Do not accept the boundary merely because all positive poses compare exactly. Review full and player-distance old/new idle, armed, following, firing and release at unchanged height, ordinary light and camera before promotion. Current main remains unchanged.
+The first fixture produced 36 source-pose images and its own PASS with clean logs. Actual full-size zero-to-0.01 views show a visible elbow jump, rejected despite exact positive gesture comparisons. Its console launcher and actual renderer both retired, but the wrapper captured a null exit code for the launcher, so that lifecycle receipt remains incomplete and is not claimed as a clean numeric child exit.
+
+The corrected candidate gives `pose_release`, including zero, an explicit ward context that preserves every original weighted release vertex. Ordinary `advance` switches back to relaxed live-following context. Actual zero/0.01/0.5/1 weighted-surface comparisons and bidirectional context switching pass the unchanged owning harness, alongside near-camera and M02 tests. Review corrected full and player-distance old/new idle, armed, following, firing and release at unchanged height, ordinary light and camera before promotion. Current main remains unchanged.

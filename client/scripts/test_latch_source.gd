@@ -14,6 +14,7 @@ func _run() -> void:
 	var view: LatchView = LatchView.new()
 	root.add_child(view)
 	_check_relaxed_pose(view)
+	_check_ward_context(view)
 	var skeleton: Skeleton3D = view._source_body.get_node("Armature/Skeleton3D") as Skeleton3D
 	var mesh: MeshInstance3D = view._source_body.get_node("Armature/Skeleton3D/char1") as MeshInstance3D
 	_check(mesh.skin != null and skeleton.get_bone_count() == 24, "the live source has weighted skin")
@@ -129,6 +130,32 @@ func _check_relaxed_pose(view: LatchView) -> void:
 
 func _joint(view: LatchView, name: String) -> Vector3:
 	return _joint_body(view._source, view._source_body, name)
+
+func _check_ward_context(view: LatchView) -> void:
+	var reference: Node3D = load(LatchSource.LATCH_SOURCE).instantiate() as Node3D
+	root.add_child(reference)
+	view.set_weapon_visible(false)
+	for progress: float in [0.0, 0.01, 0.5, 1.0]:
+		view.pose_release(progress)
+		_legacy_pose(view._source, reference, 0.0, false, false, progress)
+		var actual: PackedVector3Array = _skin_points(view._source_body)
+		var previous: PackedVector3Array = _skin_points(reference)
+		var greatest_error: float = 0.0
+		for vertex: int in range(actual.size()):
+			greatest_error = maxf(greatest_error, actual[vertex].distance_to(previous[vertex]))
+		_check(greatest_error < 0.00001, "ward context preserves every posed vertex including zero-to-positive release")
+	view.advance(0.05, 0.0, "following")
+	var shoulder: Vector3 = _joint(view, "LeftArm")
+	var elbow: Vector3 = _joint(view, "LeftForeArm")
+	_check(not view._ward_pose and absf(elbow.x) - absf(shoulder.x) < 0.1,
+		"ordinary live advance switches from ward gesture to calm following")
+	view.pose_release(0.0)
+	shoulder = _joint(view, "LeftArm")
+	elbow = _joint(view, "LeftForeArm")
+	_check(view._ward_pose and absf(elbow.x) - absf(shoulder.x) > 0.19,
+		"returning to ward context preserves its original starting gesture")
+	view.advance(0.05, 0.0, "following")
+	reference.free()
 
 func _joint_body(source: RefCounted, body: Node3D, name: String) -> Vector3:
 	return (source.bone_transform(body, name) as Transform3D).origin

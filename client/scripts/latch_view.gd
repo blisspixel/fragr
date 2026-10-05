@@ -28,6 +28,7 @@ const Source = preload("res://scripts/latch_source.gd")
 var _source: RefCounted = Source.new()
 var _source_body: Node3D
 var _release: float = 0.0
+var _ward_pose: bool = false
 var _moving: bool = false
 var _firing: bool = false
 var _ward_position: Vector3 = Vector3.INF
@@ -71,7 +72,7 @@ func _init() -> void:
 	set_process(false)
 
 func _pose_source() -> void:
-	_source.pose_live(_source_body, _stride, _moving, _gun.visible, _release, _firing)
+	_source.pose_live(_source_body, _stride, _moving, _gun.visible, _release, _firing, not _ward_pose)
 	var hand: Transform3D = _source.bone_transform(_source_body, "RightHand")
 	var arm: Transform3D = _source.bone_transform(_source_body, "RightArm")
 	_right_arm.transform = Transform3D(arm.basis.orthonormalized(), arm.origin)
@@ -166,6 +167,7 @@ func set_screen_expression(openness: float) -> void:
 ## The open right hand and balancing left arm are a voluntary second-bay action.
 ## Call with a server-derived release timeline; it never advances mission state.
 func pose_release(progress: float) -> void:
+	_ward_pose = true
 	var travel: float = position.distance_to(_ward_position) if _ward_position != Vector3.INF else 0.0
 	_ward_position = position
 	_moving = travel > 0.001 and travel < 2.0
@@ -177,6 +179,7 @@ func pose_release(progress: float) -> void:
 	_pose_source()
 
 func advance(delta: float, travel: float, phase: String) -> void:
+	_ward_pose = false
 	_moving = travel > 0.0 and travel < 2.0
 	_firing = phase == "firing"
 	if _moving:

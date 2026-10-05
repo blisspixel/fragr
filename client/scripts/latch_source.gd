@@ -4,7 +4,7 @@ extends RefCounted
 const LATCH_SOURCE: String = "res://assets/models/latch_stylized.glb"
 
 ## Sample the retained skin, without root motion or a client-owned action clock.
-func pose_live(body: Node3D, stride: float, moving: bool, armed: bool, release: float, firing: bool = false) -> void:
+func pose_live(body: Node3D, stride: float, moving: bool, armed: bool, release: float, firing: bool = false, calm_free_arms: bool = true) -> void:
 	release = clampf(release, 0.0, 1.0)
 	stride = fposmod(stride, TAU)
 	var skeleton: Skeleton3D = body.get_node("Armature/Skeleton3D") as Skeleton3D
@@ -16,7 +16,7 @@ func pose_live(body: Node3D, stride: float, moving: bool, armed: bool, release: 
 	var left: Vector3 = Vector3(27, 96 - sway, 12)
 	var right_pole: Vector3 = Vector3(-58, 109, 3)
 	var left_pole: Vector3 = Vector3(56, 109, 3)
-	if release == 0.0:
+	if calm_free_arms and release == 0.0:
 		# The free hands hang beside the body; the imported chain uses centimeters.
 		var left_shift: Vector3 = _shoulder_shift(skeleton, "LeftArm")
 		left = Vector3(27, 85 - sway, 8) + left_shift
