@@ -222,6 +222,8 @@
     {
       "name": "m10_west_stair_return",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["forward_sweeper_b"],
       "walk_to": [
         [
           -6.55,
@@ -352,6 +354,8 @@
     {
       "name": "m10_service_defense",
       "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": ["service_crawler_a", "service_crawler_b", "service_crawler_c", "service_clerk", "service_sweeper"],
       "walk_to": [
         [
           0,

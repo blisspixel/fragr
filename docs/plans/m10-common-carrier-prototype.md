@@ -699,3 +699,16 @@ Preserve every stock and objective destination, authoritative kill and death
 check, all 17 guards and the fresh departure. Record these two additional
 opt-ins and the failed replay; no resource, geometry or timing adjustment is
 justified by a test that withholds ordinary return fire in an active room.
+
+The next fresh actual process reaches the same first group with different
+real attack timing. One lower Sweeper hit leaves 81 HP and no armor. Two
+resolved upper Sweeper hits during the no-fire west stair return remove
+another 50 HP before the gallery fight. The service approach then starts
+with 31 HP; two real service Sweeper hits kill the player while it defeats
+the first Crawler. Preserve this death and the exact shooter timeline.
+Enable the existing travel-fire seam for that active west stair return,
+restricted to its surviving upper Sweeper, and the service defense approach,
+restricted to that group's five real guards. Every original waypoint, gate
+and finite stock remains. This addresses measured omitted return fire at
+encounter approaches, without changing the genuine difficulty or pretending
+different fresh processes have identical attack timing.
