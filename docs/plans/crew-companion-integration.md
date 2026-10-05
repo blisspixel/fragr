@@ -13,6 +13,30 @@ This is an integration gate within the existing Full build order.
 
 ## Scope
 
+### Reviewed recovery composition, 2026-10-05
+
+The two-source checkpoint `f65dd844` passed all eight exact-head CI jobs and
+all three desktop package checks. Before another main merge, compose the
+separately reviewed static-corner checkpoint
+`51c33e16b9d4f64c4ae4f042c0818e87d1c9c684` through a normal merge on this
+same branch. Its two changed files are the owning navigation controller and
+its unique plan. The input has passed its own complete local checks and all
+eight CI and three package gates.
+
+Verify its bounded six-step contact forecast, twelve-tick escape lease and
+ordinary unsupported-drop preservation against the exact source input. Keep
+all companion and crew contracts unchanged, and selected artwork byte-identical
+to restored main. This correction does not establish the cause of the original
+intermittent map 5 stress report, whose missing height and action facts remain
+an attribution limit. Retain that report and the unchanged passing rerun.
+
+After merging, repeat complete composed formatting, warning-denied workspace
+Clippy, tests, deterministic benchmark, private release/native and client
+checks. Preserve the earlier frozen receipts. Refresh the existing integration
+receipt, single Full build order and plan index, then freeze one final source
+and require all eight exact-head CI and three desktop package checks again.
+No gameplay thresholds, collision, difficulty or art selection change.
+
 Preserve the bounded supported companion stand-off and short-yield movement,
 including both delivered-contact regressions and the original finite combat
 rules. Preserve the immutable M09 release and actual aboard-at-confirmation
