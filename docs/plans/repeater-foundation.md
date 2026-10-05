@@ -1,10 +1,11 @@
 # Repeater behavior foundation
 
-Status: implemented locally, 2026-10-04. CPU-only prototype from frozen M09 `01912934`.
+Status: **shipped** on main, next desktop release, 2026-10-04. Behavior foundation from frozen M09 `01912934`.
 No M10 geometry, passenger-rule implementation, runtime art selection or new spend.
 The [local evidence](../evidence/repeater-foundation-20261004.md) records the
 complete native/client checks and actual retained-reader wire proof. Parent
-integration, full combination CI and packages remain open.
+integration passed in [PR #358](https://github.com/blisspixel/fragr/pull/358),
+with all eight exact-head CI jobs and all three desktop package checks passing.
 
 The [active Common Carrier brief](../campaign/m06-common-carrier.md#level-10-design-twenty-level-expansion)
 introduces a genuine sustained-fire gun sharing finite Bullets. This bounded
@@ -136,3 +137,11 @@ the corrected focused regression and complete client repeat pass.
 These checks establish this CPU foundation, not a final Repeater balance or
 accepted M10 lesson. Repeater art, truthful cues and presentation, played feel,
 M10 boarding/carry and mission geometry remain separate gates.
+
+The final arsenal review also includes the accepted Sniper art checkpoint
+`74727a54` and current main `2399c00d`. Complete combined client checks pass
+import, 260 scripts and all 124 harnesses, exit 0 and no errors. The original
+native proof and private release hash remain exact. All eight final combined
+CI jobs and all three desktop package/install checks passed before main merge;
+Sniper's source and ordinary played
+comparison are separate evidence from this CPU foundation.

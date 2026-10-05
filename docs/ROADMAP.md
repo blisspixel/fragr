@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 8 are playable development prototypes, with
+**Campaign.** Levels 1 to 9 are playable development prototypes, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -35,10 +35,12 @@ Custodian of Record, without a continue refill. Version 9 retains actual mine
 counts and strictly upgrades historical v2-v8 documents with exact-byte archives.
 Owned client checks prove actual mine placement and mission-entry restoration.
 The [level 8 prototype](plans/l08-custodian-of-record-prototype.md) retains its
-Proximity Mine and repairing Auditor, with a separate practice entry. M09 is
-not playable. Combined integration is tracked in
-[PR #347](https://github.com/blisspixel/fragr/pull/347); fresh-player, difficulty
-and final art acceptance remain open for every level.
+Proximity Mine and repairing Auditor, with a separate practice entry. The
+[M09 berth prototype](plans/m09-passenger-manifest-prototype.md) shipped in
+[PR #354](https://github.com/blisspixel/fragr/pull/354) and v0.73.0, with a
+complete 27-state, 21-guard structural combat route and version 10 saved carry.
+M10 through M20 remain unbuilt. Fresh-player, difficulty and final art acceptance
+remain open for every level. The full build order below owns current sequencing.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
 capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
@@ -313,7 +315,8 @@ The current release is [v0.73.0](https://github.com/blisspixel/fragr/releases/ta
 including the M09 prototype, refined Pistol and hatless civilian. All eight
 main CI jobs and three tagged desktop package checks passed; uploaded digests
 match the checksum manifest ([release receipt](evidence/release-v073-20261004.md)). Current independent
-lanes are Jammer and precision-weapon craft, the Repeater foundation, Kitchen and Garage. The
+lanes are crew departure and campaign continuation, companion contact fixes,
+Jammer and Railgun craft, Kitchen and Garage. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
 27-state, 21-guard structural combat route and strict archive-to-berth carry
 passing locally; final hull art, shortcuts and fresh-player acceptance remain
@@ -326,12 +329,35 @@ on their reviewed heads. The Rifle's accepted source and played comparison
 passed complete local checking, all eight exact-head CI jobs and all three
 desktop package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356)
 merged the selected art to main after v0.73.0 was published.
+The [shared Union shadow repair](evidence/union-billboard-shadows-20261004.md)
+is on main through [PR #359](https://github.com/blisspixel/fragr/pull/359), with
+rendered original/corrected controls, complete client, all eight CI jobs and
+all three desktop packages passing. It retains casting and reception.
 The corrected Jammer candidate consumed 35 included credits, passed mechanical
 source inspection and continues through pixel baking and played acceptance.
 The [precision weapon pass](plans/precision-weapon-references-20261004.md)
 adds two inspected sources for 70 included credits; compact preparation and
-selection remain open. The latest account check reports 2,480 available,
-15 held and 2,465 usable, with 590 tracked credits consumed. Kitchen's
+played selection remain open for the Railgun. The
+[Sniper refinement](evidence/sniper-source-refinement-20261004.md) selects its
+prepared held, firing and pickup pictures after source and ordinary played
+comparison checks. The combined Sniper and
+[Repeater foundation](plans/repeater-foundation.md) passes the complete local
+client checker, all eight exact-head CI jobs and all three desktop package
+checks, and merged in [PR #358](https://github.com/blisspixel/fragr/pull/358).
+The next desktop release remains pending. The
+Repeater has genuine finite-ammunition fire, capability 35, explicit record
+revision 2 and strict version 11 save compatibility. It has no current campaign
+or arcade grant; its own art, cues and played feel remain open. Three
+[inhabited-world prop sources](evidence/world-prop-sources-20261004.md)
+add an assembled scrubber, complete-port pump and civilian radio for 105 actual
+credits, with all twelve raw views inspected. Their
+[compact fixed preparation](evidence/world-prop-preparation-20261004.md) retains
+all source geometry and passes grounded pump-support proof. Played placement
+remains open. The [distinct civilian worker and repair bench](evidence/civilian-first-sources-20261004.md)
+complete the twelve first-candidate slots for another 70 actual included credits,
+with all eight raw views inspected. Skin/mechanism preparation and selection
+remain open. The latest account check reports 2,305 available,
+15 held and 2,290 usable, with 765 tracked credits consumed. Kitchen's
 eight-pad route and actual four-fighter match pass, but its first-use white-wall
 art defect remains unresolved. Garage's ordinary 15-state route passes with
 no deaths; vehicle/surface craft and fresh human fun remain open. Shared

@@ -97,11 +97,26 @@ full mission-route acceptance. This runtime increment shipped in
 implementation CI and all three desktop package checks passing. Its cast batch
 used 160 included model credits. The Enforcer is integrated with level 9;
 Crawler refinement remains in flight. The latest October 4 free account check
-reports 2,480 available with a 15-credit uncertain hold, leaving 2,465 usable;
-tracked net consumption is 590 credits, including the Jammer and the first
-Railgun/Sniper Rifle candidates under local refinement. The
+reports 2,305 available with a 15-credit uncertain hold, leaving 2,290 usable;
+tracked net consumption is 765 credits, including the Jammer, first
+Railgun/Sniper Rifle candidates, three inhabited-world props, the distinct
+civilian free agent and repair workbench.
+The [prop source receipt](docs/evidence/world-prop-sources-20261004.md) records
+105 actual credits and twelve inspected views. Their
+[compact fixed preparation](docs/evidence/world-prop-preparation-20261004.md)
+retains all source geometry and adds verified grounded pump mounts. Played
+placement and selection remain open. The
+[civilian source receipt](docs/evidence/civilian-first-sources-20261004.md)
+records the two remaining first candidates and their 70 actual included credits.
+All twelve first-source slots have candidates, with 460 credits still available
+inside the first 900-credit allocation; this does not imply finished game art. The
 [precision source receipt](docs/evidence/precision-weapon-references-20261004.md)
 records their actual geometry, eight inspected views and 70 included credits.
+The [Sniper refinement](docs/evidence/sniper-source-refinement-20261004.md)
+selects prepared held, firing and pickup art on main through
+[PR #358](https://github.com/blisspixel/fragr/pull/358), with all eight CI jobs
+and all three desktop package checks passing;
+the Railgun source remains parked pending preparation and played acceptance.
 The [full asset plan](docs/plans/meshy-full-game-assets.md)
 owns the per-object briefs and budget scenarios.
 The first [incoming combat feedback slice](docs/evidence/directional-feedback-20261004.md)
@@ -128,8 +143,18 @@ package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) selects
 the refined Rifle on main after accepted source and played comparisons,
 complete local client checks, all eight exact-head CI jobs and all three
 desktop package checks. That increment follows the published v0.73.0 build.
-Parallel development continues on Jammer and precision-weapon craft,
-the Repeater foundation, a Kitchen map with
+The [Union shadow repair](docs/evidence/union-billboard-shadows-20261004.md)
+is also on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
+with rendered regression, complete client, all eight CI and all three package
+checks passing. It preserves real shadows while removing diagonal body bands.
+Main combines selected Sniper art with the
+[Repeater foundation](docs/plans/repeater-foundation.md) through
+[PR #358](https://github.com/blisspixel/fragr/pull/358). Complete local client
+checks, all eight exact-head CI jobs and all three desktop package checks pass.
+The next desktop release remains pending. Repeater
+has real finite-ammunition behavior and strict compatibility, but no current
+campaign grant, selected art or accepted human feel. Parallel development
+continues on Jammer and Railgun craft, a Kitchen map with
 an unresolved first-use wall-rendering defect, and a Garage whose full walking
 route passes but vehicle craft and fresh human fun remain open.
 

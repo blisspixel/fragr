@@ -1,9 +1,13 @@
 # Repeater foundation checks
 
-Status: implemented locally, 2026-10-04. This is a CPU-only behavior and compatibility
+Status: **shipped** on main, next desktop release, 2026-10-04. This is a behavior and compatibility
 foundation from frozen M09 `01912934`, not an accepted M10 lesson or selected
 weapon presentation. Source checkpoint `2b867d3c`, integration assertions
-`9941449c` / `05121e50` and presentation correction `950b7e03` are unmerged.
+`9941449c` / `05121e50` and presentation correction `950b7e03` are retained
+in the final combined source `17706484`, merged at main `d1d13562` through
+[PR #358](https://github.com/blisspixel/fragr/pull/358). All eight CI jobs
+(`37248043090`) and all three desktop package/install checks (`37248042020`)
+passed on that exact source. The next desktop release remains pending.
 The final combined source includes accepted main `53b5c036`, with the civilian,
 Pistol and Rifle presentation intact.
 
@@ -92,8 +96,18 @@ corrected source. A private launcher referencing a nonexistent old harness
 name failed before the corrected existing RangedSweeper and install harnesses
 ran; this launcher failure is retained and is not counted as a source pass.
 
-Remote full combination CI, coverage, desktop packages and played feel are unclaimed.
-No paid requests or GPU rendering ran. A real articulated Repeater asset,
+The final combined source at `fc1641a7` includes current main `2399c00d`, its
+Union shadow repair and the accepted Sniper source at `74727a54`. The complete
+checker passes import, 260 scripts and all 124 harnesses with exit 0, its final
+PASS marker and no error lines. The exact Sniper pictures and selection receipt
+are unchanged from its accepted checkpoint. Native source remains unchanged
+from the tested foundation; the private release hash above remains exact.
+The Sniper's separate source and ordinary played-comparison evidence is in
+[its refinement receipt](sniper-source-refinement-20261004.md).
+
+Earlier frozen foundation heads passed all eight CI jobs and all three desktop
+packages. Final combined remote CI, coverage and desktop packages remain open.
+No paid requests or GPU rendering ran for the Repeater foundation. A real articulated Repeater asset,
 truthful cues, strict presentation facts and an isolated played lesson remain
 required before production selection. M10 crew transit and its map are outside
 this foundation.

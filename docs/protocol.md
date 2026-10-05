@@ -2138,10 +2138,10 @@ content bytes and campaign rules before readiness. An M01 exit waiting for M02
 is checked against the M01 content it names, then promoted once to an M02 entry
 under the same lock. M02 promotes to M03, M03 to M04 and M04 to M05 without
 refilling continues or equipment. Compatible v2 M01, v3 M01/M02 and v4
-M01/M02/M03 documents migrate to v12 after validating their historical revision
+M01/M02/M03 documents migrate to v13 after validating their historical revision
 2 rules and exact content hash. The upgrade promotes rules to revision 3 with
 exact original bytes retained. Strict v5 M01 through M04 documents retain revision
-3 and upgrade to v12 with zero historical grenades. Strict v6 documents preserve
+3 and upgrade to v13 with zero historical grenades. Strict v6 documents preserve
 their real grenade counts and M05 release/boarding outcomes; they cannot forge
 playable M06 or its future route outcome. Old shapes reject grenade
 fields and forged M05 stages. Exact source bytes are archived before replacement;
@@ -2206,7 +2206,7 @@ crew's distinct short transition belongs to the future canonical promotion.
 No live M09 wire field, capability or optional crew wait gate changes here.
 Episode II continues refill
 only in the locked completed-M05-to-M06 promotion, never on a format upgrade.
-Strict v7 documents upgrade to v12 and cannot forge an M07 stage or a carried
+Strict v7 documents upgrade to v13 and cannot forge an M07 stage or a carried
 Sniper Rifle. Strict v8 documents retain the completed M07 edge and its
 Sniper, then promote into M08 without a refill. V8 refuses playable M08.
 Strict v9 preserves all actual equipment and earlier outcomes. Its exact
@@ -2214,7 +2214,7 @@ shape refuses `m08_outcome`, even null, and any playable M09 stage before upgrad
 Strict v10/v11 upgrade through their exact historical shape, preserving recorded or
 historically unrecorded M08 outcomes and actual equipment counts. Versions 2
 through 11 refuse Repeater selection or ownership, including forged historical
-fields. Current v12 likewise refuses Repeater ownership throughout supported
+fields. Historical v12 likewise refuses Repeater ownership throughout supported
 stages through M09 and the pending M10 edge; no authored M10 find is implied.
 Every writable upgrade archives the exact old bytes under the existing lock;
 format migration grants no gun, ammunition, grenade, mine or continue refill.

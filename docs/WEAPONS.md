@@ -42,8 +42,8 @@ offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
 through the connected authored development missions, including M07 through M09.
-Save version 12 preserves actual counts through the existing locked writer;
-strict historical version 11 and earlier upgrades archive exact original bytes
+Save version 11 preserves actual counts through the existing locked writer;
+strict historical version 10 and earlier upgrades archive exact original bytes
 and refuse forged Repeater ownership. Current supported stages through M09 and
 the pending M10 edge likewise cannot acquire it from a save.
 
