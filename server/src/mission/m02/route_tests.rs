@@ -554,6 +554,10 @@ impl Walker {
             self.client
                 .steer(&mut self.navigator, world, self.id, snapshot, equipped)
         };
+        // This witness deliberately clears every authored guard before boarding.
+        // A combat dodge must not finish its optional full-clear proof early at
+        // the real, intentionally ungated departure boundary.
+        let action = full_clear_dodge(&session.state, self.id, action);
         session.state.set_action(self.id, action);
     }
 
@@ -648,6 +652,175 @@ fn assert_body_clear(session: &GameSession, id: Uuid) {
 
 fn departed(session: &GameSession, _: &Walker) -> bool {
     session.state.mission_departed()
+}
+
+fn full_clear_dodge(state: &GameState, id: Uuid, action: Action) -> Action {
+    if !action.fire
+        || !(action.left || action.right)
+        || action.jump
+        || action.turn_left
+        || action.turn_right
+        || !state
+            .players
+            .iter()
+            .any(|p| p.is_campaign_enemy() && p.hp > 0)
+    {
+        return action;
+    }
+    let Some(arrival) = state
+        .map
+        .m02_objectives()
+        .and_then(|objectives| objectives.objective(ORDER.len() - 1))
+        .and_then(|objective| objective.arrival.as_ref())
+    else {
+        return action;
+    };
+    let bodies = state.contact_bodies();
+    let Some(index) = bodies.iter().position(|body| body.key == id.to_string()) else {
+        return action;
+    };
+    let me = &bodies[index];
+    if arrival.contains([me.from.x, me.from.y, me.from.z]) {
+        return action;
+    }
+    let arena = state.current_arena();
+    let forecast = |candidate: &Action| {
+        // LookAt resolves after movement. Preserve the actual current facing,
+        // rather than aiming at the next target before this ordinary step.
+        let proposed = crate::movement::live_step_with_height(
+            me.from,
+            &crate::movement::MoveInput {
+                forward: candidate.forward,
+                back: candidate.back,
+                left: candidate.left,
+                right: candidate.right,
+                jump: candidate.jump,
+                yaw: candidate.yaw.unwrap_or(me.from.yaw),
+                speed_scale: 1.0,
+            },
+            crate::movement::TOP_SPEED,
+            0.05,
+            &arena,
+            me.height,
+        );
+        let mut scene = bodies.clone();
+        scene[index].proposed = proposed;
+        let moved = crate::movement::contact::resolve(&scene, 0.05, &arena)[index];
+        ((moved.y - me.from.y).abs() <= crate::movement::STEP_UP + CONTACT_EPSILON
+            && moved.vy >= -CONTACT_EPSILON)
+            .then_some(moved)
+    };
+    if forecast(&action).is_none_or(|pose| !arrival.contains([pose.x, pose.y, pose.z])) {
+        return action;
+    }
+    let mut alternate = action.clone();
+    (alternate.left, alternate.right) = (action.right, action.left);
+    if forecast(&alternate).is_some_and(|pose| {
+        !arrival.contains([pose.x, pose.y, pose.z])
+            && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
+    }) {
+        return alternate;
+    }
+    let mut held = action.clone();
+    held.forward = false;
+    held.back = false;
+    held.left = false;
+    held.right = false;
+    if forecast(&held).is_some_and(|pose| !arrival.contains([pose.x, pose.y, pose.z])) {
+        return held;
+    }
+    action
+}
+
+#[test]
+fn full_clear_witness_dodges_outside_real_exit_and_resumes_after_guard_clear() {
+    let (mut state, id) = ward_test_state();
+    state.update_encounters();
+    let target = state
+        .players
+        .iter_mut()
+        .find(|player| player.name == "dock_clerk")
+        .unwrap();
+    target.hp = 30;
+    [target.x, target.y, target.z] = [-4.014929, PLAYER_FLOOR_Y, 22.62873];
+    let target_id = target.id;
+    let target_point = [target.x, 0.9, target.z];
+    let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    [player.x, player.y, player.z] = [-1.2896589, PLAYER_FLOOR_Y, 18.868608];
+    player.yaw = crate::combat::aim_at(
+        [player.x, crate::movement::EYE_HEIGHT, player.z],
+        target_point,
+    )
+    .unwrap()
+    .0;
+    let input = Action {
+        left: true,
+        fire: true,
+        look_at: Some(LookAt {
+            player_id: Some(target_id),
+            ..Default::default()
+        }),
+        pitch: Some(0.125),
+        weapon_swap: Some(WeaponType::Scatter),
+        seq: Some(73),
+        ..Default::default()
+    };
+    let objective = state
+        .map
+        .m02_objectives()
+        .unwrap()
+        .objective(ORDER.len() - 1)
+        .unwrap();
+    assert!(
+        objective.required_encounter.is_none(),
+        "the canonical departure remains intentionally ungated"
+    );
+    let exit = objective.arrival.as_ref().unwrap().clone();
+    let bodies = state.contact_bodies();
+    let index = bodies.iter().position(|b| b.key == id.to_string()).unwrap();
+    let arena = state.current_arena();
+    let projected = crate::movement::live_step_with_height(
+        bodies[index].from,
+        &crate::movement::MoveInput {
+            left: true,
+            yaw: bodies[index].from.yaw,
+            speed_scale: 1.0,
+            ..Default::default()
+        },
+        crate::movement::TOP_SPEED,
+        0.05,
+        &arena,
+        BODY_HEIGHT,
+    );
+    let mut scene = bodies;
+    scene[index].proposed = projected;
+    let raw = crate::movement::contact::resolve(&scene, 0.05, &arena)[index];
+    assert!(
+        exit.contains([raw.x, raw.y, raw.z]),
+        "the recorded ordinary dodge reproduces the real premature exit"
+    );
+    let safe = full_clear_dodge(&state, id, input.clone());
+    let mut expected = input.clone();
+    expected.left = false;
+    expected.right = true;
+    assert_eq!(
+        serde_json::to_value(&safe).unwrap(),
+        serde_json::to_value(&expected).unwrap(),
+        "only supported lateral movement changes, all combat intent remains"
+    );
+    state.set_action(id, safe);
+    state.tick(0.05);
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    assert!(!exit.contains([player.x, player.y - PLAYER_FLOOR_Y, player.z]));
+    assert!((player.x + 1.2896589).hypot(player.z - 18.868608) > 0.08);
+    for guard in state.players.iter_mut().filter(|p| p.is_campaign_enemy()) {
+        guard.hp = 0;
+    }
+    assert_eq!(
+        serde_json::to_value(full_clear_dodge(&state, id, input.clone())).unwrap(),
+        serde_json::to_value(input).unwrap(),
+        "normal exit movement resumes after the full-clear witness finishes"
+    );
 }
 
 fn assert_guard_room_lesson(walker: &Walker) {
@@ -1544,6 +1717,16 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
     });
     let (shooter, intent) = state.m02_companion_intent().unwrap();
     assert_eq!(shooter, companion_id);
+    assert!(
+        intent.goal.is_none(),
+        "firing discards the previous formation route"
+    );
+    assert!(
+        !intent.action.forward
+            && !intent.action.back
+            && !intent.action.left
+            && !intent.action.right
+    );
     assert!(
         intent.action.fire,
         "visible active ward guard receives bounded support"
@@ -2701,8 +2884,19 @@ fn a_wipe_resets_the_objective_and_the_fights() {
     assert_eq!(
         walker.defeated.len(),
         ENEMIES,
-        "{:?}",
-        walker.defeated_names
+        "{:?}; actual attempt {}; captured roster {:?}; living {:?}; companion shots {} kills {}",
+        walker.defeated_names,
+        session.state.mission_state().unwrap().attempt,
+        walker.attempt_enemies.as_ref().map(BTreeSet::len),
+        session
+            .state
+            .players
+            .iter()
+            .filter(|p| p.hp > 0)
+            .map(|p| (&p.name, p.hp, [p.x, p.y, p.z]))
+            .collect::<Vec<_>>(),
+        walker.companion_shots,
+        walker.companion_kills
     );
     assert_eq!(session.state.mission_state().unwrap().attempt, 2);
 }

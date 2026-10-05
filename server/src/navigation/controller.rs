@@ -27,6 +27,7 @@ pub struct Navigator {
     avoidance_position: Option<[f32; 3]>,
     avoidance_tick: u64,
     avoidance_stalled: u32,
+    avoidance_motion: Option<[bool; 4]>,
 }
 
 impl Navigation {
@@ -203,9 +204,9 @@ impl Navigator {
         )
     }
 
-    /// Local ordinary input around occupied routes. Topology/search memory stays
-    /// unchanged; every candidate uses map integration and the shared contact
-    /// solver with immutable current bodies, including stationary civilians.
+    /// Local ordinary input around occupied routes and observed static corners.
+    /// Topology/search memory stays unchanged; every candidate uses map
+    /// integration and the shared contact solver with immutable current bodies.
     pub fn avoid_bodies(
         &mut self,
         arena: &crate::movement::Arena,
@@ -249,6 +250,7 @@ impl Navigator {
         if !(action.forward || action.back || action.left || action.right) || action.jump {
             self.avoidance_stalled = 0;
             self.avoidance_position = None;
+            self.avoidance_motion = None;
             return action;
         }
         let yaw = action.yaw.unwrap_or(me.from.yaw);
@@ -281,7 +283,12 @@ impl Navigator {
             })
             .cloned()
             .collect();
-        if neighbours.is_empty() {
+        let recovering_static = self.avoidance_motion.is_some() && tick < self.avoidance_until;
+        if !recovering_static {
+            self.avoidance_motion = None;
+        }
+        let static_obstructed = dx.hypot(dz) < 0.01;
+        if neighbours.is_empty() && !static_obstructed && !recovering_static {
             self.avoidance_stalled = 0;
             self.avoidance_position = None;
             return action;
@@ -300,7 +307,7 @@ impl Navigator {
         }
         let stalled = self.avoidance_stalled >= 6;
         if dx.hypot(dz) < 0.01 {
-            if !stalled {
+            if !stalled && !recovering_static {
                 return action;
             }
             // A repeatedly blocked corner still has an ordinary wished
@@ -358,10 +365,26 @@ impl Navigator {
             Some([pose.x - me.from.x, pose.z - me.from.z])
         };
         let Some(original) = forecast(&action) else {
-            // Preserve a deliberate route drop; alternative crowd passing never
-            // introduces a new unsupported step on a grounded actor's behalf.
+            // Preserve a deliberate route drop before any remembered escape.
+            if recovering_static {
+                self.avoidance_motion = None;
+                self.avoidance_until = 0;
+            }
             return action;
         };
+        if recovering_static {
+            if let Some([forward, back, left, right]) = self.avoidance_motion {
+                let mut continued = action.clone();
+                continued.forward = forward;
+                continued.back = back;
+                continued.left = left;
+                continued.right = right;
+                if forecast(&continued).is_some_and(|delta| delta[0].hypot(delta[1]) > 0.08) {
+                    return continued;
+                }
+            }
+            self.avoidance_motion = None;
+        }
         let progress = (original[0] * dx + original[1] * dz) / length;
         if progress >= length * 5.0 && !stalled {
             self.avoidance_until = 0;
@@ -403,7 +426,18 @@ impl Navigator {
             } else {
                 0.0
             };
-            let score = along + lateral.abs() * 0.35 + preferred;
+            let static_recovery = neighbours.is_empty() && static_obstructed && stalled;
+            let score = if static_recovery {
+                // An inflated stair corner can require an outward diagonal
+                // before retreat resumes. Reward actual supported escape,
+                // while preserving combat aim and the finite recovery lease.
+                along * 0.15
+                    + lateral.abs() * 0.35
+                    + accepted[0].hypot(accepted[1]) * 0.75
+                    + preferred
+            } else {
+                along + lateral.abs() * 0.35 + preferred
+            };
             if score > best_score + 0.01 && accepted[0].hypot(accepted[1]) > 0.08 {
                 best_score = score;
                 best = candidate;
@@ -416,6 +450,9 @@ impl Navigator {
         {
             self.avoidance_side = if best.right { 1 } else { -1 };
             self.avoidance_until = tick.saturating_add(12);
+            if neighbours.is_empty() && static_obstructed && stalled {
+                self.avoidance_motion = Some([best.forward, best.back, best.left, best.right]);
+            }
         }
         best
     }
@@ -1129,5 +1166,210 @@ mod tests {
             me.from.x >= 2.0 && me.from.y == 1.5,
             "ordinary stairs remain usable: {me:?}"
         );
+    }
+
+    #[test]
+    fn actual_gulch_static_corners_recover_sustained_combat_movement() {
+        let runtime = crate::maps::RuntimeMap::BuiltIn(crate::sim::MapKind::ReclamationGulch);
+        for feet in [[73.28353, 0.0, 21.406975], [54.56577, 0.0, 37.4444]] {
+            let target = [feet[0], 0.0, feet[2] - 15.0];
+            let mut mover = crowd_body(1, feet[0], feet[1], feet[2], -std::f32::consts::FRAC_PI_2);
+            let mut nav = Navigator::default();
+            let mut stationary = 0;
+            let mut longest = 0;
+            let mut first_escape = None;
+            let intent = Action {
+                back: true,
+                fire: true,
+                pitch: Some(0.125),
+                weapon_swap: Some(crate::protocol::WeaponType::Rail),
+                seq: Some(200),
+                look_at: Some(LookAt {
+                    player_id: Some(Uuid::from_u128(2)),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            };
+            for tick in 1..=120 {
+                mover.from.yaw = (target[2] - mover.from.z).atan2(target[0] - mover.from.x);
+                let routed = nav.steer(
+                    runtime.navigation(),
+                    [mover.from.x, mover.from.y, mover.from.z],
+                    NavigationGoal {
+                        feet: target,
+                        combat: true,
+                    },
+                    intent.clone(),
+                    tick,
+                    true,
+                );
+                let before = routed.clone();
+                let action = nav.avoid_bodies(
+                    runtime.arena(),
+                    Uuid::from_u128(1),
+                    &[mover.clone()],
+                    routed,
+                    tick,
+                );
+                assert_eq!(action.fire, before.fire);
+                assert_eq!(action.pitch, before.pitch);
+                assert_eq!(action.weapon_swap, before.weapon_swap);
+                assert_eq!(action.look_at, before.look_at);
+                assert_eq!(action.seq, before.seq);
+                let next = crate::movement::live_step_with_height(
+                    mover.from,
+                    &crate::movement::MoveInput {
+                        forward: action.forward,
+                        back: action.back,
+                        left: action.left,
+                        right: action.right,
+                        yaw: action.yaw.unwrap_or(mover.from.yaw),
+                        speed_scale: 1.0,
+                        ..Default::default()
+                    },
+                    crate::movement::TOP_SPEED,
+                    0.05,
+                    runtime.arena(),
+                    mover.height,
+                );
+                let displacement = (next.x - mover.from.x).hypot(next.z - mover.from.z);
+                if displacement > 0.08 && first_escape.is_none() {
+                    first_escape = Some(tick);
+                }
+                if first_escape.is_some_and(|first| tick > first && tick <= first + 10) {
+                    assert!(displacement > 0.08, "the first escape must continue rather than oscillate at tick {tick}: {mover:?}");
+                }
+                stationary = if displacement < 0.01 {
+                    stationary + 1
+                } else {
+                    0
+                };
+                longest = longest.max(stationary);
+                assert!(runtime
+                    .arena()
+                    .solids
+                    .iter()
+                    .all(|solid| !solid.covers(next.x, next.z) || solid.top <= next.y + STEP_UP));
+                mover.from = next;
+                mover.proposed = next;
+            }
+            assert!(
+                longest < 10,
+                "sustained escape must not alternate long stalls: {mover:?}"
+            );
+            assert!(
+                (mover.from.x - feet[0]).hypot(mover.from.z - feet[2]) > 4.0,
+                "recovery needs actual net progress: {mover:?}"
+            );
+            eprintln!("static corner start={feet:?}, final={:?}, longest_stationary={longest}, first_escape={first_escape:?}", mover.from);
+        }
+    }
+
+    #[test]
+    fn clear_retreat_and_explicit_reset_keep_existing_intent() {
+        let arena = Arena {
+            half: 20.0,
+            solids: vec![],
+        };
+        let mut nav = Navigator::default();
+        let mover = crowd_body(1, 0.0, 0.0, 0.0, 0.0);
+        let action = Action {
+            back: true,
+            fire: true,
+            pitch: Some(0.2),
+            ..Default::default()
+        };
+        for tick in 1..=30 {
+            let actual = nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                std::slice::from_ref(&mover),
+                action.clone(),
+                tick,
+            );
+            assert_eq!(
+                serde_json::to_value(actual).unwrap(),
+                serde_json::to_value(&action).unwrap(),
+                "a clear retreat is not a static obstruction"
+            );
+        }
+        nav.avoidance_motion = Some([true, false, true, false]);
+        nav.avoidance_until = 100;
+        nav.clear();
+        assert!(nav.avoidance_motion.is_none());
+        assert_eq!(nav.avoidance_until, 0);
+        assert_eq!(
+            serde_json::to_value(nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                &[mover],
+                action.clone(),
+                1
+            ))
+            .unwrap(),
+            serde_json::to_value(action).unwrap()
+        );
+    }
+
+    #[test]
+    fn static_recovery_keeps_jump_release_and_unsupported_drop_intent() {
+        let arena = Arena {
+            half: 20.0,
+            solids: vec![Solid::from_center_top(0.0, 0.0, 3.0, 3.0, 3.0)],
+        };
+        let mover = crowd_body(1, 2.9, 3.0, 0.0, 0.0);
+        let mut nav = Navigator::default();
+        let drop = Action {
+            forward: true,
+            fire: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            serde_json::to_value(nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                std::slice::from_ref(&mover),
+                drop.clone(),
+                1
+            ))
+            .unwrap(),
+            serde_json::to_value(&drop).unwrap()
+        );
+        nav.avoidance_motion = Some([false, true, false, true]);
+        nav.avoidance_until = 20;
+        assert_eq!(
+            serde_json::to_value(nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                std::slice::from_ref(&mover),
+                drop.clone(),
+                2
+            ))
+            .unwrap(),
+            serde_json::to_value(drop).unwrap(),
+            "an active escape lease must not redirect a deliberate unsupported drop"
+        );
+        assert!(nav.avoidance_motion.is_none());
+        assert_eq!(nav.avoidance_until, 0);
+        nav.avoidance_motion = Some([false, true, false, true]);
+        nav.avoidance_until = 20;
+        let jump = Action {
+            forward: true,
+            jump: true,
+            fire: true,
+            ..Default::default()
+        };
+        assert_eq!(
+            serde_json::to_value(nav.avoid_bodies(
+                &arena,
+                Uuid::from_u128(1),
+                &[mover],
+                jump.clone(),
+                3
+            ))
+            .unwrap(),
+            serde_json::to_value(jump).unwrap()
+        );
+        assert!(nav.avoidance_motion.is_none());
     }
 }

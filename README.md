@@ -8,10 +8,12 @@ while the match continues. A Rust server decides every game outcome; the Godot
 client presents it; agents use the same action channel through an MCP adapter.
 
 Get the [latest development release](https://github.com/blisspixel/fragr/releases/latest).
-The current published release is [v0.73.0](https://github.com/blisspixel/fragr/releases/tag/v0.73.0),
-with nine campaign prototypes, the refined Pistol and hatless civilian,
-loading-first presentation and the optional ten-seat Sabotage profile.
-All eight main CI jobs and the three desktop package checks passed.
+The current published release is [v0.75.0](https://github.com/blisspixel/fragr/releases/tag/v0.75.0),
+with nine campaign prototypes, restored earlier Rifle artwork, the selected
+Sniper refinement, refined Pistol, hatless civilian, loading-first presentation
+and the optional ten-seat Sabotage profile. All eight main CI jobs and all three
+tagged desktop package checks passed. Downloaded ZIP digests independently match
+the checksum manifest and uploaded digests.
 See the [roadmap](docs/ROADMAP.md) for the build order and the
 [changelog](CHANGELOG.md) for shipped changes.
 
@@ -46,6 +48,13 @@ acceptance still open:
    is on main through [PR #354](https://github.com/blisspixel/fragr/pull/354).
    Its final hull art, shortcuts and fresh-player review
    remain open, and level 10 stays pending.
+
+The [crew and companion integration](docs/plans/crew-companion-integration.md)
+combines bounded physical companion yielding with an immutable M09 departure
+receipt. Released crew and actual feet aboard at confirmation remain separate
+saved facts. Historical missing facts stay unknown; level 10 transit remains
+unimplemented. The integration's composed checks and final publication remain
+gated, and prior rendered routes retain their declared QA changes.
 
 The twenty-level story in five episodes is in [CAMPAIGN.md](docs/CAMPAIGN.md),
 and the build order is in the [roadmap](docs/ROADMAP.md). Sabotage starts with
@@ -97,10 +106,13 @@ full mission-route acceptance. This runtime increment shipped in
 implementation CI and all three desktop package checks passing. Its cast batch
 used 160 included model credits. The Enforcer is integrated with level 9;
 Crawler refinement remains in flight. The latest October 4 free account check
-reports 2,305 available with a 15-credit uncertain hold, leaving 2,290 usable;
-tracked net consumption is 765 credits, including the Jammer, first
+reports 2,235 available with a 15-credit uncertain hold, leaving 2,220 usable;
+tracked net consumption is 835 credits, including the Jammer, first
 Railgun/Sniper Rifle candidates, three inhabited-world props, the distinct
-civilian free agent and repair workbench.
+civilian free agent and repair workbench, then one 35-credit Repeater Ultra
+source and a separate 35-credit replacement Rifle Ultra source. Those two
+latest candidates remain unpublished and offline; no new selected art is
+claimed. A historical 30-credit unassigned discrepancy remains separate.
 The [prop source receipt](docs/evidence/world-prop-sources-20261004.md) records
 105 actual credits and twelve inspected views. Their
 [compact fixed preparation](docs/evidence/world-prop-preparation-20261004.md)
@@ -108,7 +120,7 @@ retains all source geometry and adds verified grounded pump mounts. Played
 placement and selection remain open. The
 [civilian source receipt](docs/evidence/civilian-first-sources-20261004.md)
 records the two remaining first candidates and their 70 actual included credits.
-All twelve first-source slots have candidates, with 460 credits still available
+All twelve first-source slots have candidates, with 390 credits still available
 inside the first 900-credit allocation; this does not imply finished game art. The
 [precision source receipt](docs/evidence/precision-weapon-references-20261004.md)
 records their actual geometry, eight inspected views and 70 included credits.
@@ -142,7 +154,9 @@ Pistol after source, paired live presentation, full client, CI and desktop
 package checks. [PR #356](https://github.com/blisspixel/fragr/pull/356) previously
 selected the source-derived Rifle after technical checks. The player rejected
 its framing and style; the [restoration](docs/plans/rifle-art-restore-20261004.md)
-returns the retained earlier idle, fire and pickup pictures. The physical source
+shipped in [PR #364](https://github.com/blisspixel/fragr/pull/364) after all eight
+exact-head CI jobs and all three desktop package checks passed. It returns the
+retained earlier idle, fire and pickup pictures. The physical source
 and its proofs remain offline. Technical checks do not establish aesthetic acceptance.
 The [Union shadow repair](docs/evidence/union-billboard-shadows-20261004.md)
 is also on main through [PR #359](https://github.com/blisspixel/fragr/pull/359),
@@ -152,7 +166,7 @@ Main combines selected Sniper art with the
 [Repeater foundation](docs/plans/repeater-foundation.md) through
 [PR #358](https://github.com/blisspixel/fragr/pull/358). Complete local client
 checks, all eight exact-head CI jobs and all three desktop package checks pass.
-The next desktop release remains pending. Repeater
+These changes are included in the corrected v0.75.0 desktop release. Repeater
 has real finite-ammunition behavior and strict compatibility, but no current
 campaign grant, selected art or accepted human feel. Parallel development
 continues on Jammer and Railgun craft, a Kitchen map with

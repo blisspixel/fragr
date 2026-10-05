@@ -1,11 +1,12 @@
 //! Bounded M02 support. Latch follows the party and fires only at active threats.
 use super::*;
 use crate::combat::{aim_at, line_of_sight, target_height, Ray};
-use crate::navigation::NavigationGoal;
 use crate::protocol::{Action, CompanionPhase, LookAt};
 use crate::sim::{BotIntent, Player, PLAYER_RADIUS};
 
-const FORMATION_TOLERANCE: f32 = 0.65;
+mod formation;
+#[cfg(test)]
+mod tests;
 const SUPPORT_RANGE: f32 = 12.0;
 const PARTY_RANGE: f32 = 16.0;
 const MAX_SUPPORT_SHOTS: u8 = 12;
@@ -176,23 +177,20 @@ impl GameState {
             }
             CompanionPhase::Firing
         } else {
-            // The return route crosses the ward opening near the west side of
-            // the processing floor. A west-forward slot carries Latch through
-            // that opening while leaving the participant's aim lane clear.
-            let formation = leader_feet.map(|leader| {
-                if self.mission.as_ref().is_some_and(|run| {
-                    run.m03.is_some() || run.m04.is_some() || run.m06.is_some() || run.m07.is_some()
-                }) {
-                    leader
-                } else {
-                    [(leader[0] - 2.4).max(-13.0), leader[1], leader[2] + 1.2]
+            if let Some(leader) = leader_feet {
+                let arena = self.current_arena();
+                let bodies = self.contact_bodies();
+                intent.goal = formation::goal(
+                    &arena,
+                    companion,
+                    leader,
+                    self.mission.as_ref().is_some_and(|run| run.m02.is_some()),
+                    &bodies,
+                );
+                if intent.goal.is_none() {
+                    intent.action = formation::short_yield(&arena, companion, leader, &bodies)
+                        .unwrap_or_default();
                 }
-            });
-            if let Some(leader) = formation.filter(|p| distance(feet, *p) > FORMATION_TOLERANCE) {
-                intent.goal = Some(NavigationGoal {
-                    feet: leader,
-                    combat: false,
-                });
             }
             CompanionPhase::Following
         };
