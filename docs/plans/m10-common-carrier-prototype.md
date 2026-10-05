@@ -96,8 +96,9 @@ Proposed blockout allocation, subject to actual shared-body tests:
   its existing upper freight and stern neck already rise above that keel.
   Never shrink bodies or clip a ceiling to make three decks fit.
 
-The generated initial collision source has 92 solids, no mission authority or
-weapon grants yet. It is not registered as playable Common Carrier. Initial
+The first generated collision source had 92 solids without mission authority.
+The in-flight prototype now registers its own M10 authority and capability,
+but grants no Repeater and has no complete combat or visual acceptance. Initial
 native geometry and actual-server walking checks pass: strict authored loading,
 sealed three-deck headroom, both flights and turns, forward/reverse walking
 in both trunks and the complete cargo/command return. Actual movement uses
@@ -199,10 +200,9 @@ continue calls and M10 retry cannot refill again. Retry anchors the real M10
 entry, including its passenger/transit facts, while tick, input and inventory
 revisions remain monotonic within a process.
 
-A further save revision is expected for M10 and crew/transit outcomes after
-the foundation's version 11, which still refuses Repeater ownership through
-pending M10. Review its strict schema before coding; this outline does not
-allocate a number. Preserve the exact strict v11 and v10 readers, original-byte
+The owned prototype uses strict version 13 after the v12 berth receipt.
+A v12 document cannot contain M10 or its transit. Versions 10 and 11 retain
+their exact earlier shapes. Preserve the exact strict v11 and v10 readers, original-byte
 archives, all older migration readers and
 correct known/unknown outcomes. Historical v10 M09 completion cannot invent
 crew boarding, restored memories or new gun ownership. Native new completion
@@ -308,11 +308,10 @@ pending M09 step; successful reopen has the same crew, finite supplies and
 single episode refill. Native tests must exercise the actual locked store,
 including source-matching historical whitespace and failure-before-replace.
 
-This checkpoint owns `mission/run_file.rs`, its strict legacy/store leaves,
-the new private transit boundary and narrowly necessary mission identity
-matches. It adds no live transit wire field or silent capability allocation.
-M10's actual mission protocol, all-role admission and map delivery contract
-need separate review before that map can send new facts.
+The native checkpoint owns `mission/run_file.rs`, its strict legacy/store
+leaves and the transit boundary. The separately owned capability 36 M10 map,
+mission and controller seams now deliver those facts only after all-role
+admission. Exact compatibility and route gates remain required.
 
 ### Cast and ship gates still requiring explicit work
 

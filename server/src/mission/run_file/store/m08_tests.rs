@@ -392,5 +392,9 @@ fn live_m08_retry_restores_entry_mines_and_completion_saves_actual_exit() {
         fresh_admission.load_campaign_run(&completed).is_err(),
         "completed future edge is not playable"
     );
-    assert!(serde_json::from_value::<MissionId>(serde_json::json!("common_carrier")).is_err());
+    assert_eq!(
+        serde_json::from_value::<MissionId>(serde_json::json!("common_carrier")).unwrap(),
+        MissionId::CommonCarrier
+    );
+    assert!(serde_json::from_value::<MissionId>(serde_json::json!("right_of_search")).is_err());
 }
