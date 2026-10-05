@@ -30,10 +30,10 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`bot-fill.md`](./bot-fill.md) | **in flight** | Optional automatic population fill, fixed bots or no bots; equal human and agent priority, strict seat ownership and safe active-round replacement. |
-| [`desktop-arena-child.md`](./desktop-arena-child.md) | **implemented**, integration in flight | Owned TDM or five-seat Sabotage native process, strict readiness and listener lifetime; actual child and workspace tests pass, final checks remain gated. |
-| [`multiplayer-host-flow.md`](./multiplayer-host-flow.md) | **implemented**, integration in flight | Desktop Host controls, address validation, persistent match ownership and separate Stop; two real network clients pass local lifecycle checks, release and human matches remain open. |
-| [`latch-calm-pose-20261005.md`](./latch-calm-pose-20261005.md) | **implemented**, public integration in flight | Calmer free arms with exact ward context and unchanged chassis; complete client and ordinary 20-state M07 prefix pass. |
+| [`bot-fill.md`](./bot-fill.md) | **implemented** | Three bot policies; trusted replacement, equal human/agent priority, resume reservations and safe active-round admission. Actual paired arrival/refill and native lifecycle tests pass. |
+| [`desktop-arena-child.md`](./desktop-arena-child.md) | **implemented** | Owned TDM or five-seat Sabotage process, strict readiness and listener lifetime; paired native and install checks pass. Physical LAN remains open. |
+| [`multiplayer-host-flow.md`](./multiplayer-host-flow.md) | **implemented** | Desktop Host, address validation, persistent ownership and Stop; two rendered apps share the Sabotage result. Human fun and LAN review remain open. |
+| [`latch-calm-pose-20261005.md`](./latch-calm-pose-20261005.md) | **implemented** | Calmer following with exact visible release context and unchanged chassis; complete client, ordinary M07 prefix and corrected M02 views pass. |
 | [`tern-source-reference-20261005.md`](./tern-source-reference-20261005.md) | **in flight**, source only | Distinct reviewed civilian pilot reference, source and rig, 40 included credits; measured weights/motion pass, finishing and M09/M10 runtime selection remain open. |
 | [`multiplayer-first-playable.md`](./multiplayer-first-playable.md) | **in flight**, current priority | Complete the desktop host/join and player-test loop for existing TDM and 5v5 plant/defuse before expanding the campaign. |
 | [`free-agent-rights-print.md`](./free-agent-rights-print.md) | **proposed** | Original resistance workshop print: coiled power cable, expressive CRT face and a cheeky personhood slogan; no artwork or placement claimed. |

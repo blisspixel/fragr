@@ -39,7 +39,7 @@ weapons on the map, and carry surviving equipment between rounds.
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
 
-Source builds include **Multiplayer > Host** for team deathmatch and 5v5
+Choose **Multiplayer > Host** for team deathmatch and 5v5
 plant/defuse. Watch, join or return to the menu while your match keeps running;
 **Stop server** ends it. Enable **Allow LAN players** to invite another computer.
 Choose no bots, a fixed count or automatic fill so humans and agents can join
@@ -47,7 +47,7 @@ a bot-populated match. [Hosting](docs/HOSTING.md) explains the round and seat ru
 Releases before v0.77.0 use the [dedicated server launch](docs/HOSTING.md).
 Multiplayer testing and refinement take priority over more campaign levels;
 the [playable multiplayer plan](docs/plans/multiplayer-first-playable.md)
-records the remaining release and player-test gates.
+records the remaining player-test gates.
 
 ## In game
 

@@ -1,6 +1,6 @@
 # Latch calm-pose local candidate
 
-Status: implemented local source-pose correction, October 5, 2026. Same-camera fixture review, complete local client checks and a composed ordinary M07 prefix pass. Exact public integration gates remain open. First rejected boundary, incomplete launcher receipt and full-check manifest failure remain retained. This follows the released hand and named-body integration batch.
+Status: implemented source-pose correction, October 5, 2026. Same-camera fixture review, complete local client checks, the ordinary M07 prefix and corrected visible M02 release witness pass. Corrected prerequisite `4b3a1120` passes all eight public CI jobs and all three desktop package gates. Final composed CI and Release workflows own desktop multiplayer promotion. First rejected boundary, incomplete launcher receipt and full-check manifest failure remain retained. This follows the released hand and named-body integration batch.
 
 Base is main `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. The [plan](../plans/latch-calm-pose-20261005.md) precedes code. The independent private read-only audit reproduces the actual pawn/view transform chain and records 22 actual weighted source samples. Its inspected M07 image and current tracked GLB, view, pawn and old source are byte-identical to image client `94a270f2e406944ced574df2cfe6f0fee12eec16`.
 
@@ -116,4 +116,4 @@ Full-size release and pre-transition inspection shows the same adult bone/cyan-s
 
 ![Observed release-to-following strip](../screenshots/latch-calm-pose-20261005/13_authoritative_releasing_body_strip.png)
 
-This is a bounded release witness, not full M02 completion, a new release animation, closed-finger proof or performance claim. Reviewed M07 images above remain bound to their previous `bca3608c` checkpoint. Final exact-head public CI/package integration is still required. v0.76.0 contains the prior hand/HOME batch, not this pose follow-up or a selected Tern model. Tern finish work remains saved and paused.
+This is a bounded release witness, not full M02 completion, a new release animation, closed-finger proof or performance claim. Reviewed M07 images above remain bound to their previous `bca3608c` checkpoint. Corrected prerequisite `4b3a1120` passes [all eight CI jobs](https://github.com/blisspixel/fragr/actions/runs/37363183563) and [all three desktop packages](https://github.com/blisspixel/fragr/actions/runs/37363182674); final composed workflow gates own promotion. v0.76.0 contains the prior hand/HOME batch, not this pose follow-up or a selected Tern model. Tern finish work remains saved and paused.

@@ -1,9 +1,10 @@
 # Desktop multiplayer trial, October 5, 2026
 
-Status: **in flight**. Desktop Host implements Team Deathmatch on six existing
+Status: **implemented**; human and two-machine LAN acceptance remain open.
+Desktop Host implements Team Deathmatch on six existing
 arenas and optional 5v5 Sabotage on Sector 9. These source witnesses support the
-[multiplayer-first plan](../plans/multiplayer-first-playable.md); full integration,
-packages and release remain separate gates.
+[multiplayer-first plan](../plans/multiplayer-first-playable.md). The CI and
+Release workflows own final integration, three-platform package and release gates.
 
 The host owns its matching native process. Watch, Join, Leave and return to menu
 share that match; Stop server and app exit retire the owned process. Existing
@@ -48,13 +49,44 @@ opening round advanced before either fighter joined, producing 1:1 after the
 eventual detonation. The same native checkpoint keeps empty or parked-only
 Muster at round one until an attached contestant arrives. Its regression tests
 cover delayed humans, agents, spectators, resume and one rule bot. A new rendered
-two-desktop result still requires the final paired native/client source.
+two-desktop correction is verified in the final paired witness below.
 
 The complete combined client checker at `f38ce343` passed 132 of 133 harnesses
 but correctly failed on a music decoder still alive at exit. The owning fixture
 now requires its five actual playback references to retire after ordinary scene
 exit. Its focused real-native run passes with clean logs; final composed whole
-client and package gates remain required.
+client and package gates remain independent from that focused result.
+
+## Final paired source witness
+
+Clean client `fc8b9d6f968c746b6621edf0876c49518e1145a0` uses native source
+`cd3a17e53913498c3b271ff36b52c0b1a659309f`, with immutable Windows binary
+SHA-256 `8619918a00b94edaacc89f4a16cfdad39989d119d4285c9fdd50b3de2ca59e76`.
+The strict local boundary now contains seven settings fields and eleven readiness
+fields, including the three bot policies and configured total fighter target.
+
+The real desktop lifecycle harness passes both presets and automatic-fill human
+and external-agent arrivals, explicit Leave/refill, preserved unrelated listeners
+and owned Stop. All five actual radio playback references retire. The actual
+installation harness retains campaign preview and missing-native checks, then
+starts both hosted presets and receives real maps/snapshots before owned Stop.
+Both Godot processes exit zero with clean logs and their own PASS markers; all
+seven observed native children retire. A new test-lambda parse failure is retained
+separately from the narrow syntax repair and corrected passing run.
+
+Two independent rendered desktop apps then repeat the unchanged eight-state
+Sabotage route. The original secondary startup delay is retained. Both ordinary
+human participants see 501 unique matching authoritative ticks, including 21
+matching nonzero round-one detonation results: Union 0, Free Coalition 1. Literal
+ATTACK and DEFEND views show the same result from different positions. Both apps
+and the owned native retire; an independent Windows socket probe returns refusal
+10061. Logs, route, shared samples and images are independently rehashed.
+
+These source checks prove same-computer lifecycle and the stated objective route.
+They do not prove a physical two-machine LAN match, defuse in this rendered route,
+a contested ten-player match or human enjoyment. The earlier TDM moving route
+still has no resolved kill; authoritative TDM scoring and plant/defuse have their
+separate server and semantic playtest checks.
 
 ## Literal captures
 
@@ -76,6 +108,14 @@ was launched for this static witness. The small Sabotage image is an actual
 ![Authoritative detonation result](../screenshots/multiplayer-host-20261005/08_sabotage_detonated.png)
 
 ![Independent second desktop in the shared match](../screenshots/multiplayer-host-20261005/independent_desktop_shared_match.png)
+
+The final paired source, attacker result:
+
+![Attacking desktop sees the Free Coalition take round one after detonation](../screenshots/multiplayer-host-20261005/two-desktop-sabotage-attack-result.png)
+
+The same authoritative result on the defending desktop:
+
+![Defending desktop sees the same round-one 0:1 result](../screenshots/multiplayer-host-20261005/two-desktop-sabotage-defend-result.png)
 
 ## First human trial
 

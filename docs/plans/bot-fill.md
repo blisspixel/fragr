@@ -1,6 +1,6 @@
 # Optional arena bot fill
 
-Status: **in flight**. Contract accepted, 2026-10-05. Nick authorized optional automatic bot fill alongside fixed bots and no bots. The accepted active-round contract preserves existing lives, scores and committed devices, and visibly refuses unsafe replacement until the next round. Implementation and release acceptance remain pending.
+Status: **implemented**, 2026-10-05. Nick authorized optional automatic bot fill alongside fixed bots and no bots. The active-round contract preserves existing lives, scores and committed devices, and visibly refuses unsafe replacement until the next round. Actual paired client and native lifecycle checks pass; human and physical LAN acceptance remain separate.
 
 ## Goal and scope
 
@@ -78,6 +78,29 @@ Extend the existing Session/five-seat/socket/owned-child/Host harnesses, not a p
 - Inspect actual Host fit at the supported minimum window. After final native/client checks, rerun the unchanged eight-state canonical two-desktop Sabotage witness using the final exact native. Require distinct desktop PIDs/ordinary human identities, at least two shared authoritative nonzero result ticks, expected 0:1 detonation, numeric zero/clean logs/own PASS, owned process retirement and bounded Windows socket refusal. This proves two apps on one machine, not physical LAN, defuse or human fun.
 
 Run the repository's required formatting, Clippy, workspace tests, unfiltered 90-percent coverage, release, license, semantic playtest and full client checker gates on the final combined source. Keep earlier ACK, private probe, coverage, decoder teardown and empty-room failures separately retained. Record actual pending/failed/passed receipts honestly, publish only curated credential-free evidence. Integrate to one CI-passing main and update the release only after its own package smoke gates pass. Then stop for the day as requested.
+
+## Source acceptance, October 5
+
+Reviewed native `cd3a17e53913498c3b271ff36b52c0b1a659309f` is normally composed
+with client `fc8b9d6f968c746b6621edf0876c49518e1145a0`. The immutable Windows
+native SHA-256 is `8619918a00b94edaacc89f4a16cfdad39989d119d4285c9fdd50b3de2ca59e76`.
+Focused tests cover eight roster/device cases, five automatic configuration/socket
+cases and seven real desktop-child cases. Both TDM and strict five-seat Sabotage
+exercise actual human and external-agent arrival, same-pawn resume, parked seats,
+Leave plus close/refill, grace expiry, MapInfo-before-snapshot and owned EOF stop.
+Fresh Welcome, registry and commit share one bounded admission deadline.
+
+The matching real Godot lifecycle check passes automatic fill/refill in both
+presets and preserves fixed full-room rejection. The install check passes both
+actual native presets. Four typed boundary/menu/error harnesses pass independently.
+All 21 static menu frames (18 Host and three Multiplayer) fit and are inspected. Two independent rendered apps
+pass the unchanged eight-state plant/detonation route and share 21 nonzero
+round-one result ticks. The [desktop receipt](../evidence/multiplayer-host-20261005.md)
+records scope, literal captures, exact retirement and retained failures.
+
+CI and Release workflow gates still own whole-client, full-workspace and three
+platform package acceptance for promotion. Source checks and same-computer
+automation do not close human enjoyment or two-machine LAN feedback.
 
 ## Spend
 

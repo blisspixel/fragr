@@ -1,6 +1,6 @@
 # Desktop-owned arena server
 
-Status: in flight, October 5, 2026. Native child ownership, prepared fixture topology and empty Sabotage Muster corrections passed all thirteen local native gates at `dff0b39ba232ad94c83713870706d05871873fb1`, including 93.66 percent unfiltered workspace line coverage. The optional automatic-fill follow-up is being verified separately. The companion client host flow, packages and physical LAN trial have separate acceptance gates.
+Status: **implemented**, October 5, 2026. Native child ownership, prepared fixture topology and empty Sabotage Muster corrections passed all thirteen local native gates at `dff0b39ba232ad94c83713870706d05871873fb1`, including 93.66 percent unfiltered workspace line coverage. The strict eleven-field automatic-fill follow-up at `cd3a17e5` passes paired actual client and native installation checks. Full composed CI, three platform packages and the physical LAN trial have separate acceptance gates.
 
 The desktop-owned process supplies the native server for the companion Multiplayer Host flow. TDM and the optional ten-seat Sabotage room reuse existing authoritative rules and socket seams.
 

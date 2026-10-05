@@ -52,6 +52,14 @@ capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
 Sector 9. In Sabotage, rule bots and agents play both sides, plant and defuse.
 A recorded human session on two machines remains open.
 
+The [desktop Host increment](evidence/multiplayer-host-20261005.md) implements
+owned TDM and 5v5 Sabotage launch, Watch/Join/Menu continuity, explicit Stop,
+LAN binding and no/fixed/automatic bot policies. Humans and external agents
+receive equal priority over eligible filler bots. Actual paired lifecycle and
+installation checks pass; two independent rendered apps share the round-one
+0:1 Sabotage result. This is the multiplayer trial baseline, with human clarity,
+map feel and two-machine LAN review next.
+
 **Presentation.**
 - Two art passes ([1](plans/art-pass-20261002.md),
   [2](plans/art-pass-2-20261002.md)): coherent weapon frames with fire and pump
@@ -342,7 +350,7 @@ Retain current campaign and art checkpoints; new mission and broad asset
 production yield to this multiplayer slice. M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
-prototype, refined Pistol and hatless civilian. The latest published release is
+prototype, refined Pistol and hatless civilian. The preceding release checkpoint is
 [v0.76.0](https://github.com/blisspixel/fragr/releases/tag/v0.76.0), exact main
 `f1e36315`, with ten campaign prototypes, the restored earlier Rifle pictures,
 drawn Sniper/Pistol hands, corrected Shiv scale, synthetic Tern fallback and
@@ -369,8 +377,10 @@ in development; it is not a playable released mission. The hand/HOME pass
 shipped in [PR #370](https://github.com/blisspixel/fragr/pull/370) and v0.76.0,
 after all eight reviewed-head CI and three desktop package gates passed.
 The [relaxed Latch follow-up](plans/latch-calm-pose-20261005.md) has complete
-local client checks and an inspected ordinary 20-state M07 prefix passing;
-its public integration remains open. The [named Tern source trial](plans/tern-source-reference-20261005.md)
+local client checks and an inspected ordinary 20-state M07 prefix passing.
+Its corrected M02 witness preserves the actual visible release context and
+calm following; it is composed with desktop multiplayer for one integration.
+The [named Tern source trial](plans/tern-source-reference-20261005.md)
 has reviewed geometry and sampled rig motion, but material/role preparation
 and M09/M10 played selection remain open. Neither follow-up is in v0.76.0. The
 [M09 prototype](plans/m09-passenger-manifest-prototype.md) has a complete
@@ -433,7 +443,11 @@ map follows [size follows the crowd](MAP-DESIGN.md#size-follows-the-crowd) and
 the multiplayer [rule sheet](plans/multiplayer-maps.md#rule-sheet). Every
 asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
 
-0. **Nick plays v0.76.0 and the next multiplayer trial.** The current release
+0. **Nick tests desktop Host, TDM and 5v5 Sabotage.** Download the latest desktop
+   package, choose **Multiplayer > Host**, and try fixed bots, no bots and
+   automatic fill. Watch, Join, return to menu, rejoin and Stop. Then test another
+   human or agent, preferably on a second LAN computer. Record the build, venue,
+   bot policy and confusing or unfun moments. The campaign baseline
    includes ten campaign prototypes, the drawn Pistol and Sniper, restored
    Rifle, corrected Shiv scale, Latch's HOME image, loading-first and optional
    ten-seat Sabotage. Prioritize the team-match trial and its host/join clarity;
@@ -444,23 +458,18 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    Feedback informs acceptance and refinement. Authorized multiplayer work and
    necessary regression fixes continue while that feedback is pending; human
    review is not a stop gate for local development.
-1. **Playable multiplayer and server operation, active.** The
+1. **Refine multiplayer and server operation from the trial, active.** The
    [bounded multiplayer slice](plans/multiplayer-first-playable.md) owns the
    first human-testable pair: team deathmatch and Sector 9's optional 5v5
-   Sabotage. Their server rules already exist. Finish the practical route from
-   the desktop menu to a shared match, rather than claiming bot tests finish
-   the player experience.
-    - Give the packaged app a real Host flow using its matching server, plus
-     address-based Watch and Join. Reuse owned process readiness and shutdown;
-      keep the match running when the host watches or returns to the menu.
-    - Offer no bots, fixed bots or optional automatic population fill. Humans
-      and external agents have equal priority over server-owned filler bots.
-      Preserve reserved reconnect seats and active-round outcomes through the
-      [bounded bot-fill contract](plans/bot-fill.md).
-   - Verify two independent clients, shared scoring and rounds, team identity,
-     weapons, plant/defuse and results. Exercise leave/rejoin, resumed drops,
-     full seats, spectating and clean host shutdown. Keep actual human fun,
-     same-machine automation and a two-machine LAN session distinct.
+   Sabotage. The implemented Host flow, address validation, owned lifetime and
+   [three bot policies](plans/bot-fill.md) now have source-bound acceptance.
+   - Complete an unsteered human match and a two-machine LAN session. Review
+     team identity, starting weapons, plant/defuse clarity, round results and
+     whether spectators understand the fight. Keep that feedback distinct from
+     passing same-machine automation and server tests.
+   - Fix reported host/join, reconnect, spawn, weapon-readability and frame-hitch
+     problems before expanding scope. Refine the existing six arenas and Sector 9
+     around actual fights, retaining plausible architecture and the art bible.
    - Make the dedicated launch instructions and server controls usable now.
      Reuse authoritative damage/movement, validated ingress, existing access
      lists and health metrics. Skill and agent control never imply cheating.

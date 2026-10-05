@@ -30,6 +30,16 @@
                        "literal_capture":  true,
                        "sha256":  "79c0190d31ab792c6ceb16d8329e13a693e86d473b75199bd8f83f09ddb2ca09",
                        "name":  "independent_desktop_shared_match.png"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "name":  "two-desktop-sabotage-attack-result.png",
+                       "sha256":  "1f816e3a576cd7f0d3428fa752446fd97de94e0f4239f6073a2b788c4a531f12"
+                   },
+                   {
+                       "literal_capture":  true,
+                       "name":  "two-desktop-sabotage-defend-result.png",
+                       "sha256":  "630dfb79622057a4b905a6a74b76d0a37518bc92aa870d3035e4fd4c59fda76e"
                    }
                ],
     "work_date":  "2026-10-05",
@@ -125,6 +135,47 @@
                       "native_sha256":  "a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb",
                       "own_pass":  true,
                       "receipt_sha256":  "e05061a4c2e8732248a8f1c54ef615d9770503e76f7cb340c67817ecb74e2687"
+                  },
+                  {
+                      "name":  "Two desktops share Sabotage detonation",
+                      "client_commit":  "fc8b9d6f968c746b6621edf0876c49518e1145a0",
+                      "native_source":  "cd3a17e53913498c3b271ff36b52c0b1a659309f",
+                      "native_sha256":  "8619918a00b94edaacc89f4a16cfdad39989d119d4285c9fdd50b3de2ca59e76",
+                      "canonical_path":  "client/qa/sabotage_plant.json",
+                      "canonical_sha256":  "25f089e13d949edf8e42454e20a39ef791b4a441c83f76f9c53caa7833435246",
+                      "canonical_states":  8,
+                      "numeric_exit":  0,
+                      "secondary_numeric_exit":  0,
+                      "clean_errors":  true,
+                      "own_pass":  true,
+                      "exact_owned_retirement":  true,
+                      "refusal_socket_error":  10061,
+                      "unique_matching_ticks":  501,
+                      "first_matching_tick":  1111,
+                      "last_matching_tick":  1624,
+                      "unique_matching_detonation_result_ticks":  21,
+                      "score":  {
+                                    "coalition":  1,
+                                    "union":  0
+                                },
+                      "charge_status":  "detonated",
+                      "receipt_sha256":  "e3b33ddd89ec04c1b75af3dfeebe54e1635b16b1632fa7165f439ede6045c45e",
+                      "independent_review_sha256":  "ff6e1fe6dd59e8930363ee0311dc6e39790c8e72849dc5011da03db9bd6e0e9b",
+                      "log_sha256":  {
+                                         "secondary.log":  "e7821379279297db9aff88ef104418cc7877b0ff01d3d167ed3a261471a7c717",
+                                         "client-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                         "client.log":  "4d07f6cf53fbc7a3e470f8e0707ab32922b85f96ef9db73cdbfe74135bf6fa24",
+                                         "secondary-error.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                                     },
+                      "claims":  [
+                                     "Two independent rendered human participants shared the unchanged eight-state route and authoritative 0:1 round-one detonation result",
+                                     "501 unique shared ticks included 21 matching nonzero result ticks",
+                                     "Both actual apps and the owned native retired; the stopped listener refused connections"
+                                 ],
+                      "limits":  [
+                                     "One physical Windows computer over loopback",
+                                     "No defuse, contested ten-player match, physical LAN or human enjoyment proof"
+                                 ]
                   }
               ],
     "previous_static_ui":  {

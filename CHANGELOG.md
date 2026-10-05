@@ -4,10 +4,29 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.77.0 (2026-10-05)
 
-- Desktop multiplayer hosting and optional bot-fill work remain in flight. Their
-  acceptance and release gates are recorded in [the trial plan](docs/plans/multiplayer-first-playable.md).
+- Host Team Deathmatch on six arenas or 5v5 Sabotage on Sector 9 directly from
+  the desktop menu. Watch, Join and return to menu share the owned match; Stop
+  server or app exit retires its native process. LAN hosting is an explicit option.
+- Choose no bots, fixed bots or automatic total fighter fill. Humans and external
+  agents have equal priority over eligible server bots. Preserve reconnect seats,
+  active-round lives, objective holds and committed devices. Unsafe full live
+  rooms ask newcomers to try next round; cancelled admission keeps the bot intact.
+- Keep an empty Sabotage room at its opening round until a fighter arrives.
+  Two actual desktop apps share 501 unique matching ticks and a round-one 0:1
+  plant/detonation result, then retire with their owned server and listener.
+- Start and stop both presets through the bundled native executable during
+  extracted-package installation checks. Require clean error logs, numeric zero
+  and the check's own PASS marker. Actual scene-audio retirement is also checked.
+- Relax Latch's following arms while preserving its original visible release
+  posture and chassis. Keep multiplayer human and LAN feedback ahead of paused
+  campaign and asset production. The campaign remains ten development prototypes.
+
+The [desktop trial receipt](docs/evidence/multiplayer-host-20261005.md) records
+actual source witnesses and retained failures. Full CI and three platform package
+checks gate main and release promotion. Human enjoyment, two-machine LAN play
+and broader map refinement remain open.
 
 ## v0.76.0 (2026-10-05)
 

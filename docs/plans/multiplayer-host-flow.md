@@ -1,6 +1,9 @@
 # Multiplayer desktop host and join flow
 
-Status: in flight, 2026-10-05. Base: `f1e3631526bac070278459af652dea6f83c7872c`.
+Status: **implemented**, 2026-10-05. Base: `f1e3631526bac070278459af652dea6f83c7872c`.
+Actual paired lifecycle, native installation and two-desktop Sabotage witnesses
+pass. Human fun and physical two-machine LAN acceptance remain open. The
+[dated receipt](../evidence/multiplayer-host-20261005.md) binds the source and limits.
 
 Nick prioritized usable multiplayer hosting and human testing before remaining
 campaign work. This bounded increment belongs to the existing multiplayer rung

@@ -19,7 +19,7 @@ These are not new rule implementations. Free-for-all, CTF and mutators retain
 their current behavior. Additional objective maps, standalone elimination,
 Liberation and Wipe remain separately planned. No buy menu is introduced.
 
-## Current source and concrete gaps
+## Baseline gaps and implemented trial
 
 Accepted main `f1e36315`, also v0.76.0, already implements authoritative TDM,
 Sabotage and the optional ten-seat profile. Existing automated matches and
@@ -32,6 +32,18 @@ native server. Existing local process ownership is campaign-specific. The boot
 probe also builds a malformed HTTP address from an accepted full WebSocket URL,
 and ignores the status response's existing mode and mutator fields. Some hosting
 instructions still describe source-only setup or obsolete open integration gates.
+
+The implemented desktop trial closes those launch and endpoint gaps. Host owns
+the matching native process across Watch, Join, Leave and menu return, with
+explicit Stop and app-exit cleanup. All three bot policies share the accepted
+[automatic-fill contract](bot-fill.md). Final source witnesses cover actual human
+and agent arrival/refill, owned installation checks and two independent rendered
+apps sharing the round-one Sabotage result. The [dated receipt](../evidence/multiplayer-host-20261005.md)
+records exact sources, hashes, outcomes and retained failures.
+
+This overall trial stays in flight until real player feedback closes clarity,
+map feel and two-machine LAN acceptance. Completing the packaged implementation
+does not complete that player-review gate.
 
 ## Bounded implementation seams
 
