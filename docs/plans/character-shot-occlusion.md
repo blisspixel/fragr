@@ -103,5 +103,14 @@ protected participant opaque must not make it eligible for a Notary photograph.
 Retain the prior positive shield exclusion in the photograph predicate only.
 Actual protected bursts remain physical target hits with zero damage; the
 owning regression keeps zero photographs, unchanged front and rear HP and the
-original dry/invalid controls. The focused correction passes; final full checks
-and the ordinary hardware witness remain open.
+original dry/invalid controls. The focused correction and final locked workspace
+pass, including 964 server library tests and eighteen server binary tests.
+Formatting, denied-warning workspace Clippy and the matching release build pass.
+The ordinary thirteen-state ward/release witness is error-clean with exit zero,
+preserving the real 240-tick phase. It records the actual weighted Latch model
+visible during Releasing, no source sprites, and normal-material preservation.
+A passive weighted-skin audit measures 1.799972 m height without changing scale.
+Technical routing and adult size do not resolve the separate character art
+acceptance concern. The complete matching client checker passes with numeric
+exit zero, clean errors, 266 parsed scripts and 126 harnesses. Final composed
+source review, exact integration CI and desktop packages remain open.
