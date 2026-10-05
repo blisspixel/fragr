@@ -84,6 +84,11 @@ No release or public-server claim follows from a plan.
 
 ## Budget and retained work
 
+The [source desktop witnesses](../evidence/multiplayer-host-20261005.md) record
+actual owned hosts, Sabotage planting and two independent desktop processes.
+They retain their source bindings and failure limits. Combined verification,
+exported packages and human LAN feedback remain separate gates.
+
 This slice is $0 local development and self-hosting. No cloud apply, paid runtime
 model, new asset batch, cash charge, renewal or overage is part of it. Retain the
 private M11 native/save checkpoint and paused cast preparation rather than losing

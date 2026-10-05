@@ -171,7 +171,7 @@ Resolved 2026-09-26: the map 5 opening spawn flake (v0.57.1 shields the round op
 
 The current sequence is the [full build order](#full-build-order) below. This section records increments that already shipped. It is not the queue.
 
-**Active milestone: [local excellence](plans/local-excellence.md).** The first
+**Historical milestone: [local excellence](plans/local-excellence.md).** The first
 increment shipped in [v0.15.0](https://github.com/blisspixel/fragr/releases/tag/v0.15.0):
 saved callsigns and reticle/bob preferences, pixel menus,
 first-person spectator follow, three prepared viewmodels, authoritative geometry
@@ -331,7 +331,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 ## Full build order (updated 2026-10-05)
 
-**Active goal:** build the agreed game through a proven 1.0. That is Recall Notice as the quality bar, then each later mission on systems the whole campaign reuses, then local prediction before the first long Rail lane, then the wipe and its conditional epilogue, then a LAN proof, then an exposed server. Cloud apply, matchmaking, and conquest-scale vehicles stay behind that server. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, wipe operations, and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission, not from an arena layout. The six current layouts stay playable foundations. Boltgun remains the visual bar for a played sequence, not a reason to generate the roster before the first two enemies read. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
+**Active goal:** build the agreed game through a proven 1.0, starting with a complete multiplayer and server trial that Nick can host, play and refine. Team deathmatch and optional 5v5 Sabotage come before the remaining campaign. Keep the six current arenas and ten campaign prototypes available; retain unfinished mission and art checkpoints. After the multiplayer slice meets its gates, continue the campaign, feel, Wipe and wider server work in the order below. Cloud apply and matchmaking still require their own approval and proof. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, Wipe operations and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission. Boltgun remains the visual bar for a played sequence. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
 **Next, as of 2026-10-05.** The order is set by what most raises fun and
 quality for the work. Nick authorized parallel game development alongside

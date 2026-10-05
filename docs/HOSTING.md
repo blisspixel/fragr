@@ -114,6 +114,7 @@ modes still need fresh human matches to establish clarity and fun.
 | `--solo-broadcast` | Episode 0 Calibration in Arena Duel. |
 | `--mode <MODE>` | `ffa`, `tdm`, `ctf`, or `sabotage`. CTF runs on Arena Duel, Directive 17, or Sector 9. Sabotage runs on Sector 9. Objective modes have no rotation. |
 | `--sabotage-five-v-five` | Optional Sabotage shared ten-seat profile, at most five per side, with pistol starts and map weapon upgrades. |
+| `--sabotage-format <FORMAT>` | Dedicated Sabotage format: `short` or `match`. Desktop hosting uses its fixed preset. |
 | `--mutator <ID>` | Repeatable: `rail-only`, `shotgun-only`, `fists-only`, `licence-to-kill`, `golden-rail`, `two-lives`. |
 | `--friendly-fire` | Allow team damage in TDM. |
 | `--frag-limit <N>` | Fighter limit in FFA or side limit in TDM; unavailable in CTF. |
