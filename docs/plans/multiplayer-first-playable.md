@@ -68,7 +68,12 @@ and dated receipts decide what is actually built.
   ingress/access-list refusal paths. Existing host controls remain address based;
   role or exceptional play is never evidence of cheating.
 - Run the owning client and native checks, full required CI, desktop package and
-  install checks on the composed source. Retain failures and their corrected proof.
+   install checks on the composed source. Retain failures and their corrected proof.
+  The existing unpacked-package smoke must reject script/runtime error logs as
+  well as require numeric exit 0 and its own PASS marker. Its install check uses
+  the matching bundled native executable for both owned arena presets, actual
+  spectator maps/snapshots and Stop retirement. Keep all previous asset and
+  campaign-preview gates; this is no substitute for a played match.
 - Publish a concise trial guide with reproducible commands, actual captures and
   a feedback format. Record an actual two-machine LAN match separately from
   same-machine automation. Nick's unsteered play owns clarity, feel and replayability.
