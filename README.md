@@ -105,7 +105,7 @@ full mission-route acceptance. This runtime increment shipped in
 [v0.71.0](https://github.com/blisspixel/fragr/releases/tag/v0.71.0), with full
 implementation CI and all three desktop package checks passing. Its cast batch
 used 160 included model credits. The Enforcer is integrated with level 9;
-Crawler refinement remains in flight. The latest October 4 free account check
+Crawler refinement remains in flight. The historical October 4 free account check
 reports 2,235 available with a 15-credit uncertain hold, leaving 2,220 usable;
 tracked net consumption is 835 credits, including the Jammer, first
 Railgun/Sniper Rifle candidates, three inhabited-world props, the distinct
@@ -120,8 +120,17 @@ retains all source geometry and adds verified grounded pump mounts. Played
 placement and selection remain open. The
 [civilian source receipt](docs/evidence/civilian-first-sources-20261004.md)
 records the two remaining first candidates and their 70 actual included credits.
-All twelve first-source slots have candidates, with 390 credits still available
-inside the first 900-credit allocation; this does not imply finished game art. The
+All twelve first-source slots have candidates; this does not imply finished game art.
+The latest October 5 free checker reports **2,125 available**, **15 held** and
+**2,110 usable**, after the shared glove, distinct Edda and Splice sources and
+Edda's first rig. Tracked consumption is 945 credits, with 620 used and 280
+remaining inside the first 900-credit allocation. The
+[cast source receipt](docs/evidence/named-cast-source-production-20261005.md)
+records the actual views and rejected walking-satchel skin defect. The
+[glove inspection](docs/evidence/work-glove-source-20261005.md) remains an
+offline articulation trial. No new runtime art is selected. New image request
+reservations total $1.874, leaving an estimated $12.546 from the latest reported
+$14.42; that estimate is not a verified account balance. The
 [precision source receipt](docs/evidence/precision-weapon-references-20261004.md)
 records their actual geometry, eight inspected views and 70 included credits.
 The [Sniper refinement](docs/evidence/sniper-source-refinement-20261004.md)
