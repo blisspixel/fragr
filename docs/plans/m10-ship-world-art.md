@@ -1,0 +1,101 @@
+# Common Carrier ship furnishing
+
+Status: planned, 2026-10-05. This isolated art lane starts from prototype
+`b0e6eb91`, with the prototype's remote and final composed played gates still
+open. It belongs to the existing campaign rung. It does not change mission
+authority, carry, actors, difficulty or the 28-state combat route.
+
+## Source-true problem
+
+The inspected actual route-v5 cabin, service, freight, command and departure
+frames show a structurally readable pressure hull with repeated slab equipment,
+a box-like bed, bare controls and few ordinary possessions. Spacious cargo
+handling remains useful. The next improvement should explain how people live
+and maintain this repaired transport, not fill walking aisles with arbitrary
+objects. Distinct Edda/Splice source work and Repeater art are separate lanes.
+
+The ship remains original, stylized and approximately 2070: warm bone shells,
+worn gunmetal, restrained rust and green maintenance fittings, pixel paint,
+practical warm lamps and limited navigation cyan. Civilian equipment has mixed
+repair histories. Black/red belongs to the invading Union, not every fixture.
+
+## Existing sources and exact reuse
+
+Use the three compact prepared sources already in
+`client/art/world-props/candidates/`: `air-scrubber.glb`, `water-pump.glb` and
+`community-radio.glb`. Their canonical offline preparation is
+`tools/prepare_world_prop_sources.gd`. Preserve their actual legal metadata,
+original receipts and embedded textures. Reuse their existing preparation;
+do not regenerate these models or quietly recolor the source into new identities.
+
+The repair workbench has no prepared artifact. Its inspected raw source is
+`art/raw/meshy-pilot-20261003/repair-workbench-stylized-v1-ultra-0.glb`, SHA256
+`37c149f3b6c402a349e283f4e49ab3baded27bfba5932a86b058556dc8537682`.
+It has 10,567 triangles, 14,872 vertices, one fixed mesh and embedded 4K paint.
+The reviewed reference and dimensions are in
+`docs/screenshots/civilian-first-sources-20261004/receipt.json`.
+Extend the existing preparation seam with a bounded workbench specification.
+Preserve every retained source face, UV, winding, finite normal and legal
+notice; record uniform scale, actual worktop height, source bounds and grounded
+supports. Nominal worktop height is 0.88 to 0.95 m, subject to the actual host
+geometry below. No new paid source is required for this increment.
+
+## Intended use and physical boundary
+
+| Place and existing host | Source and function | Physical constraint |
+|---|---|---|
+| Lower service `service_power_bank`, x 2.8..4.8, z 0..2.5, feet 2 | Scrubber equipment and authored connected intake casing explain working life support | Prepared scrubber is about 1.21 x 1.65 x 1.21 m. Its dressing must remain within the existing opaque equipment envelope; retain a believable casing around any otherwise invisible solid |
+| Aft service `service_coolant_bank`, x -4.8..-3, z 9.3..11, feet 2 | Pump, its four actual grounded mounts and contained return plumbing explain recycling/thermal maintenance | Prepared pump is 1.20 x 0.64 x 0.48 m. Keep the existing blocked volume visibly enclosed rather than removing its shell while leaving invisible cover |
+| Passenger `passenger_repair_bench`, x 4.5..7.3, z -9.8..-8.6, feet 4.8 | Actual repair workbench, restrained tool storage and charging detail replace the generic work slab | Existing top is 0.85 m above deck, below nominal source target. First measure source worktop and fit. Do not raise it or remove collision merely for art; report any incompatible height/width before a separately tested map amendment |
+| Upper `command_console`, x 1.5..3.5, z -16.8..-16, feet 7.6 | Compact community radio, useful display and locally wired controls show Tern's working station | Prepared radio is 0.38 x 0.37 x 0.18 m. Small mounted trim is not new combat cover or an interactable objective. Retain visible support and never imply a new control or remote-authority rule |
+| Passenger galley and bunk area | Local reusable brackets, a proper bunk silhouette, tied bags and ordinary personal detail | Existing hull, beds, counter, routes, crew feet and supplies stay fixed. Small craft is scoped to accepted hosts; request a new source only if local craft cannot meet the visual bar |
+
+Exact placements remain candidates until measured source/host fit and viewed
+in the real room. Source vertices cannot extend a large walk-blocking object
+beyond authoritative collision. Any retained invisible broad solid must gain
+a corresponding opaque casing. Do not fake empty space with a source model
+inside an invisible crate. Preserve body headroom, all supply feet, shot lanes,
+stair access and actor contact. The authored map/hash and all 112 solids stay
+unchanged for this initial art increment; an incompatible source fit is a
+reported design boundary, not permission to silently edit geometry.
+
+## Owning implementation seams
+
+Add a bounded packaged ship-furnishing presenter through the existing M10
+accepted-map configuration and teardown. Reuse registered surfaces and host
+geometry. Validate the exact venue and physical host bounds before attaching
+details. No extra mission facts, wire fields or client outcome authority.
+Coordinate any selective solid-view dressing in `arena_cover.gd`; other venues
+must retain their existing source and rendering. Avoid hiding the entire hull
+or equipment bank to show a smaller source.
+
+Runtime sources belong under `client/assets/` and helpers under
+`client/scripts/`. Offline `client/art/` is excluded from desktop packages.
+Embedded images retain nearest filtering and restrained finish. The presenter
+has bounded instances, world visual layer 2, real venue lighting and complete
+map replacement/scene teardown. It does not preload actor-only fill or new
+runtime services. Preserve matching packaged copyright notices.
+
+## Acceptance before selection
+
+1. Independent source proof compares retained raw/prepared face areas, UVs,
+   winding and normals, verifies finite attributes, worktop dimensions and
+   actual mount support. Retain rejected preparations and exact fingerprints.
+2. Actual accepted-map tests assert source/host bounds, supported feet,
+   bounded instance counts, venue-only selection, malformed-map refusal and
+   map replacement cleanup. Prove all existing M10 body/shot cover and route
+   gates remain equal; representative asset presence alone is insufficient.
+3. Export and actual install checks load the real packaged helper, meshes and
+   embedded textures, without offline source paths. Complete focused source,
+   material, presentation and lifecycle checks must pass error-clean.
+4. Obtain one serialized hardware slot for full-size cabin, service and command
+   views in actual light, with an unchanged ordinary route if runtime dressing
+   could obscure supplies or enemies. Inspect grounded models, readable mixed
+   materials, visible cover, control purpose, silhouette and useful space.
+   Record source/map/native hashes and retire owned processes.
+5. Compose only reviewed source, then run the matching complete client checker
+   and exact-head CI/packages before main selection. New shot-body integration
+   and prototype's final played gate remain independently required.
+
+The pass is complete only when the actual inhabited room views are accepted.
+It does not close named casting, Repeater discovery, story or fresh-player fun.
