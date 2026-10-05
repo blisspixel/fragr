@@ -194,3 +194,13 @@ The next concrete work is the actual Remote Mine integration, Redactor and
 typed mission. No live gadget, new enemy, playable save promotion, runtime
 presentation or renderer proof is claimed yet. This is one mission
 implementation plan, not a second project queue.
+
+The stock source then passes the full locked workspace suite, including 978
+server unit tests (three existing ignored captures) and all 18 local-process
+tests. The first workspace run exposed four local-process assertions that still
+expected the current writer to produce version 13. Those assertions now expect
+14 while preserving every promotion, outcome and finite-equipment check. Two
+brain fixtures also explicitly initialize the new remote count to zero; decision
+behavior is unchanged. The failed first receipt and successful second receipt
+are retained separately. These checks do not replace the pending matching
+complete client, capability, live device, mission or renderer gates.

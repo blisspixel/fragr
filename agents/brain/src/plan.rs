@@ -852,6 +852,7 @@ mod tests {
             dry_fire_count: 0,
             grenades: 0,
             proximity_mines: 0,
+            remote_mines: 0,
         };
         let through_inventory = |snap: &Snapshot| {
             fragr_server::inventory::control_action_with_target_filter(
