@@ -1,6 +1,6 @@
 # Desktop-owned arena server
 
-Status: in flight, October 5, 2026. Native child ownership is not yet implemented or verified. The companion client host flow is a separate work item.
+Status: in flight, October 5, 2026. Native child ownership is implemented, and the owning tests plus nine local verification gates passed. Full workspace coverage remains open after the instrumented mixed-party fixture failures below. The companion client host flow has separate acceptance gates.
 
 The packaged Multiplayer menu can probe and join a server, but its local-server button does not launch one. TDM and the optional ten-seat Sabotage room already have authoritative rules and socket tests. This change supplies the missing desktop-owned native process rather than rebuilding those modes.
 
@@ -31,3 +31,13 @@ Run owning tests, locked workspace tests, warning-denied Clippy, formatting, the
 ## Audit boundaries
 
 Five-seat Sabotage starts fresh entrants with the finite Pistol supply, keeps survivors' equipment and reserves ten combined bot/human/agent seats. It has no ready quorum and does not evict bots for humans. TDM currently uses its existing full-arsenal policy. This change does not silently introduce Pistol-only TDM, automatic bot replacement, map geometry, mutators, a second navigation/controller, or a new operator API.
+
+## Mixed-party fixture preparation follow-up
+
+The runtime freeze `ae4ad91870d0f3fb5c60bc4aa11eee2da8c94d62` passed the owning six local tests, six real executable-child tests, locked workspace tests, formatting, warning-denied Clippy, the established deterministic benchmark, release builds and license/source/ban checks. Its first instrumented workspace run had 986 server tests passed, one failed and three existing ignored: the mixed human/agent campaign fixture exceeded its first 20-second progress wait. The unchanged exact instrumented test then completed in 3.54 seconds in isolation. A quiet, default-parallel full retry again had 986 passed, one failed and three ignored, this time with both sockets ending at ReachLift and the watcher observing geometry revert before departure. Neither run established the coverage floor, and isolated success did not establish the cause.
+
+Source inspection shows that each live driver constructs a MissionProbe, which loads both strict fixture worlds, then synchronously calls Navigation::shared on changed MapInfo. The spectator also constructs its probe after connecting. Navigation::shared holds its process-wide cache mutex throughout topology construction. The resulting setup can therefore occupy the same runtime that owns live sockets and the timed walk. That is a preparation hazard; current failure output does not prove which particular wait caused either failure.
+
+The authorized scope now also includes a minimal test-only preparation change in `server/src/mission/wire_tests.rs`. Create all three probes and retain the exact closed/open fixture topologies before starting the server or connecting live sockets. A driver may select a retained topology only after the actual MapInfo passes the existing complete geometry, presentation and mission comparison. Preserve both 20-second progress/departure waits, the five-second fighter completion bound, real human/agent/spectator sockets, ordinary actions and every party, map-order, aboard and departure assertion. Change no production navigation, cache, controller, transport, geometry or lifetime code.
+
+Review the test-only diff, run the meaningful mixed-party wire case, then rerun the full unfiltered workspace coverage command with its unchanged default test parallelism and 90 percent floor in a coordinated quiet window. Retain both failed whole runs and both isolated launcher records. Keep local native evidence, composed renderer/client evidence, desktop packaging and a physical two-machine human LAN trial distinct. The immutable local Windows native input remains SHA-256 `a55e29cc543481af33f74d0f3f82c16d0c2de50a596625525ca5d7bf4a5c47cb`; the protected older root binary remains untouched.
