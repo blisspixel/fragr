@@ -132,9 +132,15 @@ fn action(index: usize, step: u32) -> ClientMessage {
 async fn open_socket(server: SocketAddr, octet: u8) -> Result<TcpStream, Error> {
     let socket = tokio::net::TcpSocket::new_v4()?;
     let local = SocketAddr::from(([127, 0, 0, octet], 0));
-    socket
-        .bind(local)
-        .map_err(|error| Error::Server(format!("cannot bind a client to {local}: {error}")))?;
+    socket.bind(local).map_err(|error| {
+        if error.kind() == std::io::ErrorKind::AddrNotAvailable && octet != 1 {
+            Error::Server(format!(
+                "cannot bind a client to {local}: {error}. This machine has not assigned that loopback address. macOS needs an alias such as `ifconfig lo0 alias 127.0.0.{octet}` before a roster past 32"
+            ))
+        } else {
+            Error::Server(format!("cannot bind a client to {local}: {error}"))
+        }
+    })?;
     socket
         .connect(server)
         .await
@@ -516,9 +522,24 @@ mod tests {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let server = listener.local_addr().unwrap();
         let socket = tokio::net::TcpSocket::new_v4().unwrap();
-        socket.bind("127.0.0.2:0".parse().unwrap()).unwrap();
-        let _stream = socket.connect(server).await.unwrap();
-        let _accepted = listener.accept().await.unwrap();
+        let local: SocketAddr = "127.0.0.2:0".parse().unwrap();
+        match socket.bind(local) {
+            Ok(()) => {
+                let _stream = socket.connect(server).await.unwrap();
+                let (accepted, _) = listener.accept().await.unwrap();
+                assert_eq!(accepted.peer_addr().unwrap().ip(), local.ip());
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::AddrNotAvailable => {
+                // Linux and Windows assign 127.0.0.0/8. macOS assigns
+                // 127.0.0.1 until an alias is added, so a roster past 32
+                // is refused there until that address exists.
+                assert!(
+                    cfg!(target_os = "macos"),
+                    "127.0.0.2 must be bindable on this OS: {error}"
+                );
+            }
+            Err(error) => panic!("bind {local}: {error}"),
+        }
     }
 
     #[tokio::test]

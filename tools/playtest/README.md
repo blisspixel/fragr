@@ -58,7 +58,9 @@ read-only spectators. Each fighter sends movement and a held trigger at
 `--traffic-hz` (default 60, the pace of a displayed client frame) and does
 not pathfind. Spectators only read. One loopback address holds 32
 connections. A roster up to 64 uses `127.0.0.2` and onward for the extra
-clients. The process cap is 64 sockets. The report is
+clients. Linux and Windows already assign `127.0.0.0/8`. macOS assigns
+only `127.0.0.1` until `ifconfig lo0 alias` adds the extra addresses, so
+a roster past 32 on macOS needs those aliases. The process cap is 64 sockets. The report is
 `.agents/traffic/report.json` unless `--report` names another file, and the
 server log is written beside it. `--assert` fails when a client never
 welcomes, drops during the window, the tick stalls, the status counts drift,

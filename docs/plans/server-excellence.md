@@ -313,7 +313,10 @@ TLS session remain open. The next measurement step is still pass 1.
 synthetic fighters and read-only spectators. Fighters send movement and a
 held trigger at a chosen rate. They do not pathfind, so the load is the
 tick, the shots, and the fan-out. One loopback address holds 32
-connections. A roster through 64 uses the next loopback addresses. The
+connections. A roster through 64 uses the next loopback addresses.
+Linux and Windows already assign `127.0.0.0/8`. macOS assigns only
+`127.0.0.1` until an alias is added, so a roster past 32 there needs
+`ifconfig lo0 alias` first. The
 report records actions, snapshots, bytes, the tick counters, and health.
 `--assert` checks that the roster stayed up. It does not declare the 50 ms
 budget met. The measurement table for pass 1 is still empty. A debug run
