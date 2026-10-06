@@ -533,10 +533,10 @@ mod tests {
                 // Linux and Windows assign 127.0.0.0/8. macOS assigns
                 // 127.0.0.1 until an alias is added, so a roster past 32
                 // is refused there until that address exists.
-                assert!(
-                    cfg!(target_os = "macos"),
-                    "127.0.0.2 must be bindable on this OS: {error}"
-                );
+                #[cfg(not(target_os = "macos"))]
+                panic!("127.0.0.2 must be bindable on this OS: {error}");
+                #[cfg(target_os = "macos")]
+                let _ = error;
             }
             Err(error) => panic!("bind {local}: {error}"),
         }

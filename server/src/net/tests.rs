@@ -431,8 +431,17 @@ async fn status_reads_stop_at_their_own_cap_and_leave_game_slots_free() {
         .unwrap();
     let mut buf = [0u8; 32];
     let read = timeout(Duration::from_millis(400), extra.read(&mut buf)).await;
-    let bytes = read.expect("a capped status probe closes").unwrap();
-    assert_eq!(bytes, 0, "the extra status probe is closed: {buf:?}");
+    // The server closes without reading the request. Linux and Windows often
+    // report that as an empty read. macOS reports the unread close as a reset.
+    match read.expect("a capped status probe closes") {
+        Ok(0) => {}
+        Err(error)
+            if matches!(
+                error.kind(),
+                std::io::ErrorKind::ConnectionReset | std::io::ErrorKind::ConnectionAborted
+            ) => {}
+        other => panic!("the extra status probe is closed: {other:?} {buf:?}"),
+    }
 
     let _held = welcome_spectator(address).await;
     assert!(matches!(
