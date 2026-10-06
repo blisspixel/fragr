@@ -156,6 +156,22 @@ struct Args {
     /// Admit only these addresses, same format. A ban still wins.
     #[arg(long, conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     allow_list: Option<PathBuf>,
+
+    /// Local venue desk on this terminal: who, kick, ban, and say.
+    /// Closing the input leaves the match running.
+    #[arg(
+        long,
+        default_value_t = false,
+        conflicts_with_all = [
+            "desktop_host",
+            "local_mission",
+            "local_run_preview",
+            "bench",
+            "bench_verify_trace",
+            "map_file"
+        ]
+    )]
+    console: bool,
 }
 
 fn parse_budget_fraction(raw: &str) -> Result<f64, String> {
@@ -339,6 +355,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         status_every_s: args.status_every_s,
         join_secret,
         access,
+        console: args.console,
     };
     if args.desktop_host {
         fragr_server::local::serve_arena(options, std::io::stdin(), std::io::stdout()).await
@@ -879,6 +896,7 @@ mod tests {
                     status_every_s: 0,
                     join_secret: None,
                     access: Default::default(),
+                    console: false,
                 },
                 async move {
                     let _ = shutdown_rx.await;

@@ -351,7 +351,9 @@ pub async fn serve_arena(
 }
 
 /// Only this explicit mode gives stdin process-lifetime meaning. A dedicated
-/// host must remain independent of terminal input. The reader is a standard
+/// host must remain independent of terminal input. The venue desk is a separate
+/// opt-in reader whose end does not shut the process down. This campaign lease
+/// still does. The reader is a standard
 /// thread so cancelling startup never strands a blocking task in Tokio shutdown.
 pub async fn serve(
     mission: MissionId,

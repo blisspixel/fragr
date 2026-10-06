@@ -155,6 +155,51 @@ fn plant_at_a(state: &mut GameState) -> Uuid {
 }
 
 #[test]
+fn muster_holds_a_mine_the_same_way_it_holds_a_throw() {
+    let mut state = arena(quick());
+    let id = join(&mut state, 1);
+    state.start_round();
+    assert_eq!(phase(&state), SabotagePhase::Muster);
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        assert_eq!(player.inventory.grant_grenades(1), 1);
+        assert_eq!(player.inventory.grant_mines(1), 1);
+    }
+    state.set_action(
+        id,
+        Action {
+            fire: true,
+            throw_grenade: true,
+            place_mine: true,
+            ..Action::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(phase(&state), SabotagePhase::Muster);
+    assert!(state.snapshot().grenades.is_empty());
+    assert!(state.snapshot().mines.is_empty());
+    assert!(state.snapshot().shot_results.is_empty());
+    assert_eq!(player(&state, id).inventory.grenades(), 1);
+    assert_eq!(player(&state, id).inventory.mines(), 1);
+
+    let muster_ticks = state.config.sabotage.muster_ticks;
+    run(&mut state, muster_ticks);
+    assert_eq!(phase(&state), SabotagePhase::Live);
+    assert!(state.snapshot().mines.is_empty());
+    state.set_action(
+        id,
+        Action {
+            place_mine: true,
+            ..Action::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.snapshot().mines.len(), 1);
+    assert_eq!(state.snapshot().mines[0].owner_id, id);
+    assert_eq!(player(&state, id).inventory.mines(), 0);
+}
+
+#[test]
 fn empty_muster_waits_for_the_delayed_first_fighter_without_scoring() {
     for five_vs_five in [false, true] {
         for role in [Role::Human, Role::Agent] {

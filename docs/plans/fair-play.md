@@ -24,6 +24,10 @@ spectators are not ticketed. Never log tickets or resume tokens.
 
 Run `fragr-server --ban-list bans.txt`. One valid entry is
 `192.0.2.8 expires=2026-10-11T12:00:00Z reason=repeated abuse`.
+On a dedicated arcade match, `--console` can append the connected address
+of one uniquely named person to that same file and drop them now. The ban
+is still the address. The desk does not ban a name, and it does not pull
+a roster bot.
 See [home/LAN hosting](../../infra/docs/HOME-LAN.md). Address bans can affect
 shared networks and can be evaded by changing address; hosts need review and
 an easy way to remove mistaken entries.

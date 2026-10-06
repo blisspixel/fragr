@@ -16,6 +16,7 @@ const KICK_KEYS: Dictionary = {
 	"malformed": "NET_MALFORMED",
 	"address_banned": "NET_ADDRESS_BANNED",
 	"address_not_allowed": "NET_ADDRESS_NOT_ALLOWED",
+	"venue_kick": "NET_VENUE_KICK",
 }
 
 class CaptureNetwork extends "res://scripts/net_client.gd":

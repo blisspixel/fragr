@@ -309,6 +309,7 @@ func _close_message(code: String) -> String:
 		"malformed": return tr("NET_MALFORMED")
 		"address_banned": return tr("NET_ADDRESS_BANNED")
 		"address_not_allowed": return tr("NET_ADDRESS_NOT_ALLOWED")
+		"venue_kick": return tr("NET_VENUE_KICK")
 	return ""
 
 ## A hard stop: disconnects, shows the message, and never attempts to resume.
@@ -317,6 +318,7 @@ func _close_message(code: String) -> String:
 ## same as a plain drop. rate_limited, malformed, address_banned and
 ## address_not_allowed remove the pawn server-side, so an automatic resume
 ## would only be bounced; the client never makes that attempt.
+## venue_kick is the same kind of stop: the desk already removed the pawn.
 func _admission_error(code: String) -> bool:
 	if code == "idle_timeout":
 		return false

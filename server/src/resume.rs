@@ -32,6 +32,11 @@ pub struct ResumeAccept {
     pub seat: Option<OwnedSemaphorePermit>,
     /// The parked pawn's body. A resume never changes it.
     pub body: crate::protocol::BodyKind,
+    /// Nonce on the token the client already holds. Restored when the new
+    /// token never reaches that socket, so grace is not a one-shot gamble.
+    previous_nonce: u64,
+    /// Deadline captured at park. A failed delivery must not start grace over.
+    parked_deadline: u64,
 }
 
 pub struct ResumeTable {
@@ -94,6 +99,14 @@ impl ResumeTable {
         self.arms.lock().expect("resume table").remove(&player);
     }
 
+    #[cfg(test)]
+    pub(crate) fn holds(&self, player: Uuid) -> bool {
+        self.arms
+            .lock()
+            .expect("resume table")
+            .contains_key(&player)
+    }
+
     pub fn open(&self, token: &str) -> Option<(Uuid, Role, u64)> {
         open(&self.key, token)
     }
@@ -105,7 +118,9 @@ impl ResumeTable {
         if arm.role != role || arm.nonce != nonce || arm.parked.is_none() {
             return None;
         }
+        let previous_nonce = arm.nonce;
         let parked = arm.parked.take()?;
+        let parked_deadline = parked.deadline;
         let nonce = random_nonce();
         arm.nonce = nonce;
         let token = mint(&self.key, player, role, nonce);
@@ -114,7 +129,30 @@ impl ResumeTable {
             token,
             seat: parked.seat,
             body: crate::protocol::BodyKind::default(),
+            previous_nonce,
+            parked_deadline,
         })
+    }
+
+    /// The new token was claimed and then never delivered. Put the pawn back
+    /// on the token the client still holds, with the same deadline and seat.
+    /// A newer park or a later claim is left alone.
+    pub fn abandon(&self, accept: ResumeAccept) {
+        let mut arms = self.arms.lock().expect("resume table");
+        let Some((_, _, minted)) = open(&self.key, &accept.token) else {
+            return;
+        };
+        let Some(arm) = arms.get_mut(&accept.player_id) else {
+            return;
+        };
+        if arm.nonce != minted || arm.parked.is_some() {
+            return;
+        }
+        arm.nonce = accept.previous_nonce;
+        arm.parked = Some(Parked {
+            deadline: accept.parked_deadline,
+            seat: accept.seat,
+        });
     }
 
     /// Pawns whose grace ended. Their seats drop with the record.
@@ -310,5 +348,116 @@ mod tests {
             campaign.state.mission_state().unwrap().run.unwrap().status,
             CampaignRunStatus::Abandoned
         );
+    }
+
+    fn park_fighter(
+        session: &mut crate::session::GameSession,
+        client: Uuid,
+        player: Uuid,
+        tick: u64,
+    ) -> String {
+        use crate::net::GameCommand;
+        use crate::protocol::Action;
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: client,
+            role: Role::Human,
+            name: "Patch".into(),
+            player_id: Some(player),
+        });
+        session.apply_command(GameCommand::Action {
+            player_id: player,
+            action: Action {
+                fire: true,
+                ..Action::default()
+            },
+        });
+        let token = session.resume.arm(player, Role::Human);
+        session.resume.park(player, None, tick);
+        session.apply_command(GameCommand::Detached { id: client });
+        token
+    }
+
+    #[test]
+    fn a_resume_reply_that_nobody_receives_puts_the_pawn_back() {
+        use crate::net::GameCommand;
+        use crate::session::GameSession;
+
+        let mut session = GameSession::new();
+        let client = Uuid::new_v4();
+        let player = Uuid::new_v4();
+        let slots = std::sync::Arc::new(tokio::sync::Semaphore::new(1));
+        let seat = std::sync::Arc::clone(&slots).try_acquire_owned().unwrap();
+        let token = park_fighter(&mut session, client, player, 10);
+        session.resume.park(player, Some(seat), 10);
+        let (_, _, nonce) = session.resume.open(&token).unwrap();
+        let next = Uuid::new_v4();
+        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+        drop(reply_rx);
+        session.apply_command(GameCommand::Resume {
+            client_id: next,
+            player_id: player,
+            nonce,
+            role: Role::Human,
+            reply: reply_tx,
+        });
+        assert!(session.client_to_player.is_empty());
+        assert!(session.state.players[0].detached);
+        assert!(!session.state.players[0].pending_action.fire);
+        assert!(
+            slots.try_acquire().is_err(),
+            "the parked seat stays with the pawn"
+        );
+        assert!(session.resume.expire(209).is_empty());
+        let (_, _, nonce) = session.resume.open(&token).unwrap();
+        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+        session.apply_command(GameCommand::Resume {
+            client_id: next,
+            player_id: player,
+            nonce,
+            role: Role::Human,
+            reply: reply_tx,
+        });
+        assert!(reply_rx.blocking_recv().unwrap().is_some());
+        assert_eq!(session.client_to_player.get(&next), Some(&player));
+    }
+
+    #[test]
+    fn aborting_a_delivered_resume_restores_the_old_token_and_deadline() {
+        use crate::net::GameCommand;
+        use crate::session::GameSession;
+
+        let mut session = GameSession::new();
+        let client = Uuid::new_v4();
+        let player = Uuid::new_v4();
+        let token = park_fighter(&mut session, client, player, 10);
+        let (_, _, nonce) = session.resume.open(&token).unwrap();
+        let next = Uuid::new_v4();
+        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+        session.apply_command(GameCommand::Resume {
+            client_id: next,
+            player_id: player,
+            nonce,
+            role: Role::Human,
+            reply: reply_tx,
+        });
+        let accepted = reply_rx.blocking_recv().unwrap().unwrap();
+        let minted = accepted.token.clone();
+        assert_ne!(minted, token);
+        session.apply_command(GameCommand::AbortResume {
+            client_id: next,
+            accepted,
+        });
+        assert!(session.client_to_player.is_empty());
+        assert!(session.state.players[0].detached);
+        assert!(!session.state.players[0].pending_action.fire);
+        let (_, _, burned) = session.resume.open(&minted).unwrap();
+        assert!(session.resume.claim(player, burned, Role::Human).is_none());
+        assert!(
+            session.resume.expire(209).is_empty(),
+            "a lost welcome must not start grace over"
+        );
+        let (_, _, nonce) = session.resume.open(&token).unwrap();
+        assert!(session.resume.claim(player, nonce, Role::Human).is_some());
     }
 }

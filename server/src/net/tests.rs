@@ -63,7 +63,7 @@ async fn automatic_admission_validates_before_reservation_and_keeps_watchers_ope
         }
     ));
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected {
@@ -130,7 +130,7 @@ async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels
     let accept = tokio::spawn(server.accept_loop());
     let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
     socket.send(Message::Text(serde_json::json!({"type":"hello", "role":"human", "name":"Held registration", "geometry_version":2, "gameplay_version":crate::protocol::GAMEPLAY_VERSION}).to_string())).await.unwrap();
-    let request = timeout(Duration::from_secs(2), commands.recv())
+    let request = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
         .await
         .unwrap()
         .unwrap();
@@ -161,7 +161,7 @@ async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels
         .unwrap();
     assert_eq!(admission_code(rejection), "bot_fill_cancelled");
     assert!(
-        matches!(timeout(Duration::from_secs(2), commands.recv()).await.unwrap(), Some(GameCommand::CancelAutoJoin { client_id: cancelled }) if cancelled == client_id)
+        matches!(timeout(Duration::from_secs(2), skip_seat_notes(&mut commands)).await.unwrap(), Some(GameCommand::CancelAutoJoin { client_id: cancelled }) if cancelled == client_id)
     );
     assert_eq!(
         gate.lock().unwrap().phase,
@@ -211,7 +211,7 @@ impl futures_util::Sink<Message> for StalledSink {
 #[tokio::test]
 async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
     let (tx, rx) = mpsc::channel(1);
-    let (shutdown, mut changed) = tokio::sync::watch::channel(false);
+    let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
     tx.send(ServerMessage::Error {
         code: "queued".into(),
         message: "queued".into(),
@@ -232,7 +232,7 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
         .await
         .unwrap()
         .unwrap();
-    assert!(*changed.borrow_and_update());
+    assert_eq!(*changed.borrow_and_update(), StopSignal::Quiet);
     writer.await.unwrap();
 }
 
@@ -300,14 +300,14 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
             }
         ));
         assert!(matches!(
-            timeout(Duration::from_secs(2), commands.recv())
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
                 .unwrap(),
             Some(GameCommand::Connected { .. })
         ));
         socket.close(None).await.unwrap();
         assert!(matches!(
-            timeout(Duration::from_secs(2), commands.recv())
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
                 .unwrap(),
             Some(GameCommand::Disconnected { .. })
@@ -352,11 +352,14 @@ fn admission_code(message: Message) -> String {
 
 #[test]
 fn status_request_requires_the_exact_path() {
-    assert!(is_status_request(b"GET /status HTTP/1.1"));
-    assert!(is_status_request(b"GET /status?watch=1"));
-    assert!(!is_status_request(b"GET /status-evil HTTP/1.1"));
-    assert!(!is_status_request(b"POST /status HTTP/1.1"));
+    assert_eq!(classify_opening(b"GET /status HTTP/1.1"), Some(true));
+    assert_eq!(classify_opening(b"GET /status?watch=1"), Some(true));
+    assert_eq!(classify_opening(b"GET /status-evil HTTP/1.1"), Some(false));
+    assert_eq!(classify_opening(b"POST /status HTTP/1.1"), Some(false));
     assert_eq!(classify_opening(b"GET"), None);
+    assert_eq!(classify_opening(b"GET /status"), None);
+    assert_eq!(classify_opening(b"GET /status "), Some(true));
+    assert_eq!(classify_opening(b"GET /status-evil"), Some(false));
     assert_eq!(classify_opening(b"GET /foo bar"), Some(false));
 }
 
@@ -407,6 +410,90 @@ async fn status_get_reports_the_match_without_taking_a_slot() {
 }
 
 #[tokio::test]
+async fn status_reads_stop_at_their_own_cap_and_leave_game_slots_free() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(4, 8, Duration::from_secs(2), Duration::from_secs(2));
+    server.tighten_status_slots(1);
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+
+    let mut slow = tokio::net::TcpStream::connect(address).await.unwrap();
+    slow.write_all(b"GET /status HTTP/1.1\r\nHost: x\r\n")
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(80)).await;
+
+    let mut extra = tokio::net::TcpStream::connect(address).await.unwrap();
+    extra
+        .write_all(b"GET /status HTTP/1.1\r\nHost: x\r\n\r\n")
+        .await
+        .unwrap();
+    let mut buf = [0u8; 32];
+    let read = timeout(Duration::from_millis(400), extra.read(&mut buf)).await;
+    let bytes = read.expect("a capped status probe closes").unwrap();
+    assert_eq!(bytes, 0, "the extra status probe is closed: {buf:?}");
+
+    let _held = welcome_spectator(address).await;
+    assert!(matches!(
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected { .. })
+    ));
+    accept.abort();
+}
+
+#[tokio::test]
+async fn unadmitted_connections_stop_at_the_connection_cap() {
+    let (tx, _commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+
+    let mut first = tokio::net::TcpStream::connect(address).await.unwrap();
+    // An unfinished request line stays in classification and holds the permit.
+    first.write_all(b"GET").await.unwrap();
+    tokio::time::sleep(Duration::from_millis(40)).await;
+    let mut second = tokio::net::TcpStream::connect(address).await.unwrap();
+    let mut buf = [0u8; 16];
+    let read = timeout(Duration::from_millis(200), second.read(&mut buf)).await;
+    let bytes = read
+        .expect("a connection past the pre-hello cap closes")
+        .unwrap();
+    assert_eq!(bytes, 0);
+    accept.abort();
+}
+
+#[tokio::test]
+async fn a_full_server_drops_refusals_past_the_explanation_cap() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
+    server.tighten_rejection_slots(0);
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let _held = welcome_spectator(address).await;
+    assert!(matches!(
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
+            .await
+            .unwrap(),
+        Some(GameCommand::Connected { .. })
+    ));
+    let refused = timeout(
+        Duration::from_secs(2),
+        connect_async(format!("ws://{address}")),
+    )
+    .await;
+    assert!(
+        refused.unwrap().is_err(),
+        "past the explanation cap the socket closes without a handshake"
+    );
+    accept.abort();
+}
+
+#[tokio::test]
 async fn connection_caps_reject_without_admitting_the_game() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
@@ -415,7 +502,7 @@ async fn connection_caps_reject_without_admitting_the_game() {
     let accept = tokio::spawn(server.accept_loop());
     let held = welcome_spectator(address).await;
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected { .. })
@@ -438,7 +525,7 @@ async fn connection_caps_reject_without_admitting_the_game() {
 
     drop(held);
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Disconnected { .. })
@@ -460,7 +547,7 @@ async fn loopback_roster_of_sixteen_agents_plus_an_observer_fits() {
     }
     for _ in 0..17 {
         assert!(matches!(
-            timeout(Duration::from_secs(2), commands.recv())
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
                 .unwrap(),
             Some(GameCommand::Connected { .. })
@@ -494,7 +581,7 @@ async fn one_address_cannot_hold_every_connection_slot() {
     let second = welcome_spectator(address).await;
     for _ in 0..2 {
         assert!(matches!(
-            timeout(Duration::from_secs(2), commands.recv())
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
                 .unwrap(),
             Some(GameCommand::Connected { .. })
@@ -568,7 +655,7 @@ async fn action_flood_is_dropped_before_the_tick_queue() {
         }
     ));
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected { .. })
@@ -582,7 +669,7 @@ async fn action_flood_is_dropped_before_the_tick_queue() {
             .unwrap();
     }
     let mut actions = 0;
-    while timeout(Duration::from_millis(50), commands.recv())
+    while timeout(Duration::from_millis(50), skip_seat_notes(&mut commands))
         .await
         .ok()
         .and_then(|message| message)
@@ -613,13 +700,13 @@ async fn stalled_handshake_and_hello_release_their_slot() {
     drop(stalled);
     let held = welcome_spectator(address).await;
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected { .. })
     ));
     drop(held);
-    let _ = timeout(Duration::from_secs(2), commands.recv()).await;
+    let _ = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands)).await;
 
     let (socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
     tokio::time::sleep(Duration::from_millis(400)).await;
@@ -682,7 +769,7 @@ async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_con
             panic!("expected welcome")
         };
         assert!(matches!(
-            timeout(Duration::from_secs(2), commands.recv())
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
                 .unwrap(),
             Some(GameCommand::Connected { .. })
@@ -701,12 +788,12 @@ async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_con
         socket.close(None).await.unwrap();
         if let Some(id) = player_id {
             assert!(
-                matches!(timeout(Duration::from_secs(2), commands.recv()).await.unwrap(), Some(GameCommand::MissionContinue { player_id, request: received }) if player_id == id && received == request)
+                matches!(timeout(Duration::from_secs(2), skip_seat_notes(&mut commands)).await.unwrap(), Some(GameCommand::MissionContinue { player_id, request: received }) if player_id == id && received == request)
             );
         }
         // The ordered disconnect proves a spectator's preceding continue was ignored.
         assert!(matches!(
-            timeout(Duration::from_secs(2), commands.recv())
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
                 .unwrap(),
             Some(GameCommand::Disconnected { .. })
@@ -775,7 +862,7 @@ async fn rules_three_missions_refuse_retired_readers_before_any_role_is_admitted
         }
     ));
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected { .. })
@@ -825,7 +912,7 @@ async fn m01_refuses_shiv_blind_capability_ten_and_admits_eleven() {
                 }
             ));
             assert!(matches!(
-                timeout(Duration::from_secs(2), commands.recv())
+                timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                     .await
                     .unwrap(),
                 Some(GameCommand::Connected { .. })
@@ -879,7 +966,7 @@ async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
         if expected == "welcome" {
             assert!(matches!(reply, ServerMessage::Welcome { .. }));
             assert!(matches!(
-                timeout(Duration::from_secs(2), commands.recv())
+                timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                     .await
                     .unwrap(),
                 Some(GameCommand::Connected { .. })
@@ -894,7 +981,7 @@ async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
     let mut departed = joined.remove(0);
     departed.close(None).await.unwrap();
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Disconnected { .. })
@@ -1001,7 +1088,7 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
         }
     ));
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected {
@@ -1038,7 +1125,7 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
         }
     ));
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected {
@@ -1111,7 +1198,7 @@ async fn an_open_server_ignores_a_presented_ticket() {
         }
     ));
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected { .. })
@@ -1151,7 +1238,7 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
     ));
     let mut ids = Vec::new();
     for _ in 0..3 {
-        let command = timeout(Duration::from_secs(2), commands.recv())
+        let command = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap()
             .unwrap();
@@ -1162,7 +1249,7 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
     }
     assert_eq!(clients.lock().await.len(), 3);
     clients.lock().await[0].request_close();
-    let disconnected = timeout(Duration::from_secs(2), commands.recv())
+    let disconnected = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
         .await
         .unwrap()
         .unwrap();
@@ -1170,7 +1257,7 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
     assert_eq!(clients.lock().await.len(), 2);
     let _replacement = welcome_spectator(address).await;
     assert!(matches!(
-        timeout(Duration::from_secs(2), commands.recv())
+        timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
             .await
             .unwrap(),
         Some(GameCommand::Connected {
@@ -1223,7 +1310,7 @@ async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
         .find(|client| client.id == fighter_id)
         .unwrap()
         .request_close();
-    let detached = timeout(Duration::from_secs(2), commands.recv())
+    let detached = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
         .await
         .unwrap()
         .unwrap();
@@ -1295,7 +1382,7 @@ async fn closing_code(socket: &mut ClientSocket) -> (String, String) {
 }
 
 async fn next_command(commands: &mut mpsc::UnboundedReceiver<GameCommand>) -> GameCommand {
-    timeout(Duration::from_secs(3), commands.recv())
+    timeout(Duration::from_secs(3), skip_seat_notes(commands))
         .await
         .expect("command timeout")
         .expect("command channel open")
@@ -1343,12 +1430,22 @@ fn kick_codes_and_pawn_rules_are_stable() {
     let listed = Kick::Refused(crate::access::Verdict::NotAllowed);
     assert_eq!(listed.code(), "address_not_allowed");
     assert_eq!(listed.audit_event(), "kick");
+    let venue = Kick::Venue { banned: false };
+    assert_eq!(venue.code(), "venue_kick");
+    assert_eq!(venue.message(), "The venue asked you to step outside.");
+    assert!(venue.removes_pawn());
+    assert_eq!(venue.audit_event(), "kick");
+    let venue_ban = Kick::Venue { banned: true };
+    assert_eq!(venue_ban.code(), "address_banned");
+    assert_eq!(venue_ban.audit_event(), "ban");
     for kick in [
         Kick::Idle,
         Kick::RateLimited,
         Kick::Malformed,
         banned,
         listed,
+        venue,
+        venue_ban,
     ] {
         assert!(!kick.message().is_empty());
     }
@@ -1356,6 +1453,78 @@ fn kick_codes_and_pawn_rules_are_stable() {
         refusal_message("connection_limit"),
         "This server is not taking more connections."
     );
+}
+
+#[tokio::test]
+async fn venue_close_removes_a_resume_armed_human_and_says_why() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let address = server.local_addr().unwrap();
+    let clients = server.clients.clone();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let noted = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    let GameCommand::NoteSeat { client_id, peer } = noted else {
+        panic!("the desk hears the address before the join");
+    };
+    assert_eq!(
+        peer.ip().to_canonical(),
+        std::net::IpAddr::from([127, 0, 0, 1])
+    );
+    let joined = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    let GameCommand::Connected { id, .. } = joined else {
+        panic!("expected the join after the address");
+    };
+    assert_eq!(id, client_id);
+    clients
+        .lock()
+        .await
+        .iter()
+        .find(|client| client.id == id)
+        .unwrap()
+        .venue_close(false);
+    let mut code = String::new();
+    let mut message = String::new();
+    loop {
+        let frame = timeout(Duration::from_secs(2), fighter.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        match frame {
+            Message::Text(text) => {
+                let ServerMessage::Error {
+                    code: found,
+                    message: line,
+                } = serde_json::from_str(&text).unwrap()
+                else {
+                    continue;
+                };
+                code = found;
+                message = line;
+            }
+            Message::Ping(_) => {}
+            Message::Close(_) => break,
+            other => panic!("expected the venue error, got {other:?}"),
+        }
+    }
+    assert_eq!(code, "venue_kick");
+    assert_eq!(message, "The venue asked you to step outside.");
+    let gone = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    assert!(
+        matches!(gone, GameCommand::Disconnected { id: dropped } if dropped == id),
+        "a venue kick removes the pawn instead of parking it"
+    );
+    accept.abort();
 }
 
 #[tokio::test]
@@ -1454,6 +1623,40 @@ async fn sustained_flood_is_kicked_and_loses_its_pawn() {
 }
 
 #[tokio::test]
+async fn ping_flood_is_rate_limited_like_a_text_flood() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_session(SessionLimits {
+        flood_drain_per_sec: 0.0,
+        flood_limit: 32.0,
+        ..SessionLimits::default()
+    });
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let mut fighter = welcome_fighter(address, true).await;
+    let GameCommand::Connected { id, .. } = next_command(&mut commands).await else {
+        panic!("expected a connection");
+    };
+    for _ in 0..200 {
+        if fighter.send(Message::Ping(vec![1])).await.is_err() {
+            break;
+        }
+    }
+    match next_command(&mut commands).await {
+        GameCommand::Disconnected { id: gone } => {
+            assert_eq!(gone, id, "a control-frame flood removes the pawn");
+        }
+        _ => panic!("a ping flood must not enter the match"),
+    }
+    let (code, reason) = closing_code(&mut fighter).await;
+    assert_eq!(
+        (code.as_str(), reason.as_str()),
+        ("rate_limited", "rate_limited")
+    );
+    accept.abort();
+}
+
+#[tokio::test]
 async fn repeated_junk_is_kicked_but_unknown_types_are_ignored() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
@@ -1483,7 +1686,7 @@ async fn repeated_junk_is_kicked_but_unknown_types_are_ignored() {
             .unwrap();
     }
     assert!(
-        timeout(Duration::from_millis(200), commands.recv())
+        timeout(Duration::from_millis(200), skip_seat_notes(&mut commands))
             .await
             .is_err(),
         "three strikes are still inside the limit"
@@ -1503,6 +1706,34 @@ fn policy_from(ban: &str, allow: Option<&str>) -> Arc<crate::access::AccessPolic
         Some(crate::access::AccessList::parse(ban).unwrap()),
         allow.map(|text| crate::access::AccessList::parse(text).unwrap()),
     ))
+}
+
+#[tokio::test]
+async fn a_listed_refusal_does_not_hold_a_game_slot() {
+    let (tx, _commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.tighten_admission(1, 32, Duration::from_secs(5), Duration::from_secs(5));
+    server.tighten_rejection_slots(0);
+    let (policy_tx, policy_rx) = watch::channel(policy_from("127.0.0.0/8 reason=test\n", None));
+    server.set_access(policy_rx);
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+
+    let mut held = tokio::net::TcpStream::connect(address).await.unwrap();
+    let mut buf = [0u8; 8];
+    let read = timeout(Duration::from_millis(500), held.read(&mut buf)).await;
+    assert!(
+        matches!(read, Ok(Ok(0))),
+        "past the explanation cap a listed address closes without a handshake: {read:?}"
+    );
+
+    policy_tx.send_replace(policy_from("", None));
+    let joined = timeout(Duration::from_secs(2), welcome_spectator(address)).await;
+    assert!(
+        joined.is_ok(),
+        "a listed refusal must leave the game slot free: {joined:?}"
+    );
+    accept.abort();
 }
 
 #[tokio::test]
@@ -1597,7 +1828,7 @@ async fn a_new_ban_closes_a_live_session_and_an_unrelated_edit_does_not() {
     };
     policy_tx.send_replace(policy_from("203.0.113.7\n", None));
     assert!(
-        timeout(Duration::from_millis(200), commands.recv())
+        timeout(Duration::from_millis(200), skip_seat_notes(&mut commands))
             .await
             .is_err(),
         "a ban on someone else leaves this session alone"

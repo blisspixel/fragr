@@ -6,10 +6,12 @@ use crate::protocol::{self, Role, ServerMessage};
 use crate::resume::ResumeTable;
 use crate::sim::{BotController, GameState, MapKind, SpeakOutcome};
 use std::collections::HashMap;
+use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+mod desk;
 mod fill;
 #[cfg(test)]
 mod five_seats_tests;
@@ -43,6 +45,19 @@ pub struct GameSession {
     bot_seats: HashMap<Uuid, tokio::sync::OwnedSemaphorePermit>,
     auto_fill_target: Option<usize>,
     auto_reservations: HashMap<Uuid, fill::Reservation>,
+    /// Address observed at hello, waiting for the join command that follows.
+    pending_peers: HashMap<Uuid, SocketAddr>,
+    /// Last address of a connected fighter, kept through resume grace.
+    fighter_peers: HashMap<Uuid, SocketAddr>,
+    /// Live socket for a fighter. Empty while the pawn is only parked.
+    live_client: HashMap<Uuid, Uuid>,
+    spectators: HashMap<Uuid, SpectatorSeat>,
+    venue_said_tick: Option<u64>,
+}
+
+struct SpectatorSeat {
+    name: String,
+    peer: Option<SocketAddr>,
 }
 
 impl GameSession {
@@ -77,6 +92,11 @@ impl GameSession {
             bot_seats: HashMap::new(),
             auto_fill_target: None,
             auto_reservations: HashMap::new(),
+            pending_peers: HashMap::new(),
+            fighter_peers: HashMap::new(),
+            live_client: HashMap::new(),
+            spectators: HashMap::new(),
+            venue_said_tick: None,
         }
     }
 
@@ -233,6 +253,7 @@ impl GameSession {
             .players
             .iter()
             .any(|player| player.name == candidate)
+            || self.spectators.values().any(|seat| seat.name == candidate)
         {
             candidate = format!("{base} #{suffix}");
             suffix += 1;
@@ -241,6 +262,8 @@ impl GameSession {
     }
 
     fn remove_pawn(&mut self, player_id: Uuid) {
+        self.fighter_peers.remove(&player_id);
+        self.live_client.remove(&player_id);
         let (player_name, player_score) = self
             .state
             .players
@@ -305,6 +328,10 @@ impl GameSession {
         accepted.body = body;
         self.client_to_player.retain(|_, id| *id != player_id);
         self.client_to_player.insert(client_id, player_id);
+        if let Some(peer) = self.take_pending_peer(client_id) {
+            self.fighter_peers.insert(player_id, peer);
+        }
+        self.live_client.insert(player_id, client_id);
         if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id) {
             player.clear_input();
             player.detached = false;
@@ -316,6 +343,31 @@ impl GameSession {
                 .push((Recipient::Client(client_id), message));
         }
         Some(accepted)
+    }
+
+    /// The socket never received the rotated token. Unbind that client and
+    /// park the pawn again on the token it still holds.
+    fn abort_resume(&mut self, client_id: Uuid, accepted: crate::resume::ResumeAccept) {
+        let player_id = accepted.player_id;
+        if self.client_to_player.get(&client_id) == Some(&player_id) {
+            self.client_to_player.remove(&client_id);
+        }
+        if self.live_client.get(&player_id) == Some(&client_id) {
+            self.live_client.remove(&player_id);
+        }
+        if let Some(player) = self
+            .state
+            .players
+            .iter_mut()
+            .find(|player| player.id == player_id)
+        {
+            player.clear_input();
+            player.detached = true;
+        }
+        self.pending_unicasts.retain(
+            |(recipient, _)| !matches!(recipient, Recipient::Client(id) if *id == client_id),
+        );
+        self.resume.abandon(accepted);
     }
 
     /// Apply a net-layer game command (join, leave, or action).
@@ -334,10 +386,14 @@ impl GameSession {
             }
             GameCommand::CancelAutoJoin { client_id } => {
                 self.auto_reservations.remove(&client_id);
+                self.take_pending_peer(client_id);
                 if let Some(player_id) = self.client_to_player.remove(&client_id) {
                     self.resume.forget(player_id);
                     self.remove_pawn(player_id);
                 }
+            }
+            GameCommand::NoteSeat { client_id, peer } => {
+                self.remember_peer(client_id, peer);
             }
             GameCommand::Connected {
                 id,
@@ -346,6 +402,7 @@ impl GameSession {
                 player_id,
                 body,
             } => {
+                let peer = self.take_pending_peer(id);
                 // Every connection needs geometry, including late spectators.
                 self.pending_unicasts
                     .push((Recipient::Client(id), self.state.map_info()));
@@ -364,6 +421,10 @@ impl GameSession {
                         return;
                     }
                     self.client_to_player.insert(id, pid);
+                    if let Some(peer) = peer {
+                        self.fighter_peers.insert(pid, peer);
+                    }
+                    self.live_client.insert(pid, id);
                     let player_count = self
                         .state
                         .players
@@ -384,6 +445,14 @@ impl GameSession {
                         player_count
                     );
                 } else {
+                    let name = self.available_display_name(&name);
+                    self.spectators.insert(
+                        id,
+                        SpectatorSeat {
+                            name: name.clone(),
+                            peer,
+                        },
+                    );
                     tracing::info!("Spectator {} joined", name);
                 }
                 if let Some(message) = self.state.mission_message() {
@@ -392,12 +461,17 @@ impl GameSession {
             }
 
             GameCommand::Disconnected { id } => {
+                self.spectators.remove(&id);
+                self.take_pending_peer(id);
                 if let Some(player_id) = self.client_to_player.remove(&id) {
                     self.remove_pawn(player_id);
                 }
             }
             GameCommand::Detached { id } => {
+                self.spectators.remove(&id);
+                self.take_pending_peer(id);
                 if let Some(player_id) = self.client_to_player.remove(&id) {
+                    self.live_client.remove(&player_id);
                     self.state.drop_flag_from(player_id);
                     if let Some(player) = self.state.players.iter_mut().find(|p| p.id == player_id)
                     {
@@ -412,8 +486,22 @@ impl GameSession {
                 nonce,
                 role,
                 reply,
+            } => match self.resume_pawn(client_id, player_id, nonce, role) {
+                Some(accepted) => {
+                    if let Err(Some(accepted)) = reply.send(Some(accepted)) {
+                        self.abort_resume(client_id, accepted);
+                    }
+                }
+                None => {
+                    self.take_pending_peer(client_id);
+                    let _ = reply.send(None);
+                }
+            },
+            GameCommand::AbortResume {
+                client_id,
+                accepted,
             } => {
-                let _ = reply.send(self.resume_pawn(client_id, player_id, nonce, role));
+                self.abort_resume(client_id, accepted);
             }
 
             GameCommand::Action { player_id, action } => {

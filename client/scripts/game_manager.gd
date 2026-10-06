@@ -1939,6 +1939,10 @@ func _on_event_received(data):
 		var speaker = str(data.get("player", "?"))
 		var line = str(data.get("text", ""))
 		hud.show_speak(speaker, line)
+	elif event_type == "venue_notice":
+		var notice := str(data.get("text", ""))
+		if hud and not notice.is_empty():
+			hud.show_venue_notice(notice)
 	elif event_type == "round_end":
 		ended_podium_shown = true
 		var mvp_name = str(data.get("mvp", data.get("winner", "")))

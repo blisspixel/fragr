@@ -90,6 +90,9 @@ func _run() -> void:
 	hud.show_boss_spawn("Drone", "Compliance drone")
 	hud.show_boss_down("Gone", "Other")
 	hud.show_host_join("Joined midway through combat")
+	game._on_event_received({"event": "venue_notice", "text": "The venue: doors at the bell"})
+	var venue_line: Label = hud.combat_feed.get_child(hud.combat_feed.get_child_count() - 1) as Label
+	_check(venue_line.text == "The venue: doors at the bell", "a venue sentence is shown as the venue wrote it: " + venue_line.text)
 	_check(not hud.round_message.visible, "routine combat events never occupy the centre")
 	_check(not hud.streak_flash.visible and camera.punches == 0, "other people's events do not flash or shake the view")
 	_check(hud.combat_feed.get_child_count() == 3, "all event routes share the same bound")

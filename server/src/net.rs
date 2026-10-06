@@ -22,7 +22,7 @@ pub const AUDIT_TARGET: &str = "fragr_server::audit";
 async fn run_outbound_writer<S>(
     mut sink: S,
     mut rx: WsRx,
-    shutdown: watch::Sender<bool>,
+    shutdown: watch::Sender<StopSignal>,
     send_timeout: Duration,
     ping_every: Duration,
     mut stop: tokio::sync::oneshot::Receiver<()>,
@@ -60,8 +60,26 @@ where
             traffic.sent(bytes);
         }
     }
-    shutdown.send_replace(true);
+    // A venue close already told the reader why. A stalled write must not
+    // replace that with a quiet network drop.
+    shutdown.send_if_modified(|signal| {
+        if *signal == StopSignal::Open {
+            *signal = StopSignal::Quiet;
+            true
+        } else {
+            false
+        }
+    });
     sink
+}
+
+/// How a live socket is asked to stop. Quiet is a network drop. Venue is the
+/// desk, and it removes the pawn even when resume was armed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum StopSignal {
+    Open,
+    Quiet,
+    Venue { banned: bool },
 }
 
 /// One text frame is a hello, an action, or a short spoken line. 64 KiB is
@@ -74,6 +92,12 @@ const MAX_WRITE_BUFFER_BYTES: usize = 512 * 1024;
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const HELLO_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_CONNECTIONS: usize = 64;
+/// In-flight `GET /status` reads. A probe does not take a game slot, and a
+/// slower reader than this is closed so it cannot pin a file descriptor.
+const MAX_STATUS_PROBES: usize = 8;
+/// WebSocket refusals after the game slots are full. Extra attempts are
+/// dropped. A refusal does not keep the pre-hello permit.
+const MAX_REJECTION_HANDSHAKES: usize = 8;
 /// Sixteen agents plus the playtest observer share 127.0.0.1. A household
 /// or a LAN behind one address needs that same headroom. The global cap
 /// still stops one address from holding every slot.
@@ -156,6 +180,10 @@ enum Kick {
     RateLimited,
     Malformed,
     Refused(crate::access::Verdict),
+    /// The venue desk removed this socket. `banned` reuses the address refusal.
+    Venue {
+        banned: bool,
+    },
 }
 
 impl Kick {
@@ -165,6 +193,8 @@ impl Kick {
             Kick::RateLimited => "rate_limited",
             Kick::Malformed => "malformed",
             Kick::Refused(verdict) => verdict.code().unwrap_or("address_banned"),
+            Kick::Venue { banned: true } => "address_banned",
+            Kick::Venue { banned: false } => "venue_kick",
         }
     }
 
@@ -174,6 +204,8 @@ impl Kick {
             Kick::RateLimited => "Too many messages. Connection closed.",
             Kick::Malformed => "Unreadable messages. Connection closed.",
             Kick::Refused(_) => refusal_message(self.code()),
+            Kick::Venue { banned: true } => refusal_message("address_banned"),
+            Kick::Venue { banned: false } => "The venue asked you to step outside.",
         }
     }
 
@@ -184,7 +216,9 @@ impl Kick {
 
     fn audit_event(&self) -> &'static str {
         match self {
-            Kick::Refused(crate::access::Verdict::Banned { .. }) => "ban",
+            Kick::Refused(crate::access::Verdict::Banned { .. }) | Kick::Venue { banned: true } => {
+                "ban"
+            }
             _ => "kick",
         }
     }
@@ -259,6 +293,14 @@ fn websocket_limits() -> WebSocketConfig {
 
 struct Admission {
     global: Arc<Semaphore>,
+    /// Connections that have not taken a game slot yet, including the status
+    /// peek. Capped with the game slots so a pre-hello flood stays bounded.
+    probes: Arc<Semaphore>,
+    /// Slow status body reads. Separate from `probes` so a status hold does
+    /// not block a player handshake.
+    status_slots: Arc<Semaphore>,
+    /// Explanations for connections that did not get a game slot.
+    rejections: Arc<Semaphore>,
     per_ip: std::sync::Arc<std::sync::Mutex<HashMap<IpAddr, usize>>>,
     max_per_ip: usize,
     handshake_timeout: Duration,
@@ -303,8 +345,12 @@ impl Admission {
         handshake_timeout: Duration,
         hello_timeout: Duration,
     ) -> Self {
+        let cap = max_connections.max(1);
         Self {
-            global: Arc::new(Semaphore::new(max_connections.max(1))),
+            global: Arc::new(Semaphore::new(cap)),
+            probes: Arc::new(Semaphore::new(cap)),
+            status_slots: Arc::new(Semaphore::new(MAX_STATUS_PROBES)),
+            rejections: Arc::new(Semaphore::new(MAX_REJECTION_HANDSHAKES)),
             per_ip: std::sync::Arc::new(std::sync::Mutex::new(HashMap::new())),
             max_per_ip: max_per_ip.max(1),
             handshake_timeout,
@@ -392,14 +438,14 @@ pub struct ClientSession {
     pub(crate) gameplay_version: u32,
     /// Broadcasts must follow the initial targeted geometry in this queue.
     pub(crate) initialized: bool,
-    shutdown: watch::Sender<bool>,
+    shutdown: watch::Sender<StopSignal>,
     traffic: Arc<crate::metrics::ClientTraffic>,
 }
 
 impl ClientSession {
     /// A session outside the listener, for tests: its traffic is its own.
     pub fn new(id: Uuid, tx: WsTx, gameplay_version: u32) -> Self {
-        let (shutdown, _) = watch::channel(false);
+        let (shutdown, _) = watch::channel(StopSignal::Open);
         let traffic = crate::metrics::ClientTraffic::new(Role::Spectator, Arc::default());
         Self::with_shutdown(id, tx, gameplay_version, shutdown, traffic)
     }
@@ -408,7 +454,7 @@ impl ClientSession {
         id: Uuid,
         tx: WsTx,
         gameplay_version: u32,
-        shutdown: watch::Sender<bool>,
+        shutdown: watch::Sender<StopSignal>,
         traffic: Arc<crate::metrics::ClientTraffic>,
     ) -> Self {
         Self {
@@ -426,7 +472,19 @@ impl ClientSession {
     }
 
     pub(crate) fn request_close(&self) {
-        self.shutdown.send_replace(true);
+        self.shutdown.send_if_modified(|signal| {
+            if *signal == StopSignal::Open {
+                *signal = StopSignal::Quiet;
+                true
+            } else {
+                false
+            }
+        });
+    }
+
+    /// The venue desk is removing this socket. A resume-armed pawn still leaves.
+    pub(crate) fn venue_close(&self, banned: bool) {
+        self.shutdown.send_replace(StopSignal::Venue { banned });
     }
 
     pub(crate) fn queue_depth(&self) -> usize {
@@ -434,7 +492,7 @@ impl ClientSession {
     }
 
     pub(crate) fn is_closing(&self) -> bool {
-        *self.shutdown.borrow()
+        *self.shutdown.borrow() != StopSignal::Open
     }
 }
 
@@ -565,6 +623,7 @@ pub enum GameCommand {
         id: Uuid,
     },
     /// Bind an existing parked pawn. The session answers on `reply`.
+    /// A dropped reply rolls the claim back inside the session.
     Resume {
         client_id: Uuid,
         player_id: Uuid,
@@ -572,6 +631,32 @@ pub enum GameCommand {
         role: Role,
         reply: tokio::sync::oneshot::Sender<Option<crate::resume::ResumeAccept>>,
     },
+    /// The claim was delivered to this task, then the welcome never reached
+    /// the socket. Restore the parked pawn and the previous token.
+    AbortResume {
+        client_id: Uuid,
+        accepted: crate::resume::ResumeAccept,
+    },
+    /// Connecting address for the venue desk. Sent before the join command
+    /// and never copied onto the public status line.
+    NoteSeat {
+        client_id: Uuid,
+        peer: std::net::SocketAddr,
+    },
+}
+
+/// Test readers of the command channel want the join, not the address note
+/// that travels ahead of it. Production applies both, in order.
+#[cfg(test)]
+pub(crate) async fn skip_seat_notes(
+    commands: &mut mpsc::UnboundedReceiver<GameCommand>,
+) -> Option<GameCommand> {
+    loop {
+        match commands.recv().await {
+            Some(GameCommand::NoteSeat { .. }) => continue,
+            other => return other,
+        }
+    }
 }
 
 impl NetServer {
@@ -694,7 +779,27 @@ impl NetServer {
             admission.hello_timeout,
         );
         replacement.limits = limits;
+        replacement.probes = Arc::clone(&admission.probes);
+        replacement.status_slots = Arc::clone(&admission.status_slots);
+        replacement.rejections = Arc::clone(&admission.rejections);
         self.admission = Arc::new(replacement);
+    }
+
+    /// Shrink in-flight status reads for a test. Call it before `accept_loop`.
+    #[cfg(test)]
+    pub(crate) fn tighten_status_slots(&mut self, slots: usize) {
+        let admission = std::sync::Arc::get_mut(&mut self.admission)
+            .expect("admission is still private to this listener");
+        admission.status_slots = Arc::new(Semaphore::new(slots.max(1)));
+    }
+
+    /// Shrink refusal handshakes for a test. Zero drops a full server's extra
+    /// connections without an explanation. Call it before `accept_loop`.
+    #[cfg(test)]
+    pub(crate) fn tighten_rejection_slots(&mut self, slots: usize) {
+        let admission = std::sync::Arc::get_mut(&mut self.admission)
+            .expect("admission is still private to this listener");
+        admission.rejections = Arc::new(Semaphore::new(slots));
     }
 
     pub fn local_addr(&self) -> std::io::Result<std::net::SocketAddr> {
@@ -756,6 +861,9 @@ impl NetServer {
                     let traffic = Arc::clone(&self.traffic);
 
                     tokio::spawn(async move {
+                        let Ok(probe) = Arc::clone(&admission.probes).try_acquire_owned() else {
+                            return;
+                        };
                         let verdict =
                             access
                                 .as_ref()
@@ -765,22 +873,35 @@ impl NetServer {
                                         .check(addr.ip(), crate::join_ticket::unix_now())
                                 });
                         if let Some(code) = verdict.code() {
+                            drop(probe);
                             audit_refusal(addr, &verdict);
-                            // The explanation holds a slot, so a refused flood stays
-                            // inside the connection caps. Past them, just drop TCP.
-                            if let Ok(_permit) = admission.try_admit(addr.ip()) {
+                            // Same bound as a full server: the explanation does not
+                            // take a game slot. A banned or unlisted flood must not
+                            // sit on the match cap for the handshake timeout.
+                            if let Ok(_rejection) =
+                                Arc::clone(&admission.rejections).try_acquire_owned()
+                            {
                                 reject_before_hello(stream, code, handshake_timeout).await;
                             }
                             return;
                         }
-                        if serve_status_if_requested(&mut stream, &status).await {
+                        let status_slots = Arc::clone(&admission.status_slots);
+                        let Some(probe) =
+                            serve_status_if_requested(&mut stream, &status, status_slots, probe)
+                                .await
+                        else {
                             return;
-                        }
+                        };
+                        drop(probe);
                         let permit = match admission.try_admit(addr.ip()) {
                             Ok(permit) => permit,
                             Err(code) => {
                                 audit_reject(addr, code);
-                                reject_before_hello(stream, code, handshake_timeout).await;
+                                if let Ok(_rejection) =
+                                    Arc::clone(&admission.rejections).try_acquire_owned()
+                                {
+                                    reject_before_hello(stream, code, handshake_timeout).await;
+                                }
                                 return;
                             }
                         };
@@ -822,16 +943,9 @@ impl NetServer {
     }
 }
 
-fn is_status_request(buf: &[u8]) -> bool {
-    const PREFIX: &[u8] = b"GET /status";
-    if !buf.starts_with(PREFIX) {
-        return false;
-    }
-    matches!(buf.get(PREFIX.len()), Some(b' ' | b'?' | b'\r' | b'\n'))
-}
-
 /// `Some(true)` once the bytes are a status GET. `Some(false)` once they are
-/// anything else. `None` while the first line is still too short to tell.
+/// anything else. `None` while the first line is still too short to tell,
+/// including a `GET /status` whose next byte has not arrived yet.
 fn classify_opening(buf: &[u8]) -> Option<bool> {
     if buf.len() < 4 {
         return None;
@@ -839,16 +953,28 @@ fn classify_opening(buf: &[u8]) -> Option<bool> {
     if !buf.starts_with(b"GET ") {
         return Some(false);
     }
-    if buf.len() < b"GET /status".len() {
+    const PREFIX: &[u8] = b"GET /status";
+    if buf.len() < PREFIX.len() {
         return None;
     }
-    Some(is_status_request(buf))
+    if !buf.starts_with(PREFIX) {
+        return Some(false);
+    }
+    match buf.get(PREFIX.len()) {
+        None => None,
+        Some(b' ' | b'?' | b'\r' | b'\n') => Some(true),
+        Some(_) => Some(false),
+    }
 }
 
+/// `None` when this TCP connection was a status probe and has been answered
+/// or closed. `Some` returns the pre-hello permit for a game handshake.
 async fn serve_status_if_requested(
     stream: &mut TcpStream,
     status: &tokio::sync::RwLock<crate::protocol::LiveStatus>,
-) -> bool {
+    status_slots: Arc<Semaphore>,
+    probe: OwnedSemaphorePermit,
+) -> Option<OwnedSemaphorePermit> {
     let mut buf = [0u8; 24];
     let mut seen = 0usize;
     let deadline = tokio::time::Instant::now() + Duration::from_millis(300);
@@ -862,7 +988,7 @@ async fn serve_status_if_requested(
                         status_get = true;
                         break;
                     }
-                    Some(false) => return false,
+                    Some(false) => return Some(probe),
                     None => tokio::time::sleep(Duration::from_millis(10)).await,
                 }
             }
@@ -871,8 +997,15 @@ async fn serve_status_if_requested(
         }
     }
     if !status_get {
-        return false;
+        return Some(probe);
     }
+    let Ok(_status_permit) = status_slots.try_acquire_owned() else {
+        drop(probe);
+        let _ = stream.shutdown().await;
+        return None;
+    };
+    // The status cap, not the pre-hello cap, covers the header read.
+    drop(probe);
     let mut header = Vec::with_capacity(256);
     let mut tmp = [0u8; 256];
     let read_deadline = tokio::time::Instant::now() + Duration::from_secs(1);
@@ -904,7 +1037,7 @@ async fn serve_status_if_requested(
     );
     let _ = stream.write_all(response.as_bytes()).await;
     let _ = stream.shutdown().await;
-    true
+    None
 }
 
 async fn reject_before_hello(stream: TcpStream, code: &str, handshake_timeout: Duration) {
@@ -966,11 +1099,20 @@ struct SessionEnd {
     kick: Option<Kick>,
 }
 
+/// One admitted frame after the idle timer has been refreshed.
+enum InboundFrame {
+    Text(String),
+    /// Binary, or any payload that is not a JSON client message.
+    Junk,
+    /// Ping, pong, or a raw frame. Counted in the inbound budget, not as junk.
+    Control,
+}
+
 /// Read one admitted session until it closes, leaves, goes silent, or is
 /// kicked. Every frame, including a pong, proves the client is still there.
 async fn read_session(
     ws_stream: &mut futures_util::stream::SplitStream<ServerSocket>,
-    shutdown_rx: &mut watch::Receiver<bool>,
+    shutdown_rx: &mut watch::Receiver<StopSignal>,
     game_tx: &mpsc::UnboundedSender<GameCommand>,
     role: Role,
     player_id: Option<Uuid>,
@@ -993,10 +1135,14 @@ async fn read_session(
         let msg = tokio::select! {
             msg = ws_stream.next() => msg,
             changed = shutdown_rx.changed() => {
-                if changed.is_err() || *shutdown_rx.borrow_and_update() {
+                if changed.is_err() {
                     break None;
                 }
-                continue;
+                match *shutdown_rx.borrow_and_update() {
+                    StopSignal::Open => continue,
+                    StopSignal::Quiet => break None,
+                    StopSignal::Venue { banned } => break Some(Kick::Venue { banned }),
+                }
             }
             () = &mut idle => break Some(Kick::Idle),
             changed = async {
@@ -1021,21 +1167,32 @@ async fn read_session(
         let Some(msg) = msg else {
             break None;
         };
-        let text = match msg {
-            Ok(Message::Close(_)) | Err(_) => break None,
+        let inbound_frame = match msg {
+            Err(_) | Ok(Message::Close(_)) => break None,
             Ok(frame) => {
                 idle.as_mut()
                     .reset(tokio::time::Instant::now() + limits.idle_after);
                 match frame {
                     Message::Text(text) => {
                         traffic.received(text.len());
-                        Some(text)
+                        InboundFrame::Text(text)
                     }
                     Message::Binary(bytes) => {
                         traffic.received(bytes.len());
-                        None
+                        InboundFrame::Junk
                     }
-                    _ => continue,
+                    // Control frames used to skip the budget, so a ping flood
+                    // never became rate_limited. Pongs that answer the server
+                    // ping are rare enough to share the same bucket.
+                    Message::Ping(payload) | Message::Pong(payload) => {
+                        traffic.received(payload.len());
+                        InboundFrame::Control
+                    }
+                    Message::Frame(frame) => {
+                        traffic.received(frame.len());
+                        InboundFrame::Control
+                    }
+                    Message::Close(_) => break None,
                 }
             }
         };
@@ -1046,11 +1203,15 @@ async fn read_session(
             }
             continue;
         }
-        let Some(text) = text else {
-            if junk.add(now, limits.junk_drain_per_sec, limits.junk_limit) {
-                break Some(Kick::Malformed);
+        let text = match inbound_frame {
+            InboundFrame::Control => continue,
+            InboundFrame::Junk => {
+                if junk.add(now, limits.junk_drain_per_sec, limits.junk_limit) {
+                    break Some(Kick::Malformed);
+                }
+                continue;
             }
-            continue;
+            InboundFrame::Text(text) => text,
         };
         let message = match serde_json::from_str::<ClientMessage>(&text) {
             Ok(message) => message,
@@ -1127,7 +1288,7 @@ async fn handle_connection(
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let (tx, rx): (WsTx, WsRx) = mpsc::channel(OUTBOUND_QUEUE_CAPACITY);
-    let (shutdown_tx, mut shutdown_rx) = watch::channel(false);
+    let (shutdown_tx, mut shutdown_rx) = watch::channel(StopSignal::Open);
     let client_id = Uuid::new_v4();
 
     let role;
@@ -1216,14 +1377,17 @@ async fn handle_connection(
                             Arc::clone(&traffic),
                         ));
                         if game_tx
-                            .send(GameCommand::Resume {
-                                client_id,
-                                player_id: claimed_id,
-                                nonce,
-                                role: r,
-                                reply: reply_tx,
-                            })
+                            .send(GameCommand::NoteSeat { client_id, peer })
                             .is_err()
+                            || game_tx
+                                .send(GameCommand::Resume {
+                                    client_id,
+                                    player_id: claimed_id,
+                                    nonce,
+                                    role: r,
+                                    reply: reply_tx,
+                                })
+                                .is_err()
                         {
                             clients.lock().await.retain(|client| client.id != client_id);
                             return Ok(());
@@ -1241,19 +1405,29 @@ async fn handle_connection(
                     }
                 }
                 if let Some(accepted) = resumed {
+                    let welcome = ServerMessage::Welcome {
+                        player_id: Some(accepted.player_id),
+                        role: r,
+                        mode_name: crate::protocol::default_mode_name(),
+                        playlist: crate::protocol::default_playlist(),
+                        resume: Some(accepted.token.clone()),
+                        body: Some(accepted.body),
+                    };
+                    if send_welcome(&mut ws_sink, &welcome, &traffic)
+                        .await
+                        .is_err()
+                    {
+                        clients.lock().await.retain(|client| client.id != client_id);
+                        let _ = game_tx.send(GameCommand::AbortResume {
+                            client_id,
+                            accepted,
+                        });
+                        return Ok(());
+                    }
                     player_id = Some(accepted.player_id);
                     _party_seat = accepted.seat;
                     role = Some(r);
                     keep_pawn = true;
-                    let welcome = ServerMessage::Welcome {
-                        player_id,
-                        role: r,
-                        mode_name: crate::protocol::default_mode_name(),
-                        playlist: crate::protocol::default_playlist(),
-                        resume: Some(accepted.token),
-                        body: Some(accepted.body),
-                    };
-                    send_welcome(&mut ws_sink, &welcome, &traffic).await?;
                     tracing::info!(
                         target: AUDIT_TARGET,
                         event = "resume",
@@ -1414,6 +1588,7 @@ async fn handle_connection(
                     let logged_name = audit_name(&name);
                     if let Some(guard) = auto_join.as_mut() {
                         let (reply, receiver) = tokio::sync::oneshot::channel();
+                        game_tx.send(GameCommand::NoteSeat { client_id, peer })?;
                         game_tx.send(GameCommand::CommitAutoJoin {
                             identity: JoinIdentity {
                                 client_id,
@@ -1454,6 +1629,7 @@ async fn handle_connection(
                             }
                         }
                     } else {
+                        game_tx.send(GameCommand::NoteSeat { client_id, peer })?;
                         game_tx.send(GameCommand::Connected {
                             id: client_id,
                             role: r,

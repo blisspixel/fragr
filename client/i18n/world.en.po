@@ -243,6 +243,9 @@ msgstr "This server has banned this address."
 msgid "NET_ADDRESS_NOT_ALLOWED"
 msgstr "This server only allows addresses on its list."
 
+msgid "NET_VENUE_KICK"
+msgstr "The venue asked you to step outside."
+
 msgid "MISSION_M02_GRAYBOX"
 msgstr "Persons Unknown: ward graybox"
 

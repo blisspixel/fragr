@@ -179,6 +179,13 @@ outside the local boundary in the inspected scene.
 
 ## Cut E: the same continuous system in multiplayer
 
+Nick confirmed the fantasy on 2026-10-05, from the local-reprieve lore. The
+team holds until the exception lands. Everyone still standing is spared. One
+survivor wins. A living team is spared together. The dead stay dead, and the
+wipe continues outside the refuge line. That confirms the win and loss rows
+already in the [design](../design/wipe-finale-and-mode.md#multiplayer-default-rule-sheet).
+It does not confirm seat counts, reinforcement charges, or a large roster.
+
 Add a validated Wipe rules profile and round wrapper around the exact shared
 scenario owner. One cooperative four-seat team is the first proposed target.
 Muster/results live outside the catastrophe fiction; once active, it has no

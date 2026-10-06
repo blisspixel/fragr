@@ -1,6 +1,7 @@
 pub mod access;
 pub mod bench;
 pub mod combat;
+pub mod desk;
 mod encounters;
 pub mod inventory;
 pub mod join_ticket;

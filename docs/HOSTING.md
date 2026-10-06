@@ -108,6 +108,15 @@ seconds; a bad reload keeps the previous valid list and logs the error. A
 bad file at startup prevents the host from binding. Lists and per-address
 caps see a reverse proxy's address if the proxy hides real peer addresses.
 
+A dedicated arcade server started with `--console` opens a venue desk on
+that terminal: `who`, `kick <name>`, `ban <name> [reason]`, and
+`say <sentence>`. `who` is for the operator. It is not added to
+`GET /status`. `ban` appends the ban file above and then drops the live
+socket. The ban is still the address. Closing or detaching the terminal
+closes the desk and leaves the match running. Desktop Host and a local
+mission already use stdin as a lease, so they refuse the desk. A container
+with no stdin has nothing for the desk to read.
+
 The host pings idle sessions and closes one that sends nothing, including no
 automatic pong, for 45 seconds. Flooding or repeated unreadable frames can
 also close a connection. Audit logs for joins, refusals, kicks and bans use
@@ -142,6 +151,7 @@ modes still need fresh human matches to establish clarity and fun.
 | `--seed <N>` | Simulation seed, default 1. |
 | `--status-every-s <N>` | Status log interval; 0 disables it. |
 | `--ban-list <PATH>` / `--allow-list <PATH>` | Address lists described above. |
+| `--console` | Local venue desk on a dedicated arcade match. End of input does not stop the process. |
 | `--bench <N>` / `--bench-ticks <N>` | Offline scripted CPU benchmark, not a serving mode. |
 | `--bench-check` / `--bench-assert` | Determinism repeat and threshold gate. |
 | `--bench-trace <PATH>` / `--bench-verify-trace <PATH>` | Record or verify an offline trace. |

@@ -320,6 +320,86 @@ impl AccessPolicy {
     }
 }
 
+/// Add one address to a ban file the host already named. The new line is
+/// written only after the existing file still parses. A covered address,
+/// including an expired one, is left as it is.
+pub fn append_ban(path: &Path, ip: IpAddr, reason: &str) -> Result<(), String> {
+    let ip = ip.to_canonical();
+    let reason = sanitize_ban_reason(reason)?;
+    let existing = read_limited(path)
+        .map_err(|_| "The ban file could not be read. It was left unchanged.".to_string())?;
+    let list = AccessList::parse(&existing)
+        .map_err(|_| "The ban file could not be read. It was left unchanged.".to_string())?;
+    if list.entries.iter().any(|entry| entry.network.contains(ip)) {
+        return Err(format!("{ip} is already on the list."));
+    }
+    let mut text = existing;
+    if !text.is_empty() && !text.ends_with('\n') {
+        text.push('\n');
+    }
+    text.push_str(&format!("{ip} reason={reason}\n"));
+    if text.len() as u64 > MAX_FILE_BYTES {
+        return Err("The ban file is full.".into());
+    }
+    AccessList::parse(&text).map_err(|_| {
+        "The ban file could not take another line. It was left unchanged.".to_string()
+    })?;
+    replace_text(path, &text)
+}
+
+fn sanitize_ban_reason(reason: &str) -> Result<String, String> {
+    let trimmed = reason.trim();
+    let reason = if trimmed.is_empty() {
+        "venue desk"
+    } else {
+        trimmed
+    };
+    if reason.chars().count() > MAX_REASON_CHARS || reason.chars().any(char::is_control) {
+        return Err("That reason does not go in the file.".into());
+    }
+    Ok(reason.to_string())
+}
+
+/// Replace the file only after the new bytes are durable. A failed replace
+/// leaves the previous bytes in place.
+fn replace_text(path: &Path, text: &str) -> Result<(), String> {
+    let parent = path
+        .parent()
+        .filter(|dir| !dir.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    let name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("bans");
+    let temp = parent.join(format!(
+        ".{name}.{}.{}.tmp",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or(0)
+    ));
+    let wrote = (|| -> Result<(), String> {
+        let mut file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temp)
+            .map_err(|error| format!("The ban file could not be written: {error}"))?;
+        std::io::Write::write_all(&mut file, text.as_bytes())
+            .map_err(|error| format!("The ban file could not be written: {error}"))?;
+        file.sync_all()
+            .map_err(|error| format!("The ban file could not be written: {error}"))?;
+        drop(file);
+        std::fs::rename(&temp, path)
+            .map_err(|error| format!("The ban file could not be written: {error}"))?;
+        Ok(())
+    })();
+    if wrote.is_err() {
+        let _ = std::fs::remove_file(&temp);
+    }
+    wrote
+}
+
 fn read_limited(path: &Path) -> Result<String, String> {
     let shown = path.display();
     let size = std::fs::metadata(path)
@@ -717,6 +797,51 @@ mod tests {
         })
         .unwrap_err();
         assert!(error.contains("UTF-8"), "{error}");
+    }
+
+    #[test]
+    fn append_ban_keeps_a_valid_file_and_refuses_a_covered_address() {
+        let path = scratch("bans.txt");
+        std::fs::write(
+            &path,
+            "# tonight\n203.0.113.0/24 expires=2000-01-01 reason=old\n",
+        )
+        .unwrap();
+        let covered = append_ban(&path, ip("203.0.113.7"), "camping").unwrap_err();
+        assert!(covered.contains("already on the list"), "{covered}");
+        let unchanged = std::fs::read_to_string(&path).unwrap();
+        assert!(unchanged.contains("203.0.113.0/24"), "{unchanged}");
+        assert!(!unchanged.contains("203.0.113.7"), "{unchanged}");
+
+        let open = scratch("open.txt");
+        std::fs::write(&open, "# tonight").unwrap();
+        append_ban(&open, ip("203.0.113.7"), "camping").unwrap();
+        let written = std::fs::read_to_string(&open).unwrap();
+        assert_eq!(written, "# tonight\n203.0.113.7 reason=camping\n");
+        AccessList::parse(&written).unwrap();
+        let mapped = IpAddr::V6(std::net::Ipv4Addr::new(203, 0, 113, 7).to_ipv6_mapped());
+        let again = append_ban(&open, mapped, "again").unwrap_err();
+        assert!(again.contains("already on the list"), "{again}");
+        assert_eq!(std::fs::read_to_string(&open).unwrap(), written);
+
+        append_ban(&open, ip("198.51.100.9"), "   ").unwrap();
+        let second = std::fs::read_to_string(&open).unwrap();
+        assert!(
+            second.contains("198.51.100.9 reason=venue desk\n"),
+            "{second}"
+        );
+        AccessList::parse(&second).unwrap();
+
+        let corrupt = scratch("corrupt.txt");
+        std::fs::write(&corrupt, "not-an-address\n").unwrap();
+        let error = append_ban(&corrupt, ip("203.0.113.7"), "camping").unwrap_err();
+        assert!(error.contains("left unchanged"), "{error}");
+        assert_eq!(
+            std::fs::read_to_string(&corrupt).unwrap(),
+            "not-an-address\n"
+        );
+        assert!(append_ban(&open, ip("203.0.113.8"), "a\u{7}b").is_err());
+        assert_eq!(std::fs::read_to_string(&open).unwrap(), second);
     }
 
     #[tokio::test]

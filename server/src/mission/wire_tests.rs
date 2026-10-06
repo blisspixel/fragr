@@ -207,10 +207,13 @@ async fn broadcast_cannot_overtake_join_geometry_for_any_role() {
             serde_json::from_str::<ServerMessage>(welcome.to_text().unwrap()).unwrap(),
             ServerMessage::Welcome { .. }
         ));
-        let connected = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
-            .await
-            .unwrap()
-            .unwrap();
+        let connected = tokio::time::timeout(
+            Duration::from_secs(2),
+            crate::net::skip_seat_notes(&mut commands_rx),
+        )
+        .await
+        .unwrap()
+        .unwrap();
         assert!(matches!(
             connected,
             crate::net::GameCommand::Connected { .. }
@@ -469,10 +472,13 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
         Role::Spectator,
     ] {
         let socket = connect(&url, role).await;
-        let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
-            .await
-            .unwrap()
-            .unwrap();
+        let command = tokio::time::timeout(
+            Duration::from_secs(2),
+            crate::net::skip_seat_notes(&mut commands_rx),
+        )
+        .await
+        .unwrap()
+        .unwrap();
         assert!(matches!(command, GameCommand::Connected { .. }));
         session.apply_command(command);
         sockets.push(socket);
@@ -510,10 +516,13 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
     let wire = serde_json::to_string(&ClientMessage::MissionReady(acknowledgement)).unwrap();
     for (index, socket) in sockets.iter_mut().take(3).enumerate() {
         socket.send(Message::Text(wire.clone())).await.unwrap();
-        let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
-            .await
-            .unwrap()
-            .unwrap();
+        let command = tokio::time::timeout(
+            Duration::from_secs(2),
+            crate::net::skip_seat_notes(&mut commands_rx),
+        )
+        .await
+        .unwrap()
+        .unwrap();
         assert!(matches!(command, GameCommand::MissionReady { .. }));
         session.apply_command(command);
         session.tick_messages(0.05);
@@ -535,10 +544,13 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
         .unwrap();
     // The next queued command is the participant's stale attempt, never the
     // spectator's otherwise valid message. Both must leave combat paused.
-    let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let command = tokio::time::timeout(
+        Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut commands_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
     assert!(matches!(command, GameCommand::MissionReady { ready, .. } if ready == invalid));
     session.apply_command(command);
     assert_eq!(
@@ -546,10 +558,13 @@ async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
         MissionPhase::Briefing
     );
     sockets[3].send(Message::Text(wire)).await.unwrap();
-    let command = tokio::time::timeout(Duration::from_secs(2), commands_rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let command = tokio::time::timeout(
+        Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut commands_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
     assert!(matches!(command, GameCommand::MissionReady { ready, .. } if ready == acknowledgement));
     session.apply_command(command);
     let state = session.state.mission_state().unwrap();

@@ -446,7 +446,7 @@ async fn spectator_task(
 }
 
 /// The server under test and a way to ask whether it is still running.
-enum Running {
+pub(crate) enum Running {
     Child(Box<tokio::process::Child>),
     InProcess(
         tokio::task::JoinHandle<Result<(), String>>,
@@ -455,14 +455,14 @@ enum Running {
 }
 
 impl Running {
-    fn pid(&self) -> Option<u32> {
+    pub(crate) fn pid(&self) -> Option<u32> {
         match self {
             Running::Child(child) => child.id(),
             Running::InProcess(..) => Some(std::process::id()),
         }
     }
 
-    fn alive(&mut self) -> bool {
+    pub(crate) fn alive(&mut self) -> bool {
         match self {
             Running::Child(child) => matches!(child.try_wait(), Ok(None)),
             Running::InProcess(handle, _) => !handle.is_finished(),
@@ -470,7 +470,7 @@ impl Running {
     }
 
     /// Stop by the handle this harness owns. Returns the exit description.
-    async fn stop(self) -> String {
+    pub(crate) async fn stop(self) -> String {
         match self {
             Running::Child(mut child) => {
                 if let Ok(Some(status)) = child.try_wait() {
@@ -501,11 +501,20 @@ fn free_loopback_port() -> Result<u16, Error> {
     Ok(listener.local_addr()?.port())
 }
 
-async fn start_server(
-    config: &SoakConfig,
+/// What [`start_server`] needs. The soak and the traffic generator share it.
+pub(crate) struct ServerSpec {
+    pub bots: usize,
+    pub map: MapKind,
+    pub map_rotate: bool,
+    pub seed: u64,
+    pub launch: Launch,
+}
+
+pub(crate) async fn start_server(
+    spec: &ServerSpec,
     server_log: &Path,
 ) -> Result<(Running, std::net::SocketAddr), Error> {
-    match &config.launch {
+    match &spec.launch {
         Launch::Binary(binary) => {
             let port = free_loopback_port()?;
             let address: std::net::SocketAddr = ([127, 0, 0, 1], port).into();
@@ -515,18 +524,18 @@ async fn start_server(
                 .arg("--bind")
                 .arg(address.to_string())
                 .arg("--bots")
-                .arg(config.bots.to_string())
+                .arg(spec.bots.to_string())
                 .arg("--map")
-                .arg(config.map.id().to_string())
+                .arg(spec.map.id().to_string())
                 .arg("--seed")
-                .arg(config.seed.to_string())
+                .arg(spec.seed.to_string())
                 .arg("--status-every-s")
                 .arg("60")
                 .stdin(std::process::Stdio::null())
                 .stdout(log.try_clone()?)
                 .stderr(log)
                 .kill_on_drop(true);
-            if config.map_rotate {
+            if spec.map_rotate {
                 command.arg("--map-rotate");
             }
             let child = command.spawn().map_err(|error| {
@@ -556,10 +565,10 @@ async fn start_server(
             let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
             let options = fragr_server::run::ServerOptions {
                 bind: "127.0.0.1:0".into(),
-                bots: config.bots,
-                map: config.map,
-                map_rotate: config.map_rotate,
-                seed: config.seed,
+                bots: spec.bots,
+                map: spec.map,
+                map_rotate: spec.map_rotate,
+                seed: spec.seed,
                 status_every_s: 0,
                 ..fragr_server::run::ServerOptions::default()
             };
@@ -636,7 +645,17 @@ pub async fn run_soak(config: SoakConfig) -> Result<Verdict, Error> {
     }
     let server_log = config.log.with_extension("server.log");
     let mut log = std::fs::File::create(&config.log)?;
-    let (mut server, address) = start_server(&config, &server_log).await?;
+    let (mut server, address) = start_server(
+        &ServerSpec {
+            bots: config.bots,
+            map: config.map,
+            map_rotate: config.map_rotate,
+            seed: config.seed,
+            launch: config.launch.clone(),
+        },
+        &server_log,
+    )
+    .await?;
     let started = Instant::now();
     write_line(
         &mut log,
