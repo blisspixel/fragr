@@ -4,6 +4,26 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.78.0 (2026-10-05)
+
+- A dedicated arcade server can open a local venue desk with `--console`.
+  `who`, `kick`, `ban`, and `say` run from that machine. Closing the desk
+  leaves the match running. Public status stays anonymous. Desktop Host and
+  a local mission refuse the desk because they already use that input.
+- The client shows a venue sentence in the corner feed. A venue kick is a
+  hard stop and does not park the pawn for a reconnect.
+- `fragr-playtest --traffic` fills a local server with synthetic fighters
+  and read-only spectators. `--assert` checks that the roster stayed up.
+  It does not claim the 50 ms tick budget or a 64-player result. Linux and
+  Windows can spread a roster past 32 across `127.0.0.0/8`. macOS needs
+  loopback aliases before that.
+- A failed resume stays on its old token. Control frames count in the
+  inbound budget. Status reads and refusal handshakes have their own caps
+  and do not take a game slot. Sabotage muster holds mine placement.
+- The measurement table is still empty. Human enjoyment and a two-machine
+  session remain open. Wipe, the next mode, and cloud apply are not in
+  this release.
+
 ## v0.77.0 (2026-10-05)
 
 - Host Team Deathmatch on six arenas or 5v5 Sabotage on Sector 9 directly from

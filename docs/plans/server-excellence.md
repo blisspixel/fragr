@@ -1,6 +1,8 @@
 # Exceptional server, multiplayer, and hosting
 
-**Status:** planned, 2026-10-05. Nick set this goal. It sequences inside the
+**Status:** planned, 2026-10-05. The local venue desk and the synthetic
+traffic generator ship in v0.78.0. Measurement, the rest of this plan, and
+any cloud apply stay planned. Nick set this goal. It sequences inside the
 [full build order](../ROADMAP.md#full-build-order). It does not open a second
 queue, and it does not replace the current
 [multiplayer trial](multiplayer-first-playable.md).
