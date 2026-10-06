@@ -5,7 +5,7 @@ use fragr_playtest::{
     check_contested_ctf, check_contested_sabotage, check_ctf_route_smoke,
     check_sabotage_route_smoke, check_thresholds, run, Config, Policy,
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
@@ -127,6 +127,31 @@ struct Cli {
     /// NDJSON sample log. The server's own log is written beside it.
     #[arg(long, default_value = ".agents/soak/soak.ndjson")]
     soak_log: PathBuf,
+    /// Fill a local server with synthetic fighters and read-only spectators.
+    /// Fighters send movement and fire. They do not pathfind.
+    #[arg(long, conflicts_with_all = [
+        "soak", "fanout_matrix", "ctf_route_smoke", "ctf_contested",
+        "sabotage_route_smoke", "sabotage_contested", "sabotage_survey"
+    ])]
+    traffic: bool,
+    /// Synthetic humans. Together with spectators, at most 64.
+    #[arg(long, default_value_t = 8)]
+    traffic_fighters: usize,
+    /// Spectators that only read the live stream.
+    #[arg(long, default_value_t = 4)]
+    traffic_spectators: usize,
+    /// Seconds to hold the roster after every client has a snapshot.
+    #[arg(long, default_value_t = 10, value_parser = clap::value_parser!(u64).range(1..=3600))]
+    traffic_seconds: u64,
+    /// Actions per fighter per second. The server allows 256 inbound messages.
+    #[arg(long, default_value_t = 60, value_parser = clap::value_parser!(u32).range(1..=120))]
+    traffic_hz: u32,
+    /// Rule bots beside the synthetic fighters. At most 32.
+    #[arg(long, default_value_t = 4)]
+    traffic_bots: usize,
+    /// The `fragr-server` binary to stress. Defaults to the one beside this tool.
+    #[arg(long)]
+    traffic_server: Option<PathBuf>,
 }
 
 fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
@@ -149,6 +174,57 @@ fn soak_config(cli: &Cli) -> Result<fragr_playtest::soak::SoakConfig, String> {
         launch: fragr_playtest::soak::Launch::Binary(binary),
         log: cli.soak_log.clone(),
     })
+}
+
+fn traffic_config(cli: &Cli) -> Result<fragr_playtest::traffic::TrafficConfig, String> {
+    let map = fragr_server::sim::MapKind::from_cli(&cli.map)
+        .ok_or_else(|| format!("invalid --map {:?}", cli.map))?;
+    let binary = cli
+        .traffic_server
+        .clone()
+        .or_else(fragr_playtest::soak::default_server_binary)
+        .ok_or("no fragr-server beside this tool; build it or pass --traffic-server")?;
+    let report = if cli.report.as_path() == Path::new(".agents/playtest/report.json") {
+        PathBuf::from(".agents/traffic/report.json")
+    } else {
+        cli.report.clone()
+    };
+    Ok(fragr_playtest::traffic::TrafficConfig {
+        seconds: cli.traffic_seconds,
+        fighters: cli.traffic_fighters,
+        spectators: cli.traffic_spectators,
+        bots: cli.traffic_bots,
+        hz: cli.traffic_hz,
+        map,
+        seed: cli.seed,
+        launch: fragr_playtest::soak::Launch::Binary(binary),
+        report,
+    })
+}
+
+fn print_traffic(report: &fragr_playtest::traffic::TrafficReport) {
+    println!(
+        "traffic: {} fighters, {} spectators, {} bots, {} Hz for {} s, {} actions, {} fighter snapshots, {} spectator snapshots, {:.0} KiB in, ticks {} to {}, p99 {} ms, health {}",
+        report.fighters,
+        report.spectators,
+        report.bots,
+        report.hz,
+        report.seconds,
+        report.actions_sent,
+        report.fighter_snapshots,
+        report.spectator_snapshots,
+        report.text_bytes as f64 / 1024.0,
+        report.tick_start,
+        report.tick_end,
+        report
+            .tick_p99_ms
+            .map(|ms| format!("{ms:.2}"))
+            .unwrap_or_else(|| "unavailable".into()),
+        report.health.as_deref().unwrap_or("unavailable"),
+    );
+    for problem in &report.problems {
+        println!("traffic problem: {problem}");
+    }
 }
 
 fn print_soak(verdict: &fragr_playtest::soak::Verdict, log: &std::path::Path) {
@@ -359,6 +435,29 @@ async fn main() {
             println!("threshold: {problem}");
         }
         if cli.assert && !problems.is_empty() {
+            std::process::exit(1);
+        }
+        return;
+    }
+    if cli.traffic {
+        let config = match traffic_config(&cli) {
+            Ok(config) => config,
+            Err(error) => {
+                eprintln!("error: {error}");
+                std::process::exit(2);
+            }
+        };
+        let report_path = config.report.clone();
+        let report = match fragr_playtest::traffic::run(config).await {
+            Ok(report) => report,
+            Err(error) => {
+                eprintln!("error: {error}");
+                std::process::exit(2);
+            }
+        };
+        print_traffic(&report);
+        println!("report: {}", report_path.display());
+        if cli.assert && !report.passed {
             std::process::exit(1);
         }
         return;
@@ -754,6 +853,7 @@ mod tests {
         assert_eq!(defaults.soak_sample_seconds, 60);
         assert_eq!(defaults.soak_log, PathBuf::from(".agents/soak/soak.ndjson"));
         assert!(Cli::try_parse_from(["fragr-playtest", "--soak", "--fanout-matrix"]).is_err());
+        assert!(Cli::try_parse_from(["fragr-playtest", "--traffic", "--soak"]).is_err());
         let bad = Cli::try_parse_from(["fragr-playtest", "--soak", "--map", "moon"]).unwrap();
         assert!(soak_config(&bad).is_err());
         print_soak(
@@ -766,5 +866,56 @@ mod tests {
             ),
             std::path::Path::new("x.ndjson"),
         );
+    }
+
+    #[test]
+    fn parses_traffic_arguments() {
+        let cli = Cli::try_parse_from([
+            "fragr-playtest",
+            "--traffic",
+            "--traffic-fighters",
+            "12",
+            "--traffic-spectators",
+            "20",
+            "--traffic-seconds",
+            "30",
+            "--traffic-hz",
+            "30",
+            "--traffic-bots",
+            "0",
+            "--traffic-server",
+            "server-under-test",
+            "--map",
+            "4",
+            "--seed",
+            "9",
+            "--assert",
+        ])
+        .unwrap();
+        let config = traffic_config(&cli).unwrap();
+        assert_eq!(config.fighters, 12);
+        assert_eq!(config.spectators, 20);
+        assert_eq!(config.seconds, 30);
+        assert_eq!(config.hz, 30);
+        assert_eq!(config.bots, 0);
+        assert_eq!(config.seed, 9);
+        assert_eq!(config.map, fragr_server::sim::MapKind::Sector9);
+        assert_eq!(config.report, PathBuf::from(".agents/traffic/report.json"));
+        assert!(cli.assert);
+        let custom = Cli::try_parse_from([
+            "fragr-playtest",
+            "--traffic",
+            "--report",
+            ".agents/traffic/custom.json",
+            "--traffic-server",
+            "server-under-test",
+        ])
+        .unwrap();
+        assert_eq!(
+            traffic_config(&custom).unwrap().report,
+            PathBuf::from(".agents/traffic/custom.json")
+        );
+        let bad = Cli::try_parse_from(["fragr-playtest", "--traffic", "--map", "moon"]).unwrap();
+        assert!(traffic_config(&bad).is_err());
     }
 }

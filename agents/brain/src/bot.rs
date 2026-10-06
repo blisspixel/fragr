@@ -1602,6 +1602,7 @@ mod tests {
             status_every_s: 0,
             join_secret: None,
             access: Default::default(),
+            console: false,
         };
         tokio::spawn(async move {
             let _ = run_server(

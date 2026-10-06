@@ -7,8 +7,8 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 ## The shape of the plan
 
 1. **Prove it locally.** Solo play against bots, agent play through the adapter, and small multiplayer on one machine or a LAN. Zero spend. Everything here is testable in CI or a recorded smoke.
-2. **Expose it.** A hardened server you can run on a home box or a small VM with the port open, where strangers and their agents join and it does not fall over.
-3. **Make it cloud native.** GCP Terraform that applies cleanly, scales along a ladder, and stays under the spend cap. Not before the exposed server is proven.
+2. **Expose it.** A hardened server a person can run on a spare machine at home, or on a small VM with the port open, where strangers and their agents join and it does not fall over. Home is a complete host, not a lesser path.
+3. **Make it deployable.** The same server, plan-only, as one popular small-VM virtual network plus GCP, AWS, and Azure. Apply only after the exposed server is proven and the spend is approved. The GCP container draft is the only cloud root that exists. The [server excellence plan](plans/server-excellence.md) owns the other roots.
 4. **Deepen it.** More maps, modes, vehicles, progression, and the let's-play tooling that makes watching as good as playing.
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
@@ -339,7 +339,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 ## Full build order (updated 2026-10-05)
 
-**Active goal:** build the agreed game through a proven 1.0, starting with a complete multiplayer and server trial that Nick can host, play and refine. Team deathmatch and optional 5v5 Sabotage come before the remaining campaign. Keep the six current arenas and ten campaign prototypes available; retain unfinished mission and art checkpoints. After the multiplayer slice meets its gates, continue the campaign, feel, Wipe and wider server work in the order below. Cloud apply and matchmaking still require their own approval and proof. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, Wipe operations and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission. Boltgun remains the visual bar for a played sequence. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
+**Active goal:** build the agreed game through a proven 1.0, starting with a complete multiplayer and server trial that Nick can host, play and refine. The server and multiplayer goal is an exceptional authoritative match, recorded in [server excellence](plans/server-excellence.md): the current modes played well, then measured growth toward a 64-player battle only when the tick and the bytes allow it. A spare home machine is a first-class host. Plan-only IaC covers one popular small-VM virtual network plus GCP, AWS, and Azure. None of those templates is applied without its own spend approval. Team deathmatch and optional 5v5 Sabotage come before the remaining campaign. Keep the six current arenas and ten campaign prototypes available; retain unfinished mission and art checkpoints. After the multiplayer slice meets its gates, continue the campaign, feel, Wipe and wider server work in the order below. Cloud apply and matchmaking still require their own approval and proof. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, Wipe operations and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission. Boltgun remains the visual bar for a played sequence. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
 
 **Next, as of 2026-10-05.** The order is set by what most raises fun and
 quality for the work. Nick authorized parallel game development alongside
@@ -478,9 +478,30 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    - Close blocking feedback on these two modes and their built maps before
      expanding the campaign. Additional maps/modes remain below; no cloud
      account, paid inference or paid asset service is required for this slice.
+   - The [server excellence plan](plans/server-excellence.md) is the longer
+     aim for this rung and for items 7 and 8. Its first implementation pass
+     is a measurement soak of the server that already exists, with no rule
+     change. Bug and security review rounds repeat beside those passes. The
+     2026-10-05 rounds fixed a resume that could orphan a pawn, counted
+     control frames in the inbound budget, capped unadmitted connections,
+     status reads, and refusal handshakes, stopped a ban or allow refusal
+     from occupying a game slot, and held mine placement during Sabotage
+     muster. A dedicated `--console` venue desk can list the room, ask one
+     person to step outside, append that address to the ban file, and put
+     one venue sentence on the air. Closing the desk leaves the match
+     running. Remote administration, a private-night passphrase, and
+     choosing the next map from the desk are not built. Public status stays
+     anonymous. `fragr-playtest --traffic` can fill a local server with
+     synthetic fighters and spectators. Polish stays a 20 Hz match with
+     separate command, snapshot, and byte clamps, mode-owned clocks, and
+     a public audience on a delayed relay rather than on fighter slots.
+     The measurement table is still empty. Bot senses, readable jobs, hitscan
+     rewind, and snapshot cost follow the measurement table. Home hosting
+     stays the default door while those passes land.
 
    *Why:* Nick needs a complete match he can host, test and improve now. More
-   campaign missions must not delay that feedback loop.
+   campaign missions must not delay that feedback loop. The same server has
+   to become excellent, and a spare machine has to remain a full way to run it.
 2. **Finish bounded work already started.**
    - The restored level 7 and its strict M07-to-M08 carry are integrated through
      [PR #347](https://github.com/blisspixel/fragr/pull/347). Its full 29-state
@@ -620,9 +641,15 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    - Free self hosting and [community contributions](../CONTRIBUTING.md),
      with [non-invasive fair play](plans/fair-play.md), temporary host bans
      and planned optional bans for repeated confirmed abuse. Skill or agent
-     control alone never warrants punishment.
+     control alone never warrants punishment. A spare machine stays a
+     first-class host. The same server later has plan-only templates for one
+     popular small-VM virtual network and for GCP, AWS, and Azure, in
+     [server excellence](plans/server-excellence.md). The GCP draft is the
+     only cloud root written. No template is applied here.
 8. **Network depth.** Bounded lag compensation and a recorded two-machine session
-   before any UDP decision ([TRANSPORT.md](TRANSPORT.md)).
+   before any UDP decision ([TRANSPORT.md](TRANSPORT.md)). Snapshot cost and
+   the measurement ladder in [server excellence](plans/server-excellence.md)
+   belong to this rung. A 64-player claim waits on those numbers.
 9. **Complete the campaign.** Refine the ten built prototypes and build levels
    11 to 20 one mission at a time,
    following [the mission treatment](CAMPAIGN-MISSIONS.md) and its
@@ -631,7 +658,10 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
    through earlier levels too. Verify the whole saved run, episode refills,
    retries and retained outcomes. Each mission keeps its own acceptance gate.
    [Wipe survival](plans/wipe-survival.md) records the accepted larger M20
-   climax and shared multiplayer direction. M18 interrupts ongoing Union
+   climax and shared multiplayer direction. On 2026-10-05 Nick set the mode's
+   rule from the lore: defend the refuge until the local exception, and
+   everyone still standing is spared. One survivor is enough. The dead are
+   not restored. Seat counts stay proposed, and the mode is unbuilt. M18 interrupts ongoing Union
    holdout fighting with abrupt takeover; M19 carries escape. Continuous
    pressure, locally isolated equipment and a local reprieve preserve the
    ending. Detailed counts and mechanics are proposed; the shared multiplayer
@@ -815,7 +845,7 @@ Exit bar: a public server runs for a week without intervention, and the hosting 
 
 ## Phase 3: Cloud native on GCP (gated by spend)
 
-Status: **planned**. Nothing applies until spend is approved in writing. Hard cap 50 dollars total.
+Status: **planned**. Nothing applies until spend is approved in writing. Hard cap 50 dollars total. This phase is the GCP draft. AWS, Azure, and one popular small-VM network are the same kind of plan-only door, sequenced in [server excellence](plans/server-excellence.md). They are not written, and this phase does not apply them. A spare home machine stays a complete host without any of these templates.
 
 1. **Container and service unit.** A reproducible server image and a systemd unit for the VM path. Evidence: image boots locally and passes the smoke.
 2. **Terraform validated in CI.** `terraform fmt` and `validate` run without credentials on every PR. `plan` runs only with an explicit workflow input. Evidence: the CI job.

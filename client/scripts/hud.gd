@@ -1044,6 +1044,9 @@ func show_speak(player: String, line: String) -> void:
 	if not line.is_empty():
 		combat_feed.push(player + ": " + line)
 
+func show_venue_notice(line: String) -> void:
+	combat_feed.push(line)
+
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
 	host_spoke.emit(4.0)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).

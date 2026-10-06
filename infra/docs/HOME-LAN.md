@@ -125,6 +125,14 @@ override. Do not mount an entire secret directory or include the files in the
 image. Invalid lists refuse startup; bad reloads keep the last valid list.
 Addresses and CIDR ranges are checked before a session takes a seat.
 
+A dedicated server started with `--console` reads a local venue desk from
+that terminal: `who`, `kick <name>`, `ban <name> [reason]`, and
+`say <sentence>`. `ban` appends the `--ban-list` file and then drops the
+live socket. Detaching the terminal closes the desk and leaves the process
+running. Do not expect the desk inside a container that has no stdin.
+`GET /status` still omits names and addresses. Desktop Host and a local
+mission refuse `--console`, because those processes already lease stdin.
+
 `docker compose logs server` shows joins, rejections and health diagnostics.
 Keep SSH closed to the public internet. The [hosting plan](../../docs/plans/dedicated-server-udp-and-hosting.md)
 records the later TLS, measured transport and cloud gates.

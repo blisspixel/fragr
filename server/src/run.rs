@@ -88,6 +88,8 @@ pub struct ServerOptions {
     pub access: crate::access::AccessConfig,
     /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
     pub solo_broadcast: bool,
+    /// Opt-in local venue desk. Closing its input does not stop the match.
+    pub console: bool,
 }
 
 impl Default for ServerOptions {
@@ -108,6 +110,7 @@ impl Default for ServerOptions {
             status_every_s: 60,
             join_secret: None,
             access: crate::access::AccessConfig::default(),
+            console: false,
         }
     }
 }
@@ -488,6 +491,27 @@ async fn run_server_impl(
 
     tracing::info!("Game loop starting (20 Hz tick)");
 
+    let mut desk_rx = None;
+    let desk_task = if options.console && options.authored.is_none() && !options.campaign_run {
+        match spawn_venue_desk(options.access.ban_list.clone()) {
+            Ok((calls, task)) => {
+                desk_rx = Some(calls);
+                Some(AbortOnDrop(task))
+            }
+            Err(error) => {
+                tracing::warn!("Venue desk did not open: {error}. The match continues.");
+                None
+            }
+        }
+    } else {
+        if options.console {
+            tracing::warn!(
+                "Venue desk is only for a dedicated arcade match. The match continues without it."
+            );
+        }
+        None
+    };
+
     tokio::pin!(shutdown);
 
     loop {
@@ -557,6 +581,18 @@ async fn run_server_impl(
                 }
             }
 
+            Some(call) = async { desk_rx.as_mut().expect("guarded").recv().await }, if desk_rx.is_some() => {
+                let outcome = session.desk(call.verb);
+                if let crate::desk::DeskOutcome::Close { client_id, banned, .. } = &outcome {
+                    let clients_lock = clients.lock().await;
+                    if let Some(client) = clients_lock.iter().find(|client| client.id == *client_id) {
+                        client.venue_close(*banned);
+                    }
+                }
+                let _ = call.reply.send(outcome);
+                persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
+            }
+
             Some(cmd) = game_rx.recv() => {
                 if let crate::net::GameCommand::CancelAutoJoin { client_id } = &cmd {
                     clients.lock().await.retain(|client| client.id != *client_id);
@@ -577,6 +613,7 @@ async fn run_server_impl(
             }
         }
     }
+    drop(desk_task);
     drop(access_reload);
     // The listener belongs to this runner. Normal shutdown observes its
     // retirement; early returns still schedule abort through the owning guard.
@@ -584,6 +621,44 @@ async fn run_server_impl(
     let _ = (&mut accept_task.0).await;
 
     Ok(())
+}
+
+fn spawn_venue_desk(
+    ban_list: Option<PathBuf>,
+) -> std::io::Result<(
+    mpsc::UnboundedReceiver<crate::desk::DeskCall>,
+    tokio::task::JoinHandle<()>,
+)> {
+    let (line_tx, line_rx) = mpsc::unbounded_channel();
+    let (call_tx, call_rx) = mpsc::unbounded_channel();
+    // A blocked read must not sit on the async runtime. Dropping this handle
+    // detaches the thread; process exit does not wait for it.
+    std::thread::Builder::new()
+        .name("venue-desk".into())
+        .spawn(move || {
+            let stdin = std::io::stdin();
+            let mut line = String::new();
+            loop {
+                line.clear();
+                match stdin.read_line(&mut line) {
+                    Ok(0) | Err(_) => break,
+                    Ok(_) => {
+                        if line_tx.send(line.clone()).is_err() {
+                            break;
+                        }
+                    }
+                }
+            }
+        })?;
+    let task = tokio::spawn(async move {
+        println!(
+            "Venue desk. who, kick <name>, ban <name> [reason], say <sentence>. Closing this input leaves the match running."
+        );
+        let mut out = std::io::stdout();
+        crate::desk::serve(line_rx, call_tx, ban_list, &mut out).await;
+        println!("Venue desk closed. The match keeps running.");
+    });
+    Ok((call_rx, task))
 }
 
 /// Ends an owned background task with the loop, including early error returns.

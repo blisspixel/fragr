@@ -1510,6 +1510,11 @@ pub enum GameEvent {
         player_id: Uuid,
         text: String,
     },
+    /// One ordinary sentence from the person running the venue. Not a player
+    /// callout and not an on-air Host line.
+    VenueNotice {
+        text: String,
+    },
     /// Solo Broadcast episode cold open / title card.
     EpisodeStart {
         id: String,
@@ -1736,6 +1741,21 @@ mod protocol_tests {
             }
             other => panic!("expected Speak, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn venue_notice_is_one_sentence_on_the_wire() {
+        let event = GameEvent::VenueNotice {
+            text: "The venue: doors at the bell".into(),
+        };
+        let value = serde_json::to_value(&event).unwrap();
+        assert_eq!(value["event"], "venue_notice");
+        assert_eq!(value["text"], "The venue: doors at the bell");
+        let back: GameEvent = serde_json::from_value(value).unwrap();
+        assert!(matches!(
+            back,
+            GameEvent::VenueNotice { text } if text == "The venue: doors at the bell"
+        ));
     }
 
     #[test]

@@ -2,16 +2,17 @@
 
 The canonical list of modes. The roadmap sequences them, the plans build them, this says what each one is.
 
-**Implementation status, 2026-10-04:** free-for-all Scrap, team deathmatch,
+**Implementation status, 2026-10-05:** free-for-all Scrap, team deathmatch,
 six host mutators and Episode 0 exist; a host picks the mode and mutators at
 launch ([the multiplayer modes plan](plans/multiplayer-modes.md)). Capture the
 flag plays on Arena Duel, Directive 17 and Sector 9
 ([plan](plans/capture-the-flag.md)); a human match remains open. Sabotage plays
 on Sector 9 ([plan](plans/sabotage-mode.md)); a human match remains open.
-Its optional [5v5 profile](plans/sabotage-five-seats.md) is implemented and
-tested locally, with ten shared fighter seats and finite Pistol fresh starts;
-[PR #351](https://github.com/blisspixel/fragr/pull/351) records complete
-integration and package verdicts. Human match acceptance remains open.
+Its optional [5v5 profile](plans/sabotage-five-seats.md) shipped in v0.77.0,
+with ten shared fighter seats and finite Pistol fresh starts. Human match
+acceptance remains open. A dedicated arcade server can open a local venue
+desk with `--console`. `fragr-playtest --traffic` can fill a local server
+with synthetic fighters and spectators. Neither one is a new mode.
 Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style
@@ -230,12 +231,23 @@ zombies, invasion countdown, announced arena waves or shopping breaks. Independe
 free agents remain themselves, and the planetary catastrophe continues outside
 the exception. Surviving locally never defeats the whole intelligence.
 
-The multiplayer default is proposed as a finite cooperative scenario with
-watch/join/leave, finite team reinforcements and no revival. Numbers and final
-admission rules need played proof. Campaign limited continues and conditional
-epilogue remain owned by its contract. Locally isolated hardwired defenses are
-tools, never enslaved people or safe merely because their paint changed.
-[Design](design/wipe-finale-and-mode.md), [bounded plan](plans/wipe-survival.md).
+Nick confirmed the multiplayer fantasy on 2026-10-05. The team defends a
+refuge against the wipe. Free-agent friends are arguing for one local
+exception, off the pier, the way level 20 tells it. When the clock lands, the
+machines reach the refuge line, stop, and flow around it. Everyone still
+standing is spared. One survivor is enough to win. People still alive together
+are spared together. The dead are not brought back. The planetary catastrophe
+continues outside that line. Surviving locally never defeats the whole
+intelligence.
+
+The default remains a finite cooperative scenario with watch, join, and leave,
+finite team reinforcements, and no revival. The first proposed target is four
+seats. Counts, reinforcements, and larger rosters stay proposed until played
+proof. Campaign continues and the conditional epilogue stay on the campaign
+contract. This match does not unlock the epilogue. Locally isolated hardwired
+defenses are tools, never enslaved people or safe merely because their paint
+changed. [Design](design/wipe-finale-and-mode.md),
+[bounded plan](plans/wipe-survival.md).
 
 ### The Sweep
 

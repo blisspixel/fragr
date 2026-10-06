@@ -470,7 +470,9 @@ impl GameState {
             .flatten()
     }
 
-    /// Muster holds fire and throws; weapons go live with the round.
+    /// Muster holds fire, throws and mine placements. Weapons go live with
+    /// the round. A press held across that boundary is a new press once the
+    /// hold releases, which is the same edge the throw already used.
     pub(super) fn hold_muster_fire(&mut self) {
         if self.muster_hold().is_none() {
             return;
@@ -478,7 +480,9 @@ impl GameState {
         for player in self.players.iter_mut().filter(|p| p.contestant()) {
             player.pending_action.fire = false;
             player.pending_action.throw_grenade = false;
+            player.pending_action.place_mine = false;
             player.throw_requested = false;
+            player.place_requested = false;
         }
     }
 

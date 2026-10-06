@@ -22,6 +22,7 @@ use uuid::Uuid;
 pub mod fanout;
 pub mod sabotage;
 pub mod soak;
+pub mod traffic;
 
 /// Ticks per second of the authoritative loop.
 pub const TICKS_PER_SECOND: f64 = 20.0;
@@ -1256,7 +1257,8 @@ pub fn compute_report(obs: &Observation, agents: usize) -> Report {
             | GameEvent::CrawlerScrabble { .. }
             | GameEvent::PlayerJoined { .. }
             | GameEvent::PlayerLeft { .. }
-            | GameEvent::Speak { .. } => {}
+            | GameEvent::Speak { .. }
+            | GameEvent::VenueNotice { .. } => {}
             GameEvent::EpisodeStart { .. }
             | GameEvent::EpisodeComplete { .. }
             | GameEvent::EpisodeFail { .. } => {}
@@ -2355,6 +2357,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         solo_broadcast: false,
         join_secret: None,
         access: Default::default(),
+        console: false,
     };
     let server = tokio::spawn(async move {
         run_server(

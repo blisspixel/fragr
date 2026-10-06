@@ -93,7 +93,10 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
                             3,
                             "same-name connections must retain every fighter"
                         );
-                        for name in ["MapProbe", "MapProbe #2", "MapProbe #3"] {
+                        // The two spectators hold MapProbe #2 and #3. Fighters
+                        // keep the remaining labels, so a desk kick can name
+                        // one seat.
+                        for name in ["MapProbe", "MapProbe #4", "MapProbe #5"] {
                             assert!(names.contains(&name), "missing assigned callsign {name}");
                         }
                     }
@@ -2365,10 +2368,13 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
         other => panic!("unexpected welcome: {:?}", other),
     }
 
-    let cmd = tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv())
-        .await
-        .expect("cmd timeout")
-        .expect("cmd");
+    let cmd = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .expect("cmd timeout")
+    .expect("cmd");
     match cmd {
         GameCommand::Connected {
             role: Role::Agent,
@@ -2382,10 +2388,13 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
     // Drop connection to exercise disconnect path.
     drop(sink);
     drop(stream);
-    let disc = tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv())
-        .await
-        .expect("disc timeout")
-        .expect("disc");
+    let disc = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .expect("disc timeout")
+    .expect("disc");
     assert!(matches!(disc, GameCommand::Disconnected { .. }));
 }
 
@@ -2405,6 +2414,8 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::PrepareAutoJoin { .. } => "PrepareAutoJoin".into(),
         crate::net::GameCommand::CommitAutoJoin { .. } => "CommitAutoJoin".into(),
         crate::net::GameCommand::CancelAutoJoin { .. } => "CancelAutoJoin".into(),
+        crate::net::GameCommand::AbortResume { .. } => "AbortResume".into(),
+        crate::net::GameCommand::NoteSeat { .. } => "NoteSeat".into(),
     }
 }
 
@@ -2456,10 +2467,13 @@ async fn test_net_ws_spectator_hello_no_player_id() {
         other => panic!("{:?}", other),
     }
 
-    let cmd = tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let cmd = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
     match cmd {
         GameCommand::Connected {
             player_id: None,
@@ -2500,10 +2514,13 @@ async fn test_net_ws_action_forwarded_for_agent() {
         .unwrap()
         .unwrap()
         .unwrap();
-    let connected = tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let connected = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
     let mut session = GameSession::new();
     let player_id = match &connected {
         GameCommand::Connected {
@@ -2531,10 +2548,13 @@ async fn test_net_ws_action_forwarded_for_agent() {
     .await
     .unwrap();
 
-    let action_cmd = tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let action_cmd = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
     match action_cmd {
         GameCommand::Action {
             player_id: pid,
@@ -2622,7 +2642,11 @@ async fn test_net_ws_invalid_hello_closes_without_connected() {
 
     // Connection should end without a Connected command.
     let _ = tokio::time::timeout(std::time::Duration::from_millis(500), stream.next()).await;
-    let maybe = tokio::time::timeout(std::time::Duration::from_millis(300), game_rx.recv()).await;
+    let maybe = tokio::time::timeout(
+        std::time::Duration::from_millis(300),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await;
     assert!(
         maybe.is_err() || maybe.as_ref().ok().and_then(|o| o.as_ref()).is_none(),
         "invalid hello must not emit Connected"
@@ -2663,10 +2687,13 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
         .unwrap()
         .unwrap();
 
-    let cmd = tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv())
-        .await
-        .unwrap()
-        .unwrap();
+    let cmd = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
     session.apply_command(cmd);
 
     let unicasts = session.take_unicasts();
@@ -2718,8 +2745,11 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
 
     drop(sink);
     drop(stream);
-    if let Ok(Some(disc)) =
-        tokio::time::timeout(std::time::Duration::from_secs(2), game_rx.recv()).await
+    if let Ok(Some(disc)) = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
     {
         session.apply_command(disc);
         let left = session.state.take_events();

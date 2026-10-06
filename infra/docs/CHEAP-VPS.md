@@ -2,9 +2,11 @@
 
 Use a small host with a public address when a home connection cannot accept a
 router forward. The server remains one long-lived authoritative container on
-TCP 6767. [Home LAN](HOME-LAN.md) is the $0 starting point, and the
-[COS host](DURABLE-HOST.md) remains a plan-only GCP option. No VPS has been
-deployed or measured as part of this guide.
+TCP 6767. [Home LAN](HOME-LAN.md) is the $0 starting point and a complete
+host, not a fallback. The [COS host](DURABLE-HOST.md) remains a plan-only GCP
+option. A Terraform root for one popular small-VM network, plus AWS and Azure,
+is planned in [server excellence](../../docs/plans/server-excellence.md) and
+is not written. No VPS has been deployed or measured as part of this guide.
 
 ## Before creating a paid host
 

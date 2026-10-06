@@ -52,7 +52,27 @@ job. A local run of an hour or more belongs in
 [`observability-soak.md`](../../docs/plans/observability-soak.md); a twenty-four
 hour run is a release gate, not a CI step.
 
-`--assert` exits non-zero when a frustration threshold is crossed: no round completed, an agent stuck (no movement and no fire during an active round) for more than five seconds, spawn deaths above ten percent of frags, or fewer than one frag per minute with four or more agents. It also fails when the sticky flechette, rail, or scatter clean-hit time to kill leaves the 0.5 to 1.2 second band (the #124 table). CI runs exactly that command on every PR. Reports land under the gitignored `.agents/` directory; put the summary table for a change under test into that change's plan doc.
+`--traffic` is the synthetic load. It starts the same local `fragr-server`
+binary (or `--traffic-server PATH`) and connects plain fighters plus
+read-only spectators. Each fighter sends movement and a held trigger at
+`--traffic-hz` (default 60, the pace of a displayed client frame) and does
+not pathfind. Spectators only read. One loopback address holds 32
+connections. A roster up to 64 uses `127.0.0.2` and onward for the extra
+clients. Linux and Windows already assign `127.0.0.0/8`. macOS assigns
+only `127.0.0.1` until `ifconfig lo0 alias` adds the extra addresses, so
+a roster past 32 on macOS needs those aliases. The process cap is 64 sockets. The report is
+`.agents/traffic/report.json` unless `--report` names another file, and the
+server log is written beside it. `--assert` fails when a client never
+welcomes, drops during the window, the tick stalls, the status counts drift,
+or the fighters send less than half the actions a steady rate would send.
+Tick time and health are printed. A debug build can miss the 50 ms budget,
+and this command does not by itself fill the measurement table.
+
+```bash
+cargo run -p fragr-playtest --locked -- --traffic --traffic-fighters 8 --traffic-spectators 4 --traffic-bots 4 --traffic-seconds 10 --assert
+```
+
+On the scripted-agent command at the top of this file, `--assert` exits non-zero when a frustration threshold is crossed: no round completed, an agent stuck (no movement and no fire during an active round) for more than five seconds, spawn deaths above ten percent of frags, or fewer than one frag per minute with four or more agents. It also fails when the sticky flechette, rail, or scatter clean-hit time to kill leaves the 0.5 to 1.2 second band (the #124 table). CI runs that command on every PR. Reports land under the gitignored `.agents/` directory; put the summary table for a change under test into that change's plan doc.
 
 Use `--tiers reflex`, `--tiers planner`, or `--tiers reflex,planner` to deal
 policies round robin. Both use shared 3D cover checks and the bounded heightfield

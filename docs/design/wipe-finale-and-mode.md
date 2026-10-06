@@ -487,7 +487,7 @@ default. Campaign rescue state and epilogue unlock never come from this mode.
 | Concern | Proposed default |
 |---|---|
 | Start | A short 15-second lobby/readiness muster outside the catastrophe fiction, then one synchronized active scenario clock; no lethal spawn before readiness |
-| Win | At least one active participant survives to the local reprieve; earlier committed lethal effects resolve first |
+| Win | At least one active participant survives to the local reprieve; earlier committed lethal effects resolve first. Nick confirmed this fantasy on 2026-10-05: everyone still standing is spared together, one is enough, and the dead are not restored |
 | Loss | All active participants dead/eliminated, or no occupied/parked active seat after a bounded empty-session grace; devices/civilians never postpone elimination |
 | Death | No revival; spectate until an ordinary request can use an actually secured deployment anchor, if a finite team reinforcement remains |
 | Reinforcements | Six shared charges per round, consumed once per returned or late-joining fighter; no unlimited respawn or wave-clear resurrection |

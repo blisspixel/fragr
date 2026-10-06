@@ -1,12 +1,14 @@
-# infra (GCP)
+# infra
 
-Native IaC to run the fragr Rust **authoritative game server** on GCP cheaply, with room to scale.
+Run the same fragr Rust authoritative server at home or, later, from a template. A spare machine is a complete host. Cloud templates are optional and plan-only.
 
 ## Product intent
 
-- **Run your own server** (home LAN, cheap VPS, or GCP) without requiring Tailscale for strangers and agents. See [`docs/HOME-LAN.md`](docs/HOME-LAN.md) and [`docs/CHEAP-VPS.md`](docs/CHEAP-VPS.md). The local Compose path uses the same dedicated server binary.
-- This folder is the **cloud path**: Terraform to stand up a billable deployment after Nick approves the exact spend and deployment.
-- LAN is an optional buddy path. Tailscale Personal is private/dev smoke only, not the multiplayer front door.
+- **Home first.** A spare machine runs the desktop Host flow or the dedicated binary, with no account, domain, or Terraform. See [`docs/HOME-LAN.md`](docs/HOME-LAN.md). Compose on that machine is optional. The local Compose path uses the same dedicated server binary.
+- **A small public VM** is the next door when a home connection cannot take a forward. [`docs/CHEAP-VPS.md`](docs/CHEAP-VPS.md) is the prose guide. One Terraform root for a popular provider's ordinary virtual network is planned and not written. The provider is not chosen. See [`docs/plans/server-excellence.md`](../docs/plans/server-excellence.md).
+- **GCP, AWS, and Azure** get the same server as plan-only IaC: one virtual network, one small VM, a tight game-port rule. The GCP COS draft in `terraform/` is the only root that exists. AWS, Azure, and the small-VM root are not written. None of them has been applied.
+- Tailscale Personal is private/dev smoke only, not the multiplayer front door.
+- The tick stays a long-lived process on every door. Serverless does not run it.
 
 ## Status
 
@@ -42,14 +44,18 @@ Until Nick explicitly accepts a priced deployment:
 
 ```text
 infra/
-  README.md           # this contract
+  README.md           # this contract; home is first-class
   docs/
-    HOME-LAN.md       # home box: LAN + optional public port-forward (no Tailscale-required)
-    CHEAP-VPS.md      # generic cheap VM public join (no Tailscale-required)
+    HOME-LAN.md       # spare machine: LAN + optional public port-forward
+    CHEAP-VPS.md      # generic cheap VM public join, prose until a provider is chosen
     ZERO-COST.md      # GCP plan checklist; former zero-cost premise retired
     DURABLE-HOST.md   # GCP container host design and cost gates
-  terraform/          # plan-only COS container host, no image or cloud apply
+  terraform/          # the only cloud root drafted: plan-only GCP COS host
 ```
+
+AWS, Azure, and the one small-VM network root are planned in
+[`docs/plans/server-excellence.md`](../docs/plans/server-excellence.md). They
+are not directories yet. Adding one does not authorize `terraform apply`.
 
 ## Spend gate
 

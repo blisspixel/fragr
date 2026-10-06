@@ -272,8 +272,9 @@ message and then a policy close whose reason is the same code:
 | `idle_timeout` | no frame for 45 seconds | parked if resume was asked |
 | `rate_limited` | sustained flood past the budget | removed |
 | `malformed` | repeated unreadable frames | removed |
-| `address_banned` | address on the ban list, at accept or after an edit | removed |
+| `address_banned` | address on the ban list, at accept or after an edit, or a venue-desk ban | removed |
 | `address_not_allowed` | allow list set and address not on it | removed |
+| `venue_kick` | the venue desk asked that seat to leave | removed |
 
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` already reject an older client
@@ -1625,6 +1626,17 @@ available to sound-muted players through the caption and visible attack tell.
 }
 ```
 
+**Venue notice.** The person at a dedicated `--console` desk, not a player
+and not the on-air Host. The text already begins `The venue: `.
+
+```json
+{
+  "type": "event",
+  "event": "venue_notice",
+  "text": "The venue: doors at the bell"
+}
+```
+
 **Compliance Ping Event:** (mid-round Continuance pressure; fighters move at half speed while active)
 ```json
 {
@@ -1763,7 +1775,7 @@ MVP is the top scorer (same selection as `winner`). `mvp` / `mvp_frags` / `host_
 ```
 
 **Fields:**
-- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `pickup`, `killstreak`, `host_reaction`)
+- `event`: Event type (`frag`, `hit`, `crawler_scrabble`, `respawn`, `round_start`, `round_end`, `flag`, `player_joined`, `player_left`, `compliance_ping`, `boss_spawn`, `boss_down`, `speak`, `venue_notice`, `pickup`, `killstreak`, `host_reaction`)
 - `position`: (`crawler_scrabble` only) three finite world coordinates for the spatial sound source
 - `kind`: (pickup only) Pad kind: `"weapon"` / `"health"` / `"armor"` / `"golden_rail"` (default `"weapon"`). Weapon and golden pads also carry `weapon`; health/armor pads carry `amount`.
 - `rules`: (round_start, optional) the arena's rule set, repeated each round for event readers
