@@ -68,6 +68,11 @@ pub(super) fn build() -> MapDef {
         solids.push(Solid::from_center_top(x - 12.0, z, 0.7, 13.0, 5.0));
         solids.push(Solid::from_center_top(x + 12.0, z, 0.7, 13.0, 5.0));
     }
+    // The Server Halls supply dais rewards taking an exposed raised position.
+    // Broad half-metre steps keep the pickup reachable through ordinary walking.
+    solids.push(Solid::from_center_top(124.0, -32.0, 2.0, 2.0, 1.5));
+    solids.push(Solid::from_center_top(124.0, -35.0, 2.0, 1.0, 1.0));
+    solids.push(Solid::from_center_top(124.0, -37.0, 2.0, 1.0, 0.5));
     // Airfield hangars and terminal shoulders. The broad east-west runway
     // and its parallel service lane remain clear for the first jeep loop.
     for x in [-42.0, 42.0] {
@@ -79,8 +84,21 @@ pub(super) fn build() -> MapDef {
     // Low coastal works provide infantry cover without blocking the roads at
     // x +/-100 or the central cross-island route at z -60.
     for x in [-80.0, 80.0] {
-        for z in [-110.0, -12.0, 46.0, 108.0] {
+        for z in [-132.0, -12.0, 46.0, 108.0] {
             solids.push(Solid::from_center_top(x, z, 4.0, 2.0, 1.1));
+        }
+    }
+    // Coastal revetments screen each spawn from the long parallel firing
+    // lanes. Wide staggered exits lead inward without entering another bay.
+    // The outer shore stays open for swimmers returning from the ocean.
+    for side in [-1.0, 1.0] {
+        for slot in 0..8 {
+            let z = -119.0 + slot as f32 * 32.0;
+            solids.push(Solid::from_center_top(side * 140.0, z, 0.7, 7.0, 2.5));
+        }
+        for divider in 0..=8 {
+            let z = -135.0 + divider as f32 * 32.0;
+            solids.push(Solid::from_center_top(side * 150.0, z, 9.0, 0.7, 2.5));
         }
     }
     solids.push(Solid::from_center_top(127.0, 112.0, 4.0, 4.0, 18.0));
@@ -165,7 +183,7 @@ pub(super) fn build() -> MapDef {
                 0.0,
             ),
             weapon_pad("airfield_rail", WeaponType::Rail, 0.0, -60.0, 0.0),
-            weapon_pad("server_sniper", WeaponType::Sniper, 100.0, -47.0, 0.0),
+            weapon_pad("server_sniper", WeaponType::Sniper, 124.0, -32.0, 1.5),
             weapon_pad(
                 "lighthouse_repeater",
                 WeaponType::Repeater,
@@ -187,7 +205,7 @@ pub(super) fn build() -> MapDef {
 
 /// Fixed coastal spawn bays, still selected through ordinary threat scoring.
 pub(crate) fn spawn(angle: f32) -> (f32, f32, f32, f32) {
-    let slot = ((angle.rem_euclid(2.0 * PI) / (2.0 * PI) * 16.0).floor() as usize).min(15);
+    let slot = (angle.rem_euclid(2.0 * PI) / (2.0 * PI) * 16.0).round() as usize % 16;
     let side = if slot < 8 { 1.0 } else { -1.0 };
     let z = -119.0 + (slot % 8) as f32 * 32.0;
     (
@@ -196,4 +214,27 @@ pub(crate) fn spawn(angle: f32) -> (f32, f32, f32, f32) {
         if side > 0.0 { PI } else { 0.0 },
         LAND_HEIGHT,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn spawn_candidates_visit_each_physical_bay_once_and_wrap() {
+        let map = RuntimeMap::BuiltIn(MapKind::HoldfastAtoll);
+        assert_eq!(map.spawn_slots(), 16);
+        let mut points = Vec::new();
+        for slot in 0..map.spawn_slots() {
+            let angle = slot as f32 * 2.0 * PI / 16.0;
+            let point = map.spawn(angle);
+            assert!(
+                !points.contains(&point),
+                "slot {slot} aliases an earlier bay"
+            );
+            assert_eq!(map.spawn(angle + 2.0 * PI), point);
+            assert_eq!(map.spawn(angle - 2.0 * PI), point);
+            points.push(point);
+        }
+    }
 }

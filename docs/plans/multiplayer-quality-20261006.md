@@ -73,3 +73,48 @@ to the owning plans.
 A complete human TDM and Sabotage trial and a two-machine LAN session remain
 acceptance work. Same-machine automation does not close those gates. Published,
 merged, locally implemented and measured remain separate states.
+
+## Composed acceptance, October 7
+
+The local composition includes M11's complete rendered departure and version 14
+carry, Holdfast's shared jeep/boat/aircraft and swimming, five-site Conquest,
+human reloads and crouching, bounded bot senses, immediate eligible local fire,
+and conservative replacement of unsent world motion. The existing desktop Host
+offers Holdfast Conquest through the same owned process and bot-fill controls.
+
+The [M11 route](../evidence/m11-quality-composition-20261006.md),
+[vehicle routes](../evidence/vehicle-played-20261007.md),
+[graphics comparison](../evidence/benchmark-preset-comparison-20261006.md),
+[water measurement](island-water-rendering-20261006.md) and
+[controlled shot-alignment diagnostic](hitscan-alignment-20261006.md) record
+different scopes. The graphics comparison measures one recorded Arena Duel
+fight; the water sweep uses body presenters; the CPU ladder uses actual rule
+bots; none independently proves a 64-player networked match.
+
+Integration checks found and corrected vehicle hulls omitted from actor-contact
+projection, low-barrier seat passage, parked-hull route stalls, stale benchmark
+warmup UI, benchmark settings and resize interruptions, and invalid respawn
+facing. The island's mixed-client roster also exposed unprotected coastal spawn
+lanes. These failures are retained in private logs; the final native and client
+gate results belong to the [integration receipt](../evidence/native-island-quality-20261006.md)
+and reviewed PR, with no reduction in existing acceptance limits.
+
+Story and art guidance now separates recognizable combat allegiance from moral
+judgment. The Union retains useful services, institutional disagreement and
+credible motives alongside its established coercion. Allies retain ordinary
+lives and responsibility for their own methods. This is guidance applied to
+the existing brief exchanges, not a new morality system or a completed rewrite
+of every recorded scene.
+
+Current asset reconciliation: the model account reports 1,900 existing credits,
+with the unchanged 15-credit hold and 1,885 usable. Nick's latest image balance
+was $5.86; the two subsequent ground-material requests reserve an estimated
+$1.24, leaving about $4.62 against that report. The wall and vehicle asset plans
+retain exact request receipts. No new cash charge, renewal, top-up or overage
+was enabled.
+
+M12 through M20 remain unbuilt. M14's authored vehicle circuit and infantry
+fallback are the next campaign vehicle proof after this composition is green.
+Holdfast landscape dressing, cockpit refinement, human match balance, physical
+LAN evidence and finished campaign pacing remain open. Keep those gates in the
+roadmap's existing full build order.

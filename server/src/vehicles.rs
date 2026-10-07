@@ -238,7 +238,7 @@ pub fn seat_feet(state: &VehicleState, seat: VehicleSeat) -> [f32; 3] {
         (VehicleKind::Jeep, VehicleSeat::Gunner) => [-0.65, 0.95, 0.0],
         (VehicleKind::Boat, VehicleSeat::Driver) => [-0.2, 0.65, -0.4],
         (VehicleKind::Boat, VehicleSeat::Gunner) => [-1.0, 0.95, 0.0],
-        (VehicleKind::LightAircraft, _) => [1.45, 0.65, -0.3],
+        (VehicleKind::LightAircraft, _) => [1.45, 0.80, 0.0],
     };
     local_point(state.position, state.yaw, local)
 }

@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "scope": "Inspected development build menus and ordinary gameplay; no complete campaign, final art, hardware-performance or physical-LAN claim",
+  "engine": "4.7.2-stable (official)",
+  "renderer": "gl_compatibility",
+  "device": "AMD Radeon(TM) 780M",
+  "resolution": [
+    1280,
+    720
+  ],
+  "base_commit": "0fbcd6cc",
+  "working_tree_capture": true,
+  "images": [
+    {
+      "file": "m01_intake_16x9.png",
+      "sha256": "8a7f56fe2f09c9ba7d3367555b29a5a179d8a35c862e6d29addd2f6b8f2f8c33"
+    },
+    {
+      "file": "tour_menu_16x9.png",
+      "sha256": "37cbd4b4f1a48cf83f94ca8d1e929a60227d40371f96c4f89a718fa505120b23"
+    },
+    {
+      "file": "tour_multiplayer_16x9.png",
+      "sha256": "79b803126020f06c44cb42a62944d2efff30704cf0c3c19bd0df372db5d6fd81"
+    },
+    {
+      "file": "tour_combat_follow_16x9.png",
+      "sha256": "b357454d9f6a4c0dee745adb3debd9f82b4d107166666a36aa79e5dff737a0e6"
+    }
+  ],
+  "full_tour": {
+    "captured_utc": "2026-10-07T07:59:09",
+    "states": 32,
+    "published_stills": 14,
+    "native_sha256": "989d84c1b389d407ee5a6cfed0e4e6fd65fdde46015c740761d25f1701d63089",
+    "qa_source_sha256": "261b811237043f2efa03c7447b58f6a244ed340415e2f7906f581e7125d49445",
+    "route": "client/qa/tour.json",
+    "route_sha256": "ac0a76a09596611b43257d58c9317f7f6cce9b5b1d995b055d825f127a7679d7",
+    "command": "tools/qa_tour.sh --publish; isolated prebuilt server, unchanged capture and publication checks",
+    "actual_watched_state": "Active",
+    "private_manifest_sha256": "0a915f6ef732b2e04308c5a87932ab9520212bbd569c32de79f2793e11a09cdd"
+  },
+  "intake": {
+    "captured_utc": "2026-10-07T07:32:58",
+    "states": 3,
+    "source_route": "client/qa/m01-rooms.json",
+    "route_scope": "Unchanged first three states only",
+    "prefix_sha256": "d3f5852a917f3ea3c5c59c8a6f9939447af0489f355db1f378046ca83e327200",
+    "native_sha256": "d54b07905e1ad5dedc18e37c3a11e7c79545b7438f4d789f4eddbce141414e2e",
+    "qa_source_note": "Exact working-tree QA script hash was not recorded for this earlier capture",
+    "private_manifest_sha256": "543c5666855472bf66508e2dfcf295054220ec44205bbbe414c51106e6189290"
+  },
+  "multiplayer_refresh": {
+    "captured_utc": "2026-10-07T08:08:18",
+    "states": 1,
+    "scope": "Normal Multiplayer page, real owned loopback status probe and one recent host; title and Back stay within the card",
+    "native_sha256": "989d84c1b389d407ee5a6cfed0e4e6fd65fdde46015c740761d25f1701d63089",
+    "boot_source_sha256": "7ace35b64ae07c7a480aa9ac2c3c377331e046b5cad9fed979ce3cbaa118dc1d",
+    "private_manifest_sha256": "84fc8c8cdbe79a249e9efaaff198cf7300e81c33aa89adbb45bc5c2f681b6c6c"
+  }
+}

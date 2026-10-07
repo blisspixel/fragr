@@ -17,12 +17,7 @@ static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: fl
 	var water: Dictionary = at(regions, float(state["x"]), float(state["z"]))
 	var swimming: bool = not water.is_empty() and float(state["y"]) < float(water["level"]) - 0.25 and MoveStep.arena_support_height(arena, float(state["x"]), float(state["z"]), float(state["y"]) + MoveStep.STEP_UP) < float(water["level"]) - SWIM_DRAFT
 	# The same temporary support surfaces let ordinary collision own shore steps.
-	var supported: Dictionary = arena.duplicate(true)
-	for region: Dictionary in regions:
-		var top: float = float(region["level"]) - SWIM_DRAFT
-		var bottom: float = float(region["level"]) - float(region["depth"])
-		if top > bottom:
-			supported["solids"].append({"min_x": region["min"][0], "max_x": region["max"][0], "min_z": region["min"][1], "max_z": region["max"][1], "bottom": bottom, "top": top})
+	var supported: Dictionary = supported_arena(arena)
 	state = state.duplicate()
 	if not water.is_empty():
 		var surface_feet: float = float(water["level"]) - SWIM_DRAFT
@@ -38,3 +33,16 @@ static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: fl
 			moved["y"] = surface_feet
 			moved["vy"] = 0.0
 	return moved
+
+## Contact reprojection must see the same buoyant support as initial walking.
+static func supported_arena(arena: Dictionary) -> Dictionary:
+	var regions: Array = arena.get("water_regions", [])
+	if regions.is_empty():
+		return arena
+	var supported: Dictionary = arena.duplicate(true)
+	for region: Dictionary in regions:
+		var top: float = float(region["level"]) - SWIM_DRAFT
+		var bottom: float = float(region["level"]) - float(region["depth"])
+		if top > bottom:
+			supported["solids"].append({"min_x": region["min"][0], "max_x": region["max"][0], "min_z": region["min"][1], "max_z": region["max"][1], "bottom": bottom, "top": top})
+	return supported

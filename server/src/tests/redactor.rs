@@ -76,11 +76,6 @@ fn until(session: &mut GameSession, enemy: Uuid, expected: EnemyPhase) {
 fn redactor_real_lateral_approach_preserves_human_body_and_shared_walking() {
     let (mut session, participant, enemy) = fixture(4.0, false);
     assert!(session.state.map.requires_m11_contract());
-    assert_eq!(
-        crate::protocol::GAMEPLAY_VERSION,
-        crate::protocol::M11_GAMEPLAY_VERSION,
-        "the current client supports the registered Redactor contract"
-    );
     assert_eq!(body(&session, enemy).hp, 90);
     assert_eq!(body(&session, enemy).weapon, WeaponType::Shiv);
     assert_eq!(

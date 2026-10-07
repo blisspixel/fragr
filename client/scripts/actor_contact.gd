@@ -139,6 +139,8 @@ static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}, archiv
 	var rows: Variant = snapshot.get("players")
 	if not EquipmentState.integer(snapshot.get("tick"), EquipmentState.MAX_EXACT_INTEGER) or not rows is Array or rows.size() > MAX_BODIES or not ActorState.validation_error(snapshot).is_empty():
 		return {"error": INVALID, "bodies": bodies}
+	if not VehicleState.validation_error(snapshot).is_empty():
+		return {"error": INVALID, "bodies": bodies}
 	var seen: Dictionary = {}
 	for raw: Variant in rows:
 		if not raw is Dictionary or not raw.get("id") is String or raw["id"].is_empty() or raw["id"].length() > 64 or seen.has(raw["id"]):
@@ -151,9 +153,9 @@ static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}, archiv
 		var health: Variant = actor.get("hp")
 		if not (health is int or health is float) or not is_finite(float(health)) or float(health) != floorf(float(health)) or float(health) < -2147483648.0 or float(health) > 2147483647.0:
 			return {"error": INVALID, "bodies": []}
-		if not _alive(health) or not actor.get("collidable", true) or not _active(actor, mission):
+		if not _alive(health) or not actor.get("collidable", true) or not _active(actor, mission) or not VehicleState.occupied(snapshot, actor["id"]).is_empty():
 			continue
-		var height: float = MoveStep.BODY_HEIGHT
+		var height: float = MoveStep.DUCK_HEIGHT if actor.get("ducking", false) else MoveStep.BODY_HEIGHT
 		if ActorState.is_union(actor):
 			if actor["campaign"]["kind"] == "crawler":
 				height = 0.8

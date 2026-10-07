@@ -922,7 +922,6 @@ pub async fn run_bot(
                             break;
                         }
                     }
-                    Ok(ServerMessage::Board(_)) => {}
                     Err(error) => {
                         session_error = Some(Error::Transport(format!("invalid server message: {error}")));
                         break;

@@ -61,6 +61,12 @@ func _run() -> void:
 		for lan: bool in [false, true]:
 			for sabotage: bool in [false, true]:
 				_test_profile(_config(lan, sabotage, policy))
+			var island: Dictionary = _config(lan, false, policy)
+			island["mode"] = "conquest"
+			island["map_id"] = 7
+			_test_profile(island)
+			island["map_id"] = 4
+			_check(not LocalHost.valid_settings(island), "Conquest refuses a map without capture sites")
 	var zero: Dictionary = _config()
 	zero["bots"] = 0
 	_check(LocalHost.valid_settings(zero), "fixed zero remains compatible")

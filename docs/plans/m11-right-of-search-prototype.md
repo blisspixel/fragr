@@ -1,6 +1,7 @@
 # Right of Search prototype
 
-Status: in flight, started 2026-10-05. This native checkpoint began from the
+Status: **superseded** by the October 6 composition, started 2026-10-05.
+This retained native checkpoint began from the
 frozen Common Carrier prototype `b0e6eb91`. Its staged receipts below describe
 the October 5 source, including the admission gates that existed at that time.
 Current playable composition, capability 38, selected presentation and ordinary

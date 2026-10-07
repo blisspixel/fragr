@@ -325,6 +325,7 @@ func advance(now_usec: int) -> void:
 			reset("contact_stale")
 			return
 		step["blockers"] = _contact_blockers(int(step["tick"]), now_usec)
+		step["vehicle_hulls"] = _contact_sample(int(step["tick"]), now_usec).get("vehicle_hulls", []).duplicate(true)
 		step["body_key"] = _contact_player_id
 		state = _step(state, step)
 		step["state_after"] = state.duplicate()
@@ -335,15 +336,19 @@ func advance(now_usec: int) -> void:
 
 
 func _step(pose: Dictionary, step: Dictionary, dt: float = -1.0) -> Dictionary:
+	var world: Dictionary = arena
+	if not step.get("vehicle_hulls", []).is_empty():
+		world = arena.duplicate(true)
+		world["solids"].append_array(step["vehicle_hulls"])
 	# A short slice is the render pose only. A full tick still carries the tram.
 	if dt > 0.0 and dt < MoveStep.DT_LIVE:
-		return _contact_step(pose, step, arena, dt)
+		return _contact_step(pose, step, world, dt)
 	if _tram_geometry.is_empty() or _tram_samples.is_empty():
-		return _contact_step(pose, step, arena)
+		return _contact_step(pose, step, world)
 	var before: Array = _tram_feet(int(step["tick"]) - 1)
 	var after: Array = _tram_feet(int(step["tick"]))
 	var old_solid: Dictionary = M05Tram.solid_at(_tram_geometry, before)
-	var world: Dictionary = arena.duplicate(true)
+	world = world.duplicate(true)
 	var index: int = int(_tram_geometry["m05"]["tram"]["solid"])
 	world["solids"][index] = M05Tram.solid_at(_tram_geometry, after)
 	var carried_pose: Dictionary = pose
@@ -385,7 +390,7 @@ func accept_snapshot(snapshot: Dictionary, player_id: String, mission: Dictionar
 			return
 		if incoming == int(_contact_samples.back()["tick"]):
 			_contact_samples.pop_back()
-	_contact_samples.append({"tick": incoming, "usec": now_usec, "bodies": parsed["bodies"].duplicate(true)})
+	_contact_samples.append({"tick": incoming, "usec": now_usec, "bodies": parsed["bodies"].duplicate(true), "vehicle_hulls": VehicleState.hulls(snapshot)})
 	while _contact_samples.size() > MAX_STEPS + 1:
 		_contact_samples.pop_front()
 	_contact_waiting = tick >= 0 and _contact_sample(tick + 1, now_usec).is_empty()
@@ -459,7 +464,7 @@ static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary,
 	var from: Dictionary = pose.duplicate()
 	from["yaw"] = proposed["yaw"]
 	bodies.append({"key": step["body_key"], "from": from, "proposed": proposed, "height": height, "radius": MoveStep.RADIUS, "jump": bool(step["input"]["jump"])})
-	var accepted: Dictionary = ActorContact.resolve(bodies, live_dt, world).back()
+	var accepted: Dictionary = ActorContact.resolve(bodies, live_dt, WaterMovement.supported_arena(world)).back()
 	accepted["ducking"] = ducking
 	if accepted["x"] != proposed["x"] or accepted["z"] != proposed["z"]:
 		accepted["vx"] = (float(accepted["x"]) - float(pose["x"])) / live_dt
@@ -550,6 +555,7 @@ func _advance_visual(now_usec: int) -> void:
 		"input": input,
 		"speed": last_speed,
 		"blockers": _contact_blockers(tick + steps.size() + 1, now_usec),
+		"vehicle_hulls": _contact_sample(tick + steps.size() + 1, now_usec).get("vehicle_hulls", []).duplicate(true),
 		"body_key": _contact_player_id,
 	}
 	_visual_pose = _step(_visual_pose, step, live_dt)

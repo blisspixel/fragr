@@ -71,9 +71,14 @@ impl crate::run::ServerOptions {
                     && self.match_config.as_ref().is_some_and(|config| config.rules.mutators().is_empty())
                     && matches!(
                         self.match_config.as_ref().map(|config| config.rules.mode()),
-                        Some(crate::protocol::GameMode::Tdm | crate::protocol::GameMode::Sabotage)
-                    ) => Ok(()),
-            _ => Err("invalid bot policy, fixed requires target zero, none requires both counts zero, and auto requires arena TDM/Sabotage, bots zero and target 1 through 10"),
+                        Some(crate::protocol::GameMode::Tdm | crate::protocol::GameMode::Sabotage | crate::protocol::GameMode::Conquest)
+                    )
+                    && self.match_config.as_ref().is_some_and(|config| {
+                        config.rules.mode() != crate::protocol::GameMode::Conquest
+                            || (self.map == crate::sim::MapKind::HoldfastAtoll
+                                && !config.sabotage.five_vs_five)
+                    }) => Ok(()),
+            _ => Err("invalid bot policy, fixed requires target zero, none requires both counts zero, and auto requires arena TDM/Sabotage or Holdfast Conquest, bots zero and target 1 through 10"),
         }
     }
 }
@@ -91,6 +96,11 @@ mod tests {
             bots: 0,
             bot_policy: BotPolicy::Auto,
             fill_target: 4,
+            map: if mode == GameMode::Conquest {
+                crate::sim::MapKind::HoldfastAtoll
+            } else {
+                Default::default()
+            },
             match_config: Some(MatchConfig {
                 rules: RuleSet::new(mode, &[], false).unwrap(),
                 ..Default::default()
@@ -111,7 +121,7 @@ mod tests {
         }
         .validate_bot_policy()
         .is_err());
-        for mode in [GameMode::Tdm, GameMode::Sabotage] {
+        for mode in [GameMode::Tdm, GameMode::Sabotage, GameMode::Conquest] {
             for target in [1, 4, 10] {
                 assert!(ServerOptions {
                     fill_target: target,
@@ -177,5 +187,36 @@ mod tests {
             options.fill_target = 0;
             assert!(options.validate_bot_policy().is_ok());
         }
+    }
+
+    #[test]
+    fn automatic_conquest_requires_holdfast_and_refuses_five_per_side() {
+        for map in crate::sim::MapKind::ALL {
+            let options = ServerOptions {
+                map,
+                ..automatic(GameMode::Conquest)
+            };
+            assert_eq!(
+                options.validate_bot_policy().is_ok(),
+                map == crate::sim::MapKind::HoldfastAtoll
+            );
+        }
+        let mut options = automatic(GameMode::Conquest);
+        options.match_config.as_mut().unwrap().sabotage.five_vs_five = true;
+        assert!(options.validate_bot_policy().is_err());
+        for target in [0, 11, usize::MAX] {
+            assert!(ServerOptions {
+                fill_target: target,
+                ..automatic(GameMode::Conquest)
+            }
+            .validate_bot_policy()
+            .is_err());
+        }
+        assert!(ServerOptions {
+            bots: 1,
+            ..automatic(GameMode::Conquest)
+        }
+        .validate_bot_policy()
+        .is_err());
     }
 }

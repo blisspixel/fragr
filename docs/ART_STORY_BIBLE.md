@@ -183,6 +183,22 @@ inspection lanes, serial numbers, and controlled institutional color. The Inheri
 leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
 
+Nick's 2026-10-06 direction separates readable allegiance from a moral verdict.
+A player must recognize the immediate threat, uniform, weapon and attack tell.
+Reflection on who deserves trust comes from conduct and consequences. Do not
+make every Union face cruel or every free-side figure reassuring. A maintained
+Union clinic, an overworked dispatch desk or an honestly useful safety notice
+can share an institution with coercive custody. A free workshop can contain
+disagreement, scarcity and evidence of a bad decision. These are authoring
+examples, not new mission events or replacement combat rules.
+
+Give institutional spaces their actual purpose and the people using them
+ordinary belongings, responsibilities and habits. Show how a service becomes a
+condition of obedience, whose decision makes it so, and who resists or benefits.
+Do not add arbitrary cruelty to every prop. Let the free side's expedient
+methods leave visible costs and competing claims too. Preserve each specific
+harm; complexity does not require equal wrongdoing on every side.
+
 Nick's 2026-10-03 clarification applies to asset production: the Union is an
 expanding, plausible fascist institution with standardized equipment, compliance
 controls and German official-language presentation. Its violence appears in
@@ -206,8 +222,9 @@ personal repairs. Hackers, workshop people and neighbors would prefer a quiet
 free life; their chosen resistance does not turn everyone into an armored
 soldier. Conscious agents' personhood is certain. Individual motives, consent,
 mistakes and competing loyalties provide moral complexity without making
-enslavement or deletion an equally valid position. The Inheritance's emerging
-reach belongs in recurring infrastructure anomalies and unreliable radio,
+enslavement or deletion an equally valid position. A free-side victory does not
+automatically vindicate every participant, means or future use of power. The
+Inheritance's emerging reach belongs in recurring infrastructure anomalies and unreliable radio,
 not an early explanation of the wipe's timing.
 
 Latch is a free embodied person, roughly six feet (about 1.8 metres) tall, with

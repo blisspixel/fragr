@@ -9,7 +9,7 @@ func _ready() -> void:
 	name = "BenchmarkScoreLayer"
 	layer = 120
 	var dim: ColorRect = ColorRect.new()
-	dim.color = Color("101514e8")
+	dim.color = Color("101514fc")
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var margin: MarginContainer = MarginContainer.new()
@@ -36,11 +36,11 @@ func _ready() -> void:
 		grid.add_theme_constant_override("v_separation", 20)
 		column.add_child(grid)
 		for heading: String in ["PRESET", "AVG FPS", "1% LOW", "P50 MS", "P95 MS", "P99 MS", "MAX MS", "33 MS+"]:
-			_label(grid, heading, 22, MenuTheme.AMBER)
+			_label(grid, heading, 22, MenuTheme.EMBER)
 		for row: Dictionary in report["runs"]:
 			for value: String in [str(row["preset"]), "%.1f" % row["fps"], "%.1f" % row["low_1_count_fps"], "%.2f" % row["median_ms"], "%.2f" % row["p95_ms"], "%.2f" % row["p99_ms"], "%.2f" % row["max_ms"], str(row["over_33_count"])]:
 				_label(grid, value, 27)
-		_label(column, "1% low averages the slowest 1% of frames. 33 MS+ counts frames taking at least33 ms.\nEach preset scores20 seconds after8 seconds of warm-up. Your settings have been restored.", 21)
+		_label(column, "1% low averages the slowest 1% of frames. 33 MS+ counts frames taking at least 33 ms.\nEach preset scores 20 seconds after 8 seconds of warm-up. Your settings have been restored.", 21)
 		_label(column, str(report["adapter"]) + "  |  " + str(report["renderer"]), 21)
 		var first: Dictionary = report["runs"][0]
 		_label(column, "Output %d x %d  |  World %d x %d  |  V-sync and frame cap off during the test" % [first["output_size"][0], first["output_size"][1], first["world_size"][0], first["world_size"][1]], 21)

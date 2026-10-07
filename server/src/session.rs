@@ -739,6 +739,7 @@ impl GameSession {
             .is_some()
             .then(|| self.state.current_arena().into_owned());
         let visibility = live_arena.as_ref().unwrap_or_else(|| map.arena());
+        let walking = self.state.walking_arena(visibility);
         let mut driven = std::collections::HashSet::new();
         let mut controllers = self.bots.clone();
         for bot in &controllers {
@@ -798,7 +799,7 @@ impl GameSession {
                         snapshot,
                         wanted,
                         index / 4 == self.state.tick as usize % batches,
-                        &visibility.solids,
+                        &walking.solids,
                     )
             } else if let (Some(goal), Some(player)) = (
                 intent.goal,
@@ -817,7 +818,7 @@ impl GameSession {
                         intent.action,
                         self.state.tick,
                         index / 4 == self.state.tick as usize % batches,
-                        &visibility.solids,
+                        &walking.solids,
                     )
             } else {
                 self.navigators.remove(&bot.player_id);
@@ -828,7 +829,7 @@ impl GameSession {
                 .entry(bot.player_id)
                 .or_default()
                 .avoid_bodies(
-                    visibility,
+                    &walking,
                     bot.player_id,
                     &contact_bodies,
                     action,
@@ -853,7 +854,7 @@ impl GameSession {
                         intent.action,
                         self.state.tick,
                         (controllers.len() + index) / 4 == self.state.tick as usize % batches,
-                        &visibility.solids,
+                        &walking.solids,
                     )
             } else {
                 self.navigators.remove(&id);
@@ -880,7 +881,7 @@ impl GameSession {
                 action
             } else {
                 self.navigators.entry(id).or_default().avoid_bodies(
-                    visibility,
+                    &walking,
                     id,
                     &contact_bodies,
                     action,
@@ -904,14 +905,14 @@ impl GameSession {
                         intent.action,
                         self.state.tick,
                         companion_search_index / 4 == self.state.tick as usize % batches,
-                        &visibility.solids,
+                        &walking.solids,
                     )
             } else {
                 self.navigators.remove(&id);
                 intent.action
             };
             let action = self.navigators.entry(id).or_default().avoid_bodies(
-                visibility,
+                &walking,
                 id,
                 &contact_bodies,
                 action,

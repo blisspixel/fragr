@@ -485,6 +485,7 @@ impl RuntimeMap {
 
     pub(crate) fn spawn_slots(&self) -> usize {
         match self {
+            Self::BuiltIn(MapKind::HoldfastAtoll) => 16,
             Self::BuiltIn(_) => 64,
             Self::Authored(map) => map.spawns.len(),
         }
@@ -498,7 +499,12 @@ impl RuntimeMap {
                     as usize
                     % map.spawns.len();
                 let spawn = &map.spawns[index];
-                (spawn.feet[0], spawn.feet[2], spawn.yaw, spawn.feet[1])
+                (
+                    spawn.feet[0],
+                    spawn.feet[2],
+                    crate::movement::normalize_yaw(spawn.yaw),
+                    spawn.feet[1],
+                )
             }
         }
     }

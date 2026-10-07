@@ -15,6 +15,36 @@ fn scene() -> (GameState, Uuid) {
     p.y = PLAYER_FLOOR_Y;
     (state, id)
 }
+
+#[test]
+fn low_aircraft_overflight_uses_the_victims_actual_stance_height() {
+    let from = vehicles::VehicleMotion {
+        position: [-5.0, 1.5, 0.0],
+        yaw: 0.0,
+        speed: 16.0,
+        vy: 0.0,
+    };
+    let to = vehicles::VehicleMotion {
+        position: [-4.0, 1.5, 0.0],
+        ..from
+    };
+    assert!(vehicle_contact(
+        crate::protocol::VehicleKind::LightAircraft,
+        from,
+        to,
+        [0.0; 3],
+        crate::combat::body_height(None, false)
+    )
+    .is_some());
+    assert!(vehicle_contact(
+        crate::protocol::VehicleKind::LightAircraft,
+        from,
+        to,
+        [0.0; 3],
+        crate::combat::body_height(None, true)
+    )
+    .is_none());
+}
 fn use_vehicle(state: &mut GameState, id: Uuid) {
     state.set_action(
         id,
@@ -124,6 +154,7 @@ fn gunner_resolves_mounted_shots_without_changing_the_carried_weapon() {
 #[test]
 fn driver_cannot_fire_handheld_or_place_devices_and_dead_seats_clear() {
     let (mut state, id) = scene();
+    assert_eq!(state.players[0].inventory.grant_remote_mines(1), 1);
     use_vehicle(&mut state, id);
     state.set_action(
         id,
@@ -131,6 +162,8 @@ fn driver_cannot_fire_handheld_or_place_devices_and_dead_seats_clear() {
             fire: true,
             throw_grenade: true,
             place_mine: true,
+            place_remote_mine: true,
+            trigger_remote_mines: true,
             ..Default::default()
         },
     );
@@ -138,6 +171,9 @@ fn driver_cannot_fire_handheld_or_place_devices_and_dead_seats_clear() {
     assert!(state.shot_results.is_empty());
     assert!(state.snapshot().grenades.is_empty());
     assert!(state.snapshot().mines.is_empty());
+    assert!(state.snapshot().remote_mines.is_empty());
+    assert!(!state.players[0].remote_place_requested);
+    assert!(!state.players[0].remote_trigger_requested);
     state.players[0].hp = 0;
     assert!(state.vehicle_facts()[0].driver.is_none());
     state.tick(0.05);

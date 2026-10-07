@@ -153,7 +153,10 @@ impl Navigation {
             let mut previous: Option<usize> = None;
             let mut layers = 0;
             for floor in floors {
-                budget.charge(navigation.arena.solids.len().saturating_mul(6))?;
+                // Base ground needs only the filled-volume and body scans.
+                // Its four support probes below return before reading solids.
+                let scans = if floor == 0.0 { 2 } else { 6 };
+                budget.charge(navigation.arena.solids.len().saturating_mul(scans))?;
                 // A lower surface inside another filled volume is not a floor.
                 if navigation
                     .arena
@@ -420,7 +423,12 @@ impl Navigation {
         })
     }
 
-    fn anchor(&self, point: [f32; 3], starting: bool) -> Option<usize> {
+    fn anchor(
+        &self,
+        point: [f32; 3],
+        starting: bool,
+        obstacles: &[crate::movement::Solid],
+    ) -> Option<usize> {
         if !self.valid_point(point) {
             return None;
         }
@@ -447,21 +455,36 @@ impl Navigation {
         candidates.into_iter().find_map(|(_, index)| {
             let candidate = self.point(index);
             let connected = if starting {
-                self.walkable(point, candidate)
+                self.walkable(point, candidate) && Self::obstacle_clear(point, candidate, obstacles)
             } else {
-                self.walkable(candidate, point)
+                self.walkable(candidate, point) && Self::obstacle_clear(candidate, point, obstacles)
             };
             connected.then_some(index)
         })
     }
 
     pub fn route(&self, from: [f32; 3], to: [f32; 3], limit: usize) -> Route {
+        self.route_avoiding(from, to, limit, &[])
+    }
+
+    /// Filter the cached topology with current physical obstacles. This keeps
+    /// the same search budget and never builds topology on the simulation tick.
+    pub fn route_avoiding(
+        &self,
+        from: [f32; 3],
+        to: [f32; 3],
+        limit: usize,
+        obstacles: &[crate::movement::Solid],
+    ) -> Route {
         let mut route = Route {
             status: RouteStatus::InvalidPoint,
             points: Vec::new(),
             expanded: 0,
         };
-        let (Some(start), Some(goal)) = (self.anchor(from, true), self.anchor(to, false)) else {
+        let (Some(start), Some(goal)) = (
+            self.anchor(from, true, obstacles),
+            self.anchor(to, false, obstacles),
+        ) else {
             return route;
         };
         let heuristic = |index: usize| {
@@ -493,6 +516,9 @@ impl Navigation {
             route.expanded += 1;
             for edge in &self.edges[self.nodes[index].edges.clone()] {
                 let next = edge.target;
+                if !Self::obstacle_clear(self.point(index), self.point(next), obstacles) {
+                    continue;
+                }
                 let next_cost = cost + edge.cost;
                 if next_cost < costs[next] {
                     costs[next] = next_cost;
@@ -523,6 +549,42 @@ impl Navigation {
             route.points.push(to);
         }
         route
+    }
+
+    pub(crate) fn obstacle_clear(
+        from: [f32; 3],
+        to: [f32; 3],
+        obstacles: &[crate::movement::Solid],
+    ) -> bool {
+        let delta = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
+        let length = delta.iter().map(|value| value * value).sum::<f32>().sqrt();
+        let ray = crate::combat::Ray {
+            origin: from,
+            direction: if length > 0.0 {
+                delta.map(|value| value / length)
+            } else {
+                [0.0; 3]
+            },
+        };
+        obstacles.iter().all(|solid| {
+            let expanded = crate::movement::Solid {
+                min_x: solid.min_x - RADIUS,
+                max_x: solid.max_x + RADIUS,
+                min_z: solid.min_z - RADIUS,
+                max_z: solid.max_z + RADIUS,
+                bottom: solid.bottom - BODY_HEIGHT + CONTACT_EPSILON,
+                top: solid.top - CONTACT_EPSILON,
+            };
+            // At an inflated edge, permit the same outward escape as movement.
+            if from[1] >= expanded.bottom
+                && from[1] <= expanded.top
+                && solid.blocks(from[0], from[2], RADIUS)
+                && !solid.blocks_motion((from[0], from[2]), (to[0], to[2]), RADIUS)
+            {
+                return true;
+            }
+            ray.solid(&expanded, length).is_none()
+        })
     }
 }
 
@@ -567,6 +629,50 @@ pub(crate) mod tests {
             solids: vec![]
         })
         .is_err());
+    }
+
+    #[test]
+    fn temporary_vehicle_obstacles_filter_cached_routes_without_new_topology() {
+        let navigation = Navigation::new(arena(vec![])).unwrap();
+        let from = [-8.0, 0.0, 0.0];
+        let to = [8.0, 0.0, 0.0];
+        let hull = Solid::from_center_top(0.0, 0.0, 4.6, 4.0, 1.8);
+        let clear = navigation.route(from, to, SEARCH_LIMIT);
+        let route = navigation.route_avoiding(from, to, SEARCH_LIMIT, &[hull]);
+        assert_eq!(route.status, RouteStatus::Complete);
+        assert!(route.points.iter().any(|point| point[2].abs() > 4.5));
+        for pair in route.points.windows(2) {
+            assert!(Navigation::obstacle_clear(pair[0], pair[1], &[hull]));
+        }
+        assert_eq!(
+            navigation.route_avoiding(from, to, SEARCH_LIMIT, &[]),
+            clear
+        );
+        let bounded = navigation.route_avoiding(from, to, 2, &[hull]);
+        assert_eq!(bounded.status, RouteStatus::BudgetExhausted);
+        assert_eq!(bounded.expanded, 2);
+        assert_eq!(
+            navigation
+                .route_avoiding(from, [0.0; 3], SEARCH_LIMIT, &[hull])
+                .status,
+            RouteStatus::InvalidPoint
+        );
+        assert!(
+            !Navigation::obstacle_clear([-6.0, 0.0, 0.0], [6.0, 0.0, 0.0], &[hull]),
+            "sweep catches a blocker even when both endpoints are clear"
+        );
+        let overhead = Solid {
+            bottom: 2.0,
+            top: 4.0,
+            ..hull
+        };
+        assert!(Navigation::obstacle_clear(from, to, &[overhead]));
+        assert!(!Navigation::obstacle_clear([0.0; 3], [0.0; 3], &[hull]));
+        assert!(Navigation::obstacle_clear(
+            [-5.09, 0.0, 0.0],
+            [-5.2, 0.0, 0.0],
+            &[hull]
+        ));
     }
 
     fn assert_walks(navigation: &Navigation, from: [f32; 3], to: [f32; 3]) {
@@ -650,7 +756,8 @@ pub(crate) mod tests {
             if (here[0] - to[0]).hypot(here[2] - to[2]) < 0.3 && (here[1] - to[1]).abs() < 0.1 {
                 return;
             }
-            let action = navigator.steer(
+            let walking = state.walking_arena(&navigation.arena);
+            let action = navigator.steer_with_visibility(
                 navigation,
                 here,
                 NavigationGoal {
@@ -663,11 +770,14 @@ pub(crate) mod tests {
                 },
                 tick,
                 true,
+                &walking.solids,
             );
             assert!(
                 !action.jump,
                 "ordinary walking routes do not require jumping"
             );
+            let action =
+                navigator.avoid_bodies(&walking, id, &state.contact_bodies(), action, tick);
             state.set_action(id, action);
             state.tick(0.05);
             state.take_events();
@@ -850,21 +960,23 @@ pub(crate) mod tests {
                 navigation.arena.solids.len(),
                 start.elapsed()
             );
+            let ground = if map == crate::sim::MapKind::HoldfastAtoll {
+                crate::maps::holdfast::LAND_HEIGHT
+            } else {
+                0.0
+            };
+            let centre = [0.0, ground, 0.0];
             for pad in map.pickups() {
-                assert_walks(&navigation, [0.0; 3], [pad.x, pad.floor, pad.z]);
-                assert_server_walks(map, &navigation, [0.0; 3], [pad.x, pad.floor, pad.z]);
+                assert_walks(&navigation, centre, [pad.x, pad.floor, pad.z]);
+                assert_server_walks(map, &navigation, centre, [pad.x, pad.floor, pad.z]);
             }
+            let runtime = crate::maps::RuntimeMap::BuiltIn(map);
             for slot in 0..16 {
                 let angle = slot as f32 * std::f32::consts::TAU / 16.0;
-                let from = [
-                    angle.cos() * map.spawn_radius(),
-                    0.0,
-                    angle.sin() * map.spawn_radius(),
-                ];
-                if !navigation.arena.blocked_at(from[0], from[2], STEP_UP) {
-                    assert_walks(&navigation, from, [0.0; 3]);
-                    assert_server_walks(map, &navigation, from, [0.0; 3]);
-                }
+                let (x, z, _, floor) = runtime.spawn(angle);
+                let from = [x, floor, z];
+                assert_walks(&navigation, from, centre);
+                assert_server_walks(map, &navigation, from, centre);
             }
         }
     }

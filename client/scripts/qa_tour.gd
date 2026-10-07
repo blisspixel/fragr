@@ -40,6 +40,7 @@ var _movement_samples: Array[Dictionary] = []
 var _walk_results: Array[Dictionary] = []
 var _m05_ride_report: Dictionary = {}
 var _grenade_strip_report: Dictionary = {}
+var _fire_strip_report: Array[Dictionary] = []
 var _grenade_strip_network: Node
 var _grenade_strip_owner: String = ""
 var _grenade_strip_follow: bool = false
@@ -65,6 +66,7 @@ var _capture_size: Vector2i = Vector2i.ZERO
 var _body_pawn: Node3D = null
 var _body_kind: String = ""
 var _body_team: String = ""
+var _body_frame_clear: bool = false
 ## Frames between the trigger and the first strip frame. The shot is resolved by
 ## the server, so the flash arrives a round trip later, not on the next frame.
 const STRIP_LEAD_FRAMES: int = 2
@@ -156,6 +158,9 @@ func _run() -> void:
 			# Let the scene build and the shaders warm. Judging a game by its
 			# first frame is how a still ends up full of pink placeholders.
 			await create_timer(1.5).timeout
+			var match_manager: Node = _game_manager()
+			if match_manager != null:
+				match_manager.net_client.server_error.connect(_record_network_error)
 			_clock_ms = Time.get_ticks_msec()
 
 		var due_ms: int = int(float(state.get("at_seconds", 0.0)) * 1000.0)
@@ -498,6 +503,7 @@ func _run() -> void:
 		else:
 			_strip_for_state = ""
 			_probe_frames = 0
+			_fire_strip_report.clear()
 			_strip_times_ms.clear()
 			_companion_strip_samples.clear()
 		if state.has("expect_equipment"):
@@ -625,6 +631,10 @@ func _run() -> void:
 			observed["body"] = _body_pawn.get("body_kind")
 			observed["body_team"] = _body_pawn.get("team")
 			observed["body_name"] = _body_pawn.get("player_name")
+			observed["body_frame_clear"] = _body_frame_clear
+		if state.get("camera", "") == "body" and (not is_instance_valid(_body_pawn) or not _body_frame_clear):
+			push_error("qa_tour: no unobstructed named body in " + state_name)
+			_failed = true
 		observed["render_scale"] = root.scaling_3d_scale
 		observed["upscaling"] = root.scaling_3d_mode
 		observed["msaa"] = root.msaa_3d
@@ -1294,6 +1304,7 @@ func _measure() -> Dictionary:
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var trigger: String = state.get("trigger", "")
 	_grenade_strip_report = {}
+	_fire_strip_report.clear()
 	_companion_strip_samples.clear()
 	var interval: float = float(state.get("strip_interval_seconds", 0.0))
 	var walk_action: String = str(state.get("walk_action", "move_forward"))
@@ -1313,12 +1324,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		push_error("qa_tour: no node named " + probe_name + " to watch")
 		_failed = true
 	if trigger == "fire":
-		Input.action_press("fire")
-		# Start at an acknowledged visible flash, not a guessed round trip.
-		if probe != null:
-			var deadline: int = Time.get_ticks_msec() + 2500
-			while not _probe_active(probe, state) and Time.get_ticks_msec() < deadline:
-				await RenderingServer.frame_post_draw
+		await _await_fire_strip(state, probe)
 		if state.get("single_shot", false):
 			Input.action_release("fire")
 	if trigger == "place_mine":
@@ -1375,7 +1381,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	if trigger == "throw_grenade":
 		_finish_grenade_strip()
 	if probe_name != "" and _probe_frames == 0:
-		push_error("qa_tour: shot produced no visible " + probe_name)
+		push_error("qa_tour: shot produced no visible " + probe_name + ": " + JSON.stringify(_fire_strip_report))
 		_failed = true
 	if state.get("expect_expiry", false) and probe != null and _probe_active(probe, state):
 		push_error("qa_tour: effect remained active at the end of its lifetime strip")
@@ -1442,6 +1448,53 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	else:
 		print("qa_tour: %s -> %s (%d frames)" % [state.get("name", ""), file_name, shots.size()])
 
+## Framing can outlive the selected pawn. Reestablish the actual live input
+## premise at the trigger boundary, and permit one respawn if a bot kills it
+## before a visible effect arrives. An alive pawn without an effect still fails.
+func _await_fire_strip(state: Dictionary, probe: Node) -> void:
+	var manager: Node = _game_manager()
+	for attempt: int in range(2):
+		Input.action_release("fire")
+		if not await _wait_live_joined_fighter(str(state.get("name", "fire strip"))):
+			return
+		if state.has("weapon"):
+			await _select_weapon(str(state["weapon"]))
+		if state.has("aim_pitch"):
+			await _set_aim_pitch(float(state["aim_pitch"]))
+		var receipt: Dictionary = {"before": _fire_strip_status(), "respawn_retry": attempt}
+		_fire_strip_report.append(receipt)
+		if not _local_human_alive(manager):
+			receipt["interrupted_by_death"] = true
+			continue
+		Input.action_press("fire")
+		# The named effect must really appear. The timeout and the strip's
+		# visible-frame assertion are unchanged by respawn handling.
+		var deadline: int = Time.get_ticks_msec() + 2500
+		while probe != null and not _probe_active(probe, state) and Time.get_ticks_msec() < deadline:
+			if not _local_human_alive(manager):
+				break
+			await RenderingServer.frame_post_draw
+		receipt["after"] = _fire_strip_status()
+		receipt["effect_seen"] = probe != null and _probe_active(probe, state)
+		if probe == null or receipt["effect_seen"] or _local_human_alive(manager):
+			return
+		receipt["interrupted_by_death"] = true
+		Input.action_release("fire")
+	Input.action_release("fire")
+
+func _fire_strip_status() -> Dictionary:
+	var manager: Node = _game_manager()
+	var equipment: Dictionary = _equipment()
+	var weapon: String = str(manager.call("_local_weapon_name"))
+	return {"tick": manager.latest_snapshot.get("tick", -1),
+		"alive": _local_human_alive(manager), "weapon": weapon,
+		"pitch": _local_server_pitch(manager), "loaded": EquipmentState.shots(equipment, weapon),
+		"blocked": manager.controls_blocked(), "fire_sent": manager.action_state.get("fire", false)}
+
+func _record_network_error(message: String) -> void:
+	push_error("qa_tour: network refused live state: " + message)
+	_failed = true
+
 func _probe_active(probe: Node, state: Dictionary) -> bool:
 	if probe is TextureRect and probe.name == "FpWeapon":
 		# The held Shiv is always drawn; only its thrust is the effect.
@@ -1462,7 +1515,12 @@ func _probe_active(probe: Node, state: Dictionary) -> bool:
 		return probe.visible and probe.dry_seconds > 0.0
 	if probe is ShotEffects:
 		var network: Node = _game_manager().get("net_client")
-		return probe.has_shot_from(str(network.get("player_id")), str(state.get("impact_kind", "")))
+		for effect: ShotEffects.Effect in probe._effects:
+			if effect.shooter == str(network.get("player_id")) \
+				and (not state.has("weapon") or effect.weapon == str(state["weapon"]).to_lower()) \
+				and (not state.has("impact_kind") or effect.kind == str(state["impact_kind"])):
+				return true
+		return false
 	return bool(probe.get("visible"))
 
 func _find_hud() -> Node:
@@ -1529,6 +1587,7 @@ func _observed_state() -> Dictionary:
 		for captive: Node3D in ward._side_captives:
 			captive_views.append([captive.position.x, captive.position.y, captive.position.z])
 	var report: Dictionary = {
+		"fire_strip": _fire_strip_report.duplicate(true),
 		"grenade_strip": _grenade_strip_report.duplicate(true),
 		"m05_review": is_instance_valid(gm.get("departure_review")),
 		"m05_ride": _m05_ride_report.duplicate(true),
@@ -2616,21 +2675,42 @@ func _live_body() -> Node3D:
 			return pawn
 	return null
 
-## Three metres from the fighter toward the arena centre, at chest height,
+## Three metres from the fighter, preferring the arena centre and checking
+## the full body against the same authoritative solids as the real camera.
+static func body_camera_position(feet: Vector3, solids: Array) -> Vector3:
+	var toward: Vector3 = Vector3(-feet.x, 0, -feet.z)
+	toward = toward.normalized() if toward.length() > 0.5 else Vector3.BACK
+	for index: int in range(16):
+		var direction: Vector3 = toward.rotated(Vector3.UP, float(index) * TAU / 16.0)
+		var side: Vector3 = Vector3(-direction.z, 0, direction.x) * 0.45
+		var candidate: Vector3 = feet + direction * 3.0 + Vector3(0, 1.3, 0)
+		var clear: bool = true
+		for height: float in [0.12, 0.95, 1.85]:
+			for offset: Vector3 in [Vector3.ZERO, side, -side]:
+				if not AimAssist.line_of_sight(candidate, feet + Vector3(0, height, 0) + offset, solids):
+					clear = false
+		if clear:
+			return candidate
+	return Vector3.INF
+
+## Holds the accepted body rather than leaving a still behind as it moves,
 ## so the nearest wall is behind the subject rather than in front of it.
 func _hold_body_camera() -> void:
 	var cam: Node = _spectator_camera()
+	_body_frame_clear = false
 	if not is_instance_valid(_body_pawn) or int(_body_pawn.get("hp")) <= 0:
 		# The subject died before the shutter: hold on another who matches.
 		_body_pawn = _live_body()
 	if _body_pawn == null or not cam is Node3D:
 		return
 	var feet: Vector3 = _body_pawn.global_position - Vector3(0, CameraScript.FP_SERVER_REFERENCE_Y, 0)
-	var toward: Vector3 = Vector3(-feet.x, 0, -feet.z)
-	toward = toward.normalized() if toward.length() > 0.5 else Vector3.BACK
+	var position: Vector3 = body_camera_position(feet, cam.get("assist_solids"))
+	if not position.is_finite():
+		return
 	var camera: Node3D = cam
-	camera.global_position = feet + toward * 3.0 + Vector3(0, 1.3, 0)
+	camera.global_position = position
 	camera.look_at(feet + Vector3(0, 0.95, 0), Vector3.UP)
+	_body_frame_clear = true
 	# The pose lock keeps a frag cut or follow step from moving the camera.
 	cam.set("tip_locked_transform", camera.global_transform)
 	cam.set("tip_has_locked_transform", true)
@@ -2643,6 +2723,7 @@ func _release_body_camera() -> void:
 	if cam != null:
 		release_camera_pose_lock(cam)
 	_body_pawn = null
+	_body_frame_clear = false
 
 static func release_camera_pose_lock(cam: Node) -> void:
 	cam.set("tip_pose_lock", false)

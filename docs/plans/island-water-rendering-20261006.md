@@ -33,8 +33,9 @@ no vendor-specific rendering path is required.
 - Five registered water patches plus four decorative horizon strips share one
   opaque material and one 512 x 512 R8 coast texture, 256 KiB before driver overhead.
 - Depth is rasterized from authoritative solids once when the map changes.
-- Water has two broad wave phases. Balanced and High add a fine ripple and 4.5 cm
-  visual displacement. The simulation surface remains the registered flat level.
+- Water has two broad wave phases. Balanced and High add a fine ripple and up to
+  4.5 cm visual displacement, fading to zero at patch edges so different
+  tessellation cannot open seams. The simulation surface remains the registered flat level.
 - Performance, Balanced and High cap nearby boat wakes at 2, 4 and 8. Only moving
   boats within 180 m qualify. Selection updates at 10 Hz; shader motion remains
   continuous. The current fleet contains two boats.
@@ -86,3 +87,50 @@ in [measurement.json](../evidence/water-20261006/measurement.json); the inspecte
 layout before the subsequent wall and terrain art pass. The island still needs
 landscape and encounter dressing. The earlier run with missing optional solid
 bottom handling is rejected as final evidence; its private logs are retained.
+
+## Composed material review, October 7
+
+The production map export now includes the raised supply dais, clear runway and
+coastal spawn revetments verified by the unchanged mixed-client roster gate.
+The updated world was rendered with the selected coastal walls, sand,
+groundcover and revised free synthetic atlas. The
+[art receipt](../evidence/island-art-20261007/receipt.json) retains the map and
+image hashes. Its [shore view](../evidence/island-art-20261007/shore-64-actors-quality-2.png)
+shows 64 animated body presenters and two boats; its
+[overview](../evidence/island-art-20261007/island-overview.png) makes the remaining
+blockout landscape explicit. Close plaster, board and steel views were inspected.
+Visual review caught a blue band where distant sea ended at the camera's far
+plane. Holdfast now uses its fog hue below the horizon; every other venue keeps
+its existing sky behavior. Review also exposed hairline gaps between patches
+with different tessellation. Holding boundary vertices at the registered water
+height removes those cracks while interior waves and continuous surface normals
+retain motion. The corrected overhead and shore views were inspected. Both
+`test_arena_sky.gd` and `test_island_water.gd` pass. Other functional checks ran
+alongside this art pass, so its timing rows remain private diagnostics and do not
+replace a quiet measurement.
+
+## Final quiet sweep, October 7
+
+After native checks and every other owned renderer retired, the same workload
+ran against the final map and corrected shader. Exit was zero with no script or
+shader errors. The [complete measurement](../evidence/water-20261007/measurement.json)
+retains all twelve zero-body and 64-body cases and the MapInfo hash. Hardware,
+renderer, resolution and the 60-frame warmup plus 180-frame sample are unchanged
+from the earlier sweep. The table below describes 64 body presenters and two
+moving boat presenters, not 64 game clients.
+
+| Preset | Water | GPU median ms | GPU p95 ms | Frame p95 ms | Maximum draw calls |
+|---|---|---:|---:|---:|---:|
+| Performance | Off | 0.560 | 0.669 | 1.540 | 202 |
+| Performance | On | 0.628 | 0.691 | 1.721 | 210 |
+| Balanced | Off | 1.114 | 1.299 | 2.409 | 202 |
+| Balanced | On | 1.040 | 1.204 | 2.298 | 210 |
+| High | Off | 1.201 | 1.513 | 2.266 | 202 |
+| High | On | 1.307 | 1.470 | 2.638 | 210 |
+
+These short comparisons remain sensitive to clock and scheduling variance;
+the lower Balanced result with water does not establish a cost reduction.
+The observed differences fit the initial budget on this one renderer.
+Representative sustained play, other hardware and connected matches remain
+separate measurements. The final [art receipt](../evidence/island-art-20261007/receipt.json)
+records the selected source hashes and inspected stills from this run.

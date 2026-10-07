@@ -1,6 +1,7 @@
 # Benchmark preset comparison
 
-Status: in flight.
+Status: implemented. Local evidence recorded; integration remains with the
+composed build.
 
 ## Goal
 
@@ -45,3 +46,11 @@ cross-run recordings can differ; compared presets within one run cannot.
 Local-only, $0. No dependencies, external service, new network channel or
 simulation authority. A representative authored campaign/island showcase,
 64-player server capacity and broad hardware evidence remain separate work.
+
+## Local result
+
+The focused tests and actual menu-to-results renderer route pass. All three
+presets replayed the same 561 snapshots, the owned host stopped before scoring,
+and saved settings remained byte-for-byte unchanged. The inspected local
+780M results, exact scope and commands are in the
+[benchmark evidence](../evidence/benchmark-preset-comparison-20261006.md).

@@ -41,7 +41,11 @@ Inheritance influence and alien/dimensional rumors remain unresolved.
 crowd cheers. Accurate localized captions cover both. Her demand for control,
 the enforced consequences and the crowd's support supply the fascist parallels.
 
-**An Auditor.** Polite, procedural, entirely unbothered. The worst thing it can say to you is a fact. It never raises its voice and never gloats, because to gloat would imply a contest.
+**An Auditor.** Polite and procedural, practiced at containing visible emotion.
+A precise fact can carry more weight than a threat. Pressure may expose grief,
+doubt or frustration in an individual; procedural vocabulary is not an absence
+of inner life. Keep boasting rare and tied to that speaker, rather than using
+one invulnerable villain voice for the whole institution.
 
 **A Level 5 in the arena.** Sport first. Trash talk with no malice underneath it, the way people who like each other talk during a game.
 
@@ -104,6 +108,20 @@ blanket ban on rally crowds, which conflicts with the confirmed opening scene.
 The Office's institutional voice is procedural; individual personnel can be
 sincere, opportunistic, or cruel. Grief does not absolve the institution. Orders
 are enacted through violence as well as paperwork.
+
+Give a Union speaker an immediate concern and a credible account of what the
+order will achieve. That account can be mistaken, self-serving or contradicted
+by its effects without becoming a confession of evil. Let one colleague object
+on practical or ethical grounds, and another agree for different reasons.
+Evidence of competence, a private kindness or an ordinary friendship is not a
+pardon for the harm they choose to cause.
+
+Apply the same specificity to allies. They can underestimate danger, bargain
+over scarce resources, disagree about authority or defend a costly shortcut.
+Do not reserve every reasonable line for them or make the narrator settle the
+argument. The player should understand the immediate task while a brief later
+consequence can change their reading of it. Sincere conviction, including the
+player's, does not end the question.
 
 Use original institutions and characters. Do not imitate or name real broadcasters
 or insert real people into faction roles. Existing legacy names and recorded

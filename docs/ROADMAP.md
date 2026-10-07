@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-05)
+## Where we are (2026-10-07)
 
 [Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
 matching client/server packages and immutable build checks. Bounded development branches use pull requests with
@@ -44,8 +44,12 @@ merged in [PR #369](https://github.com/blisspixel/fragr/pull/369), with its comp
 28-state route, all 17 guards and departure passing. Version 13 retains actual
 crew transit separately from the immutable M09 boarding record. All eight
 reviewed-head CI jobs and all three desktop package checks passed before merge.
-M11 through M20 remain unbuilt. Fresh-player, difficulty and final art acceptance
-remain open for every level. The full build order below owns current sequencing.
+M11 now has a local composed prototype with Remote Mines, the Redactor, version
+14 run carry and a complete ordinary-input rendered departure. Its
+[receipt](evidence/m11-quality-composition-20261006.md) records the exact route
+and remaining review. M12 through M20 remain unbuilt. Fresh-player, difficulty
+and final art acceptance remain open for every level. The full build order
+below owns current sequencing.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
 capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
@@ -337,15 +341,15 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-06)
+## Full build order (updated 2026-10-07)
 
 **Active goal:** build the agreed game through a proven 1.0. On October 6 Nick
 explicitly advanced parallel campaign, vehicle and island work alongside the
 current multiplayer quality pass. The active composition is
 [multiplayer quality](plans/multiplayer-quality-20261006.md): fair bot perception,
 immediate local gun feedback, measured hitscan alignment and bounded snapshot
-delivery, while M11 resumes from its retained checkpoint and the shared jeep
-serves Holdfast Atoll and the M14 launch-works mission. The original island uses
+delivery, alongside M11's locally completed prototype and the shared vehicles
+on Holdfast Atoll. M14's launch-works vehicle mission remains planned. The original island uses
 five capture points, registered swimming water, boats and a flyable courier
 aircraft, following the Wake Island-style request.
 [Holdfast and Conquest](plans/holdfast-conquest-20261006.md) owns the bounded
@@ -366,7 +370,9 @@ clear mechanical handling and strong silhouettes, while preserving pixel craft
 and fast combat. Every lane follows the shared
 [character principle](ART_STORY_BIBLE.md#lives-beyond-the-conflict): people have
 interests, relationships and routines beyond the conflict. Their independence,
-ordinary humor and personal repairs must survive the buildout.
+ordinary humor and personal repairs must survive the buildout. Clear combat
+allegiance does not settle motives or responsibility: institutions need credible
+duties and internal disagreements, and allies answer for their methods too.
 
 The [server excellence](plans/server-excellence.md) measurement table still gates
 population claims. The existing Host, TDM and Sabotage trial remains useful;
@@ -377,7 +383,7 @@ story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follo
 its brief. Current released campaign coverage remains ten prototypes until the
 new mission's integration and acceptance finish.
 
-**Current composition, 2026-10-06.** The numbered rungs below remain the single
+**Current composition, 2026-10-07.** The numbered rungs below remain the single
 build order. Rungs 1 and 2 now run together for the bounded work explicitly
 advanced above; the earlier multiplayer-first pause is superseded for these
 lanes. Historical release receipts below retain their original scope.
@@ -509,9 +515,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      lists and health metrics. Skill and agent control never imply cheating.
      [Fair play](plans/fair-play.md) documents existing bans with expiry and
      planned optional abuse bans, without intrusive player software.
-   - Close blocking feedback on these two modes and their built maps before
-     expanding the campaign. Additional maps/modes remain below; no cloud
-     account, paid inference or paid asset service is required for this slice.
+   - Close blocking feedback on these two modes alongside the explicitly
+     authorized campaign and island work. No cloud account, paid inference or
+     paid asset service is required to play or host this slice.
    - The [server excellence plan](plans/server-excellence.md) is the longer
      aim for this rung and for items 7 and 8. Its first implementation pass
      is a measurement soak of the server that already exists, with no rule
@@ -556,12 +562,19 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      M01 completion and onward save. The selected slice shipped with the combined
      main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
-   Resume the retained M11 native/save checkpoint against current controls and
-   protocol, complete its client/controller and prove carry, retry and departure.
-   In parallel, build the jeep's shared authoritative movement and prediction,
-   Holdfast's Conquest loop and the M14 vehicle mission's infantry fallback.
-   Motorcycle, boat and light-aircraft source candidates do not establish their
-   playable systems. Review each source before further paid stages.
+   Integrate the completed local M11 route, carry and retry with the current
+   controls and wire contract. The same composed build now includes Holdfast's
+   five-site Conquest loop, registered swimming water, jeeps, boats and an
+   arcade light aircraft. Finish their rendered input and art checks, full
+   regression gates and one CI-passing main. Keep source inspection, played
+   quality and measured multiplayer capacity distinct. Then build the M14
+   vehicle mission with its proven infantry fallback. The motorcycle is still
+   source-only; jetpack physics and other mission placements remain planned.
+
+   The menu benchmark compares three presets against one recorded fight and
+   saves average FPS, 1% lows and frame-time statistics. The researched water
+   pass has quality-scaled detail and bounded wakes. Their linked plans retain
+   actual hardware evidence separately from 64-player network acceptance.
 
    *Why:* these are Nick's explicit October 6 priorities. Reusing the same
    vehicle and multiplayer seams makes their integration testable together.

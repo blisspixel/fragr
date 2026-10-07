@@ -69,6 +69,13 @@ fn visible(state: &GameState, bot: &Player, target: &Player) -> bool {
             fighter_chest(target),
             &state.current_arena().solids,
         )
+        && state.vehicles.iter().all(|vehicle| {
+            crate::combat::line_of_sight(
+                fighter_eye(bot),
+                fighter_chest(target),
+                std::slice::from_ref(&crate::vehicles::hull(&vehicle.state)),
+            )
+        })
 }
 
 impl BotSenses {

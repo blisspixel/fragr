@@ -2,19 +2,42 @@
 
 The `tour_*.png` files are the arena tour captured by
 `tools/qa_tour.sh --publish` with Godot 4.7.2-stable and a loopback server.
-The `m01_*.png` files are Recall Notice gameplay from
+The older `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
-proof of good art. The README uses four actual gameplay stills under
-`readme-20261005/`: `shotgun-combat.png`, `low-water-combat.png`,
-`lunar-town.png` and `multiplayer-combat.png`. Refresh a selected still when its
-shown presentation changes; the remaining files stay as dated tour evidence.
+proof of good art. The README uses four stills: the boot menu, Recall Notice
+intake, multiplayer page and watched Arena Duel match. Refresh a selected still
+when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## Current README gallery, October 5, 2026
+## Current README gallery, October 7, 2026
 
-The four current stills were captured afresh against main `400595d0`, using
+The current composition passed the full 32-state visual tour and published
+fourteen stills. They were inspected at full size, including the human and
+synthetic bodies, menus and transient gun effects. A body-camera obstruction
+and a Rail setup race exposed by earlier runs were corrected. The passing run
+includes an actual human death, respawn and continued firing after the native
+facing correction. Its manifest records the actual states, not just their names.
+
+| README image | Actual state |
+|---|---|
+| `m01_intake_16x9.png` | Ordinary human input through the first three Recall Notice room-route states, after clearing the intake guards, Pistol in hand |
+| `tour_menu_16x9.png` | Boot menu with campaign, multiplayer, settings and benchmark entries |
+| `tour_multiplayer_16x9.png` | Populated join page after a real loopback status probe, with the saved host and bounded scrolling content |
+| `tour_combat_follow_16x9.png` | Spectator chase view of an Active Arena Duel round with rule bots |
+
+The [receipt](readme-20261007.json) records image, route, QA-source and native
+hashes. All selected images are copied without retouching, cropping or resizing.
+The intake is a three-state prefix, not a full campaign completion. The updated
+multiplayer page has a separate focused render after its scrolling correction.
+The tour uses isolated settings and history, Godot 4.7.2-stable, Windows,
+OpenGL Compatibility, an AMD Radeon 780M and 1280x720 output. These screenshots
+do not establish final art, human enjoyment, LAN behavior or hardware performance.
+
+## Previous README gallery, October 5, 2026
+
+The four stills under `readme-20261005/` were captured against main `400595d0`, using
 its matching private release server. The later asset-receipt main `d511a0ed`
 has byte-identical runtime source and selected artwork. Each selected PNG is
 copied without cropping, retouching or resolution changes. The

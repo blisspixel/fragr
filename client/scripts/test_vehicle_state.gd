@@ -147,6 +147,7 @@ func _presentation() -> void:
 	world.queue_free()
 
 func _prediction() -> void:
+	_check(VehicleStep.seat_feet(Vector3.ZERO, 0.0, "driver", "light_aircraft").is_equal_approx(Vector3(1.45, 0.8, 0.0)), "pilot seat is centered under the authored clear windscreen")
 	var predict: VehiclePrediction = VehiclePrediction.new()
 	predict.configure_map({"map_id": 7, "geometry_version": 2, "half_extent": 64.0, "solids": []})
 	var snapshot: Dictionary = _snapshot()

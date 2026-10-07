@@ -401,9 +401,4 @@ fn live_m08_retry_restores_entry_mines_and_completion_saves_actual_exit() {
         serde_json::from_value::<MissionId>(serde_json::json!("right_of_search")).unwrap(),
         MissionId::RightOfSearch
     );
-    assert_eq!(
-        crate::protocol::GAMEPLAY_VERSION,
-        crate::protocol::M11_GAMEPLAY_VERSION,
-        "current gameplay includes M11 without rewriting earlier carry"
-    );
 }

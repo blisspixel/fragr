@@ -252,11 +252,6 @@ fn m11_live_readiness_safe_entry_and_three_neutrals_are_authoritative() {
     let facts = s.state.mission_state().unwrap().m11.unwrap();
     assert_eq!(facts.challenges, M11ChallengeState::default());
     assert!(s.state.map.requires_m11_contract());
-    assert_eq!(
-        crate::protocol::GAMEPLAY_VERSION,
-        crate::protocol::M11_GAMEPLAY_VERSION,
-        "tender lifecycle uses its own current capability"
-    );
 }
 
 #[test]
@@ -513,6 +508,7 @@ async fn m11_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
     for version in [
         crate::protocol::RELOAD_GAMEPLAY_VERSION,
         crate::protocol::M11_GAMEPLAY_VERSION,
+        crate::protocol::GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();

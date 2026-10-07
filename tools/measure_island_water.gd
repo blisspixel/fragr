@@ -103,6 +103,17 @@ func _run() -> void:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	view.get_texture().get_image().save_png(output.path_join("island-overview.png"))
+	# Inspect the selected wall tiles at ordinary eye height as well as the sea.
+	for angle: Dictionary in [
+		{"name": "harbour-plaster", "eye": Vector3(-134, 4.6, 88), "look": Vector3(-134, 5.2, 77)},
+		{"name": "village-boards", "eye": Vector3(-132, 4.6, -7), "look": Vector3(-132, 5.2, -19)},
+		{"name": "airfield-steel", "eye": Vector3(-43, 4.6, -106), "look": Vector3(-43, 5.2, -97)},
+	]:
+		camera.position = angle["eye"]
+		camera.look_at(angle["look"])
+		await process_frame
+		await RenderingServer.frame_post_draw
+		view.get_texture().get_image().save_png(output.path_join(str(angle["name"]) + ".png"))
 	var receipt: Dictionary = {"schema": 1, "kind": "offline_presenter_workload", "renderer": RenderingServer.get_current_rendering_method(), "gpu": RenderingServer.get_video_adapter_name(), "resolution": [1280, 720], "map_sha256": FileAccess.get_sha256(args[0]), "rows": rows}
 	var file: FileAccess = FileAccess.open(output.path_join("measurement.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify(receipt, "\t") + "\n")

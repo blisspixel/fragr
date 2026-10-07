@@ -143,6 +143,7 @@ var _leaving: bool = false
 ## stops on the way out. A server left up for other people is a different process.
 var _benchmark: bool = false
 var _benchmark_started: bool = false
+var _benchmark_compare: bool = false
 var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
@@ -264,8 +265,9 @@ func _ready():
 	
 	var boot = _resolve_boot()
 	_benchmark = bool(boot.get("benchmark", false))
+	_benchmark_compare = bool(boot.get("benchmark_compare", false))
 	if _benchmark:
-		BenchmarkRun.present_uncapped()
+		_prepare_benchmark_presentation()
 	if boot.get("mode") == "campaign":
 		local_match = LocalMatch.for_tree(get_tree())
 		_opening_finished = boot.get("run_mode") == "resume" and not bool(boot.get("play_arrival", false))
@@ -536,6 +538,8 @@ func _setup_frontend() -> void:
 	console.preferences = settings
 	console.name = "FragrConsole"
 	add_child(console)
+	if _benchmark:
+		_prepare_benchmark_presentation()
 	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
 	frame_counter.name = "PerformanceOverlay"
 	frame_counter.preferences = settings
@@ -558,9 +562,13 @@ func _apply_preferences() -> void:
 
 func _apply_render_preferences() -> void:
 	var world: WorldEnvironment = _find_world_environment(self)
-	RenderQuality.apply(get_viewport(), settings, world.environment if world != null else null)
-	RenderQuality.apply_practicals(self, settings)
-	RenderQuality.apply_dither(self, get_viewport(), settings)
+	var active_settings: FragrSettings = settings
+	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+	if run != null and run.render_settings != null:
+		active_settings = run.render_settings
+	RenderQuality.apply(get_viewport(), active_settings, world.environment if world != null else null)
+	RenderQuality.apply_practicals(self, active_settings)
+	RenderQuality.apply_dither(self, get_viewport(), active_settings)
 
 func controls_blocked() -> bool:
 	if _benchmark:
@@ -682,6 +690,12 @@ func _reveal_world_after_draw(generation: int) -> void:
 	if _benchmark:
 		_start_benchmark_run()
 
+func _prepare_benchmark_presentation() -> void:
+	BenchmarkRun.present_uncapped()
+	if console != null:
+		console.set_open(false)
+		console.set_process_unhandled_input(false)
+
 func _start_benchmark_run() -> void:
 	if _benchmark_started:
 		return
@@ -693,6 +707,9 @@ func _start_benchmark_run() -> void:
 	var run: BenchmarkRun = BenchmarkRun.new()
 	run.name = "BenchmarkRun"
 	run.camera = camera
+	run.manager = self
+	run.preferences = settings
+	run.compare_all = _benchmark_compare
 	run.finished.connect(_on_benchmark_finished)
 	run.dismissed.connect(_on_leave_requested)
 	add_child(run)
@@ -808,7 +825,7 @@ func _resolve_boot() -> Dictionary:
 		if typeof(meta) == TYPE_DICTIONARY:
 			var benchmark: Dictionary = BenchmarkRun.read_boot(meta)
 			if not benchmark.is_empty():
-				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true}
+				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true, "benchmark_compare": benchmark["benchmark_compare"]}
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":

@@ -684,6 +684,10 @@ func set_tick(tick: int):
 		tick_label.text = "Time: " + str(seconds) + "s"
 
 func set_round_info(state: String, time_left: int, frag_limit: int):
+	# Retained state also clears the card after a late join or recorded replay,
+	# where the separate RoundStart notice may not have been observed.
+	if state != "Warmup" and warmup_tv_active:
+		hide_warmup_tv()
 	round_chrome_state = state
 	_update_broadcast_chrome(state)
 	if not round_label:

@@ -1,6 +1,6 @@
 # Immediate local fire feedback
 
-Status: **in flight**, 2026-10-06. Part of the current small-match fight pass
+Status: **implemented**, local evidence through 2026-10-07. Part of the current small-match fight pass
 in [server excellence](server-excellence.md).
 
 ## Goal
@@ -77,6 +77,12 @@ Local checks on 2026-10-06, Godot 4.7.2-stable:
 The first complete client checker was stopped during parsing when the disk
 filled. Its partial log and the original zero-byte captures are not passing
 evidence. After generated build cleanup, all four images were regenerated
-successfully. The complete checker and published tour still await the composed
-server build. Two-machine latency, listening and fresh-player acceptance
-remain open. No paid calls were made.
+successfully. The October 7 composed checker parsed all 323 scripts; its five
+failed harnesses passed focused corrections recorded in the
+[client receipt](../evidence/godot-quality-20261007.md). The subsequent full tour
+passed all 32 states and published inspected stills, including visible Rail and
+Scatter effects and actual death, respawn and continued fire. The initial
+capture race and invalid native respawn facing were fixed without weakening
+effect or movement validation. Final whole-client platform validation belongs
+to CI. Two-machine latency, listening and fresh-player acceptance remain open.
+No paid calls were made.

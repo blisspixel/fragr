@@ -137,7 +137,9 @@ func _run() -> void:
 	_check(first != null and first.text == "SINGLE PLAYER", "Benchmark does not take the first focus")
 	await menu._show("benchmark")
 	var run_button: Button = menu.find_child("RunBenchmark", true, false) as Button
-	_check(run_button != null and run_button.text == "RUN BENCHMARK", "the benchmark page can run")
+	_check(run_button != null and run_button.text == "RUN CURRENT PRESET", "the benchmark page can run the current preset")
+	var compare_button: Button = menu.find_child("CompareBenchmark", true, false) as Button
+	_check(compare_button != null and compare_button.text == "COMPARE ALL THREE", "the benchmark page can compare every preset")
 	menu._cancel_benchmark()
 	await process_frame
 	_check(menu.get("_page") == "main" and not bool(menu.get("_benchmark_pending")), "cancel returns to the main menu without a pending match")

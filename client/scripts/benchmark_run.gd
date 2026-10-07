@@ -1,11 +1,10 @@
 extends Node
 class_name BenchmarkRun
 
-## One scored scene: a fixed camera over a live local bot match.
+## One recorded local bot match and the same camera for every graphics preset.
 ## The warm-up is discarded. Frames are whole: a frame that starts during the
 ## warm-up is not scored, and scoring stops once the kept frames add up to the
-## window. This is not the nine-scene showcase. A live match is a different
-## fight every run, so the numbers to compare are the frame times.
+## window. Recording a new run can produce a different fight.
 
 signal finished(report: Dictionary)
 signal dismissed
@@ -34,6 +33,7 @@ var final_report: Dictionary = {}
 var output_directory: String = ""
 var _output_size: Vector2i = Vector2i.ZERO
 var _capture_started_usec: int = 0
+var _preparing_started_usec: int = 0
 var _restored: bool = false
 
 static func workload() -> Dictionary:
@@ -60,7 +60,8 @@ static func read_boot(meta: Variant) -> Dictionary:
 	var host: String = str(meta.get("host", "")).strip_edges()
 	if host.is_empty():
 		return {}
-	return {"benchmark": true, "host": host, "benchmark_compare": meta.get("benchmark_compare") == true}
+	var compare: Variant = meta.get("benchmark_compare", false)
+	return {"benchmark": true, "host": host, "benchmark_compare": typeof(compare) == TYPE_BOOL and bool(compare)}
 
 static func present_uncapped() -> void:
 	Engine.max_fps = 0
@@ -242,6 +243,13 @@ func show_score(report: Dictionary, settings: FragrSettings) -> void:
 	column.add_child(back)
 
 func _process(_delta: float) -> void:
+	if manager != null and _output_size != Vector2i.ZERO and phase in ["capturing", "preparing", "priming", "scoring"] and get_window().size != _output_size:
+		_fail("The window size changed. Run again to compare the same resolution.")
+		return
+	if phase == "preparing":
+		if Time.get_ticks_usec() - _preparing_started_usec > 5000000:
+			_fail("Keep the game window visible, then run the benchmark again.")
+		return
 	if phase == "capturing":
 		if Time.get_ticks_usec() - _capture_started_usec > 45000000:
 			_fail("The local match did not finish loading. Please run the benchmark again.")
@@ -252,8 +260,14 @@ func _process(_delta: float) -> void:
 		return
 	if phase != "priming" and phase != "scoring":
 		return
-	if manager != null and get_window().size != _output_size:
-		_fail("The window size changed. Run again to compare the same resolution.")
+	if manager != null:
+		if Time.get_ticks_usec() - _last_usec > 2000000:
+			_fail("Keep the game window visible, then run the benchmark again.")
+		return
+	_measure_drawn_frame()
+
+func _measure_drawn_frame() -> void:
+	if phase not in ["priming", "scoring"]:
 		return
 	var now: int = Time.get_ticks_usec()
 	if _last_usec < 0:
@@ -311,10 +325,17 @@ func _start_capture() -> void:
 	if preferences == null:
 		_fail("The benchmark could not read your graphics settings.")
 		return
-	presets = [0, 1, 2] if compare_all else [int(preferences.get_value("video", "quality"))]
+	presets.clear()
+	if compare_all:
+		presets.assign([0, 1, 2])
+	else:
+		presets.append(int(preferences.get_value("video", "quality")))
 	capture.map_info = manager.current_map_info.duplicate(true)
+	_output_size = get_window().size
 	phase = "capturing"
 	_capture_started_usec = Time.get_ticks_usec()
+	preferences.changed.connect(_on_preferences_changed)
+	RenderingServer.frame_post_draw.connect(_measure_drawn_frame)
 	manager.net_client.snapshot_received.connect(_capture_snapshot)
 	_capture_snapshot(manager.latest_snapshot)
 	_refresh_banner()
@@ -328,7 +349,12 @@ func _capture_snapshot(snapshot: Dictionary) -> void:
 		_fail(capture.error)
 	elif capture.complete():
 		phase = "preparing"
+		_preparing_started_usec = Time.get_ticks_usec()
 		_finish_capture.call_deferred()
+
+func _on_preferences_changed() -> void:
+	if phase in ["capturing", "preparing", "priming", "scoring"]:
+		_fail("Settings changed during the benchmark. Run again for a consistent comparison.")
 
 func _finish_capture() -> void:
 	if not is_inside_tree() or phase != "preparing":
@@ -343,10 +369,16 @@ func _finish_capture() -> void:
 	_begin_preset()
 
 func _begin_preset() -> void:
+	if not is_inside_tree() or phase != "preparing":
+		return
 	phase = "preparing"
+	_preparing_started_usec = Time.get_ticks_usec()
+	set_process(true)
 	render_settings = preferences.draft()
 	render_settings.set_value("video", "quality", presets[preset_index])
 	manager._clear_world()
+	manager.hud.reset_host_chrome()
+	manager.ended_podium_shown = false
 	manager._on_map_info(capture.map_info.duplicate(true))
 	manager._apply_render_preferences()
 	present_uncapped()
@@ -355,9 +387,11 @@ func _begin_preset() -> void:
 		manager._on_snapshot_received(snapshot)
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
-	if not is_inside_tree():
+	if not is_inside_tree() or phase != "preparing":
 		return
-	_output_size = get_window().size
+	if get_window().size != _output_size:
+		_fail("The window size changed. Run again to compare the same resolution.")
+		return
 	_begin_measurement()
 
 func _preset_finished(summary: Dictionary) -> void:
@@ -369,9 +403,13 @@ func _preset_finished(summary: Dictionary) -> void:
 	var world_size: Vector2i = Vector2i(Vector2(_output_size) * get_viewport().scaling_3d_scale)
 	summary["world_size"] = [world_size.x, world_size.y]
 	summary["settings"] = render_settings._values["video"].duplicate(true)
+	summary["settings"]["vsync"] = false
+	summary["settings"]["fps_cap"] = 0
 	results.append(summary)
 	preset_index += 1
 	if preset_index < presets.size():
+		phase = "preparing"
+		_preparing_started_usec = Time.get_ticks_usec()
 		_begin_preset.call_deferred()
 		return
 	_restore()
@@ -380,7 +418,7 @@ func _preset_finished(summary: Dictionary) -> void:
 		"renderer": RenderingServer.get_current_rendering_method(), "driver": RenderingServer.get_current_rendering_driver_name(),
 		"adapter": RenderingServer.get_video_adapter_name(), "adapter_vendor": RenderingServer.get_video_adapter_vendor(),
 		"graphics_api": RenderingServer.get_video_adapter_api_version(), "engine": Engine.get_version_info()["string"],
-		"os": OS.get_name(), "measurement": "whole rendered frame cadence, uncapped, vertical sync disabled",
+		"os": OS.get_name(), "measurement": "RenderingServer.frame_post_draw cadence, uncapped, vertical sync disabled",
 		"warmup_seconds": PRIME_SECONDS, "score_seconds": SCORE_SECONDS,
 		"low_1_definition": "1000 / mean(slowest ceil(frame_count * 0.01) frame times in milliseconds)",
 		"percentile_definition": "inclusive linear rank (count - 1) * percentile / 100",
@@ -395,17 +433,28 @@ func _restore() -> void:
 		return
 	_restored = true
 	render_settings = null
-	if is_instance_valid(manager):
+	if is_instance_valid(manager) and manager.is_inside_tree():
 		manager._apply_render_preferences()
 	restore_presentation(preferences)
 
 func _exit_tree() -> void:
+	phase = "done"
+	set_process(false)
+	if RenderingServer.frame_post_draw.is_connected(_measure_drawn_frame):
+		RenderingServer.frame_post_draw.disconnect(_measure_drawn_frame)
 	_restore()
 
 func _fail(message: String) -> void:
 	phase = "done"
 	set_process(false)
 	_restore()
+	if is_instance_valid(manager) and manager.get("net_client") != null:
+		if manager.net_client.snapshot_received.is_connected(_capture_snapshot):
+			manager.net_client.snapshot_received.disconnect(_capture_snapshot)
+		manager.net_client.disconnect_from_server()
+	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
+	if host != null:
+		host.stop()
 	final_report = {"schema_version": 2, "error": message, "runs": []}
 	finished.emit(final_report)
 

@@ -106,7 +106,7 @@ func _peer(address: String, role: String, callsign: String) -> Node:
 
 func _start(mode: String, bots: int, policy: String = "fixed", target: int = 0) -> LocalHost:
 	await current_scene._show("host")
-	current_scene._host_mode.select(1 if mode == "sabotage" else 0)
+	current_scene._host_mode.select(["tdm", "sabotage", "conquest"].find(mode))
 	current_scene._host_mode.item_selected.emit(current_scene._host_mode.selected)
 	current_scene._host_bot_policy.select(["fixed", "none", "auto"].find(policy))
 	current_scene._host_bot_policy.item_selected.emit(current_scene._host_bot_policy.selected)
@@ -126,7 +126,7 @@ func _preset(mode: String) -> bool:
 	var pid: int = owner.process._pid
 	var child: LocalProcess = owner.process
 	var address: String = owner.url
-	var map_id: int = 4 if mode == "sabotage" else 1
+	var map_id: int = 4 if mode == "sabotage" else 7 if mode == "conquest" else 1
 	(current_scene._root.get_node("WatchHosted") as Button).pressed.emit()
 	if not await _until(func() -> bool: return _playing(map_id), "Watch enters the real hosted map"):
 		return false
@@ -255,7 +255,7 @@ func _run() -> void:
 	_expect(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "ordinary boot scene loads")
 	await process_frame
 	await process_frame
-	for mode: String in ["tdm", "sabotage"]:
+	for mode: String in ["tdm", "sabotage", "conquest"]:
 		if not await _preset(mode):
 			return
 		if not await _automatic(mode):
@@ -306,9 +306,9 @@ func _run() -> void:
 			peer.queue_free()
 	peers.clear()
 	await process_frame
-	_expect(retiring_radio.size() == 5 and _radio_retired(), "all five actual hosted scene radio decoders are retired before quit")
+	_expect(retiring_radio.size() == 7 and _radio_retired(), "all seven actual hosted scene radio decoders are retired before quit")
 	if failures == 0:
-		print("test_desktop_host: five actual radio decoders retired PASS")
+		print("test_desktop_host: seven actual radio decoders retired PASS")
 	if failures == 0:
 		print("test_desktop_host: PASS")
 	quit(0 if failures == 0 else 1)

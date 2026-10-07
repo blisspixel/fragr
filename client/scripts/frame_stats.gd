@@ -172,14 +172,15 @@ static func _share_at_or_above(intervals: PackedFloat32Array, elapsed: float, li
 		return 0.0
 	var total: float = 0.0
 	for interval: float in intervals:
-		if interval >= limit:
+		# Packed float storage can round an exact millisecond boundary down.
+		if interval >= limit - 0.00000001:
 			total += interval
 	return total / elapsed
 
 static func _count_at_or_above(intervals: PackedFloat32Array, limit: float) -> int:
 	var count: int = 0
 	for interval: float in intervals:
-		if interval >= limit:
+		if interval >= limit - 0.00000001:
 			count += 1
 	return count
 

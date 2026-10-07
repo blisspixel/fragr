@@ -115,14 +115,7 @@ static func _blockers(snapshot: Dictionary, identity: int) -> Array[Dictionary]:
 				occupants[vehicle[seat]] = true
 		if int(vehicle["id"]) == identity:
 			continue
-		var at: Vector3 = GrenadeFacts.vector(vehicle["position"])
-		var c: float = absf(cos(float(vehicle["yaw"])))
-		var s: float = absf(sin(float(vehicle["yaw"])))
-		var size: Vector3 = VehicleMediumStep.dimensions(str(vehicle["kind"]))
-		var width: float = c * size.x + s * size.y
-		var depth: float = s * size.x + c * size.y
-		result.append({"min_x": at.x - width, "max_x": at.x + width, "min_z": at.z - depth,
-			"max_z": at.z + depth, "bottom": at.y, "top": at.y + size.z})
+		result.append(VehicleState.hull(vehicle))
 	for actor: Dictionary in snapshot.get("players", []):
 		if occupants.has(actor.get("id")) or float(actor.get("hp", 0)) <= 0.0 or not actor.get("collidable", true):
 			continue

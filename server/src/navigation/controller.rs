@@ -83,19 +83,22 @@ impl Navigator {
         allow_search: bool,
         visibility: &[Solid],
     ) -> Action {
+        let mut arena = crate::movement::Arena {
+            half: world.arena.half,
+            solids: visibility.to_vec(),
+        };
+        arena
+            .solids
+            .extend(snapshot.vehicles.iter().map(crate::vehicles::hull));
         let steered = self.route_snapshot_with_visibility(
             world,
             id,
             snapshot,
             action,
             allow_search,
-            visibility,
+            &arena.solids,
         );
         let bodies = Self::snapshot_bodies(snapshot);
-        let arena = crate::movement::Arena {
-            half: world.arena.half,
-            solids: visibility.to_vec(),
-        };
         self.avoid_bodies(&arena, id, &bodies, steered, snapshot.tick)
     }
 
@@ -120,7 +123,7 @@ impl Navigator {
                     key: p.id.to_string(),
                     from,
                     proposed: from,
-                    height: crate::combat::target_height(p.campaign),
+                    height: crate::combat::body_height(p.campaign, p.ducking),
                     radius: crate::movement::RADIUS,
                     jump: false,
                 }
@@ -490,6 +493,20 @@ impl Navigator {
         allow_search: bool,
         visibility: &[Solid],
     ) -> Action {
+        // Runtime cover appends vehicle hulls to the immutable map. Moving
+        // campaign worlds may replace solids, so retain a safe fallback there.
+        let obstacles: std::borrow::Cow<'_, [Solid]> =
+            if visibility.starts_with(&world.arena.solids) {
+                std::borrow::Cow::Borrowed(&visibility[world.arena.solids.len()..])
+            } else {
+                std::borrow::Cow::Owned(
+                    visibility
+                        .iter()
+                        .filter(|solid| !world.arena.solids.contains(solid))
+                        .copied()
+                        .collect(),
+                )
+            };
         if tick < self.last_tick
             || self
                 .last_position
@@ -535,6 +552,7 @@ impl Navigator {
             && tick.is_multiple_of(4)
             && distance(from, destination) <= 32.0
             && world.walkable(from, destination)
+            && Navigation::obstacle_clear(from, destination, &obstacles)
         {
             self.points.clear();
             return action;
@@ -550,19 +568,23 @@ impl Navigator {
                 from[2] + (destination[2] - from[2]) * fraction,
             ];
             probe[1] = world.floor_below(probe).unwrap_or(from[1]);
-            if world.walkable(from, probe) {
+            if world.walkable(from, probe) && Navigation::obstacle_clear(from, probe, &obstacles) {
                 return action;
             }
         }
         let changed = self.destination.is_none_or(|old| {
             distance(old, destination) > 4.0 || (old[1] - destination[1]).abs() > STEP_UP
         });
-        let needs_search = self.points.is_empty() || changed || self.stalled_ticks >= 10;
+        let blocked = self
+            .points
+            .front()
+            .is_some_and(|point| !Navigation::obstacle_clear(from, *point, &obstacles));
+        let needs_search = self.points.is_empty() || changed || blocked || self.stalled_ticks >= 10;
         if needs_search && allow_search && tick >= self.next_search_tick {
             self.next_search_tick = tick.saturating_add(20);
             self.destination = Some(destination);
             self.stalled_ticks = 0;
-            let route = world.route(from, destination, SEARCH_LIMIT);
+            let route = world.route_avoiding(from, destination, SEARCH_LIMIT, &obstacles);
             self.points = if matches!(
                 route.status,
                 RouteStatus::Complete | RouteStatus::BudgetExhausted
@@ -574,10 +596,9 @@ impl Navigator {
         }
         while let Some(&point) = self.points.front() {
             let near = distance(from, point) < 0.3 && (from[1] - point[1]).abs() < 0.1;
-            let can_continue = self
-                .points
-                .get(1)
-                .is_none_or(|next| world.walkable(from, *next));
+            let can_continue = self.points.get(1).is_none_or(|next| {
+                world.walkable(from, *next) && Navigation::obstacle_clear(from, *next, &obstacles)
+            });
             if !near || !can_continue {
                 break;
             }

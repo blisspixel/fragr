@@ -48,6 +48,7 @@ class Preset extends RefCounted:
 	var sky_top: Color
 	var sky_horizon: Color
 	var ground_horizon: Color
+	var haze_below_horizon: bool = false
 	var fog_color: Color
 	var fog_density: float
 	## The flat ambient tint. This is the floor under every light, not the sky.
@@ -213,6 +214,11 @@ static func preset_for(map_name: String) -> Preset:
 static func holdfast() -> Preset:
 	var preset: Preset = Preset.new(Color("367c9a"), Color("aec8bd"),
 		Color("558886"), Color("adbfaa"), 0.0014, Color("c3d3bd"), 0.68)
+	# The distant sea fades into the same haze below the horizon. A separate
+	# ground-sky color otherwise exposes a blue stripe beyond the camera's far plane.
+	preset.sky_horizon = preset.fog_color
+	preset.ground_horizon = preset.fog_color
+	preset.haze_below_horizon = true
 	preset.key_color = Color("ffe4ad")
 	preset.key_energy = 1.25
 	preset.scene_fill_energy = 0.12
@@ -308,7 +314,7 @@ static func build_environment(map_name: String = "") -> Environment:
 	var sky_material: ProceduralSkyMaterial = ProceduralSkyMaterial.new()
 	sky_material.sky_top_color = preset.sky_top
 	sky_material.sky_horizon_color = preset.sky_horizon
-	sky_material.ground_bottom_color = preset.sky_top
+	sky_material.ground_bottom_color = preset.fog_color if preset.haze_below_horizon else preset.sky_top
 	sky_material.ground_horizon_color = preset.ground_horizon
 	sky_material.sun_angle_max = 30.0
 	sky_material.energy_multiplier = 1.0

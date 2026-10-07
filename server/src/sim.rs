@@ -282,11 +282,11 @@ pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
         // point on a map whose spawn rim is itself a terrace.
         let floor = floor_height(map, x, z, f32::INFINITY);
         if !circle_blocked(map, x, z, floor + STEP_UP) {
-            return (x, z, a + PI, floor);
+            return (x, z, crate::movement::normalize_yaw(a + PI), floor);
         }
         a += PI / 8.0;
     }
-    (0.0, 0.0, angle + PI, 0.0)
+    (0.0, 0.0, crate::movement::normalize_yaw(angle + PI), 0.0)
 }
 
 /// Result of attempting an off-tick speak.
@@ -3197,7 +3197,7 @@ impl GameState {
                     let board = p.statistics.board();
 
                     PlayerState {
-                        collidable: self.contact_eligible(p),
+                        collidable: self.contact_eligible(p) && self.vehicle_seat(p.id).is_none(),
                         campaign: p.campaign,
                         id: p.id,
                         name: p.name.clone(),

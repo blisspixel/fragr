@@ -4,7 +4,11 @@ The Office of Global Continuance is the machinery. The Chancellery is the will t
 
 [The Office](./continuance.md) contains sincere functionaries, careerists, and
 willing perpetrators. Its procedural voice can be polite and competent while
-its actions remain brutal. The Chancellery is what happens when a grief is useful to somebody. An Auditor believes the forms. The Chancellery believes the forms are a very good way to get what it wanted anyway.
+its actions remain brutal. The Chancellery turns public grief into durable
+authority. Some leaders believe central control prevents another catastrophe;
+others protect careers, patrons or power. A person can hold both motives.
+Officials disagree about priorities and methods, and those disagreements can
+matter without making the institution harmless.
 
 ## What it actually is
 
@@ -72,6 +76,21 @@ over Earth and the main offworld routes. Independent communities remained outsid
 its effective reach, even when its maps refused to admit them.
 
 ## Felt, never named
+
+The 2026-10-06 direction asks for credible institutions and people, with clear
+combat sides and a more difficult judgment on reflection. Keep the Union's
+established coercion and the player's free-side viewpoint. Show why people
+depend on or support its services, which fears are grounded, which choices
+exploit those fears and what alternatives someone actually had. Competence,
+public support and good intentions do not settle whether a method is justified.
+
+Different parts of the institution can work at cross-purposes. A dispatcher
+trying to keep a route open and a commander closing it for a recall have
+specific duties and choices; neither needs to announce a philosophy. Such
+examples guide future scenes rather than establishing new plot events. Free
+communities also carry incompatible obligations and contested uses of power.
+Their allegiance cannot certify every action as good, and an individual Union
+worker's decency cannot discharge the regime's responsibility.
 
 Design subtext, confirmed with Nick on 2026-09-24, updated 2026-09-25. The
 Union is the Europe-centered bloc in [history](./history.md) grown into one
@@ -266,9 +285,15 @@ commanders, and institutions remain responsible for what they authorize and do.
 
 ## Regulated to the point of comedy
 
-The Union's horror is bureaucratic, not gothic, and it is genuinely funny. This is not a tonal accident, it is load-bearing: a regime that is only frightening becomes tiring in about ninety minutes, and one that is frightening and absurd stays interesting all day.
+Institutional absurdity can be funny because a person is trying to get a real
+job done within contradictory rules. Give the rule a history, a beneficiary or
+a practical failure. Sometimes the process works. Sometimes a person bends it,
+conceals a failure or openly chooses force. Universal incompetence and perfectly
+filed cruelty make the institution less believable.
 
-The rule for writing it: **the Union never does anything cruel without filing it correctly.** The paperwork is always funnier than the atrocity, and the paperwork is always real.
+The joke belongs to the process or the speaker's predicament. Harm retains its
+consequences and need not carry a punchline. Use the following examples
+sparingly; they are individual absurdities, not the behavior of every office:
 
 - Weapons are procured as office supplies, because the requisition category for armament requires a review the Office does not wish to schedule.
 - Every fighter in a sanctioned bout is issued a numbered placard, and losing the placard is a separate offence from losing the bout.

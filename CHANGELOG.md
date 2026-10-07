@@ -4,6 +4,32 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.79.0 (2026-10-07)
+
+- Add Right of Search, the eleventh connected campaign prototype, with the
+  Redactor, deliberate Remote Mines, optional transfer and record outcomes,
+  version 14 saved carry and an actual stern departure.
+- Add Holdfast Atoll's five-site Conquest prototype, registered swimming water,
+  three jeeps, two boats and a light aircraft. Original coastal materials,
+  quality-scaled waves and bounded wakes support the island's development art.
+- Add human magazines and manual reload, crouching, immediate local firing
+  feedback, bounded bot perception and bot equipment handling. Replace obsolete
+  unsent motion while retaining combat and mission facts.
+- Compare graphics presets against one recorded ten-bot fight. Show average
+  FPS, 1% lows, frame-time percentiles and slow frames, with local JSON/CSV
+  results and automatic restoration of the player's settings.
+- Add the built-in dedicated night playlist, local server favorites and LAN
+  discovery, plus the process-local wire board. Refresh the free synthetic body.
+- Extend desktop Host to Conquest and keep long server lists scrollable. Fix
+  invalid respawn facing, vehicle contact and boarding gaps, and exposed island
+  spawn lanes. Keep water patch boundaries closed and the distant horizon continuous.
+- Give story and art guidance credible institutional motives, ordinary lives,
+  internal disagreements and consequences for every side's methods.
+
+These are development prototypes. Full campaign completion, final art,
+fresh-player acceptance, physical LAN evidence and a networked 64-player
+capacity claim remain open.
+
 ## v0.78.0 (2026-10-05)
 
 - A dedicated arcade server can open a local venue desk with `--console`.

@@ -34,6 +34,12 @@ the seams. Snapshot state includes site geometry and retained ownership,
 capturing side, progress, contested state and ticket counts. No parallel port,
 client scoring or persistent conquest ledger.
 
+The desktop Host page adds Conquest with Holdfast selected through the existing
+owned native process, readiness, Watch/Join/Menu and Stop path. It keeps the
+existing ten-bot menu bound and none/fixed/automatic policies. This gives the
+prototype normal player access without implying a larger population limit has
+been accepted. Other desktop match presets keep their existing map choices.
+
 Prove capture, contest, neutralization, decay, death debit, bleed, reset,
 end-of-round and malformed client boundaries. Validate all site and vehicle
 approaches against collision and shared navigation. Then run a composed match

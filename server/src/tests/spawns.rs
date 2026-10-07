@@ -52,13 +52,14 @@ fn tripoint_opening_places_a_full_roster_behind_cover() {
 const CONTACT_RANGE: f32 = 2.0 * crate::movement::TOP_SPEED * 2.0 + 12.0;
 
 /// The mixed-client roster each map is played with in `tools/playtest_roster.sh`.
-const PLAYTEST_ROSTER: [(MapKind, u128); 6] = [
+const PLAYTEST_ROSTER: [(MapKind, u128); 7] = [
     (MapKind::ArenaDuel, 2),
     (MapKind::ComplianceYard, 6),
     (MapKind::Directive17, 6),
     (MapKind::Sector9, 8),
     (MapKind::ReclamationGulch, 12),
     (MapKind::TripointWorks, 16),
+    (MapKind::HoldfastAtoll, 16),
 ];
 
 /// Whether a fighter standing at `from` has a shot at a fighter at `to`, both
@@ -114,7 +115,12 @@ fn every_playtest_roster_opens_screened_and_walkable() {
         let solids = state.map.solids();
         let navigation = state.map.navigation();
         for player in &state.players {
-            crate::navigation::tests::assert_server_walks(map, navigation, feet(player), [0.0; 3]);
+            let centre = if map == MapKind::HoldfastAtoll {
+                [0.0, crate::maps::holdfast::LAND_HEIGHT, 0.0]
+            } else {
+                [0.0; 3]
+            };
+            crate::navigation::tests::assert_server_walks(map, navigation, feet(player), centre);
             for other in state.players.iter().filter(|p| p.id != player.id) {
                 let distance = (player.x - other.x).hypot(player.z - other.z);
                 assert!(distance >= crate::movement::RADIUS * 2.0);

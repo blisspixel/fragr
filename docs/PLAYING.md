@@ -50,9 +50,11 @@ archive, Proximity Mine, Auditor and optional custody rescues. **Passenger
 Manifest** is level 9: release the Common Carrier crew and fight to the boarding
 hatch. **Common Carrier** is level 10 aboard the ship, with ordered encounters,
 bridge controls and a finite remote armory. All ten have independent practice entries and connected saved-run
-progression. These remain development prototypes, with final art and
-fresh-player acceptance open. Levels 11 through 20 of the twenty-level
-campaign remain in development. The [campaign contract](CAMPAIGN.md) and
+progression. The current development build adds **Right of Search**, level 11
+on the custody tender, with deliberate Remote Mines, optional transfers and
+records, bridge controls and a separate stern exit. These remain development
+prototypes, with final art and fresh-player acceptance open. Levels 12 through
+20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
 
 **Calibration** is a separate Episode 0 arena challenge. Run

@@ -221,7 +221,7 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	manager.is_human_player = true
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	network.player_id = PLAYER
-	var pawn: Node3D = Node3D.new()
+	var pawn: Node3D = load("res://scripts/player_pawn.gd").new()
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	camera.fp_mode = true
 	camera.fp_target = pawn

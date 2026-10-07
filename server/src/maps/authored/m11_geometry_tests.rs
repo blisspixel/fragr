@@ -58,11 +58,6 @@ fn m11_authored_tender_prepares_exact_actors_targets_stocks_and_window_cover() {
     let runtime = crate::maps::RuntimeMap::Authored(map);
     assert!(runtime.requires_m11_contract());
     assert!(runtime.m11_geometry().is_some());
-    assert_eq!(
-        crate::protocol::GAMEPLAY_VERSION,
-        crate::protocol::M11_GAMEPLAY_VERSION,
-        "typed tender admission requires its own current capability"
-    );
 }
 
 #[test]

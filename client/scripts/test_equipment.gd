@@ -123,7 +123,7 @@ func _run() -> void:
 	manager.net_client = network
 	manager.is_human_player = true
 	network.player_id = "self"
-	var pawn: Node3D = Node3D.new()
+	var pawn: Node3D = load("res://scripts/player_pawn.gd").new()
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	camera.fp_mode = true
 	camera.fp_target = pawn

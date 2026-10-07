@@ -1,6 +1,6 @@
 # Holdfast boats and light aircraft
 
-Status: **in flight**, 2026-10-06. Nick explicitly requested real water,
+Status: **implemented**, 2026-10-07. Nick explicitly requested real water,
 usable boats and flyable aircraft on the original island. This work advances
 those vehicles ahead of the M14 practice battlefield.
 
@@ -24,10 +24,13 @@ Tests cover water boundaries, depth, walls and shoreline refusal; boat entry,
 driving, stopping and dock exit; plane taxi, takeoff, turn, ceiling, stall,
 landing and crash; hostile damage and seat release; and bounded snapshot
 delivery during movement. A real socket driving/flying pass and rendered
-motion are required independently of kernel tests. Aircraft controls and
-water appearance remain in flight until inspected in the composed client.
+motion are required independently of kernel tests. The composed client has
+rendered boat and aircraft input receipts, including a soft landing, taxi,
+braking and safe exit. Original source-model preparation and water rendering
+have separate inspected receipts; human feel is not established by automated
+routes.
 
-Native local evidence: 28 vehicle tests and three swimming tests pass,
+Initial native evidence: 28 vehicle tests and three swimming tests pass,
 including the full registered fleet, actual island boat entry/drive/exit,
 aircraft takeoff/water crash, blocked destruction and return to swimming.
 The six swimming vectors match the client within 0.00000057; the eighteen
@@ -39,3 +42,10 @@ collision rule. These checks do not establish renderer quality or human feel.
 The native boundary, Conquest fairness, strict adapter and same-binary 16/64
 rule-bot CPU results are recorded in
 [native island evidence](../evidence/native-island-quality-20261006.md).
+
+The later [October 7 rendered route](../evidence/vehicle-played-20261007.md)
+completes boat driving, mounted fire and swimming exit, plus aircraft takeoff,
+soft landing, taxi and safe exit through ordinary live input. The final driver
+seat preserves the canopy frame and clears the forward view. Capture-related
+prediction fallbacks are recorded separately from uninterrupted driving.
+Human flight feel, cockpit detail and wider match acceptance remain open.

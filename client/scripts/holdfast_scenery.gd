@@ -4,18 +4,37 @@ extends Node3D
 ## Surface dressing follows registered geometry. The island water presenter
 ## owns the sea; these meshes add no collision or cover.
 const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf")
+static var _materials: Dictionary[String, Material] = {}
 
 static func material_for(solid: Dictionary, _index: int) -> Material:
-	var material: ShaderMaterial = ArenaMaterials.make(7, 2)
 	var x: float = (float(solid["min_x"]) + float(solid["max_x"])) * 0.5
 	var z: float = (float(solid["min_z"]) + float(solid["max_z"])) * 0.5
+	var ground: bool = float(solid.get("bottom", 0.0)) == 0.0
+	var key: String = "plaster"
+	if ground:
+		key = "dock" if is_equal_approx(float(solid["top"]), 2.2) else ("sand" if float(solid["top"]) < 3.0 else "groundcover")
+	elif x < -105 and z < 0:
+		key = "boards"
+	elif absf(x) < 65 and z < -60:
+		key = "steel"
+	elif x > 112 and z < 0:
+		key = "cool_plaster"
+	if _materials.has(key):
+		return _materials[key]
+	var material: ShaderMaterial = ArenaMaterials.make(7, 2)
 	var color: Color = Color("aaa98b")
-	if float(solid.get("bottom", 0.0)) == 0.0:
+	if ground:
 		color = Color("b4b18c") if float(solid["top"]) < 3.0 else Color("869574")
 		material.set_shader_parameter("markings_enabled", false)
-		material.set_shader_parameter("tile_enabled", false)
 		material.set_shader_parameter("base_shade", 0.0)
 		material.set_shader_parameter("panel_contrast", 0.0)
+		var path: String = EnvironmentTextures.VENUE_WALLS + "holdfast_painted_boards.png" if key == "dock" else EnvironmentTextures.ISLAND_GROUND + "holdfast_" + key + ".png"
+		var texture: Texture2D = EnvironmentTextures.texture_at(path)
+		material.set_shader_parameter("tile_enabled", texture != null)
+		material.set_shader_parameter("tile_floor", texture)
+		material.set_shader_parameter("tile_wall", texture)
+		material.set_shader_parameter("tile_floor_strength", 0.55 if key == "dock" else 0.4)
+		material.set_shader_parameter("tile_strength", 0.4)
 	elif x < -112:
 		color = Color("b6a47f") if z > 0 else Color("91aa97")
 	elif x > 112:
@@ -23,8 +42,16 @@ static func material_for(solid: Dictionary, _index: int) -> Material:
 	elif absf(x) < 65 and z < -60:
 		color = Color("798b85")
 	material.set_shader_parameter("surface_color", color)
+	if not ground:
+		EnvironmentTextures.apply(material, "records_tile" if key == "boards" else ("service_steel" if key == "steel" else "enamel"), "holdfast_atoll")
+		material.set_shader_parameter("markings_enabled", false)
+		material.set_shader_parameter("panel_contrast", 0.15)
+		material.set_shader_parameter("tile_strength", 0.75)
+		if key == "boards":
+			material.set_shader_parameter("tile_repeat_pixels", 64.0)
 	material.set_shader_parameter("panel_size", 6.0)
 	material.set_shader_parameter("sector_variation", 0.03)
+	_materials[key] = material
 	return material
 
 func build(info: Dictionary) -> void:

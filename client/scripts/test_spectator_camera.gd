@@ -35,6 +35,17 @@ func _check(condition: bool, message: String) -> void:
 		push_error("test_spectator_camera: " + message)
 
 func _run() -> void:
+	var body_feet: Vector3 = Vector3(8, 0, 0)
+	var open_body: Vector3 = TOUR.body_camera_position(body_feet, [])
+	_check(open_body.is_equal_approx(Vector3(5, 1.3, 0)), "body capture prefers the arena centre when clear")
+	var body_wall: Array = [{"min_x": 6, "max_x": 7, "min_z": -2, "max_z": 2, "bottom": 0, "top": 3}]
+	var clear_body: Vector3 = TOUR.body_camera_position(body_feet, body_wall)
+	_check(clear_body.is_finite() and not clear_body.is_equal_approx(open_body)
+		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 0.12, 0), body_wall)
+		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 1.85, 0), body_wall),
+		"body capture moves around a wall and keeps feet and head visible")
+	_check(not TOUR.body_camera_position(body_feet, [{"min_x": 0, "max_x": 12, "min_z": -5,
+		"max_z": 5, "bottom": 0, "top": 3}]).is_finite(), "an enclosed body cannot produce a passing still")
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	var first: Fighter = Fighter.new()
 	var second: Fighter = Fighter.new()

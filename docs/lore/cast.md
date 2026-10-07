@@ -30,6 +30,20 @@ call to defend freedom comes, they choose to stand tall and make a difference.
 They are freedom fighters by necessity, soft people under hard authority;
 friendship and conviction carry their courage, not a crusader's battle persona.
 
+The 2026-10-06 direction applies to principals on every side. Give each person
+an ordinary attachment, a duty they take seriously and a point where those
+commitments conflict. A recognizable uniform tells the player who is fighting;
+it does not establish that person's complete motives or moral standing.
+
+For proposed scenes, ask what Mara's coalition request would cost the community
+being asked, what Renn still rationalizes after helping someone, and what Voss
+believes will fail if she relinquishes control. These are writing questions,
+not new backstory or a redemption arc. Let answers differ and make their chosen
+methods visible. Latch and the player can make a costly judgment without losing
+their friendship or personhood; neither must always deliver the final correct
+line. Preserve actual responsibility and consequences without forcing equal
+blame between factions.
+
 The companion is not replaced by the Host. Add a small survivor cast from the
 clinic, workshops, and custody depot. Each rescue needs a later action or a
 recognizable absence. Avoid disposable mission givers at every destination.
@@ -62,6 +76,9 @@ Tern keeps a battered live recording aboard the Common Carrier and favors its
 scratchy final track; the passengers disagree about the encore. The text-only
 M10 departure card establishes this small off-duty routine. It does not approve
 a new voice, musical asset, named passenger or unconditional later appearance.
+The text-only M11 arrival also gives Tern's crew an unfinished card game and
+Tern a practical interest in getting their ship back intact. This brief line
+adds no named crew member, voice recording or promised later survival.
 Use the same standard for other principals: a specific life beyond the conflict,
 shown briefly through what they do, keep or share. Do not assign everyone the
 same hobby or silently promote proposed backstories into recorded canon.

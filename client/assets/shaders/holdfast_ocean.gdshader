@@ -13,7 +13,11 @@ void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	if (water_quality > 0) {
 		float broad = sin(dot(world_position.xz, vec2(0.11, 0.16)) + TIME * 0.65);
-		VERTEX.y += broad * 0.045;
+		// Adjacent patches use different tessellation. Keep their shared edges
+		// at the registered height so interpolated waves cannot open cracks.
+		vec2 edge = min(UV, vec2(1.0) - UV);
+		float edge_weight = smoothstep(0.0, 0.05, min(edge.x, edge.y));
+		VERTEX.y += broad * 0.045 * edge_weight;
 	}
 }
 

@@ -13,6 +13,8 @@ keeps cloud deployment at plan-only status.
 
 In a build containing the desktop Host controls, choose **Multiplayer > Host**.
 Select **Team Deathmatch** and an arena, or **5v5 Sabotage** on Sector 9.
+The current development build also offers **Conquest** on Holdfast Atoll, with
+five capture sites, tickets, swimming and shared land, water and air vehicles.
 Choose **No bots**, **Fixed bots** or **Automatic fill**, then **Start server**.
 Fixed bots keeps the requested bot count, four by default. Automatic fill
 targets the total number of fighters, including humans and agents, and makes
@@ -48,6 +50,9 @@ Other examples:
 ```bash
 # Quiet local arena practice without timed round events.
 cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 0 --no-round-events
+
+# Development island Conquest, ten-minute rounds and eight bots.
+cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --map 7 --mode conquest --bots 8
 
 # Team deathmatch, Rail Only, first side to 25.
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 6 --mode tdm --mutator rail-only

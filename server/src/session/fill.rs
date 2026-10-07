@@ -234,7 +234,12 @@ mod tests {
     use crate::sim::MatchConfig;
 
     fn room(mode: GameMode, target: usize) -> GameSession {
-        let mut session = GameSession::with_map(MapKind::Sector9, false);
+        let map = if mode == GameMode::Conquest {
+            MapKind::HoldfastAtoll
+        } else {
+            MapKind::Sector9
+        };
+        let mut session = GameSession::with_map(map, false);
         session.state.apply_config(MatchConfig {
             rules: RuleSet::new(mode, &[], false).unwrap(),
             boss_spawn_ticks: None,
@@ -288,7 +293,17 @@ mod tests {
 
     #[test]
     fn automatic_tdm_prioritizes_humans_and_external_agents_above_target() {
-        let mut session = room(GameMode::Tdm, 4);
+        assert_open_team_fill(GameMode::Tdm);
+    }
+
+    #[test]
+    fn automatic_conquest_yields_bots_and_refills_after_real_departures() {
+        assert_open_team_fill(GameMode::Conquest);
+    }
+
+    fn assert_open_team_fill(mode: GameMode) {
+        let mut session = room(mode, 4);
+        assert_eq!(session.state.config.rules.mode(), mode);
         assert_eq!(session.bots.len(), 4);
         assert_eq!(session.min_bots, 0);
         for n in 1..=5 {
@@ -322,6 +337,11 @@ mod tests {
         session.drop_expired_pawn(Uuid::from_u128(101));
         session.ensure_min_bots();
         assert_eq!((session.occupied(), session.bots.len()), (4, 2));
+        assert!(session
+            .state
+            .players
+            .iter()
+            .all(|player| player.team.is_some()));
     }
 
     #[test]

@@ -6069,6 +6069,48 @@ fn movement_ack_marks_inactive_and_respawned_body_boundaries() {
 }
 
 #[test]
+fn movement_ack_after_respawn_has_canonical_facing_before_new_input() {
+    for map in MapKind::ALL {
+        let mut state = GameState::with_map(map, false);
+        state.config.boss_spawn_ticks = None;
+        state.config.compliance_ping_ticks = None;
+        state.config.time_limit_ticks = None;
+        state.start_round();
+        let human = Uuid::from_u128(991);
+        state.add_player(human, "Respawn Probe".into(), Role::Human);
+        state.set_action(
+            human,
+            Action {
+                seq: Some(7),
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        for _ in 0..32 {
+            state.players[0].hp = 0;
+            state.players[0].respawn_timer = Some(1);
+            state.tick(0.05);
+            let ServerMessage::Ack {
+                yaw,
+                seq,
+                movement: Some(body),
+                ..
+            } = &state.input_acks()[0].1
+            else {
+                panic!("respawn must retain the last numbered input's baseline");
+            };
+            assert!(
+                (0.0..std::f32::consts::TAU).contains(yaw),
+                "{map:?} emitted yaw {yaw} before a new input"
+            );
+            assert_eq!(*seq, 7);
+            assert!(!body.applied);
+            assert_eq!(state.snapshot().players[0].yaw, *yaw);
+        }
+    }
+}
+
+#[test]
 fn movement_ack_reset_epoch_does_not_replay_historical_sequence() {
     let mut state = GameState::new();
     state.start_round();
@@ -6591,23 +6633,43 @@ mod map_roster {
     fn every_map_has_a_full_pad_set_and_one_of_them_is_off_the_floor() {
         for map in MapKind::ALL {
             let pads = map.pickups();
-            assert_eq!(pads.len(), 6, "{} pad count", map.name());
-            for want in [
-                "pad_rail",
-                "pad_scatter",
-                "pad_flechette",
-                "pad_health_n",
-                "pad_health_s",
-                "pad_armor",
-            ] {
+            let (expected, ground): (&[&str], f32) = if map == MapKind::HoldfastAtoll {
+                (
+                    &[
+                        "harbour_scatter",
+                        "village_flechette",
+                        "airfield_rail",
+                        "server_sniper",
+                        "lighthouse_repeater",
+                        "west_clinic",
+                        "east_aid",
+                        "airfield_supplies",
+                    ],
+                    crate::maps::holdfast::LAND_HEIGHT,
+                )
+            } else {
+                (
+                    &[
+                        "pad_rail",
+                        "pad_scatter",
+                        "pad_flechette",
+                        "pad_health_n",
+                        "pad_health_s",
+                        "pad_armor",
+                    ],
+                    0.0,
+                )
+            };
+            assert_eq!(pads.len(), expected.len(), "{} pad count", map.name());
+            for want in expected {
                 assert!(
-                    pads.iter().any(|p| p.id == want),
+                    pads.iter().any(|p| p.id == *want),
                     "{} is missing {want}",
                     map.name()
                 );
             }
             assert!(
-                pads.iter().any(|p| p.floor > STEP_UP),
+                pads.iter().any(|p| p.floor > ground + STEP_UP),
                 "{} keeps every pad on the floor, so height buys nothing",
                 map.name()
             );

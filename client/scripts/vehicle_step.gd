@@ -17,7 +17,7 @@ static func seat_feet(position: Vector3, yaw: float, seat: String, kind: String 
 	if kind == "boat":
 		local = Vector3(-0.2, 0.65, -0.4) if seat == "driver" else Vector3(-1.0, 0.95, 0)
 	elif kind == "light_aircraft":
-		local = Vector3(1.45, 0.65, -0.3)
+		local = Vector3(1.45, 0.80, 0.0)
 	return local_point(position, yaw, local)
 
 static func clear_body(position: Vector3, yaw: float, arena: Dictionary) -> bool:

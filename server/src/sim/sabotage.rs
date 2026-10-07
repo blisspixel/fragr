@@ -983,7 +983,7 @@ fn place(player: &mut Player, point: [f32; 4]) {
     player.z = z;
     player.y = PLAYER_FLOOR_Y + floor;
     player.vy = 0.0;
-    player.yaw = yaw;
+    player.yaw = crate::movement::normalize_yaw(yaw);
     player.pitch = 0.0;
     player.hp = PLAYER_MAX_HP;
     player.respawn_timer = None;

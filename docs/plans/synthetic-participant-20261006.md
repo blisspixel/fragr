@@ -48,4 +48,16 @@ The rig completed at five credits, task
 under the original ledger. The subsequent vehicle batch's final checker reads
 1,900 available and 15 held. This rig changes the original 900-credit
 allocation to 625 used and 275 remaining; the new vehicle allocation stays
-separate. Skeleton/motion inspection and runtime selection remain open.
+separate.
+
+The completed walk source has 24 bones, 12,462 triangles and a 1.0667-second
+walk at 1.8 metres. Four actual renderer motion views were inspected. The
+prepared runtime source uses a matte 512-pixel albedo and retains the bone
+head, olive work plates, amber expression and replaced rust forearm. It is
+distinct from Latch's screen-faced chassis. The existing player bake now
+selects this source for the synthetic's four idle and four walking cells.
+The human atlas is unchanged. The selected synthetic atlas SHA-256 is
+`77d733365f03fb179278d653103daaac52aa08385313d9fa917e442d1536fb88`;
+the character manifest retains all source and bake fingerprints. The rendered
+paired body comparison passes local review. Whole-client checks and wider
+played motion acceptance remain separate from source and atlas inspection.

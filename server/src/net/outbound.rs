@@ -174,6 +174,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         projectiles,
         grenades,
         mines,
+        remote_mines,
         auditors,
         explosions,
         mode_name,
@@ -216,6 +217,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         && projectiles == &new.projectiles
         && grenades == &new.grenades
         && mines == &new.mines
+        && remote_mines == &new.remote_mines
         && auditors == &new.auditors
         && mode_name == &new.mode_name
         && playlist == &new.playlist

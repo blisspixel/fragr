@@ -19,6 +19,9 @@ var _host_edit: LineEdit = null
 ## The address the player typed on Join a server. Page rebuilds keep it.
 ## A server started in this app never writes this field.
 var _join_draft: String = ""
+var _column: VBoxContainer
+var _page_scroll: ScrollContainer
+var _scroll_back: Button
 var _match_line: Label = null
 var _watch_button: Button = null
 var _join_button: Button = null
@@ -65,6 +68,7 @@ var _host_port: SpinBox
 var _launch_pending: bool = false
 ## The Benchmark page started a loopback match and is waiting for its port.
 var _benchmark_pending: bool = false
+var _benchmark_compare: bool = false
 ## A finished mission asked to continue the run; cleared once it starts or the
 ## saved run turns out to have nothing playable next.
 var _onward_pending: bool = false
@@ -130,6 +134,7 @@ func _apply_preferences() -> void:
 
 func _apply_render_preferences() -> void:
 	RenderQuality.apply(get_viewport(), _settings)
+	_size_page_scroll()
 
 func _build_chrome() -> void:
 	var back: MenuBackdrop = MenuBackdrop.new()
@@ -143,6 +148,7 @@ func _build_chrome() -> void:
 	add_child(centre)
 
 	var column: VBoxContainer = VBoxContainer.new()
+	_column = column
 	column.add_theme_constant_override("separation", 14)
 	column.custom_minimum_size = Vector2(660.0, 0.0)
 	centre.add_child(column)
@@ -168,9 +174,20 @@ func _build_chrome() -> void:
 	tagline.add_theme_color_override("font_color", Color("a4774c"))
 	column.add_child(tagline)
 
+	_page_scroll = ScrollContainer.new()
+	_page_scroll.name = "MultiplayerScroll"
+	_page_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_page_scroll.follow_focus = true
+	_page_scroll.visible = false
+	column.add_child(_page_scroll)
 	_root = VBoxContainer.new()
 	_root.add_theme_constant_override("separation", 8)
+	_root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(_root)
+	_scroll_back = _styled_button("Back", func() -> void: _show("main"))
+	_scroll_back.name = "MultiplayerBack"
+	_scroll_back.visible = false
+	column.add_child(_scroll_back)
 
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -179,6 +196,26 @@ func _build_chrome() -> void:
 	_status.add_theme_color_override("font_color", Color(0.6, 0.62, 0.64))
 	_status.text = _nav_hint()
 	column.add_child(_status)
+
+## The saved and nearby host lists can grow. Keep the logo, Back and navigation
+## hint inside the card while ordinary focus and wheel input scroll the page.
+func _size_page_scroll() -> void:
+	if _page_scroll == null or not _page_scroll.visible or _status == null:
+		return
+	var fixed_height: float = _title.get_combined_minimum_size().y \
+		+ _scroll_back.get_combined_minimum_size().y + _status.get_combined_minimum_size().y + 42.0
+	_page_scroll.custom_minimum_size.y = maxf(180.0, get_viewport_rect().size.y - 144.0 - fixed_height)
+
+func _scroll_multiplayer(enabled: bool) -> void:
+	var destination: Node = _page_scroll if enabled else _column
+	if _root.get_parent() != destination:
+		_root.reparent(destination, false)
+	if not enabled:
+		_column.move_child(_root, _page_scroll.get_index() + 1)
+	_page_scroll.visible = enabled
+	_scroll_back.visible = enabled
+	_page_scroll.scroll_vertical = 0
+	_size_page_scroll()
 
 func _clear() -> void:
 	for child in _root.get_children():
@@ -275,9 +312,11 @@ func _show(page: String) -> void:
 			_button(tr("RECORD_BACK"), func() -> void: _show("main"))
 		"launch":
 			_page_launch()
+	_scroll_multiplayer(page == "multi")
 	await get_tree().process_frame
 	if not is_inside_tree() or _page != page:
 		return
+	_size_page_scroll()
 	if page == "settings" and _page == page:
 		(_root.get_node("SettingsPanel") as SettingsPanel).focus_first()
 		return
@@ -659,7 +698,6 @@ func _page_multi() -> void:
 	_root.add_child(_saved_box)
 	_fill_server_lists()
 	_label("The host chooses the arena and rules. You watch in this app, then join.")
-	_button("Back", func() -> void: _show("main"))
 	_ensure_lan_listen()
 	_probe_host()
 	_enqueue_known()
@@ -671,8 +709,8 @@ func _on_host_state_changed() -> void:
 		_show(_page)
 
 func _page_benchmark() -> void:
-	_label("Benchmark times the frames on this machine. A fixed camera circles Arena Duel while ten bots fight. Vertical sync and the frame cap turn off for the run, then your settings return.")
-	_label("The fight is live, so two runs are not the same match. Read the frame times. The recorded showcase, and a run of every graphics preset, are still ahead.")
+	_label("Compare graphics settings on this computer. A fixed camera circles Arena Duel with ten bots. Every preset plays the same recorded fight.")
+	_label("See average FPS, 1% lows and frame-time spikes. Current preset takes about a minute; all three take about two. Your settings return when the test ends. Results save as JSON and CSV.")
 	if _benchmark_pending and _local_host.state == LocalHost.State.STARTING:
 		_label("Starting a local match on this computer. A server you already left running for other people stays up.")
 		_button("Cancel", _cancel_benchmark).name = "CancelBenchmark"
@@ -683,10 +721,12 @@ func _page_benchmark() -> void:
 		_label("Stop the server you started in this app before a benchmark.")
 		_button("Back", func() -> void: _show("main"))
 		return
-	_button("Run benchmark", _start_benchmark).name = "RunBenchmark"
+	_button("Run current preset", func() -> void: _start_benchmark(false)).name = "RunBenchmark"
+	_button("Compare all three", func() -> void: _start_benchmark(true)).name = "CompareBenchmark"
 	_button("Back", func() -> void: _show("main"))
 
-func _start_benchmark() -> void:
+func _start_benchmark(all_presets: bool = false) -> void:
+	_benchmark_compare = all_presets
 	_benchmark_pending = true
 	if not _local_host.start_host(BenchmarkRun.workload()):
 		_benchmark_pending = false
@@ -712,7 +752,7 @@ func _on_benchmark_ready(address: String) -> void:
 		return
 	_benchmark_pending = false
 	BenchmarkRun.present_uncapped()
-	get_tree().set_meta("fragr_boot", BenchmarkRun.boot_for(str(endpoint["game_url"])))
+	get_tree().set_meta("fragr_boot", BenchmarkRun.boot_for(str(endpoint["game_url"]), _benchmark_compare))
 	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
 	if err != OK:
 		get_tree().remove_meta("fragr_boot")
@@ -744,7 +784,7 @@ func _host_option(label: String, name_text: String) -> OptionButton:
 
 func _page_host() -> void:
 	if _local_host.state == LocalHost.State.RUNNING:
-		var mode_text: String = tr("HOST_SABOTAGE") if _local_host.settings["mode"] == "sabotage" else tr("MODE_TDM")
+		var mode_text: String = tr("HOST_SABOTAGE") if _local_host.settings["mode"] == "sabotage" else tr("MODE_CONQUEST") if _local_host.settings["mode"] == "conquest" else tr("MODE_TDM")
 		_label(tr("HOST_RUNNING") % mode_text)
 		_label(_host_bot_summary(_local_host.settings))
 		_label(_local_host.url)
@@ -768,7 +808,8 @@ func _page_host() -> void:
 	_host_mode = _host_option(tr("HOST_MODE"), "HostMode")
 	_host_mode.add_item(tr("MODE_TDM"))
 	_host_mode.add_item(tr("HOST_SABOTAGE"))
-	_host_mode.select(1 if _host_settings["mode"] == "sabotage" else 0)
+	_host_mode.add_item(tr("MODE_CONQUEST"))
+	_host_mode.select(["tdm", "sabotage", "conquest"].find(_host_settings["mode"]))
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
 	_rebuild_host_maps()
 	_host_mode.item_selected.connect(func(_index: int) -> void: _rebuild_host_maps())
@@ -832,6 +873,9 @@ func _rebuild_host_maps() -> void:
 	if _host_mode.selected == 1:
 		_host_map.add_item("Sector 9", 4)
 		return
+	if _host_mode.selected == 2:
+		_host_map.add_item("Holdfast Atoll", 7)
+		return
 	var names: Array[String] = ["Arena Duel", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
 	for index: int in names.size():
 		_host_map.add_item(names[index], index + 1)
@@ -839,7 +883,7 @@ func _rebuild_host_maps() -> void:
 	_host_map.select(clampi(selected, 0, names.size() - 1))
 
 func _start_host() -> void:
-	_host_settings = {"mode": "sabotage" if _host_mode.selected == 1 else "tdm",
+	_host_settings = {"mode": ["tdm", "sabotage", "conquest"][_host_mode.selected],
 		"map_id": _host_map.get_selected_id(), "bots": int(_host_bots.value) if _host_bot_selection == "fixed" else 0,
 		"bot_policy": _host_bot_selection, "fill_target": int(_host_bots.value) if _host_bot_selection == "auto" else 0,
 		"lan": _host_lan.button_pressed, "port": int(_host_port.value) if _host_lan.button_pressed else 0}

@@ -5,12 +5,20 @@ class_name EnvironmentTextures
 const EARTH: String = "res://assets/environment/earth/"
 const MOON: String = "res://assets/environment/moon/surfaces/"
 const PRODUCTION: String = "res://assets/environment/production/"
+const VENUE_WALLS: String = "res://assets/environment/venue-walls/"
+const ISLAND_GROUND: String = "res://assets/environment/island-ground/"
 static var _textures: Dictionary[String, Texture2D] = {}
 
 static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
-	if venue == "right_of_search":
+	if venue == "holdfast_atoll":
 		match surface:
-			"enamel": return PRODUCTION + ("archive_floor.png" if horizontal else "archive_enamel.png")
+			"concrete": return ISLAND_GROUND + "holdfast_groundcover.png"
+			"enamel": return PRODUCTION + "yard_concrete.png" if horizontal else VENUE_WALLS + "holdfast_salt_plaster.png"
+			"service_steel", "lift_panel": return PRODUCTION + "yard_floor.png" if horizontal else VENUE_WALLS + "holdfast_ribbed_steel.png"
+			"records_tile": return VENUE_WALLS + "holdfast_painted_boards.png"
+	elif venue == "right_of_search":
+		match surface:
+			"enamel": return PRODUCTION + "archive_floor.png" if horizontal else VENUE_WALLS + "tender_pressure_enamel.png"
 			"service_steel": return PRODUCTION + ("archive_floor.png" if horizontal else "archive_steel.png")
 			"lift_panel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_repair_plate.png")
 			"records_tile": return PRODUCTION + "archive_ceramic.png"

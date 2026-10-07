@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
-# Fault-inject the verifier itself. No Godot install or user config needed.
+# Fault-inject the unchanged verifier in a small discovery fixture. No Godot
+# install, real client import, or user config is needed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p .agents
-fake=$(mktemp "$PWD/.agents/godot-check-XXXXXX")
-trap 'rm -f "$fake"' EXIT
+workspace=$(pwd -P)
+fixture=$(mktemp -d "$workspace/.agents/godot-check-fixture-XXXXXX")
+fixture=$(cd "$fixture" && pwd -P)
+case "$fixture" in
+  "$workspace"/.agents/godot-check-fixture-*) ;;
+  *) echo "FAIL godot verifier fixture escaped the workspace"; exit 1 ;;
+esac
+trap 'rm -rf -- "$fixture"' EXIT
+mkdir -p "$fixture/tools" "$fixture/client/scripts"
+cp tools/godot_check.sh "$fixture/tools/godot_check.sh"
+touch "$fixture/client/scripts/ordinary.gd" \
+  "$fixture/client/scripts/test_actor_state.gd" \
+  "$fixture/client/scripts/test_second.gd"
+fake="$fixture/fake-godot"
 cat >"$fake" <<'FAKE'
 #!/usr/bin/env bash
 case "$*" in
@@ -44,7 +57,7 @@ FAKE
 chmod +x "$fake"
 for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure; do
   status=0
-  output=$(CASE="$scenario" GODOT_BIN="$fake" bash tools/godot_check.sh 2>&1) || status=$?
+  output=$(CASE="$scenario" GODOT_BIN="$fake" bash "$fixture/tools/godot_check.sh" 2>&1) || status=$?
   expected_pass=false
   if [ "$scenario" = pass ] || [ "$scenario" = debug-socket ] || [ "$scenario" = long-pass ]; then expected_pass=true; fi
   if { "$expected_pass" && [ "$status" -ne 0 ]; } ||
@@ -60,6 +73,21 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
   if "$expected_pass"; then summary=PASS; fi
   if ! grep -qF "Godot checks: $summary" <<<"$output"; then
     echo "FAIL godot verifier scenario: $scenario (missing aggregate $summary)"
+    exit 1
+  fi
+  if [ "$scenario" != import-exit ] && [ "$scenario" != import-error ]; then
+    if ! grep -qF 'ok   ordinary.gd' <<<"$output" ||
+       ! grep -qF 'test_actor_state harness' <<<"$output" ||
+       ! grep -qF 'test_second harness' <<<"$output"; then
+      echo "FAIL godot verifier scenario: $scenario (incomplete script or harness discovery)"
+      exit 1
+    fi
+  fi
+  if "$expected_pass" && {
+    [ "$(grep -cE '^ok   .*\.gd$' <<<"$output")" -ne 3 ] ||
+    [ "$(grep -cE '^ok   .* harness$' <<<"$output")" -ne 2 ];
+  }; then
+    echo "FAIL godot verifier scenario: $scenario (unexpected discovery count)"
     exit 1
   fi
   echo "ok   godot verifier scenario: $scenario"

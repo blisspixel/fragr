@@ -82,6 +82,23 @@ static func occupied(snapshot: Dictionary, player_id: String) -> Dictionary:
 				return {"vehicle": row, "seat": seat}
 	return {}
 
+## Conservative registered hull, matching vehicles::hull for every kind.
+static func hull(row: Dictionary) -> Dictionary:
+	var at: Vector3 = GrenadeFacts.vector(row["position"])
+	var c: float = absf(cos(float(row["yaw"])))
+	var s: float = absf(sin(float(row["yaw"])))
+	var size: Vector3 = VehicleMediumStep.dimensions(str(row["kind"]))
+	var width: float = c * size.x + s * size.y
+	var depth: float = s * size.x + c * size.y
+	return {"min_x": at.x - width, "max_x": at.x + width, "min_z": at.z - depth,
+		"max_z": at.z + depth, "bottom": at.y, "top": at.y + size.z}
+
+static func hulls(snapshot: Dictionary) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for row: Dictionary in snapshot.get("vehicles", []):
+		result.append(hull(row))
+	return result
+
 ## The same two metre entry range, speed guard and driver-first ordering as
 ## the server, used only to choose a prompt. Use can still be refused there.
 static func nearby(snapshot: Dictionary, feet: Vector3) -> Dictionary:

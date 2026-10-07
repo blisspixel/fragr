@@ -9,7 +9,8 @@ island with capture points. This advances the earlier deferred source briefs.
 Prepare four individual references and model candidates: the two-seat utility
 jeep shared by M14 and Holdfast Atoll, M16's motorcycle, the island's fast boat,
 and a repaired civilian prop aircraft. Prioritize the jeep's actual runtime
-preparation. Boat and aircraft sources do not establish water or flight rules.
+preparation. Water and flight implementation belong to the separate authority
+and client plans, not to a completed model request.
 Use original practical circa-2070 hardware, broad angular painted material
 values, physical controls and functional proportions. Preserve existing mission
 and faction contracts. Free people use repaired civilian equipment; Union
@@ -69,7 +70,15 @@ and quiets the source paint to nearest-filtered 512-pixel values. The compact
 runtime source and receipt are in `client/assets/vehicles/`. Wheel motion,
 occupant alignment and in-game art selection remain under review.
 
+Boat preparation retains all 11,884 source triangles. Aircraft preparation
+retains 10,633 source triangles and replaces the fused propeller/cowl with 120
+authored triangles, totaling 10,753. A first partial propeller cut failed
+inspection and was rejected. The selected aircraft has a balanced rotating
+propeller and clear windshield. Both use compact nearest-filtered 512-pixel
+matte paint. Prepared sources and exact receipts are in
+`client/assets/vehicles/`. The motorcycle remains an inspected source only.
+
 Private receipts, reference uploads, source models and balance checks remain
-under the original ledger and `.agents/vehicle-assets-20261006/`. Boat,
-motorcycle and aircraft import/geometry inspection remains separate from
-playable systems; none has runtime selection through this source receipt.
+under the original ledger and `.agents/vehicle-assets-20261006/`. The
+[client plan](vehicle-client-20261006.md) records actual gameplay integration
+and its separate motion and seated-view acceptance.

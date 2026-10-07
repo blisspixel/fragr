@@ -1,7 +1,8 @@
 # Latest pending world delivery
 
-Status: **implemented**, 2026-10-06. Local transport work; no release or capacity
-claim. Parent: [server excellence](server-excellence.md).
+Status: **implemented**, 2026-10-07. Local transport work with bounded queue
+tests and a measured 64-client loopback delivery sample. No release or WAN
+capacity claim. Parent: [server excellence](server-excellence.md).
 
 ## Goal
 
@@ -87,3 +88,23 @@ each report. `--fanout-matrix --fanout-seconds 10` additionally records separate
 session/enqueue timing, queue high water, overflow and `replaced_worlds` in its
 local server metrics. It currently stops at 32 connections. No population
 measurement is claimed by this plan's unit tests.
+
+## Final loopback sample
+
+The final composed release passed `fragr-playtest --traffic
+--traffic-fighters 64 --traffic-spectators 0 --traffic-bots 0
+--traffic-seconds 60 --traffic-hz 60 --map 7 --seed 42 --assert --report PATH`
+on 2026-10-07. All 64 human-role WebSocket clients remained connected, with
+228,672 actions, 76,864 received fighter snapshots, zero disconnects, healthy
+status and 11.0100 ms server p99 ticks. Aggregate outbound traffic was
+26,125,306 bytes/s, about 24.91 MiB/s. The full
+[native evidence](../evidence/native-island-quality-20261006.md) and
+[structured receipt](../evidence/native-island-measurements-20261007.json)
+retain commands, exact executable hashes and machine details.
+
+These clients send fixed movement and fire without reload, pathfinding or
+vehicle use. Human magazines may empty early; this is delivery evidence,
+not sustained 64-fighter combat or 64-player spawn-quality evidence. The sample
+does not introduce slow readers, measure replacement counts or prove WAN
+latency or bandwidth capacity. Ordering and bounded eviction remain separately
+verified by deterministic queue and socket tests.

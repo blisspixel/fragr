@@ -4,6 +4,8 @@ use crate::protocol::{VehicleSeat, VehicleState};
 use crate::vehicles::{self, VehicleInput};
 use uuid::Uuid;
 #[cfg(test)]
+mod boarding_tests;
+#[cfg(test)]
 mod tests;
 
 impl GameState {
@@ -62,8 +64,48 @@ impl GameState {
             .collect()
     }
 
+    /// A seat transition moves a full body. Eye visibility alone can pass
+    /// above low cover or below a slab while the occupant crosses through it.
+    fn vehicle_passage_clear(
+        &self,
+        index: usize,
+        from: [f32; 3],
+        to: [f32; 3],
+        arena: &Arena,
+    ) -> bool {
+        let ray = crate::combat::Ray {
+            origin: from,
+            direction: std::array::from_fn(|axis| to[axis] - from[axis]),
+        };
+        let blocked = |solid: &Solid| {
+            let margin = crate::movement::CONTACT_EPSILON;
+            // Expand the obstacle by the moving body's horizontal radius and
+            // standing height. A range of one checks the entire displacement.
+            // Exact floor and roof contact remains legal, as in walking.
+            ray.solid(
+                &Solid {
+                    min_x: solid.min_x - RADIUS + margin,
+                    max_x: solid.max_x + RADIUS - margin,
+                    min_z: solid.min_z - RADIUS + margin,
+                    max_z: solid.max_z + RADIUS - margin,
+                    bottom: solid.bottom - BODY_HEIGHT + margin,
+                    top: solid.top - margin,
+                },
+                1.0,
+            )
+            .is_some()
+        };
+        !arena.solids.iter().any(blocked)
+            && !self
+                .vehicles
+                .iter()
+                .enumerate()
+                .any(|(other, vehicle)| other != index && blocked(&vehicles::hull(&vehicle.state)))
+    }
+
     fn exit_point(&self, index: usize, actor: Uuid, arena: &Arena) -> Option<[f32; 3]> {
         let jeep = &self.vehicles[index].state;
+        let seat_feet = vehicles::seat_feet(jeep, jeep.seat(actor)?);
         let radii = if jeep.kind == crate::protocol::VehicleKind::LightAircraft {
             [6.0, 7.0, 8.5]
         } else {
@@ -90,11 +132,7 @@ impl GameState {
                 {
                     continue;
                 }
-                if !crate::combat::line_of_sight(
-                    [jeep.position[0], jeep.position[1] + 1.8, jeep.position[2]],
-                    [p[0], p[1] + crate::movement::EYE_HEIGHT, p[2]],
-                    &arena.solids,
-                ) {
+                if !self.vehicle_passage_clear(index, seat_feet, p, arena) {
                     continue;
                 }
                 if self.players.iter().any(|other| {
@@ -103,14 +141,6 @@ impl GameState {
                         && (other.y - PLAYER_FLOOR_Y - p[1]).abs() < BODY_HEIGHT
                         && (other.x - p[0]).hypot(other.z - p[2]) < RADIUS * 2.0 + 0.05
                 }) {
-                    continue;
-                }
-                if self
-                    .vehicles
-                    .iter()
-                    .enumerate()
-                    .any(|(i, v)| i != index && vehicles::hull(&v.state).blocks(p[0], p[2], RADIUS))
-                {
                     continue;
                 }
                 return Some(p);
@@ -187,15 +217,6 @@ impl GameState {
                         && (p.y - PLAYER_FLOOR_Y - v.state.position[1]).abs() <= 2.0
                         && (p.x - v.state.position[0]).hypot(p.z - v.state.position[2])
                             <= vehicles::entry_radius(v.state.kind)
-                        && crate::combat::line_of_sight(
-                            [p.x, p.y - PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT, p.z],
-                            [
-                                v.state.position[0],
-                                v.state.position[1] + 1.2,
-                                v.state.position[2],
-                            ],
-                            &arena.solids,
-                        )
                 })
                 .filter_map(|(index, v)| {
                     let occupied = v.state.driver.or(v.state.gunner);
@@ -216,6 +237,14 @@ impl GameState {
                     } else {
                         return None;
                     };
+                    if !self.vehicle_passage_clear(
+                        index,
+                        [p.x, p.y - PLAYER_FLOOR_Y, p.z],
+                        vehicles::seat_feet(&v.state, seat),
+                        arena,
+                    ) {
+                        return None;
+                    }
                     Some((
                         index,
                         seat,
@@ -404,6 +433,7 @@ impl GameState {
                                 before,
                                 proposed,
                                 [p.x, p.y - PLAYER_FLOOR_Y, p.z],
+                                crate::combat::body_height(p.campaign, p.ducking),
                             )
                             .map(|t| (victim, t))
                         })
@@ -484,6 +514,8 @@ impl GameState {
                     p.last_movement_tick = None;
                     p.throw_requested = false;
                     p.place_requested = false;
+                    p.remote_place_requested = false;
+                    p.remote_trigger_requested = false;
                     p.reload_requested = false;
                 }
             }
@@ -517,6 +549,7 @@ fn vehicle_contact(
     from: vehicles::VehicleMotion,
     to: vehicles::VehicleMotion,
     feet: [f32; 3],
+    victim_height: f32,
 ) -> Option<f32> {
     let distance = (to.position[0] - from.position[0]).hypot(to.position[2] - from.position[2]);
     let steps = ((distance / 0.1).ceil() as usize).max(4);
@@ -526,7 +559,7 @@ fn vehicle_contact(
             from.position[axis] + (to.position[axis] - from.position[axis]) * t
         });
         let [length, width, height] = vehicles::dimensions(kind);
-        if feet[1] + BODY_HEIGHT <= position[1] || feet[1] >= position[1] + height {
+        if feet[1] + victim_height <= position[1] || feet[1] >= position[1] + height {
             continue;
         }
         let yaw = from.yaw

@@ -76,6 +76,10 @@ func _run() -> void:
 	_check(menu._host_bots.value == 10, "automatic target survives policy switching")
 	menu._host_bot_policy.select(1)
 	menu._host_bot_policy.item_selected.emit(1)
+	menu._host_mode.select(2)
+	menu._host_mode.item_selected.emit(2)
+	_check(menu._host_map.item_count == 1 and menu._host_map.get_selected_id() == 7,
+		"Conquest offers its registered island through the ordinary Host form")
 	menu._host_mode.select(1)
 	menu._host_mode.item_selected.emit(1)
 	_check(menu._host_map.item_count == 1 and menu._host_map.get_selected_id() == 4,

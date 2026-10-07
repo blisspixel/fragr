@@ -5,6 +5,24 @@ use crate::protocol::WaterRegion;
 pub const SWIM_DRAFT: f32 = 0.9;
 pub const SWIM_SPEED: f32 = 3.2;
 
+/// The same buoyant floor must survive later actor-contact projection.
+pub(crate) fn append_support(arena: &mut Arena, regions: &[WaterRegion]) {
+    for region in regions {
+        let top = region.level - SWIM_DRAFT;
+        let bottom = region.level - region.depth;
+        if top > bottom {
+            arena.solids.push(super::Solid {
+                min_x: region.min[0],
+                max_x: region.max[0],
+                min_z: region.min[1],
+                max_z: region.max[1],
+                bottom,
+                top,
+            });
+        }
+    }
+}
+
 pub fn live_step(
     mut state: MoveState,
     input: &MoveInput,
@@ -33,20 +51,7 @@ pub fn live_step(
     // Buoyancy must also be a support surface for the ordinary step-up rule.
     // A post-step height clamp alone leaves a swimmer permanently airborne at a shore.
     let mut supported = arena.clone();
-    for region in regions {
-        let top = region.level - SWIM_DRAFT;
-        let bottom = region.level - region.depth;
-        if top > bottom {
-            supported.solids.push(super::Solid {
-                min_x: region.min[0],
-                max_x: region.max[0],
-                min_z: region.min[1],
-                max_z: region.max[1],
-                bottom,
-                top,
-            });
-        }
-    }
+    append_support(&mut supported, regions);
     if let Some(water) = water {
         let surface_feet = water.level - SWIM_DRAFT;
         if state.y < surface_feet

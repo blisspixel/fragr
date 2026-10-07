@@ -460,10 +460,6 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
         .load_campaign_run(&completed)
         .is_err());
     assert!(serde_json::from_str::<MissionId>("\"terms_of_cooperation\"").is_err());
-    assert_eq!(
-        crate::protocol::GAMEPLAY_VERSION,
-        crate::protocol::M11_GAMEPLAY_VERSION
-    );
 }
 
 #[test]

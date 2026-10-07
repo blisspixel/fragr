@@ -1,14 +1,16 @@
 # Shared authoritative jeep
 
-Status: **in flight**, 2026-10-06. Nick explicitly requested the original island
-and campaign vehicle work in this development round, advancing the staging in
-[vehicles](vehicles.md). No shipped or played claim.
+Status: **implemented**, 2026-10-07. Native authority, client prediction and
+automated played island routes are verified locally. Integration is tracked
+by [vehicles](vehicles.md); campaign placement and human feel remain separate.
 
 ## Goal and scope
 
-Make the same two-seat jeep driveable on Holdfast Atoll and the Launch Works
-development battlefield through the ordinary action channel. Walking remains
-available. This slice includes bounded arcade movement, safe entry/exit,
+Make the shared two-seat jeep driveable on Holdfast Atoll through the ordinary
+action channel. Walking remains available. The
+[Launch Works development level](m14-vehicle-development-20261006.md) remains
+planned after the island water and flight priority. This slice includes
+bounded arcade movement, safe entry/exit,
 driver/gunner switching, mounted heat fire, damage and vehicle reset. Boats,
 aircraft, motorcycle, jetpack and finished M14 story acceptance remain separate.
 
@@ -16,8 +18,9 @@ aircraft, motorcycle, jetpack and finished M14 story acceptance remain separate.
 
 `server/src/vehicles.rs` owns the shared pure movement kernel, geometry probes
 and entities. A narrow simulation bridge owns seats, actor lifecycle, shared
-hitscan/blast resolution and reset. Root map work registers validated jeep
-spawn positions for runtime map IDs 7 (Holdfast) and 1014 (Launch Works).
+hitscan/blast resolution and reset. Validated spawns are registered only for
+runtime map ID 7 (Holdfast). Campaign placement needs its own validated
+authored layout; no development test-map ID is treated as Launch Works.
 
 `protocol/vehicle.rs` owns strict vehicle state. `Snapshot.vehicles` is empty
 and omitted on ordinary maps. One jeep has a positive u32 `id`, `kind: jeep`,
@@ -27,12 +30,12 @@ nullable `driver` and `gunner` IDs, `gun_heat` (0 to 1), `burning_ticks`
 (0 to 40), and `control_ready_tick`. There are at most 32 vehicles. Occupancy derives from this one list.
 `Action.seat` optionally requests `driver` or `gunner`. Existing interact enters
 or exits; movement fields drive and existing aim/fire operates the mount.
-Vehicle maps require capability 39; the combined island mode is allocated 40.
-The root integration owns the final latest-version change after client support.
+Vehicle facts require capability 39; Conquest requires 40 and the current
+water island requires 41. The client and server share latest capability 41.
 
 The jeep is 3.8 by 1.9 metres, top speed 16 m/s, reverse at most 6 m/s.
 Entry and exit require at most 2 m/s. Seat changes take ten ticks. Driver feet
-are local (0.55, 0.65, -0.40), gunner feet (-0.65, 0.95, 0), with +X forward.
+are local (0.20, 0.65, -0.40), gunner feet (-0.65, 0.95, 0), with +X forward.
 The mounted gun uses existing Flechette traces and authoritative hit resolution
 with a separate heat budget; no seventh inventory weapon or ammunition pool.
 Optional `ShotTrace.vehicle_id` captures the resolved mount even if its gunner
@@ -42,7 +45,8 @@ movement remains unapplied while seated.
 Occupied actors do not integrate ordinary walking or fire handheld weapons.
 The client mirrors the pure kernel and reconciles the driver from matched
 snapshot/ACK ticks. Seven shared vectors pass both implementations, with
-maximum client error 0.00088303. Live rendered acceptance is still required.
+maximum client error 0.00088303. The client has separate rendered entry,
+drive, brake, mounted-fire and safe-exit receipts.
 
 ## Verification and safety
 
@@ -63,7 +67,7 @@ bounded production pipeline; this code adds no paid calls.
 A player walks up, enters, drives, parks, switches to the mount, shoots a target,
 exits safely and continues on foot. Another player can gun while the first
 drives. Losing or leaving a jeep does not strand a fighter or leak a seat.
-Both maps remain playable on foot. M14 story completion and human vehicle feel
+The island remains playable on foot. M14 story completion and human vehicle feel
 remain open until separately inspected and played.
 
 ## Local evidence and boundaries
@@ -88,3 +92,21 @@ Arcade chassis movement remains upright, with gravity and stepped ground
 support. Roll physics, boats and aircraft are outside this slice. Vehicle
 runover uses shared health/frag resolution; dedicated vehicle record counters
 are not added to existing gun or grenade statistics.
+
+## Composed collision and navigation review
+
+The native walking world now retains live vehicle hulls and buoyant support
+through actor-contact projection. Snapshot collision eligibility excludes seated
+occupants, and runover checks use each victim's actual stance height. Boarding
+and exit sweep a whole standing body through cover and other chassis, with the
+occupied chassis excluded. The client retains the same hull history and water
+support for bounded replay.
+
+The seven-map actual movement gate exposed a parked aircraft that short local
+avoidance could not pass. The existing bounded route search now filters cached
+edges and endpoint connections against current physical obstacles, without
+building topology on a tick or changing its search allowance. Temporary hulls
+also invalidate blocked route segments. Verification includes a temporary wide
+hull, overhead clearance, finite search work, obstacle removal, and every native
+spawn-to-centre and centre-to-supply route with the actual registered fleet.
+The composed movement, boarding and seven-map network roster checks pass. Final gate and measurement results are recorded in [native quality evidence](../evidence/native-island-quality-20261006.md).

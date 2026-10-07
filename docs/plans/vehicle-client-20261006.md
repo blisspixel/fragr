@@ -1,7 +1,8 @@
 # Vehicle client presentation
 
-Status: **in flight**, 2026-10-06. Nick explicitly advanced the vehicle and
-island work on this date. The campaign target remains
+Status: **implemented**, local functional and renderer evidence through
+2026-10-07. Nick explicitly advanced the vehicle and
+island work on October 6. The campaign target remains
 [Launch Authority](../campaign/l14-launch-authority.md), using the existing
 [vehicle design](vehicles.md) and its optional walking route.
 

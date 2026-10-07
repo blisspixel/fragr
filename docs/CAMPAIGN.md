@@ -223,6 +223,22 @@ nor an escort meter. Their wish to free others challenges expedient plans, and
 your desire to keep them alive is understandable. Neither person needs to become
 foolish for that conflict to matter.
 
+The free-side viewpoint does not settle every broader question of who is good.
+Nick clarified on 2026-10-06 that the Union needs credible institutions and
+people, while reflection on the coalition's own choices should complicate the
+initially clear sides. Give officials real problems, conflicting obligations
+and specific decisions. Give allies interests beyond the mission, mistakes,
+internal disagreement and responsibility for the costs of their methods.
+
+Show what a plan protects, what it endangers and who gets to decide. A
+successful rescue or necessary fight can leave a defensible grievance over
+lost supplies, consent or another place left exposed. These are criteria for
+authored scenes, not newly established events. Do not reverse a survivor fact
+or invent an atrocity to balance a ledger. Conscious personhood and correction's
+harm remain certain; the legitimacy of particular leaders, institutions and
+means has to be earned in the story. No hidden morality score, faction-wide
+redemption speech or mandatory debate interrupts the shooter.
+
 Unexplained actions align with some coalition successes. The pattern becomes
 legible before the Union falls, but recognizing another intelligence does not
 reveal a catastrophe schedule. The coalition limits the exposure it can identify

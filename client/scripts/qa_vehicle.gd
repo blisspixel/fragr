@@ -7,6 +7,31 @@ var failures: Array[String] = []
 var mounted_shots: int = 0
 var directory: String
 var report: Dictionary = {}
+var _last_drawn: int = -1
+var _undrawn_seconds: float = 0.0
+var _last_process_usec: int = 0
+var _last_snapshot_usec: int = 0
+var _seen_fallbacks: int = 0
+var _timing: Dictionary = {"frame_stalls": [], "snapshot_gaps": [], "captures": [], "fallbacks": []}
+
+func _process(delta: float) -> bool:
+	var now: int = Time.get_ticks_usec()
+	if is_instance_valid(game) and game._vehicle_seat() == "driver":
+		if _last_process_usec > 0 and now - _last_process_usec > 100000:
+			_timing.frame_stalls.append({"usec": now, "gap_ms": (now - _last_process_usec) / 1000.0})
+		if game.vehicle_prediction.fallback_count > _seen_fallbacks:
+			_timing.fallbacks.append({"usec": now, "reason": game.vehicle_prediction.last_fallback_reason, "snapshot_age_ms": (now - _last_snapshot_usec) / 1000.0})
+		_seen_fallbacks = game.vehicle_prediction.fallback_count
+	_last_process_usec = now
+	# Capture-only: keep normal input progressing if Windows occludes this
+	# viewport. This route does not measure graphics performance.
+	var drawn: int = Engine.get_frames_drawn()
+	_undrawn_seconds = _undrawn_seconds + delta if drawn == _last_drawn else 0.0
+	_last_drawn = drawn
+	if _undrawn_seconds >= 0.25 and DisplayServer.get_name() != "headless":
+		RenderingServer.force_draw(false)
+		_undrawn_seconds = 0.0
+	return false
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
@@ -183,11 +208,48 @@ func _transport(kind: String) -> void:
 		_check(after.y - before.y > 2, "live aircraft: held climb takes off above runway")
 		await _capture(kind + "-04-flight.png")
 		Input.action_press("duck")
-		await create_timer(1.55).timeout
+		var descend_until: int = Time.get_ticks_msec() + 1550
+		while Time.get_ticks_msec() < descend_until:
+			_plane_throttle()
+			await create_timer(0.05).timeout
 		Input.action_release("duck")
 		_check(float(_occupied().vehicle.vy) < -1, "live aircraft: normal crouch input commands descent")
 		await _capture(kind + "-05-descend.png")
+		var land_until: int = Time.get_ticks_msec() + 15000
+		while Time.get_ticks_msec() < land_until and not _occupied().is_empty():
+			var motion: Dictionary = _occupied().vehicle
+			if float(motion.position[1]) <= 3.02 and absf(float(motion.vy)) < 0.1:
+				break
+			_plane_throttle()
+			# Pulse the existing descend control to approach at about2m/s,
+			# below the native hard-landing threshold. No pose is injected.
+			if float(motion.vy) > -2.0:
+				Input.action_press("duck")
+			else:
+				Input.action_release("duck")
+			await create_timer(0.05).timeout
+		Input.action_release("duck")
 		Input.action_release("move_forward")
+		Input.action_press("move_back")
+		_check(await _until(func() -> bool: return not _occupied().is_empty() and float(_occupied().vehicle.position[1]) <= 3.02 and absf(float(_occupied().vehicle.speed)) < 0.1, 5), "live aircraft: normal landing and braking reach rest")
+		Input.action_release("move_back")
+		if _occupied().is_empty():
+			return
+		report["landed_hp"] = _occupied().vehicle.hp
+		_check(int(_occupied().vehicle.hp) == 400, "live aircraft: soft landing keeps full hull health")
+		var taxi_start: Vector3 = GrenadeFacts.vector(_occupied().vehicle.position)
+		Input.action_press("move_forward")
+		await create_timer(0.6).timeout
+		Input.action_release("move_forward")
+		Input.action_press("move_back")
+		await create_timer(0.6).timeout
+		Input.action_release("move_back")
+		report["taxi_metres"] = taxi_start.distance_to(GrenadeFacts.vector(_occupied().vehicle.position))
+		_check(float(report.taxi_metres) > 0.8, "live aircraft: landed aircraft taxis through normal throttle")
+		await _capture(kind + "-06-landed.png")
+		_tap("interact")
+		_check(await _until(func() -> bool: return game._vehicle_seat().is_empty(), 3), "live aircraft: safe grounded exit returns on foot")
+		await _capture(kind + "-07-exit.png")
 		return
 	Input.action_release("move_forward")
 	Input.action_press("jump")
@@ -203,10 +265,23 @@ func _transport(kind: String) -> void:
 	await create_timer(0.6).timeout
 	Input.action_release("fire")
 	_check(mounted_shots > 0, "live boat: mounted traces remain authoritative")
+	report["mounted_shots"] = mounted_shots
 	await _capture(kind + "-05-gunner.png")
 	_tap("interact")
 	_check(await _until(func() -> bool: return game._vehicle_seat().is_empty(), 3), "live boat: safe exit enters registered swimming medium")
 	await _capture(kind + "-06-swim.png")
+
+func _plane_throttle() -> void:
+	var speed: float = float(_occupied().vehicle.speed)
+	if speed > 14.5:
+		Input.action_release("move_forward")
+		Input.action_press("move_back")
+	elif speed < 13.5:
+		Input.action_release("move_back")
+		Input.action_press("move_forward")
+	else:
+		Input.action_release("move_back")
+		Input.action_release("move_forward")
 
 func _feet() -> Vector3:
 	for actor: Dictionary in game.latest_snapshot.get("players", []):
@@ -242,6 +317,10 @@ func _tap(action: String) -> void:
 	Input.parse_input_event(event)
 
 func _shots(snapshot: Dictionary) -> void:
+	var now: int = Time.get_ticks_usec()
+	if _last_snapshot_usec > 0 and now - _last_snapshot_usec > 100000 and game._vehicle_seat() == "driver":
+		_timing.snapshot_gaps.append({"usec": now, "gap_ms": (now - _last_snapshot_usec) / 1000.0, "tick": snapshot.tick})
+	_last_snapshot_usec = now
 	for shot: Dictionary in snapshot.get("shot_results", []):
 		if shot.get("shooter_id") == game.net_client.player_id and VehicleState.shot_vehicle(shot) > 0:
 			mounted_shots += 1
@@ -251,7 +330,9 @@ func _capture(file: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 	await RenderingServer.frame_post_draw
+	var started: int = Time.get_ticks_usec()
 	_check(root.get_texture().get_image().save_png(directory.path_join(file)) == OK, "write viewport " + file)
+	_timing.captures.append({"file": file, "started_usec": started, "finished_usec": Time.get_ticks_usec(), "elapsed_ms": (Time.get_ticks_usec() - started) / 1000.0})
 
 func _finish() -> void:
 	QaCombat.release_inputs()
@@ -259,6 +340,7 @@ func _finish() -> void:
 	Input.action_release("duck")
 	report["failures"] = failures
 	report["passed"] = failures.is_empty()
+	report["timing"] = _timing
 	var file: FileAccess = FileAccess.open(directory.path_join("report-headless.json" if DisplayServer.get_name() == "headless" else "report-rendered.json"), FileAccess.WRITE)
 	if file != null:
 		file.store_string(JSON.stringify(report, "\t"))
@@ -272,4 +354,7 @@ func _shutdown() -> void:
 	await process_frame
 	VehicleAudio._loops.clear()
 	await process_frame
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		await process_frame
 	quit(0 if failures.is_empty() else 1)

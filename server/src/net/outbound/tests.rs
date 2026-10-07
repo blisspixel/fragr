@@ -27,6 +27,60 @@ fn event() -> ServerMessage {
 }
 
 #[test]
+fn remote_mine_commit_and_detonation_facts_stay_in_order() {
+    use crate::protocol::{RemoteMinePhase, RemoteMineState};
+    let (tx, mut rx) = channel(4);
+    let mut state = world(1);
+    state.remote_mines.push(RemoteMineState {
+        id: 7,
+        owner_id: state.players[0].id,
+        position: [0.0; 3],
+        normal: [0.0, 1.0, 0.0],
+        phase: RemoteMinePhase::Arming,
+        phase_started: 1,
+        phase_ends: 41,
+    });
+    tx.try_send(ServerMessage::Snapshot(state.clone())).unwrap();
+    state.tick = 40;
+    assert_eq!(
+        tx.try_send(ServerMessage::Snapshot(state.clone())),
+        Ok(Queued::ReplacedWorld)
+    );
+    state.tick = 41;
+    state.remote_mines[0].phase = RemoteMinePhase::Armed;
+    state.remote_mines[0].phase_started = 41;
+    assert_eq!(
+        tx.try_send(ServerMessage::Snapshot(state.clone())),
+        Ok(Queued::Added)
+    );
+    state.tick = 42;
+    state.remote_mines[0].phase = RemoteMinePhase::Triggered;
+    state.remote_mines[0].phase_started = 42;
+    state.remote_mines[0].phase_ends = 46;
+    assert_eq!(
+        tx.try_send(ServerMessage::Snapshot(state.clone())),
+        Ok(Queued::Added)
+    );
+    state.tick = 46;
+    state.remote_mines.clear();
+    state.explosions.push(ExplosionResult {
+        id: 7,
+        owner_id: state.players[0].id,
+        position: [0.0; 3],
+        radius: 5.0,
+        hits: Vec::new(),
+    });
+    assert_eq!(
+        tx.try_send(ServerMessage::Snapshot(state)),
+        Ok(Queued::Added)
+    );
+    for expected in [40, 41, 42, 46] {
+        assert_eq!(tick(rx.try_recv().unwrap()), expected);
+    }
+    assert!(rx.try_recv().is_err());
+}
+
+#[test]
 fn moving_active_world_replaces_at_capacity_without_moving_reliable_events() {
     let (tx, mut rx) = channel(2);
     let initial = world(1);

@@ -852,7 +852,7 @@ at most 6 m/s), and `vy` is vertical metres per second. HP is 0 to 400, heat
 is 0 to 1, and burning lasts at most forty ticks. Driver and gunner are
 nullable live player UUIDs; this list is the sole occupancy authority.
 The body is 3.8 by 1.9 m with a 1.35 m high shot box and 2.75 m clearance
-for exposed occupants. Driver feet are local `[0.55,0.65,-0.40]`, gunner feet
+for exposed occupants. Driver feet are local `[0.20,0.65,-0.40]`, gunner feet
 `[-0.65,0.95,0]`. Vehicle bodies use server collision and damage resolution.
 
 Mounted fire emits an ordinary Flechette `ShotTrace` with optional positive
@@ -874,6 +874,7 @@ in registered water of sufficient depth; dock and shore solids still block
 them. The same mounted gun and heat limits apply to the boat's gunner.
 
 The 8 by 9.2 m light aircraft has one driver seat and no weapon in this slice.
+Driver feet are local `[1.45,0.80,0]`, centered inside the inspected cockpit.
 Its boarding radius is 6 m to reach the cockpit from outside the wings;
 exits sample beyond the complete hull.
 Forward adds throttle, back brakes, left/right steer, jump climbs and duck
@@ -903,7 +904,7 @@ No separate swimming Action, underwater combat mode or per-client water physics
 is introduced.
 
 `GameMode` adds `conquest`, permitted on Holdfast Atoll (map 7). Optional
-`Snapshot.conquest` is null outside that mode, or contains
+`Snapshot.conquest` is omitted outside that mode, or contains
 `{tickets:{union,coalition},initial_tickets,capture_ticks,points}`. Each point is
 `{id,position:[x,y,z],radius,owner,capturing,progress,contested}`. The five IDs are
 `harbour`, `village`, `airfield`, `server_halls` and `lighthouse`. Owner and

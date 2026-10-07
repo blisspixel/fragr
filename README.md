@@ -16,21 +16,22 @@ Local play and self-hosting need no account or paid service.
 | [How to play](docs/PLAYING.md) | [Roadmap](docs/ROADMAP.md)
 | [Contribute](CONTRIBUTING.md)
 
-![Shotgun combat against black-and-red Union guards in Persons Unknown](docs/screenshots/readme-20261005/shotgun-combat.png)
+![Recall Notice's custody intake in the playable campaign prototype](docs/screenshots/m01_intake_16x9.png)
 
 ## Play now
 
 Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
-The campaign has ten connected development levels through Common Carrier, mission-entry
-saves, finite ammunition and three continues per episode. The finished target
+The current source build has eleven connected development levels through Right
+of Search, mission-entry saves, finite ammunition and three continues per episode.
+Check the release notes for the contents of a downloaded package. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
 
 | Choose | What you can play | Start here |
 |---|---|---|
-| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding and the ship interior | **Single Player > Recall Notice**, then **Continue Run** |
+| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior and custody tender | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
-| Multiplayer | Host team deathmatch on six arenas or 5v5 plant/defuse on Sector 9; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Host**, or enter a running server's address |
+| Multiplayer | Host team deathmatch on six arenas, 5v5 plant/defuse on Sector 9 or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Host**, or enter a running server's address |
 | Calibration | A separate arena challenge against named bots with the Host and objectives | `./tools/solo_scrap.sh` |
 
 Sabotage also has an optional 5v5 profile: start with a Pistol, find stronger
@@ -39,35 +40,40 @@ weapons on the map, and carry surviving equipment between rounds.
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
 
-Choose **Multiplayer > Host** for team deathmatch and 5v5
-plant/defuse. Watch, join or return to the menu while your match keeps running;
+Choose **Multiplayer > Host** for team deathmatch, 5v5 plant/defuse or island
+Conquest. Watch, join or return to the menu while your match keeps running;
 **Stop server** ends it. Enable **Allow LAN players** to invite another computer.
 Choose no bots, a fixed count or automatic fill so humans and agents can join
 a bot-populated match. [Hosting](docs/HOSTING.md) explains the round and seat rules.
 Releases before v0.77.0 use the [dedicated server launch](docs/HOSTING.md).
-Current development combines multiplayer refinement with M11, a shared two-seat
-jeep and Holdfast Atoll's five-site Conquest mode. These local development lanes
-are not part of the released ten-level claim above. The
+Current development includes shared jeeps, boats, a light aircraft, swimming
+and Holdfast Atoll's five-site Conquest mode. The island remains a development
+blockout with further art, balance and human playtesting ahead. The
 [build order](docs/ROADMAP.md#full-build-order) records implementation and review
 gates, including human reloads, crouching and the remaining player tests.
 
+The **Benchmark** page measures the current graphics preset or
+compares all three using the same recorded ten-bot fight. Results include average
+FPS, 1% lows, frame-time percentiles and local JSON/CSV exports. See the
+[measurement contract](docs/BENCHMARK.md#player-benchmark) for scope and method.
+
 ## In game
 
-These are actual gameplay captures from the current development build, inspected
-on October 5, 2026. They show provisional game art, not concept illustrations.
-The [visual tour](docs/screenshots/README.md) records capture scope and source.
+These are actual captures from the development build. They show provisional
+game art and menus. The
+[visual tour](docs/screenshots/README.md) records capture dates, scope and source.
 
-Combat at Low Water's notice board:
+The boot menu:
 
-![Restored Rifle firing at Union guards beside Low Water's eviction notice](docs/screenshots/readme-20261005/low-water-combat.png)
+![The fragr boot menu](docs/screenshots/tour_menu_16x9.png)
 
-The curfew town beneath its lunar pressure dome:
+Host a match or join a running server:
 
-![Lunar town, pressure dome and depot tower seen from the transit tunnel](docs/screenshots/readme-20261005/lunar-town.png)
+![The multiplayer page with separate hosting and join controls](docs/screenshots/tour_multiplayer_16x9.png)
 
-A watched 5v5 plant/defuse match:
+A watched match:
 
-![Free-side human and synthetic fighters in a live Sector 9 Sabotage round](docs/screenshots/readme-20261005/multiplayer-combat.png)
+![A live watched fight with free human and synthetic participants](docs/screenshots/tour_combat_follow_16x9.png)
 
 ## Quick start
 
