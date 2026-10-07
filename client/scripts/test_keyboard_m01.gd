@@ -58,6 +58,9 @@ func _key(code: Key, pressed: bool) -> void:
 	var event: InputEventKey = InputEventKey.new()
 	event.physical_keycode = code
 	event.keycode = code
+	# Fire lives on the right Control key, beside the arrows. Left Control ducks.
+	if code == KEY_CTRL:
+		event.location = KEY_LOCATION_RIGHT
 	event.pressed = pressed
 	Input.parse_input_event(event)
 	_held[code] = pressed
@@ -189,7 +192,7 @@ func _run() -> void:
 	_release_all()
 	_expect(await _walk_to(Vector2(0.0, -26.0), 15.0), "arrows walk to the confiscated Tack")
 	_expect(await _until(func() -> bool: return current_scene.net_client.equipment.get("selected") == "tack", "walking claims the Tack"), "Tack claimed")
-	# The guard: turn toward it with the arrows and fire with Ctrl.
+	# The guard: turn toward it with the arrows and fire with Right Ctrl.
 	var shooter: String = str(current_scene.net_client.player_id)
 	current_scene.net_client.snapshot_received.connect(func(data: Dictionary) -> void:
 		for shot: Variant in data.get("shot_results", []):
@@ -214,8 +217,13 @@ func _run() -> void:
 		_hold(KEY_CTRL, aligned)
 		if aligned:
 			fired += 1
-		# Close in if the guard is far and nothing stands in the way.
-		_hold(KEY_UP, aligned and eye.distance_to(Vector3(float(guard["x"]), eye.y, float(guard["z"]))) > 9.0)
+		# The guard sidesteps between bursts. At nine metres the two-degree
+		# turn gap is wider than the body, so the same keys close in first.
+		var flat: float = eye.distance_to(Vector3(float(guard["x"]), eye.y, float(guard["z"])))
+		_hold(KEY_UP, aligned and flat > 5.0)
+		_hold(KEY_COMMA, flat <= 8.0)
+		# A held trigger spends the magazine. R fills it from the bag.
+		_hold(KEY_R, fired > 0 and fired % 90 < 4)
 		await create_timer(0.03).timeout
 	_release_all()
 	var guard_state: Dictionary = _guard()

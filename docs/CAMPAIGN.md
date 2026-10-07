@@ -4,7 +4,7 @@ The [art bible](ART_STORY_BIBLE.md) and [design continuity guides](design/README
 keep worlds, characters, voices and future scenes consistent. The
 [level plans](campaign/README.md) apply those rules to individual places.
 
-**Status, 2026-09-30:** twenty levels in five episodes, plus a survival-gated
+**Status, 2026-10-07:** twenty levels in five episodes, plus a survival-gated
 playable epilogue, accepted as the contract. This replaces the ten-mission
 structure agreed 2026-09-20, which itself replaced the earlier twelve-mission
 structure. The [campaign expansion plan](plans/campaign-expansion.md) records
@@ -24,19 +24,24 @@ roof departure. M03-to-M04 carry retains entry equipment and completed car
 choices. The M05 No Forwarding Address prototype adds roof crossings, counted
 grenades, optional workshop rescue, a bounded authoritative tram and deliberate
 freight departure. M04-to-M05 carry retains earlier car, patient and photograph
-outcomes. Compatible historical saves upgrade explicitly to version 6, and
-completed M05 records the released and actually aboard workers at pending M06.
+outcomes. The connected development run continues through M06 Port of Entry,
+M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
+Carrier and M11 Right of Search. Version 14 saves retain mission-entry retries,
+equipment, remaining continues and completed choices, distinguishing released
+people from those actually evacuated or aboard. Historical saves upgrade
+explicitly and retain exact-byte archives. Completed M11 records pending M12;
+M12 through M20 and the epilogue remain unbuilt.
 These development routes do not certify a finished mission.
 Scene art, named-character performances and final encounter acceptance remain
 unfinished. Nine prototype transition narration clips are implemented with text
 fallback. [M01 completion](plans/m01-completion.md) retains that level's acceptance
-work; the [roadmap](ROADMAP.md#full-build-order-2026-09-27) owns the next build.
+work; the [roadmap](ROADMAP.md#full-build-order) owns the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
 
 This file owns the campaign contract. [World canon](lore/README.md) owns the
 setting; [detailed level plans](campaign/README.md) own room and encounter staging;
-[roadmap build order](ROADMAP.md#full-build-order-2026-09-27) owns implementation.
+[roadmap build order](ROADMAP.md#full-build-order) owns implementation.
 The old 28-level transmitter-chain story is superseded, preserved in git history.
 
 ## Structure
@@ -222,6 +227,22 @@ Your companion helps, argues, and takes responsibility. They are neither a key
 nor an escort meter. Their wish to free others challenges expedient plans, and
 your desire to keep them alive is understandable. Neither person needs to become
 foolish for that conflict to matter.
+
+The free-side viewpoint does not settle every broader question of who is good.
+Nick clarified on 2026-10-06 that the Union needs credible institutions and
+people, while reflection on the coalition's own choices should complicate the
+initially clear sides. Give officials real problems, conflicting obligations
+and specific decisions. Give allies interests beyond the mission, mistakes,
+internal disagreement and responsibility for the costs of their methods.
+
+Show what a plan protects, what it endangers and who gets to decide. A
+successful rescue or necessary fight can leave a defensible grievance over
+lost supplies, consent or another place left exposed. These are criteria for
+authored scenes, not newly established events. Do not reverse a survivor fact
+or invent an atrocity to balance a ledger. Conscious personhood and correction's
+harm remain certain; the legitimacy of particular leaders, institutions and
+means has to be earned in the story. No hidden morality score, faction-wide
+redemption speech or mandatory debate interrupts the shooter.
 
 Unexplained actions align with some coalition successes. The pattern becomes
 legible before the Union falls, but recognizing another intelligence does not

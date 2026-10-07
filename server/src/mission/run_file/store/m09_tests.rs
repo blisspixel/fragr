@@ -3,6 +3,7 @@ use crate::mission::run_file::{M08Outcome, SavedStep};
 
 pub(super) const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
+    [103; 32],
 ];
 
 pub(super) fn completed_archive() -> RunDocument {

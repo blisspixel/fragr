@@ -15,6 +15,10 @@ path = "src/lib.rs"
 name = "fragr-playtest"
 path = "src/main.rs"
 
+[[example]]
+name = "hitscan_alignment"
+test = true
+
 [dependencies]
 clap = { version = "4.6", features = ["derive"] }
 fragr-server = { path = "../../server", version = "0.1.0" }

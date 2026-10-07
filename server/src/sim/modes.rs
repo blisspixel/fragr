@@ -202,7 +202,8 @@ impl GameState {
         }
     }
 
-    /// First living contestant on the golden pad takes it.
+    /// First living contestant on the golden pad takes it. A parked pawn
+    /// keeps its last position and does not take the gun while gone.
     pub(super) fn claim_golden_rail(&mut self) {
         let Some(gold) = self.golden_rail.clone() else {
             return;
@@ -214,6 +215,7 @@ impl GameState {
             p.contestant()
                 && p.respawn_timer.is_none()
                 && p.hp > 0
+                && !p.detached
                 && (p.inventory.owns(WeaponType::Rail)
                     || (p.inventory.policy() == crate::protocol::EquipmentPolicy::Discovery
                         && p.inventory.only().is_none()))

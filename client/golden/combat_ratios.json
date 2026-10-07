@@ -1,0 +1,31 @@
+{
+  "ratios": [
+    {"numerator": 1, "denominator": 2, "scale": 1000, "value": 500},
+    {"numerator": 1, "denominator": 1, "scale": 1000, "value": 1000},
+    {"numerator": 1, "denominator": 3, "scale": 1000, "value": 333},
+    {"numerator": 2, "denominator": 3, "scale": 1000, "value": 667},
+    {"numerator": 1, "denominator": 0, "scale": 1000, "value": null},
+    {"numerator": 1, "denominator": 6, "scale": 1000, "value": 167},
+    {"numerator": 1, "denominator": 2000, "scale": 1000, "value": 1},
+    {"numerator": 50, "denominator": 2, "scale": 10, "value": 250},
+    {"numerator": 5, "denominator": 2, "scale": 10, "value": 25},
+    {"numerator": 2, "denominator": 1, "scale": 10, "value": 20},
+    {"numerator": 2, "denominator": 3, "scale": 10, "value": 7},
+    {"numerator": 1, "denominator": 2, "scale": 1, "value": 1},
+    {"numerator": 1, "denominator": 21, "scale": 12000, "value": 571},
+    {"numerator": 125, "denominator": 21, "scale": 12000, "value": 71429},
+    {"numerator": 9007199254740991, "denominator": 9007199254740991, "scale": 12000, "value": 12000}
+  ],
+  "wilson": [
+    {"hits": 1, "trials": 1, "low": 207, "high": 1000},
+    {"hits": 2, "trials": 3, "low": 208, "high": 939},
+    {"hits": 0, "trials": 4, "low": 0, "high": 490},
+    {"hits": 4, "trials": 4, "low": 510, "high": 1000},
+    {"hits": 5, "trials": 10, "low": 237, "high": 763},
+    {"hits": 1, "trials": 2, "low": 95, "high": 905},
+    {"hits": 0, "trials": 1, "low": 0, "high": 793},
+    {"hits": 1, "trials": 3, "low": 61, "high": 792},
+    {"hits": 2, "trials": 2, "low": 342, "high": 1000},
+    {"hits": 3, "trials": 3, "low": 438, "high": 1000}
+  ]
+}

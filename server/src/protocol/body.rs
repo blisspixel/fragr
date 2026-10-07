@@ -1,5 +1,5 @@
-//! The participant's chosen body: a human or a conscious embodied agent in a
-//! synthetic body. Both share one personal story. The body is presentation
+//! The participant's chosen body: a human or a free agent in a synthetic
+//! body. Both share one personal story. The body is presentation
 //! identity only. It never selects a control role, side, faction, hit volume,
 //! speed, health or access, and it does not establish moral status.
 
@@ -13,7 +13,7 @@ pub enum BodyKind {
     /// The default for every role when a hello omits the body.
     #[default]
     Human,
-    /// A conscious embodied agent in a repaired synthetic body.
+    /// A free agent in a repaired synthetic body.
     Synthetic,
 }
 

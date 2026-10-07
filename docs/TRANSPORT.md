@@ -15,6 +15,9 @@
 - Pros: Simple, universal, easy to debug, works for all roles, multi-peer ready
 - Limits: Ordered TCP delivery can stall newer updates after loss; JSON full-world snapshots consume more bytes than a compact, relevant-state format.
 
+LAN presence is a separate UDP broadcast on port 6768, `FRAGR/1 <game-port>`.
+It is not this transport and it does not carry snapshots or inputs.
+
 **Current playable path.** Spectators and agents share this transport with humans. The local pawn predicts and reconciles movement on the 20 Hz WebSocket path. The [continuous moving-combat probe](plans/websocket-moving-combat-probe.md) measured correction, fallback, cadence and payload on loopback. The [delayed-egress probe](plans/websocket-delayed-egress.md) passed nine 20-second Windows-to-WSL sessions with 0, 40 and 80 ms server-egress delay. Those sessions shared one physical machine and injected no loss or jitter. Competitive feel still needs a two-machine, unsteered human session. The earlier [Action-to-Ack baseline](plans/human-action-ack-baseline.md) samples server-selected Actions; its send-to-Ack interval is not general input latency or RTT.
 
 **Local presentation increment, 2026-09-30.** Remote participant bodies now have

@@ -441,7 +441,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -456,6 +456,7 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m07(m07.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m09(m09.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m10(m10.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m11(m11.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -595,7 +596,7 @@ fn fighter_visible_in_solids(
         [
             other.x,
             other.y - fragr_server::sim::PLAYER_FLOOR_Y
-                + fragr_server::combat::target_height(other.campaign) * 0.5,
+                + fragr_server::combat::aim_height(other.campaign),
             other.z,
         ],
         solids,
@@ -1204,6 +1205,7 @@ mod tests {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign,
@@ -1219,6 +1221,11 @@ mod tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Tack".to_string(),
         };
         let me = fighter(1, 0.0, Some(protocol::CampaignActor::Participant {}));
@@ -1255,16 +1262,19 @@ mod tests {
     #[test]
     fn test_snapshot_with_players() {
         let snapshot = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 100,
             players: vec![protocol::PlayerState {
                 collidable: true,
                 body: None,
                 golden: false,
+                ducking: false,
                 lives: None,
                 team: None,
                 campaign: None,
@@ -1280,6 +1290,11 @@ mod tests {
                 just_fired: false,
                 behavior: Some("Aggressive".to_string()),
                 score: 3,
+                deaths: 0,
+                attacks: 0,
+                connects: 0,
+                heads: 0,
+                damage: 0,
                 weapon: "Rail".to_string(),
             }],
             round_state: Some("Active".to_string()),
@@ -1289,6 +1304,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -1325,11 +1341,13 @@ mod tests {
     #[test]
     fn test_snapshot_carries_sticky_host_line() {
         let mut snap = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 7,
             players: vec![],
             round_state: Some("Active".into()),
@@ -1339,6 +1357,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -1380,17 +1399,20 @@ mod tests {
     #[test]
     fn test_snapshot_includes_weapon_in_observe() {
         let snapshot = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 50,
             players: vec![
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1406,12 +1428,18 @@ mod tests {
                     just_fired: true,
                     behavior: None,
                     score: 5,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1427,6 +1455,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 2,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Scatter".to_string(),
                 },
             ],
@@ -1437,6 +1470,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -1731,17 +1765,20 @@ mod tests {
         let bot_id = uuid::Uuid::new_v4();
         let target_id = uuid::Uuid::new_v4();
         let snapshot = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 1,
             players: vec![
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1757,12 +1794,18 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 0,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1778,6 +1821,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 0,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".into(),
                 },
             ],
@@ -1788,6 +1836,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -2270,11 +2319,13 @@ mod tests {
                 mode_name: protocol::default_mode_name(),
                 playlist: protocol::default_playlist(),
                 resume: None,
+                duck: false,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                water_regions: Vec::new(),
                 rules: None,
                 sabotage: None,
                 mission: None,
@@ -2288,6 +2339,7 @@ mod tests {
                 m07: None,
                 m09: None,
                 m10: None,
+                m11: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

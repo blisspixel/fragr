@@ -27,6 +27,7 @@ enum Grant {
     Armor { amount: u16 },
     Grenade { amount: u16 },
     ProximityMine { amount: u16 },
+    RemoteMine { amount: u16 },
 }
 
 pub(super) fn build(
@@ -73,6 +74,11 @@ pub(super) fn build(
                 {
                     (PickupKind::ProximityMine { count: amount }, 0)
                 }
+                Grant::RemoteMine { amount }
+                    if amount > 0 && amount <= crate::protocol::REMOTE_MINE_CARRY_CAP =>
+                {
+                    (PickupKind::RemoteMine { count: amount }, 0)
+                }
                 _ => return Err(invalid("unsupported supply grant or amount")),
             };
             if supply.claim == SupplyClaim::Personal
@@ -81,6 +87,7 @@ pub(super) fn build(
                     PickupKind::Weapon(_)
                         | PickupKind::Grenade { .. }
                         | PickupKind::ProximityMine { .. }
+                        | PickupKind::RemoteMine { .. }
                 )
             {
                 return Err(invalid(

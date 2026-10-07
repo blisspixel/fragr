@@ -1,0 +1,30 @@
+{
+	"color_model": "24-step venue material ramps",
+	"entries": [
+		{
+			"edge_mismatches": 0,
+			"id": "holdfast_groundcover",
+			"palette_colors": 22,
+			"raw_sha256": "169b38ea00c5391616b33f5538d8da73eed339898eb3dbdb67fbd6a901f5c73f",
+			"reduced_sha256": "7e8896a1ef3ff3525298a104b552e0d80eab13afb471314e7b77503859810dd6",
+			"runtime_sha256": "c4e491283ddfbd0076f6c5aedda242bda8f0a9dd9823a901447ccc8cfdc76af4"
+		},
+		{
+			"edge_mismatches": 0,
+			"id": "holdfast_sand",
+			"palette_colors": 6,
+			"raw_sha256": "eff173d779b1c732a007d255b420118fa00d0c4de543035235932bcddb7da4b3",
+			"reduced_sha256": "6d13771574dc3e8639f2bf64c7039ef949261e5ff2af2c6e5d1d76bf5d9eb9d4",
+			"runtime_sha256": "5384a2e42ac37aafbb5ce5775007374675379d8e4cc318bd7a5cd4b43f40aeb9"
+		}
+	],
+	"filter": "nearest",
+	"mipmaps": false,
+	"palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+	"preparation_sha256": "862020f2d921fb00acb2900febf2d196ef472e6b880aec4f31a02f4582de156a",
+	"schema": 1,
+	"size": [
+		128,
+		128
+	]
+}

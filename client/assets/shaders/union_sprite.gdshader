@@ -21,6 +21,9 @@ uniform float body_lift = 0.5;
 uniform float red_glow = 1.6;
 uniform vec3 rim_color : source_color = vec3(0.42, 0.44, 0.50);
 uniform float rim_glow = 0.55;
+// Redactor approach only: one texel of visible scan jitter, never invisibility.
+uniform float shimmer = 0.0;
+uniform float shimmer_tick = 0.0;
 
 void vertex() {
 	// Keep the scene camera basis during light-camera shadow draws as well.
@@ -44,7 +47,8 @@ float red_mask(vec3 c) {
 }
 
 void fragment() {
-	vec4 texel = texture(sprite_texture, UV);
+	vec2 shimmer_uv = UV + vec2(floor(sin(floor(UV.y * float(textureSize(sprite_texture, 0).y) / 3.0) + shimmer_tick * 0.7) * 1.5) * shimmer / float(textureSize(sprite_texture, 0).x), 0.0);
+	vec4 texel = texture(sprite_texture, shimmer_uv);
 	vec2 step_uv = 1.0 / vec2(textureSize(sprite_texture, 0));
 	vec3 tint = COLOR.rgb;
 	if (texel.a < 0.5) {

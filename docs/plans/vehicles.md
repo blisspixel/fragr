@@ -1,187 +1,129 @@
-# Vehicles: jeep, motorcycle, jetpack
+# Vehicles
 
-**Status:** planned, 2026-10-04. Design and staging only; nothing here is built.
-**Spend:** $0 new cash. Local implementation is free; proposed model candidates
-and audio use approved existing credits under the
-[full-game asset plan](meshy-full-game-assets.md), with separate bounded stages.
+**Status:** in flight, 2026-10-06. Jeep, boat and light aircraft have local
+server and client implementations on Holdfast Atoll. Motorcycle is an inspected
+source only. Jetpack and the campaign placements below remain planned. Composed
+verification, rendered driving and human acceptance remain distinct gates.
 
-## When
+**Spend:** $0 new cash for implementation. The separate
+[source batch](vehicle-assets-20261006.md) records approved prepaid asset usage.
+No new generation, renewal, top-up or overage is authorized by this plan.
 
-Vehicles are built only when the campaign reaches the mission that needs one.
-Much of the game is built without them. No vehicle rung is in the near-term
-sequence and none of this blocks Act I (M01 to M03), M04 to M07, or the
-controls work in rung 7 of the [full build order](../ROADMAP.md#full-build-order-updated-2026-10-04).
+Nick advanced island and vehicle work on October 6, including boats and flight.
+The [full build order](../ROADMAP.md#full-build-order) remains the single sequence.
+This umbrella plan records scope; bounded implementation and evidence belong to
+the [jeep authority](jeep-authority-20261006.md),
+[watercraft and flight](island-watercraft-flight-20261006.md),
+[client](vehicle-client-20261006.md),
+[water rendering](island-water-rendering-20261006.md) and
+[Conquest](holdfast-conquest-20261006.md) plans.
 
-| Rung | Starts when | First use |
+## Goal and current scope
+
+Walk up, use a seat, drive, park, switch to a mount where fitted, then leave and
+keep fighting. Vehicles open routes and firing positions. Walking remains
+available, and losing a vehicle must not make a mission unwinnable.
+
+| Type | Local implementation | Remaining work |
 |---|---|---|
-| 1. Vehicle seam and jeep | M14 is the next mission in rung 8 | M14 launch works |
-| 2. Motorcycle | M16 is next | M16 transit approach |
-| 3. Jetpack | M19 is next | M19 changed streets and waterworks |
-| 4. Campaign placement | Inside each of rungs 1 to 3, same mission cycle | M14, M16, M19 |
-| 5. Multiplayer vehicle map | Phase 4, after team deathmatch | Conquest-lite |
+| Jeep | Two seats, ground movement, driver prediction, exposed occupants and mounted heat gun; three registered on Holdfast. Rendered driving, mounted fire and safe exit pass. | Network feel, human acceptance and campaign placement. |
+| Boat | Two seats, registered-water support, surface steering and braking, mounted heat gun and swimming exit; two on Holdfast. Rendered motion, mounted fire and swimming exit pass. | Dock usability and human acceptance. |
+| Light aircraft | One driver, taxi, speed-dependent lift, climb/descent, stalls, ceiling, landing and crashes; one on Holdfast. Rendered takeoff, soft landing, taxi and safe exit pass. Upright arcade transport without a mounted weapon. | Cockpit detail, flight feel and human controls review. |
+| Motorcycle | Inspected original source model. | Runtime preparation, single-seat movement, collision, controls and played proof. |
+| Jetpack | Planned personal movement item. | Inventory/fuel contract, shared movement and prediction, presentation and played proof. |
 
-Each rung needs the applicable prediction and reconciliation work demonstrated
-through actual driving, not inferred from pawn prediction or this sequence.
-If a mission's plan drops its vehicle, that rung waits for the next mission
-or for rung 5. The [shared Wipe design](wipe-survival.md) can reuse proven
-vehicles; it cannot claim them implemented ahead of these gates.
+Tanks, simulation suspension, part damage, destructible terrain and persistent
+vehicle unlocks are outside this work. Motorcycle speed, durability and weapon
+use, and jetpack fuel/thrust tuning, remain design decisions rather than current
+game rules.
 
-## Goal
+## Shared architecture
 
-Battlefield 1942 feel on fragr's rules: walk up, press Use, drive; hop in the
-gun seat; jump a berm; bail out and keep fighting. Vehicles open routes and
-firing positions. They never turn a mission into a compulsory ride, and losing
-one never strands the player.
+`server/src/vehicles.rs` and `vehicles/water_air.rs` own pure movement and hull
+geometry. `sim/vehicle.rs` owns seats, safe entry and exit, mounted fire, damage,
+destruction and unattended return. The ordinary simulation resolves hits and
+blasts. Vehicle occupants skip walking integration and follow server seat facts.
+The client never decides occupancy, damage, collision or capture progress.
 
-## Non-goals
+The existing `Action` carries movement, aim, fire and Use. Optional `seat`
+requests driver/gunner changes where supported. Jeep and boat Jump brakes;
+aircraft Jump climbs and Duck descends. Switching has an authoritative control
+delay. Entry and exit require low speed and a legal reachable body position.
+The composed review found eye-ray passage checks could cross low barriers.
+Boarding and exit now sweep a body through the existing geometry seam. Six
+regressions cover low cover, overheads, other hulls, dock return and aircraft
+access; all six pass in the composed native vehicle filter. Scoped formatting,
+documentation links and whitespace checks pass.
+Destruction has a warning before safe ejection and a shared blast; a blocked
+occupant cannot remain alive inside a wreck indefinitely.
 
-- Simulation physics: suspension, gears, tire models, damage per part.
-- Tanks, or a roster beyond these three before conquest-lite proves fun. Boats
-  on deep water and one arcade light aircraft per side are later rungs for the
-  flagship island ([Holdfast Atoll](multiplayer-maps.md#17-holdfast-atoll-new-the-flagship-island-working-name)),
-  added on Nick's direction of 2026-10-03, after the three rungs above.
-- Destructible terrain, vehicle customization or persistent vehicle unlocks.
-- A second action channel for driving. Humans and agents use the same `Action`.
-- Predicting anyone else's vehicle. Other vehicles are interpolated.
+`Snapshot.vehicles` is the single occupancy source. The feature contracts were
+introduced at capability 39 for jeeps, 40 for Conquest and 41 for registered
+water, boats and aircraft. Shared arcade rooms require the current version, 41.
+Driver prediction mirrors the native kernels and reconciles matched snapshot
+and input-acknowledgement ticks. Other vehicles interpolate. Swimming uses the
+same registered water as hull support; visual waves never affect outcomes.
 
-## The three
+Humans and external agents can issue the same seat and driving actions. An
+autonomous route-driving controller, validated drive lanes and automatic allied
+seat use are not implemented. Rule bots currently fight and capture on foot.
 
-**Jeep.** Two seats: driver and gunner. The gunner's mounted gun is a heat
-gun, not an ammunition pool, so vehicle ammo can never become a mandatory key;
-overheating has a visible glow and a captioned hiss. Proposed: top speed about
-16 m/s, 400 HP, occupants exposed above the doors. A solo player can park and
-switch to the gun, the way it was always done in 1942. An autonomous ally may
-take the free seat on its own; it is never required. M14's captured utility
-rover is this jeep in coalition paint.
+Current collisions stop against world geometry and bodies; fast impacts can
+damage the moving vehicle. Runover resolves hostile damage through the shared
+combat rules and stops at friendly bodies. Symmetric vehicle collision damage,
+roll physics and sophisticated enemy reactions to approaching vehicles remain
+outside this slice.
 
-**Motorcycle.** One seat. Proposed: top speed about 20 m/s, quick acceleration,
-120 HP, rider fully exposed, a hop on Jump. The rider does not fire in rung 2;
-a forward-cone sidearm is a later decision on playtest evidence.
+## Presentation
 
-**Jetpack.** A personal movement item carried in inventory, not a seat and not
-a vehicle entity. Hold Jump in the air to thrust. Proposed: three seconds of
-fuel, refilling after half a second on the ground; thrust slightly stronger
-than gravity; better air control while thrusting; a hard ceiling from the map.
-The wearer can shoot. A visible flame and hiss tell enemies and players where
-the flyer is, and a fuel gauge sits in the HUD.
+Prepared jeep, boat and aircraft models use compact nearest-filtered pixel
+paint. Local preparation registers wheels, seats and the aircraft propeller;
+the client retains a bounded fallback. Source completion is not motion or art
+acceptance. Geometry, occupant alignment, cockpit visibility and motion must
+agree with the authoritative hull and seat contract.
 
-## Architecture
+The current client provides seat-specific controls and vehicle state, first
+person seating, mechanical audio and remote vehicle interpolation. A chase
+camera, jetpack gauge and motorcycle presentation remain future work. Original
+repaired civilian and coalition equipment and issued Union variants follow the
+[art and story bible](../ART_STORY_BIBLE.md).
 
-**Server.** A new `server/src/vehicles.rs` owns vehicle entities, seats and
-`vehicle_step`, called from the `sim.rs` tick before pawn movement. Occupied
-pawns skip `movement::integrate`; their position follows the seat. Seat
-actions route through the existing per-player `Action`:
+## Planned campaign placements
 
-- Driver: `forward` and `back` are throttle and brake-reverse, `left` and
-  `right` steer, `jump` is the handbrake (jeep) or hop (motorcycle). The
-  driver's yaw and pitch are free look within a cone and do not steer.
-- Gunner: yaw and pitch aim the mounted gun; `fire` fires it.
-- `interact` enters the nearest free seat within 2 m or exits. A new optional
-  `seat` field switches seats; switching takes half a second.
+- **M14 jeep:** the optional rover circuit across depot, berm and gantry. The
+  [development level](m14-vehicle-development-20261006.md) is planned, not a
+  completed campaign mission. Validate explicit authored placement and infantry
+  approaches before adding the Walker and mission completion.
+- **M16 motorcycle:** the civic transit approach from staging to the foothold.
+  Checkpoints and patrols must also permit the foot route, without a timer or
+  required escort. Neither the vehicle runtime nor this placement is built.
+- **M19 jetpack:** optional roof and waterworks routes during the changed-streets
+  phase. The ground route must work. Item, mission placement and movement remain
+  planned; any gravity change requires new shared movement evidence.
 
-**Physics, arcade.** One speed scalar, steering rate that falls with speed,
-strong grip with a small drift, gravity when a wheel leaves the support height,
-and landings that keep momentum. Ground height comes from the map's
-`support_height`; collision uses three circles along the body with the
-existing `blocks_motion` tests. A wall hit stops or deflects the vehicle and
-damages it above a speed threshold. A flipped vehicle rights itself after two
-seconds.
+No vehicle adds a campaign door. Each mission keeps at most three.
 
-**Jetpack in movement.** Thrust is a change to the shared movement contract,
-so `movement.rs`, `client/scripts/movement.gd` and
-`client/golden/move_vectors.json` change together, with new golden vectors for
-thrust, fuel and ceiling. Fuel is inventory state in `server/src/inventory.rs`.
+## Verification and acceptance
 
-**Prediction.** The driven vehicle is predicted like the local pawn:
-`vehicle_step` has a GDScript mirror and its own golden vectors
-(`client/golden/vehicle_vectors.json`). Reconciliation reuses the stage 3
-correction blend. Every other vehicle is interpolated.
+The linked plans retain actual commands and receipts. Local evidence includes
+native seat, reset, damage, water and flight tests, eighteen vehicle motion
+vectors and six swimming vectors shared with the client. Headless ordinary-input
+jeep and boat loops have exercised driving, braking, mounted fire and safe exit.
+These checks do not establish flight feel, rendered quality or human enjoyment.
 
-**Entry and exit safety.** Exit samples standing positions around the vehicle
-with `blocked_body_at`; if none is free, the exit is refused with a short
-notice rather than ejecting into a wall. Entry and exit are refused above a
-low speed. At zero HP the vehicle burns for two seconds with smoke and a
-countdown sound, occupants are ejected to safe points, then it explodes
-through the shared server splash seam.
+The later [October 7 rendered receipt](../evidence/vehicle-played-20261007.md)
+records completed jeep and boat control loops and the centered-seat aircraft's
+takeoff, soft landing, taxi and safe exit. Capture-related prediction fallbacks
+are retained with their timing evidence. Cockpit detail and wider human driving
+acceptance remain provisional.
 
-## Collision and damage
+Before playable acceptance, complete the composed native and client gates and
+inspect ordinary-input motion for boarding, driving, gunning, swimming exit,
+takeoff, landing and destruction. Record correction measurements independently
+of renderer cost. The water renderer measurement and actual rule-bot CPU
+measurements remain separate from vehicle-heavy match and network evidence.
 
-- Hitscan hits the vehicle's body box or an exposed occupant; exposed zones
-  are part of the vehicle definition, not guessed by the client.
-- Splash and rockets are strong against vehicles; the Arc is not
-  special. Numbers are tuned per rung.
-- Run-over damage scales with speed above about 6 m/s and applies only to
-  hostile actors under the existing `hostile` rule. Allies, civilians and
-  teammates are pushed aside, never killed.
-- Vehicle against vehicle damages both by closing speed.
-
-## Vehicles as targets
-
-Union enemies target occupants and the vehicle under their normal sight and
-hearing rules. Notaries and Assessors are natural jeep-gunner targets, and
-Clerks and Sweepers take cover from an approaching jeep instead of standing in
-the road. Empty vehicles are not targeted unless they block a route.
-
-## Agents
-
-Snapshots gain a vehicle list (id, kind, position, yaw, speed, HP, seat
-occupants, burning) and each `PlayerState` gains an optional vehicle and seat.
-The brain's local controller drives by steering toward the next point on a
-route at tick rate; the decision model only chooses "enter", "drive to",
-"gun" or "exit" at its normal few decisions per second. Maps that allow driving
-author drive lanes, validated against solids like walking routes. MCP tool
-schemas keep their shape; `act` documents the `seat` field.
-
-## Client presentation
-
-Low-poly meshes with pixel textures and nearest filtering, built from the same
-kind of in-repo primitives as `client/art/characters/geometry.gd`, consistent
-with the [look pass](look-pass-boomer.md). Sprites are wrong for something a
-player sits inside and circles around. Coalition vehicles wear bone, leather
-and ember with scraped-off Union plates; Union vehicles are black and red.
-Driver view is first person with a chunky dashboard; a chase camera is a
-presentation toggle. Engine loops pitch with speed. Spectator cameras follow
-vehicles. HUD: vehicle HP, gun heat, seat, and jetpack fuel.
-
-## Campaign fit
-
-- **M14 jeep.** The rover circuit across depot, berm and gantry, as the M14 plan
-  already describes. Infantry routes are proven first; the Walker stays
-  defeatable if the jeep is lost.
-- **M16 motorcycle.** A run down the civic transit approach from the coalition
-  staging point to the foothold, past checkpoints under Notary patrols. The
-  transit station is the foot route if the bike is lost. No timer, no escort.
-- **M19 jetpack.** Coalition gear in the evacuation concourse. It opens roof and
-  waterworks lines over Paver work strips during the changed-streets phase. The
-  ground route always works.
-- **Moon and Mars.** No per-map gravity is assumed. If one is added later, the
-  jetpack is where it is felt first, and it changes movement goldens.
-
-No vehicle adds a door. Each mission keeps at most three.
-
-## Multiplayer
-
-Rung 5 is one vehicle map after team deathmatch exists (Phase 4 bigger modes):
-16 to 32 fighters, jeeps and motorcycles at team bases on respawn timers,
-jetpacks as map pickups, and conquest-lite: three control sites and ticket
-bleed, per [Frontline objectives](../MODES.md#frontline-objectives). The map
-must be fun on foot first. Abandoned vehicles return to base after 30 seconds.
-
-## Verification per rung
-
-- Deterministic tests: enter, exit, seat switch, refused unsafe exit, speed
-  limits, wall stop, run-over only on hostiles, burn and eject, explosion
-  through splash, continue reset, golden vectors in both languages.
-- A seeded agent drives the test map lap and guns a target through the live
-  session. A human drives it in the Godot client with a recorded correction
-  metric.
-- Tour stills and motion for entry, driving, gunning, jetpack flight and a
-  wreck. Bench run with vehicles active.
-- Each campaign placement: the mission clears with the vehicle, without it,
-  and after losing it.
-
-## Success
-
-Getting in and driving takes no explanation. The driven vehicle shows no
-visible correction on a LAN. An agent can drive and gun on the same wire. No
-mission is ever lost because a vehicle was lost.
+Each future campaign placement must clear with the vehicle, without it and
+after losing it. Multiplayer must preserve infantry access and fair capture.
+Success is readable controls, stable local driving and useful optional routes,
+with no seat leak or vehicle loss that blocks continued play.

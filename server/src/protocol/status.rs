@@ -62,6 +62,18 @@ pub struct OpsStatus {
     /// Present only for `GET /status?clients=1`. Anonymous, one per session.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub clients: Option<Vec<ClientRate>>,
+    /// Rounds this process has finished, and the busiest participant room.
+    /// Counts only. The session fills this after the tracker applies.
+    #[serde(default)]
+    pub night: NightTotals,
+}
+
+/// Anonymous night counters. No callsigns.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NightTotals {
+    pub rounds_finished: u64,
+    pub peak_humans: u32,
+    pub peak_fighters: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

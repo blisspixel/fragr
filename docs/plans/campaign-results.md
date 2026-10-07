@@ -76,6 +76,14 @@ onward prompt waits for tally dismissal and release of all held controls.
 Historical missing timing displays unavailable. Capability 33 adds optional
 record timing; M07 still requires 32 and M08 still requires 31.
 
+2026-10-06: the tally CONTINUE on a durable completed run is the handoff.
+It sets the existing onward mark and returns to Single Player, which starts
+the saved next mission once the preview names one. Persons Unknown through
+Common Carrier are that handoff. The older second prompt remains when the
+tally did not hand off. A development child still does not offer the saved
+run. This handoff is local and not merged. It does not change mission
+capabilities.
+
 Logs live under `.agents/campaign-results-20261004/.agents`:
 
 - `results-elapsed2.log`: three focused server tests pass, including exact

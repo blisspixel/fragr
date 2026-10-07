@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use fragr_server::protocol::{BodyKind, Role, ServerMessage, BODY_GAMEPLAY_VERSION};
+use fragr_server::protocol::{BodyKind, Role, ServerMessage, GAMEPLAY_VERSION};
 use fragr_server::run::{run_server, ServerOptions};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::json;
@@ -80,7 +80,7 @@ async fn body_is_accepted_shown_to_watchers_and_kept_across_resume() {
     let mut watcher = hello(
         &url,
         json!({"type":"hello","role":"spectator","name":"Eyes","geometry_version":2,
-            "gameplay_version":BODY_GAMEPLAY_VERSION,"body":"synthetic"}),
+            "gameplay_version":GAMEPLAY_VERSION,"body":"synthetic"}),
     )
     .await;
     match next_message(&mut watcher).await {
@@ -97,25 +97,27 @@ async fn body_is_accepted_shown_to_watchers_and_kept_across_resume() {
     for role in [Role::Human, Role::Agent] {
         for requested in [None, Some(BodyKind::Human), Some(BodyKind::Synthetic)] {
             let mut message = json!({"type":"hello","role":role,"name":"Same label",
-                "geometry_version":2,"gameplay_version":BODY_GAMEPLAY_VERSION,"resume":""});
+                "geometry_version":2,"gameplay_version":GAMEPLAY_VERSION,"resume":""});
             if let Some(body) = requested {
                 message["body"] = json!(body);
             }
             let mut socket = hello(&url, message).await;
-            let Some(ServerMessage::Welcome {
-                player_id: Some(id),
-                role: accepted_role,
-                body: Some(body),
-                resume: Some(token),
-                ..
-            }) = next_message(&mut socket).await
-            else {
-                panic!("participant welcome without an accepted body");
-            };
-            assert_eq!(accepted_role, role, "body changed the control role");
-            assert_eq!(body, requested.unwrap_or_default());
-            assert_eq!(snapshot_body(&mut watcher, id).await, Some(body));
-            kept.push((socket, id, role, body, token));
+            // Six of these join. A shared free-for-all is not a four-seat mission.
+            match next_message(&mut socket).await {
+                Some(ServerMessage::Welcome {
+                    player_id: Some(id),
+                    role: accepted_role,
+                    body: Some(body),
+                    resume: Some(token),
+                    ..
+                }) => {
+                    assert_eq!(accepted_role, role, "body changed the control role");
+                    assert_eq!(body, requested.unwrap_or_default());
+                    assert_eq!(snapshot_body(&mut watcher, id).await, Some(body));
+                    kept.push((socket, id, role, body, token));
+                }
+                other => panic!("participant welcome without an accepted body: {other:?}"),
+            }
         }
     }
 
@@ -124,7 +126,7 @@ async fn body_is_accepted_shown_to_watchers_and_kept_across_resume() {
         let mut socket = hello(
             &url,
             json!({"type":"hello","role":"human","name":"Bad","geometry_version":2,
-                "gameplay_version":BODY_GAMEPLAY_VERSION,"body":invalid}),
+                "gameplay_version":GAMEPLAY_VERSION,"body":invalid}),
         )
         .await;
         assert!(
@@ -143,7 +145,7 @@ async fn body_is_accepted_shown_to_watchers_and_kept_across_resume() {
     let mut again = hello(
         &url,
         json!({"type":"hello","role":role,"name":"Same label","geometry_version":2,
-            "gameplay_version":BODY_GAMEPLAY_VERSION,"resume":token,"body":"human"}),
+            "gameplay_version":GAMEPLAY_VERSION,"resume":token,"body":"human"}),
     )
     .await;
     match next_message(&mut again).await {

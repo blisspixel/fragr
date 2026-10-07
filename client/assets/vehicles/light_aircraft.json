@@ -1,0 +1,35 @@
+{
+	"albedo_pixels": 512,
+	"authored_triangles": 120,
+	"glass_triangles": 115,
+	"mesh_bounds_m": {
+		"position": [
+			-3.99999976158142,
+			0.0,
+			-4.59999990463257
+		],
+		"size": [
+			7.80249977111816,
+			2.75,
+			9.19999980926514
+		]
+	},
+	"motion_acceptance": false,
+	"prepared_sha256": "6b8860176605e2b54f0318573d8256185a9e64a953621bf689555aede4cf3620",
+	"registered_bounds_m": {
+		"base": 0.0,
+		"size": [
+			8.0,
+			2.75,
+			9.19999980926514
+		]
+	},
+	"removed_triangles": 1124,
+	"repair": "complete balanced propeller, forward cowl and clear windscreen",
+	"retained_triangles": 10633,
+	"schema": 1,
+	"source_geometry_retained": false,
+	"source_sha256": "7cf20a50892e827aef1084699cd0983cedfd72fc71afcd8eba6247ab3a9bc876",
+	"source_triangles": 11757,
+	"triangles": 10753
+}

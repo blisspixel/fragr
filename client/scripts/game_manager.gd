@@ -12,6 +12,12 @@ var players = {}
 var pickups = {}
 var jammer_dish_node = null
 var arena_flags: ArenaFlags = null
+var arena_vehicles: ArenaVehicles = null
+var vehicle_hud: VehicleHud = null
+var vehicle_prediction: VehiclePrediction = VehiclePrediction.new()
+var pending_seat: String = ""
+var arena_conquest: ArenaConquest = null
+var conquest_hud: ConquestHud = null
 ## Sabotage sites and charge; empty outside a Sabotage server.
 var arena_sabotage: ArenaSabotage = null
 var sabotage_layout: Dictionary = {}
@@ -43,6 +49,8 @@ var radio = null
 var local_fp_pawn_id = ""
 var local_hp_seen = -1
 var fp_spawn_flashed = false
+## Killer to watch once an arcade death drops first person. Empty until then.
+var _death_watch_killer: String = ""
 # Mid-join Ended podium shown once per Ended phase.
 var ended_podium_shown = false
 var action_state = {
@@ -57,6 +65,8 @@ var action_state = {
 	"interact": false,
 	"throw_grenade": false,
 	"place_mine": false,
+	"place_remote_mine": false,
+	"trigger_remote_mines": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -72,12 +82,19 @@ const SPEAK_LINES = [
 var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
+var pending_fire: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
 var pending_throw: bool = false
 var throw_armed: bool = true
 var pending_place: bool = false
 var place_armed: bool = true
+var pending_reload: bool = false
+var reload_armed: bool = true
+var pending_remote_place: bool = false
+var remote_place_armed: bool = true
+var pending_remote_trigger: bool = false
+var remote_trigger_armed: bool = true
 var mission_hud: MissionHud
 var m02_ward: M02Ward
 var m03_yard: M03Yard
@@ -88,6 +105,7 @@ var m08_archive: M08Archive
 var m07_town: M07Town
 var m09_berth: M09Berth
 var m10_ship: M10Ship
+var m11_tender: M11Tender
 var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
@@ -95,6 +113,8 @@ var _continue_attempt_sent: int = -1
 ## boot menu reads LocalMatch.ONWARD_META once and opens Continue Run.
 var _onward_released: bool = false
 var _onward_armed: bool = false
+## Set when a finished durable run has asked to open the next mission.
+var onward_requested: bool = false
 var _presented_attempt: int = 0
 var _retry_snapshot_tick: int = -1
 
@@ -112,9 +132,18 @@ var incoming_feedback: IncomingCombatFeedback = null
 var grenade_effects: GrenadeEffects
 var auditor_channels: AuditorChannels
 var last_shot_tick: int = -1
+var local_fire: LocalFireFeedback = LocalFireFeedback.new()
+var _local_fire_allowed_last_frame: bool = false
+var _receiving_snapshot: bool = false
+var _reset_fire_after_snapshot: bool = false
 var mouse_capture: MouseCapture
 var local_match: LocalMatch
 var _leaving: bool = false
+## Main-menu Benchmark: score frames, then leave. The owned loopback match
+## stops on the way out. A server left up for other people is a different process.
+var _benchmark: bool = false
+var _benchmark_started: bool = false
+var _benchmark_compare: bool = false
 var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
@@ -179,6 +208,16 @@ func _ready():
 	incoming_feedback.setup(hud)
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
+	arena_vehicles = ArenaVehicles.new()
+	arena_vehicles.name = "Vehicles"
+	add_child(arena_vehicles)
+	vehicle_hud = VehicleHud.new()
+	vehicle_hud.name = "VehicleHud"
+	hud.add_child(vehicle_hud)
+	arena_conquest = ArenaConquest.new()
+	add_child(arena_conquest)
+	conquest_hud = ConquestHud.new()
+	hud.add_child(conquest_hud)
 	grenade_effects = GrenadeEffects.new()
 	grenade_effects.name = "GrenadeEffects"
 	grenade_effects.thrown.connect(func(owner_id: String) -> void:
@@ -225,6 +264,10 @@ func _ready():
 	_load_audio_streams()
 	
 	var boot = _resolve_boot()
+	_benchmark = bool(boot.get("benchmark", false))
+	_benchmark_compare = bool(boot.get("benchmark_compare", false))
+	if _benchmark:
+		_prepare_benchmark_presentation()
 	if boot.get("mode") == "campaign":
 		local_match = LocalMatch.for_tree(get_tree())
 		_opening_finished = boot.get("run_mode") == "resume" and not bool(boot.get("play_arrival", false))
@@ -279,6 +322,9 @@ func _ready():
 	m10_ship = M10Ship.new()
 	m10_ship.name = "M10Ship"
 	add_child(m10_ship)
+	m11_tender = M11Tender.new()
+	m11_tender.name = "M11Tender"
+	add_child(m11_tender)
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
@@ -349,6 +395,16 @@ func _release_retired_environments() -> void:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle("map")
+	vehicle_prediction.configure_map(info)
+	pending_seat = ""
+	if arena_vehicles != null:
+		arena_vehicles.reset()
+	if arena_conquest != null:
+		arena_conquest.clear()
+	if conquest_hud != null:
+		conquest_hud.apply({})
 	if not current_map_info.is_empty() and info.get("map_id") != current_map_info.get("map_id"):
 		_begin_world_load()
 	if grenade_effects != null:
@@ -359,12 +415,20 @@ func _on_map_info(info: Dictionary) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	_reset_crawler_cues()
 	if jammer_audio != null:
 		jammer_audio.reset()
 	if marksman_audio != null:
 		marksman_audio.reset()
 	local_prediction.configure_map(info)
+	if mission_hud != null:
+		mission_hud.geometry = net_client.mission_geometry
 	_clear_predicted_pawn()
 	for pawn: Node in players.values():
 		if is_instance_valid(pawn) and pawn.has_method("reset_remote_presentation"):
@@ -380,6 +444,7 @@ func _on_map_info(info: Dictionary) -> void:
 	var m07: bool = info.get("m07") is Dictionary
 	var m09: bool = info.get("m09") is Dictionary
 	var m10: bool = info.get("m10") is Dictionary
+	var m11: bool = info.get("m11") is Dictionary
 	if local_match != null:
 		var expected_m02: bool = local_match.mission == MissionState.M02_ID
 		var expected_m03: bool = local_match.mission == MissionState.M03_ID
@@ -390,7 +455,8 @@ func _on_map_info(info: Dictionary) -> void:
 		var expected_m08: bool = local_match.mission == MissionState.M08_ID
 		var expected_m09: bool = local_match.mission == MissionState.M09_ID
 		var expected_m10: bool = local_match.mission == MissionState.M10_ID
-		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m07 != expected_m07 or m08 != expected_m08 or m09 != expected_m09 or m10 != expected_m10 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m07 and not m08 and not m09 and not m10 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
+		var expected_m11: bool = local_match.mission == MissionState.M11_ID
+		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m07 != expected_m07 or m08 != expected_m08 or m09 != expected_m09 or m10 != expected_m10 or m11 != expected_m11 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m07 and not m08 and not m09 and not m10 and not m11 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
 			_on_local_failure("LOCAL_SERVER_INVALID_READY")
 			return
 	last_shot_tick = -1
@@ -414,9 +480,9 @@ func _on_map_info(info: Dictionary) -> void:
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
-	elif m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10:
+	elif m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10 or m11:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
-			var scene_id: String = MissionState.M10_ID if m10 else MissionState.M09_ID if m09 else MissionState.M07_ID if m07 else MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
+			var scene_id: String = MissionState.M11_ID if m11 else MissionState.M10_ID if m10 else MissionState.M09_ID if m09 else MissionState.M07_ID if m07 else MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
 			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
@@ -426,7 +492,7 @@ func _on_map_info(info: Dictionary) -> void:
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10) and local_match != null and not local_match.has_durable_run()
+		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10 or m11) and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 		arena_cover.apply_m05({})
@@ -451,6 +517,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m09_berth.configure_map(info)
 	if m10_ship != null:
 		m10_ship.configure_map(info)
+	if m11_tender != null:
+		m11_tender.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
 	if settings != null:
 		RenderQuality.apply_practicals(self, settings)
@@ -470,6 +538,8 @@ func _setup_frontend() -> void:
 	console.preferences = settings
 	console.name = "FragrConsole"
 	add_child(console)
+	if _benchmark:
+		_prepare_benchmark_presentation()
 	var frame_counter: PerformanceOverlay = PerformanceOverlay.new()
 	frame_counter.name = "PerformanceOverlay"
 	frame_counter.preferences = settings
@@ -492,11 +562,17 @@ func _apply_preferences() -> void:
 
 func _apply_render_preferences() -> void:
 	var world: WorldEnvironment = _find_world_environment(self)
-	RenderQuality.apply(get_viewport(), settings, world.environment if world != null else null)
-	RenderQuality.apply_practicals(self, settings)
-	RenderQuality.apply_dither(self, get_viewport(), settings)
+	var active_settings: FragrSettings = settings
+	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+	if run != null and run.render_settings != null:
+		active_settings = run.render_settings
+	RenderQuality.apply(get_viewport(), active_settings, world.environment if world != null else null)
+	RenderQuality.apply_practicals(self, active_settings)
+	RenderQuality.apply_dither(self, get_viewport(), active_settings)
 
 func controls_blocked() -> bool:
+	if _benchmark:
+		return true
 	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
 	if loading != null and loading.visible:
 		return true
@@ -525,7 +601,7 @@ func _mission_controls_blocked() -> bool:
 
 ## Mission maps carry M01 geometry or the M02 objective marker.
 func _mission_map() -> bool:
-	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary or current_map_info.get("m07") is Dictionary or current_map_info.get("m08") is Dictionary or current_map_info.get("m09") is Dictionary or current_map_info.get("m10") is Dictionary
+	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary or current_map_info.get("m07") is Dictionary or current_map_info.get("m08") is Dictionary or current_map_info.get("m09") is Dictionary or current_map_info.get("m10") is Dictionary or current_map_info.get("m11") is Dictionary
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -537,12 +613,18 @@ func _on_opening_completed() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
 
 func _opening_input_released() -> bool:
-	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "move_forward", "move_back", "move_left", "move_right"]:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "move_forward", "move_back", "move_left", "move_right"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -574,6 +656,8 @@ func _on_loading_dismissed() -> void:
 	# next action tick. A key held through the curtain still needs release.
 	throw_armed = not Input.is_action_pressed("throw_grenade")
 	place_armed = not Input.is_action_pressed("place_mine")
+	remote_place_armed = not Input.is_action_pressed("place_remote_mine")
+	remote_trigger_armed = not Input.is_action_pressed("trigger_remote_mines")
 
 func _begin_world_load() -> void:
 	_world_load_generation += 1
@@ -603,6 +687,44 @@ func _reveal_world_after_draw(generation: int) -> void:
 	var card: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
 	if card != null and not card.failed:
 		card.finish_loading(is_human_player and not _mission_map())
+	if _benchmark:
+		_start_benchmark_run()
+
+func _prepare_benchmark_presentation() -> void:
+	BenchmarkRun.present_uncapped()
+	if console != null:
+		console.set_open(false)
+		console.set_process_unhandled_input(false)
+
+func _start_benchmark_run() -> void:
+	if _benchmark_started:
+		return
+	_benchmark_started = true
+	if camera != null:
+		camera.set_process(false)
+		camera.set_process_input(false)
+		camera.set_process_unhandled_input(false)
+	var run: BenchmarkRun = BenchmarkRun.new()
+	run.name = "BenchmarkRun"
+	run.camera = camera
+	run.manager = self
+	run.preferences = settings
+	run.compare_all = _benchmark_compare
+	run.finished.connect(_on_benchmark_finished)
+	run.dismissed.connect(_on_leave_requested)
+	add_child(run)
+	run.begin()
+
+func _on_benchmark_finished(report: Dictionary) -> void:
+	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+	if run != null:
+		run.show_score(report, settings)
+
+func _stop_benchmark_host() -> void:
+	BenchmarkRun.restore_presentation(settings)
+	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
+	if host != null and host.state in [LocalHost.State.RUNNING, LocalHost.State.STARTING]:
+		host.stop()
 
 func _on_stop_server_requested() -> void:
 	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
@@ -614,6 +736,8 @@ func _on_leave_requested() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	if _benchmark:
+		_stop_benchmark_host()
 	if local_match != null:
 		net_client.disconnect_from_server()
 	else:
@@ -627,10 +751,18 @@ func _on_leave_requested() -> void:
 func _on_local_failure(key: String) -> void:
 	if _leaving:
 		return
-	local_match.error_key = key
+	if local_match != null:
+		local_match.error_key = key
+	# A finished run loads the next mission. Dropping the process here used to
+	# leave the player with a closed session instead of Persons Unknown.
+	if _run_can_continue():
+		_request_onward.call_deferred()
+		return
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	if _benchmark:
+		_stop_benchmark_host()
 	if RenderingServer.frame_post_draw.is_connected(_release_retired_environments):
 		RenderingServer.frame_post_draw.disconnect(_release_retired_environments)
 	_retired_environments.clear()
@@ -651,7 +783,13 @@ func _report_record_save(result: Error) -> void:
 ## Escape or Start opens and closes the match menu; Back on a gamepad (the
 ## same ui_cancel as Escape) steps out of it too.
 func _unhandled_input(event: InputEvent) -> void:
-	if console != null and console.is_open() or pause_menu == null:
+	if console != null and console.is_open():
+		return
+	if _benchmark and event.is_action_pressed("ui_cancel") and not event.is_echo():
+		_on_leave_requested()
+		get_viewport().set_input_as_handled()
+		return
+	if _benchmark or pause_menu == null:
 		return
 	if event.is_echo():
 		return
@@ -681,10 +819,13 @@ func _setup_radio() -> void:
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
 
 func _resolve_boot() -> Dictionary:
-	# Boot menu meta wins; then --solo / FRAGR_SOLO; then --human; else spectator.
+	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
 	if get_tree().has_meta("fragr_boot"):
 		var meta = get_tree().get_meta("fragr_boot")
 		if typeof(meta) == TYPE_DICTIONARY:
+			var benchmark: Dictionary = BenchmarkRun.read_boot(meta)
+			if not benchmark.is_empty():
+				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true, "benchmark_compare": benchmark["benchmark_compare"]}
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":
@@ -699,6 +840,9 @@ func _resolve_boot() -> Dictionary:
 	
 	var args = OS.get_cmdline_args()
 	var user_args = OS.get_cmdline_user_args()
+	var rejoined: Dictionary = ReleaseInstall.rejoin_boot(user_args, settings.player_name())
+	if not rejoined.is_empty():
+		return rejoined
 	var wants_solo = OS.get_environment("FRAGR_SOLO") == "1" or "--solo" in args or "--solo" in user_args
 	if wants_solo:
 		return {"role": "human", "name": settings.player_name(), "host": "127.0.0.1:6767", "hud_mode": "SOLO BROADCAST", "mode": "solo"}
@@ -868,6 +1012,12 @@ func _try_continue(event: InputEvent) -> bool:
 			throw_armed = false
 			pending_place = false
 			place_armed = false
+			pending_reload = false
+			reload_armed = false
+			pending_remote_place = false
+			remote_place_armed = false
+			pending_remote_trigger = false
+			remote_trigger_armed = false
 			pending_weapon_swap = null
 			interact_held = false
 			return true
@@ -880,16 +1030,21 @@ func _arm_continue() -> void:
 
 ## A departed mission in this process's own saved run. Development children,
 ## joined servers and arena matches never offer it.
+func _run_can_continue() -> bool:
+	if not is_human_player or local_match == null or not local_match.has_durable_run() or _leaving or net_client == null:
+		return false
+	var state: Dictionary = net_client.mission.get("state", {})
+	var run: Variant = state.get("run")
+	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete"
+
 func _onward_available() -> bool:
-	if not is_human_player or local_match == null or not local_match.has_durable_run() or _leaving:
+	if not _run_can_continue():
 		return false
 	if is_instance_valid(interlude) or is_instance_valid(departure_review) or is_instance_valid(opening) or is_instance_valid(campaign_results):
 		return false
 	var state: Dictionary = net_client.mission.get("state", {})
-	var run: Variant = state.get("run")
 	var result: Dictionary = CampaignResult.select(net_client.record, state, net_client.player_id)
-	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete" \
-		and not result.is_empty() and _results_played.has(result["key"])
+	return not result.is_empty() and _results_played.has(result["key"])
 
 ## The prompt appears only after every held control is released, so the key
 ## that dismissed the departure scene cannot also leave the mission.
@@ -909,10 +1064,26 @@ func _try_onward(event: InputEvent) -> bool:
 	if not _onward_armed or not event.is_action_pressed("ui_accept") or event.is_echo() \
 		or (pause_menu != null and pause_menu.is_open()) or (console != null and console.is_open()):
 		return false
-	_onward_armed = false
-	get_tree().set_meta(LocalMatch.ONWARD_META, true)
-	_on_leave_requested()
+	_request_onward()
 	return true
+
+## The tally's continue, or the older prompt, both ask Single Player to open
+## the saved next mission. The tally defers this call so that button is done
+## before the scene changes.
+func _request_onward() -> void:
+	if not _run_can_continue():
+		return
+	_onward_armed = false
+	_onward_released = false
+	onward_requested = true
+	if not is_inside_tree():
+		return
+	var tree: SceneTree = get_tree()
+	tree.set_meta(LocalMatch.ONWARD_META, true)
+	# A headless harness records the handoff and keeps its own scene.
+	if tree.has_meta("fragr_automated"):
+		return
+	_on_leave_requested()
 
 func _input(_event):
 	if _try_continue(_event) or _try_onward(_event):
@@ -924,24 +1095,52 @@ func _input(_event):
 		throw_armed = true
 	if _event.is_action_released("place_mine"):
 		place_armed = true
+	if _event.is_action_released("reload"):
+		reload_armed = true
+	if _event.is_action_released("place_remote_mine"):
+		remote_place_armed = true
+	if _event.is_action_released("trigger_remote_mines"):
+		remote_trigger_armed = true
 	if controls_blocked():
+		pending_fire = false
+		pending_seat = ""
 		pending_throw = false
 		throw_armed = false
 		pending_place = false
 		place_armed = false
+		pending_reload = false
+		reload_armed = false
+		pending_remote_place = false
+		remote_place_armed = false
+		pending_remote_trigger = false
+		remote_trigger_armed = false
 		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
 	if is_human_player and place_armed and _event.is_action_pressed("place_mine") and not _event.is_echo():
 		pending_place = true
+	if is_human_player and reload_armed and _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
+		pending_reload = true
+		reload_armed = false
+	if is_human_player and remote_place_armed and _event.is_action_pressed("place_remote_mine") and not _event.is_echo():
+		pending_remote_place = true
+	if is_human_player and remote_trigger_armed and _event.is_action_pressed("trigger_remote_mines") and not _event.is_echo():
+		pending_remote_trigger = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
+	if is_human_player and _event.is_action_pressed("fire") and not _event.is_echo():
+		pending_fire = true
 	if is_human_player and _event.is_action_pressed("interact"):
 		if _offer_m05_departure():
 			get_viewport().set_input_as_handled()
 			return
 		pending_interact = true
 		interact_held = true
+	if is_human_player and not _vehicle_seat().is_empty() and (_event.is_action_pressed("weapon_next") or _event.is_action_pressed("weapon_prev")):
+		if _vehicle_kind() != "light_aircraft":
+			pending_seat = "gunner" if _vehicle_seat() == "driver" else "driver"
+		get_viewport().set_input_as_handled()
+		return
 	# InputMap actions (keyboard + joypad). Same join/leave path.
 	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
 		change_role(true)
@@ -967,6 +1166,12 @@ func change_role(play: bool) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	net_client.leave_match()
 	is_human_player = play
@@ -992,10 +1197,15 @@ var ack_probe: InputAckProbe = InputAckProbe.new()
 
 func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
+	local_fire.acknowledge(int(data.get("seq", -1)), int(data.get("tick", -1)))
 	ack_probe.record_ack(data, Time.get_ticks_usec())
 	if is_human_player:
-		local_prediction.accept_ack(data, Time.get_ticks_usec())
-		_apply_local_prediction()
+		var now_usec: int = Time.get_ticks_usec()
+		if _vehicle_seat() == "driver":
+			vehicle_prediction.accept_driver_ack(data, now_usec)
+		elif _vehicle_seat().is_empty():
+			local_prediction.accept_ack(data, now_usec)
+		_apply_local_prediction(now_usec)
 
 
 func begin_ack_probe() -> bool:
@@ -1037,10 +1247,18 @@ func _process(_delta):
 		_update_scope(_delta)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
+	var fire_allowed: bool = _local_fire_allowed()
+	if _local_fire_allowed_last_frame and not fire_allowed:
+		_cancel_local_fire_effect()
+	_local_fire_allowed_last_frame = fire_allowed
 	if is_human_player:
-		local_prediction.advance(Time.get_ticks_usec())
+		var now_usec: int = Time.get_ticks_usec()
+		local_prediction.advance(now_usec)
 		local_prediction.decay_visual(_delta)
-		_apply_local_prediction()
+		vehicle_prediction.advance(now_usec)
+		vehicle_prediction.decay_visual(_delta)
+		_apply_local_prediction(now_usec)
+	_update_vehicle_view()
 
 
 ## The Sniper Rifle's scope is presentation: held input narrows the local view
@@ -1049,7 +1267,7 @@ func _update_scope(delta: float) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
 	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
-	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode"))
+	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode")) and _vehicle_seat().is_empty()
 	var was_scoped: bool = _scope_engaged()
 	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
 	_play_scope_cue(was_scoped, _scope_engaged())
@@ -1063,6 +1281,8 @@ func _clear_predicted_pawn() -> void:
 
 
 func _reset_prediction_for_connection(reason: String) -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle(reason)
 	if incoming_feedback != null:
 		incoming_feedback.reset()
 	local_prediction.reset(reason, true)
@@ -1074,15 +1294,34 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 
 
-func _apply_local_prediction() -> void:
+func _apply_local_prediction(now_usec: int = -1) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if not is_instance_valid(pawn):
 		return
+	if not _vehicle_seat().is_empty():
+		var vehicle_pose: Dictionary = vehicle_prediction.presented_motion(now_usec) if _vehicle_seat() == "driver" else {}
+		if not vehicle_pose.is_empty() and pawn.has_method("set_predicted_position"):
+			var feet: Vector3 = VehicleStep.seat_feet(vehicle_pose["position"], float(vehicle_pose["yaw"]), "driver", _vehicle_kind())
+			pawn.set_predicted_position(feet + Vector3(0, LocalPrediction.FLOOR_OFFSET, 0), 0.0)
+			if arena_vehicles != null:
+				arena_vehicles.predicted_pose = vehicle_pose
+		elif pawn.has_method("clear_predicted_position"):
+			pawn.clear_predicted_position()
+		return
 	if local_prediction.active() and pawn.hp > 0 and _has_local_input_target() and pawn.has_method("set_predicted_position"):
 		var velocity: Vector2 = Vector2(float(local_prediction.state["vx"]), float(local_prediction.state["vz"]))
-		pawn.set_predicted_position(local_prediction.presented_position(), velocity.length())
+		var shown: Vector3 = local_prediction.presented_position(now_usec)
+		pawn.set_predicted_position(shown, velocity.length())
+		if pawn.has_method("set_ducking"):
+			pawn.set_ducking(local_prediction.presented_ducking(now_usec))
 	elif pawn.has_method("clear_predicted_position"):
 		pawn.clear_predicted_position()
 
@@ -1094,6 +1333,14 @@ func _apply_local_prediction() -> void:
 const ACTION_SEND_INTERVAL_USEC: int = 1000000 / 120
 const MAX_ACTION_SEQ: int = 4294967295
 var _last_action_usec: int = -ACTION_SEND_INTERVAL_USEC
+
+## A magazine loadout is the only permission to put reload on the wire.
+## An older server has never heard the key, and deny_unknown_fields drops it.
+func _magazines_live() -> bool:
+	if net_client == null:
+		return false
+	var equipment: Variant = net_client.get("equipment")
+	return equipment is Dictionary and (equipment as Dictionary).has("loaded")
 
 func _send_local_action(now_usec: int) -> bool:
 	if now_usec - _last_action_usec < ACTION_SEND_INTERVAL_USEC:
@@ -1107,7 +1354,7 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.back = Input.is_action_pressed("move_back") or bool(pad.get("back", false))
 	action_state.left = Input.is_action_pressed("move_left") or (strafing and Input.is_action_pressed("turn_left")) or bool(pad.get("left", false))
 	action_state.right = Input.is_action_pressed("move_right") or (strafing and Input.is_action_pressed("turn_right")) or bool(pad.get("right", false))
-	action_state.fire = Input.is_action_pressed("fire")
+	action_state.fire = pending_fire or Input.is_action_pressed("fire")
 	action_state.jump = pending_jump or Input.is_action_pressed("jump")
 	action_state.interact = pending_interact or interact_held
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
@@ -1116,6 +1363,21 @@ func _send_local_action(now_usec: int) -> bool:
 	if not Input.is_action_pressed("place_mine") and not pending_place:
 		place_armed = true
 	action_state.place_mine = place_armed and (pending_place or Input.is_action_pressed("place_mine"))
+	if not InputMap.has_action("reload") or (not Input.is_action_pressed("reload") and not pending_reload):
+		reload_armed = true
+	var reload_down: bool = false
+	if not controls_blocked() and _magazines_live():
+		reload_down = pending_reload or (InputMap.has_action("reload") and Input.is_action_pressed("reload"))
+	if reload_down:
+		action_state["reload"] = true
+	else:
+		action_state.erase("reload")
+	if not Input.is_action_pressed("place_remote_mine") and not pending_remote_place:
+		remote_place_armed = true
+	action_state.place_remote_mine = remote_place_armed and (pending_remote_place or Input.is_action_pressed("place_remote_mine"))
+	if not Input.is_action_pressed("trigger_remote_mines") and not pending_remote_trigger:
+		remote_trigger_armed = true
+	action_state.trigger_remote_mines = remote_trigger_armed and (pending_remote_trigger or Input.is_action_pressed("trigger_remote_mines"))
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 	# zero for humans and remain the path for agents and older clients.
@@ -1124,15 +1386,35 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.pitch = camera.consume_pitch()
 	if controls_blocked():
 		interact_held = false
+		pending_fire = false
+		pending_seat = ""
 		pending_jump = false
 		pending_interact = false
 		pending_throw = false
 		throw_armed = false
 		pending_place = false
 		place_armed = false
-		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine"]:
+		pending_reload = false
+		reload_armed = false
+		pending_remote_place = false
+		remote_place_armed = false
+		pending_remote_trigger = false
+		remote_trigger_armed = false
+		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines"]:
 			action_state[key] = false
+		action_state.erase("duck")
 		pending_weapon_swap = null
+	var duck_down: bool = (
+		not controls_blocked()
+		and net_client != null
+		and net_client.get("duck_supported") == true
+		and InputMap.has_action("duck")
+		and Input.is_action_pressed("duck")
+	)
+	if duck_down:
+		action_state["duck"] = true
+	else:
+		action_state.erase("duck")
 	action_state.turn_left = false
 	action_state.turn_right = false
 	if _mission_controls_blocked():
@@ -1141,12 +1423,28 @@ func _send_local_action(now_usec: int) -> bool:
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
+	var seat: String = _vehicle_seat()
+	if not seat.is_empty():
+		action_state.weapon_swap = null
+		action_state.throw_grenade = false
+		action_state.place_mine = false
+		action_state.erase("reload")
+		if _vehicle_kind() != "light_aircraft" or seat != "driver":
+			action_state.erase("duck")
+		if seat == "driver":
+			action_state.fire = false
+	if not seat.is_empty() and not pending_seat.is_empty() and not controls_blocked():
+		action_state["seat"] = pending_seat
+	else:
+		action_state.erase("seat")
 	var send_usec: int = 0
 	if ack_probe.active:
 		send_usec = Time.get_ticks_usec()
 	var predicting: bool = local_prediction.active()
 	net_client.last_send_ok = false
 	net_client.send_action(action_state)
+	if seat == "driver":
+		vehicle_prediction.record_driver_action(action_state, now_usec, net_client.last_send_ok)
 	if predicting:
 		local_prediction.record_action(action_state, now_usec, net_client.last_send_ok)
 	if ack_probe.active:
@@ -1155,12 +1453,65 @@ func _send_local_action(now_usec: int) -> bool:
 		else:
 			ack_probe.failed_sends += 1
 	if net_client.last_send_ok:
+		_present_local_fire(action_state, now_usec)
+		pending_seat = ""
+		pending_fire = false
 		pending_jump = false
 		pending_interact = false
 		pending_throw = false
 		pending_place = false
+		pending_reload = false
+		pending_remote_place = false
+		pending_remote_trigger = false
 		pending_weapon_swap = null
 	return true
+
+## Local trigger response uses the same successfully sent action as movement.
+## Inventory is read-only and every world impact stays in the resolved path.
+func _present_local_fire(action: Dictionary, now_usec: int) -> void:
+	if not _local_fire_allowed():
+		local_fire.sent(action, {}, "", int(latest_snapshot.get("tick", -1)), now_usec, false)
+		return
+	var weapon: String = _current_weapon_wire()
+	if not local_fire.sent(action, net_client.equipment, weapon,
+		int(latest_snapshot.get("tick", -1)), now_usec, _local_fire_allowed()):
+		return
+	var pawn: Node = players.get(local_fp_pawn_id)
+	pawn.show_muzzle_flash(weapon.capitalize())
+	if hud and hud.has_method("show_fire_juice"):
+		hud.show_fire_juice(weapon.capitalize())
+
+func _local_fire_allowed() -> bool:
+	if not is_human_player or net_client == null or net_client.connection_state != WebSocketPeer.STATE_OPEN \
+		or controls_blocked() or not _has_local_input_target() or not _vehicle_seat().is_empty():
+		return false
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if not is_instance_valid(pawn) or int(pawn.get("hp")) <= 0:
+		return false
+	if latest_snapshot.get("round_state") != "Active":
+		return false
+	var sabotage: Variant = latest_snapshot.get("sabotage")
+	if sabotage is Dictionary and sabotage.get("phase") not in ["live", "planted"]:
+		return false
+	return pawn.get_weapon_name().to_lower() == _current_weapon_wire()
+
+func _cancel_local_fire_effect() -> void:
+	if hud and hud.has_method("cancel_fire_juice"):
+		hud.cancel_fire_juice()
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if is_instance_valid(pawn) and pawn.has_method("cancel_fire_feedback"):
+		pawn.cancel_fire_feedback()
+
+func _reset_local_fire() -> void:
+	pending_fire = false
+	_cancel_local_fire_effect()
+	# A death snapshot can also confirm the last shot in a trade. Consume that
+	# receipt before forgetting the old life, even if the pawn was removed.
+	if _receiving_snapshot:
+		_reset_fire_after_snapshot = true
+		return
+	local_fire.reset()
+	_local_fire_allowed_last_frame = false
 
 func _on_mission_received(state: Dictionary) -> void:
 	_continue_armed = false
@@ -1185,6 +1536,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.boarding_region = net_client.mission_geometry.get("m05", {}).get("boarding", {})
+		mission_hud.geometry = net_client.mission_geometry
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 	if m02_ward != null:
 		m02_ward.apply_state(state)
@@ -1204,6 +1556,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m09_berth.apply_state(state)
 	if m10_ship != null:
 		m10_ship.apply_state(state)
+	if m11_tender != null:
+		m11_tender.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -1233,6 +1587,12 @@ func _offer_m05_departure() -> bool:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	return true
 
 func _close_departure_review() -> void:
@@ -1297,6 +1657,12 @@ func _on_campaign_results_completed() -> void:
 	_onward_armed = false
 	_onward_released = false
 	_clear_story_input()
+	if not _onward_available():
+		return
+	if is_inside_tree():
+		_request_onward.call_deferred()
+	else:
+		_request_onward()
 
 func _close_campaign_results() -> void:
 	if is_instance_valid(campaign_results):
@@ -1310,6 +1676,12 @@ func _clear_story_input() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	pending_weapon_swap = null
 
@@ -1461,6 +1833,17 @@ func _on_server_error(message: String) -> void:
 		card.show_error(message)
 
 func _clear_world() -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle("disconnect")
+	pending_seat = ""
+	if arena_vehicles != null:
+		arena_vehicles.reset()
+	if vehicle_hud != null:
+		vehicle_hud.apply({}, "", false)
+	if arena_conquest != null:
+		arena_conquest.clear()
+	if conquest_hud != null:
+		conquest_hud.apply({})
 	_world_load_generation += 1
 	_world_reveal_pending = false
 	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
@@ -1507,6 +1890,12 @@ func _clear_world() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
@@ -1529,6 +1918,8 @@ func _clear_world() -> void:
 		m09_berth.clear_map()
 	if m10_ship != null:
 		m10_ship.clear_map()
+	if m11_tender != null:
+		m11_tender.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
@@ -1553,6 +1944,7 @@ func _clear_world() -> void:
 		camera.set_available_targets([])
 
 func _on_loadout_received(data: Dictionary) -> void:
+	local_fire.observe_equipment(data)
 	hud.equipment_hud.apply(data)
 	_play_dry_fire_cue(data)
 	_sync_pickups(latest_snapshot.get("pickups", []))
@@ -1561,16 +1953,26 @@ func _on_loadout_received(data: Dictionary) -> void:
 func _refresh_equipment_visibility() -> void:
 	var pawn: Node = players.get(net_client.player_id)
 	hud.equipment_hud.visible = is_human_player and not net_client.equipment.is_empty() \
-		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
+		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled and _vehicle_seat().is_empty()
 
 func _on_snapshot_received(data):
+	_receiving_snapshot = true
 	if grenade_effects != null:
 		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
 	if auditor_channels != null:
 		auditor_channels.apply(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
+	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
+	var entered_vehicle: bool = previous_seat.is_empty() and not _vehicle_seat().is_empty()
 	_apply_map_from_snapshot(data)
+	vehicle_prediction.accept_vehicles(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
+	if arena_vehicles != null:
+		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
+	if arena_conquest != null:
+		arena_conquest.apply(data)
+	if conquest_hud != null:
+		conquest_hud.apply(data)
 	_update_prediction_contacts(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
@@ -1633,9 +2035,16 @@ func _on_snapshot_received(data):
 	hud.set_tick(tick)
 	hud.set_player_count(participant_list.size())
 	hud.sync_scores_from_players(participant_list)
+	if hud.has_method("set_board_name"):
+		var mine_name: String = ""
+		if is_human_player and net_client.player_id != null and players.has(str(net_client.player_id)):
+			var mine_pawn: Node = players[str(net_client.player_id)] as Node
+			if mine_pawn != null and is_instance_valid(mine_pawn):
+				mine_name = str(mine_pawn.get("player_name"))
+		hud.set_board_name(mine_name)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
-		hud.set_team_scores(data.get("team_scores"))
+		hud.set_team_scores(data.get("conquest", {}).get("tickets") if data.get("conquest") is Dictionary else data.get("team_scores"))
 	if hud.has_method("set_ctf_state"):
 		var ctf_viewer_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id()
 		hud.set_ctf_state(data.get("flags"), data.get("capture_scores"), data.get("capture_limit", 0), player_list, ctf_viewer_id)
@@ -1669,6 +2078,15 @@ func _on_snapshot_received(data):
 		
 		if players.has(id):
 			players[id].update_state(player_data, int(tick))
+			players[id].vehicle_seated = not VehicleState.occupied(data, str(id)).is_empty()
+			if mission_hud != null and is_human_player and net_client.player_id != null and str(id) == str(net_client.player_id):
+				mission_hud.feet = Vector3(float(player_data.x), float(player_data.y), float(player_data.z))
+				var facing: Variant = player_data.get("yaw")
+				if facing is float or facing is int:
+					mission_hud.yaw = float(facing)
+					mission_hud.yaw_known = true
+				else:
+					mission_hud.yaw_known = false
 			if players[id].is_campaign_companion:
 				# Every real companion snapshot owns the visible body, including
 				# the stationary release phase and its authoritative shot stop.
@@ -1714,10 +2132,18 @@ func _on_snapshot_received(data):
 	if is_human_player:
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
-		_apply_local_prediction()
+		_apply_local_prediction(Time.get_ticks_usec())
 	if hud and hud.has_method("set_fp_carried_flag"):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
+	if entered_vehicle:
+		# The entry snapshot can still carry a resolved handheld shot. Consume
+		# that receipt first, then drop reservations without cutting mount audio.
+		local_fire.reset()
+	_receiving_snapshot = false
+	if _reset_fire_after_snapshot:
+		_reset_fire_after_snapshot = false
+		_reset_local_fire()
 	_present_jammer_launches(data)
 	if notary_audio != null:
 		var listener: Camera3D = get_viewport().get_camera_3d()
@@ -1733,7 +2159,33 @@ func _on_snapshot_received(data):
 
 func _update_prediction_contacts(snapshot: Dictionary) -> void:
 	if is_human_player and net_client != null and net_client.player_id != null:
+		if not _vehicle_seat().is_empty():
+			local_prediction.reset("vehicle", true)
+			return
 		local_prediction.accept_snapshot(snapshot, str(net_client.player_id), net_client.mission.get("state", {}), Time.get_ticks_usec())
+
+func _vehicle_seat() -> String:
+	if not is_human_player or net_client == null or net_client.player_id == null:
+		return ""
+	return str(VehicleState.occupied(latest_snapshot, str(net_client.player_id)).get("seat", ""))
+
+func _vehicle_kind() -> String:
+	if not is_human_player or net_client == null or net_client.player_id == null:
+		return ""
+	return str(VehicleState.occupied(latest_snapshot, str(net_client.player_id)).get("vehicle", {}).get("kind", ""))
+
+func _update_vehicle_view() -> void:
+	if vehicle_hud != null:
+		vehicle_hud.apply(latest_snapshot, str(net_client.player_id) if net_client.player_id != null else "", is_human_player and not controls_blocked())
+	if hud == null:
+		return
+	var seat: String = _vehicle_seat()
+	if not is_human_player:
+		seat = str(VehicleState.occupied(latest_snapshot, _followed_player_id()).get("seat", "")) if camera != null and camera.is_observing_first_person() else ""
+	if hud.has_method("set_vehicle_seat"):
+		hud.set_vehicle_seat(seat)
+	if not seat.is_empty() and hud.get("equipment_hud") != null:
+		hud.equipment_hud.visible = false
 
 
 func _present_jammer_launches(snapshot: Dictionary) -> void:
@@ -1748,9 +2200,23 @@ func _update_nameplates() -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport == null:
 		return
+	var viewer_team: String = ""
+	if is_human_player:
+		var local_pawn: Node = players.get(local_fp_pawn_id)
+		if is_instance_valid(local_pawn):
+			viewer_team = MatchRules.valid_team(local_pawn.get("team"))
+	for id: Variant in players:
+		var marked: Node = players[id]
+		if not is_instance_valid(marked) or not marked.has_method("set_team_relation"):
+			continue
+		var relation: String = ""
+		if viewer_team != "" and str(id) != local_fp_pawn_id and int(marked.get("hp")) > 0:
+			relation = MatchRules.team_relation(viewer_team, str(marked.get("team")))
+		marked.set_team_relation(relation)
 	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	var marking: bool = viewer_team != ""
 	var view: Camera3D = viewport.get_camera_3d()
-	if not watching or view == null:
+	if (not watching and not marking) or view == null:
 		for pawn: Node in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_nameplate_enabled(false)
@@ -1777,7 +2243,15 @@ func _update_nameplates() -> void:
 			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:
 			pawn.set_nameplate_enabled(false)
 			continue
-		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
+		var relation: String = str(pawn.get("team_relation")) if marking and not watching else ""
+		if marking and not watching and relation == "":
+			pawn.set_nameplate_enabled(false)
+			continue
+		var priority: int = 2
+		if relation == "mate" or (relation == "" and carrier_ids.has(str(id))):
+			priority = 0
+		elif relation == "foe" or pawn == followed:
+			priority = 1
 		entries.append({"id": str(id), "rect": area, "priority": priority,
 			"distance": view.global_position.distance_to(label.global_position)})
 	var reserved: Array[Rect2] = arena_flags.blocker_rects(view) if arena_flags != null else []
@@ -1833,7 +2307,9 @@ func _on_event_received(data):
 		if frag_sound and frag_sound.stream:
 			frag_sound.play()
 		
-		if not is_human_player and killer_id != "" and camera:
+		if is_human_player and _is_local_victim(victim_name):
+			_remember_own_frag(killer_id)
+		elif not is_human_player and killer_id != "" and camera:
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false
@@ -2169,6 +2645,9 @@ func _set_human_fp(enabled: bool) -> void:
 	_refresh_fp_target()
 
 func _clear_fp_state() -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle("role")
+	pending_seat = ""
 	if incoming_feedback != null:
 		incoming_feedback.reset()
 	local_prediction.reset("role", true)
@@ -2236,9 +2715,11 @@ func _update_local_fp_hud(player_list: Array) -> void:
 			_adopt_local_spawn_snapshot = false
 		var hp = int(pdata.get("hp", 100))
 		if hp <= 0:
+			_reset_local_fire()
 			local_prediction.reset("death", true)
 			_clear_predicted_pawn()
 		elif local_hp_seen <= 0 and local_hp_seen >= 0:
+			_reset_local_fire()
 			local_prediction.reset("respawn", true)
 			_clear_predicted_pawn()
 			var pawn: Node = players.get(pid)
@@ -2276,6 +2757,40 @@ func _update_local_fp_hud(player_list: Array) -> void:
 		if hud and hud.has_method("set_followed_weapon"):
 			hud.set_followed_weapon(weapon, str(pdata.get("name", "YOU")), "")
 		return
+	# Arcade deaths leave the snapshot for the respawn delay. Staying in first
+	# person would freeze the camera on a body that is already gone. A campaign
+	# body stays in the snapshot at zero health and keeps its eyes.
+	if local_fp_pawn_id == pid and not _mission_map():
+		_clear_fp_state()
+		_watch_own_killer()
+
+## The joined callsign, from the live pawn while it exists and from the
+## connection after an arcade death has removed it.
+func _is_local_victim(victim_name: String) -> bool:
+	if victim_name == "":
+		return false
+	var my_name := str(net_client.player_name) if net_client else ""
+	var my_id := str(net_client.player_id) if net_client and net_client.player_id != null else ""
+	if players.has(my_id) and is_instance_valid(players[my_id]):
+		my_name = str(players[my_id].get("player_name"))
+	return my_name != "" and victim_name == my_name
+
+func _remember_own_frag(killer_id: String) -> void:
+	_death_watch_killer = killer_id
+	_watch_own_killer()
+
+## Chase the killer only after first person has let go. Sabotage already
+## watches living teammates, so this does not take that view.
+func _watch_own_killer() -> void:
+	if _death_watch_killer == "" or _sabotage_watching_mates:
+		return
+	if camera == null or not camera.has_method("lock_on_frag"):
+		return
+	if bool(camera.get("fp_mode")):
+		return
+	var killer := _death_watch_killer
+	_death_watch_killer = ""
+	camera.lock_on_frag(killer, 2.0)
 
 func _process_shot_results(results, tick: int) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
@@ -2328,19 +2843,28 @@ func _process_shot_results(results, tick: int) -> void:
 		var is_followed = (not is_human_player) and followed_id != "" and shooter_id == followed_id
 		var shooter: Node = players.get(shooter_id)
 		var wpn: String = _shot_weapon(shot)
+		var mounted_id: int = VehicleState.shot_vehicle(shot)
+		var mounted: bool = mounted_id > 0
+		if mounted and arena_vehicles != null:
+			arena_vehicles.shot(mounted_id)
+		var predicted: bool = is_local and not mounted and local_fire.confirm(wpn.to_lower(), tick, Time.get_ticks_usec())
 		# A pickup can change held equipment after the shot resolves in this tick.
-		if is_instance_valid(shooter):
-			shooter.show_muzzle_flash(wpn)
+		if is_instance_valid(shooter) and not predicted:
+			if mounted and shooter.has_method("play_mounted_fire"):
+				shooter.play_mounted_fire()
+			else:
+				shooter.show_muzzle_flash(wpn)
 		if not is_local and not is_followed:
 			continue
-		# Every shot you take kicks the view model and lights the barrel. This
-		# used to happen only when you missed, so landing a shot was the one
-		# case where pulling the trigger looked like nothing happened.
-		if (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
+		# The local cue has already played; spectators still use server evidence.
+		if not predicted and not mounted and (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
 			hud.show_fire_juice(wpn)
-		if hit and dmg > 0:
-			if hud and hud.has_method("show_hit_marker"):
-				hud.show_hit_marker(dmg, wpn)
+		if hit and hud and hud.has_method("show_hit_marker"):
+			# Damage above zero is a hit. Zero is a body that stopped the shot
+			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
+			hud.show_hit_marker(dmg, wpn)
+	if local_fire.reconcile(tick):
+		_cancel_local_fire_effect()
 
 ## The gun a resolved shot was fired with: the trace's weapon when present,
 ## otherwise what the shooter holds now.

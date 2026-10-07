@@ -17,6 +17,8 @@ struct Counts {
     grenades: WeaponCounts,
     #[serde(default, skip_serializing_if = "empty_grenades")]
     mines: WeaponCounts,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    remote_mines: Option<WeaponCounts>,
 }
 
 fn bounded_weapons<'de, D: serde::Deserializer<'de>>(
@@ -69,10 +71,15 @@ impl Counts {
             weapons: counts.weapons[..width].to_vec(),
             grenades: counts.grenades,
             mines: counts.mines,
+            remote_mines: (counts.remote_mines != WeaponCounts::default())
+                .then_some(counts.remote_mines),
         }
     }
 
     fn into_counts(self, version: u32) -> Result<CombatCounts, &'static str> {
+        if version == LEGACY_RECORD_VERSION && self.remote_mines.is_some() {
+            return Err("historical record cannot contain Remote Mine counters");
+        }
         if !match version {
             LEGACY_RECORD_VERSION => (5..=7).contains(&self.weapons.len()),
             RECORD_VERSION => self.weapons.len() == WeaponType::ALL.len(),
@@ -89,6 +96,7 @@ impl Counts {
             secrets: self.secrets,
             grenades: self.grenades,
             mines: self.mines,
+            remote_mines: self.remote_mines.unwrap_or_default(),
             ..CombatCounts::default()
         };
         counts.weapons[..self.weapons.len()].copy_from_slice(&self.weapons);
@@ -217,6 +225,54 @@ mod tests {
             );
             assert!(serde_json::from_value::<PlayerRecord>(bad).is_err());
         }
+    }
+
+    #[test]
+    fn remote_counts_have_distinct_current_history_and_no_legacy_shape() {
+        let mut current = record();
+        current.tick = 20;
+        current.total.alive_ticks = 20;
+        current.total.remote_mines = WeaponCounts {
+            attacks: 2,
+            damaging_attacks: 1,
+            kills: 1,
+            hp_damage: 35,
+            armor_damage: 20,
+            ..WeaponCounts::default()
+        };
+        current.attempt = current.total.clone();
+        current.validate_for(Some(current.player_id), None).unwrap();
+        assert_eq!(current.total.attacks(), 2);
+        assert_eq!(current.total.kills(), 1);
+        assert_eq!(current.total.mines, WeaponCounts::default());
+        assert_eq!(current.total.grenades, WeaponCounts::default());
+        assert_eq!(
+            serde_json::from_value::<PlayerRecord>(serde_json::to_value(&current).unwrap())
+                .unwrap(),
+            current
+        );
+        assert!(current.legacy_record().is_err());
+        let legacy = record().legacy_record().unwrap();
+        let mut forged = serde_json::to_value(&legacy).unwrap();
+        forged["total"]["remote_mines"] = serde_json::to_value(WeaponCounts::default()).unwrap();
+        assert!(serde_json::from_value::<PlayerRecord>(forged).is_err());
+        let mut invalid = current.clone();
+        invalid.attempt.remote_mines.attacks = 3;
+        assert!(invalid
+            .validate_for(Some(current.player_id), Some(&current))
+            .is_err());
+        let mut invalid = current.clone();
+        invalid.total.remote_mines.damaging_attacks = 3;
+        assert!(invalid.validate_for(Some(current.player_id), None).is_err());
+        let mut invalid = current.clone();
+        invalid.total.remote_mines.hp_damage = 1_u64 << 53;
+        assert!(invalid.validate_for(Some(current.player_id), None).is_err());
+        let mut next = current.clone();
+        next.tick += 1;
+        next.total.alive_ticks += 1;
+        next.total.remote_mines.hp_damage += 1;
+        assert!(next.total.contains(&current.total));
+        assert!(!current.total.contains(&next.total));
     }
 
     #[test]

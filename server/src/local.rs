@@ -63,6 +63,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::DeclaredGoods => "declared_goods",
                         MissionId::PassengerManifest => "passenger_manifest",
                         MissionId::CommonCarrier => "common_carrier",
+                        MissionId::RightOfSearch => "right_of_search",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -144,7 +145,9 @@ impl Ready {
             url: format!("ws://{address}"),
             // M06 adds a distinct envelope; earlier mission readers retain
             // their existing capability boundary and unchanged rules.
-            gameplay_version: if mission == MissionId::CommonCarrier {
+            gameplay_version: if mission == MissionId::RightOfSearch {
+                crate::protocol::M11_GAMEPLAY_VERSION
+            } else if mission == MissionId::CommonCarrier {
                 crate::protocol::M10_GAMEPLAY_VERSION
             } else if mission == MissionId::PassengerManifest {
                 crate::protocol::M09_GAMEPLAY_VERSION
@@ -239,24 +242,27 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
         || options.difficulty.is_some()
         || options.campaign_run
         || options.map_rotate
+        || options.playlist
         || options.solo_broadcast
     {
         return Err(io::Error::other("invalid desktop arena profile"));
     }
-    let config = options
-        .match_config
-        .as_ref()
-        .ok_or_else(|| io::Error::other("desktop host requires TDM or five-per-side Sabotage"))?;
+    let config = options.match_config.as_ref().ok_or_else(|| {
+        io::Error::other("desktop host requires TDM, five-per-side Sabotage or Holdfast Conquest")
+    })?;
     let valid_mode = match config.rules.mode() {
         GameMode::Tdm => !config.sabotage.five_vs_five,
         GameMode::Sabotage => {
             config.sabotage.five_vs_five && options.map == crate::sim::MapKind::Sector9
         }
+        GameMode::Conquest => {
+            !config.sabotage.five_vs_five && options.map == crate::sim::MapKind::HoldfastAtoll
+        }
         _ => false,
     };
     if !valid_mode || !config.rules.mutators().is_empty() || config.rules.friendly_fire() {
         return Err(io::Error::other(
-            "desktop host requires an unmodified TDM or five-per-side Sabotage profile",
+            "desktop host requires unmodified TDM, five-per-side Sabotage or Holdfast Conquest",
         ));
     }
     Ok(address)
@@ -533,6 +539,10 @@ mod tests {
                 ..base.clone()
             },
             ServerOptions {
+                playlist: true,
+                ..base.clone()
+            },
+            ServerOptions {
                 solo_broadcast: true,
                 ..base.clone()
             },
@@ -627,6 +637,46 @@ mod tests {
     }
 
     struct FailedWriter;
+
+    #[test]
+    fn conquest_desktop_host_requires_holdfast_and_preserves_existing_bot_bound() {
+        for map in crate::sim::MapKind::ALL {
+            for bots in [0, 10, 11] {
+                for five in [false, true] {
+                    let mut options = arena_options();
+                    options.map = map;
+                    options.bots = bots;
+                    let config = options.match_config.as_mut().unwrap();
+                    config.rules =
+                        crate::rules::RuleSet::new(GameMode::Conquest, &[], false).unwrap();
+                    config.sabotage.five_vs_five = five;
+                    assert_eq!(
+                        validate_arena_options(&options).is_ok(),
+                        map == crate::sim::MapKind::HoldfastAtoll && bots <= 10 && !five
+                    );
+                }
+            }
+        }
+        let mut options = arena_options();
+        options.map = crate::sim::MapKind::HoldfastAtoll;
+        options.bots = 10;
+        options.match_config.as_mut().unwrap().rules =
+            crate::rules::RuleSet::new(GameMode::Conquest, &[], false).unwrap();
+        let ready = ArenaReady::new(&options, "127.0.0.1:43210".parse().unwrap()).unwrap();
+        assert_eq!(ready.map_id, 7);
+        assert_eq!(ready.mode, GameMode::Conquest);
+        assert_eq!(ready.bots, 10);
+        assert!(!ready.five_vs_five);
+        for (mutators, friendly) in [
+            (&[crate::protocol::Mutator::RailOnly][..], false),
+            (&[][..], true),
+        ] {
+            options.match_config.as_mut().unwrap().rules =
+                crate::rules::RuleSet::new(GameMode::Conquest, mutators, friendly).unwrap();
+            assert!(validate_arena_options(&options).is_err());
+        }
+    }
+
     impl Write for FailedWriter {
         fn write(&mut self, _bytes: &[u8]) -> io::Result<usize> {
             Err(io::Error::other("closed readiness pipe"))
@@ -768,5 +818,17 @@ mod tests {
         .unwrap();
         assert_eq!(m08.gameplay_version, crate::protocol::M08_GAMEPLAY_VERSION);
         assert_eq!(m08.mission, MissionId::CustodianOfRecord);
+        let m11 = Ready::new(
+            MissionId::RightOfSearch,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(m11.gameplay_version, crate::protocol::M11_GAMEPLAY_VERSION);
+        assert!(
+            m11.gameplay_version <= crate::protocol::GAMEPLAY_VERSION,
+            "the current protocol supports the tender readiness capability"
+        );
     }
 }

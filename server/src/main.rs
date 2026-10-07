@@ -35,7 +35,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
@@ -63,6 +63,12 @@ struct Args {
     #[arg(long, default_value_t = false)]
     map_rotate: bool,
 
+    /// Stay up and rotate the built-in night list of maps and modes.
+    /// Sabotage plays its short match, including the half-time swap, before
+    /// the list moves. A fixed map, mode, mutator, or limit cannot combine.
+    #[arg(long, default_value_t = false, conflicts_with_all = ["map", "map_rotate", "map_file", "local_mission", "desktop_host", "solo_broadcast", "mode", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "sabotage_five_v_five", "no_round_events", "bench", "bench_verify_trace", "campaign_run", "difficulty", "run_mode", "local_run_preview"])]
+    playlist: bool,
+
     /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
     /// NODS clear + jammer dish + Auditor. MP unchanged when off.
     #[arg(long, default_value_t = false)]
@@ -72,7 +78,8 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
-    /// Match mode: ffa, tdm, ctf, or sabotage. Capture the flag runs on Arena
+    /// Match mode: ffa, tdm, ctf, sabotage or conquest. Conquest uses Holdfast Atoll.
+    /// Capture the flag runs on Arena
     /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
@@ -157,7 +164,7 @@ struct Args {
     #[arg(long, conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     allow_list: Option<PathBuf>,
 
-    /// Local venue desk on this terminal: who, kick, ban, and say.
+    /// Local venue desk on this terminal: who, kick, ban, say, and stats.
     /// Closing the input leaves the match running.
     #[arg(
         long,
@@ -214,6 +221,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "custodian_of_record" => fragr_server::protocol::MissionId::CustodianOfRecord,
             "passenger_manifest" => fragr_server::protocol::MissionId::PassengerManifest,
             "common_carrier" => fragr_server::protocol::MissionId::CommonCarrier,
+            "right_of_search" => fragr_server::protocol::MissionId::RightOfSearch,
             "declared_goods" => fragr_server::protocol::MissionId::DeclaredGoods,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };
@@ -313,6 +321,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if rules.mode() == fragr_server::protocol::GameMode::Ctf && args.frag_limit.is_some() {
         return Err("ctf uses --capture-limit, not --frag-limit".into());
     }
+    if rules.mode() == fragr_server::protocol::GameMode::Conquest && args.frag_limit.is_some() {
+        return Err("conquest is decided by tickets; --frag-limit does not apply".into());
+    }
     if rules.mode() != fragr_server::protocol::GameMode::Ctf && args.capture_limit.is_some() {
         return Err("--capture-limit requires --mode ctf".into());
     }
@@ -349,6 +360,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         difficulty: args.difficulty,
         campaign_run: args.campaign_run,
         map_rotate: args.map_rotate,
+        playlist: args.playlist,
         match_config,
         solo_broadcast: args.solo_broadcast,
         seed: args.seed,
@@ -377,10 +389,15 @@ fn match_config(
     let defaults = fragr_server::sim::MatchConfig::default();
     let objective = rules.mode().objective();
     let sabotage = rules.mode() == fragr_server::protocol::GameMode::Sabotage;
+    let conquest = rules.mode() == fragr_server::protocol::GameMode::Conquest;
     Some(fragr_server::sim::MatchConfig {
         frag_limit: (!objective).then(|| frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
         // Sabotage runs its own muster, live and charge clocks.
-        time_limit_ticks: (!sabotage).then_some(defaults.time_limit_ticks).flatten(),
+        time_limit_ticks: if conquest {
+            Some(20 * 60 * 10)
+        } else {
+            (!sabotage).then_some(defaults.time_limit_ticks).flatten()
+        },
         boss_spawn_ticks: (!no_round_events && !objective)
             .then_some(defaults.boss_spawn_ticks)
             .flatten(),
@@ -409,6 +426,24 @@ fn init_tracing(quiet: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn conquest_match_config_has_ten_minute_ticket_clock_without_round_events() {
+        for no_round_events in [false, true] {
+            let rules = fragr_server::rules::RuleSet::new(
+                fragr_server::protocol::GameMode::Conquest,
+                &[],
+                false,
+            )
+            .unwrap();
+            let config = match_config(rules, None, no_round_events).unwrap();
+            assert_eq!(config.time_limit_ticks, Some(600 * 20));
+            assert_eq!(config.frag_limit, None);
+            assert_eq!(config.capture_limit, None);
+            assert_eq!(config.boss_spawn_ticks, None);
+            assert_eq!(config.compliance_ping_ticks, None);
+        }
+    }
     use futures_util::{SinkExt, StreamExt};
     use std::net::SocketAddr;
     use std::time::Duration;
@@ -464,6 +499,7 @@ mod tests {
             "custodian_of_record",
             "passenger_manifest",
             "common_carrier",
+            "right_of_search",
         ] {
             let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
             assert_eq!(args.local_mission.as_deref(), Some(mission));
@@ -497,6 +533,23 @@ mod tests {
         assert_eq!(args.map, "compliance-yard");
         assert!(args.map_rotate);
         assert!(fragr_server::sim::MapKind::from_cli(&args.map).is_some());
+    }
+
+    #[test]
+    fn playlist_is_a_night_list_not_a_fixed_mode() {
+        let args = Args::try_parse_from(["fragr-server", "--playlist"]).unwrap();
+        assert!(args.playlist);
+        assert!(!args.map_rotate);
+        for rejected in [
+            &["fragr-server", "--playlist", "--map", "2"][..],
+            &["fragr-server", "--playlist", "--mode", "tdm"][..],
+            &["fragr-server", "--playlist", "--map-rotate"][..],
+            &["fragr-server", "--playlist", "--mutator", "rail-only"][..],
+            &["fragr-server", "--playlist", "--frag-limit", "5"][..],
+            &["fragr-server", "--playlist", "--no-round-events"][..],
+        ] {
+            assert!(Args::try_parse_from(rejected).is_err(), "{rejected:?}");
+        }
     }
 
     #[test]
@@ -619,10 +672,102 @@ mod tests {
         }
     }
 
-    /// A team server needs a client that renders sides: capability 11 is
-    /// refused at hello and 12 is welcomed.
     #[tokio::test]
-    async fn a_rule_set_server_requires_capability_twelve() {
+    async fn playlist_refuses_a_fixed_rule_set_before_binding() {
+        let rules =
+            fragr_server::rules::RuleSet::new(fragr_server::protocol::GameMode::Ffa, &[], false)
+                .unwrap();
+        let error = run_server(
+            ServerOptions {
+                playlist: true,
+                match_config: match_config(rules, None, true),
+                bind: "127.0.0.1:0".to_string(),
+                status_every_s: 0,
+                ..ServerOptions::default()
+            },
+            std::future::pending::<()>(),
+            None,
+        )
+        .await
+        .unwrap_err();
+        assert!(error.to_string().contains("night playlist"), "{error}");
+    }
+
+    #[tokio::test]
+    async fn playlist_speaks_the_current_contract_and_keeps_arena_seats() {
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
+        let server = tokio::spawn(async move {
+            run_server(
+                ServerOptions {
+                    bind: "127.0.0.1:0".to_string(),
+                    bots: 0,
+                    playlist: true,
+                    status_every_s: 0,
+                    ..Default::default()
+                },
+                async move {
+                    let _ = shutdown_rx.await;
+                },
+                Some(ready_tx),
+            )
+            .await
+            .map_err(|error| error.to_string())
+        });
+        let addr = tokio::time::timeout(Duration::from_secs(120), ready_rx)
+            .await
+            .expect("playlist ready timeout")
+            .expect("playlist ready addr");
+        let current = fragr_server::protocol::GAMEPLAY_VERSION;
+        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        let mut held = Vec::new();
+        for (version, geom, admitted) in [
+            (current - 1, geometry, false),
+            (current + 1, geometry, false),
+            (current, 1, false),
+            (current, geometry + 1, false),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+        ] {
+            let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
+            ws.send(Message::Text(
+                serde_json::json!({
+                    "type": "hello", "role": "human", "name": "Night",
+                    "gameplay_version": version,
+                    "geometry_version": geom,
+                })
+                .to_string(),
+            ))
+            .await
+            .unwrap();
+            let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
+                .await
+                .expect("playlist reply timeout");
+            let welcomed = matches!(
+                reply,
+                Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
+            );
+            assert_eq!(
+                welcomed, admitted,
+                "capability {version} geometry {geom}: {reply:?}"
+            );
+            if admitted {
+                held.push(ws);
+            }
+        }
+        drop(held);
+        let _ = shutdown_tx.send(());
+        let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
+    }
+
+    /// A shared team room speaks this binary's contract. Six fighters fit
+    /// because an arena rule set is not a four-seat mission party.
+    #[tokio::test]
+    async fn a_shared_rule_set_speaks_the_current_contract() {
         tokio::task::spawn_blocking(fragr_server::session::GameSession::new)
             .await
             .expect("navigation fixture");
@@ -652,21 +797,25 @@ mod tests {
             .await
             .expect("ready timeout")
             .expect("ready addr");
-        // An arena rule set is not a four-seat mission party.
+        let current = fragr_server::protocol::GAMEPLAY_VERSION;
+        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
         let mut held = Vec::new();
-        for (version, admitted) in [
-            (11, false),
-            (12, true),
-            (12, true),
-            (12, true),
-            (12, true),
-            (12, true),
-            (12, true),
+        for (version, geom, admitted) in [
+            (current - 1, geometry, false),
+            (current + 1, geometry, false),
+            (current, 1, false),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
+            (current, geometry, true),
         ] {
             let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
             let hello = serde_json::json!({
                 "type": "hello", "role": "human", "name": "Sided",
-                "gameplay_version": version
+                "gameplay_version": version,
+                "geometry_version": geom,
             });
             ws.send(Message::Text(hello.to_string())).await.unwrap();
             let reply = tokio::time::timeout(Duration::from_secs(5), ws.next())
@@ -676,8 +825,13 @@ mod tests {
                 reply,
                 Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
             );
-            assert_eq!(welcomed, admitted, "capability {version}: {reply:?}");
-            held.push(ws);
+            assert_eq!(
+                welcomed, admitted,
+                "capability {version} geometry {geom}: {reply:?}"
+            );
+            if admitted {
+                held.push(ws);
+            }
         }
         drop(held);
         let _ = shutdown_tx.send(());
@@ -685,7 +839,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn ctf_requires_capability_fourteen_for_spectators_and_fighters() {
+    async fn ctf_speaks_the_current_contract_for_spectators_and_fighters() {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
         let rules =
@@ -714,17 +868,22 @@ mod tests {
             .await
             .expect("ctf ready timeout")
             .expect("ctf ready addr");
-        for (version, role, admitted) in [
-            (13, "spectator", false),
-            (13, "human", false),
-            (14, "spectator", true),
-            (14, "human", true),
+        let current = fragr_server::protocol::GAMEPLAY_VERSION;
+        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        for (version, geom, role, admitted) in [
+            (current - 1, geometry, "spectator", false),
+            (current - 1, geometry, "human", false),
+            (current + 1, geometry, "human", false),
+            (current, 1, "spectator", false),
+            (current, geometry, "spectator", true),
+            (current, geometry, "human", true),
         ] {
             let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
             ws.send(Message::Text(
                 serde_json::json!({
                     "type": "hello", "role": role, "name": "FlagCheck",
-                    "gameplay_version": version
+                    "gameplay_version": version,
+                    "geometry_version": geom,
                 })
                 .to_string(),
             ))
@@ -737,7 +896,10 @@ mod tests {
                 reply,
                 Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
             );
-            assert_eq!(welcomed, admitted, "{role} capability {version}: {reply:?}");
+            assert_eq!(
+                welcomed, admitted,
+                "{role} capability {version} geometry {geom}: {reply:?}"
+            );
         }
         let _ = shutdown_tx.send(());
         let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
@@ -808,7 +970,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn sabotage_requires_capability_twenty_eight_for_spectators_and_fighters() {
+    async fn sabotage_speaks_the_current_contract_for_spectators_and_fighters() {
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
         let (ready_tx, ready_rx) = tokio::sync::oneshot::channel::<SocketAddr>();
         let rules = fragr_server::rules::RuleSet::new(
@@ -839,17 +1001,22 @@ mod tests {
             .await
             .expect("sabotage ready timeout")
             .expect("sabotage ready addr");
-        for (version, role, admitted) in [
-            (27, "spectator", false),
-            (27, "agent", false),
-            (28, "spectator", true),
-            (28, "agent", true),
+        let current = fragr_server::protocol::GAMEPLAY_VERSION;
+        let geometry = fragr_server::protocol::GEOMETRY_VERSION;
+        for (version, geom, role, admitted) in [
+            (current - 1, geometry, "spectator", false),
+            (current - 1, geometry, "agent", false),
+            (current + 1, geometry, "agent", false),
+            (current, 1, "spectator", false),
+            (current, geometry, "spectator", true),
+            (current, geometry, "agent", true),
         ] {
             let (mut ws, _) = connect_async(format!("ws://{addr}")).await.unwrap();
             ws.send(Message::Text(
                 serde_json::json!({
                     "type": "hello", "role": role, "name": "SiteCheck",
-                    "gameplay_version": version
+                    "gameplay_version": version,
+                    "geometry_version": geom,
                 })
                 .to_string(),
             ))
@@ -862,7 +1029,10 @@ mod tests {
                 reply,
                 Some(Ok(Message::Text(ref text))) if text.contains("\"welcome\"")
             );
-            assert_eq!(welcomed, admitted, "{role} capability {version}: {reply:?}");
+            assert_eq!(
+                welcomed, admitted,
+                "{role} capability {version} geometry {geom}: {reply:?}"
+            );
         }
         let _ = shutdown_tx.send(());
         let _ = tokio::time::timeout(Duration::from_secs(5), server).await;
@@ -890,6 +1060,7 @@ mod tests {
                     fill_target: 0,
                     map: fragr_server::sim::MapKind::ArenaDuel,
                     map_rotate: false,
+                    playlist: false,
                     match_config: None,
                     solo_broadcast: false,
                     seed: 1,
@@ -919,7 +1090,9 @@ mod tests {
         let hello = serde_json::json!({
             "type": "hello",
             "role": "agent",
-            "name": "CovClimb"
+            "name": "CovClimb",
+            "gameplay_version": fragr_server::protocol::GAMEPLAY_VERSION,
+            "geometry_version": fragr_server::protocol::GEOMETRY_VERSION,
         });
         sink.send(Message::Text(hello.to_string()))
             .await

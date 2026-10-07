@@ -51,7 +51,7 @@ func _run() -> void:
 				push_error("test_arena_geometry: scenery intrudes on playable space")
 				ok = false
 	# Rotation replaces old meshes immediately, with no overlapping frame.
-	cover.apply_map_info({"map_id": 7, "geometry_version": 2, "half_extent": 20.0, "solids": [
+	cover.apply_map_info({"map_id": 907, "geometry_version": 2, "half_extent": 20.0, "solids": [
 		{"min_x": -2.0, "max_x": 2.0, "min_z": -3.0, "max_z": 3.0, "bottom": 2.4, "top": 3.0},
 	]})
 	var deck: MeshInstance3D = cover.get_child(5)
@@ -59,7 +59,7 @@ func _run() -> void:
 		push_error("test_arena_geometry: raised floor fills its underpass")
 		ok = false
 	# A reused content ID cannot keep a previous session's shape cached.
-	cover.apply_map_info({"map_id": 7, "geometry_version": 2, "half_extent": 20.0, "solids": [
+	cover.apply_map_info({"map_id": 907, "geometry_version": 2, "half_extent": 20.0, "solids": [
 		{"min_x": -2.0, "max_x": 2.0, "min_z": -3.0, "max_z": 3.0, "bottom": 3.4, "top": 4.0},
 	]})
 	deck = cover.get_child(5)

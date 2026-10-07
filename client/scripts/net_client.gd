@@ -16,9 +16,13 @@ extends Node
 # 13 understands the chosen participant body;
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
-# objective and gate state; 8 private participant records. Older servers
-# remain playable.
-const GAMEPLAY_VERSION: int = 36
+# objective and gate state; 8 private participant records. A shared arena
+# speaks this exact gameplay version and geometry 2. A campaign host still
+# accepts this client when its mission floor is at or below it.
+const GAMEPLAY_VERSION: int = 41
+## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
+## The join page can fetch a published archive after the player asks.
+const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
 
 signal connected_to_server
 signal disconnected_from_server
@@ -57,6 +61,11 @@ func _init():
 var role = "spectator"
 var player_name = "Spectator"
 var player_id = null
+## True only after Welcome says this server accepts a held duck. An older
+## welcome omits it, and the action must not carry the key or that server
+## drops the whole input.
+var duck_supported: bool = false
+var remote_supported: bool = false
 ## Body the next participant Hello asks for, from the saved profile.
 var requested_body: String = PlayerBody.HUMAN
 ## The body the server accepted for our pawn; empty for a spectator or
@@ -65,7 +74,9 @@ var accepted_body: String = ""
 var _resume_token: String = ""
 var _leaving: bool = false
 var _resume_used: bool = false
+var _version_told: bool = false
 var _requires_flags: bool = false
+var _requires_conquest: bool = false
 
 signal session_resumed
 
@@ -83,15 +94,19 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	role = p_role
 	player_name = p_name
 	player_id = null
+	duck_supported = false
+	remote_supported = false
 	accepted_body = ""
 	_leaving = false
 	_resume_used = false
+	_version_told = false
 	record.clear()
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
+	_requires_conquest = false
 	_movement_ack_previous.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
@@ -124,6 +139,8 @@ func disconnect_from_server():
 		socket.close()
 	connection_state = WebSocketPeer.STATE_CLOSED
 	player_id = null
+	duck_supported = false
+	remote_supported = false
 	accepted_body = ""
 	record.clear()
 	equipment.clear()
@@ -131,6 +148,7 @@ func disconnect_from_server():
 	mission_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
+	_requires_conquest = false
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -203,8 +221,22 @@ func send_action(action: Dictionary):
 		msg["throw_grenade"] = true
 	if action.get("place_mine", false):
 		msg["place_mine"] = true
+	# Omitted unless pressed. A server that has not sent magazines rejects the key.
+	if action.get("reload", false):
+		msg["reload"] = true
+	# Omitted unless this server advertised duck and the key is held. An older
+	# Action rejects unknown fields and would drop movement with the key.
+	if action.get("duck", false) and duck_supported:
+		msg["duck"] = true
+	if action.get("place_remote_mine", false) and remote_supported:
+		msg["place_remote_mine"] = true
+	if action.get("trigger_remote_mines", false) and remote_supported:
+		msg["trigger_remote_mines"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
+	var seat: Variant = action.get("seat")
+	if seat is String and VehicleState.SEATS.has(seat):
+		msg["seat"] = seat
 	# Client-owned facing and the input number the server acknowledges. Both are
 	# optional on the wire; agents and older clients send neither.
 	if action.has("yaw"):
@@ -289,6 +321,31 @@ func _process(_delta):
 		print("Disconnected from server")
 		disconnect_from_server()
 
+## The releases page and the checksum file published beside the archives.
+## Join does not request it.
+static func release_check() -> String:
+	return "Download a matching client from %s and check the archive against SHA256SUMS.txt." % RELEASES_URL
+
+## The server sentence when it is one plain line. An older server that only
+## says to update gains the releases page. Anything else uses the close text.
+func _version_refusal_text(message: Variant) -> String:
+	var fallback: String = _close_message("unsupported_gameplay")
+	if not message is String:
+		return fallback
+	var offered: String = str(message).strip_edges()
+	if offered.is_empty() or offered.length() > 300 or not _plain_sentence(offered):
+		return fallback
+	if offered.contains("update your client") and not offered.contains(RELEASES_URL):
+		return "%s %s" % [offered, release_check()]
+	return offered
+
+func _plain_sentence(text: String) -> bool:
+	for index: int in text.length():
+		var code: int = text.unicode_at(index)
+		if code < 32 or code == 127:
+			return false
+	return true
+
 ## Localized text for a stable close/error code, or "" when the code is not
 ## one of ours. Shared by the hard-stop path below and the idle_timeout drop,
 ## which shows the same message without blocking a resume attempt.
@@ -299,7 +356,8 @@ func _close_message(code: String) -> String:
 		"match_full": return tr("SABOTAGE_MATCH_FULL")
 		"bot_fill_next_round": return tr("BOT_FILL_NEXT_ROUND")
 		"bot_fill_cancelled": return tr("BOT_FILL_CANCELLED")
-		"unsupported_geometry", "unsupported_gameplay": return "This server needs a newer client. Update to join."
+		"unsupported_geometry", "unsupported_gameplay":
+			return "This server speaks a different version. " + release_check()
 		"connection_limit": return "This server is not taking more connections."
 		"address_limit": return "Too many connections from this address."
 		"join_rejected": return "This server refused the join."
@@ -322,6 +380,10 @@ func _close_message(code: String) -> String:
 func _admission_error(code: String) -> bool:
 	if code == "idle_timeout":
 		return false
+	if (code == "unsupported_gameplay" or code == "unsupported_geometry") and _version_told:
+		return true
+	if code == "unsupported_gameplay" or code == "unsupported_geometry":
+		_version_told = true
 	var message: String = _close_message(code)
 	if message.is_empty():
 		return false
@@ -362,6 +424,7 @@ func _handle_message(text: String):
 			mission_geometry.clear()
 			_mission_previous.clear()
 			player_id = data.get("player_id")
+			duck_supported = data.get("duck") == true
 			print("Welcome received! Role: ", data.get("role"), " Player ID: ", player_id, " Mode: ", data.get("mode_name", "Contested Frequency"), "/", data.get("playlist", "Arena Duel"))
 		
 		"map_info":
@@ -373,6 +436,7 @@ func _handle_message(text: String):
 			if problem.is_empty():
 				var rules: Dictionary = MatchRules.parse(data.get("rules"))
 				_requires_flags = rules.get("mode", "") == "ctf"
+				_requires_conquest = rules.get("mode", "") == "conquest"
 				if rules.get("mode", "") == "sabotage" and not data.get("sabotage") is Dictionary:
 					problem = "sabotage map has no sites"
 			if problem != "":
@@ -380,6 +444,11 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
+			remote_supported = data.get("m11") is Dictionary
+			if geometry.get("id") == MissionState.M11_ID and mission_geometry.get("id") == MissionState.M11_ID and not M11MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M10_ID and mission_geometry.get("id") == MissionState.M10_ID and not M10MissionState.same_contract(mission_geometry, geometry):
 				disconnect_from_server()
 				server_error.emit(MissionState.INVALID)
@@ -434,7 +503,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
@@ -457,6 +526,7 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			equipment = data
+			remote_supported = remote_supported or data.has("remote_mines")
 			loadout_received.emit(data)
 		"record":
 			var problem: String = PlayerRecord.validation_error(data, player_id, record)
@@ -468,7 +538,14 @@ func _handle_message(text: String):
 			record_received.emit(record)
 		"error":
 			if data.get("code") is String:
-				_admission_error(data["code"])
+				var code: String = str(data["code"])
+				if code == "unsupported_gameplay" or code == "unsupported_geometry":
+					if not _version_told:
+						_version_told = true
+						disconnect_from_server()
+						server_error.emit(_version_refusal_text(data.get("message", "")))
+					return
+				_admission_error(code)
 
 		"snapshot":
 			var problem: String = ActorState.validation_error(data)
@@ -482,8 +559,14 @@ func _handle_message(text: String):
 				problem = FlagState.snapshot_error(data)
 			if problem.is_empty():
 				problem = SabotageState.snapshot_error(data)
+			if problem.is_empty():
+				problem = VehicleState.validation_error(data)
+			if problem.is_empty():
+				problem = ConquestState.validation_error(data)
 			if problem.is_empty() and _requires_flags and data.get("flags") == null:
 				problem = "ctf snapshot has no flags"
+			if problem.is_empty() and _requires_conquest and data.get("conquest") == null:
+				problem = "conquest snapshot has no capture state"
 			if not problem.is_empty():
 				disconnect_from_server()
 				server_error.emit(problem)

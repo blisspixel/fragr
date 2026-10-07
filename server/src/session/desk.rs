@@ -36,6 +36,7 @@ impl GameSession {
             DeskVerb::PrepareBan { query } => self.desk_prepare_ban(&query),
             DeskVerb::FinishBan(ready) => self.desk_finish_ban(ready),
             DeskVerb::Say { text } => DeskOutcome::Text(self.desk_say(&text)),
+            DeskVerb::Stats => DeskOutcome::Text(self.sheet.desk_text()),
         }
     }
 
@@ -218,6 +219,8 @@ impl GameSession {
         self.state.push_event(GameEvent::VenueNotice {
             text: format!("The venue: {trimmed}"),
         });
+        let tick = self.state.tick;
+        self.board.note_floor("The venue", &trimmed, tick);
         "On the air.".into()
     }
 
@@ -384,6 +387,39 @@ mod tests {
         assert!(!status.contains("Patch"), "{status}");
         assert!(!status.contains("203.0.113"), "{status}");
         assert!(!status.contains("Booth"), "{status}");
+    }
+
+    #[test]
+    fn stats_reads_the_sheet_and_leaves_the_address_off_it() {
+        let mut session = GameSession::new();
+        session.spawn_bots(1);
+        sit(&mut session, "Meat Proxy", Role::Human, peer(7));
+        let (humans, fighters) = session.state.participant_counts();
+        let live = session.state.live_status(1);
+        assert_eq!(humans as usize, live.humans);
+        assert_eq!(fighters as usize, live.fighters);
+        session.state.start_round();
+        session.state.end_round("Frag limit reached".into());
+        let messages = session.tick_messages(0.05);
+        assert!(messages.iter().any(|message| {
+            matches!(
+                message,
+                crate::protocol::ServerMessage::Event(crate::protocol::GameEvent::RoundEnd { .. })
+            )
+        }));
+        let text = session.desk(DeskVerb::Stats).text().to_string();
+        assert!(text.contains("rounds 1"), "{text}");
+        assert!(text.contains("peak humans 1"), "{text}");
+        assert!(text.contains("peak fighters 2"), "{text}");
+        assert!(text.contains("1  Arena Duel"), "{text}");
+        assert!(text.contains("ffa"), "{text}");
+        assert!(text.contains("Dead Air Dan"), "{text}");
+        assert!(!text.contains("203.0.113"), "{text}");
+        let public = serde_json::to_string(&session.sheet.totals()).unwrap();
+        assert!(!public.contains("Dead"), "{public}");
+        assert!(!public.contains("Meat"), "{public}");
+        assert!(!public.contains("203.0.113"), "{public}");
+        assert!(!public.contains("mvp"), "{public}");
     }
 
     #[test]

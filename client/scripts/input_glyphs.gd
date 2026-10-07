@@ -28,6 +28,8 @@ const TOKENS: Dictionary = {
 	"fire": "fire",
 	"grenade": "throw_grenade",
 	"mine": "place_mine",
+	"remote": "place_remote_mine",
+	"detonator": "trigger_remote_mines",
 	"jump": "jump",
 	"join": "join_as_human",
 	"leave": "leave_match",
@@ -162,7 +164,7 @@ static func parts(template: String) -> Array[Dictionary]:
 		rest = rest.substr(close + 1)
 	return out
 
-## Plain text for a template: "{use}: USE" reads "F: USE" or "B: USE".
+## Plain text for a template: "{use}: OPEN THE PANEL" reads "F: OPEN THE PANEL".
 static func plain(template: String) -> String:
 	var text: String = ""
 	for part: Dictionary in parts(template):

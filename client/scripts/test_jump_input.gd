@@ -25,7 +25,7 @@ func _run() -> void:
 	var network: CaptureNetwork = CaptureNetwork.new()
 	manager.set("net_client", network)
 	manager.set("is_human_player", true)
-	var pawn: Node3D = Node3D.new()
+	var pawn: Node3D = load("res://scripts/player_pawn.gd").new()
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	camera.fp_mode = true
 	camera.fp_target = pawn

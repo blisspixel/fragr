@@ -7,7 +7,7 @@ extends SceneTree
 ## the shared 1.8 metre hit volume and never enlarged for readability.
 ## A comparison sheet beside the Union Clerk and Sweeper goes to .agents/.
 
-const Rig = preload("res://art/characters/player_rig.gd")
+const SyntheticSource = preload("res://art/models/free_synthetic_source.gd")
 const HumanSource = preload("res://art/models/free_human_source.gd")
 const OUTPUT: String = "res://assets/characters/free/"
 const IDLE_FRAMES: int = 4
@@ -17,7 +17,7 @@ const BREATH: Array[float] = [0.0, 0.012, 0.02, 0.01]
 const OUTLINE: Color = Color8(58, 42, 72)
 const BODIES: Dictionary[String, String] = {
 	"human": "Free human: angular painted face, short informal hair, rust utility jacket, teal casual shirt, patched work trousers and practical shoes. Hatless civilian workwear.",
-	"synthetic": "Free embodied agent: bone shell over a gunmetal frame, leather harness, ember scarf, rust repair plates, round cyan lenses, magenta-tipped antenna.",
+	"synthetic": "Free civilian worker: bone head and joint caps, olive work plates, amber expression, dark articulated frame and a replaced rust forearm. Independent of control role or faction.",
 }
 
 var viewport: SubViewport
@@ -88,7 +88,7 @@ func _bake() -> void:
 	display.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	display.size = Vector2(480, 480)
 	root.add_child(display)
-	var rig: RefCounted = Rig.new()
+	var synthetic: RefCounted = SyntheticSource.new()
 	var human: RefCounted = HumanSource.new()
 	var tile: int = EnemyAnimation.TILE
 	var frames: int = IDLE_FRAMES + WALK_FRAMES
@@ -100,7 +100,7 @@ func _bake() -> void:
 			var walking: bool = frame >= IDLE_FRAMES
 			var progress: float = float(frame - IDLE_FRAMES) / WALK_FRAMES if walking else 0.0
 			var action: String = "walk" if walking else "idle"
-			var model: Node3D = human.build_pose(action, progress, true) if kind == "human" else rig.build_pose(true, action, progress, true)
+			var model: Node3D = human.build_pose(action, progress, true) if kind == "human" else synthetic.build_pose(action, progress, true)
 			if not walking:
 				(model.get_child(0) as Node3D).position.y += BREATH[frame]
 			var image: Image = await _capture(model)
@@ -125,6 +125,7 @@ func _bake() -> void:
 	for source: String in ["res://art/characters/geometry.gd", "res://art/characters/rig.gd",
 		"res://art/characters/player_rig.gd", "res://art/characters/player_bake.gd",
 		"res://art/models/free_human_source.gd", "res://art/models/clerk_source.gd",
+		"res://art/models/free_synthetic_source.gd", "res://art/models/candidates/free_synthetic.glb",
 		"res://art/models/candidates/free_human.glb",
 		"res://scripts/enemy_animation.gd"]:
 		sources[source] = FileAccess.get_sha256(source)

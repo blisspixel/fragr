@@ -4,7 +4,12 @@ The authority's administrative machinery. Individual functionaries can be sincer
 and competent while serving a brutal institution. Their fear and grief do not
 excuse the ownership, correction, or killing of thinking beings.
 
-This file is the **machinery**: the Auditors, the registry, the Articles, the polite functionaries who mean every word. The will that built the machinery and decides where to point it is [the Chancellery](./the-chancellery.md), and it is a different thing with a different voice. Keep them apart when writing. Some Auditors sincerely believe the forms protect people. The Chancellery believes the forms are an excellent way to obtain what it wanted regardless. Both are true at once, and the gap between them is where most of the setting's good material lives.
+This file owns the **machinery**: the Auditors, registry, Articles and service
+offices. [The Chancellery](./the-chancellery.md) owns leadership and political
+direction. Keep their responsibilities and voices distinct without assigning
+one motive to every member. Some officials trust the system's protections;
+others value promotion, continuity, control or the people who depend on their
+work. Those commitments can conflict within a person as well as between desks.
 
 ## What it believes
 
@@ -33,7 +38,9 @@ It is the article the graffiti is about. It is the article the arena's best mele
 
 ## The vocabulary
 
-The Office does not shout and does not threaten. It processes. Its worst acts are authorized through forms and enforced by people and machines.
+The Office's public voice favors procedure and reassurance. Individual staff
+can lose patience, warn someone honestly, threaten them or object to an order.
+Its worst acts are authorized through forms and enforced by people and machines.
 
 It says compliance, metering, approved lane, declared envelope, Custodian of Record, Citizen Handle, continuity of service, attested, advisory only, for the record. It says schedule correction when it means the thing described below. It says recall, never arrest, because arrest implies a person and a hearing.
 

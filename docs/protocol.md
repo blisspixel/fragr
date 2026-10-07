@@ -74,13 +74,14 @@ Initial handshake message. Must be sent immediately after connection.
   and the server answers with a new token. A bad or expired token is
   `resume_rejected` and does not create a second pawn. Spectators omit it.
 - `geometry_version`: Maximum understood solid format, including earlier formats.
-  Current clients send `2`; omission means `1`. Before `Welcome`, the server sends
-  `error` with code `unsupported_geometry` and closes connections below the
-  selected map's requirement. Rotation uses the maximum across its whole roster.
-  No player or spectator session is created on rejection. This is geometry
-  compatibility, not general protocol or action-version negotiation.
+  Current clients send `2`; omission means `1`. A shared arcade room requires `2`.
+  A campaign map keeps that map's floor. Before `Welcome`, the server sends
+  `error` with code `unsupported_geometry` and closes a hello below the floor
+  or above `2`. The message names the version this process speaks when the
+  client is newer, and the floor when the client is older. No player or
+  spectator session is created on rejection.
 - `body`: optional. `human` or `synthetic`: the participant's chosen body, a
-  human or a conscious embodied agent in a synthetic body. Both share one
+  human or a free agent in a synthetic body. Both share one
   personal story, and the body does not establish moral status. Omission or
   `null` means `human` for every role. It is identity only: it never selects
   the control role, side, faction, spawn, equipment, hit volume, speed or
@@ -89,7 +90,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `36`; omission means `1`. Discovery-only maps first
+  and the Godot client send `37`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -112,15 +113,16 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. An arena with a rule set does not take the four-seat
-  mission party limit that capability 4 and above otherwise brings.
+  without teams misleads. A shared arcade room speaks gameplay 38. That floor
+  is above capability 4, and the arcade roster stays open. The four-seat
+  mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
   players. It is additive: no map requires it, older readers ignore the field,
   and an older client's pawn is human.
-  Version 14 adds typed flag state, capture scores and flag events. A capture
-  the flag server requires 14 for every role so a reader cannot miss the
-  objective or mistake frags for the score. Other modes keep their earlier
-  minimum capability. Version 15
+  Version 14 adds typed flag state, capture scores and flag events. Capture
+  the flag arrived at 14. A shared room now requires the current contract
+  under Protocol version, so a reader cannot sit in that room on 14 alone.
+  Version 15
   adds optional `seated: true` to the Union Clerk campaign identity.
   Version 16 adds the low Union Crawler, its timed leap and the positional
   `crawler_scrabble` event. Version 17 adds the M02 `ward_secured` fact, which
@@ -183,14 +185,28 @@ Initial handshake message. Must be sent immediately after connection.
   current pilot/passengers and explicit transit history. Every role requires 36
   before Welcome on that map. It adds no Repeater art, automatic grant or new
   combat channel.
+  Version 37 gives a joined human a magazine in each gun. The ammunition count
+  stays the total carried, including those rounds. `loadout.loaded` lists
+  `{weapon, rounds}` and an optional `ready_at` tick while that gun is
+  reloading. The corner reserve is the pool minus every magazine of that pool.
+  `Action.reload` is a rising edge and is omitted unless pressed. A loadout
+  that still carries the old keys `reserves` or `reload` is refused whole.
+  Agents, rule bots, campaign enemies and an unarmed pawn keep the single
+  count and send no `loaded`. An armed arcade human lists the magazine guns
+  and the finite spawn kit: 80 bullets, 24 shells and 16 cells, including the
+  rounds already in the guns. Death restores that kit. A weapon pad adds the
+  same pickup amount as discovery, up to the pool cap. A weapon-only mutator
+  still sends three zero counts and reloads from an unlimited reserve.
+  Only a shared arcade room requires 37. Campaign floors stay where they were.
+  A client omits `reload` until a loadout from this server includes `loaded`.
+  A process that never sends `loaded` rejects an action that contains the key.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
-  with `unsupported_gameplay`. This capability is separate from geometry. The six
-  full-arsenal arcade maps still accept 1. There an older reader draws only the
-  first pellet of each scatter result, and an action still carrying the retired
-  `reload` field is ignored as an unreadable action, never counted toward
-  `malformed`.
+  with `unsupported_gameplay`. This capability is separate from geometry. A
+  shared arcade room requires the same 37, as stated under Protocol version.
+  The arcade roster stays open. The four-seat mission party stays on campaign
+  doors.
 
 Admission rejection also places its stable error code in a WebSocket policy-close
 reason. Clients may receive the final text and close in one poll; use that reason
@@ -277,20 +293,54 @@ message and then a policy close whose reason is the same code:
 | `venue_kick` | the venue desk asked that seat to leave | removed |
 
 **Protocol version.** There is no single `protocol_version` in `Hello`.
-`gameplay_version` and `geometry_version` already reject an older client
-before `Welcome`, with a code that names which contract it lacks, and a
-newer client is admitted because both are maximum-understood capabilities.
-The envelope itself (JSON text frames tagged by `type`) has not changed. A
-breaking envelope change would add that field then, with its own rejection.
+`gameplay_version` and `geometry_version` are the two contracts. A shared
+arcade room, including free-for-all, team play, capture the flag, Sabotage,
+and the night list, requires gameplay `38` and geometry `2`. An older hello
+and a newer hello are both refused before `Welcome`, with
+`unsupported_gameplay` or `unsupported_geometry`. The message names version
+37 or geometry 2. An older hello is also sent to
+`https://github.com/blisspixel/fragr/releases/latest` and told to check the
+archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
+The join page can offer to download that archive after the player asks.
+That offer is not a status field, and a host that omits its version is not
+fetched. A newer hello is told which version this process speaks. A campaign or local
+mission keeps its content floor, so a reader between that floor and 37 can
+still enter that mission, and a hello above 37 or geometry above 2 is refused
+there too. The envelope itself
+(JSON text frames tagged by `type`) has not changed. A breaking envelope
+change would add that field then, with its own rejection. `GET /status` may
+include both versions. A missing field does not make the host unreadable,
+and the client does not refuse to join only because the field is absent.
 
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,
 round, tick, fighters, humans, agents, bots, and connections. A missing `kind`
 is not an arena. Additive to schema 2, `mode` names the rule set's mode (`ffa`
 or `tdm`; a missing `mode` means `ffa`) and `mutators` lists its mutator ids,
-omitted when none, so a server list can show what a server plays. It does not list callsigns or addresses, and it does not take
+omitted when none, so a server list can show what a server plays. Additive
+`gameplay_version` and `geometry_version` name the contracts this process
+speaks, and are omitted by an older host. It does not list callsigns or addresses, and it does not take
 a connection slot. It is a host probe. Watching and playing happen in the Godot
 app, which reads only those fields and accepts exactly schema 2.
+
+The snapshot is copied out of its lock before it is serialized. If that copy
+does not finish within 50 ms, the probe answers HTTP 503 with
+`{"schema_version":2,"busy":true}` and does not invent a map. It does not
+answer schema 1 or `{}`. The process requests this line on its own loopback
+address before it reports ready. Startup fails when the reply is missing,
+the wrong schema, unnamed, or larger than 4096 bytes, which is what the
+client reads. A wildcard bind also probes this computer's other non-virtual
+IPv4 addresses and logs each result. That log may name those addresses.
+`/status` itself still does not. A check from this computer does not prove
+another computer can connect. A new socket waits up to one second for its
+first bytes. A `GET /status` inside that wait is still this probe. A line
+that is clearly not status is a game handshake at once.
+
+A process that is not bound to loopback also broadcasts UDP `6768` every two
+seconds. The packet is exactly `FRAGR/1 <tcp-port>\n`. It names the game port
+and nothing else: no map, callsign, ticket, or token. It is not a join and not
+the game transport. A loopback bind does not send it. The client listens only
+while the join page is open, then confirms the host with `GET /status`.
 
 Schema 2 changes only when one of those fields changes meaning or is removed.
 Two additive blocks follow them once the tick loop has refreshed once (about a
@@ -330,7 +380,15 @@ second after start); a reader that does not know them ignores them:
     `queue_overflows_total`. Outbound counts every text frame a session writer
     delivered, welcome included. Inbound counts every data frame read after
     admission, hello included, before the inbound budget drops any.
-  - `clients`: only for `GET /status?clients=1`. One anonymous entry per
+  - `night`: `rounds_finished`, `peak_humans`, and `peak_fighters` for this
+    process. A round is counted when it ends. Peaks are the busiest
+    participant room seen: humans, and fighters (humans, joined agents, and
+    rule bots). Spectators are not fighters. Counts only, with no callsigns.
+    `ops.version` stays 1 because the block is additive. An older body that
+    omits `night` reads as zeros.
+  - `clients`: only for `GET /status?clients=1` from a loopback address.
+    An IPv4-mapped IPv6 loopback counts as loopback. Another computer
+    receives the plain body. One anonymous entry per
     session, ordered human, agent, spectator, longest connected first:
     `role`, `connected_s`, the four window rates, cumulative `out_bytes` and
     `in_bytes`, and the current outbound `queue_depth`. No ids, names or
@@ -658,9 +716,9 @@ reject changed run identity or increasing allowance across same-map updates.
 #### Action
 
 Sent by `human` or `agent` roles to control their player. Movement, firing, jump
-and interaction flags are optional booleans defaulting to `false`. There is no
-reload: `reload` is not a field, and an action carrying it does not parse.
-Optional aim, sequence and weapon fields use the types described below.
+and interaction flags are optional booleans defaulting to `false`. `reload`
+is one of those booleans for an armed human, omitted while false. Optional
+aim, sequence and weapon fields use the types described below.
 
 ```json
 {
@@ -695,6 +753,13 @@ World-point aim:
 - `left` / `right`: Strafe left/right
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
 - `fire`: Fire weapon
+- `reload`: Optional boolean, omitted while false. A rising edge starts one
+  reload of the selected gun. Holding it does not start another until a packet
+  omits the key. An unarmed pawn, an agent, melee, a full magazine, a bag with
+  nothing left for that gun, and a gun that is already reloading ignore it.
+  Starting a reload blocks that gun until `ready_at`. Death and a real weapon
+  change cancel it. A client sends the key only after this server has included
+  `loaded` on a loadout, and erases it when the control is up.
 - `throw_grenade`: Optional held boolean, omitted while false. A rising edge
   latches one counted throw, including a press and release between ticks.
   Holding it does not repeat. The launch uses authoritative aim, consumes one
@@ -713,14 +778,29 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
+- `duck`: Optional held boolean, omitted while false. This server advertises
+  the key with `Welcome.duck`. A client must not send it until that flag is
+  present, because an older `Action` rejects unknown fields and would drop the
+  whole input. While it is set, a participant fighter is 1.35 m tall, the eye
+  is at 1.15 m, and horizontal speed is 0.34 of the speed already chosen.
+  Releasing it stands back up unless the ceiling will not allow 1.8 m. The
+  snapshot field is the resolved stance, not the raw key. Campaign enemies,
+  Notaries, Crawlers, and bosses ignore it. Jump is unchanged.
 - `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"` | `"repeater"`.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
   cooldown or RNG draw.
-- `look_at`: (optional) Authoritative target aim. Prefer `player_id` (UUID string),
-  or both `x` and `z` with optional world `y`. A player target aims at the body
-  centre, 0.9 units above its feet. A world point without `y` means horizontal aim.
+- `look_at`: (optional) Agent target aim. A shared-room human socket drops
+  the field, so the server does not aim that pawn. Yaw and pitch remain the
+  human aim. A campaign socket and an in-process controller may still send
+  it. Prefer `player_id` (UUID string),
+  or both `x` and `z` with optional world `y`. A player target aims at the chest,
+  1.22 units above the feet, when the belt is clearly open. A counter that hides
+  the hips, a lip the shot cone would still strike, or a gap that shows
+  the hips but not the chest keeps the shot on the hip line. A Crawler or a
+  Notary is aimed at the middle of its shorter body. A world point without `y`
+  means horizontal aim.
   Valid target intent replaces yaw and pitch after movement. Missing targets,
   coincident points, and nonfinite coordinates leave the current aim unchanged.
 - `yaw`: (optional) Client-owned absolute facing in radians. When present the server takes it as the fighter's yaw for this input, before movement, instead of turning at a fixed rate from the turn bits. Normalised into `[0, 2 pi)`; non-finite values are ignored and the turn bits apply as before. This is how a human client keeps the look axis off the network.
@@ -745,6 +825,102 @@ World-point aim:
 - Spectators that send actions are ignored
 - Unknown fields are rejected (schema error). Sticky state is not overwritten by junk.
 - MCP `act` returns `isError` on unknown keys, bad `weapon_swap`, or bad `look_at` (unknown nested keys, incomplete x/z, bad UUID). Empty/missing arguments are OK (all defaults).
+
+#### Jeep control and facts (capability 39)
+
+Vehicle maps use the existing `Action` and snapshot channel. Optional `seat`
+accepts `driver` or `gunner`, selecting a free seat in the currently occupied
+stopped jeep. Its request survives an intervening Action that omits it until
+the next active tick consumes it. A rising `interact` enters the nearest free
+seat within 2 m horizontally and 2 m vertically with clear line of sight,
+driver first, or exits the current jeep to clear reachable ground. Entry,
+exit and switching require absolute speed at most 2 m/s. A refused exit
+retains the seat. Enemy team occupants cannot share the same jeep.
+
+The driver uses `forward`/`back` for throttle, `left`/`right` for steering and
+`jump` for braking. Steering follows chassis yaw; aim remains free. The gunner
+uses the ordinary aim and fire fields. Occupants cannot walk, fire handheld
+weapons, throw grenades or place mines. Switching locks both vehicle controls
+and the mount for ten ticks, through `control_ready_tick`.
+
+Optional `Snapshot.vehicles` is omitted when empty and contains at most 32
+strict records: `{id,kind,position,yaw,speed,vy,hp,driver,gunner,gun_heat,
+burning_ticks,control_ready_tick}`. IDs are positive u32 values and `kind` is
+`jeep`. Position is chassis ground-base `[x,y,z]` in metres, yaw is normalized
+server +X-forward radians, speed is signed (forward at most 16 m/s, reverse
+at most 6 m/s), and `vy` is vertical metres per second. HP is 0 to 400, heat
+is 0 to 1, and burning lasts at most forty ticks. Driver and gunner are
+nullable live player UUIDs; this list is the sole occupancy authority.
+The body is 3.8 by 1.9 m with a 1.35 m high shot box and 2.75 m clearance
+for exposed occupants. Driver feet are local `[0.20,0.65,-0.40]`, gunner feet
+`[-0.65,0.95,0]`. Vehicle bodies use server collision and damage resolution.
+
+Mounted fire emits an ordinary Flechette `ShotTrace` with optional positive
+`vehicle_id`, recorded when the shot resolves. It does not change the carried
+weapon or inventory ammunition. Heat and the four-tick fire interval limit
+the mount; overheating requires cooling to 0.25 before firing resumes.
+Driver prediction pairs the existing ACK's sequence, epoch and tick with
+the same snapshot's vehicle motion. The ordinary movement ACK has
+`applied:false` while seated. Quiet world snapshots may be superseded, so a
+client must wait for a matching tick before reconciling a vehicle.
+Seat, HP, burn-phase and control-lock changes remain reliable facts in the
+bounded outbound queue; vehicle motion and cooling may coalesce.
+
+The island water increment (capability 41) extends `kind` with `boat` and
+`light_aircraft`, retaining the same twelve state fields and 400 HP maximum.
+Boats have driver and gunner seats, a 4.8 by 2.2 m hull, 14 m/s forward and
+4 m/s reverse limits, and 0.6 m draft. Their complete footprint must remain
+in registered water of sufficient depth; dock and shore solids still block
+them. The same mounted gun and heat limits apply to the boat's gunner.
+
+The 8 by 9.2 m light aircraft has one driver seat and no weapon in this slice.
+Driver feet are local `[1.45,0.80,0]`, centered inside the inspected cockpit.
+Its boarding radius is 6 m to reach the cockpit from outside the wings;
+exits sample beyond the complete hull.
+Forward adds throttle, back brakes, left/right steer, jump climbs and duck
+descends. It gains lift at 12 m/s, reaches 32 m/s, targets at most 6 m/s
+vertical travel, and has a 60 m altitude ceiling. Below lift speed it falls
+under gravity. Water contact, hard landing or a high-speed obstruction can
+destroy it; a burning aircraft falls during its warning. Destruction attempts
+safe ejection, with lethal damage in place if no legal exit exists. The
+collision body remains upright. Driver crouch is a resolved seat posture,
+independent of the aircraft's descend input. Water exits use the same
+authoritative swimming support as ordinary infantry.
+
+#### Registered water and island Conquest (capabilities 40 and 41)
+
+`MapInfo.water_regions` is absent for dry maps. It contains at most 32 strict
+`{min:[x,z],max:[x,z],level,depth}` records. Coordinates and values are finite;
+positive rectangles remain within `half_extent` and do not overlap internally.
+Depth is positive and at most 64 m. The registered surface cannot be below its
+depth or above twice the map half extent. Holdfast currently uses five regions
+at 2.2 m above the common seabed, with land at 3 m. Shared arcade admission is
+41. Visual waves do not modify these bounds or combat outcomes.
+
+Surface swimming uses the ordinary collision step with a 3.2 m/s speed ceiling
+and feet 0.9 m below the water level. Bounded temporary water support permits
+stepping back to dry land. The client mirrors this kernel for prediction.
+No separate swimming Action, underwater combat mode or per-client water physics
+is introduced.
+
+`GameMode` adds `conquest`, permitted on Holdfast Atoll (map 7). Optional
+`Snapshot.conquest` is omitted outside that mode, or contains
+`{tickets:{union,coalition},initial_tickets,capture_ticks,points}`. Each point is
+`{id,position:[x,y,z],radius,owner,capturing,progress,contested}`. The five IDs are
+`harbour`, `village`, `airfield`, `server_halls` and `lighthouse`. Owner and
+capturing are nullable team values. Position names ground level, radius is 8 m,
+and progress is a bounded tick count below the advertised 160-tick stage.
+
+An uncontested side spends eight seconds neutralizing an enemy site, then eight
+seconds capturing it. Opposing presence freezes progress; empty or defending
+presence unwinds it. Bodies do not multiply capture speed. Both sides start
+with 200 tickets. A resolved participant death debits one; owning more than two
+sites debits the other side once per second by the number above two. Exhaustion
+ends the round; simultaneous zero draws. The default ten-minute clock compares
+remaining tickets. Warmup and new rounds reset sites, tickets and vehicles.
+The retained state and ordinary `RoundEnd.winning_team` convey the result.
+Point, ticket and occupancy transitions remain reliable outbound facts even
+when quiet movement snapshots are coalesced.
 
 #### SetDisplayBehavior
 
@@ -785,6 +961,45 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 - Spectators cannot speak
 - Named server rule bots may emit occasional Contested Frequency Speak events on frag/death/Warmup/killstreak via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
 
+#### Wire board
+
+The process-local board. Humans, free agents, and spectators share it. It is
+not a combat fact and it does not change gameplay version. An older server
+ignores the message. An older client never receives it unless that client
+asked, because the answer is a unicast.
+
+```json
+{ "type": "board", "op": "list" }
+{ "type": "board", "op": "read", "board": "floor" }
+{ "type": "board", "op": "post", "board": "notices", "text": "still here" }
+```
+
+`op` is `list`, `read`, or `post`. `board` is `floor` or `notices` when the
+op needs one. `text` is the notice. Unknown fields are refused. The same 80
+scalar and control-character rules as speak apply to a notice. A notice waits
+60 ticks, counted on its own, so a callout does not spend it.
+
+`floor` is the room. Successful speaks and a venue sentence are copied onto
+it. A post to `floor` comes back `board_closed`: a seated human or agent
+speaks, and that is the floor. `notices` keep what was posted until this
+process ends. Each board holds 40 lines and drops the oldest. Nothing is
+written to disk. A round change does not clear the board.
+
+The answer is one unicast, not a broadcast:
+
+```json
+{
+  "type": "board",
+  "op": "read",
+  "board": "notices",
+  "lines": [{ "tick": 4, "name": "Wire", "text": "still here" }]
+}
+```
+
+`list` returns `boards` with `id` and `count`. A refusal sets `code` to
+`board_unknown`, `board_closed`, `board_rejected`, or `board_rate_limited`
+and omits empty lists. The name on a line is the callsign the server
+assigned. The client does not choose a second name for the post.
 
 #### MapInfo
 
@@ -961,8 +1176,10 @@ Agents need this to tell a clear shot from a wall. Before it existed, the refere
 
 Discovery maps send `type: "loadout"` only to the owning human or agent when its
 equipment changes, including an initial state. It is never broadcast and never
-sent to spectators. Full-arsenal maps send no loadout. Selection remains public
-in `Snapshot.players[].weapon`; ammunition does not.
+sent to spectators. An unarmed full-arsenal pawn sends no loadout. An armed
+arcade human receives the magazine guns, the finite spawn kit and `loaded`.
+A weapon-only mutator sends three zero counts instead, because that one gun
+has no bag. Selection remains public in `Snapshot.players[].weapon`; ammunition does not.
 
 ```json
 {
@@ -998,11 +1215,21 @@ Shotgun, and repeated key 4 cycles the owned Rifle/Repeater family. The existing
 wheel includes Repeater beside Rifle without changing wire or record indices.
 `ammo` contains
 all three unique pools: `bullets` (Tack, Flechette and Repeater, cap 200), `shells`
-(Scatter, cap 50) and `cells` (Rail and Sniper, cap 100 since capability 12). There are no magazines and no
-reload: one shot, including a seven-pellet scatter blast, spends one unit from
-its pool, and fists need nothing. A weapon pickup adds Tack 50, Flechette 60,
-Scatter 12, Rail 10, Sniper 8 or Repeater 60 units. The magazine-era `reserves` and `reload` fields are
-gone and a message carrying them is refused whole.
+(Scatter, cap 50) and `cells` (Rail and Sniper, cap 100 since capability 12). One shot, including a seven-pellet scatter blast, spends one unit from
+its pool, and fists need nothing. On an armed human that unit also leaves the
+selected magazine. `loaded` is omitted when the pawn has no magazines. Each
+entry is `{weapon, rounds}` with optional `ready_at`. Rounds cannot exceed the
+magazine, entries are unique and owned, at most one gun is reloading, and the
+sum of magazines in a pool cannot exceed that pool. An arcade magazine loadout
+has one entry per listed gun. A finite bag sends the real counts. Three zeros
+mean a weapon-only gun with no bag. Discovery still
+requires fists. A weapon pickup adds Tack 50, Flechette 60,
+Scatter 12, Rail 10, Sniper 8 or Repeater 60 units to the pool. A gun acquired
+for the first time then fills its magazine from that pool without adding more.
+A later pickup adds to the pool only. The loadout keys `reserves` and `reload`
+stay refused whole. Magazine sizes and reload ticks live on `WeaponType`:
+Tack 12 and 16, Flechette 20 and 22, Repeater 30 and 22, Scatter 6 and 14,
+Rail 4 and 28, Sniper 5 and 28. Fists and the Shiv have none.
 `personal_claims` hides introductory supplies only for their claimant. IDs follow
 the authored map contract. `dry_fire_count` advances once per held empty trigger,
 resets with a development life, and drives feedback without generating shots.
@@ -1100,8 +1327,11 @@ Unicast after each server tick to a human whose Action carried a `seq`. The root
   body or low ceiling can prevent a new jump.
 
 The server builds the Ack after simulation. It queues MapInfo, Mission,
-Snapshot and events before the same-tick Ack unicast. A client must accept
-Snapshot before Ack and tolerate a missing Ack after connection loss. Godot
+Snapshot and events before the same-tick Ack unicast. An unsent quiet world
+may be replaced by a newer world, so an Ack can arrive without its same-tick
+Snapshot. Snapshots carrying resolved shots or explosions remain in order
+before the same-tick Ack. A client must accept Snapshot before Ack, skipped
+world ticks, and a missing Ack after connection loss. Godot
 validates finite body numbers, exact JSON integer values, monotonic tick and
 epoch, and u32 sequence progression before exposing a version 1 Ack.
 
@@ -1129,7 +1359,8 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "role": "spectator" | "human" | "agent",
   "mode_name": "Contested Frequency",
   "playlist": "Arena Duel",
-  "body": "human" | "synthetic"
+  "body": "human" | "synthetic",
+  "duck": true
 }
 ```
 
@@ -1141,6 +1372,9 @@ Server response to `Hello`. Confirms connection and provides player ID.
   the parked pawn's own body. Omitted for a spectator and by
   servers before capability 13; a reader then treats the pawn as human rather
   than inferring a body from the role or name.
+- `duck`: present and true only when this server accepts a held `Action.duck`
+  and publishes the resolved stance. Omitted by older servers. Absence means
+  the client must not send the key.
 - `mode_name`: Named scrap-league identity (default Contested Frequency)
 - `playlist`: Playlist under the league lie (default Arena Duel)
 
@@ -1160,7 +1394,15 @@ Unicast control-plane rejection (not broadcast). Used when speak is dropped.
 
 #### Snapshot
 
-Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
+Periodic state broadcast containing all visible game entities. Produced at ~20 Hz.
+Each client holds at most one replaceable unsent world in a bounded 64-message
+queue. A newer world can replace it when exact discrete facts are unchanged.
+Motion and countdowns may skip ticks; resolved shots, explosions, score and
+roster changes, round transitions, and other discrete facts remain ordered.
+MapInfo and Mission form barriers even when the map ID stays the same. Events,
+inventory and acknowledgements are never replaced. A full reliable queue or
+a write stalled for two seconds disconnects that client. An in-progress write
+cannot be replaced, and combat-heavy queues can still reach this bound.
 
 ```json
 {
@@ -1270,10 +1512,22 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `just_fired`: True on the tick a weapon was fired (for muzzle flash)
   - `behavior`: (optional) Rule-bot tactics name, or Agent-set display label from `set_display_behavior`
   - `score`: Kills in current round
+  - `deaths`, `attacks`, `connects`, `heads`, `damage`: (optional) This fighter's
+    round counts, omitted while zero. `attacks` is gun and fist shots.
+    `connects` is shots whose pellets found a body, including a shield or a
+    teammate that lost nothing. `heads` is connects with a pellet in the head
+    band. `damage` is HP plus armor removed by guns, grenades and mines, with
+    overkill excluded. Grenades and mines are not part of `attacks` or
+    `connects`. Each value is a saturating `u32` copy of the private record.
+    The hold-Tab board reads these fields. The frag event does not increment
+    them. A missing field is zero. Older readers ignore the keys.
   - `weapon`: Current weapon name ("Flechette", "Rail", or "Scatter")
   - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
   - `lives`: (optional) lives left this round, this one included, when lives are limited
   - `golden`: (optional) true while holding the golden Railgun, omitted otherwise
+  - `ducking`: (optional) resolved crouch, omitted while standing. True while
+    the duck key is held or the ceiling will not allow the 1.8 m body. The
+    shot volume, eye, and contact height follow it. Older readers ignore it.
   - `collidable`: Boolean server-owned living-body eligibility. New servers
     always include it. Dead, detached, eliminated, respawning and unready
     campaign bodies report false. Legacy omission defaults to true, still
@@ -1453,8 +1707,8 @@ body cannot launch or claim this counter. The client presents these ticks and
 resolved contact facts; provisional poses are not final role art acceptance.
 
 A `ranged_sweeper` has 70 HP and carries the `Sniper`. It never changes
-position. It sees a participant within 90 units when either the body centre or
-the eye is in clear line of sight, notices a new target only within 1.0 radian
+position. It sees a participant within 90 units when either the chest or
+the head is in clear line of sight, notices a new target only within 1.0 radian
 of its authored yaw, and engages within 88 units. Its `windup` is the scope
 glint and hold: the aim locks on the first windup tick and one Sniper shot
 resolves on the tick `phase_ends`. Windup lasts 40, 30 or 24 ticks on
@@ -1810,9 +2064,13 @@ CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"unio
 
 ### Match rules
 
-A server runs one rule set, chosen by the host at launch
+A server started with one mode runs that rule set until it stops
 (`--mode ffa|tdm|ctf|sabotage`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit` for FFA/TDM, `--capture-limit` for CTF or `--sabotage-format short|match` for Sabotage).
-`map_info.rules` carries it to every connection, `round_start` repeats it,
+`--playlist` replaces that fixed choice with the built-in night list: the same
+process changes map and mode when a show ends, and each `map_info` carries the
+show now in play, including when the map id does not change. Sabotage plays
+its full short match before the list moves. A playlist file is not on the wire.
+`map_info.rules` carries the current rule set to every connection, `round_start` repeats it,
 `GET /status` names it, and the MCP adapter returns it from `round_state`.
 
 ```json
@@ -1900,8 +2158,8 @@ The first flagship round mode, on Sector 9 only. The free coalition
 plants it with a held Use. The Union (`union`) defends the sites or defuses a
 planted charge. One life per round, no shop and no loadouts. A server with
 `--mode sabotage` on any other map, or with rotation, refuses to start. A
-Sabotage server requires gameplay capability 28 for every role, spectators
-included.
+Sabotage server is a shared room: it speaks gameplay 38 and geometry 2 for
+every role, spectators included. Capability 28 is when the objective arrived.
 
 **`map_info.sabotage`** carries the static layout once, never per tick:
 
@@ -2185,8 +2443,8 @@ M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
 M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
 M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
-M09 and the in-flight M10 prototype are supported; pending M11 `right_of_search` cannot launch.
-Version 13 retains completed
+M09, M10 and the bounded M11 `right_of_search` prototype are supported. The next pending mission is M12 `terms_of_cooperation`.
+Version 14 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2194,8 +2452,8 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v13 saved equipment object requires independent `grenades`
-from zero to six. Versions 9 through 13 require actual `proximity_mines` from zero
+Every v6 through v14 saved equipment object requires independent `grenades`
+from zero to six. Versions 9 through 14 require actual `proximity_mines` from zero
 to four. Historical v2 through v8 equipment never has a mine field; an explicit
 strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
@@ -2423,20 +2681,52 @@ keeps its shape and no slot changes meaning. `secrets`, present only when nonzer
 counts distinct authored secrets found: `total` over the whole run, `attempt`
 this attempt. Finding a restored secret again after a continue raises `attempt`
 but not `total`. It cannot exceed `alive_ticks`. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
-`armor_damage`. Every resolved gun shot counts one attack; Repeater warmup
+`armor_damage`, plus optional `connects` and `heads`. Every resolved gun shot counts one attack; Repeater warmup
 counts none and held fire counts each actual shot separately. The
-scatter's attack is seven pellets and counts once, as one damaging attack when
-any pellet hurt anyone. Its kills are bounded by seven per damaging attack; every
+scatter's attack is seven pellets and counts once, as one connect when any
+pellet found a body and one damaging attack when any pellet hurt anyone. One
+shot is one connect and one head however many bodies it struck. A head is a
+pellet in the head band, including a shield that stopped the damage. Fists
+have no band test, so a fist head is refused. The scatter's kills are bounded by seven per damaging attack; every
 other weapon's kills are bounded by its damaging attacks.
 Fists and Shiv cuts count as attacks. A damaging attack removes positive HP or armor from a
 hostile living target. Protected/friendly bodies, scenery, range misses and a
-body killed by an earlier committed ray do not count as damaging attacks.
+body killed by an earlier committed ray do not count as damaging attacks. A
+body that was found still counts as a connect, including the shield, the
+teammate and the body the earlier ray had already reached.
+`connects` and `heads` are omitted while zero. A column that dealt damage and
+omits both predates connect accounting. That omission is not a measured zero,
+and `damaging_attacks <= connects` is enforced only once either count is present.
+Heads are a subset of connects, and connects are a subset of attacks.
 Effective damage excludes overkill. Simultaneous trades keep both attacks, and
 one shot receives each death credit. Dry triggers are latched pulls on an empty
 count, separate from accepted attacks; cooldown denials are neither.
+Presenters derive rates from these integers. The server does not send percents,
+Wilson bounds, or per-minute figures. A percent is
+`1000 * numerator / denominator`, rounded half away from zero, shown to one
+decimal (`2/3` is 66.7%). The product of the numerator and the scale is formed
+in 128 bits. A rounded result that does not fit in an unsigned 64-bit integer
+is omitted. A zero denominator is omitted, not printed as 0%. The hold-Tab
+percent is printed beside its count (`66.7 (2/3)`). Damage per shot, damage
+per body found, and damage per hurt use the same rounding at tenths (`scale` 10).
+A gun line always shows damage per shot. It adds per body only when connects
+were measured, are positive, and differ from the shot count. It adds per hurt
+only when that count is positive and is a different denominator. Three equal
+denominators print only per shot. Shots per kill use gun and fist attacks and
+kills, so a grenade kill is not called a shot. A 95% Wilson interval is the
+separate claim about how little a small sample means. It is labeled as an
+interval and is not a substitute for the counts. On the record card it sits
+on the headline rate: bodies over shots when connect accounting is present,
+otherwise hurt over shots for an older damaging column. A second labeled
+interval covers heads over those bodies whenever the head line is shown,
+including zero heads. Per minute is `count * 1200 / alive_ticks` at tenths
+(`scale` 12000, because the record ticks at 20 Hz and one decimal needs
+another factor of 10). Zero alive ticks omit the pace. The clock in that
+sentence is the window that was actually lived.
 
-An optional `grenades` column has the same five count fields, defaults to zero
-for historical record version 1 and is omitted while unused. It leaves existing
+An optional `grenades` column has the same five original count fields, defaults to zero
+for historical record version 1 and is omitted while unused. It does not carry
+`connects` or `heads`: a blast is not a body ray. It leaves existing
 gun indices unchanged. Aggregate totals include this column. One launch counts
 one attack, one blast that damages any other eligible body counts one damaging
 attack, and at most 256 kills can belong to it. Actual self HP/armor loss counts
@@ -2444,9 +2734,9 @@ only on the victim side. Successful throws suppress gun fire for that tick, so
 aggregate attacks remain bounded by active ticks. Retained records keep their
 existing byte shape when the grenade column is zero.
 
-An optional `mines` column has the same five count fields and rules beside the
+An optional `mines` column has the same five original count fields and rules beside the
 grenade column: one placement is one attack, one blast that damages another
-eligible body is one damaging attack, and it is omitted while unused.
+eligible body is one damaging attack, it carries no connect or head count, and it is omitted while unused.
 
 Living active ticks exclude intro/readiness, dead respawn waiting, continue
 choice and terminal waiting. The lethal frame counts. This is not wall-clock
@@ -2500,5 +2790,71 @@ The exact strict v12 reader and v10/v11 and earlier readers retain byte
 archives. Historical M10 stages, new transit fields, null future fields and
 Repeater ownership refuse. Current M10 entry cannot forge a gun from completed
 M09; only actual completed M10 equipment may carry the Repeater onward.
-M10 completion retains pending `right_of_search` honestly. Full played combat,
+M10 completion promotes through the locked `right_of_search` entry. Full played combat,
 actual Repeater source/cues and final ship presentation remain acceptance gates.
+
+### Right of Search and deliberate charges (capability 38)
+
+Capability 38 adds the bounded M11 tender, the Redactor role and independently
+counted Remote Mines. The current matching client and server advertise 38;
+reload remains capability 37 and campaign rules remain revision 3. An M11 map
+refuses an older reader before Welcome for every role. Initial MapInfo remains
+before mission facts or snapshots. The adapter, brain and playtest harness use
+the existing mission controller, with matching accepted map geometry and fresh
+mission facts before navigation or use. No additional readiness door exists.
+
+`MapInfo.m11` contains the six ordered arrival `objectives`, physical
+`transfer_release`, `records_document` and `departure` UseTargets, `boarding`,
+`companion_start` and three anonymous `transfer_people` feet. It is present
+only on the tender; null, mixed mission envelopes and changed live contracts
+are rejected. The mission id is `right_of_search`; its phases are `briefing`,
+`in_progress` and `departed`. `MissionState.m11` contains `completed`, `current`
+until departure, and `challenges`. The completed prefix is `armory_found`,
+`spine_secured`, `holds_secured`, `records_secured`, `counter_boarders_secured`,
+`bridge_secured`, then `party_departed`. Actual encounter clears precede their
+arrival. Fresh physical Use at the stern requires every ready living party
+member to be inside its boarding region.
+
+`challenges` contains `transfer_released`, `records_read` and
+`counter_boarder_blast_kills`, with optional `counter_boarding_started`,
+`signal_due` and `bridge_taken_at` server ticks. Activation starts the real
+1200-tick optional bridge window. The blast count is the largest counter-boarder
+kill count from one resolved charge, bounded by the six actual boarders; it is
+not a sum of distinct explosions. Optional controls and difficulty briefs do
+not gate departure. Releasing transfer people records only release, never an
+evacuation or proposed identity.
+
+An Action can carry rising-edge `place_remote_mine` and `trigger_remote_mines`
+booleans. The supplied client sends them only after accepted M11 geometry or
+explicit remote stock establishes support. Default desktop inputs are V and H.
+Placement consumes the separate `loadout.remote_mines` stock, omitted at zero
+and bounded by six. Four devices per owner and 32 globally bound live state.
+A trigger captures that owner's armed devices at that instant, with a four-tick
+fuse; holding the command cannot queue a later unarmed charge. Forty ticks after
+real surface contact arm a charge. Death disables all owned devices, including
+triggered charges that have not resolved. Blasts use shared covered damage. Explicit
+leave, campaign reset and map reset retire devices through the shared seam.
+
+`Snapshot.remote_mines`, omitted while empty, lists strict objects with `id`,
+`owner_id`, `position`, `normal`, `phase`, `phase_started` and `phase_ends`.
+Phases are `flying`, `arming`, `armed`, `triggered`; the flying normal is zero,
+while attached devices require a unit normal. IDs share the proximity-mine
+namespace. Resolved remote explosions use the existing explosion envelope
+and the independently counted `remote_mines` participant-record column.
+Historical version-one records cannot invent that column, even with zeros.
+
+The Redactor is an authoritative human-scale Union enemy with a Shiv. It uses
+ordinary grounded navigation, a visible approach, committed windup, resolved
+strike, recovery and interruptible hit/death states. The client selects its
+own directional atlas and paired normals. Cosmetic scan distortion during
+approach never changes server position, hit boxes, visibility or damage.
+
+Strict run-file version 14 upgrades exact historical v2 through v13 documents
+with zero invented Remote Mines and archives the original bytes. M10 completion
+promotes to M11 under the existing writer lock, clears old personal supply
+claims, preserves actual finite equipment and crew history, and grants no
+episode refill. Retry restores that exact entry and clears live devices without
+rewinding tick, sequence or inventory revisions. Only actual completed M11
+equipment may carry remote charges onward. Completion stores `m11_outcome`
+with release, records, single-blast count and elapsed `bridge_response_ticks`,
+then retains pending `terms_of_cooperation`; M12 cannot launch yet.

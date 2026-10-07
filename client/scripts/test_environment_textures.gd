@@ -14,7 +14,7 @@ func _check(condition: bool, message: String) -> void:
 
 func _run() -> void:
 	var paths: Dictionary[String, bool] = {}
-	for venue: String in ["earth_union", "earth_yard", "earth_scrap", "low_water", "moon_port", "moon_town"]:
+	for venue: String in ["earth_union", "earth_yard", "earth_scrap", "low_water", "moon_port", "moon_town", "right_of_search", "holdfast_atoll"]:
 		for surface: String in MapGeometry.SURFACES:
 			for horizontal: bool in [false, true]:
 				var path: String = EnvironmentTextures.path_for(surface, venue, horizontal)
@@ -45,6 +45,8 @@ func _run() -> void:
 		_check(ship.get_shader_parameter("warning_color") == ship.get_shader_parameter("accent_color"), "ship warning paint matches its civilian material: " + surface)
 	_check(EnvironmentTextures.path_for("service_steel", "common_carrier") == EnvironmentTextures.MOON + "moon_repair_plate.png", "ship working steel has no borrowed issued archive texture")
 	_check(EnvironmentTextures.path_for("enamel", "common_carrier") == EnvironmentTextures.MOON + "moon_pressure_bone.png", "ship shells retain reviewed pressure paint")
+	_check(EnvironmentTextures.path_for("enamel", "right_of_search") != EnvironmentTextures.path_for("enamel", "common_carrier"), "custody tender and civilian Carrier retain distinct pressure walls")
+	_check(EnvironmentTextures.path_for("enamel", "holdfast_atoll") != EnvironmentTextures.path_for("enamel", "holdfast_atoll", true), "coastal walking ledges and salt-worn plaster use distinct tiles")
 	await _town_ground_assignment()
 	var plain: ShaderMaterial = ArenaMaterials.authored("enamel", "unknown") as ShaderMaterial
 	_check(plain.get_shader_parameter("tile_enabled") != true, "unknown venue keeps established fallback")
@@ -53,7 +55,7 @@ func _run() -> void:
 	_check(EnvironmentTextures.path_for("concrete", "mars").is_empty(), "future Mars library does not imply an implemented venue")
 	_check(EnvironmentTextures.texture_at("res://assets/environment/missing.png") == null, "missing local asset retains procedural fallback")
 	if failures == 0 and DisplayServer.get_name() != "headless":
-		for venue: String in ["earth_union", "low_water", "moon_port", "moon_town"]:
+		for venue: String in ["earth_union", "low_water", "moon_port", "moon_town", "right_of_search", "holdfast_atoll"]:
 			await _rendered(venue)
 	await process_frame
 	if failures == 0:
@@ -83,7 +85,9 @@ func _civilian_boundaries() -> void:
 	_check(issued.get_shader_parameter("accent_color") == Color("9a302a"), "editing town ground cannot recolor the issued wall instance")
 	_check(ArenaMaterials.ground(dwelling, "enamel", "moon_town") == dwelling, "ground override is limited to the authored town steel deck")
 	for venue: String in ["moon_port", "earth_union", "earth_yard", "earth_scrap", "unknown"]:
-		var institution: ShaderMaterial = ArenaMaterials.authored("enamel", venue) as ShaderMaterial
+		# Duplication materializes shader defaults on a real renderer. Compare
+		# both after that same operation, rather than an unset null to a default.
+		var institution: ShaderMaterial = ArenaMaterials.authored("enamel", venue).duplicate() as ShaderMaterial
 		_check(institution.get_shader_parameter("warning_color") == issued.get_shader_parameter("warning_color") and institution.get_shader_parameter("trim_glow") == issued.get_shader_parameter("trim_glow"), "other venues retain shader warning defaults: " + venue)
 		var original_ground: Material = ArenaMaterials.authored("service_steel", venue)
 		_check(ArenaMaterials.ground(original_ground, "service_steel", venue) == original_ground, "other venues retain their exact ground material instance: " + venue)
@@ -134,7 +138,7 @@ func _rendered(venue: String) -> void:
 	light.rotation_degrees = Vector3(-35, -20, 0)
 	light.light_energy = 0.9
 	viewport.add_child(light)
-	var material: ShaderMaterial = ArenaMaterials.authored("service_steel", venue) as ShaderMaterial
+	var material: ShaderMaterial = ArenaMaterials.authored("enamel" if venue == "right_of_search" else "service_steel", venue) as ShaderMaterial
 	var wall: MeshInstance3D = MeshInstance3D.new()
 	var box: BoxMesh = BoxMesh.new()
 	box.size = Vector3(12, 5, 0.4)

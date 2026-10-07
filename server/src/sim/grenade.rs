@@ -25,6 +25,8 @@ pub(super) struct Blast {
 pub(super) enum BlastSource {
     Grenade,
     Mine,
+    Vehicle,
+    RemoteMine,
 }
 
 pub(super) struct Grenade {
@@ -52,8 +54,43 @@ impl Grenade {
 
 #[cfg(test)]
 impl GameState {
+    pub(crate) fn test_remote_blast(
+        &mut self,
+        owner: Uuid,
+        serial: u32,
+        position: [f32; 3],
+        radius: f32,
+        peak: f32,
+    ) {
+        self.projectile_serial = self.projectile_serial.max(serial);
+        let arena = self.current_arena().into_owned();
+        self.resolve_blast(
+            &Blast {
+                id: serial,
+                owner_id: owner,
+                position,
+                radius,
+                peak,
+                source: BlastSource::RemoteMine,
+            },
+            &arena,
+        );
+    }
     fn resolve_explosion(&mut self, grenade: &Grenade, arena: &Arena) {
         self.resolve_blast(&grenade.blast(), arena);
+    }
+
+    /// One live grenade, so a map change can prove the world was cleared.
+    pub(crate) fn test_insert_grenade(&mut self, owner: Uuid) {
+        self.grenades.push(Grenade {
+            id: self.projectile_serial.wrapping_add(1),
+            owner_id: owner,
+            position: [0.0, 1.0, 0.0],
+            velocity: [0.0, 0.0, 0.0],
+            fuse_ticks: FUSE_TICKS,
+            launched_at: self.tick,
+            bounce_count: 0,
+        });
     }
 
     /// A grenade-sized blast resolved against the current world, for tests
@@ -123,7 +160,8 @@ impl GameState {
             }
             let origin = [
                 player.x,
-                player.y - PLAYER_FLOOR_Y + crate::combat::eye_height(player.campaign),
+                player.y - PLAYER_FLOOR_Y
+                    + crate::combat::stance_eye(player.campaign, player.ducking),
                 player.z,
             ];
             if !clear_sphere(origin, &arena) || !player.yaw.is_finite() || !player.pitch.is_finite()
@@ -181,14 +219,25 @@ impl GameState {
     }
 
     pub(super) fn resolve_blast(&mut self, blast: &Blast, arena: &Arena) {
-        let Some(owner) = self
+        self.blast_vehicles(blast, arena);
+        let owner = self
             .players
             .iter()
-            .position(|player| player.id == blast.owner_id)
-        else {
+            .position(|player| player.id == blast.owner_id);
+        if owner.is_none() && blast.source != BlastSource::Vehicle {
             return;
-        };
+        }
         let mut hits = Vec::new();
+        let mut m11_kills = Vec::new();
+        let remote_participant = matches!(blast.source, BlastSource::RemoteMine)
+            && owner.is_some_and(|index| {
+                self.players[index].is_participant()
+                    && crate::mission::actor_active(
+                        self.mission.as_ref(),
+                        blast.owner_id,
+                        self.players[index].campaign,
+                    )
+            });
         let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
         for target in 0..self.players.len() {
             if hits.len() == 256 {
@@ -197,7 +246,7 @@ impl GameState {
             let player = &self.players[target];
             if player.hp <= 0
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
-                || (owner != target && !self.damage_lands(owner, target))
+                || owner.is_some_and(|owner| owner != target && !self.damage_lands(owner, target))
             {
                 continue;
             }
@@ -208,7 +257,8 @@ impl GameState {
             if damage <= 0 || !crate::combat::line_of_sight(blast.position, point, &arena.solids) {
                 continue;
             }
-            let (hp, armor, died) = self.resolve_fighter_hit(owner, target, damage, None);
+            let (hp, armor, died) =
+                self.resolve_fighter_hit(owner.unwrap_or(target), target, damage, None);
             if hp + armor == 0 {
                 continue;
             }
@@ -220,16 +270,23 @@ impl GameState {
                 target_hp_after: player.hp,
                 killed: died,
             });
-            if owner != target {
+            if owner.is_some_and(|owner| owner != target) {
                 hp_total += hp;
                 armor_total += armor;
                 kills += u64::from(died);
+                if remote_participant && died {
+                    m11_kills.push(player.id);
+                }
             }
         }
-        let statistics = &mut self.players[owner].statistics;
-        match blast.source {
-            BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
-            BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+        if let Some(owner) = owner {
+            let statistics = &mut self.players[owner].statistics;
+            match blast.source {
+                BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
+                BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+                BlastSource::RemoteMine => statistics.remote_mine_hit(hp_total, armor_total, kills),
+                BlastSource::Vehicle => {}
+            }
         }
         self.explosion_results.push(ExplosionResult {
             id: blast.id,
@@ -238,6 +295,9 @@ impl GameState {
             radius: blast.radius,
             hits,
         });
+        if remote_participant {
+            self.note_m11_remote_blast(blast.id, &m11_kills);
+        }
     }
 }
 

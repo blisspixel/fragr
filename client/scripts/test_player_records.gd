@@ -48,6 +48,24 @@ func _run() -> void:
 	for field: String in ["total", "attempt"]:
 		current[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
 	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has explicit eighth Repeater column")
+	var remote_counts: Dictionary = {"alive_ticks": 20, "deaths": 0, "hp_lost": 0, "armor_lost": 0, "dry_triggers": 0, "weapons": [], "remote_mines": {"attacks": 2, "damaging_attacks": 1, "kills": 1, "hp_damage": 35, "armor_damage": 20}}
+	for _index: int in range(EquipmentState.WEAPONS.size()):
+		remote_counts["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(PlayerRecord.valid_counts(remote_counts) and PlayerRecord.sum_combat(remote_counts, "attacks") == 2, "Remote Mine attacks occupy their independent current column")
+	_check(not PlayerRecord.valid_counts(remote_counts, PlayerRecord.LEGACY_VERSION), "historical record cannot invent a remote column")
+	var forged_remote_legacy: Dictionary = sample["total"].duplicate(true)
+	forged_remote_legacy["remote_mines"] = {"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0}
+	_check(not PlayerRecord.valid_counts(forged_remote_legacy, PlayerRecord.LEGACY_VERSION), "exact historical weapon width still refuses a forged zero remote column")
+	var remote_total: Dictionary = PlayerRecord.empty_counts()
+	PlayerRecord.add_counts(remote_total, remote_counts)
+	_check(PlayerRecord.column_count(remote_total, "remote_mines", "hp_damage") == 35 and PlayerRecord.mine_count(remote_total, "hp_damage") == 0 and PlayerRecord.grenade_count(remote_total, "hp_damage") == 0, "history never misattributes remote damage to existing explosives")
+	var remote_regression: Dictionary = remote_counts.duplicate(true)
+	remote_regression["remote_mines"]["hp_damage"] = 34
+	_check(not PlayerRecord.contains(remote_regression, remote_counts), "remote damage cannot regress")
+	for remote_patch: Dictionary in [{"damaging_attacks": 3}, {"hp_damage": 9007199254740992}, {"kills": 257}, {"attacks": "2"}]:
+		var remote_bad: Dictionary = remote_counts.duplicate(true)
+		remote_bad["remote_mines"].merge(remote_patch, true)
+		_check(not PlayerRecord.valid_counts(remote_bad), "invalid remote counts: " + str(remote_patch))
 	_check(not PlayerRecord.validation_error(current, current["player_id"], scoped).is_empty(), "negotiated record version cannot change inside one connection")
 	var forged_legacy: Dictionary = current.duplicate(true)
 	forged_legacy["version"] = PlayerRecord.LEGACY_VERSION
@@ -101,7 +119,9 @@ func _run() -> void:
 	berth["scope"]["mission"] = MissionState.M10_ID
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M10 records bind the authored ship mission")
 	berth["scope"]["mission"] = "right_of_search"
-	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M11 cannot forge a playable participant record")
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M11 records bind the authored tender mission")
+	berth["scope"]["mission"] = "terms_of_cooperation"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M12 cannot forge a playable participant record")
 	yard["scope"]["mission"] = MissionState.M04_ID
 	yard["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")
@@ -202,13 +222,63 @@ func _run() -> void:
 	await process_frame
 	panel.call("_select_kind", "arena")
 	await process_frame
-	_check(panel.get("_details").text.contains("100.0"), "rendered analysis derives the ratio")
+	var shown: String = panel.get("_details").text
+	_check(shown.contains("100.0") and shown.contains("2.0 shots per kill (2/1)"), "rendered analysis keeps the counts beside the rate: " + shown)
+	_check(shown.contains("57.1 frags per minute and 7142.9 dealt per minute, over 0:01 alive"), "pace uses the ticks that were lived: " + shown)
+	_check(shown.contains("95% Wilson on hurt: 34.2% to 100.0% (2/2)"), "two perfect shots are not certainty: " + shown)
+	_check(not shown.contains("Body "), "an older damaging column does not pretend the connect was measured")
 	_check(memory.accept(found, "local") == OK, "a six-slot record is retained")
 	panel.call("_select_kind", "practice")
 	await process_frame
 	var details: String = panel.get("_details").text
-	_check(details.contains("SHIV: 3/3") and details.contains("Secrets found: 1"), "the service record names the Shiv and the found secret")
+	_check(details.contains("SHIV: 3 shots") and details.contains("Secrets found: 1"), "the service record names the Shiv and the found secret")
+	_check(not details.contains("Body "), "the Shiv column predates connect accounting")
+	var table: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://golden/combat_ratios.json"))
+	for row: Dictionary in table["ratios"]:
+		var got: int = PlayerRecord.ratio_scaled(int(row["numerator"]), int(row["denominator"]), int(row["scale"]))
+		var expected: int = -1 if row["value"] == null else int(row["value"])
+		_check(got == expected, "ratio %s/%s scale %s -> %s, got %s" % [row["numerator"], row["denominator"], row["scale"], expected, got])
+	_check(PlayerRecord.ratio_scaled((1 << 53) - 1, 3, 1000) == 3002399751580330333, "a ratio past the float mantissa stays on integers")
+	_check(PlayerRecord.wilson_thousandths(1, 0) == Vector2i(-1, -1), "zero trials publish no interval")
+	for row: Dictionary in table["wilson"]:
+		var interval: Vector2i = PlayerRecord.wilson_thousandths(int(row["hits"]), int(row["trials"]))
+		_check(interval == Vector2i(int(row["low"]), int(row["high"])), "wilson %s/%s -> %s, got %s" % [row["hits"], row["trials"], Vector2i(int(row["low"]), int(row["high"])), interval])
+		var point: int = PlayerRecord.ratio_scaled(int(row["hits"]), int(row["trials"]), 1000)
+		_check(interval.x <= point and point <= interval.y and interval.x <= interval.y, "wilson contains its rounded rate")
+	var wide: Vector2i = PlayerRecord.wilson_thousandths(5, 10)
+	var narrow: Vector2i = PlayerRecord.wilson_thousandths(500, 1000)
+	_check(narrow.x >= wide.x and narrow.y <= wide.y and narrow.y - narrow.x < wide.y - wide.x, "five hundred of a thousand is a tighter interval than five of ten")
+	var measured: Dictionary = {"attacks": 2, "damaging_attacks": 2, "kills": 1, "hp_damage": 100, "armor_damage": 25, "connects": 2, "heads": 1}
+	var block: Array[String] = RecordsPanel.weapon_lines("RAIL", measured, true)
+	_check(block[0] == "RAIL: 2 shots, 125 dealt (100 HP + 25 armor), 62.5 per shot", block[0])
+	_check(block[2] == "Body 2/2 (100.0%)", block[2])
+	_check(block[3] == "Head band 1/2 (50.0%)", block[3])
+	_check(block[4] == "95% Wilson on bodies: 34.2% to 100.0% (2/2)", block[4])
+	_check(block[5] == "95% Wilson on heads: 9.5% to 90.5% (1/2)", block[5])
+	var split: Dictionary = {"attacks": 4, "damaging_attacks": 1, "kills": 1, "hp_damage": 100, "armor_damage": 0, "connects": 2, "heads": 1}
+	var split_lines: Array[String] = RecordsPanel.weapon_lines("RAIL", split, true)
+	_check(split_lines[0] == "RAIL: 4 shots, 100 dealt (100 HP + 0 armor), 25.0 per shot, 50.0 per body, 100.0 per hurt", split_lines[0])
+	var counts: Dictionary = PlayerRecord.empty_counts()
+	counts["alive_ticks"] = 4
+	counts["weapons"][4] = measured
+	_check(PlayerRecord.valid_counts(counts), "a measured connect column validates")
+	counts["weapons"][4] = measured.duplicate()
+	counts["weapons"][4]["heads"] = 3
+	_check(not PlayerRecord.valid_counts(counts), "heads cannot exceed connects")
+	counts["weapons"][4] = {"attacks": 2, "damaging_attacks": 2, "kills": 1, "hp_damage": 100, "armor_damage": 0}
+	_check(PlayerRecord.valid_counts(counts), "an older damaging column still validates")
 	_check(RecordsPanel.commentary_key(found).is_empty(), "a pistol attack is not a melee-only run")
+	var remote_display: Dictionary = current.duplicate(true)
+	remote_display["total"] = remote_counts.duplicate(true)
+	remote_display["attempt"] = remote_counts.duplicate(true)
+	remote_display["tick"] = 80
+	_check(PlayerRecord.validation_error(remote_display, remote_display["player_id"]).is_empty(), "remote presentation uses a valid complete record")
+	var remote_entries: Array[Dictionary] = [{"origin": "local", "record": remote_display}]
+	panel.set("_filtered", remote_entries)
+	panel.call("_show_record", 0)
+	var remote_details: String = panel.get("_details").text
+	_check(remote_details.contains("REMOTE MINES: 2 uses") and remote_details.contains("1/2") and remote_details.contains("50.0"), "service record names actual remote placements separately")
+	_check(not remote_details.contains("GRENADES:") and not remote_details.contains("\nMINES:"), "remote presentation never invents another explosive column")
 	panel.queue_free()
 	await process_frame
 	if _failures == 0:

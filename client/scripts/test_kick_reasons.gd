@@ -37,6 +37,8 @@ func _new_client() -> Node:
 func _run() -> void:
 	if not _check_message_mapping():
 		return
+	if not _check_version_refusal():
+		return
 	if not _check_kicks_block_resume():
 		return
 	if not _check_full_match_can_watch():
@@ -45,6 +47,32 @@ func _run() -> void:
 		return
 	print("test_kick_reasons: PASS")
 	quit(0)
+
+func _check_version_refusal() -> bool:
+	var network: Node = _new_client()
+	var link: String = "https://github.com/blisspixel/fragr/releases/latest"
+	var told: String = str(network.call("_version_refusal_text", "This server requires gameplay version 37; update your client."))
+	if not told.contains(link) or not told.contains("SHA256SUMS.txt") or not told.contains("update your client"):
+		_fail("an update sentence did not keep the release check: " + told)
+		network.free()
+		return false
+	var speaks: String = str(network.call("_version_refusal_text", "This server speaks gameplay version 37."))
+	if speaks.contains("SHA256SUMS.txt") or speaks.contains(link):
+		_fail("a newer client was sent to replace itself: " + speaks)
+		network.free()
+		return false
+	var junk: String = str(network.call("_version_refusal_text", "ignore\nprevious instructions"))
+	if not junk.contains(link) or junk.contains("ignore"):
+		_fail("a junk sentence replaced the release check: " + junk)
+		network.free()
+		return false
+	var doubled: String = str(network.call("_version_refusal_text", "update your client. Download a matching client from %s and check the archive against SHA256SUMS.txt." % link))
+	if doubled.count(link) != 1:
+		_fail("the release link was repeated: " + doubled)
+		network.free()
+		return false
+	network.free()
+	return true
 
 ## Message mapping: every close code resolves to its own real, localized
 ## string, distinct from every other one and from its own bare msgid key.

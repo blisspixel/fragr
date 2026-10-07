@@ -384,3 +384,379 @@ fn proximity_mines_have_their_own_capped_count_and_wire_field() {
     assert_eq!(restricted.grant_mines(4), 0);
     assert!(!restricted.try_place_mine());
 }
+
+#[test]
+fn human_magazines_share_one_pool_and_reload_moves_rounds_without_adding_any() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(!inventory.armed());
+    inventory.grant_weapon(WeaponType::Tack);
+    assert_eq!(inventory.ammo[AmmoPool::Bullets.index()], 50);
+    assert!(inventory.try_fire(WeaponType::Tack));
+    assert_eq!(inventory.ammo[AmmoPool::Bullets.index()], 49);
+    inventory.arm_magazines();
+    let state = view(&inventory, WeaponType::Tack, 1);
+    assert_eq!(state.ammo(AmmoPool::Bullets), 49);
+    assert_eq!(state.shots(WeaponType::Tack), Some(12));
+    assert!(state
+        .loaded
+        .iter()
+        .any(|magazine| magazine.weapon == WeaponType::Tack && magazine.rounds == 12));
+    let quiet = serde_json::to_value(view(
+        &Inventory::new(EquipmentPolicy::Discovery),
+        WeaponType::Fists,
+        0,
+    ))
+    .unwrap();
+    assert!(quiet.get("loaded").is_none());
+
+    inventory.grant_weapon(WeaponType::Flechette);
+    let shared = view(&inventory, WeaponType::Flechette, 2);
+    assert_eq!(shared.ammo(AmmoPool::Bullets), 109);
+    assert_eq!(shared.shots(WeaponType::Tack), Some(12));
+    assert_eq!(shared.shots(WeaponType::Flechette), Some(20));
+    let reserve = 109 - 12 - 20;
+    assert_eq!(reserve, 77);
+
+    for _ in 0..12 {
+        assert!(inventory.try_fire(WeaponType::Tack));
+    }
+    assert!(!inventory.try_fire(WeaponType::Tack));
+    assert_eq!(
+        view(&inventory, WeaponType::Tack, 3).ammo(AmmoPool::Bullets),
+        97
+    );
+    assert_eq!(
+        view(&inventory, WeaponType::Tack, 3).shots(WeaponType::Tack),
+        Some(0)
+    );
+    assert!(!inventory.request_reload(WeaponType::Fists, 4));
+    assert!(inventory.request_reload(WeaponType::Tack, 10));
+    assert!(inventory.reloading());
+    assert!(!inventory.try_fire(WeaponType::Tack));
+    inventory.finish_reload(31);
+    assert!(!inventory.reloading());
+    let reloaded = view(&inventory, WeaponType::Tack, 32);
+    assert_eq!(reloaded.shots(WeaponType::Tack), Some(12));
+    assert_eq!(reloaded.ammo(AmmoPool::Bullets), 97);
+    assert_eq!(reloaded.shots(WeaponType::Flechette), Some(20));
+
+    let saved = inventory.saved_equipment(WeaponType::Tack).unwrap();
+    let text = serde_json::to_value(&saved).unwrap();
+    assert!(text.get("loaded").is_none());
+    let mut restored = Inventory::new(EquipmentPolicy::Discovery);
+    restored.arm_magazines();
+    restored.restore_saved_equipment(&saved).unwrap();
+    let again = view(&restored, WeaponType::Tack, 4);
+    assert_eq!(again.ammo(AmmoPool::Bullets), 97);
+    assert_eq!(again.shots(WeaponType::Tack), Some(12));
+    assert_eq!(again.shots(WeaponType::Flechette), Some(20));
+}
+
+#[test]
+fn an_arcade_human_spends_a_finite_bag_and_reloads_from_what_is_left() {
+    let mut inventory = Inventory::new(EquipmentPolicy::FullArsenal);
+    assert!(inventory
+        .state(Uuid::nil(), WeaponType::Flechette, 1)
+        .is_none());
+    assert_eq!(inventory.grant_ammo(AmmoPool::Bullets, 10), 0);
+    inventory.arm_magazines();
+    let state = view(&inventory, WeaponType::Flechette, 1);
+    assert!(!state.weapons.contains(&WeaponType::Fists));
+    assert_eq!(state.shots(WeaponType::Flechette), Some(20));
+    assert_eq!(state.shots(WeaponType::Scatter), Some(6));
+    assert_eq!(state.shots(WeaponType::Rail), Some(4));
+    assert_eq!(state.ammo(AmmoPool::Bullets), 80);
+    assert_eq!(state.ammo(AmmoPool::Shells), 24);
+    assert_eq!(state.ammo(AmmoPool::Cells), 16);
+    assert!(AmmoPool::ALL
+        .into_iter()
+        .all(|pool| pool.arcade_spawn() <= pool.capacity()));
+
+    assert!(inventory.try_fire(WeaponType::Flechette));
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 2).ammo(AmmoPool::Bullets),
+        79
+    );
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 2).shots(WeaponType::Flechette),
+        Some(19)
+    );
+    for _ in 0..19 {
+        assert!(inventory.try_fire(WeaponType::Flechette));
+    }
+    assert!(!inventory.try_fire(WeaponType::Flechette));
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 3).ammo(AmmoPool::Bullets),
+        60
+    );
+    assert!(inventory.request_reload(WeaponType::Flechette, 5));
+    inventory.finish_reload(5 + u64::from(WeaponType::Flechette.reload_ticks().unwrap()));
+    let reloaded = view(&inventory, WeaponType::Flechette, 6);
+    assert_eq!(reloaded.shots(WeaponType::Flechette), Some(20));
+    assert_eq!(
+        reloaded.ammo(AmmoPool::Bullets),
+        60,
+        "a reload moves rounds"
+    );
+
+    for _ in 0..3 {
+        for _ in 0..20 {
+            assert!(inventory.try_fire(WeaponType::Flechette));
+        }
+        if view(&inventory, WeaponType::Flechette, 7).ammo(AmmoPool::Bullets) > 0 {
+            assert!(inventory.request_reload(WeaponType::Flechette, 8));
+            inventory.finish_reload(8 + u64::from(WeaponType::Flechette.reload_ticks().unwrap()));
+        }
+    }
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 9).ammo(AmmoPool::Bullets),
+        0
+    );
+    assert!(!inventory.request_reload(WeaponType::Flechette, 10));
+    assert!(!inventory.try_fire(WeaponType::Flechette));
+    assert_eq!(
+        view(&inventory, WeaponType::Scatter, 9).shots(WeaponType::Scatter),
+        Some(6)
+    );
+    assert_eq!(
+        view(&inventory, WeaponType::Rail, 9).ammo(AmmoPool::Cells),
+        16
+    );
+    inventory.arm_magazines();
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 10).ammo(AmmoPool::Bullets),
+        0,
+        "a second arm leaves the spent bag alone"
+    );
+
+    inventory.refill_if_armed();
+    let spawned = view(&inventory, WeaponType::Flechette, 11);
+    assert_eq!(spawned.ammo(AmmoPool::Bullets), 80);
+    assert_eq!(spawned.ammo(AmmoPool::Shells), 24);
+    assert_eq!(spawned.ammo(AmmoPool::Cells), 16);
+    assert_eq!(spawned.shots(WeaponType::Flechette), Some(20));
+    assert_eq!(spawned.shots(WeaponType::Rail), Some(4));
+
+    assert!(inventory.grant_weapon(WeaponType::Flechette));
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 12).ammo(AmmoPool::Bullets),
+        140
+    );
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 12).shots(WeaponType::Flechette),
+        Some(20),
+        "a weapon pad adds to the bag and leaves the magazine alone"
+    );
+    assert!(inventory.grant_weapon(WeaponType::Flechette));
+    assert_eq!(
+        view(&inventory, WeaponType::Flechette, 13).ammo(AmmoPool::Bullets),
+        200
+    );
+    assert!(!inventory.grant_weapon(WeaponType::Flechette));
+    assert_eq!(
+        view(&inventory, WeaponType::Scatter, 13).ammo(AmmoPool::Shells),
+        24
+    );
+
+    assert!(inventory.grant_weapon(WeaponType::Rail));
+    assert_eq!(
+        view(&inventory, WeaponType::Rail, 14).ammo(AmmoPool::Cells),
+        26
+    );
+    for cycle in 0..6 {
+        for _ in 0..4 {
+            assert!(inventory.try_fire(WeaponType::Rail));
+        }
+        assert!(inventory.request_reload(WeaponType::Rail, 20 + cycle));
+        inventory.finish_reload(20 + cycle + u64::from(WeaponType::Rail.reload_ticks().unwrap()));
+    }
+    let tail = view(&inventory, WeaponType::Rail, 30);
+    assert_eq!(tail.ammo(AmmoPool::Cells), 2);
+    assert_eq!(tail.shots(WeaponType::Rail), Some(2));
+    assert!(!inventory.request_reload(WeaponType::Rail, 40));
+    assert!(inventory.try_fire(WeaponType::Rail));
+    assert!(inventory.try_fire(WeaponType::Rail));
+    assert!(!inventory.try_fire(WeaponType::Rail));
+
+    let mut over = spawned;
+    over.ammo
+        .iter_mut()
+        .find(|count| count.pool == AmmoPool::Bullets)
+        .unwrap()
+        .rounds = 10;
+    assert!(over.validate().is_err(), "magazines cannot outrun the bag");
+    over.ammo
+        .iter_mut()
+        .find(|count| count.pool == AmmoPool::Bullets)
+        .unwrap()
+        .rounds = 201;
+    assert!(
+        over.validate().is_err(),
+        "the bag stays inside the pool cap"
+    );
+}
+
+#[test]
+fn an_armed_weapon_only_arsenal_reloads_without_a_finite_bag() {
+    let mut inventory = Inventory::restricted(WeaponType::Rail);
+    inventory.arm_magazines();
+    let state = view(&inventory, WeaponType::Rail, 1);
+    assert!(state.ammo.iter().all(|count| count.rounds == 0));
+    assert_eq!(state.shots(WeaponType::Rail), Some(4));
+    for _ in 0..4 {
+        assert!(inventory.try_fire(WeaponType::Rail));
+    }
+    assert!(!inventory.try_fire(WeaponType::Rail));
+    assert_eq!(
+        view(&inventory, WeaponType::Rail, 2).ammo(AmmoPool::Cells),
+        0
+    );
+    assert!(inventory.request_reload(WeaponType::Rail, 3));
+    inventory.finish_reload(3 + u64::from(WeaponType::Rail.reload_ticks().unwrap()));
+    assert_eq!(
+        view(&inventory, WeaponType::Rail, 4).shots(WeaponType::Rail),
+        Some(4)
+    );
+    assert!(inventory.grant_weapon(WeaponType::Rail));
+    assert_eq!(inventory.grant_ammo(AmmoPool::Cells, 10), 0);
+    assert!(view(&inventory, WeaponType::Rail, 5)
+        .ammo
+        .iter()
+        .all(|count| count.rounds == 0));
+    inventory.refill_if_armed();
+    assert_eq!(
+        view(&inventory, WeaponType::Rail, 6).shots(WeaponType::Rail),
+        Some(4)
+    );
+}
+
+#[test]
+fn a_reload_press_blocks_fire_until_the_magazine_is_full_again() {
+    use crate::protocol::{Action, Role};
+    use crate::sim::{GameState, RoundState};
+    let mut state = GameState::new();
+    state.round_state = RoundState::Active;
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    assert!(!state.players[0].inventory.armed());
+    state.arm_joined_magazines(id);
+    let weapon = state.players[0].weapon;
+    let size = weapon.magazine_size().unwrap();
+    let ticks = weapon.reload_ticks().unwrap();
+    for _ in 0..size {
+        assert!(state.players[0].inventory.try_fire(weapon));
+    }
+    assert!(!state.players[0].inventory.try_fire(weapon));
+    state.set_action(
+        id,
+        Action {
+            reload: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert!(state.players[0].inventory.reloading());
+    assert!(!state.players[0].inventory.try_fire(weapon));
+    for _ in 0..ticks {
+        state.tick(0.05);
+    }
+    assert!(!state.players[0].inventory.reloading());
+    assert!(state.players[0].inventory.try_fire(weapon));
+    assert_eq!(
+        state.players[0]
+            .inventory
+            .state(id, weapon, state.tick)
+            .unwrap()
+            .shots(weapon),
+        Some(size - 1)
+    );
+}
+
+#[test]
+fn remote_stock_is_finite_independent_and_restores_without_gun_or_other_device_changes() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    inventory.grant_weapon(WeaponType::Tack);
+    inventory.grant_grenades(3);
+    inventory.grant_mines(2);
+    let initial = view(&inventory, WeaponType::Tack, 0);
+    assert!(!inventory.try_place_remote_mine());
+    assert!(serde_json::to_value(&initial)
+        .unwrap()
+        .get("remote_mines")
+        .is_none());
+    assert_eq!(inventory.grant_remote_mines(u16::MAX), 6);
+    let full_revision = inventory.revision();
+    assert_eq!(inventory.grant_remote_mines(1), 0);
+    assert_eq!(inventory.revision(), full_revision);
+    let entry = inventory.clone();
+    let saved = inventory.saved_equipment(WeaponType::Tack).unwrap();
+    let saved_value = serde_json::to_value(&saved).unwrap();
+    assert_eq!(saved_value["remote_mines"], 6);
+    assert_eq!(
+        serde_json::from_value::<SavedEquipment>(saved_value).unwrap(),
+        saved
+    );
+    for count in (0..6).rev() {
+        assert!(inventory.try_place_remote_mine());
+        let current = view(&inventory, WeaponType::Tack, 1);
+        assert_eq!(current.remote_mines, count);
+        assert_eq!(current.weapons, initial.weapons);
+        assert_eq!(current.ammo, initial.ammo);
+        assert_eq!((current.grenades, current.proximity_mines), (3, 2));
+    }
+    let empty_revision = inventory.revision();
+    assert!(!inventory.try_place_remote_mine());
+    assert_eq!(inventory.revision(), empty_revision);
+    inventory.restore_entry(&entry);
+    assert_eq!(inventory.remote_mines(), 6);
+    assert!(inventory.revision() > empty_revision);
+    inventory.try_place_remote_mine();
+    inventory.restore_saved_equipment(&saved).unwrap();
+    assert_eq!(inventory.remote_mines(), 6);
+    let mut invalid = saved;
+    invalid.remote_mines = 7;
+    let before = view(&inventory, WeaponType::Tack, 2);
+    let revision = inventory.revision();
+    assert!(inventory.restore_saved_equipment(&invalid).is_err());
+    assert_eq!(view(&inventory, WeaponType::Tack, 2), before);
+    assert_eq!(inventory.revision(), revision);
+    let mut only = Inventory::restricted(WeaponType::Rail);
+    assert_eq!(only.grant_remote_mines(6), 0);
+    assert!(!only.try_place_remote_mine());
+    assert_eq!(only.remote_mines(), 0);
+    // Full-arsenal gun ammunition is unlimited; placed devices still consume
+    // their independent actual stock rather than inheriting that gun policy.
+    let mut arcade = Inventory::new(EquipmentPolicy::FullArsenal);
+    assert_eq!(arcade.grant_remote_mines(2), 2);
+    assert!(arcade.try_place_remote_mine());
+    assert!(arcade.try_place_remote_mine());
+    assert!(!arcade.try_place_remote_mine());
+}
+
+#[test]
+fn remote_stock_boundary_refuses_malformed_counts_and_omits_current_zero() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    let quiet = inventory.saved_equipment(WeaponType::Fists).unwrap();
+    let value = serde_json::to_value(&quiet).unwrap();
+    assert!(value.get("remote_mines").is_none());
+    assert_eq!(
+        serde_json::from_value::<SavedEquipment>(value.clone())
+            .unwrap()
+            .remote_mines,
+        0
+    );
+    for bad in [
+        serde_json::json!(-1),
+        serde_json::json!(1.5),
+        serde_json::json!("2"),
+        serde_json::Value::Null,
+    ] {
+        let mut malformed = value.clone();
+        malformed["remote_mines"] = bad;
+        assert!(serde_json::from_value::<SavedEquipment>(malformed).is_err());
+    }
+    inventory.grant_remote_mines(6);
+    let mut loadout = view(&inventory, WeaponType::Fists, 0);
+    loadout.remote_mines = 7;
+    assert!(loadout.validate().is_err());
+}

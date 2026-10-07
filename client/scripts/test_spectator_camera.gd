@@ -12,6 +12,8 @@ class Fighter extends Node3D:
 
 class AuthoritativeFighter extends Fighter:
 	var target_position: Vector3 = Vector3.ZERO
+	var prediction_active: bool = false
+	var ducking: bool = false
 
 class BufferedFighter extends Fighter:
 	var presentation_yaw: float = 0.0
@@ -33,6 +35,17 @@ func _check(condition: bool, message: String) -> void:
 		push_error("test_spectator_camera: " + message)
 
 func _run() -> void:
+	var body_feet: Vector3 = Vector3(8, 0, 0)
+	var open_body: Vector3 = TOUR.body_camera_position(body_feet, [])
+	_check(open_body.is_equal_approx(Vector3(5, 1.3, 0)), "body capture prefers the arena centre when clear")
+	var body_wall: Array = [{"min_x": 6, "max_x": 7, "min_z": -2, "max_z": 2, "bottom": 0, "top": 3}]
+	var clear_body: Vector3 = TOUR.body_camera_position(body_feet, body_wall)
+	_check(clear_body.is_finite() and not clear_body.is_equal_approx(open_body)
+		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 0.12, 0), body_wall)
+		and AimAssist.line_of_sight(clear_body, body_feet + Vector3(0, 1.85, 0), body_wall),
+		"body capture moves around a wall and keeps feet and head visible")
+	_check(not TOUR.body_camera_position(body_feet, [{"min_x": 0, "max_x": 12, "min_z": -5,
+		"max_z": 5, "bottom": 0, "top": 3}]).is_finite(), "an enclosed body cannot produce a passing still")
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	var first: Fighter = Fighter.new()
 	var second: Fighter = Fighter.new()
@@ -94,6 +107,20 @@ func _run() -> void:
 	camera._process(0.016)
 	_check(camera.global_position.x > local.position.x and camera.global_position.x < local.target_position.x,
 		"local first-person motion remains smoothed in open space")
+	local.prediction_active = true
+	local.position = Vector3(1.0, 1.5, 2.0)
+	local.target_position = Vector3(4.0, 1.5, 0.0)
+	camera.assist_solids = []
+	camera.global_position = Vector3.ZERO
+	camera._process(0.016)
+	_check(camera.global_position.distance_to(local.position + Vector3(0.0, 0.1, 0.0)) < 0.00001,
+		"predicted first person follows the rendered body between snapshots")
+	local.ducking = true
+	camera._process(0.016)
+	_check(camera.global_position.distance_to(local.position + Vector3(0.0, 0.1 - 0.45, 0.0)) < 0.00001,
+		"a duck lowers the eye by 0.45 metres")
+	local.ducking = false
+	local.prediction_active = false
 	camera.set_fp_mode(false)
 	camera.set("tip_pose_lock", true)
 	camera.set("tip_has_locked_transform", true)

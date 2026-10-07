@@ -36,6 +36,11 @@ var ack_seq: int = 0
 var first_recorded_seq: int = -1
 var next_step_usec: int = 0
 var visual_offset: Vector3 = Vector3.ZERO
+## Presentation-only pose. The committed `state` still steps once per server
+## tick. This one moves on the render clock so the view does not wait there.
+var _visual_pose: Dictionary = {}
+var _visual_usec: int = 0
+var _visual_jump_spent: bool = false
 var correction_count: int = 0
 var correction_max: float = 0.0
 var correction_max_tick: int = -1
@@ -53,10 +58,13 @@ func configure_map(info: Dictionary) -> void:
 	arena.clear()
 	_archive_neutrals = M08NeutralBodies.layout(info) if info.get("m08") is Dictionary and M08MissionState.map_error(info).is_empty() else {}
 	_moon_residents = MoonResidentBodies.read(info)
+	if info.get("m11") is Dictionary and M11MissionState.map_error(info).is_empty():
+		for index: int in range(info["m11"]["transfer_people"].size()):
+			_moon_residents.append({"key": "m11/transfer/%d" % index, "feet": GrenadeFacts.vector(info["m11"]["transfer_people"][index])})
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
-		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true)}
+		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true), "water_regions": info.get("water_regions", []).duplicate(true)}
 
 
 func reset(reason: String, clear_measurements: bool = false) -> void:
@@ -80,6 +88,9 @@ func reset(reason: String, clear_measurements: bool = false) -> void:
 	last_speed = 0.0
 	next_step_usec = 0
 	visual_offset = Vector3.ZERO
+	_visual_pose.clear()
+	_visual_usec = 0
+	_visual_jump_spent = false
 	if clear_measurements:
 		clear_measurements()
 	elif was_active:
@@ -164,6 +175,9 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 		reset("ack_gap")
 		return
 	if discontinuity:
+		_visual_pose.clear()
+		_visual_usec = 0
+		_visual_jump_spent = false
 		if tick >= 0:
 			_contact_samples.clear()
 		steps.clear()
@@ -192,6 +206,12 @@ func accept_ack(ack: Dictionary, now_usec: int) -> void:
 	tick = incoming_tick
 	ack_seq = int(ack["seq"])
 	baseline = new_body
+	# The ack has no stance. Seed it from the step this tick already predicted,
+	# then replay. An old server and a fresh baseline stay standing.
+	if matched_state.is_empty():
+		new_body["ducking"] = false
+	else:
+		new_body["ducking"] = bool(matched_state.get("ducking", false))
 	state = new_body.duplicate()
 	fallback_reason = ""
 	if _contacts_required:
@@ -237,17 +257,14 @@ func record_action(action: Dictionary, now_usec: int, sent: bool) -> void:
 	if not action.has("yaw"):
 		reset("no_yaw")
 		return
-	var sample: Dictionary = {
-		"seq": int(action["seq"]), "forward": bool(action["forward"]),
-		"back": bool(action["back"]), "left": bool(action["left"]),
-		"right": bool(action["right"]), "jump": bool(action["jump"]),
-		"yaw": float(action["yaw"]),
-	}
+	var sample: Dictionary = _sample_action(action)
 	if first_recorded_seq < 0:
 		first_recorded_seq = int(sample["seq"])
 	samples.append(sample)
 	held = sample.duplicate()
 	if bool(sample["jump"]):
+		if not pending_jump_latch:
+			_visual_jump_spent = false
 		pending_jump_latch = true
 	if samples.size() > MAX_SAMPLES:
 		reset("sample_overflow")
@@ -265,6 +282,14 @@ func record_action(action: Dictionary, now_usec: int, sent: bool) -> void:
 			state = _step(state, step)
 			step["state_after"] = state.duplicate()
 	advance(now_usec)
+
+## Vehicle replay retains its additional held descend bit through this seam;
+## history, sequence ordering and reconciliation remain shared.
+func _sample_action(action: Dictionary) -> Dictionary:
+	return {"seq": int(action["seq"]), "forward": bool(action["forward"]),
+		"back": bool(action["back"]), "left": bool(action["left"]),
+		"right": bool(action["right"]), "jump": bool(action["jump"]),
+		"duck": bool(action.get("duck", false)), "yaw": float(action["yaw"])}
 
 
 func _jump_unconsumed_before_latest_step() -> bool:
@@ -300,6 +325,7 @@ func advance(now_usec: int) -> void:
 			reset("contact_stale")
 			return
 		step["blockers"] = _contact_blockers(int(step["tick"]), now_usec)
+		step["vehicle_hulls"] = _contact_sample(int(step["tick"]), now_usec).get("vehicle_hulls", []).duplicate(true)
 		step["body_key"] = _contact_player_id
 		state = _step(state, step)
 		step["state_after"] = state.duplicate()
@@ -309,13 +335,20 @@ func advance(now_usec: int) -> void:
 		reset("ack_lag")
 
 
-func _step(pose: Dictionary, step: Dictionary) -> Dictionary:
+func _step(pose: Dictionary, step: Dictionary, dt: float = -1.0) -> Dictionary:
+	var world: Dictionary = arena
+	if not step.get("vehicle_hulls", []).is_empty():
+		world = arena.duplicate(true)
+		world["solids"].append_array(step["vehicle_hulls"])
+	# A short slice is the render pose only. A full tick still carries the tram.
+	if dt > 0.0 and dt < MoveStep.DT_LIVE:
+		return _contact_step(pose, step, world, dt)
 	if _tram_geometry.is_empty() or _tram_samples.is_empty():
-		return _contact_step(pose, step, arena)
+		return _contact_step(pose, step, world)
 	var before: Array = _tram_feet(int(step["tick"]) - 1)
 	var after: Array = _tram_feet(int(step["tick"]))
 	var old_solid: Dictionary = M05Tram.solid_at(_tram_geometry, before)
-	var world: Dictionary = arena.duplicate(true)
+	world = world.duplicate(true)
 	var index: int = int(_tram_geometry["m05"]["tram"]["solid"])
 	world["solids"][index] = M05Tram.solid_at(_tram_geometry, after)
 	var carried_pose: Dictionary = pose
@@ -357,7 +390,7 @@ func accept_snapshot(snapshot: Dictionary, player_id: String, mission: Dictionar
 			return
 		if incoming == int(_contact_samples.back()["tick"]):
 			_contact_samples.pop_back()
-	_contact_samples.append({"tick": incoming, "usec": now_usec, "bodies": parsed["bodies"].duplicate(true)})
+	_contact_samples.append({"tick": incoming, "usec": now_usec, "bodies": parsed["bodies"].duplicate(true), "vehicle_hulls": VehicleState.hulls(snapshot)})
 	while _contact_samples.size() > MAX_STEPS + 1:
 		_contact_samples.pop_front()
 	_contact_waiting = tick >= 0 and _contact_sample(tick + 1, now_usec).is_empty()
@@ -400,26 +433,42 @@ static func _near_contacts(pose: Dictionary, reach: float, blockers: Array) -> A
 
 static func _carry_contacts_clear(pose: Dictionary, carried: Dictionary, step: Dictionary) -> bool:
 	var reach: float = Vector2(float(carried["x"]) - float(pose["x"]), float(carried["z"]) - float(pose["z"])).length()
-	var mover: Dictionary = {"key": step.get("body_key", ""), "from": pose, "proposed": carried, "height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": false}
+	var input: Dictionary = step.get("input", {})
+	var short: bool = bool(input.get("duck", false)) or bool(pose.get("ducking", false))
+	var height: float = MoveStep.DUCK_HEIGHT if short else MoveStep.BODY_HEIGHT
+	var mover: Dictionary = {"key": step.get("body_key", ""), "from": pose, "proposed": carried, "height": height, "radius": MoveStep.RADIUS, "jump": false}
 	for body: Dictionary in _near_contacts(pose, reach, step.get("blockers", [])):
 		if ActorContact.sweep_time(mover, body) >= 0.0:
 			return false
 	return true
 
 
-static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary) -> Dictionary:
-	var proposed: Dictionary = MoveStep.live_step(pose, step["input"], float(step["speed"]), MoveStep.DT_LIVE, world)
-	var reach: float = float(step["speed"]) * MoveStep.DT_LIVE
+static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary, dt: float = -1.0) -> Dictionary:
+	var live_dt: float = MoveStep.DT_LIVE if dt <= 0.0 else dt
+	var want: bool = bool(step["input"].get("duck", false))
+	var was: bool = bool(pose.get("ducking", false))
+	var feet_y: float = float(pose.get("y", 0.0))
+	var fits: bool = not MoveStep.arena_blocked_body_at(world, float(pose["x"]), float(pose["z"]), feet_y, feet_y, MoveStep.BODY_HEIGHT)
+	var ducking: bool = want or (was and not fits)
+	var speed: float = float(step["speed"])
+	var height: float = MoveStep.BODY_HEIGHT
+	if ducking:
+		speed *= MoveStep.DUCK_SPEED_SCALE
+		height = MoveStep.DUCK_HEIGHT
+	var proposed: Dictionary = WaterMovement.live_step(pose, step["input"], speed, live_dt, world, height)
+	proposed["ducking"] = ducking
+	var reach: float = speed * live_dt
 	var bodies: Array[Dictionary] = _near_contacts(pose, reach, step.get("blockers", []))
 	if bodies.is_empty():
 		return proposed
 	var from: Dictionary = pose.duplicate()
 	from["yaw"] = proposed["yaw"]
-	bodies.append({"key": step["body_key"], "from": from, "proposed": proposed, "height": MoveStep.BODY_HEIGHT, "radius": MoveStep.RADIUS, "jump": bool(step["input"]["jump"])})
-	var accepted: Dictionary = ActorContact.resolve(bodies, MoveStep.DT_LIVE, world).back()
+	bodies.append({"key": step["body_key"], "from": from, "proposed": proposed, "height": height, "radius": MoveStep.RADIUS, "jump": bool(step["input"]["jump"])})
+	var accepted: Dictionary = ActorContact.resolve(bodies, live_dt, WaterMovement.supported_arena(world)).back()
+	accepted["ducking"] = ducking
 	if accepted["x"] != proposed["x"] or accepted["z"] != proposed["z"]:
-		accepted["vx"] = (float(accepted["x"]) - float(pose["x"])) / MoveStep.DT_LIVE
-		accepted["vz"] = (float(accepted["z"]) - float(pose["z"])) / MoveStep.DT_LIVE
+		accepted["vx"] = (float(accepted["x"]) - float(pose["x"])) / live_dt
+		accepted["vz"] = (float(accepted["z"]) - float(pose["z"])) / live_dt
 	return accepted
 
 func apply_m05(value: Dictionary) -> void:
@@ -464,8 +513,55 @@ func decay_visual(delta: float) -> void:
 		visual_offset = Vector3.ZERO
 
 
-func presented_position() -> Vector3:
-	return world_position(state) + visual_offset
+## No clock returns the committed tick pose. A clock moves a presentation pose
+## across that tick without recording another speculative step.
+func presented_position(now_usec: int = -1) -> Vector3:
+	var committed: Vector3 = world_position(state) + visual_offset if not state.is_empty() else visual_offset
+	if now_usec < 0 or not active() or held.is_empty() or state.is_empty():
+		return committed
+	_advance_visual(now_usec)
+	if _visual_pose.is_empty():
+		return committed
+	return world_position(_visual_pose) + visual_offset
+
+
+## Same clock as presented_position. Missing stance on an old step stays standing.
+func presented_ducking(now_usec: int = -1) -> bool:
+	if now_usec >= 0 and active() and not held.is_empty() and not state.is_empty():
+		_advance_visual(now_usec)
+		if not _visual_pose.is_empty():
+			return bool(_visual_pose.get("ducking", false))
+	return bool(state.get("ducking", false))
+
+
+func _advance_visual(now_usec: int) -> void:
+	if _visual_pose.is_empty() or _visual_usec <= 0:
+		_visual_pose = state.duplicate()
+		_visual_usec = now_usec
+		return
+	var elapsed: int = now_usec - _visual_usec
+	if elapsed <= 0:
+		return
+	if elapsed > TICK_USEC:
+		elapsed = TICK_USEC
+	var live_dt: float = float(elapsed) / 1000000.0
+	var input: Dictionary = held.duplicate()
+	var jump: bool = bool(held.get("jump", false)) or (pending_jump_latch and not _visual_jump_spent)
+	input["jump"] = jump
+	if jump and pending_jump_latch and live_dt >= 0.001:
+		_visual_jump_spent = true
+	var step: Dictionary = {
+		"tick": tick + steps.size() + 1,
+		"input": input,
+		"speed": last_speed,
+		"blockers": _contact_blockers(tick + steps.size() + 1, now_usec),
+		"vehicle_hulls": _contact_sample(tick + steps.size() + 1, now_usec).get("vehicle_hulls", []).duplicate(true),
+		"body_key": _contact_player_id,
+	}
+	_visual_pose = _step(_visual_pose, step, live_dt)
+	_visual_usec = now_usec
+	if world_position(_visual_pose).distance_to(world_position(state)) > SNAP_DISTANCE:
+		_visual_pose = state.duplicate()
 
 
 func correction_percentile(percentile: float) -> float:

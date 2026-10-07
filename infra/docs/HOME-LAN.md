@@ -2,8 +2,10 @@
 
 The Rust server owns one match. Run it on a machine you control and give
 friends that machine's address. The current game port is **TCP 6767** for
-WebSocket. UDP is reserved for a measured future transport and the container
-does not publish it yet. No cloud account or external API charge is needed.
+WebSocket. A non-loopback process also broadcasts LAN presence on **UDP 6768**.
+That packet only names the game port. It is not game traffic. The measured UDP
+game transport is still unbuilt, and the container does not publish it yet.
+No cloud account or external API charge is needed.
 
 ## Start with Docker Compose
 
@@ -94,9 +96,11 @@ planned. This flag adds no buy shop, reload system or mandatory full roster.
 ## Connect
 
 - On the same machine, the Godot client can use `127.0.0.1:6767`.
-- On a LAN, use the host's LAN address, such as `192.168.x.x:6767`. Allow TCP
-  6767 through the host firewall only for the LAN subnet if this is a private
-  match.
+- On a LAN, the join page can list a server that announces on UDP 6768. Use
+  the host's LAN address, such as `192.168.x.x:6767`, when it does not.
+  Allow TCP 6767 through the host firewall only for the LAN subnet if this is
+  a private match. Direct connect by address works when the announcement is
+  blocked.
 - A trusted-friends internet test can forward **TCP 6767** on the router to
   the host and give joiners the public IP or DNS name. The direct `ws://`
   connection is plaintext. Limit the source addresses at the firewall where

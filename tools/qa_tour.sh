@@ -145,6 +145,9 @@ fi
 
 RUN=("$GODOT_BIN" --path "$ROOT/client" --rendering-driver "${FRAGR_RENDER_DRIVER:-opengl3}"
      --windowed --resolution 1280x720 --script res://scripts/qa_tour.gd)
+if [ -n "${FRAGR_QA_POSITION:-}" ]; then
+  RUN+=(--position "$FRAGR_QA_POSITION")
+fi
 
 if [ "$(uname -s)" != "Linux" ]; then
   "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1

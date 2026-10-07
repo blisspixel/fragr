@@ -21,6 +21,12 @@ const WALL_TOP: float = 4.5
 ## How far above its feet a fighter's shot line sits.
 const EYE_HEIGHT: float = 1.6
 const BODY_HEIGHT: float = 1.8
+## Crouch clearance. Three quarters of a standing fighter.
+const DUCK_HEIGHT: float = 1.35
+## The standing eye sits 0.2 m under the crown. The short body keeps that gap.
+const DUCK_EYE_HEIGHT: float = 1.15
+## Horizontal speed while the body is short, as a fraction of the chosen speed.
+const DUCK_SPEED_SCALE: float = 0.34
 const GRAVITY: float = 22.0
 const JUMP_SPEED: float = 7.0
 
@@ -196,13 +202,18 @@ static func wish_dir(input: Dictionary, yaw: float) -> Vector2:
 ## already chosen effective speed, client yaw and any latched jump edge.
 ## Horizontal velocity changes immediately, unlike the accelerated step.
 static func live_step(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary) -> Dictionary:
+	return live_step_with_height(state, input, speed, dt, arena, BODY_HEIGHT)
+
+
+## The live step at a chosen body height. Standing callers keep `live_step`.
+static func live_step_with_height(state: Dictionary, input: Dictionary, speed: float, dt: float, arena: Dictionary, height: float) -> Dictionary:
 	var yaw: float = normalize_yaw(float(input.get("yaw", 0.0)))
 	var wish: Vector2 = wish_dir(input, yaw)
 	var moving: Dictionary = state.duplicate()
 	moving["vx"] = wish.x * speed
 	moving["vz"] = wish.y * speed
 	moving["yaw"] = yaw
-	return integrate(moving, bool(input.get("jump", false)), dt, arena)
+	return integrate_with_height(moving, bool(input.get("jump", false)), dt, arena, height)
 
 
 ## Advance one fighter by dt seconds. Same order as the Rust step: yaw, wish,

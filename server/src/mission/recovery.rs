@@ -93,6 +93,32 @@ impl SoloRun {
 }
 
 impl GameState {
+    /// A human armed after entry capture still retries with those magazines.
+    pub(crate) fn refresh_campaign_entry_equipment(&mut self, id: Uuid) {
+        let Some(player) = self.players.iter().find(|player| player.id == id) else {
+            return;
+        };
+        let inventory = player.inventory.clone();
+        let weapon = player.weapon;
+        let Some(solo) = self
+            .mission
+            .as_mut()
+            .and_then(|mission| mission.solo.as_mut())
+        else {
+            return;
+        };
+        if solo.owner() != Some(id) {
+            return;
+        }
+        if let Some(entry) = solo.entry.as_mut() {
+            entry.inventory = inventory;
+            entry.weapon = weapon;
+        }
+        solo.saved_entry = solo.saved_entry();
+    }
+}
+
+impl GameState {
     pub(crate) fn campaign_run_body(&self) -> Option<BodyKind> {
         self.mission
             .as_ref()
@@ -271,6 +297,7 @@ impl GameState {
                 || run.m07.is_some()
                 || run.m09.is_some()
                 || run.m10.is_some()
+                || run.m11.is_some()
             {
                 MissionPhase::InProgress
             } else {

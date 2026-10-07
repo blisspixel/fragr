@@ -1,0 +1,520 @@
+{
+  "vectors": [
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          31.850034713745117,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 14.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "kind": "boat",
+      "name": "boat_accelerate",
+      "steps": 80,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            100.0,
+            100.0
+          ],
+          "min": [
+            -100.0,
+            -100.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          -10.100021362304688,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": -4.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": true,
+        "brake": false,
+        "descend": false,
+        "forward": false,
+        "left": false,
+        "right": false
+      },
+      "kind": "boat",
+      "name": "boat_reverse",
+      "steps": 60,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            100.0,
+            100.0
+          ],
+          "min": [
+            -100.0,
+            -100.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          -8.334972381591797,
+          2.200000047683716,
+          35.981204986572266
+        ],
+        "speed": 14.0,
+        "vy": 0.0,
+        "yaw": 2.716787099838257
+      },
+      "initial": {
+        "position": [
+          0.0,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": true,
+        "left": false,
+        "right": true
+      },
+      "kind": "boat",
+      "name": "boat_turn",
+      "steps": 100,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            100.0,
+            100.0
+          ],
+          "min": [
+            -100.0,
+            -100.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          97.5999755859375,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          96.0,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 14.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "kind": "boat",
+      "name": "boat_shore",
+      "steps": 12,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            100.0,
+            100.0
+          ],
+          "min": [
+            -100.0,
+            -100.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": [
+          {
+            "max_x": 4.010000228881836,
+            "max_z": 20.0,
+            "min_x": 4.0,
+            "min_z": -20.0,
+            "top": 6.0
+          }
+        ]
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          1.5975008010864258,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 14.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "kind": "boat",
+      "name": "boat_dock",
+      "steps": 10,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            100.0,
+            100.0
+          ],
+          "min": [
+            -100.0,
+            -100.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          75.75017547607422,
+          16.067113876342773,
+          0.0
+        ],
+        "speed": 29.999971389770508,
+        "vy": 6.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": true,
+        "descend": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "kind": "light_aircraft",
+      "name": "plane_takeoff",
+      "steps": 100,
+      "water_regions": []
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          46.00419998168945,
+          12.0,
+          -91.65047454833984
+        ],
+        "speed": 32.0,
+        "vy": 0.0,
+        "yaw": 4.175188064575195
+      },
+      "initial": {
+        "position": [
+          0.0,
+          12.0,
+          0.0
+        ],
+        "speed": 24.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": true,
+        "left": true,
+        "right": false
+      },
+      "kind": "light_aircraft",
+      "name": "plane_turn",
+      "steps": 80,
+      "water_regions": []
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          74.86495971679688,
+          7.240203380584717,
+          0.0
+        ],
+        "speed": 32.0,
+        "vy": -6.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          20.0,
+          0.0
+        ],
+        "speed": 24.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": true,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "kind": "light_aircraft",
+      "name": "plane_descend",
+      "steps": 50,
+      "water_regions": []
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          27.149993896484375,
+          60.0,
+          0.0
+        ],
+        "speed": 29.999984741210938,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          59.0,
+          0.0
+        ],
+        "speed": 24.0,
+        "vy": 6.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": true,
+        "descend": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "kind": "light_aircraft",
+      "name": "plane_ceiling",
+      "steps": 20,
+      "water_regions": []
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          8.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": false,
+        "left": false,
+        "right": false
+      },
+      "kind": "light_aircraft",
+      "name": "plane_stall",
+      "steps": 40,
+      "water_regions": []
+    },
+    {
+      "arena": {
+        "half": 220.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          0.0,
+          2.200000047683716,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          3.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": -4.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "descend": false,
+        "forward": false,
+        "left": false,
+        "right": false
+      },
+      "kind": "light_aircraft",
+      "name": "plane_water",
+      "steps": 12,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            100.0,
+            100.0
+          ],
+          "min": [
+            -100.0,
+            -100.0
+          ]
+        }
+      ]
+    }
+  ],
+  "version": 1
+}

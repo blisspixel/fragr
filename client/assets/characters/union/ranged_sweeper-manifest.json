@@ -91,7 +91,7 @@
 		"res://art/characters/ranged_sweeper_bake.gd": "12f23374f998a62b8951e57cbcb44e1f916367d41959eb1862ca3c9d9ef5e681",
 		"res://art/characters/ranged_sweeper_rig.gd": "903d5e34a19069fd64c4c190f5c1f2ee4c1fd9d908f760fb1ca136a97325101b",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
-		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+		"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441"
 	},
 	"tile_pixels": 160
 }

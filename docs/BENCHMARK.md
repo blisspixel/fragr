@@ -1,7 +1,9 @@
 # Benchmark and recording contract
 
-The current utility measures server CPU work without sockets. A rendered showcase
-is planned in [`plans/showcase-benchmark.md`](plans/showcase-benchmark.md).
+The server utility measures CPU work without sockets. The menu benchmark
+measures rendered frame cadence on this computer using one recorded local
+fight. A broader authored showcase remains planned in
+[`plans/showcase-benchmark.md`](plans/showcase-benchmark.md).
 Headless results cannot establish GPU support, visual quality, network capacity,
 or the maximum number of players a public server supports.
 
@@ -114,5 +116,33 @@ cargo run -p fragr-server --release --locked -- --bench-verify-trace .agents/mat
 Verification streams one record at a time with an 8 MiB record limit. Unsupported
 versions, missing/duplicate headers or scores, missing or misordered ticks, wrong
 snapshot tick numbers, truncation, checksum mismatch, or data after completion
-fail. A matching hash proves file integrity, not trusted authorship. Client replay,
-camera paths, frame-time statistics, and GPU comparisons remain future work.
+fail. A matching hash proves file integrity, not trusted authorship. Client replay of
+a server trace and the nine-scene camera path remain future work. The menu
+comparison below captures its own bounded in-memory snapshot sequence.
+
+## Player benchmark
+
+Choose **Benchmark** from the main menu to measure the current preset or compare
+Performance, Balanced and High. It first records 28 seconds of an owned local
+ten-bot Arena Duel match, then stops that host. Every preset replays the same
+authoritative snapshots and time-based camera path. Eight warm-up seconds are
+discarded, followed by twenty scored seconds. V-sync and the frame cap are
+temporarily disabled; completion, cancellation and failure restore the user's
+settings without saving the temporary graphics draft.
+
+The result shows average FPS, one 1% low, p50/p95/p99/maximum frame time and
+slow-frame counts. The 1% low is 1000 divided by the mean milliseconds of the
+slowest `ceil(frame_count * 0.01)` frames. Monotonic whole-frame intervals
+measure visible cadence, not GPU execution time. The JSON and CSV also retain
+the adapter, renderer, engine, resolutions, applied settings, sample count and
+replay digest. Use **Open results folder** to find the local artifacts. No raw
+participant or network recording is saved.
+
+Compared presets within a run receive the same fight; a new run records a new
+fight. Repeated runs and a representative workload matter before judging small
+differences. This Arena Duel scene does not establish 64-player capacity or
+island performance. Headless checks cover arithmetic and lifecycle, not hardware
+frame rates. A frame rate is not a CI gate. The server `--bench` results above
+remain separate CPU measurements. The
+[comparison plan](plans/benchmark-preset-comparison-20261006.md) records the
+actual renderer acceptance and remaining broader showcase work.

@@ -6,7 +6,7 @@ extends RefCounted
 ## line and the Host's keyed reactions. The server decides every outcome;
 ## this only reads and labels what it sent.
 
-const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage"]
+const MODES: Array[String] = ["ffa", "tdm", "ctf", "sabotage", "conquest"]
 const MUTATORS: Array[String] = ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]
 const TEAMS: Array[String] = ["union", "coalition"]
 const REACTIONS: Array[String] = ["first_blood", "streak_ended", "last_standing", "comeback", "golden_rail"]
@@ -21,6 +21,10 @@ const UNION_BODY: Color = Color("56575e")
 const COALITION_LABEL: Color = Color("dc8c3c")
 const COALITION_BODY: Color = Color("e8e2d6")
 const GOLD: Color = Color(1.0, 0.82, 0.28)
+## First person reads sides relative to the viewer. The faction colours stay
+## on the score and on a spectator's plate.
+const OURS_MARK: Color = Color("f4f0e6")
+const THEIRS_MARK: Color = Color("e23430")
 
 
 ## A validated copy of `map_info.rules`, or empty when absent or malformed.
@@ -55,7 +59,7 @@ static func parse(value: Variant) -> Dictionary:
 
 
 static func teams(rules: Dictionary) -> bool:
-	return ["tdm", "ctf", "sabotage"].has(rules.get("mode", ""))
+	return ["tdm", "ctf", "sabotage", "conquest"].has(rules.get("mode", ""))
 
 
 static func _text(key: String) -> String:
@@ -100,6 +104,23 @@ static func team_label_color(team: String) -> Color:
 		"coalition":
 			return COALITION_LABEL
 	return Color.WHITE
+
+
+## "mate" when both sides match, "foe" when they differ, empty when either
+## side is missing. The server still decides who may be damaged.
+static func team_relation(viewer: String, other: String) -> String:
+	if not TEAMS.has(viewer) or not TEAMS.has(other):
+		return ""
+	return "mate" if viewer == other else "foe"
+
+
+static func relation_mark(relation: String) -> String:
+	match relation:
+		"mate":
+			return _text("TEAM_OURS")
+		"foe":
+			return _text("TEAM_THEIRS")
+	return ""
 
 
 static func team_body_color(team: String) -> Color:
@@ -153,11 +174,16 @@ static func reaction_line(data: Dictionary) -> String:
 
 
 ## Scoreboard rows as text: side score first in a team mode, then the top
-## fighters with their side chip.
-static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int) -> String:
+## fighters with their side chip. `you` marks the local callsign on the
+## hold-Tab board. The corner list leaves it empty and stays on frags.
+## `detailed` is the hold-Tab board, including a spectator whose name is
+## not on a row.
+static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int, you: String = "", detailed: bool = false) -> String:
 	var text: String = ""
 	if score_line != "":
 		text += score_line + "\n"
+	if detailed:
+		text += _text("HUD_BOARD_COLUMNS") + "\n"
 	for i: int in range(mini(limit, rows.size())):
 		var row: Dictionary = rows[i]
 		var name: String = str(row.get("name", "?"))
@@ -166,5 +192,19 @@ static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, 
 		var side: String = team_short(str(sides.get(name, "")))
 		var marker: String = "*" if i == 0 and kills > 0 else " "
 		var tag: String = "[" + side + "] " if side != "" else ""
-		text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + "\n"
+		var mine: String = "  YOU" if you != "" and name == you else ""
+		if detailed:
+			var attacks: int = int(row.get("attacks", 0))
+			var connects: int = int(row.get("connects", 0))
+			var heads: int = int(row.get("heads", 0))
+			text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + " frag, " + str(int(row.get("deaths", 0))) + " died, hit " + _rate(connects, attacks) + ", head " + _rate(heads, connects) + ", " + str(int(row.get("damage", 0))) + " dealt" + mine + "\n"
+		else:
+			text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + mine + "\n"
 	return text
+
+static func _rate(numerator: int, denominator: int) -> String:
+	var label: String = PlayerRecord.percent_label(numerator, denominator)
+	if label == "":
+		return "-"
+	# The count sits beside the percent. 100.0 on one shot is not 100.0 on a hundred.
+	return label + " (" + str(numerator) + "/" + str(denominator) + ")"

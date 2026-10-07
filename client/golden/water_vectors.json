@@ -1,0 +1,312 @@
+{
+  "vectors": [
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": []
+      },
+      "body_height": 1.7999999523162842,
+      "dt": 0.05,
+      "expected": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 1.3000000715255737,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "initial": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "input": {
+        "back": false,
+        "forward": false,
+        "jump": false,
+        "left": false,
+        "right": false,
+        "speed_scale": 1.0,
+        "yaw": 0.0
+      },
+      "name": "seabed_to_surface",
+      "speed": 5.0,
+      "steps": 1,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            20.0,
+            20.0
+          ],
+          "min": [
+            -20.0,
+            -20.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": []
+      },
+      "body_height": 1.7999999523162842,
+      "dt": 0.05,
+      "expected": {
+        "vx": 3.200000047683716,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 3.200000524520874,
+        "y": 1.3000000715255737,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "initial": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 1.2999999523162842,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "input": {
+        "back": false,
+        "forward": true,
+        "jump": false,
+        "left": false,
+        "right": false,
+        "speed_scale": 1.0,
+        "yaw": 0.0
+      },
+      "name": "surface_swim",
+      "speed": 5.0,
+      "steps": 20,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            20.0,
+            20.0
+          ],
+          "min": [
+            -20.0,
+            -20.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": []
+      },
+      "body_height": 1.7999999523162842,
+      "dt": 0.05,
+      "expected": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 1.3000000715255737,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "initial": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 5.0,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "input": {
+        "back": false,
+        "forward": false,
+        "jump": false,
+        "left": false,
+        "right": false,
+        "speed_scale": 1.0,
+        "yaw": 0.0
+      },
+      "name": "fall_to_surface",
+      "speed": 5.0,
+      "steps": 35,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            20.0,
+            20.0
+          ],
+          "min": [
+            -20.0,
+            -20.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": [
+          {
+            "max_x": 6.0,
+            "max_z": 5.0,
+            "min_x": 4.0,
+            "min_z": -5.0,
+            "top": 1.7999999523162842
+          }
+        ]
+      },
+      "body_height": 1.7999999523162842,
+      "dt": 0.05,
+      "expected": {
+        "vx": 3.200000047683716,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 4.000000953674316,
+        "y": 1.7999999523162842,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "initial": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "input": {
+        "back": false,
+        "forward": true,
+        "jump": false,
+        "left": false,
+        "right": false,
+        "speed_scale": 1.0,
+        "yaw": 0.0
+      },
+      "name": "shore_step",
+      "speed": 5.0,
+      "steps": 25,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            20.0,
+            20.0
+          ],
+          "min": [
+            -20.0,
+            -20.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": []
+      },
+      "body_height": 1.350000023841858,
+      "dt": 0.05,
+      "expected": {
+        "vx": 3.200000047683716,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 3.200000524520874,
+        "y": 1.3000000715255737,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "initial": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 1.2999999523162842,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "input": {
+        "back": false,
+        "forward": true,
+        "jump": false,
+        "left": false,
+        "right": false,
+        "speed_scale": 1.0,
+        "yaw": 0.0
+      },
+      "name": "duck_swim",
+      "speed": 5.0,
+      "steps": 20,
+      "water_regions": [
+        {
+          "depth": 2.200000047683716,
+          "level": 2.200000047683716,
+          "max": [
+            20.0,
+            20.0
+          ],
+          "min": [
+            -20.0,
+            -20.0
+          ]
+        }
+      ]
+    },
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": []
+      },
+      "body_height": 1.7999999523162842,
+      "dt": 0.05,
+      "expected": {
+        "vx": 5.0,
+        "vy": -5.09999942779541,
+        "vz": 0.0,
+        "x": 3.0,
+        "y": 0.570000171661377,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "initial": {
+        "vx": 0.0,
+        "vy": 0.0,
+        "vz": 0.0,
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 0.0,
+        "z": 0.0
+      },
+      "input": {
+        "back": false,
+        "forward": true,
+        "jump": true,
+        "left": false,
+        "right": false,
+        "speed_scale": 1.0,
+        "yaw": 0.0
+      },
+      "name": "dry_jump",
+      "speed": 5.0,
+      "steps": 12,
+      "water_regions": []
+    }
+  ],
+  "version": 1
+}

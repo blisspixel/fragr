@@ -1,0 +1,32 @@
+{
+  "out_dir": "art/raw/vehicle-reference-20261006",
+  "technical": "Clean opaque reference for conversion into a game model, coherent connected geometry, even lighting, no cast shadow masking underside, no text or markings.",
+  "style": "Original high-quality modern retro first-person shooter asset reference, angular sculpted forms, broad painted material values and coherent pixel-friendly detail, tangible readable science-fiction equipment, practical circa-2070 retrofuture. Quiet sparse wear, differentiated rubber leather enamel and metal. Even neutral studio light. Original designs only.",
+  "view": "One isolated complete object in a front three-quarter view, slight elevated angle to inspect seating and mechanisms, entire silhouette with generous margins, neutral medium gray background, no collage or multiple views.",
+  "model": "marketing-studio/image",
+  "negative": "copied game vehicle, copied franchise design, logos, watermarks, signatures, text, photorealistic noise, glossy toy plastic, neon cyberpunk, dense scratches, giant spikes, missing wheels, floating parts, fused occupants, cropped silhouette, environment, floor scenery",
+  "params": {
+    "aspect_ratio": "1:1",
+    "resolution": "4k",
+    "quality": "high",
+    "enhance_prompt": false
+  },
+  "frames": [
+    {
+      "id": "utility_jeep_v1",
+      "subject": "One original practical circa-2070 civilian utility jeep, compact 3.8 metre four-wheel rover, four large ordinary off-road tires on two axles, rectangular short bonnet with bevelled corners, simple vertical grille and two small protected lamps, open driver seat in the front centre-left and standing rear gunner deck inside a sturdy square roll cage, one narrow empty gun pivot bracket at the rear without a gun, low side doors exposing occupants, visible steering wheel and practical chunky dashboard, wide rear step and towing eye. Quiet faded bone enamel, olive service panels, dark steel underframe, warm dark leather seat, small replaced rust panel. An inexpensive repaired machine from a Martian freight depot, not an armored car, sports buggy or military brand. Complete connected four-wheel vehicle, no occupant, no roof shell, no duplicate wheels. Original upright utilitarian silhouette."
+    },
+    {
+      "id": "courier_motorcycle_v1",
+      "subject": "One original practical circa-2070 civilian courier motorcycle, exactly two wheels, ordinary robust road-trail proportions, low narrow fuel and battery tank, exposed supported fork and swingarm, one connected dark leather saddle, practical handlebar with two grips and levers, two foot pegs, chain guard, rear cargo rack and a small round protected headlamp. Restrained bone enamel on mudguards, dark gunmetal engine and frame, one warm rust repaired side cover, simple tan tool pouch secured to the rack. No rider, no sidecar, no hovering technology, no giant fantasy exhausts. All wheels and controls physically connected, freestanding bike on its side stand. Original believable commuter machinery."
+    },
+    {
+      "id": "island_fast_boat_v1",
+      "subject": "One original small practical circa-2070 tropical-island utility patrol launch, 5 metre shallow V hull with complete bow and transom, open cockpit and two visible seats, short low windshield, a real steering console and physical wheel, side handrails, rear working deck, one clearly attached compact outboard motor with coherent lower leg and propeller. Faded bone and muted teal civilian paint above a dark weathered hull, sparse purposeful rust repairs, two tied bumpers. Entire boat including lower hull and propeller visible out of water. No occupants, no trailer, no stand, no guns, no fantasy fins or military emblems. One mechanically believable seaworthy source object."
+    },
+    {
+      "id": "island_prop_aircraft_v1",
+      "subject": "One original repaired civilian utility prop aircraft for a circa-2070 tropical registry island, compact single-engine high-wing monoplane, exactly one straight wing pair with two clear support struts, one conventional tail fin and horizontal stabilizer pair, front tractor three-blade propeller, two main wheels and one small tail wheel, enclosed two-seat cockpit with clear side windows and visible seats, simple attached wing control surfaces. Faded bone and muted ochre paint, dark steel engine cowling, restrained rust repair panel, broad quiet material values. Complete parked aircraft all wing tips and propeller blades visible. No pilots, no logos, no text, no missiles, no military insignia, no jet engines, no duplicated wings. Original functional airframe, not a replica."
+    }
+  ]
+}

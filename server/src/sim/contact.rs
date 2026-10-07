@@ -4,6 +4,9 @@ use crate::movement::{
     Arena, MoveState, BODY_HEIGHT, RADIUS,
 };
 
+#[cfg(test)]
+mod vehicle_water_tests;
+
 fn state(p: &Player) -> MoveState {
     MoveState {
         x: p.x,
@@ -17,6 +20,22 @@ fn state(p: &Player) -> MoveState {
 }
 
 impl GameState {
+    /// Actor contact and local avoidance use the same live hulls and buoyant
+    /// support as ordinary walking, without changing indexed shot geometry.
+    pub(crate) fn walking_arena<'a>(&self, arena: &'a Arena) -> std::borrow::Cow<'a, Arena> {
+        if self.vehicles.is_empty() && self.map.water_regions().is_empty() {
+            return std::borrow::Cow::Borrowed(arena);
+        }
+        let mut world = arena.clone();
+        world.solids.extend(
+            self.vehicles
+                .iter()
+                .map(|vehicle| crate::vehicles::hull(&vehicle.state)),
+        );
+        crate::movement::water::append_support(&mut world, self.map.water_regions());
+        std::borrow::Cow::Owned(world)
+    }
+
     pub(crate) fn contact_eligible(&self, p: &Player) -> bool {
         p.hp > 0
             && p.respawn_timer.is_none()
@@ -29,14 +48,14 @@ impl GameState {
         let mut bodies: Vec<_> = self
             .players
             .iter()
-            .filter(|p| self.contact_eligible(p))
+            .filter(|p| self.contact_eligible(p) && self.vehicle_seat(p.id).is_none())
             .map(|p| {
                 let from = state(p);
                 ContactBody {
                     key: p.id.to_string(),
                     from,
                     proposed: from,
-                    height: crate::combat::target_height(p.campaign),
+                    height: crate::combat::body_height(p.campaign, p.ducking),
                     radius: RADIUS,
                     jump: false,
                 }
@@ -52,6 +71,8 @@ impl GameState {
         dt: f32,
         arena: &Arena,
     ) {
+        let world = self.walking_arena(arena);
+        let arena = world.as_ref();
         for body in &mut bodies {
             let Ok(id) = uuid::Uuid::parse_str(&body.key) else {
                 continue;

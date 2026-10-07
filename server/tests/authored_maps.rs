@@ -319,21 +319,29 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
             fired
                 .validate_for(Some(loadout.player_id), Some(&loadout))
                 .unwrap();
-            // One shot spends one bullet straight from the count; there is no
-            // magazine to empty and nothing to reload.
+            // One shot spends one bullet from the carried total and from the
+            // pistol magazine. The reserve is the total minus every magazine.
             if fired.ammo(fragr_server::protocol::AmmoPool::Bullets) == bullets - 1 {
-                assert_eq!(fired.shots(WeaponType::Tack), Some(bullets - 1));
+                assert_eq!(fired.shots(WeaponType::Tack), Some(11));
                 spent = true;
                 break;
             }
         }
     }
     assert!(spent, "a spent bullet must reach the owning socket");
-    let retired = serde_json::json!({"type": "action", "reload": true}).to_string();
+    let reload = serde_json::json!({"type": "action", "reload": true}).to_string();
     assert!(
-        serde_json::from_str::<fragr_server::protocol::ClientMessage>(&retired).is_err(),
-        "the retired reload field is no longer part of an action"
+        matches!(
+            serde_json::from_str::<fragr_server::protocol::ClientMessage>(&reload).unwrap(),
+            fragr_server::protocol::ClientMessage::Action(action) if action.reload
+        ),
+        "a pressed reload is an action, and it is omitted while false"
     );
+    let omitted = serde_json::json!({"type": "action", "fire": true}).to_string();
+    assert!(matches!(
+        serde_json::from_str::<fragr_server::protocol::ClientMessage>(&omitted).unwrap(),
+        fragr_server::protocol::ClientMessage::Action(action) if !action.reload
+    ));
     for socket in &mut sockets {
         socket.close(None).await.unwrap();
     }

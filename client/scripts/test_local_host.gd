@@ -54,13 +54,19 @@ func _ready_record(config: Dictionary) -> Dictionary:
 	return {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:" + str(port),
 		"listen": ("0.0.0.0" if config["lan"] else "127.0.0.1") + ":" + str(port),
 		"map_id": config["map_id"], "mode": config["mode"], "five_vs_five": config["mode"] == "sabotage",
-		"bots": config["bots"], "bot_policy": config["bot_policy"], "fill_target": config["fill_target"], "gameplay_version": 36}
+		"bots": config["bots"], "bot_policy": config["bot_policy"], "fill_target": config["fill_target"], "gameplay_version": LocalHost.GAMEPLAY_VERSION}
 
 func _run() -> void:
 	for policy: String in ["fixed", "none", "auto"]:
 		for lan: bool in [false, true]:
 			for sabotage: bool in [false, true]:
 				_test_profile(_config(lan, sabotage, policy))
+			var island: Dictionary = _config(lan, false, policy)
+			island["mode"] = "conquest"
+			island["map_id"] = 7
+			_test_profile(island)
+			island["map_id"] = 4
+			_check(not LocalHost.valid_settings(island), "Conquest refuses a map without capture sites")
 	var zero: Dictionary = _config()
 	zero["bots"] = 0
 	_check(LocalHost.valid_settings(zero), "fixed zero remains compatible")

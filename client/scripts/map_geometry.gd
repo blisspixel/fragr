@@ -46,7 +46,7 @@ static func validation_error(info: Dictionary) -> String:
 		var detail_problem: String = MapDecoration.validation_error(presentation.get("decorations", []), solids)
 		if detail_problem != "":
 			return detail_problem
-	return ""
+	return WaterRegions.validation_error(info)
 
 static func _number(value: Variant) -> bool:
 	return (value is int or value is float) and is_finite(float(value))

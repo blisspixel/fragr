@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-07",
+  "scope": "Offline production geometry with final coastal revetments, selected materials, corrected horizon and continuous water patch edges; 64 animated body presenters and two boat presenters, not connected players or final map acceptance",
+  "native_map_sha256": "e803323412c9dfcf657f6f1fa786967fe955d50d2a725512eea0c215fa18fb22",
+  "native_sha256": "79ea57258ed8aecb322b58d4a6cb94e48075eead600bae885e9d89ca15b7585a",
+  "command": "Godot --path client --rendering-method gl_compatibility --script ../tools/measure_island_water.gd -- MAP_INFO OUTPUT",
+  "exit_code": 0,
+  "performance": "Final quiet sweep follows completed functional checks; bounded raw measurements in ../water-20261007/measurement.json",
+  "shader_sha256": "59f48a5c38ccf9ab64fe484b98638bcc521acf655a66cf7c9dd9f9e073558477",
+  "sky_source_sha256": "2bcaacabb68b61a3dedc3e5adbf75c3e0392890419c28d903c093ebd9e7f30fe",
+  "images": [
+    {
+      "file": "airfield-steel.png",
+      "sha256": "1a7a985cd2acb3b4c99242b55d16b006706ae6dd3e0fa7ea858834995ac288a7"
+    },
+    {
+      "file": "harbour-plaster.png",
+      "sha256": "12ceb3505a6db96a0cfb8a3e5be5e281dcc3ebaf7c19100b9b902029239dc5e0"
+    },
+    {
+      "file": "island-overview.png",
+      "sha256": "37576d59bdc32c11ce860ce023a6964313de85f545ae5d4138bd672a8748d096"
+    },
+    {
+      "file": "shore-64-actors-quality-2.png",
+      "sha256": "2ad361071f09bb5691c3cd1e96d2ffcd5435f51393158f46f827e5576bfcf979"
+    },
+    {
+      "file": "village-boards.png",
+      "sha256": "6ed11340ca28451d0c7a0c99352eb64f947acf0c56805a22e9426dccedc9298d"
+    }
+  ]
+}

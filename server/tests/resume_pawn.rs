@@ -39,8 +39,10 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
     let (mut human, _) = connect_async(&url).await.unwrap();
     human
         .send(Message::Text(
-            r#"{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":8,"resume":""}"#
-                .into(),
+            format!(
+                r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":{},"resume":""}}"#,
+                fragr_server::protocol::GAMEPLAY_VERSION
+            ),
         ))
         .await
         .unwrap();
@@ -51,8 +53,10 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
     let (mut spectator, _) = connect_async(&url).await.unwrap();
     spectator
         .send(Message::Text(
-            r#"{"type":"hello","role":"spectator","name":"Eyes","geometry_version":2,"gameplay_version":8}"#
-                .into(),
+            format!(
+                r#"{{"type":"hello","role":"spectator","name":"Eyes","geometry_version":2,"gameplay_version":{}}}"#,
+                fragr_server::protocol::GAMEPLAY_VERSION
+            ),
         ))
         .await
         .unwrap();
@@ -72,7 +76,8 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
     again
         .send(Message::Text(
             format!(
-                r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":8,"resume":"{token}"}}"#
+                r#"{{"type":"hello","role":"human","name":"Patch","geometry_version":2,"gameplay_version":{},"resume":"{token}"}}"#,
+                fragr_server::protocol::GAMEPLAY_VERSION
             ),
         ))
         .await

@@ -1,0 +1,1273 @@
+[
+	{
+		"id": "fresh_briefing",
+		"phase": "briefing",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_0",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_1",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "spine_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_2",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "holds_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_3",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "records_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_4",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_5",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "bridge_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "arrival_6",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 50,
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured"
+			],
+			"current": {
+				"action": {
+					"kind": "use",
+					"target": {
+						"approach": [
+							0,
+							0,
+							0
+						],
+						"decoration": 0
+					}
+				},
+				"id": "party_departed"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "departed_without_optional_brief",
+		"phase": "departed",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 50,
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured",
+				"party_departed"
+			]
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "hold_release_after_holds",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": true
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "records_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "release_before_holds",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": true
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "holds_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "actual_activation_before_records_arrival",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "records_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "document_before_records",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": true,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "records_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "document_after_records",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": true,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "missing_deadline",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "wrong_deadline",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1219,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "kills_before_activation",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 3,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "beyond_actual_roster",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 7,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "fractional_kills",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 1.5,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "future_activation",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 70,
+				"records_read": false,
+				"signal_due": 1270,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "counter_boarders_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "future_bridge",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 61,
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured"
+			],
+			"current": {
+				"action": {
+					"kind": "use",
+					"target": {
+						"approach": [
+							0,
+							0,
+							0
+						],
+						"decoration": 0
+					}
+				},
+				"id": "party_departed"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "bridge_before_activation",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 19,
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured"
+			],
+			"current": {
+				"action": {
+					"kind": "use",
+					"target": {
+						"approach": [
+							0,
+							0,
+							0
+						],
+						"decoration": 0
+					}
+				},
+				"id": "party_departed"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"briefs": {
+			"assisted": true,
+			"severe": false,
+			"standard": true
+		},
+		"id": "signal_equality_is_missed_severe_brief",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 1220,
+				"counter_boarder_blast_kills": 3,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": true
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured"
+			],
+			"current": {
+				"action": {
+					"kind": "use",
+					"target": {
+						"approach": [
+							0,
+							0,
+							0
+						],
+						"decoration": 0
+					}
+				},
+				"id": "party_departed"
+			}
+		},
+		"tick": 1220,
+		"valid": true
+	},
+	{
+		"briefs": {
+			"assisted": true,
+			"severe": true,
+			"standard": true
+		},
+		"id": "one_tick_before_signal",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 1219,
+				"counter_boarder_blast_kills": 3,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": true
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured"
+			],
+			"current": {
+				"action": {
+					"kind": "use",
+					"target": {
+						"approach": [
+							0,
+							0,
+							0
+						],
+						"decoration": 0
+					}
+				},
+				"id": "party_departed"
+			}
+		},
+		"tick": 1220,
+		"valid": true
+	},
+	{
+		"briefs": {
+			"assisted": true,
+			"severe": false,
+			"standard": false
+		},
+		"id": "two_one_blast_kills_do_not_sum_to_three",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 50,
+				"counter_boarder_blast_kills": 2,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": true
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured"
+			],
+			"current": {
+				"action": {
+					"kind": "use",
+					"target": {
+						"approach": [
+							0,
+							0,
+							0
+						],
+						"decoration": 0
+					}
+				},
+				"id": "party_departed"
+			}
+		},
+		"tick": 60,
+		"valid": true
+	},
+	{
+		"id": "skipped_objective",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [
+				"spine_secured"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "spine_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "arrival_outside_region",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						2,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "invented_rescue",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			},
+			"sorrel_rescued": true
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "present_null_current",
+		"phase": "departed",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": 50,
+				"counter_boarder_blast_kills": 0,
+				"counter_boarding_started": 20,
+				"records_read": false,
+				"signal_due": 1220,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found",
+				"spine_secured",
+				"holds_secured",
+				"records_secured",
+				"counter_boarders_secured",
+				"bridge_secured",
+				"party_departed"
+			],
+			"current": null
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "present_null_clock",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"bridge_taken_at": null,
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "extra_challenge_field",
+		"phase": "in_progress",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"extra": false,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "armory_found"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	},
+	{
+		"id": "nonempty_briefing",
+		"phase": "briefing",
+		"state": {
+			"challenges": {
+				"counter_boarder_blast_kills": 0,
+				"records_read": false,
+				"transfer_released": false
+			},
+			"completed": [
+				"armory_found"
+			],
+			"current": {
+				"action": {
+					"feet": [
+						0,
+						0,
+						0
+					],
+					"kind": "arrival",
+					"region": {
+						"max": [
+							1,
+							1,
+							1
+						],
+						"min": [
+							-1,
+							0,
+							-1
+						]
+					}
+				},
+				"id": "spine_secured"
+			}
+		},
+		"tick": 60,
+		"valid": false
+	}
+]

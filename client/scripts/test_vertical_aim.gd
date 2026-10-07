@@ -7,6 +7,7 @@ class CapturingClient extends "res://scripts/net_client.gd":
 		sent = data.duplicate(true)
 
 class Fighter extends Node3D:
+	var hp: int = 100
 	var target_yaw: float = PI / 2.0
 	var target_pitch: float = -0.2
 

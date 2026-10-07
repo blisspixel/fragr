@@ -10,10 +10,14 @@ class HudProbe extends Node:
 	var crawler_caption: CaptionProbe = CaptionProbe.new()
 	var fired: Array[String] = []
 	var hits: Array[String] = []
+	var blocked: Array[String] = []
 	func show_fire_juice(weapon: String) -> void:
 		fired.append(weapon)
-	func show_hit_marker(_damage: int, weapon: String) -> void:
-		hits.append(weapon)
+	func show_hit_marker(damage: int, weapon: String) -> void:
+		if damage > 0:
+			hits.append(weapon)
+		else:
+			blocked.append(weapon)
 
 var _failures: int = 0
 
@@ -293,7 +297,7 @@ func _run() -> void:
 	var corpse_hit: Dictionary = _shot("fighter")
 	corpse_hit["damage"] = 0
 	game._process_shot_results([corpse_hit], 6)
-	_check(hud.fired.size() == 2 and hud.hits.size() == 1, "zero-damage impacts cannot confirm another damaging hit")
+	_check(hud.fired.size() == 2 and hud.hits.size() == 1 and hud.blocked == ["Rail"], "a blocked body marks without confirming another damaging hit")
 	var pawn: PawnProbe = PawnProbe.new()
 	root.add_child(pawn)
 	game.players["self"] = pawn
@@ -313,12 +317,13 @@ func _run() -> void:
 	neutral["damage"] = 0
 	var neutral_fires: int = hud.fired.size()
 	var neutral_hits: int = hud.hits.size()
+	var neutral_blocked: int = hud.blocked.size()
 	effects.clear()
 	game._process_shot_results([neutral], 10)
 	_check(effects.active_count() == 1 and effects.impact_count() == 1
 		and effects.has_shot_from("self", "fighter"), "a no-health neutral body impact retains its resolved endpoint")
-	_check(hud.fired.size() == neutral_fires + 1 and hud.hits.size() == neutral_hits,
-		"a neutral body stop shows actual fire but grants no damaging hit marker")
+	_check(hud.fired.size() == neutral_fires + 1 and hud.hits.size() == neutral_hits and hud.blocked.size() == neutral_blocked,
+		"a neutral body stop shows actual fire but grants no hit marker")
 	game._clear_world()
 	_check(effects.active_count() == 0, "role teardown clears world effects")
 	game._process_shot_results([_shot()], 1)

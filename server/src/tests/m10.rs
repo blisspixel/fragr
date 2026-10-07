@@ -473,7 +473,10 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
             .await
             .unwrap()
             .unwrap();
-        for version in [35, 36] {
+        for version in [
+            crate::protocol::M10_GAMEPLAY_VERSION,
+            crate::protocol::GAMEPLAY_VERSION,
+        ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
                 socket.send(Message::Text(serde_json::json!({"type":"hello","role":role,"name":"Panel reader","gameplay_version":version,"geometry_version":2}).to_string())).await.unwrap();
@@ -484,12 +487,15 @@ async fn m10_registered_panels_require_current_readers_even_without_mission_fact
                             continue;
                         };
                         let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                        if version == 35 {
+                        if version < crate::protocol::GAMEPLAY_VERSION {
                             assert_eq!(
                                 value["type"], "error",
-                                "legacy reader must be refused before Welcome for {kind}/{role}"
+                                "a panel file without mission facts is a shared room for {kind}/{role}"
                             );
                             assert_eq!(value["code"], "unsupported_gameplay");
+                            assert!(value["message"].as_str().unwrap().contains(
+                                &crate::protocol::GAMEPLAY_VERSION.to_string()
+                            ));
                             break;
                         }
                         match value["type"].as_str().unwrap() {

@@ -59,17 +59,49 @@ impl CombatLedger {
     }
 
     /// One call per attack, summed over every fighter its pellets struck.
-    pub fn hit(&mut self, weapon: WeaponType, hp: u64, armor: u64, kills: u64) {
-        if hp + armor == 0 {
-            return;
-        }
+    ///
+    /// `connect` is a body found, including a shield or a teammate that lost
+    /// nothing. `head` is a pellet in the head band on that body. Damage is a
+    /// separate fact: a connect with no HP or armor removed is still a connect,
+    /// and a head still counts when the shield held. A damaging hit is a
+    /// connect even if the caller forgot the flag. A head implies a connect.
+    pub fn hit(
+        &mut self,
+        weapon: WeaponType,
+        hp: u64,
+        armor: u64,
+        kills: u64,
+        connect: bool,
+        head: bool,
+    ) {
+        let connected = connect || head || hp + armor > 0;
         self.update(|counts| {
             let weapon = &mut counts.weapons[weapon.index()];
+            if connected {
+                weapon.connects += 1;
+            }
+            if head {
+                weapon.heads += 1;
+            }
+            if hp + armor == 0 {
+                return;
+            }
             weapon.damaging_attacks += 1;
             weapon.hp_damage += hp;
             weapon.armor_damage += armor;
             weapon.kills += kills;
         });
+    }
+
+    /// Deaths, gun shots, connects, head-band connects, and HP plus armor dealt.
+    pub(crate) fn board(&self) -> (u64, u64, u64, u64, u64) {
+        (
+            self.total.deaths,
+            self.total.shot_attacks(),
+            self.total.connects(),
+            self.total.heads(),
+            self.total.damage_dealt(),
+        )
     }
 
     pub fn hurt(&mut self, hp: u64, armor: u64, died: bool) {
@@ -109,6 +141,22 @@ impl CombatLedger {
             counts.mines.hp_damage += hp;
             counts.mines.armor_damage += armor;
             counts.mines.kills += kills;
+        });
+    }
+
+    pub fn remote_mine_attack(&mut self) {
+        self.update(|counts| counts.remote_mines.attacks += 1);
+    }
+
+    pub fn remote_mine_hit(&mut self, hp: u64, armor: u64, kills: u64) {
+        if hp + armor == 0 {
+            return;
+        }
+        self.update(|counts| {
+            counts.remote_mines.damaging_attacks += 1;
+            counts.remote_mines.hp_damage += hp;
+            counts.remote_mines.armor_damage += armor;
+            counts.remote_mines.kills += kills;
         });
     }
 }

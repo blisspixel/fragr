@@ -5,7 +5,9 @@ use crate::protocol::{
     SabotageFormat, SabotagePhase, SabotageReason, ServerMessage, SiteId, Team, WeaponType,
 };
 use crate::rules::{RuleSet, SabotageConfig};
-use crate::sim::{GameState, MapKind, MatchConfig, RoundState, PLAYER_FLOOR_Y};
+use crate::sim::{
+    BotBehavior, BotController, GameState, MapKind, MatchConfig, RoundState, PLAYER_FLOOR_Y,
+};
 use uuid::Uuid;
 
 const A: [f32; 3] = [-38.0, 0.0, -27.0];
@@ -253,6 +255,39 @@ fn parked_only_muster_keeps_full_clock_until_a_fighter_returns() {
     run(&mut state, 1);
     assert_eq!(phase(&state), SabotagePhase::Live);
     assert!(player(&state, id).standing());
+}
+
+#[test]
+fn a_parked_body_is_not_a_sabotage_fight() {
+    let (mut state, ids) = two_a_side(quick());
+    let held = carrier(&state);
+    let bot = ids
+        .iter()
+        .copied()
+        .find(|id| player(&state, *id).team == Some(Team::Coalition) && *id != held)
+        .expect("a coalition fighter who is not carrying");
+    let ghost = ids
+        .iter()
+        .copied()
+        .find(|id| player(&state, *id).team == Some(Team::Union))
+        .expect("a union fighter");
+    put(&mut state, bot, A);
+    put(&mut state, ghost, [A[0] + 1.2, A[1], A[2]]);
+    state.players.iter_mut().find(|p| p.id == bot).unwrap().yaw = 0.0;
+    let controller = BotController::new(bot, BotBehavior::Compliance);
+    let live = controller.intent(&state);
+    assert!(
+        live.action.fire,
+        "a standing enemy at arm's length is a fight"
+    );
+    state
+        .players
+        .iter_mut()
+        .find(|p| p.id == ghost)
+        .unwrap()
+        .detached = true;
+    let parked = controller.intent(&state);
+    assert!(!parked.action.fire, "a parked resume body is not a fight");
 }
 
 #[test]
@@ -996,6 +1031,34 @@ fn weapon_only_mutators_keep_their_arsenal_and_drop_nothing() {
     state.hit_for_test(defender, attacker, 500);
     assert!(state.pickups.iter().all(|p| !p.id.starts_with("dropped_")));
     assert!(RuleSet::new(GameMode::Sabotage, &[Mutator::TwoLives], false).is_err());
+}
+
+#[test]
+fn a_human_magazine_survives_the_next_sabotage_round() {
+    let mut state = arena(quick());
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    state.arm_joined_magazines(id);
+    state.start_round();
+    assert!(player(&state, id).inventory.armed());
+    state.end_round("round".into());
+    state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    state.start_round();
+    assert!(player(&state, id).inventory.armed());
+    assert_eq!(player(&state, id).weapon, WeaponType::Fists);
+    assert!(state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .grant_weapon(WeaponType::Tack));
+    let loadout = player(&state, id)
+        .inventory
+        .state(id, WeaponType::Tack, state.tick)
+        .unwrap();
+    assert_eq!(loadout.shots(WeaponType::Tack), Some(12));
+    assert_eq!(loadout.ammo(crate::protocol::AmmoPool::Bullets), 50);
 }
 
 #[test]

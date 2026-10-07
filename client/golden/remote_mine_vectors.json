@@ -1,0 +1,396 @@
+[
+  {
+    "name": "valid_flying",
+    "tick": 60,
+    "valid": true,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        0,
+        0
+      ],
+      "phase": "flying",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "valid_arming",
+    "tick": 60,
+    "valid": true,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "arming",
+      "phase_started": 60,
+      "phase_ends": 100
+    }
+  },
+  {
+    "name": "valid_armed",
+    "tick": 60,
+    "valid": true,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "valid_triggered",
+    "tick": 60,
+    "valid": true,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "triggered",
+      "phase_started": 60,
+      "phase_ends": 64
+    }
+  },
+  {
+    "name": "invalid_4",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 0,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_5",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "bad",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_6",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        0,
+        0
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_7",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1024.1,
+        0,
+        0
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_8",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        0,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_9",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        2,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_10",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_11",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "tripped",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_12",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "detonated",
+      "phase_started": 60,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_13",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 61,
+      "phase_ends": 60
+    }
+  },
+  {
+    "name": "invalid_14",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 64
+    }
+  },
+  {
+    "name": "invalid_15",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": -1
+    }
+  },
+  {
+    "name": "invalid_16",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_started": 60,
+      "phase_ends": 60,
+      "unknown": true
+    }
+  },
+  {
+    "name": "missing_start",
+    "tick": 60,
+    "valid": false,
+    "state": {
+      "id": 1,
+      "owner_id": "00000000-0000-0000-0000-000000000001",
+      "position": [
+        1,
+        0.5,
+        2
+      ],
+      "normal": [
+        0,
+        1,
+        0
+      ],
+      "phase": "armed",
+      "phase_ends": 60
+    }
+  }
+]

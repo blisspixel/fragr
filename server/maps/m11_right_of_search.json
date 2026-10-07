@@ -1,0 +1,2215 @@
+{
+  "version": 1,
+  "map_id": 1011,
+  "name": "Right of Search",
+  "half_extent": 38.0,
+  "equipment": "discovery",
+  "ground": "service_steel",
+  "solids": [
+    {
+      "id": "pressure_floor",
+      "min": [
+        -10.0,
+        0.0,
+        -32.0
+      ],
+      "max": [
+        10.0,
+        0.3,
+        32.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "pressure_roof",
+      "min": [
+        -10.0,
+        5.1000000000000005,
+        -32.0
+      ],
+      "max": [
+        10.0,
+        5.4,
+        32.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_bow",
+      "min": [
+        -10.0,
+        0.3,
+        -32.0
+      ],
+      "max": [
+        10.0,
+        5.4,
+        -31.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_stern",
+      "min": [
+        -10.0,
+        0.3,
+        31.7
+      ],
+      "max": [
+        10.0,
+        5.4,
+        32.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_port_0",
+      "min": [
+        -10.0,
+        0.3,
+        -31.7
+      ],
+      "max": [
+        -9.78,
+        5.4,
+        -29.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_starboard_0",
+      "min": [
+        9.78,
+        0.3,
+        -31.7
+      ],
+      "max": [
+        10.0,
+        5.4,
+        26.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pressure_starboard_1",
+      "min": [
+        9.78,
+        0.3,
+        29.0
+      ],
+      "max": [
+        10.0,
+        5.4,
+        31.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_pressure_floor",
+      "min": [
+        -18.0,
+        0.0,
+        -29.0
+      ],
+      "max": [
+        -9.78,
+        0.3,
+        -26.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "entry_pressure_roof",
+      "min": [
+        -18.0,
+        3.5,
+        -29.0
+      ],
+      "max": [
+        -9.78,
+        3.8,
+        -26.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_side_fore",
+      "min": [
+        -18.0,
+        0.3,
+        -29.22
+      ],
+      "max": [
+        -9.78,
+        3.8,
+        -29.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_side_aft",
+      "min": [
+        -18.0,
+        0.3,
+        -26.0
+      ],
+      "max": [
+        -9.78,
+        3.8,
+        -25.78
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_carrier_threshold",
+      "min": [
+        -18.22,
+        0.3,
+        -29.22
+      ],
+      "max": [
+        -18.0,
+        3.8,
+        -25.78
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "stern_pressure_floor",
+      "min": [
+        9.78,
+        1.2,
+        26.0
+      ],
+      "max": [
+        18.0,
+        1.5,
+        29.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "stern_pressure_roof",
+      "min": [
+        9.78,
+        4.7,
+        26.0
+      ],
+      "max": [
+        18.0,
+        5.0,
+        29.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stern_side_fore",
+      "min": [
+        9.78,
+        1.5,
+        25.78
+      ],
+      "max": [
+        18.0,
+        5.0,
+        26.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stern_side_aft",
+      "min": [
+        9.78,
+        1.5,
+        29.0
+      ],
+      "max": [
+        18.0,
+        5.0,
+        29.22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "stern_carrier_threshold",
+      "min": [
+        18.0,
+        1.5,
+        25.78
+      ],
+      "max": [
+        18.22,
+        5.0,
+        29.22
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "spine_port_0",
+      "min": [
+        -2.42,
+        0.3,
+        -31.7
+      ],
+      "max": [
+        -2.2,
+        3.5,
+        -28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_port_1",
+      "min": [
+        -2.42,
+        0.3,
+        -25.0
+      ],
+      "max": [
+        -2.2,
+        3.5,
+        -17.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_port_2",
+      "min": [
+        -2.42,
+        0.3,
+        -14.0
+      ],
+      "max": [
+        -2.2,
+        3.5,
+        -6.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_port_3",
+      "min": [
+        -2.42,
+        0.3,
+        -3.0
+      ],
+      "max": [
+        -2.2,
+        3.5,
+        6.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_port_4",
+      "min": [
+        -2.42,
+        0.3,
+        9.0
+      ],
+      "max": [
+        -2.2,
+        3.5,
+        15.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_port_5",
+      "min": [
+        -2.42,
+        0.3,
+        18.0
+      ],
+      "max": [
+        -2.2,
+        3.5,
+        20.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_starboard_0",
+      "min": [
+        2.2,
+        0.3,
+        -31.7
+      ],
+      "max": [
+        2.42,
+        3.5,
+        -28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_starboard_1",
+      "min": [
+        2.2,
+        0.3,
+        -25.0
+      ],
+      "max": [
+        2.42,
+        3.5,
+        -21.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_starboard_2",
+      "min": [
+        2.2,
+        0.3,
+        -18.0
+      ],
+      "max": [
+        2.42,
+        3.5,
+        -13.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_starboard_3",
+      "min": [
+        2.2,
+        0.3,
+        -10.0
+      ],
+      "max": [
+        2.42,
+        3.5,
+        -5.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_starboard_4",
+      "min": [
+        2.2,
+        0.3,
+        -2.0
+      ],
+      "max": [
+        2.42,
+        3.5,
+        2.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_starboard_5",
+      "min": [
+        2.2,
+        0.3,
+        5.0
+      ],
+      "max": [
+        2.42,
+        3.5,
+        20.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "spine_ceiling",
+      "min": [
+        -2.42,
+        3.5,
+        -31.7
+      ],
+      "max": [
+        2.42,
+        3.75,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_partition_0",
+      "min": [
+        -6.0,
+        0.3,
+        -31.7
+      ],
+      "max": [
+        -5.78,
+        3.5,
+        -28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_partition_1",
+      "min": [
+        -6.0,
+        0.3,
+        -25.0
+      ],
+      "max": [
+        -5.78,
+        3.5,
+        -17.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_partition_2",
+      "min": [
+        -6.0,
+        0.3,
+        -14.0
+      ],
+      "max": [
+        -5.78,
+        3.5,
+        -6.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_partition_3",
+      "min": [
+        -6.0,
+        0.3,
+        -3.0
+      ],
+      "max": [
+        -5.78,
+        3.5,
+        6.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_partition_4",
+      "min": [
+        -6.0,
+        0.3,
+        9.0
+      ],
+      "max": [
+        -5.78,
+        3.5,
+        15.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_partition_5",
+      "min": [
+        -6.0,
+        0.3,
+        18.0
+      ],
+      "max": [
+        -5.78,
+        3.5,
+        20.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "service_ceiling",
+      "min": [
+        -9.78,
+        3.3000000000000003,
+        -31.7
+      ],
+      "max": [
+        -6.0,
+        3.5500000000000003,
+        20.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "port_hold_partition_n20",
+      "min": [
+        -5.78,
+        0.3,
+        -20.0
+      ],
+      "max": [
+        -2.42,
+        5.1000000000000005,
+        -19.78
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "port_hold_partition_n9",
+      "min": [
+        -5.78,
+        0.3,
+        -9.0
+      ],
+      "max": [
+        -2.42,
+        5.1000000000000005,
+        -8.78
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "port_hold_partition_1",
+      "min": [
+        -5.78,
+        0.3,
+        1.0
+      ],
+      "max": [
+        -2.42,
+        5.1000000000000005,
+        1.22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "port_hold_partition_12",
+      "min": [
+        -5.78,
+        0.3,
+        12.0
+      ],
+      "max": [
+        -2.42,
+        5.1000000000000005,
+        12.22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "starboard_hold_partition_n17",
+      "min": [
+        2.42,
+        0.3,
+        -17.0
+      ],
+      "max": [
+        9.78,
+        5.1000000000000005,
+        -16.78
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "starboard_hold_partition_n1",
+      "min": [
+        2.42,
+        0.3,
+        -1.0
+      ],
+      "max": [
+        9.78,
+        5.1000000000000005,
+        -0.78
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "records_aft_partition",
+      "min": [
+        2.42,
+        0.3,
+        19.0
+      ],
+      "max": [
+        9.78,
+        5.1000000000000005,
+        19.22
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bulkhead_port_n20",
+      "min": [
+        -2.2,
+        0.3,
+        -20.15
+      ],
+      "max": [
+        -1.93,
+        3.5,
+        -19.85
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_starboard_n20",
+      "min": [
+        1.93,
+        0.3,
+        -20.15
+      ],
+      "max": [
+        2.2,
+        3.5,
+        -19.85
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_header_n20",
+      "min": [
+        -1.93,
+        3.15,
+        -20.15
+      ],
+      "max": [
+        1.93,
+        3.5,
+        -19.85
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_port_n10",
+      "min": [
+        -2.2,
+        0.3,
+        -10.15
+      ],
+      "max": [
+        -1.93,
+        3.5,
+        -9.85
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_starboard_n10",
+      "min": [
+        1.93,
+        0.3,
+        -10.15
+      ],
+      "max": [
+        2.2,
+        3.5,
+        -9.85
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_header_n10",
+      "min": [
+        -1.93,
+        3.15,
+        -10.15
+      ],
+      "max": [
+        1.93,
+        3.5,
+        -9.85
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_port_0",
+      "min": [
+        -2.2,
+        0.3,
+        -0.15
+      ],
+      "max": [
+        -1.93,
+        3.5,
+        0.15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_starboard_0",
+      "min": [
+        1.93,
+        0.3,
+        -0.15
+      ],
+      "max": [
+        2.2,
+        3.5,
+        0.15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_header_0",
+      "min": [
+        -1.93,
+        3.15,
+        -0.15
+      ],
+      "max": [
+        1.93,
+        3.5,
+        0.15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_port_10",
+      "min": [
+        -2.2,
+        0.3,
+        9.85
+      ],
+      "max": [
+        -1.93,
+        3.5,
+        10.15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_starboard_10",
+      "min": [
+        1.93,
+        0.3,
+        9.85
+      ],
+      "max": [
+        2.2,
+        3.5,
+        10.15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bulkhead_header_10",
+      "min": [
+        -1.93,
+        3.15,
+        9.85
+      ],
+      "max": [
+        1.93,
+        3.5,
+        10.15
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "entry_boot_rack",
+      "min": [
+        -5.55,
+        0.3,
+        -31.3
+      ],
+      "max": [
+        -2.65,
+        1.65,
+        -30.75
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "armory_issue_counter",
+      "min": [
+        -5.55,
+        0.3,
+        -23.3
+      ],
+      "max": [
+        -3.7,
+        1.45,
+        -22.4
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "uniform_press",
+      "min": [
+        8.65,
+        0.3,
+        -30.7
+      ],
+      "max": [
+        9.5,
+        2.8000000000000003,
+        -28.5
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "crew_mess_table",
+      "min": [
+        5.2,
+        0.3,
+        -25.0
+      ],
+      "max": [
+        7.1000000000000005,
+        1.15,
+        -23.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crew_bunk_fore",
+      "min": [
+        8.700000000000001,
+        0.3,
+        -23.0
+      ],
+      "max": [
+        9.5,
+        2.2,
+        -19.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "crew_port_locker",
+      "min": [
+        -5.5,
+        0.3,
+        -18.8
+      ],
+      "max": [
+        -4.9,
+        2.6,
+        -16.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "crew_port_bench",
+      "min": [
+        -5.5,
+        0.3,
+        -12.3
+      ],
+      "max": [
+        -3.2,
+        0.8,
+        -11.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "service_power_bank",
+      "min": [
+        -5.5,
+        0.3,
+        -8.3
+      ],
+      "max": [
+        -4.6000000000000005,
+        2.65,
+        -5.8
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "service_coolant_bank",
+      "min": [
+        -5.5,
+        0.3,
+        -2.1
+      ],
+      "max": [
+        -4.6000000000000005,
+        2.65,
+        0.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "custody_restraint_bench_0",
+      "min": [
+        8.8,
+        0.3,
+        -14.0
+      ],
+      "max": [
+        9.5,
+        0.85,
+        -12.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "custody_partition_0",
+      "min": [
+        6.1000000000000005,
+        0.3,
+        -12.0
+      ],
+      "max": [
+        9.5,
+        1.85,
+        -11.8
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "custody_restraint_bench_1",
+      "min": [
+        8.8,
+        0.3,
+        -10.0
+      ],
+      "max": [
+        9.5,
+        0.85,
+        -8.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "custody_partition_1",
+      "min": [
+        6.1000000000000005,
+        0.3,
+        -8.0
+      ],
+      "max": [
+        9.5,
+        1.85,
+        -7.8
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "custody_restraint_bench_2",
+      "min": [
+        8.8,
+        0.3,
+        -6.0
+      ],
+      "max": [
+        9.5,
+        0.85,
+        -4.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "custody_partition_2",
+      "min": [
+        6.1000000000000005,
+        0.3,
+        -4.0
+      ],
+      "max": [
+        9.5,
+        1.85,
+        -3.8
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "transfer_registry_desk",
+      "min": [
+        3.5,
+        0.3,
+        -15.4
+      ],
+      "max": [
+        5.1000000000000005,
+        1.4,
+        -14.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "records_rack_0",
+      "min": [
+        4.6000000000000005,
+        0.3,
+        6.0
+      ],
+      "max": [
+        7.6,
+        2.95,
+        6.65
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "records_rack_1",
+      "min": [
+        4.6000000000000005,
+        0.3,
+        10.0
+      ],
+      "max": [
+        7.6,
+        2.95,
+        10.65
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "records_rack_2",
+      "min": [
+        4.6000000000000005,
+        0.3,
+        14.0
+      ],
+      "max": [
+        7.6,
+        2.95,
+        14.65
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "sealed_records_desk",
+      "min": [
+        8.65,
+        0.3,
+        16.0
+      ],
+      "max": [
+        9.5,
+        1.4,
+        18.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "port_workbench",
+      "min": [
+        -5.5,
+        0.3,
+        2.0
+      ],
+      "max": [
+        -4.6000000000000005,
+        1.35,
+        4.7
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "port_equipment_cage",
+      "min": [
+        -5.5,
+        0.3,
+        10.0
+      ],
+      "max": [
+        -4.5,
+        2.8000000000000003,
+        11.5
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "bridge_step_0",
+      "min": [
+        -1.65,
+        0.3,
+        18.0
+      ],
+      "max": [
+        1.65,
+        0.5,
+        19.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_step_1",
+      "min": [
+        -1.65,
+        0.3,
+        19.0
+      ],
+      "max": [
+        1.65,
+        0.7000000000000001,
+        20.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_step_2",
+      "min": [
+        -1.65,
+        0.3,
+        20.0
+      ],
+      "max": [
+        1.65,
+        0.9,
+        21.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_step_3",
+      "min": [
+        -1.65,
+        0.3,
+        21.0
+      ],
+      "max": [
+        1.65,
+        1.1,
+        22.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_step_4",
+      "min": [
+        -1.65,
+        0.3,
+        22.0
+      ],
+      "max": [
+        1.65,
+        1.3,
+        23.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_step_5",
+      "min": [
+        -1.65,
+        0.3,
+        23.0
+      ],
+      "max": [
+        1.65,
+        1.5,
+        24.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_raised_deck",
+      "min": [
+        -9.78,
+        1.2,
+        24.0
+      ],
+      "max": [
+        9.78,
+        1.5,
+        31.7
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_port_return_step_0",
+      "min": [
+        -9.78,
+        0.3,
+        20.0
+      ],
+      "max": [
+        -6.3,
+        0.5,
+        21.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_port_return_step_1",
+      "min": [
+        -9.78,
+        0.3,
+        21.0
+      ],
+      "max": [
+        -6.3,
+        0.7000000000000001,
+        22.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_port_return_step_2",
+      "min": [
+        -9.78,
+        0.3,
+        22.0
+      ],
+      "max": [
+        -6.3,
+        0.9,
+        23.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_port_return_step_3",
+      "min": [
+        -9.78,
+        0.3,
+        23.0
+      ],
+      "max": [
+        -6.3,
+        1.1,
+        24.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_port_return_step_4",
+      "min": [
+        -9.78,
+        0.3,
+        24.0
+      ],
+      "max": [
+        -6.3,
+        1.3,
+        25.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_port_return_step_5",
+      "min": [
+        -9.78,
+        0.3,
+        25.0
+      ],
+      "max": [
+        -6.3,
+        1.5,
+        26.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_command_console",
+      "min": [
+        -1.5,
+        1.5,
+        28.9
+      ],
+      "max": [
+        1.5,
+        2.65,
+        30.3
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "bridge_port_console",
+      "min": [
+        -8.6,
+        1.5,
+        28.9
+      ],
+      "max": [
+        -6.3,
+        2.5,
+        30.3
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bridge_starboard_console",
+      "min": [
+        6.3,
+        1.5,
+        29.6
+      ],
+      "max": [
+        8.6,
+        2.5,
+        30.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "port_window_sill",
+      "min": [
+        -10.0,
+        0.3,
+        -26.0
+      ],
+      "max": [
+        -9.78,
+        1.2,
+        31.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "port_window_header",
+      "min": [
+        -10.0,
+        3.2,
+        -26.0
+      ],
+      "max": [
+        -9.78,
+        5.4,
+        31.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "port_window_stile_0",
+      "min": [
+        -10.0,
+        1.2,
+        -26.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        -24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_observation_0",
+      "min": [
+        -10.0,
+        1.2,
+        -24.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        -20.0
+      ],
+      "surface": "inspection_glass"
+    },
+    {
+      "id": "port_window_stile_1",
+      "min": [
+        -10.0,
+        1.2,
+        -20.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        -10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_observation_1",
+      "min": [
+        -10.0,
+        1.2,
+        -10.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        -6.0
+      ],
+      "surface": "inspection_glass"
+    },
+    {
+      "id": "port_window_stile_2",
+      "min": [
+        -10.0,
+        1.2,
+        -6.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        4.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_observation_2",
+      "min": [
+        -10.0,
+        1.2,
+        4.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        8.0
+      ],
+      "surface": "inspection_glass"
+    },
+    {
+      "id": "port_window_stile_3",
+      "min": [
+        -10.0,
+        1.2,
+        8.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        13.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_observation_3",
+      "min": [
+        -10.0,
+        1.2,
+        13.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        17.0
+      ],
+      "surface": "inspection_glass"
+    },
+    {
+      "id": "port_window_stile_4",
+      "min": [
+        -10.0,
+        1.2,
+        17.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "carrier_observation_4",
+      "min": [
+        -10.0,
+        1.2,
+        25.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        29.0
+      ],
+      "surface": "inspection_glass"
+    },
+    {
+      "id": "port_window_stile_5",
+      "min": [
+        -10.0,
+        1.2,
+        29.0
+      ],
+      "max": [
+        -9.78,
+        3.2,
+        31.7
+      ],
+      "surface": "enamel"
+    }
+  ],
+  "decorations": [
+    {
+      "solid": "spine_port_0",
+      "center": [
+        0.0,
+        0.0
+      ],
+      "face": "east",
+      "size": [
+        1.2,
+        0.2
+      ],
+      "kind": "strip_light"
+    },
+    {
+      "solid": "spine_starboard_2",
+      "center": [
+        0.0,
+        0.0
+      ],
+      "face": "west",
+      "size": [
+        1.2,
+        0.2
+      ],
+      "kind": "strip_light"
+    },
+    {
+      "solid": "pressure_stern",
+      "center": [
+        4.0,
+        -0.7
+      ],
+      "face": "north",
+      "size": [
+        1.2,
+        0.2
+      ],
+      "kind": "strip_light"
+    }
+  ],
+  "spawns": [
+    {
+      "id": "entry_umbilical",
+      "feet": [
+        -16.0,
+        0.3,
+        -27.5
+      ],
+      "yaw": 0.0
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "entry_armory",
+      "feet": [
+        -4.0,
+        0.3,
+        -26.5
+      ]
+    },
+    {
+      "id": "spine_lesson",
+      "feet": [
+        0.0,
+        0.3,
+        -23.0
+      ]
+    },
+    {
+      "id": "crew_mess",
+      "feet": [
+        4.0,
+        0.3,
+        -22.0
+      ]
+    },
+    {
+      "id": "transfer_hold",
+      "feet": [
+        4.0,
+        0.3,
+        -8.0
+      ]
+    },
+    {
+      "id": "records_room",
+      "feet": [
+        3.5,
+        0.3,
+        12.0
+      ]
+    },
+    {
+      "id": "service_flank",
+      "feet": [
+        -8.0,
+        0.3,
+        0.0
+      ]
+    },
+    {
+      "id": "bridge",
+      "feet": [
+        3.0,
+        1.500000047683716,
+        27.0
+      ]
+    },
+    {
+      "id": "stern_return",
+      "feet": [
+        16.0,
+        1.500000047683716,
+        27.5
+      ]
+    }
+  ],
+  "supplies": [
+    {
+      "id": "armory_shells",
+      "feet": [
+        -4.699999809265137,
+        0.3,
+        -24.299999237060547
+      ],
+      "claim": "contested",
+      "secret": false,
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 12
+      }
+    },
+    {
+      "id": "crew_medical",
+      "feet": [
+        8.0,
+        0.3,
+        -26.0
+      ],
+      "claim": "contested",
+      "secret": false,
+      "grant": {
+        "kind": "health",
+        "amount": 30
+      }
+    },
+    {
+      "id": "locker_armor",
+      "feet": [
+        -3.299999952316284,
+        0.3,
+        -18.5
+      ],
+      "claim": "contested",
+      "secret": true,
+      "grant": {
+        "kind": "armor",
+        "amount": 50
+      }
+    },
+    {
+      "id": "crawlway_shells",
+      "feet": [
+        -8.0,
+        0.3,
+        8.0
+      ],
+      "claim": "contested",
+      "secret": true,
+      "grant": {
+        "kind": "ammo",
+        "pool": "shells",
+        "amount": 8
+      }
+    },
+    {
+      "id": "purser_cells",
+      "feet": [
+        8.0,
+        0.3,
+        -30.5
+      ],
+      "claim": "contested",
+      "secret": true,
+      "grant": {
+        "kind": "ammo",
+        "pool": "cells",
+        "amount": 6
+      }
+    },
+    {
+      "id": "bridge_medical",
+      "feet": [
+        4.0,
+        1.500000047683716,
+        29.0
+      ],
+      "claim": "contested",
+      "secret": false,
+      "grant": {
+        "kind": "health",
+        "amount": 30
+      }
+    },
+    {
+      "id": "armory_remotes",
+      "feet": [
+        -4.0,
+        0.3,
+        -25.0
+      ],
+      "claim": "personal",
+      "secret": false,
+      "grant": {
+        "kind": "remote_mine",
+        "amount": 4
+      }
+    },
+    {
+      "id": "crawlway_remotes",
+      "feet": [
+        -8.0,
+        0.3,
+        10.0
+      ],
+      "claim": "personal",
+      "secret": true,
+      "grant": {
+        "kind": "remote_mine",
+        "amount": 2
+      }
+    }
+  ],
+  "m11": {
+    "objectives": [
+      {
+        "id": "armory_found",
+        "approach": [
+          -4.0,
+          0.3,
+          -24.3
+        ],
+        "arrival": {
+          "min": [
+            -4.9,
+            0.2,
+            -25.2
+          ],
+          "max": [
+            -3.1,
+            0.8999999999999999,
+            -23.4
+          ]
+        }
+      },
+      {
+        "id": "spine_secured",
+        "approach": [
+          0.0,
+          0.3,
+          -17.5
+        ],
+        "arrival": {
+          "min": [
+            -0.9,
+            0.2,
+            -18.4
+          ],
+          "max": [
+            0.9,
+            0.8999999999999999,
+            -16.6
+          ]
+        },
+        "requires_encounter": "spine_patrol"
+      },
+      {
+        "id": "holds_secured",
+        "approach": [
+          4.0,
+          0.3,
+          -8.0
+        ],
+        "arrival": {
+          "min": [
+            3.1,
+            0.2,
+            -8.9
+          ],
+          "max": [
+            4.9,
+            0.8999999999999999,
+            -7.1
+          ]
+        },
+        "requires_encounter": "crew_holds"
+      },
+      {
+        "id": "records_secured",
+        "approach": [
+          3.5,
+          0.3,
+          12.0
+        ],
+        "arrival": {
+          "min": [
+            2.6,
+            0.2,
+            11.1
+          ],
+          "max": [
+            4.4,
+            0.8999999999999999,
+            12.9
+          ]
+        },
+        "requires_encounter": "records_redactor"
+      },
+      {
+        "id": "counter_boarders_secured",
+        "approach": [
+          0.0,
+          0.3,
+          14.0
+        ],
+        "arrival": {
+          "min": [
+            -0.9,
+            0.2,
+            13.1
+          ],
+          "max": [
+            0.9,
+            0.8999999999999999,
+            14.9
+          ]
+        },
+        "requires_encounter": "counter_boarders"
+      },
+      {
+        "id": "bridge_secured",
+        "approach": [
+          3.0,
+          1.5,
+          27.0
+        ],
+        "arrival": {
+          "min": [
+            2.1,
+            1.4000000000000001,
+            26.1
+          ],
+          "max": [
+            3.9,
+            2.1,
+            27.9
+          ]
+        },
+        "requires_encounter": "counter_boarders"
+      }
+    ],
+    "transfer_release": {
+      "panel": {
+        "solid": "transfer_registry_desk",
+        "face": "south",
+        "kind": "m11_transfer_release",
+        "center": [
+          0.0,
+          0.2
+        ],
+        "size": [
+          0.6,
+          0.4
+        ]
+      },
+      "approach": [
+        4.3,
+        0.3,
+        -13.5
+      ]
+    },
+    "records_document": {
+      "panel": {
+        "solid": "sealed_records_desk",
+        "face": "west",
+        "kind": "m11_records_document",
+        "center": [
+          0.0,
+          0.0
+        ],
+        "size": [
+          0.6,
+          0.4
+        ]
+      },
+      "approach": [
+        7.9,
+        0.3,
+        17.0
+      ]
+    },
+    "departure": {
+      "panel": {
+        "solid": "stern_carrier_threshold",
+        "face": "west",
+        "kind": "m11_stern_release",
+        "center": [
+          0.0,
+          -0.15
+        ],
+        "size": [
+          0.6,
+          0.4
+        ]
+      },
+      "approach": [
+        16.8,
+        1.5,
+        27.5
+      ]
+    },
+    "boarding": {
+      "min": [
+        15.5,
+        1.4,
+        26.2
+      ],
+      "max": [
+        17.4,
+        2.1,
+        28.8
+      ]
+    },
+  "companion_start": [
+    -14.0,
+    0.3,
+    -28.25
+    ],
+    "transfer_people": [
+      [
+        8.0,
+        0.3,
+        -13.0
+      ],
+      [
+        8.0,
+        0.3,
+        -9.0
+      ],
+      [
+        8.0,
+        0.3,
+        -5.0
+      ]
+    ],
+    "spine_patrol": {
+      "from": [
+        0.0,
+        0.3,
+        -22.0
+      ],
+      "to": [
+        0.0,
+        0.3,
+        -13.0
+      ],
+      "cycle_ticks": 320,
+      "spacing": 1.4
+    }
+  },
+  "encounters": [
+    {
+      "id": "spine_patrol",
+      "regions": [
+        {
+          "min": [
+            -6.0,
+            0.2,
+            -25.0
+          ],
+          "max": [
+            -3.0,
+            1.0,
+            -22.0
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "spine_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            0.0,
+            0.3,
+            -22.0
+          ],
+          "yaw": 1.57079632679
+        },
+        {
+          "id": "spine_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            0.0,
+            0.3,
+            -23.4
+          ],
+          "yaw": 1.57079632679
+        },
+        {
+          "id": "spine_clerk_c",
+          "kind": "clerk",
+          "feet": [
+            0.0,
+            0.3,
+            -24.8
+          ],
+          "yaw": 1.57079632679
+        }
+      ]
+    },
+    {
+      "id": "crew_holds",
+      "after": "spine_patrol",
+      "regions": [
+        {
+          "min": [
+            2.42,
+            0.2,
+            -28.0
+          ],
+          "max": [
+            9.5,
+            1.0,
+            -2.0
+          ]
+        },
+        {
+          "min": [
+            -9.0,
+            0.2,
+            -13.0
+          ],
+          "max": [
+            2.2,
+            1.0,
+            0.0
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "mess_sweeper",
+          "kind": "sweeper",
+          "feet": [
+            6.0,
+            0.3,
+            -22.0
+          ],
+          "yaw": 1.57079632679
+        },
+        {
+          "id": "transfer_sweeper",
+          "kind": "sweeper",
+          "feet": [
+            4.0,
+            0.3,
+            -12.0
+          ],
+          "yaw": 1.57079632679
+        },
+        {
+          "id": "spine_turret",
+          "kind": "turret",
+          "feet": [
+            -1.2,
+            0.3,
+            -7.0
+          ],
+          "yaw": 1.57079632679
+        }
+      ]
+    },
+    {
+      "id": "records_redactor",
+      "after": "crew_holds",
+      "regions": [
+        {
+          "min": [
+            2.42,
+            0.2,
+            2.0
+          ],
+          "max": [
+            9.5,
+            1.0,
+            18.8
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "records_redactor_a",
+          "kind": "redactor",
+          "feet": [
+            8.0,
+            0.3,
+            9.0
+          ],
+          "yaw": 3.14159265359
+        }
+      ]
+    },
+    {
+      "id": "counter_boarders",
+      "after": "records_redactor",
+      "regions": [
+        {
+          "min": [
+            2.42,
+            0.2,
+            2.0
+          ],
+          "max": [
+            9.5,
+            1.0,
+            18.8
+          ]
+        },
+        {
+          "min": [
+            -9.0,
+            0.2,
+            9.0
+          ],
+          "max": [
+            2.2,
+            1.0,
+            17.8
+          ]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "counter_clerk_a",
+          "kind": "clerk",
+          "feet": [
+            0.0,
+            0.3,
+            11.8
+          ],
+          "yaw": 4.71238898038
+        },
+        {
+          "id": "counter_clerk_b",
+          "kind": "clerk",
+          "feet": [
+            0.0,
+            0.3,
+            13.2
+          ],
+          "yaw": 4.71238898038
+        },
+        {
+          "id": "counter_clerk_c",
+          "kind": "clerk",
+          "feet": [
+            0.0,
+            0.3,
+            14.6
+          ],
+          "yaw": 4.71238898038
+        },
+        {
+          "id": "counter_sweeper_a",
+          "kind": "sweeper",
+          "feet": [
+            -1.2,
+            0.3,
+            16.0
+          ],
+          "yaw": 4.71238898038
+        },
+        {
+          "id": "counter_sweeper_b",
+          "kind": "sweeper",
+          "feet": [
+            1.2,
+            0.3,
+            16.0
+          ],
+          "yaw": 4.71238898038
+        },
+        {
+          "id": "counter_enforcer",
+          "kind": "enforcer",
+          "feet": [
+            0.0,
+            0.3,
+            17.2
+          ],
+          "yaw": 4.71238898038
+        }
+      ]
+    }
+  ]
+}

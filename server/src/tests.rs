@@ -59,7 +59,9 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
         socket
             .send(Message::Text(
                 serde_json::json!({
-                    "type": "hello", "role": role, "name": "MapProbe"
+                    "type": "hello", "role": role, "name": "MapProbe",
+                    "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+                    "geometry_version": crate::protocol::GEOMETRY_VERSION,
                 })
                 .to_string(),
             ))
@@ -183,6 +185,7 @@ fn test_protocol_server_message_welcome() {
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         resume: None,
+        duck: false,
     };
     let json = serde_json::to_string(&welcome).unwrap();
     assert!(json.contains(r#""type":"welcome""#));
@@ -195,6 +198,7 @@ fn test_protocol_server_message_welcome() {
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         resume: None,
+        duck: false,
     };
     let json = serde_json::to_string(&welcome_spectator).unwrap();
     assert!(json.contains(r#""player_id":null"#));
@@ -378,6 +382,7 @@ fn test_protocol_game_event_player_left() {
 #[test]
 fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
+        vehicles: Vec::new(),
         team_scores: None,
         flags: None,
         capture_scores: None,
@@ -387,6 +392,7 @@ fn test_protocol_snapshot_serialization() {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -402,6 +408,11 @@ fn test_protocol_snapshot_serialization() {
             just_fired: false,
             behavior: None,
             score: 5,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }],
         round_state: Some("Active".to_string()),
@@ -411,6 +422,7 @@ fn test_protocol_snapshot_serialization() {
         projectiles: vec![],
         grenades: Vec::new(),
         mines: Vec::new(),
+        remote_mines: Vec::new(),
         auditors: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
@@ -429,6 +441,7 @@ fn test_protocol_snapshot_serialization() {
         episode_phase: None,
         jammer_dish: None,
         sabotage: None,
+        conquest: None,
     };
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tick"], 123);
@@ -438,6 +451,7 @@ fn test_protocol_snapshot_serialization() {
 #[test]
 fn test_protocol_snapshot_empty_players() {
     let snapshot = Snapshot {
+        vehicles: Vec::new(),
         team_scores: None,
         flags: None,
         capture_scores: None,
@@ -451,6 +465,7 @@ fn test_protocol_snapshot_empty_players() {
         projectiles: vec![],
         grenades: Vec::new(),
         mines: Vec::new(),
+        remote_mines: Vec::new(),
         auditors: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
@@ -469,6 +484,7 @@ fn test_protocol_snapshot_empty_players() {
         episode_phase: None,
         jammer_dish: None,
         sabotage: None,
+        conquest: None,
     };
     let json = serde_json::to_string(&snapshot).unwrap();
     assert!(json.contains(r#""tick":0"#));
@@ -560,6 +576,116 @@ fn test_sim_bot_controller_balanced() {
     let action = bot.update(&state);
 
     assert!(action.forward || action.turn_left || action.turn_right);
+}
+
+#[test]
+fn a_rule_bot_does_not_chase_a_parked_pawn() {
+    let mut state = GameState::new();
+    state.start_round();
+    let bot_id = Uuid::new_v4();
+    let ghost_id = Uuid::new_v4();
+    let live_id = Uuid::new_v4();
+    state.add_player(bot_id, "Bot".into(), Role::Agent);
+    state.add_player(ghost_id, "Parked".into(), Role::Human);
+    state.add_player(live_id, "Live".into(), Role::Human);
+    for player in &mut state.players {
+        player.weapon = WeaponType::Rail;
+        if player.id == bot_id {
+            player.x = 0.0;
+            player.z = 0.0;
+            player.yaw = 0.0;
+        } else if player.id == ghost_id {
+            player.x = 3.0;
+            player.z = 0.0;
+            player.detached = true;
+        } else if player.id == live_id {
+            player.x = 8.0;
+            player.z = 0.0;
+        }
+    }
+    let bot = BotController::new(bot_id, BotBehavior::Aggressive);
+    for tick in 0..2 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&bot));
+    }
+    let intent = bot.intent(&state);
+    let goal = intent.goal.expect("the living fighter is still a target");
+    assert!(
+        (goal.feet[0] - 8.0).abs() < 1.0 && goal.feet[2].abs() < 1.0,
+        "chased the parked pawn at {:?}",
+        goal.feet
+    );
+
+    state.players.retain(|player| player.id != live_id);
+    let idle = bot.intent(&state);
+    assert!(idle.goal.is_none_or(|goal| !goal.combat));
+    assert!(!idle.action.fire);
+}
+
+#[test]
+fn a_parked_pawn_does_not_take_a_pad() {
+    let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    state.add_player(Uuid::from_u128(1), "Parked".into(), Role::Human);
+    state.add_player(Uuid::from_u128(2), "Live".into(), Role::Human);
+    state.start_round();
+    let pad = state
+        .pickups
+        .iter()
+        .find(|pad| pad.available && matches!(pad.kind, crate::sim::PickupKind::Weapon(_)))
+        .expect("arena duel has a weapon pad");
+    let (px, pz, floor, id) = (pad.x, pad.z, pad.floor, pad.id.clone());
+    {
+        let parked = state
+            .players
+            .iter_mut()
+            .find(|player| player.name == "Parked")
+            .unwrap();
+        parked.x = px;
+        parked.z = pz;
+        parked.y = crate::sim::PLAYER_FLOOR_Y + floor;
+        parked.detached = true;
+    }
+    {
+        let live = state
+            .players
+            .iter_mut()
+            .find(|player| player.name == "Live")
+            .unwrap();
+        live.x = px + 40.0;
+        live.z = pz + 40.0;
+        live.y = crate::sim::PLAYER_FLOOR_Y;
+    }
+    state.tick(0.05);
+    let pad = state.pickups.iter().find(|pad| pad.id == id).unwrap();
+    assert!(pad.available, "parked pawn took {id}");
+}
+
+#[test]
+fn a_parked_pawn_does_not_take_the_golden_rail() {
+    let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    state.add_player(Uuid::from_u128(1), "Parked".into(), Role::Human);
+    state.start_round();
+    state.golden_rail = Some(crate::sim::GoldenRail {
+        x: 12.0,
+        y: 0.4,
+        z: -6.0,
+        floor: 0.0,
+        holder: None,
+    });
+    {
+        let parked = &mut state.players[0];
+        parked.x = 12.0;
+        parked.z = -6.0;
+        parked.y = crate::sim::PLAYER_FLOOR_Y;
+        parked.detached = true;
+    }
+    state.tick(0.05);
+    assert!(state.golden_rail.as_ref().unwrap().holder.is_none());
+    assert!(!state.players[0].golden);
 }
 
 #[test]
@@ -1051,10 +1177,9 @@ fn test_net_game_command_action() {
 #[test]
 fn test_net_client_session_structure() {
     use crate::net::ClientSession;
-    use tokio::sync::mpsc;
 
     let id = Uuid::new_v4();
-    let (tx, _rx) = mpsc::channel(2);
+    let (tx, _rx) = crate::net::outbound_channel(2);
 
     let session = ClientSession::new(id, tx, crate::protocol::GAMEPLAY_VERSION);
 
@@ -1815,10 +1940,20 @@ fn test_rail_higher_damage_than_flechette() {
 
     state.players[target_idx].x = 5.0;
     state.players[target_idx].z = 0.0;
+    state.players[target_idx].y = state.players[shooter_idx].y;
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
     state.players[shooter_idx].yaw = 0.0;
     state.players[shooter_idx].weapon = WeaponType::Rail;
+    // A level shot is the face. This check is the body number, so aim at the chest.
+    let feet = state.players[target_idx].y - crate::sim::PLAYER_FLOOR_Y;
+    let eye_y = feet + crate::movement::EYE_HEIGHT;
+    state.players[shooter_idx].pitch = crate::combat::aim_at(
+        [0.0, eye_y, 0.0],
+        [5.0, feet + crate::combat::TORSO_HEIGHT, 0.0],
+    )
+    .unwrap()
+    .1;
 
     let initial_hp = state.players[target_idx].hp;
 
@@ -1896,7 +2031,11 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
                 .sum::<f32>()
                 .sqrt();
             assert!(travelled > 4.4, "pellets stop on the near body surface");
-            WeaponType::Scatter.damage_at(travelled)
+            crate::combat::traced_damage(
+                WeaponType::Scatter,
+                WeaponType::Scatter.damage_at(travelled),
+                crate::combat::head_hit_for(0.0, pellet.end[1], None, false),
+            )
         })
         .sum();
     assert_eq!(
@@ -1907,9 +2046,20 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
         damage_dealt > WeaponType::Flechette.damage(),
         "up close the scatter gun should hit harder than the flechette"
     );
+    let body_sum: i32 = trace
+        .pellets
+        .iter()
+        .map(|pellet| {
+            let travelled = (0..3)
+                .map(|axis| (pellet.end[axis] - trace.origin[axis]).powi(2))
+                .sum::<f32>()
+                .sqrt();
+            WeaponType::Scatter.damage_at(travelled)
+        })
+        .sum();
     assert!(
-        damage_dealt < WeaponType::Scatter.damage() * WeaponType::Scatter.pellets() as i32,
-        "and less than point blank, because it falls off"
+        body_sum < WeaponType::Scatter.damage() * WeaponType::Scatter.pellets() as i32,
+        "falloff keeps the body total under a point-blank blast, got {body_sum}"
     );
 }
 
@@ -2361,7 +2511,9 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
             mode_name,
             playlist,
             resume: _,
+            duck,
         } => {
+            assert!(duck);
             assert_eq!(mode_name, default_mode_name());
             assert_eq!(playlist, default_playlist());
         }
@@ -2416,6 +2568,8 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::CancelAutoJoin { .. } => "CancelAutoJoin".into(),
         crate::net::GameCommand::AbortResume { .. } => "AbortResume".into(),
         crate::net::GameCommand::NoteSeat { .. } => "NoteSeat".into(),
+        crate::net::GameCommand::NoteClientVersion { .. } => "NoteClientVersion".into(),
+        crate::net::GameCommand::Board { .. } => "Board".into(),
     }
 }
 
@@ -2460,7 +2614,9 @@ async fn test_net_ws_spectator_hello_no_player_id() {
             mode_name,
             playlist,
             resume: _,
+            duck,
         } => {
+            assert!(duck);
             assert_eq!(mode_name, default_mode_name());
             assert_eq!(playlist, default_playlist());
         }
@@ -2481,6 +2637,26 @@ async fn test_net_ws_spectator_hello_no_player_id() {
             name,
             ..
         } => assert_eq!(name, "Eyes"),
+        other => panic!("{}", other_debug(&other)),
+    }
+
+    sink.send(Message::Text(r#"{"type":"board","op":"list"}"#.into()))
+        .await
+        .unwrap();
+    let asked = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    match asked {
+        GameCommand::Board {
+            op: crate::protocol::BoardOp::List,
+            board: None,
+            text: None,
+            ..
+        } => {}
         other => panic!("{}", other_debug(&other)),
     }
 }
@@ -2571,6 +2747,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
     {
         use crate::session::broadcast_to_clients;
         let snap = ServerMessage::Snapshot(Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -2584,6 +2761,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
@@ -2602,6 +2780,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         });
         broadcast_to_clients(&clients, &[snap]).await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
@@ -2918,6 +3097,69 @@ fn test_shot_results_hit_and_hit_event() {
 }
 
 #[test]
+fn a_level_shot_at_the_face_doubles_and_a_chest_shot_does_not() {
+    use crate::combat::{aim_at, HEAD_DAMAGE_SCALE, TORSO_HEIGHT};
+    use crate::movement::EYE_HEIGHT;
+    use crate::sim::PLAYER_FLOOR_Y;
+
+    let shoot = |pitch: Option<f32>, weapon: WeaponType, gap: f32| -> i32 {
+        let mut state = GameState::new();
+        state.start_round();
+        let shooter_id = Uuid::new_v4();
+        let target_id = Uuid::new_v4();
+        state.add_player(shooter_id, "Shooter".into(), Role::Agent);
+        state.add_player(target_id, "Victim".into(), Role::Agent);
+        let shooter_idx = state
+            .players
+            .iter()
+            .position(|p| p.id == shooter_id)
+            .unwrap();
+        let target_idx = state
+            .players
+            .iter()
+            .position(|p| p.id == target_id)
+            .unwrap();
+        state.players[shooter_idx].x = 0.0;
+        state.players[shooter_idx].z = 0.0;
+        state.players[shooter_idx].yaw = 0.0;
+        state.players[shooter_idx].weapon = weapon;
+        state.players[target_idx].x = gap;
+        state.players[target_idx].z = 0.0;
+        state.players[target_idx].y = state.players[shooter_idx].y;
+        let pitched = pitch.unwrap_or_else(|| {
+            let feet = state.players[target_idx].y - PLAYER_FLOOR_Y;
+            let eye = state.players[shooter_idx].y - PLAYER_FLOOR_Y + EYE_HEIGHT;
+            aim_at([0.0, eye, 0.0], [gap, feet + TORSO_HEIGHT, 0.0])
+                .unwrap()
+                .1
+        });
+        state.players[shooter_idx].pitch = pitched;
+        let before = state.players[target_idx].hp;
+        state.set_action(
+            shooter_id,
+            Action {
+                fire: true,
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        before - state.players.iter().find(|p| p.id == target_id).unwrap().hp
+    };
+
+    let body = WeaponType::Rail.damage();
+    assert_eq!(
+        shoot(None, WeaponType::Rail, 8.0),
+        body,
+        "a chest aim stays a body shot"
+    );
+    assert_eq!(
+        shoot(Some(0.0), WeaponType::Rail, 8.0),
+        body * HEAD_DAMAGE_SCALE,
+        "a level shot at the face doubles"
+    );
+}
+
+#[test]
 fn test_shot_results_miss() {
     use std::f32::consts::PI;
     let mut state = GameState::new();
@@ -3133,6 +3375,7 @@ fn test_welcome_includes_mode_identity() {
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         resume: None,
+        duck: false,
     };
     let json = serde_json::to_value(&welcome).unwrap();
     assert_eq!(json["mode_name"], "Contested Frequency");
@@ -3535,6 +3778,76 @@ fn test_sim_pickup_claim_changes_weapon_and_emits_event() {
     let rail = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
     assert!(!rail.available);
     assert_eq!(rail.respawn_timer, Some(PICKUP_RESPAWN_TICKS));
+}
+
+#[test]
+fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
+    let mut state = GameState::new();
+    state.start_round();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    state.arm_joined_magazines(id);
+    let before = state.players[0]
+        .inventory
+        .state(id, WeaponType::Rail, 0)
+        .unwrap();
+    assert_eq!(before.ammo(crate::protocol::AmmoPool::Cells), 16);
+    assert_eq!(before.shots(WeaponType::Rail), Some(4));
+    stand_on_pad(&mut state, id, "pad_rail");
+    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
+        p.weapon = WeaponType::Flechette;
+    }
+    state.tick(0.05);
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(
+        player.weapon,
+        WeaponType::Flechette,
+        "the pad restocks the bag and leaves the gun in hand"
+    );
+    let after = player
+        .inventory
+        .state(id, WeaponType::Rail, state.tick)
+        .unwrap();
+    assert_eq!(after.ammo(crate::protocol::AmmoPool::Cells), 26);
+    assert_eq!(
+        after.shots(WeaponType::Rail),
+        Some(4),
+        "the pad fills the bag, and R still loads the gun"
+    );
+    let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    assert!(!pad.available);
+}
+
+#[test]
+fn a_full_arcade_bag_leaves_the_weapon_pad() {
+    let mut state = GameState::new();
+    state.start_round();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    state.arm_joined_magazines(id);
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.weapon = WeaponType::Flechette;
+        while player.inventory.grant_weapon(WeaponType::Rail) {}
+    }
+    let full = state.players[0]
+        .inventory
+        .state(id, WeaponType::Rail, 0)
+        .unwrap();
+    assert_eq!(full.ammo(crate::protocol::AmmoPool::Cells), 100);
+    assert_eq!(full.shots(WeaponType::Rail), Some(4));
+    stand_on_pad(&mut state, id, "pad_rail");
+    state.tick(0.05);
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(player.weapon, WeaponType::Flechette);
+    let after = player
+        .inventory
+        .state(id, WeaponType::Rail, state.tick)
+        .unwrap();
+    assert_eq!(after.ammo(crate::protocol::AmmoPool::Cells), 100);
+    assert_eq!(after.shots(WeaponType::Rail), Some(4));
+    let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    assert!(pad.available, "a full bag does not eat the pad");
 }
 
 #[test]
@@ -4172,14 +4485,19 @@ fn test_bot_rail_holds_long_lane() {
         .unwrap();
 
     state.players[bot_idx].weapon = WeaponType::Rail;
-    state.players[bot_idx].x = 0.0;
-    state.players[bot_idx].z = 0.0;
+    let (lane_z, span) = clear_lane(25.0);
+    state.players[bot_idx].x = -span * 0.5;
+    state.players[bot_idx].z = lane_z;
     state.players[bot_idx].yaw = 0.0;
     // Target inside Rail preferred band (~25u).
-    state.players[target_idx].x = 25.0;
-    state.players[target_idx].z = 0.0;
+    state.players[target_idx].x = span * 0.5;
+    state.players[target_idx].z = lane_z;
 
     let bot = BotController::new(bot_id, BotBehavior::Defensive);
+    for tick in 0..2 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&bot));
+    }
     let action = bot.update(&state);
     // At preferred band, Defensive should strafe (not rush) and be willing to fire.
     assert!(
@@ -5751,6 +6069,48 @@ fn movement_ack_marks_inactive_and_respawned_body_boundaries() {
 }
 
 #[test]
+fn movement_ack_after_respawn_has_canonical_facing_before_new_input() {
+    for map in MapKind::ALL {
+        let mut state = GameState::with_map(map, false);
+        state.config.boss_spawn_ticks = None;
+        state.config.compliance_ping_ticks = None;
+        state.config.time_limit_ticks = None;
+        state.start_round();
+        let human = Uuid::from_u128(991);
+        state.add_player(human, "Respawn Probe".into(), Role::Human);
+        state.set_action(
+            human,
+            Action {
+                seq: Some(7),
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        for _ in 0..32 {
+            state.players[0].hp = 0;
+            state.players[0].respawn_timer = Some(1);
+            state.tick(0.05);
+            let ServerMessage::Ack {
+                yaw,
+                seq,
+                movement: Some(body),
+                ..
+            } = &state.input_acks()[0].1
+            else {
+                panic!("respawn must retain the last numbered input's baseline");
+            };
+            assert!(
+                (0.0..std::f32::consts::TAU).contains(yaw),
+                "{map:?} emitted yaw {yaw} before a new input"
+            );
+            assert_eq!(*seq, 7);
+            assert!(!body.applied);
+            assert_eq!(state.snapshot().players[0].yaw, *yaw);
+        }
+    }
+}
+
+#[test]
 fn movement_ack_reset_epoch_does_not_replay_historical_sequence() {
     let mut state = GameState::new();
     state.start_round();
@@ -6273,23 +6633,43 @@ mod map_roster {
     fn every_map_has_a_full_pad_set_and_one_of_them_is_off_the_floor() {
         for map in MapKind::ALL {
             let pads = map.pickups();
-            assert_eq!(pads.len(), 6, "{} pad count", map.name());
-            for want in [
-                "pad_rail",
-                "pad_scatter",
-                "pad_flechette",
-                "pad_health_n",
-                "pad_health_s",
-                "pad_armor",
-            ] {
+            let (expected, ground): (&[&str], f32) = if map == MapKind::HoldfastAtoll {
+                (
+                    &[
+                        "harbour_scatter",
+                        "village_flechette",
+                        "airfield_rail",
+                        "server_sniper",
+                        "lighthouse_repeater",
+                        "west_clinic",
+                        "east_aid",
+                        "airfield_supplies",
+                    ],
+                    crate::maps::holdfast::LAND_HEIGHT,
+                )
+            } else {
+                (
+                    &[
+                        "pad_rail",
+                        "pad_scatter",
+                        "pad_flechette",
+                        "pad_health_n",
+                        "pad_health_s",
+                        "pad_armor",
+                    ],
+                    0.0,
+                )
+            };
+            assert_eq!(pads.len(), expected.len(), "{} pad count", map.name());
+            for want in expected {
                 assert!(
-                    pads.iter().any(|p| p.id == want),
+                    pads.iter().any(|p| p.id == *want),
                     "{} is missing {want}",
                     map.name()
                 );
             }
             assert!(
-                pads.iter().any(|p| p.floor > STEP_UP),
+                pads.iter().any(|p| p.floor > ground + STEP_UP),
                 "{} keeps every pad on the floor, so height buys nothing",
                 map.name()
             );
@@ -6650,7 +7030,12 @@ mod vertical_aim {
                 0.0 => {
                     assert!(matches!(trace.impact, ShotImpact::Fighter { .. }));
                     assert!((9.5..10.0).contains(&distance));
-                    assert!(result.hit && !result.killed);
+                    // A level ray from the eye is in the head band.
+                    assert!(result.hit && result.killed);
+                    assert_eq!(
+                        result.damage,
+                        WeaponType::Rail.damage() * crate::combat::HEAD_DAMAGE_SCALE
+                    );
                 }
                 p if p < 0.0 => {
                     assert_eq!(
@@ -6849,6 +7234,10 @@ mod vertical_aim {
     fn target_actions_and_rule_bots_aim_at_height_through_the_same_contract() {
         let (mut state, shooter, target) = pair(0.0, 4.0);
         let bot = BotController::new(shooter, BotBehavior::Aggressive);
+        for tick in 0..2 {
+            state.tick = tick;
+            state.update_bot_senses(std::slice::from_ref(&bot));
+        }
         let action = bot.update(&state);
         assert!(action.pitch.unwrap() > 0.2);
         state.set_action(
@@ -6959,6 +7348,7 @@ mod vertical_aim {
     }
 }
 mod auditor;
+mod duck;
 mod encounters;
 mod enforcer;
 mod heavy_turret;
@@ -6966,6 +7356,8 @@ mod jammer;
 mod m01;
 mod modes;
 mod pellets;
+mod redactor;
+mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;

@@ -22,8 +22,8 @@ pub(super) fn is_contested(claim: &SupplyClaim) -> bool {
     *claim == SupplyClaim::Contested
 }
 
-/// One count per ammunition type. There are no magazines: a shot spends one
-/// unit straight from the count, the way Doom does it.
+/// One count per ammunition type. That count is everything carried, including
+/// rounds sitting in a human's magazines. A shot still spends one unit.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AmmoPool {
@@ -43,6 +43,18 @@ impl AmmoPool {
             Self::Bullets => 200,
             Self::Shells => 50,
             Self::Cells => 100,
+        }
+    }
+
+    /// Spawn kit for an armed arcade human, including the loaded magazine.
+    /// Bullets 80 is one Flechette magazine plus 60. Shells 24 is one Scatter
+    /// tube plus 18. Cells 16 is one Rail magazine plus 12. Death restores
+    /// this kit. A weapon pad adds `pickup_rounds` on top, up to `capacity`.
+    pub const fn arcade_spawn(self) -> u16 {
+        match self {
+            Self::Bullets => 80,
+            Self::Shells => 24,
+            Self::Cells => 16,
         }
     }
 
@@ -93,6 +105,30 @@ impl WeaponType {
         }
     }
 
+    /// Rounds a human magazine holds. Melee has none. Absent on an unarmed pawn.
+    pub const fn magazine_size(self) -> Option<u16> {
+        match self {
+            Self::Fists | Self::Shiv => None,
+            Self::Tack => Some(12),
+            Self::Flechette => Some(20),
+            Self::Repeater => Some(30),
+            Self::Scatter => Some(6),
+            Self::Rail => Some(4),
+            Self::Sniper => Some(5),
+        }
+    }
+
+    /// Ticks to fill one magazine at 20 Hz. One press fills the whole tube.
+    pub const fn reload_ticks(self) -> Option<u32> {
+        match self {
+            Self::Fists | Self::Shiv => None,
+            Self::Tack => Some(16),
+            Self::Flechette | Self::Repeater => Some(22),
+            Self::Scatter => Some(14),
+            Self::Rail | Self::Sniper => Some(28),
+        }
+    }
+
     /// Units a weapon pickup adds, on discovery and again when already carried.
     pub const fn pickup_rounds(self) -> u16 {
         match self {
@@ -116,6 +152,19 @@ pub struct AmmoCount {
     pub rounds: u16,
 }
 
+/// Rounds in one human magazine. Omitted from the loadout entirely when the
+/// pawn has no magazines, so an older reader never has to understand it.
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct MagazineCount {
+    pub weapon: WeaponType,
+    pub rounds: u16,
+    /// Tick the current reload of this gun finishes. Absent while it is not
+    /// reloading.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ready_at: Option<u64>,
+}
+
 /// Private authoritative equipment. Never embed it in every player's snapshot.
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -123,17 +172,28 @@ pub struct LoadoutState {
     pub player_id: Uuid,
     pub tick: u64,
     pub selected: WeaponType,
-    /// Carried weapons, Fists always included.
+    /// Carried weapons. Discovery always includes Fists. An arcade human
+    /// magazine loadout lists only the guns that have magazines.
     pub weapons: Vec<WeaponType>,
-    /// Exactly one count per ammunition type.
+    /// Exactly one count per ammunition type. The count is the total carried,
+    /// including rounds in `loaded`. An armed arcade human sends the finite
+    /// spawn kit. A weapon-only mutator still sends zeros: that one gun has
+    /// no bag to run out of.
     pub ammo: Vec<AmmoCount>,
     pub grenades: u16,
     /// Carried proximity mines. Omitted while zero so earlier readers keep
     /// every mission without them.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub proximity_mines: u16,
+    /// Deliberate charges, independent of grenades and proximity mines.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub remote_mines: u16,
     pub personal_claims: Vec<String>,
     pub dry_fire_count: u64,
+    /// Per-gun magazines for an armed human. Empty and omitted otherwise.
+    /// The retired loadout keys `reserves` and `reload` stay refused.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub loaded: Vec<MagazineCount>,
 }
 
 fn is_zero(count: &u16) -> bool {
@@ -160,16 +220,129 @@ impl LoadoutState {
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
-        if self.proximity_mines > MINE_CARRY_CAP {
+        if self.proximity_mines > MINE_CARRY_CAP || self.remote_mines > super::REMOTE_MINE_CARRY_CAP
+        {
             return Err("invalid proximity mine count");
         }
-        validate_equipment(
-            self.selected,
-            &self.weapons,
-            &self.ammo,
-            self.grenades,
-            &self.personal_claims,
-        )
+        if self.arcade_magazines() {
+            self.validate_arcade_magazines()?;
+        } else {
+            validate_equipment(
+                self.selected,
+                &self.weapons,
+                &self.ammo,
+                self.grenades,
+                &self.personal_claims,
+            )?;
+            self.validate_loaded_against_pools()?;
+        }
+        Ok(())
+    }
+
+    fn arcade_magazines(&self) -> bool {
+        !self.loaded.is_empty() && !self.weapons.contains(&WeaponType::Fists)
+    }
+
+    fn validate_arcade_magazines(&self) -> Result<(), &'static str> {
+        if self.grenades > 6
+            || self.weapons.is_empty()
+            || self.weapons.len() > WeaponType::ALL.len()
+            || self.ammo.len() != AmmoPool::ALL.len()
+            || self.personal_claims.len() > 128
+        {
+            return Err("invalid loadout size");
+        }
+        let mut owned = [false; WeaponType::ALL.len()];
+        for weapon in &self.weapons {
+            if weapon.magazine_size().is_none()
+                || std::mem::replace(&mut owned[weapon.index()], true)
+            {
+                return Err("invalid owned weapon");
+            }
+        }
+        if !owned[self.selected.index()] {
+            return Err("selected or fallback weapon is unowned");
+        }
+        let mut seen = [false; 3];
+        let mut amounts = [0u16; 3];
+        for count in &self.ammo {
+            if std::mem::replace(&mut seen[count.pool.index()], true)
+                || count.rounds > count.pool.capacity()
+            {
+                return Err("invalid ammunition count");
+            }
+            amounts[count.pool.index()] = count.rounds;
+        }
+        if seen.iter().any(|present| !present) {
+            return Err("invalid ammunition count");
+        }
+        validate_claims(&self.personal_claims)?;
+        self.validate_loaded_entries(true)?;
+        // All zeros is a weapon-only magazine: the gun refills without a bag.
+        // A finite bag has to hold every round sitting in its magazines.
+        if amounts.iter().any(|rounds| *rounds != 0) {
+            let mut used = [0u16; 3];
+            for magazine in &self.loaded {
+                let Some(pool) = magazine.weapon.ammo_pool() else {
+                    return Err("invalid magazine");
+                };
+                used[pool.index()] = used[pool.index()].saturating_add(magazine.rounds);
+            }
+            if used
+                .iter()
+                .zip(amounts)
+                .any(|(loaded, carried)| *loaded > carried)
+            {
+                return Err("invalid magazine");
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_loaded_against_pools(&self) -> Result<(), &'static str> {
+        if self.loaded.is_empty() {
+            return Ok(());
+        }
+        self.validate_loaded_entries(false)?;
+        let mut used = [0u16; 3];
+        for magazine in &self.loaded {
+            let Some(pool) = magazine.weapon.ammo_pool() else {
+                return Err("invalid magazine");
+            };
+            used[pool.index()] = used[pool.index()].saturating_add(magazine.rounds);
+        }
+        for count in &self.ammo {
+            if used[count.pool.index()] > count.rounds {
+                return Err("invalid magazine");
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_loaded_entries(&self, exact: bool) -> Result<(), &'static str> {
+        let mut seen = [false; WeaponType::ALL.len()];
+        let mut reloading = false;
+        for magazine in &self.loaded {
+            let Some(size) = magazine.weapon.magazine_size() else {
+                return Err("invalid magazine");
+            };
+            if magazine.rounds > size
+                || !self.weapons.contains(&magazine.weapon)
+                || std::mem::replace(&mut seen[magazine.weapon.index()], true)
+            {
+                return Err("invalid magazine");
+            }
+            if magazine.ready_at.is_some() {
+                if reloading {
+                    return Err("invalid magazine");
+                }
+                reloading = true;
+            }
+        }
+        if exact && self.weapons.iter().any(|weapon| !seen[weapon.index()]) {
+            return Err("invalid magazine");
+        }
+        Ok(())
     }
 
     pub fn owns(&self, weapon: WeaponType) -> bool {
@@ -183,8 +356,16 @@ impl LoadoutState {
             .map_or(0, |count| count.rounds)
     }
 
-    /// Shots the weapon can fire now. None means it needs no ammunition.
+    /// Shots the weapon can fire now. A magazine, when this loadout has one,
+    /// replaces the pool. None means the weapon needs no ammunition.
     pub fn shots(&self, weapon: WeaponType) -> Option<u16> {
+        if let Some(magazine) = self
+            .loaded
+            .iter()
+            .find(|magazine| magazine.weapon == weapon)
+        {
+            return Some(magazine.rounds);
+        }
         weapon.ammo_pool().map(|pool| self.ammo(pool))
     }
 }
@@ -222,6 +403,10 @@ pub(crate) fn validate_equipment(
             return Err("invalid ammunition count");
         }
     }
+    validate_claims(personal_claims)
+}
+
+fn validate_claims(personal_claims: &[String]) -> Result<(), &'static str> {
     let mut claims = std::collections::HashSet::new();
     if personal_claims.iter().any(|id| {
         id.is_empty()

@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-05)
+## Where we are (2026-10-07)
 
 [Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
 matching client/server packages and immutable build checks. Bounded development branches use pull requests with
@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 10 are playable development prototypes on main, with
+**Campaign.** Levels 1 to 11 are playable development prototypes in this source, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -44,8 +44,12 @@ merged in [PR #369](https://github.com/blisspixel/fragr/pull/369), with its comp
 28-state route, all 17 guards and departure passing. Version 13 retains actual
 crew transit separately from the immutable M09 boarding record. All eight
 reviewed-head CI jobs and all three desktop package checks passed before merge.
-M11 through M20 remain unbuilt. Fresh-player, difficulty and final art acceptance
-remain open for every level. The full build order below owns current sequencing.
+M11 adds a composed prototype with Remote Mines, the Redactor, version
+14 run carry and a complete ordinary-input rendered departure. Its
+[receipt](evidence/m11-quality-composition-20261006.md) records the exact route
+and remaining review. M12 through M20 remain unbuilt. Fresh-player, difficulty
+and final art acceptance remain open for every level. The full build order
+below owns current sequencing.
 
 **Multiplayer.** Deathmatch, team deathmatch, GoldenEye-style mutators,
 capture the flag on three arenas, and [Sabotage](plans/sabotage-mode.md) on
@@ -113,7 +117,7 @@ with the same 15-credit hold. Source preparation and played acceptance continue
 under the [cast plan](plans/cast-model-buildout-20261004.md). No new cash charge
 or cloud apply ran.
 
-**Latest asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
+**Asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
 and Splice model sources plus Edda's first rig consumed 110 included credits.
 The subsequent Redactor source and first rig consumed 35 and 5 included credits.
 Tern's distinct pilot source and first rig subsequently consumed another 35
@@ -131,6 +135,15 @@ Redactor-reference, Sniper and Tern-reference requests total $2.177 in retained
 price estimates, leaving an estimated $10.423. This is not an independently verified API balance
 or per-request billing receipt. No cash, renewal,
 top-up or overage was enabled.
+
+**Latest asset reconciliation, 2026-10-07:** the October 6 free model checker
+reports 1,900 existing credits, with the unchanged 15-credit uncertain hold
+and 1,885 usable. The synthetic rig and four vehicle sources account for
+145 additional tracked credits. Nick's latest image balance was $5.86; two
+subsequent ground-material requests total $1.24 in retained estimates, leaving
+about $4.62 against that report. This is not a verified live image balance.
+The [integration plan](plans/multiplayer-quality-20261006.md) links the exact
+asset receipts. No new cash, top-up or overage was enabled.
 
 **Shipped and proven on the tip:**
 
@@ -161,7 +174,18 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, levels 11 to 20, the planned console, Ultra graphics and the player-facing rendered benchmark, wider directional combat acoustics, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe in the current line of work, not an in-app server browser and not a web client. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, levels 12 to 20, the M14 vehicle mission, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
+
+The current development build includes Holdfast Conquest with jeeps, boats,
+an aircraft and swimming. This establishes a playable combined-arms prototype;
+finished island art, human balance and networked 64-player acceptance remain
+open. `GET /status` on the game port is a host probe. The app keeps a local
+server list and hears LAN announcements; there is no public directory.
+Episode 0 remains separate from the eleven connected campaign prototypes.
+The main menu Benchmark compares three graphics presets against the same
+recorded Arena Duel fight and exports frame statistics. It does not establish
+public-server readiness or replace the planned nine-scene showcase. Frame caps,
+connection caps and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -337,17 +361,53 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-05)
+## Full build order (updated 2026-10-07)
 
-**Active goal:** build the agreed game through a proven 1.0, starting with a complete multiplayer and server trial that Nick can host, play and refine. The server and multiplayer goal is an exceptional authoritative match, recorded in [server excellence](plans/server-excellence.md): the current modes played well, then measured growth toward a 64-player battle only when the tick and the bytes allow it. A spare home machine is a first-class host. Plan-only IaC covers one popular small-VM virtual network plus GCP, AWS, and Azure. None of those templates is applied without its own spend approval. Team deathmatch and optional 5v5 Sabotage come before the remaining campaign. Keep the six current arenas and ten campaign prototypes available; retain unfinished mission and art checkpoints. After the multiplayer slice meets its gates, continue the campaign, feel, Wipe and wider server work in the order below. Cloud apply and matchmaking still require their own approval and proof. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, Wipe operations and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission. Boltgun remains the visual bar for a played sequence. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
+**Active goal:** build the agreed game through a proven 1.0. On October 6 Nick
+explicitly advanced parallel campaign, vehicle and island work alongside the
+current multiplayer quality pass. The active composition is
+[multiplayer quality](plans/multiplayer-quality-20261006.md): fair bot perception,
+immediate local gun feedback, measured hitscan alignment and bounded snapshot
+delivery, alongside M11's locally completed prototype and the shared vehicles
+on Holdfast Atoll. M14's launch-works vehicle mission remains planned. The original island uses
+five capture points, registered swimming water, boats and a flyable courier
+aircraft, following the Wake Island-style request.
+[Holdfast and Conquest](plans/holdfast-conquest-20261006.md) owns the bounded
+implementation; [vehicle assets](plans/vehicle-assets-20261006.md) records the
+paid source candidates. These are local development lanes, not released missions,
+proven vehicle handling or a 64-player claim.
 
-**Next, as of 2026-10-05.** The order is set by what most raises fun and
-quality for the work. Nick authorized parallel game development alongside
-substantial model production. Nick then moved playable multiplayer modes and
-server operation ahead of the remaining campaign: finish a small complete
-match slice, let people test it, and iterate before expanding the campaign.
-Retain current campaign and art checkpoints; new mission and broad asset
-production yield to this multiplayer slice. M04 roofs, combat feedback, campaign results and
+The [water research and renderer measurements](plans/island-water-rendering-20261006.md)
+bound coastal shading and wakes across existing graphics presets. Distinct
+[venue wall materials](plans/venue-wall-materials-20261006.md) give each place
+its own construction and repair history within the shared palette. The first
+renderer sweep uses 64 animated presenters; connected-match scale and human
+handling acceptance remain separate.
+
+Human ducking and manual reloads remain part of the current controls. Weapons
+and pickups should read as tangible, distinct retro-futuristic equipment, with
+clear mechanical handling and strong silhouettes, while preserving pixel craft
+and fast combat. Every lane follows the shared
+[character principle](ART_STORY_BIBLE.md#lives-beyond-the-conflict): people have
+interests, relationships and routines beyond the conflict. Their independence,
+ordinary humor and personal repairs must survive the buildout. Clear combat
+allegiance does not settle motives or responsibility: institutions need credible
+duties and internal disagreements, and allies answer for their methods too.
+
+The [server excellence](plans/server-excellence.md) measurement table still gates
+population claims. The existing Host, TDM and Sabotage trial remains useful;
+feedback and necessary fixes continue during authorized development. Cloud
+apply, cash charges, top-ups and matchmaking have no new authorization. Source,
+geometry, rendered evidence and played acceptance remain separate gates. The
+story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follows
+its brief. Current released campaign coverage remains ten prototypes until the
+new mission's integration and acceptance finish.
+
+**Current composition, 2026-10-07.** The numbered rungs below remain the single
+build order. Rungs 1 and 2 now run together for the bounded work explicitly
+advanced above; the earlier multiplayer-first pause is superseded for these
+lanes. Historical release receipts below retain their original scope.
+M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
 prototype, refined Pistol and hatless civilian. The preceding release checkpoint is
@@ -475,9 +535,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      lists and health metrics. Skill and agent control never imply cheating.
      [Fair play](plans/fair-play.md) documents existing bans with expiry and
      planned optional abuse bans, without intrusive player software.
-   - Close blocking feedback on these two modes and their built maps before
-     expanding the campaign. Additional maps/modes remain below; no cloud
-     account, paid inference or paid asset service is required for this slice.
+   - Close blocking feedback on these two modes alongside the explicitly
+     authorized campaign and island work. No cloud account, paid inference or
+     paid asset service is required to play or host this slice.
    - The [server excellence plan](plans/server-excellence.md) is the longer
      aim for this rung and for items 7 and 8. Its first implementation pass
      is a measurement soak of the server that already exists, with no rule
@@ -490,14 +550,28 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      person to step outside, append that address to the ban file, and put
      one venue sentence on the air. Closing the desk leaves the match
      running. Remote administration, a private-night passphrase, and
-     choosing the next map from the desk are not built. Public status stays
+     choosing the next map from the desk are not built. The bounded
+     operator plan is [venue operator](plans/venue-operator.md). It stays
+     on this rung and does not open a second queue. Public status stays
      anonymous. `fragr-playtest --traffic` can fill a local server with
      synthetic fighters and spectators. Polish stays a 20 Hz match with
      separate command, snapshot, and byte clamps, mode-owned clocks, and
      a public audience on a delayed relay rather than on fighter slots.
-     The measurement table is still empty. Bot senses, readable jobs, hitscan
-     rewind, and snapshot cost follow the measurement table. Home hosting
+     [Local native measurements](evidence/native-island-quality-20261006.md)
+     now cover deterministic CPU workloads and bounded 64-client loopback
+     delivery. Finite magazines and fixed synthetic inputs limit that traffic
+     proof; sustained combat, physical LAN and WAN capacity remain open.
+     Bounded bot senses and latest-unsent motion delivery are implemented.
+     Readable jobs, live hitscan timing evidence and any bounded rewind policy
+     remain further work. The host guide
+     names two nights this process can start: about 24 people with eight
+     bots and room left to watch, and about 64 connections with the same
+     eight bots. Neither night is a 64-fighter claim. The longer floors
+     still take a walk at a squad. Home hosting
      stays the default door while those passes land.
+   - The join page keeps favorites and recent hosts on this computer and lists
+     a LAN announcement. That list is local and not merged. There is no public
+     directory ([server list](plans/server-list.md)).
 
    *Why:* Nick needs a complete match he can host, test and improve now. More
    campaign missions must not delay that feedback loop. The same server has
@@ -513,11 +587,22 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      M01 completion and onward save. The selected slice shipped with the combined
      main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
-   Retain the private M11 native/save checkpoint and paused named-cast sources.
-   Close necessary presentation regressions; resume their broader production
-   when the active multiplayer slice has passed its own gates.
+   Integrate the completed local M11 route, carry and retry with the current
+   controls and wire contract. The same composed build now includes Holdfast's
+   five-site Conquest loop, registered swimming water, jeeps, boats and an
+   arcade light aircraft. Finish their rendered input and art checks, full
+   regression gates and one CI-passing main. Keep source inspection, played
+   quality and measured multiplayer capacity distinct. Then build the M14
+   vehicle mission with its proven infantry fallback. The motorcycle is still
+   source-only; jetpack physics and other mission placements remain planned.
 
-   *Why:* preserve reviewed work while avoiding a second campaign build queue.
+   The menu benchmark compares three presets against one recorded fight and
+   saves average FPS, 1% lows and frame-time statistics. The researched water
+   pass has quality-scaled detail and bounded wakes. Their linked plans retain
+   actual hardware evidence separately from 64-player network acceptance.
+
+   *Why:* these are Nick's explicit October 6 priorities. Reusing the same
+   vehicle and multiplayer seams makes their integration testable together.
 3. **The feel layer.**
    - [Directional combat audio](plans/directional-combat-audio.md): near-miss
      cracks, a damage arc, occlusion. The first bounded slice shipped in v0.71.0
@@ -617,7 +702,9 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
     *Why:* settle the loop and the briefs before levels 11 to 20 are built.
 6. **[Graphics options and Ultra lighting](plans/graphics-options-and-lighting.md),**
    then the player-facing [rendered benchmark](plans/showcase-benchmark.md),
-   which measures every preset.
+   which measures every preset. A one-scene Benchmark on the main menu times
+   frames over a live local match. The preset ladder and the recorded showcase
+   are still this rung.
 7. **Wider multiplayer depth.**
    - [Optional 5v5 Sabotage](plans/sabotage-five-seats.md) shipped in v0.72.0:
      ten shared fighter seats, finite Pistol fresh starts,
@@ -831,11 +918,11 @@ names; v0.42.0 shipped the wheel and number keys.
 Status: **in progress** on the first rungs. The exit bar, a public week, is not met. The server is not something to open to the internet yet.
 
 1. **Hardening.** v0.35.0 shipped frame caps, connection caps, and the inbound budget. v0.38.0 shipped HMAC join tickets when a host sets `FRAGR_JOIN_SECRET`. Rung 2 adds a ping with a 45 second idle close, kicks for sustained floods and repeated unreadable frames, `--ban-list` and `--allow-list` address files, and a `fragr_server::audit` log target. Plan: `plans/public-server-hardening.md`. Evidence: tests for every reject path and a fuzz run over the wire parser.
-2. **Protocol versioning.** Decided: no single `protocol_version` in `Hello`. `gameplay_version` and `geometry_version` already reject an older client before `Welcome` with a named code, covered by tests (the MCP revision move lives in Phase 1 under the agent door). A breaking envelope change would add the field then.
+2. **Protocol versioning.** Decided: no single `protocol_version` in `Hello`. `gameplay_version` and `geometry_version` reject a hello this binary cannot speak, before `Welcome`, with a named code. A shared arcade room requires the current pair. A campaign mission keeps its floor. A breaking envelope change would add its own field then. The MCP revision move lives in Phase 1 under the agent door.
 3. **Transport spike.** Measure WebSocket latency under load, then prototype the UDP path described in [`TRANSPORT.md`](./TRANSPORT.md). Keep WebSocket for spectators and agents. Decide with numbers; the pass thresholds are in `plans/buttery-controls.md`. Evidence: a benchmark table in a plan doc.
 4. **Snapshot efficiency.** Delta snapshots, interest management by distance, and a binary encoding option once the JSON path is measured. Evidence: bytes per tick per client before and after.
 5. **Reconnect and resume.** v0.39.0 keeps a pawn that asked for ten seconds. The body can still be shot. An explicit leave removes it now. A longer session and TLS remain open; the idle ping drop lands with hardening rung 2. Evidence: tests plus a recorded kill-and-reconnect.
-6. **Status probe, then a server list.** v0.36.0 shipped `GET /status` on the game port. v0.37.0 shows that line in the app before Watch or Join. It is not a web client. Tick percentiles, traffic and health now ride on the same response (`plans/observability-soak.md`). A server list inside the app is still open (`plans/public-server-hardening.md`).
+6. **Status probe, then a server list.** v0.36.0 shipped `GET /status` on the game port. v0.37.0 shows that line in the app before Watch or Join. It is not a web client. Tick percentiles, traffic and health now ride on the same response (`plans/observability-soak.md`). The app keeps favorites and recent hosts on this computer and can show a LAN announcement (`plans/server-list.md`). That list is local source and not merged. There is still no public directory.
 7. **Desktop exports.** Presets for Windows, macOS, and Linux shipped (#88). A `v*` tag now builds one zip per platform with `fragr-server` beside the game, smoke-tests each unpacked package on its own runner, and attaches them to the release; the game has its own icon (`plans/desktop-release.md`). Remaining: a release with binaries that boot to Solo Scrap on a clean machine.
 8. **Observability.** Tick time histogram, per-client bandwidth, crash-free uptime, and a health check. Evidence: metrics visible in logs during a load test. In flight on `feat/observability-soak`: `/status` reports window and lifetime tick percentiles, per-session and total bytes, connections by role, uptime, build identity and `ok` or `degraded`; `fragr-playtest --soak` samples it into NDJSON with the server resident set, runs two minutes in CI, and has two recorded local runs over an hour (the second flagged skipped ticks under desktop load). The twenty-four hour soak remains a release gate (`plans/observability-soak.md`).
 9. **Prove it with strangers.** Home box or cheap VPS with port 6767 open, at least one session with people and agents who are not the maintainer. Evidence: a recorded session and a hosting guide updated from what actually went wrong.
@@ -864,7 +951,7 @@ Status: **planned**. Only after Phase 2 is proven, so that new content lands on 
 - **Massive agent arenas.** Hundreds of fighters where most are agents. Depends on the scale ladder: interest management, sharded arenas, and a measured tick budget. Not a marketing claim until measured.
 - **Difficulty and earned cosmetics.** The [first difficulty increment](plans/difficulty-and-rewards.md) adds three explicit new-run tiers and shared enemy timing, preserving the released Standard baseline. Supply and encounter variants still need balance evidence. Persistent achievements, titles, emblems and cosmetic variants follow the save/retry contract, with no combat advantages. Accounts and competitive verification remain later work.
 - **Let's-play tooling.** Director camera that follows the story of a round, highlight reels, a stream overlay, and match replays from recorded snapshots.
-- **Community servers.** A server list, mod hooks for maps and rosters, and a documented content pipeline.
+- **Community servers.** A public server directory, mod hooks for maps and rosters, and a documented content pipeline. The local favorites list is a separate door and is not that directory.
 - **Broader localization.** Basic keyed text, captions, reader-paced scenes and missing-voice fallback belong in M01. Later expand supported locales, fonts and layout with language review and a visual tour per locale. Alternate or joke locales cannot obscure essential objectives. Voice coverage follows explicit production budgets. Plan: [localization.md](plans/localization.md).
 - **Inheritance command and capability research, later.** An agent-oriented strategy mode with human spectating, replay and slower interaction, followed by a research-grade benchmark if its tasks, scoring, held-out evaluation and budget controls can be validated. Deep mathematical work belongs here after the FPS foundations. No claim that one game proves AGI. Plan: [inheritance-benchmark.md](plans/inheritance-benchmark.md).
 - **Agent discovery and onboarding.** Let compatible frameworks discover documented servers, watch and join through the same rules. Never turn invitations into unsolicited outbound messages or paid autonomous activity. Plan: [agent-door-2026.md](plans/agent-door-2026.md).

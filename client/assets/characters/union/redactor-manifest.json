@@ -1,0 +1,101 @@
+{
+	"clips": [
+		{
+			"action": "seated",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": false
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": false
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": false
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": false
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": false
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": false
+		},
+		{
+			"action": "idle",
+			"count": 1,
+			"unarmed": true
+		},
+		{
+			"action": "walk",
+			"count": 8,
+			"unarmed": true
+		},
+		{
+			"action": "raise",
+			"count": 4,
+			"unarmed": true
+		},
+		{
+			"action": "fire",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "recover",
+			"count": 3,
+			"unarmed": true
+		},
+		{
+			"action": "hit",
+			"count": 2,
+			"unarmed": true
+		},
+		{
+			"action": "death",
+			"count": 7,
+			"unarmed": true
+		}
+	],
+	"columns": 18,
+	"directions": 8,
+	"engine": "4.7.2-stable (official)",
+	"file": "redactor.png",
+	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
+	"model": "Covert human source with retained gait, visible raised Shiv, committed strike, recovery, hit and collapse poses",
+	"normals_file": "redactor_normals.png",
+	"normals_sha256": "32197bbd1578990f0b1f79f6207457ee0bbb0a1d2013eda926d46605bc30a321",
+	"poses": 55,
+	"rows": 25,
+	"schema": 1,
+	"sha256": "fc0c08f9ff347d9378d3f8cbf4b32210960e13f546b58f4e780a266b4392bd7c",
+	"sources": {
+		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
+		"res://art/characters/redactor_bake.gd": "c680a70bf924fa9b4eb0a0642dd1e1902a034fca8ebf00f37c11c6abce2d11a5",
+		"res://art/models/candidates/redactor.glb": "5fe46811415f0992a1d8111bc2fe1ef0d3cb86a1ef2a8381db0abf0d663d23e6",
+		"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
+		"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
+		"res://art/models/redactor_source.gd": "0115c7b47b76cef619d298be42d09c1183a5f51ea74428053ea338f052689fb1",
+		"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441"
+	},
+	"tile_pixels": 160
+}

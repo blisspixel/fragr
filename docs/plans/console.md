@@ -151,8 +151,12 @@ console. Every chat line also lands in the console scrollback, so history and
 ### Host commands
 
 These run on the server, on the player's own local server or the dedicated
-server's terminal. They are the live form of today's launch options. There is
-no remote console until the [exposed-server phase](../ROADMAP.md) designs one.
+server's terminal. They are the live form of today's launch options. On a
+dedicated process they are the [venue desk](venue-operator.md), which can be
+attached after the launching terminal is gone. A client connected to someone
+else's night does not get them. Frag limit, time limit, and the other mode
+clocks stay with the mode: the desk can arm the next show, and it does not
+retune the live one.
 
 `bot add [tier] [name]`, `bot kick <name|all>`, `bot difficulty`, `bot freeze`
 (Counter-Strike's `bot_add`, `bot_kick` and `bot_stop` as aliases);

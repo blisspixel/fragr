@@ -46,13 +46,17 @@ fn target(state: &mut GameState, n: u128, feet: [f32; 3]) -> Uuid {
 
 /// Fire one blast aimed straight down +X and return its results.
 fn blast(state: &mut GameState) -> Vec<ShotResult> {
+    blast_at(state, 0.0)
+}
+
+fn blast_at(state: &mut GameState, pitch: f32) -> Vec<ShotResult> {
     for _ in 0..40 {
         state.set_action(
             SHOOTER,
             Action {
                 fire: true,
                 yaw: Some(0.0),
-                pitch: Some(0.0),
+                pitch: Some(pitch),
                 ..Default::default()
             },
         );
@@ -94,7 +98,15 @@ fn distance(origin: [f32; 3], end: [f32; 3]) -> f32 {
 fn a_point_blank_blast_lands_every_pellet_and_two_blasts_kill() {
     let mut state = range(serde_json::json!([]), false);
     let victim = target(&mut state, 1, [2.0, 0.0, 0.0]);
-    let first = blast(&mut state);
+    // Pitch 0 is the face, and the chest cone still clips the head band.
+    // The belt is the body number: seven full pellets, Doom's average.
+    let pitch = crate::combat::aim_at(
+        [0.0, crate::movement::EYE_HEIGHT, 0.0],
+        [2.0, crate::movement::BODY_HEIGHT * 0.5, 0.0],
+    )
+    .unwrap()
+    .1;
+    let first = blast_at(&mut state, pitch);
     assert_eq!(first.len(), 1, "every pellet struck the same fighter");
     let shot = &first[0];
     let trace = shot.trace.as_ref().unwrap();
@@ -112,7 +124,7 @@ fn a_point_blank_blast_lands_every_pellet_and_two_blasts_kill() {
     assert_eq!(hp(&state, victim), 30);
     state.take_events();
 
-    let second = blast(&mut state);
+    let second = blast_at(&mut state, pitch);
     assert_eq!(second.len(), 1);
     assert!(second[0].killed);
     assert_eq!(
@@ -206,7 +218,26 @@ fn cover_stops_pellets_and_a_partial_wall_splits_the_blast() {
         Some(false),
         "misses come last"
     );
-    assert_eq!(100 - hp(&state, victim), 10 * landed as i32);
+    let expected: i32 = results
+        .iter()
+        .filter(|shot| shot.hit)
+        .map(|shot| {
+            let trace = shot.trace.as_ref().unwrap();
+            trace
+                .pellets
+                .iter()
+                .map(|pellet| {
+                    let head = crate::combat::head_hit_for(0.0, pellet.end[1], None, false);
+                    crate::combat::traced_damage(
+                        WeaponType::Scatter,
+                        WeaponType::Scatter.damage_at(distance(trace.origin, pellet.end)),
+                        head,
+                    )
+                })
+                .sum::<i32>()
+        })
+        .sum();
+    assert_eq!(100 - hp(&state, victim), expected);
 }
 
 #[test]
@@ -221,8 +252,20 @@ fn one_blast_spreads_across_two_fighters_with_one_frag_each() {
     assert_eq!(struck.len(), 2, "each fighter gets one result: {results:?}");
     assert!(struck.contains(&left) && struck.contains(&right));
     for shot in results.iter().filter(|shot| shot.hit) {
-        let count = shot.trace.as_ref().unwrap().pellets.len() as i32;
-        assert_eq!(shot.damage, 10 * count);
+        let trace = shot.trace.as_ref().unwrap();
+        let expected: i32 = trace
+            .pellets
+            .iter()
+            .map(|pellet| {
+                let head = crate::combat::head_hit_for(0.0, pellet.end[1], None, false);
+                crate::combat::traced_damage(
+                    WeaponType::Scatter,
+                    WeaponType::Scatter.damage_at(distance(trace.origin, pellet.end)),
+                    head,
+                )
+            })
+            .sum();
+        assert_eq!(shot.damage, expected);
         assert_eq!(100 - hp(&state, shot.target_id.unwrap()), shot.damage);
     }
 

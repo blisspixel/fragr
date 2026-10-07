@@ -122,7 +122,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 13 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
+	_check(saved is Dictionary and saved["version"] == 14 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
 	_check(saved is Dictionary and saved["m08_outcome"] == {"kind": "historical_unrecorded"}, "unknown history persists on disk")
 	var archives: Array[String] = []
@@ -138,8 +138,8 @@ func _run() -> void:
 	# Preserve native integer literals: parsing and stringifying them here
 	# would turn strict integer fields into floating-point JSON numbers.
 	var native_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
-	_check(native_source.count('"version":13,') == 1, "native current version marker is unique")
-	var retry_source: String = native_source.replace('"version":13,', '"version":11,') + "\n \n"
+	_check(native_source.count('"version":14,') == 1, "native current version marker is unique")
+	var retry_source: String = native_source.replace('"version":14,', '"version":11,') + "\n \n"
 	file = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
 	_check(file != null, "owned historical M09 retry fixture is writable after child exit")
 	if file == null:
@@ -179,7 +179,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var retry_saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(retry_saved is Dictionary and retry_saved["version"] == 13 and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
+	_check(retry_saved is Dictionary and retry_saved["version"] == 14 and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
 	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "strict v11 real-process retry preserves every entry count")
 	archives.clear()
 	for filename: String in DirAccess.get_files_at(run_directory):

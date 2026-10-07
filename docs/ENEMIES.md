@@ -44,10 +44,10 @@ fragments. Neither needs constant banter.
 
 | Role | Body/status direction | Attack and tell | Counterplay |
 |---|---|---|---|
-| Clerk | Human security, light issued kit | Low-pressure shots after visible weapon raise | Move, use cover, learn the aim tell |
-| Sweeper | Bot, standard chassis | Mobile bursts with a visible and audible cycle | Interrupt or flank between bursts |
+| Clerk | Human security, light issued kit | Visible weapon raise, then one shot. Between bursts it sidesteps, and steps in past 8 m. The raise and the shot stay planted. A seated clerk does not shuffle until it stands | Move, use cover, learn the aim tell, shoot during the sidestep |
+| Sweeper | Bot, standard chassis | Visible raise, then a three-round burst. Between bursts it sidesteps and closes past 8 m. The raise and the burst stay planted | Interrupt or flank between bursts |
 | Ranged Sweeper | Bot with a tall rear antenna mast and a long scoped rifle; holds its platform | A scope glint at windup start, then a held aim (30 ticks Standard, 24 Severe, 40 Assisted) before one 70 damage Sniper shot. Sees a peeking head as well as an open body; notices new targets only within 1.0 rad of its facing | Drop fully behind a sill to cancel the shot, rise and fire first, suppress it (any hit cancels the windup), or flank outside its notice cone. Implemented on its range |
-| Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst; slow sideways shuffle after recovery. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. Implemented |
+| Heavy Sweeper | Bot with broad armor and heavy gait, head sunk below two pauldrons | Pauldrons flare and red lamps light (1.2 s Standard), then a four-round burst. It sidesteps during recovery and shuffles sideways again before the next burst. Ordinary hits do not flinch it; a 40-damage tick staggers it once per attack | Flank, splash, or commit finite ammo; a heavy hit cancels one burst. Implemented |
 | Crawler | Low constrained Union chassis, M02 draft | Locked leap after a visible crouch; mechanical scrabble and caption on encounter reveal | Shotgun, lateral dodge and punishable recovery; live review pending |
 | Jammer | Constrained service/security chassis | Telegraphs local interference and slow projectiles | Prioritize it from a flank on its exposed position |
 | Enforcer | Committed human elite, powered issued armor | Charge and knockback with a clear wind-up | Dodge and punish recovery, use armor counters |

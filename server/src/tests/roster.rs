@@ -1,5 +1,6 @@
 //! Roster checks through the production session and network loop.
 use super::*;
+use crate::sim::{PLAYER_FLOOR_Y, PLAYER_MAX_HP};
 use futures_util::{SinkExt, StreamExt};
 use std::collections::{BTreeMap, HashMap};
 use std::time::Duration;
@@ -184,6 +185,7 @@ fn joining_sixteen_fighters_does_not_reuse_occupied_spawn_slots() {
 fn every_existing_bot_behavior_moves_and_fights_across_the_roster() {
     for map in MapKind::ALL {
         let mut session = GameSession::with_map(map, false);
+        session.state.use_replay_ids();
         session.state.seed(67);
         session.spawn_bots(8);
         session.state.config.frag_limit = None;
@@ -218,20 +220,148 @@ fn every_existing_bot_behavior_moves_and_fights_across_the_roster() {
                 }
             }
         }
-        for behavior in [
-            "Aggressive",
-            "Defensive",
-            "Flanker",
-            "Balanced",
-            "Compliance",
-        ] {
+        // Ordinary bots have renewable lives throughout this match. The boss
+        // has only one mortal life and may die before acquiring a target; its
+        // controlled combat opportunity is checked separately below.
+        assert!(evidence.contains_key("Compliance"), "timed boss must spawn");
+        for behavior in ["Aggressive", "Defensive", "Flanker", "Balanced"] {
             let &(distance, shots, hits) =
                 evidence.get(behavior).expect("roster contains behavior");
             assert!(
                 distance > 3.0 && shots > 0 && hits > 0,
-                "{map:?}/{behavior}: moved {distance:.1} m, {shots} shots, {hits} hits"
+                "{map:?}/{behavior}: moved {distance:.1} m, {shots} shots, {hits} hits; roster {evidence:?}"
             );
         }
         println!("roster: {map:?}: {evidence:?}");
+    }
+}
+
+/// Find a real, supported lane with room for the Rail boss to retreat. This
+/// chooses only geometry, never a seed or outcome that happened to pass.
+fn boss_opportunity_lane(session: &GameSession) -> ([f32; 3], [f32; 3], f32) {
+    let arena = session.state.current_arena();
+    for radius in 0_i32..=12 {
+        for x in -radius..=radius {
+            for z in -radius..=radius {
+                if x.abs().max(z.abs()) != radius {
+                    continue;
+                }
+                let floor = arena.support_height(x as f32, z as f32, f32::INFINITY);
+                let origin = [x as f32, floor, z as f32];
+                for [dx, dz] in [[1.0, 0.0], [0.0, 1.0], [-1.0, 0.0], [0.0, -1.0]] {
+                    let back = [origin[0] - dx * 4.0, floor, origin[2] - dz * 4.0];
+                    let target = [origin[0] + dx * 4.0, floor, origin[2] + dz * 4.0];
+                    let supported = (-8..=8).all(|step| {
+                        let px = origin[0] + dx * step as f32 * 0.5;
+                        let pz = origin[2] + dz * step as f32 * 0.5;
+                        arena.support_height(px, pz, floor) == floor
+                            && !arena.blocked_body_at(px, pz, floor, floor)
+                    });
+                    if supported
+                        && crate::navigation::Navigation::obstacle_clear(
+                            back,
+                            target,
+                            &arena.solids,
+                        )
+                    {
+                        return (origin, target, dz.atan2(dx));
+                    }
+                }
+            }
+        }
+    }
+    panic!(
+        "{} has no supported boss opportunity lane",
+        session.state.map.name()
+    );
+}
+
+#[test]
+fn compliance_moves_fires_and_hits_with_a_normal_health_opportunity_on_every_map() {
+    for map in MapKind::ALL {
+        let mut session = GameSession::with_map(map, false);
+        session.state.use_replay_ids();
+        session.state.seed(67);
+        session.state.config.frag_limit = None;
+        session.state.config.time_limit_ticks = None;
+        session.state.config.compliance_ping_ticks = None;
+        session.state.config.boss_spawn_ticks = None;
+        let target_id = session.state.new_entity_id();
+        session
+            .state
+            .add_player(target_id, "Target".into(), Role::Agent);
+        session.state.start_round();
+        let boss_id = session.state.spawn_compliance_drone().expect("boss spawn");
+        let (origin, target, yaw) = boss_opportunity_lane(&session);
+        for (id, feet) in [(boss_id, origin), (target_id, target)] {
+            let player = session
+                .state
+                .players
+                .iter_mut()
+                .find(|p| p.id == id)
+                .unwrap();
+            player.x = feet[0];
+            player.y = feet[1] + PLAYER_FLOOR_Y;
+            player.z = feet[2];
+            player.yaw = yaw;
+        }
+        let boss = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == boss_id)
+            .unwrap();
+        assert_eq!(boss.hp, BOSS_MAX_HP);
+        let target = session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == target_id)
+            .unwrap();
+        assert_eq!(target.hp, PLAYER_MAX_HP);
+        assert!(crate::combat::line_of_sight(
+            [
+                boss.x,
+                boss.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(boss.campaign, boss.ducking),
+                boss.z,
+            ],
+            crate::combat::aim_point_for(
+                [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+                target.campaign,
+                target.ducking,
+            ),
+            &session.state.current_arena().solids,
+        ));
+        let mut previous = origin;
+        let mut distance = 0.0;
+        let mut shots = 0;
+        let mut hits = 0;
+        for tick in 0..160 {
+            session.tick_messages(0.05);
+            let boss = session
+                .state
+                .players
+                .iter()
+                .find(|p| p.id == boss_id)
+                .unwrap();
+            let now = [boss.x, boss.y - PLAYER_FLOOR_Y, boss.z];
+            distance += (now[0] - previous[0]).hypot(now[2] - previous[2]);
+            previous = now;
+            for shot in session
+                .state
+                .shot_results
+                .iter()
+                .filter(|s| s.shooter_id == boss_id)
+            {
+                assert!(tick >= 4, "{map:?}: boss bypassed observation reaction");
+                shots += 1;
+                hits += u32::from(shot.hit);
+            }
+        }
+        assert!(
+            distance > 3.0 && shots > 0 && hits > 0,
+            "{map:?}/Compliance: moved {distance:.1} m, {shots} shots, {hits} hits"
+        );
+        println!("boss opportunity: {map:?}: moved {distance:.1} m, {shots} shots, {hits} hits");
     }
 }

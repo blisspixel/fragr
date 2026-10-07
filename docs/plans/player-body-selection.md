@@ -1,17 +1,17 @@
 # Player body selection
 
 Status: **shipped** in #262, 2026-09-26. Wire, persistence, agent flags,
-runtime art and tour stills are implemented. The [roadmap](../ROADMAP.md) owns
-sequencing.
+runtime art and tour stills are implemented. The menu label is FREE AGENT
+as of 2026-10-06; the wire id remains `synthetic`. The [roadmap](../ROADMAP.md)
+owns sequencing.
 
 ## Goal
 
-The player chooses a human or a conscious embodied agent in a synthetic body,
-matching the campaign canon in [CAMPAIGN.md](../CAMPAIGN.md): "a customizable
-human or conscious embodied agent shares the same personal story", and body type
-is not morality. The choice is saved in the profile, travels through the one
-Hello every client sends, is visible to other players and spectators, and is
-honored for agents through that same Hello.
+The player chooses a human or a free agent in a synthetic body. Both share
+the same personal story, and body type is not morality
+([CAMPAIGN.md](../CAMPAIGN.md)). The choice is saved in the profile, travels
+through the one Hello every client sends, is visible to other players and
+spectators, and is honored for agents through that same Hello.
 
 ## Non-goals
 
@@ -37,7 +37,7 @@ re-implemented on current `main` rather than applied:
   server, and the pawn is then shown as human. Nothing is inferred from role or
   callsign.
 - Its wire id `robot` became `synthetic`, which names the physical body without
-  implying a lesser status; the menu says EMBODIED AGENT.
+  implying a lesser status; the menu says FREE AGENT.
 - Its native pistol-hands prototype had been rejected against the accepted gun
   art, and was not ported. Its participant rig was rebuilt on the current rig
   hooks in the free palette, and now ships as runtime art.

@@ -72,7 +72,7 @@ const TIPS: Array[String] = [
 	"The lighting was described in a design document as moody. It is four lamps and a colour grade, and you are being generous.",
 	"If the arena feels empty, that is because it is. It was fifty metres and cramped, so it became a hundred metres and empty, and the middle of those is the next job.",
 	"That fighter is a flat picture that turns to face you. So is the one behind you. So, in a sense, is everything.",
-	"There is no reload. There was a whole table of magazine sizes. We kept the table and threw away the magazines.",
+	"R reloads. The number before the bar is in the gun. The number after it is still in the bag. They add up, which is the whole trick.",
 	"Three weapons. There is a table somewhere listing twelve. The table is aspirational and the table knows it.",
 	"The scoreboard is four names because five ran off the bottom of the screen. This was called a design decision.",
 	"You can jump now. This sentence should not have been an announcement.",

@@ -221,7 +221,7 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	manager.is_human_player = true
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	network.player_id = PLAYER
-	var pawn: Node3D = Node3D.new()
+	var pawn: Node3D = load("res://scripts/player_pawn.gd").new()
 	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
 	camera.fp_mode = true
 	camera.fp_target = pawn
@@ -258,6 +258,8 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	display.apply(state, PLAYER)
 	await process_frame
 	_expect(display.visible and display._card.visible and display.prompt_text == "F: READ TRANSFER RECORD" and display._copy.text.contains("Latch"), "local objective and physical prompt are readable")
+	_expect(display._copy.text.contains("transfer control") and not display._copy.text.contains("mezzanine"), "the record objective names transfer control, after dispatch")
+	_expect(not display._bearing.visible and display.bearing_text.is_empty(), "the bearing stays down while the objective card is up")
 	_expect(not display._copy.text.contains("forced correction"), "play does not keep the introduction paragraph on the card")
 	display.apply(state, "")
 	_expect(display.prompt_text.is_empty(), "spectators see state without another player's use prompt")
@@ -280,12 +282,33 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	TranslationServer.remove_translation(translated)
 	display._process(MissionHud.STAGE_SECONDS)
 	_expect(not display._card.visible and display.prompt_text.is_empty(), "the objective card sets the stage and then leaves the view")
+	_expect(display._bearing.visible and display.bearing_text == tr("MISSION_BEARING_LIFT"), "the lift bearing stays after its card leaves")
 	display.apply(arrival, PLAYER)
 	_expect(not display._card.visible, "repeated mission state cannot reopen an expired objective card")
+	_expect(display._bearing.visible and display.bearing_text == tr("MISSION_BEARING_LIFT"), "a repeated packet keeps the bearing and leaves the card hidden")
 	display.apply(state, PLAYER)
-	_expect(display._card.visible, "a different mission phase introduces its own brief objective card")
+	_expect(display._card.visible and not display._bearing.visible, "a different mission phase introduces its own brief objective card")
 	display._process(MissionHud.STAGE_SECONDS)
-	_expect(not display._card.visible, "that objective card also expires")
+	_expect(not display._card.visible and not display._bearing.visible, "that objective card also expires, and a legal prompt replaces the bearing")
+	var hunting: Dictionary = state.duplicate(true)
+	hunting["prompts"] = []
+	display.geometry = {"record": {"approach": [0, 0, 10]}, "departure": {"approach": [4, 0, 0]}}
+	display.feet = Vector3(0, 1.5, 0)
+	display.yaw = PI / 2.0
+	display.yaw_known = true
+	display.apply(hunting, PLAYER)
+	_expect(not display._card.visible and display.bearing_text == tr("MISSION_BEARING_RECORD") + "  " + tr("MISSION_BEARING_AHEAD"), "facing the record reads ahead after the card leaves")
+	_expect(MissionHud.bearing_aim(Vector3(0, 1.5, 0), 0.0, true, [0, 0, 10]) == "MISSION_BEARING_LEFT", "a positive turn toward the record reads left")
+	_expect(MissionHud.bearing_aim(Vector3(0, 1.5, 0), PI, true, [0, 0, 10]) == "MISSION_BEARING_RIGHT", "a negative turn toward the record reads right")
+	_expect(MissionHud.bearing_aim(Vector3(0, 1.5, 8), PI / 2.0, true, [0, 0, 10]) == "", "within three metres the direction word leaves")
+	_expect(MissionHud.bearing_aim(Vector3(0, 1.5, 0), 0.0, false, [0, 0, 10]) == "", "unknown facing has no direction")
+	display.yaw_known = false
+	display._process(0.0)
+	_expect(display.bearing_text == tr("MISSION_BEARING_RECORD"), "unknown facing still names the record")
+	display.apply(hunting, "")
+	_expect(not display._bearing.visible and display.bearing_text.is_empty(), "a spectator does not get the bearing")
+	display.apply(hunting, PLAYER)
+	_expect(display._bearing.visible, "the player bearing returns without reopening the card")
 	var briefing: Dictionary = state.duplicate(true)
 	briefing["phase"] = "briefing"
 	briefing["prompts"] = []
@@ -293,11 +316,13 @@ func _input_and_hud(network: CaptureNetwork, state: Dictionary) -> void:
 	display.apply(briefing, PLAYER)
 	display._process(MissionHud.STAGE_SECONDS)
 	_expect(display._card.visible and display._copy.text.contains("Annex 67"), "the introduction stays until the mission starts")
+	_expect(not display._bearing.visible and display.bearing_text.is_empty(), "the introduction does not show a bearing")
 	var departed: Dictionary = state.duplicate(true)
 	departed["phase"] = "departed"
 	departed["prompts"] = []
 	display.apply(departed, PLAYER)
 	_expect(display._copy.text.contains("correction ward") and display._copy.text.contains("This mission ends here"), "departure states the ward result")
+	_expect(not display._bearing.visible, "departure does not keep the bearing")
 	_expect(not display._copy.text.contains("Prototype") and not display._copy.text.contains("in development"), "departure does not call the mission unfinished")
 	display.apply({}, "")
 	_expect(not display.visible, "disconnect clears mission UI")

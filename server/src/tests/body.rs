@@ -54,6 +54,7 @@ fn hello_welcome_and_snapshot_carry_an_allowlisted_body() {
         playlist: "p".into(),
         resume: None,
         body: None,
+        duck: false,
     };
     assert!(serde_json::to_value(&spectator)
         .unwrap()

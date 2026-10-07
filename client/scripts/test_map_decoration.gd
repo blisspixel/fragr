@@ -23,6 +23,9 @@ func _run() -> void:
 	quit(0 if failures == 0 else 1)
 
 func _contract() -> void:
+	_expect(ArenaDecoration.sign_key("terminal", 2, 2) == "WORLD_LATCH_RECORD", "the record console is the marked terminal")
+	_expect(ArenaDecoration.sign_key("terminal", 1, 2) == "WORLD_TRANSFER_QUEUE", "another terminal stays a transfer queue")
+	_expect(ArenaDecoration.sign_key("lift_control", 2, 2) == "WORLD_LIFT_CONTROL", "a marked index does not retitle a different kind")
 	_expect(MapDecoration.validation_error([DETAIL], [HOST]) == "", "valid panel rejected")
 	for bad: Variant in [null, {}, 1, true, "panel"]:
 		_expect(MapDecoration.validation_error(bad, [HOST]) != "", "non-array accepted")
@@ -144,6 +147,15 @@ func _presentation() -> void:
 	TranslationServer.set_locale("en")
 	TranslationServer.remove_translation(expanded)
 	await process_frame
+	var terminal_index: int = -1
+	for index: int in range(details.size()):
+		if str(details[index]["kind"]) == "terminal":
+			terminal_index = index
+			break
+	info["mission"] = {"record": {"decoration": terminal_index}}
+	cover.apply_map_info(info)
+	var marked: WorldSign = cover.get_node("Detail_%d_terminal/Copy" % terminal_index)
+	_expect(marked.message_key == "WORLD_LATCH_RECORD" and marked.text.contains("LATCH"), "the record console names Latch's file")
 	info["presentation"].erase("decorations")
 	cover.apply_map_info(info)
 	_expect(cover.get_child_count() == base_count, "map rotation retained details")

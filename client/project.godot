@@ -83,6 +83,10 @@ jump={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":32), Object(InputEventJoypadButton,"device":-1,"button_index":0)]
 }
+duck={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":4194326,"location":1)]
+}
 turn_left={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":4194319), Object(InputEventKey,"device":-1,"physical_keycode":81)]
@@ -105,7 +109,11 @@ center_view={
 }
 fire={
 "deadzone": 0.2,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":4194326), Object(InputEventMouseButton,"device":-1,"button_index":1,"pressed":true), Object(InputEventJoypadMotion,"device":-1,"axis":5,"axis_value":1.0)]
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":4194326,"location":2), Object(InputEventMouseButton,"device":-1,"button_index":1,"pressed":true), Object(InputEventJoypadMotion,"device":-1,"axis":5,"axis_value":1.0)]
+}
+reload={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":82)]
 }
 interact={
 "deadzone": 0.5,
@@ -118,6 +126,14 @@ throw_grenade={
 place_mine={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":66), Object(InputEventJoypadButton,"device":-1,"button_index":2)]
+}
+place_remote_mine={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":86), Object(InputEventJoypadButton,"device":-1,"button_index":5)]
+}
+trigger_remote_mines={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":72), Object(InputEventJoypadButton,"device":-1,"button_index":14)]
 }
 weapon_next={
 "deadzone": 0.5,
@@ -185,15 +201,15 @@ toggle_follow={
 }
 radio_next_station={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":67), Object(InputEventJoypadButton,"device":-1,"button_index":11)]
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":67)]
 }
 radio_next_track={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":78), Object(InputEventJoypadButton,"device":-1,"button_index":12)]
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":78)]
 }
 radio_toggle={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":77), Object(InputEventJoypadButton,"device":-1,"button_index":13)]
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":77)]
 }
 [internationalization]
 

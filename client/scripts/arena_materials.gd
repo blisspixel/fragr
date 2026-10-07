@@ -40,6 +40,7 @@ static func accent(map_id: int) -> Color:
 		3: return Color("4a8a92")
 		5: return Color("6e7950")
 		6: return Color("8a3a58")
+		7: return Color("4d7870")
 		1004, 1005: return Color("8b6850")
 		1006, 1007, 1008: return Color("b7aea0")
 		_: return Color("7a3a22")
@@ -52,6 +53,8 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 		base = Color("646965") if kind == 0 else Color("879184")
 	elif map_id == 5:
 		base = Color("756e59") if kind == 0 else Color("73796a")
+	elif map_id == 7:
+		base = Color("b8ab7d") if kind == 0 else Color("b8c1aa")
 	elif map_id in [1004, 1005]:
 		base = Color("686f69") if kind == 0 else Color("8c796a")
 	elif map_id in [1006, 1007, 1008]:
@@ -62,6 +65,13 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 	material.set_shader_parameter("accent_color", accent(map_id))
 	material.set_shader_parameter("surface_kind", kind)
 	material.set_shader_parameter("panel_size", 3.0 if kind == 0 else (4.0 if kind == 1 else 2.0))
+	if map_id == 7:
+		material.set_shader_parameter("markings_enabled", kind != 0)
+		material.set_shader_parameter("surface_style", 1)
+		material.set_shader_parameter("trim_glow", 0.0)
+		material.set_shader_parameter("warning_color", Color("73816c"))
+		EnvironmentTextures.apply(material, "concrete", "low_water")
+		material.set_shader_parameter("tile_strength", 0.25)
 	if map_id == 1:
 		EnvironmentTextures.apply(material, "concrete" if kind == 0 else "service_steel", "earth_scrap")
 	return material
@@ -82,7 +92,10 @@ static func authored(surface: String, venue: String = "") -> Material:
 	# its venue's quiet paint rather than the shader's default warning pinline.
 	var bases: Array[Color] = [Color("787468"), Color("c5c1a6"), Color("565753"), Color("82917f"), Color("343e40")]
 	var accents: Array[Color] = [Color("686954"), Color("52664d"), Color("8b1e1e"), Color("354d42"), Color("7eaaa0")]
-	if venue == "common_carrier":
+	if venue == "right_of_search":
+		bases = [Color("777f7e"), Color("aeb9b6"), Color("3b494c"), Color("7e9995"), Color("263b40")]
+		accents = [Color("4b6566"), Color("3d6264"), Color("708c8e"), Color("315557"), Color("91aca3")]
+	elif venue == "common_carrier":
 		bases = [Color("787468"), Color("c9bd9f"), Color("46514f"), Color("849283"), Color("394c4e")]
 		accents = [Color("666756"), Color("82745f"), Color("798172"), Color("617164"), Color("71928c")]
 	elif venue == "low_water":
@@ -94,7 +107,7 @@ static func authored(surface: String, venue: String = "") -> Material:
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
-	if venue in ["low_water", "common_carrier"] or (venue == "moon_town" and surface == "enamel"):
+	if venue in ["low_water", "common_carrier", "right_of_search"] or (venue == "moon_town" and surface == "enamel"):
 		material.set_shader_parameter("warning_color", accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)

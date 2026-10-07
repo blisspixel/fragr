@@ -2,8 +2,11 @@
 
 Player-facing names, as of 2026-10-04: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
 Sniper Rifle. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
-`flechette`, `scatter`, `rail`, `shiv` and `sniper`. Ammunition is Doom style (2026-09-24): one
-count per type, no magazines and no reload. Pistol and Rifle share Bullets, the
+`flechette`, `scatter`, `rail`, `shiv` and `sniper`. Ammunition is still one
+count per type. That count is everything carried, including rounds in each gun.
+A joined human has a magazine in each gun and presses R to move rounds into
+the gun in hand. Agents, rule bots and campaign enemies keep the single count.
+Pistol and Rifle share Bullets, the
 Shotgun uses Shells and the Railgun and Sniper Rifle use Cells. A Sniper Rifle, Rocket
 Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
 missions. Level 5's prototype implements counted grenades through a separate
@@ -24,7 +27,9 @@ The canonical arsenal direction, pickup economy and sound roles. Current M01
 implements fists, found Tack and Flechette, owned selection and finite
 ammunition counts. The same inventory supports Scatter and Rail, tested
 through server fixtures but not placed in M01. Six arcade maps retain their
-explicit full-arsenal policy with unlimited Flechette, Rail and Scatter.
+full arsenal. A joined human reloads finite magazines from a spawn kit of
+80 bullets, 24 shells and 16 cells. Bots stay on the open count. A weapon-only
+mutator keeps one gun and no bag.
 Counted grenade projectiles are implemented in M05. The remaining arsenal,
 breakable weapons, competitive carry-limit proposal and sidearm trickle remain
 proposals. Implementation and evidence:
@@ -37,7 +42,11 @@ Railgun player can bank ten pickups. A weapon pickup adds Tack 50 Bullets (Doom'
 Flechette 60 Bullets, Scatter 12 Shells or Rail 10 Cells, on discovery and
 again when the gun is already carried. Every shot spends one unit, including a
 Scatter blast of seven pellets. Dry fire does not discard a weapon or switch
-automatically, and any pickup of that type makes it live again at once. M01 death
+automatically. An armed human with an empty magazine stays dry until R loads
+it. A gun found for the first time comes loaded from the rounds that pickup
+just added. A later pickup of the same gun adds to the bag and leaves a
+partial magazine alone. An unarmed pawn, which is how agents and campaign
+enemies fire, is live again as soon as that pool has a round. M01 death
 offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
@@ -74,7 +83,7 @@ Nobody is a class. There are no loadouts and no roles: if you are sniping it is 
 
 ## The ladder
 
-There is one number per ammunition type and it is everything you carry. A shot spends one. There is no magazine and nothing to reload, which is how Doom does it and why its fights never stop for housekeeping. Rows marked shipped are the server's numbers; the rest are proposals.
+There is one number per ammunition type and it is everything you carry, including rounds already in a gun. A shot spends one. A joined human also has a magazine: the corner shows rounds in the gun, then what is left to load. Those two numbers, plus the other guns on the same type, add up to the carried total. R moves rounds into the gun in hand. It does not create any. Agents, rule bots and campaign enemies still spend the single count. Rows marked shipped are the server's numbers; the rest are proposals.
 
 | # | Weapon | Role | Damage | Cooldown | Pickup gives | Ammunition | Where |
 |---|---|---|---|---|---|---|---|
@@ -151,9 +160,10 @@ covered blast and cleanup seams when their bounded plans reach implementation.
 
 Campaign weapons stay owned; ammunition availability changes what is useful in
 the next fight. A pickup should offer a clear new option or meaningful resupply,
-while a dry count encourages a deliberate switch. Current full-arsenal arcade
-maps keep their explicit unlimited policy rather than silently adopting this
-campaign economy.
+while a dry count encourages a deliberate switch. A joined arcade human now
+has that pressure inside a life: the spawn kit is finite, a weapon pad
+restocks the bag, and death puts the kit back. Bots and a weapon-only mutator
+keep an open count. Campaign ownership is unchanged.
 
 Authored supply counts need evidence from ordinary play. The moment a new weapon
 is found should be an upgrade; resupply should reward useful detours. Resource
@@ -170,6 +180,8 @@ retired and proposed respectively, not current inventory rules.
 
 Same weapons, same numbers, different availability. A map decides which rungs exist in it, and an episode decides the order you meet them in. The best things are late and hidden, and a secret worth finding is usually a weapon you were not supposed to have yet.
 
+A traced pellet that lands in the head band deals twice the body number, before armour and before an Auditor plate halves the total. On a standing fighter the band starts at 1.45 m, just above the 1.22 m chest, and runs to the top of the volume, so an eye-level ray is a head and a chest aim is not. A Crawler or a Notary only counts the top quarter, so a shot through the middle stays a body shot. Fists and the Shiv do not gain it. Scatter scores each pellet on its own before the blast is summed.
+
 ## Carrying and running dry
 
 Three rules, and they are the point of the whole design.
@@ -180,12 +192,13 @@ to make room. Current arcade full-arsenal maps also retain their explicit kit.
 The older melee/sidearm/two-primary swap is a competitive-mode proposal, not an
 implemented rule or a campaign requirement.
 
-**Nothing reloads.** This used to say every weapon reloads. Playtest said the two numbers in the corner did not add up and the pause did not add a decision, so the magazine went (2026-09-24, [`plans/boomer-ammo-and-pellets.md`](plans/boomer-ammo-and-pellets.md)). The cooldown is the rhythm of firing and the count is the budget; the decision is which gun spends it.
+**A human reloads.** Playtest on 2026-09-24 retired magazines because Rifle and Shotgun shared a mislabeled reserve and the two corner numbers did not add up ([`plans/boomer-ammo-and-pellets.md`](plans/boomer-ammo-and-pellets.md)). Capability 37 puts a magazine back inside the same carried total, so the corner pair is the gun and the bag. Tack holds 12 and reloads in 0.8 s. Flechette holds 20 and Repeater holds 30, each in 1.1 s. Scatter holds 6 and one press fills the tube in 0.7 s. Rail holds 4 and Sniper holds 5, each in 1.4 s. Fists and the Shiv do not reload. An empty magazine does not fire while rounds remain outside it. A full magazine, melee, and a bag with nothing left ignore R. Death and a weapon change cancel the reload. The cooldown is still the rhythm of firing. The pause is only the decision to fill the gun.
 
-**You run out.** Campaign ammunition is finite. A dry weapon stays owned and
-selected, reports the dry trigger and becomes usable when its ammunition is
-found. Switching to another weapon or melee is the player's choice. No automatic
-sidearm-to-fists descent discards that choice.
+**You run out.** Campaign ammunition is finite. A dry magazine stays owned and
+selected and reports the dry trigger. It becomes usable when R moves rounds
+in from the bag, or when a first-time find fills that new gun. Switching to
+another weapon or melee is the player's choice. No automatic sidearm-to-fists
+descent discards that choice.
 
 The Denial never refills. Five charges, and then it is a very expensive club.
 
@@ -197,7 +210,7 @@ Every weapon owns its own set. Nothing is shared, because a shared fire sound is
 |---|---|---|
 | **fire** | The shot leaves | Yes |
 | **cycle** | Between shots: pump, recharge, spin-down, settle | Yes |
-| **reload** | Retired with magazines on 2026-09-24; generated clips stay on disk unused | No |
+| **reload** | A human magazine finishes filling. No new cue is wired yet | Guns with a magazine |
 | **raise** | You switch to it | Yes |
 | **dry** | Trigger pulled with an empty count | Yes |
 | **empty** | The count just reached zero and this weapon is finished until a pickup | Yes |

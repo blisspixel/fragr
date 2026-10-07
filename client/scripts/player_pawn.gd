@@ -9,6 +9,7 @@ var player_color: Color = Color.WHITE
 var hit_flash_timer: float = 0.0
 var idle_anim_timer: float = 0.0
 var current_weapon: String = ""
+var vehicle_seated: bool = false
 var behavior: String = ""
 var is_highlighted: bool = false
 var is_local_fp: bool = false
@@ -18,6 +19,10 @@ var is_campaign_enemy: bool = false
 var is_campaign_companion: bool = false
 ## Side in a team mode ("union" or "coalition"), empty otherwise.
 var team: String = ""
+## "mate" or "foe" from the local fighter's side. Empty for spectators,
+## free-for-all, and the fighter's own body.
+var team_relation: String = ""
+var _score_chip: String = ""
 ## Holds the golden Railgun.
 var golden: bool = false
 ## The callsign colour before a side took it over.
@@ -37,6 +42,9 @@ var marksman_tell: RangedSweeperTell = null
 
 var target_position: Vector3 = Vector3.ZERO
 var prediction_active: bool = false
+## Resolved crouch from the server, or from local prediction while that owns the body.
+var ducking: bool = false
+var _body_rest_y: float = -0.15
 var predicted_position: Vector3 = Vector3.ZERO
 var predicted_speed: float = 0.0
 var presentation_speed: float = 0.0
@@ -142,6 +150,8 @@ const KRAGGE_BOTS = ["Dead Air Dan", "Aunt Linda", "Buzzkill"]
 const CYANEX_BOTS = ["Nightfall", "Static Kid", "Scout Ant", "Crackpot", "Tin Foil Tina"]
 
 func _ready():
+	if body:
+		_body_rest_y = body.position.y
 	if label:
 		label.text = player_name
 	if muzzle:
@@ -269,6 +279,8 @@ func _process(delta: float) -> void:
 	# Motion feedback follows the rendered fighter, including observed agents.
 	# Discontinuities and dead bodies are not walking strides.
 	presentation_speed = predicted_speed if prediction_active and hp > 0 else (travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0)
+	if vehicle_seated:
+		presentation_speed = 0.0
 	# The pawn's muzzle and weapon sprites hang off its local +X, so that is
 	# what has to point where the server is sending it.
 	rotation.y = ServerYaw.pawn_rotation_y(presentation_yaw)
@@ -408,6 +420,11 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 		team = next_team
 		player_color = MatchRules.team_label_color(team) if team != "" else _own_color
 	golden = state.get("golden") == true
+	if not prediction_active:
+		var next_duck: bool = state.get("ducking") == true
+		if next_duck != ducking:
+			ducking = next_duck
+			_apply_body_scale(hit_flash_timer > 0)
 
 	var weapon_name = state.get("weapon", "")
 	if weapon_name != current_weapon:
@@ -424,31 +441,21 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 			label.text = "LATCH"
 			label.modulate = LatchView.CYAN
 		else:
-			var hp_display = str(hp) + " HP"
-			if hp < 30:
-				hp_display = "!" + hp_display + "!"
-		
 			var score = int(state.get("score", 0))
-			var score_chip = ""
-			if score > 0:
-				score_chip = " +" + str(score)
-		
-			# Stance beside callsign so follow / overview reads it without Tab.
-			label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, score_chip)
-			# A side chip leads the plate so a spectator reads teams at a glance.
-			if team != "":
-				label.text = "[" + MatchRules.team_short(team) + "] " + label.text
-			if golden:
-				label.modulate = MatchRules.GOLD
-			elif team != "":
-				label.modulate = player_color
-			elif behavior != "":
-				label.modulate = StanceChipScript.accent_color(true)
-			else:
-				label.modulate = player_color
+			_score_chip = " +" + str(score) if score > 0 else ""
+			_apply_plate()
 	
 	if body and hit_flash_timer <= 0:
 		_update_body_color(false)
+
+## Local prediction owns the crouch between snapshots. A remote body reads it
+## from update_state.
+func set_ducking(value: bool) -> void:
+	if ducking == value:
+		return
+	ducking = value
+	_apply_body_scale(hit_flash_timer > 0)
+
 
 ## Only the local human body uses this path. Snapshot metadata still flows
 ## through update_state; the positional target is kept for safe fallback.
@@ -456,6 +463,7 @@ func set_predicted_position(value: Vector3, speed: float) -> void:
 	prediction_active = true
 	predicted_position = value
 	predicted_speed = clampf(speed, 0.0, MoveStep.TOP_SPEED)
+	position = value
 
 
 func clear_predicted_position() -> void:
@@ -493,6 +501,8 @@ func _wear_body(kind: String) -> void:
 	body.frame = 0
 	body.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 	body.position.y = EnemyAnimation.CENTRE_HEIGHT - EnemyView.CAMERA.FP_SERVER_REFERENCE_Y
+	# Scale and crouch restore this rest. The scene default is the legacy strip.
+	_body_rest_y = body.position.y
 	# The held weapon sits at the resting hands, about hip height.
 	weapon_sprite.position = Vector3(0.34, 0.0, 0.02)
 	muzzle.position = Vector3(0.64, 0.2, 0.04)
@@ -533,6 +543,11 @@ func _update_body_color(hit: bool):
 	elif golden:
 		# The golden Railgun's holder glows so everyone knows who to chase.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(MatchRules.GOLD, 0.6) * 1.25
+	elif team_relation == "mate":
+		# Brighten whoever is on the viewer's side, whichever faction that is.
+		body.modulate = Color(1.2, 1.16, 1.05)
+	elif team_relation == "foe":
+		body.modulate = Color.WHITE.lerp(MatchRules.THEIRS_MARK, 0.55)
 	elif not body_kind.is_empty() and team != "union":
 		# A free body keeps its own bone, leather, rust and ember, with or
 		# without a side: the coalition is who these people already are,
@@ -557,8 +572,33 @@ func _update_notary_shadow() -> void:
 
 ## Alternates the third-person flash left and right from one shot to the next.
 var _flash_mirrored: bool = false
+var _fire_feedback_revision: int = 0
+
+## A rejected speculative local shot can stop its remaining sound and light.
+## This path never changes the pawn's authoritative health or equipment.
+func cancel_fire_feedback() -> void:
+	_fire_feedback_revision += 1
+	if fire_sound != null:
+		fire_sound.stop()
+	if _cycle_timer != null:
+		_cycle_timer.stop()
+	if cycle_sound != null:
+		cycle_sound.stop()
+	if muzzle != null:
+		muzzle.visible = false
+	if muzzle_glow != null:
+		muzzle_glow.light_energy = 0.0
+
+## Mounted fire uses the gun's resolved world muzzle, never the carried gun.
+func play_mounted_fire() -> void:
+	if fire_sound != null:
+		fire_sound.stream = fire_streams.get("Flechette")
+		if fire_sound.stream != null:
+			fire_sound.play()
 
 func show_muzzle_flash(weapon: String):
+	_fire_feedback_revision += 1
+	var revision: int = _fire_feedback_revision
 	if is_campaign_enemy and campaign_actor.get("kind") == "notary":
 		# Its shutter and optic have their own server-driven presentation.
 		return
@@ -645,7 +685,7 @@ func show_muzzle_flash(weapon: String):
 	muzzle.visible = true
 	
 	await get_tree().create_timer(flash_time).timeout
-	if is_instance_valid(muzzle):
+	if is_instance_valid(muzzle) and revision == _fire_feedback_revision:
 		muzzle.visible = false
 		muzzle.scale = Vector3.ONE
 		if muzzle_glow:
@@ -793,11 +833,18 @@ func _apply_body_scale(hit: bool) -> void:
 	if is_campaign_enemy or is_campaign_companion:
 		# Fixed feet registration and silhouette size preserve the cover contract.
 		body.scale = Vector3.ONE
+		body.position.y = _body_rest_y
 		return
 	var mult: float = _far_cam_scale
 	if hit:
 		mult *= HIT_SCALE_BOOST
-	body.scale = Vector3.ONE * mult
+	var fitted: Vector3 = Vector3.ONE * mult
+	var drop: float = 0.0
+	if ducking:
+		fitted.y *= 0.75
+		drop = 0.22
+	body.scale = fitted
+	body.position.y = _body_rest_y - drop
 
 func set_local_fp(enabled: bool) -> void:
 	# Hide local billboard in FP so the HUD viewmodel owns the scrap face.
@@ -812,6 +859,40 @@ func set_local_fp(enabled: bool) -> void:
 		weapon_sprite.visible = false
 	elif weapon_sprite:
 		_update_weapon_sprite()
+
+func set_team_relation(relation: String) -> void:
+	var next: String = relation if relation == "mate" or relation == "foe" else ""
+	if next == team_relation:
+		return
+	team_relation = next
+	_apply_plate()
+	if hit_flash_timer <= 0:
+		_update_body_color(false)
+
+
+func _apply_plate() -> void:
+	if label == null:
+		return
+	var mark: String = MatchRules.relation_mark(team_relation)
+	if mark != "":
+		label.text = mark
+		label.modulate = MatchRules.OURS_MARK if team_relation == "mate" else MatchRules.THEIRS_MARK
+		return
+	var hp_display: String = str(hp) + " HP"
+	if hp < 30:
+		hp_display = "!" + hp_display + "!"
+	label.text = StanceChipScript.nameplate(player_name, behavior, hp_display, _score_chip)
+	if team != "":
+		label.text = "[" + MatchRules.team_short(team) + "] " + label.text
+	if golden:
+		label.modulate = MatchRules.GOLD
+	elif team != "":
+		label.modulate = player_color
+	elif behavior != "":
+		label.modulate = StanceChipScript.accent_color(true)
+	else:
+		label.modulate = player_color
+
 
 func set_nameplate_enabled(enabled: bool) -> void:
 	nameplate_enabled = enabled

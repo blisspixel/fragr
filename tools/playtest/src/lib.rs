@@ -2056,7 +2056,7 @@ impl Arena {
             [from.x, from.y - PLAYER_FLOOR_Y + EYE_HEIGHT, from.z],
             [
                 to.x,
-                to.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(to.campaign) * 0.5,
+                to.y - PLAYER_FLOOR_Y + fragr_server::combat::aim_height(to.campaign),
                 to.z,
             ],
             &self.solids,
@@ -2152,6 +2152,7 @@ async fn agent_task(
                 m07,
                 m09,
                 m10,
+                m11,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2203,6 +2204,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m10(m10.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M10 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m11(m11.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M11 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2350,6 +2354,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         fill_target: 0,
         map: config.map,
         map_rotate: false,
+        playlist: false,
         match_config: Some(match_config),
         // A harness run is reproducible and quiet: the report is the output.
         seed: config.seed,
@@ -2569,6 +2574,7 @@ mod tests {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -2584,12 +2590,18 @@ mod tests {
             just_fired: fired,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }
     }
 
     fn snapshot(tick: u64, players: Vec<PlayerState>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -2603,6 +2615,7 @@ mod tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -2621,6 +2634,7 @@ mod tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         }
     }
 
@@ -3491,6 +3505,7 @@ mod combat_tests {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -3506,12 +3521,18 @@ mod combat_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
 
     fn frame(tick: u64, players: Vec<PlayerState>, shots: Vec<ShotResult>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -3525,6 +3546,7 @@ mod combat_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -3543,6 +3565,7 @@ mod combat_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         }
     }
 
@@ -3746,6 +3769,7 @@ mod combat_tests {
                 result.target_hp_after = Some(0);
                 result.killed = true;
                 result.trace = Some(ShotTrace {
+                    vehicle_id: None,
                     weapon: WeaponType::Rail,
                     origin: [0.0, 1.0, 0.0],
                     end: [3.0, 5.0, 0.0],
@@ -3899,6 +3923,7 @@ mod combat_tests {
         use fragr_server::protocol::{PelletTrace, ShotImpact, ShotTrace, WeaponType};
         let (a, b, c) = (Uuid::from_u128(1), Uuid::from_u128(2), Uuid::from_u128(3));
         let trace = |impact: ShotImpact, count: usize| ShotTrace {
+            vehicle_id: None,
             weapon: WeaponType::Scatter,
             origin: [0.0, 1.6, 0.0],
             end: [3.0, 1.6, 0.0],
@@ -4048,6 +4073,7 @@ mod planner_tests {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -4063,6 +4089,11 @@ mod planner_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
@@ -4085,6 +4116,7 @@ mod planner_tests {
 
     fn scene(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -4098,6 +4130,7 @@ mod planner_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4116,6 +4149,7 @@ mod planner_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         }
     }
 
@@ -4598,6 +4632,7 @@ mod line_of_sight_tests {
         let me = Uuid::new_v4();
         let foe = Uuid::new_v4();
         let mut snap = Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -4611,6 +4646,7 @@ mod line_of_sight_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4629,11 +4665,13 @@ mod line_of_sight_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -4649,6 +4687,11 @@ mod line_of_sight_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "flechette".to_string(),
         };
         snap.players = vec![mk(me, 0.0), mk(foe, 10.0)];
@@ -4706,6 +4749,7 @@ mod patrol_tests {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -4721,6 +4765,11 @@ mod patrol_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }
     }

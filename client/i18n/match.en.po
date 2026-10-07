@@ -6,6 +6,114 @@ msgstr ""
 msgid "MODE_FFA"
 msgstr "FREE FOR ALL"
 
+msgid "MODE_CONQUEST"
+msgstr "CONQUEST"
+
+msgid "CONQUEST_TICKETS"
+msgstr "UNION {union}  :  {coalition} FREE COALITION"
+
+msgid "CONQUEST_HOLD_MAJORITY"
+msgstr "HOLD THREE SITES TO DRAIN ENEMY TICKETS"
+
+msgid "CONQUEST_SITE_HARBOUR"
+msgstr "HARBOUR"
+
+msgid "CONQUEST_SITE_VILLAGE"
+msgstr "VILLAGE"
+
+msgid "CONQUEST_SITE_AIRFIELD"
+msgstr "AIRFIELD"
+
+msgid "CONQUEST_SITE_SERVER_HALLS"
+msgstr "SERVER HALLS"
+
+msgid "CONQUEST_SITE_LIGHTHOUSE"
+msgstr "LIGHTHOUSE"
+
+msgid "CONQUEST_CONTESTED"
+msgstr "CONTESTED"
+
+msgid "CONQUEST_CAPTURING"
+msgstr "CAPTURING"
+
+msgid "CONQUEST_NEUTRALIZING"
+msgstr "NEUTRALIZING"
+
+msgid "CONQUEST_NEUTRAL"
+msgstr "OPEN"
+
+msgid "HOLDFAST_HARBOUR"
+msgstr "HARBOUR COOPERATIVE"
+
+msgid "HOLDFAST_VILLAGE"
+msgstr "HOLDFAST // RESIDENTS' HALL"
+
+msgid "HOLDFAST_SERVER_HALLS"
+msgstr "WEATHER AND TIDE RECORDS"
+
+msgid "HOLDFAST_LIGHTHOUSE"
+msgstr "LIGHTHOUSE KEEPERS"
+
+msgid "HOLDFAST_REPAIR_NOTE"
+msgstr "PUMP FIXED.\nSTOP KICKING IT."
+
+msgid "HOLDFAST_LAUNDRY_NOTE"
+msgstr "PLEASE RETURN\nTHE GOOD PEGS"
+
+msgid "VEHICLE_JEEP"
+msgstr "UTILITY JEEP"
+
+msgid "VEHICLE_BOAT"
+msgstr "UTILITY LAUNCH"
+
+msgid "VEHICLE_LIGHT_AIRCRAFT"
+msgstr "LIGHT AIRCRAFT"
+
+msgid "VEHICLE_FLY"
+msgstr "{forward}/{back} THROTTLE  {left}/{right} TURN\n{jump} CLIMB  {descend} DESCEND"
+
+msgid "VEHICLE_FLIGHT_FACTS"
+msgstr "HULL {hp}  {speed} km/h  ALT {altitude} m"
+
+msgid "VEHICLE_SEAT_DRIVER"
+msgstr "DRIVER"
+
+msgid "VEHICLE_SEAT_GUNNER"
+msgstr "GUNNER"
+
+msgid "VEHICLE_HULL"
+msgstr "HULL {hp}"
+
+msgid "VEHICLE_HULL_HEAT"
+msgstr "HULL {hp}   HEAT {heat}%"
+
+msgid "VEHICLE_ENTER"
+msgstr "{use} ENTER {seat}"
+
+msgid "VEHICLE_EXIT"
+msgstr "{use} EXIT"
+
+msgid "VEHICLE_STOP_EXIT"
+msgstr "STOP TO EXIT"
+
+msgid "VEHICLE_LAND_EXIT"
+msgstr "LAND AND STOP, THEN {use} EXIT"
+
+msgid "VEHICLE_MOUNT_FIRE"
+msgstr "{fire} MOUNTED GUN"
+
+msgid "VEHICLE_DRIVE"
+msgstr "{forward}/{back} DRIVE  {left}/{right} STEER\n{jump} BRAKE"
+
+msgid "VEHICLE_BURNING"
+msgstr "BURNING, LEAVE VEHICLE"
+
+msgid "VEHICLE_HOT"
+msgstr "GUN HOT, RELEASE TRIGGER"
+
+msgid "VEHICLE_SWITCHING"
+msgstr "CHANGING SEATS {seconds} s"
+
 msgid "MODE_TDM"
 msgstr "TEAM DEATHMATCH"
 
@@ -138,6 +246,12 @@ msgstr "UNION"
 msgid "TEAM_COALITION_SHORT"
 msgstr "FREE"
 
+msgid "TEAM_OURS"
+msgstr "OURS"
+
+msgid "TEAM_THEIRS"
+msgstr "THEIRS"
+
 msgid "TEAM_SCORE_LINE"
 msgstr "UNION {union} : {coalition} FREE COALITION"
 
@@ -146,6 +260,12 @@ msgstr "LIVES {count}"
 
 msgid "HUD_OUT_OF_LIVES"
 msgstr "OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."
+
+msgid "HUD_LEADERS"
+msgstr "LEADERS"
+
+msgid "HUD_BOARD_COLUMNS"
+msgstr "FRAG  DIED  HIT% bodies/shots  HEAD% of those bodies  DEALT hp+armor"
 
 msgid "PICKUP_GOLDEN_RAIL"
 msgstr "GOLDEN RAIL"
@@ -170,6 +290,9 @@ msgstr "+{amount} GRENADES"
 
 msgid "PICKUP_MINES"
 msgstr "+{amount} MINES"
+
+msgid "PICKUP_REMOTES"
+msgstr "+{amount} REMOTE CHARGES"
 
 msgid "PICKUP_SUPPLY"
 msgstr "SUPPLY"

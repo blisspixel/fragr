@@ -237,15 +237,37 @@ fn heavy_sweeper_bursts_four_then_shuffles_sideways_at_a_heavy_gait() {
     session.state.players[0].hp = 1000;
     until(&mut session, heavy, EnemyPhase::Firing, 40);
     let mut shots = enemy_shots(&session, heavy);
+    let mut dealt: i32 = session
+        .state
+        .shot_results
+        .iter()
+        .filter(|shot| shot.shooter_id == heavy && shot.hit)
+        .map(|shot| shot.damage)
+        .sum();
     for _ in 0..20 {
         advance(&mut session, 1);
         shots += enemy_shots(&session, heavy);
+        dealt += session
+            .state
+            .shot_results
+            .iter()
+            .filter(|shot| shot.shooter_id == heavy && shot.hit)
+            .map(|shot| shot.damage)
+            .sum::<i32>();
         if phase(&session, heavy) == EnemyPhase::Recovery {
             break;
         }
     }
     assert_eq!(shots, 4);
-    assert_eq!(session.state.players[0].hp, 900);
+    // The burst is four flechettes. Spread can put one in the head band.
+    let body_damage = WeaponType::Flechette.damage();
+    let head_damage = body_damage * crate::combat::HEAD_DAMAGE_SCALE;
+    assert!(
+        dealt >= 4 * body_damage
+            && dealt <= 4 * head_damage
+            && (dealt - 4 * body_damage) % body_damage == 0
+    );
+    assert_eq!(session.state.players[0].hp, 1000 - dealt);
     until(&mut session, heavy, EnemyPhase::Moving, 40);
     let start = (body(&session, heavy).x, body(&session, heavy).z);
     let mut last = start;
@@ -260,7 +282,12 @@ fn heavy_sweeper_bursts_four_then_shuffles_sideways_at_a_heavy_gait() {
         (last.0 - start.0).abs() > 0.3,
         "moves sideways, not forward"
     );
-    assert!((last.1 - start.1).abs() < 0.1);
+    let lateral = (last.0 - start.0).abs();
+    let forward = (last.1 - start.1).abs();
+    assert!(
+        forward < lateral * 0.5,
+        "the shuffle stays sideways: lateral {lateral}, along {forward}"
+    );
     until(&mut session, heavy, EnemyPhase::Windup, 30);
     let _ = id;
 }

@@ -14,6 +14,9 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m09_crew_manifest": "WORLD_M09_CREW_MANIFEST",
 	"m09_board_carrier": "WORLD_M09_BOARD_CARRIER",
 	"m10_ship_confirmation": "WORLD_M10_SHIP_CONFIRMATION",
+	"m11_transfer_release": "WORLD_M11_TRANSFER_RELEASE",
+	"m11_records_document": "WORLD_M11_RECORDS_DOCUMENT",
+	"m11_stern_release": "WORLD_M11_STERN_RELEASE",
 	"m10_cargo_deck": "WORLD_M10_CARGO_DECK",
 	"m10_passenger_deck": "WORLD_M10_PASSENGER_DECK",
 	"m10_command_deck": "WORLD_M10_COMMAND_DECK",
@@ -85,7 +88,14 @@ const SIGN_KEYS: Dictionary[String, String] = {
 ## Faces a mission presenter dresses itself; a plate here would hide them.
 const PRESENTER_ONLY: Array[String] = ["m07_window_figure"]
 
-static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky.Preset = null) -> void:
+## The record console shares the terminal kind with ordinary counters.
+## `marked_terminal` is that one decoration index, or -1.
+static func sign_key(kind: String, index: int, marked_terminal: int) -> String:
+	if index == marked_terminal and kind == "terminal":
+		return "WORLD_LATCH_RECORD"
+	return str(SIGN_KEYS.get(kind, ""))
+
+static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky.Preset = null, marked_terminal: int = -1) -> void:
 	var preset: ArenaSky.Preset = venue if venue != null else ArenaSky.scrapyard()
 	for index: int in range(details.size()):
 		var detail: Dictionary = details[index]
@@ -110,10 +120,11 @@ static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky
 		if kind in ["vent", "lockers", "terminal", "lift_control", "strip_light", "property_sign", "intake_sign", "records_sign", "maintenance_sign", "transfer_sign", "lift_sign", "m04_clinic_control", "m04_roof_departure", "m08_freight_departure", "m08_bay_release"]:
 			var source: RefCounted = FacilitySource.new()
 			panel.add_child(source.build(kind, size))
-		if SIGN_KEYS.has(kind):
+		var copy_key: String = sign_key(kind, index, marked_terminal)
+		if not copy_key.is_empty():
 			var label: WorldSign = WorldSign.new()
 			label.name = "Copy"
-			label.configure(SIGN_KEYS[kind], size * Vector2(0.86, 0.74),
+			label.configure(copy_key, size * Vector2(0.86, 0.74),
 				INK if kind == "complaint_notice" else BONE)
 			label.position.z = 0.008
 			panel.add_child(label)

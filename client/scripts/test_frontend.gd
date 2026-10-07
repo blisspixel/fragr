@@ -73,7 +73,7 @@ func _run() -> void:
 	owned.run_preview = {"status": "awaiting_mission", "mission": MissionState.M02_ID, "difficulty": "severe", "continues": 2.0, "body": null}
 	menu._show("single")
 	_check(column.get_node_or_null("PersonsUnknownSaved") != null, "M01 completion offers the saved M02 continuation")
-	_check(_menu_text(column).contains("Body for this run: EMBODIED AGENT"), "legacy unknown body shows the explicit current selection")
+	_check(_menu_text(column).contains("Body for this run: FREE AGENT"), "legacy unknown body shows the explicit current selection")
 	_check(_menu_text(column).contains("2 continues left") and not _menu_text(column).contains("2.0 continues"), "saved M02 destination shows a whole-number allowance")
 	var choose_body: Button = column.get_node("ChooseRunBody")
 	choose_body.pressed.emit()
@@ -129,9 +129,13 @@ func _run() -> void:
 	menu._show("single")
 	_check(column.get_node_or_null("CommonCarrierSaved") != null and _menu_text(column).contains("COMMON CARRIER"), "completed M09 offers the actual ship continuation")
 	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M10_ID}), "new ship transition plays arrival while its existing entry does not")
+	owned.run_preview["mission"] = MissionState.M11_ID
+	menu._show("single")
+	_check(column.get_node_or_null("RightOfSearchSaved") != null and _menu_text(column).contains("RIGHT OF SEARCH"), "completed M10 offers the actual tender continuation")
+	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M11_ID}), "new tender transition plays arrival while its existing entry does not")
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
-	_check(column.get_node_or_null("PassengerManifestSaved") == null and column.get_node_or_null("CommonCarrierSaved") == null and _menu_text(column).contains("Right of Search is not playable yet"), "pending M11 has no mission launch button")
+	_check(column.get_node_or_null("CommonCarrierSaved") == null and column.get_node_or_null("RightOfSearchSaved") == null and _menu_text(column).contains(tr("M11_NEXT_PENDING")), "pending M12 has no mission launch button")
 	menu._onward_pending = true
 	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
 	owned.run_preview = {"status": "loading"}
@@ -145,20 +149,35 @@ func _run() -> void:
 	menu._try_onward()
 	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
 		"an unbuilt next mission settles the onward request on Single Player without launching")
-	_check(_menu_text(column).contains("NEXT: RIGHT OF SEARCH") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M11 previews mission, shared continues and saved body")
+	_check(_menu_text(column).contains("NEXT: TERMS OF COOPERATION") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M12 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
-		"pending M11 leaves an unbound body visible without an unavailable selector")
+		"pending M12 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 9 and development.get_item_text(4).contains("PORT OF ENTRY")
+	_check(development.item_count == 10 and development.get_item_text(4).contains("PORT OF ENTRY")
 		and development.get_item_text(5).contains("DECLARED GOODS") and development.get_item_text(6).contains("CUSTODIAN OF RECORD")
-		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes the ship prototype")
+		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE")
+		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes ship and tender prototypes")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	await menu._show("multi")
+	_check(column.get_node_or_null("UseRunningServer") == null and column.get_node_or_null("RunServer") != null and column.get_node_or_null("CheckHost") != null,
+		"run and join are separate controls, and nothing on the join page replaces the address")
+	_check(_menu_text(column).contains(tr("HOST_RUN_SECTION")) and _menu_text(column).contains(tr("JOIN_SECTION")),
+		"run and join are labeled separately")
+	_check(not _menu_text(column).contains(tr("HOST_STILL_RUNNING")), "an idle menu does not claim a server is running")
+	var typed_join: String = menu._host_edit.text
+	menu._host_edit.text = "remote.example:6767"
+	menu._host_edit.text_changed.emit("remote.example:6767")
+	_check(menu._host_edit.text == "remote.example:6767", "a typed join address stays in the field")
+	await menu._show("host")
+	await menu._show("multi")
+	_check(menu._host_edit.text == "remote.example:6767", "a typed join address survives the server page")
+	menu._host_edit.text = typed_join
+	menu._host_edit.text_changed.emit(typed_join)
 	menu._apply_status({"schema_version": 2, "kind": "arena", "map": "Arena Duel", "fighters": 4, "connections": 2})
 	_check(menu._match_line.text == "Arena Duel. Arena. 4 fighters. 2 connections.", "a live arena enables the match line")
 	_check(not menu._watch_button.disabled and not menu._join_button.disabled, "watch and join stay in the app after a match line")
@@ -168,6 +187,38 @@ func _run() -> void:
 	menu._apply_status(with_ops)
 	_check(menu._match_line.text == "Tripoint Works. Arena. 8 fighters. 6 connections.", "additive health and ops fields keep the schema 2 match line")
 	_check(not menu._join_button.disabled, "operator fields do not close watch or join")
+	var versioned: Dictionary = with_ops.duplicate()
+	versioned["gameplay_version"] = 1
+	menu._apply_status(versioned)
+	_check(not menu._watch_button.disabled and not menu._join_button.disabled, "a different advertised version does not block join")
+	_check(menu._match_line.text.contains("This server speaks an older version."), "an older server is named")
+	_check(not menu._match_line.text.contains("SHA256SUMS.txt"), "an older server does not send this client to the release")
+	versioned["gameplay_version"] = 99
+	menu._apply_status(versioned)
+	var offer: Button = column.get_node_or_null("InstallLatest") as Button
+	var offer_note: Label = column.get_node_or_null("InstallNote") as Label
+	_check(not menu._watch_button.disabled and not menu._join_button.disabled, "a newer server does not block join")
+	_check(menu._match_line.text.contains("Update this client.") and menu._match_line.text.contains("https://github.com/blisspixel/fragr/releases/latest") and menu._match_line.text.contains("SHA256SUMS.txt"), "a newer server names the release and its checksum")
+	_check(offer != null and offer.visible and not offer.disabled and offer.text == "INSTALL THE LATEST AND REJOIN", "a newer server offers to install and rejoin")
+	_check(offer_note != null and offer_note.visible and offer_note.text == ReleaseInstall.OFFER_NOTE, "the offer says the latest build may still be older")
+	_check(menu.get_node_or_null("ReleaseFetch") == null, "the offer does not download until it is chosen")
+	_check(column.get_node("Join").get_index() < offer.get_index() and offer.get_index() < column.get_node("SaveHost").get_index(), "the install offer follows Join")
+	versioned["gameplay_version"] = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
+	versioned["geometry_version"] = 9
+	menu._apply_status(versioned)
+	_check(offer.visible and not menu._watch_button.disabled and not menu._join_button.disabled, "a newer geometry version offers the install and does not block join")
+	versioned["gameplay_version"] = 1
+	versioned.erase("geometry_version")
+	menu._apply_status(versioned)
+	_check(not offer.visible and not offer_note.visible, "an older server does not offer an install")
+	versioned["gameplay_version"] = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
+	versioned["geometry_version"] = 2
+	menu._apply_status(versioned)
+	_check(not menu._match_line.text.contains("different version"), "a matching version stays quiet")
+	_check(not offer.visible, "a matching version hides the install offer")
+	menu._apply_status(with_ops)
+	_check(not menu._match_line.text.contains("different version") and not menu._join_button.disabled, "a missing version does not warn or block")
+	_check(not offer.visible, "a missing version hides the install offer")
 	with_ops["mode"] = "tdm"
 	with_ops["mutators"] = ["rail-only"]
 	menu._apply_status(with_ops)
@@ -185,7 +236,88 @@ func _run() -> void:
 	_check(menu._watch_button.disabled and menu._join_button.disabled, "schema 1 does not open watch or join")
 	menu._apply_status(null)
 	_check(menu._match_line.text == "This host did not answer.", "a missing host stays on the menu")
+	_check(menu.probe_failure_line(HTTPRequest.RESULT_TIMEOUT, 0, "192.168.44.46:6767") == "This host did not answer. Checked 192.168.44.46:6767.", "a timed-out check names the address")
+	_check(menu.probe_failure_line(HTTPRequest.RESULT_CANT_CONNECT, 0, "192.168.44.46:6767") == "This host did not answer. Checked 192.168.44.46:6767.", "a refused check names the address")
+	_check(menu.probe_failure_line(HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED, 0, "192.168.44.46:6767") == "This host answered, but the reply was too large. Checked 192.168.44.46:6767.", "an oversized reply is not a silent host")
+	_check(menu.probe_failure_line(HTTPRequest.RESULT_SUCCESS, 503, "192.168.44.46:6767") == "This host was busy. Checked 192.168.44.46:6767.", "a busy host is not a dead host")
+	_check(menu.probe_failure_line(HTTPRequest.RESULT_SUCCESS, 200, "192.168.44.46:6767").is_empty(), "a 200 still goes to the match line")
+	_check(menu.probe_failure_line(HTTPRequest.RESULT_TIMEOUT, 0, "") == "This host did not answer.", "a failure without an address keeps the plain sentence")
+	_check(menu.probe_body_line(null) == "This host did not return a match line.", "a 200 that is not an object is not a silent host")
+	_check(menu.probe_body_line(["nope"]) == "This host did not return a match line.", "a 200 array is not a match line")
+	_check(menu.probe_body_line({"schema_version": 2}).is_empty(), "an object still goes to the match line")
+	_check(column.get_node_or_null("SaveHost") != null and column.get_node_or_null("NearbyList") != null \
+		and column.get_node_or_null("SavedList") != null, "join page can save a host and lists nearby and saved ones")
+	var next_name: String = ""
+	var passed_check: bool = false
+	for node: Node in column.get_children():
+		if passed_check and node is Button and next_name.is_empty():
+			next_name = node.name
+		if node.name == "CheckHost":
+			passed_check = true
+	_check(next_name == "Watch", "Watch still follows Check host")
+	menu._host_edit.text = "192.0.2.10"
+	menu._host_edit.text_changed.emit("192.0.2.10")
+	var save_host: Button = column.get_node("SaveHost") as Button
+	save_host.pressed.emit()
+	_check(menu._book.favorites == ["192.0.2.10:6767"], "save stores the typed host")
+	var saved_list: VBoxContainer = column.get_node("SavedList") as VBoxContainer
+	var use_saved: Button = saved_list.find_child("Use_192_0_2_10_6767", true, false) as Button
+	_check(use_saved != null and use_saved.text.contains("192.0.2.10:6767") \
+		and use_saved.text.contains(tr("JOIN_NOT_CHECKED").to_upper()), "a saved host is a row until it is checked")
+	var line_before: String = menu._match_line.text
+	menu._apply_summary("192.0.2.10:6767", "Arena Duel. 4 fighters.")
+	_check(use_saved.text.contains("ARENA DUEL") and menu._match_line.text == line_before,
+		"a list check updates the row and leaves the join line alone")
+	menu._host_edit.text = "192.0.2.11:6767"
+	menu._host_edit.text_changed.emit("192.0.2.11:6767")
+	use_saved.pressed.emit()
+	_check(menu._host_edit.text == "192.0.2.10:6767", "choosing a saved host fills the address")
+	var drop_saved: Button = saved_list.find_child("Drop_192_0_2_10_6767", true, false) as Button
+	_check(drop_saved != null, "a saved host can be dropped")
+	if drop_saved != null:
+		drop_saved.pressed.emit()
+	_check(menu._book.favorites.is_empty() and saved_list.find_child("Use_192_0_2_10_6767", true, false) == null,
+		"drop removes that host and its row")
+	menu._lan.append("192.0.2.20:6767")
+	menu._fill_server_lists()
+	var nearby_list: VBoxContainer = column.get_node("NearbyList") as VBoxContainer
+	var hide_nearby: Button = nearby_list.find_child("Hide_192_0_2_20_6767", true, false) as Button
+	_check(hide_nearby != null, "a network host can be hidden for this visit")
+	if hide_nearby != null:
+		hide_nearby.pressed.emit()
+	_check(menu._lan.is_empty() and _menu_text(column).contains(tr("JOIN_NEARBY_EMPTY")),
+		"hiding the last network host leaves the empty line")
+	var page_was: String = menu._page
+	menu._page = "records"
+	menu._on_lan_found("8.8.8.8:6767")
+	_check(menu._lan.is_empty() and menu._lan_pending.is_empty(), "a public beacon is not a nearby row")
+	menu._on_lan_found("192.168.44.46:6767")
+	_check(menu._lan.is_empty() and menu._lan_pending.has("192.168.44.46:6767"), "a private beacon waits for status")
+	menu._finish_list("192.168.44.46:6767", tr("JOIN_NO_ANSWER"))
+	_check(menu._lan.is_empty() and not menu._lan_pending.has("192.168.44.46:6767"), "an unanswered beacon does not take a row")
+	menu._on_lan_found("192.168.44.46:6767")
+	menu._finish_list("192.168.44.46:6767", "Arena Duel. 4 fighters.", true)
+	_check(menu._lan.size() == 1 and menu._lan[0] == "192.168.44.46:6767", "a confirmed beacon takes a nearby row")
+	menu._lan.clear()
+	menu._lan_pending.clear()
+	menu._list_queue.clear()
+	menu._list_current = ""
+	menu._page = page_was
+	_check(column.get_node_or_null("ScanNetwork") != null, "join page can scan this network")
+	menu._remember_played("198.51.100.8")
+	_check(not menu._book.recent.is_empty() and menu._book.recent[0] == "198.51.100.8:6767",
+		"watch or join remembers that host")
+	var played: Button = saved_list.find_child("Use_198_51_100_8_6767", true, false) as Button
+	_check(played != null, "a played host is listed on this computer")
+	menu._drop_address("198.51.100.8:6767")
+	menu._host_edit.text = "not a host"
+	menu._host_edit.text_changed.emit("not a host")
+	save_host.pressed.emit()
+	_check(menu._match_line.text == tr("HOST_INVALID_ADDRESS") and menu._book.favorites.is_empty(),
+		"an unreadable address is not saved")
+	_check(menu._lan_listen != null, "the join page listens for a beacon")
 	await menu._show("main")
+	_check(menu._lan_listen == null, "leaving the join page stops the beacon listen")
 	menu.queue_free()
 	await process_frame
 	var pause_menu: PauseMenu = PauseMenu.new()
@@ -223,6 +355,7 @@ func _run() -> void:
 	hud.queue_free()
 	await process_frame
 	DirAccess.remove_absolute(test_path)
+	DirAccess.remove_absolute(test_path + ".servers")
 	if _failures == 0:
 		print("test_frontend: PASS profile save/cancel, menu pages, live match overlay")
 	quit(0 if _failures == 0 else 1)

@@ -18,6 +18,8 @@ var grenade_counts: Label
 var _grenades_known: bool = false
 var mine_counts: Label
 var _mines_known: bool = false
+var remote_counts: Label
+var _remotes_known: bool = false
 var dry_seconds: float = 0.0
 var _dry_count: int = 0
 ## Pool drawn beside the number: bullets, shells, cells, or empty for fists.
@@ -59,6 +61,17 @@ func _ready() -> void:
 	mine_counts.add_theme_constant_override("outline_size", 4)
 	mine_counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(mine_counts)
+	remote_counts = Label.new()
+	remote_counts.position = Vector2(0, -92)
+	remote_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
+	remote_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	remote_counts.add_theme_font_override("font", MenuTheme.FONT)
+	remote_counts.add_theme_font_size_override("font_size", 28)
+	remote_counts.add_theme_color_override("font_color", MenuTheme.BONE)
+	remote_counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	remote_counts.add_theme_constant_override("outline_size", 4)
+	remote_counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(remote_counts)
 	visible = false
 	_refresh()
 
@@ -74,14 +87,18 @@ func apply(state_value: Dictionary) -> void:
 		glyph_pool = ""
 		_grenades_known = false
 		_mines_known = false
+		_remotes_known = false
 		if grenade_counts != null:
 			grenade_counts.visible = false
 		if mine_counts != null:
 			mine_counts.visible = false
+		if remote_counts != null:
+			remote_counts.visible = false
 		visible = false
 	else:
 		_grenades_known = _grenades_known or int(state.get("grenades", 0)) > 0
 		_mines_known = _mines_known or int(state.get("proximity_mines", 0)) > 0
+		_remotes_known = _remotes_known or int(state.get("remote_mines", 0)) > 0
 		tick = maxi(tick, int(state["tick"]))
 		_refresh()
 
@@ -97,7 +114,10 @@ func _refresh() -> void:
 	var weapon: String = state["selected"]
 	var shots: int = EquipmentState.shots(state, weapon)
 	glyph_pool = str(EquipmentState.POOLS.get(weapon, ""))
-	counts.text = "" if shots < 0 else str(shots)
+	var text: String = EquipmentState.count_text(state, weapon)
+	counts.text = text
+	# A pair such as 12|38 needs the tighter size inside the 196-wide label.
+	counts.add_theme_font_size_override("font_size", 32 if text.contains("|") else 40)
 	var empty: bool = shots == 0
 	counts.modulate = EMPTY_TINT if dry_seconds > 0.0 or empty else Color.WHITE
 	grenade_counts.visible = _grenades_known
@@ -110,6 +130,10 @@ func _refresh() -> void:
 	mine_counts.visible = _mines_known
 	mine_counts.text = str(mines)
 	mine_counts.modulate = EMPTY_TINT if mines == 0 else Color.WHITE
+	var remotes: int = int(state.get("remote_mines", 0))
+	remote_counts.visible = _remotes_known
+	remote_counts.text = str(remotes)
+	remote_counts.modulate = EMPTY_TINT if remotes == 0 else Color.WHITE
 	queue_redraw()
 
 func _draw() -> void:
@@ -117,6 +141,8 @@ func _draw() -> void:
 		_grenade(Vector2(WIDTH - GLYPH.x + 3.0, -12.0), 0.45 if int(state.get("grenades", 0)) == 0 else 1.0)
 	if _mines_known:
 		_mine(Vector2(WIDTH - GLYPH.x + 1.0, -46.0), 0.45 if int(state.get("proximity_mines", 0)) == 0 else 1.0)
+	if _remotes_known:
+		_remote(Vector2(WIDTH - GLYPH.x + 1.0, -82.0), 0.45 if int(state.get("remote_mines", 0)) == 0 else 1.0)
 	if glyph_pool.is_empty():
 		return
 	var origin: Vector2 = Vector2(WIDTH - GLYPH.x, 34)
@@ -154,6 +180,13 @@ func _mine(at: Vector2, dim: float) -> void:
 	_block(Rect2(at + Vector2(0, 12), Vector2(26, 9)), Color("2f3438"), dim)
 	_block(Rect2(at + Vector2(3, 8), Vector2(20, 5)), Color("6b6f72"), dim)
 	_block(Rect2(at + Vector2(10, 2), Vector2(6, 6)), Color("ff3020"), dim)
+
+## A strapped rectangular charge and receiver, distinct from the proximity puck.
+func _remote(at: Vector2, dim: float) -> void:
+	_block(Rect2(at + Vector2(1, 5), Vector2(25, 18)), Color("777b70"), dim)
+	_block(Rect2(at + Vector2(7, 3), Vector2(5, 22)), Color("393e40"), dim)
+	_block(Rect2(at + Vector2(15, 2), Vector2(9, 8)), Color("393e40"), dim)
+	_block(Rect2(at + Vector2(17, 4), Vector2(3, 3)), BRASS, dim)
 
 func _grenade(at: Vector2, dim: float) -> void:
 	_block(Rect2(at + Vector2(5, 0), Vector2(11, 5)), BRASS, dim)

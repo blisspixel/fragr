@@ -52,13 +52,14 @@ fn tripoint_opening_places_a_full_roster_behind_cover() {
 const CONTACT_RANGE: f32 = 2.0 * crate::movement::TOP_SPEED * 2.0 + 12.0;
 
 /// The mixed-client roster each map is played with in `tools/playtest_roster.sh`.
-const PLAYTEST_ROSTER: [(MapKind, u128); 6] = [
+const PLAYTEST_ROSTER: [(MapKind, u128); 7] = [
     (MapKind::ArenaDuel, 2),
     (MapKind::ComplianceYard, 6),
     (MapKind::Directive17, 6),
     (MapKind::Sector9, 8),
     (MapKind::ReclamationGulch, 12),
     (MapKind::TripointWorks, 16),
+    (MapKind::HoldfastAtoll, 16),
 ];
 
 /// Whether a fighter standing at `from` has a shot at a fighter at `to`, both
@@ -114,7 +115,12 @@ fn every_playtest_roster_opens_screened_and_walkable() {
         let solids = state.map.solids();
         let navigation = state.map.navigation();
         for player in &state.players {
-            crate::navigation::tests::assert_server_walks(map, navigation, feet(player), [0.0; 3]);
+            let centre = if map == MapKind::HoldfastAtoll {
+                [0.0, crate::maps::holdfast::LAND_HEIGHT, 0.0]
+            } else {
+                [0.0; 3]
+            };
+            crate::navigation::tests::assert_server_walks(map, navigation, feet(player), centre);
             for other in state.players.iter().filter(|p| p.id != player.id) {
                 let distance = (player.x - other.x).hypot(player.z - other.z);
                 assert!(distance >= crate::movement::RADIUS * 2.0);
@@ -242,6 +248,48 @@ fn a_respawn_takes_the_widest_slot_out_of_every_lane() {
             }
         }
     }
+}
+
+/// A parked resume pawn still has a body on the map. Shots and contact ignore
+/// it. Spawn selection was still counting that body, so the open pocket it
+/// stood in was refused and the next fighter came back closer to a real one.
+#[test]
+fn a_parked_pawn_does_not_spoil_the_open_respawn() {
+    fn respawn_at(parked_at: Option<[f32; 3]>) -> [f32; 3] {
+        let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+        state.seed(1);
+        state.config.boss_spawn_ticks = None;
+        state.config.compliance_ping_ticks = None;
+        state.add_player(Uuid::from_u128(1), "Threat".into(), Role::Agent);
+        state.add_player(Uuid::from_u128(2), "Victim".into(), Role::Human);
+        let (x, z, _, floor) = state.map.spawn(0.0);
+        {
+            let threat = &mut state.players[0];
+            threat.x = x;
+            threat.z = z;
+            threat.y = PLAYER_FLOOR_Y + floor;
+        }
+        state.start_round();
+        if let Some(at) = parked_at {
+            state.add_player(Uuid::from_u128(3), "Parked".into(), Role::Human);
+            let parked = &mut state.players[2];
+            parked.x = at[0];
+            parked.y = at[1];
+            parked.z = at[2];
+            parked.detached = true;
+        }
+        state.players[1].respawn_timer = Some(1);
+        state.tick(0.05);
+        let victim = &state.players[1];
+        [victim.x, victim.y, victim.z]
+    }
+
+    let open = respawn_at(None);
+    let spoiled = respawn_at(Some(open));
+    assert_eq!(
+        open, spoiled,
+        "a parked body moved the respawn from {open:?} to {spoiled:?}"
+    );
 }
 
 /// Real clients connect concurrently, so the order `add_player` sees them in

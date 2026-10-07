@@ -2,19 +2,42 @@
 
 The `tour_*.png` files are the arena tour captured by
 `tools/qa_tour.sh --publish` with Godot 4.7.2-stable and a loopback server.
-The `m01_*.png` files are Recall Notice gameplay from
+The older `m01_*.png` files are Recall Notice gameplay from
 `FRAGR_QA_BOTS=0 FRAGR_QA_MAP_FILE=server/maps/m01-recall-notice.json FRAGR_QA_MANIFEST=res://qa/m01-rooms.json tools/qa_tour.sh`.
 Inspect every frame before it is named anywhere. A nonblank image is not
-proof of good art. The README uses four actual gameplay stills under
-`readme-20261005/`: `shotgun-combat.png`, `low-water-combat.png`,
-`lunar-town.png` and `multiplayer-combat.png`. Refresh a selected still when its
-shown presentation changes; the remaining files stay as dated tour evidence.
+proof of good art. The README uses four stills: the boot menu, Recall Notice
+intake, multiplayer page and watched Arena Duel match. Refresh a selected still
+when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## Current README gallery, October 5, 2026
+## Current README gallery, October 7, 2026
 
-The four current stills were captured afresh against main `400595d0`, using
+The current composition passed the full 32-state visual tour and published
+fourteen stills. They were inspected at full size, including the human and
+synthetic bodies, menus and transient gun effects. A body-camera obstruction
+and a Rail setup race exposed by earlier runs were corrected. The passing run
+includes an actual human death, respawn and continued firing after the native
+facing correction. Its manifest records the actual states, not just their names.
+
+| README image | Actual state |
+|---|---|
+| `m01_intake_16x9.png` | Ordinary human input through the first three Recall Notice room-route states, after clearing the intake guards, Pistol in hand |
+| `tour_menu_16x9.png` | Boot menu with campaign, multiplayer, settings and benchmark entries |
+| `tour_multiplayer_16x9.png` | Populated join page after a real loopback status probe, with the saved host and bounded scrolling content |
+| `tour_combat_follow_16x9.png` | Spectator chase view of an Active Arena Duel round with rule bots |
+
+The [receipt](readme-20261007.json) records image, route, QA-source and native
+hashes. All selected images are copied without retouching, cropping or resizing.
+The intake is a three-state prefix, not a full campaign completion. The updated
+multiplayer page has a separate focused render after its scrolling correction.
+The tour uses isolated settings and history, Godot 4.7.2-stable, Windows,
+OpenGL Compatibility, an AMD Radeon 780M and 1280x720 output. These screenshots
+do not establish final art, human enjoyment, LAN behavior or hardware performance.
+
+## Previous README gallery, October 5, 2026
+
+The four stills under `readme-20261005/` were captured against main `400595d0`, using
 its matching private release server. The later asset-receipt main `d511a0ed`
 has byte-identical runtime source and selected artwork. Each selected PNG is
 copied without cropping, retouching or resolution changes. The
@@ -92,6 +115,16 @@ as objects, held side profiles and the vitals icons. The menu, multiplayer,
 profile, settings, difficulty and records stills are unchanged. The first-person
 muzzle probe now accepts a gun's drawn fire frame, which replaces the generic star;
 it saw the Rifle's fire frame in five of the twelve shot-strip frames.
+
+The same 32-state tour passed again on 2026-10-06 with a clean exit and log
+(`.agents/qa/20261007-044348`, UTC stamp). Republished stills:
+`tour_first_person`, `tour_combat_follow`, `tour_body_human`,
+`tour_body_synthetic`, `tour_arena_overview`, `tour_spectator`,
+`tour_shot_strip`, `tour_rail_impact_strip`, `tour_multiplayer`, and
+`tour_records`. The records card shows pace over the time actually alive
+and damage per shot. The multiplayer page shows a live Arena Duel status
+line on `127.0.0.1:6767`. Menu, profile, settings, and difficulty stills
+were unchanged.
 
 The `m06_*.png` gallery is the Port of Entry development prototype on the same
 pinned Windows/OpenGL Compatibility/AMD Radeon 780M setup. Its final clean
@@ -306,10 +339,10 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
 | `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
-| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Isolated capture host is 127.0.0.1:6787; normal game port remains 6767. |
+| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status, on the game port. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |
-| `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
+| `tour_records_16x9.png` | Persisted arena observation, exact attack denominator, pace over time alive, and incomplete-session status |
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |

@@ -50,6 +50,10 @@ var sabotage_line: String = ""
 ## Round wins by current uniform, for the scoreboard overlay.
 var sabotage_score: Dictionary = {}
 var sabotage_hud: SabotageHud
+var _use_plate: PanelContainer
+var _use_label: RichTextLabel
+var _use_template: String = ""
+var _use_revision: int = -1
 ## The local fighter's lives when lives are limited, otherwise -1.
 var own_lives: int = -1
 @onready var warmup_tv = $WarmupTv
@@ -65,7 +69,12 @@ var hit_marker = null
 var damage_numbers = null
 
 var scores = {}
+var combat_sheet: Dictionary = {}
 var behaviors = {}
+## Local callsign, so the hold-Tab board can mark that row.
+var board_name: String = ""
+var _leaderboard: Panel = null
+var _leaderboard_label: Label = null
 var ghost_rival = ""
 var leader_name = ""
 var host_bumper_index = 0
@@ -117,6 +126,7 @@ var health_icon: TextureRect
 var armor_icon: TextureRect
 var followed_player_name = ""
 var fp_juice_enabled = false
+var vehicle_seat: String = ""
 ## Side cloth beside the viewmodel while this fighter carries a flag.
 var fp_pennant: Control = null
 var fp_pennant_pole: ColorRect = null
@@ -302,6 +312,7 @@ func set_match_rules(rules: Dictionary) -> void:
 		flag_status_text = ""
 	if not sabotage():
 		sabotage_line = ""
+		_show_use_plate("")
 		if sabotage_hud != null:
 			sabotage_hud.hide_all()
 	if mode_chip_label != null:
@@ -328,7 +339,9 @@ func sabotage() -> bool:
 ## is drawn by the Sabotage widgets.
 func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: int, progress_owner: bool, carried: bool, prompt: String = "") -> void:
 	if not sabotage():
+		_show_use_plate("")
 		return
+	_show_use_plate(prompt)
 	var line: String = SabotageState.hud_line(state, viewer_team, InputGlyphs.plain(prompt) if not prompt.is_empty() else "")
 	if sabotage_hud != null:
 		sabotage_hud.apply(state, charge_ticks, progress_owner, carried)
@@ -340,6 +353,69 @@ func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: in
 		return
 	sabotage_line = line
 	_refresh_mode_chip()
+
+
+## Plant and defuse name the held Use key under the crosshair. The score line
+## keeps the same words.
+func _show_use_plate(template: String) -> void:
+	if template.is_empty():
+		_use_template = ""
+		if _use_plate != null:
+			_use_label.clear()
+			_use_plate.visible = false
+		return
+	if template == _use_template and _use_revision == InputDevice.revision and _use_plate != null:
+		return
+	_use_template = template
+	_use_revision = InputDevice.revision
+	_ensure_use_plate()
+	InputGlyphs.render(_use_label, template, 48, true)
+	_use_plate.visible = true
+	_place_use_plate()
+
+
+func _ensure_use_plate() -> void:
+	if _use_plate != null:
+		return
+	_use_plate = PanelContainer.new()
+	_use_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_use_plate.visible = false
+	_use_plate.add_theme_stylebox_override("panel", MenuTheme.panel(Color("141816"), MenuTheme.BONE))
+	add_child(_use_plate)
+	_use_label = RichTextLabel.new()
+	_use_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_use_label.fit_content = true
+	_use_label.scroll_active = false
+	_use_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_use_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_use_label.add_theme_font_override("normal_font", MenuTheme.FONT)
+	_use_label.add_theme_font_size_override("normal_font_size", 28)
+	_use_label.add_theme_color_override("default_color", MenuTheme.BONE)
+	_use_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	_use_label.add_theme_constant_override("outline_size", 4)
+	_use_plate.add_child(_use_label)
+
+
+func _place_use_plate() -> void:
+	if _use_plate == null or not _use_plate.visible:
+		return
+	var viewport_node: Viewport = get_viewport()
+	if viewport_node == null:
+		return
+	var viewport: Vector2 = viewport_node.get_visible_rect().size
+	if viewport.x < 1.0:
+		return
+	var text_size: Vector2 = _use_label.get_minimum_size()
+	var inner: float = minf(maxf(text_size.x, 220.0), viewport.x * 0.72)
+	_use_label.custom_minimum_size = Vector2(inner, 0.0)
+	_use_plate.reset_size()
+	var plate: Vector2 = _use_plate.get_combined_minimum_size()
+	if plate.x < 8.0:
+		plate.x = inner + 32.0
+	if plate.y < 8.0:
+		plate.y = maxf(text_size.y, 36.0) + 16.0
+	_use_plate.size = plate
+	_use_plate.position = Vector2((viewport.x - plate.x) * 0.5, viewport.y * 0.5 + 40.0)
 
 
 ## The round card for a decided Sabotage round, on the opaque backing.
@@ -433,7 +509,7 @@ func _refresh_mode_chip() -> void:
 	var chip: String = MatchRules.chip_text(match_rules)
 	if chip != "":
 		lines.append(chip)
-	if team_score_text != "":
+	if team_score_text != "" and match_rules.get("mode", "") != "conquest":
 		lines.append(team_score_text)
 	if flag_status_text != "":
 		lines.append(flag_status_text)
@@ -608,6 +684,10 @@ func set_tick(tick: int):
 		tick_label.text = "Time: " + str(seconds) + "s"
 
 func set_round_info(state: String, time_left: int, frag_limit: int):
+	# Retained state also clears the card after a late join or recorded replay,
+	# where the separate RoundStart notice may not have been observed.
+	if state != "Warmup" and warmup_tv_active:
+		hide_warmup_tv()
 	round_chrome_state = state
 	_update_broadcast_chrome(state)
 	if not round_label:
@@ -655,23 +735,26 @@ func set_player_count(count: int):
 
 const HUD_SCOREBOARD_ROWS: int = 4
 
-func update_scoreboard():
-	if not scoreboard:
-		return
-	var sorted_scores = []
+func set_board_name(value: String) -> void:
+	board_name = value
+
+func _score_rows() -> Array:
+	var sorted_scores: Array = []
 	for player in scores.keys():
-		var chip = ""
+		var chip: String = ""
 		if behaviors.has(player):
-			chip = " [" + _short_behavior(behaviors[player]) + "]"
-		sorted_scores.append({"name": player, "kills": scores[player], "chip": chip})
-	sorted_scores.sort_custom(func(a, b): return a.kills > b.kills)
-	# No headers. The league and the playlist are already the first line of
-	# the panel, so repeating them above the names was two more lines saying
-	# what the player had just read. A team mode leads with the side score,
-	# and each row carries its side's chip.
-	# Four names, not the whole roster. Eight ran the panel off the bottom of
-	# the window, which the first visual QA tour caught, and a standing HUD is
-	# for who is winning. The full table belongs on the scoreboard screen.
+			chip = " [" + _short_behavior(str(behaviors[player])) + "]"
+		var facts: Dictionary = combat_sheet.get(str(player), {})
+		sorted_scores.append({
+			"name": str(player), "kills": int(scores[player]), "chip": chip,
+			"deaths": int(facts.get("deaths", 0)), "attacks": int(facts.get("attacks", 0)),
+			"connects": int(facts.get("connects", 0)), "heads": int(facts.get("heads", 0)),
+			"damage": int(facts.get("damage", 0)),
+		})
+	sorted_scores.sort_custom(func(a, b): return int(a.kills) > int(b.kills))
+	return sorted_scores
+
+func _board_line() -> String:
 	var board_score: String = tr("FLAG_FRAGS_BOARD_LABEL") if match_rules.get("mode", "") == "ctf" else team_score_text
 	if sabotage():
 		# Shown only while the scoreboard key is held: rounds first, then frags.
@@ -679,7 +762,69 @@ func update_scoreboard():
 			"union": int(sabotage_score.get("union", 0)),
 			"coalition": int(sabotage_score.get("coalition", 0)),
 		})
-	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, board_score, HUD_SCOREBOARD_ROWS)
+	return board_score
+
+## Every fighter, for the board held on Tab. The corner list stays four rows.
+func leaderboard_text() -> String:
+	var rows: Array = _score_rows()
+	var body: String = MatchRules.scoreboard_text(rows, sides, _board_line(), rows.size(), board_name, true)
+	if body.strip_edges() == "":
+		body = "(waiting for scrap)"
+	return tr("HUD_LEADERS") + "\n" + body.strip_edges()
+
+func _ensure_leaderboard() -> void:
+	if _leaderboard != null:
+		return
+	_leaderboard = Panel.new()
+	_leaderboard.name = "Leaderboard"
+	_leaderboard.visible = false
+	_leaderboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard.add_theme_stylebox_override("panel", MenuTheme.panel())
+	_leaderboard_label = Label.new()
+	_leaderboard_label.name = "Rows"
+	_leaderboard_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_label.add_theme_font_override("font", MenuTheme.FONT)
+	_leaderboard_label.add_theme_font_size_override("font_size", 20)
+	_leaderboard_label.add_theme_color_override("font_color", MenuTheme.BONE)
+	_leaderboard_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	_leaderboard_label.add_theme_constant_override("outline_size", 4)
+	_leaderboard.add_child(_leaderboard_label)
+	add_child(_leaderboard)
+
+func set_leaderboard_open(open: bool) -> void:
+	_ensure_leaderboard()
+	if not open:
+		_leaderboard.visible = false
+		return
+	_leaderboard_label.text = leaderboard_text()
+	_leaderboard.visible = true
+	_place_leaderboard()
+
+func _place_leaderboard() -> void:
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	var width: float = minf(760.0, maxf(160.0, view.x - 32.0))
+	var lines: int = maxi(_leaderboard_label.text.split("\n", false).size(), 1)
+	var height: float = clampf(float(lines) * 26.0 + 28.0, 72.0, maxf(72.0, view.y - 32.0))
+	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
+	origin.x = clampf(origin.x, 16.0, maxf(16.0, view.x - width - 16.0))
+	origin.y = clampf(origin.y, 16.0, maxf(16.0, view.y - height - 16.0))
+	_leaderboard.position = origin
+	_leaderboard.size = Vector2(width, height)
+	_leaderboard_label.position = Vector2(14, 10)
+	_leaderboard_label.size = Vector2(width - 28.0, height - 20.0)
+
+func update_scoreboard():
+	if not scoreboard:
+		return
+	var sorted_scores: Array = _score_rows()
+	# No headers. The league and the playlist are already the first line of
+	# the panel, so repeating them above the names was two more lines saying
+	# what the player had just read. A team mode leads with the side score,
+	# and each row carries its side's chip.
+	# Four names, not the whole roster. Eight ran the panel off the bottom of
+	# the window, which the first visual QA tour caught, and a standing HUD is
+	# for who is winning. Hold Tab for every fighter.
+	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, _board_line(), HUD_SCOREBOARD_ROWS)
 	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else "(waiting for scrap)"
 
 func _short_behavior(behavior: String) -> String:
@@ -687,11 +832,19 @@ func _short_behavior(behavior: String) -> String:
 
 func sync_scores_from_players(player_list: Array):
 	var next_scores = {}
+	var next_sheet: Dictionary = {}
 	var next_behaviors = {}
 	var next_sides = {}
 	for player_data in player_list:
 		var pname = str(player_data.get("name", "?"))
 		next_scores[pname] = int(player_data.get("score", 0))
+		next_sheet[pname] = {
+			"deaths": int(player_data.get("deaths", 0)),
+			"attacks": int(player_data.get("attacks", 0)),
+			"connects": int(player_data.get("connects", 0)),
+			"heads": int(player_data.get("heads", 0)),
+			"damage": int(player_data.get("damage", 0)),
+		}
 		var side: String = MatchRules.valid_team(player_data.get("team"))
 		if side != "":
 			next_sides[pname] = side
@@ -699,6 +852,7 @@ func sync_scores_from_players(player_list: Array):
 		if beh != null:
 			next_behaviors[pname] = str(beh)
 	scores = next_scores
+	combat_sheet = next_sheet
 	behaviors = next_behaviors
 	sides = next_sides
 	leader_name = ""
@@ -1051,6 +1205,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	host_spoke.emit(4.0)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).
 	scores = {}
+	combat_sheet = {}
 	behaviors = {}
 	leader_name = mvp_name
 	pressure_id = ""
@@ -1151,6 +1306,7 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 		"ammo": what = tr("HUD_PICKUP_AMMO").format({"amount": amount})
 		"grenade": what = tr("HUD_PICKUP_GRENADES").format({"amount": amount})
 		"proximity_mine": what = tr("HUD_PICKUP_MINES").format({"amount": amount})
+		"remote_mine": what = tr("HUD_PICKUP_REMOTES").format({"amount": amount})
 		_: what = EquipmentState.display_name(weapon_name).to_upper()
 	if what.is_empty():
 		return
@@ -1214,6 +1370,9 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 			weapon_icon_bg.visible = false
 
 func _process(delta):
+	if _use_template != "" and _use_revision != InputDevice.revision:
+		_show_use_plate(_use_template)
+	_place_use_plate()
 	if round_banner_remaining > 0.0:
 		round_banner_remaining = maxf(0.0, round_banner_remaining - delta)
 		if round_banner_remaining == 0.0:
@@ -1224,8 +1383,11 @@ func _process(delta):
 		round_backdrop.visible = false
 	if scoreboard:
 		# Sabotage keeps the corner to its one line for watchers too; the
-		# table comes up on the scoreboard key.
-		scoreboard.visible = (not fp_juice_enabled and not sabotage()) or (InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard"))
+		# short list comes up on the scoreboard key. The centered board is
+		# the full roster, on that same key.
+		var showing_leaders: bool = InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard")
+		scoreboard.visible = (not fp_juice_enabled and not sabotage()) or showing_leaders
+		set_leaderboard_open(showing_leaders)
 	if _controls_revision != InputDevice.revision and Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
 		_refresh_mode_label()
 	if damage_flash_timer > 0:
@@ -1561,6 +1723,10 @@ func _layout_fp_pennant() -> void:
 	fp_pennant.position = Vector2(x, y).round()
 
 func set_fp_weapon(weapon_name: String) -> void:
+	if not vehicle_seat.is_empty():
+		current_fp_weapon = weapon_name
+		_hide_handheld_for_vehicle()
+		return
 	if not fp_weapon:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
@@ -1675,22 +1841,27 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 	if hit_marker:
 		hit_marker.visible = true
 		var col = Color(0.91, 0.82, 0.7, 0.95)
-		match weapon_name:
-			"Rail":
-				col = Color(0.72, 0.78, 0.82, 0.95)
-				hit_marker_timer = 0.28
-			"Sniper":
-				col = Color(0.88, 0.86, 0.8, 0.95)
-				hit_marker_timer = 0.32
-			"Scatter":
-				col = Color(0.9, 0.55, 0.32, 0.95)
-				hit_marker_timer = 0.14
-			_:
-				col = Color(0.91, 0.82, 0.7, 0.95)
+		if damage <= 0:
+			# Dim, and shorter: the shot found a body and did not hurt it.
+			col = Color(0.55, 0.58, 0.62, 0.7)
+			hit_marker_timer = 0.12
+		else:
+			match weapon_name:
+				"Rail":
+					col = Color(0.72, 0.78, 0.82, 0.95)
+					hit_marker_timer = 0.28
+				"Sniper":
+					col = Color(0.88, 0.86, 0.8, 0.95)
+					hit_marker_timer = 0.32
+				"Scatter":
+					col = Color(0.9, 0.55, 0.32, 0.95)
+					hit_marker_timer = 0.14
+				_:
+					col = Color(0.91, 0.82, 0.7, 0.95)
 		hit_marker.modulate = col
 	if damage > 0:
 		_spawn_floating_damage(damage, weapon_name)
-	# Shot acknowledgement already owns recoil. A hit must not kick twice.
+	# Fire presentation already owns recoil. A hit must not kick twice.
 
 ## How close a player is to dying, which is the one thing the HUD never said.
 ## A number for the exact figure and a bar for the glance, in the corner, read
@@ -1717,7 +1888,45 @@ func set_vitals(hp: int, armor: int) -> void:
 		armor_bar.size.x = ARMOR_BAR_WIDTH * armor_fill
 
 func show_fire_juice(weapon_name: String = "") -> void:
+	if not vehicle_seat.is_empty():
+		return
 	_fp_fire_kick(weapon_name if weapon_name != "" else current_fp_weapon)
+
+func set_vehicle_seat(seat: String) -> void:
+	var changed: bool = vehicle_seat != seat
+	vehicle_seat = seat
+	if not seat.is_empty():
+		_hide_handheld_for_vehicle()
+		if changed and seat == "gunner":
+			_apply_crosshair_for_weapon("Flechette")
+	elif changed:
+		set_fp_weapon(current_fp_weapon)
+	if crosshair != null:
+		crosshair.visible = fp_juice_enabled and seat != "driver" and not _scoped()
+
+func _hide_handheld_for_vehicle() -> void:
+	if fp_weapon != null:
+		fp_weapon.visible = false
+	if fp_muzzle != null:
+		fp_muzzle.visible = false
+	if melee_view != null:
+		melee_view.visible = false
+	if fp_throw_hand != null:
+		fp_throw_hand.visible = false
+
+## Retire a rejected local cue without touching authoritative hit feedback.
+func cancel_fire_juice() -> void:
+	fp_kick_timer = 0.0
+	fp_stab_timer = 0.0
+	fp_shot_age = INF
+	fp_muzzle_timer = 0.0
+	if fp_muzzle != null:
+		fp_muzzle.visible = false
+	if melee_view != null:
+		melee_view.remaining = 0.0
+	if fp_weapon != null:
+		_update_fp_frame()
+		_layout_fp_weapon()
 
 ## The flash a player sees for their own shot. The pawn has had one all along,
 ## but in first person the pawn is not what anyone is looking at, so until now

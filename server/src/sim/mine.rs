@@ -29,6 +29,23 @@ pub(super) struct Mine {
     phase_ends: u64,
 }
 
+#[cfg(test)]
+impl GameState {
+    /// One live mine, so a map change can prove the world was cleared.
+    pub(crate) fn test_insert_mine(&mut self, owner: Uuid) {
+        self.mines.push(Mine {
+            id: self.projectile_serial.wrapping_add(1),
+            owner_id: owner,
+            position: [1.0, 0.0, 1.0],
+            velocity: [0.0, 0.0, 0.0],
+            normal: [0.0, 1.0, 0.0],
+            phase: MinePhase::Armed,
+            phase_started: self.tick,
+            phase_ends: self.tick,
+        });
+    }
+}
+
 impl GameState {
     pub(crate) fn clear_mines(&mut self) {
         self.mines.clear();
@@ -82,7 +99,8 @@ impl GameState {
             }
             let origin = [
                 player.x,
-                player.y - PLAYER_FLOOR_Y + crate::combat::eye_height(player.campaign),
+                player.y - PLAYER_FLOOR_Y
+                    + crate::combat::stance_eye(player.campaign, player.ducking),
                 player.z,
             ];
             if !grenade::clear_sphere(origin, &arena)
@@ -222,28 +240,39 @@ impl GameState {
 
 /// One tick of flight. Returns the contact normal when the mine sticks.
 fn fly(mine: &mut Mine, dt: f32, arena: &Arena) -> Option<[f32; 3]> {
+    fly_device(&mut mine.position, &mut mine.velocity, dt, arena)
+}
+
+/// Shared swept sticking flight for placed devices. The caller owns phase,
+/// timing, admission and damage; contact retains the established mine rules.
+pub(super) fn fly_device(
+    position: &mut [f32; 3],
+    velocity: &mut [f32; 3],
+    dt: f32,
+    arena: &Arena,
+) -> Option<[f32; 3]> {
     if !dt.is_finite() || dt <= 0.0 {
         return None;
     }
     for _ in 0..4 {
         let step = dt / 4.0;
-        mine.velocity[1] -= crate::movement::GRAVITY * step;
-        let length = mine.velocity.iter().map(|v| v * v).sum::<f32>().sqrt();
+        velocity[1] -= crate::movement::GRAVITY * step;
+        let length = velocity.iter().map(|v| v * v).sum::<f32>().sqrt();
         if length <= f32::EPSILON {
             continue;
         }
         let range = length * step;
         let ray = crate::combat::Ray {
-            origin: mine.position,
-            direction: mine.velocity.map(|v| v / length),
+            origin: *position,
+            direction: velocity.map(|v| v / length),
         };
         let Some(hit) = grenade::first_contact(&ray, range, arena) else {
-            mine.position = ray.point(range);
+            *position = ray.point(range);
             continue;
         };
-        mine.position = ray.point(hit.distance);
-        for axis in 0..3 {
-            mine.position[axis] += hit.normal[axis] * grenade::CONTACT_EPSILON;
+        *position = ray.point(hit.distance);
+        for (coordinate, normal) in position.iter_mut().zip(hit.normal) {
+            *coordinate += normal * grenade::CONTACT_EPSILON;
         }
         return Some(hit.normal);
     }

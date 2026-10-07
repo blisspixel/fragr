@@ -69,12 +69,30 @@ fn records_measure_effective_damage_and_count_only_the_first_death() {
             kills: 1,
             hp_damage: 10,
             armor_damage: 17,
+            connects: 1,
+            heads: 0,
         }
     );
     let second = state.player_record(c).unwrap();
     assert_eq!(second.total.attacks(), 1);
     assert_eq!(second.total.weapon(WeaponType::Rail).damaging_attacks, 0);
+    assert_eq!(
+        second.total.weapon(WeaponType::Rail).connects,
+        1,
+        "the ray found the body before the earlier shot removed it"
+    );
     assert_eq!(second.total.kills(), 0);
+    let shown = state.snapshot();
+    let shooter = shown.players.iter().find(|player| player.id == a).unwrap();
+    assert_eq!(
+        (
+            shooter.attacks,
+            shooter.connects,
+            shooter.heads,
+            shooter.damage
+        ),
+        (1, 1, 0, 27)
+    );
     let victim = state.player_record(b).unwrap();
     assert_eq!(
         (
@@ -131,6 +149,7 @@ fn misses_cooldown_and_administrative_removal_do_not_invent_hits_or_deaths() {
     let record = state.player_record(a).unwrap();
     assert_eq!(record.total.attacks(), 1);
     assert_eq!(record.total.weapon(WeaponType::Rail).damaging_attacks, 0);
+    assert_eq!(record.total.weapon(WeaponType::Rail).connects, 0);
     assert_eq!(record.total.alive_ticks, 2);
     state.remove_player(b);
     assert_eq!(state.player_record(a).unwrap().total.kills(), 0);
@@ -417,18 +436,64 @@ fn protected_targets_and_friendlies_never_count_as_damaging_attacks() {
     let attacker = state.player_record(a).unwrap();
     assert_eq!(attacker.total.attacks(), 2);
     assert_eq!(attacker.total.weapon(WeaponType::Rail).damaging_attacks, 0);
+    assert_eq!(
+        attacker.total.connects(),
+        2,
+        "a shield and a teammate are bodies found, not misses"
+    );
+    assert_eq!(attacker.total.heads(), 0);
     assert_eq!(state.player_record(b).unwrap().total.hp_lost, 0);
+}
+
+#[test]
+fn a_head_band_pellet_counts_even_when_the_shield_holds() {
+    let (mut state, a, b) = arena();
+    state.spawn_shields.insert(b, 10);
+    let victim = &state.players[1];
+    let feet_y = victim.y - crate::sim::PLAYER_FLOOR_Y;
+    let head_y = feet_y + crate::combat::HEAD_GATE + 0.04;
+    let (x, z) = (victim.x, victim.z);
+    state.set_action(
+        a,
+        Action {
+            fire: true,
+            look_at: Some(LookAt {
+                player_id: None,
+                x: Some(x),
+                y: Some(head_y),
+                z: Some(z),
+            }),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let rail = *state
+        .player_record(a)
+        .unwrap()
+        .total
+        .weapon(WeaponType::Rail);
+    assert_eq!(rail.attacks, 1);
+    assert_eq!(rail.connects, 1);
+    assert_eq!(rail.heads, 1);
+    assert_eq!(rail.damaging_attacks, 0);
+    assert_eq!(rail.hp_damage, 0);
+    let value = serde_json::to_value(state.player_record(a).unwrap()).unwrap();
+    assert_eq!(value["total"]["weapons"][4]["heads"], 1);
+    assert_eq!(value["total"]["weapons"][4]["connects"], 1);
+    assert!(value["total"]["weapons"][4]
+        .get("damaging_attacks")
+        .is_some());
 }
 
 #[tokio::test]
 async fn record_delivery_respects_advertised_client_capability() {
     use std::sync::Arc;
-    use tokio::sync::{mpsc, Mutex};
+    use tokio::sync::Mutex;
     let (mut state, a, b) = arena();
     state.tick(0.05);
     let record = state.player_record(a).unwrap();
-    let (legacy_tx, mut legacy_rx) = mpsc::channel(4);
-    let (current_tx, mut current_rx) = mpsc::channel(4);
+    let (legacy_tx, mut legacy_rx) = crate::net::outbound_channel(4);
+    let (current_tx, mut current_rx) = crate::net::outbound_channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(a, legacy_tx, crate::protocol::CONTINUES_GAMEPLAY_VERSION),
         crate::net::ClientSession::new(b, current_tx, crate::protocol::GAMEPLAY_VERSION),
@@ -455,7 +520,7 @@ async fn record_delivery_respects_advertised_client_capability() {
 #[tokio::test]
 async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
     use std::sync::Arc;
-    use tokio::sync::{mpsc, Mutex};
+    use tokio::sync::Mutex;
     let mut record: PlayerRecord =
         serde_json::from_str(include_str!("../../../client/golden/player_record.json")).unwrap();
     record.scope = RecordScope::Mission {
@@ -466,8 +531,8 @@ async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
     };
     let legacy_bytes = serde_json::to_vec(&ServerMessage::Record(record.clone())).unwrap();
     record.mission_elapsed_ticks = Some(10);
-    let (legacy_tx, mut legacy_rx) = mpsc::channel(4);
-    let (current_tx, mut current_rx) = mpsc::channel(4);
+    let (legacy_tx, mut legacy_rx) = crate::net::outbound_channel(4);
+    let (current_tx, mut current_rx) = crate::net::outbound_channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(
             Uuid::from_u128(901),
@@ -506,12 +571,12 @@ async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
 #[tokio::test]
 async fn repeater_record_delivery_keeps_strict_legacy_shape_and_refuses_real_new_counts() {
     use std::sync::Arc;
-    use tokio::sync::{mpsc, Mutex};
+    use tokio::sync::Mutex;
     let (mut state, a, b) = arena();
     state.tick(0.05);
     let record = state.player_record(a).unwrap();
-    let (old_tx, mut old_rx) = mpsc::channel(4);
-    let (new_tx, mut new_rx) = mpsc::channel(4);
+    let (old_tx, mut old_rx) = crate::net::outbound_channel(4);
+    let (new_tx, mut new_rx) = crate::net::outbound_channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(a, old_tx, crate::protocol::M09_GAMEPLAY_VERSION),
         crate::net::ClientSession::new(b, new_tx, crate::protocol::REPEATER_GAMEPLAY_VERSION),
@@ -713,6 +778,7 @@ fn grenade_record_column_defaults_zero_and_keeps_legacy_shape_and_aggregate_boun
         kills: 2,
         hp_damage: 100,
         armor_damage: 20,
+        ..crate::protocol::WeaponCounts::default()
     };
     counts.weapons[WeaponType::Tack.index()].attacks = 1;
     assert_eq!(counts.attacks(), 2);
@@ -749,6 +815,7 @@ fn mine_record_column_is_separate_from_grenades_and_omitted_while_empty() {
         kills: 2,
         hp_damage: 160,
         armor_damage: 0,
+        ..crate::protocol::WeaponCounts::default()
     };
     counts.grenades.attacks = 1;
     assert_eq!(counts.attacks(), 3);
@@ -777,5 +844,93 @@ fn mine_record_column_is_separate_from_grenades_and_omitted_while_empty() {
     assert!(
         counts.validate().is_err(),
         "more attacks than active frames"
+    );
+}
+
+#[test]
+fn ratios_round_half_away_from_zero_and_a_small_sample_keeps_its_interval() {
+    let table: serde_json::Value =
+        serde_json::from_str(include_str!("../../../client/golden/combat_ratios.json")).unwrap();
+    for row in table["ratios"].as_array().unwrap() {
+        let numerator = row["numerator"].as_u64().unwrap();
+        let denominator = row["denominator"].as_u64().unwrap();
+        let scale = row["scale"].as_u64().unwrap();
+        let got = crate::protocol::ratio_scaled(numerator, denominator, scale);
+        if row["value"].is_null() {
+            assert!(got.is_none(), "{numerator}/{denominator} is not a rate");
+        } else {
+            assert_eq!(got, Some(row["value"].as_u64().unwrap()));
+        }
+    }
+    assert_eq!(
+        crate::protocol::ratio_scaled((1_u64 << 53) - 1, 3, 1000),
+        Some(3_002_399_751_580_330_333),
+        "past the float mantissa the integer quotient still moves"
+    );
+    assert_eq!(
+        crate::protocol::ratio_scaled((1_u64 << 53) - 1, (1_u64 << 53) - 1, 12_000),
+        Some(12_000),
+        "a product past 2^64 still publishes the quotient"
+    );
+    assert_eq!(crate::protocol::per_minute_tenths(1, 21), Some(571));
+    assert_eq!(crate::protocol::per_minute_tenths(125, 21), Some(71_429));
+    assert_eq!(crate::protocol::per_minute_tenths(0, 20), Some(0));
+    assert!(crate::protocol::per_minute_tenths(1, 0).is_none());
+    assert!(crate::protocol::wilson_thousandths(1, 0).is_none());
+    assert!(crate::protocol::wilson_thousandths(3, 2).is_none());
+    for row in table["wilson"].as_array().unwrap() {
+        let hits = row["hits"].as_u64().unwrap();
+        let trials = row["trials"].as_u64().unwrap();
+        let got = crate::protocol::wilson_thousandths(hits, trials);
+        let (low, high) = got.unwrap();
+        assert_eq!(
+            got,
+            Some((row["low"].as_u64().unwrap(), row["high"].as_u64().unwrap()))
+        );
+        let point = crate::protocol::ratio_scaled(hits, trials, 1000).unwrap();
+        assert!(low <= point && point <= high && low <= high);
+    }
+    let wide = crate::protocol::wilson_thousandths(5, 10).unwrap();
+    let narrow = crate::protocol::wilson_thousandths(500, 1000).unwrap();
+    assert!(narrow.0 >= wide.0 && narrow.1 <= wide.1);
+    assert!(narrow.1 - narrow.0 < wide.1 - wide.0);
+}
+
+#[test]
+fn an_old_damaging_column_stays_valid_and_a_short_connect_count_does_not() {
+    let mut counts = CombatCounts {
+        alive_ticks: 4,
+        ..CombatCounts::default()
+    };
+    counts.weapons[WeaponType::Rail.index()] = crate::protocol::WeaponCounts {
+        attacks: 2,
+        damaging_attacks: 2,
+        kills: 1,
+        hp_damage: 100,
+        armor_damage: 0,
+        ..crate::protocol::WeaponCounts::default()
+    };
+    counts.validate().unwrap();
+    let legacy = serde_json::to_value(&counts).unwrap();
+    assert!(legacy["weapons"][4].get("connects").is_none());
+    counts.weapons[WeaponType::Rail.index()].connects = 1;
+    assert!(
+        counts.validate().is_err(),
+        "two hurting shots cannot share one connect"
+    );
+    counts.weapons[WeaponType::Rail.index()].connects = 2;
+    counts.weapons[WeaponType::Rail.index()].heads = 3;
+    assert!(counts.validate().is_err(), "heads are a subset of connects");
+    counts.weapons[WeaponType::Rail.index()].heads = 1;
+    counts.validate().unwrap();
+    counts.weapons[WeaponType::Fists.index()].heads = 1;
+    counts.weapons[WeaponType::Fists.index()].connects = 1;
+    counts.weapons[WeaponType::Fists.index()].attacks = 1;
+    assert!(counts.validate().is_err(), "a fist has no head-band count");
+    counts.weapons[WeaponType::Fists.index()] = crate::protocol::WeaponCounts::default();
+    counts.grenades.connects = 1;
+    assert!(
+        counts.validate().is_err(),
+        "a blast does not invent a connect"
     );
 }

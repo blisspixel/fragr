@@ -1,0 +1,320 @@
+{
+  "schema": 1,
+  "scope": "Local Windows release evidence on the composed working tree. The quiet CPU matrix measures session and encoding with rule bots. The quiet loopback traffic run uses 64 synthetic human WebSocket clients sending fixed-pattern movement and fire, no bots or spectators. They do not reload, pathfind or use vehicles; finite magazines may empty early, so this does not prove sustained 64-fighter combat. Neither measurement proves WAN latency, human match balance, renderer performance, 64-player spawn quality or slow-reader coalescing.",
+  "environment": {
+    "captured_at": "2026-10-07T01:19:05.3589349-07:00",
+    "cpu": "AMD Ryzen 7 7840U w/ Radeon  780M Graphics     ",
+    "cores": 8,
+    "logical_processors": 16,
+    "os": "Microsoft Windows NT 10.0.26200.0",
+    "architecture": "AMD64",
+    "head": "0fbcd6ccc1c0ac6bfe64a53fee047c104ab9b199",
+    "worktree": "shared final integration before PR",
+    "gameplay_version": 41,
+    "power_plan": "Power Scheme GUID: 381b4222-f694-41f0-9685-ff5bb260df2e  (Balanced)",
+    "binary_sha256": "edbb8d0ca340b2712aea0ed5b9676ea13f59036636d22e1e4400fca24ebe7b0d",
+    "playtest_sha256": "004b989d1f9de1a6a8974e9eddd99fb77d5182b5733f20c70a3e791305ee4577",
+    "paid_calls": 0
+  },
+  "cpu": [
+    {
+      "command": "fragr-server --bench 16 --bench-ticks 1200 --map 1 --seed 42 --bench-check --bench-assert",
+      "report_sha256": "80924bb39d0f30a50df1923efd55444021e877f1f48dc4e5fe70c7a2d47ad893",
+      "config": {
+        "bots": 16,
+        "ticks": 1200,
+        "map": 1,
+        "map_name": "Arena Duel",
+        "seed": 42,
+        "build": "0.1.0"
+      },
+      "stats": {
+        "schema_version": 2,
+        "timing_scope": "session_and_encoding",
+        "uptime_s": 0.2278036,
+        "ticks": 1200,
+        "tick_hz": 20.0,
+        "fighters": 16,
+        "clients": 0,
+        "tick_ms": {
+          "count": 1200,
+          "mean": 0.18092516666666664,
+          "min": 0.050499999999999996,
+          "p50": 0.110591,
+          "p90": 0.37683099999999997,
+          "p99": 0.720895,
+          "p999": 3.932159,
+          "max": 9.1031
+        },
+        "broadcast_bytes": {
+          "count": 1200,
+          "mean": 4787.993333333333,
+          "min": 3184.0,
+          "p50": 4863.0,
+          "p90": 5887.0,
+          "p99": 7167.0,
+          "p999": 9215.0,
+          "max": 12403.0
+        },
+        "budget_use_p50": 0.00221182,
+        "budget_use_p99": 0.0144179,
+        "ticks_over_budget": 0,
+        "ticks_over_half_budget": 0
+      },
+      "session_ms": {
+        "count": 1200,
+        "mean": 0.17286366666666664,
+        "min": 0.043899999999999995,
+        "p50": 0.10239899999999999,
+        "p90": 0.36044699999999996,
+        "p99": 0.720895,
+        "p999": 3.932159,
+        "max": 9.0772
+      },
+      "encode_ms": {
+        "count": 1200,
+        "mean": 0.007998583333333333,
+        "min": 0.004399999999999999,
+        "p50": 0.007423,
+        "p90": 0.011262999999999999,
+        "p99": 0.022527,
+        "p999": 0.031743,
+        "max": 0.0638
+      },
+      "trace_sha256": "700c2e8c847da4b336640ee61d0093d36347f3359ae309616eb0cf916f6c43a4",
+      "deterministic": true
+    },
+    {
+      "command": "fragr-server --bench 64 --bench-ticks 1200 --map 1 --seed 42 --bench-check --bench-assert",
+      "report_sha256": "1b857b9775f6cb1595f07e6075c2eba669b6ae7d341cb274b0882a39fe9bc70b",
+      "config": {
+        "bots": 64,
+        "ticks": 1200,
+        "map": 1,
+        "map_name": "Arena Duel",
+        "seed": 42,
+        "build": "0.1.0"
+      },
+      "stats": {
+        "schema_version": 2,
+        "timing_scope": "session_and_encoding",
+        "uptime_s": 1.0619733,
+        "ticks": 1200,
+        "tick_hz": 20.0,
+        "fighters": 64,
+        "clients": 0,
+        "tick_ms": {
+          "count": 1200,
+          "mean": 0.85481025,
+          "min": 0.1011,
+          "p50": 0.524287,
+          "p90": 1.769471,
+          "p99": 3.5389429999999997,
+          "p999": 7.340031,
+          "max": 7.458399999999999
+        },
+        "broadcast_bytes": {
+          "count": 1200,
+          "mean": 13078.375833333334,
+          "min": 6440.0,
+          "p50": 12799.0,
+          "p90": 17407.0,
+          "p99": 22527.0,
+          "p999": 24575.0,
+          "max": 25418.0
+        },
+        "budget_use_p50": 0.01048574,
+        "budget_use_p99": 0.07077886,
+        "ticks_over_budget": 0,
+        "ticks_over_half_budget": 0
+      },
+      "session_ms": {
+        "count": 1200,
+        "mean": 0.8249310833333333,
+        "min": 0.09169999999999999,
+        "p50": 0.507903,
+        "p90": 1.703935,
+        "p99": 3.4078709999999997,
+        "p999": 7.340031,
+        "max": 7.434399999999999
+      },
+      "encode_ms": {
+        "count": 1200,
+        "mean": 0.0298055,
+        "min": 0.0087,
+        "p50": 0.023551,
+        "p90": 0.057343,
+        "p99": 0.098303,
+        "p999": 0.147455,
+        "max": 0.1973
+      },
+      "trace_sha256": "43991b4f552e7d0944341d24d2a171721c6688a8055f97dc8a6f75064f1334b2",
+      "deterministic": true
+    },
+    {
+      "command": "fragr-server --bench 16 --bench-ticks 1200 --map 7 --seed 42 --bench-check --bench-assert",
+      "report_sha256": "0fa2fe087b7369d5a05ea6016fdcbcc78b3410d1cc6e45f87101a2f7dfe06eb0",
+      "config": {
+        "bots": 16,
+        "ticks": 1200,
+        "map": 7,
+        "map_name": "Holdfast Atoll",
+        "seed": 42,
+        "build": "0.1.0"
+      },
+      "stats": {
+        "schema_version": 2,
+        "timing_scope": "session_and_encoding",
+        "uptime_s": 0.4307638,
+        "ticks": 1200,
+        "tick_hz": 20.0,
+        "fighters": 17,
+        "clients": 0,
+        "tick_ms": {
+          "count": 1200,
+          "mean": 0.3470738333333333,
+          "min": 0.1209,
+          "p50": 0.180223,
+          "p90": 0.917503,
+          "p99": 2.0971509999999998,
+          "p999": 3.932159,
+          "max": 4.6728
+        },
+        "broadcast_bytes": {
+          "count": 1200,
+          "mean": 6795.925,
+          "min": 5744.0,
+          "p50": 6911.0,
+          "p90": 7679.0,
+          "p99": 8191.0,
+          "p999": 8703.0,
+          "max": 16667.0
+        },
+        "budget_use_p50": 0.00360446,
+        "budget_use_p99": 0.04194302,
+        "ticks_over_budget": 0,
+        "ticks_over_half_budget": 0
+      },
+      "session_ms": {
+        "count": 1200,
+        "mean": 0.3356583333333333,
+        "min": 0.1123,
+        "p50": 0.172031,
+        "p90": 0.8847349999999999,
+        "p99": 2.031615,
+        "p999": 3.932159,
+        "max": 4.6387
+      },
+      "encode_ms": {
+        "count": 1200,
+        "mean": 0.011353499999999999,
+        "min": 0.0073999999999999995,
+        "p50": 0.009727,
+        "p90": 0.017407,
+        "p99": 0.036863,
+        "p999": 0.057343,
+        "max": 0.1214
+      },
+      "trace_sha256": "741b4f3f142daf1e5d2dae38ca0673331a06e101970d9cd420fb79b5d72b2758",
+      "deterministic": true
+    },
+    {
+      "command": "fragr-server --bench 64 --bench-ticks 1200 --map 7 --seed 42 --bench-check --bench-assert",
+      "report_sha256": "366350ea22405ad10973660dbb5d802762cb10aa74fcb07ab43eccf0bb67e526",
+      "config": {
+        "bots": 64,
+        "ticks": 1200,
+        "map": 7,
+        "map_name": "Holdfast Atoll",
+        "seed": 42,
+        "build": "0.1.0"
+      },
+      "stats": {
+        "schema_version": 2,
+        "timing_scope": "session_and_encoding",
+        "uptime_s": 1.3147636,
+        "ticks": 1200,
+        "tick_hz": 20.0,
+        "fighters": 64,
+        "clients": 0,
+        "tick_ms": {
+          "count": 1200,
+          "mean": 1.0636828333333332,
+          "min": 0.2035,
+          "p50": 0.753663,
+          "p90": 2.031615,
+          "p99": 4.718591,
+          "p999": 9.961471,
+          "max": 10.4168
+        },
+        "broadcast_bytes": {
+          "count": 1200,
+          "mean": 15846.63,
+          "min": 8035.0,
+          "p50": 15871.0,
+          "p90": 19455.0,
+          "p99": 22527.0,
+          "p999": 27647.0,
+          "max": 29261.0
+        },
+        "budget_use_p50": 0.01507326,
+        "budget_use_p99": 0.09437182,
+        "ticks_over_budget": 0,
+        "ticks_over_half_budget": 0
+      },
+      "session_ms": {
+        "count": 1200,
+        "mean": 1.0284474166666666,
+        "min": 0.19119999999999998,
+        "p50": 0.720895,
+        "p90": 1.966079,
+        "p99": 4.718591,
+        "p999": 9.437183,
+        "max": 10.3796
+      },
+      "encode_ms": {
+        "count": 1200,
+        "mean": 0.035154583333333336,
+        "min": 0.0118,
+        "p50": 0.029695,
+        "p90": 0.059391,
+        "p99": 0.098303,
+        "p999": 0.139263,
+        "max": 0.174
+      },
+      "trace_sha256": "9db9a8381e07305ad6c8f4966e7b9bc3b42682825a8df18478416b8c554eac9d",
+      "deterministic": true
+    }
+  ],
+  "traffic": {
+    "command": "fragr-playtest --traffic --traffic-fighters 64 --traffic-spectators 0 --traffic-bots 0 --traffic-seconds 60 --traffic-hz 60 --map 7 --seed 42 --assert --report PATH",
+    "report_sha256": "120682d2ea39290d176e95ea802d570d61f3e6b28e48f1e3a7a88d52285532f5",
+    "report": {
+      "schema": 1,
+      "seconds": 60,
+      "fighters": 64,
+      "spectators": 0,
+      "bots": 0,
+      "hz": 60,
+      "seed": 42,
+      "map": "Holdfast Atoll",
+      "connected_fighters": 64,
+      "connected_spectators": 0,
+      "actions_sent": 228672,
+      "fighter_snapshots": 76864,
+      "spectator_snapshots": 0,
+      "text_bytes": 1579061632,
+      "disconnects": 0,
+      "tick_start": 8,
+      "tick_end": 1209,
+      "humans_end": 64,
+      "connections_end": 64,
+      "health": "ok",
+      "tick_p99_ms": 11.010047,
+      "out_bytes_per_s": 26125306.308678184,
+      "server_exit": "stopped by the harness",
+      "passed": true,
+      "problems": []
+    }
+  }
+}

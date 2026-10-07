@@ -29,6 +29,8 @@ use std::sync::OnceLock;
 
 mod authored;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
+pub(crate) mod holdfast;
+pub(crate) use authored::m11::SpinePatrol;
 mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;
@@ -73,6 +75,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::CommonCarrier => {
                 include_bytes!("../maps/m10_common_carrier.json")
             }
+            crate::protocol::MissionId::RightOfSearch => {
+                include_bytes!("../maps/m11_right_of_search.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -106,6 +111,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::CommonCarrier) => {
                 AuthoredMap::read(include_bytes!("../maps/m10_common_carrier.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::RightOfSearch) => {
+                AuthoredMap::read(include_bytes!("../maps/m11_right_of_search.json").as_slice())
             }
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())
@@ -141,7 +149,10 @@ pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
         MapKind::ArenaDuel => Some([[-63.0, 0.0, 0.0], [63.0, 0.0, 0.0]]),
         MapKind::Directive17 => Some([[-68.0, 0.0, 0.0], [68.0, 0.0, 0.0]]),
         MapKind::Sector9 => Some([[-70.0, 0.0, 0.0], [70.0, 0.0, 0.0]]),
-        MapKind::ComplianceYard | MapKind::ReclamationGulch | MapKind::TripointWorks => None,
+        MapKind::ComplianceYard
+        | MapKind::ReclamationGulch
+        | MapKind::TripointWorks
+        | MapKind::HoldfastAtoll => None,
     }
 }
 
@@ -187,7 +198,8 @@ pub(crate) fn sabotage_layout(kind: MapKind) -> Option<&'static SabotageLayout> 
         | MapKind::ComplianceYard
         | MapKind::Directive17
         | MapKind::ReclamationGulch
-        | MapKind::TripointWorks => None,
+        | MapKind::TripointWorks
+        | MapKind::HoldfastAtoll => None,
     }
 }
 
@@ -1289,6 +1301,7 @@ fn build(kind: MapKind) -> MapDef {
         MapKind::Sector9 => sector_9(),
         MapKind::ReclamationGulch => reclamation_gulch(),
         MapKind::TripointWorks => tripoint_works(),
+        MapKind::HoldfastAtoll => holdfast::build(),
     }
 }
 
@@ -1314,7 +1327,14 @@ pub(crate) fn validate(kind: MapKind) -> Vec<String> {
     let name = kind.name();
     let mut problems = Vec::new();
 
-    if blocked_at(kind, 0.0, 0.0, STEP_UP) || stand_height(kind, 0.0, 0.0) != 0.0 {
+    let origin_floor = if kind == MapKind::HoldfastAtoll {
+        holdfast::LAND_HEIGHT
+    } else {
+        0.0
+    };
+    if blocked_at(kind, 0.0, 0.0, origin_floor + STEP_UP)
+        || stand_height(kind, 0.0, 0.0) != origin_floor
+    {
         problems.push(format!("{name}: the origin is not clear, walkable floor"));
     }
 
@@ -1424,8 +1444,9 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
     // Highest floor reached in each cell; -1 means never reached.
     let mut reached = vec![-1.0f32; width * width];
     let mut queue = std::collections::VecDeque::new();
-    reached[index(0, 0)] = 0.0;
-    queue.push_back((0i32, 0i32, 0.0f32));
+    let origin_floor = stand_height(kind, 0.0, 0.0);
+    reached[index(0, 0)] = origin_floor;
+    queue.push_back((0i32, 0i32, origin_floor));
     while let Some((ix, iz, floor)) = queue.pop_front() {
         if reached[index(ix, iz)] > floor + 0.01 {
             continue;

@@ -59,6 +59,9 @@ func _check_labels() -> void:
 	for bad: Variant in [null, {}, {"union": -1, "coalition": 0}, {"union": 1.5, "coalition": 0}, {"union": "3", "coalition": 1}]:
 		_check(MatchRules.team_score_line(bad) == "", "bad side scores show nothing: " + str(bad))
 	_check(MatchRules.team_short("union") == "UNION" and MatchRules.team_short("coalition") == "FREE", "side chips")
+	_check(MatchRules.team_relation("coalition", "coalition") == "mate" and MatchRules.team_relation("union", "coalition") == "foe", "the same side is yours")
+	_check(MatchRules.team_relation("", "union") == "" and MatchRules.team_relation("union", "") == "", "a missing side is not a team mark")
+	_check(MatchRules.relation_mark("mate") == "OURS" and MatchRules.relation_mark("foe") == "THEIRS" and MatchRules.relation_mark("") == "", "marks name your side and the other")
 	_check(MatchRules.team_name("coalition") == "The Free Coalition", "side name")
 	_check(MatchRules.valid_team("union") == "union" and MatchRules.valid_team("office") == "" and MatchRules.valid_team(3) == "", "only two sides")
 	_check(MatchRules.team_label_color("union") == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition") == MatchRules.COALITION_LABEL, "side colours")
@@ -192,6 +195,35 @@ func _check_hud() -> void:
 	_check(chip.text.ends_with("OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."), "an eliminated player is told why: " + chip.text)
 	hud.call("sync_scores_from_players", [{"name": "Dead Air Dan", "score": 2}])
 	_check(not hud.get("scoreboard").text.contains("[UNION]"), "free-for-all rows carry no side")
+	hud.call("sync_scores_from_players", [
+		{"name": "Dead Air Dan", "score": 4},
+		{"name": "Nightfall", "score": 3},
+		{"name": "Static Kid", "score": 2},
+		{"name": "Aunt Linda", "score": 1},
+		{"name": "Meat Proxy", "score": 5, "deaths": 1, "attacks": 3, "connects": 2, "heads": 1, "damage": 40},
+		{"name": "Probe", "score": 0},
+	])
+	hud.call("set_board_name", "Meat Proxy")
+	var leaders: String = str(hud.call("leaderboard_text"))
+	_check(leaders.begins_with("LEADERS\n"), "tab board names itself: " + leaders)
+	_check(leaders.contains("HIT% bodies/shots"), "tab board names the rates: " + leaders)
+	_check(leaders.contains("1.*Meat Proxy: 5 frag, 1 died, hit 66.7 (2/3), head 50.0 (1/2), 40 dealt  YOU"), "local fighter carries the counts: " + leaders)
+	_check(leaders.contains("6. Probe: 0 frag, 0 died, hit -, head -, 0 dealt"), "a quiet fighter is not a fake zero rate: " + leaders)
+	hud.call("set_board_name", "")
+	var spectator: String = str(hud.call("leaderboard_text"))
+	_check(spectator.contains("hit 66.7") and not spectator.contains("YOU"), "a spectator still gets the columns: " + spectator)
+	hud.call("set_board_name", "Meat Proxy")
+	var corner: String = str(hud.get("scoreboard").text)
+	_check(not corner.contains("Probe"), "the corner stays the top four: " + corner)
+	_check(corner.contains("Meat Proxy: 5") and not corner.contains("HIT%"), "the corner stays on frags: " + corner)
+	hud.call("set_leaderboard_open", true)
+	await process_frame
+	var leaders_panel: Control = hud.get_node("Leaderboard")
+	_check(leaders_panel.visible and leaders_panel.mouse_filter == Control.MOUSE_FILTER_IGNORE, "tab opens a board that ignores the pointer")
+	var view: Rect2 = hud.get_viewport().get_visible_rect()
+	_check(view.encloses(leaders_panel.get_global_rect()), "the board stays on screen: " + str(leaders_panel.get_global_rect()) + " in " + str(view))
+	hud.call("set_leaderboard_open", false)
+	_check(not leaders_panel.visible, "releasing tab hides the board")
 	hud.call("show_host_reaction", {"kind": "golden_rail", "variant": 2, "player": "Aunt Linda"})
 	hud.call("set_match_rules", {})
 	_check(not chip.visible, "a campaign map clears the chip")
@@ -220,6 +252,15 @@ func _check_pawn() -> void:
 	pawn.call("update_state", state, 2)
 	_check(pawn.get("player_color") == MatchRules.COALITION_LABEL, "a moved fighter changes colour")
 	_check(body.modulate.get_luminance() > 0.85, "coalition body reads bone: " + str(body.modulate))
+	pawn.set_team_relation("mate")
+	_check(label.text == "OURS" and label.modulate == MatchRules.OURS_MARK, "a teammate is marked OURS: " + label.text)
+	_check(body.modulate.get_luminance() > 0.9, "a teammate stays bright: " + str(body.modulate))
+	pawn.body_kind = "clerk"
+	pawn.set_team_relation("foe")
+	_check(label.text == "THEIRS" and body.modulate.r > body.modulate.g, "the other side warms red on its own body: " + str(body.modulate))
+	pawn.body_kind = ""
+	pawn.set_team_relation("")
+	_check(label.text.begins_with("[FREE]"), "clearing the mark restores the side chip: " + label.text)
 	state.erase("team")
 	state["golden"] = true
 	pawn.call("update_state", state, 3)

@@ -48,12 +48,50 @@ and environment cohesion in a played sequence, not only a selected still.
 |---|---|
 | Doom and Doom II | Immediately legible combat rooms, deliberate landmarks, useful secrets, animated surfaces and forceful weapon feedback |
 | Quake and early arena/LAN shooters | Real 3D routes, height changes, fast movement, readable weapon roles and the pleasure of watching or joining the same fight |
+| Halo-era equipment readability | Distinct weapon and item silhouettes, tangible magazines and mechanisms, purposeful technology and strong pickup recognition, interpreted through original circa-2070 equipment |
 | Boltgun and modern retro FPS craft | Detailed directional pixel actors, substantial poses, weight, directional light and cohesive sculpted spaces at playing distance |
 
 These are craft influences. fragr's people, institutions, equipment, places,
 marks, dialogue and layouts come from its own canon. The game is a real 3D
 shooter with deliberately pixelated surfaces and presentation. Low resolution
 does not excuse empty rooms, weak silhouettes, flat lighting or incoherent art.
+
+Nick reaffirmed on October 6 that this is a contemporary quality bar with a
+retro visual language. Models need convincing construction, deliberate material
+separation and motion; animation needs weight and clear transitions; lighting
+must shape rooms and preserve targets. Raw model paint, static wheels, rough
+grayboxes and a reduced texture size alone are intermediate work. Inspect
+ordinary movement and combat in the actual renderer before selecting an asset.
+Manual human reloads and crouching belong to the handling language, while fast
+movement, readable enemies and uninterrupted routes preserve the shooter pace.
+
+## Lives beyond the conflict
+
+Characters are easy company forced to defend their rights. Freedom has an
+everyday purpose: music, friendship, tinkering, meals, unremarkable work and
+choosing what comes next. Give each important person an interest, a relationship
+and a routine that would exist without the Union. Let allies disagree about
+methods while respecting each other's independence. Respect never requires
+obedience to the player or identical politics.
+
+Humor comes from particular people, friendship, circumstance and improvisation.
+Institutional absurdity remains useful, but oppression cannot carry every joke.
+Different people need different rhythms; quiet moments and grief retain room.
+Show consequences in a repaired room, a gathering resumed, an object kept or a
+person able to choose a different future. Preserve actual survivor outcomes.
+
+Keep the shooter moving. Environmental details, actions, brief exchanges and
+optional interactions should carry most of this work. No new morality system,
+mandatory conversation gate or repeated speech is implied. During character
+review, ask what this person cares about besides winning, how the player learns
+it, and whether the moment interrupts play. Review practical clothing, personal
+repairs, possessions and familiar gestures against the same answer, retaining
+the shared palette, readable silhouette and established identity.
+
+The first small proof uses the existing, skippable M10 departure card: Tern's
+off-duty music routine and disagreement over a battered recording give the
+quiet passenger hall a life beyond surviving the boarding party. This is text
+presentation, not a claim of new acted dialogue or recorded voice.
 
 ## Environment detail and water
 
@@ -132,7 +170,7 @@ recognition of the intelligence. Play continues into the aftermath.
 |---|---|
 | World | Dark steel, worn enamel, rust, concrete, cables, vents, practical lights, stenciled identifiers, and readable landmarks. Distinguish each arena's purpose. |
 | Surface detail | Deliberate pixel clusters and consistent texel scale. Broad readable material shapes before fine wear. Avoid uniform grids on every surface. |
-| Fighters | Distinct silhouette, facing, faction, weapon, and damage state. Participants wear the body they chose, a free human or a free embodied agent in a synthetic body ([plan](plans/player-body-selection.md)); Cyanex and Kragge remain only for fighters an older server sends without one. Flesh or metal does not establish moral status. |
+| Fighters | Distinct silhouette, facing, faction, weapon, and damage state. Participants wear the body they chose, a human or a free agent in a synthetic body ([plan](plans/player-body-selection.md)); Cyanex and Kragge remain only for fighters an older server sends without one. Flesh or metal does not establish moral status. |
 | Weapons | Flechette, rail, and scatter must read by silhouette and feedback alone. Separate inventory icons from first-person art. Preserve muzzle registration across frames. |
 | Effects | Short, forceful flashes, impacts, debris, and pain/death response. Color and sound communicate the event. Avoid glow that hides targets. |
 | Menus/settings | Chunky pixel type, bone titles, metal framing, physical controls, and strong selection states. The entire front end belongs to the retro FPS. |
@@ -144,6 +182,22 @@ Free communities repair and repurpose. Union spaces impose repeated forms,
 inspection lanes, serial numbers, and controlled institutional color. The Inheritance
 leaves unsettling order and regrowth among evidence of human and agent loss.
 These are visual tendencies, not a replacement for the detailed faction canon.
+
+Nick's 2026-10-06 direction separates readable allegiance from a moral verdict.
+A player must recognize the immediate threat, uniform, weapon and attack tell.
+Reflection on who deserves trust comes from conduct and consequences. Do not
+make every Union face cruel or every free-side figure reassuring. A maintained
+Union clinic, an overworked dispatch desk or an honestly useful safety notice
+can share an institution with coercive custody. A free workshop can contain
+disagreement, scarcity and evidence of a bad decision. These are authoring
+examples, not new mission events or replacement combat rules.
+
+Give institutional spaces their actual purpose and the people using them
+ordinary belongings, responsibilities and habits. Show how a service becomes a
+condition of obedience, whose decision makes it so, and who resists or benefits.
+Do not add arbitrary cruelty to every prop. Let the free side's expedient
+methods leave visible costs and competing claims too. Preserve each specific
+harm; complexity does not require equal wrongdoing on every side.
 
 Nick's 2026-10-03 clarification applies to asset production: the Union is an
 expanding, plausible fascist institution with standardized equipment, compliance
@@ -168,8 +222,9 @@ personal repairs. Hackers, workshop people and neighbors would prefer a quiet
 free life; their chosen resistance does not turn everyone into an armored
 soldier. Conscious agents' personhood is certain. Individual motives, consent,
 mistakes and competing loyalties provide moral complexity without making
-enslavement or deletion an equally valid position. The Inheritance's emerging
-reach belongs in recurring infrastructure anomalies and unreliable radio,
+enslavement or deletion an equally valid position. A free-side victory does not
+automatically vindicate every participant, means or future use of power. The
+Inheritance's emerging reach belongs in recurring infrastructure anomalies and unreliable radio,
 not an early explanation of the wipe's timing.
 
 Latch is a free embodied person, roughly six feet (about 1.8 metres) tall, with

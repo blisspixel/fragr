@@ -13,7 +13,8 @@ with ten shared fighter seats and finite Pistol fresh starts. Human match
 acceptance remains open. A dedicated arcade server can open a local venue
 desk with `--console`, shipped in v0.78.0. `fragr-playtest --traffic` can
 fill a local server with synthetic fighters and spectators. Neither one is
-a new mode.
+a new mode. `--playlist` keeps one process up and rotates a built-in night
+list of the modes below. It is not a new mode. A playlist file is later.
 Rescue, other objective modes, duel admission, the Sweep, and the campaign/co-op systems below are
 designs until source and playtests demonstrate otherwise. Nick's multiplayer
 order (2026-09-25): free-for-all, duel, team deathmatch, the GoldenEye-style

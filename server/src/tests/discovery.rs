@@ -353,7 +353,9 @@ fn campaign_consumables_do_not_regenerate_and_party_retry_restores_them() {
                 25
             ),
             PickupKind::Weapon(_) => unreachable!("only consumables are exercised"),
-            PickupKind::Grenade { .. } | PickupKind::ProximityMine { .. } => {
+            PickupKind::Grenade { .. }
+            | PickupKind::ProximityMine { .. }
+            | PickupKind::RemoteMine { .. } => {
                 unreachable!("fixture has no explosives")
             }
         }

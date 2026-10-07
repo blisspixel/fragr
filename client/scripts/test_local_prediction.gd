@@ -304,6 +304,37 @@ func _initialize() -> void:
 	predictor.record_action(_action(1), 4000001, true)
 	_check(is_equal_approx(predictor.presented_position().x, 0.0),
 		"local prediction uses the authoritative map solid for collision")
+	var smooth: LocalPrediction = LocalPrediction.new()
+	smooth.configure_map(map)
+	smooth.accept_ack(_ack(0, 70), 7000000)
+	smooth.record_action(_action(1), 7000001, true)
+	var committed_steps: int = smooth.steps.size()
+	var committed_x: float = smooth.presented_position().x
+	_check(is_equal_approx(smooth.presented_position(7000001).x, committed_x),
+		"the first render sample starts on the committed pose")
+	var midway: float = smooth.presented_position(7025001).x
+	_check(midway > committed_x + 0.1 and midway < committed_x + 0.15,
+		"walking advances inside the open tick")
+	_check(smooth.steps.size() == committed_steps and is_equal_approx(smooth.presented_position().x, committed_x),
+		"render samples do not record a speculative step")
+	var crouch: LocalPrediction = LocalPrediction.new()
+	crouch.configure_map(map)
+	crouch.accept_ack(_ack(0, 72), 7200000)
+	var ducked_action: Dictionary = _action(1)
+	ducked_action["duck"] = true
+	crouch.record_action(ducked_action, 7200001, true)
+	_check(absf(float(crouch.state["x"]) - 5.0 * MoveStep.DUCK_SPEED_SCALE * MoveStep.DT_LIVE) < 0.02,
+		"a ducked step is the short walk")
+	_check(crouch.presented_ducking(7200001), "the render pose starts short")
+	crouch.record_action(_action(2), 7250001, true)
+	_check(not bool(crouch.state.get("ducking", true)), "release in the open stands")
+	var blocked: LocalPrediction = LocalPrediction.new()
+	blocked.configure_map(cover)
+	blocked.accept_ack(_ack(0, 71), 7100000)
+	blocked.record_action(_action(1), 7100001, true)
+	blocked.presented_position(7100001)
+	_check(is_equal_approx(blocked.presented_position(7125001).x, 0.0),
+		"a blocked render sample stays on the solid")
 	var camera_script: GDScript = load("res://scripts/spectator_cam.gd")
 	var current: Vector3 = Vector3.ZERO
 	var eye: Vector3 = Vector3(0.25, 1.6, 0.0)

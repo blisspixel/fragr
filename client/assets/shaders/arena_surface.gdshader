@@ -10,6 +10,7 @@ uniform int surface_style = 0; // 0 arcade, 1 concrete, 2 enamel, 3 service, 4 r
 // brighter or darker than its neighbour, so a run of identical panels stops
 // looking like one repeated tile. Zero disables it.
 uniform float sector_variation = 0.08;
+uniform float panel_contrast : hint_range(0.0, 1.0) = 1.0;
 // Deck heights repeat every three metres on the authored maps. Wall bases
 // darken toward each deck, a contact shade that costs nothing on Performance.
 uniform float deck_spacing = 3.0;
@@ -57,7 +58,7 @@ void fragment() {
 	float wear = grain(floor(pixel / 4.0));
 	float grit = grain(pixel);
 	float variation = grain(panel);
-	vec3 color = surface_color.rgb * (0.83 + floor(variation * 4.0) * 0.07);
+	vec3 color = surface_color.rgb * mix(0.94, 0.83 + floor(variation * 4.0) * 0.07, panel_contrast);
 	color *= 0.93 + floor(grit * 3.0) * 0.035;
 	if (tile_enabled) {
 		vec2 tile_uv = pixel / max(tile_repeat_pixels, 1.0);

@@ -29,6 +29,17 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m11_objectives(&self) -> Option<&super::authored::m11::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m11.as_deref(),
+        }
+    }
+
+    pub fn m11_geometry(&self) -> Option<crate::protocol::M11MapGeometry> {
+        self.m11_objectives().map(|p| p.geometry.clone())
+    }
+
     pub(crate) fn m10_objectives(&self) -> Option<&super::authored::m10::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -241,8 +252,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m10_objectives()
-            .map(|_| crate::protocol::MissionId::CommonCarrier)
+        self.m11_objectives()
+            .map(|_| crate::protocol::MissionId::RightOfSearch)
+            .or_else(|| {
+                self.m10_objectives()
+                    .map(|_| crate::protocol::MissionId::CommonCarrier)
+            })
             .or_else(|| self.mission().map(|mission| mission.id))
             .or_else(|| {
                 self.m02_objectives()
@@ -358,6 +373,21 @@ impl RuntimeMap {
                 .is_some_and(|p| p.decorations.iter().any(|d| d.kind.is_m10()))
     }
 
+    pub fn requires_m11_contract(&self) -> bool {
+        self.presentation_ref()
+            .is_some_and(|p| p.decorations.iter().any(|d| d.kind.is_m11()))
+            || self.encounters().iter().any(|group| {
+                group
+                    .enemies
+                    .iter()
+                    .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Redactor)
+            })
+            || self
+                .pickups()
+                .iter()
+                .any(|pickup| matches!(pickup.kind, crate::sim::PickupKind::RemoteMine { .. }))
+    }
+
     pub fn requires_enforcer_contract(&self) -> bool {
         self.encounters().iter().any(|group| {
             group
@@ -392,6 +422,13 @@ impl RuntimeMap {
         match self {
             Self::BuiltIn(kind) => super::arena(*kind),
             Self::Authored(map) => &map.arena,
+        }
+    }
+
+    pub fn water_regions(&self) -> &[crate::protocol::WaterRegion] {
+        match self {
+            Self::BuiltIn(crate::sim::MapKind::HoldfastAtoll) => &super::holdfast::WATER,
+            _ => &[],
         }
     }
 
@@ -448,6 +485,7 @@ impl RuntimeMap {
 
     pub(crate) fn spawn_slots(&self) -> usize {
         match self {
+            Self::BuiltIn(MapKind::HoldfastAtoll) => 16,
             Self::BuiltIn(_) => 64,
             Self::Authored(map) => map.spawns.len(),
         }
@@ -461,7 +499,12 @@ impl RuntimeMap {
                     as usize
                     % map.spawns.len();
                 let spawn = &map.spawns[index];
-                (spawn.feet[0], spawn.feet[2], spawn.yaw, spawn.feet[1])
+                (
+                    spawn.feet[0],
+                    spawn.feet[2],
+                    crate::movement::normalize_yaw(spawn.yaw),
+                    spawn.feet[1],
+                )
             }
         }
     }

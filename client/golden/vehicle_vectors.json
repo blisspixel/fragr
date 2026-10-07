@@ -1,0 +1,265 @@
+{
+  "vectors": [
+    {
+      "arena": {
+        "half": 100.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          16.400012969970703,
+          0.0,
+          0.0
+        ],
+        "speed": 15.999993324279785,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "name": "accelerate",
+      "steps": 40
+    },
+    {
+      "arena": {
+        "half": 100.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          -9.89998722076416,
+          0.0,
+          0.0
+        ],
+        "speed": -6.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": true,
+        "brake": false,
+        "forward": false,
+        "left": false,
+        "right": false
+      },
+      "name": "reverse",
+      "steps": 40
+    },
+    {
+      "arena": {
+        "half": 100.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          -0.9615541696548462,
+          0.0,
+          27.608844757080078
+        ],
+        "speed": 16.0,
+        "vy": 0.0,
+        "yaw": 2.3935787677764893
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "forward": true,
+        "left": false,
+        "right": true
+      },
+      "name": "turn_right",
+      "steps": 60
+    },
+    {
+      "arena": {
+        "half": 100.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          0.3483040928840637,
+          0.0,
+          -11.046813011169434
+        ],
+        "speed": -6.0,
+        "vy": 0.0,
+        "yaw": 2.998007297515869
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": true,
+        "brake": false,
+        "forward": false,
+        "left": true,
+        "right": false
+      },
+      "name": "reverse_left",
+      "steps": 60
+    },
+    {
+      "arena": {
+        "half": 100.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          3.874999523162842,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 16.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": true,
+        "forward": false,
+        "left": false,
+        "right": false
+      },
+      "name": "handbrake",
+      "steps": 20
+    },
+    {
+      "arena": {
+        "half": 20.0,
+        "solids": [
+          {
+            "max_x": 3.0199999809265137,
+            "max_z": 10.0,
+            "min_x": 3.0,
+            "min_z": -10.0,
+            "top": 4.0
+          }
+        ]
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          1.0950000286102295,
+          0.0,
+          0.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "speed": 16.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "forward": true,
+        "left": false,
+        "right": false
+      },
+      "name": "thin_wall",
+      "steps": 10
+    },
+    {
+      "arena": {
+        "half": 100.0,
+        "solids": []
+      },
+      "dt": 0.05,
+      "expected": {
+        "position": [
+          6.1875,
+          0.0,
+          0.0
+        ],
+        "speed": 0.5,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "initial": {
+        "position": [
+          0.0,
+          3.0,
+          0.0
+        ],
+        "speed": 8.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      },
+      "input": {
+        "back": false,
+        "brake": false,
+        "forward": false,
+        "left": false,
+        "right": false
+      },
+      "name": "fall",
+      "steps": 30
+    }
+  ],
+  "version": 1
+}

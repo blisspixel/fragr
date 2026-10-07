@@ -7,8 +7,8 @@
 
 use crate::bench::Histogram;
 use crate::protocol::{
-    BuildInfo, ClientRate, Health, HealthReason, HealthState, LiveStatus, OpsStatus, ProcessInfo,
-    Role, RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
+    BuildInfo, ClientRate, Health, HealthReason, HealthState, LiveStatus, NightTotals, OpsStatus,
+    ProcessInfo, Role, RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
 };
 use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -507,6 +507,8 @@ impl StatusTracker {
                 queue_overflows_total: self.ticks.overflows_total,
             },
             clients: Some(clients_rates),
+            // Replaced from the session sheet after apply. Zeros until then.
+            night: NightTotals::default(),
         });
     }
 
@@ -563,6 +565,13 @@ pub fn served_status(live: &LiveStatus, with_clients: bool, uptime_now: Duration
         health.status = HealthState::Degraded;
     }
     served
+}
+
+/// Per-session rates stay on this machine. Another computer gets the same
+/// body as a plain `GET /status`, even when it asks for the list.
+/// An IPv4-mapped loopback address is this machine.
+pub fn status_client_list(peer: std::net::IpAddr, request: &[u8]) -> bool {
+    peer.to_canonical().is_loopback() && wants_clients(request)
 }
 
 /// `true` when the request line asks for the per-session list:

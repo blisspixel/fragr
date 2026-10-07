@@ -300,4 +300,4 @@ safety, and measured server budgets at 16 to 32 fighters before any claim.
 - Boomer-shooter hit effects: blood for humans, oil and sparks for machines,
   as a presentation follow-up on the existing `shot_effects.gd` impact path.
   Cheap once the art exists; not part of this work.
-- Rotations as data: a playlist file of map, mode and mutators per slot.
+- Rotations as data: a playlist file of map, mode and mutators per slot. The built-in `--playlist` night list is the process that stays up. The file is still later.
