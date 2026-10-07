@@ -11,7 +11,7 @@ const WEAPON_COUNTS: Array[String] = ["attacks", "damaging_attacks", "kills", "h
 ## Omitted while zero. A damaging column that omits both predates connect accounting.
 const GEOMETRY_COUNTS: Array[String] = ["connects", "heads"]
 ## Counted explosive columns, each omitted while unused.
-const EXPLOSIVE_COLUMNS: Array[String] = ["grenades", "mines"]
+const EXPLOSIVE_COLUMNS: Array[String] = ["grenades", "mines", "remote_mines"]
 ## Five original weapon slots, and a sixth once the Shiv has been used.
 const LEGACY_WEAPONS: int = 5
 const INVALID: String = "Invalid participant record."
@@ -77,7 +77,9 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")
-	if value.size() != 6 + int(secrets) + int(value.has("grenades")) + int(value.has("mines")):
+	if record_version == LEGACY_VERSION and value.has("remote_mines"):
+		return false
+	if value.size() != 6 + int(secrets) + int(value.has("grenades")) + int(value.has("mines")) + int(value.has("remote_mines")):
 		return false
 	if secrets and (not EquipmentState.integer(value["secrets"], EquipmentState.MAX_EXACT_INTEGER) 		or int(value["secrets"]) < 1 or int(value["secrets"]) > int(value.get("alive_ticks", 0))):
 		return false
@@ -157,7 +159,7 @@ static func _valid_scope(data: Dictionary) -> bool:
 		return false
 	if scope.get("kind") in ["arena", "practice"]:
 		return scope.size() == 2 and EquipmentState.integer(scope.get("round"), 4294967295) and scope.get("round") == data["round"] and data["attempt"] == data["total"]
-	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID] \
+	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] \
 		or not EquipmentState.integer(scope.get("attempt"), 4294967295) or int(scope["attempt"]) < 1 \
 		or not MissionState.valid_rules(scope.get("rules"), 1) or not scope.has("run"):
 		return false
@@ -188,8 +190,11 @@ static func grenade_count(counts: Dictionary, field: String) -> int:
 static func mine_count(counts: Dictionary, field: String) -> int:
 	return column_count(counts, "mines", field)
 
+static func remote_mine_count(counts: Dictionary, field: String) -> int:
+	return column_count(counts, "remote_mines", field)
+
 static func sum_combat(counts: Dictionary, field: String) -> int:
-	return sum_weapon(counts, field) + grenade_count(counts, field) + mine_count(counts, field)
+	return sum_weapon(counts, field) + grenade_count(counts, field) + mine_count(counts, field) + remote_mine_count(counts, field)
 static func sum_weapon(counts: Dictionary, field: String) -> int:
 	var total: int = 0
 	for weapon: Dictionary in counts["weapons"]:

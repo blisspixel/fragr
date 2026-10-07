@@ -58,6 +58,9 @@ func configure_map(info: Dictionary) -> void:
 	arena.clear()
 	_archive_neutrals = M08NeutralBodies.layout(info) if info.get("m08") is Dictionary and M08MissionState.map_error(info).is_empty() else {}
 	_moon_residents = MoonResidentBodies.read(info)
+	if info.get("m11") is Dictionary and M11MissionState.map_error(info).is_empty():
+		for index: int in range(info["m11"]["transfer_people"].size()):
+			_moon_residents.append({"key": "m11/transfer/%d" % index, "feet": GrenadeFacts.vector(info["m11"]["transfer_people"][index])})
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":

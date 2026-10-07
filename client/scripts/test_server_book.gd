@@ -42,7 +42,7 @@ func _run() -> void:
 		and not detail.contains("different version"),
 		"a row names the map, the count, the mode and the check time, and not a callsign")
 	var matched: Dictionary = live.duplicate()
-	matched["gameplay_version"] = 37
+	matched["gameplay_version"] = LocalHost.GAMEPLAY_VERSION
 	matched["geometry_version"] = 2
 	_check(not ServerBook.detail(matched, 18).contains("different version"), "a matching version stays quiet")
 	var older: Dictionary = live.duplicate()

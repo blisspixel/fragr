@@ -146,6 +146,8 @@ func _show_record(index: int) -> void:
 		lines.append_array(weapon_lines(tr("RECORD_GRENADES"), _explosive_counts(total, "grenades"), false))
 	if PlayerRecord.mine_count(total, "attacks") > 0:
 		lines.append_array(weapon_lines(tr("RECORD_MINES"), _explosive_counts(total, "mines"), false))
+	if PlayerRecord.remote_mine_count(total, "attacks") > 0:
+		lines.append_array(weapon_lines(tr("RECORD_REMOTE_MINES"), _explosive_counts(total, "remote_mines"), false))
 	if PlayerRecord.sum_combat(total, "attacks") == 0:
 		lines.append(tr("RECORD_NO_ATTACKS"))
 	if PlayerRecord.secrets(total) > 0:

@@ -129,9 +129,13 @@ func _run() -> void:
 	menu._show("single")
 	_check(column.get_node_or_null("CommonCarrierSaved") != null and _menu_text(column).contains("COMMON CARRIER"), "completed M09 offers the actual ship continuation")
 	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M10_ID}), "new ship transition plays arrival while its existing entry does not")
+	owned.run_preview["mission"] = MissionState.M11_ID
+	menu._show("single")
+	_check(column.get_node_or_null("RightOfSearchSaved") != null and _menu_text(column).contains("RIGHT OF SEARCH"), "completed M10 offers the actual tender continuation")
+	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M11_ID}), "new tender transition plays arrival while its existing entry does not")
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
-	_check(column.get_node_or_null("PassengerManifestSaved") == null and column.get_node_or_null("CommonCarrierSaved") == null and _menu_text(column).contains("Right of Search is not playable yet"), "pending M11 has no mission launch button")
+	_check(column.get_node_or_null("CommonCarrierSaved") == null and column.get_node_or_null("RightOfSearchSaved") == null and _menu_text(column).contains(tr("M11_NEXT_PENDING")), "pending M12 has no mission launch button")
 	menu._onward_pending = true
 	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
 	owned.run_preview = {"status": "loading"}
@@ -145,17 +149,18 @@ func _run() -> void:
 	menu._try_onward()
 	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
 		"an unbuilt next mission settles the onward request on Single Player without launching")
-	_check(_menu_text(column).contains("NEXT: RIGHT OF SEARCH") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M11 previews mission, shared continues and saved body")
+	_check(_menu_text(column).contains("NEXT: TERMS OF COOPERATION") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M12 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
-		"pending M11 leaves an unbound body visible without an unavailable selector")
+		"pending M12 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 9 and development.get_item_text(4).contains("PORT OF ENTRY")
+	_check(development.item_count == 10 and development.get_item_text(4).contains("PORT OF ENTRY")
 		and development.get_item_text(5).contains("DECLARED GOODS") and development.get_item_text(6).contains("CUSTODIAN OF RECORD")
-		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes the ship prototype")
+		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE")
+		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes ship and tender prototypes")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	await menu._show("multi")
@@ -198,7 +203,7 @@ func _run() -> void:
 	_check(offer_note != null and offer_note.visible and offer_note.text == ReleaseInstall.OFFER_NOTE, "the offer says the latest build may still be older")
 	_check(menu.get_node_or_null("ReleaseFetch") == null, "the offer does not download until it is chosen")
 	_check(column.get_node("Join").get_index() < offer.get_index() and offer.get_index() < column.get_node("SaveHost").get_index(), "the install offer follows Join")
-	versioned["gameplay_version"] = 37
+	versioned["gameplay_version"] = LocalHost.GAMEPLAY_VERSION
 	versioned["geometry_version"] = 9
 	menu._apply_status(versioned)
 	_check(offer.visible and not menu._watch_button.disabled and not menu._join_button.disabled, "a newer geometry version offers the install and does not block join")
@@ -206,7 +211,7 @@ func _run() -> void:
 	versioned.erase("geometry_version")
 	menu._apply_status(versioned)
 	_check(not offer.visible and not offer_note.visible, "an older server does not offer an install")
-	versioned["gameplay_version"] = 37
+	versioned["gameplay_version"] = LocalHost.GAMEPLAY_VERSION
 	versioned["geometry_version"] = 2
 	menu._apply_status(versioned)
 	_check(not menu._match_line.text.contains("different version"), "a matching version stays quiet")

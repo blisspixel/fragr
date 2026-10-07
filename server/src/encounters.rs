@@ -45,6 +45,11 @@ pub(crate) struct Encounters {
 }
 
 impl Encounters {
+    pub(crate) fn registered_in_group(&self, id: Uuid, group: usize) -> bool {
+        self.enemies
+            .iter()
+            .any(|(g, enemy)| *g == group && enemy.id == id)
+    }
     pub(crate) fn is_complete(&self, index: usize) -> bool {
         matches!(self.groups.get(index), Some(Group::Complete))
     }
@@ -126,7 +131,8 @@ impl Encounters {
                 || map.m07_objectives().is_some()
                 || map.m08_objectives().is_some()
                 || map.m09_objectives().is_some()
-                || map.m10_objectives().is_some())
+                || map.m10_objectives().is_some()
+                || map.m11_objectives().is_some())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
                         .iter()
@@ -145,7 +151,7 @@ impl Encounters {
             }
             if matches!(self.groups[index], Group::Unplaced) {
                 let mut ids = Vec::with_capacity(definition.enemies.len());
-                for placement in &definition.enemies {
+                for (member, placement) in definition.enemies.iter().enumerate() {
                     let id = state.spawn_campaign_enemy(placement);
                     ids.push(id);
                     self.enemies.push((
@@ -158,7 +164,13 @@ impl Encounters {
                             state.tick,
                             placement.seated,
                         )
-                        .with_hover(placement.hover.clone()),
+                        .with_hover(placement.hover.clone())
+                        .with_spine_march(
+                            map.m11_objectives()
+                                .filter(|_| index == 0)
+                                .map(|p| p.spine_patrol.clone()),
+                            member,
+                        ),
                     ));
                 }
                 self.groups[index] = Group::Dormant(ids);
@@ -250,6 +262,9 @@ impl Encounters {
             _ => return,
         }
         for (_, enemy) in self.enemies.iter_mut().filter(|(index, _)| *index == group) {
+            if !dispatch {
+                enemy.end_spine_march();
+            }
             enemy.alarm(alarm, tick);
         }
     }

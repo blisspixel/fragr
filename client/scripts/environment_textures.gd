@@ -8,7 +8,13 @@ const PRODUCTION: String = "res://assets/environment/production/"
 static var _textures: Dictionary[String, Texture2D] = {}
 
 static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
-	if venue == "common_carrier":
+	if venue == "right_of_search":
+		match surface:
+			"enamel": return PRODUCTION + ("archive_floor.png" if horizontal else "archive_enamel.png")
+			"service_steel": return PRODUCTION + ("archive_floor.png" if horizontal else "archive_steel.png")
+			"lift_panel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_repair_plate.png")
+			"records_tile": return PRODUCTION + "archive_ceramic.png"
+	elif venue == "common_carrier":
 		match surface:
 			"enamel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_pressure_bone.png")
 			"service_steel", "lift_panel": return MOON + ("moon_worn_deck.png" if horizontal else "moon_repair_plate.png")

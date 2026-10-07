@@ -853,6 +853,7 @@ mod tests {
             grenades: 0,
             proximity_mines: 0,
             loaded: Vec::new(),
+            remote_mines: 0,
         };
         let through_inventory = |snap: &Snapshot| {
             fragr_server::inventory::control_action_with_target_filter(

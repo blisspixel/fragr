@@ -34,6 +34,7 @@ const MAX_EXACT_INTEGER: int = 9007199254740991
 const MAX_GRENADES: int = 6
 ## Carried proximity mines, independent of grenades. Omitted on the wire while zero.
 const MAX_MINES: int = 4
+const MAX_REMOTE_MINES: int = 6
 
 static func display_name(weapon: String) -> String:
 	return str(DISPLAY_NAMES.get(weapon.to_lower(), weapon))
@@ -57,6 +58,8 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 	if not integer(data.get("grenades"), MAX_GRENADES):
 		return INVALID
 	if data.has("proximity_mines") and (not integer(data["proximity_mines"], MAX_MINES) or int(data["proximity_mines"]) == 0):
+		return INVALID
+	if data.has("remote_mines") and (not integer(data["remote_mines"], MAX_REMOTE_MINES) or int(data["remote_mines"]) == 0):
 		return INVALID
 	if not previous.is_empty() and int(data["tick"]) < int(previous["tick"]):
 		return INVALID

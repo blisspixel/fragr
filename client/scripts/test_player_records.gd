@@ -48,6 +48,24 @@ func _run() -> void:
 	for field: String in ["total", "attempt"]:
 		current[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
 	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has explicit eighth Repeater column")
+	var remote_counts: Dictionary = {"alive_ticks": 20, "deaths": 0, "hp_lost": 0, "armor_lost": 0, "dry_triggers": 0, "weapons": [], "remote_mines": {"attacks": 2, "damaging_attacks": 1, "kills": 1, "hp_damage": 35, "armor_damage": 20}}
+	for _index: int in range(EquipmentState.WEAPONS.size()):
+		remote_counts["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(PlayerRecord.valid_counts(remote_counts) and PlayerRecord.sum_combat(remote_counts, "attacks") == 2, "Remote Mine attacks occupy their independent current column")
+	_check(not PlayerRecord.valid_counts(remote_counts, PlayerRecord.LEGACY_VERSION), "historical record cannot invent a remote column")
+	var forged_remote_legacy: Dictionary = sample["total"].duplicate(true)
+	forged_remote_legacy["remote_mines"] = {"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0}
+	_check(not PlayerRecord.valid_counts(forged_remote_legacy, PlayerRecord.LEGACY_VERSION), "exact historical weapon width still refuses a forged zero remote column")
+	var remote_total: Dictionary = PlayerRecord.empty_counts()
+	PlayerRecord.add_counts(remote_total, remote_counts)
+	_check(PlayerRecord.column_count(remote_total, "remote_mines", "hp_damage") == 35 and PlayerRecord.mine_count(remote_total, "hp_damage") == 0 and PlayerRecord.grenade_count(remote_total, "hp_damage") == 0, "history never misattributes remote damage to existing explosives")
+	var remote_regression: Dictionary = remote_counts.duplicate(true)
+	remote_regression["remote_mines"]["hp_damage"] = 34
+	_check(not PlayerRecord.contains(remote_regression, remote_counts), "remote damage cannot regress")
+	for remote_patch: Dictionary in [{"damaging_attacks": 3}, {"hp_damage": 9007199254740992}, {"kills": 257}, {"attacks": "2"}]:
+		var remote_bad: Dictionary = remote_counts.duplicate(true)
+		remote_bad["remote_mines"].merge(remote_patch, true)
+		_check(not PlayerRecord.valid_counts(remote_bad), "invalid remote counts: " + str(remote_patch))
 	_check(not PlayerRecord.validation_error(current, current["player_id"], scoped).is_empty(), "negotiated record version cannot change inside one connection")
 	var forged_legacy: Dictionary = current.duplicate(true)
 	forged_legacy["version"] = PlayerRecord.LEGACY_VERSION
@@ -101,7 +119,9 @@ func _run() -> void:
 	berth["scope"]["mission"] = MissionState.M10_ID
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M10 records bind the authored ship mission")
 	berth["scope"]["mission"] = "right_of_search"
-	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M11 cannot forge a playable participant record")
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M11 records bind the authored tender mission")
+	berth["scope"]["mission"] = "terms_of_cooperation"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M12 cannot forge a playable participant record")
 	yard["scope"]["mission"] = MissionState.M04_ID
 	yard["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")
@@ -248,6 +268,17 @@ func _run() -> void:
 	counts["weapons"][4] = {"attacks": 2, "damaging_attacks": 2, "kills": 1, "hp_damage": 100, "armor_damage": 0}
 	_check(PlayerRecord.valid_counts(counts), "an older damaging column still validates")
 	_check(RecordsPanel.commentary_key(found).is_empty(), "a pistol attack is not a melee-only run")
+	var remote_display: Dictionary = current.duplicate(true)
+	remote_display["total"] = remote_counts.duplicate(true)
+	remote_display["attempt"] = remote_counts.duplicate(true)
+	remote_display["tick"] = 80
+	_check(PlayerRecord.validation_error(remote_display, remote_display["player_id"]).is_empty(), "remote presentation uses a valid complete record")
+	var remote_entries: Array[Dictionary] = [{"origin": "local", "record": remote_display}]
+	panel.set("_filtered", remote_entries)
+	panel.call("_show_record", 0)
+	var remote_details: String = panel.get("_details").text
+	_check(remote_details.contains("REMOTE MINES: 2 uses") and remote_details.contains("1/2") and remote_details.contains("50.0"), "service record names actual remote placements separately")
+	_check(not remote_details.contains("GRENADES:") and not remote_details.contains("\nMINES:"), "remote presentation never invents another explosive column")
 	panel.queue_free()
 	await process_frame
 	if _failures == 0:

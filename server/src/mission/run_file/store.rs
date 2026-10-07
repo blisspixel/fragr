@@ -1,7 +1,8 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
 use super::{
-    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV2, RunDocumentV3,
-    RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8, RunDocumentV9,
+    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2,
+    RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8,
+    RunDocumentV9,
 };
 use crate::protocol::MissionId;
 use sha2::{Digest, Sha256};
@@ -14,8 +15,8 @@ const MAX_RUN_BYTES: u64 = 65_536;
 const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
-/// Playable campaign stages with bundled content, in mission order.
-pub(crate) const CAMPAIGN_STAGES: usize = 10;
+/// Internally supported save stages, independent of network capability admission.
+pub(crate) const CAMPAIGN_STAGES: usize = 11;
 /// Bundled content hashes for every playable campaign stage.
 pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 
@@ -31,6 +32,7 @@ pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = [
     MissionId::CustodianOfRecord,
     MissionId::PassengerManifest,
     MissionId::CommonCarrier,
+    MissionId::RightOfSearch,
 ];
 
 /// Index of a playable mission in [`ContentHashes`].
@@ -46,6 +48,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::CustodianOfRecord => 7,
         MissionId::PassengerManifest => 8,
         MissionId::CommonCarrier => 9,
+        MissionId::RightOfSearch => 10,
     }
 }
 
@@ -245,6 +248,16 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(13) => {
+                let legacy: RunDocumentV13 = match serde_json::from_value(value) {
+                    Ok(legacy) => legacy,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(hashes) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -254,10 +267,10 @@ impl RunStore {
             Some(_) => return RunProbe::Incompatible,
             None => return RunProbe::Corrupt,
         };
-        if document
-            .validate(hashes[stage_index(document.stage_mission())])
-            .is_err()
-        {
+        let Some(expected) = hashes.get(stage_index(document.stage_mission())) else {
+            return RunProbe::Incompatible;
+        };
+        if document.validate(*expected).is_err() {
             return RunProbe::Incompatible;
         }
         RunProbe::Compatible(Box::new(document))
@@ -274,7 +287,7 @@ impl RunStore {
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
         Ok(matches!(
             value.get("version").and_then(serde_json::Value::as_u64),
-            Some(2..=12)
+            Some(2..=13)
         ))
     }
 
@@ -295,7 +308,7 @@ impl RunStore {
         before_replace: impl FnOnce(&Path) -> io::Result<()>,
     ) -> io::Result<PathBuf> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let source = read_bounded(&self.directory.join(RUN_NAME))?;
         if !matches!(
@@ -345,8 +358,11 @@ impl RunStore {
         Ok(archive)
     }
 
-    fn expected_hash(&self, document: &RunDocument) -> [u8; 32] {
-        self.hashes[stage_index(document.stage_mission())]
+    fn expected_hash(&self, document: &RunDocument) -> io::Result<[u8; 32]> {
+        self.hashes
+            .get(stage_index(document.stage_mission()))
+            .copied()
+            .ok_or_else(|| invalid("campaign mission carry is not implemented"))
     }
 
     pub fn save(&self, document: &RunDocument) -> io::Result<()> {
@@ -365,7 +381,7 @@ impl RunStore {
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<Option<PathBuf>> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let prior = self.directory.join(RUN_NAME);
         let archived = if prior.try_exists()? {
@@ -407,7 +423,7 @@ impl RunStore {
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<()> {
         document
-            .validate(self.expected_hash(document))
+            .validate(self.expected_hash(document)?)
             .map_err(invalid)?;
         let bytes = serde_json::to_vec(document)
             .map_err(|_| invalid("campaign run document could not be encoded"))?;
@@ -514,6 +530,7 @@ mod tests {
             m08_outcome: None,
             m09_outcome: None,
             m10_transit: None,
+            m11_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -597,7 +614,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -620,7 +637,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32]
+                    [101; 32], [102; 32], [103; 32]
                 ]
             )
             .unwrap(),
@@ -751,7 +768,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -798,7 +815,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -859,7 +876,7 @@ mod tests {
             &directory,
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -922,7 +939,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -970,7 +987,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32]
+                    [101; 32], [102; 32], [103; 32]
                 ]
             )
             .unwrap(),
@@ -987,7 +1004,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32],
+                [101; 32], [102; 32], [103; 32],
             ],
         )
         .unwrap();
@@ -1039,7 +1056,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32]
+                    [101; 32], [102; 32], [103; 32]
                 ]
             )
             .unwrap(),
@@ -1096,3 +1113,7 @@ mod m09_receipt_tests;
 mod m09_tests;
 #[cfg(test)]
 mod m10_tests;
+#[cfg(test)]
+mod m11_tests;
+#[cfg(test)]
+mod remote_tests;

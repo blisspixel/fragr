@@ -29,6 +29,17 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m11_objectives(&self) -> Option<&super::authored::m11::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m11.as_deref(),
+        }
+    }
+
+    pub fn m11_geometry(&self) -> Option<crate::protocol::M11MapGeometry> {
+        self.m11_objectives().map(|p| p.geometry.clone())
+    }
+
     pub(crate) fn m10_objectives(&self) -> Option<&super::authored::m10::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -241,8 +252,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m10_objectives()
-            .map(|_| crate::protocol::MissionId::CommonCarrier)
+        self.m11_objectives()
+            .map(|_| crate::protocol::MissionId::RightOfSearch)
+            .or_else(|| {
+                self.m10_objectives()
+                    .map(|_| crate::protocol::MissionId::CommonCarrier)
+            })
             .or_else(|| self.mission().map(|mission| mission.id))
             .or_else(|| {
                 self.m02_objectives()
@@ -356,6 +371,21 @@ impl RuntimeMap {
             || self
                 .presentation_ref()
                 .is_some_and(|p| p.decorations.iter().any(|d| d.kind.is_m10()))
+    }
+
+    pub fn requires_m11_contract(&self) -> bool {
+        self.presentation_ref()
+            .is_some_and(|p| p.decorations.iter().any(|d| d.kind.is_m11()))
+            || self.encounters().iter().any(|group| {
+                group
+                    .enemies
+                    .iter()
+                    .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Redactor)
+            })
+            || self
+                .pickups()
+                .iter()
+                .any(|pickup| matches!(pickup.kind, crate::sim::PickupKind::RemoteMine { .. }))
     }
 
     pub fn requires_enforcer_contract(&self) -> bool {

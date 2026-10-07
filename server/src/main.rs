@@ -35,7 +35,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
@@ -220,6 +220,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "custodian_of_record" => fragr_server::protocol::MissionId::CustodianOfRecord,
             "passenger_manifest" => fragr_server::protocol::MissionId::PassengerManifest,
             "common_carrier" => fragr_server::protocol::MissionId::CommonCarrier,
+            "right_of_search" => fragr_server::protocol::MissionId::RightOfSearch,
             "declared_goods" => fragr_server::protocol::MissionId::DeclaredGoods,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };
@@ -471,6 +472,7 @@ mod tests {
             "custodian_of_record",
             "passenger_manifest",
             "common_carrier",
+            "right_of_search",
         ] {
             let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
             assert_eq!(args.local_mission.as_deref(), Some(mission));

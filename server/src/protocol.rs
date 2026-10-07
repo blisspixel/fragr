@@ -16,6 +16,7 @@ mod moon_residents;
 pub(crate) use moon_residents::moon_residents;
 mod m09;
 mod m10;
+mod m11;
 mod mission;
 mod rules;
 mod sabotage;
@@ -30,6 +31,7 @@ pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
 };
+mod remote_mine;
 pub use explosive::{
     ExplosionHit, ExplosionResult, GrenadeState, MinePhase, MineState, MINE_ARMING_TICKS,
     MINE_TRIP_TICKS,
@@ -59,6 +61,9 @@ pub use m09::{
 pub use m10::{
     M10MapGeometry, M10ObjectiveState, M10PassengerGeometry, M10Transit, M10_OBJECTIVE_IDS,
 };
+pub use m11::{
+    M11ChallengeState, M11MapGeometry, M11ObjectiveState, M11_OBJECTIVE_IDS, M11_SIGNAL_TICKS,
+};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,
@@ -66,6 +71,10 @@ pub use mission::{
     MissionGeometry, MissionId, MissionMember, MissionObjective, MissionObjectiveAction,
     MissionPhase, MissionReady, MissionState, Region3, UseTarget, CAMPAIGN_CONTINUES,
     CAMPAIGN_RULES_REVISION, M03_MAST_MAX_HP, M03_MAX_CARS, MISSION_PARTY_LIMIT, USE_DISTANCE,
+};
+pub use remote_mine::{
+    RemoteMinePhase, RemoteMineState, REMOTE_MINE_ARMING_TICKS, REMOTE_MINE_CARRY_CAP,
+    REMOTE_MINE_TRIGGER_TICKS,
 };
 pub use rules::{
     GameMode, HostReactionKind, MatchRules, Mutator, Team, TeamScores, HOST_REACTION_VARIANTS,
@@ -710,7 +719,9 @@ pub const RELOAD_GAMEPLAY_VERSION: u32 = 37;
 /// Highest gameplay contract this binary speaks. A shared arcade room requires
 /// a hello equal to this value. A campaign mission keeps its own floor at or
 /// below it. A hello above it is refused on every door.
-pub const GAMEPLAY_VERSION: u32 = RELOAD_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M11_GAMEPLAY_VERSION;
+/// Right of Search includes deliberate charges and the Redactor.
+pub const M11_GAMEPLAY_VERSION: u32 = 38;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -836,6 +847,7 @@ mod geometry_tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -962,6 +974,12 @@ pub enum ServerMessage {
         m09: Option<M09MapGeometry>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         m10: Option<M10MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m11: Option<M11MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1149,6 +1167,12 @@ pub struct Action {
     /// the resolved stance, not this bit.
     #[serde(default, skip_serializing_if = "is_false")]
     pub duck: bool,
+    /// Rising-edge placement from the independent Remote Mine stock.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub place_remote_mine: bool,
+    /// Rising-edge trigger of every currently armed owned Remote Mine.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub trigger_remote_mines: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
     /// Agent target aim. A shared-room human socket drops this field. The
@@ -1287,6 +1311,8 @@ pub struct Snapshot {
     pub grenades: Vec<GrenadeState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mines: Vec<MineState>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub remote_mines: Vec<RemoteMineState>,
     /// Living campaign Auditors and their repair channels.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub auditors: Vec<AuditorState>,
@@ -1758,6 +1784,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
@@ -1989,6 +2016,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),

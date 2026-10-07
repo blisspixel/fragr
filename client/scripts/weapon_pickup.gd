@@ -43,6 +43,7 @@ const COLORS = {
 	"golden_rail": Color(1.0, 0.8, 0.28),  # the one golden Railgun
 }
 
+var _remote_body: Node3D
 var _regular_mesh: Mesh
 var _regular_body_position: Vector3
 var _regular_label_position: Vector3
@@ -108,6 +109,8 @@ func _label_text() -> String:
 		return tr("PICKUP_GRENADES").format({"amount": amount})
 	if pickup_kind == "proximity_mine":
 		return tr("PICKUP_MINES").format({"amount": amount})
+	if pickup_kind == "remote_mine":
+		return tr("PICKUP_REMOTES").format({"amount": amount})
 	if pickup_kind == "golden_rail":
 		return tr("PICKUP_GOLDEN_RAIL")
 	if weapon_name != "":
@@ -136,6 +139,23 @@ func sprite_texture() -> Texture2D:
 func _apply_look() -> void:
 	if body == null:
 		return
+	if pickup_kind == "remote_mine":
+		if _remote_body == null:
+			_remote_body = RemoteMineEffects.make_body()
+			_remote_body.name = "RemoteStock"
+			_remote_body.scale = Vector3.ONE * 2.0
+			_remote_body.position.y = SPRITE_FLOOR_GAP
+			_remote_body.rotation.y = PI / 6.0
+			add_child(_remote_body)
+		_remote_body.visible = true
+		label.text = _label_text()
+		body.visible = false
+		ammo_band.visible = false
+		label.visible = false
+		icon.visible = false
+		return
+	if _remote_body != null:
+		_remote_body.visible = false
 	var texture: Texture2D = sprite_texture()
 	var drawn: bool = texture != null
 	var ammo: bool = pickup_kind == "ammo"

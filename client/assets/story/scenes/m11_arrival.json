@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m11_arrival",
+  "title_key": "MISSION_M11_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "TENDER", "caption_key": "STORY_M11_ARRIVAL_TENDER", "timing": "reader", "hold": 1.0},
+    {"id": "TERN", "caption_key": "STORY_M11_ARRIVAL_TERN", "timing": "reader", "hold": 1.0}
+  ]
+}

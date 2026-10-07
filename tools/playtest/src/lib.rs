@@ -2152,6 +2152,7 @@ async fn agent_task(
                 m07,
                 m09,
                 m10,
+                m11,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2203,6 +2204,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m10(m10.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M10 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m11(m11.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M11 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2586,6 +2590,11 @@ mod tests {
             just_fired: fired,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }
     }
@@ -2605,6 +2614,7 @@ mod tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -3509,6 +3519,11 @@ mod combat_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
@@ -3528,6 +3543,7 @@ mod combat_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4067,6 +4083,11 @@ mod planner_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
@@ -4102,6 +4123,7 @@ mod planner_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4615,6 +4637,7 @@ mod line_of_sight_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4654,6 +4677,11 @@ mod line_of_sight_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "flechette".to_string(),
         };
         snap.players = vec![mk(me, 0.0), mk(foe, 10.0)];
@@ -4727,6 +4755,11 @@ mod patrol_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }
     }

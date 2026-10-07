@@ -183,6 +183,9 @@ msgstr "+{amount} GRENADES"
 msgid "PICKUP_MINES"
 msgstr "+{amount} MINES"
 
+msgid "PICKUP_REMOTES"
+msgstr "+{amount} REMOTE CHARGES"
+
 msgid "PICKUP_SUPPLY"
 msgstr "SUPPLY"
 

@@ -353,6 +353,9 @@ msgstr "+{amount} GRENADES"
 msgid "HUD_PICKUP_MINES"
 msgstr "+{amount} MINES"
 
+msgid "HUD_PICKUP_REMOTES"
+msgstr "+{amount} REMOTE CHARGES"
+
 msgid "HUD_SECRET_FOUND"
 msgstr "SECRET FOUND"
 
@@ -449,3 +452,63 @@ msgstr "A Union tender has found the ship. Clear the forward cargo approach, the
 
 msgid "STORY_M10_DEPARTURE_SECURED"
 msgstr "The boarding party is gone. Tern keeps the ship moving, and the passenger hall is quiet again. Whatever is waiting near Mars can wait until everyone has had a breath."
+
+msgid "MISSION_M11_TITLE"
+msgstr "RIGHT OF SEARCH"
+
+msgid "M11_PROTOTYPE_TITLE"
+msgstr "Right of Search prototype"
+
+msgid "M11_LOCAL_STARTING"
+msgstr "Preparing the custody tender..."
+
+msgid "M11_RUN_DESCRIPTION"
+msgstr "Board the custody tender. Learn deliberate charges, find the transfer hold and take the bridge."
+
+msgid "M11_NEXT_TITLE"
+msgstr "TERMS OF COOPERATION"
+
+msgid "M11_NEXT_PENDING"
+msgstr "The next mission is still being built. Your departure and equipment are saved."
+
+msgid "M11_WAITING"
+msgstr "Custody tender. Ready when you are."
+
+msgid "M11_DEPARTED"
+msgstr "Stern airlock released. The tender is yours to leave."
+
+msgid "M11_OBJECTIVE_ARMORY_FOUND"
+msgstr "Find the armory beside the entry. Remote charges wait for your trigger."
+
+msgid "M11_OBJECTIVE_SPINE_SECURED"
+msgstr "Clear the patrol. [place_remote_mine] places a charge; [trigger_remote_mines] triggers armed charges."
+
+msgid "M11_OBJECTIVE_HOLDS_SECURED"
+msgstr "Clear the side holds. Check the transfer panel if you have a moment."
+
+msgid "M11_OBJECTIVE_RECORDS_SECURED"
+msgstr "Reach the records room. Watch the gaps between the racks."
+
+msgid "M11_OBJECTIVE_COUNTER_BOARDERS_SECURED"
+msgstr "Counter-boarders are entering the spine. Stop their push."
+
+msgid "M11_OBJECTIVE_BRIDGE_SECURED"
+msgstr "Take the bridge. Both approaches lead to the control deck."
+
+msgid "M11_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Return to the stern airlock. Everyone alive must be aboard before using the release."
+
+msgid "M11_USE_PANEL"
+msgstr "[interact] Use panel"
+
+msgid "M11_TRANSFERS_RELEASED"
+msgstr "TRANSFER HOLD RELEASED"
+
+msgid "M11_RECORDS_COPIED"
+msgstr "RECORDS COPIED"
+
+msgid "STORY_M11_ARRIVAL_TENDER"
+msgstr "The boarding tube opens onto a Union custody tender. The armory is close; the bridge is at the far end of the spine."
+
+msgid "STORY_M11_ARRIVAL_TERN"
+msgstr "Tern: \"My crew have a card game to finish. Try to leave us a ship.\""

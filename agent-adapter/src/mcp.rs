@@ -118,6 +118,8 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "interact",
     "throw_grenade",
     "place_mine",
+    "place_remote_mine",
+    "trigger_remote_mines",
     "weapon_swap",
     "look_at",
 ];
@@ -309,6 +311,18 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         },
         // Agents keep the single ammunition count. The schema refuses reload.
         reload: false,
+        place_remote_mine: match obj.get("place_remote_mine") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: place_remote_mine must be a boolean")?,
+        },
+        trigger_remote_mines: match obj.get("trigger_remote_mines") {
+            None => false,
+            Some(value) => value
+                .as_bool()
+                .ok_or("schema error: trigger_remote_mines must be a boolean")?,
+        },
         weapon_swap,
         look_at,
         // MCP agents aim with look_at and the turn bits; they do not own a
@@ -699,6 +713,8 @@ fn tools_list_result() -> Value {
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
                         "place_mine": {"type": "boolean", "description": "Press to throw one counted proximity mine along current aim. It sticks to the first surface, arms after two seconds, then trips when a body comes within two metres, including yours. Release before another press. Independent of selected gun."},
+                        "place_remote_mine": {"type": "boolean", "description": "Press to throw one independently counted remote charge along current aim. It sticks and arms after two seconds; bodies and gunfire do not trigger it. Release before another press."},
+                        "trigger_remote_mines": {"type": "boolean", "description": "Press to commit every currently armed owned remote charge to a four-tick detonation. Flying and arming charges are not queued. Release before another press."},
                         "look_at": {
                             "type": "object",
                             "description": "Aim at player_id (preferred) or world x/z with optional y. Missing y aims horizontally.",
@@ -1134,6 +1150,12 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 .mines
                 .iter()
                 .any(|mine| mine.validate(snapshot.tick).is_err())
+                || protocol::RemoteMineState::validate_set(
+                    &snapshot.remote_mines,
+                    &snapshot.mines,
+                    snapshot.tick,
+                )
+                .is_err()
             {
                 return Ok(());
             }
@@ -1155,6 +1177,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m07,
             m09,
             m10,
+            m11,
             map_name,
             half_extent,
             solids,
@@ -1250,6 +1273,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if let Some(geometry) = m10 {
                 map["m10"] = serde_json::json!(geometry);
             }
+            state.mission.replace_map_with_m11(
+                m11.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m11 {
+                map["m11"] = serde_json::json!(geometry);
+            }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
             }
@@ -1297,6 +1329,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
             // Unicast speak rejection; MCP speak path already mirrors cooldown as isError.
         }
+        Ok(protocol::ServerMessage::Board(_)) => {}
         Err(_) => {
             let raw = serde_json::from_str::<Value>(text).map_err(|_| "invalid server JSON")?;
             if !raw.is_object() {
@@ -1558,6 +1591,73 @@ mod mcp_tests {
         forged["mines"][0]["phase_ends"] = serde_json::json!(40);
         ingest_server_text(&mut state, &forged.to_string()).unwrap();
         assert_eq!(build_observe_result(&state)["mines"][0]["phase"], "arming");
+    }
+
+    #[test]
+    fn remote_controls_preserve_world_aim_and_strict_observation() {
+        let placement = validate_act_arguments(&serde_json::json!({
+            "place_remote_mine":true,"look_at":{"x":3,"y":0,"z":0}
+        }))
+        .unwrap();
+        assert!(placement.place_remote_mine && placement.look_at.is_some());
+        assert!(
+            !placement.place_mine && !placement.throw_grenade && !placement.trigger_remote_mines
+        );
+        let trigger =
+            validate_act_arguments(&serde_json::json!({"trigger_remote_mines":true})).unwrap();
+        assert!(trigger.trigger_remote_mines && !trigger.place_remote_mine);
+        for field in ["place_remote_mine", "trigger_remote_mines"] {
+            for value in [
+                serde_json::json!(1),
+                serde_json::json!("true"),
+                serde_json::Value::Null,
+            ] {
+                let mut arguments = serde_json::Map::new();
+                arguments.insert(field.into(), value);
+                assert!(validate_act_arguments(&arguments.into()).is_err());
+            }
+        }
+        let mut sim = fragr_server::sim::GameState::new();
+        sim.start_round();
+        let id = Uuid::from_u128(93);
+        sim.add_player(id, "Free agent".into(), protocol::Role::Agent);
+        let mut state = ToolState {
+            player_id: Some(id),
+            connected: true,
+            ..Default::default()
+        };
+        let mut snapshot =
+            serde_json::to_value(protocol::ServerMessage::Snapshot(sim.snapshot())).unwrap();
+        snapshot["remote_mines"] = serde_json::json!([{
+            "id":1,"owner_id":id,"position":[0,0.12,0],"normal":[0,1,0],
+            "phase":"armed","phase_started":0,"phase_ends":0
+        }]);
+        ingest_server_text(&mut state, &snapshot.to_string()).unwrap();
+        assert_eq!(
+            build_observe_result(&state)["remote_mines"][0]["phase"],
+            "armed"
+        );
+        let valid = state.last_snapshot.clone();
+        for patch in [
+            serde_json::json!({"phase":"tripped"}),
+            serde_json::json!({"phase_started":1}),
+            serde_json::json!({"normal":[0,0,0]}),
+        ] {
+            let mut invalid = snapshot.clone();
+            invalid["remote_mines"][0]
+                .as_object_mut()
+                .unwrap()
+                .extend(patch.as_object().unwrap().clone());
+            ingest_server_text(&mut state, &invalid.to_string()).unwrap();
+            assert_eq!(state.last_snapshot, valid);
+        }
+        let mut duplicate = snapshot.clone();
+        duplicate["remote_mines"]
+            .as_array_mut()
+            .unwrap()
+            .push(snapshot["remote_mines"][0].clone());
+        ingest_server_text(&mut state, &duplicate.to_string()).unwrap();
+        assert_eq!(state.last_snapshot, valid);
     }
 
     #[test]
@@ -1956,6 +2056,23 @@ mod mcp_tests {
             &serde_json::to_string(&sim.mission_message().unwrap()).unwrap()
         )
         .is_err());
+    }
+
+    #[test]
+    fn m11_map_and_mission_use_the_existing_observation_connection() {
+        let map = fragr_server::maps::AuthoredSource::Mission(protocol::MissionId::RightOfSearch)
+            .load()
+            .unwrap();
+        let sim = fragr_server::sim::GameState::with_authored_map(map);
+        let mut state = ToolState::default();
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        let message = sim.mission_message().unwrap();
+        ingest_server_text(&mut state, &serde_json::to_string(&message).unwrap()).unwrap();
+        assert_eq!(
+            state.mission.state.as_ref().unwrap().id,
+            protocol::MissionId::RightOfSearch
+        );
+        assert!(state.map.as_ref().unwrap().get("m11").is_some());
     }
 
     #[test]

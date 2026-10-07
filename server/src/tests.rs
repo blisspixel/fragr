@@ -421,6 +421,7 @@ fn test_protocol_snapshot_serialization() {
         projectiles: vec![],
         grenades: Vec::new(),
         mines: Vec::new(),
+        remote_mines: Vec::new(),
         auditors: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
@@ -461,6 +462,7 @@ fn test_protocol_snapshot_empty_players() {
         projectiles: vec![],
         grenades: Vec::new(),
         mines: Vec::new(),
+        remote_mines: Vec::new(),
         auditors: Vec::new(),
         explosions: Vec::new(),
         mode_name: default_mode_name(),
@@ -2751,6 +2753,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: default_mode_name(),
@@ -7273,6 +7276,8 @@ mod jammer;
 mod m01;
 mod modes;
 mod pellets;
+mod redactor;
+mod remote_mine_supply;
 mod sabotage;
 mod shiv;
 mod sniper;

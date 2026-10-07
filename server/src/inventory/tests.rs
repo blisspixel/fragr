@@ -671,3 +671,92 @@ fn a_reload_press_blocks_fire_until_the_magazine_is_full_again() {
         Some(size - 1)
     );
 }
+
+#[test]
+fn remote_stock_is_finite_independent_and_restores_without_gun_or_other_device_changes() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    inventory.grant_weapon(WeaponType::Tack);
+    inventory.grant_grenades(3);
+    inventory.grant_mines(2);
+    let initial = view(&inventory, WeaponType::Tack, 0);
+    assert!(!inventory.try_place_remote_mine());
+    assert!(serde_json::to_value(&initial)
+        .unwrap()
+        .get("remote_mines")
+        .is_none());
+    assert_eq!(inventory.grant_remote_mines(u16::MAX), 6);
+    let full_revision = inventory.revision();
+    assert_eq!(inventory.grant_remote_mines(1), 0);
+    assert_eq!(inventory.revision(), full_revision);
+    let entry = inventory.clone();
+    let saved = inventory.saved_equipment(WeaponType::Tack).unwrap();
+    let saved_value = serde_json::to_value(&saved).unwrap();
+    assert_eq!(saved_value["remote_mines"], 6);
+    assert_eq!(
+        serde_json::from_value::<SavedEquipment>(saved_value).unwrap(),
+        saved
+    );
+    for count in (0..6).rev() {
+        assert!(inventory.try_place_remote_mine());
+        let current = view(&inventory, WeaponType::Tack, 1);
+        assert_eq!(current.remote_mines, count);
+        assert_eq!(current.weapons, initial.weapons);
+        assert_eq!(current.ammo, initial.ammo);
+        assert_eq!((current.grenades, current.proximity_mines), (3, 2));
+    }
+    let empty_revision = inventory.revision();
+    assert!(!inventory.try_place_remote_mine());
+    assert_eq!(inventory.revision(), empty_revision);
+    inventory.restore_entry(&entry);
+    assert_eq!(inventory.remote_mines(), 6);
+    assert!(inventory.revision() > empty_revision);
+    inventory.try_place_remote_mine();
+    inventory.restore_saved_equipment(&saved).unwrap();
+    assert_eq!(inventory.remote_mines(), 6);
+    let mut invalid = saved;
+    invalid.remote_mines = 7;
+    let before = view(&inventory, WeaponType::Tack, 2);
+    let revision = inventory.revision();
+    assert!(inventory.restore_saved_equipment(&invalid).is_err());
+    assert_eq!(view(&inventory, WeaponType::Tack, 2), before);
+    assert_eq!(inventory.revision(), revision);
+    let mut only = Inventory::restricted(WeaponType::Rail);
+    assert_eq!(only.grant_remote_mines(6), 0);
+    assert!(!only.try_place_remote_mine());
+    assert_eq!(only.remote_mines(), 0);
+    // Full-arsenal gun ammunition is unlimited; placed devices still consume
+    // their independent actual stock rather than inheriting that gun policy.
+    let mut arcade = Inventory::new(EquipmentPolicy::FullArsenal);
+    assert_eq!(arcade.grant_remote_mines(2), 2);
+    assert!(arcade.try_place_remote_mine());
+    assert!(arcade.try_place_remote_mine());
+    assert!(!arcade.try_place_remote_mine());
+}
+
+#[test]
+fn remote_stock_boundary_refuses_malformed_counts_and_omits_current_zero() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    let quiet = inventory.saved_equipment(WeaponType::Fists).unwrap();
+    let value = serde_json::to_value(&quiet).unwrap();
+    assert!(value.get("remote_mines").is_none());
+    assert_eq!(
+        serde_json::from_value::<SavedEquipment>(value.clone())
+            .unwrap()
+            .remote_mines,
+        0
+    );
+    for bad in [
+        serde_json::json!(-1),
+        serde_json::json!(1.5),
+        serde_json::json!("2"),
+        serde_json::Value::Null,
+    ] {
+        let mut malformed = value.clone();
+        malformed["remote_mines"] = bad;
+        assert!(serde_json::from_value::<SavedEquipment>(malformed).is_err());
+    }
+    inventory.grant_remote_mines(6);
+    let mut loadout = view(&inventory, WeaponType::Fists, 0);
+    loadout.remote_mines = 7;
+    assert!(loadout.validate().is_err());
+}

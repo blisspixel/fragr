@@ -30,6 +30,7 @@ var mines: Dictionary[int, Node3D] = {}
 var mine_phases: Dictionary[int, String] = {}
 var stick_cues: int = 0
 var lamps_lit: int = 0
+var remote_effects: RemoteMineEffects
 
 ## A grenade newly in flight on a live snapshot, by the participant who threw
 ## it. Bodies already present when a snapshot stream starts are not throws.
@@ -38,6 +39,8 @@ signal thrown(owner_id: String)
 signal placed(owner_id: String)
 
 func reset() -> void:
+	if remote_effects != null:
+		remote_effects.reset()
 	for body: MeshInstance3D in bodies.values():
 		body.queue_free()
 	bodies.clear()
@@ -65,6 +68,11 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 		return
 	var initial: bool = last_tick < 0
 	last_tick = int(snapshot["tick"])
+	if remote_effects == null:
+		remote_effects = RemoteMineEffects.new()
+		remote_effects.name = "RemoteCharges"
+		add_child(remote_effects)
+	remote_effects.apply(snapshot)
 	_apply_mines(snapshot, listener, initial)
 	var current: Dictionary[int, bool] = {}
 	for fact: Dictionary in snapshot.get("grenades", []):

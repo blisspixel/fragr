@@ -342,7 +342,10 @@ func _run() -> void:
 		if state.has("look_at"):
 			var target: Array = state["look_at"]
 			var camera: Node3D = _spectator_camera()
-			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - camera.global_position
+			# Camera reconciliation can still trail the last combat sidestep.
+			# Ordinary input must aim from the current authoritative standing eye.
+			var origin: Vector3 = _local_feet() + Vector3.UP * MoveStep.EYE_HEIGHT if _joined else camera.global_position
+			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
 			camera.set("fp_yaw", atan2(direction.z, direction.x))
 			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))
 		if state.get("empty_ammo", false):
@@ -662,6 +665,9 @@ func _run() -> void:
 		if state.has("expect_m07_completed") and observed.get("m07", {}).get("completed") != state["expect_m07_completed"]:
 			push_error("qa_tour: M07 completed disagrees with " + state_name)
 			_failed = true
+		if state.has("expect_m11_completed") and observed.get("m11", {}).get("completed") != state["expect_m11_completed"]:
+			push_error("qa_tour: M11 completed disagrees with " + state_name)
+			_failed = true
 		if state.has("expect_m10_completed") and observed.get("m10", {}).get("completed") != state["expect_m10_completed"]:
 			push_error("qa_tour: M10 completed disagrees with " + state_name)
 			_failed = true
@@ -897,7 +903,7 @@ static func valid_walks(states: Variant) -> bool:
 	var live_audio_open: bool = false
 	var scene_path: String = ""
 	for state: Variant in states:
-		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state):
+		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state):
 			return false
 		if state.has("combat_travel_targets"):
 			var targets: Variant = state["combat_travel_targets"]
@@ -957,6 +963,19 @@ static func valid_walks(states: Variant) -> bool:
 				float(combat_seconds) > 120.0 or state.get("join") != "human":
 				return false
 	return not live_audio_open
+
+static func valid_m11_expectations(state: Dictionary) -> bool:
+	if not state.has("expect_m11_completed"):
+		return true
+	var completed: Variant = state["expect_m11_completed"]
+	var order: Array[String] = M11MissionState.OBJECTIVES.duplicate()
+	order.append(M11MissionState.DEPARTURE)
+	if not completed is Array or completed.size() > order.size():
+		return false
+	for index: int in range(completed.size()):
+		if completed[index] != order[index]:
+			return false
+	return true
 
 static func valid_m10_expectations(state: Dictionary) -> bool:
 	if not state.has("expect_m10_completed"):
@@ -1514,6 +1533,7 @@ func _observed_state() -> Dictionary:
 		"m08": gm.get("net_client").get("mission").get("state", {}).get("m08", {}),
 		"m09": gm.get("net_client").get("mission").get("state", {}).get("m09", {}),
 		"m10": gm.get("net_client").get("mission").get("state", {}).get("m10", {}),
+		"m11": gm.get("net_client").get("mission").get("state", {}).get("m11", {}),
 		"m07": gm.get("net_client").get("mission").get("state", {}).get("m07", {}),
 		"m07_lamps_lit": gm.get("m07_town").lamps_lit_count if gm.get("m07_town") != null else -1,
 		"m05_workers_aboard": MissionHud.workers_aboard(gm.get("net_client").get("mission").get("state", {}), gm.get("net_client").get("mission_geometry").get("m05", {}).get("boarding", {})),
@@ -1863,8 +1883,9 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
-			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
 			or (mission_state.get("id") == MissionState.M09_ID and expected_phase in mission_state.get("m09", {}).get("completed", [])) \
+			or (mission_state.get("id") == MissionState.M11_ID and expected_phase in ["transfer_released", "records_read"] and mission_state.get("m11", {}).get("challenges", {}).get(expected_phase) == true) \
 			or (mission_state.get("id") == MissionState.M04_ID and expected_phase == "clinic_shutter" and mission_state.get("m04", {}).get("clinic_open") == true) \
 			or (progress is Dictionary and expected_phase in progress.get("completed", [])):
 			print("qa_tour: mission reached ", expected_phase)

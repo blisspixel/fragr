@@ -2,7 +2,7 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
-const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer"]
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor"]
 const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling", "charging"]
 const COMPANION_PHASES: Array[String] = ["releasing", "following", "firing"]
 
@@ -71,6 +71,8 @@ static func validation_error(snapshot: Dictionary) -> String:
 		if campaign["phase"] == "channeling" and campaign["kind"] != "auditor":
 			return INVALID
 		if campaign["phase"] == "charging" and campaign["kind"] != "enforcer":
+			return INVALID
+		if campaign["kind"] == "redactor" and campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]:
 			return INVALID
 		if campaign.has("seated") and (campaign.size() != 6 \
 			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \

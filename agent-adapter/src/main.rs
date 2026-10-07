@@ -441,7 +441,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -456,6 +456,7 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m07(m07.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m09(m09.as_ref(), half_extent, &solids, presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m10(m10.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m11(m11.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -1220,6 +1221,11 @@ mod tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Tack".to_string(),
         };
         let me = fighter(1, 0.0, Some(protocol::CampaignActor::Participant {}));
@@ -1282,6 +1288,11 @@ mod tests {
                 just_fired: false,
                 behavior: Some("Aggressive".to_string()),
                 score: 3,
+                deaths: 0,
+                attacks: 0,
+                connects: 0,
+                heads: 0,
+                damage: 0,
                 weapon: "Rail".to_string(),
             }],
             round_state: Some("Active".to_string()),
@@ -1291,6 +1302,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -1341,6 +1353,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -1409,6 +1422,11 @@ mod tests {
                     just_fired: true,
                     behavior: None,
                     score: 5,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
@@ -1431,6 +1449,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 2,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Scatter".to_string(),
                 },
             ],
@@ -1441,6 +1464,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -1762,6 +1786,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 0,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
@@ -1784,6 +1813,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 0,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".into(),
                 },
             ],
@@ -1794,6 +1828,7 @@ mod tests {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: protocol::default_mode_name(),
@@ -2295,6 +2330,7 @@ mod tests {
                 m07: None,
                 m09: None,
                 m10: None,
+                m11: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),

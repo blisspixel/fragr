@@ -39,6 +39,14 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	var magazine: Dictionary = {"selected":"flechette", "ammo":[{"pool":"bullets","rounds":40}], "loaded":[{"weapon":"flechette","rounds":0}]}
+	_check(QaCombat.reload_needed(magazine), "ordinary capture control reloads an empty gun from finite reserve")
+	magazine["loaded"][0]["ready_at"] = 24
+	_check(not QaCombat.reload_needed(magazine), "active reload is not repeatedly requested")
+	magazine["loaded"][0].erase("ready_at")
+	magazine["loaded"].append({"weapon":"tack","rounds":40})
+	_check(not QaCombat.reload_needed(magazine), "rounds parked in another gun are not spare reserve")
+	_check(not QaCombat.reload_needed({"selected":"flechette","ammo":[{"pool":"bullets","rounds":40}]}), "older single-count agents are not given reload behavior")
 	await _check_aim_pitch()
 	_check_engagement_distance()
 	_check_focused_route()
