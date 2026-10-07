@@ -79,7 +79,13 @@ func apply_map_info(info: Dictionary) -> void:
 		_add_solid(solids[index], material)
 	if venue == "common_carrier":
 		ShipFurnishings.build(self, info, _solid_views)
-	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))))
+	var marked_terminal: int = -1
+	var mission: Variant = info.get("mission")
+	if mission is Dictionary and mission.get("record") is Dictionary:
+		var decoration: Variant = mission["record"].get("decoration")
+		if decoration is int or decoration is float:
+			marked_terminal = int(decoration)
+	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))), marked_terminal)
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent, venue)
 	add_child(backdrop)

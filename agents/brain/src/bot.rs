@@ -1475,6 +1475,7 @@ mod tests {
             dry_fire_count: 0,
             grenades: 0,
             proximity_mines: 0,
+            loaded: Vec::new(),
         };
         loadout.validate_for(Some(id), None).unwrap();
         let mut proposed = Plan {
@@ -1590,6 +1591,7 @@ mod tests {
             fill_target: 0,
             map: MapKind::default(),
             map_rotate: false,
+            playlist: false,
             solo_broadcast: false,
             match_config: Some(MatchConfig {
                 rules: fragr_server::rules::RuleSet::new(mode, &[], false).unwrap(),

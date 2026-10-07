@@ -162,7 +162,7 @@ fn m07_pickup_ambush_keeps_the_patrol_clearable_with_real_rifle_inputs() {
                     eye,
                     [
                         p.x,
-                        p.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
+                        p.y - PLAYER_FLOOR_Y + crate::combat::aim_height(p.campaign),
                         p.z,
                     ],
                     &runtime.arena().solids,
@@ -217,7 +217,7 @@ fn m07_pickup_ambush_keeps_the_patrol_clearable_with_real_rifle_inputs() {
 }
 
 /// Marksmen on the rim that can see a participant standing at `feet`, using
-/// the server's eye-or-centre rule, sight range and notice cone.
+/// the server's chest-or-eye rule, sight range and notice cone.
 fn rim_watchers(arena: &crate::movement::Arena, marksmen: &[[f32; 3]], feet: [f32; 3]) -> usize {
     marksmen
         .iter()
@@ -233,18 +233,15 @@ fn rim_watchers(arena: &crate::movement::Arena, marksmen: &[[f32; 3]], feet: [f3
             }
             dx.hypot(dz) <= 90.0
                 && turn.abs() <= 1.0
-                && [
-                    crate::combat::FIGHTER_HEIGHT * 0.5,
-                    crate::movement::EYE_HEIGHT,
-                ]
-                .iter()
-                .any(|h| {
-                    crate::combat::line_of_sight(
-                        eye,
-                        [feet[0], feet[1] + h, feet[2]],
-                        &arena.solids,
-                    )
-                })
+                && [crate::combat::aim_height(None), crate::movement::EYE_HEIGHT]
+                    .iter()
+                    .any(|h| {
+                        crate::combat::line_of_sight(
+                            eye,
+                            [feet[0], feet[1] + h, feet[2]],
+                            &arena.solids,
+                        )
+                    })
         })
         .count()
 }
@@ -316,11 +313,7 @@ fn m07_window_lesson_shows_a_head_over_the_sill_beyond_rail_reach() {
     ];
     let step = authored.landmark("window_stance").unwrap();
     let head = [step[0], step[1] + crate::movement::EYE_HEIGHT, step[2]];
-    let centre = [
-        step[0],
-        step[1] + crate::combat::FIGHTER_HEIGHT * 0.5,
-        step[2],
-    ];
+    let centre = [step[0], step[1] + crate::combat::aim_height(None), step[2]];
     assert!(
         crate::combat::line_of_sight(eye, head, solids),
         "a raised head is seen"
@@ -330,10 +323,7 @@ fn m07_window_lesson_shows_a_head_over_the_sill_beyond_rail_reach() {
         "the sill covers the body"
     );
     let off = [step[0], 3.5, step[2] - 1.4];
-    for height in [
-        crate::combat::FIGHTER_HEIGHT * 0.5,
-        crate::movement::EYE_HEIGHT,
-    ] {
+    for height in [crate::combat::aim_height(None), crate::movement::EYE_HEIGHT] {
         assert!(
             !crate::combat::line_of_sight(eye, [off[0], off[1] + height, off[2]], solids),
             "dropping off the step hides the participant"
@@ -342,7 +332,7 @@ fn m07_window_lesson_shows_a_head_over_the_sill_beyond_rail_reach() {
     // The participant can see the marksman's body from the step.
     let body = [
         lesson[0],
-        lesson[1] + crate::combat::FIGHTER_HEIGHT * 0.5,
+        lesson[1] + crate::combat::aim_height(None),
         lesson[2],
     ];
     assert!(crate::combat::line_of_sight(head, body, solids));

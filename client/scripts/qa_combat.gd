@@ -116,11 +116,14 @@ static func actor_by_id(snapshot: Dictionary, id: String) -> Dictionary:
 	return {}
 
 static func exposed_point(actor: Dictionary, eye: Vector3, solids: Array) -> Vector3:
-	# Aim at a visible part of the real body. A low counter can hide the centre
-	# while leaving the upper body exposed to an ordinary player shot.
-	var height: float = AimAssist.target_height(actor.get("campaign", {}))
-	for fraction: float in [0.5, 0.85, 0.2]:
-		var point: Vector3 = Vector3(actor.x, float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y + height * fraction, actor.z)
+	# Prefer the chest. The capsule middle is the hips, and a low counter can
+	# hide that while the breastplate or the head is still open.
+	var campaign: Dictionary = actor.get("campaign", {})
+	var height: float = AimAssist.target_height(campaign)
+	var feet_y: float = float(actor.y) - CAMERA.FP_SERVER_REFERENCE_Y
+	var samples: Array[float] = [AimAssist.aim_height(campaign), height * 0.85, height * 0.5]
+	for sample: float in samples:
+		var point: Vector3 = Vector3(actor.x, feet_y + sample, actor.z)
 		var clear: bool = true
 		for solid: Dictionary in solids:
 			var lower: Vector3 = Vector3(solid.min_x, solid.get("bottom", 0.0), solid.min_z)

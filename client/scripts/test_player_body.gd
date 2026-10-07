@@ -39,7 +39,7 @@ func _check_allowlist() -> void:
 			"unknown bodies narrow to human: " + str(bad))
 	_check(PlayerBody.strip_path("res://x") == PlayerBody.strip_path(PlayerBody.HUMAN),
 		"a path never reaches resource loading")
-	_check(PlayerBody.label(PlayerBody.SYNTHETIC) == "EMBODIED AGENT", "canon name in the menu")
+	_check(PlayerBody.label(PlayerBody.SYNTHETIC) == "FREE AGENT", "canon name in the menu")
 	# Idle breathes at rest; the gait follows distance walked, not the clock.
 	_check(PlayerBody.frame(5.0, 0.0, 0.0) == 1 and PlayerBody.frame(7.9, 99.0, 0.1) == 3, "idle cells at rest")
 	var stride: float = EnemyAnimation.STRIDE_METRES / PlayerBody.WALK_FRAMES

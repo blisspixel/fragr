@@ -55,6 +55,9 @@ pub enum FillRefusal {
 impl crate::run::ServerOptions {
     /// Validate the complete policy before topology work or listener binding.
     pub(crate) fn validate_bot_policy(&self) -> Result<(), &'static str> {
+        if self.playlist && self.bot_policy == BotPolicy::Auto {
+            return Err("the night playlist does not use automatic fill");
+        }
         match self.bot_policy {
             BotPolicy::Fixed if self.fill_target == 0 => Ok(()),
             BotPolicy::None if self.bots == 0 && self.fill_target == 0 => Ok(()),
@@ -64,6 +67,7 @@ impl crate::run::ServerOptions {
                     && self.authored.is_none()
                     && !self.campaign_run
                     && !self.solo_broadcast
+                    && !self.playlist
                     && self.match_config.as_ref().is_some_and(|config| config.rules.mutators().is_empty())
                     && matches!(
                         self.match_config.as_ref().map(|config| config.rules.mode()),
@@ -98,6 +102,15 @@ mod tests {
     #[test]
     fn automatic_configuration_is_exact_and_preserves_fixed_compatibility() {
         assert!(ServerOptions::default().validate_bot_policy().is_ok());
+        assert!(ServerOptions {
+            playlist: true,
+            bots: 0,
+            bot_policy: BotPolicy::Auto,
+            fill_target: 4,
+            ..Default::default()
+        }
+        .validate_bot_policy()
+        .is_err());
         for mode in [GameMode::Tdm, GameMode::Sabotage] {
             for target in [1, 4, 10] {
                 assert!(ServerOptions {

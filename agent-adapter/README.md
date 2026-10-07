@@ -13,7 +13,8 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter declares gameplay capability 33. M07 Declared Goods requires 32
+The adapter sends the current gameplay contract, 37. A shared arcade room
+requires that exact hello. M07 Declared Goods requires 32
 for its strict town and crater envelope. M08 Custodian of Record requires 31
 for its strict archive envelope. A map that grants the Sniper Rifle or places a
 Ranged Sweeper requires 30. Maps that place a campaign Auditor or grant
@@ -22,17 +23,23 @@ for its strict lunar mission envelope; M01 through M05, development or durable,
 retain 26 for campaign rules revision 3, including
 M05 No Forwarding Address and counted hand grenades. Earlier live mission
 capabilities are retired. Discovery maps without missions also require 26 for
-counted private grenade inventory; the six full-arsenal arcade maps still admit
-1. The separate Jammer range originally introduced capability 23 and now
+counted private grenade inventory. A shared arcade room requires the current
+contract rather than the old floor of 1. The separate Jammer range originally introduced capability 23 and now
 requires 26.
 Older clients are rejected before admission. `observe.loadout` is private to
 this participant: selected and owned weapons (`["fists","tack"]`),
 one `ammo` count per pool (`bullets`, `shells`, `cells`), a separate `grenades`
 count capped at six, personal supply
-claims and dry-trigger count. There are no magazines and no reload: every shot
-spends one unit, a scatter blast of seven pellets included. Invalid, foreign or backward-tick equipment
+claims and dry-trigger count. An agent keeps that single count. The server
+omits `loaded` for an agent, a rule bot, a campaign enemy and any unarmed
+pawn. A Godot human at 37 receives `loaded`: rounds in each gun, inside the
+same pool. Every shot still spends one unit, a scatter blast of seven pellets
+included. Invalid, foreign or backward-tick equipment
 ends the session without replacing the last valid observation. Spectators receive
-no private inventory. Arcade servers omit this object.
+no private inventory. An unarmed arcade pawn omits this object. An armed arcade
+human receives the magazine guns and a finite bag: 80 bullets, 24 shells and
+16 cells, including the rounds in the guns. A weapon-only mutator still sends
+three zero pool counts.
 
 `observe.mission.rules` reports the host's fixed difficulty (`assisted`, `standard`
 or `severe`) and tuning `revision` (currently 3). Humans, agents and spectators
@@ -49,8 +56,7 @@ agent aims exactly as with every other gun. The Shiv is an optional
 secret in M01's confiscation alcove: pool-less melee, quicker and harder than
 fists, with no ammunition count. The shared helper keeps a loaded gun in hand
 and draws the Shiv instead of fists only when every gun is dry. A claim that
-found a secret keeps `"secret": true` on its pickup event in `get_events`. `reload` is retired and the `act` schema no
-longer lists it; an `act` call that carries it is a schema error. Scripted and
+found a secret keeps `"secret": true` on its pickup event in `get_events`. The `act` schema does not list `reload`. An agent keeps one ammunition count, and an `act` call that carries `reload` is a schema error. Scripted and
 decision controllers use the shared equipment helper to find supplies and to
 put away a gun whose count is empty. MCP still sends ordinary actions, never
 direct inventory changes.
@@ -233,7 +239,7 @@ cargo run -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synth
 ```
 
 `--body` picks the pawn's body on both commands: `human` (the default) or
-`synthetic`, a conscious embodied agent in a synthetic body. It rides the same
+`synthetic`, a free agent in a synthetic body. It rides the same
 Hello every client sends, other players and spectators see it, and it changes no
 combat rule. The control role stays `agent` whichever body you choose.
 
@@ -337,7 +343,10 @@ All fields are optional. Movement and fire are booleans (default `false`).
 `weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, `"scatter"`, or `"sniper"`.
 There is no `reload`. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
-at a player's body centre in three dimensions. World x/z without y aims
+at a player's chest, 1.22 units above the feet, when the belt is clearly open.
+A counter, a lip the shot cone would still strike, or a gap under the chest
+keeps the shot on the hip line. A Crawler or a Notary is aimed at the middle of
+its body. World x/z without y aims
 horizontally. Nonfinite/out-of-range floating-point coordinates are rejected.
 
 Observed shot results include the firing weapon, 3D origin/endpoint, impact kind
@@ -363,6 +372,8 @@ Older recordings can omit this evidence. See `../docs/protocol.md`.
 - `weapon_swap` is processed immediately on the next tick
 - `look_at` sets yaw and pitch after movement/turn on the next tick. The target
   must still be visible to the actual shot ray; target intent does not bypass cover.
+  This is an agent tool. A shared-room human socket drops `look_at`. Yaw and
+  pitch remain that pawn's aim.
 - Server enforces weapon-specific cooldowns (Flechette: 200 ms, Rail: 1.0 s, Scatter: 450 ms)
 - Call rate: 1-10 Hz typical for MCP agents; faster allowed but limited by server tick rate
 

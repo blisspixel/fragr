@@ -2,8 +2,9 @@ extends SceneTree
 
 ## Keyboard-only play, classic Doom style: turn on the arrows with a short
 ## ramp so taps are fine adjustments, look on Page Up and Page Down, strafe
-## with Alt, fire on Ctrl and use on Enter with one hand on the arrows. The
-## keys reach the same discrete actions and the same wire as every device.
+## with Alt, fire on Right Ctrl, duck on Left Ctrl, and use on Enter with one
+## hand on the arrows. The keys reach the same discrete actions and the same
+## wire as every device.
 
 const CamScript := preload("res://scripts/spectator_cam.gd")
 
@@ -13,6 +14,7 @@ class CaptureNetwork extends Node:
 	var mission: Dictionary = {}
 	var sent: Array[Dictionary] = []
 	var last_send_ok: bool = true
+	var duck_supported: bool = false
 	func send_action(action: Dictionary) -> void:
 		last_send_ok = true
 		sent.append(action.duplicate())
@@ -46,6 +48,12 @@ func _release(code: Key) -> void:
 	Input.parse_input_event(_key(code, false))
 	Input.flush_buffered_events()
 
+func _located(code: Key, location: KeyLocation, pressed: bool = true) -> void:
+	var event: InputEventKey = _key(code, pressed)
+	event.location = location
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
 func _run() -> void:
 	FragrSettings.new("user://keyboard-only-unused.cfg").apply_controls()
 	InputDevice.reset()
@@ -66,7 +74,7 @@ func _test_default_bindings() -> void:
 		"move_left": [KEY_A, KEY_COMMA], "move_right": [KEY_D, KEY_PERIOD],
 		"turn_left": [KEY_LEFT, KEY_Q], "turn_right": [KEY_RIGHT, KEY_E],
 		"look_up": [KEY_PAGEUP], "look_down": [KEY_PAGEDOWN], "center_view": [KEY_END],
-		"strafe": [KEY_ALT], "fire": [KEY_CTRL], "interact": [KEY_F, KEY_ENTER],
+		"strafe": [KEY_ALT], "interact": [KEY_F, KEY_ENTER],
 		"jump": [KEY_SPACE], "weapon_1": [KEY_1], "weapon_5": [KEY_5],
 		"weapon_next": [KEY_BRACKETRIGHT], "weapon_prev": [KEY_BRACKETLEFT], "pause": [KEY_ESCAPE],
 	}
@@ -75,7 +83,10 @@ func _test_default_bindings() -> void:
 			_check(_key(code).is_action_pressed(action), "%s should be bound to %s" % [OS.get_keycode_string(code), action])
 	var right_ctrl: InputEventKey = _key(KEY_CTRL)
 	right_ctrl.location = KEY_LOCATION_RIGHT
-	_check(right_ctrl.is_action_pressed("fire"), "right Ctrl fires beside the arrows")
+	var left_ctrl: InputEventKey = _key(KEY_CTRL)
+	left_ctrl.location = KEY_LOCATION_LEFT
+	_check(right_ctrl.is_action_pressed("fire") and not right_ctrl.is_action_pressed("duck"), "right Ctrl fires beside the arrows")
+	_check(left_ctrl.is_action_pressed("duck") and not left_ctrl.is_action_pressed("fire"), "left Ctrl ducks and does not fire")
 	_check(InputBindings.conflicts(FragrSettings.new("user://keyboard-only-unused.cfg")).is_empty(), "default bindings have no conflicts")
 
 func _test_turn_ramp_and_frame_independence() -> void:
@@ -167,10 +178,10 @@ func _test_wire_actions() -> void:
 		manager.call("_send_local_action", clock[0])
 		return network.sent.back() if not network.sent.is_empty() else {}
 	_press(KEY_UP)
-	_press(KEY_CTRL)
+	_located(KEY_CTRL, KEY_LOCATION_RIGHT)
 	var action: Dictionary = send.call()
-	_check(action.get("forward") == true and action.get("fire") == true, "Up arrow walks and Ctrl fires: " + str(action))
-	_release(KEY_CTRL)
+	_check(action.get("forward") == true and action.get("fire") == true, "Up arrow walks and Right Ctrl fires: " + str(action))
+	_located(KEY_CTRL, KEY_LOCATION_RIGHT, false)
 	_release(KEY_UP)
 	_press(KEY_ALT)
 	_press(KEY_RIGHT)
@@ -189,5 +200,16 @@ func _test_wire_actions() -> void:
 	_check(action.get("interact") == true, "Enter uses")
 	action = send.call()
 	_check(action.get("interact") == false, "a use tap is delivered once")
+	_located(KEY_CTRL, KEY_LOCATION_LEFT)
+	action = send.call()
+	_check(action.get("fire") != true and not action.has("duck"), "left Ctrl is quiet until the server advertises duck: " + str(action))
+	network.duck_supported = true
+	action = send.call()
+	_check(action.get("duck") == true and action.get("fire") != true, "left Ctrl ducks once the server allows it: " + str(action))
+	_located(KEY_CTRL, KEY_LOCATION_LEFT, false)
+	_located(KEY_CTRL, KEY_LOCATION_RIGHT)
+	action = send.call()
+	_check(action.get("fire") == true and not action.has("duck"), "right Ctrl still fires: " + str(action))
+	_located(KEY_CTRL, KEY_LOCATION_RIGHT, false)
 	manager.free()
 	network.free()

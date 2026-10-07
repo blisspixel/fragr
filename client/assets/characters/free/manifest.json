@@ -26,7 +26,7 @@
 		"res://art/models/candidates/free_human.glb": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff",
 		"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
 		"res://art/models/free_human_source.gd": "7a83f137ed1c447db363b7f3b960e662a074df30b70ec52d4ee8bd738af313ba",
-		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+		"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441"
 	},
 	"tile_pixels": 160,
 	"view_metres": 3.0,

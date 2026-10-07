@@ -50,6 +50,13 @@ pub const WALL_TOP: f32 = 4.5;
 pub const EYE_HEIGHT: f32 = 1.6;
 /// Full standing body height, shared by clearance and shot targets.
 pub const BODY_HEIGHT: f32 = 1.8;
+/// Crouch clearance. Three quarters of a standing fighter, the same hull
+/// ratio Counter-Strike uses (54 of 72).
+pub const DUCK_HEIGHT: f32 = 1.35;
+/// The standing eye sits 0.2 m under the crown. The short body keeps that gap.
+pub const DUCK_EYE_HEIGHT: f32 = 1.15;
+/// Horizontal speed while the body is short, as a fraction of the chosen speed.
+pub const DUCK_SPEED_SCALE: f32 = 0.34;
 pub const MAX_HALF_EXTENT: f32 = 256.0;
 pub const MAX_SOLIDS: usize = 2048;
 /// Downward acceleration in units per second squared. Chosen with the jump
@@ -340,6 +347,11 @@ impl Arena {
         self.ceiling_height_for_body(x, z, feet, BODY_HEIGHT)
     }
 
+    /// True when a body of `height` at `feet` does not intersect a solid.
+    pub fn fits_height(&self, x: f32, z: f32, feet: f32, height: f32) -> bool {
+        !self.blocked_body_at_height(x, z, feet, feet, height)
+    }
+
     pub fn ceiling_height_for_body(&self, x: f32, z: f32, feet: f32, height: f32) -> f32 {
         self.solids
             .iter()
@@ -382,6 +394,11 @@ pub fn climb_height(feet: f32, floor: f32, vy: f32) -> f32 {
 
 pub fn grounded(feet: f32, floor: f32, vy: f32) -> bool {
     feet <= floor + CONTACT_EPSILON && vy <= 0.0
+}
+
+/// Held key, or already short under a ceiling that will not take the standing body.
+pub fn ducked_stance(want: bool, was: bool, fits_standing: bool) -> bool {
+    want || (was && !fits_standing)
 }
 
 /// Wrap any finite yaw into `[0, 2 pi)`. Non-finite yaw becomes 0.

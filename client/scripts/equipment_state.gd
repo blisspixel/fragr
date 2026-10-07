@@ -2,7 +2,8 @@ class_name EquipmentState
 extends RefCounted
 
 ## Private server inventory. These limits validate presentation, never award ammo.
-## One count per ammunition type and no magazines: a shot spends one unit.
+## The carried count is the total, including rounds sitting in a human magazine.
+## A shot still spends one unit. Agents keep the single count and omit `loaded`.
 ## Wire and record order. Shiv, Sniper and Repeater append so old record
 ## slots keep their meaning.
 const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater"]
@@ -25,6 +26,10 @@ const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "
 const SCOPED: Array[String] = ["sniper"]
 const MELEE: Array[String] = ["fists", "shiv"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
+## Rounds one human magazine holds. Melee has none.
+const MAGAZINE_SIZES: Dictionary = {
+	"tack": 12, "flechette": 20, "repeater": 30, "scatter": 6, "rail": 4, "sniper": 5,
+}
 const MAX_EXACT_INTEGER: int = 9007199254740991
 const MAX_GRENADES: int = 6
 ## Carried proximity mines, independent of grenades. Omitted on the wire while zero.
@@ -64,6 +69,12 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 	var weapons: Array = data["weapons"]
 	var ammo: Array = data["ammo"]
 	var claims: Array = data["personal_claims"]
+	var loaded_present: bool = data.has("loaded")
+	if loaded_present and not data["loaded"] is Array:
+		return INVALID
+	var loaded: Array = data["loaded"] if loaded_present else []
+	if loaded_present and loaded.is_empty():
+		return INVALID
 	if weapons.is_empty() or weapons.size() > WEAPONS.size() or ammo.size() != CAPACITIES.size() or claims.size() > 128:
 		return INVALID
 	var owned: Dictionary = {}
@@ -71,7 +82,15 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 		if not weapon is String or weapon not in WEAPONS or owned.has(weapon):
 			return INVALID
 		owned[weapon] = true
-	if not owned.has("fists") or not owned.has(data["selected"]):
+	# An arcade human lists only magazine guns. Discovery still carries fists.
+	var arcade: bool = loaded_present and not owned.has("fists")
+	if not owned.has(str(data["selected"])):
+		return INVALID
+	if arcade:
+		for weapon: String in owned:
+			if not MAGAZINE_SIZES.has(weapon):
+				return INVALID
+	elif not owned.has("fists"):
 		return INVALID
 	var pools: Dictionary = {}
 	for entry: Variant in ammo:
@@ -89,14 +108,97 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 			if character not in "abcdefghijklmnopqrstuvwxyz0123456789_":
 				return INVALID
 		claimed[claim] = true
+	if loaded_present:
+		return _magazine_error(loaded, owned, pools, arcade)
+	return ""
+
+## One entry per gun. Magazines cannot outrun a finite pool. A zero-pool
+## arcade loadout is a weapon-only gun: its magazine is the whole count.
+static func _magazine_error(loaded: Array, owned: Dictionary, pools: Dictionary, exact: bool) -> String:
+	const INVALID: String = "The server sent invalid equipment. Connection closed."
+	var seen: Dictionary = {}
+	var used: Dictionary = {"bullets": 0, "shells": 0, "cells": 0}
+	var reloading: bool = false
+	for entry: Variant in loaded:
+		if not entry is Dictionary:
+			return INVALID
+		var magazine: Dictionary = entry
+		var has_ready: bool = magazine.has("ready_at")
+		if magazine.size() != (3 if has_ready else 2) or not magazine.get("weapon") is String:
+			return INVALID
+		var weapon: String = magazine["weapon"]
+		if not MAGAZINE_SIZES.has(weapon) or not owned.has(weapon) or seen.has(weapon):
+			return INVALID
+		if not integer(magazine.get("rounds"), int(MAGAZINE_SIZES[weapon])):
+			return INVALID
+		if has_ready:
+			if reloading or not integer(magazine["ready_at"], MAX_EXACT_INTEGER):
+				return INVALID
+			reloading = true
+		seen[weapon] = true
+		var pool: String = str(POOLS[weapon])
+		used[pool] = int(used[pool]) + int(magazine["rounds"])
+	var finite: bool = false
+	for pool: String in pools:
+		if int(pools[pool]) != 0:
+			finite = true
+			break
+	if exact:
+		for weapon: String in owned:
+			if not seen.has(weapon):
+				return INVALID
+	if not exact or finite:
+		for pool: String in used:
+			if int(used[pool]) > int(pools.get(pool, 0)):
+				return INVALID
 	return ""
 
 ## Shots the weapon can fire now, or -1 when it needs no ammunition.
+## A magazine entry replaces the shared pool for that gun.
 static func shots(state: Dictionary, weapon: String) -> int:
-	var pool: String = str(POOLS.get(weapon, ""))
+	var name: String = weapon.to_lower()
+	var magazines: Variant = state.get("loaded", [])
+	if magazines is Array:
+		for entry: Variant in magazines:
+			if entry is Dictionary and str(entry.get("weapon", "")).to_lower() == name and entry.has("rounds"):
+				return int(entry["rounds"])
+	var pool: String = str(POOLS.get(name, ""))
 	if pool.is_empty():
 		return -1
 	return ammo(state, pool)
+
+## Corner text. A finite magazine reads `loaded|reserve`. A zero-pool arcade
+## loadout, including a weapon-only gun, is only the rounds in the gun.
+## An unarmed pawn keeps the pool.
+static func count_text(state: Dictionary, weapon: String) -> String:
+	var name: String = weapon.to_lower()
+	var ready: int = shots(state, name)
+	if ready < 0:
+		return ""
+	if not state.has("loaded"):
+		return str(ready)
+	var carried: Variant = state.get("weapons", [])
+	if carried is Array and not carried.has("fists") and not _bag_is_finite(state):
+		return str(ready)
+	var pool: String = str(POOLS.get(name, ""))
+	if pool.is_empty():
+		return ""
+	var parked: int = 0
+	var magazines: Variant = state.get("loaded", [])
+	if magazines is Array:
+		for entry: Variant in magazines:
+			if not entry is Dictionary:
+				continue
+			var gun: String = str(entry.get("weapon", "")).to_lower()
+			if str(POOLS.get(gun, "")) == pool:
+				parked += int(entry.get("rounds", 0))
+	return "%d|%d" % [ready, maxi(0, ammo(state, pool) - parked)]
+
+static func _bag_is_finite(state: Dictionary) -> bool:
+	for entry: Variant in state.get("ammo", []):
+		if entry is Dictionary and int(entry.get("rounds", 0)) > 0:
+			return true
+	return false
 
 static func ammo(state: Dictionary, pool: String) -> int:
 	for entry: Dictionary in state.get("ammo", []):

@@ -97,7 +97,10 @@ func _refresh() -> void:
 	var weapon: String = state["selected"]
 	var shots: int = EquipmentState.shots(state, weapon)
 	glyph_pool = str(EquipmentState.POOLS.get(weapon, ""))
-	counts.text = "" if shots < 0 else str(shots)
+	var text: String = EquipmentState.count_text(state, weapon)
+	counts.text = text
+	# A pair such as 12|38 needs the tighter size inside the 196-wide label.
+	counts.add_theme_font_size_override("font_size", 32 if text.contains("|") else 40)
 	var empty: bool = shots == 0
 	counts.modulate = EMPTY_TINT if dry_seconds > 0.0 or empty else Color.WHITE
 	grenade_counts.visible = _grenades_known

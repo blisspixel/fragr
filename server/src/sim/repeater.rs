@@ -388,8 +388,9 @@ mod tests {
             .unwrap()
             .unwrap();
         for version in [
-            crate::protocol::M09_GAMEPLAY_VERSION,
             crate::protocol::REPEATER_GAMEPLAY_VERSION,
+            crate::protocol::M10_GAMEPLAY_VERSION,
+            crate::protocol::GAMEPLAY_VERSION,
         ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -402,13 +403,19 @@ mod tests {
                             continue;
                         };
                         let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                        if version < crate::protocol::REPEATER_GAMEPLAY_VERSION {
+                        if version < crate::protocol::GAMEPLAY_VERSION {
                             assert_eq!(
                                 value["type"], "error",
                                 "unsupported role must not receive Welcome or new geometry"
                             );
                             assert_eq!(value["code"], "unsupported_gameplay");
-                            assert!(value["message"].as_str().unwrap().contains("35"));
+                            assert!(
+                                value["message"]
+                                    .as_str()
+                                    .unwrap()
+                                    .contains(&crate::protocol::GAMEPLAY_VERSION.to_string()),
+                                "a shared room requires the current contract, not the repeater floor: {value}"
+                            );
                             break;
                         }
                         match value["type"].as_str().unwrap() {

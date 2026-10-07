@@ -16,10 +16,35 @@ var _page: String = "main"
 var _root: VBoxContainer = null
 var _status: Label = null
 var _host_edit: LineEdit = null
+## The address the player typed on Join a server. Page rebuilds keep it.
+## A server started in this app never writes this field.
+var _join_draft: String = ""
 var _match_line: Label = null
 var _watch_button: Button = null
 var _join_button: Button = null
+var _install_button: Button = null
+var _install_note: Label = null
+var _release_fetch: ReleaseFetch = null
 var _probe: HTTPRequest = null
+var _probe_target: String = ""
+var _probe_generation: int = 0
+var _probe_started: int = 0
+var _book: ServerBook
+var _nearby_box: VBoxContainer = null
+var _saved_box: VBoxContainer = null
+var _lan: Array[String] = []
+var _lan_pending: Dictionary = {}
+var _lan_listen: LanListen = null
+var _lan_scan: LanScan = null
+var _scan_button: Button = null
+var _scanning: bool = false
+var _scan_settled: bool = false
+var _server_summaries: Dictionary = {}
+var _list_probe: HTTPRequest = null
+var _list_queue: Array[String] = []
+var _list_current: String = ""
+var _list_started: int = 0
+var _list_generation: int = 0
 var _console: FragrConsole = null
 var _settings: FragrSettings
 var _name_edit: LineEdit = null
@@ -38,6 +63,8 @@ var _host_bot_selection: String = "fixed"
 var _host_lan: CheckButton
 var _host_port: SpinBox
 var _launch_pending: bool = false
+## The Benchmark page started a loopback match and is waiting for its port.
+var _benchmark_pending: bool = false
 ## A finished mission asked to continue the run; cleared once it starts or the
 ## saved run turns out to have nothing playable next.
 var _onward_pending: bool = false
@@ -55,6 +82,8 @@ func _ready() -> void:
 	_local_match.stop()
 	_local_host = LocalHost.for_tree(get_tree())
 	_local_host.state_changed.connect(_on_host_state_changed)
+	_local_host.server_ready.connect(_on_benchmark_ready)
+	_local_host.failed.connect(_on_benchmark_failed)
 	_local_match.mission_ready.connect(_on_local_ready)
 	_local_match.state_changed.connect(_on_local_state_changed)
 	_local_match.run_preview_changed.connect(_on_run_preview_changed)
@@ -63,6 +92,7 @@ func _ready() -> void:
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
 	_settings.load_from_disk()
+	_book = ServerBook.for_tree(get_tree(), _settings.storage_path)
 	_settings.changed.connect(_apply_preferences)
 	get_viewport().size_changed.connect(_apply_render_preferences)
 	_apply_preferences()
@@ -151,10 +181,17 @@ func _clear() -> void:
 		child.queue_free()
 
 func _button(text: String, handler: Callable) -> Button:
+	var b: Button = _styled_button(text, handler)
+	_root.add_child(b)
+	return b
+
+func _styled_button(text: String, handler: Callable, compact: bool = false) -> Button:
 	var b: Button = Button.new()
 	b.text = text.to_upper()
-	b.custom_minimum_size = Vector2(0.0, 62.0)
-	b.add_theme_font_size_override("font_size", 32)
+	b.custom_minimum_size = Vector2(0.0, 76.0 if compact else 62.0)
+	b.add_theme_font_size_override("font_size", 22 if compact else 32)
+	if compact:
+		b.clip_text = true
 	b.add_theme_color_override("font_color", Color("bba789"))
 	b.add_theme_color_override("font_focus_color", Color("ffcc83"))
 	b.add_theme_color_override("font_hover_color", Color("ffcc83"))
@@ -169,7 +206,6 @@ func _button(text: String, handler: Callable) -> Button:
 	b.add_theme_stylebox_override("hover", selected)
 	b.add_theme_stylebox_override("pressed", selected)
 	b.pressed.connect(handler)
-	_root.add_child(b)
 	return b
 
 func _label(text: String) -> Label:
@@ -183,11 +219,25 @@ func _label(text: String) -> Label:
 	return l
 
 func _show(page: String) -> void:
+	# A cancelled request can still finish. Drop its hook before the next one starts.
 	if _probe != null:
+		_drop_probe_hooks(_probe)
 		_probe.cancel_request()
+	_probe_generation += 1
+	if _list_probe != null:
+		_drop_probe_hooks(_list_probe)
+		_list_probe.cancel_request()
+	_list_generation += 1
+	_list_current = ""
+	_list_queue.clear()
+	_lan_pending.clear()
+	_stop_lan_listen()
+	_stop_lan_scan()
+	if _release_fetch != null:
+		_release_fetch.cancel()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile", "multi", "host"] else 154))
-	_tagline.visible = page not in ["records", "settings", "profile", "single", "practice", "multi", "host"]
+	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile", "multi", "host", "benchmark"] else 154))
+	_tagline.visible = page not in ["records", "settings", "profile", "single", "practice", "multi", "host", "benchmark"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
@@ -209,6 +259,8 @@ func _show(page: String) -> void:
 			_page_settings()
 		"profile":
 			_page_profile()
+		"benchmark":
+			_page_benchmark()
 		"records":
 			var panel: RecordsPanel = RecordsPanel.new()
 			panel.name = "ServiceRecord"
@@ -228,7 +280,7 @@ func _show(page: String) -> void:
 		(_root.get_node("ServiceRecord") as RecordsPanel).focus_first()
 		return
 	for child in _root.get_children():
-		if child is Button and not (child as Button).disabled:
+		if child is Button and (child as Button).visible and not (child as Button).disabled:
 			(child as Button).grab_focus()
 			break
 
@@ -249,6 +301,7 @@ func _page_main() -> void:
 	_button("Your callsign", func() -> void: _open_profile("main"))
 	_button(tr("RECORD_TITLE"), func() -> void: _show("records"))
 	_button("Settings", func() -> void: _show("settings"))
+	_button("Benchmark", func() -> void: _show("benchmark")).name = "Benchmark"
 	_button("Quit", func() -> void: get_tree().quit())
 
 func _page_single() -> void:
@@ -552,20 +605,22 @@ func _on_local_ready(address: String) -> void:
 		_launch("campaign", address, _campaign_run_mode)
 
 func _page_multi() -> void:
-	_button(tr("HOST_CREATE"), func() -> void: _show("host"))
-	_label("Host")
+	_label(tr("HOST_RUN_SECTION"))
+	if _local_host.state == LocalHost.State.RUNNING:
+		_label(tr("HOST_STILL_RUNNING"))
+	var run_label: String = tr("HOST_YOUR_SERVER") if _local_host.state == LocalHost.State.RUNNING else tr("HOST_CREATE")
+	_button(run_label, func() -> void: _show("host")).name = "RunServer"
+	var gap: Control = Control.new()
+	gap.custom_minimum_size = Vector2(0.0, 22.0)
+	_root.add_child(gap)
+	_label(tr("JOIN_SECTION"))
 	_host_edit = LineEdit.new()
 	_host_edit.name = "HostAddress"
-	_host_edit.text = _local_host.url if _local_host.state == LocalHost.State.RUNNING else OS.get_environment("FRAGR_SERVER")
-	if _host_edit.text.is_empty():
-		_host_edit.text = _local_host.url if _local_host.state == LocalHost.State.RUNNING else LOOPBACK
+	_host_edit.text = _join_field_text()
+	_host_edit.text_changed.connect(_remember_join_draft)
 	_host_edit.custom_minimum_size = Vector2(0.0, 36.0)
 	_root.add_child(_host_edit)
-	_button("Check host", _probe_host)
-	_button(tr("HOST_USE_RUNNING"), func() -> void:
-		_host_edit.text = _local_host.url if _local_host.state == LocalHost.State.RUNNING else LOOPBACK
-		_probe_host()
-	).name = "UseRunningServer"
+	_button("Check host", _probe_host).name = "CheckHost"
 	_match_line = _label("Checking the host.")
 	_match_line.name = "MatchLine"
 	_watch_button = _button("Watch", func() -> void: _launch("spectate", _host_address()))
@@ -574,13 +629,93 @@ func _page_multi() -> void:
 	_join_button.name = "Join"
 	_watch_button.disabled = true
 	_join_button.disabled = true
+	_install_button = _button("Install the latest and rejoin", _offer_install)
+	_install_button.name = "InstallLatest"
+	_install_button.visible = false
+	_install_note = _label(ReleaseInstall.OFFER_NOTE)
+	_install_note.name = "InstallNote"
+	_install_note.visible = false
+	_button(tr("JOIN_SAVE"), _save_join_address).name = "SaveHost"
+	_label(tr("JOIN_NEARBY"))
+	_scan_button = _button(tr("JOIN_SCAN"), _start_lan_scan)
+	_scan_button.name = "ScanNetwork"
+	_nearby_box = VBoxContainer.new()
+	_nearby_box.name = "NearbyList"
+	_root.add_child(_nearby_box)
+	_label(tr("JOIN_SAVED"))
+	_saved_box = VBoxContainer.new()
+	_saved_box.name = "SavedList"
+	_root.add_child(_saved_box)
+	_fill_server_lists()
 	_label("The host chooses the arena and rules. You watch in this app, then join.")
 	_button("Back", func() -> void: _show("main"))
+	_ensure_lan_listen()
 	_probe_host()
+	_enqueue_known()
 
 func _on_host_state_changed() -> void:
-	if _page == "host":
-		_show("host")
+	if _benchmark_pending:
+		return
+	if _page == "host" or _page == "benchmark":
+		_show(_page)
+
+func _page_benchmark() -> void:
+	_label("Benchmark times the frames on this machine. A fixed camera circles Arena Duel while ten bots fight. Vertical sync and the frame cap turn off for the run, then your settings return.")
+	_label("The fight is live, so two runs are not the same match. Read the frame times. The recorded showcase, and a run of every graphics preset, are still ahead.")
+	if _benchmark_pending and _local_host.state == LocalHost.State.STARTING:
+		_label("Starting a local match on this computer. A server you already left running for other people stays up.")
+		_button("Cancel", _cancel_benchmark).name = "CancelBenchmark"
+		return
+	if _local_host.state == LocalHost.State.FAILED and not _local_host.error_key.is_empty():
+		_label(tr(_local_host.error_key))
+	if _local_host.state not in [LocalHost.State.IDLE, LocalHost.State.FAILED]:
+		_label("Stop the server you started in this app before a benchmark.")
+		_button("Back", func() -> void: _show("main"))
+		return
+	_button("Run benchmark", _start_benchmark).name = "RunBenchmark"
+	_button("Back", func() -> void: _show("main"))
+
+func _start_benchmark() -> void:
+	_benchmark_pending = true
+	if not _local_host.start_host(BenchmarkRun.workload()):
+		_benchmark_pending = false
+		_show("benchmark")
+		return
+	_show("benchmark")
+
+func _cancel_benchmark() -> void:
+	var pending: bool = _benchmark_pending
+	_benchmark_pending = false
+	if pending and _local_host.state in [LocalHost.State.STARTING, LocalHost.State.RUNNING]:
+		_local_host.stop()
+	_show("main")
+
+func _on_benchmark_ready(address: String) -> void:
+	if not _benchmark_pending or _page != "benchmark":
+		return
+	var endpoint: Dictionary = ServerEndpoint.parse(address)
+	if endpoint.is_empty():
+		_benchmark_pending = false
+		_status.text = tr("HOST_INVALID_ADDRESS")
+		_show("benchmark")
+		return
+	_benchmark_pending = false
+	BenchmarkRun.present_uncapped()
+	get_tree().set_meta("fragr_boot", BenchmarkRun.boot_for(str(endpoint["game_url"])))
+	var err: Error = get_tree().change_scene_to_file(ARENA_SCENE)
+	if err != OK:
+		get_tree().remove_meta("fragr_boot")
+		BenchmarkRun.restore_presentation(_settings)
+		push_error("boot_menu: failed to load arena scene: " + str(err))
+		if _status != null:
+			_status.text = "Failed to load arena (" + str(err) + ")"
+
+func _on_benchmark_failed(_key: String) -> void:
+	if not _benchmark_pending:
+		return
+	_benchmark_pending = false
+	if is_inside_tree():
+		_show("benchmark")
 
 func _host_option(label: String, name_text: String) -> OptionButton:
 	var row: HBoxContainer = HBoxContainer.new()
@@ -700,6 +835,9 @@ func _start_host() -> void:
 	_local_host.start_host(_host_settings)
 
 func _probe_host() -> void:
+	_probe_generation += 1
+	var generation: int = _probe_generation
+	_set_install_offer(false)
 	if _watch_button != null:
 		_watch_button.disabled = true
 	if _join_button != null:
@@ -712,28 +850,110 @@ func _probe_host() -> void:
 		_probe.timeout = 2.0
 		_probe.body_size_limit = 4096
 		add_child(_probe)
-		_probe.request_completed.connect(_on_status_completed)
-	_probe.cancel_request()
+	else:
+		_drop_probe_hooks(_probe)
+		_probe.cancel_request()
 	var endpoint: Dictionary = ServerEndpoint.parse(_host_address())
 	if endpoint.is_empty():
-		_match_line.text = tr("HOST_INVALID_ADDRESS")
+		if _match_line != null:
+			_match_line.text = tr("HOST_INVALID_ADDRESS")
 		return
-	var err: Error = _probe.request(endpoint["status_url"])
-	if err != OK and _match_line != null:
-		_match_line.text = "This host did not answer."
+	_probe_target = _probe_target_for(endpoint)
+	# The cancel above can still emit on the next idle frame. Start after it.
+	_start_field_probe.call_deferred(generation)
+
+func _start_field_probe(generation: int) -> void:
+	if generation != _probe_generation or _page != "multi" or _probe == null:
+		return
+	var endpoint: Dictionary = ServerEndpoint.parse(_host_address())
+	if endpoint.is_empty():
+		if _match_line != null:
+			_match_line.text = tr("HOST_INVALID_ADDRESS")
+		return
+	_probe_target = _probe_target_for(endpoint)
+	_probe_started = Time.get_ticks_msec()
+	_probe.request_completed.connect(
+		func(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+			if generation != _probe_generation:
+				return
+			_on_status_completed(result, code, _headers, body)
+	, CONNECT_ONE_SHOT)
+	var err: Error = _probe.request(str(endpoint["status_url"]))
+	if err != OK:
+		_drop_probe_hooks(_probe)
+		_show_probe_failure(probe_failure_line(HTTPRequest.RESULT_CANT_CONNECT, 0, _probe_target))
+
+func _drop_probe_hooks(probe: HTTPRequest) -> void:
+	for conn: Dictionary in probe.request_completed.get_connections():
+		var hook: Callable = conn["callable"]
+		if probe.request_completed.is_connected(hook):
+			probe.request_completed.disconnect(hook)
+
+## The address Check host actually requested, including the default port.
+func _probe_target_for(endpoint: Dictionary) -> String:
+	var host: String = str(endpoint.get("host", ""))
+	var port: int = int(endpoint.get("port", 0))
+	if host.contains(":"):
+		return "[%s]:%d" % [host, port]
+	return "%s:%d" % [host, port]
+
+## Empty when the body should be read. Otherwise the sentence for this result.
+func probe_failure_line(result: int, code: int, target: String) -> String:
+	var checked: String = ""
+	if not target.is_empty():
+		checked = " Checked %s." % target
+	if result == HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED:
+		return "This host answered, but the reply was too large." + checked
+	if result == HTTPRequest.RESULT_SUCCESS and code == 503:
+		return "This host was busy." + checked
+	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+		return "This host did not answer." + checked
+	return ""
+
+## Empty when `parsed` is an object the match line can validate.
+func probe_body_line(parsed: Variant) -> String:
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return "This host did not return a match line."
+	return ""
+
+func _show_probe_failure(line: String) -> void:
+	_set_install_offer(false)
+	if _watch_button != null:
+		_watch_button.disabled = true
+	if _join_button != null:
+		_join_button.disabled = true
+	if _match_line != null:
+		_match_line.text = line
 
 func _on_status_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if _page != "multi":
 		return
-	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
-		_apply_status(null)
+	var failure: String = probe_failure_line(result, code, _probe_target)
+	if not failure.is_empty():
+		_show_probe_failure(failure)
 		return
-	_apply_status(JSON.parse_string(body.get_string_from_utf8()))
+	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+	var body_line: String = probe_body_line(parsed)
+	if not body_line.is_empty():
+		_show_probe_failure(body_line)
+		return
+	_apply_status(parsed)
+	if _watch_button == null or _watch_button.disabled:
+		return
+	var elapsed: int = maxi(0, Time.get_ticks_msec() - _probe_started)
+	if _match_line != null:
+		_match_line.text += " %d ms." % elapsed
+	var detail: String = ServerBook.detail(parsed, elapsed)
+	if _book != null and _book.remember(_probe_target):
+		_fill_server_lists()
+	if not detail.is_empty():
+		_apply_summary(_probe_target, detail)
 
 ## A readable schema 2 match line enables Watch and Join. Anything else does not.
 func _apply_status(parsed: Variant) -> void:
 	if _match_line == null or _watch_button == null or _join_button == null:
 		return
+	_set_install_offer(false)
 	_watch_button.disabled = true
 	_join_button.disabled = true
 	if typeof(parsed) != TYPE_DICTIONARY:
@@ -763,8 +983,80 @@ func _apply_status(parsed: Variant) -> void:
 			_match_line.text = tr("HOST_INVALID_RULES")
 			return
 		_match_line.text += " " + MatchRules.chip_text(rules)
+	var note: String = ServerBook.version_note(data)
+	if not note.is_empty():
+		_match_line.text += " " + note
 	_watch_button.disabled = false
 	_join_button.disabled = false
+	if ServerBook.client_is_behind(data):
+		_set_install_offer(true)
+
+func _set_install_offer(show: bool) -> void:
+	var busy: bool = _release_fetch != null and is_instance_valid(_release_fetch) and _release_fetch.is_busy()
+	if _install_button != null and is_instance_valid(_install_button):
+		_install_button.visible = show
+		_install_button.disabled = show and busy
+	if _install_note != null and is_instance_valid(_install_note):
+		_install_note.visible = show
+
+## The player asked. Nothing is fetched until this runs.
+func _offer_install() -> void:
+	if _install_button == null or _install_button.disabled:
+		return
+	var typed: String = ServerBook.canonical(_host_address())
+	if typed.is_empty() or typed != _probe_target:
+		_status.text = ReleaseInstall.CHECK_AGAIN
+		return
+	var endpoint: Dictionary = ServerEndpoint.parse(typed)
+	if endpoint.is_empty():
+		_status.text = tr("HOST_INVALID_ADDRESS")
+		return
+	var client_dir: String = ProjectSettings.globalize_path("res://").replace("\\", "/").simplify_path().trim_suffix("/")
+	var parent: String = client_dir.get_base_dir()
+	var blocked: String = ReleaseInstall.blocked_root(client_dir, FileAccess.file_exists(parent.path_join("Cargo.toml")), DirAccess.dir_exists_absolute(parent.path_join(".git")))
+	var staging: String = ProjectSettings.globalize_path("user://").path_join("releases")
+	if not blocked.is_empty() and ReleaseInstall.path_is_inside(staging, blocked):
+		_status.text = ReleaseInstall.OUTSIDE
+		return
+	if ReleaseInstall.platform_id().is_empty():
+		_status.text = ReleaseInstall.NO_BUILD
+		return
+	if _release_fetch == null:
+		_release_fetch = ReleaseFetch.new()
+		_release_fetch.name = "ReleaseFetch"
+		_release_fetch.reported.connect(_on_release_reported)
+		_release_fetch.failed.connect(_on_release_failed)
+		_release_fetch.started.connect(_on_release_started)
+		add_child(_release_fetch)
+	_install_button.disabled = true
+	_status.text = ReleaseInstall.CHECKING
+	_release_fetch.start(str(endpoint["game_url"]), staging, blocked)
+
+func _on_release_reported(text: String) -> void:
+	if _page == "multi" and _status != null:
+		_status.text = text
+
+func _on_release_failed(text: String) -> void:
+	if _page != "multi" or _status == null:
+		return
+	_status.text = text
+	if _install_button != null and is_instance_valid(_install_button):
+		_install_button.disabled = false
+
+func _on_release_started(quit_after: bool) -> void:
+	if _status == null:
+		return
+	if not quit_after:
+		_status.text = ReleaseInstall.STARTED_BESIDE
+		if _install_button != null and is_instance_valid(_install_button):
+			_install_button.disabled = false
+		return
+	_status.text = ReleaseInstall.REPLACING
+	var timer: SceneTreeTimer = get_tree().create_timer(0.4)
+	timer.timeout.connect(func() -> void:
+		if is_inside_tree():
+			get_tree().quit()
+	)
 
 func _page_profile() -> void:
 	_label("CALLSIGN")
@@ -859,10 +1151,323 @@ func _page_settings() -> void:
 	panel.closed.connect(func() -> void: _show("main"))
 	_root.add_child(panel)
 
+func _remember_join_draft(value: String) -> void:
+	_join_draft = value
+
+## Join field only. An owned server has its own page and its own URL.
+func _join_field_text() -> String:
+	if not _join_draft.strip_edges().is_empty():
+		return _join_draft
+	var env: String = OS.get_environment("FRAGR_SERVER").strip_edges()
+	if not env.is_empty():
+		return env
+	return LOOPBACK
+
 func _host_address() -> String:
 	if _host_edit != null and not _host_edit.text.strip_edges().is_empty():
 		return _host_edit.text.strip_edges()
 	return LOOPBACK
+
+func _save_join_address() -> void:
+	var address: String = ServerBook.canonical(_host_address())
+	if address.is_empty():
+		if _watch_button != null:
+			_watch_button.disabled = true
+		if _join_button != null:
+			_join_button.disabled = true
+		if _match_line != null:
+			_match_line.text = tr("HOST_INVALID_ADDRESS")
+		return
+	if _book != null:
+		_book.keep(address)
+	_fill_server_lists()
+	_enqueue(address)
+	_pump_list()
+	_probe_host()
+
+func _use_address(address: String) -> void:
+	_join_draft = address
+	if _host_edit != null:
+		_host_edit.text = address
+	_probe_host()
+
+func _keep_address(address: String) -> void:
+	if _book != null:
+		_book.keep(address)
+	_fill_server_lists()
+
+func _drop_address(address: String) -> void:
+	if _book != null:
+		_book.drop_address(address)
+	_fill_server_lists()
+
+func _hide_nearby(address: String) -> void:
+	_lan.erase(address)
+	_fill_server_lists()
+
+func _fill_server_lists() -> void:
+	if _nearby_box == null or _saved_box == null:
+		return
+	_clear_box(_nearby_box)
+	_clear_box(_saved_box)
+	if _lan.is_empty():
+		var empty_key: String = "JOIN_SCANNING" if _scanning else ("JOIN_SCAN_EMPTY" if _scan_settled else "JOIN_NEARBY_EMPTY")
+		_list_note(_nearby_box, tr(empty_key))
+	else:
+		for address: String in _lan:
+			_add_nearby_row(address)
+	var saved: Array[Dictionary] = _book.rows() if _book != null else []
+	if saved.is_empty():
+		_list_note(_saved_box, tr("JOIN_SAVED_EMPTY"))
+	else:
+		for row: Dictionary in saved:
+			_add_saved_row(str(row["address"]), bool(row["kept"]))
+
+func _clear_box(box: VBoxContainer) -> void:
+	for child: Node in box.get_children():
+		box.remove_child(child)
+		child.queue_free()
+
+func _list_note(box: VBoxContainer, text: String) -> void:
+	var note: Label = Label.new()
+	note.text = text
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note.add_theme_font_size_override("font_size", 18)
+	note.add_theme_color_override("font_color", Color(0.55, 0.7, 0.72))
+	box.add_child(note)
+
+func _row_token(address: String) -> String:
+	var token: String = ""
+	for index: int in address.length():
+		var code: int = address.unicode_at(index)
+		if (code >= 48 and code <= 57) or (code >= 65 and code <= 90) or (code >= 97 and code <= 122):
+			token += address.substr(index, 1)
+		else:
+			token += "_"
+	return token
+
+func _row_label(address: String) -> String:
+	var summary: String = tr("JOIN_NOT_CHECKED")
+	if _server_summaries.has(address):
+		summary = str(_server_summaries[address])
+	return "%s\n%s" % [address, summary]
+
+func _add_nearby_row(address: String) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	_nearby_box.add_child(row)
+	var token: String = _row_token(address)
+	var use: Button = _styled_button(_row_label(address), _use_address.bind(address), true)
+	use.name = "Use_" + token
+	use.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	use.clip_text = false
+	use.custom_minimum_size = Vector2(0.0, 124.0)
+	use.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(use)
+	var hide: Button = _styled_button(tr("JOIN_HIDE"), _hide_nearby.bind(address), true)
+	hide.name = "Hide_" + token
+	hide.custom_minimum_size = Vector2(140.0, 76.0)
+	row.add_child(hide)
+
+func _add_saved_row(address: String, kept: bool) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	_saved_box.add_child(row)
+	var token: String = _row_token(address)
+	var use: Button = _styled_button(_row_label(address), _use_address.bind(address), true)
+	use.name = "Use_" + token
+	use.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	use.clip_text = false
+	use.custom_minimum_size = Vector2(0.0, 124.0)
+	use.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(use)
+	if not kept:
+		var keep: Button = _styled_button(tr("JOIN_KEEP"), _keep_address.bind(address), true)
+		keep.name = "Keep_" + token
+		keep.custom_minimum_size = Vector2(140.0, 76.0)
+		row.add_child(keep)
+	var drop: Button = _styled_button(tr("JOIN_DROP"), _drop_address.bind(address), true)
+	drop.name = "Drop_" + token
+	drop.custom_minimum_size = Vector2(140.0, 76.0)
+	row.add_child(drop)
+
+func _apply_summary(address: String, summary: String) -> void:
+	_server_summaries[address] = summary
+	var text: String = _row_label(address).to_upper()
+	_refresh_row(_nearby_box, _row_token(address), text)
+	_refresh_row(_saved_box, _row_token(address), text)
+
+func _refresh_row(box: VBoxContainer, token: String, text: String) -> void:
+	if box == null:
+		return
+	var button: Button = box.find_child("Use_" + token, true, false) as Button
+	if button != null:
+		button.text = text
+
+func _ensure_lan_listen() -> void:
+	if _lan_listen != null:
+		return
+	_lan_listen = LanListen.new()
+	_lan_listen.name = "LanListen"
+	_lan_listen.found.connect(_on_lan_found)
+	add_child(_lan_listen)
+
+func _stop_lan_listen() -> void:
+	if _lan_listen == null:
+		return
+	_lan_listen.close()
+	_lan_listen.queue_free()
+	_lan_listen = null
+
+func _scan_port() -> int:
+	var endpoint: Dictionary = ServerEndpoint.parse(_host_address())
+	if endpoint.is_empty():
+		return 6767
+	return int(endpoint["port"])
+
+func _start_lan_scan() -> void:
+	if _scanning:
+		return
+	_lan.clear()
+	_scanning = true
+	_scan_settled = false
+	if _scan_button != null:
+		_scan_button.disabled = true
+		_scan_button.text = tr("JOIN_SCANNING")
+	_fill_server_lists()
+	if _lan_scan == null:
+		_lan_scan = LanScan.new()
+		_lan_scan.name = "LanScan"
+		_lan_scan.found.connect(_on_scan_found)
+		_lan_scan.finished.connect(_on_lan_scan_finished)
+		add_child(_lan_scan)
+	_lan_scan.start(ServerBook.scan_targets(IP.get_local_interfaces(), _scan_port()))
+
+func _on_scan_found(address: String, summary: String) -> void:
+	if address.is_empty() or address in _lan or _lan.size() >= 8:
+		return
+	_lan.append(address)
+	_server_summaries[address] = summary
+	if _page != "multi":
+		return
+	_fill_server_lists()
+
+func _on_lan_scan_finished() -> void:
+	_scanning = false
+	_scan_settled = true
+	if _scan_button != null and is_instance_valid(_scan_button):
+		_scan_button.disabled = false
+		_scan_button.text = tr("JOIN_SCAN")
+	if _page == "multi":
+		_fill_server_lists()
+
+func _stop_lan_scan() -> void:
+	_scanning = false
+	if _lan_scan != null:
+		_lan_scan.stop()
+	if _scan_button != null and is_instance_valid(_scan_button):
+		_scan_button.disabled = false
+		_scan_button.text = tr("JOIN_SCAN")
+
+func _remember_played(host: String) -> void:
+	if _book == null:
+		return
+	var endpoint: Dictionary = ServerEndpoint.parse(host)
+	if endpoint.is_empty():
+		return
+	if _book.remember(_probe_target_for(endpoint)):
+		_fill_server_lists()
+
+func _on_lan_found(address: String) -> void:
+	# A packet is not a row. Eight unanswered beacons used to hide the real
+	# server. The probe below is what earns a nearby slot.
+	if not ServerBook.lan_beacon(address) or address in _lan or _lan_pending.has(address):
+		return
+	if _lan_pending.size() >= 8:
+		return
+	_lan_pending[address] = true
+	_enqueue(address)
+	_pump_list()
+
+func _enqueue_known() -> void:
+	for address: String in _lan:
+		_enqueue(address)
+	if _book != null:
+		for row: Dictionary in _book.rows():
+			_enqueue(str(row["address"]))
+	_pump_list()
+
+func _enqueue(address: String) -> void:
+	if address.is_empty() or address == _list_current or address in _list_queue:
+		return
+	_list_queue.append(address)
+
+func _pump_list() -> void:
+	if _page != "multi" or _list_current != "" or _list_queue.is_empty():
+		return
+	if _list_probe == null:
+		_list_probe = HTTPRequest.new()
+		_list_probe.name = "ListProbe"
+		_list_probe.timeout = 2.0
+		_list_probe.body_size_limit = 4096
+		add_child(_list_probe)
+	var address: String = _list_queue.pop_front()
+	var endpoint: Dictionary = ServerEndpoint.parse(address)
+	if endpoint.is_empty():
+		_apply_summary(address, tr("JOIN_NO_ANSWER"))
+		_pump_list()
+		return
+	_list_current = address
+	_list_generation += 1
+	var generation: int = _list_generation
+	_drop_probe_hooks(_list_probe)
+	_list_probe.cancel_request()
+	_begin_list_probe.call_deferred(generation, address, str(endpoint["status_url"]))
+
+func _begin_list_probe(generation: int, address: String, url: String) -> void:
+	if generation != _list_generation or _page != "multi" or _list_probe == null or _list_current != address:
+		return
+	_list_started = Time.get_ticks_msec()
+	_list_probe.request_completed.connect(
+		func(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+			if generation != _list_generation:
+				return
+			_on_list_completed(address, result, code, body)
+	, CONNECT_ONE_SHOT)
+	var err: Error = _list_probe.request(url)
+	if err != OK:
+		_drop_probe_hooks(_list_probe)
+		_finish_list(address, tr("JOIN_NO_ANSWER"))
+
+func _on_list_completed(address: String, result: int, code: int, body: PackedByteArray) -> void:
+	var elapsed: int = maxi(0, Time.get_ticks_msec() - _list_started)
+	var summary: String = tr("JOIN_NO_ANSWER")
+	var beacon_live: bool = false
+	if result == HTTPRequest.RESULT_SUCCESS and code == 503:
+		summary = tr("JOIN_BUSY")
+		var busy: Variant = JSON.parse_string(body.get_string_from_utf8())
+		beacon_live = ServerBook.busy_body(busy)
+	elif result == HTTPRequest.RESULT_SUCCESS and code == 200:
+		var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
+		var detail: String = ServerBook.detail(parsed, elapsed)
+		summary = detail if not detail.is_empty() else tr("JOIN_NOT_A_MATCH")
+		beacon_live = not detail.is_empty()
+	_finish_list(address, summary, beacon_live)
+
+func _finish_list(address: String, summary: String, beacon_live: bool = false) -> void:
+	var added: bool = false
+	if _lan_pending.erase(address) and beacon_live and address not in _lan and _lan.size() < 8:
+		_lan.append(address)
+		added = true
+	_apply_summary(address, summary)
+	if added and _page == "multi":
+		_fill_server_lists()
+	if _list_current == address:
+		_list_current = ""
+	_pump_list()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _console != null and _console.is_open():
@@ -871,6 +1476,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_settings.load_from_disk()
 		if _launch_pending:
 			_cancel_campaign()
+		elif _page == "benchmark":
+			_cancel_benchmark()
 		else:
 			_show(_profile_return if _page == "profile" else ("single" if _page in ["difficulty", "new_confirm", "practice"] else "main"))
 		get_viewport().set_input_as_handled()
@@ -880,6 +1487,8 @@ func _launch(mode: String, host: String, run_mode: String = "") -> void:
 	if endpoint.is_empty():
 		_status.text = tr("HOST_INVALID_ADDRESS")
 		return
+	if mode == "spectate" or mode == "join":
+		_remember_played(host)
 	var boot: Dictionary = {
 		"mode": mode,
 		"host": endpoint["game_url"],
@@ -896,3 +1505,44 @@ func _launch(mode: String, host: String, run_mode: String = "") -> void:
 		push_error("boot_menu: failed to load arena scene: " + str(err))
 		if _status != null:
 			_status.text = "Failed to load arena (" + str(err) + ")"
+
+## Hears LAN presence while the join page is open. A bind failure stays quiet:
+## the address field still reaches a host that does not announce.
+class LanListen extends Node:
+	const LAN_PORT: int = 6768
+	signal found(address: String)
+	var _udp: PacketPeerUDP
+
+	func _ready() -> void:
+		_udp = PacketPeerUDP.new()
+		if _udp.bind(LAN_PORT) != OK:
+			_udp = null
+			set_process(false)
+			return
+		_udp.set_broadcast_enabled(true)
+		set_process(true)
+
+	func _process(_delta: float) -> void:
+		if _udp == null:
+			return
+		while _udp.get_available_packet_count() > 0:
+			var packet: PackedByteArray = _udp.get_packet()
+			var port: int = ServerBook.beacon_port(packet)
+			if port <= 0:
+				continue
+			var ip: String = _udp.get_packet_ip()
+			if not ServerBook.lan_ipv4(ip):
+				continue
+			var text: String = "[%s]:%d" % [ip, port] if ip.contains(":") else "%s:%d" % [ip, port]
+			var address: String = ServerBook.canonical(text)
+			if not address.is_empty():
+				found.emit(address)
+
+	func close() -> void:
+		set_process(false)
+		if _udp != null:
+			_udp.close()
+			_udp = null
+
+	func _exit_tree() -> void:
+		close()

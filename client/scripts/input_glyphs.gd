@@ -162,7 +162,7 @@ static func parts(template: String) -> Array[Dictionary]:
 		rest = rest.substr(close + 1)
 	return out
 
-## Plain text for a template: "{use}: USE" reads "F: USE" or "B: USE".
+## Plain text for a template: "{use}: OPEN THE PANEL" reads "F: OPEN THE PANEL".
 static func plain(template: String) -> String:
 	var text: String = ""
 	for part: Dictionary in parts(template):

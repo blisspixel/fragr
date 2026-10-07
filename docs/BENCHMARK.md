@@ -114,5 +114,18 @@ cargo run -p fragr-server --release --locked -- --bench-verify-trace .agents/mat
 Verification streams one record at a time with an 8 MiB record limit. Unsupported
 versions, missing/duplicate headers or scores, missing or misordered ticks, wrong
 snapshot tick numbers, truncation, checksum mismatch, or data after completion
-fail. A matching hash proves file integrity, not trusted authorship. Client replay,
-camera paths, frame-time statistics, and GPU comparisons remain future work.
+fail. A matching hash proves file integrity, not trusted authorship. Client replay of
+a trace, the nine-scene camera path, and GPU preset comparisons remain future
+work.
+
+## Player benchmark
+
+The main menu **Benchmark** is a separate measurement. It watches a live local
+Arena Duel match for 20 scored seconds after an 8 second warm-up, with sync and
+the frame cap off, and reports frame time. The camera is a function of scene
+time. The report names three 1 percent lows and three 0.1 percent lows, the
+99th percentile against the median, and the share of time at or above 33 ms and
+50 ms. It does not play a trace and it is not comparable across different
+fights. Headless checks cover the arithmetic. A frame rate is not a CI gate.
+The server `--bench` numbers above remain CPU measurements and do not explain
+a choppy picture.

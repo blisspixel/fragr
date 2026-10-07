@@ -28,6 +28,7 @@ pub enum DeskVerb {
     Say {
         text: String,
     },
+    Stats,
 }
 
 /// A person the desk has already resolved to one address.
@@ -75,6 +76,7 @@ enum Parsed {
     Kick { name: String },
     Ban { query: String },
     Say { text: String },
+    Stats,
 }
 
 #[derive(Debug)]
@@ -107,6 +109,7 @@ pub async fn serve<W: Write>(
             Ok(Parsed::Say { text }) => {
                 write_line(out, ask(&requests, DeskVerb::Say { text }).await.text());
             }
+            Ok(Parsed::Stats) => write_line(out, ask(&requests, DeskVerb::Stats).await.text()),
             Ok(Parsed::Ban { query }) => {
                 let Some(path) = ban_list.clone() else {
                     write_line(
@@ -138,7 +141,7 @@ pub async fn serve<W: Write>(
                 }
             }
             Err(ParseFault::Unknown) => {
-                write_line(out, "The desk knows who, kick, ban, and say.");
+                write_line(out, "The desk knows who, kick, ban, say, and stats.");
             }
             Err(ParseFault::NeedsName) => {
                 write_line(out, "Say who. Use the name from who.");
@@ -154,6 +157,7 @@ who
 kick <name>
 ban <name> [reason]
 say <sentence>
+stats
 Names are what who prints. A ban keeps the address, not the name. \
 Closing this input leaves the match running.";
 
@@ -182,6 +186,7 @@ fn parse_line(line: &str) -> Result<Parsed, ParseFault> {
         "say" => Ok(Parsed::Say {
             text: rest.to_string(),
         }),
+        "stats" if rest.is_empty() => Ok(Parsed::Stats),
         _ => Err(ParseFault::Unknown),
     }
 }
@@ -249,6 +254,11 @@ mod tests {
             Parsed::Ban { query } => assert_eq!(query, "Patch camping the rail"),
             other => panic!("ban: {other:?}"),
         }
+        assert!(matches!(parse_line("stats"), Ok(Parsed::Stats)));
+        assert!(matches!(
+            parse_line("stats tonight"),
+            Err(ParseFault::Unknown)
+        ));
         assert!(matches!(parse_line("kick"), Err(ParseFault::NeedsName)));
         assert!(matches!(parse_line("say"), Err(ParseFault::NeedsSentence)));
         assert!(matches!(parse_line("fly"), Err(ParseFault::Unknown)));
@@ -312,7 +322,7 @@ mod tests {
         assert!(text.contains("Patch  human  2  203.0.113.7"), "{text}");
         assert!(text.contains("Patch is off the floor."), "{text}");
         assert!(
-            text.contains("The desk knows who, kick, ban, and say."),
+            text.contains("The desk knows who, kick, ban, say, and stats."),
             "{text}"
         );
         assert_eq!(seen.lock().unwrap().len(), 2);

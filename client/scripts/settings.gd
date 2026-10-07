@@ -13,7 +13,7 @@ const DEFAULTS: Dictionary = {
 	"profile": {
 		"name": DEFAULT_CALLSIGN,
 		"reticle_colour": "bone",
-		# Human or embodied agent; see PlayerBody. The next join uses it.
+		# Human or free agent; see PlayerBody. The next join uses it.
 		"body": "human",
 	},
 	"video": {
@@ -50,8 +50,8 @@ const DEFAULTS: Dictionary = {
 	# project default; otherwise three slots, see input_bindings.gd.
 	"bindings": {
 		"move_forward": "", "move_back": "", "move_left": "", "move_right": "",
-		"strafe": "", "jump": "", "turn_left": "", "turn_right": "",
-		"look_up": "", "look_down": "", "center_view": "", "fire": "",
+		"strafe": "", "jump": "", "duck": "", "turn_left": "", "turn_right": "",
+		"look_up": "", "look_down": "", "center_view": "", "fire": "", "reload": "",
 		"interact": "", "throw_grenade": "", "place_mine": "", "weapon_next": "", "weapon_prev": "", "weapon_1": "",
 		"weapon_2": "", "weapon_3": "", "weapon_4": "", "weapon_5": "", "weapon_6": "", "scope": "",
 		"scoreboard": "", "speak": "", "pause": "", "leave_match": "",
@@ -186,7 +186,7 @@ func load_from_disk() -> void:
 			var fallback: Variant = (DEFAULTS[section] as Dictionary)[key]
 			set_value(section, key, cfg.get_value(section, key, fallback))
 	# Actions added after a file was written take only defaults nobody claimed.
-	for added: String in ["throw_grenade", "place_mine", "weapon_6", "scope"]:
+	for added: String in ["throw_grenade", "place_mine", "weapon_6", "scope", "reload", "duck"]:
 		if not cfg.has_section_key("bindings", added):
 			InputBindings.adopt_unclaimed_defaults(self, added)
 

@@ -2,7 +2,8 @@
 
 **Status:** rung 1 shipped in [PR #166](https://github.com/blisspixel/fragr/pull/166),
 [v0.16.0](https://github.com/blisspixel/fragr/releases/tag/v0.16.0) (2026-09-19).
-Rendered showcase remains planned. Linux, Windows, and macOS CI passed.
+A one-scene player benchmark is implemented locally and not merged. The nine-scene
+recorded showcase remains planned. Linux, Windows, and macOS CI passed for rung 1.
 **Branch:** `feat/showcase-bench-*` (one PR per rung)
 **Spend:** $0. Local only, no service, no telemetry.
 
@@ -94,12 +95,31 @@ Public-server load and renderer scoring remain unmeasured.
 
 The remaining sections describe the future rendered showcase, not shipped behavior.
 
+## Current increment: one scored scene
+
+The main menu **Benchmark** times frames on this machine. It starts a local Arena
+Duel match with ten bots on a free loopback port, turns vertical sync and the
+frame cap off for the run, discards 8 seconds of warm-up, and scores the next
+20 seconds. The camera pose is a function of scene time. The score is computed
+in frame time: average as frame count over elapsed time, the three labelled
+1 percent and 0.1 percent lows, the 99th-to-median ratio, the share of time at
+or above 33 ms and 50 ms, and hitches against the trailing second. The saved
+settings come back when the run ends. The score says whether frames are fast
+and even, hitching, or slow. Fast even frames can still look rough because sync
+is off and the match moves at 20 snapshots a second.
+
+This is a live match, so two runs are not the same fight. Compare the frame
+times. It does not play a trace, does not walk the nine scenes, does not score
+a composite, and does not compare graphics presets. CI checks the arithmetic
+and the menu. It does not gate on a frame rate. The night server is a different
+process and is not the benchmark host.
+
 The historical scale ladder found simulation headroom at 256 fighters, but it
 did not measure real network fan-out or rendering. Bandwidth remains a capacity
 hypothesis to test, not a proven bottleneck. CPU regression gates and a rendered
 showcase answer different questions; both are needed.
 
-The client side is not thin, it is absent. Nothing in the client times a frame.
+The rolling corner counter and the one-scene Benchmark time frames. Trace playback and the nine-scene flow below are still absent.
 
 ## The prerequisite nobody names
 

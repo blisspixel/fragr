@@ -78,6 +78,8 @@ var pending_throw: bool = false
 var throw_armed: bool = true
 var pending_place: bool = false
 var place_armed: bool = true
+var pending_reload: bool = false
+var reload_armed: bool = true
 var mission_hud: MissionHud
 var m02_ward: M02Ward
 var m03_yard: M03Yard
@@ -115,6 +117,10 @@ var last_shot_tick: int = -1
 var mouse_capture: MouseCapture
 var local_match: LocalMatch
 var _leaving: bool = false
+## Main-menu Benchmark: score frames, then leave. The owned loopback match
+## stops on the way out. A server left up for other people is a different process.
+var _benchmark: bool = false
+var _benchmark_started: bool = false
 var opening: ScenePlayer
 ## The between-level scene played once the server reports a departure.
 var interlude: ScenePlayer
@@ -225,6 +231,9 @@ func _ready():
 	_load_audio_streams()
 	
 	var boot = _resolve_boot()
+	_benchmark = bool(boot.get("benchmark", false))
+	if _benchmark:
+		BenchmarkRun.present_uncapped()
 	if boot.get("mode") == "campaign":
 		local_match = LocalMatch.for_tree(get_tree())
 		_opening_finished = boot.get("run_mode") == "resume" and not bool(boot.get("play_arrival", false))
@@ -359,12 +368,16 @@ func _on_map_info(info: Dictionary) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 	_reset_crawler_cues()
 	if jammer_audio != null:
 		jammer_audio.reset()
 	if marksman_audio != null:
 		marksman_audio.reset()
 	local_prediction.configure_map(info)
+	if mission_hud != null:
+		mission_hud.geometry = net_client.mission_geometry
 	_clear_predicted_pawn()
 	for pawn: Node in players.values():
 		if is_instance_valid(pawn) and pawn.has_method("reset_remote_presentation"):
@@ -497,6 +510,8 @@ func _apply_render_preferences() -> void:
 	RenderQuality.apply_dither(self, get_viewport(), settings)
 
 func controls_blocked() -> bool:
+	if _benchmark:
+		return true
 	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
 	if loading != null and loading.visible:
 		return true
@@ -537,6 +552,8 @@ func _on_opening_completed() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
@@ -603,6 +620,35 @@ func _reveal_world_after_draw(generation: int) -> void:
 	var card: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
 	if card != null and not card.failed:
 		card.finish_loading(is_human_player and not _mission_map())
+	if _benchmark:
+		_start_benchmark_run()
+
+func _start_benchmark_run() -> void:
+	if _benchmark_started:
+		return
+	_benchmark_started = true
+	if camera != null:
+		camera.set_process(false)
+		camera.set_process_input(false)
+		camera.set_process_unhandled_input(false)
+	var run: BenchmarkRun = BenchmarkRun.new()
+	run.name = "BenchmarkRun"
+	run.camera = camera
+	run.finished.connect(_on_benchmark_finished)
+	run.dismissed.connect(_on_leave_requested)
+	add_child(run)
+	run.begin()
+
+func _on_benchmark_finished(report: Dictionary) -> void:
+	var run: BenchmarkRun = get_node_or_null("BenchmarkRun") as BenchmarkRun
+	if run != null:
+		run.show_score(report, settings)
+
+func _stop_benchmark_host() -> void:
+	BenchmarkRun.restore_presentation(settings)
+	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
+	if host != null and host.state in [LocalHost.State.RUNNING, LocalHost.State.STARTING]:
+		host.stop()
 
 func _on_stop_server_requested() -> void:
 	var host: LocalHost = get_tree().root.get_node_or_null("LocalHost") as LocalHost
@@ -614,6 +660,8 @@ func _on_leave_requested() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	if _benchmark:
+		_stop_benchmark_host()
 	if local_match != null:
 		net_client.disconnect_from_server()
 	else:
@@ -631,6 +679,8 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	if _benchmark:
+		_stop_benchmark_host()
 	if RenderingServer.frame_post_draw.is_connected(_release_retired_environments):
 		RenderingServer.frame_post_draw.disconnect(_release_retired_environments)
 	_retired_environments.clear()
@@ -651,7 +701,13 @@ func _report_record_save(result: Error) -> void:
 ## Escape or Start opens and closes the match menu; Back on a gamepad (the
 ## same ui_cancel as Escape) steps out of it too.
 func _unhandled_input(event: InputEvent) -> void:
-	if console != null and console.is_open() or pause_menu == null:
+	if console != null and console.is_open():
+		return
+	if _benchmark and event.is_action_pressed("ui_cancel") and not event.is_echo():
+		_on_leave_requested()
+		get_viewport().set_input_as_handled()
+		return
+	if _benchmark or pause_menu == null:
 		return
 	if event.is_echo():
 		return
@@ -681,10 +737,13 @@ func _setup_radio() -> void:
 		hud.host_spoke.connect(func(seconds): radio.duck(seconds))
 
 func _resolve_boot() -> Dictionary:
-	# Boot menu meta wins; then --solo / FRAGR_SOLO; then --human; else spectator.
+	# Boot menu meta wins; then --rejoin; then --solo / FRAGR_SOLO; then --human; else spectator.
 	if get_tree().has_meta("fragr_boot"):
 		var meta = get_tree().get_meta("fragr_boot")
 		if typeof(meta) == TYPE_DICTIONARY:
+			var benchmark: Dictionary = BenchmarkRun.read_boot(meta)
+			if not benchmark.is_empty():
+				return {"role": "spectator", "name": "Spectator", "host": benchmark["host"], "hud_mode": "SPECTATING", "mode": "spectate", "benchmark": true}
 			var mode = str(meta.get("mode", "spectate"))
 			var host = str(meta.get("host", "127.0.0.1:6767"))
 			if mode == "campaign":
@@ -699,6 +758,9 @@ func _resolve_boot() -> Dictionary:
 	
 	var args = OS.get_cmdline_args()
 	var user_args = OS.get_cmdline_user_args()
+	var rejoined: Dictionary = ReleaseInstall.rejoin_boot(user_args, settings.player_name())
+	if not rejoined.is_empty():
+		return rejoined
 	var wants_solo = OS.get_environment("FRAGR_SOLO") == "1" or "--solo" in args or "--solo" in user_args
 	if wants_solo:
 		return {"role": "human", "name": settings.player_name(), "host": "127.0.0.1:6767", "hud_mode": "SOLO BROADCAST", "mode": "solo"}
@@ -868,6 +930,8 @@ func _try_continue(event: InputEvent) -> bool:
 			throw_armed = false
 			pending_place = false
 			place_armed = false
+			pending_reload = false
+			reload_armed = false
 			pending_weapon_swap = null
 			interact_held = false
 			return true
@@ -924,16 +988,23 @@ func _input(_event):
 		throw_armed = true
 	if _event.is_action_released("place_mine"):
 		place_armed = true
+	if _event.is_action_released("reload"):
+		reload_armed = true
 	if controls_blocked():
 		pending_throw = false
 		throw_armed = false
 		pending_place = false
 		place_armed = false
+		pending_reload = false
+		reload_armed = false
 		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
 	if is_human_player and place_armed and _event.is_action_pressed("place_mine") and not _event.is_echo():
 		pending_place = true
+	if is_human_player and reload_armed and _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
+		pending_reload = true
+		reload_armed = false
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
 	if is_human_player and _event.is_action_pressed("interact"):
@@ -967,6 +1038,8 @@ func change_role(play: bool) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 	interact_held = false
 	net_client.leave_match()
 	is_human_player = play
@@ -994,8 +1067,9 @@ func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
 	ack_probe.record_ack(data, Time.get_ticks_usec())
 	if is_human_player:
-		local_prediction.accept_ack(data, Time.get_ticks_usec())
-		_apply_local_prediction()
+		var now_usec: int = Time.get_ticks_usec()
+		local_prediction.accept_ack(data, now_usec)
+		_apply_local_prediction(now_usec)
 
 
 func begin_ack_probe() -> bool:
@@ -1038,9 +1112,10 @@ func _process(_delta):
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
 	if is_human_player:
-		local_prediction.advance(Time.get_ticks_usec())
+		var now_usec: int = Time.get_ticks_usec()
+		local_prediction.advance(now_usec)
 		local_prediction.decay_visual(_delta)
-		_apply_local_prediction()
+		_apply_local_prediction(now_usec)
 
 
 ## The Sniper Rifle's scope is presentation: held input narrows the local view
@@ -1074,15 +1149,20 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 
 
-func _apply_local_prediction() -> void:
+func _apply_local_prediction(now_usec: int = -1) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if not is_instance_valid(pawn):
 		return
 	if local_prediction.active() and pawn.hp > 0 and _has_local_input_target() and pawn.has_method("set_predicted_position"):
 		var velocity: Vector2 = Vector2(float(local_prediction.state["vx"]), float(local_prediction.state["vz"]))
-		pawn.set_predicted_position(local_prediction.presented_position(), velocity.length())
+		var shown: Vector3 = local_prediction.presented_position(now_usec)
+		pawn.set_predicted_position(shown, velocity.length())
+		if pawn.has_method("set_ducking"):
+			pawn.set_ducking(local_prediction.presented_ducking(now_usec))
 	elif pawn.has_method("clear_predicted_position"):
 		pawn.clear_predicted_position()
 
@@ -1094,6 +1174,14 @@ func _apply_local_prediction() -> void:
 const ACTION_SEND_INTERVAL_USEC: int = 1000000 / 120
 const MAX_ACTION_SEQ: int = 4294967295
 var _last_action_usec: int = -ACTION_SEND_INTERVAL_USEC
+
+## A magazine loadout is the only permission to put reload on the wire.
+## An older server has never heard the key, and deny_unknown_fields drops it.
+func _magazines_live() -> bool:
+	if net_client == null:
+		return false
+	var equipment: Variant = net_client.get("equipment")
+	return equipment is Dictionary and (equipment as Dictionary).has("loaded")
 
 func _send_local_action(now_usec: int) -> bool:
 	if now_usec - _last_action_usec < ACTION_SEND_INTERVAL_USEC:
@@ -1116,6 +1204,15 @@ func _send_local_action(now_usec: int) -> bool:
 	if not Input.is_action_pressed("place_mine") and not pending_place:
 		place_armed = true
 	action_state.place_mine = place_armed and (pending_place or Input.is_action_pressed("place_mine"))
+	if not InputMap.has_action("reload") or (not Input.is_action_pressed("reload") and not pending_reload):
+		reload_armed = true
+	var reload_down: bool = false
+	if not controls_blocked() and _magazines_live():
+		reload_down = pending_reload or (InputMap.has_action("reload") and Input.is_action_pressed("reload"))
+	if reload_down:
+		action_state["reload"] = true
+	else:
+		action_state.erase("reload")
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 	# zero for humans and remain the path for agents and older clients.
@@ -1130,9 +1227,23 @@ func _send_local_action(now_usec: int) -> bool:
 		throw_armed = false
 		pending_place = false
 		place_armed = false
+		pending_reload = false
+		reload_armed = false
 		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine"]:
 			action_state[key] = false
+		action_state.erase("duck")
 		pending_weapon_swap = null
+	var duck_down: bool = (
+		not controls_blocked()
+		and net_client != null
+		and net_client.get("duck_supported") == true
+		and InputMap.has_action("duck")
+		and Input.is_action_pressed("duck")
+	)
+	if duck_down:
+		action_state["duck"] = true
+	else:
+		action_state.erase("duck")
 	action_state.turn_left = false
 	action_state.turn_right = false
 	if _mission_controls_blocked():
@@ -1159,6 +1270,7 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_interact = false
 		pending_throw = false
 		pending_place = false
+		pending_reload = false
 		pending_weapon_swap = null
 	return true
 
@@ -1185,6 +1297,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		_presented_attempt = attempt
 	if mission_hud != null:
 		mission_hud.boarding_region = net_client.mission_geometry.get("m05", {}).get("boarding", {})
+		mission_hud.geometry = net_client.mission_geometry
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
 	if m02_ward != null:
 		m02_ward.apply_state(state)
@@ -1233,6 +1346,8 @@ func _offer_m05_departure() -> bool:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 	return true
 
 func _close_departure_review() -> void:
@@ -1310,6 +1425,8 @@ func _clear_story_input() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 	interact_held = false
 	pending_weapon_swap = null
 
@@ -1507,6 +1624,8 @@ func _clear_world() -> void:
 	throw_armed = false
 	pending_place = false
 	place_armed = false
+	pending_reload = false
+	reload_armed = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
@@ -1633,6 +1752,13 @@ func _on_snapshot_received(data):
 	hud.set_tick(tick)
 	hud.set_player_count(participant_list.size())
 	hud.sync_scores_from_players(participant_list)
+	if hud.has_method("set_board_name"):
+		var mine_name: String = ""
+		if is_human_player and net_client.player_id != null and players.has(str(net_client.player_id)):
+			var mine_pawn: Node = players[str(net_client.player_id)] as Node
+			if mine_pawn != null and is_instance_valid(mine_pawn):
+				mine_name = str(mine_pawn.get("player_name"))
+		hud.set_board_name(mine_name)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
 		hud.set_team_scores(data.get("team_scores"))
@@ -1669,6 +1795,14 @@ func _on_snapshot_received(data):
 		
 		if players.has(id):
 			players[id].update_state(player_data, int(tick))
+			if mission_hud != null and is_human_player and net_client.player_id != null and str(id) == str(net_client.player_id):
+				mission_hud.feet = Vector3(float(player_data.x), float(player_data.y), float(player_data.z))
+				var facing: Variant = player_data.get("yaw")
+				if facing is float or facing is int:
+					mission_hud.yaw = float(facing)
+					mission_hud.yaw_known = true
+				else:
+					mission_hud.yaw_known = false
 			if players[id].is_campaign_companion:
 				# Every real companion snapshot owns the visible body, including
 				# the stationary release phase and its authoritative shot stop.
@@ -1714,7 +1848,7 @@ func _on_snapshot_received(data):
 	if is_human_player:
 		_refresh_fp_target()
 		_update_local_fp_hud(data.get("players", []))
-		_apply_local_prediction()
+		_apply_local_prediction(Time.get_ticks_usec())
 	if hud and hud.has_method("set_fp_carried_flag"):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
@@ -1748,9 +1882,23 @@ func _update_nameplates() -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport == null:
 		return
+	var viewer_team: String = ""
+	if is_human_player:
+		var local_pawn: Node = players.get(local_fp_pawn_id)
+		if is_instance_valid(local_pawn):
+			viewer_team = MatchRules.valid_team(local_pawn.get("team"))
+	for id: Variant in players:
+		var marked: Node = players[id]
+		if not is_instance_valid(marked) or not marked.has_method("set_team_relation"):
+			continue
+		var relation: String = ""
+		if viewer_team != "" and str(id) != local_fp_pawn_id and int(marked.get("hp")) > 0:
+			relation = MatchRules.team_relation(viewer_team, str(marked.get("team")))
+		marked.set_team_relation(relation)
 	var watching: bool = not is_human_player and not camera.is_observing_first_person()
+	var marking: bool = viewer_team != ""
 	var view: Camera3D = viewport.get_camera_3d()
-	if not watching or view == null:
+	if (not watching and not marking) or view == null:
 		for pawn: Node in players.values():
 			if is_instance_valid(pawn):
 				pawn.set_nameplate_enabled(false)
@@ -1777,7 +1925,15 @@ func _update_nameplates() -> void:
 			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:
 			pawn.set_nameplate_enabled(false)
 			continue
-		var priority: int = 0 if carrier_ids.has(str(id)) else (1 if pawn == followed else 2)
+		var relation: String = str(pawn.get("team_relation")) if marking and not watching else ""
+		if marking and not watching and relation == "":
+			pawn.set_nameplate_enabled(false)
+			continue
+		var priority: int = 2
+		if relation == "mate" or (relation == "" and carrier_ids.has(str(id))):
+			priority = 0
+		elif relation == "foe" or pawn == followed:
+			priority = 1
 		entries.append({"id": str(id), "rect": area, "priority": priority,
 			"distance": view.global_position.distance_to(label.global_position)})
 	var reserved: Array[Rect2] = arena_flags.blocker_rects(view) if arena_flags != null else []

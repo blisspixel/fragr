@@ -51,6 +51,10 @@ pub struct Inventory {
     revision: u64,
     dry_fire_count: u64,
     dry_latched: bool,
+    /// None keeps the single ammunition count. Some is a human magazine per gun.
+    magazines: Option<[u16; WeaponType::ALL.len()]>,
+    reload_weapon: Option<WeaponType>,
+    reload_ready_at: Option<u64>,
 }
 
 impl Inventory {
@@ -88,6 +92,12 @@ impl Inventory {
         self.grenades = saved.grenades;
         self.mines = saved.proximity_mines;
         self.dry_latched = false;
+        self.reload_weapon = None;
+        self.reload_ready_at = None;
+        if self.magazines.is_some() {
+            let loaded = self.allocate_loaded();
+            self.magazines = Some(loaded);
+        }
         self.revision += 1;
         Ok(())
     }
@@ -106,6 +116,9 @@ impl Inventory {
             revision: 0,
             dry_fire_count: 0,
             dry_latched: false,
+            magazines: None,
+            reload_weapon: None,
+            reload_ready_at: None,
         }
     }
 
@@ -142,6 +155,9 @@ impl Inventory {
         self.grenades = entry.grenades;
         self.mines = entry.mines;
         self.claims.clone_from(&entry.claims);
+        self.magazines = entry.magazines;
+        self.reload_weapon = None;
+        self.reload_ready_at = None;
         self.dry_latched = false;
         self.revision += 1;
     }
@@ -156,11 +172,43 @@ impl Inventory {
         }
     }
 
-    /// Owned and able to fire now: unlimited arsenals always, discovery
-    /// weapons while their ammunition lasts.
+    pub fn armed(&self) -> bool {
+        self.magazines.is_some()
+    }
+
+    pub fn reloading(&self) -> bool {
+        self.reload_weapon.is_some()
+    }
+
+    /// Give a human magazines. An arcade human also receives the finite spawn
+    /// kit. A weapon-only mutator fills its one magazine and keeps no bag.
+    /// A second call leaves the current magazines alone.
+    pub fn arm_magazines(&mut self) {
+        if self.magazines.is_some() {
+            return;
+        }
+        if self.finite_arcade() {
+            self.seed_arcade_spawn();
+        }
+        let loaded = self.allocate_loaded();
+        self.magazines = Some(loaded);
+        self.revision = self.revision.saturating_add(1);
+    }
+
+    /// Owned and able to fire now. An armed magazine must have a round and
+    /// must not be the gun currently reloading. An unarmed arsenal keeps the
+    /// single count.
     pub fn usable(&self, weapon: WeaponType) -> bool {
         if !self.owns(weapon) {
             return false;
+        }
+        if let Some(magazines) = self.magazines {
+            if self.reload_weapon == Some(weapon) {
+                return false;
+            }
+            return weapon
+                .magazine_size()
+                .is_none_or(|_| magazines[weapon.index()] > 0);
         }
         if self.policy == EquipmentPolicy::FullArsenal {
             return true;
@@ -205,7 +253,18 @@ impl Inventory {
 
     pub fn grant_weapon(&mut self, weapon: WeaponType) -> bool {
         if self.policy == EquipmentPolicy::FullArsenal {
-            return self.owns(weapon);
+            if !self.owns(weapon) {
+                return false;
+            }
+            // Unarmed pawns and a weapon-only mutator keep an open gun.
+            // An armed arcade human restocks the finite bag from the weapon pad.
+            if !self.finite_arcade() || self.magazines.is_none() {
+                return true;
+            }
+            let Some(pool) = weapon.ammo_pool() else {
+                return true;
+            };
+            return self.grant_carried(pool, weapon.pickup_rounds()) > 0;
         }
         let Some(pool) = weapon.ammo_pool() else {
             // Pool-less melee is ownership alone. Fists are always carried.
@@ -221,7 +280,11 @@ impl Inventory {
             self.owned[weapon.index()] = true;
             self.revision += 1;
         }
-        self.grant_ammo(pool, weapon.pickup_rounds()) > 0 || acquired
+        let gained = self.grant_ammo(pool, weapon.pickup_rounds()) > 0;
+        if acquired {
+            self.load_new_magazine(weapon);
+        }
+        gained || acquired
     }
 
     pub fn needs_ammo(&self, pool: AmmoPool) -> bool {
@@ -232,6 +295,10 @@ impl Inventory {
         if self.policy != EquipmentPolicy::Discovery {
             return 0;
         }
+        self.grant_carried(pool, amount)
+    }
+
+    fn grant_carried(&mut self, pool: AmmoPool, amount: u16) -> u16 {
         let count = &mut self.ammo[pool.index()];
         let next = count.saturating_add(amount).min(pool.capacity());
         if next == *count {
@@ -306,9 +373,13 @@ impl Inventory {
 
     /// Called only after alive/cooldown admission, before RNG or ray resolution.
     /// One shot, including one Scatter blast of several pellets, spends one unit.
+    /// An armed magazine spends that unit from the gun and from the carried total.
     pub fn try_fire(&mut self, selected: WeaponType) -> bool {
         if !self.owns(selected) {
             return false;
+        }
+        if self.magazines.is_some() {
+            return self.try_fire_magazine(selected);
         }
         if self.policy == EquipmentPolicy::FullArsenal {
             return true;
@@ -323,17 +394,138 @@ impl Inventory {
             self.dry_latched = false;
             return true;
         }
-        if !self.dry_latched {
-            self.dry_latched = true;
-            self.dry_fire_count = self.dry_fire_count.saturating_add(1);
-            self.revision += 1;
-        }
+        self.note_dry_fire();
         false
     }
 
+    pub fn request_reload(&mut self, weapon: WeaponType, tick: u64) -> bool {
+        if self.magazines.is_none() || self.reload_weapon.is_some() || !self.owns(weapon) {
+            return false;
+        }
+        let Some(size) = weapon.magazine_size() else {
+            return false;
+        };
+        let Some(ticks) = weapon.reload_ticks() else {
+            return false;
+        };
+        let loaded = self
+            .magazines
+            .map(|magazines| magazines[weapon.index()])
+            .unwrap_or(0);
+        if loaded >= size {
+            return false;
+        }
+        if self.policy == EquipmentPolicy::Discovery || self.finite_arcade() {
+            let Some(pool) = weapon.ammo_pool() else {
+                return false;
+            };
+            if self.reserve(pool) == 0 {
+                return false;
+            }
+        }
+        self.reload_weapon = Some(weapon);
+        self.reload_ready_at = Some(tick.saturating_add(u64::from(ticks)));
+        self.revision = self.revision.saturating_add(1);
+        true
+    }
+
+    pub fn cancel_reload(&mut self) {
+        if self.reload_weapon.is_none() && self.reload_ready_at.is_none() {
+            return;
+        }
+        self.reload_weapon = None;
+        self.reload_ready_at = None;
+        self.revision = self.revision.saturating_add(1);
+    }
+
+    pub fn finish_reload(&mut self, tick: u64) {
+        let Some(ready) = self.reload_ready_at else {
+            return;
+        };
+        if tick < ready {
+            return;
+        }
+        let Some(weapon) = self.reload_weapon.take() else {
+            self.reload_ready_at = None;
+            return;
+        };
+        self.reload_ready_at = None;
+        let Some(size) = weapon.magazine_size() else {
+            self.revision = self.revision.saturating_add(1);
+            return;
+        };
+        let loaded = self
+            .magazines
+            .map(|magazines| magazines[weapon.index()])
+            .unwrap_or(0);
+        let space = size.saturating_sub(loaded);
+        let take = if self.policy == EquipmentPolicy::Discovery || self.finite_arcade() {
+            weapon
+                .ammo_pool()
+                .map(|pool| space.min(self.reserve(pool)))
+                .unwrap_or(0)
+        } else {
+            space
+        };
+        if let Some(magazines) = self.magazines.as_mut() {
+            magazines[weapon.index()] = magazines[weapon.index()].saturating_add(take);
+        }
+        self.revision = self.revision.saturating_add(1);
+    }
+
+    /// Arcade respawn. An armed human gets the spawn kit again. A weapon-only
+    /// mutator refills its one magazine and still has no bag.
+    pub fn refill_if_armed(&mut self) {
+        if self.magazines.is_none() || self.policy != EquipmentPolicy::FullArsenal {
+            return;
+        }
+        self.reload_weapon = None;
+        self.reload_ready_at = None;
+        if self.finite_arcade() {
+            self.seed_arcade_spawn();
+        }
+        let loaded = self.allocate_loaded();
+        self.magazines = Some(loaded);
+        self.revision = self.revision.saturating_add(1);
+    }
+
     pub fn state(&self, player_id: Uuid, selected: WeaponType, tick: u64) -> Option<LoadoutState> {
+        let loaded = self.magazine_counts();
         if self.policy != EquipmentPolicy::Discovery {
-            return None;
+            if loaded.is_empty() {
+                return None;
+            }
+            let weapons: Vec<WeaponType> = WeaponType::ALL
+                .into_iter()
+                .filter(|&weapon| self.owns(weapon) && weapon.magazine_size().is_some())
+                .collect();
+            let selected = if weapons.contains(&selected) {
+                selected
+            } else {
+                weapons.first().copied()?
+            };
+            return Some(LoadoutState {
+                player_id,
+                tick,
+                selected,
+                weapons,
+                ammo: AmmoPool::ALL
+                    .into_iter()
+                    .map(|pool| AmmoCount {
+                        pool,
+                        rounds: if self.finite_arcade() {
+                            self.ammo[pool.index()]
+                        } else {
+                            0
+                        },
+                    })
+                    .collect(),
+                personal_claims: self.claims.iter().cloned().collect(),
+                grenades: self.grenades,
+                proximity_mines: self.mines,
+                dry_fire_count: self.dry_fire_count,
+                loaded,
+            });
         }
         Some(LoadoutState {
             player_id,
@@ -354,6 +546,134 @@ impl Inventory {
             grenades: self.grenades,
             proximity_mines: self.mines,
             dry_fire_count: self.dry_fire_count,
+            loaded,
         })
+    }
+
+    fn try_fire_magazine(&mut self, selected: WeaponType) -> bool {
+        if self.reload_weapon == Some(selected) {
+            return false;
+        }
+        if selected.magazine_size().is_none() {
+            return true;
+        }
+        let loaded = self
+            .magazines
+            .map(|magazines| magazines[selected.index()])
+            .unwrap_or(0);
+        if loaded == 0 {
+            self.note_dry_fire();
+            return false;
+        }
+        if let Some(magazines) = self.magazines.as_mut() {
+            magazines[selected.index()] = magazines[selected.index()].saturating_sub(1);
+        }
+        if self.policy == EquipmentPolicy::Discovery || self.finite_arcade() {
+            if let Some(pool) = selected.ammo_pool() {
+                self.ammo[pool.index()] = self.ammo[pool.index()].saturating_sub(1);
+            }
+        }
+        self.revision = self.revision.saturating_add(1);
+        self.dry_latched = false;
+        true
+    }
+
+    fn note_dry_fire(&mut self) {
+        if self.dry_latched {
+            return;
+        }
+        self.dry_latched = true;
+        self.dry_fire_count = self.dry_fire_count.saturating_add(1);
+        self.revision = self.revision.saturating_add(1);
+    }
+
+    fn finite_arcade(&self) -> bool {
+        self.policy == EquipmentPolicy::FullArsenal && self.only.is_none()
+    }
+
+    fn seed_arcade_spawn(&mut self) {
+        for pool in AmmoPool::ALL {
+            self.ammo[pool.index()] = pool.arcade_spawn();
+        }
+    }
+
+    fn allocate_loaded(&self) -> [u16; WeaponType::ALL.len()] {
+        let mut loaded = [0; WeaponType::ALL.len()];
+        if self.policy == EquipmentPolicy::FullArsenal && !self.finite_arcade() {
+            for weapon in WeaponType::ALL {
+                if self.owns(weapon) {
+                    loaded[weapon.index()] = weapon.magazine_size().unwrap_or(0);
+                }
+            }
+            return loaded;
+        }
+        let mut remaining = self.ammo;
+        for weapon in WeaponType::ALL {
+            if !self.owns(weapon) {
+                continue;
+            }
+            let Some(pool) = weapon.ammo_pool() else {
+                continue;
+            };
+            let Some(size) = weapon.magazine_size() else {
+                continue;
+            };
+            let take = size.min(remaining[pool.index()]);
+            loaded[weapon.index()] = take;
+            remaining[pool.index()] -= take;
+        }
+        loaded
+    }
+
+    fn load_new_magazine(&mut self, weapon: WeaponType) {
+        if self.magazines.is_none() {
+            return;
+        }
+        let Some(size) = weapon.magazine_size() else {
+            return;
+        };
+        let rounds = if self.policy == EquipmentPolicy::FullArsenal && !self.finite_arcade() {
+            size
+        } else {
+            let Some(pool) = weapon.ammo_pool() else {
+                return;
+            };
+            size.min(self.reserve(pool))
+        };
+        if let Some(magazines) = self.magazines.as_mut() {
+            magazines[weapon.index()] = rounds;
+        }
+    }
+
+    fn reserve(&self, pool: AmmoPool) -> u16 {
+        self.ammo[pool.index()].saturating_sub(self.loaded_in_pool(pool))
+    }
+
+    fn loaded_in_pool(&self, pool: AmmoPool) -> u16 {
+        let Some(magazines) = self.magazines else {
+            return 0;
+        };
+        WeaponType::ALL
+            .into_iter()
+            .filter(|weapon| weapon.ammo_pool() == Some(pool) && self.owns(*weapon))
+            .map(|weapon| magazines[weapon.index()])
+            .fold(0u16, u16::saturating_add)
+    }
+
+    fn magazine_counts(&self) -> Vec<crate::protocol::MagazineCount> {
+        let Some(magazines) = self.magazines else {
+            return Vec::new();
+        };
+        WeaponType::ALL
+            .into_iter()
+            .filter(|weapon| self.owns(*weapon) && weapon.magazine_size().is_some())
+            .map(|weapon| crate::protocol::MagazineCount {
+                weapon,
+                rounds: magazines[weapon.index()],
+                ready_at: (self.reload_weapon == Some(weapon))
+                    .then_some(self.reload_ready_at)
+                    .flatten(),
+            })
+            .collect()
     }
 }

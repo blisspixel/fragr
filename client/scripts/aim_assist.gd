@@ -40,6 +40,9 @@ const BODY_RADIUS: float = 0.5
 const BODY_HEIGHT: float = 1.8
 const CRAWLER_HEIGHT: float = 0.8
 const NOTARY_HEIGHT: float = 0.7
+## Breastplate on the character rig. Matches combat::TORSO_HEIGHT.
+## Half of BODY_HEIGHT is the hips, so aim help must not lock there.
+const TORSO_HEIGHT: float = 1.22
 ## Server positions sit this far above the feet.
 const SERVER_REFERENCE_Y: float = 1.5
 
@@ -52,10 +55,15 @@ static func level_from(value: Variant) -> Level:
 static func enabled_for(level: Level, look_source: String) -> bool:
 	return level != Level.OFF and look_source in ["keyboard", "gamepad"]
 
-## Body centre of a fighter at a server position.
+## Where a shot meets a body at a server position: the chest of a fighter,
+## or the middle of a short Crawler or Notary volume.
+static func aim_height(campaign: Dictionary = {}) -> float:
+	if str(campaign.get("side", "")) == "union" and str(campaign.get("kind", "")) in ["crawler", "notary"]:
+		return target_height(campaign) * 0.5
+	return TORSO_HEIGHT
+
 static func body_centre(server_position: Vector3, campaign: Dictionary = {}) -> Vector3:
-	var height: float = target_height(campaign)
-	return server_position + Vector3(0.0, height * 0.5 - SERVER_REFERENCE_Y, 0.0)
+	return server_position + Vector3(0.0, aim_height(campaign) - SERVER_REFERENCE_Y, 0.0)
 
 static func target_height(campaign: Dictionary) -> float:
 	if campaign.get("side") == "union":

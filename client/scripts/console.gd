@@ -221,13 +221,16 @@ func _help() -> void:
 func _report_controls() -> void:
 	echo("move            W A S D, or the arrow keys")
 	echo("turn            Left and Right arrows, or Q and E, or the mouse")
+	echo("use             F or Enter, or B on a pad. Aim at the panel.")
 	echo("jump            Space")
-	echo("fire            Left mouse button, or Ctrl")
+	echo("duck            Left Ctrl, hold")
+	echo("fire            Left mouse button, or Right Ctrl")
 	echo("weapon          Mouse wheel, bracket keys, or 1 through 5")
 	echo("join / leave    J and L")
 	echo("menu            Escape")
-	echo("radio           C station, N track, M mute")
-	echo("ammo            one count per type, no reload")
+	echo("radio           C station, N skip track, M play/pause")
+	echo("scope           Right mouse or Z, hold. Sniper Rifle only. Look slows while held.")
+	echo("reload          R. The corner shows rounds in the gun, then what is left to load.")
 
 func _game() -> Node:
 	for child in get_tree().get_root().get_children():

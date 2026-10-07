@@ -15,6 +15,16 @@ cooldowns, pickups and rounds. Clients request actions rather than assigning
 outcomes. Validation and bounded traffic reduce abuse; they do not prove the
 absence of implementation bugs or perfect cheat resistance.
 
+As of 2026-10-06, a shared arcade room admits only the gameplay and geometry
+versions that binary speaks. A campaign mission still uses its content floor,
+and every door refuses a hello newer than the binary. A human action on a
+shared-room socket drops `look_at`, so the server does not aim that pawn.
+Yaw and pitch stay. An external program that sends those angles is ordinary
+input. Excellent aim, fast reactions, and machine control are not cheating.
+An agent may still send `look_at`. A campaign human socket may still send it,
+because the mission probe aims that way. That campaign path is not closed.
+There is no kernel driver, no client scan, and no automatic ban.
+
 `server/src/access.rs` owns strict address/CIDR allow and ban lists. Bans can
 expire at midnight UTC on a date or at an exact UTC timestamp. Startup refuses
 malformed policy; a bad reload preserves the previous good list. Reloads

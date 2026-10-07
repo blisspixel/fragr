@@ -999,6 +999,34 @@ fn weapon_only_mutators_keep_their_arsenal_and_drop_nothing() {
 }
 
 #[test]
+fn a_human_magazine_survives_the_next_sabotage_round() {
+    let mut state = arena(quick());
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    state.arm_joined_magazines(id);
+    state.start_round();
+    assert!(player(&state, id).inventory.armed());
+    state.end_round("round".into());
+    state.players.iter_mut().find(|p| p.id == id).unwrap().hp = 0;
+    state.start_round();
+    assert!(player(&state, id).inventory.armed());
+    assert_eq!(player(&state, id).weapon, WeaponType::Fists);
+    assert!(state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap()
+        .inventory
+        .grant_weapon(WeaponType::Tack));
+    let loadout = player(&state, id)
+        .inventory
+        .state(id, WeaponType::Tack, state.tick)
+        .unwrap();
+    assert_eq!(loadout.shots(WeaponType::Tack), Some(12));
+    assert_eq!(loadout.ammo(crate::protocol::AmmoPool::Bullets), 50);
+}
+
+#[test]
 fn golden_rail_under_discovery_hands_over_the_railgun() {
     let mut state = GameState::with_map(MapKind::Sector9, false);
     state.seed(5);

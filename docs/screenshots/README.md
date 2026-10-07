@@ -306,7 +306,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `m01_stacks_16x9.png` | File stacks, dark steel racks with red warning strips, green tile floor |
 | `m01_dispatch_16x9.png` | Dispatch after the fight, enamel walls with the red pinline |
 | `m01_secret_shiv_16x9.png` | The secret Shiv found in the confiscation alcove and held in hand |
-| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status. Isolated capture host is 127.0.0.1:6787; normal game port remains 6767. |
+| `tour_multiplayer_16x9.png` | App multiplayer page after GET /status, on the game port. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |
 | `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |

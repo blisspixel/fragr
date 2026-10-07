@@ -1,6 +1,6 @@
 //! Bounded M02 support. Latch follows the party and fires only at active threats.
 use super::*;
-use crate::combat::{aim_at, line_of_sight, target_height, Ray};
+use crate::combat::{aim_at, aim_point_for, line_of_sight, Ray};
 use crate::protocol::{Action, CompanionPhase, LookAt};
 use crate::sim::{BotIntent, Player};
 
@@ -26,16 +26,14 @@ fn clear_support_ray(
     tableau: &[crate::movement::Solid],
 ) -> bool {
     let target_feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-    let centre = [
-        target.x,
-        target_feet[1] + target_height(target.campaign) * 0.5,
-        target.z,
-    ];
+    let centre = aim_point_for(target_feet, target.campaign, target.ducking);
     let Some((yaw, pitch)) = aim_at(origin, centre) else {
         return false;
     };
     let ray = Ray::dispersed(origin, yaw, pitch, 0.0, [0.0, 0.0]);
-    let Some(hostile) = ray.actor(target_feet, target.campaign, SUPPORT_RANGE) else {
+    let Some(hostile) =
+        ray.actor_stance(target_feet, target.campaign, target.ducking, SUPPORT_RANGE)
+    else {
         return false;
     };
     !state.players.iter().any(|participant| {
@@ -43,9 +41,10 @@ fn clear_support_ray(
             && participant.id != target.id
             && state.contact_eligible(participant)
             && ray
-                .actor(
+                .actor_stance(
                     [participant.x, participant.y - PLAYER_FLOOR_Y, participant.z],
                     participant.campaign,
+                    participant.ducking,
                     hostile.distance,
                 )
                 .is_some_and(|hit| hit.distance < hostile.distance)
@@ -142,11 +141,7 @@ impl GameState {
                         let origin = [feet[0], feet[1] + crate::movement::EYE_HEIGHT, feet[2]];
                         line_of_sight(
                             origin,
-                            [
-                                p.x,
-                                p.y - PLAYER_FLOOR_Y + target_height(p.campaign) * 0.5,
-                                p.z,
-                            ],
+                            aim_point_for([p.x, p.y - PLAYER_FLOOR_Y, p.z], p.campaign, p.ducking),
                             &self.map.arena().solids,
                         ) && clear_support_ray(self, id, origin, p, &civilians, &tableau)
                     })

@@ -1568,8 +1568,8 @@ func _observed_state() -> Dictionary:
 func _equipment() -> Dictionary:
 	return _game_manager().get("net_client").get("equipment")
 
-## Hold the trigger until the held gun's ammunition count is spent. There is
-## no magazine: the whole count empties through authoritative shots.
+## Hold the trigger until the shown count reaches zero. When the loadout has
+## magazines, that count is the magazine. The reserve stays in the bag.
 func _empty_ammo() -> void:
 	var state: Dictionary = _equipment()
 	if state.is_empty() or state["selected"] == "fists":

@@ -74,13 +74,14 @@ Initial handshake message. Must be sent immediately after connection.
   and the server answers with a new token. A bad or expired token is
   `resume_rejected` and does not create a second pawn. Spectators omit it.
 - `geometry_version`: Maximum understood solid format, including earlier formats.
-  Current clients send `2`; omission means `1`. Before `Welcome`, the server sends
-  `error` with code `unsupported_geometry` and closes connections below the
-  selected map's requirement. Rotation uses the maximum across its whole roster.
-  No player or spectator session is created on rejection. This is geometry
-  compatibility, not general protocol or action-version negotiation.
+  Current clients send `2`; omission means `1`. A shared arcade room requires `2`.
+  A campaign map keeps that map's floor. Before `Welcome`, the server sends
+  `error` with code `unsupported_geometry` and closes a hello below the floor
+  or above `2`. The message names the version this process speaks when the
+  client is newer, and the floor when the client is older. No player or
+  spectator session is created on rejection.
 - `body`: optional. `human` or `synthetic`: the participant's chosen body, a
-  human or a conscious embodied agent in a synthetic body. Both share one
+  human or a free agent in a synthetic body. Both share one
   personal story, and the body does not establish moral status. Omission or
   `null` means `human` for every role. It is identity only: it never selects
   the control role, side, faction, spawn, equipment, hit volume, speed or
@@ -89,7 +90,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `36`; omission means `1`. Discovery-only maps first
+  and the Godot client send `37`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current discovery and campaign admission requires 26 as described below.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
@@ -112,15 +113,16 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. An arena with a rule set does not take the four-seat
-  mission party limit that capability 4 and above otherwise brings.
+  without teams misleads. A shared arcade room speaks gameplay 37. That floor
+  is above capability 4, and the arcade roster stays open. The four-seat
+  mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
   players. It is additive: no map requires it, older readers ignore the field,
   and an older client's pawn is human.
-  Version 14 adds typed flag state, capture scores and flag events. A capture
-  the flag server requires 14 for every role so a reader cannot miss the
-  objective or mistake frags for the score. Other modes keep their earlier
-  minimum capability. Version 15
+  Version 14 adds typed flag state, capture scores and flag events. Capture
+  the flag arrived at 14. A shared room now requires the current contract
+  under Protocol version, so a reader cannot sit in that room on 14 alone.
+  Version 15
   adds optional `seated: true` to the Union Clerk campaign identity.
   Version 16 adds the low Union Crawler, its timed leap and the positional
   `crawler_scrabble` event. Version 17 adds the M02 `ward_secured` fact, which
@@ -183,14 +185,28 @@ Initial handshake message. Must be sent immediately after connection.
   current pilot/passengers and explicit transit history. Every role requires 36
   before Welcome on that map. It adds no Repeater art, automatic grant or new
   combat channel.
+  Version 37 gives a joined human a magazine in each gun. The ammunition count
+  stays the total carried, including those rounds. `loadout.loaded` lists
+  `{weapon, rounds}` and an optional `ready_at` tick while that gun is
+  reloading. The corner reserve is the pool minus every magazine of that pool.
+  `Action.reload` is a rising edge and is omitted unless pressed. A loadout
+  that still carries the old keys `reserves` or `reload` is refused whole.
+  Agents, rule bots, campaign enemies and an unarmed pawn keep the single
+  count and send no `loaded`. An armed arcade human lists the magazine guns
+  and the finite spawn kit: 80 bullets, 24 shells and 16 cells, including the
+  rounds already in the guns. Death restores that kit. A weapon pad adds the
+  same pickup amount as discovery, up to the pool cap. A weapon-only mutator
+  still sends three zero counts and reloads from an unlimited reserve.
+  Only a shared arcade room requires 37. Campaign floors stay where they were.
+  A client omits `reload` until a loadout from this server includes `loaded`.
+  A process that never sends `loaded` rejects an action that contains the key.
   The revision 2 live campaign contract is retired; compatible historical
   saves and retained service records remain readable. Use matching campaign builds.
   Older clients of every role are rejected before `Welcome`
-  with `unsupported_gameplay`. This capability is separate from geometry. The six
-  full-arsenal arcade maps still accept 1. There an older reader draws only the
-  first pellet of each scatter result, and an action still carrying the retired
-  `reload` field is ignored as an unreadable action, never counted toward
-  `malformed`.
+  with `unsupported_gameplay`. This capability is separate from geometry. A
+  shared arcade room requires the same 37, as stated under Protocol version.
+  The arcade roster stays open. The four-seat mission party stays on campaign
+  doors.
 
 Admission rejection also places its stable error code in a WebSocket policy-close
 reason. Clients may receive the final text and close in one poll; use that reason
@@ -277,20 +293,54 @@ message and then a policy close whose reason is the same code:
 | `venue_kick` | the venue desk asked that seat to leave | removed |
 
 **Protocol version.** There is no single `protocol_version` in `Hello`.
-`gameplay_version` and `geometry_version` already reject an older client
-before `Welcome`, with a code that names which contract it lacks, and a
-newer client is admitted because both are maximum-understood capabilities.
-The envelope itself (JSON text frames tagged by `type`) has not changed. A
-breaking envelope change would add that field then, with its own rejection.
+`gameplay_version` and `geometry_version` are the two contracts. A shared
+arcade room, including free-for-all, team play, capture the flag, Sabotage,
+and the night list, requires gameplay `37` and geometry `2`. An older hello
+and a newer hello are both refused before `Welcome`, with
+`unsupported_gameplay` or `unsupported_geometry`. The message names version
+37 or geometry 2. An older hello is also sent to
+`https://github.com/blisspixel/fragr/releases/latest` and told to check the
+archive against `SHA256SUMS.txt` on that page. Join does not fetch the page.
+The join page can offer to download that archive after the player asks.
+That offer is not a status field, and a host that omits its version is not
+fetched. A newer hello is told which version this process speaks. A campaign or local
+mission keeps its content floor, so a reader between that floor and 37 can
+still enter that mission, and a hello above 37 or geometry above 2 is refused
+there too. The envelope itself
+(JSON text frames tagged by `type`) has not changed. A breaking envelope
+change would add that field then, with its own rejection. `GET /status` may
+include both versions. A missing field does not make the host unreadable,
+and the client does not refuse to join only because the field is absent.
 
 `GET /status` on the game port, before any WebSocket upgrade, returns a JSON
 `LiveStatus` (`schema_version` 2): `kind` (`arena` or `campaign`), map name,
 round, tick, fighters, humans, agents, bots, and connections. A missing `kind`
 is not an arena. Additive to schema 2, `mode` names the rule set's mode (`ffa`
 or `tdm`; a missing `mode` means `ffa`) and `mutators` lists its mutator ids,
-omitted when none, so a server list can show what a server plays. It does not list callsigns or addresses, and it does not take
+omitted when none, so a server list can show what a server plays. Additive
+`gameplay_version` and `geometry_version` name the contracts this process
+speaks, and are omitted by an older host. It does not list callsigns or addresses, and it does not take
 a connection slot. It is a host probe. Watching and playing happen in the Godot
 app, which reads only those fields and accepts exactly schema 2.
+
+The snapshot is copied out of its lock before it is serialized. If that copy
+does not finish within 50 ms, the probe answers HTTP 503 with
+`{"schema_version":2,"busy":true}` and does not invent a map. It does not
+answer schema 1 or `{}`. The process requests this line on its own loopback
+address before it reports ready. Startup fails when the reply is missing,
+the wrong schema, unnamed, or larger than 4096 bytes, which is what the
+client reads. A wildcard bind also probes this computer's other non-virtual
+IPv4 addresses and logs each result. That log may name those addresses.
+`/status` itself still does not. A check from this computer does not prove
+another computer can connect. A new socket waits up to one second for its
+first bytes. A `GET /status` inside that wait is still this probe. A line
+that is clearly not status is a game handshake at once.
+
+A process that is not bound to loopback also broadcasts UDP `6768` every two
+seconds. The packet is exactly `FRAGR/1 <tcp-port>\n`. It names the game port
+and nothing else: no map, callsign, ticket, or token. It is not a join and not
+the game transport. A loopback bind does not send it. The client listens only
+while the join page is open, then confirms the host with `GET /status`.
 
 Schema 2 changes only when one of those fields changes meaning or is removed.
 Two additive blocks follow them once the tick loop has refreshed once (about a
@@ -330,7 +380,15 @@ second after start); a reader that does not know them ignores them:
     `queue_overflows_total`. Outbound counts every text frame a session writer
     delivered, welcome included. Inbound counts every data frame read after
     admission, hello included, before the inbound budget drops any.
-  - `clients`: only for `GET /status?clients=1`. One anonymous entry per
+  - `night`: `rounds_finished`, `peak_humans`, and `peak_fighters` for this
+    process. A round is counted when it ends. Peaks are the busiest
+    participant room seen: humans, and fighters (humans, joined agents, and
+    rule bots). Spectators are not fighters. Counts only, with no callsigns.
+    `ops.version` stays 1 because the block is additive. An older body that
+    omits `night` reads as zeros.
+  - `clients`: only for `GET /status?clients=1` from a loopback address.
+    An IPv4-mapped IPv6 loopback counts as loopback. Another computer
+    receives the plain body. One anonymous entry per
     session, ordered human, agent, spectator, longest connected first:
     `role`, `connected_s`, the four window rates, cumulative `out_bytes` and
     `in_bytes`, and the current outbound `queue_depth`. No ids, names or
@@ -658,9 +716,9 @@ reject changed run identity or increasing allowance across same-map updates.
 #### Action
 
 Sent by `human` or `agent` roles to control their player. Movement, firing, jump
-and interaction flags are optional booleans defaulting to `false`. There is no
-reload: `reload` is not a field, and an action carrying it does not parse.
-Optional aim, sequence and weapon fields use the types described below.
+and interaction flags are optional booleans defaulting to `false`. `reload`
+is one of those booleans for an armed human, omitted while false. Optional
+aim, sequence and weapon fields use the types described below.
 
 ```json
 {
@@ -695,6 +753,13 @@ World-point aim:
 - `left` / `right`: Strafe left/right
 - `turn_left` / `turn_right`: Rotate view left/right (incremental)
 - `fire`: Fire weapon
+- `reload`: Optional boolean, omitted while false. A rising edge starts one
+  reload of the selected gun. Holding it does not start another until a packet
+  omits the key. An unarmed pawn, an agent, melee, a full magazine, a bag with
+  nothing left for that gun, and a gun that is already reloading ignore it.
+  Starting a reload blocks that gun until `ready_at`. Death and a real weapon
+  change cancel it. A client sends the key only after this server has included
+  `loaded` on a loadout, and erases it when the control is up.
 - `throw_grenade`: Optional held boolean, omitted while false. A rising edge
   latches one counted throw, including a press and release between ticks.
   Holding it does not repeat. The launch uses authoritative aim, consumes one
@@ -713,14 +778,29 @@ World-point aim:
   a press followed by release before the next tick is retained for that tick.
   The retained press is consumed once, including while airborne or dead, so it
   cannot create delayed jumps. Holding jump does not add thrust in the air.
+- `duck`: Optional held boolean, omitted while false. This server advertises
+  the key with `Welcome.duck`. A client must not send it until that flag is
+  present, because an older `Action` rejects unknown fields and would drop the
+  whole input. While it is set, a participant fighter is 1.35 m tall, the eye
+  is at 1.15 m, and horizontal speed is 0.34 of the speed already chosen.
+  Releasing it stands back up unless the ceiling will not allow 1.8 m. The
+  snapshot field is the resolved stance, not the raw key. Campaign enemies,
+  Notaries, Crawlers, and bosses ignore it. Jump is unchanged.
 - `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"` | `"repeater"`.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
   cooldown or RNG draw.
-- `look_at`: (optional) Authoritative target aim. Prefer `player_id` (UUID string),
-  or both `x` and `z` with optional world `y`. A player target aims at the body
-  centre, 0.9 units above its feet. A world point without `y` means horizontal aim.
+- `look_at`: (optional) Agent target aim. A shared-room human socket drops
+  the field, so the server does not aim that pawn. Yaw and pitch remain the
+  human aim. A campaign socket and an in-process controller may still send
+  it. Prefer `player_id` (UUID string),
+  or both `x` and `z` with optional world `y`. A player target aims at the chest,
+  1.22 units above the feet, when the belt is clearly open. A counter that hides
+  the hips, a lip the shot cone would still strike, or a gap that shows
+  the hips but not the chest keeps the shot on the hip line. A Crawler or a
+  Notary is aimed at the middle of its shorter body. A world point without `y`
+  means horizontal aim.
   Valid target intent replaces yaw and pitch after movement. Missing targets,
   coincident points, and nonfinite coordinates leave the current aim unchanged.
 - `yaw`: (optional) Client-owned absolute facing in radians. When present the server takes it as the fighter's yaw for this input, before movement, instead of turning at a fixed rate from the turn bits. Normalised into `[0, 2 pi)`; non-finite values are ignored and the turn bits apply as before. This is how a human client keeps the look axis off the network.
@@ -961,8 +1041,10 @@ Agents need this to tell a clear shot from a wall. Before it existed, the refere
 
 Discovery maps send `type: "loadout"` only to the owning human or agent when its
 equipment changes, including an initial state. It is never broadcast and never
-sent to spectators. Full-arsenal maps send no loadout. Selection remains public
-in `Snapshot.players[].weapon`; ammunition does not.
+sent to spectators. An unarmed full-arsenal pawn sends no loadout. An armed
+arcade human receives the magazine guns, the finite spawn kit and `loaded`.
+A weapon-only mutator sends three zero counts instead, because that one gun
+has no bag. Selection remains public in `Snapshot.players[].weapon`; ammunition does not.
 
 ```json
 {
@@ -998,11 +1080,21 @@ Shotgun, and repeated key 4 cycles the owned Rifle/Repeater family. The existing
 wheel includes Repeater beside Rifle without changing wire or record indices.
 `ammo` contains
 all three unique pools: `bullets` (Tack, Flechette and Repeater, cap 200), `shells`
-(Scatter, cap 50) and `cells` (Rail and Sniper, cap 100 since capability 12). There are no magazines and no
-reload: one shot, including a seven-pellet scatter blast, spends one unit from
-its pool, and fists need nothing. A weapon pickup adds Tack 50, Flechette 60,
-Scatter 12, Rail 10, Sniper 8 or Repeater 60 units. The magazine-era `reserves` and `reload` fields are
-gone and a message carrying them is refused whole.
+(Scatter, cap 50) and `cells` (Rail and Sniper, cap 100 since capability 12). One shot, including a seven-pellet scatter blast, spends one unit from
+its pool, and fists need nothing. On an armed human that unit also leaves the
+selected magazine. `loaded` is omitted when the pawn has no magazines. Each
+entry is `{weapon, rounds}` with optional `ready_at`. Rounds cannot exceed the
+magazine, entries are unique and owned, at most one gun is reloading, and the
+sum of magazines in a pool cannot exceed that pool. An arcade magazine loadout
+has one entry per listed gun. A finite bag sends the real counts. Three zeros
+mean a weapon-only gun with no bag. Discovery still
+requires fists. A weapon pickup adds Tack 50, Flechette 60,
+Scatter 12, Rail 10, Sniper 8 or Repeater 60 units to the pool. A gun acquired
+for the first time then fills its magazine from that pool without adding more.
+A later pickup adds to the pool only. The loadout keys `reserves` and `reload`
+stay refused whole. Magazine sizes and reload ticks live on `WeaponType`:
+Tack 12 and 16, Flechette 20 and 22, Repeater 30 and 22, Scatter 6 and 14,
+Rail 4 and 28, Sniper 5 and 28. Fists and the Shiv have none.
 `personal_claims` hides introductory supplies only for their claimant. IDs follow
 the authored map contract. `dry_fire_count` advances once per held empty trigger,
 resets with a development life, and drives feedback without generating shots.
@@ -1129,7 +1221,8 @@ Server response to `Hello`. Confirms connection and provides player ID.
   "role": "spectator" | "human" | "agent",
   "mode_name": "Contested Frequency",
   "playlist": "Arena Duel",
-  "body": "human" | "synthetic"
+  "body": "human" | "synthetic",
+  "duck": true
 }
 ```
 
@@ -1141,6 +1234,9 @@ Server response to `Hello`. Confirms connection and provides player ID.
   the parked pawn's own body. Omitted for a spectator and by
   servers before capability 13; a reader then treats the pawn as human rather
   than inferring a body from the role or name.
+- `duck`: present and true only when this server accepts a held `Action.duck`
+  and publishes the resolved stance. Omitted by older servers. Absence means
+  the client must not send the key.
 - `mode_name`: Named scrap-league identity (default Contested Frequency)
 - `playlist`: Playlist under the league lie (default Arena Duel)
 
@@ -1274,6 +1370,9 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
   - `lives`: (optional) lives left this round, this one included, when lives are limited
   - `golden`: (optional) true while holding the golden Railgun, omitted otherwise
+  - `ducking`: (optional) resolved crouch, omitted while standing. True while
+    the duck key is held or the ceiling will not allow the 1.8 m body. The
+    shot volume, eye, and contact height follow it. Older readers ignore it.
   - `collidable`: Boolean server-owned living-body eligibility. New servers
     always include it. Dead, detached, eliminated, respawning and unready
     campaign bodies report false. Legacy omission defaults to true, still
@@ -1453,8 +1552,8 @@ body cannot launch or claim this counter. The client presents these ticks and
 resolved contact facts; provisional poses are not final role art acceptance.
 
 A `ranged_sweeper` has 70 HP and carries the `Sniper`. It never changes
-position. It sees a participant within 90 units when either the body centre or
-the eye is in clear line of sight, notices a new target only within 1.0 radian
+position. It sees a participant within 90 units when either the chest or
+the head is in clear line of sight, notices a new target only within 1.0 radian
 of its authored yaw, and engages within 88 units. Its `windup` is the scope
 glint and hold: the aim locks on the first windup tick and one Sniper shot
 resolves on the tick `phase_ends`. Windup lasts 40, 30 or 24 ticks on
@@ -1810,9 +1909,13 @@ CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"unio
 
 ### Match rules
 
-A server runs one rule set, chosen by the host at launch
+A server started with one mode runs that rule set until it stops
 (`--mode ffa|tdm|ctf|sabotage`, repeatable `--mutator`, `--friendly-fire`, `--frag-limit` for FFA/TDM, `--capture-limit` for CTF or `--sabotage-format short|match` for Sabotage).
-`map_info.rules` carries it to every connection, `round_start` repeats it,
+`--playlist` replaces that fixed choice with the built-in night list: the same
+process changes map and mode when a show ends, and each `map_info` carries the
+show now in play, including when the map id does not change. Sabotage plays
+its full short match before the list moves. A playlist file is not on the wire.
+`map_info.rules` carries the current rule set to every connection, `round_start` repeats it,
 `GET /status` names it, and the MCP adapter returns it from `round_state`.
 
 ```json
@@ -1900,8 +2003,8 @@ The first flagship round mode, on Sector 9 only. The free coalition
 plants it with a held Use. The Union (`union`) defends the sites or defuses a
 planted charge. One life per round, no shop and no loadouts. A server with
 `--mode sabotage` on any other map, or with rotation, refuses to start. A
-Sabotage server requires gameplay capability 28 for every role, spectators
-included.
+Sabotage server is a shared room: it speaks gameplay 37 and geometry 2 for
+every role, spectators included. Capability 28 is when the objective arrived.
 
 **`map_info.sabotage`** carries the static layout once, never per tick:
 

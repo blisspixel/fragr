@@ -29,6 +29,23 @@ pub(super) struct Mine {
     phase_ends: u64,
 }
 
+#[cfg(test)]
+impl GameState {
+    /// One live mine, so a map change can prove the world was cleared.
+    pub(crate) fn test_insert_mine(&mut self, owner: Uuid) {
+        self.mines.push(Mine {
+            id: self.projectile_serial.wrapping_add(1),
+            owner_id: owner,
+            position: [1.0, 0.0, 1.0],
+            velocity: [0.0, 0.0, 0.0],
+            normal: [0.0, 1.0, 0.0],
+            phase: MinePhase::Armed,
+            phase_started: self.tick,
+            phase_ends: self.tick,
+        });
+    }
+}
+
 impl GameState {
     pub(crate) fn clear_mines(&mut self) {
         self.mines.clear();
@@ -82,7 +99,8 @@ impl GameState {
             }
             let origin = [
                 player.x,
-                player.y - PLAYER_FLOOR_Y + crate::combat::eye_height(player.campaign),
+                player.y - PLAYER_FLOOR_Y
+                    + crate::combat::stance_eye(player.campaign, player.ducking),
                 player.z,
             ];
             if !grenade::clear_sphere(origin, &arena)

@@ -84,6 +84,13 @@ const FP_EYE_ABOVE_FEET = MoveStep.EYE_HEIGHT
 ## at three metres looking down on a world built for one and a half.
 const FP_SERVER_REFERENCE_Y = 1.5
 const FP_EYE_HEIGHT = FP_EYE_ABOVE_FEET - FP_SERVER_REFERENCE_Y
+
+## Standing lift, or the crouch drop when the pawn is short. The viewmodel
+## is a child of this camera, so it drops with the eye.
+static func eye_lift(target: Object) -> float:
+	if target != null and target.get("ducking") == true:
+		return FP_EYE_HEIGHT - (MoveStep.EYE_HEIGHT - MoveStep.DUCK_EYE_HEIGHT)
+	return FP_EYE_HEIGHT
 const TURN_ACCUM_THRESHOLD = 2.5
 
 func apply_preferences(preferences: FragrSettings) -> void:
@@ -275,7 +282,7 @@ func _follow_target(delta: float = 1.0 / 60.0) -> void:
 		if spectator_first_person:
 			_set_observed_pawn(target)
 			var yaw: float = _target_presentation_yaw(target)
-			global_position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
+			global_position = target.global_position + Vector3(0, eye_lift(target), 0)
 			rotation = Vector3(_target_presentation_pitch(target), ServerYaw.camera_rotation_y(yaw), 0.0)
 			mouse_motion = Vector2.ZERO
 			return
@@ -437,13 +444,14 @@ func _process_fp(delta):
 	if not is_instance_valid(fp_target):
 		return
 
-	# Local first-person play follows the latest authoritative pawn position.
-	# The rendered pawn already interpolates between snapshots. Following that
-	# interpolation, then smoothing the camera again, can leave the eye behind
-	# a stair wall while the server and hit geometry are in the next room.
-	var eye: Vector3 = fp_target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
-	if "target_position" in fp_target:
-		eye = fp_target.get("target_position") + Vector3(0, FP_EYE_HEIGHT, 0)
+	# Predicted play follows the rendered body, which moves between server
+	# ticks. Snapshot fallback keeps the authoritative position so the eye
+	# cannot smooth through a stair wall into the next room.
+	var predicted: bool = fp_target.get("prediction_active") == true
+	var lift: float = eye_lift(fp_target)
+	var eye: Vector3 = fp_target.global_position + Vector3(0, lift, 0)
+	if not predicted and "target_position" in fp_target:
+		eye = fp_target.get("target_position") + Vector3(0, lift, 0)
 	# The eye looks where the client aims, not where the last snapshot said.
 	var yaw = fp_yaw
 
@@ -454,8 +462,7 @@ func _process_fp(delta):
 			0
 		)
 
-	var camera_eye: Vector3 = fp_camera_position(global_position, eye, delta,
-		fp_target.get("prediction_active") == true)
+	var camera_eye: Vector3 = fp_camera_position(global_position, eye, delta, predicted)
 	# Keep the usual motion smoothing while both eyes share a clear space.
 	# Crossing an authoritative solid would put the view inside cover, so use
 	# the server eye immediately at that boundary.
@@ -479,7 +486,7 @@ func _assist_eye() -> Vector3:
 	var base: Vector3 = fp_target.global_position
 	if "target_position" in fp_target and fp_target.get("prediction_active") != true:
 		base = fp_target.get("target_position")
-	return base + Vector3(0, FP_EYE_HEIGHT, 0)
+	return base + Vector3(0, eye_lift(fp_target), 0)
 
 ## Radians of turn per mouse count at the current sensitivity.
 func _radians_per_count() -> float:
@@ -553,7 +560,7 @@ func set_fp_mode(enabled: bool, target: Node3D = null) -> void:
 		var yaw: float = _target_server_yaw(target)
 		fp_yaw = wrapf(yaw, 0.0, TAU)
 		fp_pitch = _target_server_pitch(target)
-		position = target.global_position + Vector3(0, FP_EYE_HEIGHT, 0)
+		position = target.global_position + Vector3(0, eye_lift(target), 0)
 		rotation.y = ServerYaw.camera_rotation_y(yaw)
 		rotation.x = fp_pitch
 

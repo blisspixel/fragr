@@ -5,6 +5,7 @@ mod enclosed_tests;
 pub mod grenade;
 pub mod mine;
 mod modes;
+mod playlist;
 pub(crate) mod repeater;
 pub mod sabotage;
 pub mod traveling_shot;
@@ -568,6 +569,9 @@ pub struct GameState {
     pub map: crate::maps::RuntimeMap,
     /// When true, alternate map each start_round.
     pub map_rotate: bool,
+    /// Built-in night list. Owns map and mode changes, so `map_rotate` stays off.
+    playlist: bool,
+    playlist_index: usize,
     /// Fighters that just respawned and their remaining shield ticks.
     pub spawn_shields: HashMap<Uuid, u32>,
     /// Solo Broadcast Episode 0 (Calibration / Larak Lot). Off for MP.
@@ -609,6 +613,8 @@ pub struct Player {
     grenade_cooldown: u32,
     place_requested: bool,
     mine_cooldown: u32,
+    /// A reload press survives newer released input until one tick observes it.
+    reload_requested: bool,
     pub fire_cooldown: u32,
     pub(crate) repeater_cycle: repeater::RepeaterCycle,
     pub respawn_timer: Option<u32>,
@@ -645,6 +651,9 @@ pub struct Player {
     pub(crate) detached: bool,
     /// Holds the golden Railgun.
     pub golden: bool,
+    /// Resolved crouch. The key, or already short under a ceiling that will
+    /// not take the standing body. Enemies, Notaries, and bosses stay tall.
+    pub ducking: bool,
     /// Chosen at admission and fixed for the pawn's life: respawn, resume
     /// and continue keep it. Nothing in combat reads it.
     pub body: crate::protocol::BodyKind,
@@ -670,6 +679,8 @@ impl Player {
         self.interaction_requested = false;
         self.throw_requested = false;
         self.place_requested = false;
+        self.reload_requested = false;
+        self.ducking = false;
         self.reset_movement_baseline();
     }
 
@@ -688,6 +699,14 @@ impl Player {
             && self
                 .campaign
                 .is_none_or(crate::protocol::CampaignActor::is_participant)
+    }
+
+    /// Fighters of standing height. A Crawler, a Notary, and a boss stay as authored.
+    pub(crate) fn duck_eligible(&self) -> bool {
+        !self.is_boss
+            && !self.is_campaign_enemy()
+            && !crate::combat::is_notary(self.campaign)
+            && crate::combat::target_height(self.campaign) + 0.01 >= crate::movement::BODY_HEIGHT
     }
 
     fn at_spawn(
@@ -718,6 +737,7 @@ impl Player {
             grenade_cooldown: 0,
             place_requested: false,
             mine_cooldown: 0,
+            reload_requested: false,
             fire_cooldown: 0,
             repeater_cycle: repeater::RepeaterCycle::default(),
             respawn_timer: None,
@@ -745,6 +765,7 @@ impl Player {
             eliminated: false,
             detached: false,
             golden: false,
+            ducking: false,
             body: crate::protocol::BodyKind::Human,
         }
     }
@@ -964,6 +985,12 @@ impl GameState {
             None
         };
 
+        // The night list and map rotation move first. Sabotage then records
+        // who fell in the show that is actually about to start.
+        let map_before = self.map.clone();
+        self.advance_rotation();
+        let map_changed = self.map != map_before;
+
         // A Sabotage match keeps frags across its rounds, and remembers who
         // fell in the last round: survivors carry their equipment forward.
         let sabotage_new_match = self.sabotage_new_match();
@@ -992,12 +1019,6 @@ impl GameState {
             self.solo_broadcast.host_line = Some(episode0_host_line_cold_open());
             self.relabel_rule_bots_as_nods();
         }
-        if self.map_rotate && self.round_number > 1 {
-            if let crate::maps::RuntimeMap::BuiltIn(kind) = &self.map {
-                self.map = crate::maps::RuntimeMap::BuiltIn(kind.next());
-            }
-            tracing::info!("Map rotate -> {} ({})", self.map.name(), self.map.id());
-        }
         self.reset_pickups();
         self.ended_host_line = None;
         self.ended_mvp = None;
@@ -1023,7 +1044,10 @@ impl GameState {
             if player.contestant() {
                 player.lives = lives;
             }
-            if std::mem::take(&mut player.eliminated) && !sabotage {
+            // A map change leaves a living fighter inside the old geometry.
+            // Sabotage places its own side spawns and must not be moved twice.
+            let eliminated = std::mem::take(&mut player.eliminated);
+            if !sabotage && (eliminated || (map_changed && player.contestant())) {
                 revive.push(player.id);
             }
         }
@@ -1229,6 +1253,19 @@ impl GameState {
 
     pub fn add_player(&mut self, id: Uuid, name: String, role: Role) {
         self.add_player_with_body(id, name, role, crate::protocol::BodyKind::Human);
+    }
+
+    /// Arm magazines for a human who joined at the reload contract, then keep
+    /// a just-captured campaign entry on that same equipment.
+    pub fn arm_joined_magazines(&mut self, id: Uuid) {
+        let Some(player) = self.players.iter_mut().find(|player| player.id == id) else {
+            return;
+        };
+        if player.role != Role::Human {
+            return;
+        }
+        player.inventory.arm_magazines();
+        self.refresh_campaign_entry_equipment(id);
     }
 
     /// Admit a participant with its chosen body. The body changes nothing the
@@ -1458,6 +1495,7 @@ impl GameState {
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
             player.place_requested |= action.place_mine && !player.pending_action.place_mine;
+            player.reload_requested |= action.reload && !player.pending_action.reload;
             player.pending_action = action;
         }
     }
@@ -1696,9 +1734,29 @@ impl GameState {
         }
     }
 
+    /// Publish the crouch before contact and movement read the body.
+    fn resolve_stances(&mut self, arena: &crate::movement::Arena) {
+        for player in &mut self.players {
+            let live = player.duck_eligible()
+                && player.hp > 0
+                && player.respawn_timer.is_none()
+                && !player.eliminated
+                && !player.detached;
+            if !live {
+                player.ducking = false;
+                continue;
+            }
+            let feet = player.y - PLAYER_FLOOR_Y;
+            let fits = arena.fits_height(player.x, player.z, feet, crate::movement::BODY_HEIGHT);
+            player.ducking =
+                crate::movement::ducked_stance(player.pending_action.duck, player.ducking, fits);
+        }
+    }
+
     /// Resolve the active frame against one immutable world. Movement and shots
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
+        self.resolve_stances(arena);
         let mut respawn_ids = Vec::new();
         let contact_before = self.contact_bodies();
         let before: Vec<[f32; 3]> = self
@@ -1749,19 +1807,25 @@ impl GameState {
             }
 
             if player.hp <= 0 {
+                player.inventory.cancel_reload();
                 continue;
             }
 
             player.statistics.alive_tick();
             player.inventory.tick(player.pending_action.fire);
+            player.inventory.finish_reload(self.tick);
 
             if let Some(new_weapon) = player.pending_action.weapon_swap.take() {
                 if player.inventory.select(player.weapon, new_weapon) {
                     if player.weapon != new_weapon {
                         player.repeater_cycle.reset();
+                        player.inventory.cancel_reload();
                     }
                     player.weapon = new_weapon;
                 }
+            }
+            if std::mem::take(&mut player.reload_requested) {
+                player.inventory.request_reload(player.weapon, self.tick);
             }
 
             let action = &player.pending_action;
@@ -1787,6 +1851,18 @@ impl GameState {
                 continue;
             }
             let jump_input = action.jump || jump_requested;
+            // The ack keeps the pre-duck speed. Prediction applies the scale
+            // again from the resolved stance, so baking it here would halve twice.
+            let travel = if player.ducking {
+                move_speed * crate::movement::DUCK_SPEED_SCALE
+            } else {
+                move_speed
+            };
+            let body_height = if player.ducking {
+                crate::movement::DUCK_HEIGHT
+            } else {
+                crate::combat::target_height(player.campaign)
+            };
             let moved = crate::movement::live_step_with_height(
                 crate::movement::MoveState {
                     x: player.x,
@@ -1806,10 +1882,10 @@ impl GameState {
                     yaw: player.yaw,
                     speed_scale: 1.0,
                 },
-                move_speed,
+                travel,
                 dt,
                 arena,
-                crate::combat::target_height(player.campaign),
+                body_height,
             );
             let held = muster.zip(player.team).is_some_and(|(layout, team)| {
                 player.contestant()
@@ -1884,8 +1960,18 @@ impl GameState {
             .filter(|p| crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign))
             .filter_map(|p| p.pending_action.look_at.clone().map(|look| (p.id, look)))
             .collect();
+        let look_solids = if look_intents.is_empty() {
+            Vec::new()
+        } else {
+            self.current_arena().solids.clone()
+        };
         for (aimer_id, look) in look_intents {
             let target_point: Option<[f32; 3]> = if let Some(pid) = look.player_id {
+                let eye = self
+                    .players
+                    .iter()
+                    .find(|p| p.id == aimer_id)
+                    .map(fighter_eye);
                 self.players
                     .iter()
                     .find(|p| {
@@ -1894,27 +1980,36 @@ impl GameState {
                             && crate::mission::actor_active(self.mission.as_ref(), p.id, p.campaign)
                     })
                     .map(|p| {
-                        [
-                            p.x,
-                            p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
-                            p.z,
-                        ]
+                        let feet = [p.x, p.y - PLAYER_FLOOR_Y, p.z];
+                        eye.map_or_else(
+                            || crate::combat::aim_point_for(feet, p.campaign, p.ducking),
+                            |eye| {
+                                crate::combat::shot_aim_for(
+                                    feet,
+                                    p.campaign,
+                                    p.ducking,
+                                    eye,
+                                    &look_solids,
+                                )
+                            },
+                        )
                     })
             } else if let (Some(x), Some(z)) = (look.x, look.z) {
-                self.players
-                    .iter()
-                    .find(|p| p.id == aimer_id)
-                    .map(|p| [x, look.y.unwrap_or(p.y - PLAYER_FLOOR_Y + EYE_HEIGHT), z])
+                self.players.iter().find(|p| p.id == aimer_id).map(|p| {
+                    [
+                        x,
+                        look.y.unwrap_or(
+                            p.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(p.campaign, p.ducking),
+                        ),
+                        z,
+                    ]
+                })
             } else {
                 None
             };
             if let Some(target) = target_point {
                 if let Some(aimer) = self.players.iter_mut().find(|p| p.id == aimer_id) {
-                    let eye = [
-                        aimer.x,
-                        aimer.y - PLAYER_FLOOR_Y + crate::combat::eye_height(aimer.campaign),
-                        aimer.z,
-                    ];
+                    let eye = fighter_eye(aimer);
                     if let Some((yaw, pitch)) = crate::combat::aim_at(eye, target) {
                         aimer.yaw = yaw;
                         aimer.pitch = pitch;
@@ -2048,9 +2143,27 @@ impl GameState {
             let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
             for (target, members) in groups {
                 // Falloff follows each pellet's own 3D distance to the surface.
+                // A pellet in the head band doubles before the sum, so armour
+                // and an Auditor plate still see one total. Fists and the Shiv
+                // stay flat. A miss group has no victim, and no bonus.
                 let damage = members
                     .iter()
-                    .map(|pellet| weapon.damage_at(pellet.distance))
+                    .map(|pellet| {
+                        let head = target.is_some_and(|victim_idx| {
+                            let victim = &self.players[victim_idx];
+                            crate::combat::head_hit_for(
+                                victim.y - PLAYER_FLOOR_Y,
+                                pellet.end[1],
+                                victim.campaign,
+                                victim.ducking,
+                            )
+                        });
+                        crate::combat::traced_damage(
+                            weapon,
+                            weapon.damage_at(pellet.distance),
+                            head,
+                        )
+                    })
                     .sum::<i32>();
                 let trace = ShotTrace {
                     weapon,
@@ -2614,7 +2727,8 @@ impl GameState {
         let shooter = &self.players[shooter_idx];
         let origin = [
             shooter.x,
-            shooter.y - PLAYER_FLOOR_Y + crate::combat::eye_height(shooter.campaign),
+            shooter.y - PLAYER_FLOOR_Y
+                + crate::combat::stance_eye(shooter.campaign, shooter.ducking),
             shooter.z,
         ];
         let (yaw, pitch, weapon) = (shooter.yaw, shooter.pitch, shooter.weapon);
@@ -2696,7 +2810,8 @@ impl GameState {
                 continue;
             }
             let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-            if let Some(hit) = ray.actor(feet, target.campaign, closest_dist) {
+            if let Some(hit) = ray.actor_stance(feet, target.campaign, target.ducking, closest_dist)
+            {
                 if hit.distance < cover_distance
                     && (hit.distance < closest_dist || matches!(impact, ShotImpact::Range))
                 {
@@ -2727,10 +2842,21 @@ impl GameState {
         let others: Vec<([f32; 3], bool)> = self
             .players
             .iter()
-            .filter(|p| p.id != player_id && p.respawn_timer.is_none() && !p.eliminated)
+            .filter(|p| {
+                // A parked resume pawn still has a body. Shots already ignore
+                // it. Counting it here refuses the open pocket it stands in.
+                p.id != player_id && p.respawn_timer.is_none() && !p.eliminated && !p.detached
+            })
             .map(|p| {
                 let friendly = team.is_some() && p.team == team;
-                ([p.x, p.y - PLAYER_FLOOR_Y + EYE_HEIGHT, p.z], !friendly)
+                (
+                    [
+                        p.x,
+                        p.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(p.campaign, p.ducking),
+                        p.z,
+                    ],
+                    !friendly,
+                )
             })
             .collect();
         let slots = self.map.spawn_slots();
@@ -2814,6 +2940,7 @@ impl GameState {
             player.z = sz;
             player.yaw = yaw;
             player.pitch = 0.0;
+            player.ducking = false;
             player.hp = PLAYER_MAX_HP;
             player.armor = 0;
             player.respawn_timer = None;
@@ -2824,11 +2951,18 @@ impl GameState {
             }
 
             if self.map.equipment_policy() == crate::protocol::EquipmentPolicy::Discovery {
+                let armed = player.inventory.armed();
                 player.inventory = crate::inventory::Inventory::new(self.map.equipment_policy());
+                if armed {
+                    player.inventory.arm_magazines();
+                }
                 player.weapon = WeaponType::Fists;
                 player.pending_action = Action::default();
                 player.jump_requested = false;
+                player.reload_requested = false;
                 player.just_fired = false;
+            } else {
+                player.inventory.refill_if_armed();
             }
 
             self.events.push(GameEvent::Respawn {
@@ -2890,6 +3024,7 @@ impl GameState {
                         team: p.team,
                         lives: p.lives,
                         golden: p.golden,
+                        ducking: p.ducking,
                         body: p.is_participant().then_some(p.body),
                     }
                 })
@@ -3097,6 +3232,27 @@ impl GameState {
         self.set_roster_host_line_from_names(&names);
     }
 
+    /// Humans and fighters in the room. Spectators are neither. Rule bots count
+    /// as fighters, matching [`Self::live_status`].
+    pub(crate) fn participant_counts(&self) -> (u32, u32) {
+        let mut humans = 0u32;
+        let mut fighters = 0u32;
+        for player in &self.players {
+            if !player.is_participant() {
+                continue;
+            }
+            match player.role {
+                Role::Human => {
+                    humans = humans.saturating_add(1);
+                    fighters = fighters.saturating_add(1);
+                }
+                Role::Agent => fighters = fighters.saturating_add(1),
+                Role::Spectator => {}
+            }
+        }
+        (humans, fighters)
+    }
+
     /// Directory line. Bots are the server's own fighters. Agents joined.
     pub fn live_status(&self, connections: usize) -> crate::protocol::LiveStatus {
         let mut humans = 0;
@@ -3139,6 +3295,8 @@ impl GameState {
                 .collect(),
             health: None,
             ops: None,
+            gameplay_version: Some(crate::protocol::GAMEPLAY_VERSION),
+            geometry_version: Some(crate::protocol::GEOMETRY_VERSION),
         }
     }
 
@@ -3307,6 +3465,7 @@ impl GameState {
             grenade_cooldown: 0,
             place_requested: false,
             mine_cooldown: 0,
+            reload_requested: false,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3331,6 +3490,7 @@ impl GameState {
             eliminated: false,
             detached: false,
             golden: false,
+            ducking: false,
             body: crate::protocol::BodyKind::Human,
         });
         self.bots
@@ -3453,10 +3613,13 @@ impl GameState {
         }
 
         // Collect claims (player_id, pad index) without holding dual borrows.
+        // A parked pawn keeps its last position. It must not take the pad
+        // it is standing on while the player is gone.
         let mut claims: Vec<(Uuid, usize)> = Vec::new();
         for player in &self.players {
             if player.respawn_timer.is_some()
                 || player.hp <= 0
+                || player.detached
                 || player.is_boss
                 || player.eliminated
                 || player.is_campaign_enemy()
@@ -3506,7 +3669,12 @@ impl GameState {
                 if dx * dx + dz * dz <= PICKUP_CLAIM_RADIUS * PICKUP_CLAIM_RADIUS
                     && (!self.map.is_authored()
                         || crate::combat::line_of_sight(
-                            [player.x, player.y - PLAYER_FLOOR_Y + EYE_HEIGHT, player.z],
+                            [
+                                player.x,
+                                player.y - PLAYER_FLOOR_Y
+                                    + crate::combat::stance_eye(player.campaign, player.ducking),
+                                player.z,
+                            ],
                             [pad.x, pad.y, pad.z],
                             &self.current_arena().solids,
                         ))
@@ -3654,6 +3822,7 @@ impl GameState {
             grenade_cooldown: 0,
             place_requested: false,
             mine_cooldown: 0,
+            reload_requested: false,
             respawn_timer: None,
             just_fired: false,
             role: Role::Agent,
@@ -3678,6 +3847,7 @@ impl GameState {
             eliminated: false,
             detached: false,
             golden: false,
+            ducking: false,
             body: crate::protocol::BodyKind::Human,
         });
         self.bots
@@ -3912,6 +4082,8 @@ impl Default for GameState {
             roster_names: Vec::new(),
             map: crate::maps::RuntimeMap::BuiltIn(MapKind::ArenaDuel),
             map_rotate: false,
+            playlist: false,
+            playlist_index: 0,
             spawn_shields: HashMap::new(),
             solo_broadcast: SoloBroadcastEp0::default(),
             team_scores: TeamScores::default(),
@@ -3941,13 +4113,21 @@ fn face_flag_goal(bot: &Player, feet: [f32; 3]) -> Action {
     action
 }
 
+fn fighter_eye(p: &Player) -> [f32; 3] {
+    [
+        p.x,
+        p.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(p.campaign, p.ducking),
+        p.z,
+    ]
+}
+
+fn fighter_chest(p: &Player) -> [f32; 3] {
+    crate::combat::aim_point_for([p.x, p.y - PLAYER_FLOOR_Y, p.z], p.campaign, p.ducking)
+}
+
 fn aim_contact(action: &mut Action, bot: &Player, target: &Player) {
-    let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
-    let centre = [
-        target.x,
-        target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
-        target.z,
-    ];
+    let eye = fighter_eye(bot);
+    let centre = fighter_chest(target);
     action.pitch = crate::combat::aim_at(eye, centre).map(|(_, pitch)| pitch);
     let aim = (target.z - bot.z).atan2(target.x - bot.x);
     action.fire = ((aim - bot.yaw + PI).rem_euclid(2.0 * PI) - PI).abs() < 0.25;
@@ -3956,7 +4136,9 @@ fn aim_contact(action: &mut Action, bot: &Player, target: &Player) {
 fn nearest_contact<'a>(state: &'a GameState, bot: &Player) -> Option<&'a Player> {
     let mut best: Option<(&Player, f32)> = None;
     for target in &state.players {
-        if target.id == bot.id || target.hp <= 0 || target.respawn_timer.is_some() {
+        // A parked resume pawn still has a body and hit points. Shots already
+        // ignore it. Chasing it spends the round on a ghost.
+        if target.id == bot.id || !state.contact_eligible(target) {
             continue;
         }
         if !crate::protocol::hostile(bot.campaign, target.campaign)
@@ -4108,12 +4290,8 @@ impl BotController {
                 let beside = (runner.x - bot.x).hypot(runner.z - bot.z) <= 6.0;
                 if beside {
                     if let Some(target) = nearest_contact(state, bot) {
-                        let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
-                        let centre = [
-                            target.x,
-                            target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
-                            target.z,
-                        ];
+                        let eye = fighter_eye(bot);
+                        let centre = fighter_chest(target);
                         if crate::combat::line_of_sight(eye, centre, &state.current_arena().solids)
                         {
                             combat = true;
@@ -4150,8 +4328,7 @@ impl BotController {
 
         for target in &state.players {
             if target.id == self.player_id
-                || target.respawn_timer.is_some()
-                || target.hp <= 0
+                || !state.contact_eligible(target)
                 || !crate::protocol::hostile(bot.campaign, target.campaign)
                 || (bot.team.is_some() && target.team == bot.team)
             {
@@ -4251,15 +4428,7 @@ impl BotController {
                 let intercept = (defender || enemy.carrier == Some(bot.id))
                     && thief.is_some_and(|target| (target.x - bot.x).hypot(target.z - bot.z) < 1.5);
                 if let Some(target) = thief.filter(|_| intercept) {
-                    let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
-                    let centre = [
-                        target.x,
-                        target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
-                        target.z,
-                    ];
-                    action.pitch = crate::combat::aim_at(eye, centre).map(|(_, pitch)| pitch);
-                    let aim = (target.z - bot.z).atan2(target.x - bot.x);
-                    action.fire = ((aim - bot.yaw + PI).rem_euclid(2.0 * PI) - PI).abs() < 0.25;
+                    aim_contact(&mut action, bot, target);
                 }
                 return BotIntent {
                     action,
@@ -4287,12 +4456,8 @@ impl BotController {
             angle_diff += 2.0 * PI;
         }
 
-        let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
-        let target_centre = [
-            target.x,
-            target.y - PLAYER_FLOOR_Y + crate::combat::target_height(target.campaign) * 0.5,
-            target.z,
-        ];
+        let eye = fighter_eye(bot);
+        let target_centre = fighter_chest(target);
         let mut action = Action {
             pitch: crate::combat::aim_at(eye, target_centre).map(|(_, pitch)| pitch),
             ..Action::default()

@@ -13,6 +13,13 @@ use uuid::Uuid;
 
 type ServerSocket = tokio_tungstenite::WebSocketStream<TcpStream>;
 
+/// Leave each write immediately. The default waits to coalesce a short tail.
+pub(crate) fn disable_nagle(stream: &TcpStream) {
+    if let Err(error) = stream.set_nodelay(true) {
+        tracing::warn!("could not disable Nagle: {error}");
+    }
+}
+
 /// Tracing target for the host's audit trail: joins, rejects, kicks and bans.
 /// Never log a ticket, resume token or secret under it.
 pub const AUDIT_TARGET: &str = "fragr_server::audit";
@@ -92,6 +99,10 @@ const MAX_WRITE_BUFFER_BYTES: usize = 512 * 1024;
 const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 const HELLO_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_CONNECTIONS: usize = 64;
+
+pub(crate) const fn connection_cap() -> usize {
+    MAX_CONNECTIONS
+}
 /// In-flight `GET /status` reads. A probe does not take a game slot, and a
 /// slower reader than this is closed so it cannot pin a file descriptor.
 const MAX_STATUS_PROBES: usize = 8;
@@ -102,6 +113,10 @@ const MAX_REJECTION_HANDSHAKES: usize = 8;
 /// or a LAN behind one address needs that same headroom. The global cap
 /// still stops one address from holding every slot.
 const MAX_CONNECTIONS_PER_IP: usize = 32;
+
+pub(crate) const fn address_cap() -> usize {
+    MAX_CONNECTIONS_PER_IP
+}
 pub const OUTBOUND_QUEUE_CAPACITY: usize = 64;
 const OUTBOUND_SEND_TIMEOUT: Duration = Duration::from_secs(2);
 /// A displayed frame can send one action. 256 per second covers a fast
@@ -222,6 +237,38 @@ impl Kick {
             _ => "kick",
         }
     }
+}
+
+/// Refuse a hello outside the contract this process can speak.
+/// A value above `implemented` is too new on every door. A value below
+/// `required` lacks the map's floor. Shared rooms set those bounds equal.
+fn version_refusal(
+    kind: &str,
+    offered: u32,
+    required: u32,
+    implemented: u32,
+) -> Option<ServerMessage> {
+    if offered >= required && offered <= implemented {
+        return None;
+    }
+    let code = if kind == "gameplay" {
+        "unsupported_gameplay"
+    } else {
+        "unsupported_geometry"
+    };
+    let message = if offered > implemented {
+        format!("This server speaks {kind} version {implemented}.")
+    } else {
+        format!(
+            "This server requires {kind} version {required}; update your client. \
+             Download a matching client from {} and check the archive against SHA256SUMS.txt.",
+            crate::protocol::RELEASES_URL
+        )
+    };
+    Some(ServerMessage::Error {
+        code: code.into(),
+        message,
+    })
 }
 
 fn refusal_message(code: &str) -> &'static str {
@@ -502,6 +549,9 @@ pub struct NetServer {
     game_tx: mpsc::UnboundedSender<GameCommand>,
     geometry_version: u32,
     gameplay_version: u32,
+    /// Shared arcade rooms drop `look_at` on a human socket. Campaign doors
+    /// leave it, because the mission probe aims that way. Agents always keep it.
+    client_aim: bool,
     party_slots: Option<Arc<Semaphore>>,
     five_vs_five: bool,
     auto_fill: bool,
@@ -588,6 +638,11 @@ pub enum GameCommand {
     CancelAutoJoin {
         client_id: Uuid,
     },
+    /// Recorded before Connected so a current human receives magazines.
+    NoteClientVersion {
+        client_id: Uuid,
+        gameplay_version: u32,
+    },
     Connected {
         id: Uuid,
         role: Role,
@@ -653,7 +708,7 @@ pub(crate) async fn skip_seat_notes(
 ) -> Option<GameCommand> {
     loop {
         match commands.recv().await {
-            Some(GameCommand::NoteSeat { .. }) => continue,
+            Some(GameCommand::NoteSeat { .. } | GameCommand::NoteClientVersion { .. }) => continue,
             other => return other,
         }
     }
@@ -702,6 +757,7 @@ impl NetServer {
             game_tx,
             geometry_version,
             gameplay_version,
+            client_aim: false,
             solo_run: false,
             five_vs_five: false,
             auto_fill: false,
@@ -806,8 +862,13 @@ impl NetServer {
         self.listener.local_addr()
     }
 
-    /// An arena rule set needs capability 12 for its sides and lives, not the
-    /// four-seat mission party that capability 4 and above otherwise implies.
+    /// A shared arcade room makes the human aim with yaw and pitch.
+    pub(crate) fn require_client_aim(&mut self) {
+        self.client_aim = true;
+    }
+
+    /// A shared arcade room, and an arena rule set, speak a contract above
+    /// capability 4. That must not install the four-seat mission party.
     pub(crate) fn open_arena_seats(&mut self) {
         if !self.solo_run {
             self.party_slots = None;
@@ -841,11 +902,17 @@ impl NetServer {
         loop {
             match self.listener.accept().await {
                 Ok((mut stream, addr)) => {
+                    // A snapshot is often one full segment plus a short tail.
+                    // Nagle holds that tail until the ACK, which on a quiet
+                    // LAN is the delay a player calls lag. Status probes use
+                    // this same socket.
+                    disable_nagle(&stream);
                     tracing::debug!("New connection from {}", addr);
                     let game_tx = self.game_tx.clone();
                     let clients = self.clients.clone();
                     let geometry_version = self.geometry_version;
                     let gameplay_version = self.gameplay_version;
+                    let client_aim = self.client_aim;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
                     let five_vs_five = self.five_vs_five;
@@ -913,6 +980,7 @@ impl NetServer {
                             HelloPolicy {
                                 required_geometry: geometry_version,
                                 required_gameplay: gameplay_version,
+                                client_aim,
                                 party_slots,
                                 solo_run,
                                 five_vs_five,
@@ -942,6 +1010,10 @@ impl NetServer {
         }
     }
 }
+
+/// How long a new socket may sit before its first bytes decide status or a
+/// game handshake. The desktop probe connects and writes on a later frame.
+const STATUS_CLASSIFY_BUDGET: Duration = Duration::from_millis(1000);
 
 /// `Some(true)` once the bytes are a status GET. `Some(false)` once they are
 /// anything else. `None` while the first line is still too short to tell,
@@ -977,10 +1049,18 @@ async fn serve_status_if_requested(
 ) -> Option<OwnedSemaphorePermit> {
     let mut buf = [0u8; 24];
     let mut seen = 0usize;
-    let deadline = tokio::time::Instant::now() + Duration::from_millis(300);
+    // The app connects, then writes the request on a later frame. A 50 ms
+    // peek that gave up was already in the websocket handshake when those
+    // bytes arrived, so Check host saw a closed host. Wait out the budget
+    // instead. A line that is clearly not status still returns at once.
+    let deadline = tokio::time::Instant::now() + STATUS_CLASSIFY_BUDGET;
     let mut status_get = false;
     while tokio::time::Instant::now() < deadline {
-        match tokio::time::timeout(Duration::from_millis(50), stream.peek(&mut buf)).await {
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            break;
+        }
+        match tokio::time::timeout(remaining, stream.peek(&mut buf)).await {
             Ok(Ok(n)) if n > seen => {
                 seen = n;
                 match classify_opening(&buf[..seen]) {
@@ -989,11 +1069,16 @@ async fn serve_status_if_requested(
                         break;
                     }
                     Some(false) => return Some(probe),
-                    None => tokio::time::sleep(Duration::from_millis(10)).await,
+                    None => {}
                 }
             }
-            Ok(Ok(_)) => tokio::time::sleep(Duration::from_millis(10)).await,
-            _ => break,
+            Ok(Ok(0)) => break,
+            Ok(Ok(_)) => {
+                // The same prefix is still all we have. A partial line must
+                // not spin for the rest of the budget.
+                tokio::time::sleep(Duration::from_millis(10).min(remaining)).await;
+            }
+            Ok(Err(_)) | Err(_) => break,
         }
     }
     if !status_get {
@@ -1021,23 +1106,49 @@ async fn serve_status_if_requested(
             break;
         }
     }
-    let with_clients = crate::metrics::wants_clients(&header);
-    let body = match status.try_read() {
-        Ok(live) => serde_json::to_string(&crate::metrics::served_status(
-            &live,
-            with_clients,
-            crate::metrics::process_uptime(),
-        ))
-        .unwrap_or_else(|_| "{}".into()),
-        Err(_) => "{\"schema_version\":1}".into(),
-    };
-    let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nCache-Control: no-store\r\n\r\n{body}",
-        body.len()
-    );
+    let with_clients = stream
+        .peer_addr()
+        .ok()
+        .is_some_and(|addr| crate::metrics::status_client_list(addr.ip(), &header));
+    let (code, reason, body) = status_http_body(status, with_clients).await;
+    let response = http_json(code, reason, &body);
     let _ = stream.write_all(response.as_bytes()).await;
     let _ = stream.shutdown().await;
     None
+}
+
+/// Schema 2 busy body. It names no map, so a reader that ignores the HTTP
+/// status still cannot treat it as a live match.
+const STATUS_BUSY_BODY: &str = r#"{"schema_version":2,"busy":true}"#;
+
+/// Copy the snapshot, then serialize it. A lock that stays busy for 50 ms
+/// answers 503. This never answers schema 1 or an empty object.
+async fn status_http_body(
+    status: &tokio::sync::RwLock<crate::protocol::LiveStatus>,
+    with_clients: bool,
+) -> (u16, &'static str, String) {
+    let snapshot = match status.try_read() {
+        Ok(live) => live.clone(),
+        Err(_) => match tokio::time::timeout(Duration::from_millis(50), status.read()).await {
+            Ok(live) => live.clone(),
+            Err(_) => return (503, "Service Unavailable", STATUS_BUSY_BODY.to_string()),
+        },
+    };
+    match serde_json::to_string(&crate::metrics::served_status(
+        &snapshot,
+        with_clients,
+        crate::metrics::process_uptime(),
+    )) {
+        Ok(body) => (200, "OK", body),
+        Err(_) => (503, "Service Unavailable", STATUS_BUSY_BODY.to_string()),
+    }
+}
+
+fn http_json(code: u16, reason: &str, body: &str) -> String {
+    format!(
+        "HTTP/1.1 {code} {reason}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nCache-Control: no-store\r\n\r\n{body}",
+        body.len()
+    )
 }
 
 async fn reject_before_hello(stream: TcpStream, code: &str, handshake_timeout: Duration) {
@@ -1078,6 +1189,7 @@ fn audit_refusal(peer: std::net::SocketAddr, verdict: &crate::access::Verdict) {
 struct HelloPolicy {
     required_geometry: u32,
     required_gameplay: u32,
+    client_aim: bool,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
     five_vs_five: bool,
@@ -1230,7 +1342,13 @@ async fn read_session(
             continue;
         };
         let command = match message {
-            ClientMessage::Action(action) => GameCommand::Action { player_id, action },
+            ClientMessage::Action(mut action) => {
+                // Yaw and pitch stay. look_at would make this process aim.
+                if policy.client_aim && role == Role::Human {
+                    action.look_at = None;
+                }
+                GameCommand::Action { player_id, action }
+            }
             ClientMessage::MissionReady(ready) => GameCommand::MissionReady { player_id, ready },
             ClientMessage::MissionContinue(request) => {
                 GameCommand::MissionContinue { player_id, request }
@@ -1330,24 +1448,20 @@ async fn handle_connection(
                     };
                     return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
-                if gameplay_version < policy.required_gameplay {
-                    let rejection = ServerMessage::Error {
-                        code: "unsupported_gameplay".into(),
-                        message: format!(
-                            "This server requires gameplay version {}; update your client.",
-                            policy.required_gameplay
-                        ),
-                    };
+                if let Some(rejection) = version_refusal(
+                    "gameplay",
+                    gameplay_version,
+                    policy.required_gameplay,
+                    crate::protocol::GAMEPLAY_VERSION,
+                ) {
                     return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
-                if geometry_version < policy.required_geometry {
-                    let rejection = ServerMessage::Error {
-                        code: "unsupported_geometry".into(),
-                        message: format!(
-                            "This server requires geometry version {}; update your client.",
-                            policy.required_geometry
-                        ),
-                    };
+                if let Some(rejection) = version_refusal(
+                    "geometry",
+                    geometry_version,
+                    policy.required_geometry,
+                    crate::protocol::GEOMETRY_VERSION,
+                ) {
                     return reject_connection(ws_sink, ws_stream, rejection, peer).await;
                 }
                 traffic = crate::metrics::ClientTraffic::new(r, Arc::clone(&policy.traffic));
@@ -1412,6 +1526,7 @@ async fn handle_connection(
                         playlist: crate::protocol::default_playlist(),
                         resume: Some(accepted.token.clone()),
                         body: Some(accepted.body),
+                        duck: true,
                     };
                     if send_welcome(&mut ws_sink, &welcome, &traffic)
                         .await
@@ -1532,6 +1647,7 @@ async fn handle_connection(
                         playlist: crate::protocol::default_playlist(),
                         resume: issued,
                         body: player_id.map(|_| accepted_body),
+                        duck: true,
                     };
 
                     if let Some(guard) = auto_join.as_ref() {
@@ -1589,6 +1705,10 @@ async fn handle_connection(
                     if let Some(guard) = auto_join.as_mut() {
                         let (reply, receiver) = tokio::sync::oneshot::channel();
                         game_tx.send(GameCommand::NoteSeat { client_id, peer })?;
+                        game_tx.send(GameCommand::NoteClientVersion {
+                            client_id,
+                            gameplay_version,
+                        })?;
                         game_tx.send(GameCommand::CommitAutoJoin {
                             identity: JoinIdentity {
                                 client_id,
@@ -1630,6 +1750,10 @@ async fn handle_connection(
                         }
                     } else {
                         game_tx.send(GameCommand::NoteSeat { client_id, peer })?;
+                        game_tx.send(GameCommand::NoteClientVersion {
+                            client_id,
+                            gameplay_version,
+                        })?;
                         game_tx.send(GameCommand::Connected {
                             id: client_id,
                             role: r,

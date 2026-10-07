@@ -53,8 +53,9 @@ func _test_tokens() -> void:
 	_check(InputBindings.parse("key:70|key:71").is_empty(), "exactly three slots")
 	_check(InputBindings.parse(42).is_empty(), "non-strings are not overrides")
 	_check(InputBindings.default_slots("interact") == (["key:70", "key:4194309", "pad:b1"] as Array[String]), "defaults come from project settings: " + str(InputBindings.default_slots("interact")))
-	_check(InputBindings.default_slots("fire") == (["key:4194326", "mouse:1", "pad:a5+"] as Array[String]), "fire defaults to Ctrl, left mouse and the right trigger")
-	_check("reload" not in InputBindings.ACTIONS, "reload is not offered for rebinding")
+	_check(InputBindings.default_slots("fire") == (["key:4194326@r", "mouse:1", "pad:a5+"] as Array[String]), "fire defaults to right Ctrl, left mouse and the right trigger")
+	_check(InputBindings.default_slots("duck") == (["key:4194326@l", "", ""] as Array[String]), "duck defaults to left Ctrl and leaves the pad slot empty")
+	_check(InputBindings.default_slots("reload") == (["key:82", "", ""] as Array[String]), "reload defaults to R and leaves the pad slot empty")
 
 func _test_assign_and_conflicts() -> void:
 	var prefs: FragrSettings = FragrSettings.new(_path)
@@ -100,13 +101,17 @@ func _test_persistence_and_input_map() -> void:
 	_check(InputBindings.slots_for(loaded, "fire")[0] == "key:71", "fire binding survives a fresh store")
 	_check(InputBindings.slots_for(loaded, "interact")[2] == "pad:b2", "pad binding survives a fresh store")
 	loaded.apply()
+	var right_ctrl: InputEventKey = _key(KEY_CTRL)
+	right_ctrl.location = KEY_LOCATION_RIGHT
 	_check(_key(KEY_G).is_action_pressed("fire"), "the InputMap fires on G after apply")
-	_check(not _key(KEY_CTRL).is_action_pressed("fire"), "Ctrl no longer fires")
+	_check(not right_ctrl.is_action_pressed("fire"), "right Ctrl no longer fires")
 	_check(_pad(JOY_BUTTON_X).is_action_pressed("interact") and not _pad(JOY_BUTTON_B).is_action_pressed("interact"), "the gamepad use button moved")
 	_check(is_equal_approx(InputMap.action_get_deadzone("fire"), 0.2), "project deadzones survive a rebuild")
 	InputBindings.reset(loaded)
 	loaded.apply()
-	_check(_key(KEY_CTRL).is_action_pressed("fire") and not _key(KEY_G).is_action_pressed("fire"), "reset restores the defaults")
+	right_ctrl = _key(KEY_CTRL)
+	right_ctrl.location = KEY_LOCATION_RIGHT
+	_check(right_ctrl.is_action_pressed("fire") and not _key(KEY_G).is_action_pressed("fire"), "reset restores the defaults")
 
 func _test_panel() -> void:
 	var prefs: FragrSettings = FragrSettings.new(_path)

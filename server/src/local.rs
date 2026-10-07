@@ -239,6 +239,7 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
         || options.difficulty.is_some()
         || options.campaign_run
         || options.map_rotate
+        || options.playlist
         || options.solo_broadcast
     {
         return Err(io::Error::other("invalid desktop arena profile"));
@@ -530,6 +531,10 @@ mod tests {
             },
             ServerOptions {
                 map_rotate: true,
+                ..base.clone()
+            },
+            ServerOptions {
+                playlist: true,
                 ..base.clone()
             },
             ServerOptions {

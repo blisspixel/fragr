@@ -75,6 +75,8 @@ pub struct ServerOptions {
     pub difficulty: Option<crate::protocol::CampaignDifficulty>,
     pub campaign_run: bool,
     pub map_rotate: bool,
+    /// Built-in night list. The process stays up and changes map and mode.
+    pub playlist: bool,
     /// Match rules override (frag limit, timers). `None` keeps the defaults.
     pub match_config: Option<MatchConfig>,
     /// Seed for the simulation's random stream, so a session can be reproduced.
@@ -104,6 +106,7 @@ impl Default for ServerOptions {
             difficulty: None,
             campaign_run: false,
             map_rotate: false,
+            playlist: false,
             match_config: None,
             solo_broadcast: false,
             seed: 1,
@@ -116,7 +119,8 @@ impl Default for ServerOptions {
 }
 
 /// Bind, accept clients, and tick the session until `shutdown` resolves.
-/// When `ready` is Some, send the bound address once accept is live.
+/// When `ready` is Some, send the bound address only after loopback
+/// `GET /status` has returned a schema 2 match line.
 pub async fn run_server(
     options: ServerOptions,
     shutdown: impl Future<Output = ()>,
@@ -155,6 +159,22 @@ async fn run_server_impl(
     // Keep it off the async executor, including single-threaded local harnesses.
     let map = options.map;
     let rotate = options.map_rotate;
+    let playlist = options.playlist;
+    if playlist
+        && (rotate
+            || options.authored.is_some()
+            || options.solo_broadcast
+            || options.match_config.is_some()
+            || options.campaign_run
+            || options.difficulty.is_some())
+    {
+        return Err(
+            "the night playlist owns the map and the mode for the life of the process".into(),
+        );
+    }
+    if playlist {
+        crate::sim::GameState::validate_night_playlist().map_err(std::io::Error::other)?;
+    }
     if let Some(config) = options
         .match_config
         .as_ref()
@@ -217,6 +237,7 @@ async fn run_server_impl(
     let mut session = tokio::task::spawn_blocking(move || -> std::io::Result<GameSession> {
         match authored {
             Some(source) => Ok(GameSession::with_authored_map(source.load()?)),
+            None if playlist => Ok(GameSession::with_playlist()),
             None => Ok(GameSession::with_map(map, rotate)),
         }
     })
@@ -328,7 +349,7 @@ async fn run_server_impl(
     } else {
         MapKind::ALL
             .into_iter()
-            .filter(|candidate| rotate || *candidate == map)
+            .filter(|candidate| rotate || playlist || *candidate == map)
             .map(|candidate| {
                 crate::protocol::geometry_version(&crate::maps::arena(candidate).solids)
             })
@@ -382,6 +403,10 @@ async fn run_server_impl(
         crate::protocol::M05_GAMEPLAY_VERSION
     } else if has_jammer {
         crate::protocol::JAMMER_GAMEPLAY_VERSION
+    } else if playlist {
+        // Replaced for a shared room below. The Sabotage floor alone would
+        // still let an older client into the opening free-for-all.
+        crate::protocol::SABOTAGE_GAMEPLAY_VERSION
     } else if options
         .match_config
         .as_ref()
@@ -406,6 +431,19 @@ async fn run_server_impl(
             }
         }
     };
+    // One contract in a shared room. Campaign missions keep the floor above.
+    // Every hello still refuses a version this binary does not implement.
+    let shared_room = !options.campaign_run && !session.state.map.is_campaign();
+    let required_gameplay = if shared_room {
+        crate::protocol::GAMEPLAY_VERSION
+    } else {
+        required_gameplay
+    };
+    let required_geometry = if shared_room {
+        crate::protocol::GEOMETRY_VERSION
+    } else {
+        required_geometry
+    };
     session.state.seed(options.seed);
     if let Some(config) = options.match_config {
         session.state.apply_config(config);
@@ -418,7 +456,13 @@ async fn run_server_impl(
         required_gameplay,
     )
     .await?;
-    if twisted && !discovery {
+    if shared_room {
+        net_server.require_client_aim();
+    }
+    // Capability 4 and above installs a four-seat mission party. A shared
+    // room's contract is the current gameplay version, which is above that.
+    // The arcade roster stays open. Sabotage replaces this with its own pool.
+    if shared_room || (twisted && !discovery) || playlist {
         net_server.open_arena_seats();
     }
     if let Some(slots) = session.configure_sabotage_seats() {
@@ -449,21 +493,49 @@ async fn run_server_impl(
         net_server.set_access(control.subscribe());
         AbortOnDrop(tokio::spawn(control.watch(crate::access::RELOAD_EVERY)))
     });
-    if let Some(tx) = ready {
-        let _ = tx.send(net_server.local_addr()?);
-    }
+    let bound = net_server.local_addr()?;
     let clients = net_server.clients.clone();
     crate::metrics::mark_process_start();
     let mut tracker = crate::metrics::StatusTracker::new(net_server.traffic_totals(), TICK);
 
+    // Accept must be running before the probe, and ready must wait until the
+    // probe succeeds. A client that connects the moment ready fires can then
+    // read the same match line.
     let mut accept_task = AbortOnDrop(tokio::spawn(async move {
         net_server.accept_loop().await;
     }));
+    let probe_addr = crate::preflight::loopback_probe_addr(bound);
+    let facts = crate::preflight::require_status(probe_addr).await.map_err(
+        |error| -> Box<dyn std::error::Error + Send + Sync> {
+            format!("Status preflight failed: {error}").into()
+        },
+    )?;
+    tracing::info!(
+        "Status preflight: {probe_addr} answered. {map}, {kind}.",
+        map = facts.map,
+        kind = facts.kind
+    );
+    crate::preflight::log_join_checks(bound).await;
+    let _beacon = crate::announce::should_announce(bound)
+        .then(|| AbortOnDrop(tokio::spawn(crate::announce::broadcast_loop(bound.port()))));
+    if let Some(tx) = ready {
+        let _ = tx.send(bound);
+    }
 
     if !session.state.map.is_authored() {
         tracing::info!("Rules: {}", session.state.config.rules.name());
     }
     session.spawn_bots(options.bots);
+    if options.authored.is_none() && !options.campaign_run {
+        tracing::info!(
+            "{}",
+            crate::preflight::population_note(
+                session.bots.len(),
+                crate::net::connection_cap(),
+                crate::net::address_cap(),
+            )
+        );
+    }
     if options.solo_broadcast {
         session.enable_solo_broadcast_ep0();
         tracing::info!("Solo Broadcast Episode 0 armed (Calibration / Larak Lot)");
@@ -472,7 +544,9 @@ async fn run_server_impl(
         "Map: {} (id {}){}",
         session.state.map.name(),
         session.state.map.id(),
-        if options.map_rotate {
+        if playlist {
+            ", night playlist"
+        } else if options.map_rotate {
             ", rotate each round"
         } else {
             ""
@@ -549,6 +623,10 @@ async fn run_server_impl(
                     drop(clients_lock);
                     let mut next = session.state.live_status(connections);
                     tracker.apply(&mut next, now);
+                    // The tracker does not know the match. The sheet does.
+                    if let Some(ops) = next.ops.as_mut() {
+                        ops.night = session.sheet.totals();
+                    }
                     if let Ok(mut slot) = live.try_write() {
                         *slot = next;
                     }
@@ -652,7 +730,7 @@ fn spawn_venue_desk(
         })?;
     let task = tokio::spawn(async move {
         println!(
-            "Venue desk. who, kick <name>, ban <name> [reason], say <sentence>. Closing this input leaves the match running."
+            "Venue desk. who, kick <name>, ban <name> [reason], say <sentence>, stats. Closing this input leaves the match running."
         );
         let mut out = std::io::stdout();
         crate::desk::serve(line_rx, call_tx, ban_list, &mut out).await;

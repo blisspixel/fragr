@@ -595,7 +595,7 @@ fn fighter_visible_in_solids(
         [
             other.x,
             other.y - fragr_server::sim::PLAYER_FLOOR_Y
-                + fragr_server::combat::target_height(other.campaign) * 0.5,
+                + fragr_server::combat::aim_height(other.campaign),
             other.z,
         ],
         solids,
@@ -1204,6 +1204,7 @@ mod tests {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign,
@@ -1265,6 +1266,7 @@ mod tests {
                 collidable: true,
                 body: None,
                 golden: false,
+                ducking: false,
                 lives: None,
                 team: None,
                 campaign: None,
@@ -1391,6 +1393,7 @@ mod tests {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1412,6 +1415,7 @@ mod tests {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1742,6 +1746,7 @@ mod tests {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -1763,6 +1768,7 @@ mod tests {
                     collidable: true,
                     body: None,
                     golden: false,
+                    ducking: false,
                     lives: None,
                     team: None,
                     campaign: None,
@@ -2270,6 +2276,7 @@ mod tests {
                 mode_name: protocol::default_mode_name(),
                 playlist: protocol::default_playlist(),
                 resume: None,
+                duck: false,
             };
             ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
                 .await

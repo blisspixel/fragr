@@ -258,7 +258,11 @@ impl GameState {
             };
             place(player, point);
             if restart {
+                let armed = player.inventory.armed();
                 player.inventory = inventory;
+                if armed {
+                    player.inventory.arm_magazines();
+                }
                 player.weapon = weapon;
                 player.armor = 0;
                 player.golden = false;

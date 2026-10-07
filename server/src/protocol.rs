@@ -36,7 +36,7 @@ pub use explosive::{
 };
 pub(crate) use loadout::validate_equipment;
 pub use loadout::{
-    AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, SupplyClaim, MINE_CARRY_CAP,
+    AmmoCount, AmmoPool, EquipmentPolicy, LoadoutState, MagazineCount, SupplyClaim, MINE_CARRY_CAP,
 };
 pub use m04::{
     M04ClinicGeometry, M04MapGeometry, M04ObjectiveState, M04PatientGeometry, M04PatientState,
@@ -80,14 +80,16 @@ pub use statistics::{
     RECORD_TICKS_PER_SECOND, RECORD_VERSION,
 };
 pub use status::{
-    BuildInfo, ClientRate, Health, HealthReason, HealthState, OpsStatus, ProcessInfo, RoleCounts,
-    TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
+    BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
+    RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
 };
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
 pub const MODE_NAME: &str = "Contested Frequency";
 /// Playlist label under the league lie.
 pub const PLAYLIST_NAME: &str = "Arena Duel";
+/// Desktop builds and `SHA256SUMS.txt`. Join does not fetch this URL.
+pub const RELEASES_URL: &str = "https://github.com/blisspixel/fragr/releases/latest";
 
 pub fn default_mode_name() -> String {
     MODE_NAME.to_string()
@@ -142,6 +144,13 @@ pub struct LiveStatus {
     pub health: Option<Health>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ops: Option<OpsStatus>,
+    /// Additive to schema 2. The gameplay contract this process speaks.
+    /// Absent on an older host, and a missing value does not close Watch or Join.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gameplay_version: Option<u32>,
+    /// Additive to schema 2. The geometry contract this process speaks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub geometry_version: Option<u32>,
 }
 
 impl Default for LiveStatus {
@@ -161,6 +170,8 @@ impl Default for LiveStatus {
             mutators: Vec::new(),
             health: None,
             ops: None,
+            gameplay_version: None,
+            geometry_version: None,
         }
     }
 }
@@ -485,12 +496,13 @@ pub const SCATTER_PELLETS: usize = 7;
 pub const SCATTER_FAR_DAMAGE_SCALE: f32 = 0.35;
 
 impl WeaponType {
-    /// Damage on a clean hit, before the scatter gun's range falloff. For the
-    /// scatter gun this is per pellet: seven pellets make 70 at point blank,
-    /// Doom's average blast. Four flechette hits, two point-blank scatter
-    /// blasts, or two rail hits kill an unarmoured fighter, which puts every
-    /// weapon's time to kill inside the 0.6 to 1.2 second band in
-    /// `docs/plans/gunfeel.md`.
+    /// Damage on a clean body hit, before the scatter gun's range falloff and
+    /// before a head band doubles a traced pellet. For the scatter gun this is
+    /// per pellet: seven pellets make 70 at point blank, Doom's average blast.
+    /// Four body flechette hits, two point-blank scatter blasts, or two body
+    /// rail hits kill an unarmoured fighter, which puts every weapon's body
+    /// time to kill inside the 0.6 to 1.2 second band in `docs/plans/gunfeel.md`.
+    /// Fists and the Shiv do not gain the head bonus.
     pub fn damage(self) -> i32 {
         match self {
             WeaponType::Fists | WeaponType::Tack => 20,
@@ -635,14 +647,14 @@ pub const AMMO_GAMEPLAY_VERSION: u32 = 10;
 pub const SHIV_GAMEPLAY_VERSION: u32 = 11;
 /// Match rule sets (sides, lives, the golden Railgun, keyed Host reactions)
 /// and the 100 Cells cap. Every discovery map requires it for the larger
-/// loadout, and so does any arena running rules other than plain free-for-all.
+/// loadout. A shared room requires `GAMEPLAY_VERSION`, not this floor.
 pub const RULES_GAMEPLAY_VERSION: u32 = 12;
 /// The chosen participant body: an optional `body` on Hello, the accepted
 /// body on Welcome and on every participant in a snapshot. Additive: no map
 /// requires it, and an older reader ignores the field.
 pub const BODY_GAMEPLAY_VERSION: u32 = 13;
-/// Capture the flag state and events. CTF servers require a client that can
-/// show the objective before admitting a fighter or spectator.
+/// Capture the flag state and events. The objective arrived at this
+/// capability. A shared room requires `GAMEPLAY_VERSION`, not this floor.
 pub const CTF_GAMEPLAY_VERSION: u32 = 14;
 /// Optional seated opening posture on authored Union Clerks. M02 requires
 /// this so an older presenter cannot mistake its first fight for standing guards.
@@ -666,8 +678,8 @@ pub const M03_GAMEPLAY_VERSION: u32 = 24;
 pub const M04_GAMEPLAY_VERSION: u32 = 25;
 pub const M05_GAMEPLAY_VERSION: u32 = 26;
 pub const M06_GAMEPLAY_VERSION: u32 = 27;
-/// Sabotage sites, charge, round state and results. A Sabotage server requires
-/// it for every role so no reader shows a round without its objective.
+/// Sabotage sites, charge, round state and results. The objective arrived at
+/// this capability. A shared room requires `GAMEPLAY_VERSION`, not this floor.
 pub const SABOTAGE_GAMEPLAY_VERSION: u32 = 28;
 /// The found Proximity Mine (`place_mine`, `proximity_mines`, snapshot `mines`,
 /// record `mines`) and the repairing `auditor` with its `channeling` phase.
@@ -691,7 +703,14 @@ pub const M09_GAMEPLAY_VERSION: u32 = 34;
 /// Repeater identity, server warmup and strict eight-column record revision 2.
 pub const REPEATER_GAMEPLAY_VERSION: u32 = 35;
 pub const M10_GAMEPLAY_VERSION: u32 = 36;
-pub const GAMEPLAY_VERSION: u32 = M10_GAMEPLAY_VERSION;
+/// Human magazines. The carried count stays the total, including rounds in
+/// each gun. Agents, rule bots and campaign enemies keep the single count.
+/// A shared arcade room requires the highest contract, which is this one.
+pub const RELOAD_GAMEPLAY_VERSION: u32 = 37;
+/// Highest gameplay contract this binary speaks. A shared arcade room requires
+/// a hello equal to this value. A campaign mission keeps its own floor at or
+/// below it. A hello above it is refused on every door.
+pub const GAMEPLAY_VERSION: u32 = RELOAD_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -889,6 +908,10 @@ pub enum ServerMessage {
         /// spectator and by servers before capability 13.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         body: Option<BodyKind>,
+        /// Present and true only when this server accepts a held `Action.duck`.
+        /// Older servers omit it. Absence means the client must not send the key.
+        #[serde(default, skip_serializing_if = "is_false")]
+        duck: bool,
     },
     /// The arena's shape: the bounds and the solids that block movement and
     /// shots. Sent once to every role on join and again to everyone when
@@ -1059,10 +1082,24 @@ pub struct Action {
     /// Rising-edge proximity mine placement, independent of selected weapon.
     #[serde(default, skip_serializing_if = "is_false")]
     pub place_mine: bool,
+    /// Rising-edge reload of the selected gun. Omitted unless pressed, so an
+    /// older server that has never heard of magazines does not see the key.
+    /// A pawn without magazines ignores it.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub reload: bool,
+    /// Held crouch. Omitted unless pressed, so an older server that rejects
+    /// unknown fields does not drop the rest of the input. The server publishes
+    /// the resolved stance, not this bit.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub duck: bool,
     #[serde(default)]
     pub weapon_swap: Option<WeaponType>,
-    /// Target aim takes precedence after movement: player body centre or world
-    /// x/z with optional y. Omitting y for a world point means horizontal aim.
+    /// Agent target aim. A shared-room human socket drops this field. The
+    /// server does not aim that pawn. Yaw and pitch remain the human aim.
+    /// A campaign socket and an in-process controller may still send it.
+    /// A player target is the chest when the belt is clearly open, the hips
+    /// when a counter, a lip, or a gap says so, or world x/z with optional y.
+    /// Omitting y for a world point means horizontal aim.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub look_at: Option<LookAt>,
     /// Client-owned absolute facing in radians. When present the server takes
@@ -1322,6 +1359,11 @@ pub struct PlayerState {
     /// Holds the golden Railgun. Omitted when false.
     #[serde(default, skip_serializing_if = "is_false")]
     pub golden: bool,
+    /// Short stance. Omitted while standing. True while the key is held or a
+    /// low ceiling will not allow the standing body. Shot volume, eye, and
+    /// contact height follow it.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub ducking: bool,
     /// The participant's accepted body. Omitted for Union and companion
     /// campaign actors and the arena boss, which keep their own identity.
     #[serde(default, skip_serializing_if = "Option::is_none")]

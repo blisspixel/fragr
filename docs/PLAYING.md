@@ -9,7 +9,9 @@
 server (`cargo build -p fragr-server --release --locked`), run
 `godot --path client`, then choose **Single Player > Recall Notice** and a
 difficulty. The client starts its own server on loopback. Find Latch's transfer
-record, recover weapons from the Annex, and leave by the custody lift.
+record in transfer control, after dispatch, recover weapons from the Annex, and
+leave by the custody lift. The objective card leaves after a few seconds. A
+corner line keeps the bearing until you are at the panel.
 Assisted, Standard and Severe change enemy timing; health, damage and finite
 supplies stay consistent. M01 has an optional Shiv secret. **Persons Unknown**
 continues the run through the M02 ward, with Latch's rescue and optional patient
@@ -63,13 +65,32 @@ cargo run -p fragr-server --locked -- --bind 127.0.0.1:6767 --bots 4 --solo-broa
 godot --path client res://scenes/main.tscn -- --solo
 ```
 
-**Multiplayer** connects to a shared server. In builds containing the new
-desktop controls, **Host** starts Team Deathmatch or 5v5 Sector 9 Sabotage
-with the bundled server. **Join** connects to someone else's server or your
-existing hosted match. Choose Watch or Join after readiness. Host controls
-default to this computer only; enable LAN access to invite peers using your
-LAN address and selected port. Leaving or returning to the menu preserves
-the match; **Stop server** or closing the app ends your owned host.
+**Multiplayer** connects to a shared server. **Run a server** starts Team
+Deathmatch or 5v5 Sector 9 Sabotage with the bundled server. **Join a server**
+is a separate address. Check host reads the address you typed and leaves it
+there. Choose Watch or Join after the match line comes back. A host you check,
+watch, join, or save stays on this computer. Scan this network asks which
+machines answer the game port. It checks this computer first, then the rest of
+each adapter's /24, and it does not search the internet. A server that does
+not announce can still appear. The address field still reaches any host,
+including one outside that scan. If this client is behind the host, the page
+can install the latest published build, check `SHA256SUMS.txt`, and rejoin
+that host. The latest published build may still be older than the server.
+Watch and Join stay available. A server you
+started in this app stays on the run page, with its own Watch, Join and Stop.
+Host controls default to this computer only; enable LAN access to invite
+peers using your LAN address and selected port. Leaving or returning to the
+menu preserves the match; **Stop server** or closing the app ends your owned
+host.
+
+**Benchmark**, on the main menu, times the frames on this computer. It starts
+its own Arena Duel match with ten bots and a fixed camera, on a port this
+computer picks. A server you already left running for other people stays up.
+Vertical sync and the frame cap turn off for the run, then your settings
+return. The score separates fast even frames from hitches and from frames that
+are slow on their own. A live match changes between runs, so compare the frame
+times. The recorded nine-scene showcase is still ahead.
+
 Choose no bots, a fixed count or automatic fill toward a total fighter count.
 Automatic fill gives humans and agents equal priority over eligible filler
 bots. If a full Sabotage room cannot safely replace a bot during the current
@@ -101,7 +122,10 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Strafe | Alt with arrows, or Comma and Period | A and D | Left stick |
 | Look vertically | Page Up and Page Down | Mouse | Right stick |
 | Center view | End | End | Right stick click |
-| Fire | Ctrl | Left mouse | RT |
+| Fire | Right Ctrl | Left mouse | RT |
+| Duck | Left Ctrl, hold | Left Ctrl, hold | not bound |
+| Reload | R | R | not bound |
+| Scope | Z, hold | Right mouse or Z, hold | Left stick click |
 | Throw grenade | G | G or middle mouse | LT |
 | Use | Enter | F | B |
 | Jump | Space | Space | A |
@@ -110,24 +134,40 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Speak | T | T | Y |
 | Join or leave | J or L | J or L | A while watching, or match menu |
 | Spectator fighter and view | F and V | F and V | D-pad right and Back |
-| Radio station, track, on or off | C, N, M | C, N, M | D-pad up, down, left |
+| Radio station, skip track, play or pause | C, N, M | C, N, M | not bound |
 | Match menu | Esc | Esc | Start |
-| Show leaders in first person | Tab | Tab | Back |
+| Leaderboard, the whole roster | Tab, hold | Tab, hold | Back |
+
+Hold Tab to list every fighter. The corner keeps the first four while you are watching, and it stays hidden in first person until you hold that key. In a team match, someone on your side is marked OURS and stays bright. The other side is marked THEIRS and warms toward red. A spectator still reads UNION and FREE on the full plate.
+
+Hold Left Ctrl to duck. You get shorter and slower, and a low ceiling keeps you short until there is room to stand. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
 
 Keyboard turning ramps over a quarter second. Mouse look uses raw counts,
 without smoothing or aim assist. Gamepad and keyboard look can use Off, Light
 or Standard aim assist, which moves the aim sent to the server; the server
-still decides hits. The [input plan](plans/input-all-devices.md) records
+still decides hits. Hold scope on the Sniper Rifle only. It narrows the local
+view and slows look, on the mouse and on keys. It does not decide the hit.
+The [input plan](plans/input-all-devices.md) records
 the behavior and verification.
 
 The numbered weapon order is fists or found Shiv, pistol, shotgun, rifle,
 railgun and sniper. Key 4 cycles owned automatic-family weapons when both are
 available; the Repeater foundation is not granted in current campaign maps.
 The wheel and bracket keys skip guns you do not own. Campaign ammo
-is one count per type with no magazines or reload. Pistol and Rifle share
+is one count per type, and that count includes the rounds in each gun. The
+corner shows rounds in the gun, then what is left to load. They add up with
+the other guns on the same type. R reloads the gun in hand. The pad is not
+bound. An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
-costs one shell. Arcade maps provide the full basic arsenal. A mission control
-requires you to stand near it and aim at it before pressing Use.
+costs one shell. An arcade human spawns with the rifle, shotgun and railgun
+already loaded, and a finite bag behind them: 60 more rifle rounds, 18 more
+shells and 12 more rail shots. The corner uses the same gun-then-bag pair.
+Walking over that gun adds a pickup to the bag. Death puts the spawn kit back.
+A weapon-only match still has one gun and no bag to run out of.
+Agents and campaign enemies still spend the single count. Stand near a mission
+panel and aim at it. The prompt under the crosshair names Use: F with a mouse,
+Enter on a keyboard, B on a pad. Q and E turn. Before that aim is true, the
+same spot says to aim at the panel. An open arena doorway is walked through.
 
 Grenades have a separate count, up to six, and do not replace the selected
 gun. A fresh press throws one device; holding the control does not repeat.

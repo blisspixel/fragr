@@ -93,7 +93,7 @@ func _test_cone_and_range() -> void:
 	# Wrap-around: facing just under a full turn still sees a target at zero.
 	_check(not AimAssist.pick(eye, TAU - 0.01, 0.0, [_at(eye, 0.5, 10.0)], [], STANDARD).is_empty(), "yaw wraps across zero")
 	var server: Vector3 = Vector3(3, 1.5, 4)
-	_check(AimAssist.body_centre(server).is_equal_approx(Vector3(3, 0.9, 4)), "the body centre sits mid-height above the server reference")
+	_check(AimAssist.body_centre(server).is_equal_approx(Vector3(3, 1.22, 4)), "aim help points at the chest, above the hips")
 	_check(AimAssist.body_centre(Vector3(3, 5.5, 4), {"side":"union", "kind":"notary"}).is_equal_approx(Vector3(3, 4.35, 4)),
 		"aim help points inside the elevated Notary box")
 	_check(AimAssist.body_centre(server, {"side":"union", "kind":"crawler"}).is_equal_approx(Vector3(3, 0.4, 4)),

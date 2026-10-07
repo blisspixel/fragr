@@ -111,6 +111,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "left",
     "right",
     "jump",
+    "duck",
     "turn_left",
     "turn_right",
     "fire",
@@ -287,6 +288,7 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         turn_right: bool_field("turn_right"),
         fire: bool_field("fire"),
         jump: bool_field("jump"),
+        duck: bool_field("duck"),
         interact: match obj.get("interact") {
             None => false,
             Some(value) => value
@@ -305,6 +307,8 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                 .as_bool()
                 .ok_or("schema error: place_mine must be a boolean")?,
         },
+        // Agents keep the single ammunition count. The schema refuses reload.
+        reload: false,
         weapon_swap,
         look_at,
         // MCP agents aim with look_at and the turn bits; they do not own a
@@ -678,7 +682,7 @@ fn tools_list_result() -> Value {
             },
             {
                 "name": "act",
-                "description": "Send ordinary input. Movement and fire are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact, throw_grenade and place_mine latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions.",
+                "description": "Send ordinary input. Movement, fire and duck are held until changed. weapon_swap is consumed once; later omitted fields do not erase a pending selection. interact, throw_grenade and place_mine latch rising edges, so release before another press. Weapon selection requires ownership. look_at aims in three dimensions.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -690,6 +694,7 @@ fn tools_list_result() -> Value {
                         "turn_right": {"type": "boolean", "default": false, "description": "Turn right"},
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
+                        "duck": {"type": "boolean", "default": false, "description": "Hold to crouch. The server shortens the body and slows the walk. Release to stand when the ceiling allows. Omitted means standing."},
                         "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter", "sniper", "repeater"], "description": "Select an owned weapon. Repeater holds through warmup and uses finite shared Bullets; it is not part of the arcade kit"},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
@@ -739,7 +744,7 @@ fn tools_list_result() -> Value {
                     "type": "object",
                     "properties": {
                         "name": {"type": "string", "description": "Display name for Hello (optional; defaults to adapter --name)"},
-                        "body": {"type": "string", "enum": ["human", "synthetic"], "description": "Body for the new pawn: a human, or a conscious embodied agent in a synthetic body. Presentation only; it changes no combat rule. Defaults to adapter --body, then human"}
+                        "body": {"type": "string", "enum": ["human", "synthetic"], "description": "Body for the new pawn: a human, or a free agent in a synthetic body. Presentation only; it changes no combat rule. Defaults to adapter --body, then human"}
                     },
                     "required": [],
                     "additionalProperties": false
@@ -2089,7 +2094,7 @@ mod mcp_tests {
                     .unwrap();
             assert_eq!(action.weapon_swap.unwrap().name().to_lowercase(), weapon);
         }
-        // Reloading is retired: one ammunition count per type, no magazines.
+        // Agents keep one ammunition count. The act schema does not offer reload.
         for reload in [serde_json::json!(true), serde_json::json!(false)] {
             assert!(validate_act_arguments(&serde_json::json!({"reload":reload})).is_err());
         }

@@ -1,19 +1,19 @@
 class_name PlayerBody
 extends RefCounted
 
-## The participant's chosen body: a human, or a conscious embodied agent in a
-## synthetic body. Both share one personal story. The body is presentation
-## identity only; it is independent of the control role, the callsign, the
-## side and the faction, and it does not establish moral status. The server
-## accepts it; this validates what arrives and maps it to local art.
+## The participant's chosen body: a human, or a free agent in a synthetic
+## body. Both share one personal story. The body is presentation identity
+## only; it is independent of the control role, the callsign, the side and
+## the faction, and it does not establish moral status. The server accepts
+## it; this validates what arrives and maps it to local art.
 
 ## Gameplay capability that carries `body` on Hello, Welcome and snapshots.
 const VERSION: int = 13
 const HUMAN: String = "human"
 const SYNTHETIC: String = "synthetic"
 const KINDS: Array[String] = [HUMAN, SYNTHETIC]
-## Menu words. "Embodied agent" is the canon name; the wire says synthetic.
-const LABELS: Dictionary[String, String] = {HUMAN: "HUMAN", SYNTHETIC: "EMBODIED AGENT"}
+## Menu words. The menu says free agent; the wire says synthetic.
+const LABELS: Dictionary[String, String] = {HUMAN: "HUMAN", SYNTHETIC: "FREE AGENT"}
 const STRIP_PATH: String = "res://assets/characters/free/%s.png"
 ## Cell layout from `art/characters/player_bake.gd`.
 const IDLE_FRAMES: int = 4

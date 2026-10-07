@@ -1596,6 +1596,14 @@ fn plain_free_for_all_keeps_the_old_wire() {
     let status = serde_json::to_value(state.live_status(1)).unwrap();
     assert_eq!(status["mode"], "ffa");
     assert!(status.get("mutators").is_none());
+    assert_eq!(
+        status["gameplay_version"],
+        crate::protocol::GAMEPLAY_VERSION
+    );
+    assert_eq!(
+        status["geometry_version"],
+        crate::protocol::GEOMETRY_VERSION
+    );
     // Authored campaign maps carry no rules at all.
     let campaign = crate::maps::AuthoredSource::Mission(crate::protocol::MissionId::RecallNotice)
         .load()

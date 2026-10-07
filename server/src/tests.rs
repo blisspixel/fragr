@@ -59,7 +59,9 @@ async fn late_connections_receive_authoritative_geometry_for_every_role() {
         socket
             .send(Message::Text(
                 serde_json::json!({
-                    "type": "hello", "role": role, "name": "MapProbe"
+                    "type": "hello", "role": role, "name": "MapProbe",
+                    "gameplay_version": crate::protocol::GAMEPLAY_VERSION,
+                    "geometry_version": crate::protocol::GEOMETRY_VERSION,
                 })
                 .to_string(),
             ))
@@ -183,6 +185,7 @@ fn test_protocol_server_message_welcome() {
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         resume: None,
+        duck: false,
     };
     let json = serde_json::to_string(&welcome).unwrap();
     assert!(json.contains(r#""type":"welcome""#));
@@ -195,6 +198,7 @@ fn test_protocol_server_message_welcome() {
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         resume: None,
+        duck: false,
     };
     let json = serde_json::to_string(&welcome_spectator).unwrap();
     assert!(json.contains(r#""player_id":null"#));
@@ -387,6 +391,7 @@ fn test_protocol_snapshot_serialization() {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,
@@ -560,6 +565,112 @@ fn test_sim_bot_controller_balanced() {
     let action = bot.update(&state);
 
     assert!(action.forward || action.turn_left || action.turn_right);
+}
+
+#[test]
+fn a_rule_bot_does_not_chase_a_parked_pawn() {
+    let mut state = GameState::new();
+    state.start_round();
+    let bot_id = Uuid::new_v4();
+    let ghost_id = Uuid::new_v4();
+    let live_id = Uuid::new_v4();
+    state.add_player(bot_id, "Bot".into(), Role::Agent);
+    state.add_player(ghost_id, "Parked".into(), Role::Human);
+    state.add_player(live_id, "Live".into(), Role::Human);
+    for player in &mut state.players {
+        player.weapon = WeaponType::Rail;
+        if player.id == bot_id {
+            player.x = 0.0;
+            player.z = 0.0;
+        } else if player.id == ghost_id {
+            player.x = 3.0;
+            player.z = 0.0;
+            player.detached = true;
+        } else if player.id == live_id {
+            player.x = 8.0;
+            player.z = 0.0;
+        }
+    }
+    let bot = BotController::new(bot_id, BotBehavior::Aggressive);
+    let intent = bot.intent(&state);
+    let goal = intent.goal.expect("the living fighter is still a target");
+    assert!(
+        (goal.feet[0] - 8.0).abs() < 1.0 && goal.feet[2].abs() < 1.0,
+        "chased the parked pawn at {:?}",
+        goal.feet
+    );
+
+    state.players.retain(|player| player.id != live_id);
+    let idle = bot.intent(&state);
+    assert!(idle.goal.is_none());
+    assert!(!idle.action.fire);
+    assert!(!idle.action.forward);
+}
+
+#[test]
+fn a_parked_pawn_does_not_take_a_pad() {
+    let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    state.add_player(Uuid::from_u128(1), "Parked".into(), Role::Human);
+    state.add_player(Uuid::from_u128(2), "Live".into(), Role::Human);
+    state.start_round();
+    let pad = state
+        .pickups
+        .iter()
+        .find(|pad| pad.available && matches!(pad.kind, crate::sim::PickupKind::Weapon(_)))
+        .expect("arena duel has a weapon pad");
+    let (px, pz, floor, id) = (pad.x, pad.z, pad.floor, pad.id.clone());
+    {
+        let parked = state
+            .players
+            .iter_mut()
+            .find(|player| player.name == "Parked")
+            .unwrap();
+        parked.x = px;
+        parked.z = pz;
+        parked.y = crate::sim::PLAYER_FLOOR_Y + floor;
+        parked.detached = true;
+    }
+    {
+        let live = state
+            .players
+            .iter_mut()
+            .find(|player| player.name == "Live")
+            .unwrap();
+        live.x = px + 40.0;
+        live.z = pz + 40.0;
+        live.y = crate::sim::PLAYER_FLOOR_Y;
+    }
+    state.tick(0.05);
+    let pad = state.pickups.iter().find(|pad| pad.id == id).unwrap();
+    assert!(pad.available, "parked pawn took {id}");
+}
+
+#[test]
+fn a_parked_pawn_does_not_take_the_golden_rail() {
+    let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+    state.config.boss_spawn_ticks = None;
+    state.config.compliance_ping_ticks = None;
+    state.add_player(Uuid::from_u128(1), "Parked".into(), Role::Human);
+    state.start_round();
+    state.golden_rail = Some(crate::sim::GoldenRail {
+        x: 12.0,
+        y: 0.4,
+        z: -6.0,
+        floor: 0.0,
+        holder: None,
+    });
+    {
+        let parked = &mut state.players[0];
+        parked.x = 12.0;
+        parked.z = -6.0;
+        parked.y = crate::sim::PLAYER_FLOOR_Y;
+        parked.detached = true;
+    }
+    state.tick(0.05);
+    assert!(state.golden_rail.as_ref().unwrap().holder.is_none());
+    assert!(!state.players[0].golden);
 }
 
 #[test]
@@ -1815,10 +1926,20 @@ fn test_rail_higher_damage_than_flechette() {
 
     state.players[target_idx].x = 5.0;
     state.players[target_idx].z = 0.0;
+    state.players[target_idx].y = state.players[shooter_idx].y;
     state.players[shooter_idx].x = 0.0;
     state.players[shooter_idx].z = 0.0;
     state.players[shooter_idx].yaw = 0.0;
     state.players[shooter_idx].weapon = WeaponType::Rail;
+    // A level shot is the face. This check is the body number, so aim at the chest.
+    let feet = state.players[target_idx].y - crate::sim::PLAYER_FLOOR_Y;
+    let eye_y = feet + crate::movement::EYE_HEIGHT;
+    state.players[shooter_idx].pitch = crate::combat::aim_at(
+        [0.0, eye_y, 0.0],
+        [5.0, feet + crate::combat::TORSO_HEIGHT, 0.0],
+    )
+    .unwrap()
+    .1;
 
     let initial_hp = state.players[target_idx].hp;
 
@@ -1896,7 +2017,11 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
                 .sum::<f32>()
                 .sqrt();
             assert!(travelled > 4.4, "pellets stop on the near body surface");
-            WeaponType::Scatter.damage_at(travelled)
+            crate::combat::traced_damage(
+                WeaponType::Scatter,
+                WeaponType::Scatter.damage_at(travelled),
+                crate::combat::head_hit_for(0.0, pellet.end[1], None, false),
+            )
         })
         .sum();
     assert_eq!(
@@ -1907,9 +2032,20 @@ fn test_scatter_hits_harder_than_flechette_up_close() {
         damage_dealt > WeaponType::Flechette.damage(),
         "up close the scatter gun should hit harder than the flechette"
     );
+    let body_sum: i32 = trace
+        .pellets
+        .iter()
+        .map(|pellet| {
+            let travelled = (0..3)
+                .map(|axis| (pellet.end[axis] - trace.origin[axis]).powi(2))
+                .sum::<f32>()
+                .sqrt();
+            WeaponType::Scatter.damage_at(travelled)
+        })
+        .sum();
     assert!(
-        damage_dealt < WeaponType::Scatter.damage() * WeaponType::Scatter.pellets() as i32,
-        "and less than point blank, because it falls off"
+        body_sum < WeaponType::Scatter.damage() * WeaponType::Scatter.pellets() as i32,
+        "falloff keeps the body total under a point-blank blast, got {body_sum}"
     );
 }
 
@@ -2361,7 +2497,9 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
             mode_name,
             playlist,
             resume: _,
+            duck,
         } => {
+            assert!(duck);
             assert_eq!(mode_name, default_mode_name());
             assert_eq!(playlist, default_playlist());
         }
@@ -2416,6 +2554,7 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::CancelAutoJoin { .. } => "CancelAutoJoin".into(),
         crate::net::GameCommand::AbortResume { .. } => "AbortResume".into(),
         crate::net::GameCommand::NoteSeat { .. } => "NoteSeat".into(),
+        crate::net::GameCommand::NoteClientVersion { .. } => "NoteClientVersion".into(),
     }
 }
 
@@ -2460,7 +2599,9 @@ async fn test_net_ws_spectator_hello_no_player_id() {
             mode_name,
             playlist,
             resume: _,
+            duck,
         } => {
+            assert!(duck);
             assert_eq!(mode_name, default_mode_name());
             assert_eq!(playlist, default_playlist());
         }
@@ -2918,6 +3059,69 @@ fn test_shot_results_hit_and_hit_event() {
 }
 
 #[test]
+fn a_level_shot_at_the_face_doubles_and_a_chest_shot_does_not() {
+    use crate::combat::{aim_at, HEAD_DAMAGE_SCALE, TORSO_HEIGHT};
+    use crate::movement::EYE_HEIGHT;
+    use crate::sim::PLAYER_FLOOR_Y;
+
+    let shoot = |pitch: Option<f32>, weapon: WeaponType, gap: f32| -> i32 {
+        let mut state = GameState::new();
+        state.start_round();
+        let shooter_id = Uuid::new_v4();
+        let target_id = Uuid::new_v4();
+        state.add_player(shooter_id, "Shooter".into(), Role::Agent);
+        state.add_player(target_id, "Victim".into(), Role::Agent);
+        let shooter_idx = state
+            .players
+            .iter()
+            .position(|p| p.id == shooter_id)
+            .unwrap();
+        let target_idx = state
+            .players
+            .iter()
+            .position(|p| p.id == target_id)
+            .unwrap();
+        state.players[shooter_idx].x = 0.0;
+        state.players[shooter_idx].z = 0.0;
+        state.players[shooter_idx].yaw = 0.0;
+        state.players[shooter_idx].weapon = weapon;
+        state.players[target_idx].x = gap;
+        state.players[target_idx].z = 0.0;
+        state.players[target_idx].y = state.players[shooter_idx].y;
+        let pitched = pitch.unwrap_or_else(|| {
+            let feet = state.players[target_idx].y - PLAYER_FLOOR_Y;
+            let eye = state.players[shooter_idx].y - PLAYER_FLOOR_Y + EYE_HEIGHT;
+            aim_at([0.0, eye, 0.0], [gap, feet + TORSO_HEIGHT, 0.0])
+                .unwrap()
+                .1
+        });
+        state.players[shooter_idx].pitch = pitched;
+        let before = state.players[target_idx].hp;
+        state.set_action(
+            shooter_id,
+            Action {
+                fire: true,
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        before - state.players.iter().find(|p| p.id == target_id).unwrap().hp
+    };
+
+    let body = WeaponType::Rail.damage();
+    assert_eq!(
+        shoot(None, WeaponType::Rail, 8.0),
+        body,
+        "a chest aim stays a body shot"
+    );
+    assert_eq!(
+        shoot(Some(0.0), WeaponType::Rail, 8.0),
+        body * HEAD_DAMAGE_SCALE,
+        "a level shot at the face doubles"
+    );
+}
+
+#[test]
 fn test_shot_results_miss() {
     use std::f32::consts::PI;
     let mut state = GameState::new();
@@ -3133,6 +3337,7 @@ fn test_welcome_includes_mode_identity() {
         mode_name: default_mode_name(),
         playlist: default_playlist(),
         resume: None,
+        duck: false,
     };
     let json = serde_json::to_value(&welcome).unwrap();
     assert_eq!(json["mode_name"], "Contested Frequency");
@@ -3535,6 +3740,37 @@ fn test_sim_pickup_claim_changes_weapon_and_emits_event() {
     let rail = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
     assert!(!rail.available);
     assert_eq!(rail.respawn_timer, Some(PICKUP_RESPAWN_TICKS));
+}
+
+#[test]
+fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
+    let mut state = GameState::new();
+    state.start_round();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    state.arm_joined_magazines(id);
+    let before = state.players[0]
+        .inventory
+        .state(id, WeaponType::Rail, 0)
+        .unwrap();
+    assert_eq!(before.ammo(crate::protocol::AmmoPool::Cells), 16);
+    assert_eq!(before.shots(WeaponType::Rail), Some(4));
+    stand_on_pad(&mut state, id, "pad_rail");
+    state.tick(0.05);
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(player.weapon, WeaponType::Rail);
+    let after = player
+        .inventory
+        .state(id, WeaponType::Rail, state.tick)
+        .unwrap();
+    assert_eq!(after.ammo(crate::protocol::AmmoPool::Cells), 26);
+    assert_eq!(
+        after.shots(WeaponType::Rail),
+        Some(4),
+        "the pad fills the bag, and R still loads the gun"
+    );
+    let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    assert!(!pad.available);
 }
 
 #[test]
@@ -6650,7 +6886,12 @@ mod vertical_aim {
                 0.0 => {
                     assert!(matches!(trace.impact, ShotImpact::Fighter { .. }));
                     assert!((9.5..10.0).contains(&distance));
-                    assert!(result.hit && !result.killed);
+                    // A level ray from the eye is in the head band.
+                    assert!(result.hit && result.killed);
+                    assert_eq!(
+                        result.damage,
+                        WeaponType::Rail.damage() * crate::combat::HEAD_DAMAGE_SCALE
+                    );
                 }
                 p if p < 0.0 => {
                     assert_eq!(
@@ -6959,6 +7200,7 @@ mod vertical_aim {
     }
 }
 mod auditor;
+mod duck;
 mod encounters;
 mod enforcer;
 mod heavy_turret;

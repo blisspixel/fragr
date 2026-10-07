@@ -36,7 +36,7 @@ impl GameState {
                     key: p.id.to_string(),
                     from,
                     proposed: from,
-                    height: crate::combat::target_height(p.campaign),
+                    height: crate::combat::body_height(p.campaign, p.ducking),
                     radius: RADIUS,
                     jump: false,
                 }

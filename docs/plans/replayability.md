@@ -454,7 +454,8 @@ Watching is the default; replays are how people learn.
 - **The server list** (roadmap Phase 2.6) with filters for mode, rule set,
   lane, map and custom content. No matchmaker decides where you play.
 - **Rotations as data.** A playlist file of map, mode and rule set per slot. A
-  server's rotation is its personality.
+  server's rotation is its personality. The built-in `--playlist` night list
+  is that process for the current modes. The file is still later.
 - **Maps as data.** Authored maps already load as validated files through one
   runtime path. Document the format, ship the validator as a tool, and a
   community map can join a rotation without a rebuild.

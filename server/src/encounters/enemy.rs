@@ -37,6 +37,8 @@ const TURRET_LOCK: f32 = 0.06;
 /// Sideways steps a Heavy Sweeper takes after each recovery before its next
 /// burst. Slow gait makes this a short shuffle, not a dodge.
 const HEAVY_REPOSITION_TICKS: u64 = 24;
+/// A walking guard steps in between bursts when the fight is farther than this.
+const PRESSURE_RANGE: f32 = 8.0;
 /// Require enough of a low body to be visible for its leap tell to read.
 const CRAWLER_EXPOSED_HALF_WIDTH: f32 = 0.6;
 const CRAWLER_WINDUP_TICKS: u64 = 12;
@@ -472,17 +474,24 @@ impl EnemyController {
         };
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
         let eye = [me.x, feet[1] + crate::combat::eye_height(me.campaign), me.z];
+        let chest = |p: &crate::protocol::PlayerState| {
+            crate::combat::aim_point_for([p.x, p.y - PLAYER_FLOOR_Y, p.z], p.campaign, p.ducking)
+        };
+        // Chest when the fighter is clearly in the open. A counter or a lip that
+        // still catches the belt keeps the shot on that line.
         let centre = |p: &crate::protocol::PlayerState| {
-            [
-                p.x,
-                p.y - PLAYER_FLOOR_Y + crate::combat::target_height(p.campaign) * 0.5,
-                p.z,
-            ]
+            crate::combat::shot_aim_for(
+                [p.x, p.y - PLAYER_FLOOR_Y, p.z],
+                p.campaign,
+                p.ducking,
+                eye,
+                &state.current_arena().solids,
+            )
         };
         let head_point = |p: &crate::protocol::PlayerState| {
             [
                 p.x,
-                p.y - PLAYER_FLOOR_Y + crate::combat::eye_height(p.campaign),
+                p.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(p.campaign, p.ducking),
                 p.z,
             ]
         };
@@ -495,7 +504,7 @@ impl EnemyController {
                 && if marksman {
                     // A marksman sees a peeking head as well as an open body:
                     // the participant must drop fully behind cover.
-                    line_of_sight(eye, centre(p), solids)
+                    line_of_sight(eye, chest(p), solids)
                         || line_of_sight(eye, head_point(p), solids)
                 } else {
                     line_of_sight(eye, centre(p), solids)
@@ -583,6 +592,32 @@ impl EnemyController {
             return self.enforcer(target, feet, grounded, (windup, recovery), tick);
         }
         if matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Recovery) && tick < self.until {
+            // Hit stun stays planted. Between bursts a Clerk, Sweeper or Heavy
+            // sidesteps, and steps in when the fight is still far. The raise
+            // and the burst stay planted so the committed shot can be dodged.
+            // A seated clerk does not shuffle the chair. Anyone else holds.
+            if self.phase == EnemyPhase::Recovery
+                && !self.seated
+                && matches!(
+                    self.kind,
+                    EnemyKind::Clerk | EnemyKind::Sweeper | EnemyKind::HeavySweeper
+                )
+            {
+                if let Some(target) = target {
+                    if tick == self.started.saturating_add(1) {
+                        self.strafe_left = !self.strafe_left;
+                    }
+                    let distance = (target.x - me.x).hypot(target.z - me.z);
+                    let action = Action {
+                        yaw: Some((target.z - me.z).atan2(target.x - me.x)),
+                        left: self.strafe_left,
+                        right: !self.strafe_left,
+                        forward: distance > PRESSURE_RANGE,
+                        ..Default::default()
+                    };
+                    return BotIntent { action, goal: None };
+                }
+            }
             return BotIntent::default();
         }
         if self.phase == EnemyPhase::Channeling {
@@ -683,7 +718,7 @@ impl EnemyController {
         if marksman {
             let solids = &state.current_arena().solids;
             let aim_point = target.and_then(|target| {
-                [centre(target), head_point(target)]
+                [chest(target), head_point(target)]
                     .into_iter()
                     .find(|point| line_of_sight(eye, *point, solids))
             });
@@ -916,11 +951,13 @@ impl EnemyController {
             if let Some(target) =
                 target.filter(|target| (target.x - eye[0]).hypot(target.z - eye[2]) <= ENGAGE_RANGE)
             {
-                let centre = [
-                    target.x,
-                    target.y - PLAYER_FLOOR_Y + crate::combat::target_height(target.campaign) * 0.5,
-                    target.z,
-                ];
+                let centre = crate::combat::shot_aim_for(
+                    [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+                    target.campaign,
+                    target.ducking,
+                    eye,
+                    &state.current_arena().solids,
+                );
                 if let Some(aim) = aim_at(eye, centre) {
                     self.begin_windup(aim, tick, windup, &mut action);
                     return BotIntent { action, goal: None };
@@ -1140,11 +1177,7 @@ mod tests {
             let target = snapshot.players.iter().find(|p| p.id == target_id).unwrap();
             assert!(line_of_sight(
                 eye,
-                [
-                    target.x,
-                    crate::combat::target_height(target.campaign) * 0.5,
-                    target.z
-                ],
+                crate::combat::aim_point([target.x, 0.0, target.z], target.campaign),
                 &state.current_arena().solids,
             ));
         }
@@ -1287,6 +1320,99 @@ mod tests {
             attack_timing(EnemyKind::Crawler, CampaignDifficulty::Severe),
             (12, 20)
         );
+    }
+
+    #[test]
+    fn walking_guards_sidestep_between_bursts_and_stay_planted_on_the_tell() {
+        use crate::protocol::Role;
+
+        let enemy_id = Uuid::from_u128(0x0f1);
+        let player_id = Uuid::from_u128(0x0f2);
+        let mut state = GameState::new();
+        state.add_player(enemy_id, "Clerk".into(), Role::Agent);
+        state.add_player(player_id, "Runner".into(), Role::Human);
+        let floor = state.players.iter().find(|p| p.id == enemy_id).unwrap().y;
+        for (id, x) in [(enemy_id, 0.0), (player_id, 4.0)] {
+            let body = state.players.iter_mut().find(|p| p.id == id).unwrap();
+            body.x = x;
+            body.z = 0.0;
+            body.y = floor;
+        }
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == enemy_id)
+            .unwrap()
+            .campaign = Some(CampaignActor::Union {
+            kind: EnemyKind::Clerk,
+            phase: EnemyPhase::Recovery,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        });
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == player_id)
+            .unwrap()
+            .campaign = Some(CampaignActor::Participant {});
+        state.tick = 10;
+
+        let mut guard = EnemyController::new(enemy_id, EnemyKind::Clerk, [0.0; 3], 0.0, 0, false);
+        guard.enter(EnemyPhase::Recovery, 10, 20);
+        let close = guard.intent(&state, &state.snapshot());
+        assert!(
+            close.action.left && !close.action.right && !close.action.forward && !close.action.fire,
+            "a close recovery sidesteps and does not fire"
+        );
+        assert_eq!(guard.phase, EnemyPhase::Recovery);
+
+        state
+            .players
+            .iter_mut()
+            .find(|p| p.id == player_id)
+            .unwrap()
+            .x = 12.0;
+        let mut far = EnemyController::new(enemy_id, EnemyKind::Sweeper, [0.0; 3], 0.0, 0, false);
+        far.enter(EnemyPhase::Recovery, 10, 26);
+        let closing = far.intent(&state, &state.snapshot());
+        assert!(
+            closing.action.forward && (closing.action.left ^ closing.action.right),
+            "past 8 m the guard steps in while it sidesteps"
+        );
+
+        let mut heavy =
+            EnemyController::new(enemy_id, EnemyKind::HeavySweeper, [0.0; 3], 0.0, 0, false);
+        heavy.last_hp = 100;
+        heavy.enter(EnemyPhase::Recovery, 10, 34);
+        let shuffle = heavy.intent(&state, &state.snapshot());
+        assert!(shuffle.action.left ^ shuffle.action.right);
+
+        let mut seated = EnemyController::new(enemy_id, EnemyKind::Clerk, [0.0; 3], 0.0, 0, true);
+        seated.enter(EnemyPhase::Recovery, 10, 20);
+        let chair = seated.intent(&state, &state.snapshot());
+        assert!(!chair.action.left && !chair.action.right && !chair.action.forward);
+
+        let mut windup = EnemyController::new(enemy_id, EnemyKind::Clerk, [0.0; 3], 0.0, 0, false);
+        // A committed raise does not acquire. The test has to hand it the target.
+        windup.target = Some(player_id);
+        windup.enter(EnemyPhase::Windup, 10, 12);
+        let tell = windup.intent(&state, &state.snapshot());
+        assert!(
+            !tell.action.left && !tell.action.right && !tell.action.forward,
+            "the raise stays planted"
+        );
+        assert_eq!(windup.phase, EnemyPhase::Windup);
+
+        let mut stung = EnemyController::new(enemy_id, EnemyKind::Clerk, [0.0; 3], 0.0, 0, false);
+        stung.enter(EnemyPhase::Hit, 10, 6);
+        let pain = stung.intent(&state, &state.snapshot());
+        assert!(!pain.action.left && !pain.action.right && !pain.action.forward);
+
+        let mut turret = EnemyController::new(enemy_id, EnemyKind::Turret, [0.0; 3], 0.0, 0, false);
+        turret.enter(EnemyPhase::Recovery, 10, 30);
+        let planted = turret.intent(&state, &state.snapshot());
+        assert!(!planted.action.left && !planted.action.right && !planted.action.forward);
     }
 
     #[test]

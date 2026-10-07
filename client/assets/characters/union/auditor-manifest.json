@@ -96,7 +96,7 @@
 		"res://art/models/candidates/auditor.glb": "e4f49157490060e276b4649a838ac147af1b575f71e47531760cd22baf4b2b4c",
 		"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
 		"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
-		"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573"
+		"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441"
 	},
 	"tile_pixels": 160
 }

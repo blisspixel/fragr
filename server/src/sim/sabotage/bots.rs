@@ -5,7 +5,6 @@
 //! when the lane is clear. Movement goes through the shared navigator.
 use super::{feet, horizontal, spawn_point, Sabotage, DEFUSE_REACH};
 use crate::maps::SabotageLayout;
-use crate::movement::EYE_HEIGHT;
 use crate::navigation::NavigationGoal;
 use crate::protocol::{Action, ProgressKind, SabotagePhase, SiteId, SupplyClaim, Team, WeaponType};
 use crate::sim::{BotController, BotIntent, GameState, PickupKind, Player, PLAYER_FLOOR_Y};
@@ -360,12 +359,16 @@ impl BotController {
     ) -> BotIntent {
         let target_angle = (target.z - bot.z).atan2(target.x - bot.x);
         let angle_diff = (target_angle - bot.yaw + PI).rem_euclid(2.0 * PI) - PI;
-        let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
-        let centre = [
-            target.x,
-            target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
-            target.z,
+        let eye = [
+            bot.x,
+            bot.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(bot.campaign, bot.ducking),
+            bot.z,
         ];
+        let centre = crate::combat::aim_point_for(
+            [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+            target.campaign,
+            target.ducking,
+        );
         let action = Action {
             pitch: crate::combat::aim_at(eye, centre).map(|(_, pitch)| pitch),
             ..Action::default()
@@ -446,12 +449,16 @@ fn hold_spot(layout: &SabotageLayout, site: SiteId, slot: usize) -> [f32; 3] {
 }
 
 fn visible(state: &GameState, bot: &Player, target: &Player) -> bool {
-    let eye = [bot.x, bot.y - PLAYER_FLOOR_Y + EYE_HEIGHT, bot.z];
-    let centre = [
-        target.x,
-        target.y - PLAYER_FLOOR_Y + crate::combat::FIGHTER_HEIGHT * 0.5,
-        target.z,
+    let eye = [
+        bot.x,
+        bot.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(bot.campaign, bot.ducking),
+        bot.z,
     ];
+    let centre = crate::combat::aim_point_for(
+        [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+        target.campaign,
+        target.ducking,
+    );
     crate::combat::line_of_sight(eye, centre, &state.map.arena().solids)
 }
 

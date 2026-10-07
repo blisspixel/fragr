@@ -1,8 +1,21 @@
 # Exceptional server, multiplayer, and hosting
 
-**Status:** planned, 2026-10-05. The local venue desk and the synthetic
-traffic generator ship in v0.78.0. Measurement, the rest of this plan, and
-any cloud apply stay planned. Nick set this goal. It sequences inside the
+**Status:** planned, 2026-10-06. The local venue desk and the synthetic
+traffic generator ship in v0.78.0. The built-in night playlist
+([night playlist](night-playlist.md)) is the rotation slice, implemented
+locally and not yet merged: one process stays up and changes map and mode
+between shows. Join preflight ([join preflight](join-preflight.md)) is implemented locally
+and not merged: the process checks its own status line before ready, and a
+locked status answers HTTP 503 instead of a false match line.
+The in-app server list and LAN presence beacon are [server list](server-list.md),
+implemented locally and not merged. They are not the measurement pass.
+Rounds 4 and 5 (2026-10-06) keep a late `GET /status` on the status path
+and stop a parked pawn from being chased, spoiling a respawn, or taking a
+pad. Round 6 requires one gameplay and geometry contract in a shared room
+and drops server aim from a human socket there. They are local source and
+tests. The running night process does not
+have them. Measurement, the rest of this plan, and any cloud apply stay
+planned. Nick set this goal. It sequences inside the
 [full build order](../ROADMAP.md#full-build-order). It does not open a second
 queue, and it does not replace the current
 [multiplayer trial](multiplayer-first-playable.md).
@@ -217,9 +230,193 @@ Left for a later round:
   change them.
 - Pass 1 measurement has not been run.
 
-The venue desk below is the operator surface built on 2026-10-05. Bot
-targeting and what a snapshot reveals remain the next review surface.
-That review does not start the measurement soak.
+### Round 4, 2026-10-06: status classification and parked targets
+
+Surface: `serve_status_if_requested` in `server/src/net.rs`, and rule-bot
+aim in `server/src/sim.rs`.
+
+Fixed:
+
+- A new socket peeked for 50 ms and then gave up. The desktop Check host
+  connects and writes `GET /status` on a later frame. The live log showed
+  that write about 300 ms after accept, and the handshake then rejected
+  the HTTP line. Immediate senders still received HTTP 200, so a shell
+  probe hid the failure. Classification now keeps a one-second budget. A
+  line that is clearly not status still returns at once. A peek that sees
+  no new bytes waits 10 ms, so a partial line does not spin.
+  `a_status_line_that_arrives_after_connect_is_still_status` writes 400 ms
+  after connect and requires HTTP 200.
+- Rule-bot aim and nearest contact skipped dead and respawning bodies, and
+  not a parked resume pawn. That pawn keeps hit points and a position, and
+  shots already pass through it, so bots spent the round on a ghost when
+  it was nearest. Both loops now use `contact_eligible`.
+  `a_rule_bot_does_not_chase_a_parked_pawn` puts the parked pawn at 3 m
+  and a living fighter at 8 m, on the Railgun so a Flechette pad does not
+  steal the goal, and requires the living fighter. With only the parked
+  pawn left, there is no goal, fire, or forward.
+
+Checked and unchanged:
+
+- Personal Tack pads stay up after a claim. Two fighters recording
+  `sabotage_tack_coalition` in one tick are two inventories, not one pad
+  granted twice.
+- One `TickRateLow` sample beside a healthy tick histogram was left alone.
+  The tick stays 20 Hz.
+- The playlist returning to Arena Duel after a Sabotage match ends is the
+  list wrapping. The snapshot mode name and the Host line keep their
+  current league wording.
+
+Left at the end of this round, and fixed in round 5 where a test could
+show it: spawn selection and pad claims still counted a parked body.
+Unchanged limits: no per-client action throttle, no trusted forwarded
+address, full snapshots to every initialized client, and pass 1
+measurement still not run. The night process was not replaced.
+
+### Round 5, 2026-10-06: parked bodies in the world
+
+Surface: `select_spawn_angle` and `tick_pickups` in `server/src/sim.rs`,
+and `claim_golden_rail` in `server/src/sim/modes.rs`.
+
+Fixed:
+
+- Spawn selection counted a parked pawn as a fighter. On Arena Duel, a
+  living threat on the west pocket left the open respawn at x=-42. A
+  parked body standing there moved the next fighter to z=42. Parked bodies
+  are skipped. `a_parked_pawn_does_not_spoil_the_open_respawn` covers that.
+- A parked pawn standing on `pad_rail` took it. Contested pad claims skip
+  detached bodies. `a_parked_pawn_does_not_take_a_pad` covers that.
+- The same body standing on the golden Railgun took it.
+  `a_parked_pawn_does_not_take_the_golden_rail` covers that.
+
+Checked and unchanged:
+
+- Team balance still counts a parked contestant toward a side, and can
+  move one at round start the same way it moves a connected fighter. The
+  pawn still holds the seat.
+- Flag touch, grenades, mines, and Sabotage already skipped detached bodies.
+- Shots already used `contact_eligible`.
+
+Left for a later round:
+
+- No per-client action throttle beyond the inbound budget. A naive throttle
+  would clear edge-triggered jump, use, and weapon latches. See public
+  server hardening.
+- No trusted forwarded address. Lists see the connecting socket.
+- Full snapshots still describe every fighter to every initialized client.
+  What a snapshot reveals is the next review surface. That review does not
+  start the measurement soak.
+- Pass 1 measurement has not been run.
+- The running night process does not have rounds 4 or 5. Replacing it
+  resets the match. These fixes stay in source until that process is
+  rebuilt on purpose.
+
+### Round 6, 2026-10-06: one contract, and human aim
+
+Surface: hello admission in `server/src/net.rs`, the requirement chosen in
+`server/src/run.rs`, `LiveStatus`, and human actions on the socket.
+
+Fixed:
+
+- A shared arcade room (free-for-all, team play, capture the flag, Sabotage,
+  and the night list) requires gameplay version 36 and geometry version 2.
+  An older hello and a newer hello are both refused before Welcome. The
+  message names the version this binary speaks. Campaign and local missions
+  keep their floors. Every door refuses a hello above the versions this
+  binary implements. The mission party of four seats stays on campaign
+  doors. A shared room opens arcade seats, then Sabotage installs its own
+  pool. `body_is_accepted_shown_to_watchers_and_kept_across_resume` joins
+  six fighters on plain free-for-all at this contract and still receives
+  each accepted body.
+  `playlist_speaks_the_current_contract_and_keeps_arena_seats`,
+  `a_shared_rule_set_speaks_the_current_contract`,
+  `ctf_speaks_the_current_contract_for_spectators_and_fighters`,
+  `sabotage_speaks_the_current_contract_for_spectators_and_fighters`, and
+  `a_hello_newer_than_this_binary_is_refused_on_a_floor_listener` cover the
+  old, current, and newer hellos. A floor listener still admits a legacy
+  reader. `plain_free_for_all_keeps_the_old_wire` checks the status fields.
+- `GET /status` adds optional `gameplay_version` and `geometry_version`.
+  An older status that omits them still opens Watch and Join. When the
+  fields are present and differ, the match line says so and still allows
+  the join. The missing-host sentence is unchanged.
+- A human action on a shared-room socket drops `look_at`. Yaw and pitch
+  stay. The server does not aim that pawn. Agents keep `look_at`. Campaign
+  sockets keep it because the mission probe aims that way. In-process
+  controllers are unchanged.
+  `human_socket_drops_server_aim_and_an_agent_keeps_it` sends the same
+  action both ways.
+
+Checked and unchanged:
+
+- Unknown well-formed message types are still ignored, not closed.
+- Human sequence numbers still reject only a replay or a backwards
+  half-range jump. A forward skip replaces the pending action. It does not
+  grant an extra shot past the server cooldown.
+- Full snapshots still describe every fighter to every initialized client.
+- No kernel anti-cheat, no client scan, no second ban store, and no
+  automatic ban. Round 6 left `GAMEPLAY_VERSION` at 36.
+- Joining as an agent and sending `look_at` remains the agent tool. There
+  is no human-versus-agent classifier.
+
+Left for a later round:
+
+- A campaign human socket can still ask the server to aim.
+- What a full snapshot reveals through cover, spectator relay, and interest
+  management stay the information review. That review does not start the
+  measurement soak.
+- No per-client action throttle beyond the inbound budget.
+- Pass 1 measurement has not been run.
+- The running night process does not have round 6. Replacing it resets the
+  match.
+
+Capability 37 is a later local change, not part of round 6. It raises the
+shared-room exact match from 36 to 37. Campaign floors stay. A Godot human
+at 37 receives a magazine in each gun inside the same ammunition pool.
+Agents, rule bots and campaign enemies keep one count. The night process
+has neither round 6 nor capability 37.
+
+### Round 7, 2026-10-06: who can see the room, and what a beacon may claim
+
+Surface: `GET /status?clients=1` in `server/src/net.rs`, the LAN beacon and
+the join-page scan in `client/scripts/server_book.gd` and `boot_menu.gd`,
+and the install handoff in `client/scripts/release_install.gd`.
+
+Fixed:
+
+- Per-session rates stay on loopback. An IPv4-mapped loopback address is
+  this machine. A request from another computer receives the plain status
+  body, even when it asks for `?clients=1`. The list is still anonymous.
+  The soak on this machine still reads it.
+- Leaving the join page closes the beacon socket.
+- A beacon does not take one of the eight nearby rows until `GET /status`
+  returns a schema 2 match or this server's busy body. Eight silent
+  packets no longer hide the real server. The source has to be private,
+  link-local, or `100.64.0.0/10`. The metadata address is ignored,
+  including as a neighbor in the same link-local /24.
+- Scan this network walks those same ranges. A public adapter is not
+  swept. The typed address field still reaches a public host.
+- A replacement script refuses a path that ends in a slash, and a bare
+  drive letter such as `C:`. On Windows a trailing slash becomes a
+  backslash in front of the closing quote, and cmd treats that backslash
+  as escaping the quote. A bare drive letter is the current directory on
+  that drive, not the install folder. A drive-root install launches the
+  checked copy beside itself instead of writing the script.
+
+Checked and unchanged:
+
+- Full snapshots still describe every fighter to every initialized client.
+- A campaign human socket can still ask the server to aim.
+- No per-client action throttle beyond the inbound budget.
+- Join tickets, resume tokens, and the join secret are still never logged.
+- Pass 1 measurement has not been run.
+- The running night process does not have round 7. Replacing it resets
+  the match.
+
+Verified on 2026-10-06. The loopback status tests and server clippy passed.
+`test_server_book` and `test_release_install` passed in the Godot checker.
+`test_frontend` and `test_m07_local` passed on a second run after a mid-edit
+parse error had stalled the first checker.
+
+The venue desk below is the operator surface built on 2026-10-05.
 
 ## Venue desk
 
@@ -251,7 +448,12 @@ It did not have a desk.
 Built on 2026-10-05. `--console`
 opens the desk on a dedicated arcade match. It refuses desktop Host, a
 local mission, a map file, the run preview, and the bench. Verbs are
-`who`, `kick <name>`, `ban <name> [reason]`, and `say <sentence>`.
+`who`, `kick <name>`, `ban <name> [reason]`, `say <sentence>`, and `stats`.
+
+`stats` reads the [night sheet](night-sheet.md): rounds finished, the
+busiest room, and the latest shows with the top score. That card stays on
+the desk and in the `SHEET` log. `GET /status` adds only the three
+anonymous counts. The running night process does not have this yet.
 
 `who` prints the assigned name, a kind (`human`, `agent`, `spectator`,
 `parked`, or `roster`), the score, and the canonical address when the
@@ -282,26 +484,28 @@ The voice is the venue. It is not an Auditor, and it is not a new station.
 The Host calling the match stays in capitals. Roster bots are on the card.
 The league does not own the room. The person running the night does.
 
-Still later, and still inside this plan rather than a second queue:
+Still later, and still on this ladder rather than a second queue. The
+bounded design is [venue operator](venue-operator.md). Nothing in it is
+built. The scale ladder's next step remains pass 1.
 
-- Remote administration. Status, say, map, restart, rotate, kick, and ban
-  over an authenticated channel, with a secret that is never logged. A
-  passworded remote channel is a larger hazard than local stdin, so it is
-  not this cut.
+- A desk the operator can attach after the launching terminal is gone.
+  The credential is the operating-system user. SSH to that account is the
+  remote door. A passworded fragr protocol is a larger hazard than local
+  stdin, so the plan does not add one.
 - A private-night passphrase, distinct from join tickets. Tickets are
   clearance for a fighter. They are not a room password a stranger can
-  be told at the door.
+  be told at the door. The passphrase covers spectators too.
 - A venue name and one line of house rules that a joiner actually sees.
-- Naming the next map at the round bell without restarting the process.
-  `--map-rotate` already alternates between rounds for modes that allow
-  it. The desk cannot choose a map.
-- A vote to send someone outside.
+- A playlist file, and naming the next show from the desk. The live show
+  finishes first. `--playlist` remains the built-in night list.
+- Listing the ban file and removing one address. Muting one seat without
+  a kick. A map vote, off unless the host file asks, with no kick vote.
 - Demos, and a delayed spectator relay. A demo flush stays off the tick.
   The relay is how a public night is watched. A friend on the couch stays
-  a direct spectator.
+  a direct spectator. Venue operator does not build either.
 - One server config file instead of a long command line. The file holds
-  rates, bans, seed, and the venue name. The mode still owns its clocks
-  and its limits.
+  the door, the lists, the seed, and the venue name. The mode still owns
+  its clocks. Rate clamps wait until a measurement pass has a number.
 
 This desk does not close the limits already written down: no per-client
 action throttle beyond the inbound budget, no trusted forwarded address,
@@ -438,7 +642,10 @@ claim. Templates stay plan-only the whole time.
    the exposed-server week. Wipe uses the same budget discipline. Its first
    playable target stays four cooperative seats on the shared scenario, with
    the spared-standing rule above. A larger defense roster is a later measured
-   profile, not a silent jump to 64.
+   profile, not a silent jump to 64. The host guide's two night profiles are
+   the operator face of this rule now: eight bots, about 24 people with room
+   left to watch, or about 64 connections with the same eight bots. They do
+   not stock 64 bots, and they do not fill this table.
 
 IaC rungs, writable as soon as a root can be mocked, and still unapplied:
 
@@ -562,8 +769,11 @@ supersede [multiplayer-first-playable.md](multiplayer-first-playable.md),
 [TRANSPORT.md](../TRANSPORT.md), [cos-container-host.md](cos-container-host.md),
 [bot-fill.md](bot-fill.md), or the home and cheap-VPS guides. Those remain
 the near doors. Review rounds above repeat beside the passes. Rounds 1
-to 3 are recorded. The venue desk and the synthetic traffic generator
-are part of this server work. Polish rules from the 2026-10-05 rate, ceremony,
-and snapshot search are recorded in this file. The next implementation
+to 5 are recorded. Rounds 4 and 5 are local source and tests, not merged,
+and the running night process does not have them. The venue desk and the
+synthetic traffic generator are part of this server work. Polish rules from
+the 2026-10-05 rate, ceremony, and snapshot search are recorded in this
+file. The next implementation
 step for the scale ladder is still pass 1, the measurement, with no
-gameplay change.
+gameplay change. Operator quality of life is bounded in
+[venue operator](venue-operator.md) and does not move that step.

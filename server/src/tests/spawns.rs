@@ -244,6 +244,48 @@ fn a_respawn_takes_the_widest_slot_out_of_every_lane() {
     }
 }
 
+/// A parked resume pawn still has a body on the map. Shots and contact ignore
+/// it. Spawn selection was still counting that body, so the open pocket it
+/// stood in was refused and the next fighter came back closer to a real one.
+#[test]
+fn a_parked_pawn_does_not_spoil_the_open_respawn() {
+    fn respawn_at(parked_at: Option<[f32; 3]>) -> [f32; 3] {
+        let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+        state.seed(1);
+        state.config.boss_spawn_ticks = None;
+        state.config.compliance_ping_ticks = None;
+        state.add_player(Uuid::from_u128(1), "Threat".into(), Role::Agent);
+        state.add_player(Uuid::from_u128(2), "Victim".into(), Role::Human);
+        let (x, z, _, floor) = state.map.spawn(0.0);
+        {
+            let threat = &mut state.players[0];
+            threat.x = x;
+            threat.z = z;
+            threat.y = PLAYER_FLOOR_Y + floor;
+        }
+        state.start_round();
+        if let Some(at) = parked_at {
+            state.add_player(Uuid::from_u128(3), "Parked".into(), Role::Human);
+            let parked = &mut state.players[2];
+            parked.x = at[0];
+            parked.y = at[1];
+            parked.z = at[2];
+            parked.detached = true;
+        }
+        state.players[1].respawn_timer = Some(1);
+        state.tick(0.05);
+        let victim = &state.players[1];
+        [victim.x, victim.y, victim.z]
+    }
+
+    let open = respawn_at(None);
+    let spoiled = respawn_at(Some(open));
+    assert_eq!(
+        open, spoiled,
+        "a parked body moved the respawn from {open:?} to {spoiled:?}"
+    );
+}
+
 /// Real clients connect concurrently, so the order `add_player` sees them in
 /// is not the roster's listed order: it depends on WebSocket and scheduler
 /// timing. Shuffle that arrival order many times per map and require every

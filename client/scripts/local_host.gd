@@ -11,7 +11,7 @@ const START_TIMEOUT_MS: int = 15000
 const STOP_TIMEOUT_MS: int = 3000
 const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_host_pending"
-const GAMEPLAY_VERSION: int = 36
+const GAMEPLAY_VERSION: int = 37
 
 var state: State = State.IDLE
 var url: String = ""

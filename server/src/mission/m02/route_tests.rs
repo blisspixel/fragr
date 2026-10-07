@@ -145,6 +145,9 @@ struct Walker {
     full_health_medkit_opportunity: Option<(u64, [f32; 3], i32, bool, bool)>,
     walk_goal: Option<[f32; 3]>,
     teach_crawler_landings: bool,
+    /// Do not shoot the lone stair Crawler until its scrabble. The grounded
+    /// switchback check is the lesson; an earlier sightline must not delete it.
+    defer_first_crawler: bool,
     crawler_hits: Vec<(u64, String)>,
 }
 
@@ -182,6 +185,7 @@ impl Walker {
             full_health_medkit_opportunity: None,
             walk_goal: None,
             teach_crawler_landings: false,
+            defer_first_crawler: false,
             crawler_hits: Vec::new(),
         }
     }
@@ -236,6 +240,15 @@ impl Walker {
         }
     }
 
+    fn hold_stair_shot(&self, name: &str) -> bool {
+        (self.teach_crawler_landings
+            && self.crawler_cues.len() < 2
+            && (name.starts_with("stair_crawler_pack_") || name == "stair_pack_sweeper"))
+            || (self.defer_first_crawler
+                && self.crawler_cues.is_empty()
+                && name == "stair_crawler_first")
+    }
+
     fn step(&mut self, session: &mut GameSession) {
         let feet = session
             .state
@@ -283,7 +296,16 @@ impl Walker {
             }
         }
         self.read(messages);
-        if session
+        let crawler_alive = session
+            .state
+            .players
+            .iter()
+            .any(|p| p.name == "stair_crawler_first" && p.hp > 0);
+        if crawler_alive {
+            // A party wipe puts that body back on its mark. The lesson
+            // clear only counts while it stays down.
+            self.first_crawler_clear_tick = None;
+        } else if session
             .state
             .players
             .iter()
@@ -430,6 +452,16 @@ impl Walker {
                 .iter()
                 .find(|pickup| pickup.id == "guard_room_shells")
                 .map(|pickup| !pickup.available);
+        } else if self.guard_room_shells_claimed == Some(false)
+            && session
+                .state
+                .pickups
+                .iter()
+                .any(|pickup| pickup.id == "guard_room_shells" && !pickup.available)
+        {
+            // A chest shot can drop both clerks before the walker reaches the
+            // pad. The opener still collects the shells on the way out.
+            self.guard_room_shells_claimed = Some(true);
         }
         if let Some(ready) = self.client.readiness(Some(self.id)) {
             assert!(session.state.acknowledge_mission(self.id, ready));
@@ -456,10 +488,7 @@ impl Walker {
             .iter()
             .filter(|p| {
                 me.is_hostile_to(p)
-                    && !(self.teach_crawler_landings
-                        && self.crawler_cues.len() < 2
-                        && (p.name.starts_with("stair_crawler_pack_")
-                            || p.name == "stair_pack_sweeper"))
+                    && !self.hold_stair_shot(&p.name)
                     // Engagement range, not every pixel down a long sightline.
                     && (p.x - me.x).hypot(p.z - me.z) < 24.0
                     && crate::combat::line_of_sight(
@@ -511,11 +540,7 @@ impl Walker {
             combat,
             true,
             |_, other| {
-                (!ward_release_pending || other.z < -7.0)
-                    && !(self.teach_crawler_landings
-                        && self.crawler_cues.len() < 2
-                        && (other.name.starts_with("stair_crawler_pack_")
-                            || other.name == "stair_pack_sweeper"))
+                (!ward_release_pending || other.z < -7.0) && !self.hold_stair_shot(&other.name)
             },
         );
         if equipped.look_at.is_some()
@@ -539,10 +564,34 @@ impl Walker {
                     feet: goal,
                     combat: false,
                 },
-                equipped,
+                equipped.clone(),
                 snapshot.tick,
                 true,
             );
+            // A body in the room still has to be fought. A sightline across
+            // the gallery must not turn the witness off the landing.
+            let close_fight = equipped.look_at.as_ref().is_some_and(|aim| {
+                aim.player_id.is_some_and(|target| {
+                    snapshot.players.iter().any(|player| {
+                        player.id == target && (player.x - me.x).hypot(player.z - me.z) < 8.0
+                    })
+                })
+            });
+            let routed = if close_fight {
+                Action {
+                    fire: equipped.fire,
+                    look_at: equipped.look_at.clone(),
+                    weapon_swap: equipped.weapon_swap.or(routed.weapon_swap),
+                    forward: routed.forward,
+                    back: routed.back,
+                    left: routed.left,
+                    right: routed.right,
+                    yaw: routed.yaw,
+                    ..equipped
+                }
+            } else {
+                routed
+            };
             self.navigator.avoid_bodies(
                 &session.state.current_arena(),
                 self.id,
@@ -655,9 +704,7 @@ fn departed(session: &GameSession, _: &Walker) -> bool {
 }
 
 fn full_clear_dodge(state: &GameState, id: Uuid, action: Action) -> Action {
-    if !action.fire
-        || !(action.left || action.right)
-        || action.jump
+    if action.jump
         || action.turn_left
         || action.turn_right
         || !state
@@ -713,13 +760,15 @@ fn full_clear_dodge(state: &GameState, id: Uuid, action: Action) -> Action {
     if forecast(&action).is_none_or(|pose| !arrival.contains([pose.x, pose.y, pose.z])) {
         return action;
     }
-    let mut alternate = action.clone();
-    (alternate.left, alternate.right) = (action.right, action.left);
-    if forecast(&alternate).is_some_and(|pose| {
-        !arrival.contains([pose.x, pose.y, pose.z])
-            && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
-    }) {
-        return alternate;
+    if action.fire && (action.left || action.right) {
+        let mut alternate = action.clone();
+        (alternate.left, alternate.right) = (action.right, action.left);
+        if forecast(&alternate).is_some_and(|pose| {
+            !arrival.contains([pose.x, pose.y, pose.z])
+                && (pose.x - me.from.x).hypot(pose.z - me.from.z) > CONTACT_EPSILON
+        }) {
+            return alternate;
+        }
     }
     let mut held = action.clone();
     held.forward = false;
@@ -1803,7 +1852,6 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         .find(|p| p.id == target_id)
         .unwrap();
     [target.x, target.y, target.z] = [8.5, PLAYER_FLOOR_Y, -13.2];
-    let target_height = crate::combat::target_height(target.campaign);
     let companion = state
         .players
         .iter_mut()
@@ -1820,7 +1868,7 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
         .last_support_tick = None;
     assert!(!crate::combat::line_of_sight(
         [7.0, crate::movement::EYE_HEIGHT, -11.0],
-        [8.5, target_height * 0.5, -13.2],
+        [8.5, crate::combat::aim_height(None), -13.2],
         &state.map.arena().solids,
     ));
     assert!(!state.m02_companion_intent().unwrap().1.action.fire);
@@ -1853,11 +1901,7 @@ fn companion_only_fires_bounded_support_at_visible_active_union() {
     let target = state.players.iter().find(|p| p.id == target_id).unwrap();
     assert!(crate::combat::line_of_sight(
         [6.5, crate::movement::EYE_HEIGHT, -10.0],
-        [
-            4.0,
-            crate::combat::target_height(target.campaign) * 0.5,
-            -11.0
-        ],
+        [4.0, crate::combat::aim_height(target.campaign), -11.0],
         &state.map.arena().solids,
     ));
     assert!(!state.m02_companion_intent().unwrap().1.action.fire);
@@ -2596,7 +2640,28 @@ fn crawler_descent_is_walked_in_order_with_a_hidden_first_cue() {
     // The lesson follows each physical landing. Other route probes retain the
     // unrestricted ability to wake a later group with an ordinary distant hit.
     walker.teach_crawler_landings = true;
-    let mut ticks = walker.until(&mut session, 2000, |_, walker| {
+    // The scrabble is the lesson. A shot from the gallery kills the crawler
+    // before the landing, and the walk back from there is a different fight.
+    walker.defer_first_crawler = true;
+    walker.until(&mut session, 1000, |_, walker| {
+        walker.crawler_cues.len() == 1
+    });
+    walker.walk_goal = Some([-11.6, 0.0, -27.2]);
+    walker.until(&mut session, 80, |session, _| {
+        session
+            .state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .is_some_and(|p| {
+                (p.y - PLAYER_FLOOR_Y).abs() < 0.1
+                    && (-12.7..=-10.5).contains(&p.x)
+                    && (-28.0..=-26.5).contains(&p.z)
+            })
+    });
+    walker.walk_goal = None;
+    walker.defer_first_crawler = false;
+    let mut ticks = walker.until(&mut session, 400, |_, walker| {
         walker.first_crawler_clear_tick.is_some()
     });
     walker.walk_goal = Some([-12.8, 0.0, -25.5]);
@@ -2672,9 +2737,13 @@ fn engaged_descent_clears_the_lone_crawler_before_the_pack_landing() {
     let id = Uuid::from_u128(0x02c2);
     session.state.add_player(id, "Walker".into(), Role::Human);
     let mut walker = Walker::new(id);
+    walker.defer_first_crawler = true;
     walker.until(&mut session, 1000, |_, walker| {
         walker.crawler_cues.len() == 1
     });
+    // The scrabble is above the switchback and has no sightline yet. Walk onto
+    // the grounded landing before the lesson fight, instead of peeling off.
+    walker.walk_goal = Some([-11.6, 0.0, -27.2]);
     walker.until(&mut session, 80, |session, _| {
         session
             .state
@@ -2687,6 +2756,8 @@ fn engaged_descent_clears_the_lone_crawler_before_the_pack_landing() {
                     && (-28.0..=-26.5).contains(&p.z)
             })
     });
+    walker.walk_goal = None;
+    walker.defer_first_crawler = false;
     let enemy = session
         .state
         .players
@@ -2830,7 +2901,9 @@ fn first_guard_room_teaches_the_shotgun_across_seeds() {
         let id = Uuid::from_u128(0x0201);
         session.state.add_player(id, "Walker".into(), Role::Human);
         let mut walker = Walker::new(id);
-        walker.until(&mut session, 3000, |_, walker| walker.defeated.len() >= 2);
+        walker.until(&mut session, 3000, |_, walker| {
+            walker.defeated.len() >= 2 && walker.guard_room_shells_claimed == Some(true)
+        });
         assert_guard_room_lesson(&walker);
         assert!(
             session

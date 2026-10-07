@@ -138,6 +138,12 @@ msgstr "UNION"
 msgid "TEAM_COALITION_SHORT"
 msgstr "FREE"
 
+msgid "TEAM_OURS"
+msgstr "OURS"
+
+msgid "TEAM_THEIRS"
+msgstr "THEIRS"
+
 msgid "TEAM_SCORE_LINE"
 msgstr "UNION {union} : {coalition} FREE COALITION"
 
@@ -146,6 +152,9 @@ msgstr "LIVES {count}"
 
 msgid "HUD_OUT_OF_LIVES"
 msgstr "OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."
+
+msgid "HUD_LEADERS"
+msgstr "LEADERS"
 
 msgid "PICKUP_GOLDEN_RAIL"
 msgstr "GOLDEN RAIL"

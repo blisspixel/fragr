@@ -152,7 +152,10 @@ Each reader finishes or skips the opening before participating. Initial combat
 waits for the party; late readers cannot pause active play.
 The terminal interaction supplies the destination and opens a physical
 route; reading a whole log is optional. Completion occurs once on server-confirmed
-departure. Objective text: "Find the transfer record", then "Reach the lift".
+departure. The find-record card names transfer control, after dispatch, then
+leaves. A corner bearing stays until a use prompt replaces it. It is a straight
+line, not a route. The record console reads Latch's file. The next line is
+"Reach the lift".
 The record console is the campaign's one built exception to the no-switch rule;
 the lift is just the exit.
 

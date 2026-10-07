@@ -71,7 +71,8 @@ impl GameState {
         let (sp, cp) = pitch.sin_cos();
         let origin = [
             shooter.x,
-            shooter.y - PLAYER_FLOOR_Y + crate::combat::eye_height(shooter.campaign),
+            shooter.y - PLAYER_FLOOR_Y
+                + crate::combat::stance_eye(shooter.campaign, shooter.ducking),
             shooter.z,
         ];
         if origin.iter().any(|value| !value.is_finite()) {
@@ -155,7 +156,7 @@ impl GameState {
                     continue;
                 }
                 let feet = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-                if let Some(hit) = ray.actor(feet, target.campaign, limit) {
+                if let Some(hit) = ray.actor_stance(feet, target.campaign, target.ducking, limit) {
                     if hit.distance <= limit {
                         limit = hit.distance;
                         solid = false;

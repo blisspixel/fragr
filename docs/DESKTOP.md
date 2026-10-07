@@ -9,6 +9,15 @@ Tagged releases attach three archives and `SHA256SUMS.txt` on the
 `fragr-server` together. Each package includes licenses for fragr, Godot,
 fonts and linked Rust crates. The radio library makes the packages large.
 
+A client that speaks an older gameplay or geometry version than the server
+is shown `https://github.com/blisspixel/fragr/releases/latest` and asked to
+check the archive against `SHA256SUMS.txt`. Join itself does not download
+anything. On the join page, that client can choose to install the latest
+published archive for this computer, check it against `SHA256SUMS.txt`, and
+rejoin the same host. A mismatch is not started. The editor and a source
+checkout are left in place, and the latest tag is not treated as proof that
+it speaks the server's version.
+
 | Platform | Start | First-open note |
 |---|---|---|
 | Windows | `fragr.exe` | The executable is unsigned; Windows may ask you to choose **More info > Run anyway**. |

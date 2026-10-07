@@ -93,18 +93,40 @@ func _run() -> void:
 		"ordinary menu activation starts exact first preset through canonical native flags")
 	_check(menu._root.get_node_or_null("JoinHosted") == null, "starting child is not presented as joinable")
 	var ready: Dictionary = {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:16867", "listen": "0.0.0.0:16867",
-		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "bot_policy": "none", "fill_target": 0, "gameplay_version": 36}
+		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "bot_policy": "none", "fill_target": 0, "gameplay_version": 37}
 	child.output = (JSON.stringify(ready) + "\n").to_ascii_buffer()
 	owner._process(0)
 	await process_frame
 	_check(menu._root.get_node_or_null("JoinHosted") != null and menu._root.get_node_or_null("StopServer") != null,
 		"accepted actual-shaped readiness exposes Watch Join and Stop separately")
 	await menu._show("multi")
-	_check(child.alive and owner.state == LocalHost.State.RUNNING and menu._host_edit.text == owner.url,
-		"returning to Multiplayer keeps hosting and offers the real dynamic host address")
+	_check(child.alive and owner.state == LocalHost.State.RUNNING, "returning to Multiplayer keeps hosting")
+	_check(menu._root.get_node_or_null("UseRunningServer") == null, "join page has no control that replaces the typed address")
+	_check(menu._host_edit.text != owner.url, "the join address is not the owned server")
+	var run: Button = menu._root.get_node("RunServer") as Button
+	_check(run != null and run.text == tr("HOST_YOUR_SERVER").to_upper(), "a running server stays on its own control")
+	var headings: PackedStringArray = PackedStringArray()
+	var next_name: String = ""
+	var passed_check: bool = false
+	for node: Node in menu._root.get_children():
+		if node is Label:
+			headings.append((node as Label).text)
+		if passed_check and node is Button and next_name.is_empty():
+			next_name = node.name
+		if node.name == "CheckHost":
+			passed_check = true
+	_check(headings.has(tr("HOST_RUN_SECTION")) and headings.has(tr("JOIN_SECTION")) and headings.has(tr("HOST_STILL_RUNNING")),
+		"run and join are separate headings")
+	_check(next_name == "Watch", "Watch follows Check host, with no second check between them")
 	menu._host_edit.text = "remote.example:6767"
-	(menu._root.get_node("UseRunningServer") as Button).pressed.emit()
-	_check(menu._host_edit.text == owner.url, "check-this-computer uses the actual hosted port rather than assuming6767")
+	menu._host_edit.text_changed.emit("remote.example:6767")
+	run.pressed.emit()
+	await process_frame
+	_check(menu._page == "host" and menu._root.get_node_or_null("JoinHosted") != null and menu._root.get_node_or_null("HostAddress") == null,
+		"your server opens its own page and does not use the join field")
+	await menu._show("multi")
+	_check(menu._host_edit.text == "remote.example:6767", "a typed join address survives the server page")
+	_check(menu._root.get_node_or_null("UseRunningServer") == null, "the join page still does not replace that address")
 	menu.queue_free()
 	await process_frame
 	_check(child.alive and owner.state == LocalHost.State.RUNNING, "boot scene retirement does not stop shared arena")

@@ -26,6 +26,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1.26", features = ["v4", "serde"] }
 rand = "0.8"
 getrandom = "=0.2.15"
+if-addrs = "0.15"
 
 [lints]
 workspace = true

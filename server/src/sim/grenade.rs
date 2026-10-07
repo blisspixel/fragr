@@ -56,6 +56,19 @@ impl GameState {
         self.resolve_blast(&grenade.blast(), arena);
     }
 
+    /// One live grenade, so a map change can prove the world was cleared.
+    pub(crate) fn test_insert_grenade(&mut self, owner: Uuid) {
+        self.grenades.push(Grenade {
+            id: self.projectile_serial.wrapping_add(1),
+            owner_id: owner,
+            position: [0.0, 1.0, 0.0],
+            velocity: [0.0, 0.0, 0.0],
+            fuse_ticks: FUSE_TICKS,
+            launched_at: self.tick,
+            bounce_count: 0,
+        });
+    }
+
     /// A grenade-sized blast resolved against the current world, for tests
     /// outside the simulation module.
     pub(crate) fn test_blast(&mut self, owner: Uuid, position: [f32; 3], radius: f32, peak: f32) {
@@ -123,7 +136,8 @@ impl GameState {
             }
             let origin = [
                 player.x,
-                player.y - PLAYER_FLOOR_Y + crate::combat::eye_height(player.campaign),
+                player.y - PLAYER_FLOOR_Y
+                    + crate::combat::stance_eye(player.campaign, player.ducking),
                 player.z,
             ];
             if !clear_sphere(origin, &arena) || !player.yaw.is_finite() || !player.pitch.is_finite()

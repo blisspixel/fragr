@@ -21,6 +21,10 @@ const UNION_BODY: Color = Color("56575e")
 const COALITION_LABEL: Color = Color("dc8c3c")
 const COALITION_BODY: Color = Color("e8e2d6")
 const GOLD: Color = Color(1.0, 0.82, 0.28)
+## First person reads sides relative to the viewer. The faction colours stay
+## on the score and on a spectator's plate.
+const OURS_MARK: Color = Color("f4f0e6")
+const THEIRS_MARK: Color = Color("e23430")
 
 
 ## A validated copy of `map_info.rules`, or empty when absent or malformed.
@@ -102,6 +106,23 @@ static func team_label_color(team: String) -> Color:
 	return Color.WHITE
 
 
+## "mate" when both sides match, "foe" when they differ, empty when either
+## side is missing. The server still decides who may be damaged.
+static func team_relation(viewer: String, other: String) -> String:
+	if not TEAMS.has(viewer) or not TEAMS.has(other):
+		return ""
+	return "mate" if viewer == other else "foe"
+
+
+static func relation_mark(relation: String) -> String:
+	match relation:
+		"mate":
+			return _text("TEAM_OURS")
+		"foe":
+			return _text("TEAM_THEIRS")
+	return ""
+
+
 static func team_body_color(team: String) -> Color:
 	match team:
 		"union":
@@ -153,8 +174,9 @@ static func reaction_line(data: Dictionary) -> String:
 
 
 ## Scoreboard rows as text: side score first in a team mode, then the top
-## fighters with their side chip.
-static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int) -> String:
+## fighters with their side chip. `you` marks the local callsign on the
+## hold-Tab board. The corner list leaves it empty.
+static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int, you: String = "") -> String:
 	var text: String = ""
 	if score_line != "":
 		text += score_line + "\n"
@@ -166,5 +188,6 @@ static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, 
 		var side: String = team_short(str(sides.get(name, "")))
 		var marker: String = "*" if i == 0 and kills > 0 else " "
 		var tag: String = "[" + side + "] " if side != "" else ""
-		text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + "\n"
+		var mine: String = "  YOU" if you != "" and name == you else ""
+		text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + mine + "\n"
 	return text

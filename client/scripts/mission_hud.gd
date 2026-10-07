@@ -2,8 +2,13 @@ class_name MissionHud
 extends Control
 
 ## The objective card introduces a beat, then leaves. Use prompts and the
-## fallen-run choice stay for as long as they are true.
+## fallen-run choice stay for as long as they are true. A legal use sits on a
+## plate under the crosshair and names the bound key. Standing at the panel
+## before that aim is true asks you to aim, and does not name a key.
 const STAGE_SECONDS: float = 8.0
+## Horizontal metres from an approach. Farther than this, the panel stays quiet.
+const NOTICE_RANGE: float = 4.0
+const PROGRESS_KEYS: Array[String] = ["m02", "m03", "m04", "m05", "m06", "m07", "m08", "m09", "m10"]
 const M02_KNOWN: Array[String] = ["ward_reached", "companion_released", "party_departed"]
 const M02_USES: Array[String] = ["companion_released"]
 signal notice_requested(text: String)
@@ -28,7 +33,20 @@ var _evac_badge: Label
 ## Use and continue prompts carry the key or pad glyph for the device in the
 ## player's hands, so they are rich text. The plain strings are kept beside
 ## them for tests and for anything that reads the HUD as text.
+var _prompt_plate: PanelContainer
 var _prompt: RichTextLabel
+## Stays after the intro card leaves. It is not that card, and a repeated
+## mission packet must not bring the card back.
+var _bearing: Label
+var bearing_text: String = ""
+var yaw: float = 0.0
+var yaw_known: bool = false
+## Map geometry and the local body's snapshot position. The server still
+## decides whether Use lands. These only choose the aim hint.
+var geometry: Dictionary = {}
+var feet: Vector3 = Vector3(INF, INF, INF)
+var _server_template: String = ""
+var _shown_template: String = ""
 var _recovery: PanelContainer
 var _recovery_copy: RichTextLabel
 var prompt_text: String = ""
@@ -59,8 +77,17 @@ func _ready() -> void:
 	_evac_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_evac_badge.add_theme_color_override("font_color", MenuTheme.EMBER)
 	add_child(_evac_badge)
-	_prompt = _rich(22)
-	add_child(_prompt)
+	_prompt_plate = PanelContainer.new()
+	_prompt_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_prompt_plate.visible = false
+	_prompt_plate.add_theme_stylebox_override("panel", MenuTheme.panel(Color("141816"), MenuTheme.BONE))
+	add_child(_prompt_plate)
+	_prompt = _rich(28)
+	_prompt_plate.add_child(_prompt)
+	_bearing = _label(16)
+	_bearing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_bearing.visible = false
+	add_child(_bearing)
 	_recovery = PanelContainer.new()
 	_recovery.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_recovery.add_theme_stylebox_override("panel", MenuTheme.panel(Color("201b19"), Color("986048")))
@@ -94,12 +121,151 @@ func _rich(font_size: int) -> RichTextLabel:
 	return label
 
 ## Draw a prompt template with glyphs for the active device.
+## The server string wins. An empty one can still show the aim hint.
 func _show_prompt(template: String) -> void:
+	_server_template = template
+	_render(_chosen())
+
+func _chosen() -> String:
+	if not _server_template.is_empty():
+		return _server_template
+	if _recovery != null and _recovery.visible:
+		return ""
+	return _look_hint()
+
+func _render(template: String) -> void:
+	_shown_template = template
 	_prompt_template = template
-	prompt_text = InputGlyphs.render(_prompt, template, 44, true) if not template.is_empty() else ""
+	if _prompt == null:
+		prompt_text = ""
+		return
+	prompt_text = InputGlyphs.render(_prompt, template, 48, true) if not template.is_empty() else ""
 	if template.is_empty():
 		_prompt.clear()
 	_prompt.visible = not prompt_text.is_empty()
+	if _prompt_plate != null:
+		_prompt_plate.visible = _prompt.visible
+	_place_prompt()
+
+func _look_hint() -> String:
+	if player_id.is_empty() or not is_finite(feet.x) or not is_finite(feet.z):
+		return ""
+	for point: Variant in approach_points(state, geometry):
+		if not point is Array or point.size() != 3:
+			continue
+		if not is_finite(float(point[0])) or not is_finite(float(point[2])):
+			continue
+		if Vector2(feet.x - float(point[0]), feet.z - float(point[2])).length() <= NOTICE_RANGE:
+			return _catalog("USE_AIM_PANEL")
+	return ""
+
+## Approaches for a use that the current phase can accept once the player aims.
+## Presentation only. A point here does not make the press succeed.
+static func approach_points(state: Dictionary, geometry: Dictionary) -> Array:
+	var points: Array = []
+	if state.is_empty() or str(state.get("phase", "")) in ["briefing", "departed"]:
+		return points
+	if str(state.get("id", "")) == MissionState.ID:
+		var key: String = ""
+		if state.get("phase") == "find_transfer":
+			key = "record"
+		elif state.get("phase") == "reach_lift" and _party_aboard(state):
+			key = "departure"
+		_push_approach(points, geometry.get(key, {}))
+		return points
+	for progress_key: String in PROGRESS_KEYS:
+		var progress: Variant = state.get(progress_key)
+		if not progress is Dictionary:
+			continue
+		var current: Variant = progress.get("current")
+		if current is Dictionary:
+			var action: Variant = current.get("action")
+			if action is Dictionary and str(action.get("kind", "")) == "use":
+				_push_approach(points, action.get("target", {}))
+		if progress_key == "m04" and progress.get("clinic_secured") == true and progress.get("clinic_open") != true:
+			var block: Variant = geometry.get("m04", {})
+			if block is Dictionary:
+				var clinic: Variant = block.get("clinic", {})
+				if clinic is Dictionary:
+					_push_approach(points, clinic.get("control", {}))
+	return points
+
+static func _party_aboard(state: Dictionary) -> bool:
+	var party: Variant = state.get("party")
+	if not party is Array or (party as Array).is_empty():
+		return false
+	for member: Variant in party:
+		if not member is Dictionary or member.get("aboard") != true:
+			return false
+	return true
+
+## A bearing toward the live goal. Empty within 3 m, where the room and the
+## use plate take over. Positive yaw is a left turn in the server frame.
+static func bearing_aim(feet: Vector3, yaw_value: float, known: bool, approach: Variant) -> String:
+	if not known or not approach is Array or approach.size() != 3:
+		return ""
+	if not is_finite(feet.x) or not is_finite(feet.z) or not is_finite(yaw_value):
+		return ""
+	if not is_finite(float(approach[0])) or not is_finite(float(approach[2])):
+		return ""
+	var dx: float = float(approach[0]) - feet.x
+	var dz: float = float(approach[2]) - feet.z
+	if dx * dx + dz * dz < 9.0:
+		return ""
+	var delta: float = wrapf(atan2(dz, dx) - yaw_value, -PI, PI)
+	if absf(delta) <= 0.4:
+		return "MISSION_BEARING_AHEAD"
+	return "MISSION_BEARING_LEFT" if delta > 0.0 else "MISSION_BEARING_RIGHT"
+
+func _update_bearing() -> void:
+	if _bearing == null:
+		return
+	bearing_text = ""
+	var phase: String = str(state.get("phase", ""))
+	var key: String = ""
+	var approach: Variant = null
+	if phase == "find_transfer":
+		key = "MISSION_BEARING_RECORD"
+		approach = geometry.get("record", {}).get("approach") if geometry.get("record") is Dictionary else null
+	elif phase == "reach_lift":
+		key = "MISSION_BEARING_LIFT"
+		approach = geometry.get("departure", {}).get("approach") if geometry.get("departure") is Dictionary else null
+	var card_up: bool = _card != null and _card.visible
+	if key.is_empty() or card_up or not prompt_text.is_empty() or not visible or player_id.is_empty():
+		_bearing.visible = false
+		_bearing.text = ""
+		return
+	bearing_text = tr(key)
+	var aim: String = bearing_aim(feet, yaw, yaw_known, approach)
+	if not aim.is_empty():
+		bearing_text += "  " + tr(aim)
+	_bearing.text = bearing_text
+	_bearing.visible = true
+
+static func _push_approach(points: Array, target: Variant) -> void:
+	if not target is Dictionary:
+		return
+	var approach: Variant = target.get("approach")
+	if approach is Array and approach.size() == 3:
+		points.append(approach)
+
+func _place_prompt() -> void:
+	if _prompt_plate == null or not _prompt_plate.visible:
+		return
+	var viewport: Vector2 = get_viewport_rect().size
+	if viewport.x < 1.0:
+		return
+	var text_size: Vector2 = _prompt.get_minimum_size()
+	var inner: float = minf(maxf(text_size.x, 220.0), viewport.x * 0.72)
+	_prompt.custom_minimum_size = Vector2(inner, 0.0)
+	_prompt_plate.reset_size()
+	var plate: Vector2 = _prompt_plate.get_combined_minimum_size()
+	if plate.x < 8.0:
+		plate.x = inner + 32.0
+	if plate.y < 8.0:
+		plate.y = maxf(text_size.y, 36.0) + 16.0
+	_prompt_plate.size = plate
+	_prompt_plate.position = Vector2((viewport.x - plate.x) * 0.5, viewport.y * 0.5 + 40.0)
 
 func _show_recovery(template: String) -> void:
 	_recovery_template = template
@@ -205,6 +371,10 @@ func _process(delta: float) -> void:
 		# Plain objective/departure cards also contain input tokens. Refresh
 		# copy without applying another mission packet or restarting its stage.
 		_refresh()
+	else:
+		var chosen: String = _chosen()
+		if chosen != _shown_template:
+			_render(chosen)
 	if _stage_left > 0.0:
 		_stage_left = maxf(0.0, _stage_left - delta)
 		if _card != null:
@@ -225,8 +395,11 @@ func _process(delta: float) -> void:
 	var field_top: float = maxf(132.0, _card.position.y + _card.size.y + 8.0) if _card.visible else 132.0
 	_evac_badge.position = Vector2(viewport.x - width - 24.0, field_top)
 	_evac_badge.size = Vector2(width, 0.0)
-	_prompt.position = Vector2(viewport.x * 0.2, viewport.y * 0.64)
-	_prompt.size = Vector2(viewport.x * 0.6, 0.0)
+	_place_prompt()
+	_update_bearing()
+	if _bearing.visible:
+		_bearing.position = Vector2(viewport.x * 0.15, 18.0)
+		_bearing.size = Vector2(viewport.x * 0.7, 0.0)
 	var recovery_width: float = minf(660.0, viewport.x - 48.0)
 	_recovery_copy.custom_minimum_size.x = recovery_width - 32.0
 	_recovery.size = Vector2(recovery_width, 0.0)
@@ -247,6 +420,7 @@ func _refresh() -> void:
 		_status_left = STAGE_SECONDS
 	_evac_seen = _evac_badge.text if _evac_wanted else ""
 	_stage_badges()
+	_update_bearing()
 
 ## The run allowance and optional-route status are facts a player checks, not
 ## something to read all mission. They appear with the objective card, on a

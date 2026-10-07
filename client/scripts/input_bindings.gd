@@ -19,9 +19,9 @@ class_name InputBindings
 
 ## Controls page order.
 const ACTIONS: Array[String] = [
-	"move_forward", "move_back", "move_left", "move_right", "strafe", "jump",
+	"move_forward", "move_back", "move_left", "move_right", "strafe", "jump", "duck",
 	"turn_left", "turn_right", "look_up", "look_down", "center_view",
-	"fire", "scope", "interact", "throw_grenade", "place_mine", "weapon_next", "weapon_prev",
+	"fire", "reload", "scope", "interact", "throw_grenade", "place_mine", "weapon_next", "weapon_prev",
 	"weapon_1", "weapon_2", "weapon_3", "weapon_4", "weapon_5", "weapon_6",
 	"scoreboard", "speak", "pause", "leave_match",
 	"join_as_human", "cycle_cam", "toggle_follow",

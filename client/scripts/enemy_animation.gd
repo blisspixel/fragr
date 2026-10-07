@@ -60,7 +60,7 @@ static func direction(yaw: float, to_camera: Vector3) -> int:
 	return posmod(roundi(relative * DIRECTIONS / TAU), DIRECTIONS)
 
 static func frame(actor: Dictionary, weapon: String, tick: int, elapsed: float,
-		travel: float, shot_age: float, facing: int) -> int:
+		travel: float, shot_age: float, facing: int, stepping: bool = false) -> int:
 	var phase: String = actor["phase"]
 	var age: float = maxf(0.0, float(tick - int(actor["phase_started"])) * TICK_SECONDS)
 	age += clampf(elapsed, 0.0, MAX_EXTRAPOLATION)
@@ -88,6 +88,9 @@ static func frame(actor: Dictionary, weapon: String, tick: int, elapsed: float,
 			elif phase == "firing":
 				action = "raise"
 				progress = 1.0
+			elif stepping:
+				action = "walk"
+				progress = fposmod(travel / STRIDE_METRES, 1.0)
 			else:
 				action = "recover"
 				progress = age / duration

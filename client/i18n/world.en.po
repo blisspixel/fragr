@@ -34,10 +34,28 @@ msgid "MISSION_M01_TITLE"
 msgstr "RECALL NOTICE"
 
 msgid "MISSION_FIND_RECORD"
-msgstr "Find Latch's transfer record.\nRecords mezzanine, level 01."
+msgstr "Find Latch's transfer record.\nIn transfer control, after dispatch."
+
+msgid "MISSION_BEARING_RECORD"
+msgstr "FIND LATCH'S RECORD"
+
+msgid "MISSION_BEARING_LIFT"
+msgstr "REACH THE CUSTODY LIFT"
+
+msgid "MISSION_BEARING_AHEAD"
+msgstr "AHEAD"
+
+msgid "MISSION_BEARING_LEFT"
+msgstr "LEFT"
+
+msgid "MISSION_BEARING_RIGHT"
+msgstr "RIGHT"
 
 msgid "MISSION_REACH_LIFT"
 msgstr "Reach the custody lift."
+
+msgid "WORLD_LATCH_RECORD"
+msgstr "LATCH'S FILE\nREAD THE RECORD"
 
 msgid "MISSION_TRANSFER_RECORD"
 msgstr "LATCH: transferred to the correction ward.\nCorrection pending. Custody route unlocked."
@@ -50,6 +68,9 @@ msgstr "{use}: READ TRANSFER RECORD"
 
 msgid "MISSION_USE_LIFT"
 msgstr "{use}: DEPART TO CORRECTION WARD"
+
+msgid "USE_AIM_PANEL"
+msgstr "AIM AT THE PANEL"
 
 msgid "MISSION_DEPARTED"
 msgstr "TRANSFER ROUTE SECURED\nDestination: correction ward.\n\nLatch is headed to the correction ward. This mission ends here.\n{pause}: open the match menu to leave."
@@ -299,7 +320,7 @@ msgstr "SIDE WARD: OUTCOME UNCONFIRMED"
 
 
 msgid "M02_USE_CONSOLE"
-msgstr "{use}: USE"
+msgstr "{use}: OPEN THE PANEL"
 
 msgid "M02_USE_COMPANION_RELEASED"
 msgstr "{use}: OPEN LATCH'S RESTRAINT"
@@ -1014,8 +1035,62 @@ msgstr "COMMAND / DECK 3\nFLIGHT AND SHIP SYSTEMS"
 msgid "HOST_CREATE"
 msgstr "Host a match"
 
-msgid "HOST_USE_RUNNING"
-msgstr "Check server on this computer"
+msgid "HOST_RUN_SECTION"
+msgstr "Run a server"
+
+msgid "HOST_YOUR_SERVER"
+msgstr "Your server"
+
+msgid "HOST_STILL_RUNNING"
+msgstr "Your server is still running."
+
+msgid "JOIN_SECTION"
+msgstr "Join a server"
+
+msgid "JOIN_SAVE"
+msgstr "Save this host"
+
+msgid "JOIN_SAVED"
+msgstr "Saved on this computer"
+
+msgid "JOIN_NEARBY"
+msgstr "On this network"
+
+msgid "JOIN_SCAN"
+msgstr "Scan this network"
+
+msgid "JOIN_SCANNING"
+msgstr "Scanning this network."
+
+msgid "JOIN_SCAN_EMPTY"
+msgstr "No server answered on this network."
+
+msgid "JOIN_DROP"
+msgstr "Drop"
+
+msgid "JOIN_KEEP"
+msgstr "Keep"
+
+msgid "JOIN_HIDE"
+msgstr "Hide"
+
+msgid "JOIN_NOT_CHECKED"
+msgstr "Not checked"
+
+msgid "JOIN_NO_ANSWER"
+msgstr "No answer"
+
+msgid "JOIN_BUSY"
+msgstr "Busy"
+
+msgid "JOIN_NOT_A_MATCH"
+msgstr "Not a match"
+
+msgid "JOIN_NEARBY_EMPTY"
+msgstr "None yet. Scan this network, or type an address."
+
+msgid "JOIN_SAVED_EMPTY"
+msgstr "A host you check, join, or save stays in this list."
 
 msgid "HOST_SABOTAGE"
 msgstr "5v5 Sabotage"

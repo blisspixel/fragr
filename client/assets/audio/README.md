@@ -75,9 +75,9 @@ recorded there. The raw Shotgun layers are kept byte for byte, outside the
 import, in `client/art/audio/shotgun/`. Listening and in-game mix acceptance
 remain separate from these measurements.
 
-Radio controls in the match: C next station, N next track, M radio on or off
-(D-pad up, down, left on a gamepad). Ammunition is one count per type, with no
-magazines or reload action.
+Radio controls in the match: C next station, N skip track, M play or pause.
+The pad is not bound. A joined human reloads with R. The carried count includes
+rounds in each gun. Agents keep one count and do not reload.
 Every switch shows a station card above the track toast. Radio ducks under Host
 lines and sits lower while playing; LOCK IN never ducks for combat.
 

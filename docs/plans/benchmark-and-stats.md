@@ -69,6 +69,8 @@ commentator.
 
 Before each rung, bound its wire changes, persistence migration and acceptance
 in this plan. Do not implement an analytics platform ahead of useful records.
+A host's night sheet is the operator card in [night-sheet.md](night-sheet.md).
+It is not this platform, and it does not phone home.
 
 ### Active slice: local service record
 

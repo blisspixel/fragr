@@ -76,6 +76,178 @@ pub fn eye_height(identity: Option<CampaignActor>) -> f32 {
     }
 }
 
+/// Collision height for this stance. Short bodies never crouch.
+pub fn body_height(identity: Option<CampaignActor>, ducking: bool) -> f32 {
+    if ducking && !short_body(identity) {
+        crate::movement::DUCK_HEIGHT
+    } else {
+        target_height(identity)
+    }
+}
+
+/// Shot and view height for this stance. The short eye keeps the standing
+/// gap under the crown.
+pub fn stance_eye(identity: Option<CampaignActor>, ducking: bool) -> f32 {
+    if ducking && !short_body(identity) {
+        crate::movement::DUCK_EYE_HEIGHT
+    } else {
+        eye_height(identity)
+    }
+}
+
+/// Breastplate height on the character rig. Half of [`FIGHTER_HEIGHT`] is the hips.
+pub const TORSO_HEIGHT: f32 = 1.22;
+/// Where a standing fighter's head begins, metres above the feet. Just above
+/// the breastplate, so a chest aim stays a body shot and an eye-level ray does not.
+pub const HEAD_GATE: f32 = 1.45;
+/// Traced pellets in the head band. Fists and the Shiv never use it.
+pub const HEAD_DAMAGE_SCALE: i32 = 2;
+
+/// A pellet struck the head. Short bodies use the top quarter, so a shot
+/// through the middle of a Crawler or a Notary stays a body shot.
+pub fn head_hit(feet_y: f32, impact_y: f32, identity: Option<CampaignActor>) -> bool {
+    if !feet_y.is_finite() || !impact_y.is_finite() {
+        return false;
+    }
+    let height = target_height(identity);
+    let top = feet_y + height + 0.05;
+    let gate = if short_body(identity) {
+        feet_y + height * 0.75
+    } else {
+        feet_y + HEAD_GATE
+    };
+    impact_y >= gate && impact_y <= top
+}
+
+/// Head band after a crouch. The standing gate and the crown both drop by the
+/// difference between the two body heights. A level shot at the standing eye
+/// passes over the short body. A standing-chest aim lands in the short head.
+pub fn head_hit_for(
+    feet_y: f32,
+    impact_y: f32,
+    identity: Option<CampaignActor>,
+    ducking: bool,
+) -> bool {
+    if !ducking || short_body(identity) {
+        return head_hit(feet_y, impact_y, identity);
+    }
+    if !feet_y.is_finite() || !impact_y.is_finite() {
+        return false;
+    }
+    let drop = crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT;
+    let top = feet_y + crate::movement::DUCK_HEIGHT + 0.05;
+    let gate = feet_y + HEAD_GATE - drop;
+    impact_y >= gate && impact_y <= top
+}
+
+/// Body damage, or double when the pellet is in the head band. Fists and the
+/// Shiv stay flat: a punch to the face is still a punch.
+pub fn traced_damage(weapon: crate::protocol::WeaponType, body: i32, head: bool) -> i32 {
+    if head
+        && !matches!(
+            weapon,
+            crate::protocol::WeaponType::Fists | crate::protocol::WeaponType::Shiv
+        )
+    {
+        body.saturating_mul(HEAD_DAMAGE_SCALE)
+    } else {
+        body
+    }
+}
+
+/// Where a gun is aimed, in metres above the feet.
+///
+/// A standing fighter's capsule centre is the belt. Shots lock on the chest.
+/// A Crawler and a Notary are short volumes, so the middle of that volume is the body.
+pub fn aim_height(identity: Option<CampaignActor>) -> f32 {
+    if is_notary(identity)
+        || matches!(
+            identity,
+            Some(CampaignActor::Union {
+                kind: EnemyKind::Crawler,
+                ..
+            })
+        )
+    {
+        target_height(identity) * 0.5
+    } else {
+        TORSO_HEIGHT
+    }
+}
+
+/// `feet` is the world position of the feet.
+pub fn aim_point(feet: [f32; 3], identity: Option<CampaignActor>) -> [f32; 3] {
+    [feet[0], feet[1] + aim_height(identity), feet[2]]
+}
+
+/// Chest aim for the resolved stance. A crouch drops the point with the body.
+pub fn aim_point_for(feet: [f32; 3], identity: Option<CampaignActor>, ducking: bool) -> [f32; 3] {
+    let mut point = aim_point(feet, identity);
+    if ducking && !short_body(identity) {
+        point[1] -= crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT;
+    }
+    point
+}
+
+fn short_body(identity: Option<CampaignActor>) -> bool {
+    is_notary(identity)
+        || matches!(
+            identity,
+            Some(CampaignActor::Union {
+                kind: EnemyKind::Crawler,
+                ..
+            })
+        )
+}
+
+/// Chest when the fighter is clearly in the open. Any cover, including a lip
+/// the bottom of the scatter cone would still strike, keeps the hip line. A
+/// short body has one point.
+pub fn shot_aim(
+    feet: [f32; 3],
+    identity: Option<CampaignActor>,
+    eye: [f32; 3],
+    solids: &[crate::movement::Solid],
+) -> [f32; 3] {
+    let chest = aim_point(feet, identity);
+    if short_body(identity) {
+        return chest;
+    }
+    let hips = [feet[0], feet[1] + target_height(identity) * 0.5, feet[2]];
+    let hips_open = line_of_sight(eye, hips, solids);
+    let chest_open = line_of_sight(eye, chest, solids);
+    if hips_open && chest_open && belt_has_daylight(eye, hips, solids) {
+        chest
+    } else {
+        hips
+    }
+}
+
+/// Cover choice for a crouched fighter. The feet are lowered by the crouch
+/// drop so the standing chest and hip lines land on the short body.
+pub fn shot_aim_for(
+    feet: [f32; 3],
+    identity: Option<CampaignActor>,
+    ducking: bool,
+    eye: [f32; 3],
+    solids: &[crate::movement::Solid],
+) -> [f32; 3] {
+    if !ducking || short_body(identity) {
+        return shot_aim(feet, identity, eye, solids);
+    }
+    let mut lowered = feet;
+    lowered[1] -= crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT;
+    shot_aim(lowered, identity, eye, solids)
+}
+
+/// The belt is not "open" when the bottom of a scatter cone under that line
+/// still hits cover or the floor. Lifting the aim there skips the lip.
+fn belt_has_daylight(eye: [f32; 3], hips: [f32; 3], solids: &[Solid]) -> bool {
+    let horizontal = (hips[0] - eye[0]).hypot(hips[2] - eye[2]);
+    let drop = horizontal * crate::protocol::WeaponType::Scatter.spread_radians().tan();
+    drop.is_finite() && line_of_sight(eye, [hips[0], (hips[1] - drop).max(0.05), hips[2]], solids)
+}
+
 pub fn clamp_pitch(pitch: f32) -> Option<f32> {
     pitch
         .is_finite()
@@ -164,6 +336,25 @@ impl Ray {
                 range,
             )
         }
+    }
+
+    /// The same actor volume at the resolved stance. A Notary keeps its box.
+    pub fn actor_stance(
+        self,
+        feet: [f32; 3],
+        identity: Option<CampaignActor>,
+        ducking: bool,
+        range: f32,
+    ) -> Option<SurfaceHit> {
+        if is_notary(identity) {
+            return self.actor(feet, identity, range);
+        }
+        self.fighter_with_height(
+            feet,
+            crate::movement::RADIUS,
+            body_height(identity, ducking),
+            range,
+        )
     }
     pub fn point(self, distance: f32) -> [f32; 3] {
         std::array::from_fn(|i| self.origin[i] + self.direction[i] * distance)
@@ -339,6 +530,130 @@ mod tests {
         assert!(!engagement_before(near_sweeper, far_channel));
         assert!(engagement_before(near_sweeper, engagement_key(idle, 4.0)));
         assert!(!engagement_before(far_channel, far_channel));
+    }
+
+    #[test]
+    fn fighter_shots_aim_at_the_chest() {
+        let union = |kind| {
+            Some(CampaignActor::Union {
+                kind,
+                phase: crate::protocol::EnemyPhase::Idle,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            })
+        };
+        assert_eq!(aim_height(None), TORSO_HEIGHT);
+        const {
+            assert!(TORSO_HEIGHT > FIGHTER_HEIGHT * 0.5 + 0.2);
+            assert!(TORSO_HEIGHT < FIGHTER_HEIGHT);
+            assert!(HEAD_GATE > TORSO_HEIGHT);
+            assert!(HEAD_GATE < crate::movement::EYE_HEIGHT);
+            assert!(HEAD_GATE < FIGHTER_HEIGHT);
+        };
+        assert!(head_hit(0.0, crate::movement::EYE_HEIGHT, None));
+        assert!(!head_hit(0.0, TORSO_HEIGHT, None));
+        assert_eq!(
+            traced_damage(crate::protocol::WeaponType::Rail, 80, true),
+            160
+        );
+        assert_eq!(
+            traced_damage(crate::protocol::WeaponType::Fists, 20, true),
+            20
+        );
+        assert_eq!(
+            traced_damage(crate::protocol::WeaponType::Shiv, 35, true),
+            35
+        );
+        assert!(!head_hit(0.0, FIGHTER_HEIGHT + 0.2, None));
+        let crawler = union(EnemyKind::Crawler);
+        assert!(!head_hit(0.0, CRAWLER_HEIGHT * 0.5, crawler));
+        assert!(head_hit(0.0, CRAWLER_HEIGHT * 0.9, crawler));
+        let notary = union(EnemyKind::Notary);
+        assert!(!head_hit(0.0, NOTARY_HEIGHT * 0.5, notary));
+        assert!(head_hit(0.0, NOTARY_HEIGHT * 0.9, notary));
+        assert_eq!(aim_height(union(EnemyKind::Crawler)), CRAWLER_HEIGHT * 0.5);
+        assert_eq!(aim_height(union(EnemyKind::Notary)), NOTARY_HEIGHT * 0.5);
+        assert_eq!(aim_point([3.0, 0.0, 4.0], None), [3.0, TORSO_HEIGHT, 4.0]);
+
+        let feet = [8.0, 0.0, 0.0];
+        let eye = [0.0, crate::movement::EYE_HEIGHT, 0.0];
+        assert_eq!(shot_aim(feet, None, eye, &[]), [8.0, TORSO_HEIGHT, 0.0]);
+        // At the midpoint the chest ray is near 1.41 and the hip ray near 1.25.
+        let breastplate = Solid::from_center_volume(4.0, 0.0, 0.15, 1.0, 1.32, 1.55);
+        assert_eq!(
+            shot_aim(feet, None, eye, &[breastplate]),
+            [8.0, FIGHTER_HEIGHT * 0.5, 0.0],
+            "a gap under the breastplate still counts"
+        );
+        let counter = Solid::from_center_volume(4.0, 0.0, 0.15, 1.0, 1.20, 1.32);
+        assert_eq!(
+            shot_aim(feet, None, eye, &[counter]),
+            [8.0, FIGHTER_HEIGHT * 0.5, 0.0],
+            "a counter that stops the hips still stops the shot"
+        );
+        let low = Solid::from_center_volume(4.0, 0.0, 0.15, 1.0, 0.0, 0.7);
+        assert_eq!(
+            shot_aim(feet, None, eye, &[low]),
+            [8.0, TORSO_HEIGHT, 0.0],
+            "an open chest above a low obstacle is the aim"
+        );
+        // The belt ray clears this counter. The bottom of a scatter cone does not,
+        // so the shot stays on the hips instead of skipping the lip.
+        let lip = Solid::from_center_volume(4.0, 0.0, 0.15, 1.0, 0.0, 1.10);
+        assert_eq!(
+            shot_aim(feet, None, eye, &[lip]),
+            [8.0, FIGHTER_HEIGHT * 0.5, 0.0],
+            "a belt line that only just clears a lip does not lift the shot"
+        );
+        let wall = Solid::from_center(4.0, 0.0, 0.15, 1.0);
+        assert_eq!(
+            shot_aim(feet, None, eye, &[wall]),
+            [8.0, FIGHTER_HEIGHT * 0.5, 0.0],
+            "cover that hides the whole body keeps the shot on the hip line"
+        );
+        let crawler = union(EnemyKind::Crawler);
+        assert_eq!(
+            shot_aim(feet, crawler, eye, &[breastplate]),
+            [8.0, CRAWLER_HEIGHT * 0.5, 0.0]
+        );
+    }
+
+    #[test]
+    fn a_ducked_fighter_lowers_the_head_band_and_the_chest() {
+        let drop = crate::movement::BODY_HEIGHT - crate::movement::DUCK_HEIGHT;
+        assert!((drop - 0.45).abs() < 0.001);
+        assert!(
+            !head_hit_for(0.0, crate::movement::EYE_HEIGHT, None, true),
+            "a standing eye ray passes over the short body"
+        );
+        assert!(
+            head_hit_for(0.0, TORSO_HEIGHT, None, true),
+            "a standing chest aim is a headshot on a ducked body"
+        );
+        assert!(
+            !head_hit_for(0.0, TORSO_HEIGHT - drop, None, true),
+            "the ducked chest stays a body shot"
+        );
+        assert_eq!(
+            aim_point_for([3.0, 0.0, 4.0], None, true),
+            [3.0, TORSO_HEIGHT - drop, 4.0]
+        );
+        assert_eq!(
+            aim_point_for([3.0, 0.0, 4.0], None, false),
+            aim_point([3.0, 0.0, 4.0], None)
+        );
+        assert_eq!(stance_eye(None, true), crate::movement::DUCK_EYE_HEIGHT);
+        assert_eq!(stance_eye(None, false), crate::movement::EYE_HEIGHT);
+        let crawler = Some(CampaignActor::Union {
+            kind: EnemyKind::Crawler,
+            phase: crate::protocol::EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        });
+        assert_eq!(body_height(crawler, true), CRAWLER_HEIGHT);
+        assert!(!head_hit_for(0.0, CRAWLER_HEIGHT * 0.5, crawler, true));
     }
 
     #[test]

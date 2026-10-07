@@ -72,7 +72,7 @@ func _test_prompts() -> void:
 	InputDevice.force(InputDevice.Kind.MOUSE)
 	_check(InputGlyphs.plain("{fire}") == "LMB", "the mouse fires with its button")
 	InputDevice.force(InputDevice.Kind.KEYBOARD)
-	_check(InputGlyphs.plain("{fire}") == "CTRL", "the keyboard fires with Ctrl")
+	_check(InputGlyphs.plain("{fire}") == "R-CTRL", "the keyboard fires with Right Ctrl")
 	InputDevice.force(InputDevice.Kind.GAMEPAD, "gamepad", "letters")
 	_check(InputGlyphs.plain(use) == "B: READ TRANSFER RECORD", "letter pad use prompt: " + InputGlyphs.plain(use))
 	_check(InputGlyphs.plain("{accept} {fire} {pause} {weapon}") == "A RT MENU RB", "letter pad names: " + InputGlyphs.plain("{accept} {fire} {pause} {weapon}"))
@@ -117,6 +117,56 @@ func _test_mission_prompt() -> void:
 	InputDevice.force(InputDevice.Kind.KEYBOARD)
 	hud.apply(state, "me")
 	_check(hud.prompt_text == "F: READ TRANSFER RECORD" and hud._prompt.visible, "keyboard use prompt in the HUD")
+	var viewport: Vector2 = hud.get_viewport_rect().size
+	var top: float = hud._prompt_plate.position.y
+	var mid: float = hud._prompt_plate.position.x + hud._prompt_plate.size.x * 0.5
+	_check(hud._prompt_plate.visible and top >= viewport.y * 0.5 and top <= viewport.y * 0.5 + 80.0,
+		"the use plate sits just under the crosshair")
+	_check(absf(mid - viewport.x * 0.5) <= 2.0, "the use plate is centred")
+	var near: Dictionary = state.duplicate(true)
+	near["prompts"] = []
+	hud.geometry = {"record": {"approach": [1.0, 0.0, 2.0]}, "departure": {"approach": [8.0, 0.0, 8.0]}}
+	hud.feet = Vector3(1.4, 1.5, 2.2)
+	hud.apply(near, "me")
+	_check(hud.prompt_text == "AIM AT THE PANEL" and hud._prompt.visible, "standing at the record asks for the panel: " + hud.prompt_text)
+	near["prompts"] = [{"player_id": "me", "kind": "transfer_record"}]
+	hud.apply(near, "me")
+	_check(hud.prompt_text == "F: READ TRANSFER RECORD", "a legal aim names F while standing at the panel")
+	near["prompts"] = []
+	hud.apply(near, "me")
+	hud.feet = Vector3(40.0, 1.5, 40.0)
+	hud._process(0.0)
+	_check(hud.prompt_text.is_empty() and not hud._prompt.visible, "a distant panel stays quiet")
+	hud.apply(near, "")
+	hud.feet = Vector3(1.4, 1.5, 2.2)
+	hud._process(0.0)
+	_check(hud.prompt_text.is_empty(), "a spectator is not asked to aim")
+	var lift: Dictionary = near.duplicate(true)
+	lift["phase"] = "reach_lift"
+	lift["party"] = [{"id": "me", "name": "Reader", "ready": true, "alive": true, "aboard": false}]
+	hud.feet = Vector3(8.0, 1.5, 8.0)
+	hud.apply(lift, "me")
+	_check(hud.prompt_text.is_empty(), "the lift stays quiet until the party is aboard")
+	lift["party"][0]["aboard"] = true
+	hud.apply(lift, "me")
+	_check(hud.prompt_text == "AIM AT THE PANEL", "an aboard party at the lift is asked to aim")
+	var use_points: Array = MissionHud.approach_points({
+		"id": "persons_unknown", "phase": "in_progress",
+		"m02": {"current": {"action": {"kind": "use", "target": {"approach": [3.0, 0.0, 4.0]}}}}
+	}, {})
+	_check(use_points.size() == 1 and float(use_points[0][0]) == 3.0, "a current use keeps its approach")
+	var clinic: Array = MissionHud.approach_points({
+		"id": MissionState.M04_ID, "phase": "in_progress",
+		"m04": {"clinic_secured": true, "clinic_open": false}
+	}, {"m04": {"clinic": {"control": {"approach": [5.0, 0.0, 6.0]}}}})
+	_check(clinic.size() == 1 and float(clinic[0][2]) == 6.0, "a shut clinic shutter is a nearby panel")
+	var open_clinic: Array = MissionHud.approach_points({
+		"id": MissionState.M04_ID, "phase": "in_progress",
+		"m04": {"clinic_secured": true, "clinic_open": true}
+	}, {"m04": {"clinic": {"control": {"approach": [5.0, 0.0, 6.0]}}}})
+	_check(open_clinic.is_empty(), "an open clinic shutter does not keep asking")
+	InputDevice.force(InputDevice.Kind.KEYBOARD)
+	hud.apply(state, "me")
 	InputDevice.force(InputDevice.Kind.GAMEPAD, "gamepad", "letters")
 	hud._process(0.0)
 	_check(hud.prompt_text == "B: READ TRANSFER RECORD", "the HUD prompt follows a device switch without a new mission state")

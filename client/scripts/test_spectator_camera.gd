@@ -12,6 +12,8 @@ class Fighter extends Node3D:
 
 class AuthoritativeFighter extends Fighter:
 	var target_position: Vector3 = Vector3.ZERO
+	var prediction_active: bool = false
+	var ducking: bool = false
 
 class BufferedFighter extends Fighter:
 	var presentation_yaw: float = 0.0
@@ -94,6 +96,20 @@ func _run() -> void:
 	camera._process(0.016)
 	_check(camera.global_position.x > local.position.x and camera.global_position.x < local.target_position.x,
 		"local first-person motion remains smoothed in open space")
+	local.prediction_active = true
+	local.position = Vector3(1.0, 1.5, 2.0)
+	local.target_position = Vector3(4.0, 1.5, 0.0)
+	camera.assist_solids = []
+	camera.global_position = Vector3.ZERO
+	camera._process(0.016)
+	_check(camera.global_position.distance_to(local.position + Vector3(0.0, 0.1, 0.0)) < 0.00001,
+		"predicted first person follows the rendered body between snapshots")
+	local.ducking = true
+	camera._process(0.016)
+	_check(camera.global_position.distance_to(local.position + Vector3(0.0, 0.1 - 0.45, 0.0)) < 0.00001,
+		"a duck lowers the eye by 0.45 metres")
+	local.ducking = false
+	local.prediction_active = false
 	camera.set_fp_mode(false)
 	camera.set("tip_pose_lock", true)
 	camera.set("tip_has_locked_transform", true)

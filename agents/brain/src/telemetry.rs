@@ -353,6 +353,7 @@ pub(crate) mod fixtures {
             collidable: true,
             body: None,
             golden: false,
+            ducking: false,
             lives: None,
             team: None,
             campaign: None,

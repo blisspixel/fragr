@@ -56,6 +56,13 @@ func run() -> void:
 	_check(collapsed != EnemyAnimation.frame(actor, "Tack", 112, 0, 0, INF, 0), "death collapses")
 	_check(collapsed == EnemyAnimation.frame(actor, "Tack", 149, 0, 0, 0, 0), "late corpse stays down")
 	_check(collapsed != EnemyAnimation.frame(actor, "Fists", 149, 0, 0, 0, 0), "unarmed corpse has no gun")
+	actor["phase"] = "recovery"
+	actor["phase_started"] = 100
+	actor["phase_ends"] = 120
+	var settled: int = EnemyAnimation.frame(actor, "Tack", 110, 0, 0.4, INF, 0)
+	var stepping_frame: int = EnemyAnimation.frame(actor, "Tack", 110, 0, 0.4, INF, 0, true)
+	_check(settled != stepping_frame, "a recovering guard who is moving walks")
+	_check(EnemyAnimation.frame(actor, "Tack", 110, 0, 0.4, INF, 0, false) == settled, "a still recovery keeps the settle pose")
 	var crawler: Dictionary = {"side":"union", "kind":"crawler", "phase":"windup",
 		"phase_started":100, "phase_ends":112}
 	_check(CrawlerAnimation.poses() == 20 and CrawlerAnimation.rows() == 9,

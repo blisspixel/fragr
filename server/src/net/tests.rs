@@ -1,7 +1,67 @@
 use super::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
 use tokio::time::{timeout, Duration};
 use tokio_tungstenite::connect_async;
+
+#[test]
+fn an_older_client_is_sent_to_the_release_and_its_checksum() {
+    let older = version_refusal("gameplay", 36, 37, 37).expect("older than the floor");
+    match older {
+        ServerMessage::Error { code, message } => {
+            assert_eq!(code, "unsupported_gameplay");
+            assert!(
+                message.contains("requires gameplay version 37"),
+                "{message}"
+            );
+            assert!(message.contains("update your client"), "{message}");
+            assert!(message.contains(crate::protocol::RELEASES_URL), "{message}");
+            assert!(message.contains("SHA256SUMS.txt"), "{message}");
+        }
+        other => panic!("expected an error: {other:?}"),
+    }
+    let geometry = version_refusal("geometry", 1, 2, 2).expect("older geometry");
+    match geometry {
+        ServerMessage::Error { code, message } => {
+            assert_eq!(code, "unsupported_geometry");
+            assert!(message.contains("SHA256SUMS.txt"), "{message}");
+        }
+        other => panic!("expected an error: {other:?}"),
+    }
+    let newer = version_refusal("gameplay", 38, 37, 37).expect("newer than this binary");
+    match newer {
+        ServerMessage::Error { code, message } => {
+            assert_eq!(code, "unsupported_gameplay");
+            assert!(message.contains("speaks gameplay version 37"), "{message}");
+            assert!(!message.contains("SHA256SUMS.txt"), "{message}");
+            assert!(
+                !message.contains(crate::protocol::RELEASES_URL),
+                "{message}"
+            );
+        }
+        other => panic!("expected an error: {other:?}"),
+    }
+    assert!(version_refusal("gameplay", 37, 37, 37).is_none());
+}
+
+#[tokio::test]
+async fn accepted_socket_disables_nagle() {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let connector =
+        tokio::spawn(async move { TcpStream::connect(("127.0.0.1", port)).await.unwrap() });
+    let (accepted, _) = listener.accept().await.unwrap();
+    assert!(
+        !accepted.nodelay().unwrap(),
+        "a new socket still coalesces short writes"
+    );
+    disable_nagle(&accepted);
+    assert!(
+        accepted.nodelay().unwrap(),
+        "an accepted game socket must send the snapshot tail immediately"
+    );
+    connector.abort();
+}
 
 #[tokio::test]
 async fn automatic_admission_validates_before_reservation_and_keeps_watchers_open() {
@@ -275,8 +335,8 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
             assert!(clients.lock().await.is_empty());
         }
     }
-    // A future client declaring support for all earlier formats can still join.
-    for version in [2, 3] {
+    // This binary speaks geometry 2. A newer claim is not a compatible client.
+    for (version, admitted) in [(2, true), (3, false)] {
         let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
         socket
             .send(Message::Text(
@@ -292,13 +352,23 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
             .unwrap()
             .unwrap()
             .unwrap();
-        assert!(matches!(
-            serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
-            ServerMessage::Welcome {
-                player_id: Some(_),
-                ..
-            }
-        ));
+        let message = serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap();
+        if admitted {
+            assert!(matches!(
+                message,
+                ServerMessage::Welcome {
+                    player_id: Some(_),
+                    ..
+                }
+            ));
+        } else {
+            assert!(
+                matches!(&message, ServerMessage::Error { code, message } if code == "unsupported_geometry" && message.contains("speaks geometry version 2")),
+                "{version}: {message:?}"
+            );
+            assert!(commands.try_recv().is_err());
+            continue;
+        }
         assert!(matches!(
             timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
                 .await
@@ -312,6 +382,129 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
                 .unwrap(),
             Some(GameCommand::Disconnected { .. })
         ));
+    }
+    accept.abort();
+}
+
+#[tokio::test]
+async fn a_hello_newer_than_this_binary_is_refused_on_a_floor_listener() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let server = NetServer::bind_with_requirements("127.0.0.1:0", tx, 1, 1)
+        .await
+        .unwrap();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let too_new = crate::protocol::GAMEPLAY_VERSION + 1;
+    for (gameplay, geometry, code) in [
+        (too_new, 1, "unsupported_gameplay"),
+        (
+            1,
+            crate::protocol::GEOMETRY_VERSION + 1,
+            "unsupported_geometry",
+        ),
+    ] {
+        let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
+        socket
+            .send(Message::Text(
+                serde_json::json!({
+                    "type":"hello", "role":"human", "name":"Future",
+                    "gameplay_version": gameplay, "geometry_version": geometry,
+                })
+                .to_string(),
+            ))
+            .await
+            .unwrap();
+        let reply = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let message = serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap();
+        assert!(
+            matches!(&message, ServerMessage::Error { code: got, message } if got == code && message.contains("speaks")),
+            "{gameplay}/{geometry}: {message:?}"
+        );
+        assert!(commands.try_recv().is_err());
+    }
+    let (mut current, _) = connect_async(format!("ws://{address}")).await.unwrap();
+    current
+        .send(Message::Text(
+            serde_json::json!({
+                "type":"hello", "role":"spectator", "name":"Legacy",
+                "gameplay_version": 1, "geometry_version": 1,
+            })
+            .to_string(),
+        ))
+        .await
+        .unwrap();
+    let reply = timeout(Duration::from_secs(2), current.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(matches!(
+        serde_json::from_str::<ServerMessage>(reply.to_text().unwrap()).unwrap(),
+        ServerMessage::Welcome {
+            player_id: None,
+            ..
+        }
+    ));
+    accept.abort();
+}
+
+#[tokio::test]
+async fn human_socket_drops_server_aim_and_an_agent_keeps_it() {
+    let (tx, mut commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.require_client_aim();
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let look = r#"{"player_id":"00000000-0000-0000-0000-000000000001"}"#;
+    for (role, dropped) in [("human", true), ("agent", false)] {
+        let mut socket = hello(
+            address,
+            &format!(r#"{{"type":"hello","role":"{role}","name":"Aim"}}"#),
+        )
+        .await;
+        let welcome = timeout(Duration::from_secs(2), socket.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            serde_json::from_str::<ServerMessage>(welcome.to_text().unwrap()).unwrap(),
+            ServerMessage::Welcome { .. }
+        ));
+        assert!(matches!(
+            timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
+                .await
+                .unwrap(),
+            Some(GameCommand::Connected { .. })
+        ));
+        socket
+            .send(Message::Text(format!(
+                r#"{{"type":"action","fire":true,"yaw":1.25,"look_at":{look}}}"#
+            )))
+            .await
+            .unwrap();
+        let command = timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
+            .await
+            .unwrap()
+            .unwrap();
+        let GameCommand::Action { action, .. } = command else {
+            panic!("expected the action");
+        };
+        assert_eq!(action.look_at.is_none(), dropped, "{role}");
+        assert_eq!(action.yaw, Some(1.25));
+        assert!(action.fire);
+        socket.close(None).await.unwrap();
+        for _ in 0..4 {
+            match timeout(Duration::from_secs(2), skip_seat_notes(&mut commands)).await {
+                Ok(Some(GameCommand::Disconnected { .. })) => break,
+                Ok(Some(_)) => continue,
+                _ => break,
+            }
+        }
     }
     accept.abort();
 }
@@ -364,6 +557,39 @@ fn status_request_requires_the_exact_path() {
 }
 
 #[tokio::test]
+async fn a_status_line_that_arrives_after_connect_is_still_status() {
+    let (tx, _commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    server.share_status(std::sync::Arc::new(tokio::sync::RwLock::new(
+        crate::protocol::LiveStatus {
+            schema_version: 2,
+            kind: "arena".into(),
+            map: "Arena Duel".into(),
+            ..crate::protocol::LiveStatus::default()
+        },
+    )));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+
+    let mut tcp = tokio::net::TcpStream::connect(address).await.unwrap();
+    tokio::time::sleep(Duration::from_millis(400)).await;
+    tcp.write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .await
+        .unwrap();
+    let mut buf = vec![0u8; 2048];
+    let n = timeout(Duration::from_secs(2), tcp.read(&mut buf))
+        .await
+        .expect("delayed status probe timed out")
+        .expect("delayed status probe read");
+    let text = String::from_utf8_lossy(&buf[..n]);
+    assert!(
+        text.starts_with("HTTP/1.1 200"),
+        "a pause before the request must stay a status probe, not a websocket: {text}"
+    );
+    accept.abort();
+}
+
+#[tokio::test]
 async fn status_get_reports_the_match_without_taking_a_slot() {
     let (tx, mut commands) = mpsc::unbounded_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
@@ -406,6 +632,63 @@ async fn status_get_reports_the_match_without_taking_a_slot() {
     assert!(commands.try_recv().is_err());
 
     let _held = welcome_spectator(address).await;
+    accept.abort();
+}
+
+#[tokio::test]
+async fn a_busy_status_lock_answers_503_and_not_schema_one() {
+    let (tx, _commands) = mpsc::unbounded_channel();
+    let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
+    let status = std::sync::Arc::new(tokio::sync::RwLock::new(crate::protocol::LiveStatus {
+        schema_version: 2,
+        kind: "arena".into(),
+        map: "Arena Duel".into(),
+        ..crate::protocol::LiveStatus::default()
+    }));
+    server.share_status(std::sync::Arc::clone(&status));
+    let address = server.local_addr().unwrap();
+    let accept = tokio::spawn(server.accept_loop());
+    let _held = status.write().await;
+
+    let mut tcp = tokio::net::TcpStream::connect(address).await.unwrap();
+    tcp.write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .await
+        .unwrap();
+    let mut buf = Vec::new();
+    let mut tmp = [0u8; 512];
+    loop {
+        let n = timeout(Duration::from_secs(2), tcp.read(&mut tmp))
+            .await
+            .expect("busy status timeout")
+            .expect("busy status read");
+        if n == 0 {
+            break;
+        }
+        buf.extend_from_slice(&tmp[..n]);
+    }
+    let text = String::from_utf8_lossy(&buf);
+    assert!(text.starts_with("HTTP/1.1 503"), "{text}");
+    assert!(text.contains("\"busy\":true"), "{text}");
+    assert!(!text.contains("\"schema_version\":1"), "{text}");
+    assert!(!text.contains("Arena Duel"), "{text}");
+    drop(_held);
+
+    let mut again = tokio::net::TcpStream::connect(address).await.unwrap();
+    again
+        .write_all(b"GET /status HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .await
+        .unwrap();
+    let mut recovered = vec![0u8; 2048];
+    let n = timeout(Duration::from_secs(2), again.read(&mut recovered))
+        .await
+        .unwrap()
+        .unwrap();
+    let recovered = String::from_utf8_lossy(&recovered[..n]);
+    assert!(recovered.starts_with("HTTP/1.1 200"), "{recovered}");
+    let live: crate::protocol::LiveStatus =
+        serde_json::from_str(recovered.split("\r\n\r\n").nth(1).unwrap()).unwrap();
+    assert_eq!(live.map, "Arena Duel");
+    assert_eq!(live.schema_version, 2);
     accept.abort();
 }
 
@@ -1483,6 +1766,20 @@ async fn venue_close_removes_a_resume_armed_human_and_says_why() {
         peer.ip().to_canonical(),
         std::net::IpAddr::from([127, 0, 0, 1])
     );
+    let version = timeout(Duration::from_secs(2), commands.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    let GameCommand::NoteClientVersion {
+        client_id: noted_id,
+        gameplay_version,
+    } = version
+    else {
+        panic!("the desk hears the client version before the join");
+    };
+    assert_eq!(noted_id, client_id);
+    // This hello omits gameplay_version, which the server reads as legacy 1.
+    assert_eq!(gameplay_version, crate::protocol::legacy_gameplay_version());
     let joined = timeout(Duration::from_secs(2), commands.recv())
         .await
         .unwrap()

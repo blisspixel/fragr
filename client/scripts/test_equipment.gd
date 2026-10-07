@@ -84,7 +84,7 @@ func _run() -> void:
 		{"ammo": [{"pool": "tacks", "rounds": 0}, {"pool": "darts", "rounds": 0}, {"pool": "cores", "rounds": 0}]},
 		{"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "bullets", "rounds": 0}, {"pool": "cells", "rounds": 0}]},
 		{"personal_claims": ["../bay"]}, {"personal_claims": ["bay_tack", "bay_tack"]}, {"dry_fire_count": -1},
-		{"reload": null}, {"reserves": []}]:
+		{"reload": null}, {"reserves": []}, {"loaded": []}]:
 		var invalid: Dictionary = state.duplicate(true)
 		invalid.merge(patch, true)
 		_check(not EquipmentState.validation_error(invalid, "self").is_empty(), "invalid state cannot enter presentation: " + str(patch))
@@ -125,13 +125,33 @@ func _run() -> void:
 	var key: InputEventKey = InputEventKey.new()
 	key.physical_keycode = KEY_R
 	key.pressed = true
-	_check(not InputMap.has_action("reload"), "there is no reload action to bind")
+	_check(key.is_action_pressed("reload"), "R reloads")
 	manager._input(key)
 	manager._last_action_usec = -1000000000
 	manager._process(0.001)
-	_check(not network.sent.back().has("reload"), "R sends nothing new: an action never carries reload")
+	_check(not network.sent.back().has("reload"), "R stays off the wire until a magazine loadout arrives")
 	key.physical_keycode = KEY_C
 	_check(key.is_action_pressed("radio_next_station"), "C retains radio access")
+	key.physical_keycode = KEY_N
+	_check(key.is_action_pressed("radio_next_track"), "N skips the track")
+	key.physical_keycode = KEY_M
+	_check(key.is_action_pressed("radio_toggle"), "M plays or pauses the radio")
+	var pad := InputEventJoypadButton.new()
+	pad.pressed = true
+	pad.button_index = JOY_BUTTON_DPAD_UP
+	_check(not pad.is_action_pressed("radio_next_station"), "D-pad up is not the radio")
+	pad.button_index = JOY_BUTTON_DPAD_DOWN
+	_check(not pad.is_action_pressed("radio_next_track"), "D-pad down is not the radio")
+	pad.button_index = JOY_BUTTON_DPAD_LEFT
+	_check(not pad.is_action_pressed("radio_toggle"), "D-pad left is not the radio")
+	var scope_key := InputEventKey.new()
+	scope_key.physical_keycode = KEY_Z
+	scope_key.pressed = true
+	_check(scope_key.is_action_pressed("scope"), "Z holds the scope")
+	var scope_mouse := InputEventMouseButton.new()
+	scope_mouse.button_index = MOUSE_BUTTON_RIGHT
+	scope_mouse.pressed = true
+	_check(scope_mouse.is_action_pressed("scope"), "right mouse holds the scope")
 	network.equipment = state.duplicate(true)
 	var wheel: InputEventMouseButton = InputEventMouseButton.new()
 	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
@@ -169,6 +189,55 @@ func _run() -> void:
 	manager._last_action_usec = -1000000000
 	manager._process(0.001)
 	_check(not network.sent.back().has("weapon_swap"), "the discrete fists choice is transmitted once")
+	var magazine: Dictionary = state.duplicate(true)
+	magazine["tick"] = 21
+	magazine["ammo"] = [{"pool": "bullets", "rounds": 50}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]
+	magazine["loaded"] = [{"weapon": "tack", "rounds": 12}]
+	_check(EquipmentState.validation_error(magazine, "self").is_empty(), "a pistol magazine inside the bullet pool is accepted")
+	_check(EquipmentState.shots(magazine, "tack") == 12 and EquipmentState.count_text(magazine, "tack") == "12|38", "the pistol shows rounds in the gun and the reserve")
+	var overfilled: Dictionary = magazine.duplicate(true)
+	overfilled["loaded"] = [{"weapon": "tack", "rounds": 13}]
+	_check(not EquipmentState.validation_error(overfilled, "self").is_empty(), "a magazine cannot hold more than its size")
+	var over_pool: Dictionary = magazine.duplicate(true)
+	over_pool["weapons"] = ["fists", "tack", "flechette"]
+	over_pool["loaded"] = [{"weapon": "tack", "rounds": 12}, {"weapon": "flechette", "rounds": 20}]
+	over_pool["ammo"] = [{"pool": "bullets", "rounds": 30}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]
+	_check(not EquipmentState.validation_error(over_pool, "self").is_empty(), "magazines cannot add rounds the pool does not hold")
+	var two_reloads: Dictionary = magazine.duplicate(true)
+	two_reloads["weapons"] = ["fists", "tack", "flechette"]
+	two_reloads["ammo"] = [{"pool": "bullets", "rounds": 50}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]
+	two_reloads["loaded"] = [{"weapon": "tack", "rounds": 0, "ready_at": 40}, {"weapon": "flechette", "rounds": 10, "ready_at": 41}]
+	_check(not EquipmentState.validation_error(two_reloads, "self").is_empty(), "only one gun reloads at a time")
+	var arcade: Dictionary = state.duplicate(true)
+	arcade["tick"] = 22
+	arcade["selected"] = "flechette"
+	arcade["weapons"] = ["flechette", "scatter", "rail"]
+	arcade["personal_claims"] = []
+	arcade["dry_fire_count"] = 0
+	arcade["loaded"] = [{"weapon": "flechette", "rounds": 20}, {"weapon": "scatter", "rounds": 6}, {"weapon": "rail", "rounds": 4}]
+	_check(EquipmentState.validation_error(arcade, "self").is_empty() and EquipmentState.count_text(arcade, "flechette") == "20", "a zero-pool arcade loadout shows only the rounds in the gun")
+	var finite: Dictionary = arcade.duplicate(true)
+	finite["tick"] = 23
+	finite["ammo"] = [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]
+	_check(EquipmentState.validation_error(finite, "self").is_empty() and EquipmentState.count_text(finite, "flechette") == "20|60" and EquipmentState.count_text(finite, "scatter") == "6|18" and EquipmentState.count_text(finite, "rail") == "4|12", "a finite arcade bag shows rounds in the gun and what is left to load")
+	var short_bag: Dictionary = finite.duplicate(true)
+	short_bag["ammo"] = [{"pool": "bullets", "rounds": 10}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]
+	_check(not EquipmentState.validation_error(short_bag, "self").is_empty(), "arcade magazines cannot outrun the bag")
+	var huge: Dictionary = finite.duplicate(true)
+	huge["ammo"] = [{"pool": "bullets", "rounds": 201}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]
+	_check(not EquipmentState.validation_error(huge, "self").is_empty(), "an arcade bag stays inside the pool cap")
+	network.equipment = magazine
+	var reload_key: InputEventKey = InputEventKey.new()
+	reload_key.physical_keycode = KEY_R
+	reload_key.pressed = true
+	manager.reload_armed = true
+	manager._input(reload_key)
+	manager._last_action_usec = -1000000000
+	manager._process(0.001)
+	_check(network.sent.back().get("reload") == true and not manager.pending_reload, "R reaches a server that sent magazines")
+	manager._last_action_usec = -1000000000
+	manager._process(0.001)
+	_check(not network.sent.back().has("reload"), "one press sends one reload")
 	network.equipment = {}
 	manager.pending_weapon_swap = null
 	_check(manager._next_weapon_swap(1) == "rail" and manager._next_weapon_swap(-1) == "scatter", "arcade wheel walks shotgun, rifle, and railgun")
@@ -210,7 +279,7 @@ func _run() -> void:
 	armed["selected"] = "scatter"
 	display.apply(armed)
 	display._process(0.3)
-	_check(display.counts.text == "11" and display.glyph_pool == "shells" and display.counts.modulate == Color.WHITE, "the held shotgun shows its shell count")
+	_check(display.counts.text == "11" and display.glyph_pool == "shells" and display.counts.modulate == Color.WHITE and display.counts.get_theme_font_size("font_size") == 40, "the held shotgun shows its shell count")
 	armed["selected"] = "flechette"
 	display.apply(armed)
 	display._process(0.0)
@@ -219,9 +288,26 @@ func _run() -> void:
 	display.apply(armed)
 	display._process(0.0)
 	_check(display.counts.text == "" and display.glyph_pool == "", "fists show no ammunition")
+	var shown: Dictionary = state.duplicate(true)
+	shown["tick"] = 21
+	shown["ammo"] = [{"pool": "bullets", "rounds": 50}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]
+	shown["loaded"] = [{"weapon": "tack", "rounds": 12}]
+	display.apply(shown)
+	display._process(0.0)
+	_check(display.counts.text == "12|38" and display.counts.get_theme_font_size("font_size") == 32 and display.glyph_pool == "bullets", "a magazine reads loaded rounds, then the reserve")
+	var arcade_hud: Dictionary = state.duplicate(true)
+	arcade_hud["tick"] = 22
+	arcade_hud["selected"] = "rail"
+	arcade_hud["weapons"] = ["flechette", "scatter", "rail"]
+	arcade_hud["personal_claims"] = []
+	arcade_hud["dry_fire_count"] = 0
+	arcade_hud["loaded"] = [{"weapon": "flechette", "rounds": 20}, {"weapon": "scatter", "rounds": 6}, {"weapon": "rail", "rounds": 4}]
+	display.apply(arcade_hud)
+	display._process(0.0)
+	_check(display.counts.text == "4" and display.counts.get_theme_font_size("font_size") == 40 and display.glyph_pool == "cells", "an arcade railgun shows only the magazine")
 	display.apply({})
 	_check(not display.visible and display.tick == 0, "disconnect clears private UI and timebase")
 	display.free()
 	if _failures == 0:
-		print("test_equipment: PASS private boundary, no reload, owned cycling and HUD")
+		print("test_equipment: PASS private boundary, magazines, owned cycling and HUD")
 	quit(0 if _failures == 0 else 1)

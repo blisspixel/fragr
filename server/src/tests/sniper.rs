@@ -221,9 +221,9 @@ fn fire_at(session: &mut GameSession, shooter: Uuid, target: Uuid, weapon: Weapo
     session.state.set_action(shooter, Action::default());
 }
 
-/// Pitch from the shooter's eye to the middle of a standing body ahead.
+/// Pitch from the shooter's eye to the chest of a standing fighter ahead.
 fn level_pitch(distance: f32) -> f32 {
-    let rise = crate::combat::FIGHTER_HEIGHT * 0.5 - crate::movement::EYE_HEIGHT;
+    let rise = crate::combat::aim_height(None) - crate::movement::EYE_HEIGHT;
     rise.atan2(distance)
 }
 
@@ -400,7 +400,7 @@ fn at_fifty_five_metres_the_rail_cone_misses_where_the_sniper_never_does() {
                 .iter_mut()
                 .find(|p| p.id == target)
                 .unwrap()
-                .hp = 160;
+                .hp = 1000;
             fire_at_angle(
                 &mut session,
                 id,
@@ -558,7 +558,7 @@ fn a_peeking_head_is_seen_and_rising_first_wins_the_duel() {
         let g = body(&session, guard);
         [g.x, g.y - PLAYER_FLOOR_Y + crate::movement::EYE_HEIGHT, g.z]
     };
-    let centre = [0.0, 0.5 + crate::combat::FIGHTER_HEIGHT * 0.5, -30.6];
+    let centre = [0.0, 0.5 + crate::combat::aim_height(None), -30.6];
     let head = [0.0, 0.5 + crate::movement::EYE_HEIGHT, -30.6];
     assert!(!crate::combat::line_of_sight(guard_eye, centre, &solids));
     assert!(crate::combat::line_of_sight(guard_eye, head, &solids));

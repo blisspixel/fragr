@@ -651,7 +651,7 @@ fn target_visible_with_solids(
     ];
     let center = [
         other.x,
-        other.y - PLAYER_FLOOR_Y + fragr_server::combat::target_height(other.campaign) * 0.5,
+        other.y - PLAYER_FLOOR_Y + fragr_server::combat::aim_height(other.campaign),
         other.z,
     ];
     solids.map_or_else(
@@ -852,6 +852,7 @@ mod tests {
             dry_fire_count: 0,
             grenades: 0,
             proximity_mines: 0,
+            loaded: Vec::new(),
         };
         let through_inventory = |snap: &Snapshot| {
             fragr_server::inventory::control_action_with_target_filter(

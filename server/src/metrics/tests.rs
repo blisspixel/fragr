@@ -416,9 +416,19 @@ fn plain_status_stays_small_and_keeps_schema_two() {
     let ops = &json["ops"];
     assert_eq!(ops["version"], 1);
     assert!(ops.get("clients").is_none());
-    for key in ["build", "process", "tick", "connections", "traffic"] {
+    for key in [
+        "build",
+        "process",
+        "tick",
+        "connections",
+        "traffic",
+        "night",
+    ] {
         assert!(ops.get(key).is_some(), "{key}");
     }
+    assert_eq!(ops["night"]["rounds_finished"], 0);
+    assert_eq!(ops["night"]["peak_humans"], 0);
+    assert_eq!(ops["night"]["peak_fighters"], 0);
     for key in [
         "p50_ms",
         "p95_ms",
@@ -479,6 +489,16 @@ fn plain_status_stays_small_and_keeps_schema_two() {
 }
 
 #[test]
+fn an_older_ops_block_without_night_reads_as_zeros() {
+    let ops: OpsStatus = serde_json::from_str(
+        r#"{"version":1,"build":{"crate_version":"0","release":null,"commit":"unknown"},"process":{"started_unix_s":1,"uptime_s":0.0},"tick":{"budget_ms":50.0,"scope":"tick_handler","window_s":60,"rate_hz":null,"window":{"count":0,"p50_ms":0.0,"p95_ms":0.0,"p99_ms":0.0,"max_ms":0.0,"over_budget":0},"lifetime":{"count":0,"p50_ms":0.0,"p95_ms":0.0,"p99_ms":0.0,"max_ms":0.0,"over_budget":0}},"connections":{"total":0,"spectators":0,"humans":0,"agents":0},"traffic":{"window_s":60,"out_bytes_per_s":0.0,"in_bytes_per_s":0.0,"out_msgs_per_s":0.0,"in_msgs_per_s":0.0,"per_client_out_bytes_per_s_mean":0.0,"per_client_out_bytes_per_s_max":0.0,"out_bytes":0,"in_bytes":0,"out_msgs":0,"in_msgs":0,"queue_overflows_window":0,"queue_overflows_total":0}}"#,
+    )
+    .unwrap();
+    assert_eq!(ops.version, 1);
+    assert_eq!(ops.night, NightTotals::default());
+}
+
+#[test]
 fn a_snapshot_the_tick_loop_stopped_refreshing_is_stale() {
     let live = populated_status(2);
     let taken = Duration::from_secs_f64(live.ops.as_ref().unwrap().process.uptime_s);
@@ -513,6 +533,18 @@ fn only_an_explicit_clients_query_adds_the_list() {
     assert!(!wants_clients(b"GET /other?clients=1 HTTP/1.1\r\n"));
     assert!(!wants_clients(b"GET"));
     assert!(!wants_clients(b""));
+    let loopback: std::net::IpAddr = "127.0.0.1".parse().unwrap();
+    let mapped: std::net::IpAddr = "::ffff:127.0.0.1".parse().unwrap();
+    let v6_loop: std::net::IpAddr = "::1".parse().unwrap();
+    let lan: std::net::IpAddr = "192.168.44.46".parse().unwrap();
+    let mapped_lan: std::net::IpAddr = "::ffff:192.168.44.46".parse().unwrap();
+    let ask = b"GET /status?clients=1 HTTP/1.1\r\n";
+    assert!(status_client_list(loopback, ask));
+    assert!(status_client_list(mapped, ask));
+    assert!(status_client_list(v6_loop, ask));
+    assert!(!status_client_list(lan, ask));
+    assert!(!status_client_list(mapped_lan, ask));
+    assert!(!status_client_list(loopback, b"GET /status HTTP/1.1\r\n"));
 }
 
 #[test]
@@ -567,7 +599,11 @@ async fn a_live_server_reports_ticks_traffic_and_roles_on_status() {
     let (mut socket, _) = tokio_tungstenite::connect_async(format!("ws://{address}"))
         .await
         .unwrap();
-    let hello = r#"{"type":"hello","role":"spectator","name":"Probe"}"#;
+    let hello = format!(
+        r#"{{"type":"hello","role":"spectator","name":"Probe","gameplay_version":{},"geometry_version":{}}}"#,
+        crate::protocol::GAMEPLAY_VERSION,
+        crate::protocol::GEOMETRY_VERSION
+    );
     socket.send(Message::Text(hello.to_string())).await.unwrap();
     let mut received = 0usize;
     let mut snapshots = 0;

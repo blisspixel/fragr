@@ -19,6 +19,8 @@ var weapon: String = ""
 var tick: int = 0
 var elapsed: float = 0.0
 var travel: float = 0.0
+## True when this presentation step actually moved. Recovery uses it for the walk.
+var stepping: bool = false
 var shot_age: float = INF
 var _kind: String = ""
 var _landed: bool = false
@@ -140,7 +142,10 @@ static func atlas_path(kind: String) -> String:
 func advance(delta: float, distance: float) -> void:
 	elapsed += delta
 	shot_age += delta
-	if actor.get("phase") in ["moving", "charging"] and distance >= 0.0 and distance < 2.0:
+	var phase: String = str(actor.get("phase", ""))
+	stepping = distance >= 0.002 and distance < 2.0
+	var gait: bool = phase in ["moving", "charging"] or (phase == "recovery" and stepping)
+	if gait and distance >= 0.0 and distance < 2.0:
 		var stride: float = CrawlerAnimation.STRIDE_METRES if _kind == "crawler" else EnemyAnimation.STRIDE_METRES
 		travel = fposmod(travel + distance, stride)
 
@@ -162,7 +167,7 @@ func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	else:
 		var custody: int = custody_frame(actor, weapon, tick, elapsed, facing, _standing)
 		body.frame = custody if custody >= 0 else EnemyAnimation.frame(actor, weapon, tick, elapsed,
-			travel, shot_age, facing)
+			travel, shot_age, facing, stepping)
 
 ## The Enforcer's unused armed gait row holds its committed charge posture.
 ## Playback cannot advance the authoritative charge phase or cause a hit.

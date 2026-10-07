@@ -40,7 +40,8 @@ fields and the harness, and records one local run of at least an hour.
   (every data frame, before the inbound budget). Counters are atomics on a
   per-connection `ClientTraffic` held by `ClientSession`, with process totals
   that survive a disconnect. The role is recorded at hello. `/status?clients=1`
-  adds an anonymous per-connection list; the plain `/status` stays small.
+  from a loopback address adds an anonymous per-connection list. The plain
+  `/status`, and the same query from another computer, stays small.
 - **`server/src/run.rs`** times the whole tick handler (expiry, sim, run save,
   broadcast and unicast enqueue) into the ring, feeds queue overflows, and
   refreshes the operator block once a second. The `STATUS` log line is
@@ -76,7 +77,7 @@ Health is `degraded` when any of these hold, otherwise `ok`:
   schema and size, detail query parsing, traffic counters and rates.
 - Integration: a live loopback server answers `/status` with `ops`, counts
   a client's bytes in both directions, and adds the client list only on
-  `?clients=1`.
+  `?clients=1` from that loopback peer.
 - Soak: verdict tests for crash, stall, RSS growth, p99, connection drift and
   overflows; a short in-process soak exercising the sampler end to end.
 - Client: `test_frontend.gd` feeds a schema 2 body with `health` and `ops`.

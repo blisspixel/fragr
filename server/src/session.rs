@@ -31,8 +31,10 @@ pub struct GameSession {
     pub client_to_player: HashMap<Uuid, Uuid>,
     /// Targeted control messages, drained by the game loop.
     pub pending_unicasts: Vec<(Recipient, ServerMessage)>,
-    /// The map the last MapInfo described, so a rotation resends it once.
+    /// The map and rules the last MapInfo described. A mode change on the
+    /// same map still has to reach clients.
     last_map_sent: Option<crate::maps::RuntimeMap>,
+    last_rules_sent: Option<protocol::MatchRules>,
     last_mission_sent: Option<protocol::MissionState>,
     /// Target rule-bot count. Solo scrap and empty-arena recovery refill up to this.
     pub min_bots: usize,
@@ -45,6 +47,8 @@ pub struct GameSession {
     bot_seats: HashMap<Uuid, tokio::sync::OwnedSemaphorePermit>,
     auto_fill_target: Option<usize>,
     auto_reservations: HashMap<Uuid, fill::Reservation>,
+    /// Hello gameplay version, consumed when that client becomes a pawn.
+    client_versions: HashMap<Uuid, u32>,
     /// Address observed at hello, waiting for the join command that follows.
     pending_peers: HashMap<Uuid, SocketAddr>,
     /// Last address of a connected fighter, kept through resume grace.
@@ -53,6 +57,7 @@ pub struct GameSession {
     live_client: HashMap<Uuid, Uuid>,
     spectators: HashMap<Uuid, SpectatorSeat>,
     venue_said_tick: Option<u64>,
+    pub(crate) sheet: crate::sheet::NightSheet,
 }
 
 struct SpectatorSeat {
@@ -70,6 +75,15 @@ impl GameSession {
         Self::with_state(GameState::with_map(map, map_rotate))
     }
 
+    /// Night list: every arena's navigation is ready, and the first show is
+    /// Arena Duel free-for-all. Map rotation stays off.
+    pub fn with_playlist() -> Self {
+        crate::maps::prepare_navigation(MapKind::ArenaDuel, true);
+        let mut state = GameState::with_map(MapKind::ArenaDuel, false);
+        state.arm_night_playlist();
+        Self::with_state(state)
+    }
+
     pub fn with_authored_map(map: Arc<crate::maps::AuthoredMap>) -> Self {
         Self::with_state(GameState::with_authored_map(map))
     }
@@ -82,6 +96,7 @@ impl GameSession {
             client_to_player: HashMap::new(),
             pending_unicasts: Vec::new(),
             last_map_sent: None,
+            last_rules_sent: None,
             last_mission_sent: None,
             min_bots: 0,
             navigators: HashMap::new(),
@@ -92,11 +107,13 @@ impl GameSession {
             bot_seats: HashMap::new(),
             auto_fill_target: None,
             auto_reservations: HashMap::new(),
+            client_versions: HashMap::new(),
             pending_peers: HashMap::new(),
             fighter_peers: HashMap::new(),
             live_client: HashMap::new(),
             spectators: HashMap::new(),
             venue_said_tick: None,
+            sheet: crate::sheet::NightSheet::default(),
         }
     }
 
@@ -384,7 +401,14 @@ impl GameSession {
             GameCommand::CommitAutoJoin { identity, reply } => {
                 self.commit_auto_join(identity, reply);
             }
+            GameCommand::NoteClientVersion {
+                client_id,
+                gameplay_version,
+            } => {
+                self.client_versions.insert(client_id, gameplay_version);
+            }
             GameCommand::CancelAutoJoin { client_id } => {
+                self.client_versions.remove(&client_id);
                 self.auto_reservations.remove(&client_id);
                 self.take_pending_peer(client_id);
                 if let Some(player_id) = self.client_to_player.remove(&client_id) {
@@ -425,6 +449,14 @@ impl GameSession {
                         self.fighter_peers.insert(pid, peer);
                     }
                     self.live_client.insert(pid, id);
+                    if role == Role::Human
+                        && self
+                            .client_versions
+                            .remove(&id)
+                            .is_some_and(|version| version >= protocol::RELOAD_GAMEPLAY_VERSION)
+                    {
+                        self.state.arm_joined_magazines(pid);
+                    }
                     let player_count = self
                         .state
                         .players
@@ -461,6 +493,7 @@ impl GameSession {
             }
 
             GameCommand::Disconnected { id } => {
+                self.client_versions.remove(&id);
                 self.spectators.remove(&id);
                 self.take_pending_peer(id);
                 if let Some(player_id) = self.client_to_player.remove(&id) {
@@ -755,7 +788,12 @@ impl GameSession {
 
         self.state.tick(dt);
         self.send_records();
-        if self.state.equipment_policy() == protocol::EquipmentPolicy::Discovery {
+        let magazines = self
+            .state
+            .players
+            .iter()
+            .any(|player| player.inventory.armed());
+        if self.state.equipment_policy() == protocol::EquipmentPolicy::Discovery || magazines {
             let connected: std::collections::HashSet<Uuid> =
                 self.client_to_player.values().copied().collect();
             self.sent_loadouts.retain(|id, _| connected.contains(id));
@@ -791,8 +829,10 @@ impl GameSession {
         let mut out = Vec::new();
         // A mission gate also swaps immutable geometry. Send it before mission
         // state and snapshots so every controller observes the same world.
-        if self.last_map_sent.as_ref() != Some(&self.state.map) {
+        let rules = self.state.wire_rules();
+        if self.last_map_sent.as_ref() != Some(&self.state.map) || self.last_rules_sent != rules {
             self.last_map_sent = Some(self.state.map.clone());
+            self.last_rules_sent = rules;
             self.last_mission_sent = None;
             out.push(self.state.map_info());
         }
@@ -807,7 +847,31 @@ impl GameSession {
             self.last_mission_sent = mission;
         }
         out.push(ServerMessage::Snapshot(self.state.snapshot()));
+        let (humans, fighters) = self.state.participant_counts();
+        self.sheet.note_presence(humans, fighters);
         for event in self.state.take_events() {
+            if let protocol::GameEvent::RoundEnd {
+                reason,
+                mvp,
+                mvp_frags,
+                ..
+            } = &event
+            {
+                let line = self.sheet.finish(crate::sheet::RoundNote {
+                    round: self.state.round_number,
+                    map: self.state.map.name().to_string(),
+                    mode: crate::sheet::mode_label(
+                        self.state.map.is_campaign(),
+                        self.state.wire_rules().map(|rules| rules.mode.id()),
+                    ),
+                    reason: reason.clone(),
+                    mvp: mvp.clone(),
+                    frags: mvp_frags.unwrap_or(0),
+                    humans,
+                    fighters,
+                });
+                tracing::info!("SHEET {line}");
+            }
             out.push(ServerMessage::Event(event));
         }
         out

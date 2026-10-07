@@ -87,8 +87,20 @@ The campaign starts its own local server. For a separate match on your LAN:
 cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767 --bots 4
 ```
 
-Launch the client and choose **Multiplayer**. Other machines can set
-`FRAGR_SERVER=your-host:6767` before launching. The
+Add `--playlist` to keep that process up and rotate maps and modes between
+shows. The [hosting guide](docs/HOSTING.md) lists the night order and the
+settings for a night of about 24 people or a house of about 64 connections.
+
+Launch the client and choose **Multiplayer**. Join a server uses the address
+you type. Run a server is separate and does not replace that address. Save
+this host keeps an address on this computer. A server on the same LAN can
+appear under On this network. The address field still reaches any host,
+including one on the internet. Other
+machines can set `FRAGR_SERVER=your-host:6767` before launching. The server
+log names each address it could check from this computer. Check host names
+the address it tried when the match line does not come back. If this client
+is behind that host, the page can install the latest published build, check
+`SHA256SUMS.txt`, and rejoin. The
 [hosting guide](docs/HOSTING.md) covers dedicated servers and public access.
 WASD and mouse, keyboard-only controls and gamepad are supported. Press **J** to
 join, **L** to watch, and **Esc** for the match menu. Full controls, settings and
