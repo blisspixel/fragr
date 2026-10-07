@@ -1,6 +1,6 @@
 # Right of Search composition evidence
 
-Date: 2026-10-06. Status: **in flight**, bounded local prototype. This composes
+Date: 2026-10-06. Status: **implemented**, bounded local prototype. This composes
 the retained `7d89ee26` mission checkpoint with `dff17365`, including current
 human magazines, duck, resolved head-band records and private board messages.
 The original checkpoint is preserved. Parent integration and its final shared
@@ -84,9 +84,10 @@ existing human strips. No paid asset call was made by this composition lane.
 - Focused client harnesses passed for M11 facts, tender/device presentation,
   equipment, custody devices, grenade controls, participant records, actor
   state, weapon pickups, M09/M10 compatibility and ordinary QA reload input.
-- Pinned Godot headless import and all scripts parsed. The complete harness
-  sequence was started separately; its final result is recorded below when
-  available.
+- Pinned Godot headless import and all 294 scripts parsed. The complete
+  sequence ran 139 harnesses: 129 passed and ten failed on older expectations.
+  All ten were corrected and rerun successfully. The full log retains its
+  failures; final composed CI must run the whole gate on one frozen source.
 
 The live `test_m11_local` harness passed with its own process and isolated
 preferences, records and save directory. It starts from a labelled strict v13
@@ -141,18 +142,52 @@ The final kit held 69 Bullets, 25 Shells, eight Cells, two grenades, three
 proximity mines and four Remote Mines. The Carrier window and distinct tender
 surfaces were inspected from actual first person.
 
-The final stern use was correctly refused because the route targeted a point
+The tenth run's final stern use was correctly refused because the route targeted a point
 0.5 m below the registered panel center. The manifest now names its actual
-center, `[18, 3.1, 27.5]`. That last complete departure rerun remains pending
-at this integration checkpoint; neither an actual final saved exit nor full
-rendered mission completion is claimed yet.
+center, `[18, 3.1, 27.5]`.
+
+The eleventh capture stopped receiving rendered frames during a Redactor hit
+while its native child continued advancing. The waiting controller held fire
+and the player died. The mission's capture wrapper now requests an offscreen
+draw after 250 ms without a rendered frame, so an occluded window cannot leave
+the controller suspended on `frame_post_draw`. It uses the documented
+[`RenderingServer.force_draw`](https://docs.godotengine.org/en/stable/classes/class_renderingserver.html#class-renderingserver-method-force-draw)
+on the main thread. This is capture plumbing and supplies no frame-performance
+claim or combat authority.
+
+## Complete rendered route and durable exit
+
+Run twelve completed all fourteen states without engine diagnostics. Actual
+ordinary controls reached every ordered arrival, used both optional panels,
+cleared all thirteen registered guards and pressed the physical stern release.
+The retained final observation has all seven completion facts, including
+`party_departed`, and run status `complete`. All saved views contain world
+content. The final stern view and the adjacent Carrier window were inspected.
+
+The actual record has 31 Flechette attacks and seven kills, plus 18 Scatter
+attacks and six kills. It records zero deaths, dry triggers, HP loss and armor
+loss on this run. Authored first aid along the route raised the carried 43 HP
+to the ordinary 100 cap. The locked version 14 save contains completed
+`right_of_search`, pending `terms_of_cooperation`, 100 HP, 22 armor, one
+remaining continue and the exact finite exit: 69 Bullets, 26 Shells, eight
+Cells, two grenades, three proximity mines and four Remote Mines. Both optional
+receipts are true. The actual bridge response is 626 ticks; one-blast Remote
+Mine credit remains zero. Earlier outcomes and the exact historical archive
+remain present. The route uses no remote charge, so its separate ordinary V/H
+proof remains the owning evidence for those controls.
+
+This full route is reproducible through the committed manifest and wrapper;
+ignored `.agents/m11-tour-12` retains its actual observations, fourteen paired
+screenshots, combat strips and saved-run bytes. It is one successful automated
+Standard run, not a difficulty distribution or human playtest.
 
 The broad client run found stale current-save assertions in the M04 through
-M09 local harnesses, an old nine-entry development selector and a rebinding
-test treating H as unused. The version 14, ten-entry and current H binding
-expectations are corrected. Every affected harness was rerun successfully,
-including the exact-byte v11 M09 archive check; the original full log retains
-its failures. These are test contract updates, not relaxed migration checks.
+M09 local harnesses, an old nine-entry development selector, a rebinding test
+treating H as unused and a reader-paced arrival allowlist without M11. The
+version 14, ten-entry, current H binding and reader-page expectations are
+corrected. Every affected harness was rerun successfully, including the
+exact-byte v11 M09 archive check; the original full log retains its failures.
+These are test contract updates, not relaxed migration checks.
 
 Automated success does not establish a fresh human's learning, fun, Severe
 deadline fairness, multiplayer campaign acceptance or final production art.

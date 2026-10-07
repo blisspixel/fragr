@@ -1,6 +1,6 @@
 # Right of Search composition and playable prototype
 
-Status: **in flight**, 2026-10-06. Extends the retained native, gadget and save
+Status: **implemented**, bounded local prototype, 2026-10-06. Extends the retained native, gadget and save
 checkpoint at `7d89ee26`, composed with the reload and duck source at `dff17365`.
 The original checkpoint remains unchanged. This work uses the isolated branch
 `feat/m11-quality-20261006` and returns a reviewed integration checkpoint.
@@ -78,6 +78,8 @@ explicitly rather than promoting source checks into a finished campaign claim.
 
 The [composition evidence](../evidence/m11-quality-composition-20261006.md)
 records source hashes, the strict live saved-local device/continue check,
-current native/controller/presenter results, actual rendered failures and the
-remaining acceptance limits. No paid operation was used by this lane. The
+current native/controller/presenter results, actual rendered failures, a complete
+fourteen-state finite-combat route with durable departure, and remaining human
+and production-art acceptance limits. Parent integration and its frozen full
+gates remain separate. No paid operation was used by this lane. The
 separate original checkpoint reports remain dated historical evidence.

@@ -343,8 +343,12 @@ func _run() -> void:
 			var target: Array = state["look_at"]
 			var camera: Node3D = _spectator_camera()
 			# Camera reconciliation can still trail the last combat sidestep.
-			# Ordinary input must aim from the current authoritative standing eye.
-			var origin: Vector3 = _local_feet() + Vector3.UP * MoveStep.EYE_HEIGHT if _joined else camera.global_position
+			# Ordinary input must aim from the current authoritative eye.
+			var origin: Vector3 = camera.global_position
+			if _joined:
+				var manager: Node = _game_manager()
+				var me: Dictionary = QaCombat.actor_by_id(manager.latest_snapshot, str(manager.net_client.player_id))
+				origin = _local_feet() + Vector3.UP * (MoveStep.DUCK_EYE_HEIGHT if me.get("ducking", false) else MoveStep.EYE_HEIGHT)
 			var direction: Vector3 = Vector3(float(target[0]), float(target[1]), float(target[2])) - origin
 			camera.set("fp_yaw", atan2(direction.z, direction.x))
 			await _set_aim_pitch(atan2(direction.y, Vector2(direction.x, direction.z).length()))

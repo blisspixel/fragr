@@ -3,6 +3,19 @@ extends "res://scripts/qa_tour.gd"
 const LocalFixture = preload("res://scripts/test_m11_local.gd")
 var _owned: LocalMatch
 var _previous_server: String
+var _last_drawn: int = -1
+var _undrawn_seconds: float = 0.0
+
+func _process(delta: float) -> bool:
+	# An occluded capture window must not suspend the controller while the
+	# native child keeps fighting. This is capture plumbing, not a frame benchmark.
+	var drawn: int = Engine.get_frames_drawn()
+	_undrawn_seconds = _undrawn_seconds + delta if drawn == _last_drawn else 0.0
+	_last_drawn = drawn
+	if _undrawn_seconds >= 0.25 and DisplayServer.get_name() != "headless":
+		RenderingServer.force_draw(false)
+		_undrawn_seconds = 0.0
+	return false
 
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
