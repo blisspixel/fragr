@@ -133,6 +133,9 @@ pub struct CombatCounts {
     /// Placed proximity mines have their own column beside the grenades.
     #[serde(default, skip_serializing_if = "empty_grenades")]
     pub mines: WeaponCounts,
+    /// Deliberately triggered charges are distinct from body-trip mines.
+    #[serde(default, skip_serializing_if = "empty_grenades")]
+    pub remote_mines: WeaponCounts,
 }
 
 fn empty_grenades(counts: &WeaponCounts) -> bool {
@@ -213,6 +216,7 @@ impl CombatCounts {
             .sum::<u64>()
             + self.grenades.attacks
             + self.mines.attacks
+            + self.remote_mines.attacks
     }
 
     /// Gun and fist shots. Grenades and mines stay off this denominator.
@@ -243,6 +247,7 @@ impl CombatCounts {
         self.weapons.iter().map(|weapon| weapon.kills).sum::<u64>()
             + self.grenades.kills
             + self.mines.kills
+            + self.remote_mines.kills
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
@@ -254,7 +259,11 @@ impl CombatCounts {
             self.dry_triggers,
             self.secrets,
         ];
-        for weapon in self.weapons.iter().chain([&self.grenades, &self.mines]) {
+        for weapon in self
+            .weapons
+            .iter()
+            .chain([&self.grenades, &self.mines, &self.remote_mines])
+        {
             counts.extend(weapon_fields(weapon));
         }
         if counts.iter().any(|count| *count > MAX_EXACT_JSON_INTEGER) {
@@ -264,7 +273,7 @@ impl CombatCounts {
             let sum: u64 = self
                 .weapons
                 .iter()
-                .chain([&self.grenades, &self.mines])
+                .chain([&self.grenades, &self.mines, &self.remote_mines])
                 .map(|weapon| weapon_fields(weapon)[column])
                 .sum();
             if sum > MAX_EXACT_JSON_INTEGER {
@@ -294,6 +303,7 @@ impl CombatCounts {
             })
             || !explosive_holds(&self.grenades)
             || !explosive_holds(&self.mines)
+            || !explosive_holds(&self.remote_mines)
         {
             return Err("inconsistent attack counts");
         }
@@ -309,6 +319,7 @@ impl CombatCounts {
             && self.secrets >= other.secrets
             && counts_cover(&self.grenades, &other.grenades)
             && counts_cover(&self.mines, &other.mines)
+            && counts_cover(&self.remote_mines, &other.remote_mines)
             && self
                 .weapons
                 .iter()
@@ -539,6 +550,11 @@ impl PlayerRecord {
 
     /// Only a genuinely unused new column may use the historical wire shape.
     pub fn legacy_record(&self) -> Result<Self, &'static str> {
+        if self.total.remote_mines != WeaponCounts::default()
+            || self.attempt.remote_mines != WeaponCounts::default()
+        {
+            return Err("Remote Mine counts cannot be delivered to a historical reader");
+        }
         if self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
             || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()
         {

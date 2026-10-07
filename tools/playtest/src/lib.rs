@@ -2152,6 +2152,7 @@ async fn agent_task(
                 m07,
                 m09,
                 m10,
+                m11,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2203,6 +2204,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m10(m10.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M10 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m11(m11.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M11 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2611,6 +2615,7 @@ mod tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -3541,6 +3546,7 @@ mod combat_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4124,6 +4130,7 @@ mod planner_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),
@@ -4639,6 +4646,7 @@ mod line_of_sight_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),

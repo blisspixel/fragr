@@ -19,7 +19,7 @@ const KINDS: Array[String] = ["property_sign", "intake_sign", "records_sign",
 	"m08_bay_form", "m08_mine_cage", "m08_seal_locked", "m08_seal_open", "m08_service_six", "m08_cold_cabinet",
 	"m08_evidence_desk", "m08_authorized_noise", "m08_freight_departure", "m08_custody_shaft",
 	"m07_shutter_row", "m07_closed_shop", "m07_curfew_notice", "m07_chalk_67", "m07_transit_arrival", "m07_market_stall", "m07_lamp_six", "m07_berm_six", "m07_window_figure", "m07_sniper_rack", "m07_port_overlook", "m07_curfew_lamp", "m07_depot_freight",
-	"m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation", "m10_cargo_deck", "m10_passenger_deck", "m10_command_deck"]
+	"m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation", "m10_cargo_deck", "m10_passenger_deck", "m10_command_deck", "m11_transfer_release", "m11_records_document", "m11_stern_release"]
 const FACES: Array[String] = ["west", "east", "down", "up", "north", "south"]
 const OFFSET: float = 0.012
 

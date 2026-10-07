@@ -127,6 +127,14 @@ place_mine={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":66), Object(InputEventJoypadButton,"device":-1,"button_index":2)]
 }
+place_remote_mine={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":86), Object(InputEventJoypadButton,"device":-1,"button_index":5)]
+}
+trigger_remote_mines={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":72), Object(InputEventJoypadButton,"device":-1,"button_index":14)]
+}
 weapon_next={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"device":-1,"physical_keycode":93), Object(InputEventMouseButton,"device":-1,"button_index":4,"pressed":true), Object(InputEventJoypadButton,"device":-1,"button_index":10)]

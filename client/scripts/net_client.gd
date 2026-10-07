@@ -65,6 +65,7 @@ var player_id = null
 ## welcome omits it, and the action must not carry the key or that server
 ## drops the whole input.
 var duck_supported: bool = false
+var remote_supported: bool = false
 ## Body the next participant Hello asks for, from the saved profile.
 var requested_body: String = PlayerBody.HUMAN
 ## The body the server accepted for our pawn; empty for a spectator or
@@ -94,6 +95,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	player_name = p_name
 	player_id = null
 	duck_supported = false
+	remote_supported = false
 	accepted_body = ""
 	_leaving = false
 	_resume_used = false
@@ -138,6 +140,7 @@ func disconnect_from_server():
 	connection_state = WebSocketPeer.STATE_CLOSED
 	player_id = null
 	duck_supported = false
+	remote_supported = false
 	accepted_body = ""
 	record.clear()
 	equipment.clear()
@@ -225,6 +228,10 @@ func send_action(action: Dictionary):
 	# Action rejects unknown fields and would drop movement with the key.
 	if action.get("duck", false) and duck_supported:
 		msg["duck"] = true
+	if action.get("place_remote_mine", false) and remote_supported:
+		msg["place_remote_mine"] = true
+	if action.get("trigger_remote_mines", false) and remote_supported:
+		msg["trigger_remote_mines"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
 	var seat: Variant = action.get("seat")
@@ -437,6 +444,11 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
+			remote_supported = data.get("m11") is Dictionary
+			if geometry.get("id") == MissionState.M11_ID and mission_geometry.get("id") == MissionState.M11_ID and not M11MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M10_ID and mission_geometry.get("id") == MissionState.M10_ID and not M10MissionState.same_contract(mission_geometry, geometry):
 				disconnect_from_server()
 				server_error.emit(MissionState.INVALID)
@@ -491,7 +503,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
@@ -514,6 +526,7 @@ func _handle_message(text: String):
 				server_error.emit(problem)
 				return
 			equipment = data
+			remote_supported = remote_supported or data.has("remote_mines")
 			loadout_received.emit(data)
 		"record":
 			var problem: String = PlayerRecord.validation_error(data, player_id, record)

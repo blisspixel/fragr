@@ -185,6 +185,9 @@ pub struct LoadoutState {
     /// every mission without them.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub proximity_mines: u16,
+    /// Deliberate charges, independent of grenades and proximity mines.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub remote_mines: u16,
     pub personal_claims: Vec<String>,
     pub dry_fire_count: u64,
     /// Per-gun magazines for an armed human. Empty and omitted otherwise.
@@ -217,7 +220,8 @@ impl LoadoutState {
     }
 
     pub fn validate(&self) -> Result<(), &'static str> {
-        if self.proximity_mines > MINE_CARRY_CAP {
+        if self.proximity_mines > MINE_CARRY_CAP || self.remote_mines > super::REMOTE_MINE_CARRY_CAP
+        {
             return Err("invalid proximity mine count");
         }
         if self.arcade_magazines() {

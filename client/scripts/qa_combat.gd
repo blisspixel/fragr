@@ -322,8 +322,29 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 		if contacts["error"].is_empty() and safe_strafe(me, solids, half, yaw, _evade_left, peers):
 			Input.action_press("move_left" if _evade_left else "move_right")
 	var loadout: Dictionary = network.get("equipment")
+	if reload_needed(loadout) and allow_fire:
+		var press: InputEventAction = InputEventAction.new()
+		press.action = "reload"
+		press.pressed = true
+		Input.parse_input_event(press)
+		var release: InputEventAction = press.duplicate()
+		release.pressed = false
+		Input.parse_input_event(release)
+		return
 	if not loadout.is_empty() and EquipmentState.shots(loadout, loadout["selected"]) != 0 and allow_fire:
 		Input.action_press("fire")
+
+static func reload_needed(loadout: Dictionary) -> bool:
+	var selected: String = str(loadout.get("selected", ""))
+	var pool: String = str(EquipmentState.POOLS.get(selected, ""))
+	var reserve: int = EquipmentState.ammo(loadout, pool)
+	for parked: Dictionary in loadout.get("loaded", []):
+		if EquipmentState.POOLS.get(str(parked.get("weapon", ""))) == pool:
+			reserve -= int(parked.get("rounds", 0))
+	for magazine: Dictionary in loadout.get("loaded", []):
+		if magazine.get("weapon") == selected:
+			return int(magazine.get("rounds", 0)) == 0 and not magazine.has("ready_at") and reserve > 0
+	return false
 
 ## Forecast ordinary input against shared collision; never grant movement.
 ## Holding at a ledge keeps the next authored roof waypoint reachable.

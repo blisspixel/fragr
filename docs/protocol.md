@@ -113,7 +113,7 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. A shared arcade room speaks gameplay 37. That floor
+  without teams misleads. A shared arcade room speaks gameplay 38. That floor
   is above capability 4, and the arcade roster stays open. The four-seat
   mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
@@ -295,7 +295,7 @@ message and then a policy close whose reason is the same code:
 **Protocol version.** There is no single `protocol_version` in `Hello`.
 `gameplay_version` and `geometry_version` are the two contracts. A shared
 arcade room, including free-for-all, team play, capture the flag, Sabotage,
-and the night list, requires gameplay `37` and geometry `2`. An older hello
+and the night list, requires gameplay `38` and geometry `2`. An older hello
 and a newer hello are both refused before `Welcome`, with
 `unsupported_gameplay` or `unsupported_geometry`. The message names version
 37 or geometry 2. An older hello is also sent to
@@ -2157,7 +2157,7 @@ The first flagship round mode, on Sector 9 only. The free coalition
 plants it with a held Use. The Union (`union`) defends the sites or defuses a
 planted charge. One life per round, no shop and no loadouts. A server with
 `--mode sabotage` on any other map, or with rotation, refuses to start. A
-Sabotage server is a shared room: it speaks gameplay 37 and geometry 2 for
+Sabotage server is a shared room: it speaks gameplay 38 and geometry 2 for
 every role, spectators included. Capability 28 is when the objective arrived.
 
 **`map_info.sabotage`** carries the static layout once, never per tick:
@@ -2442,8 +2442,8 @@ M03 `scheduled_service` after M02, M04 `notice_to_vacate` after M03, or the
 M05 `no_forwarding_address` after M04, M06 `port_of_entry` after M05, M07
 `declared_goods` after M06, M08 `custodian_of_record` after M07, or the pending
 M09 `passenger_manifest` after M08, or pending M10 `common_carrier` after M09.
-M09 and the in-flight M10 prototype are supported; pending M11 `right_of_search` cannot launch.
-Version 13 retains completed
+M09, M10 and the bounded M11 `right_of_search` prototype are supported. The next pending mission is M12 `terms_of_cooperation`.
+Version 14 retains completed
 M03 optional liberation IDs in `m03_outcome:{liberated_cars:[...]}` at the
 pending M04 edge and throughout M04 entry, retry and terminal states. Completed
 M04 adds `m04_outcome:{rescued_patients:[...],photos_completed}` exactly at
@@ -2451,8 +2451,8 @@ the pending M05 edge and throughout M05 entry/retry/terminal states. M05 adds
 `m05_outcome:{released_workers:[...],evacuated_workers:[...]}` exactly at the
 pending M06 edge and throughout M06 entry, retry and terminal states. Release contains either no workers or all three registered
 IDs, and evacuated workers are a unique subset physically inside boarding.
-Every v6 through v13 saved equipment object requires independent `grenades`
-from zero to six. Versions 9 through 13 require actual `proximity_mines` from zero
+Every v6 through v14 saved equipment object requires independent `grenades`
+from zero to six. Versions 9 through 14 require actual `proximity_mines` from zero
 to four. Historical v2 through v8 equipment never has a mine field; an explicit
 strict upgrade assigns zero, rather than accepting a forged historical count.
 M06 adds `m06_outcome:{prisoner_route_marked}` at its completed pending M07
@@ -2789,5 +2789,71 @@ The exact strict v12 reader and v10/v11 and earlier readers retain byte
 archives. Historical M10 stages, new transit fields, null future fields and
 Repeater ownership refuse. Current M10 entry cannot forge a gun from completed
 M09; only actual completed M10 equipment may carry the Repeater onward.
-M10 completion retains pending `right_of_search` honestly. Full played combat,
+M10 completion promotes through the locked `right_of_search` entry. Full played combat,
 actual Repeater source/cues and final ship presentation remain acceptance gates.
+
+### Right of Search and deliberate charges (capability 38)
+
+Capability 38 adds the bounded M11 tender, the Redactor role and independently
+counted Remote Mines. The current matching client and server advertise 38;
+reload remains capability 37 and campaign rules remain revision 3. An M11 map
+refuses an older reader before Welcome for every role. Initial MapInfo remains
+before mission facts or snapshots. The adapter, brain and playtest harness use
+the existing mission controller, with matching accepted map geometry and fresh
+mission facts before navigation or use. No additional readiness door exists.
+
+`MapInfo.m11` contains the six ordered arrival `objectives`, physical
+`transfer_release`, `records_document` and `departure` UseTargets, `boarding`,
+`companion_start` and three anonymous `transfer_people` feet. It is present
+only on the tender; null, mixed mission envelopes and changed live contracts
+are rejected. The mission id is `right_of_search`; its phases are `briefing`,
+`in_progress` and `departed`. `MissionState.m11` contains `completed`, `current`
+until departure, and `challenges`. The completed prefix is `armory_found`,
+`spine_secured`, `holds_secured`, `records_secured`, `counter_boarders_secured`,
+`bridge_secured`, then `party_departed`. Actual encounter clears precede their
+arrival. Fresh physical Use at the stern requires every ready living party
+member to be inside its boarding region.
+
+`challenges` contains `transfer_released`, `records_read` and
+`counter_boarder_blast_kills`, with optional `counter_boarding_started`,
+`signal_due` and `bridge_taken_at` server ticks. Activation starts the real
+1200-tick optional bridge window. The blast count is the largest counter-boarder
+kill count from one resolved charge, bounded by the six actual boarders; it is
+not a sum of distinct explosions. Optional controls and difficulty briefs do
+not gate departure. Releasing transfer people records only release, never an
+evacuation or proposed identity.
+
+An Action can carry rising-edge `place_remote_mine` and `trigger_remote_mines`
+booleans. The supplied client sends them only after accepted M11 geometry or
+explicit remote stock establishes support. Default desktop inputs are V and H.
+Placement consumes the separate `loadout.remote_mines` stock, omitted at zero
+and bounded by six. Four devices per owner and 32 globally bound live state.
+A trigger captures that owner's armed devices at that instant, with a four-tick
+fuse; holding the command cannot queue a later unarmed charge. Forty ticks after
+real surface contact arm a charge. Death disables all owned devices, including
+triggered charges that have not resolved. Blasts use shared covered damage. Explicit
+leave, campaign reset and map reset retire devices through the shared seam.
+
+`Snapshot.remote_mines`, omitted while empty, lists strict objects with `id`,
+`owner_id`, `position`, `normal`, `phase`, `phase_started` and `phase_ends`.
+Phases are `flying`, `arming`, `armed`, `triggered`; the flying normal is zero,
+while attached devices require a unit normal. IDs share the proximity-mine
+namespace. Resolved remote explosions use the existing explosion envelope
+and the independently counted `remote_mines` participant-record column.
+Historical version-one records cannot invent that column, even with zeros.
+
+The Redactor is an authoritative human-scale Union enemy with a Shiv. It uses
+ordinary grounded navigation, a visible approach, committed windup, resolved
+strike, recovery and interruptible hit/death states. The client selects its
+own directional atlas and paired normals. Cosmetic scan distortion during
+approach never changes server position, hit boxes, visibility or damage.
+
+Strict run-file version 14 upgrades exact historical v2 through v13 documents
+with zero invented Remote Mines and archives the original bytes. M10 completion
+promotes to M11 under the existing writer lock, clears old personal supply
+claims, preserves actual finite equipment and crew history, and grants no
+episode refill. Retry restores that exact entry and clears live devices without
+rewinding tick, sequence or inventory revisions. Only actual completed M11
+equipment may carry remote charges onward. Completion stores `m11_outcome`
+with release, records, single-blast count and elapsed `bridge_response_ticks`,
+then retains pending `terms_of_cooperation`; M12 cannot launch yet.

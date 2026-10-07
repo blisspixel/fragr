@@ -221,7 +221,7 @@ static func _append_civilians(mission: Dictionary, bodies: Array[Dictionary], ar
 			var feet: Vector3 = person["feet"]
 			if not _append_feet(person["key"], [feet.x, feet.y, feet.z], bodies):
 				return false
-	if mission.get("m06") is Dictionary or mission.get("m07") is Dictionary:
+	if mission.get("m06") is Dictionary or mission.get("m07") is Dictionary or mission.get("m11") is Dictionary:
 		for resident: Dictionary in residents:
 			var feet: Vector3 = resident["feet"]
 			if not _append_feet(resident["key"], [feet.x, feet.y, feet.z], bodies):

@@ -412,6 +412,7 @@ pub(crate) mod fixtures {
             projectiles: vec![],
             grenades: Vec::new(),
             mines: Vec::new(),
+            remote_mines: Vec::new(),
             auditors: Vec::new(),
             explosions: Vec::new(),
             mode_name: "Contested Frequency".to_string(),

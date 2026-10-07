@@ -697,6 +697,9 @@ msgstr "GRENADES"
 
 msgid "RECORD_MINES"
 msgstr "MINES"
+
+msgid "RECORD_REMOTE_MINES"
+msgstr "REMOTE MINES"
 msgid "M05_DEPARTURE_REVIEW"
 msgstr "COMMON CARRIER / PASSENGER CHECK"
 
@@ -1169,3 +1172,12 @@ msgstr "Enter a host address, host:port, or a ws:// or wss:// server origin."
 
 msgid "HOST_INVALID_RULES"
 msgstr "This server returned an unsupported match mode."
+
+msgid "WORLD_M11_TRANSFER_RELEASE"
+msgstr "TRANSFER HOLD / LOCAL RELEASE"
+
+msgid "WORLD_M11_RECORDS_DOCUMENT"
+msgstr "CUSTODY RECORDS / READ FILE"
+
+msgid "WORLD_M11_STERN_RELEASE"
+msgstr "STERN AIRLOCK / DEPARTURE"

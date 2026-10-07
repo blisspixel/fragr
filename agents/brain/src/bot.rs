@@ -851,7 +851,7 @@ pub async fn run_bot(
                     }
                     // Geometry belongs to the local controller, never a paid
                     // per-frame decision. Reject invalid worlds before driving.
-                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
+                    Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
@@ -895,6 +895,7 @@ pub async fn run_bot(
                             session_error=Some(Error::Transport(format!("invalid M09 mission map: {error}")));break;
                         }
                         if let Err(error) = mission_client.replace_map_with_m10(m10.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M10 mission map: {error}")));break;}
+                        if let Err(error) = mission_client.replace_map_with_m11(m11.as_ref(),half_extent,&solids,presentation.as_ref()) {session_error = Some(Error::Transport(format!("invalid M11 mission map: {error}")));break;}
                         let arena = fragr_server::movement::Arena { half: half_extent, solids };
                         let built = tokio::task::spawn_blocking(move || {
                             fragr_server::navigation::Navigation::shared(arena)
@@ -913,6 +914,7 @@ pub async fn run_bot(
                             summary.mission = None;
                         }
                     }
+                    Ok(ServerMessage::Board(_)) => {}
                     Ok(ServerMessage::Error { code, message }) => {
                         tracing::warn!("server rejected: {code}: {message}");
                         if code == "unsupported_geometry" || code == "unsupported_gameplay" || code == "party_full" {
@@ -1267,6 +1269,7 @@ mod tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
         };
         state.validate(1).unwrap();
         assert!(!terminal_mission(&state));
@@ -1321,6 +1324,7 @@ mod tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
         };
         state.validate(20).unwrap();
         let mut total = CombatCounts {
@@ -1457,6 +1461,7 @@ mod tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
         };
         state.validate(1).unwrap();
         let loadout = LoadoutState {
@@ -1477,6 +1482,7 @@ mod tests {
             grenades: 0,
             proximity_mines: 0,
             loaded: Vec::new(),
+            remote_mines: 0,
         };
         loadout.validate_for(Some(id), None).unwrap();
         let mut proposed = Plan {
@@ -1559,6 +1565,7 @@ mod tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
         };
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");
@@ -1810,6 +1817,7 @@ mod tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
         };
         let mut epoch = DecisionEpoch::default();
         if DecisionEpoch::mission_changed(None, &mission) {

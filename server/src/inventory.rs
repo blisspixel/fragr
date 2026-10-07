@@ -20,12 +20,18 @@ pub(crate) struct SavedEquipment {
     pub ammo: Vec<AmmoCount>,
     pub grenades: u16,
     pub proximity_mines: u16,
+    /// Independent deliberate charges. Absent means zero in current saves;
+    /// historical documents use their exact pre-remote decoder instead.
+    #[serde(default, skip_serializing_if = "remote_count_empty")]
+    pub remote_mines: u16,
     pub personal_claims: Vec<String>,
 }
 
 impl SavedEquipment {
     pub fn validate(&self) -> Result<(), &'static str> {
-        if self.proximity_mines > crate::protocol::MINE_CARRY_CAP {
+        if self.proximity_mines > crate::protocol::MINE_CARRY_CAP
+            || self.remote_mines > crate::protocol::REMOTE_MINE_CARRY_CAP
+        {
             return Err("invalid saved proximity mine count");
         }
         crate::protocol::validate_equipment(
@@ -38,6 +44,10 @@ impl SavedEquipment {
     }
 }
 
+fn remote_count_empty(count: &u16) -> bool {
+    *count == 0
+}
+
 #[derive(Debug, Clone)]
 pub struct Inventory {
     policy: EquipmentPolicy,
@@ -47,6 +57,7 @@ pub struct Inventory {
     ammo: [u16; 3],
     grenades: u16,
     mines: u16,
+    remote_mines: u16,
     claims: BTreeSet<String>,
     revision: u64,
     dry_fire_count: u64,
@@ -66,6 +77,7 @@ impl Inventory {
             ammo: state.ammo,
             grenades: state.grenades,
             proximity_mines: state.proximity_mines,
+            remote_mines: state.remote_mines,
             personal_claims: state.personal_claims,
         };
         saved.validate().ok()?;
@@ -91,6 +103,7 @@ impl Inventory {
         self.claims = saved.personal_claims.iter().cloned().collect();
         self.grenades = saved.grenades;
         self.mines = saved.proximity_mines;
+        self.remote_mines = saved.remote_mines;
         self.dry_latched = false;
         self.reload_weapon = None;
         self.reload_ready_at = None;
@@ -112,6 +125,7 @@ impl Inventory {
             ammo: [0; 3],
             grenades: 0,
             mines: 0,
+            remote_mines: 0,
             claims: BTreeSet::new(),
             revision: 0,
             dry_fire_count: 0,
@@ -154,6 +168,7 @@ impl Inventory {
         self.ammo = entry.ammo;
         self.grenades = entry.grenades;
         self.mines = entry.mines;
+        self.remote_mines = entry.remote_mines;
         self.claims.clone_from(&entry.claims);
         self.magazines = entry.magazines;
         self.reload_weapon = None;
@@ -397,6 +412,35 @@ impl Inventory {
         true
     }
 
+    pub fn remote_mines(&self) -> u16 {
+        self.remote_mines
+    }
+
+    pub fn grant_remote_mines(&mut self, amount: u16) -> u16 {
+        if self.only.is_some() {
+            return 0;
+        }
+        let next = self
+            .remote_mines
+            .saturating_add(amount)
+            .min(crate::protocol::REMOTE_MINE_CARRY_CAP);
+        let gained = next - self.remote_mines;
+        if gained > 0 {
+            self.remote_mines = next;
+            self.revision += 1;
+        }
+        gained
+    }
+
+    pub fn try_place_remote_mine(&mut self) -> bool {
+        if self.remote_mines == 0 || self.only.is_some() {
+            return false;
+        }
+        self.remote_mines -= 1;
+        self.revision += 1;
+        true
+    }
+
     /// Called only after alive/cooldown admission, before RNG or ray resolution.
     /// One shot, including one Scatter blast of several pellets, spends one unit.
     /// An armed magazine spends that unit from the gun and from the carried total.
@@ -556,6 +600,7 @@ impl Inventory {
                 personal_claims: self.claims.iter().cloned().collect(),
                 grenades: self.grenades,
                 proximity_mines: self.mines,
+                remote_mines: self.remote_mines,
                 dry_fire_count: self.dry_fire_count,
                 loaded,
             });
@@ -578,6 +623,7 @@ impl Inventory {
             personal_claims: self.claims.iter().cloned().collect(),
             grenades: self.grenades,
             proximity_mines: self.mines,
+            remote_mines: self.remote_mines,
             dry_fire_count: self.dry_fire_count,
             loaded,
         })

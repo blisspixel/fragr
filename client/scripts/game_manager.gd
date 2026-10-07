@@ -65,6 +65,8 @@ var action_state = {
 	"interact": false,
 	"throw_grenade": false,
 	"place_mine": false,
+	"place_remote_mine": false,
+	"trigger_remote_mines": false,
 	"weapon_swap": null,
 	"yaw": 0.0,
 	"pitch": 0.0,
@@ -89,6 +91,10 @@ var pending_place: bool = false
 var place_armed: bool = true
 var pending_reload: bool = false
 var reload_armed: bool = true
+var pending_remote_place: bool = false
+var remote_place_armed: bool = true
+var pending_remote_trigger: bool = false
+var remote_trigger_armed: bool = true
 var mission_hud: MissionHud
 var m02_ward: M02Ward
 var m03_yard: M03Yard
@@ -99,6 +105,7 @@ var m08_archive: M08Archive
 var m07_town: M07Town
 var m09_berth: M09Berth
 var m10_ship: M10Ship
+var m11_tender: M11Tender
 var departure_review: DepartureReview
 var _continue_armed: bool = false
 var _continue_attempt_sent: int = -1
@@ -313,6 +320,9 @@ func _ready():
 	m10_ship = M10Ship.new()
 	m10_ship.name = "M10Ship"
 	add_child(m10_ship)
+	m11_tender = M11Tender.new()
+	m11_tender.name = "M11Tender"
+	add_child(m11_tender)
 	var arena_root: Node = get_node_or_null("Arena")
 	if arena_root != null:
 		arena_root.add_child(arena_cover)
@@ -405,6 +415,10 @@ func _on_map_info(info: Dictionary) -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	_reset_crawler_cues()
 	if jammer_audio != null:
 		jammer_audio.reset()
@@ -428,6 +442,7 @@ func _on_map_info(info: Dictionary) -> void:
 	var m07: bool = info.get("m07") is Dictionary
 	var m09: bool = info.get("m09") is Dictionary
 	var m10: bool = info.get("m10") is Dictionary
+	var m11: bool = info.get("m11") is Dictionary
 	if local_match != null:
 		var expected_m02: bool = local_match.mission == MissionState.M02_ID
 		var expected_m03: bool = local_match.mission == MissionState.M03_ID
@@ -438,7 +453,8 @@ func _on_map_info(info: Dictionary) -> void:
 		var expected_m08: bool = local_match.mission == MissionState.M08_ID
 		var expected_m09: bool = local_match.mission == MissionState.M09_ID
 		var expected_m10: bool = local_match.mission == MissionState.M10_ID
-		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m07 != expected_m07 or m08 != expected_m08 or m09 != expected_m09 or m10 != expected_m10 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m07 and not m08 and not m09 and not m10 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
+		var expected_m11: bool = local_match.mission == MissionState.M11_ID
+		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m07 != expected_m07 or m08 != expected_m08 or m09 != expected_m09 or m10 != expected_m10 or m11 != expected_m11 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m07 and not m08 and not m09 and not m10 and not m11 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
 			_on_local_failure("LOCAL_SERVER_INVALID_READY")
 			return
 	last_shot_tick = -1
@@ -462,9 +478,9 @@ func _on_map_info(info: Dictionary) -> void:
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
-	elif m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10:
+	elif m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10 or m11:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
-			var scene_id: String = MissionState.M10_ID if m10 else MissionState.M09_ID if m09 else MissionState.M07_ID if m07 else MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
+			var scene_id: String = MissionState.M11_ID if m11 else MissionState.M10_ID if m10 else MissionState.M09_ID if m09 else MissionState.M07_ID if m07 else MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
 			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
@@ -474,7 +490,7 @@ func _on_map_info(info: Dictionary) -> void:
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10) and local_match != null and not local_match.has_durable_run()
+		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10 or m11) and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 		arena_cover.apply_m05({})
@@ -499,6 +515,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m09_berth.configure_map(info)
 	if m10_ship != null:
 		m10_ship.configure_map(info)
+	if m11_tender != null:
+		m11_tender.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
 	if settings != null:
 		RenderQuality.apply_practicals(self, settings)
@@ -575,7 +593,7 @@ func _mission_controls_blocked() -> bool:
 
 ## Mission maps carry M01 geometry or the M02 objective marker.
 func _mission_map() -> bool:
-	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary or current_map_info.get("m07") is Dictionary or current_map_info.get("m08") is Dictionary or current_map_info.get("m09") is Dictionary or current_map_info.get("m10") is Dictionary
+	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary or current_map_info.get("m07") is Dictionary or current_map_info.get("m08") is Dictionary or current_map_info.get("m09") is Dictionary or current_map_info.get("m10") is Dictionary or current_map_info.get("m11") is Dictionary
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -589,12 +607,16 @@ func _on_opening_completed() -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	pending_interact = false
 	interact_held = false
 	pending_weapon_swap = null
 
 func _opening_input_released() -> bool:
-	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "move_forward", "move_back", "move_left", "move_right"]:
+	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "move_forward", "move_back", "move_left", "move_right"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -626,6 +648,8 @@ func _on_loading_dismissed() -> void:
 	# next action tick. A key held through the curtain still needs release.
 	throw_armed = not Input.is_action_pressed("throw_grenade")
 	place_armed = not Input.is_action_pressed("place_mine")
+	remote_place_armed = not Input.is_action_pressed("place_remote_mine")
+	remote_trigger_armed = not Input.is_action_pressed("trigger_remote_mines")
 
 func _begin_world_load() -> void:
 	_world_load_generation += 1
@@ -973,6 +997,10 @@ func _try_continue(event: InputEvent) -> bool:
 			place_armed = false
 			pending_reload = false
 			reload_armed = false
+			pending_remote_place = false
+			remote_place_armed = false
+			pending_remote_trigger = false
+			remote_trigger_armed = false
 			pending_weapon_swap = null
 			interact_held = false
 			return true
@@ -1052,6 +1080,10 @@ func _input(_event):
 		place_armed = true
 	if _event.is_action_released("reload"):
 		reload_armed = true
+	if _event.is_action_released("place_remote_mine"):
+		remote_place_armed = true
+	if _event.is_action_released("trigger_remote_mines"):
+		remote_trigger_armed = true
 	if controls_blocked():
 		pending_fire = false
 		pending_seat = ""
@@ -1061,6 +1093,10 @@ func _input(_event):
 		place_armed = false
 		pending_reload = false
 		reload_armed = false
+		pending_remote_place = false
+		remote_place_armed = false
+		pending_remote_trigger = false
+		remote_trigger_armed = false
 		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
@@ -1069,6 +1105,10 @@ func _input(_event):
 	if is_human_player and reload_armed and _magazines_live() and _event.is_action_pressed("reload") and not _event.is_echo():
 		pending_reload = true
 		reload_armed = false
+	if is_human_player and remote_place_armed and _event.is_action_pressed("place_remote_mine") and not _event.is_echo():
+		pending_remote_place = true
+	if is_human_player and remote_trigger_armed and _event.is_action_pressed("trigger_remote_mines") and not _event.is_echo():
+		pending_remote_trigger = true
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
 	if is_human_player and _event.is_action_pressed("fire") and not _event.is_echo():
@@ -1111,6 +1151,10 @@ func change_role(play: bool) -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	net_client.leave_match()
 	is_human_player = play
@@ -1235,6 +1279,10 @@ func _reset_prediction_for_connection(reason: String) -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 
 
 func _apply_local_prediction(now_usec: int = -1) -> void:
@@ -1307,6 +1355,12 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state["reload"] = true
 	else:
 		action_state.erase("reload")
+	if not Input.is_action_pressed("place_remote_mine") and not pending_remote_place:
+		remote_place_armed = true
+	action_state.place_remote_mine = remote_place_armed and (pending_remote_place or Input.is_action_pressed("place_remote_mine"))
+	if not Input.is_action_pressed("trigger_remote_mines") and not pending_remote_trigger:
+		remote_trigger_armed = true
+	action_state.trigger_remote_mines = remote_trigger_armed and (pending_remote_trigger or Input.is_action_pressed("trigger_remote_mines"))
 	# Client-owned yaw: the server takes the absolute facing and never turns
 	# us at a fixed rate, so the look axis does not round-trip. Turn bits stay
 	# zero for humans and remain the path for agents and older clients.
@@ -1325,7 +1379,11 @@ func _send_local_action(now_usec: int) -> bool:
 		place_armed = false
 		pending_reload = false
 		reload_armed = false
-		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine"]:
+		pending_remote_place = false
+		remote_place_armed = false
+		pending_remote_trigger = false
+		remote_trigger_armed = false
+		for key in ["forward", "back", "left", "right", "fire", "jump", "interact", "throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines"]:
 			action_state[key] = false
 		action_state.erase("duck")
 		pending_weapon_swap = null
@@ -1386,6 +1444,8 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_throw = false
 		pending_place = false
 		pending_reload = false
+		pending_remote_place = false
+		pending_remote_trigger = false
 		pending_weapon_swap = null
 	return true
 
@@ -1479,6 +1539,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m09_berth.apply_state(state)
 	if m10_ship != null:
 		m10_ship.apply_state(state)
+	if m11_tender != null:
+		m11_tender.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
@@ -1510,6 +1572,10 @@ func _offer_m05_departure() -> bool:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	return true
 
 func _close_departure_review() -> void:
@@ -1595,6 +1661,10 @@ func _clear_story_input() -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	pending_weapon_swap = null
 
@@ -1805,6 +1875,10 @@ func _clear_world() -> void:
 	place_armed = false
 	pending_reload = false
 	reload_armed = false
+	pending_remote_place = false
+	remote_place_armed = false
+	pending_remote_trigger = false
+	remote_trigger_armed = false
 	interact_held = false
 	if mission_hud != null:
 		mission_hud.apply({}, "")
@@ -1827,6 +1901,8 @@ func _clear_world() -> void:
 		m09_berth.clear_map()
 	if m10_ship != null:
 		m10_ship.clear_map()
+	if m11_tender != null:
+		m11_tender.clear_map()
 	hud.combat_feed.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()

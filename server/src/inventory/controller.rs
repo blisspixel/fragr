@@ -133,6 +133,17 @@ pub fn control_action_with_target_filter(
         action.place_mine = loadout.proximity_mines > 0;
         return action;
     }
+    if action.place_remote_mine {
+        action.weapon_swap = action.weapon_swap.filter(|weapon| loadout.owns(*weapon));
+        action.place_remote_mine = loadout.remote_mines > 0;
+        return action;
+    }
+    // A trigger remains useful with empty carry because the owned charges
+    // already exist in the world. It never grants stock or invents a charge.
+    if action.trigger_remote_mines {
+        action.weapon_swap = action.weapon_swap.filter(|weapon| loadout.owns(*weapon));
+        return action;
+    }
     let requested = action.weapon_swap.filter(|weapon| usable(loadout, *weapon));
     let mut selected = requested
         .or_else(|| usable(loadout, held).then_some(held))

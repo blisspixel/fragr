@@ -26,6 +26,7 @@ pub(super) enum BlastSource {
     Grenade,
     Mine,
     Vehicle,
+    RemoteMine,
 }
 
 pub(super) struct Grenade {
@@ -53,6 +54,28 @@ impl Grenade {
 
 #[cfg(test)]
 impl GameState {
+    pub(crate) fn test_remote_blast(
+        &mut self,
+        owner: Uuid,
+        serial: u32,
+        position: [f32; 3],
+        radius: f32,
+        peak: f32,
+    ) {
+        self.projectile_serial = self.projectile_serial.max(serial);
+        let arena = self.current_arena().into_owned();
+        self.resolve_blast(
+            &Blast {
+                id: serial,
+                owner_id: owner,
+                position,
+                radius,
+                peak,
+                source: BlastSource::RemoteMine,
+            },
+            &arena,
+        );
+    }
     fn resolve_explosion(&mut self, grenade: &Grenade, arena: &Arena) {
         self.resolve_blast(&grenade.blast(), arena);
     }
@@ -205,6 +228,16 @@ impl GameState {
             return;
         }
         let mut hits = Vec::new();
+        let mut m11_kills = Vec::new();
+        let remote_participant = matches!(blast.source, BlastSource::RemoteMine)
+            && owner.is_some_and(|index| {
+                self.players[index].is_participant()
+                    && crate::mission::actor_active(
+                        self.mission.as_ref(),
+                        blast.owner_id,
+                        self.players[index].campaign,
+                    )
+            });
         let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
         for target in 0..self.players.len() {
             if hits.len() == 256 {
@@ -241,6 +274,9 @@ impl GameState {
                 hp_total += hp;
                 armor_total += armor;
                 kills += u64::from(died);
+                if remote_participant && died {
+                    m11_kills.push(player.id);
+                }
             }
         }
         if let Some(owner) = owner {
@@ -248,6 +284,7 @@ impl GameState {
             match blast.source {
                 BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
                 BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+                BlastSource::RemoteMine => statistics.remote_mine_hit(hp_total, armor_total, kills),
                 BlastSource::Vehicle => {}
             }
         }
@@ -258,6 +295,9 @@ impl GameState {
             radius: blast.radius,
             hits,
         });
+        if remote_participant {
+            self.note_m11_remote_blast(blast.id, &m11_kills);
+        }
     }
 }
 

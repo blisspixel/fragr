@@ -30,6 +30,7 @@ use std::sync::OnceLock;
 mod authored;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
+pub(crate) use authored::m11::SpinePatrol;
 mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;
@@ -74,6 +75,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::CommonCarrier => {
                 include_bytes!("../maps/m10_common_carrier.json")
             }
+            crate::protocol::MissionId::RightOfSearch => {
+                include_bytes!("../maps/m11_right_of_search.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -107,6 +111,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::CommonCarrier) => {
                 AuthoredMap::read(include_bytes!("../maps/m10_common_carrier.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::RightOfSearch) => {
+                AuthoredMap::read(include_bytes!("../maps/m11_right_of_search.json").as_slice())
             }
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())

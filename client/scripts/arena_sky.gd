@@ -192,7 +192,7 @@ static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
 	if key.contains("holdfast"):
 		return holdfast()
-	if key.contains("common carrier"):
+	if key.contains("common carrier") or key.contains("right of search"):
 		return carrier()
 	if key.contains("port of entry") or key.contains("passenger manifest"):
 		return moon_port()

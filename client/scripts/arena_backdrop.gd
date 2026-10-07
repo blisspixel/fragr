@@ -9,7 +9,7 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
 	if venue == "holdfast_atoll":
 		return
-	if venue == "common_carrier":
+	if venue in ["common_carrier", "right_of_search"]:
 		# An in-transit pressure ship has no surrounding industrial streets.
 		return
 	if venue == "moon_port":

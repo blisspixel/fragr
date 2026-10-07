@@ -100,6 +100,7 @@ pub enum MissionId {
     DeclaredGoods,
     PassengerManifest,
     CommonCarrier,
+    RightOfSearch,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -499,10 +500,19 @@ pub struct MissionState {
     pub m09: Option<super::M09ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m10: Option<super::M10ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m11: Option<super::M11ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if (self.id == MissionId::RightOfSearch) != self.m11.is_some() {
+            return Err("M11 facts require exactly M11 mission");
+        }
         if self.id != MissionId::CommonCarrier && self.m10.is_some() {
             return Err("M10 facts require M10 mission");
         }
@@ -547,6 +557,15 @@ impl MissionState {
             MissionId::DeclaredGoods => self.validate_m07()?,
             MissionId::PassengerManifest => self.validate_m09()?,
             MissionId::CommonCarrier => self.validate_m10()?,
+            MissionId::RightOfSearch => {
+                if self.m02.is_some() || self.m03.is_some() {
+                    return Err("M11 cannot carry earlier mission objectives");
+                }
+                self.m11
+                    .as_ref()
+                    .ok_or("M11 facts missing")?
+                    .validate(self.phase, tick)?;
+            }
         }
         if let Some(run) = self.run {
             run.validate_attempt(self.attempt)?;
@@ -591,14 +610,23 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::CommonCarrier
+                    (self.id == MissionId::RightOfSearch
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self
-                            .m10
-                            .as_ref()
-                            .is_some_and(|f| f.completed.len() == super::M10_OBJECTIVE_IDS.len())
-                        && !self.party.is_empty()
-                        && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
+                        && self.m11.as_ref().is_some_and(|f| {
+                            let count = f.completed.len();
+                            (count >= 3 && !f.challenges.transfer_released)
+                                || (count >= 4 && !f.challenges.records_read)
+                                || count == super::M11_OBJECTIVE_IDS.len()
+                                    && !self.party.is_empty()
+                                    && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                        }))
+                        || (self.id == MissionId::CommonCarrier
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m10.as_ref().is_some_and(|f| {
+                                f.completed.len() == super::M10_OBJECTIVE_IDS.len()
+                            })
+                            && !self.party.is_empty()
+                            && self.party.iter().all(|p| p.alive && p.ready && p.aboard))
                         || (self.id == MissionId::PassengerManifest
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m09.as_ref().is_some_and(|f| {
@@ -866,6 +894,7 @@ mod m02_wire_tests {
             m07: None,
             m09: None,
             m10: None,
+            m11: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

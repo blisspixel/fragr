@@ -4,6 +4,18 @@ Original articulated source for the Union's human Clerk and Auditor, bot Sweeper
 Sweeper, Ranged Sweeper, Turret and Jammer, and for the two free participant bodies. The Union sets are
 directional campaign sets under visual review. They do not establish a completed cast or final character production bar.
 
+The M11 Redactor uses its own retained matte source at
+`../models/candidates/redactor.glb`, the pose adapter `../models/redactor_source.gd`
+and `redactor_bake.gd`. Its 24-bone walking source supplies the measured 1.8 m
+body; the adapter attaches an original three-part Shiv and authors the
+committed raise, strike and recovery. Shared joint math does not select another
+enemy's mesh. The 55 poses at eight directions use the existing 160-pixel cells,
+fixed feet and paired normals. `redactor-manifest.json` records exact source and
+output hashes. The October 6 pose sheet and live records-room approach, hit and
+death have been inspected. Knife tell motion, fresh-player readability and
+final production acceptance remain provisional. No cosmetic distortion grants
+invisibility or changes authoritative shot geometry.
+
 `geometry.gd` owns material/mesh primitives and the Union palette; `rig.gd` owns
 the earlier humanoid source and shared issued gear; `machines.gd` owns the Heavy
 Sweeper and Turret; `bake.gd` renders the committed atlases in

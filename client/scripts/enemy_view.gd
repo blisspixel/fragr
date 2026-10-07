@@ -83,8 +83,8 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		material.shader = UNION_SPRITE
 		body.material_override = material
 	material.set_shader_parameter("sprite_texture", body.texture)
-	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk", "auditor", "enforcer"])
-	if kind in ["sweeper", "clerk", "auditor", "enforcer"]:
+	material.set_shader_parameter("normals_enabled", kind in ["sweeper", "clerk", "auditor", "enforcer", "redactor"])
+	if kind in ["sweeper", "clerk", "auditor", "enforcer", "redactor"]:
 		var normal_key: String = kind + "_normals"
 		if not _textures.has(normal_key):
 			_textures[normal_key] = load("res://assets/characters/union/" + normal_key + ".png") as Texture2D
@@ -155,6 +155,13 @@ func shot() -> void:
 func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	if actor.is_empty():
 		return
+	if _kind == "redactor":
+		var material: ShaderMaterial = body.material_override as ShaderMaterial
+		if material != null:
+			var hidden_approach: bool = actor.get("phase") in ["idle", "moving"]
+			material.set_shader_parameter("shimmer", 1.0 if hidden_approach else 0.0)
+			material.set_shader_parameter("shimmer_tick", float(tick))
+			material.set_shader_parameter("red_glow", 2.4 if actor.get("phase") == "windup" else 1.6)
 	var facing: int = EnemyAnimation.direction(yaw, to_camera)
 	if _kind == "notary":
 		body.frame = NotaryAnimation.frame(actor, tick, elapsed, facing, _landed)

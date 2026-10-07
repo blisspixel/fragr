@@ -7,6 +7,8 @@ use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 mod enforcer;
+mod redactor;
+mod spine_patrol;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
 /// Damage from one tick at or above this staggers an armored body. A Rail hit,
@@ -96,6 +98,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Auditor => (120, WeaponType::Tack),
         EnemyKind::RangedSweeper => (70, WeaponType::Sniper),
         EnemyKind::Enforcer => (140, WeaponType::Fists),
+        EnemyKind::Redactor => (90, WeaponType::Shiv),
     }
 }
 
@@ -108,6 +111,7 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         EnemyKind::Crawler => 0.7,
         EnemyKind::Auditor => 0.4,
         EnemyKind::Enforcer => 0.45,
+        EnemyKind::Redactor => 0.6,
     }
 }
 
@@ -119,7 +123,8 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::Crawler
         | EnemyKind::Jammer
         | EnemyKind::Auditor
-        | EnemyKind::RangedSweeper => 1,
+        | EnemyKind::RangedSweeper
+        | EnemyKind::Redactor => 1,
         EnemyKind::Enforcer => 1,
         EnemyKind::Sweeper | EnemyKind::Notary => 3,
         EnemyKind::HeavySweeper => 4,
@@ -135,7 +140,8 @@ fn stun(kind: EnemyKind) -> u64 {
         | EnemyKind::Jammer
         | EnemyKind::Notary
         | EnemyKind::Auditor
-        | EnemyKind::RangedSweeper => 6,
+        | EnemyKind::RangedSweeper
+        | EnemyKind::Redactor => 6,
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Enforcer => 16,
         EnemyKind::Turret => 10,
@@ -207,6 +213,12 @@ pub(super) struct EnemyController {
     dead_until: u64,
     /// The charge's original supported height, retained through recovery.
     charge_floor: Option<f32>,
+    /// Redactor only: one held, supported lateral approach per visible pursuit.
+    redactor_approach: Option<(Uuid, [f32; 3])>,
+    redactor_approach_until: u64,
+    redactor_approached: bool,
+    /// Only the authored tender's three-Clerk file, before combat is noticed.
+    spine_march: Option<spine_patrol::SpineMarch>,
 }
 
 /// (windup, recovery) ticks. Tiers change tells and openings only; health,
@@ -241,6 +253,10 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Enforcer, CampaignDifficulty::Assisted) => (32, 44),
         (EnemyKind::Enforcer, CampaignDifficulty::Standard) => (24, 36),
         (EnemyKind::Enforcer, CampaignDifficulty::Severe) => (20, 30),
+        // New role prototype tuning; the earlier roles retain their exact tells.
+        (EnemyKind::Redactor, CampaignDifficulty::Assisted) => (24, 30),
+        (EnemyKind::Redactor, CampaignDifficulty::Standard) => (18, 24),
+        (EnemyKind::Redactor, CampaignDifficulty::Severe) => (14, 18),
     }
 }
 
@@ -395,6 +411,10 @@ impl EnemyController {
             channel_target: None,
             dead_until: tick,
             charge_floor: None,
+            redactor_approach: None,
+            redactor_approach_until: 0,
+            redactor_approached: false,
+            spine_march: None,
         }
     }
 
@@ -408,7 +428,26 @@ impl EnemyController {
         }
     }
 
+    pub(super) fn with_spine_march(
+        mut self,
+        patrol: Option<crate::maps::SpinePatrol>,
+        member: usize,
+    ) -> Self {
+        if self.kind == EnemyKind::Clerk && member < 3 {
+            self.spine_march =
+                patrol.map(|parameters| spine_patrol::SpineMarch::new(parameters, member));
+        }
+        self
+    }
+
+    pub(super) fn end_spine_march(&mut self) {
+        self.spine_march = None;
+    }
+
     pub fn alarm(&mut self, position: [f32; 3], tick: u64) {
+        if let Some(march) = &mut self.spine_march {
+            march.start(tick);
+        }
         self.seated = false;
         self.alarmed = true;
         self.last_known = position;
@@ -422,6 +461,9 @@ impl EnemyController {
     }
 
     pub fn hit(&mut self, tick: u64, died: bool) {
+        self.end_spine_march();
+        self.redactor_approach = None;
+        self.redactor_approached = false;
         self.photograph_pending = None;
         self.seated = false;
         if self.kind != EnemyKind::Enforcer || died {
@@ -551,6 +593,7 @@ impl EnemyController {
                 .flatten()
             });
         if let Some(target) = target {
+            self.end_spine_march();
             self.target = Some(target.id);
             self.last_known = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
             self.search_until = tick.saturating_add(100);
@@ -619,6 +662,28 @@ impl EnemyController {
                 }
             }
             return BotIntent::default();
+        }
+        if let Some(destination) = self
+            .spine_march
+            .as_ref()
+            .and_then(|march| march.destination(tick))
+        {
+            if self.phase != EnemyPhase::Moving {
+                self.enter(EnemyPhase::Moving, tick, 0);
+            }
+            // The loader proves the entire straight file corridor. A moving
+            // sub-grid march target must not be repeatedly snapped to routing
+            // cells. Use ordinary walking; Session still forecasts body
+            // avoidance and integration still owns walls, support and contact.
+            let dx = destination[0] - feet[0];
+            let dz = destination[2] - feet[2];
+            let half_step =
+                crate::movement::TOP_SPEED * gait(self.kind) * crate::movement::DT_LIVE * 0.5;
+            if dx.hypot(dz) > half_step {
+                action.forward = true;
+                action.yaw = Some(dz.atan2(dx));
+            }
+            return BotIntent { action, goal: None };
         }
         if self.phase == EnemyPhase::Channeling {
             // The Auditor holds still and faces the body, plate away from a flank.
@@ -758,6 +823,11 @@ impl EnemyController {
                 }
             }
         }
+        if self.kind == EnemyKind::Redactor {
+            if let Some(intent) = self.redactor_approach(state, target, feet, tick) {
+                return intent;
+            }
+        }
         if tick <= self.search_until
             && (feet[0] - self.last_known[0]).hypot(feet[2] - self.last_known[2]) > 0.6
         {
@@ -808,6 +878,7 @@ impl EnemyController {
     }
 
     fn begin_windup(&mut self, aim: (f32, f32), tick: u64, windup: u64, action: &mut Action) {
+        self.redactor_approach = None;
         self.photograph_pending = None;
         self.aim = aim;
         self.head = aim.0;
