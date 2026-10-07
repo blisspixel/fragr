@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 10 are playable development prototypes on main, with
+**Campaign.** Levels 1 to 11 are playable development prototypes in this source, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -44,7 +44,7 @@ merged in [PR #369](https://github.com/blisspixel/fragr/pull/369), with its comp
 28-state route, all 17 guards and departure passing. Version 13 retains actual
 crew transit separately from the immutable M09 boarding record. All eight
 reviewed-head CI jobs and all three desktop package checks passed before merge.
-M11 now has a local composed prototype with Remote Mines, the Redactor, version
+M11 adds a composed prototype with Remote Mines, the Redactor, version
 14 run carry and a complete ordinary-input rendered departure. Its
 [receipt](evidence/m11-quality-composition-20261006.md) records the exact route
 and remaining review. M12 through M20 remain unbuilt. Fresh-player, difficulty
@@ -117,7 +117,7 @@ with the same 15-credit hold. Source preparation and played acceptance continue
 under the [cast plan](plans/cast-model-buildout-20261004.md). No new cash charge
 or cloud apply ran.
 
-**Latest asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
+**Asset reconciliation, 2026-10-05:** the shared glove and distinct Edda
 and Splice model sources plus Edda's first rig consumed 110 included credits.
 The subsequent Redactor source and first rig consumed 35 and 5 included credits.
 Tern's distinct pilot source and first rig subsequently consumed another 35
@@ -135,6 +135,15 @@ Redactor-reference, Sniper and Tern-reference requests total $2.177 in retained
 price estimates, leaving an estimated $10.423. This is not an independently verified API balance
 or per-request billing receipt. No cash, renewal,
 top-up or overage was enabled.
+
+**Latest asset reconciliation, 2026-10-07:** the October 6 free model checker
+reports 1,900 existing credits, with the unchanged 15-credit uncertain hold
+and 1,885 usable. The synthetic rig and four vehicle sources account for
+145 additional tracked credits. Nick's latest image balance was $5.86; two
+subsequent ground-material requests total $1.24 in retained estimates, leaving
+about $4.62 against that report. This is not a verified live image balance.
+The [integration plan](plans/multiplayer-quality-20261006.md) links the exact
+asset receipts. No new cash, top-up or overage was enabled.
 
 **Shipped and proven on the tip:**
 
@@ -165,7 +174,18 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), campaign-actor timeline interpolation and bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, general vehicles beyond the bounded authored tram and recall cars, Rescue and combined-arms modes, levels 11 to 20, the planned console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits. `GET /status` on the game port is a host probe and not a web client. The app keeps a local server list and can hear a LAN announcement; that list is not merged, and there is no public directory. M01 has a developing discovery/combat/mission slice; Episode 0 remains a separate arena prototype. A deterministic local benchmark and developer rendered tour already exist; neither establishes public-server readiness. The main menu Benchmark times frames on one live Arena Duel bot match with a fixed camera. It is not the nine-scene showcase, and it does not compare graphics presets. Frame caps, connection caps, and the inbound message budget shipped in v0.35.0.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, progression, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, levels 12 to 20, the M14 vehicle mission, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
+
+The current development build includes Holdfast Conquest with jeeps, boats,
+an aircraft and swimming. This establishes a playable combined-arms prototype;
+finished island art, human balance and networked 64-player acceptance remain
+open. `GET /status` on the game port is a host probe. The app keeps a local
+server list and hears LAN announcements; there is no public directory.
+Episode 0 remains separate from the eleven connected campaign prototypes.
+The main menu Benchmark compares three graphics presets against the same
+recorded Arena Duel fight and exports frame statistics. It does not establish
+public-server readiness or replace the planned nine-scene showcase. Frame caps,
+connection caps and the inbound message budget shipped in v0.35.0.
 
 **Decided 2026-09-25:** the campaign is twenty levels in five episodes, per the
 [expansion plan](plans/campaign-expansion.md), now the contract in
@@ -537,8 +557,13 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      synthetic fighters and spectators. Polish stays a 20 Hz match with
      separate command, snapshot, and byte clamps, mode-owned clocks, and
      a public audience on a delayed relay rather than on fighter slots.
-     The measurement table is still empty. Bot senses, readable jobs, hitscan
-     rewind, and snapshot cost follow the measurement table. The host guide
+     [Local native measurements](evidence/native-island-quality-20261006.md)
+     now cover deterministic CPU workloads and bounded 64-client loopback
+     delivery. Finite magazines and fixed synthetic inputs limit that traffic
+     proof; sustained combat, physical LAN and WAN capacity remain open.
+     Bounded bot senses and latest-unsent motion delivery are implemented.
+     Readable jobs, live hitscan timing evidence and any bounded rewind policy
+     remain further work. The host guide
      names two nights this process can start: about 24 people with eight
      bots and room left to watch, and about 64 connections with the same
      eight bots. Neither night is a 64-fighter claim. The longer floors

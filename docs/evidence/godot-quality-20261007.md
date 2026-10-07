@@ -82,3 +82,14 @@ between differently tessellated water patches. The corrected horizon, shore
 and patch edges were inspected on the real renderer; the sky and water harnesses
 pass. These additions are included in the final platform CI gate, not silently
 counted as part of the earlier 323-script run.
+
+## First composed CI correction
+
+The Linux client job at `5dc08efe` passed M11's gameplay assertions but failed
+the strict exit check: its second local launch left audio objects and resources
+alive at shutdown. The harness now frees the final scene and allows the same
+one-frame and 0.5-second audio drain used after its first launch and by the
+neighboring mission harnesses. Runtime audio and every assertion are unchanged.
+The focused verbose Windows rerun passes without leaked-resource or engine
+error diagnostics. The corrected full Linux and platform suites remain the
+next exact-commit CI gate.

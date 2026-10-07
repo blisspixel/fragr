@@ -223,3 +223,32 @@ spawn quality, client rendering performance or remote latency. This run does
 not deliberately stall readers or measure how many snapshots coalesce.
 Bounded reliable ordering, quiet-world replacement and slow-reader eviction
 have separate deterministic and socket tests.
+
+## CI roster fixture correction, 2026-10-07
+
+CI on `5dc08efe7e8166a3cc99fab43408854d00d8f21b` passed Linux and Windows
+workspace tests, while macOS reported one failure: the Compliance Yard boss
+moved 41 m but recorded no shot or hit in its single mortal life. The fixture
+seeded gameplay RNG but still generated random entity IDs, which also affect
+observation timing, reaction, aim error and roaming. This is not evidence of a
+platform-specific sensing defect. Ordinary bots had repeated respawn
+opportunities, while the boss had only one life.
+
+The corrected fixture uses the existing replay-ID policy before spawning and
+retains identical movement, shot and hit assertions for all four ordinary
+personalities, plus the timed boss-presence check. A separate 160-tick test on
+each real map places the normal 200-HP boss and a normal 100-HP target in a
+supported, body-clear lane. Actual session sensing, navigation, movement and
+resolved damage must produce more than 3 m of travel, a shot and a hit; early
+fire must still respect the four-tick minimum reaction. No health, damage,
+aim, reaction, ammo or other production setting changes. Existing boss death,
+reward and no-respawn tests remain in place. This controlled opportunity is
+distinct from evidence of boss effectiveness in an uncontrolled match.
+
+Focused verification passes: all four `tests::roster::` tests, both existing
+`test_compliance_drone` tests, workspace formatting and all-target workspace
+Clippy with `-D warnings`. The controlled boss records 40 m of actual movement,
+two shots and two hits on each of the seven maps. Independent source review
+found no forced combat outcome or production setting change. The corrected
+commit still requires its own CI run; the preceding full coverage and release
+measurements remain evidence of their recorded revisions.

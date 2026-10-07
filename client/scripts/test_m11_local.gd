@@ -194,6 +194,9 @@ func _run() -> void:
 	owned.stop()
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "reopened owned child exits"):
 		return
+	current_scene.queue_free()
+	await process_frame
+	await create_timer(0.5).timeout
 	if failures == 0:
 		print("test_m11_local: PASS")
 	quit(0 if failures == 0 else 1)
