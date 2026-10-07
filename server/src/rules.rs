@@ -65,6 +65,9 @@ impl RuleSet {
         if friendly_fire && !mode.teams() {
             return Err("friendly fire needs a team mode".into());
         }
+        if mode == GameMode::Conquest && mutators.contains(&Mutator::TwoLives) {
+            return Err("conquest requires ticket-governed respawns".into());
+        }
         if mode == GameMode::Ctf && mutators.contains(&Mutator::TwoLives) {
             return Err("two-lives would let elimination decide a capture the flag round".into());
         }

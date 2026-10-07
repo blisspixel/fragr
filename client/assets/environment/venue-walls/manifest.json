@@ -1,0 +1,46 @@
+{
+	"color_model": "24-step venue material ramps",
+	"entries": [
+		{
+			"edge_mismatches": 0,
+			"id": "holdfast_painted_boards",
+			"palette_colors": 38,
+			"raw_sha256": "9f603f3b22586d06a49cfdfa840d9a23476917ae54ad6fd562e98a4b82ea5424",
+			"reduced_sha256": "ade66d615d5bb983268f252197827419a2910900a1c7d7fc4ed1450d9f2660f2",
+			"runtime_sha256": "070815fa946fecd8d173ea28425971066c4b7fc63afba4eca2fe244c4f1415d3"
+		},
+		{
+			"edge_mismatches": 0,
+			"id": "holdfast_ribbed_steel",
+			"palette_colors": 31,
+			"raw_sha256": "65dae1c6830d36539f497dfffedc4935794861acb9930f91522619bf6b55f230",
+			"reduced_sha256": "7bd17476789b289ae509db44ae1b41b53b1c8b4be9bdeead693efd571b44559b",
+			"runtime_sha256": "f6dc44104dd393c295983615f4c820de85e715320d147277eb0c6dfc57488357"
+		},
+		{
+			"edge_mismatches": 0,
+			"id": "holdfast_salt_plaster",
+			"palette_colors": 10,
+			"raw_sha256": "3cb535e88f65794da0c2d83190e6a768ffbdc8652c03968358cce4f7cf238c21",
+			"reduced_sha256": "fb177073526d3f1cc0d8434f1a122a20d03961ec4f7d6f154e72964c502d0378",
+			"runtime_sha256": "42a595c3f494224cfba837435c65998e097fffbd51768817116d6db758b9f4a3"
+		},
+		{
+			"edge_mismatches": 0,
+			"id": "tender_pressure_enamel",
+			"palette_colors": 31,
+			"raw_sha256": "42019d80fdbfce76a5703cd2aa466038c245a778cc0a1c324ab5a999dcd98b25",
+			"reduced_sha256": "131cc7919a436e350b80b9261d3cb277688e415f7d7fbfd4d1144c059a1322ae",
+			"runtime_sha256": "4762d689f21bb6d731741735d92a62467506e8ae7974b47aed392bc78d56190d"
+		}
+	],
+	"filter": "nearest",
+	"mipmaps": false,
+	"palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+	"preparation_sha256": "862020f2d921fb00acb2900febf2d196ef472e6b880aec4f31a02f4582de156a",
+	"schema": 1,
+	"size": [
+		128,
+		128
+	]
+}

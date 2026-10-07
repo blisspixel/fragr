@@ -826,6 +826,101 @@ World-point aim:
 - Unknown fields are rejected (schema error). Sticky state is not overwritten by junk.
 - MCP `act` returns `isError` on unknown keys, bad `weapon_swap`, or bad `look_at` (unknown nested keys, incomplete x/z, bad UUID). Empty/missing arguments are OK (all defaults).
 
+#### Jeep control and facts (capability 39)
+
+Vehicle maps use the existing `Action` and snapshot channel. Optional `seat`
+accepts `driver` or `gunner`, selecting a free seat in the currently occupied
+stopped jeep. Its request survives an intervening Action that omits it until
+the next active tick consumes it. A rising `interact` enters the nearest free
+seat within 2 m horizontally and 2 m vertically with clear line of sight,
+driver first, or exits the current jeep to clear reachable ground. Entry,
+exit and switching require absolute speed at most 2 m/s. A refused exit
+retains the seat. Enemy team occupants cannot share the same jeep.
+
+The driver uses `forward`/`back` for throttle, `left`/`right` for steering and
+`jump` for braking. Steering follows chassis yaw; aim remains free. The gunner
+uses the ordinary aim and fire fields. Occupants cannot walk, fire handheld
+weapons, throw grenades or place mines. Switching locks both vehicle controls
+and the mount for ten ticks, through `control_ready_tick`.
+
+Optional `Snapshot.vehicles` is omitted when empty and contains at most 32
+strict records: `{id,kind,position,yaw,speed,vy,hp,driver,gunner,gun_heat,
+burning_ticks,control_ready_tick}`. IDs are positive u32 values and `kind` is
+`jeep`. Position is chassis ground-base `[x,y,z]` in metres, yaw is normalized
+server +X-forward radians, speed is signed (forward at most 16 m/s, reverse
+at most 6 m/s), and `vy` is vertical metres per second. HP is 0 to 400, heat
+is 0 to 1, and burning lasts at most forty ticks. Driver and gunner are
+nullable live player UUIDs; this list is the sole occupancy authority.
+The body is 3.8 by 1.9 m with a 1.35 m high shot box and 2.75 m clearance
+for exposed occupants. Driver feet are local `[0.55,0.65,-0.40]`, gunner feet
+`[-0.65,0.95,0]`. Vehicle bodies use server collision and damage resolution.
+
+Mounted fire emits an ordinary Flechette `ShotTrace` with optional positive
+`vehicle_id`, recorded when the shot resolves. It does not change the carried
+weapon or inventory ammunition. Heat and the four-tick fire interval limit
+the mount; overheating requires cooling to 0.25 before firing resumes.
+Driver prediction pairs the existing ACK's sequence, epoch and tick with
+the same snapshot's vehicle motion. The ordinary movement ACK has
+`applied:false` while seated. Quiet world snapshots may be superseded, so a
+client must wait for a matching tick before reconciling a vehicle.
+Seat, HP, burn-phase and control-lock changes remain reliable facts in the
+bounded outbound queue; vehicle motion and cooling may coalesce.
+
+The island water increment (capability 41) extends `kind` with `boat` and
+`light_aircraft`, retaining the same twelve state fields and 400 HP maximum.
+Boats have driver and gunner seats, a 4.8 by 2.2 m hull, 14 m/s forward and
+4 m/s reverse limits, and 0.6 m draft. Their complete footprint must remain
+in registered water of sufficient depth; dock and shore solids still block
+them. The same mounted gun and heat limits apply to the boat's gunner.
+
+The 8 by 9.2 m light aircraft has one driver seat and no weapon in this slice.
+Its boarding radius is 6 m to reach the cockpit from outside the wings;
+exits sample beyond the complete hull.
+Forward adds throttle, back brakes, left/right steer, jump climbs and duck
+descends. It gains lift at 12 m/s, reaches 32 m/s, targets at most 6 m/s
+vertical travel, and has a 60 m altitude ceiling. Below lift speed it falls
+under gravity. Water contact, hard landing or a high-speed obstruction can
+destroy it; a burning aircraft falls during its warning. Destruction attempts
+safe ejection, with lethal damage in place if no legal exit exists. The
+collision body remains upright. Driver crouch is a resolved seat posture,
+independent of the aircraft's descend input. Water exits use the same
+authoritative swimming support as ordinary infantry.
+
+#### Registered water and island Conquest (capabilities 40 and 41)
+
+`MapInfo.water_regions` is absent for dry maps. It contains at most 32 strict
+`{min:[x,z],max:[x,z],level,depth}` records. Coordinates and values are finite;
+positive rectangles remain within `half_extent` and do not overlap internally.
+Depth is positive and at most 64 m. The registered surface cannot be below its
+depth or above twice the map half extent. Holdfast currently uses five regions
+at 2.2 m above the common seabed, with land at 3 m. Shared arcade admission is
+41. Visual waves do not modify these bounds or combat outcomes.
+
+Surface swimming uses the ordinary collision step with a 3.2 m/s speed ceiling
+and feet 0.9 m below the water level. Bounded temporary water support permits
+stepping back to dry land. The client mirrors this kernel for prediction.
+No separate swimming Action, underwater combat mode or per-client water physics
+is introduced.
+
+`GameMode` adds `conquest`, permitted on Holdfast Atoll (map 7). Optional
+`Snapshot.conquest` is null outside that mode, or contains
+`{tickets:{union,coalition},initial_tickets,capture_ticks,points}`. Each point is
+`{id,position:[x,y,z],radius,owner,capturing,progress,contested}`. The five IDs are
+`harbour`, `village`, `airfield`, `server_halls` and `lighthouse`. Owner and
+capturing are nullable team values. Position names ground level, radius is 8 m,
+and progress is a bounded tick count below the advertised 160-tick stage.
+
+An uncontested side spends eight seconds neutralizing an enemy site, then eight
+seconds capturing it. Opposing presence freezes progress; empty or defending
+presence unwinds it. Bodies do not multiply capture speed. Both sides start
+with 200 tickets. A resolved participant death debits one; owning more than two
+sites debits the other side once per second by the number above two. Exhaustion
+ends the round; simultaneous zero draws. The default ten-minute clock compares
+remaining tickets. Warmup and new rounds reset sites, tickets and vehicles.
+The retained state and ordinary `RoundEnd.winning_team` convey the result.
+Point, ticket and occupancy transitions remain reliable outbound facts even
+when quiet movement snapshots are coalesced.
+
 #### SetDisplayBehavior
 
 Agent-only observe chip. Echoed into Snapshot `PlayerState.behavior`. Never trusted for combat. Rule-bot behaviors still come from server `BotController`.
@@ -1231,8 +1326,11 @@ Unicast after each server tick to a human whose Action carried a `seq`. The root
   body or low ceiling can prevent a new jump.
 
 The server builds the Ack after simulation. It queues MapInfo, Mission,
-Snapshot and events before the same-tick Ack unicast. A client must accept
-Snapshot before Ack and tolerate a missing Ack after connection loss. Godot
+Snapshot and events before the same-tick Ack unicast. An unsent quiet world
+may be replaced by a newer world, so an Ack can arrive without its same-tick
+Snapshot. Snapshots carrying resolved shots or explosions remain in order
+before the same-tick Ack. A client must accept Snapshot before Ack, skipped
+world ticks, and a missing Ack after connection loss. Godot
 validates finite body numbers, exact JSON integer values, monotonic tick and
 epoch, and u32 sequence progression before exposing a version 1 Ack.
 
@@ -1295,7 +1393,15 @@ Unicast control-plane rejection (not broadcast). Used when speak is dropped.
 
 #### Snapshot
 
-Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
+Periodic state broadcast containing all visible game entities. Produced at ~20 Hz.
+Each client holds at most one replaceable unsent world in a bounded 64-message
+queue. A newer world can replace it when exact discrete facts are unchanged.
+Motion and countdowns may skip ticks; resolved shots, explosions, score and
+roster changes, round transitions, and other discrete facts remain ordered.
+MapInfo and Mission form barriers even when the map ID stays the same. Events,
+inventory and acknowledgements are never replaced. A full reliable queue or
+a write stalled for two seconds disconnects that client. An in-progress write
+cannot be replaced, and combat-heavy queues can still reach this bound.
 
 ```json
 {

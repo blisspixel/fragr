@@ -1,31 +1,26 @@
 # Vehicles: jeep, motorcycle, jetpack
 
-**Status:** planned, 2026-10-04. Design and staging only; nothing here is built.
+**Status:** in flight, 2026-10-06. The two-seat jeep has local authority and client implementation; composed driving and art acceptance are in progress. Other vehicle types remain planned.
 **Spend:** $0 new cash. Local implementation is free; proposed model candidates
 and audio use approved existing credits under the
 [full-game asset plan](meshy-full-game-assets.md), with separate bounded stages.
 
 ## When
 
-Vehicles are built only when the campaign reaches the mission that needs one.
-Much of the game is built without them. No vehicle rung is in the near-term
-sequence and none of this blocks Act I (M01 to M03), M04 to M07, or the
-controls work in rung 7 of the [full build order](../ROADMAP.md#full-build-order-updated-2026-10-04).
+Nick advanced vehicle and island development on October 6. The jeep now runs
+alongside M11 integration and the multiplayer quality pass, serving both the
+M14 launch works and Holdfast Atoll. This supersedes the earlier instruction to
+wait until M14 reached the front of a serial campaign queue. The
+[full build order](../ROADMAP.md#full-build-order) remains the single sequence.
 
-| Rung | Starts when | First use |
-|---|---|---|
-| 1. Vehicle seam and jeep | M14 is the next mission in rung 8 | M14 launch works |
-| 2. Motorcycle | M16 is next | M16 transit approach |
-| 3. Jetpack | M19 is next | M19 changed streets and waterworks |
-| 4. Campaign placement | Inside each of rungs 1 to 3, same mission cycle | M14, M16, M19 |
-| 5. Multiplayer vehicle map | Phase 4, after team deathmatch | Conquest-lite |
-
-Each rung needs the applicable prediction and reconciliation work demonstrated
-through actual driving, not inferred from pawn prediction or this sequence.
-If a mission's plan drops its vehicle, that rung waits for the next mission
-or for rung 5. The [shared Wipe design](wipe-survival.md) can reuse proven
-vehicles; it cannot claim them implemented ahead of these gates.
-
+The [authority plan](jeep-authority-20261006.md),
+[client plan](vehicle-client-20261006.md) and
+[Holdfast slice](holdfast-conquest-20261006.md) separate local implementation,
+mirrored movement tests and actual driving acceptance. The
+[source batch](vehicle-assets-20261006.md) covers a jeep, motorcycle, boat and
+light aircraft. Source completion does not implement those other movement types.
+Motorcycle, jetpack, boat and aircraft follow their own bounded physics and
+played gates. The shared Wipe design may reuse accepted systems later.
 ## Goal
 
 Battlefield 1942 feel on fragr's rules: walk up, press Use, drive; hop in the
@@ -161,12 +156,12 @@ No vehicle adds a door. Each mission keeps at most three.
 
 ## Multiplayer
 
-Rung 5 is one vehicle map after team deathmatch exists (Phase 4 bigger modes):
-16 to 32 fighters, jeeps and motorcycles at team bases on respawn timers,
-jetpacks as map pickups, and conquest-lite: three control sites and ticket
-bleed, per [Frontline objectives](../MODES.md#frontline-objectives). The map
-must be fun on foot first. Abandoned vehicles return to base after 30 seconds.
-
+Holdfast Atoll is the active original island prototype with five control sites
+and ticket bleed, as specified in the [Conquest plan](holdfast-conquest-20261006.md).
+The first shared vehicle is the jeep. Population targets still require measured
+tick/network evidence. Motorcycles, jetpacks, water traversal and flight remain
+separate systems. Infantry access is mandatory, and losing a vehicle cannot
+strand a participant or make a campaign mission unwinnable.
 ## Verification per rung
 
 - Deterministic tests: enter, exit, seat switch, refused unsafe exit, speed

@@ -126,6 +126,7 @@ var health_icon: TextureRect
 var armor_icon: TextureRect
 var followed_player_name = ""
 var fp_juice_enabled = false
+var vehicle_seat: String = ""
 ## Side cloth beside the viewmodel while this fighter carries a flag.
 var fp_pennant: Control = null
 var fp_pennant_pole: ColorRect = null
@@ -508,7 +509,7 @@ func _refresh_mode_chip() -> void:
 	var chip: String = MatchRules.chip_text(match_rules)
 	if chip != "":
 		lines.append(chip)
-	if team_score_text != "":
+	if team_score_text != "" and match_rules.get("mode", "") != "conquest":
 		lines.append(team_score_text)
 	if flag_status_text != "":
 		lines.append(flag_status_text)
@@ -1717,6 +1718,10 @@ func _layout_fp_pennant() -> void:
 	fp_pennant.position = Vector2(x, y).round()
 
 func set_fp_weapon(weapon_name: String) -> void:
+	if not vehicle_seat.is_empty():
+		current_fp_weapon = weapon_name
+		_hide_handheld_for_vehicle()
+		return
 	if not fp_weapon:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
@@ -1851,7 +1856,7 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 		hit_marker.modulate = col
 	if damage > 0:
 		_spawn_floating_damage(damage, weapon_name)
-	# Shot acknowledgement already owns recoil. A hit must not kick twice.
+	# Fire presentation already owns recoil. A hit must not kick twice.
 
 ## How close a player is to dying, which is the one thing the HUD never said.
 ## A number for the exact figure and a bar for the glance, in the corner, read
@@ -1878,7 +1883,45 @@ func set_vitals(hp: int, armor: int) -> void:
 		armor_bar.size.x = ARMOR_BAR_WIDTH * armor_fill
 
 func show_fire_juice(weapon_name: String = "") -> void:
+	if not vehicle_seat.is_empty():
+		return
 	_fp_fire_kick(weapon_name if weapon_name != "" else current_fp_weapon)
+
+func set_vehicle_seat(seat: String) -> void:
+	var changed: bool = vehicle_seat != seat
+	vehicle_seat = seat
+	if not seat.is_empty():
+		_hide_handheld_for_vehicle()
+		if changed and seat == "gunner":
+			_apply_crosshair_for_weapon("Flechette")
+	elif changed:
+		set_fp_weapon(current_fp_weapon)
+	if crosshair != null:
+		crosshair.visible = fp_juice_enabled and seat != "driver" and not _scoped()
+
+func _hide_handheld_for_vehicle() -> void:
+	if fp_weapon != null:
+		fp_weapon.visible = false
+	if fp_muzzle != null:
+		fp_muzzle.visible = false
+	if melee_view != null:
+		melee_view.visible = false
+	if fp_throw_hand != null:
+		fp_throw_hand.visible = false
+
+## Retire a rejected local cue without touching authoritative hit feedback.
+func cancel_fire_juice() -> void:
+	fp_kick_timer = 0.0
+	fp_stab_timer = 0.0
+	fp_shot_age = INF
+	fp_muzzle_timer = 0.0
+	if fp_muzzle != null:
+		fp_muzzle.visible = false
+	if melee_view != null:
+		melee_view.remaining = 0.0
+	if fp_weapon != null:
+		_update_fp_frame()
+		_layout_fp_weapon()
 
 ## The flash a player sees for their own shot. The pawn has had one all along,
 ## but in first person the pawn is not what anyone is looking at, so until now

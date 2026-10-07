@@ -51,7 +51,7 @@ pub struct Inventory {
     revision: u64,
     dry_fire_count: u64,
     dry_latched: bool,
-    /// None keeps the single ammunition count. Some is a human magazine per gun.
+    /// None keeps the single ammunition count. Some is a magazine per gun.
     magazines: Option<[u16; WeaponType::ALL.len()]>,
     reload_weapon: Option<WeaponType>,
     reload_ready_at: Option<u64>,
@@ -180,7 +180,7 @@ impl Inventory {
         self.reload_weapon.is_some()
     }
 
-    /// Give a human magazines. An arcade human also receives the finite spawn
+    /// Give a fighter magazines. An arcade fighter also receives the finite spawn
     /// kit. A weapon-only mutator fills its one magazine and keeps no bag.
     /// A second call leaves the current magazines alone.
     pub fn arm_magazines(&mut self) {
@@ -193,6 +193,16 @@ impl Inventory {
         let loaded = self.allocate_loaded();
         self.magazines = Some(loaded);
         self.revision = self.revision.saturating_add(1);
+    }
+
+    /// A rule bot leaving the arcade slice returns to that mode's single count.
+    /// Loaded rounds already belong to the pool, so no ammunition is added.
+    pub(crate) fn disarm_magazines(&mut self) {
+        if self.magazines.take().is_some() {
+            self.reload_weapon = None;
+            self.reload_ready_at = None;
+            self.revision = self.revision.saturating_add(1);
+        }
     }
 
     /// Owned and able to fire now. An armed magazine must have a round and
@@ -414,14 +424,11 @@ impl Inventory {
         false
     }
 
-    pub fn request_reload(&mut self, weapon: WeaponType, tick: u64) -> bool {
+    pub(crate) fn can_reload(&self, weapon: WeaponType) -> bool {
         if self.magazines.is_none() || self.reload_weapon.is_some() || !self.owns(weapon) {
             return false;
         }
         let Some(size) = weapon.magazine_size() else {
-            return false;
-        };
-        let Some(ticks) = weapon.reload_ticks() else {
             return false;
         };
         let loaded = self
@@ -439,6 +446,16 @@ impl Inventory {
                 return false;
             }
         }
+        true
+    }
+
+    pub fn request_reload(&mut self, weapon: WeaponType, tick: u64) -> bool {
+        if !self.can_reload(weapon) {
+            return false;
+        }
+        let Some(ticks) = weapon.reload_ticks() else {
+            return false;
+        };
         self.reload_weapon = Some(weapon);
         self.reload_ready_at = Some(tick.saturating_add(u64::from(ticks)));
         self.revision = self.revision.saturating_add(1);
@@ -489,7 +506,7 @@ impl Inventory {
         self.revision = self.revision.saturating_add(1);
     }
 
-    /// Arcade respawn. An armed human gets the spawn kit again. A weapon-only
+    /// Arcade respawn. An armed fighter gets the spawn kit again. A weapon-only
     /// mutator refills its one magazine and still has no bag.
     pub fn refill_if_armed(&mut self) {
         if self.magazines.is_none() || self.policy != EquipmentPolicy::FullArsenal {

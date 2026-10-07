@@ -45,9 +45,11 @@ plant/defuse. Watch, join or return to the menu while your match keeps running;
 Choose no bots, a fixed count or automatic fill so humans and agents can join
 a bot-populated match. [Hosting](docs/HOSTING.md) explains the round and seat rules.
 Releases before v0.77.0 use the [dedicated server launch](docs/HOSTING.md).
-Multiplayer testing and refinement take priority over more campaign levels;
-the [playable multiplayer plan](docs/plans/multiplayer-first-playable.md)
-records the remaining player-test gates.
+Current development combines multiplayer refinement with M11, a shared two-seat
+jeep and Holdfast Atoll's five-site Conquest mode. These local development lanes
+are not part of the released ten-level claim above. The
+[build order](docs/ROADMAP.md#full-build-order) records implementation and review
+gates, including human reloads, crouching and the remaining player tests.
 
 ## In game
 

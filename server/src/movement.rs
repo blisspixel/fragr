@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::f32::consts::PI;
 
 pub mod contact;
+pub mod water;
 
 #[cfg(test)]
 mod enclosed_tests;

@@ -448,4 +448,4 @@ msgid "STORY_M10_ARRIVAL_BOARDERS"
 msgstr "A Union tender has found the ship. Clear the forward cargo approach, the service deck, and the aft galleries. Keep a way back to the passenger hall."
 
 msgid "STORY_M10_DEPARTURE_SECURED"
-msgstr "The boarding party is gone. Tern keeps the ship moving, and the passenger hall is quiet again. Whatever is waiting near Mars can wait until everyone has had a breath."
+msgstr "The boarding party is gone. Tern puts their battered live recording back on. Someone in the passenger hall objects to the encore.\n\n\"Best track. You're all wrong.\"\n\nThe ship keeps moving. For a minute, the argument is about music."

@@ -270,6 +270,23 @@ pub fn aim_at(origin: [f32; 3], target: [f32; 3]) -> Option<(f32, f32)> {
     ))
 }
 
+/// Diagnostic centre-body ray using the production standing fighter volume.
+/// This measures geometry only, without spread, cover or permission to damage.
+pub fn aimed_fighter_distance(
+    origin: [f32; 3],
+    shown_feet: [f32; 3],
+    tested_feet: [f32; 3],
+    range: f32,
+) -> Option<f32> {
+    if tested_feet.iter().any(|v| !v.is_finite()) || !range.is_finite() || range <= 0.0 {
+        return None;
+    }
+    let (yaw, pitch) = aim_at(origin, aim_point(shown_feet, None))?;
+    Ray::dispersed(origin, yaw, pitch, 0.0, [0.0, 0.0])
+        .actor_stance(tested_feet, None, false, range)
+        .map(|hit| hit.distance)
+}
+
 /// Visibility between world points, using the same solid volumes as shots.
 /// This is an agent observation helper, not permission to deal damage.
 pub fn line_of_sight(origin: [f32; 3], target: [f32; 3], solids: &[Solid]) -> bool {

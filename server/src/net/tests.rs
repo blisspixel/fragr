@@ -270,13 +270,12 @@ impl futures_util::Sink<Message> for StalledSink {
 
 #[tokio::test]
 async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
-    let (tx, rx) = mpsc::channel(1);
+    let (tx, rx) = outbound_channel(1);
     let (shutdown, mut changed) = tokio::sync::watch::channel(StopSignal::Open);
-    tx.send(ServerMessage::Error {
+    tx.try_send(ServerMessage::Error {
         code: "queued".into(),
         message: "queued".into(),
     })
-    .await
     .unwrap();
     let (_stop, stop) = tokio::sync::oneshot::channel();
     let writer = tokio::spawn(run_outbound_writer(

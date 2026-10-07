@@ -19,7 +19,7 @@ extends Node
 # objective and gate state; 8 private participant records. A shared arena
 # speaks this exact gameplay version and geometry 2. A campaign host still
 # accepts this client when its mission floor is at or below it.
-const GAMEPLAY_VERSION: int = 37
+const GAMEPLAY_VERSION: int = 41
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -75,6 +75,7 @@ var _leaving: bool = false
 var _resume_used: bool = false
 var _version_told: bool = false
 var _requires_flags: bool = false
+var _requires_conquest: bool = false
 
 signal session_resumed
 
@@ -103,6 +104,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	mission_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
+	_requires_conquest = false
 	_movement_ack_previous.clear()
 
 	# Godot WebSocketPeer is not reliably reusable after close. Always start fresh
@@ -143,6 +145,7 @@ func disconnect_from_server():
 	mission_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
+	_requires_conquest = false
 	set_process(false)
 	disconnected_from_server.emit()
 
@@ -224,6 +227,9 @@ func send_action(action: Dictionary):
 		msg["duck"] = true
 	if swap != null and str(swap) != "":
 		msg["weapon_swap"] = str(swap)
+	var seat: Variant = action.get("seat")
+	if seat is String and VehicleState.SEATS.has(seat):
+		msg["seat"] = seat
 	# Client-owned facing and the input number the server acknowledges. Both are
 	# optional on the wire; agents and older clients send neither.
 	if action.has("yaw"):
@@ -423,6 +429,7 @@ func _handle_message(text: String):
 			if problem.is_empty():
 				var rules: Dictionary = MatchRules.parse(data.get("rules"))
 				_requires_flags = rules.get("mode", "") == "ctf"
+				_requires_conquest = rules.get("mode", "") == "conquest"
 				if rules.get("mode", "") == "sabotage" and not data.get("sabotage") is Dictionary:
 					problem = "sabotage map has no sites"
 			if problem != "":
@@ -539,8 +546,14 @@ func _handle_message(text: String):
 				problem = FlagState.snapshot_error(data)
 			if problem.is_empty():
 				problem = SabotageState.snapshot_error(data)
+			if problem.is_empty():
+				problem = VehicleState.validation_error(data)
+			if problem.is_empty():
+				problem = ConquestState.validation_error(data)
 			if problem.is_empty() and _requires_flags and data.get("flags") == null:
 				problem = "ctf snapshot has no flags"
+			if problem.is_empty() and _requires_conquest and data.get("conquest") == null:
+				problem = "conquest snapshot has no capture state"
 			if not problem.is_empty():
 				disconnect_from_server()
 				server_error.emit(problem)

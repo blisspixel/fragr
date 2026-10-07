@@ -54,7 +54,7 @@ func _ready_record(config: Dictionary) -> Dictionary:
 	return {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:" + str(port),
 		"listen": ("0.0.0.0" if config["lan"] else "127.0.0.1") + ":" + str(port),
 		"map_id": config["map_id"], "mode": config["mode"], "five_vs_five": config["mode"] == "sabotage",
-		"bots": config["bots"], "bot_policy": config["bot_policy"], "fill_target": config["fill_target"], "gameplay_version": 37}
+		"bots": config["bots"], "bot_policy": config["bot_policy"], "fill_target": config["fill_target"], "gameplay_version": LocalHost.GAMEPLAY_VERSION}
 
 func _run() -> void:
 	for policy: String in ["fixed", "none", "auto"]:

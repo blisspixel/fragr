@@ -24,6 +24,7 @@ mod sheet;
 pub mod sim;
 mod statistics;
 pub mod trace;
+pub mod vehicles;
 
 pub mod bot_fill;
 #[cfg(test)]

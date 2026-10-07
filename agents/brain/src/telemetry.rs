@@ -369,6 +369,11 @@ pub(crate) mod fixtures {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
@@ -391,11 +396,13 @@ pub(crate) mod fixtures {
 
     pub fn snapshot(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick,
             players,
             round_state: Some("Active".to_string()),

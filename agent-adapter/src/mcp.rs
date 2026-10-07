@@ -119,6 +119,7 @@ const ACT_ALLOWED_KEYS: &[&str] = &[
     "throw_grenade",
     "place_mine",
     "weapon_swap",
+    "seat",
     "look_at",
 ];
 
@@ -280,6 +281,14 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
     };
 
     Ok(Action {
+        seat: match obj.get("seat") {
+            None => None,
+            Some(value) => Some(match value.as_str() {
+                Some("driver") => protocol::VehicleSeat::Driver,
+                Some("gunner") => protocol::VehicleSeat::Gunner,
+                _ => return Err("schema error: seat must be driver|gunner".into()),
+            }),
+        },
         forward: bool_field("forward"),
         back: bool_field("back"),
         left: bool_field("left"),
@@ -696,6 +705,7 @@ fn tools_list_result() -> Value {
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "duck": {"type": "boolean", "default": false, "description": "Hold to crouch. The server shortens the body and slows the walk. Release to stand when the ceiling allows. Omitted means standing."},
                         "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter", "sniper", "repeater"], "description": "Select an owned weapon. Repeater holds through warmup and uses finite shared Bullets; it is not part of the arcade kit"},
+                        "seat": {"type": "string", "enum": ["driver", "gunner"], "description": "Request a free seat in your stopped jeep. Switching locks vehicle controls briefly. Use interact to enter or exit."},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
                         "place_mine": {"type": "boolean", "description": "Press to throw one counted proximity mine along current aim. It sticks to the first surface, arms after two seconds, then trips when a body comes within two metres, including yours. Release before another press. Independent of selected gun."},
@@ -1129,6 +1139,23 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.record = Some(record);
         }
         Ok(protocol::ServerMessage::Snapshot(snapshot)) => {
+            let mut vehicle_ids = std::collections::HashSet::new();
+            let mut occupants = std::collections::HashSet::new();
+            if snapshot.vehicles.len() > protocol::MAX_VEHICLES
+                || snapshot.vehicles.iter().any(|vehicle| {
+                    !vehicle.validate()
+                        || !vehicle_ids.insert(vehicle.id)
+                        || [vehicle.driver, vehicle.gunner]
+                            .into_iter()
+                            .flatten()
+                            .any(|id| {
+                                !occupants.insert(id)
+                                    || !snapshot.players.iter().any(|p| p.id == id && p.hp > 0)
+                            })
+                })
+            {
+                return Ok(());
+            }
             // A malformed placed device leaves the last valid observation.
             if snapshot
                 .mines
@@ -1163,8 +1190,10 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             mission,
             rules,
             sabotage,
+            water_regions,
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
+            protocol::validate_water_regions(&water_regions, half_extent)?;
             if let Some(layout) = sabotage.as_ref() {
                 layout.validate()?;
             }
@@ -1271,6 +1300,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if let Some(layout) = sabotage {
                 map["sabotage"] = serde_json::json!(layout);
             }
+            if !water_regions.is_empty() {
+                map["water_regions"] = serde_json::json!(water_regions);
+            }
             state.map = Some(map);
         }
         Ok(protocol::ServerMessage::Event(event)) => {
@@ -1297,6 +1329,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
             // Unicast speak rejection; MCP speak path already mirrors cooldown as isError.
         }
+        Ok(protocol::ServerMessage::Board(_)) => {}
         Err(_) => {
             let raw = serde_json::from_str::<Value>(text).map_err(|_| "invalid server JSON")?;
             if !raw.is_object() {
@@ -1325,6 +1358,70 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn vehicle_seat_requests_use_the_existing_strict_action_schema() {
+        for (name, seat) in [
+            ("driver", protocol::VehicleSeat::Driver),
+            ("gunner", protocol::VehicleSeat::Gunner),
+        ] {
+            assert_eq!(
+                validate_act_arguments(&serde_json::json!({"seat":name}))
+                    .unwrap()
+                    .seat,
+                Some(seat)
+            );
+        }
+        for value in [
+            serde_json::json!("pilot"),
+            serde_json::json!(1),
+            serde_json::Value::Null,
+        ] {
+            assert!(validate_act_arguments(&serde_json::json!({"seat":value})).is_err());
+        }
+        assert!(validate_act_arguments(&serde_json::json!({"vehicle_id":1})).is_err());
+    }
+
+    #[test]
+    fn vehicle_observation_preserves_water_and_rejects_invalid_facts() {
+        let mut sim = fragr_server::sim::GameState::with_map(
+            fragr_server::sim::MapKind::HoldfastAtoll,
+            false,
+        );
+        sim.start_round();
+        let mut state = ToolState::default();
+        ingest_server_text(&mut state, &serde_json::to_string(&sim.map_info()).unwrap()).unwrap();
+        assert_eq!(
+            state.map.as_ref().unwrap()["water_regions"]
+                .as_array()
+                .unwrap()
+                .len(),
+            5
+        );
+        let snapshot = sim.snapshot();
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&protocol::ServerMessage::Snapshot(snapshot.clone())).unwrap(),
+        )
+        .unwrap();
+        let valid = state.last_snapshot.clone();
+        let mut invalid = snapshot.clone();
+        invalid.vehicles[0].hp = 401;
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&protocol::ServerMessage::Snapshot(invalid)).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(state.last_snapshot, valid);
+        let mut duplicate = snapshot;
+        duplicate.vehicles.push(duplicate.vehicles[0].clone());
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&protocol::ServerMessage::Snapshot(duplicate)).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(state.last_snapshot, valid);
+    }
 
     #[test]
     fn m04_bundled_wire_observe_tools_and_clinic_handoff_share_the_contract() {

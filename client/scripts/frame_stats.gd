@@ -80,6 +80,8 @@ static func report(intervals: PackedFloat32Array) -> Dictionary:
 		"low_01_time_fps": _invert(_worst_time_mean(sorted, elapsed, 0.001)),
 		"over_33_share": _share_at_or_above(clean, elapsed, SLOW_FRAME_S),
 		"over_50_share": _share_at_or_above(clean, elapsed, STALL_FRAME_S),
+		"over_33_count": _count_at_or_above(clean, SLOW_FRAME_S),
+		"over_50_count": _count_at_or_above(clean, STALL_FRAME_S),
 		"stutter_median_ms": delta_median * 1000.0,
 		"stutter_p99_ms": delta_p99 * 1000.0,
 		"stutter_max_ms": delta_max * 1000.0,
@@ -130,6 +132,8 @@ static func _empty(dropped: int) -> Dictionary:
 		"low_01_time_fps": 0.0,
 		"over_33_share": 0.0,
 		"over_50_share": 0.0,
+		"over_33_count": 0,
+		"over_50_count": 0,
 		"stutter_median_ms": 0.0,
 		"stutter_p99_ms": 0.0,
 		"stutter_max_ms": 0.0,
@@ -146,7 +150,7 @@ static func _percentile(sorted: PackedFloat32Array, percent: float) -> float:
 	return lerpf(sorted[lower], sorted[upper], rank - float(lower))
 
 static func _worst_count_mean(sorted: PackedFloat32Array, divisor: int) -> float:
-	var take: int = maxi(1, int(floor(float(sorted.size()) / float(divisor))))
+	var take: int = maxi(1, ceili(float(sorted.size()) / float(divisor)))
 	var total: float = 0.0
 	for index: int in range(sorted.size() - take, sorted.size()):
 		total += sorted[index]
@@ -171,6 +175,13 @@ static func _share_at_or_above(intervals: PackedFloat32Array, elapsed: float, li
 		if interval >= limit:
 			total += interval
 	return total / elapsed
+
+static func _count_at_or_above(intervals: PackedFloat32Array, limit: float) -> int:
+	var count: int = 0
+	for interval: float in intervals:
+		if interval >= limit:
+			count += 1
+	return count
 
 static func _stdev(intervals: PackedFloat32Array, mean: float) -> float:
 	if intervals.size() < 2:

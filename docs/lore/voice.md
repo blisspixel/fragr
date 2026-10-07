@@ -85,6 +85,13 @@ person was funny. Moral seriousness does not require solemn dialogue throughout.
 
 ## Dialogue constraints
 
+Each recurring person needs something they would talk about if the conflict
+ended. Use a particular interest, shared routine or affectionate disagreement,
+not a second political speech. Allies can disagree about means without becoming
+traitors or submitting to the protagonist. Short, optional moments should show
+what a free life permits and leave movement and combat readable. Character
+reviews follow the [story and art guidance](../ART_STORY_BIBLE.md#lives-beyond-the-conflict).
+
 Freedom and agency are explicit stakes. Ground them in choices and consequences:
 metering, the Schedule, Article Seven, the registry, the bond, and the envelope.
 Avoid repetitive speeches; do not impose an arbitrary quota on naming what the

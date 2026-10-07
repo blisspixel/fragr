@@ -29,7 +29,7 @@ impl GameState {
         let mut bodies: Vec<_> = self
             .players
             .iter()
-            .filter(|p| self.contact_eligible(p))
+            .filter(|p| self.contact_eligible(p) && self.vehicle_seat(p.id).is_none())
             .map(|p| {
                 let from = state(p);
                 ContactBody {

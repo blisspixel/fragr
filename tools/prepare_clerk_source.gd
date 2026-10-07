@@ -12,7 +12,7 @@ func _run() -> void:
 		_fail("require walking GLB, output source GLB and optional cast name")
 		return
 	var cast_name: String = args[2] if args.size() == 3 else "Clerk"
-	if cast_name not in ["Clerk", "Sweeper", "Auditor", "FreeHuman", "Latch", "Enforcer"]:
+	if cast_name not in ["Clerk", "Sweeper", "Auditor", "FreeHuman", "FreeSynthetic", "Latch", "Enforcer"]:
 		_fail("unsupported cast name")
 		return
 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(args[0])
@@ -51,6 +51,9 @@ func _run() -> void:
 				return
 			var material: StandardMaterial3D = original.duplicate()
 			for slot: int in [BaseMaterial3D.TEXTURE_ALBEDO, BaseMaterial3D.TEXTURE_NORMAL, BaseMaterial3D.TEXTURE_METALLIC, BaseMaterial3D.TEXTURE_ROUGHNESS]:
+				if cast_name == "FreeSynthetic" and slot != BaseMaterial3D.TEXTURE_ALBEDO:
+					material.set_texture(slot, null)
+					continue
 				var texture: Texture2D = material.get_texture(slot)
 				if texture == null:
 					continue
@@ -60,12 +63,17 @@ func _run() -> void:
 					if image.is_compressed() and image.decompress() != OK:
 						_fail("cannot decode source texture")
 						return
-					image.resize(1024, 1024, Image.INTERPOLATE_LANCZOS)
+					image.resize(512 if cast_name == "FreeSynthetic" else 1024, 512 if cast_name == "FreeSynthetic" else 1024, Image.INTERPOLATE_LANCZOS)
 					if slot == BaseMaterial3D.TEXTURE_ALBEDO and cast_name == "Clerk":
 						_grade_cloth(image)
 					cache[key] = ImageTexture.create_from_image(image)
 				material.set_texture(slot, cache[key])
 			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			if cast_name == "FreeSynthetic":
+				material.normal_enabled = false
+				material.metallic = 0.0
+				material.roughness = 0.95
+				material.metallic_specular = 0.08
 			mesh.set_surface_override_material(surface, material)
 	for candidate: Node in model.find_children("*", "AnimationPlayer", true, false):
 		var player: AnimationPlayer = candidate as AnimationPlayer
@@ -89,7 +97,7 @@ func _run() -> void:
 		return
 	model.free()
 	await process_frame
-	print("prepare_clerk_source: PASS (embedded 1K maps, owned source with preserved skin and walk)")
+	print("prepare_clerk_source: PASS (bounded embedded maps, preserved skin and walk)")
 	quit(0)
 
 func _grade_cloth(image: Image) -> void:

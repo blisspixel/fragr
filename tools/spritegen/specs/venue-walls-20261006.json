@@ -1,0 +1,15 @@
+{
+  "out_dir": "art/raw/venue-walls-20261006",
+  "technical": "One seamless square tiling albedo texture only, orthographic front view flat to the entire surface, perfectly even diffuse light, no cast shadows, no perspective, full frame surface with no border. Designed to reduce cleanly to 128 by 128 pixel material tile.",
+  "style": "Original modern retro science fiction shooter environment material, circa2070 practical inhabited places. Broad calm material values, restrained desaturated bone olive teal rust and dark steel palette, sparse purposeful wear, maintained repaired surfaces. Strong large material shapes, low contrast tactile pixel-friendly detail. Exceptional coherent art direction without photorealistic noise.",
+  "view": "Fill the whole image with one flat repeating material, no object or room, seamless edges in both directions, no baked directional lighting.",
+  "model": "marketing-studio/image",
+  "negative": "text, numbers, signs, logos, watermark, signature, doors, windows, pipes, plants, bricks, holes, dramatic shadows, perspective, room, glossy wet plastic, neon, heavy grunge, dense scratches, bullet impacts, decorative border, copied game texture",
+  "params": {"aspect_ratio":"1:1","resolution":"4k","quality":"high","enhance_prompt":false},
+  "frames": [
+    {"id":"holdfast_salt_plaster","subject":"Seamless pale warm limestone limewash plaster on a maintained island harbour building. Quiet cream and muted sandy bone, broad flat hand-smoothed repair fields, a few subdued salt mineral edges. Coastal working town, cared for by residents. Subtle sparse imperfections, no stains that become repeating motifs, no masonry grid."},
+    {"id":"holdfast_painted_boards","subject":"Seamless weathered horizontal wooden cladding painted muted desaturated coastal teal. Wide sturdy straight planks, narrow dark joints, a few broad bone underpaint wear patches, tiny restrained dark fasteners. Maintained civilian harbour workshop, readable wide strips, almost no woodgrain noise, no loose or broken boards."},
+    {"id":"holdfast_ribbed_steel","subject":"Seamless galvanized workshop wall cladding, broad shallow vertical ribs with flat midtone muted olive grey steel faces, restrained old bone paint patches, sparse dark fasteners aligned with ribs. Repaired utilitarian island boathouse material. No rust orange saturation, no small tangled detail, flat diffuse albedo without baked light or perspective."},
+    {"id":"tender_pressure_enamel","subject":"Seamless cold pale grey green ceramic enamel pressure wall on an original bureaucratic custody transport ship. Wide rectangular modular panels with thin graphite rubber seam channels and sparse small flush service fasteners, subtle restrained mineral scuffs. Precise regular maintained institution, broad cold bone faces with one muted dark sage maintenance insert. No warning signs, no glowing strips, no trim text, no heavy wear."}
+  ]
+}

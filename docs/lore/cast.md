@@ -58,6 +58,14 @@ need help. A missing character cannot soft-lock a mandatory mission. The rescued
 companion uses `companion`; the organizer uses `organizer`; the defecting officer
 uses `custodian`. Stable role IDs survive later naming changes.
 
+Tern keeps a battered live recording aboard the Common Carrier and favors its
+scratchy final track; the passengers disagree about the encore. The text-only
+M10 departure card establishes this small off-duty routine. It does not approve
+a new voice, musical asset, named passenger or unconditional later appearance.
+Use the same standard for other principals: a specific life beyond the conflict,
+shown briefly through what they do, keep or share. Do not assign everyone the
+same hobby or silently promote proposed backstories into recorded canon.
+
 ## Visual continuity
 
 Latch's free-agent identity, approximate height, scrappy construction and

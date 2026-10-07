@@ -1220,6 +1220,11 @@ mod tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Tack".to_string(),
         };
         let me = fighter(1, 0.0, Some(protocol::CampaignActor::Participant {}));
@@ -1256,11 +1261,13 @@ mod tests {
     #[test]
     fn test_snapshot_with_players() {
         let snapshot = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 100,
             players: vec![protocol::PlayerState {
                 collidable: true,
@@ -1282,6 +1289,11 @@ mod tests {
                 just_fired: false,
                 behavior: Some("Aggressive".to_string()),
                 score: 3,
+                deaths: 0,
+                attacks: 0,
+                connects: 0,
+                heads: 0,
+                damage: 0,
                 weapon: "Rail".to_string(),
             }],
             round_state: Some("Active".to_string()),
@@ -1327,11 +1339,13 @@ mod tests {
     #[test]
     fn test_snapshot_carries_sticky_host_line() {
         let mut snap = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 7,
             players: vec![],
             round_state: Some("Active".into()),
@@ -1382,11 +1396,13 @@ mod tests {
     #[test]
     fn test_snapshot_includes_weapon_in_observe() {
         let snapshot = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 50,
             players: vec![
                 protocol::PlayerState {
@@ -1409,6 +1425,11 @@ mod tests {
                     just_fired: true,
                     behavior: None,
                     score: 5,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".to_string(),
                 },
                 protocol::PlayerState {
@@ -1431,6 +1452,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 2,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Scatter".to_string(),
                 },
             ],
@@ -1735,11 +1761,13 @@ mod tests {
         let bot_id = uuid::Uuid::new_v4();
         let target_id = uuid::Uuid::new_v4();
         let snapshot = protocol::Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
             capture_limit: None,
             sabotage: None,
+            conquest: None,
             tick: 1,
             players: vec![
                 protocol::PlayerState {
@@ -1762,6 +1790,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 0,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".into(),
                 },
                 protocol::PlayerState {
@@ -1784,6 +1817,11 @@ mod tests {
                     just_fired: false,
                     behavior: None,
                     score: 0,
+                    deaths: 0,
+                    attacks: 0,
+                    connects: 0,
+                    heads: 0,
+                    damage: 0,
                     weapon: "Flechette".into(),
                 },
             ],
@@ -2282,6 +2320,7 @@ mod tests {
                 .await
                 .unwrap();
             let map = ServerMessage::MapInfo {
+                water_regions: Vec::new(),
                 rules: None,
                 sabotage: None,
                 mission: None,

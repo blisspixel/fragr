@@ -229,7 +229,7 @@ fn every_existing_bot_behavior_moves_and_fights_across_the_roster() {
                 evidence.get(behavior).expect("roster contains behavior");
             assert!(
                 distance > 3.0 && shots > 0 && hits > 0,
-                "{map:?}/{behavior}: moved {distance:.1} m, {shots} shots, {hits} hits"
+                "{map:?}/{behavior}: moved {distance:.1} m, {shots} shots, {hits} hits; roster {evidence:?}"
             );
         }
         println!("roster: {map:?}: {evidence:?}");

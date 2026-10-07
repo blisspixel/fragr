@@ -476,8 +476,8 @@ async fn close_with_error(
 #[cfg(test)]
 mod tests;
 
-pub type WsTx = mpsc::Sender<ServerMessage>;
-pub type WsRx = mpsc::Receiver<ServerMessage>;
+mod outbound;
+pub use outbound::{channel as outbound_channel, QueueError, Queued, WsRx, WsTx};
 
 pub struct ClientSession {
     pub id: Uuid,
@@ -535,7 +535,7 @@ impl ClientSession {
     }
 
     pub(crate) fn queue_depth(&self) -> usize {
-        self.tx.max_capacity().saturating_sub(self.tx.capacity())
+        self.tx.depth()
     }
 
     pub(crate) fn is_closing(&self) -> bool {
@@ -1431,7 +1431,7 @@ async fn handle_connection(
     };
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
-    let (tx, rx): (WsTx, WsRx) = mpsc::channel(OUTBOUND_QUEUE_CAPACITY);
+    let (tx, rx) = outbound_channel(OUTBOUND_QUEUE_CAPACITY);
     let (shutdown_tx, mut shutdown_rx) = watch::channel(StopSignal::Open);
     let client_id = Uuid::new_v4();
 

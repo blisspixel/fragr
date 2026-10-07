@@ -25,6 +25,7 @@ pub(super) struct Blast {
 pub(super) enum BlastSource {
     Grenade,
     Mine,
+    Vehicle,
 }
 
 pub(super) struct Grenade {
@@ -195,13 +196,14 @@ impl GameState {
     }
 
     pub(super) fn resolve_blast(&mut self, blast: &Blast, arena: &Arena) {
-        let Some(owner) = self
+        self.blast_vehicles(blast, arena);
+        let owner = self
             .players
             .iter()
-            .position(|player| player.id == blast.owner_id)
-        else {
+            .position(|player| player.id == blast.owner_id);
+        if owner.is_none() && blast.source != BlastSource::Vehicle {
             return;
-        };
+        }
         let mut hits = Vec::new();
         let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
         for target in 0..self.players.len() {
@@ -211,7 +213,7 @@ impl GameState {
             let player = &self.players[target];
             if player.hp <= 0
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
-                || (owner != target && !self.damage_lands(owner, target))
+                || owner.is_some_and(|owner| owner != target && !self.damage_lands(owner, target))
             {
                 continue;
             }
@@ -222,7 +224,8 @@ impl GameState {
             if damage <= 0 || !crate::combat::line_of_sight(blast.position, point, &arena.solids) {
                 continue;
             }
-            let (hp, armor, died) = self.resolve_fighter_hit(owner, target, damage, None);
+            let (hp, armor, died) =
+                self.resolve_fighter_hit(owner.unwrap_or(target), target, damage, None);
             if hp + armor == 0 {
                 continue;
             }
@@ -234,16 +237,19 @@ impl GameState {
                 target_hp_after: player.hp,
                 killed: died,
             });
-            if owner != target {
+            if owner.is_some_and(|owner| owner != target) {
                 hp_total += hp;
                 armor_total += armor;
                 kills += u64::from(died);
             }
         }
-        let statistics = &mut self.players[owner].statistics;
-        match blast.source {
-            BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
-            BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+        if let Some(owner) = owner {
+            let statistics = &mut self.players[owner].statistics;
+            match blast.source {
+                BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
+                BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
+                BlastSource::Vehicle => {}
+            }
         }
         self.explosion_results.push(ExplosionResult {
             id: blast.id,

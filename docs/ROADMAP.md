@@ -339,15 +339,49 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 ## Full build order (updated 2026-10-06)
 
-**Active goal:** build the agreed game through a proven 1.0, starting with a complete multiplayer and server trial that Nick can host, play and refine. The server and multiplayer goal is an exceptional authoritative match, recorded in [server excellence](plans/server-excellence.md): the current modes played well, then measured growth toward a 64-player battle only when the tick and the bytes allow it. The next work that makes the current night worth a second round is bot eyes, a gun that answers on the click, and a hitscan that agrees with the body the shooter was shown or teaches one stable lead. The empty measurement table still gates any larger room. A dedicated process can stay up and rotate the built-in night list of maps and modes with `--playlist` ([night playlist](plans/night-playlist.md)). Before it reports ready it checks its own status line and logs each join address it could reach from this computer ([join preflight](plans/join-preflight.md)). The join page keeps favorites and recent hosts on this computer and can list a server that announces on the LAN ([server list](plans/server-list.md)). That list is local and not merged. There is no public directory. Hold Tab prints each rate with its count. A service record separates a body found from damage dealt, keeps a labeled Wilson interval on bodies and on heads, and states frags and damage per minute over the ticks lived. Finishing Recall Notice continues into Persons Unknown from the tally. The hosting process keeps a floor of speaks and a notice board; `fragr-wire` dials it ([wire board](plans/wire-board.md)). Those additions are local and not merged. Gameplay stays 37. A spare home machine is a first-class host. Plan-only IaC covers one popular small-VM virtual network plus GCP, AWS, and Azure. None of those templates is applied without its own spend approval. Team deathmatch and optional 5v5 Sabotage come before the remaining campaign. Keep the six current arenas and ten campaign prototypes available; retain unfinished mission and art checkpoints. After the multiplayer slice meets its gates, continue the campaign, feel, Wipe and wider server work in the order below. Cloud apply and matchmaking still require their own approval and proof. The story spine in [`CAMPAIGN.md`](CAMPAIGN.md) is settled. Names, rescue tradeoffs, Wipe operations and the reprieve's exact terms stay proposals until the gate that needs them. Mission briefs live in [`CAMPAIGN-MISSIONS.md`](CAMPAIGN-MISSIONS.md) and [one plan per level](campaign/README.md). Geometry comes from the mission. Boltgun remains the visual bar for a played sequence. Every rung serves the [easy to pick up, deep to master pillar](VISION.md#easy-to-pick-up-deep-to-master): fights and flow first, at most three doors a level.
+**Active goal:** build the agreed game through a proven 1.0. On October 6 Nick
+explicitly advanced parallel campaign, vehicle and island work alongside the
+current multiplayer quality pass. The active composition is
+[multiplayer quality](plans/multiplayer-quality-20261006.md): fair bot perception,
+immediate local gun feedback, measured hitscan alignment and bounded snapshot
+delivery, while M11 resumes from its retained checkpoint and the shared jeep
+serves Holdfast Atoll and the M14 launch-works mission. The original island uses
+five capture points, registered swimming water, boats and a flyable courier
+aircraft, following the Wake Island-style request.
+[Holdfast and Conquest](plans/holdfast-conquest-20261006.md) owns the bounded
+implementation; [vehicle assets](plans/vehicle-assets-20261006.md) records the
+paid source candidates. These are local development lanes, not released missions,
+proven vehicle handling or a 64-player claim.
 
-**Next, as of 2026-10-05.** The order is set by what most raises fun and
-quality for the work. Nick authorized parallel game development alongside
-substantial model production. Nick then moved playable multiplayer modes and
-server operation ahead of the remaining campaign: finish a small complete
-match slice, let people test it, and iterate before expanding the campaign.
-Retain current campaign and art checkpoints; new mission and broad asset
-production yield to this multiplayer slice. M04 roofs, combat feedback, campaign results and
+The [water research and renderer measurements](plans/island-water-rendering-20261006.md)
+bound coastal shading and wakes across existing graphics presets. Distinct
+[venue wall materials](plans/venue-wall-materials-20261006.md) give each place
+its own construction and repair history within the shared palette. The first
+renderer sweep uses 64 animated presenters; connected-match scale and human
+handling acceptance remain separate.
+
+Human ducking and manual reloads remain part of the current controls. Weapons
+and pickups should read as tangible, distinct retro-futuristic equipment, with
+clear mechanical handling and strong silhouettes, while preserving pixel craft
+and fast combat. Every lane follows the shared
+[character principle](ART_STORY_BIBLE.md#lives-beyond-the-conflict): people have
+interests, relationships and routines beyond the conflict. Their independence,
+ordinary humor and personal repairs must survive the buildout.
+
+The [server excellence](plans/server-excellence.md) measurement table still gates
+population claims. The existing Host, TDM and Sabotage trial remains useful;
+feedback and necessary fixes continue during authorized development. Cloud
+apply, cash charges, top-ups and matchmaking have no new authorization. Source,
+geometry, rendered evidence and played acceptance remain separate gates. The
+story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follows
+its brief. Current released campaign coverage remains ten prototypes until the
+new mission's integration and acceptance finish.
+
+**Current composition, 2026-10-06.** The numbered rungs below remain the single
+build order. Rungs 1 and 2 now run together for the bounded work explicitly
+advanced above; the earlier multiplayer-first pause is superseded for these
+lanes. Historical release receipts below retain their original scope.
+M04 roofs, combat feedback, campaign results and
 the first cast increment shipped in v0.71.0; loading-first shipped in v0.71.1.
 The dated [v0.73.0 receipt](evidence/release-v073-20261004.md) records the M09
 prototype, refined Pistol and hatless civilian. The preceding release checkpoint is
@@ -522,11 +556,15 @@ asset meets the [art bar](ART_STORY_BIBLE.md#north-star).
      M01 completion and onward save. The selected slice shipped with the combined
      main integration of [PR #348](https://github.com/blisspixel/fragr/pull/348).
 
-   Retain the private M11 native/save checkpoint and paused named-cast sources.
-   Close necessary presentation regressions; resume their broader production
-   when the active multiplayer slice has passed its own gates.
+   Resume the retained M11 native/save checkpoint against current controls and
+   protocol, complete its client/controller and prove carry, retry and departure.
+   In parallel, build the jeep's shared authoritative movement and prediction,
+   Holdfast's Conquest loop and the M14 vehicle mission's infantry fallback.
+   Motorcycle, boat and light-aircraft source candidates do not establish their
+   playable systems. Review each source before further paid stages.
 
-   *Why:* preserve reviewed work while avoiding a second campaign build queue.
+   *Why:* these are Nick's explicit October 6 priorities. Reusing the same
+   vehicle and multiplayer seams makes their integration testable together.
 3. **The feel layer.**
    - [Directional combat audio](plans/directional-combat-audio.md): near-miss
      cracks, a damage arc, occlusion. The first bounded slice shipped in v0.71.0

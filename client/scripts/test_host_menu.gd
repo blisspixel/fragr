@@ -93,7 +93,7 @@ func _run() -> void:
 		"ordinary menu activation starts exact first preset through canonical native flags")
 	_check(menu._root.get_node_or_null("JoinHosted") == null, "starting child is not presented as joinable")
 	var ready: Dictionary = {"version": 1, "kind": "arena", "url": "ws://127.0.0.1:16867", "listen": "0.0.0.0:16867",
-		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "bot_policy": "none", "fill_target": 0, "gameplay_version": 37}
+		"map_id": 4, "mode": "sabotage", "five_vs_five": true, "bots": 0, "bot_policy": "none", "fill_target": 0, "gameplay_version": LocalHost.GAMEPLAY_VERSION}
 	child.output = (JSON.stringify(ready) + "\n").to_ascii_buffer()
 	owner._process(0)
 	await process_frame

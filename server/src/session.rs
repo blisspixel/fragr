@@ -753,6 +753,7 @@ impl GameSession {
                 .cloned(),
         );
         driven.extend(controllers.iter().map(|bot| bot.player_id));
+        self.state.update_bot_senses(&controllers);
         let enemies = self.state.enemy_intents();
         driven.extend(enemies.iter().map(|(id, _)| *id));
         let companion = self.state.m02_companion_intent();
@@ -833,6 +834,7 @@ impl GameSession {
                     action,
                     self.state.tick,
                 );
+            let action = bot.guard_sensed_action(&self.state, action);
             self.state.set_action(bot.player_id, action);
         }
 
@@ -1050,6 +1052,7 @@ pub struct DeliveryStats {
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
+    pub replaced_worlds: u64,
 }
 
 fn queue_for_client(
@@ -1061,13 +1064,14 @@ fn queue_for_client(
         return false;
     }
     match client.tx.try_send(msg.clone()) {
-        Ok(()) => {
+        Ok(queued) => {
             stats.queued_messages += 1;
+            stats.replaced_worlds += u64::from(queued == crate::net::Queued::ReplacedWorld);
             stats.queue_high_water = stats.queue_high_water.max(client.queue_depth());
             true
         }
         Err(error) => {
-            if matches!(error, tokio::sync::mpsc::error::TrySendError::Full(_)) {
+            if error == crate::net::QueueError::Full {
                 stats.queue_overflows += 1;
                 tracing::warn!(client = %client.id, "outbound queue full; disconnecting slow client");
             }
@@ -1167,9 +1171,9 @@ mod session_tests {
     #[tokio::test]
     async fn only_successful_initial_geometry_delivery_enables_broadcasts() {
         let ids = [Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4()];
-        let (pending_tx, mut pending_rx) = tokio::sync::mpsc::channel(2);
-        let (active_tx, mut active_rx) = tokio::sync::mpsc::channel(2);
-        let (closed_tx, closed_rx) = tokio::sync::mpsc::channel(2);
+        let (pending_tx, mut pending_rx) = crate::net::outbound_channel(2);
+        let (active_tx, mut active_rx) = crate::net::outbound_channel(2);
+        let (closed_tx, closed_rx) = crate::net::outbound_channel(2);
         drop(closed_rx);
         let clients = Arc::new(Mutex::new(vec![
             ClientSession::new(ids[0], pending_tx, protocol::GAMEPLAY_VERSION),
@@ -1244,8 +1248,8 @@ mod session_tests {
     async fn full_initial_queue_closes_only_that_client_and_keeps_healthy_order() {
         let slow_id = Uuid::new_v4();
         let healthy_id = Uuid::new_v4();
-        let (slow_tx, mut slow_rx) = tokio::sync::mpsc::channel(1);
-        let (healthy_tx, mut healthy_rx) = tokio::sync::mpsc::channel(4);
+        let (slow_tx, mut slow_rx) = crate::net::outbound_channel(1);
+        let (healthy_tx, mut healthy_rx) = crate::net::outbound_channel(4);
         let clients = Arc::new(Mutex::new(vec![
             ClientSession::new(slow_id, slow_tx, protocol::GAMEPLAY_VERSION),
             ClientSession::new(healthy_id, healthy_tx, protocol::GAMEPLAY_VERSION),
@@ -1299,8 +1303,8 @@ mod session_tests {
     async fn active_slow_watcher_overflow_is_counted_once() {
         let slow_id = Uuid::new_v4();
         let healthy_id = Uuid::new_v4();
-        let (slow_tx, _slow_rx) = tokio::sync::mpsc::channel(1);
-        let (healthy_tx, mut healthy_rx) = tokio::sync::mpsc::channel(4);
+        let (slow_tx, _slow_rx) = crate::net::outbound_channel(1);
+        let (healthy_tx, mut healthy_rx) = crate::net::outbound_channel(4);
         let clients = Arc::new(Mutex::new(vec![
             ClientSession::new(slow_id, slow_tx, protocol::GAMEPLAY_VERSION),
             ClientSession::new(healthy_id, healthy_tx, protocol::GAMEPLAY_VERSION),

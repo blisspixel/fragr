@@ -107,6 +107,9 @@ static func apply_environment(environment: Environment, preferences: FragrSettin
 ## Scoped to a subtree so a detached match scene (harness fixtures) works too.
 static func apply_practicals(scope: Node, preferences: FragrSettings) -> void:
 	var quality: int = int(preferences.get_value("video", "quality"))
+	for water: Node in scope.find_children("IslandWater", "Node3D", true, false):
+		if water is IslandWater:
+			water.apply_quality(quality)
 	for node: Node in scope.find_children("*", "Light3D", true, false):
 		if not node.is_in_group(ArenaSky.PRACTICAL_GROUP):
 			continue

@@ -9,6 +9,7 @@ var player_color: Color = Color.WHITE
 var hit_flash_timer: float = 0.0
 var idle_anim_timer: float = 0.0
 var current_weapon: String = ""
+var vehicle_seated: bool = false
 var behavior: String = ""
 var is_highlighted: bool = false
 var is_local_fp: bool = false
@@ -278,6 +279,8 @@ func _process(delta: float) -> void:
 	# Motion feedback follows the rendered fighter, including observed agents.
 	# Discontinuities and dead bodies are not walking strides.
 	presentation_speed = predicted_speed if prediction_active and hp > 0 else (travel / delta if delta > 0.0 and travel < 2.0 and hp > 0 else 0.0)
+	if vehicle_seated:
+		presentation_speed = 0.0
 	# The pawn's muzzle and weapon sprites hang off its local +X, so that is
 	# what has to point where the server is sending it.
 	rotation.y = ServerYaw.pawn_rotation_y(presentation_yaw)
@@ -569,8 +572,33 @@ func _update_notary_shadow() -> void:
 
 ## Alternates the third-person flash left and right from one shot to the next.
 var _flash_mirrored: bool = false
+var _fire_feedback_revision: int = 0
+
+## A rejected speculative local shot can stop its remaining sound and light.
+## This path never changes the pawn's authoritative health or equipment.
+func cancel_fire_feedback() -> void:
+	_fire_feedback_revision += 1
+	if fire_sound != null:
+		fire_sound.stop()
+	if _cycle_timer != null:
+		_cycle_timer.stop()
+	if cycle_sound != null:
+		cycle_sound.stop()
+	if muzzle != null:
+		muzzle.visible = false
+	if muzzle_glow != null:
+		muzzle_glow.light_energy = 0.0
+
+## Mounted fire uses the gun's resolved world muzzle, never the carried gun.
+func play_mounted_fire() -> void:
+	if fire_sound != null:
+		fire_sound.stream = fire_streams.get("Flechette")
+		if fire_sound.stream != null:
+			fire_sound.play()
 
 func show_muzzle_flash(weapon: String):
+	_fire_feedback_revision += 1
+	var revision: int = _fire_feedback_revision
 	if is_campaign_enemy and campaign_actor.get("kind") == "notary":
 		# Its shutter and optic have their own server-driven presentation.
 		return
@@ -657,7 +685,7 @@ func show_muzzle_flash(weapon: String):
 	muzzle.visible = true
 	
 	await get_tree().create_timer(flash_time).timeout
-	if is_instance_valid(muzzle):
+	if is_instance_valid(muzzle) and revision == _fire_feedback_revision:
 		muzzle.visible = false
 		muzzle.scale = Vector3.ONE
 		if muzzle_glow:

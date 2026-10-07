@@ -1523,8 +1523,13 @@ fn rule_bots_and_agents_leave_teammates_alone() {
     place(&mut state, bot, 0.0, 0.0);
     place(&mut state, mate, 3.0, 0.0);
     let controller = crate::sim::BotController::new(bot, crate::sim::BotBehavior::Aggressive);
-    let action = controller.update(&state);
-    assert!(!action.fire && !action.forward);
+    for tick in 0..2 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&controller));
+    }
+    let intent = controller.intent(&state);
+    assert!(!intent.action.fire);
+    assert!(intent.goal.is_none_or(|goal| !goal.combat));
     let snapshot = state.snapshot();
     let me = snapshot.players.iter().find(|p| p.id == bot).unwrap();
     let other = snapshot.players.iter().find(|p| p.id == mate).unwrap();

@@ -198,7 +198,7 @@ func _run() -> void:
 	_check(offer_note != null and offer_note.visible and offer_note.text == ReleaseInstall.OFFER_NOTE, "the offer says the latest build may still be older")
 	_check(menu.get_node_or_null("ReleaseFetch") == null, "the offer does not download until it is chosen")
 	_check(column.get_node("Join").get_index() < offer.get_index() and offer.get_index() < column.get_node("SaveHost").get_index(), "the install offer follows Join")
-	versioned["gameplay_version"] = 37
+	versioned["gameplay_version"] = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
 	versioned["geometry_version"] = 9
 	menu._apply_status(versioned)
 	_check(offer.visible and not menu._watch_button.disabled and not menu._join_button.disabled, "a newer geometry version offers the install and does not block join")
@@ -206,7 +206,7 @@ func _run() -> void:
 	versioned.erase("geometry_version")
 	menu._apply_status(versioned)
 	_check(not offer.visible and not offer_note.visible, "an older server does not offer an install")
-	versioned["gameplay_version"] = 37
+	versioned["gameplay_version"] = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
 	versioned["geometry_version"] = 2
 	menu._apply_status(versioned)
 	_check(not menu._match_line.text.contains("different version"), "a matching version stays quiet")

@@ -13,7 +13,7 @@ and the map version in observations, and closes its MCP game session if a map
 has unsupported or invalid geometry, or the server sends malformed JSON.
 Ground-filled legacy maps remain readable.
 
-The adapter sends the current gameplay contract, 37. A shared arcade room
+The adapter sends the server crate's current gameplay contract. A shared arcade room
 requires that exact hello. M07 Declared Goods requires 32
 for its strict town and crater envelope. M08 Custodian of Record requires 31
 for its strict archive envelope. A map that grants the Sniper Rifle or places a
@@ -46,6 +46,16 @@ or `severe`) and tuning `revision` (currently 3). Humans, agents and spectators
 share these rules. Unknown revisions or changing rules fail validation, including
 across a same-mission geometry update. Difficulty does not alter MCP budgets or
 agent control frequency. Use matching builds when connecting to campaign servers.
+
+`observe` retains registered `map.water_regions` and snapshot `vehicles` for
+island movement. Vehicle occupancy comes from each record's `driver` and
+`gunner`, not a separate player field. `act.interact` enters or exits a nearby
+stopped craft; release it before pressing again. `act.seat` accepts `driver`
+or `gunner` in a stopped jeep or boat. Forward/back control throttle, left/right
+steer, and jump brakes ground or surface vehicles. In the single-seat light
+aircraft, jump climbs and duck descends; the aircraft has no weapon. Vehicle
+controls stay on the same Action channel. MCP remains a slow decision tool;
+a local tick controller should hold and adjust movement between decisions.
 
 `act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter`, `rail` and
 `sniper` for `weapon_swap`; the server rejects unowned choices. The Sniper

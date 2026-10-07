@@ -1,3 +1,5 @@
+mod bot_senses;
+mod conquest;
 pub(crate) mod contact;
 mod ctf;
 #[cfg(test)]
@@ -9,6 +11,7 @@ mod playlist;
 pub(crate) mod repeater;
 pub mod sabotage;
 pub mod traveling_shot;
+mod vehicle;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
@@ -38,6 +41,7 @@ pub const PLAYER_RADIUS: f32 = crate::movement::RADIUS;
 
 /// One resolved ray. A scatter blast resolves several from the same origin.
 struct ResolvedPellet {
+    vehicle: Option<u32>,
     target: Option<usize>,
     solid: Option<usize>,
     distance: f32,
@@ -46,6 +50,7 @@ struct ResolvedPellet {
 }
 
 struct ResolvedShot {
+    vehicle_id: Option<u32>,
     weapon: WeaponType,
     origin: [f32; 3],
     pellets: Vec<ResolvedPellet>,
@@ -118,17 +123,19 @@ pub enum MapKind {
     Sector9 = 4,
     ReclamationGulch = 5,
     TripointWorks = 6,
+    HoldfastAtoll = 7,
 }
 
 impl MapKind {
     /// The roster in rotation order.
-    pub const ALL: [MapKind; 6] = [
+    pub const ALL: [MapKind; 7] = [
         MapKind::ArenaDuel,
         MapKind::ComplianceYard,
         MapKind::Directive17,
         MapKind::Sector9,
         MapKind::ReclamationGulch,
         MapKind::TripointWorks,
+        MapKind::HoldfastAtoll,
     ];
 
     pub fn from_cli(raw: &str) -> Option<Self> {
@@ -143,6 +150,7 @@ impl MapKind {
             }
             "5" | "gulch" | "reclamation" | "reclamation-gulch" => Some(Self::ReclamationGulch),
             "6" | "tripoint" | "works" | "tripoint-works" => Some(Self::TripointWorks),
+            "7" | "holdfast" | "atoll" | "holdfast-atoll" => Some(Self::HoldfastAtoll),
             _ => None,
         }
     }
@@ -164,6 +172,7 @@ impl MapKind {
             Self::Sector9 => "Sector 9 Transit Hall",
             Self::ReclamationGulch => "Reclamation Gulch",
             Self::TripointWorks => "Tripoint Works",
+            Self::HoldfastAtoll => "Holdfast Atoll",
         }
     }
 
@@ -176,6 +185,7 @@ impl MapKind {
             Self::Sector9 => "Freight interchange. Two halls, one door between them.",
             Self::ReclamationGulch => "Recovery site. Two compounds, open ground, two ridges.",
             Self::TripointWorks => "Three compounds, three capture yards, a plaza nobody holds.",
+            Self::HoldfastAtoll => "Coastal roads, five capture sites and a contested airfield.",
         }
     }
 
@@ -257,6 +267,9 @@ fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
 /// every sample is blocked the origin is the fallback, which is why the origin
 /// being walkable is a rule the map validator enforces rather than a habit.
 pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
+    if map == MapKind::HoldfastAtoll {
+        return crate::maps::holdfast::spawn(angle);
+    }
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
     for _ in 0..16 {
@@ -530,6 +543,7 @@ pub struct GameState {
     pub rng_state: u64,
     pub tick: u64,
     pub players: Vec<Player>,
+    pub vehicles: Vec<crate::vehicles::Jeep>,
     pub events: Vec<GameEvent>,
     pub bots: Vec<BotController>,
     pub scores: HashMap<Uuid, u32>,
@@ -583,6 +597,7 @@ pub struct GameState {
     flags: Option<[ctf::Flag; 2]>,
     /// The Sabotage match on a Sabotage server; None in every other mode.
     pub(crate) sabotage: Option<sabotage::Sabotage>,
+    pub(crate) conquest: Option<crate::protocol::ConquestState>,
     /// The golden Railgun when the Golden Rail mutator is on.
     pub golden_rail: Option<GoldenRail>,
     reactions: ReactionState,
@@ -622,6 +637,7 @@ pub struct Player {
     pub role: Role,
     pub weapon: WeaponType,
     pub inventory: crate::inventory::Inventory,
+    bot_senses: bot_senses::BotSenses,
     /// Tick of last successful speak (rate limit).
     pub last_speak_tick: Option<u64>,
     /// Continuance Compliance Drone (no respawn, distinct silhouette).
@@ -664,6 +680,7 @@ impl Player {
         self.jump_requested || self.pending_action.jump
     }
     fn reset_movement_baseline(&mut self) {
+        self.bot_senses = bot_senses::BotSenses::default();
         self.movement_epoch = self.movement_epoch.saturating_add(1);
         self.last_movement_tick = None;
         self.last_move_vx = 0.0;
@@ -748,6 +765,7 @@ impl Player {
                 WeaponType::default()
             },
             inventory: crate::inventory::Inventory::new(policy),
+            bot_senses: bot_senses::BotSenses::default(),
             last_speak_tick: None,
             is_boss: false,
             killstreak: 0,
@@ -1025,6 +1043,7 @@ impl GameState {
         self.ended_mvp_frags = None;
         self.team_scores = TeamScores::default();
         self.reset_ctf();
+        self.reset_conquest();
         self.reactions = ReactionState::default();
 
         let lives = self.config.rules.lives();
@@ -1162,6 +1181,10 @@ impl GameState {
             _ if self.config.rules.mode() == crate::protocol::GameMode::Ctf => {
                 self.capture_scores.leader()
             }
+            _ if self.conquest.is_some() => self
+                .conquest
+                .as_ref()
+                .and_then(|state| state.tickets.leader()),
             _ if teams => self.team_scores.leader(),
             _ => None,
         };
@@ -1180,6 +1203,13 @@ impl GameState {
                 "HOST: FLAG ROUND. UNION {} : {} FREE COALITION.",
                 self.capture_scores.union, self.capture_scores.coalition
             ),
+            _ if self.conquest.is_some() => {
+                let tickets = self.conquest.as_ref().expect("Conquest state").tickets;
+                format!(
+                    "HOST: ISLAND SECURED. UNION {} : {} FREE COALITION TICKETS.",
+                    tickets.union, tickets.coalition
+                )
+            }
             _ if teams => crate::protocol::team_round_host_line(winning_team, self.team_scores),
             (Some(Standing::Fighter(survivor)), _, _) => {
                 crate::protocol::last_fighter_host_line(survivor.as_deref())
@@ -1246,6 +1276,10 @@ impl GameState {
                         }
                     ))
                     .unwrap_or_default(),
+                crate::protocol::GameMode::Conquest => format!(
+                    ", tickets {:?}",
+                    self.conquest.as_ref().map(|state| state.tickets)
+                ),
                 crate::protocol::GameMode::Ffa => String::new(),
             }
         );
@@ -1434,6 +1468,9 @@ impl GameState {
     }
 
     pub fn remove_player(&mut self, id: Uuid) {
+        for jeep in &mut self.vehicles {
+            jeep.release(id);
+        }
         self.drop_flag_from(id);
         self.drop_charge_from(id);
         if let Some(player) = self.players.iter().find(|p| p.id == id) {
@@ -1491,6 +1528,7 @@ impl GameState {
             // Continuous input takes the newest value. A discrete weapon choice
             // must survive later frames until the simulation consumes it.
             action.weapon_swap = action.weapon_swap.or(player.pending_action.weapon_swap);
+            action.seat = action.seat.or(player.pending_action.seat);
             player.jump_requested |= action.jump;
             player.interaction_requested |= action.interact && !player.pending_action.interact;
             player.throw_requested |= action.throw_grenade && !player.pending_action.throw_grenade;
@@ -1556,6 +1594,7 @@ impl GameState {
             solids: self.map.solids(),
             rules: self.wire_rules(),
             sabotage: self.wire_sabotage_map(),
+            water_regions: self.map.water_regions().to_vec(),
         }
     }
 
@@ -1568,6 +1607,7 @@ impl GameState {
     pub fn apply_config(&mut self, config: MatchConfig) {
         self.config = config;
         self.reset_ctf();
+        self.reset_conquest();
         self.reset_sabotage();
         self.reset_pickups();
     }
@@ -1756,6 +1796,23 @@ impl GameState {
     /// Resolve the active frame against one immutable world. Movement and shots
     /// must consume the same volumes, including their lower vertical bounds.
     fn tick_active(&mut self, dt: f32, arena: &crate::movement::Arena) {
+        self.tick_vehicles(dt, arena);
+        let occupied: Vec<Uuid> = self
+            .vehicles
+            .iter()
+            .flat_map(|v| [v.state.driver, v.state.gunner])
+            .flatten()
+            .collect();
+        let vehicle_arena = (!self.vehicles.is_empty()).then(|| {
+            let mut world = arena.clone();
+            world.solids.extend(
+                self.vehicles
+                    .iter()
+                    .map(|v| crate::vehicles::hull(&v.state)),
+            );
+            world
+        });
+        let movement_arena = vehicle_arena.as_ref().unwrap_or(arena);
         self.resolve_stances(arena);
         let mut respawn_ids = Vec::new();
         let contact_before = self.contact_bodies();
@@ -1846,6 +1903,10 @@ impl GameState {
                 player.pitch = pitch;
             }
 
+            if occupied.contains(&player.id) {
+                player.last_movement_tick = None;
+                continue;
+            }
             let move_speed = move_speed * crate::encounters::gait(player.campaign);
             if crate::combat::is_notary(player.campaign) {
                 continue;
@@ -1863,7 +1924,7 @@ impl GameState {
             } else {
                 crate::combat::target_height(player.campaign)
             };
-            let moved = crate::movement::live_step_with_height(
+            let moved = crate::movement::water::live_step(
                 crate::movement::MoveState {
                     x: player.x,
                     z: player.z,
@@ -1884,8 +1945,9 @@ impl GameState {
                 },
                 travel,
                 dt,
-                arena,
+                movement_arena,
                 body_height,
+                self.map.water_regions(),
             );
             let held = muster.zip(player.team).is_some_and(|(layout, team)| {
                 player.contestant()
@@ -1926,6 +1988,7 @@ impl GameState {
         // shot on the same frame can still trade its already-landed contact.
         let crawler_contacts = self.crawler_contacts(&before, arena);
         self.resolve_player_contacts(contact_before, dt, arena);
+        self.follow_vehicle_seats();
         let fallen: Vec<usize> = self
             .players
             .iter()
@@ -2033,6 +2096,23 @@ impl GameState {
         let mut hits = Vec::new();
         let mut jammer_launches = Vec::new();
         for i in 0..self.players.len() {
+            if let Some((index, seat)) = self.vehicle_seat(self.players[i].id) {
+                if seat == crate::protocol::VehicleSeat::Gunner
+                    && self.players[i].hp > 0
+                    && self.players[i].pending_action.fire
+                    && self.vehicles[index].fire(self.tick)
+                {
+                    let original = self.players[i].weapon;
+                    self.players[i].weapon = WeaponType::Flechette;
+                    self.players[i].statistics.attack(WeaponType::Flechette);
+                    let mut shot =
+                        self.check_hitscan(i, arena, &civilian_shot_bodies, &tableau_shot_boxes);
+                    self.players[i].weapon = original;
+                    shot.vehicle_id = Some(self.vehicles[index].state.id);
+                    hits.push((i, shot, None));
+                }
+                continue;
+            }
             let player = &mut self.players[i];
 
             if player.respawn_timer.is_some()
@@ -2090,6 +2170,7 @@ impl GameState {
         }
 
         let mut mast_hits = Vec::new();
+        let mut vehicle_hits = Vec::new();
         for (shooter_idx, shot, photo_target) in hits {
             let weapon = shot.weapon;
             if let Some(original) = photo_target {
@@ -2121,6 +2202,13 @@ impl GameState {
             // cover or run out of range share one miss result after them.
             let mut groups: Vec<(Option<usize>, Vec<ResolvedPellet>)> = Vec::new();
             for pellet in shot.pellets {
+                if let Some(id) = pellet.vehicle {
+                    vehicle_hits.push((
+                        id,
+                        weapon.damage_at(pellet.distance),
+                        self.players[shooter_idx].id,
+                    ));
+                }
                 if let (Some(solid), ShotImpact::Solid { normal }) = (pellet.solid, &pellet.impact)
                 {
                     mast_hits.push((
@@ -2171,6 +2259,7 @@ impl GameState {
                     })
                     .sum::<i32>();
                 let trace = ShotTrace {
+                    vehicle_id: shot.vehicle_id,
                     weapon,
                     origin: shot.origin,
                     end: members[0].end,
@@ -2244,6 +2333,9 @@ impl GameState {
             self.damage_m03_mast(shooter, solid, end, normal, damage);
             self.damage_m08_node(shooter, solid, end, normal, damage);
         }
+        for (id, damage, attacker) in vehicle_hits {
+            self.damage_vehicle(id, damage, Some(attacker));
+        }
         for (attacker, victim, trace) in crawler_contacts {
             let enforcer = matches!(
                 self.players[attacker].campaign,
@@ -2288,6 +2380,7 @@ impl GameState {
         self.tick_traveling_shots(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
         // Last: every death this tick, including traveling shots, counts.
         self.tick_sabotage();
+        self.tick_conquest();
     }
 
     fn crawler_contacts(
@@ -2393,6 +2486,7 @@ impl GameState {
                         [1.0, 0.0, 0.0]
                     };
                     let trace = ShotTrace {
+                        vehicle_id: None,
                         weapon: WeaponType::Fists,
                         origin,
                         end,
@@ -2629,6 +2723,7 @@ impl GameState {
         }
         if died {
             self.drop_flag_from(target_id);
+            self.conquest_death(victim_team);
             self.drop_charge_from(target_id);
             self.drop_primary_from(victim_idx);
         }
@@ -2779,6 +2874,7 @@ impl GameState {
             })
             .collect();
         ResolvedShot {
+            vehicle_id: None,
             weapon,
             origin,
             pellets,
@@ -2797,6 +2893,7 @@ impl GameState {
         let mut closest_dist = weapon.range_units().min(HITSCAN_RANGE);
         let mut cover_distance = f32::INFINITY;
         let mut cover_solid = None;
+        let mut cover_vehicle = None;
         let mut impact = ShotImpact::Range;
         if let Some(distance) = ray.floor(closest_dist) {
             cover_distance = distance;
@@ -2809,6 +2906,19 @@ impl GameState {
                 if hit.distance < cover_distance {
                     cover_distance = hit.distance;
                     cover_solid = Some(index);
+                    impact = ShotImpact::Solid { normal: hit.normal };
+                }
+            }
+        }
+        for jeep in &self.vehicles {
+            if jeep.state.seat(self.players[shooter_idx].id).is_some() {
+                continue;
+            }
+            if let Some(hit) = crate::vehicles::ray_hit(&jeep.state, ray, closest_dist) {
+                if hit.distance < cover_distance {
+                    cover_distance = hit.distance;
+                    cover_solid = None;
+                    cover_vehicle = Some(jeep.state.id);
                     impact = ShotImpact::Solid { normal: hit.normal };
                 }
             }
@@ -2857,6 +2967,11 @@ impl GameState {
         }
         let distance = closest_dist.min(cover_distance);
         ResolvedPellet {
+            vehicle: if matches!(impact, ShotImpact::Solid { .. }) {
+                cover_vehicle
+            } else {
+                None
+            },
             target: closest_idx,
             solid: if matches!(impact, ShotImpact::Solid { .. }) {
                 cover_solid
@@ -3026,6 +3141,7 @@ impl GameState {
         };
 
         Snapshot {
+            vehicles: self.vehicle_facts(),
             tick: self.tick,
             players: self
                 .players
@@ -3190,6 +3306,7 @@ impl GameState {
                     .unwrap_or(crate::rules::CTF_CAPTURE_LIMIT),
             ),
             sabotage,
+            conquest: self.conquest.clone(),
         }
     }
 
@@ -3513,6 +3630,7 @@ impl GameState {
             inventory: crate::inventory::Inventory::new(
                 crate::protocol::EquipmentPolicy::FullArsenal,
             ),
+            bot_senses: bot_senses::BotSenses::default(),
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
@@ -3598,6 +3716,7 @@ impl GameState {
     }
 
     fn reset_pickups(&mut self) {
+        self.reset_vehicles();
         self.pickups = self.map.pickups();
         self.golden_rail = None;
         if self.map.is_campaign() {
@@ -3843,7 +3962,7 @@ impl GameState {
             id,
             name: BOSS_NAME.to_string(),
             x: 0.0,
-            y: 2.2,
+            y: 2.2 + self.current_arena().support_height(0.0, 0.0, f32::INFINITY),
             z: 0.0,
             yaw: 0.0,
             pitch: 0.0,
@@ -3867,6 +3986,7 @@ impl GameState {
             inventory: crate::inventory::Inventory::new(
                 crate::protocol::EquipmentPolicy::FullArsenal,
             ),
+            bot_senses: bot_senses::BotSenses::default(),
             last_speak_tick: None,
             is_boss: true,
             killstreak: 0,
@@ -4094,6 +4214,7 @@ impl Default for GameState {
             rng_state: 0x2545_F491_4F6C_DD1D,
             tick: 0,
             players: Vec::new(),
+            vehicles: Vec::new(),
             events: Vec::new(),
             bots: Vec::new(),
             scores: HashMap::new(),
@@ -4127,6 +4248,7 @@ impl Default for GameState {
             capture_scores: TeamScores::default(),
             flags: None,
             sabotage: None,
+            conquest: None,
             golden_rail: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
@@ -4362,6 +4484,13 @@ impl BotController {
         }
         if state.sabotage.is_some() && bot.contestant() {
             return self.sabotage_intent(state, bot);
+        }
+
+        if state.conquest.is_some() && bot.contestant() {
+            return self.conquest_intent(state, bot);
+        }
+        if self.uses_senses(state, bot) {
+            return self.sensed_intent(state, bot);
         }
 
         let mut nearest_dist = f32::MAX;
@@ -4613,6 +4742,25 @@ impl BotController {
         target: &Player,
         nearest_dist: f32,
         angle_diff: f32,
+        action: Action,
+    ) -> BotIntent {
+        self.engage_at(
+            state,
+            bot,
+            [target.x, target.y - PLAYER_FLOOR_Y, target.z],
+            nearest_dist,
+            angle_diff,
+            action,
+        )
+    }
+
+    fn engage_at(
+        &self,
+        state: &GameState,
+        bot: &Player,
+        feet: [f32; 3],
+        nearest_dist: f32,
+        angle_diff: f32,
         mut action: Action,
     ) -> BotIntent {
         // Hold the role lane for the weapon in hand.
@@ -4747,10 +4895,7 @@ impl BotController {
 
         BotIntent {
             action,
-            goal: Some(crate::navigation::NavigationGoal {
-                feet: [target.x, target.y - PLAYER_FLOOR_Y, target.z],
-                combat: true,
-            }),
+            goal: Some(crate::navigation::NavigationGoal { feet, combat: true }),
         }
     }
 }

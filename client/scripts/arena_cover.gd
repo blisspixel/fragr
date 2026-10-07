@@ -52,6 +52,8 @@ func apply_map_info(info: Dictionary) -> void:
 	if venue.is_empty() and map_id in [1001, 1002, 1003]:
 		venue = "earth_yard" if map_id == 1003 else "earth_union"
 	var authored_materials: Dictionary[String, Material] = {}
+	if map_id == 7:
+		venue = "holdfast_atoll"
 	if not presentation.is_empty():
 		for surface: String in MapGeometry.SURFACES:
 			authored_materials[surface] = ArenaMaterials.authored(surface, venue)
@@ -59,10 +61,10 @@ func apply_map_info(info: Dictionary) -> void:
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
-	_build_shell(_half_extent)
+	_build_shell(_half_extent, 3.2 if venue == "holdfast_atoll" else BOUNDARY_HEIGHT)
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
-	if venue in ["moon_port", "moon_town", "common_carrier"]:
+	if venue in ["moon_port", "moon_town", "common_carrier", "holdfast_atoll"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:
@@ -76,7 +78,16 @@ func apply_map_info(info: Dictionary) -> void:
 		var material: Material = null
 		if not presentation.is_empty():
 			material = authored_materials[presentation["solids"][index]]
+		if venue == "holdfast_atoll":
+			material = HoldfastScenery.material_for(solids[index], index)
 		_add_solid(solids[index], material)
+	if venue == "holdfast_atoll":
+		var coast: HoldfastScenery = HoldfastScenery.new()
+		add_child(coast)
+		coast.build(info)
+		var ocean: IslandWater = IslandWater.new()
+		add_child(ocean)
+		ocean.build(info)
 	if venue == "common_carrier":
 		ShipFurnishings.build(self, info, _solid_views)
 	var marked_terminal: int = -1
@@ -107,7 +118,7 @@ func half_extent() -> float:
 ## The floor and the four boundary walls, sized from the map. Without this a
 ## two hundred and eighty metre map is drawn inside whatever square the scene
 ## file happened to have in it.
-func _build_shell(half: float) -> void:
+func _build_shell(half: float, boundary_height: float = BOUNDARY_HEIGHT) -> void:
 	var floor_mesh: PlaneMesh = PlaneMesh.new()
 	floor_mesh.size = Vector2(half * 2.0, half * 2.0)
 	var floor_node: MeshInstance3D = MeshInstance3D.new()
@@ -122,16 +133,16 @@ func _build_shell(half: float) -> void:
 		var sign: float = -1.0 if side % 2 == 0 else 1.0
 		var mesh: BoxMesh = BoxMesh.new()
 		if along_x:
-			mesh.size = Vector3(half * 2.0, BOUNDARY_HEIGHT, 1.0)
+			mesh.size = Vector3(half * 2.0, boundary_height, 1.0)
 		else:
-			mesh.size = Vector3(1.0, BOUNDARY_HEIGHT, half * 2.0)
+			mesh.size = Vector3(1.0, boundary_height, half * 2.0)
 		var node: MeshInstance3D = MeshInstance3D.new()
 		node.name = "MapBoundary%d" % side
 		node.mesh = mesh
 		if along_x:
-			node.position = Vector3(0.0, BOUNDARY_HEIGHT * 0.5, sign * half)
+			node.position = Vector3(0.0, boundary_height * 0.5, sign * half)
 		else:
-			node.position = Vector3(sign * half, BOUNDARY_HEIGHT * 0.5, 0.0)
+			node.position = Vector3(sign * half, boundary_height * 0.5, 0.0)
 		node.material_override = _materials[1]
 		add_child(node)
 

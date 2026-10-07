@@ -23,6 +23,7 @@ pub struct RunMetrics {
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
+    pub replaced_worlds: u64,
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -32,6 +33,7 @@ pub struct RunMetricsReport {
     pub queued_messages: u64,
     pub queue_high_water: usize,
     pub queue_overflows: u64,
+    pub replaced_worlds: u64,
 }
 
 impl RunMetrics {
@@ -42,6 +44,7 @@ impl RunMetrics {
             queued_messages: self.queued_messages,
             queue_high_water: self.queue_high_water,
             queue_overflows: self.queue_overflows,
+            replaced_worlds: self.replaced_worlds,
         }
     }
 
@@ -49,6 +52,7 @@ impl RunMetrics {
         self.queued_messages += delivery.queued_messages;
         self.queue_high_water = self.queue_high_water.max(delivery.queue_high_water);
         self.queue_overflows += delivery.queue_overflows;
+        self.replaced_worlds += delivery.replaced_worlds;
     }
 }
 
@@ -211,6 +215,14 @@ async fn run_server_impl(
         return Err(
             "sabotage requires a map with validated sites (Sector 9) and no rotation".into(),
         );
+    }
+    if options
+        .match_config
+        .as_ref()
+        .is_some_and(|config| config.rules.mode() == crate::protocol::GameMode::Conquest)
+        && (rotate || options.authored.is_some() || map != crate::sim::MapKind::HoldfastAtoll)
+    {
+        return Err("conquest requires Holdfast Atoll and no rotation".into());
     }
     if (options.difficulty.is_some() || options.campaign_run) && options.authored.is_none() {
         return Err("difficulty requires an authored mission".into());

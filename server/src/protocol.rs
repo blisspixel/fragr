@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 mod actors;
 mod body;
+mod conquest;
 mod decoration;
 mod explosive;
 mod loadout;
@@ -11,6 +12,7 @@ mod m05;
 mod m06;
 mod m07;
 mod m08;
+mod water;
 pub(crate) use m08::M08NeutralLayout;
 mod moon_residents;
 pub(crate) use moon_residents::moon_residents;
@@ -21,11 +23,13 @@ mod rules;
 mod sabotage;
 mod statistics;
 mod status;
+mod vehicle;
 pub use actors::{
     hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase,
     AUDITOR_REPAIRS,
 };
 pub use body::BodyKind;
+pub use conquest::{CapturePoint, ConquestState};
 pub use decoration::{
     validate_decorations, MapDecoration, MapDecorationKind, MapFace, MAX_MAP_DECORATIONS,
     MAX_MAP_LIGHTS,
@@ -83,6 +87,8 @@ pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
     RoleCounts, TickSummary, TickTiming, TrafficTotals, OPS_VERSION,
 };
+pub use vehicle::{VehicleKind, VehicleSeat, VehicleState, MAX_VEHICLES, VEHICLE_GAMEPLAY_VERSION};
+pub use water::{validate_water_regions, WaterRegion};
 
 /// Named scrap-league identity (Contested Frequency denies it exists).
 pub const MODE_NAME: &str = "Contested Frequency";
@@ -705,12 +711,15 @@ pub const REPEATER_GAMEPLAY_VERSION: u32 = 35;
 pub const M10_GAMEPLAY_VERSION: u32 = 36;
 /// Human magazines. The carried count stays the total, including rounds in
 /// each gun. Agents, rule bots and campaign enemies keep the single count.
-/// A shared arcade room requires the highest contract, which is this one.
+/// A shared arcade room requires the highest supported contract.
 pub const RELOAD_GAMEPLAY_VERSION: u32 = 37;
-/// Highest gameplay contract this binary speaks. A shared arcade room requires
-/// a hello equal to this value. A campaign mission keeps its own floor at or
-/// below it. A hello above it is refused on every door.
-pub const GAMEPLAY_VERSION: u32 = RELOAD_GAMEPLAY_VERSION;
+/// Capture sites and tickets on the original island venue.
+pub const CONQUEST_GAMEPLAY_VERSION: u32 = 40;
+/// Registered water, swimming, boat hulls and flyable light aircraft.
+pub const WATER_GAMEPLAY_VERSION: u32 = 41;
+/// Highest gameplay contract this binary speaks. Shared arcade rooms require
+/// this value. Campaign missions keep their own floor; higher hellos refuse.
+pub const GAMEPLAY_VERSION: u32 = WATER_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -823,6 +832,7 @@ mod geometry_tests {
         }
         assert!(validate_map_geometry(f32::NAN, &raised, 2).is_err());
         let message = ServerMessage::MapInfo {
+            water_regions: Vec::new(),
             rules: None,
             presentation: None,
             mission: None,
@@ -968,6 +978,9 @@ pub enum ServerMessage {
         /// Sabotage sites and callouts. Present only on a Sabotage server.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         sabotage: Option<SabotageMap>,
+        /// Bounded water volumes used by swimming, hulls and presentation.
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        water_regions: Vec<WaterRegion>,
     },
     Mission {
         tick: u64,
@@ -1113,6 +1126,9 @@ pub struct SetDisplayBehavior {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(deny_unknown_fields)]
 pub struct Action {
+    /// Optional vehicle seat request. It uses the ordinary action ingress.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seat: Option<VehicleSeat>,
     #[serde(default)]
     pub forward: bool,
     #[serde(default)]
@@ -1208,6 +1224,9 @@ pub struct ShotResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ShotTrace {
+    /// Resolved mount identity, retained when its gunner leaves or dies.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vehicle_id: Option<u32>,
     pub weapon: WeaponType,
     pub origin: [f32; 3],
     /// The first pellet of this result when `pellets` is present.
@@ -1269,6 +1288,8 @@ pub struct JammerDishState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub vehicles: Vec<VehicleState>,
     pub tick: u64,
     pub players: Vec<PlayerState>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1351,6 +1372,9 @@ pub struct Snapshot {
     /// The Sabotage round: phase, clock, charge, progress and score by round.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sabotage: Option<SabotageState>,
+    /// Capture sites and retained tickets on a Conquest server.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conquest: Option<ConquestState>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1745,6 +1769,7 @@ mod protocol_tests {
             target_hp_after: Some(75),
         };
         let snap = Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -1776,6 +1801,7 @@ mod protocol_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["shot_results"][0]["hit"], true);
@@ -1976,6 +2002,7 @@ mod protocol_tests {
             respawn_in: Some(80),
         };
         let snap = Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -2007,6 +2034,7 @@ mod protocol_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["pickups"][0]["id"], "pad_rail");

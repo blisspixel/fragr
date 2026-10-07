@@ -7,6 +7,8 @@ const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
+	if venue == "holdfast_atoll":
+		return
 	if venue == "common_carrier":
 		# An in-transit pressure ship has no surrounding industrial streets.
 		return

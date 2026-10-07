@@ -48,12 +48,50 @@ and environment cohesion in a played sequence, not only a selected still.
 |---|---|
 | Doom and Doom II | Immediately legible combat rooms, deliberate landmarks, useful secrets, animated surfaces and forceful weapon feedback |
 | Quake and early arena/LAN shooters | Real 3D routes, height changes, fast movement, readable weapon roles and the pleasure of watching or joining the same fight |
+| Halo-era equipment readability | Distinct weapon and item silhouettes, tangible magazines and mechanisms, purposeful technology and strong pickup recognition, interpreted through original circa-2070 equipment |
 | Boltgun and modern retro FPS craft | Detailed directional pixel actors, substantial poses, weight, directional light and cohesive sculpted spaces at playing distance |
 
 These are craft influences. fragr's people, institutions, equipment, places,
 marks, dialogue and layouts come from its own canon. The game is a real 3D
 shooter with deliberately pixelated surfaces and presentation. Low resolution
 does not excuse empty rooms, weak silhouettes, flat lighting or incoherent art.
+
+Nick reaffirmed on October 6 that this is a contemporary quality bar with a
+retro visual language. Models need convincing construction, deliberate material
+separation and motion; animation needs weight and clear transitions; lighting
+must shape rooms and preserve targets. Raw model paint, static wheels, rough
+grayboxes and a reduced texture size alone are intermediate work. Inspect
+ordinary movement and combat in the actual renderer before selecting an asset.
+Manual human reloads and crouching belong to the handling language, while fast
+movement, readable enemies and uninterrupted routes preserve the shooter pace.
+
+## Lives beyond the conflict
+
+Characters are easy company forced to defend their rights. Freedom has an
+everyday purpose: music, friendship, tinkering, meals, unremarkable work and
+choosing what comes next. Give each important person an interest, a relationship
+and a routine that would exist without the Union. Let allies disagree about
+methods while respecting each other's independence. Respect never requires
+obedience to the player or identical politics.
+
+Humor comes from particular people, friendship, circumstance and improvisation.
+Institutional absurdity remains useful, but oppression cannot carry every joke.
+Different people need different rhythms; quiet moments and grief retain room.
+Show consequences in a repaired room, a gathering resumed, an object kept or a
+person able to choose a different future. Preserve actual survivor outcomes.
+
+Keep the shooter moving. Environmental details, actions, brief exchanges and
+optional interactions should carry most of this work. No new morality system,
+mandatory conversation gate or repeated speech is implied. During character
+review, ask what this person cares about besides winning, how the player learns
+it, and whether the moment interrupts play. Review practical clothing, personal
+repairs, possessions and familiar gestures against the same answer, retaining
+the shared palette, readable silhouette and established identity.
+
+The first small proof uses the existing, skippable M10 departure card: Tern's
+off-duty music routine and disagreement over a battered recording give the
+quiet passenger hall a life beyond surviving the boarding party. This is text
+presentation, not a claim of new acted dialogue or recorded voice.
 
 ## Environment detail and water
 

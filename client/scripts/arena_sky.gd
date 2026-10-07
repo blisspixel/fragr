@@ -190,6 +190,8 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
+	if key.contains("holdfast"):
+		return holdfast()
 	if key.contains("common carrier"):
 		return carrier()
 	if key.contains("port of entry") or key.contains("passenger manifest"):
@@ -207,6 +209,17 @@ static func preset_for(map_name: String) -> Preset:
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()
 	return scrapyard()
+
+static func holdfast() -> Preset:
+	var preset: Preset = Preset.new(Color("367c9a"), Color("aec8bd"),
+		Color("558886"), Color("adbfaa"), 0.0014, Color("c3d3bd"), 0.68)
+	preset.key_color = Color("ffe4ad")
+	preset.key_energy = 1.25
+	preset.scene_fill_energy = 0.12
+	preset.view_fill_energy = 0.25
+	preset.contrast = 1.04
+	preset.saturation = 0.93
+	return preset
 
 static func carrier() -> Preset:
 	var preset: Preset = facility()

@@ -488,12 +488,12 @@ fn a_head_band_pellet_counts_even_when_the_shield_holds() {
 #[tokio::test]
 async fn record_delivery_respects_advertised_client_capability() {
     use std::sync::Arc;
-    use tokio::sync::{mpsc, Mutex};
+    use tokio::sync::Mutex;
     let (mut state, a, b) = arena();
     state.tick(0.05);
     let record = state.player_record(a).unwrap();
-    let (legacy_tx, mut legacy_rx) = mpsc::channel(4);
-    let (current_tx, mut current_rx) = mpsc::channel(4);
+    let (legacy_tx, mut legacy_rx) = crate::net::outbound_channel(4);
+    let (current_tx, mut current_rx) = crate::net::outbound_channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(a, legacy_tx, crate::protocol::CONTINUES_GAMEPLAY_VERSION),
         crate::net::ClientSession::new(b, current_tx, crate::protocol::GAMEPLAY_VERSION),
@@ -520,7 +520,7 @@ async fn record_delivery_respects_advertised_client_capability() {
 #[tokio::test]
 async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
     use std::sync::Arc;
-    use tokio::sync::{mpsc, Mutex};
+    use tokio::sync::Mutex;
     let mut record: PlayerRecord =
         serde_json::from_str(include_str!("../../../client/golden/player_record.json")).unwrap();
     record.scope = RecordScope::Mission {
@@ -531,8 +531,8 @@ async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
     };
     let legacy_bytes = serde_json::to_vec(&ServerMessage::Record(record.clone())).unwrap();
     record.mission_elapsed_ticks = Some(10);
-    let (legacy_tx, mut legacy_rx) = mpsc::channel(4);
-    let (current_tx, mut current_rx) = mpsc::channel(4);
+    let (legacy_tx, mut legacy_rx) = crate::net::outbound_channel(4);
+    let (current_tx, mut current_rx) = crate::net::outbound_channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(
             Uuid::from_u128(901),
@@ -571,12 +571,12 @@ async fn completion_elapsed_delivery_preserves_legacy_record_bytes() {
 #[tokio::test]
 async fn repeater_record_delivery_keeps_strict_legacy_shape_and_refuses_real_new_counts() {
     use std::sync::Arc;
-    use tokio::sync::{mpsc, Mutex};
+    use tokio::sync::Mutex;
     let (mut state, a, b) = arena();
     state.tick(0.05);
     let record = state.player_record(a).unwrap();
-    let (old_tx, mut old_rx) = mpsc::channel(4);
-    let (new_tx, mut new_rx) = mpsc::channel(4);
+    let (old_tx, mut old_rx) = crate::net::outbound_channel(4);
+    let (new_tx, mut new_rx) = crate::net::outbound_channel(4);
     let clients = Arc::new(Mutex::new(vec![
         crate::net::ClientSession::new(a, old_tx, crate::protocol::M09_GAMEPLAY_VERSION),
         crate::net::ClientSession::new(b, new_tx, crate::protocol::REPEATER_GAMEPLAY_VERSION),

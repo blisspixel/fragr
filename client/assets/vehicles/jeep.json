@@ -1,0 +1,18 @@
+{
+	"albedo_pixels": 512,
+	"length_m": 3.8,
+	"motion_acceptance": false,
+	"part_triangles": [
+		9478,
+		663,
+		709,
+		534,
+		578
+	],
+	"prepared_sha256": "39b79efea7ee6e31d6e0cd2e348c7d9b01853f268c1d608693a82a8d5b7fe4f3",
+	"schema": 1,
+	"source_geometry_retained": true,
+	"source_sha256": "18943cef37bc341b3f2ef5672e1a0777e200bd83749f27ab02005d7827f91200",
+	"triangles": 11962,
+	"width_m": 1.9
+}

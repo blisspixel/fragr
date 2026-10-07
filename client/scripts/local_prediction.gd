@@ -61,7 +61,7 @@ func configure_map(info: Dictionary) -> void:
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
-		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true)}
+		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true), "water_regions": info.get("water_regions", []).duplicate(true)}
 
 
 func reset(reason: String, clear_measurements: bool = false) -> void:
@@ -254,13 +254,7 @@ func record_action(action: Dictionary, now_usec: int, sent: bool) -> void:
 	if not action.has("yaw"):
 		reset("no_yaw")
 		return
-	var sample: Dictionary = {
-		"seq": int(action["seq"]), "forward": bool(action["forward"]),
-		"back": bool(action["back"]), "left": bool(action["left"]),
-		"right": bool(action["right"]), "jump": bool(action["jump"]),
-		"duck": bool(action.get("duck", false)),
-		"yaw": float(action["yaw"]),
-	}
+	var sample: Dictionary = _sample_action(action)
 	if first_recorded_seq < 0:
 		first_recorded_seq = int(sample["seq"])
 	samples.append(sample)
@@ -285,6 +279,14 @@ func record_action(action: Dictionary, now_usec: int, sent: bool) -> void:
 			state = _step(state, step)
 			step["state_after"] = state.duplicate()
 	advance(now_usec)
+
+## Vehicle replay retains its additional held descend bit through this seam;
+## history, sequence ordering and reconciliation remain shared.
+func _sample_action(action: Dictionary) -> Dictionary:
+	return {"seq": int(action["seq"]), "forward": bool(action["forward"]),
+		"back": bool(action["back"]), "left": bool(action["left"]),
+		"right": bool(action["right"]), "jump": bool(action["jump"]),
+		"duck": bool(action.get("duck", false)), "yaw": float(action["yaw"])}
 
 
 func _jump_unconsumed_before_latest_step() -> bool:
@@ -445,7 +447,7 @@ static func _contact_step(pose: Dictionary, step: Dictionary, world: Dictionary,
 	if ducking:
 		speed *= MoveStep.DUCK_SPEED_SCALE
 		height = MoveStep.DUCK_HEIGHT
-	var proposed: Dictionary = MoveStep.live_step_with_height(pose, step["input"], speed, live_dt, world, height)
+	var proposed: Dictionary = WaterMovement.live_step(pose, step["input"], speed, live_dt, world, height)
 	proposed["ducking"] = ducking
 	var reach: float = speed * live_dt
 	var bodies: Array[Dictionary] = _near_contacts(pose, reach, step.get("blockers", []))

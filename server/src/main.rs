@@ -78,7 +78,8 @@ struct Args {
     #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
-    /// Match mode: ffa, tdm, ctf, or sabotage. Capture the flag runs on Arena
+    /// Match mode: ffa, tdm, ctf, sabotage or conquest. Conquest uses Holdfast Atoll.
+    /// Capture the flag runs on Arena
     /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
@@ -319,6 +320,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if rules.mode() == fragr_server::protocol::GameMode::Ctf && args.frag_limit.is_some() {
         return Err("ctf uses --capture-limit, not --frag-limit".into());
     }
+    if rules.mode() == fragr_server::protocol::GameMode::Conquest && args.frag_limit.is_some() {
+        return Err("conquest is decided by tickets; --frag-limit does not apply".into());
+    }
     if rules.mode() != fragr_server::protocol::GameMode::Ctf && args.capture_limit.is_some() {
         return Err("--capture-limit requires --mode ctf".into());
     }
@@ -384,10 +388,15 @@ fn match_config(
     let defaults = fragr_server::sim::MatchConfig::default();
     let objective = rules.mode().objective();
     let sabotage = rules.mode() == fragr_server::protocol::GameMode::Sabotage;
+    let conquest = rules.mode() == fragr_server::protocol::GameMode::Conquest;
     Some(fragr_server::sim::MatchConfig {
         frag_limit: (!objective).then(|| frag_limit.unwrap_or_else(|| rules.default_frag_limit())),
         // Sabotage runs its own muster, live and charge clocks.
-        time_limit_ticks: (!sabotage).then_some(defaults.time_limit_ticks).flatten(),
+        time_limit_ticks: if conquest {
+            Some(20 * 60 * 10)
+        } else {
+            (!sabotage).then_some(defaults.time_limit_ticks).flatten()
+        },
         boss_spawn_ticks: (!no_round_events && !objective)
             .then_some(defaults.boss_spawn_ticks)
             .flatten(),
@@ -416,6 +425,24 @@ fn init_tracing(quiet: bool) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn conquest_match_config_has_ten_minute_ticket_clock_without_round_events() {
+        for no_round_events in [false, true] {
+            let rules = fragr_server::rules::RuleSet::new(
+                fragr_server::protocol::GameMode::Conquest,
+                &[],
+                false,
+            )
+            .unwrap();
+            let config = match_config(rules, None, no_round_events).unwrap();
+            assert_eq!(config.time_limit_ticks, Some(600 * 20));
+            assert_eq!(config.frag_limit, None);
+            assert_eq!(config.capture_limit, None);
+            assert_eq!(config.boss_spawn_ticks, None);
+            assert_eq!(config.compliance_ping_ticks, None);
+        }
+    }
     use futures_util::{SinkExt, StreamExt};
     use std::net::SocketAddr;
     use std::time::Duration;

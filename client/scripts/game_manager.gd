@@ -12,6 +12,12 @@ var players = {}
 var pickups = {}
 var jammer_dish_node = null
 var arena_flags: ArenaFlags = null
+var arena_vehicles: ArenaVehicles = null
+var vehicle_hud: VehicleHud = null
+var vehicle_prediction: VehiclePrediction = VehiclePrediction.new()
+var pending_seat: String = ""
+var arena_conquest: ArenaConquest = null
+var conquest_hud: ConquestHud = null
 ## Sabotage sites and charge; empty outside a Sabotage server.
 var arena_sabotage: ArenaSabotage = null
 var sabotage_layout: Dictionary = {}
@@ -74,6 +80,7 @@ const SPEAK_LINES = [
 var speak_line_index = 0
 var pending_weapon_swap = null
 var pending_jump: bool = false
+var pending_fire: bool = false
 var pending_interact: bool = false
 var interact_held: bool = false
 var pending_throw: bool = false
@@ -118,6 +125,10 @@ var incoming_feedback: IncomingCombatFeedback = null
 var grenade_effects: GrenadeEffects
 var auditor_channels: AuditorChannels
 var last_shot_tick: int = -1
+var local_fire: LocalFireFeedback = LocalFireFeedback.new()
+var _local_fire_allowed_last_frame: bool = false
+var _receiving_snapshot: bool = false
+var _reset_fire_after_snapshot: bool = false
 var mouse_capture: MouseCapture
 var local_match: LocalMatch
 var _leaving: bool = false
@@ -189,6 +200,16 @@ func _ready():
 	incoming_feedback.setup(hud)
 	shot_effects.name = "ShotEffects"
 	add_child(shot_effects)
+	arena_vehicles = ArenaVehicles.new()
+	arena_vehicles.name = "Vehicles"
+	add_child(arena_vehicles)
+	vehicle_hud = VehicleHud.new()
+	vehicle_hud.name = "VehicleHud"
+	hud.add_child(vehicle_hud)
+	arena_conquest = ArenaConquest.new()
+	add_child(arena_conquest)
+	conquest_hud = ConquestHud.new()
+	hud.add_child(conquest_hud)
 	grenade_effects = GrenadeEffects.new()
 	grenade_effects.name = "GrenadeEffects"
 	grenade_effects.thrown.connect(func(owner_id: String) -> void:
@@ -362,6 +383,16 @@ func _release_retired_environments() -> void:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle("map")
+	vehicle_prediction.configure_map(info)
+	pending_seat = ""
+	if arena_vehicles != null:
+		arena_vehicles.reset()
+	if arena_conquest != null:
+		arena_conquest.clear()
+	if conquest_hud != null:
+		conquest_hud.apply({})
 	if not current_map_info.is_empty() and info.get("map_id") != current_map_info.get("map_id"):
 		_begin_world_load()
 	if grenade_effects != null:
@@ -1022,6 +1053,8 @@ func _input(_event):
 	if _event.is_action_released("reload"):
 		reload_armed = true
 	if controls_blocked():
+		pending_fire = false
+		pending_seat = ""
 		pending_throw = false
 		throw_armed = false
 		pending_place = false
@@ -1038,12 +1071,19 @@ func _input(_event):
 		reload_armed = false
 	if is_human_player and _event.is_action_pressed("jump"):
 		pending_jump = true
+	if is_human_player and _event.is_action_pressed("fire") and not _event.is_echo():
+		pending_fire = true
 	if is_human_player and _event.is_action_pressed("interact"):
 		if _offer_m05_departure():
 			get_viewport().set_input_as_handled()
 			return
 		pending_interact = true
 		interact_held = true
+	if is_human_player and not _vehicle_seat().is_empty() and (_event.is_action_pressed("weapon_next") or _event.is_action_pressed("weapon_prev")):
+		if _vehicle_kind() != "light_aircraft":
+			pending_seat = "gunner" if _vehicle_seat() == "driver" else "driver"
+		get_viewport().set_input_as_handled()
+		return
 	# InputMap actions (keyboard + joypad). Same join/leave path.
 	if Input.is_action_just_pressed("join_as_human") and not is_human_player:
 		change_role(true)
@@ -1096,10 +1136,14 @@ var ack_probe: InputAckProbe = InputAckProbe.new()
 
 func _on_ack_received(data: Dictionary) -> void:
 	last_ack = data
+	local_fire.acknowledge(int(data.get("seq", -1)), int(data.get("tick", -1)))
 	ack_probe.record_ack(data, Time.get_ticks_usec())
 	if is_human_player:
 		var now_usec: int = Time.get_ticks_usec()
-		local_prediction.accept_ack(data, now_usec)
+		if _vehicle_seat() == "driver":
+			vehicle_prediction.accept_driver_ack(data, now_usec)
+		elif _vehicle_seat().is_empty():
+			local_prediction.accept_ack(data, now_usec)
 		_apply_local_prediction(now_usec)
 
 
@@ -1142,11 +1186,18 @@ func _process(_delta):
 		_update_scope(_delta)
 	if is_human_player and not role_transition and net_client.connection_state == WebSocketPeer.STATE_OPEN and _has_local_input_target():
 		_send_local_action(Time.get_ticks_usec())
+	var fire_allowed: bool = _local_fire_allowed()
+	if _local_fire_allowed_last_frame and not fire_allowed:
+		_cancel_local_fire_effect()
+	_local_fire_allowed_last_frame = fire_allowed
 	if is_human_player:
 		var now_usec: int = Time.get_ticks_usec()
 		local_prediction.advance(now_usec)
 		local_prediction.decay_visual(_delta)
+		vehicle_prediction.advance(now_usec)
+		vehicle_prediction.decay_visual(_delta)
 		_apply_local_prediction(now_usec)
+	_update_vehicle_view()
 
 
 ## The Sniper Rifle's scope is presentation: held input narrows the local view
@@ -1155,7 +1206,7 @@ func _update_scope(delta: float) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	var alive: bool = is_instance_valid(pawn) and int(pawn.get("hp")) > 0
 	var held: bool = is_human_player and not controls_blocked() and InputMap.has_action("scope") and Input.is_action_pressed("scope")
-	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode"))
+	var enabled: bool = is_human_player and alive and bool(camera.get("fp_mode")) and _vehicle_seat().is_empty()
 	var was_scoped: bool = _scope_engaged()
 	camera.zoom_factor = hud.update_scope(delta, _current_weapon_wire(), held, enabled)
 	_play_scope_cue(was_scoped, _scope_engaged())
@@ -1169,6 +1220,8 @@ func _clear_predicted_pawn() -> void:
 
 
 func _reset_prediction_for_connection(reason: String) -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle(reason)
 	if incoming_feedback != null:
 		incoming_feedback.reset()
 	local_prediction.reset(reason, true)
@@ -1187,6 +1240,16 @@ func _reset_prediction_for_connection(reason: String) -> void:
 func _apply_local_prediction(now_usec: int = -1) -> void:
 	var pawn: Node = players.get(local_fp_pawn_id)
 	if not is_instance_valid(pawn):
+		return
+	if not _vehicle_seat().is_empty():
+		var vehicle_pose: Dictionary = vehicle_prediction.presented_motion(now_usec) if _vehicle_seat() == "driver" else {}
+		if not vehicle_pose.is_empty() and pawn.has_method("set_predicted_position"):
+			var feet: Vector3 = VehicleStep.seat_feet(vehicle_pose["position"], float(vehicle_pose["yaw"]), "driver", _vehicle_kind())
+			pawn.set_predicted_position(feet + Vector3(0, LocalPrediction.FLOOR_OFFSET, 0), 0.0)
+			if arena_vehicles != null:
+				arena_vehicles.predicted_pose = vehicle_pose
+		elif pawn.has_method("clear_predicted_position"):
+			pawn.clear_predicted_position()
 		return
 	if local_prediction.active() and pawn.hp > 0 and _has_local_input_target() and pawn.has_method("set_predicted_position"):
 		var velocity: Vector2 = Vector2(float(local_prediction.state["vx"]), float(local_prediction.state["vz"]))
@@ -1226,7 +1289,7 @@ func _send_local_action(now_usec: int) -> bool:
 	action_state.back = Input.is_action_pressed("move_back") or bool(pad.get("back", false))
 	action_state.left = Input.is_action_pressed("move_left") or (strafing and Input.is_action_pressed("turn_left")) or bool(pad.get("left", false))
 	action_state.right = Input.is_action_pressed("move_right") or (strafing and Input.is_action_pressed("turn_right")) or bool(pad.get("right", false))
-	action_state.fire = Input.is_action_pressed("fire")
+	action_state.fire = pending_fire or Input.is_action_pressed("fire")
 	action_state.jump = pending_jump or Input.is_action_pressed("jump")
 	action_state.interact = pending_interact or interact_held
 	if not Input.is_action_pressed("throw_grenade") and not pending_throw:
@@ -1252,6 +1315,8 @@ func _send_local_action(now_usec: int) -> bool:
 		action_state.pitch = camera.consume_pitch()
 	if controls_blocked():
 		interact_held = false
+		pending_fire = false
+		pending_seat = ""
 		pending_jump = false
 		pending_interact = false
 		pending_throw = false
@@ -1283,12 +1348,28 @@ func _send_local_action(now_usec: int) -> bool:
 	input_seq = 1 if input_seq >= MAX_ACTION_SEQ else input_seq + 1
 	action_state.seq = input_seq
 	action_state.weapon_swap = pending_weapon_swap
+	var seat: String = _vehicle_seat()
+	if not seat.is_empty():
+		action_state.weapon_swap = null
+		action_state.throw_grenade = false
+		action_state.place_mine = false
+		action_state.erase("reload")
+		if _vehicle_kind() != "light_aircraft" or seat != "driver":
+			action_state.erase("duck")
+		if seat == "driver":
+			action_state.fire = false
+	if not seat.is_empty() and not pending_seat.is_empty() and not controls_blocked():
+		action_state["seat"] = pending_seat
+	else:
+		action_state.erase("seat")
 	var send_usec: int = 0
 	if ack_probe.active:
 		send_usec = Time.get_ticks_usec()
 	var predicting: bool = local_prediction.active()
 	net_client.last_send_ok = false
 	net_client.send_action(action_state)
+	if seat == "driver":
+		vehicle_prediction.record_driver_action(action_state, now_usec, net_client.last_send_ok)
 	if predicting:
 		local_prediction.record_action(action_state, now_usec, net_client.last_send_ok)
 	if ack_probe.active:
@@ -1297,6 +1378,9 @@ func _send_local_action(now_usec: int) -> bool:
 		else:
 			ack_probe.failed_sends += 1
 	if net_client.last_send_ok:
+		_present_local_fire(action_state, now_usec)
+		pending_seat = ""
+		pending_fire = false
 		pending_jump = false
 		pending_interact = false
 		pending_throw = false
@@ -1304,6 +1388,53 @@ func _send_local_action(now_usec: int) -> bool:
 		pending_reload = false
 		pending_weapon_swap = null
 	return true
+
+## Local trigger response uses the same successfully sent action as movement.
+## Inventory is read-only and every world impact stays in the resolved path.
+func _present_local_fire(action: Dictionary, now_usec: int) -> void:
+	if not _local_fire_allowed():
+		local_fire.sent(action, {}, "", int(latest_snapshot.get("tick", -1)), now_usec, false)
+		return
+	var weapon: String = _current_weapon_wire()
+	if not local_fire.sent(action, net_client.equipment, weapon,
+		int(latest_snapshot.get("tick", -1)), now_usec, _local_fire_allowed()):
+		return
+	var pawn: Node = players.get(local_fp_pawn_id)
+	pawn.show_muzzle_flash(weapon.capitalize())
+	if hud and hud.has_method("show_fire_juice"):
+		hud.show_fire_juice(weapon.capitalize())
+
+func _local_fire_allowed() -> bool:
+	if not is_human_player or net_client == null or net_client.connection_state != WebSocketPeer.STATE_OPEN \
+		or controls_blocked() or not _has_local_input_target() or not _vehicle_seat().is_empty():
+		return false
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if not is_instance_valid(pawn) or int(pawn.get("hp")) <= 0:
+		return false
+	if latest_snapshot.get("round_state") != "Active":
+		return false
+	var sabotage: Variant = latest_snapshot.get("sabotage")
+	if sabotage is Dictionary and sabotage.get("phase") not in ["live", "planted"]:
+		return false
+	return pawn.get_weapon_name().to_lower() == _current_weapon_wire()
+
+func _cancel_local_fire_effect() -> void:
+	if hud and hud.has_method("cancel_fire_juice"):
+		hud.cancel_fire_juice()
+	var pawn: Node = players.get(local_fp_pawn_id)
+	if is_instance_valid(pawn) and pawn.has_method("cancel_fire_feedback"):
+		pawn.cancel_fire_feedback()
+
+func _reset_local_fire() -> void:
+	pending_fire = false
+	_cancel_local_fire_effect()
+	# A death snapshot can also confirm the last shot in a trade. Consume that
+	# receipt before forgetting the old life, even if the pawn was removed.
+	if _receiving_snapshot:
+		_reset_fire_after_snapshot = true
+		return
+	local_fire.reset()
+	_local_fire_allowed_last_frame = false
 
 func _on_mission_received(state: Dictionary) -> void:
 	_continue_armed = false
@@ -1615,6 +1746,17 @@ func _on_server_error(message: String) -> void:
 		card.show_error(message)
 
 func _clear_world() -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle("disconnect")
+	pending_seat = ""
+	if arena_vehicles != null:
+		arena_vehicles.reset()
+	if vehicle_hud != null:
+		vehicle_hud.apply({}, "", false)
+	if arena_conquest != null:
+		arena_conquest.clear()
+	if conquest_hud != null:
+		conquest_hud.apply({})
 	_world_load_generation += 1
 	_world_reveal_pending = false
 	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
@@ -1709,6 +1851,7 @@ func _clear_world() -> void:
 		camera.set_available_targets([])
 
 func _on_loadout_received(data: Dictionary) -> void:
+	local_fire.observe_equipment(data)
 	hud.equipment_hud.apply(data)
 	_play_dry_fire_cue(data)
 	_sync_pickups(latest_snapshot.get("pickups", []))
@@ -1717,16 +1860,26 @@ func _on_loadout_received(data: Dictionary) -> void:
 func _refresh_equipment_visibility() -> void:
 	var pawn: Node = players.get(net_client.player_id)
 	hud.equipment_hud.visible = is_human_player and not net_client.equipment.is_empty() \
-		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled
+		and is_instance_valid(pawn) and pawn.hp > 0 and hud.fp_juice_enabled and _vehicle_seat().is_empty()
 
 func _on_snapshot_received(data):
+	_receiving_snapshot = true
 	if grenade_effects != null:
 		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
 	if auditor_channels != null:
 		auditor_channels.apply(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
+	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
+	var entered_vehicle: bool = previous_seat.is_empty() and not _vehicle_seat().is_empty()
 	_apply_map_from_snapshot(data)
+	vehicle_prediction.accept_vehicles(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
+	if arena_vehicles != null:
+		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
+	if arena_conquest != null:
+		arena_conquest.apply(data)
+	if conquest_hud != null:
+		conquest_hud.apply(data)
 	_update_prediction_contacts(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
@@ -1798,7 +1951,7 @@ func _on_snapshot_received(data):
 		hud.set_board_name(mine_name)
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
-		hud.set_team_scores(data.get("team_scores"))
+		hud.set_team_scores(data.get("conquest", {}).get("tickets") if data.get("conquest") is Dictionary else data.get("team_scores"))
 	if hud.has_method("set_ctf_state"):
 		var ctf_viewer_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id()
 		hud.set_ctf_state(data.get("flags"), data.get("capture_scores"), data.get("capture_limit", 0), player_list, ctf_viewer_id)
@@ -1832,6 +1985,7 @@ func _on_snapshot_received(data):
 		
 		if players.has(id):
 			players[id].update_state(player_data, int(tick))
+			players[id].vehicle_seated = not VehicleState.occupied(data, str(id)).is_empty()
 			if mission_hud != null and is_human_player and net_client.player_id != null and str(id) == str(net_client.player_id):
 				mission_hud.feet = Vector3(float(player_data.x), float(player_data.y), float(player_data.z))
 				var facing: Variant = player_data.get("yaw")
@@ -1889,6 +2043,14 @@ func _on_snapshot_received(data):
 	if hud and hud.has_method("set_fp_carried_flag"):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
+	if entered_vehicle:
+		# The entry snapshot can still carry a resolved handheld shot. Consume
+		# that receipt first, then drop reservations without cutting mount audio.
+		local_fire.reset()
+	_receiving_snapshot = false
+	if _reset_fire_after_snapshot:
+		_reset_fire_after_snapshot = false
+		_reset_local_fire()
 	_present_jammer_launches(data)
 	if notary_audio != null:
 		var listener: Camera3D = get_viewport().get_camera_3d()
@@ -1904,7 +2066,33 @@ func _on_snapshot_received(data):
 
 func _update_prediction_contacts(snapshot: Dictionary) -> void:
 	if is_human_player and net_client != null and net_client.player_id != null:
+		if not _vehicle_seat().is_empty():
+			local_prediction.reset("vehicle", true)
+			return
 		local_prediction.accept_snapshot(snapshot, str(net_client.player_id), net_client.mission.get("state", {}), Time.get_ticks_usec())
+
+func _vehicle_seat() -> String:
+	if not is_human_player or net_client == null or net_client.player_id == null:
+		return ""
+	return str(VehicleState.occupied(latest_snapshot, str(net_client.player_id)).get("seat", ""))
+
+func _vehicle_kind() -> String:
+	if not is_human_player or net_client == null or net_client.player_id == null:
+		return ""
+	return str(VehicleState.occupied(latest_snapshot, str(net_client.player_id)).get("vehicle", {}).get("kind", ""))
+
+func _update_vehicle_view() -> void:
+	if vehicle_hud != null:
+		vehicle_hud.apply(latest_snapshot, str(net_client.player_id) if net_client.player_id != null else "", is_human_player and not controls_blocked())
+	if hud == null:
+		return
+	var seat: String = _vehicle_seat()
+	if not is_human_player:
+		seat = str(VehicleState.occupied(latest_snapshot, _followed_player_id()).get("seat", "")) if camera != null and camera.is_observing_first_person() else ""
+	if hud.has_method("set_vehicle_seat"):
+		hud.set_vehicle_seat(seat)
+	if not seat.is_empty() and hud.get("equipment_hud") != null:
+		hud.equipment_hud.visible = false
 
 
 func _present_jammer_launches(snapshot: Dictionary) -> void:
@@ -2364,6 +2552,9 @@ func _set_human_fp(enabled: bool) -> void:
 	_refresh_fp_target()
 
 func _clear_fp_state() -> void:
+	_reset_local_fire()
+	vehicle_prediction.reset_vehicle("role")
+	pending_seat = ""
 	if incoming_feedback != null:
 		incoming_feedback.reset()
 	local_prediction.reset("role", true)
@@ -2431,9 +2622,11 @@ func _update_local_fp_hud(player_list: Array) -> void:
 			_adopt_local_spawn_snapshot = false
 		var hp = int(pdata.get("hp", 100))
 		if hp <= 0:
+			_reset_local_fire()
 			local_prediction.reset("death", true)
 			_clear_predicted_pawn()
 		elif local_hp_seen <= 0 and local_hp_seen >= 0:
+			_reset_local_fire()
 			local_prediction.reset("respawn", true)
 			_clear_predicted_pawn()
 			var pawn: Node = players.get(pid)
@@ -2557,20 +2750,28 @@ func _process_shot_results(results, tick: int) -> void:
 		var is_followed = (not is_human_player) and followed_id != "" and shooter_id == followed_id
 		var shooter: Node = players.get(shooter_id)
 		var wpn: String = _shot_weapon(shot)
+		var mounted_id: int = VehicleState.shot_vehicle(shot)
+		var mounted: bool = mounted_id > 0
+		if mounted and arena_vehicles != null:
+			arena_vehicles.shot(mounted_id)
+		var predicted: bool = is_local and not mounted and local_fire.confirm(wpn.to_lower(), tick, Time.get_ticks_usec())
 		# A pickup can change held equipment after the shot resolves in this tick.
-		if is_instance_valid(shooter):
-			shooter.show_muzzle_flash(wpn)
+		if is_instance_valid(shooter) and not predicted:
+			if mounted and shooter.has_method("play_mounted_fire"):
+				shooter.play_mounted_fire()
+			else:
+				shooter.show_muzzle_flash(wpn)
 		if not is_local and not is_followed:
 			continue
-		# Every shot you take kicks the view model and lights the barrel. This
-		# used to happen only when you missed, so landing a shot was the one
-		# case where pulling the trigger looked like nothing happened.
-		if (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
+		# The local cue has already played; spectators still use server evidence.
+		if not predicted and not mounted and (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
 			hud.show_fire_juice(wpn)
 		if hit and hud and hud.has_method("show_hit_marker"):
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
 			hud.show_hit_marker(dmg, wpn)
+	if local_fire.reconcile(tick):
+		_cancel_local_fire_effect()
 
 ## The gun a resolved shot was fired with: the trace's weapon when present,
 ## otherwise what the shooter holds now.

@@ -2586,12 +2586,18 @@ mod tests {
             just_fired: fired,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }
     }
 
     fn snapshot(tick: u64, players: Vec<PlayerState>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -2623,6 +2629,7 @@ mod tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         }
     }
 
@@ -3509,12 +3516,18 @@ mod combat_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
 
     fn frame(tick: u64, players: Vec<PlayerState>, shots: Vec<ShotResult>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -3546,6 +3559,7 @@ mod combat_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         }
     }
 
@@ -3749,6 +3763,7 @@ mod combat_tests {
                 result.target_hp_after = Some(0);
                 result.killed = true;
                 result.trace = Some(ShotTrace {
+                    vehicle_id: None,
                     weapon: WeaponType::Rail,
                     origin: [0.0, 1.0, 0.0],
                     end: [3.0, 5.0, 0.0],
@@ -3902,6 +3917,7 @@ mod combat_tests {
         use fragr_server::protocol::{PelletTrace, ShotImpact, ShotTrace, WeaponType};
         let (a, b, c) = (Uuid::from_u128(1), Uuid::from_u128(2), Uuid::from_u128(3));
         let trace = |impact: ShotImpact, count: usize| ShotTrace {
+            vehicle_id: None,
             weapon: WeaponType::Scatter,
             origin: [0.0, 1.6, 0.0],
             end: [3.0, 1.6, 0.0],
@@ -4067,6 +4083,11 @@ mod planner_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: weapon.to_string(),
         }
     }
@@ -4089,6 +4110,7 @@ mod planner_tests {
 
     fn scene(tick: u64, players: Vec<PlayerState>, pickups: Vec<PickupState>) -> Snapshot {
         Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -4120,6 +4142,7 @@ mod planner_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         }
     }
 
@@ -4602,6 +4625,7 @@ mod line_of_sight_tests {
         let me = Uuid::new_v4();
         let foe = Uuid::new_v4();
         let mut snap = Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -4633,6 +4657,7 @@ mod line_of_sight_tests {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,
@@ -4654,6 +4679,11 @@ mod line_of_sight_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "flechette".to_string(),
         };
         snap.players = vec![mk(me, 0.0), mk(foe, 10.0)];
@@ -4727,6 +4757,11 @@ mod patrol_tests {
             just_fired: false,
             behavior: None,
             score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }
     }

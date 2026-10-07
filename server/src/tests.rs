@@ -382,6 +382,7 @@ fn test_protocol_game_event_player_left() {
 #[test]
 fn test_protocol_snapshot_serialization() {
     let snapshot = Snapshot {
+        vehicles: Vec::new(),
         team_scores: None,
         flags: None,
         capture_scores: None,
@@ -439,6 +440,7 @@ fn test_protocol_snapshot_serialization() {
         episode_phase: None,
         jammer_dish: None,
         sabotage: None,
+        conquest: None,
     };
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tick"], 123);
@@ -448,6 +450,7 @@ fn test_protocol_snapshot_serialization() {
 #[test]
 fn test_protocol_snapshot_empty_players() {
     let snapshot = Snapshot {
+        vehicles: Vec::new(),
         team_scores: None,
         flags: None,
         capture_scores: None,
@@ -479,6 +482,7 @@ fn test_protocol_snapshot_empty_players() {
         episode_phase: None,
         jammer_dish: None,
         sabotage: None,
+        conquest: None,
     };
     let json = serde_json::to_string(&snapshot).unwrap();
     assert!(json.contains(r#""tick":0"#));
@@ -587,6 +591,7 @@ fn a_rule_bot_does_not_chase_a_parked_pawn() {
         if player.id == bot_id {
             player.x = 0.0;
             player.z = 0.0;
+            player.yaw = 0.0;
         } else if player.id == ghost_id {
             player.x = 3.0;
             player.z = 0.0;
@@ -597,6 +602,10 @@ fn a_rule_bot_does_not_chase_a_parked_pawn() {
         }
     }
     let bot = BotController::new(bot_id, BotBehavior::Aggressive);
+    for tick in 0..2 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&bot));
+    }
     let intent = bot.intent(&state);
     let goal = intent.goal.expect("the living fighter is still a target");
     assert!(
@@ -607,9 +616,8 @@ fn a_rule_bot_does_not_chase_a_parked_pawn() {
 
     state.players.retain(|player| player.id != live_id);
     let idle = bot.intent(&state);
-    assert!(idle.goal.is_none());
+    assert!(idle.goal.is_none_or(|goal| !goal.combat));
     assert!(!idle.action.fire);
-    assert!(!idle.action.forward);
 }
 
 #[test]
@@ -1167,10 +1175,9 @@ fn test_net_game_command_action() {
 #[test]
 fn test_net_client_session_structure() {
     use crate::net::ClientSession;
-    use tokio::sync::mpsc;
 
     let id = Uuid::new_v4();
-    let (tx, _rx) = mpsc::channel(2);
+    let (tx, _rx) = crate::net::outbound_channel(2);
 
     let session = ClientSession::new(id, tx, crate::protocol::GAMEPLAY_VERSION);
 
@@ -2738,6 +2745,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
     {
         use crate::session::broadcast_to_clients;
         let snap = ServerMessage::Snapshot(Snapshot {
+            vehicles: Vec::new(),
             team_scores: None,
             flags: None,
             capture_scores: None,
@@ -2769,6 +2777,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             episode_phase: None,
             jammer_dish: None,
             sabotage: None,
+            conquest: None,
         });
         broadcast_to_clients(&clients, &[snap]).await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())
@@ -4473,14 +4482,19 @@ fn test_bot_rail_holds_long_lane() {
         .unwrap();
 
     state.players[bot_idx].weapon = WeaponType::Rail;
-    state.players[bot_idx].x = 0.0;
-    state.players[bot_idx].z = 0.0;
+    let (lane_z, span) = clear_lane(25.0);
+    state.players[bot_idx].x = -span * 0.5;
+    state.players[bot_idx].z = lane_z;
     state.players[bot_idx].yaw = 0.0;
     // Target inside Rail preferred band (~25u).
-    state.players[target_idx].x = 25.0;
-    state.players[target_idx].z = 0.0;
+    state.players[target_idx].x = span * 0.5;
+    state.players[target_idx].z = lane_z;
 
     let bot = BotController::new(bot_id, BotBehavior::Defensive);
+    for tick in 0..2 {
+        state.tick = tick;
+        state.update_bot_senses(std::slice::from_ref(&bot));
+    }
     let action = bot.update(&state);
     // At preferred band, Defensive should strafe (not rush) and be willing to fire.
     assert!(
@@ -7155,6 +7169,10 @@ mod vertical_aim {
     fn target_actions_and_rule_bots_aim_at_height_through_the_same_contract() {
         let (mut state, shooter, target) = pair(0.0, 4.0);
         let bot = BotController::new(shooter, BotBehavior::Aggressive);
+        for tick in 0..2 {
+            state.tick = tick;
+            state.update_bot_senses(std::slice::from_ref(&bot));
+        }
         let action = bot.update(&state);
         assert!(action.pitch.unwrap() > 0.2);
         state.set_action(

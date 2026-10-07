@@ -1,0 +1,24 @@
+{
+  "out_dir": "art/raw/island-ground-20261006",
+  "technical": "One seamless square tiling albedo texture only, orthographic front view flat to the entire surface, perfectly even diffuse light, no cast shadows, no perspective, full frame surface with no border. Designed to reduce cleanly to 128 by 128 pixel material tile.",
+  "style": "Original modern retro science fiction shooter environment material, circa2070 practical inhabited places. Broad calm material values, restrained desaturated bone olive teal rust and dark steel palette, sparse purposeful wear, maintained repaired surfaces. Strong large material shapes, low contrast tactile pixel-friendly detail. Exceptional coherent art direction without photorealistic noise.",
+  "view": "Fill the whole image with one flat repeating material, no object or room, seamless edges in both directions, no baked directional lighting.",
+  "model": "marketing-studio/image",
+  "negative": "text, numbers, signs, logos, watermark, signature, doors, windows, pipes, plants, bricks, holes, dramatic shadows, perspective, room, glossy wet plastic, neon, heavy grunge, dense scratches, bullet impacts, decorative border, copied game texture",
+  "params": {
+    "aspect_ratio": "1:1",
+    "resolution": "4k",
+    "quality": "high",
+    "enhance_prompt": false
+  },
+  "frames": [
+    {
+      "id": "holdfast_sand",
+      "subject": "Seamless sheltered tropical island beach sand viewed straight down, pale desaturated sandy bone with broad very subtle tide ripples and tiny sparse muted mineral specks. Quiet smooth maintained shoreline, uniform diffuse albedo, no footprints shells rocks debris or directional light. Extremely low contrast walking surface."
+    },
+    {
+      "id": "holdfast_groundcover",
+      "subject": "Seamless short dense coastal groundcover and flattened grass viewed straight down, desaturated dry olive and muted sage green with broad quiet irregular patches of sand beneath. Low contrast compact foliage clusters that read as a walking surface, no individual tall blades, no flowers stones or sticks, no grid, no obvious repeating motif, no shadows."
+    }
+  ]
+}

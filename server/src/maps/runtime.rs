@@ -395,6 +395,13 @@ impl RuntimeMap {
         }
     }
 
+    pub fn water_regions(&self) -> &[crate::protocol::WaterRegion] {
+        match self {
+            Self::BuiltIn(crate::sim::MapKind::HoldfastAtoll) => &super::holdfast::WATER,
+            _ => &[],
+        }
+    }
+
     pub fn navigation(&self) -> &Navigation {
         match self {
             Self::BuiltIn(kind) => super::navigation(*kind),

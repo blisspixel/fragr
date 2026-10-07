@@ -1,0 +1,35 @@
+{
+	"albedo_pixels": 512,
+	"authored_triangles": 0,
+	"glass_triangles": 0,
+	"mesh_bounds_m": {
+		"position": [
+			-2.40000009536743,
+			-0.600000023841858,
+			-1.09999990463257
+		],
+		"size": [
+			4.80000019073486,
+			2.20000004768372,
+			2.20000004768372
+		]
+	},
+	"motion_acceptance": false,
+	"prepared_sha256": "0f43283474cb8b476a5c260765c46334579270b981404bf6b76bf379ba192050",
+	"registered_bounds_m": {
+		"base": -0.6,
+		"size": [
+			4.80000019073486,
+			2.20000004768372,
+			2.20000004768372
+		]
+	},
+	"removed_triangles": 0,
+	"repair": "none",
+	"retained_triangles": 11884,
+	"schema": 1,
+	"source_geometry_retained": true,
+	"source_sha256": "b75e51cd8a1d6b076ddd87189d77ef5d776179c6b2ca306e900e6ba3caf6fb86",
+	"source_triangles": 11884,
+	"triangles": 11884
+}

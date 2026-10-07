@@ -58,6 +58,9 @@ pub(crate) fn slot_playable(map: MapKind, mode: GameMode) -> Result<(), &'static
         GameMode::Sabotage if map.sabotage_map().is_none() => {
             Err("sabotage requires a map with validated sites (Sector 9)")
         }
+        GameMode::Conquest if map != MapKind::HoldfastAtoll => {
+            Err("conquest requires Holdfast Atoll")
+        }
         _ => Ok(()),
     }
 }
@@ -74,9 +77,13 @@ pub(crate) fn slot_config(mode: GameMode, warmup_ticks: u32, end_delay_ticks: u3
         capture_limit: (mode == GameMode::Ctf).then_some(CTF_CAPTURE_LIMIT),
         // Sabotage runs muster, live and charge clocks. Capture the flag keeps
         // the arena clock and is decided by captures when the clock ends.
-        time_limit_ticks: (mode != GameMode::Sabotage)
-            .then_some(defaults.time_limit_ticks)
-            .flatten(),
+        time_limit_ticks: if mode == GameMode::Conquest {
+            Some(20 * 60 * 10)
+        } else {
+            (mode != GameMode::Sabotage)
+                .then_some(defaults.time_limit_ticks)
+                .flatten()
+        },
         warmup_ticks,
         end_delay_ticks,
         boss_spawn_ticks: (!objective).then_some(defaults.boss_spawn_ticks).flatten(),
@@ -205,6 +212,24 @@ impl GameState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn conquest_slot_requires_holdfast_and_has_ten_minute_ticket_clock() {
+        for map in MapKind::ALL {
+            assert_eq!(
+                slot_playable(map, GameMode::Conquest).is_ok(),
+                map == MapKind::HoldfastAtoll
+            );
+        }
+        let config = slot_config(GameMode::Conquest, 9, 7);
+        assert_eq!(config.time_limit_ticks, Some(600 * 20));
+        assert_eq!(config.frag_limit, None);
+        assert_eq!(config.capture_limit, None);
+        assert_eq!(config.boss_spawn_ticks, None);
+        assert_eq!(config.compliance_ping_ticks, None);
+        assert_eq!(config.warmup_ticks, 9);
+        assert_eq!(config.end_delay_ticks, 7);
+    }
     use crate::protocol::{
         EquipmentPolicy, Role, SabotageReason, SabotageResult, ServerMessage, Team, TeamScores,
         WeaponType,
@@ -310,6 +335,7 @@ mod tests {
             assert_eq!(state.config.warmup_ticks, 4);
             assert_eq!(state.config.end_delay_ticks, 7);
             match state.config.rules.mode() {
+                GameMode::Conquest => panic!("Conquest is not in the standard night playlist"),
                 GameMode::Tdm => {
                     saw_tdm = true;
                     assert_eq!(state.config.frag_limit, Some(25));
