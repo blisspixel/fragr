@@ -219,6 +219,8 @@ impl GameSession {
         self.state.push_event(GameEvent::VenueNotice {
             text: format!("The venue: {trimmed}"),
         });
+        let tick = self.state.tick;
+        self.board.note_floor("The venue", &trimmed, tick);
         "On the air.".into()
     }
 

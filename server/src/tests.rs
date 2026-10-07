@@ -407,6 +407,11 @@ fn test_protocol_snapshot_serialization() {
             just_fired: false,
             behavior: None,
             score: 5,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
             weapon: "Flechette".to_string(),
         }],
         round_state: Some("Active".to_string()),
@@ -2555,6 +2560,7 @@ fn other_debug(cmd: &crate::net::GameCommand) -> String {
         crate::net::GameCommand::AbortResume { .. } => "AbortResume".into(),
         crate::net::GameCommand::NoteSeat { .. } => "NoteSeat".into(),
         crate::net::GameCommand::NoteClientVersion { .. } => "NoteClientVersion".into(),
+        crate::net::GameCommand::Board { .. } => "Board".into(),
     }
 }
 
@@ -2622,6 +2628,26 @@ async fn test_net_ws_spectator_hello_no_player_id() {
             name,
             ..
         } => assert_eq!(name, "Eyes"),
+        other => panic!("{}", other_debug(&other)),
+    }
+
+    sink.send(Message::Text(r#"{"type":"board","op":"list"}"#.into()))
+        .await
+        .unwrap();
+    let asked = tokio::time::timeout(
+        std::time::Duration::from_secs(2),
+        crate::net::skip_seat_notes(&mut game_rx),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    match asked {
+        GameCommand::Board {
+            op: crate::protocol::BoardOp::List,
+            board: None,
+            text: None,
+            ..
+        } => {}
         other => panic!("{}", other_debug(&other)),
     }
 }

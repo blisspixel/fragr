@@ -175,11 +175,15 @@ static func reaction_line(data: Dictionary) -> String:
 
 ## Scoreboard rows as text: side score first in a team mode, then the top
 ## fighters with their side chip. `you` marks the local callsign on the
-## hold-Tab board. The corner list leaves it empty.
-static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int, you: String = "") -> String:
+## hold-Tab board. The corner list leaves it empty and stays on frags.
+## `detailed` is the hold-Tab board, including a spectator whose name is
+## not on a row.
+static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, limit: int, you: String = "", detailed: bool = false) -> String:
 	var text: String = ""
 	if score_line != "":
 		text += score_line + "\n"
+	if detailed:
+		text += _text("HUD_BOARD_COLUMNS") + "\n"
 	for i: int in range(mini(limit, rows.size())):
 		var row: Dictionary = rows[i]
 		var name: String = str(row.get("name", "?"))
@@ -189,5 +193,18 @@ static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, 
 		var marker: String = "*" if i == 0 and kills > 0 else " "
 		var tag: String = "[" + side + "] " if side != "" else ""
 		var mine: String = "  YOU" if you != "" and name == you else ""
-		text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + mine + "\n"
+		if detailed:
+			var attacks: int = int(row.get("attacks", 0))
+			var connects: int = int(row.get("connects", 0))
+			var heads: int = int(row.get("heads", 0))
+			text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + " frag, " + str(int(row.get("deaths", 0))) + " died, hit " + _rate(connects, attacks) + ", head " + _rate(heads, connects) + ", " + str(int(row.get("damage", 0))) + " dealt" + mine + "\n"
+		else:
+			text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + mine + "\n"
 	return text
+
+static func _rate(numerator: int, denominator: int) -> String:
+	var label: String = PlayerRecord.percent_label(numerator, denominator)
+	if label == "":
+		return "-"
+	# The count sits beside the percent. 100.0 on one shot is not 100.0 on a hundred.
+	return label + " (" + str(numerator) + "/" + str(denominator) + ")"

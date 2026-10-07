@@ -241,6 +241,17 @@ refuse the desk. A container with no stdin has nothing for the desk to
 read. A process started without the desk still records the sheet and
 serves the three counts.
 
+That same process keeps a wire board. `floor` is the room: a successful
+speak, and a venue `say`, are copied there. `notices` hold posted lines
+until the process ends. Nothing is written to disk, and a round change
+does not clear either board. Spectators can read both and post a notice.
+They still cannot speak, and a post to the floor is refused. Dial the
+board with
+`cargo run -p fragr-server --bin fragr-wire --locked -- --server 127.0.0.1:6767`.
+The line commands are `list`, `read floor`, `read notices`,
+`post <line>`, and `quit`. The wire contract is in
+[protocol.md](protocol.md) under Wire board.
+
 The host pings idle sessions and closes one that sends nothing, including no
 automatic pong, for 45 seconds. Flooding or repeated unreadable frames can
 also close a connection. Audit logs for joins, refusals, kicks and bans use

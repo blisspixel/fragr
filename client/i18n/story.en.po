@@ -236,11 +236,59 @@ msgstr "{difficulty}  |  Attempt {attempt}"
 msgid "RECORD_COMBAT"
 msgstr "Total effort: {kills} kills / {deaths} deaths  |  Alive {time}"
 
+msgid "RECORD_PACE"
+msgstr "{frags} frags per minute and {dealt} dealt per minute, over {time} alive"
+
 msgid "RECORD_DAMAGE"
 msgstr "Dealt: {hp} HP + {armor} armor  |  Lost: {lost} HP"
 
 msgid "RECORD_WEAPON"
-msgstr "{weapon}: {hits}/{attacks} attacks connected ({percent}%)"
+msgstr "{weapon}: {attacks} {noun}, {dealt} dealt ({hp} HP + {armor} armor), {rates}"
+
+msgid "RECORD_NOUN_SHOTS"
+msgstr "shots"
+
+msgid "RECORD_NOUN_USES"
+msgstr "uses"
+
+msgid "RECORD_PER_SHOT"
+msgstr "{rate} per shot"
+
+msgid "RECORD_PER_USE"
+msgstr "{rate} per use"
+
+msgid "RECORD_PER_BODY"
+msgstr "{rate} per body"
+
+msgid "RECORD_PER_HURT"
+msgstr "{rate} per hurt"
+
+msgid "RECORD_HURT"
+msgstr "Hurt {hurts}/{attacks} ({percent}%)"
+
+msgid "RECORD_CONNECT"
+msgstr "Body {connects}/{attacks} ({percent}%)"
+
+msgid "RECORD_HEAD"
+msgstr "Head band {heads}/{connects} ({percent}%)"
+
+msgid "RECORD_WILSON"
+msgstr "95% Wilson on {rate}: {low}% to {high}% ({hits}/{trials})"
+
+msgid "RECORD_RATE_HURT"
+msgstr "hurt"
+
+msgid "RECORD_RATE_BODY"
+msgstr "bodies"
+
+msgid "RECORD_RATE_HEAD"
+msgstr "heads"
+
+msgid "RECORD_KD"
+msgstr "{ratio} kills per death ({kills}/{deaths})"
+
+msgid "RECORD_SPK"
+msgstr "{ratio} shots per kill ({attacks}/{kills})"
 
 msgid "RECORD_NO_ATTACKS"
 msgstr "Accuracy unavailable: no attacks recorded."

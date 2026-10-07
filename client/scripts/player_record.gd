@@ -8,6 +8,8 @@ const LEGACY_MAX_WEAPONS: int = 7
 const STATUSES: Array[String] = ["active", "continue", "complete", "failed", "abandoned"]
 const COUNTS: Array[String] = ["alive_ticks", "deaths", "hp_lost", "armor_lost", "dry_triggers"]
 const WEAPON_COUNTS: Array[String] = ["attacks", "damaging_attacks", "kills", "hp_damage", "armor_damage"]
+## Omitted while zero. A damaging column that omits both predates connect accounting.
+const GEOMETRY_COUNTS: Array[String] = ["connects", "heads"]
 ## Counted explosive columns, each omitted while unused.
 const EXPLOSIVE_COLUMNS: Array[String] = ["grenades", "mines"]
 ## Five original weapon slots, and a sixth once the Shiv has been used.
@@ -87,7 +89,7 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 		if not value.has(column):
 			continue
 		var device: Variant = value[column]
-		if not device is Dictionary or device.size() != 5:
+		if not device is Dictionary or not _column_shape(device, false):
 			return false
 		for field: String in WEAPON_COUNTS:
 			if not EquipmentState.integer(device.get(field), EquipmentState.MAX_EXACT_INTEGER):
@@ -96,7 +98,7 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 			return false
 	for index: int in range(value["weapons"].size()):
 		var weapon: Variant = value["weapons"][index]
-		if not weapon is Dictionary or weapon.size() != 5:
+		if not weapon is Dictionary or not _column_shape(weapon, true):
 			return false
 		for field: String in WEAPON_COUNTS:
 			if not EquipmentState.integer(weapon.get(field), EquipmentState.MAX_EXACT_INTEGER):
@@ -105,7 +107,12 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 		var pellets: int = EquipmentState.pellets(EquipmentState.WEAPONS[index])
 		if int(weapon["kills"]) > int(weapon["damaging_attacks"]) * pellets or int(weapon["damaging_attacks"]) > int(weapon["attacks"]):
 			return false
+		if not _geometry_holds(weapon, String(EquipmentState.WEAPONS[index]) != "fists"):
+			return false
 	for field: String in WEAPON_COUNTS:
+		if sum_combat(value, field) > EquipmentState.MAX_EXACT_INTEGER:
+			return false
+	for field: String in GEOMETRY_COUNTS:
 		if sum_combat(value, field) > EquipmentState.MAX_EXACT_INTEGER:
 			return false
 	if sum_combat(value, "attacks") > int(value["alive_ticks"]) or int(value["deaths"]) > int(value["alive_ticks"]) or int(value["dry_triggers"]) > int(value["alive_ticks"]):
@@ -120,10 +127,16 @@ static func contains(total: Dictionary, part: Dictionary) -> bool:
 		for field: String in WEAPON_COUNTS:
 			if column_count(total, column, field) < column_count(part, column, field):
 				return false
+		for field: String in GEOMETRY_COUNTS:
+			if column_count(total, column, field) < column_count(part, column, field):
+				return false
 	if secrets(total) < secrets(part):
 		return false
 	for index: int in range(EquipmentState.WEAPONS.size()):
 		for field: String in WEAPON_COUNTS:
+			if weapon_count(total, index, field) < weapon_count(part, index, field):
+				return false
+		for field: String in GEOMETRY_COUNTS:
 			if weapon_count(total, index, field) < weapon_count(part, index, field):
 				return false
 	return true
@@ -134,7 +147,9 @@ static func secrets(counts: Dictionary) -> int:
 ## A slot a five-slot record never sent counts as zero.
 static func weapon_count(counts: Dictionary, index: int, field: String) -> int:
 	var weapons: Array = counts["weapons"]
-	return int(weapons[index][field]) if index < weapons.size() else 0
+	if index >= weapons.size():
+		return 0
+	return int((weapons[index] as Dictionary).get(field, 0))
 
 static func _valid_scope(data: Dictionary) -> bool:
 	var scope: Variant = data.get("scope")
@@ -178,7 +193,7 @@ static func sum_combat(counts: Dictionary, field: String) -> int:
 static func sum_weapon(counts: Dictionary, field: String) -> int:
 	var total: int = 0
 	for weapon: Dictionary in counts["weapons"]:
-		total += int(weapon[field])
+		total += int(weapon.get(field, 0))
 	return total
 
 static func empty_counts() -> Dictionary:
@@ -206,3 +221,122 @@ static func add_counts(total: Dictionary, value: Dictionary) -> void:
 	for index: int in range(EquipmentState.WEAPONS.size()):
 		for field: String in WEAPON_COUNTS:
 			total["weapons"][index][field] = weapon_count(total, index, field) + weapon_count(value, index, field)
+		for field: String in GEOMETRY_COUNTS:
+			var combined: int = weapon_count(total, index, field) + weapon_count(value, index, field)
+			if combined > 0:
+				total["weapons"][index][field] = combined
+
+static func _column_shape(column: Dictionary, geometry: bool) -> bool:
+	var extra: int = 0
+	for field: String in GEOMETRY_COUNTS:
+		if not column.has(field):
+			continue
+		extra += 1
+		if not EquipmentState.integer(column.get(field), EquipmentState.MAX_EXACT_INTEGER):
+			return false
+	# A blast has no body ray, so it keeps the five original keys.
+	if not geometry and extra > 0:
+		return false
+	return column.size() == WEAPON_COUNTS.size() + extra
+
+static func _geometry_holds(column: Dictionary, band: bool) -> bool:
+	var attacks: int = int(column.get("attacks", 0))
+	var damaging: int = int(column.get("damaging_attacks", 0))
+	var connects: int = int(column.get("connects", 0))
+	var heads: int = int(column.get("heads", 0))
+	if heads > connects or connects > attacks:
+		return false
+	if not band and heads > 0:
+		return false
+	if (connects > 0 or heads > 0) and damaging > connects:
+		return false
+	return true
+
+## Exact nonnegative quotient and remainder. `/` is a float and drops integers past 2^53.
+static func divmod_pos(numerator: int, denominator: int) -> Array[int]:
+	var quotient: int = 0
+	var rest: int = 0
+	for bit: int in range(62, -1, -1):
+		rest = (rest << 1) | ((numerator >> bit) & 1)
+		if rest >= denominator:
+			rest -= denominator
+			quotient |= 1 << bit
+	return [quotient, rest]
+
+## `scale * numerator / denominator`, half away from zero.
+## The product is never formed, so a count past 2^53 still divides.
+## -1 when there is no denominator or the rounded quotient does not fit.
+static func ratio_scaled(numerator: int, denominator: int, scale: int) -> int:
+	if denominator <= 0 or scale <= 0 or numerator < 0:
+		return -1
+	var quotient: int = 0
+	var remainder: int = 0
+	# 2^62. A larger quotient cannot shift inside a signed 64-bit int.
+	var shift_limit: int = 4611686018427387904
+	for bit: int in range(62, -1, -1):
+		if quotient >= shift_limit or remainder >= shift_limit:
+			return -1
+		remainder <<= 1
+		quotient <<= 1
+		if ((numerator >> bit) & 1) != 0:
+			remainder += scale
+		if remainder < 0 or quotient < 0:
+			return -1
+		if remainder >= denominator:
+			var parts: Array[int] = divmod_pos(remainder, denominator)
+			if parts[0] < 0 or quotient > 9223372036854775807 - parts[0]:
+				return -1
+			quotient += parts[0]
+			remainder = parts[1]
+	if remainder >= denominator - remainder:
+		if quotient == 9223372036854775807:
+			return -1
+		quotient += 1
+	return quotient
+
+## Tenths of a count per minute. Alive ticks are 20 Hz, so a minute is 1200 ticks.
+## `600` is 60.0. Zero ticks is no rate.
+static func per_minute_tenths(count: int, alive_ticks: int) -> int:
+	return ratio_scaled(count, alive_ticks, 12000)
+
+## One decimal. `500` is `50.0` and `250` is `25.0`.
+static func format_tenths(scaled: int) -> String:
+	if scaled < 0:
+		return ""
+	var parts: Array[int] = divmod_pos(scaled, 10)
+	return "%d.%d" % [parts[0], parts[1]]
+
+static func percent_label(numerator: int, denominator: int) -> String:
+	return format_tenths(ratio_scaled(numerator, denominator, 1000))
+
+static func unit_label(numerator: int, denominator: int) -> String:
+	return format_tenths(ratio_scaled(numerator, denominator, 10))
+
+## Wilson score interval at z = 1.96, in thousandths. `(-1, -1)` when there is no interval.
+## 1.96 is the two-decimal two-sided 95% normal quantile. Legal trial counts fit in
+## the float mantissa, so the casts of hits and trials are exact. The products are not.
+static func wilson_thousandths(hits: int, trials: int) -> Vector2i:
+	if trials <= 0 or hits < 0 or hits > trials:
+		return Vector2i(-1, -1)
+	var z: float = 1.96
+	var n: float = float(trials)
+	var p: float = float(hits) / n
+	var z2: float = z * z
+	var denom: float = 1.0 + z2 / n
+	var centre: float = p + z2 / (2.0 * n)
+	var margin: float = z * sqrt((p * (1.0 - p) / n) + (z2 / (4.0 * n * n)))
+	var low: float = clampf((centre - margin) / denom, 0.0, 1.0)
+	var high: float = clampf((centre + margin) / denom, 0.0, 1.0)
+	return Vector2i(_unit_thousandths(low), _unit_thousandths(high))
+
+static func _unit_thousandths(unit: float) -> int:
+	if unit <= 0.0:
+		return 0
+	if unit >= 1.0:
+		return 1000
+	var scaled: float = unit * 1000.0
+	var base: int = int(floor(scaled))
+	var fraction: float = scaled - float(base)
+	if fraction * 2.0 >= 1.0:
+		base += 1
+	return mini(base, 1000)

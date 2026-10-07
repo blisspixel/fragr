@@ -58,11 +58,34 @@ pub struct GameSession {
     spectators: HashMap<Uuid, SpectatorSeat>,
     venue_said_tick: Option<u64>,
     pub(crate) sheet: crate::sheet::NightSheet,
+    board: crate::board::Board,
 }
 
 struct SpectatorSeat {
     name: String,
     peer: Option<SocketAddr>,
+}
+
+fn board_line(line: &crate::board::Line) -> protocol::BoardLine {
+    protocol::BoardLine {
+        tick: line.tick,
+        name: line.name.clone(),
+        text: line.text.clone(),
+    }
+}
+
+fn board_code(
+    op: protocol::BoardOp,
+    board: Option<String>,
+    fault: crate::board::Fault,
+) -> protocol::BoardPage {
+    protocol::BoardPage {
+        op,
+        board,
+        boards: Vec::new(),
+        lines: Vec::new(),
+        code: Some(fault.code().to_string()),
+    }
 }
 
 impl GameSession {
@@ -114,6 +137,7 @@ impl GameSession {
             spectators: HashMap::new(),
             venue_said_tick: None,
             sheet: crate::sheet::NightSheet::default(),
+            board: crate::board::Board::default(),
         }
     }
 
@@ -559,7 +583,18 @@ impl GameSession {
 
             GameCommand::Speak { player_id, text } => {
                 match self.state.try_speak(player_id, &text) {
-                    SpeakOutcome::Sent => {}
+                    SpeakOutcome::Sent => {
+                        let noted = match self.state.events.last() {
+                            Some(protocol::GameEvent::Speak { player, text, .. }) => {
+                                Some((player.clone(), text.clone()))
+                            }
+                            _ => None,
+                        };
+                        if let Some((player, text)) = noted {
+                            let tick = self.state.tick;
+                            self.board.note_floor(&player, &text, tick);
+                        }
+                    }
                     SpeakOutcome::RateLimited => {
                         self.pending_unicasts.push((
                             Recipient::Player(player_id),
@@ -587,6 +622,103 @@ impl GameSession {
                 behavior,
             } => {
                 let _ = self.state.set_display_behavior(player_id, &behavior);
+            }
+            GameCommand::Board {
+                client_id,
+                op,
+                board,
+                text,
+            } => {
+                let page = self.answer_board(client_id, op, board, text);
+                self.pending_unicasts
+                    .push((Recipient::Client(client_id), ServerMessage::Board(page)));
+            }
+        }
+    }
+
+    fn seat_name(&self, client_id: Uuid) -> Option<String> {
+        if let Some(player_id) = self.client_to_player.get(&client_id) {
+            return self
+                .state
+                .players
+                .iter()
+                .find(|player| player.id == *player_id)
+                .map(|player| player.name.clone());
+        }
+        self.spectators
+            .get(&client_id)
+            .map(|seat| seat.name.clone())
+    }
+
+    fn answer_board(
+        &mut self,
+        client_id: Uuid,
+        op: protocol::BoardOp,
+        board: Option<String>,
+        text: Option<String>,
+    ) -> protocol::BoardPage {
+        match op {
+            protocol::BoardOp::List => protocol::BoardPage {
+                op,
+                board: None,
+                boards: self
+                    .board
+                    .list()
+                    .into_iter()
+                    .map(|(id, count)| protocol::BoardCard {
+                        id: id.to_string(),
+                        count: u32::try_from(count).unwrap_or(u32::MAX),
+                    })
+                    .collect(),
+                lines: Vec::new(),
+                code: None,
+            },
+            protocol::BoardOp::Read => {
+                let Some(board_id) = board else {
+                    return board_code(op, None, crate::board::Fault::Unknown);
+                };
+                match self.board.read(&board_id) {
+                    Ok(lines) => protocol::BoardPage {
+                        op,
+                        board: Some(board_id),
+                        boards: Vec::new(),
+                        lines: lines.iter().map(board_line).collect(),
+                        code: None,
+                    },
+                    Err(fault) => board_code(op, Some(board_id), fault),
+                }
+            }
+            protocol::BoardOp::Post => {
+                let Some(name) = self.seat_name(client_id) else {
+                    return board_code(op, board, crate::board::Fault::Rejected);
+                };
+                let Some(board_id) = board else {
+                    return board_code(op, None, crate::board::Fault::Unknown);
+                };
+                let tick = self.state.tick;
+                match self.board.post(
+                    client_id,
+                    &name,
+                    &board_id,
+                    text.as_deref().unwrap_or(""),
+                    tick,
+                ) {
+                    Ok(_) => {
+                        let lines = self
+                            .board
+                            .read(&board_id)
+                            .map(|lines| lines.iter().map(board_line).collect())
+                            .unwrap_or_default();
+                        protocol::BoardPage {
+                            op,
+                            board: Some(board_id),
+                            boards: Vec::new(),
+                            lines,
+                            code: None,
+                        }
+                    }
+                    Err(fault) => board_code(op, Some(board_id), fault),
+                }
             }
         }
     }
@@ -1584,6 +1716,93 @@ mod session_tests {
             )),
             "speak after cooldown must emit"
         );
+    }
+
+    #[test]
+    fn the_wire_keeps_the_floor_and_a_spectator_notice() {
+        let mut session = GameSession::new();
+        let fighter = Uuid::new_v4();
+        let fighter_client = Uuid::new_v4();
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: fighter_client,
+            role: Role::Human,
+            name: "Meat Proxy".to_string(),
+            player_id: Some(fighter),
+        });
+        session.apply_command(GameCommand::Speak {
+            player_id: fighter,
+            text: "nice scrap".to_string(),
+        });
+        let watcher = Uuid::new_v4();
+        session.apply_command(GameCommand::Connected {
+            body: crate::protocol::BodyKind::Human,
+            id: watcher,
+            role: Role::Spectator,
+            name: "Wire".to_string(),
+            player_id: None,
+        });
+        session.apply_command(GameCommand::Board {
+            client_id: watcher,
+            op: protocol::BoardOp::Post,
+            board: Some("notices".to_string()),
+            text: Some("  doors at the bell  ".to_string()),
+        });
+        session.apply_command(GameCommand::Board {
+            client_id: watcher,
+            op: protocol::BoardOp::List,
+            board: None,
+            text: None,
+        });
+        let pages: Vec<_> = session
+            .take_unicasts()
+            .into_iter()
+            .filter_map(|(_, message)| match message {
+                ServerMessage::Board(page) => Some(page),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(pages.len(), 2);
+        assert_eq!(pages[0].code, None);
+        assert_eq!(
+            pages[0].lines.last().map(|line| line.text.as_str()),
+            Some("doors at the bell")
+        );
+        assert_eq!(
+            pages[0].lines.last().map(|line| line.name.as_str()),
+            Some("Wire")
+        );
+        assert!(pages[1]
+            .boards
+            .iter()
+            .any(|card| card.id == "floor" && card.count == 1));
+        assert!(pages[1]
+            .boards
+            .iter()
+            .any(|card| card.id == "notices" && card.count == 1));
+        session.apply_command(GameCommand::Board {
+            client_id: watcher,
+            op: protocol::BoardOp::Read,
+            board: Some("floor".to_string()),
+            text: None,
+        });
+        session.apply_command(GameCommand::Board {
+            client_id: watcher,
+            op: protocol::BoardOp::Post,
+            board: Some("floor".to_string()),
+            text: Some("nope".to_string()),
+        });
+        let more: Vec<_> = session
+            .take_unicasts()
+            .into_iter()
+            .filter_map(|(_, message)| match message {
+                ServerMessage::Board(page) => Some(page),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(more[0].lines[0].text, "nice scrap");
+        assert_eq!(more[0].lines[0].name, "Meat Proxy");
+        assert_eq!(more[1].code.as_deref(), Some("board_closed"));
     }
 
     #[test]

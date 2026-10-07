@@ -673,6 +673,13 @@ pub enum GameCommand {
         player_id: Uuid,
         behavior: String,
     },
+    /// A pull on the process-local wire. Spectators use the same command.
+    Board {
+        client_id: Uuid,
+        op: crate::protocol::BoardOp,
+        board: Option<String>,
+        text: Option<String>,
+    },
     /// The socket died. The pawn stays until grace or an explicit leave.
     Detached {
         id: Uuid,
@@ -1220,17 +1227,27 @@ enum InboundFrame {
     Control,
 }
 
+struct SessionIdentity {
+    client_id: Uuid,
+    role: Role,
+    player_id: Option<Uuid>,
+}
+
 /// Read one admitted session until it closes, leaves, goes silent, or is
 /// kicked. Every frame, including a pong, proves the client is still there.
 async fn read_session(
     ws_stream: &mut futures_util::stream::SplitStream<ServerSocket>,
     shutdown_rx: &mut watch::Receiver<StopSignal>,
     game_tx: &mpsc::UnboundedSender<GameCommand>,
-    role: Role,
-    player_id: Option<Uuid>,
+    identity: SessionIdentity,
     policy: &HelloPolicy,
     traffic: &crate::metrics::ClientTraffic,
 ) -> SessionEnd {
+    let SessionIdentity {
+        client_id,
+        role,
+        player_id,
+    } = identity;
     let limits = policy.limits;
     let mut inbound = InboundBudget::new();
     let started = std::time::Instant::now();
@@ -1336,6 +1353,15 @@ async fn read_session(
         };
         if matches!(message, ClientMessage::Leave) {
             left = true;
+            continue;
+        }
+        if let ClientMessage::Board(request) = &message {
+            let _ = game_tx.send(GameCommand::Board {
+                client_id,
+                op: request.op,
+                board: request.board.clone(),
+                text: request.text.clone(),
+            });
             continue;
         }
         let Some(player_id) = player_id.filter(|_| role != Role::Spectator) else {
@@ -1806,8 +1832,11 @@ async fn handle_connection(
         &mut ws_stream,
         &mut shutdown_rx,
         &game_tx,
-        role,
-        player_id,
+        SessionIdentity {
+            client_id,
+            role,
+            player_id,
+        },
         &policy,
         &traffic,
     )

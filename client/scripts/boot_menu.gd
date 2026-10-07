@@ -84,9 +84,14 @@ func _ready() -> void:
 	_local_host.state_changed.connect(_on_host_state_changed)
 	_local_host.server_ready.connect(_on_benchmark_ready)
 	_local_host.failed.connect(_on_benchmark_failed)
-	_local_match.mission_ready.connect(_on_local_ready)
-	_local_match.state_changed.connect(_on_local_state_changed)
-	_local_match.run_preview_changed.connect(_on_run_preview_changed)
+	# The match owner outlives this menu. Connect once so a return from a
+	# finished mission cannot stack a second launch on the same signal.
+	if not _local_match.mission_ready.is_connected(_on_local_ready):
+		_local_match.mission_ready.connect(_on_local_ready)
+	if not _local_match.state_changed.is_connected(_on_local_state_changed):
+		_local_match.state_changed.connect(_on_local_state_changed)
+	if not _local_match.run_preview_changed.is_connected(_on_run_preview_changed):
+		_local_match.run_preview_changed.connect(_on_run_preview_changed)
 	theme = MenuTheme.build()
 	UserDataMigration.run_for(get_tree())
 	if _settings == null:

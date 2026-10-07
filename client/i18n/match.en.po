@@ -156,6 +156,9 @@ msgstr "OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."
 msgid "HUD_LEADERS"
 msgstr "LEADERS"
 
+msgid "HUD_BOARD_COLUMNS"
+msgstr "FRAG  DIED  HIT% bodies/shots  HEAD% of those bodies  DEALT hp+armor"
+
 msgid "PICKUP_GOLDEN_RAIL"
 msgstr "GOLDEN RAIL"
 

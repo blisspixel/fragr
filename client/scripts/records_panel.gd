@@ -120,20 +120,32 @@ func _show_record(index: int) -> void:
 		lines.append(tr("RECORD_LATE_JOIN"))
 	if scope["kind"] == "mission":
 		lines.append(tr("RECORD_MISSION").format({"difficulty": tr("DIFFICULTY_" + String(scope["rules"]["difficulty"]).to_upper()), "attempt": int(scope["attempt"])}))
-	lines.append(tr("RECORD_COMBAT").format({"kills": PlayerRecord.sum_combat(total, "kills"), "deaths": int(total["deaths"]), "time": _time(int(total["alive_ticks"]))}))
+	var kills: int = PlayerRecord.sum_combat(total, "kills")
+	var deaths: int = int(total["deaths"])
+	var alive: int = int(total["alive_ticks"])
+	lines.append(tr("RECORD_COMBAT").format({"kills": kills, "deaths": deaths, "time": _time(alive)}))
+	var dealt_all: int = PlayerRecord.sum_combat(total, "hp_damage") + PlayerRecord.sum_combat(total, "armor_damage")
+	var frag_rate: String = PlayerRecord.format_tenths(PlayerRecord.per_minute_tenths(kills, alive))
+	var dealt_rate: String = PlayerRecord.format_tenths(PlayerRecord.per_minute_tenths(dealt_all, alive))
+	if frag_rate != "" and dealt_rate != "":
+		lines.append(tr("RECORD_PACE").format({"frags": frag_rate, "dealt": dealt_rate, "time": _time(alive)}))
+	if deaths > 0:
+		lines.append(tr("RECORD_KD").format({"ratio": PlayerRecord.unit_label(kills, deaths), "kills": kills, "deaths": deaths}))
+	# Shots per kill stay on guns and fists. A grenade kill is not a shot.
+	var shots: int = PlayerRecord.sum_weapon(total, "attacks")
+	var shot_kills: int = PlayerRecord.sum_weapon(total, "kills")
+	if shot_kills > 0 and shots > 0:
+		lines.append(tr("RECORD_SPK").format({"ratio": PlayerRecord.unit_label(shots, shot_kills), "attacks": shots, "kills": shot_kills}))
 	lines.append(tr("RECORD_DAMAGE").format({"hp": PlayerRecord.sum_combat(total, "hp_damage"), "armor": PlayerRecord.sum_combat(total, "armor_damage"), "lost": int(total["hp_lost"])}))
 	for weapon: int in range(total["weapons"].size()):
 		var counts: Dictionary = total["weapons"][weapon]
-		if int(counts["attacks"]) == 0:
+		if int(counts.get("attacks", 0)) == 0:
 			continue
-		lines.append(tr("RECORD_WEAPON").format({
-			"weapon": EquipmentState.display_name(String(EquipmentState.WEAPONS[weapon])).to_upper(), "hits": int(counts["damaging_attacks"]),
-			"attacks": int(counts["attacks"]), "percent": "%.1f" % (100.0 * float(counts["damaging_attacks"]) / float(counts["attacks"])),
-		}))
+		lines.append_array(weapon_lines(EquipmentState.display_name(String(EquipmentState.WEAPONS[weapon])).to_upper(), counts, true))
 	if PlayerRecord.grenade_count(total, "attacks") > 0:
-		lines.append(tr("RECORD_WEAPON").format({"weapon": tr("RECORD_GRENADES"), "hits": PlayerRecord.grenade_count(total, "damaging_attacks"), "attacks": PlayerRecord.grenade_count(total, "attacks"), "percent": "%.1f" % (100.0 * PlayerRecord.grenade_count(total, "damaging_attacks") / PlayerRecord.grenade_count(total, "attacks"))}))
+		lines.append_array(weapon_lines(tr("RECORD_GRENADES"), _explosive_counts(total, "grenades"), false))
 	if PlayerRecord.mine_count(total, "attacks") > 0:
-		lines.append(tr("RECORD_WEAPON").format({"weapon": tr("RECORD_MINES"), "hits": PlayerRecord.mine_count(total, "damaging_attacks"), "attacks": PlayerRecord.mine_count(total, "attacks"), "percent": "%.1f" % (100.0 * PlayerRecord.mine_count(total, "damaging_attacks") / PlayerRecord.mine_count(total, "attacks"))}))
+		lines.append_array(weapon_lines(tr("RECORD_MINES"), _explosive_counts(total, "mines"), false))
 	if PlayerRecord.sum_combat(total, "attacks") == 0:
 		lines.append(tr("RECORD_NO_ATTACKS"))
 	if PlayerRecord.secrets(total) > 0:
@@ -144,6 +156,68 @@ func _show_record(index: int) -> void:
 	if preferences.get_value("gameplay", "stat_commentary"):
 		var quip: String = commentary_key(record)
 		_quip.text = tr(quip) if not quip.is_empty() else ""
+
+static func weapon_lines(weapon_name: String, counts: Dictionary, geometry: bool) -> Array[String]:
+	var written: Array[String] = []
+	var attacks: int = int(counts.get("attacks", 0))
+	if attacks <= 0:
+		return written
+	var hurts: int = int(counts.get("damaging_attacks", 0))
+	var hp: int = int(counts.get("hp_damage", 0))
+	var armor: int = int(counts.get("armor_damage", 0))
+	var dealt: int = hp + armor
+	var connects: int = int(counts.get("connects", 0))
+	var heads: int = int(counts.get("heads", 0))
+	# A damaging column with neither key predates connect accounting. Zero hurt
+	# with neither key is a measured miss, which is a real zero.
+	var tracked: bool = geometry and (counts.has("connects") or counts.has("heads") or hurts == 0)
+	var clauses: PackedStringArray = PackedStringArray()
+	clauses.append(_rate_clause("RECORD_PER_SHOT" if geometry else "RECORD_PER_USE", dealt, attacks))
+	if tracked and connects > 0 and connects != attacks:
+		clauses.append(_rate_clause("RECORD_PER_BODY", dealt, connects))
+	if hurts > 0 and hurts != attacks and (not tracked or hurts != connects):
+		clauses.append(_rate_clause("RECORD_PER_HURT", dealt, hurts))
+	written.append(TranslationServer.translate("RECORD_WEAPON").format({
+		"weapon": weapon_name, "attacks": attacks, "noun": TranslationServer.translate("RECORD_NOUN_SHOTS" if geometry else "RECORD_NOUN_USES"),
+		"dealt": dealt, "hp": hp, "armor": armor, "rates": ", ".join(clauses),
+	}))
+	written.append(TranslationServer.translate("RECORD_HURT").format({
+		"hurts": hurts, "attacks": attacks, "percent": PlayerRecord.percent_label(hurts, attacks),
+	}))
+	var rate_hits: int = hurts
+	var rate_name: String = TranslationServer.translate("RECORD_RATE_HURT")
+	if tracked:
+		written.append(TranslationServer.translate("RECORD_CONNECT").format({
+			"connects": connects, "attacks": attacks, "percent": PlayerRecord.percent_label(connects, attacks),
+		}))
+		if connects > 0:
+			written.append(TranslationServer.translate("RECORD_HEAD").format({
+				"heads": heads, "connects": connects, "percent": PlayerRecord.percent_label(heads, connects),
+			}))
+		rate_hits = connects
+		rate_name = TranslationServer.translate("RECORD_RATE_BODY")
+	_append_wilson(written, rate_name, rate_hits, attacks)
+	if tracked and connects > 0:
+		_append_wilson(written, TranslationServer.translate("RECORD_RATE_HEAD"), heads, connects)
+	return written
+
+static func _rate_clause(key: String, numerator: int, denominator: int) -> String:
+	return TranslationServer.translate(key).format({"rate": PlayerRecord.unit_label(numerator, denominator)})
+
+static func _append_wilson(written: Array[String], rate_name: String, hits: int, trials: int) -> void:
+	var interval: Vector2i = PlayerRecord.wilson_thousandths(hits, trials)
+	if interval.x < 0:
+		return
+	written.append(TranslationServer.translate("RECORD_WILSON").format({
+		"rate": rate_name, "low": PlayerRecord.format_tenths(interval.x), "high": PlayerRecord.format_tenths(interval.y),
+		"hits": hits, "trials": trials,
+	}))
+
+static func _explosive_counts(total: Dictionary, column: String) -> Dictionary:
+	var counts: Dictionary = {}
+	for field: String in PlayerRecord.WEAPON_COUNTS:
+		counts[field] = PlayerRecord.column_count(total, column, field)
+	return counts
 
 static func commentary_key(record: Dictionary) -> String:
 	var counts: Dictionary = record["total"]

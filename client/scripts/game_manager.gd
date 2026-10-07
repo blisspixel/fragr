@@ -99,6 +99,8 @@ var _continue_attempt_sent: int = -1
 ## boot menu reads LocalMatch.ONWARD_META once and opens Continue Run.
 var _onward_released: bool = false
 var _onward_armed: bool = false
+## Set when a finished durable run has asked to open the next mission.
+var onward_requested: bool = false
 var _presented_attempt: int = 0
 var _retry_snapshot_tick: int = -1
 
@@ -677,7 +679,13 @@ func _on_leave_requested() -> void:
 func _on_local_failure(key: String) -> void:
 	if _leaving:
 		return
-	local_match.error_key = key
+	if local_match != null:
+		local_match.error_key = key
+	# A finished run loads the next mission. Dropping the process here used to
+	# leave the player with a closed session instead of Persons Unknown.
+	if _run_can_continue():
+		_request_onward.call_deferred()
+		return
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
@@ -946,16 +954,21 @@ func _arm_continue() -> void:
 
 ## A departed mission in this process's own saved run. Development children,
 ## joined servers and arena matches never offer it.
+func _run_can_continue() -> bool:
+	if not is_human_player or local_match == null or not local_match.has_durable_run() or _leaving or net_client == null:
+		return false
+	var state: Dictionary = net_client.mission.get("state", {})
+	var run: Variant = state.get("run")
+	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete"
+
 func _onward_available() -> bool:
-	if not is_human_player or local_match == null or not local_match.has_durable_run() or _leaving:
+	if not _run_can_continue():
 		return false
 	if is_instance_valid(interlude) or is_instance_valid(departure_review) or is_instance_valid(opening) or is_instance_valid(campaign_results):
 		return false
 	var state: Dictionary = net_client.mission.get("state", {})
-	var run: Variant = state.get("run")
 	var result: Dictionary = CampaignResult.select(net_client.record, state, net_client.player_id)
-	return state.get("phase") == "departed" and run is Dictionary and run.get("status") == "complete" \
-		and not result.is_empty() and _results_played.has(result["key"])
+	return not result.is_empty() and _results_played.has(result["key"])
 
 ## The prompt appears only after every held control is released, so the key
 ## that dismissed the departure scene cannot also leave the mission.
@@ -975,10 +988,26 @@ func _try_onward(event: InputEvent) -> bool:
 	if not _onward_armed or not event.is_action_pressed("ui_accept") or event.is_echo() \
 		or (pause_menu != null and pause_menu.is_open()) or (console != null and console.is_open()):
 		return false
-	_onward_armed = false
-	get_tree().set_meta(LocalMatch.ONWARD_META, true)
-	_on_leave_requested()
+	_request_onward()
 	return true
+
+## The tally's continue, or the older prompt, both ask Single Player to open
+## the saved next mission. The tally defers this call so that button is done
+## before the scene changes.
+func _request_onward() -> void:
+	if not _run_can_continue():
+		return
+	_onward_armed = false
+	_onward_released = false
+	onward_requested = true
+	if not is_inside_tree():
+		return
+	var tree: SceneTree = get_tree()
+	tree.set_meta(LocalMatch.ONWARD_META, true)
+	# A headless harness records the handoff and keeps its own scene.
+	if tree.has_meta("fragr_automated"):
+		return
+	_on_leave_requested()
 
 func _input(_event):
 	if _try_continue(_event) or _try_onward(_event):
@@ -1414,6 +1443,12 @@ func _on_campaign_results_completed() -> void:
 	_onward_armed = false
 	_onward_released = false
 	_clear_story_input()
+	if not _onward_available():
+		return
+	if is_inside_tree():
+		_request_onward.call_deferred()
+	else:
+		_request_onward()
 
 func _close_campaign_results() -> void:
 	if is_instance_valid(campaign_results):

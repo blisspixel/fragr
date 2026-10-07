@@ -2141,6 +2141,11 @@ impl GameState {
             }
             groups.sort_by_key(|(target, _)| target.is_none());
             let (mut hp_total, mut armor_total, mut kills) = (0, 0, 0);
+            // One attack, one connect if any pellet found a body, one head if
+            // any of those pellets is in the head band. Damage is summed apart
+            // from that, so a shield still counts.
+            let mut connected = false;
+            let mut headed = false;
             for (target, members) in groups {
                 // Falloff follows each pellet's own 3D distance to the surface.
                 // A pellet in the head band doubles before the sum, so armour
@@ -2184,6 +2189,23 @@ impl GameState {
                 };
                 match target {
                     Some(victim_idx) => {
+                        connected = true;
+                        {
+                            let victim = &self.players[victim_idx];
+                            let feet_y = victim.y - PLAYER_FLOOR_Y;
+                            let campaign = victim.campaign;
+                            let ducking = victim.ducking;
+                            if members.iter().any(|pellet| {
+                                crate::combat::head_hit_for(
+                                    feet_y,
+                                    pellet.end[1],
+                                    campaign,
+                                    ducking,
+                                )
+                            }) {
+                                headed = true;
+                            }
+                        }
                         let (hp, armor, died) =
                             self.resolve_fighter_hit(shooter_idx, victim_idx, damage, Some(trace));
                         hp_total += hp;
@@ -2207,9 +2229,16 @@ impl GameState {
                 }
             }
             // One attack is one damaging attack however many fighters it struck.
-            self.players[shooter_idx]
-                .statistics
-                .hit(weapon, hp_total, armor_total, kills);
+            // `headed` is the band, including a shield. Fist contacts never reach
+            // this path, so they do not invent a head.
+            self.players[shooter_idx].statistics.hit(
+                weapon,
+                hp_total,
+                armor_total,
+                kills,
+                connected,
+                headed,
+            );
         }
         for (shooter, solid, end, normal, damage) in mast_hits {
             self.damage_m03_mast(shooter, solid, end, normal, damage);
@@ -2230,9 +2259,14 @@ impl GameState {
             };
             self.players[attacker].statistics.attack(WeaponType::Fists);
             let (hp, armor, died) = self.resolve_fighter_hit(attacker, victim, damage, Some(trace));
-            self.players[attacker]
-                .statistics
-                .hit(WeaponType::Fists, hp, armor, u64::from(died));
+            self.players[attacker].statistics.hit(
+                WeaponType::Fists,
+                hp,
+                armor,
+                u64::from(died),
+                true,
+                false,
+            );
             if enforcer && hp + armor > 0 && !died {
                 self.enforcer_knockback(attacker, victim, arena);
             }
@@ -3004,6 +3038,7 @@ impl GameState {
                         .find(|b| b.player_id == p.id)
                         .map(|b| format!("{:?}", b.behavior))
                         .or_else(|| p.display_behavior.clone());
+                    let board = p.statistics.board();
 
                     PlayerState {
                         collidable: self.contact_eligible(p),
@@ -3020,6 +3055,11 @@ impl GameState {
                         just_fired: p.just_fired,
                         behavior,
                         score: *self.scores.get(&p.id).unwrap_or(&0),
+                        deaths: published_count(board.0),
+                        attacks: published_count(board.1),
+                        connects: published_count(board.2),
+                        heads: published_count(board.3),
+                        damage: published_count(board.4),
                         weapon: p.weapon.name().to_string(),
                         team: p.team,
                         lives: p.lives,
@@ -4108,6 +4148,10 @@ fn face_flag_goal(bot: &Player, feet: [f32; 3]) -> Action {
         action.turn_left = true;
     }
     action
+}
+
+fn published_count(value: u64) -> u32 {
+    u32::try_from(value).unwrap_or(u32::MAX)
 }
 
 fn fighter_eye(p: &Player) -> [f32; 3] {

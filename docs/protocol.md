@@ -865,6 +865,45 @@ Off-tick callout / taunt from a human or agent. Not sticky Action. Control-plane
 - Spectators cannot speak
 - Named server rule bots may emit occasional Contested Frequency Speak events on frag/death/Warmup/killstreak via the same `try_speak` path (SPEAK_COOLDOWN applies; silent drop on rate-limit; Compliance boss excluded)
 
+#### Wire board
+
+The process-local board. Humans, free agents, and spectators share it. It is
+not a combat fact and it does not change gameplay version. An older server
+ignores the message. An older client never receives it unless that client
+asked, because the answer is a unicast.
+
+```json
+{ "type": "board", "op": "list" }
+{ "type": "board", "op": "read", "board": "floor" }
+{ "type": "board", "op": "post", "board": "notices", "text": "still here" }
+```
+
+`op` is `list`, `read`, or `post`. `board` is `floor` or `notices` when the
+op needs one. `text` is the notice. Unknown fields are refused. The same 80
+scalar and control-character rules as speak apply to a notice. A notice waits
+60 ticks, counted on its own, so a callout does not spend it.
+
+`floor` is the room. Successful speaks and a venue sentence are copied onto
+it. A post to `floor` comes back `board_closed`: a seated human or agent
+speaks, and that is the floor. `notices` keep what was posted until this
+process ends. Each board holds 40 lines and drops the oldest. Nothing is
+written to disk. A round change does not clear the board.
+
+The answer is one unicast, not a broadcast:
+
+```json
+{
+  "type": "board",
+  "op": "read",
+  "board": "notices",
+  "lines": [{ "tick": 4, "name": "Wire", "text": "still here" }]
+}
+```
+
+`list` returns `boards` with `id` and `count`. A refusal sets `code` to
+`board_unknown`, `board_closed`, `board_rejected`, or `board_rate_limited`
+and omits empty lists. The name on a line is the callsign the server
+assigned. The client does not choose a second name for the post.
 
 #### MapInfo
 
@@ -1366,6 +1405,15 @@ Periodic state broadcast containing all visible game entities. Sent at ~20 Hz.
   - `just_fired`: True on the tick a weapon was fired (for muzzle flash)
   - `behavior`: (optional) Rule-bot tactics name, or Agent-set display label from `set_display_behavior`
   - `score`: Kills in current round
+  - `deaths`, `attacks`, `connects`, `heads`, `damage`: (optional) This fighter's
+    round counts, omitted while zero. `attacks` is gun and fist shots.
+    `connects` is shots whose pellets found a body, including a shield or a
+    teammate that lost nothing. `heads` is connects with a pellet in the head
+    band. `damage` is HP plus armor removed by guns, grenades and mines, with
+    overkill excluded. Grenades and mines are not part of `attacks` or
+    `connects`. Each value is a saturating `u32` copy of the private record.
+    The hold-Tab board reads these fields. The frag event does not increment
+    them. A missing field is zero. Older readers ignore the keys.
   - `weapon`: Current weapon name ("Flechette", "Rail", or "Scatter")
   - `team`: (optional) `union` or `coalition` in a team mode, omitted otherwise
   - `lives`: (optional) lives left this round, this one included, when lives are limited
@@ -2526,20 +2574,52 @@ keeps its shape and no slot changes meaning. `secrets`, present only when nonzer
 counts distinct authored secrets found: `total` over the whole run, `attempt`
 this attempt. Finding a restored secret again after a continue raises `attempt`
 but not `total`. It cannot exceed `alive_ticks`. Weapon counts are `attacks`, `damaging_attacks`, `kills`, `hp_damage` and
-`armor_damage`. Every resolved gun shot counts one attack; Repeater warmup
+`armor_damage`, plus optional `connects` and `heads`. Every resolved gun shot counts one attack; Repeater warmup
 counts none and held fire counts each actual shot separately. The
-scatter's attack is seven pellets and counts once, as one damaging attack when
-any pellet hurt anyone. Its kills are bounded by seven per damaging attack; every
+scatter's attack is seven pellets and counts once, as one connect when any
+pellet found a body and one damaging attack when any pellet hurt anyone. One
+shot is one connect and one head however many bodies it struck. A head is a
+pellet in the head band, including a shield that stopped the damage. Fists
+have no band test, so a fist head is refused. The scatter's kills are bounded by seven per damaging attack; every
 other weapon's kills are bounded by its damaging attacks.
 Fists and Shiv cuts count as attacks. A damaging attack removes positive HP or armor from a
 hostile living target. Protected/friendly bodies, scenery, range misses and a
-body killed by an earlier committed ray do not count as damaging attacks.
+body killed by an earlier committed ray do not count as damaging attacks. A
+body that was found still counts as a connect, including the shield, the
+teammate and the body the earlier ray had already reached.
+`connects` and `heads` are omitted while zero. A column that dealt damage and
+omits both predates connect accounting. That omission is not a measured zero,
+and `damaging_attacks <= connects` is enforced only once either count is present.
+Heads are a subset of connects, and connects are a subset of attacks.
 Effective damage excludes overkill. Simultaneous trades keep both attacks, and
 one shot receives each death credit. Dry triggers are latched pulls on an empty
 count, separate from accepted attacks; cooldown denials are neither.
+Presenters derive rates from these integers. The server does not send percents,
+Wilson bounds, or per-minute figures. A percent is
+`1000 * numerator / denominator`, rounded half away from zero, shown to one
+decimal (`2/3` is 66.7%). The product of the numerator and the scale is formed
+in 128 bits. A rounded result that does not fit in an unsigned 64-bit integer
+is omitted. A zero denominator is omitted, not printed as 0%. The hold-Tab
+percent is printed beside its count (`66.7 (2/3)`). Damage per shot, damage
+per body found, and damage per hurt use the same rounding at tenths (`scale` 10).
+A gun line always shows damage per shot. It adds per body only when connects
+were measured, are positive, and differ from the shot count. It adds per hurt
+only when that count is positive and is a different denominator. Three equal
+denominators print only per shot. Shots per kill use gun and fist attacks and
+kills, so a grenade kill is not called a shot. A 95% Wilson interval is the
+separate claim about how little a small sample means. It is labeled as an
+interval and is not a substitute for the counts. On the record card it sits
+on the headline rate: bodies over shots when connect accounting is present,
+otherwise hurt over shots for an older damaging column. A second labeled
+interval covers heads over those bodies whenever the head line is shown,
+including zero heads. Per minute is `count * 1200 / alive_ticks` at tenths
+(`scale` 12000, because the record ticks at 20 Hz and one decimal needs
+another factor of 10). Zero alive ticks omit the pace. The clock in that
+sentence is the window that was actually lived.
 
-An optional `grenades` column has the same five count fields, defaults to zero
-for historical record version 1 and is omitted while unused. It leaves existing
+An optional `grenades` column has the same five original count fields, defaults to zero
+for historical record version 1 and is omitted while unused. It does not carry
+`connects` or `heads`: a blast is not a body ray. It leaves existing
 gun indices unchanged. Aggregate totals include this column. One launch counts
 one attack, one blast that damages any other eligible body counts one damaging
 attack, and at most 256 kills can belong to it. Actual self HP/armor loss counts
@@ -2547,9 +2627,9 @@ only on the victim side. Successful throws suppress gun fire for that tick, so
 aggregate attacks remain bounded by active ticks. Retained records keep their
 existing byte shape when the grenade column is zero.
 
-An optional `mines` column has the same five count fields and rules beside the
+An optional `mines` column has the same five original count fields and rules beside the
 grenade column: one placement is one attack, one blast that damages another
-eligible body is one damaging attack, and it is omitted while unused.
+eligible body is one damaging attack, it carries no connect or head count, and it is omitted while unused.
 
 Living active ticks exclude intro/readiness, dead respawn waiting, continue
 choice and terminal waiting. The lethal frame counts. This is not wall-clock

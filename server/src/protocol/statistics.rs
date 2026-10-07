@@ -9,6 +9,18 @@ mod record_wire;
 pub const RECORD_TICKS_PER_SECOND: u32 = 20;
 const MAX_EXACT_JSON_INTEGER: u64 = (1_u64 << 53) - 1;
 
+/// One accepted shot, and what that shot did.
+///
+/// `attacks` counts the shot. `connects` counts a shot whose pellets found a
+/// body, including a shield or a teammate that lost nothing. `heads` counts a
+/// connect with at least one pellet in the head band. That is geometry: a
+/// shielded head still counts, and a fist has no band test. `damaging_attacks`
+/// counts a shot that removed HP or armor. One shot is one of each, however
+/// many bodies the pellets struck.
+///
+/// `connects` and `heads` are omitted while zero. A column that dealt damage
+/// and omits both predates this count. A presenter must not read that omission
+/// as a measured zero.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WeaponCounts {
@@ -17,6 +29,86 @@ pub struct WeaponCounts {
     pub kills: u64,
     pub hp_damage: u64,
     pub armor_damage: u64,
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub connects: u64,
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub heads: u64,
+}
+
+/// `scale * numerator / denominator`, rounded half away from zero.
+/// A zero denominator is no observation, not a zero rate.
+///
+/// The product is formed in 128 bits. A legal count times the scale can exceed
+/// 2^64 while the rounded quotient still fits in 64 bits; that quotient is the
+/// rate. A quotient that does not fit is no rate.
+///
+/// The published percent is this value at `scale` 1000, shown with one decimal
+/// (`500` is 50.0%). Damage per shot and kills per death use `scale` 10
+/// (`250` is 25.0). The arithmetic stays on integers. A floating percent is
+/// not a second copy of the count.
+pub fn ratio_scaled(numerator: u64, denominator: u64, scale: u64) -> Option<u64> {
+    if denominator == 0 || scale == 0 {
+        return None;
+    }
+    let product = u128::from(numerator) * u128::from(scale);
+    let den = u128::from(denominator);
+    let quotient = product / den;
+    let remainder = product % den;
+    // `remainder * 2 >= denominator` without overflowing when the denominator is huge.
+    let round_up = remainder >= den - remainder;
+    let rounded = if round_up {
+        quotient.checked_add(1)?
+    } else {
+        quotient
+    };
+    u64::try_from(rounded).ok()
+}
+
+/// Tenths of `count` per minute. Records tick at 20 Hz, so a minute is 1200
+/// ticks and one decimal is scale `12000` (`600` is 60.0). Zero ticks is no rate.
+pub fn per_minute_tenths(count: u64, alive_ticks: u64) -> Option<u64> {
+    ratio_scaled(count, alive_ticks, 1_200 * 10)
+}
+
+/// Wilson score interval at z = 1.96, in thousandths of the unit, rounded half
+/// away from zero. This is the interval, not the rate. Zero trials, or more
+/// hits than trials, is no interval.
+///
+/// `1.96` is the conventional two-decimal form of the two-sided 95% normal
+/// quantile. Every count this record accepts fits in the f64 mantissa, so the
+/// casts of hits and trials are exact. The products inside the formula are not.
+pub fn wilson_thousandths(hits: u64, trials: u64) -> Option<(u64, u64)> {
+    if trials == 0 || hits > trials {
+        return None;
+    }
+    let z = 1.96_f64;
+    let n = trials as f64;
+    let p = hits as f64 / n;
+    let z2 = z * z;
+    let denom = 1.0 + z2 / n;
+    let centre = p + z2 / (2.0 * n);
+    let margin = z * ((p * (1.0 - p) / n) + (z2 / (4.0 * n * n))).sqrt();
+    let low = ((centre - margin) / denom).clamp(0.0, 1.0);
+    let high = ((centre + margin) / denom).clamp(0.0, 1.0);
+    Some((unit_thousandths(low), unit_thousandths(high)))
+}
+
+fn unit_thousandths(unit: f64) -> u64 {
+    if unit <= 0.0 {
+        return 0;
+    }
+    if unit >= 1.0 {
+        return 1000;
+    }
+    let scaled = unit * 1000.0;
+    let base = scaled.floor();
+    let fraction = scaled - base;
+    let rounded = if fraction * 2.0 >= 1.0 {
+        base + 1.0
+    } else {
+        base
+    };
+    rounded.clamp(0.0, 1000.0) as u64
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -123,6 +215,30 @@ impl CombatCounts {
             + self.mines.attacks
     }
 
+    /// Gun and fist shots. Grenades and mines stay off this denominator.
+    pub fn shot_attacks(&self) -> u64 {
+        self.weapons.iter().map(|weapon| weapon.attacks).sum()
+    }
+
+    pub fn connects(&self) -> u64 {
+        self.weapons.iter().map(|weapon| weapon.connects).sum()
+    }
+
+    pub fn heads(&self) -> u64 {
+        self.weapons.iter().map(|weapon| weapon.heads).sum()
+    }
+
+    /// HP and armor actually removed, guns and explosives, overkill excluded.
+    pub fn damage_dealt(&self) -> u64 {
+        let column = |counts: &WeaponCounts| counts.hp_damage.saturating_add(counts.armor_damage);
+        self.weapons
+            .iter()
+            .map(column)
+            .fold(0_u64, u64::saturating_add)
+            .saturating_add(column(&self.grenades))
+            .saturating_add(column(&self.mines))
+    }
+
     pub fn kills(&self) -> u64 {
         self.weapons.iter().map(|weapon| weapon.kills).sum::<u64>()
             + self.grenades.kills
@@ -139,31 +255,17 @@ impl CombatCounts {
             self.secrets,
         ];
         for weapon in self.weapons.iter().chain([&self.grenades, &self.mines]) {
-            counts.extend([
-                weapon.attacks,
-                weapon.damaging_attacks,
-                weapon.kills,
-                weapon.hp_damage,
-                weapon.armor_damage,
-            ]);
+            counts.extend(weapon_fields(weapon));
         }
         if counts.iter().any(|count| *count > MAX_EXACT_JSON_INTEGER) {
             return Err("record count is not an exact JSON integer");
         }
-        for column in 0..5 {
+        for column in 0..7 {
             let sum: u64 = self
                 .weapons
                 .iter()
                 .chain([&self.grenades, &self.mines])
-                .map(|weapon| {
-                    [
-                        weapon.attacks,
-                        weapon.damaging_attacks,
-                        weapon.kills,
-                        weapon.hp_damage,
-                        weapon.armor_damage,
-                    ][column]
-                })
+                .map(|weapon| weapon_fields(weapon)[column])
                 .sum();
             if sum > MAX_EXACT_JSON_INTEGER {
                 return Err("record weapon total is not an exact JSON integer");
@@ -188,11 +290,10 @@ impl CombatCounts {
                         .damaging_attacks
                         .saturating_mul(weapon.pellets() as u64)
                     || counts.damaging_attacks > counts.attacks
+                    || !geometry_holds(counts, weapon != super::WeaponType::Fists)
             })
-            || self.grenades.damaging_attacks > self.grenades.attacks
-            || self.grenades.kills > self.grenades.damaging_attacks.saturating_mul(256)
-            || self.mines.damaging_attacks > self.mines.attacks
-            || self.mines.kills > self.mines.damaging_attacks.saturating_mul(256)
+            || !explosive_holds(&self.grenades)
+            || !explosive_holds(&self.mines)
         {
             return Err("inconsistent attack counts");
         }
@@ -206,24 +307,60 @@ impl CombatCounts {
             && self.armor_lost >= other.armor_lost
             && self.dry_triggers >= other.dry_triggers
             && self.secrets >= other.secrets
-            && self.grenades.attacks >= other.grenades.attacks
-            && self.grenades.damaging_attacks >= other.grenades.damaging_attacks
-            && self.grenades.kills >= other.grenades.kills
-            && self.grenades.hp_damage >= other.grenades.hp_damage
-            && self.grenades.armor_damage >= other.grenades.armor_damage
-            && self.mines.attacks >= other.mines.attacks
-            && self.mines.damaging_attacks >= other.mines.damaging_attacks
-            && self.mines.kills >= other.mines.kills
-            && self.mines.hp_damage >= other.mines.hp_damage
-            && self.mines.armor_damage >= other.mines.armor_damage
-            && self.weapons.iter().zip(&other.weapons).all(|(a, b)| {
-                a.attacks >= b.attacks
-                    && a.damaging_attacks >= b.damaging_attacks
-                    && a.kills >= b.kills
-                    && a.hp_damage >= b.hp_damage
-                    && a.armor_damage >= b.armor_damage
-            })
+            && counts_cover(&self.grenades, &other.grenades)
+            && counts_cover(&self.mines, &other.mines)
+            && self
+                .weapons
+                .iter()
+                .zip(&other.weapons)
+                .all(|(outer, inner)| counts_cover(outer, inner))
     }
+}
+
+fn weapon_fields(weapon: &WeaponCounts) -> [u64; 7] {
+    [
+        weapon.attacks,
+        weapon.damaging_attacks,
+        weapon.kills,
+        weapon.hp_damage,
+        weapon.armor_damage,
+        weapon.connects,
+        weapon.heads,
+    ]
+}
+
+fn counts_cover(outer: &WeaponCounts, inner: &WeaponCounts) -> bool {
+    outer.attacks >= inner.attacks
+        && outer.damaging_attacks >= inner.damaging_attacks
+        && outer.kills >= inner.kills
+        && outer.hp_damage >= inner.hp_damage
+        && outer.armor_damage >= inner.armor_damage
+        && outer.connects >= inner.connects
+        && outer.heads >= inner.heads
+}
+
+/// Heads are a subset of connects, and connects are a subset of shots.
+/// Damage implies a connect only once the column records connects. An older
+/// column that dealt damage and omitted the key stays valid.
+/// A fist has no head-band test, so a fist head is not a count we made.
+fn geometry_holds(counts: &WeaponCounts, band: bool) -> bool {
+    if counts.heads > counts.connects || counts.connects > counts.attacks {
+        return false;
+    }
+    if !band && counts.heads > 0 {
+        return false;
+    }
+    if (counts.connects > 0 || counts.heads > 0) && counts.damaging_attacks > counts.connects {
+        return false;
+    }
+    true
+}
+
+fn explosive_holds(counts: &WeaponCounts) -> bool {
+    counts.damaging_attacks <= counts.attacks
+        && counts.kills <= counts.damaging_attacks.saturating_mul(256)
+        && counts.connects == 0
+        && counts.heads == 0
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

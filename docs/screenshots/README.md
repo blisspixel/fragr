@@ -93,6 +93,16 @@ profile, settings, difficulty and records stills are unchanged. The first-person
 muzzle probe now accepts a gun's drawn fire frame, which replaces the generic star;
 it saw the Rifle's fire frame in five of the twelve shot-strip frames.
 
+The same 32-state tour passed again on 2026-10-06 with a clean exit and log
+(`.agents/qa/20261007-044348`, UTC stamp). Republished stills:
+`tour_first_person`, `tour_combat_follow`, `tour_body_human`,
+`tour_body_synthetic`, `tour_arena_overview`, `tour_spectator`,
+`tour_shot_strip`, `tour_rail_impact_strip`, `tour_multiplayer`, and
+`tour_records`. The records card shows pace over the time actually alive
+and damage per shot. The multiplayer page shows a live Arena Duel status
+line on `127.0.0.1:6767`. Menu, profile, settings, and difficulty stills
+were unchanged.
+
 The `m06_*.png` gallery is the Port of Entry development prototype on the same
 pinned Windows/OpenGL Compatibility/AMD Radeon 780M setup. Its final clean
 25-state ordinary-input route clears all 21 guards and confirms actual transit
@@ -309,7 +319,7 @@ and fresh-player acceptance outstanding. Source manifest: `client/qa/m01-records
 | `tour_multiplayer_16x9.png` | App multiplayer page after GET /status, on the game port. |
 | `tour_menu_16x9.png` | Retro boot menu |
 | `tour_profile_16x9.png` | Callsign, reticle, body choice with its preview, and weapon bob |
-| `tour_records_16x9.png` | Persisted arena observation, exact attack denominator and incomplete-session status |
+| `tour_records_16x9.png` | Persisted arena observation, exact attack denominator, pace over time alive, and incomplete-session status |
 | `tour_settings_16x9.png` | Saved controls, including sensitivity, inversion, turn speed, and weapon bob |
 | `tour_difficulty_16x9.png` | New-run Assisted, Standard and Severe choices |
 | `tour_first_person_16x9.png` | Human first person |

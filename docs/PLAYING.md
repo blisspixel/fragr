@@ -15,8 +15,9 @@ corner line keeps the bearing until you are at the panel.
 Assisted, Standard and Severe change enemy timing; health, damage and finite
 supplies stay consistent. M01 has an optional Shiv secret. **Persons Unknown**
 continues the run through the M02 ward, with Latch's rescue and optional patient
-evacuation. Its independent practice entry remains available alongside the
-durable **Continue Run** path. These missions still need fresh-player acceptance.
+evacuation. Finishing Recall Notice and pressing CONTINUE on the tally starts
+that next mission when the saved run names it. Its independent practice entry
+remains available alongside the durable **Continue Run** path. These missions still need fresh-player acceptance.
 
 **Scheduled Service** is the level 3 development prototype. Choose **Single
 Player > Practice and Development > Scheduled Service: rail yard prototype**

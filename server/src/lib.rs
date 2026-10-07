@@ -1,6 +1,7 @@
 pub mod access;
 mod announce;
 pub mod bench;
+pub mod board;
 pub mod combat;
 pub mod desk;
 mod encounters;

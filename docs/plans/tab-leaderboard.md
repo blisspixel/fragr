@@ -8,7 +8,9 @@ Hold Tab and read every fighter, the way a match scoreboard works. The corner li
 
 ## Non-goals
 
-Deaths, ping, a persistent season ladder, and a board that pauses the match. No server or wire change. The corner list's words stay the same.
+Ping, a persistent season ladder, and a board that pauses the match. The corner list's words stay the frag line.
+
+The hold-Tab board later gained deaths, hit rate, head share and damage dealt. Those counts come from the snapshot. The frag event does not add them. Hit rate is bodies found over gun shots, including a shield. Head share is the head band over those bodies. A zero denominator is a dash, not 0%. A printed percent carries its count (`66.7 (2/3)`). Damage dealt is HP plus armor, overkill excluded.
 
 ## Architecture
 

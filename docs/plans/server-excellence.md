@@ -534,6 +534,43 @@ Verified on 2026-10-06. `an_armed_arcade_human_restocks_from_the_weapon_pad`,
 `a_parked_body_is_not_a_sabotage_fight` passed. Server clippy passed.
 `test_shot_effects` and `test_combat_feed` passed.
 
+### Round 9, 2026-10-06: the counts are the data
+
+Surface: participant records in `server/src/protocol/statistics.rs`, the ledger
+in `server/src/statistics.rs`, the hitscan tally in `server/src/sim.rs`, the
+service record in `client/scripts/records_panel.gd`, and the hold-Tab board.
+
+The record already stored integer counts and told presenters to derive rates.
+The card then printed a binary float, and a body that took no damage never
+became a count, so a shield and a teammate looked like misses. The head band
+was computed for damage and then thrown away.
+
+A shot now keeps three facts. `attacks` is the shot. `connects` is a body
+found, including a shield. `heads` is a connect with a pellet in the head
+band, including a shield that held. `damaging_attacks` is still HP or armor
+removed. One shot counts once however many bodies the pellets struck. Fists
+do not take a head count. Grenades and mines do not take a connect or a head,
+because a blast is not that ray. An older column that dealt damage and omits
+the new keys still loads. That omission is not a measured zero.
+
+Rates are integer. A percent is `1000 * numerator / denominator`, rounded half
+away from zero, shown to one decimal. `2/3` is 66.7%. A zero denominator is
+left blank. Damage per shot and kills per death use the same rounding at
+tenths. The 95% Wilson interval is labeled as an interval. It sits next to
+the counts so one perfect shot cannot read as certainty. The hold-Tab board
+copies saturating totals from the snapshot. The corner list stays frags.
+
+The same rounding forms the product in 128 bits, so a scale of 12000 still
+divides a count at the JSON integer limit. Pace is that rate: frags and
+damage dealt per minute over the alive ticks, with the clock written out.
+A gun line says damage per shot, and adds per body or per hurt only when
+those denominators differ. The head share gets its own labeled Wilson
+interval. The hold-Tab percent carries the count beside it (`66.7 (2/3)`).
+Shots per kill stay on guns and fists. None of these rates are on the wire.
+
+The next night is unchanged: bot eyes, a gun that answers on the click, and
+a hitscan that matches the shown body or teaches one lead.
+
 The venue desk below is the operator surface built on 2026-10-05.
 
 ## Venue desk

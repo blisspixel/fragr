@@ -200,16 +200,22 @@ func _check_hud() -> void:
 		{"name": "Nightfall", "score": 3},
 		{"name": "Static Kid", "score": 2},
 		{"name": "Aunt Linda", "score": 1},
-		{"name": "Meat Proxy", "score": 5},
+		{"name": "Meat Proxy", "score": 5, "deaths": 1, "attacks": 3, "connects": 2, "heads": 1, "damage": 40},
 		{"name": "Probe", "score": 0},
 	])
 	hud.call("set_board_name", "Meat Proxy")
 	var leaders: String = str(hud.call("leaderboard_text"))
 	_check(leaders.begins_with("LEADERS\n"), "tab board names itself: " + leaders)
-	_check(leaders.contains("1.*Meat Proxy: 5  YOU"), "local fighter is marked: " + leaders)
-	_check(leaders.contains("6. Probe: 0"), "the board lists past the corner four: " + leaders)
+	_check(leaders.contains("HIT% bodies/shots"), "tab board names the rates: " + leaders)
+	_check(leaders.contains("1.*Meat Proxy: 5 frag, 1 died, hit 66.7 (2/3), head 50.0 (1/2), 40 dealt  YOU"), "local fighter carries the counts: " + leaders)
+	_check(leaders.contains("6. Probe: 0 frag, 0 died, hit -, head -, 0 dealt"), "a quiet fighter is not a fake zero rate: " + leaders)
+	hud.call("set_board_name", "")
+	var spectator: String = str(hud.call("leaderboard_text"))
+	_check(spectator.contains("hit 66.7") and not spectator.contains("YOU"), "a spectator still gets the columns: " + spectator)
+	hud.call("set_board_name", "Meat Proxy")
 	var corner: String = str(hud.get("scoreboard").text)
 	_check(not corner.contains("Probe"), "the corner stays the top four: " + corner)
+	_check(corner.contains("Meat Proxy: 5") and not corner.contains("HIT%"), "the corner stays on frags: " + corner)
 	hud.call("set_leaderboard_open", true)
 	await process_frame
 	var leaders_panel: Control = hud.get_node("Leaderboard")

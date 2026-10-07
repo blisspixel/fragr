@@ -69,6 +69,7 @@ var hit_marker = null
 var damage_numbers = null
 
 var scores = {}
+var combat_sheet: Dictionary = {}
 var behaviors = {}
 ## Local callsign, so the hold-Tab board can mark that row.
 var board_name: String = ""
@@ -738,7 +739,13 @@ func _score_rows() -> Array:
 		var chip: String = ""
 		if behaviors.has(player):
 			chip = " [" + _short_behavior(str(behaviors[player])) + "]"
-		sorted_scores.append({"name": str(player), "kills": int(scores[player]), "chip": chip})
+		var facts: Dictionary = combat_sheet.get(str(player), {})
+		sorted_scores.append({
+			"name": str(player), "kills": int(scores[player]), "chip": chip,
+			"deaths": int(facts.get("deaths", 0)), "attacks": int(facts.get("attacks", 0)),
+			"connects": int(facts.get("connects", 0)), "heads": int(facts.get("heads", 0)),
+			"damage": int(facts.get("damage", 0)),
+		})
 	sorted_scores.sort_custom(func(a, b): return int(a.kills) > int(b.kills))
 	return sorted_scores
 
@@ -755,7 +762,7 @@ func _board_line() -> String:
 ## Every fighter, for the board held on Tab. The corner list stays four rows.
 func leaderboard_text() -> String:
 	var rows: Array = _score_rows()
-	var body: String = MatchRules.scoreboard_text(rows, sides, _board_line(), rows.size(), board_name)
+	var body: String = MatchRules.scoreboard_text(rows, sides, _board_line(), rows.size(), board_name, true)
 	if body.strip_edges() == "":
 		body = "(waiting for scrap)"
 	return tr("HUD_LEADERS") + "\n" + body.strip_edges()
@@ -790,7 +797,7 @@ func set_leaderboard_open(open: bool) -> void:
 
 func _place_leaderboard() -> void:
 	var view: Vector2 = get_viewport().get_visible_rect().size
-	var width: float = minf(480.0, maxf(160.0, view.x - 32.0))
+	var width: float = minf(760.0, maxf(160.0, view.x - 32.0))
 	var lines: int = maxi(_leaderboard_label.text.split("\n", false).size(), 1)
 	var height: float = clampf(float(lines) * 26.0 + 28.0, 72.0, maxf(72.0, view.y - 32.0))
 	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
@@ -820,11 +827,19 @@ func _short_behavior(behavior: String) -> String:
 
 func sync_scores_from_players(player_list: Array):
 	var next_scores = {}
+	var next_sheet: Dictionary = {}
 	var next_behaviors = {}
 	var next_sides = {}
 	for player_data in player_list:
 		var pname = str(player_data.get("name", "?"))
 		next_scores[pname] = int(player_data.get("score", 0))
+		next_sheet[pname] = {
+			"deaths": int(player_data.get("deaths", 0)),
+			"attacks": int(player_data.get("attacks", 0)),
+			"connects": int(player_data.get("connects", 0)),
+			"heads": int(player_data.get("heads", 0)),
+			"damage": int(player_data.get("damage", 0)),
+		}
 		var side: String = MatchRules.valid_team(player_data.get("team"))
 		if side != "":
 			next_sides[pname] = side
@@ -832,6 +847,7 @@ func sync_scores_from_players(player_list: Array):
 		if beh != null:
 			next_behaviors[pname] = str(beh)
 	scores = next_scores
+	combat_sheet = next_sheet
 	behaviors = next_behaviors
 	sides = next_sides
 	leader_name = ""
@@ -1184,6 +1200,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	host_spoke.emit(4.0)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).
 	scores = {}
+	combat_sheet = {}
 	behaviors = {}
 	leader_name = mvp_name
 	pressure_id = ""

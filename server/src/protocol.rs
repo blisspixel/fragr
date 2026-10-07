@@ -76,8 +76,8 @@ pub use sabotage::{
     SabotageState, SiteId, MAX_CALLOUTS, MAX_CALLOUT_ID,
 };
 pub use statistics::{
-    CombatCounts, PlayerRecord, RecordScope, RecordStatus, WeaponCounts, LEGACY_RECORD_VERSION,
-    RECORD_TICKS_PER_SECOND, RECORD_VERSION,
+    per_minute_tenths, ratio_scaled, wilson_thousandths, CombatCounts, PlayerRecord, RecordScope,
+    RecordStatus, WeaponCounts, LEGACY_RECORD_VERSION, RECORD_TICKS_PER_SECOND, RECORD_VERSION,
 };
 pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
@@ -721,6 +721,10 @@ fn is_false(value: &bool) -> bool {
     !value
 }
 
+fn is_zero_u32(value: &u32) -> bool {
+    *value == 0
+}
+
 pub fn legacy_geometry_version() -> u32 {
     1
 }
@@ -885,6 +889,8 @@ pub enum ClientMessage {
     MissionReady(MissionReady),
     MissionContinue(MissionContinue),
     Speak(Speak),
+    /// Process-local wire. Older servers ignore the type. It is not a combat fact.
+    Board(BoardRequest),
     /// Agent-only display label echoed into Snapshot PlayerState.behavior.
     /// Never trusted for combat. Rule-bot behaviors still come from BotController.
     SetDisplayBehavior(SetDisplayBehavior),
@@ -991,6 +997,8 @@ pub enum ServerMessage {
         code: String,
         message: String,
     },
+    /// Unicast answer for the connection that asked. Not broadcast.
+    Board(BoardPage),
 }
 
 /// Additive full-body extension to the legacy Ack root fields. An absent block
@@ -1044,6 +1052,55 @@ pub struct LookAt {
 #[serde(deny_unknown_fields)]
 pub struct Speak {
     pub text: String,
+}
+
+/// One pull on the process-local wire. `list` names the boards. `read` returns
+/// one. `post` writes a notice. The floor is filled by speak, not by post.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BoardOp {
+    List,
+    Read,
+    Post,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BoardRequest {
+    pub op: BoardOp,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub board: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BoardCard {
+    pub id: String,
+    pub count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BoardLine {
+    pub tick: u64,
+    pub name: String,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BoardPage {
+    pub op: BoardOp,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub board: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub boards: Vec<BoardCard>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub lines: Vec<BoardLine>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub code: Option<String>,
 }
 
 /// Observe-only stance / tactics chip for Agent clients (control plane).
@@ -1349,6 +1406,25 @@ pub struct PlayerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub behavior: Option<String>,
     pub score: u32,
+    /// Deaths this round. Omitted while zero. The hold-Tab board reads this
+    /// from the snapshot. The frag event does not increment it.
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub deaths: u32,
+    /// Gun and fist shots this round. Grenades and mines stay off this
+    /// denominator. Omitted while zero. Saturates at `u32::MAX`.
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub attacks: u32,
+    /// Shots whose pellets found a body, including a shield or a teammate that
+    /// lost nothing. Omitted while zero.
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub connects: u32,
+    /// Connects with at least one pellet in the head band. Omitted while zero.
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub heads: u32,
+    /// HP and armor removed by this fighter's guns, grenades and mines.
+    /// Overkill is excluded. Omitted while zero.
+    #[serde(default, skip_serializing_if = "is_zero_u32")]
+    pub damage: u32,
     pub weapon: String,
     /// The fighter's side in a team mode. Omitted otherwise.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1743,6 +1819,40 @@ mod protocol_tests {
         let bad: Result<ClientMessage, _> =
             serde_json::from_str(r#"{"type":"speak","text":"x","laser":true}"#);
         assert!(bad.is_err(), "unknown Speak field must fail: {:?}", bad);
+    }
+
+    #[test]
+    fn board_request_denies_an_unknown_field() {
+        let ok: ClientMessage = serde_json::from_str(
+            r#"{"type":"board","op":"post","board":"notices","text":"still here"}"#,
+        )
+        .expect("board");
+        match ok {
+            ClientMessage::Board(request) => {
+                assert_eq!(request.op, BoardOp::Post);
+                assert_eq!(request.board.as_deref(), Some("notices"));
+                assert_eq!(request.text.as_deref(), Some("still here"));
+            }
+            other => panic!("expected Board, got {:?}", other),
+        }
+        let bad: Result<ClientMessage, _> =
+            serde_json::from_str(r#"{"type":"board","op":"list","laser":true}"#);
+        assert!(bad.is_err(), "unknown board field must fail: {:?}", bad);
+        let page = BoardPage {
+            op: BoardOp::List,
+            board: None,
+            boards: vec![BoardCard {
+                id: "floor".into(),
+                count: 1,
+            }],
+            lines: Vec::new(),
+            code: None,
+        };
+        let json = serde_json::to_value(ServerMessage::Board(page)).unwrap();
+        assert_eq!(json["type"], "board");
+        assert_eq!(json["boards"][0]["id"], "floor");
+        assert!(json.get("lines").is_none());
+        assert!(json.get("code").is_none());
     }
 
     #[test]

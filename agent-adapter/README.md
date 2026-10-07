@@ -395,6 +395,8 @@ Send a short off-tick taunt/callout (not sticky Action). Rate-limited on the ser
 - Rate-limited speak (mirrored ~3s / 60 ticks) -> `isError: true` (never a success toast on a no-op)
 - Spectators / no player_id -> `isError: true`
 
+A successful speak is copied onto that server's floor for the life of the process. A notice is a separate `board` post. This adapter does not send one yet. The wire shape is in `docs/protocol.md` under Wire board, and the slice is `docs/plans/wire-board.md`.
+
 ### `get_events`
 
 Get recent game events (player joins/leaves, frags, hits, respawns, round start/end) explicitly.

@@ -128,6 +128,15 @@ func _manager_order(record: Dictionary, record_first: bool) -> void:
 	net.mission["state"]["run"] = {"status": "complete"}
 	manager._arm_onward()
 	_check(manager._onward_armed, "released input permits the existing onward prompt")
+	_check(not manager.onward_requested, "the onward prompt is not the tally handoff")
+	manager._on_campaign_results_completed()
+	_check(manager.onward_requested, "a completed durable run continues from the tally")
+	_check(not has_meta(LocalMatch.ONWARD_META), "an out-of-tree tally records the handoff without changing scene")
+	owned.set("_run_mode", "")
+	manager.onward_requested = false
+	manager._on_campaign_results_completed()
+	_check(not manager.onward_requested, "a development child does not hand the saved run onward")
+	owned.set("_run_mode", "new")
 	manager._try_campaign_results()
 	_check(manager.campaign_results == null, "duplicate completion cannot replay tally")
 	net.record["round"] = 2
