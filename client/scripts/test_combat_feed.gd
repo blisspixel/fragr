@@ -6,10 +6,28 @@ class Fighter extends Node:
 class CameraProbe extends Node:
 	var target: Node
 	var punches: int = 0
+	var fp_mode: bool = false
+	var locked: String = ""
+	var fp_yaw: float = 0.0
+	var fp_pitch: float = 0.0
+	var turn_accum: float = 0.0
 	func get_followed_target() -> Node:
 		return target
 	func camera_punch() -> void:
 		punches += 1
+	func set_fp_mode(enabled: bool, _pawn: Node = null) -> void:
+		fp_mode = enabled
+	func lock_on_frag(killer_id: String, _duration: float = 1.5) -> void:
+		if fp_mode:
+			return
+		locked = killer_id
+
+class NamedFighter extends Node:
+	var player_id: String = ""
+	var player_name: String = ""
+	var player_color: Color = Color.WHITE
+	func show_winner_glow() -> void:
+		pass
 
 var _failures: int = 0
 
@@ -124,6 +142,36 @@ func _run() -> void:
 	_check(hud.round_message.visible and "Round closed" in hud.round_message.text, "an earlier banner cannot dismiss the newer result")
 	hud._process(6.0)
 	_check(not hud.round_message.visible, "round result expires through its owned timer")
+	var killer: NamedFighter = NamedFighter.new()
+	killer.player_id = "killer"
+	killer.player_name = "Other"
+	game.players["killer"] = killer
+	game.net_client.player_name = "Proxy"
+	game.local_fp_pawn_id = "self"
+	camera.fp_mode = true
+	game._update_local_fp_hud([{"id": "self", "hp": 90, "armor": 0, "yaw": 1.0, "pitch": 0.0, "weapon": "Flechette", "name": "Proxy"}])
+	_check(camera.fp_mode and game.local_fp_pawn_id == "self", "a living body keeps first person")
+	game._on_event_received({"event": "frag", "killer": "Other", "victim": "Proxy"})
+	_check(camera.fp_mode and camera.locked == "", "the death watch waits until first person lets go")
+	game._update_local_fp_hud([])
+	_check(not camera.fp_mode and game.local_fp_pawn_id == "" and camera.locked == "killer", "arcade death leaves first person and watches the killer")
+	camera.fp_mode = true
+	camera.locked = ""
+	game.local_fp_pawn_id = "self"
+	game.current_map_info = {"mission": {"phase": "find_transfer"}}
+	game._update_local_fp_hud([])
+	_check(camera.fp_mode and game.local_fp_pawn_id == "self", "a mission omission keeps the player's eyes")
+	game.current_map_info = {}
+	game._update_local_fp_hud([])
+	_check(not camera.fp_mode, "an arcade body that is gone leaves first person")
+	camera.locked = ""
+	game._on_event_received({"event": "frag", "killer": "Other", "victim": "Proxy"})
+	_check(camera.locked == "killer", "a frag after the body is gone still finds the killer")
+	camera.locked = ""
+	game._sabotage_watching_mates = true
+	game._on_event_received({"event": "frag", "killer": "Other", "victim": "Proxy"})
+	_check(camera.locked == "", "sabotage already watches living teammates")
+	killer.free()
 	game.free()
 	camera.free()
 	watched.free()

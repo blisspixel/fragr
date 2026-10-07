@@ -291,6 +291,22 @@ impl Inventory {
         self.policy == EquipmentPolicy::Discovery && self.ammo[pool.index()] < pool.capacity()
     }
 
+    /// A weapon pad is worth taking when it fills a bag that still has room,
+    /// teaches a discovery gun, or is the weapon switch for an unarmed arsenal.
+    /// An armed arcade human with a full bag leaves the pad for someone else.
+    pub fn weapon_pad_useful(&self, weapon: WeaponType) -> bool {
+        if self.policy == EquipmentPolicy::FullArsenal {
+            if self.armed() && self.only.is_none() {
+                return weapon
+                    .ammo_pool()
+                    .is_some_and(|pool| self.ammo[pool.index()] < pool.capacity());
+            }
+            // Bots and a weapon-only mutator still use the pad as the switch.
+            return true;
+        }
+        !self.owns(weapon) || weapon.ammo_pool().is_some_and(|pool| self.needs_ammo(pool))
+    }
+
     pub fn grant_ammo(&mut self, pool: AmmoPool, amount: u16) -> u16 {
         if self.policy != EquipmentPolicy::Discovery {
             return 0;

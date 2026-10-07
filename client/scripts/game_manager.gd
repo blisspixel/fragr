@@ -43,6 +43,8 @@ var radio = null
 var local_fp_pawn_id = ""
 var local_hp_seen = -1
 var fp_spawn_flashed = false
+## Killer to watch once an arcade death drops first person. Empty until then.
+var _death_watch_killer: String = ""
 # Mid-join Ended podium shown once per Ended phase.
 var ended_podium_shown = false
 var action_state = {
@@ -1989,7 +1991,9 @@ func _on_event_received(data):
 		if frag_sound and frag_sound.stream:
 			frag_sound.play()
 		
-		if not is_human_player and killer_id != "" and camera:
+		if is_human_player and _is_local_victim(victim_name):
+			_remember_own_frag(killer_id)
+		elif not is_human_player and killer_id != "" and camera:
 			camera.lock_on_frag(killer_id, 2.0)
 	elif event_type == "round_start":
 		ended_podium_shown = false
@@ -2432,6 +2436,40 @@ func _update_local_fp_hud(player_list: Array) -> void:
 		if hud and hud.has_method("set_followed_weapon"):
 			hud.set_followed_weapon(weapon, str(pdata.get("name", "YOU")), "")
 		return
+	# Arcade deaths leave the snapshot for the respawn delay. Staying in first
+	# person would freeze the camera on a body that is already gone. A campaign
+	# body stays in the snapshot at zero health and keeps its eyes.
+	if local_fp_pawn_id == pid and not _mission_map():
+		_clear_fp_state()
+		_watch_own_killer()
+
+## The joined callsign, from the live pawn while it exists and from the
+## connection after an arcade death has removed it.
+func _is_local_victim(victim_name: String) -> bool:
+	if victim_name == "":
+		return false
+	var my_name := str(net_client.player_name) if net_client else ""
+	var my_id := str(net_client.player_id) if net_client and net_client.player_id != null else ""
+	if players.has(my_id) and is_instance_valid(players[my_id]):
+		my_name = str(players[my_id].get("player_name"))
+	return my_name != "" and victim_name == my_name
+
+func _remember_own_frag(killer_id: String) -> void:
+	_death_watch_killer = killer_id
+	_watch_own_killer()
+
+## Chase the killer only after first person has let go. Sabotage already
+## watches living teammates, so this does not take that view.
+func _watch_own_killer() -> void:
+	if _death_watch_killer == "" or _sabotage_watching_mates:
+		return
+	if camera == null or not camera.has_method("lock_on_frag"):
+		return
+	if bool(camera.get("fp_mode")):
+		return
+	var killer := _death_watch_killer
+	_death_watch_killer = ""
+	camera.lock_on_frag(killer, 2.0)
 
 func _process_shot_results(results, tick: int) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
@@ -2494,9 +2532,10 @@ func _process_shot_results(results, tick: int) -> void:
 		# case where pulling the trigger looked like nothing happened.
 		if (is_local or (is_followed and camera.is_observing_first_person())) and hud and hud.has_method("show_fire_juice"):
 			hud.show_fire_juice(wpn)
-		if hit and dmg > 0:
-			if hud and hud.has_method("show_hit_marker"):
-				hud.show_hit_marker(dmg, wpn)
+		if hit and hud and hud.has_method("show_hit_marker"):
+			# Damage above zero is a hit. Zero is a body that stopped the shot
+			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
+			hud.show_hit_marker(dmg, wpn)
 
 ## The gun a resolved shot was fired with: the trace's weapon when present,
 ## otherwise what the shooter holds now.

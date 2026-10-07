@@ -473,7 +473,9 @@ fn nearest_visible_enemy<'a>(state: &'a GameState, bot: &Player) -> Option<(&'a 
     state
         .players
         .iter()
-        .filter(|p| p.standing() && p.team.is_some() && p.team != bot.team)
+        .filter(|p| {
+            p.standing() && state.contact_eligible(p) && p.team.is_some() && p.team != bot.team
+        })
         .map(|p| (p, horizontal(feet(bot), feet(p))))
         .filter(|(_, d)| *d <= reach)
         .filter(|(p, _)| visible(state, bot, p))

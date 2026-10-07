@@ -3756,9 +3756,16 @@ fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
     assert_eq!(before.ammo(crate::protocol::AmmoPool::Cells), 16);
     assert_eq!(before.shots(WeaponType::Rail), Some(4));
     stand_on_pad(&mut state, id, "pad_rail");
+    if let Some(p) = state.players.iter_mut().find(|p| p.id == id) {
+        p.weapon = WeaponType::Flechette;
+    }
     state.tick(0.05);
     let player = state.players.iter().find(|p| p.id == id).unwrap();
-    assert_eq!(player.weapon, WeaponType::Rail);
+    assert_eq!(
+        player.weapon,
+        WeaponType::Flechette,
+        "the pad restocks the bag and leaves the gun in hand"
+    );
     let after = player
         .inventory
         .state(id, WeaponType::Rail, state.tick)
@@ -3771,6 +3778,38 @@ fn an_armed_arcade_human_restocks_from_the_weapon_pad() {
     );
     let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
     assert!(!pad.available);
+}
+
+#[test]
+fn a_full_arcade_bag_leaves_the_weapon_pad() {
+    let mut state = GameState::new();
+    state.start_round();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Proxy".into(), Role::Human);
+    state.arm_joined_magazines(id);
+    {
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.weapon = WeaponType::Flechette;
+        while player.inventory.grant_weapon(WeaponType::Rail) {}
+    }
+    let full = state.players[0]
+        .inventory
+        .state(id, WeaponType::Rail, 0)
+        .unwrap();
+    assert_eq!(full.ammo(crate::protocol::AmmoPool::Cells), 100);
+    assert_eq!(full.shots(WeaponType::Rail), Some(4));
+    stand_on_pad(&mut state, id, "pad_rail");
+    state.tick(0.05);
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(player.weapon, WeaponType::Flechette);
+    let after = player
+        .inventory
+        .state(id, WeaponType::Rail, state.tick)
+        .unwrap();
+    assert_eq!(after.ammo(crate::protocol::AmmoPool::Cells), 100);
+    assert_eq!(after.shots(WeaponType::Rail), Some(4));
+    let pad = state.pickups.iter().find(|p| p.id == "pad_rail").unwrap();
+    assert!(pad.available, "a full bag does not eat the pad");
 }
 
 #[test]

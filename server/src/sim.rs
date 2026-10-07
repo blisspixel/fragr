@@ -3638,14 +3638,7 @@ impl GameState {
                     continue;
                 }
                 let useful = match pad.kind {
-                    PickupKind::Weapon(weapon) => {
-                        !player.inventory.owns(weapon)
-                            || player.inventory.policy()
-                                == crate::protocol::EquipmentPolicy::FullArsenal
-                            || weapon
-                                .ammo_pool()
-                                .is_some_and(|pool| player.inventory.needs_ammo(pool))
-                    }
+                    PickupKind::Weapon(weapon) => player.inventory.weapon_pad_useful(weapon),
                     PickupKind::Ammo { pool, .. } => player.inventory.needs_ammo(pool),
                     PickupKind::Grenade { .. } => {
                         player.inventory.only().is_none() && player.inventory.grenades() < 6
@@ -3734,10 +3727,14 @@ impl GameState {
                 PickupKind::Weapon(w) => {
                     let discovered = !player.inventory.owns(w);
                     player.inventory.grant_weapon(w);
-                    if discovered
-                        || player.inventory.policy()
+                    // An armed arcade human already chose a gun. The pad fills
+                    // the bag. An unarmed arsenal has no other switch, and a
+                    // newly found discovery weapon still becomes current.
+                    let switches = discovered
+                        || (player.inventory.policy()
                             == crate::protocol::EquipmentPolicy::FullArsenal
-                    {
+                            && !player.inventory.armed());
+                    if switches {
                         player.inventory.release_trigger();
                         player.weapon = w;
                     }

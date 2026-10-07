@@ -1814,18 +1814,23 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 	if hit_marker:
 		hit_marker.visible = true
 		var col = Color(0.91, 0.82, 0.7, 0.95)
-		match weapon_name:
-			"Rail":
-				col = Color(0.72, 0.78, 0.82, 0.95)
-				hit_marker_timer = 0.28
-			"Sniper":
-				col = Color(0.88, 0.86, 0.8, 0.95)
-				hit_marker_timer = 0.32
-			"Scatter":
-				col = Color(0.9, 0.55, 0.32, 0.95)
-				hit_marker_timer = 0.14
-			_:
-				col = Color(0.91, 0.82, 0.7, 0.95)
+		if damage <= 0:
+			# Dim, and shorter: the shot found a body and did not hurt it.
+			col = Color(0.55, 0.58, 0.62, 0.7)
+			hit_marker_timer = 0.12
+		else:
+			match weapon_name:
+				"Rail":
+					col = Color(0.72, 0.78, 0.82, 0.95)
+					hit_marker_timer = 0.28
+				"Sniper":
+					col = Color(0.88, 0.86, 0.8, 0.95)
+					hit_marker_timer = 0.32
+				"Scatter":
+					col = Color(0.9, 0.55, 0.32, 0.95)
+					hit_marker_timer = 0.14
+				_:
+					col = Color(0.91, 0.82, 0.7, 0.95)
 		hit_marker.modulate = col
 	if damage > 0:
 		_spawn_floating_damage(damage, weapon_name)

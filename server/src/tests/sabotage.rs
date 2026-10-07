@@ -5,7 +5,9 @@ use crate::protocol::{
     SabotageFormat, SabotagePhase, SabotageReason, ServerMessage, SiteId, Team, WeaponType,
 };
 use crate::rules::{RuleSet, SabotageConfig};
-use crate::sim::{GameState, MapKind, MatchConfig, RoundState, PLAYER_FLOOR_Y};
+use crate::sim::{
+    BotBehavior, BotController, GameState, MapKind, MatchConfig, RoundState, PLAYER_FLOOR_Y,
+};
 use uuid::Uuid;
 
 const A: [f32; 3] = [-38.0, 0.0, -27.0];
@@ -253,6 +255,39 @@ fn parked_only_muster_keeps_full_clock_until_a_fighter_returns() {
     run(&mut state, 1);
     assert_eq!(phase(&state), SabotagePhase::Live);
     assert!(player(&state, id).standing());
+}
+
+#[test]
+fn a_parked_body_is_not_a_sabotage_fight() {
+    let (mut state, ids) = two_a_side(quick());
+    let held = carrier(&state);
+    let bot = ids
+        .iter()
+        .copied()
+        .find(|id| player(&state, *id).team == Some(Team::Coalition) && *id != held)
+        .expect("a coalition fighter who is not carrying");
+    let ghost = ids
+        .iter()
+        .copied()
+        .find(|id| player(&state, *id).team == Some(Team::Union))
+        .expect("a union fighter");
+    put(&mut state, bot, A);
+    put(&mut state, ghost, [A[0] + 1.2, A[1], A[2]]);
+    state.players.iter_mut().find(|p| p.id == bot).unwrap().yaw = 0.0;
+    let controller = BotController::new(bot, BotBehavior::Compliance);
+    let live = controller.intent(&state);
+    assert!(
+        live.action.fire,
+        "a standing enemy at arm's length is a fight"
+    );
+    state
+        .players
+        .iter_mut()
+        .find(|p| p.id == ghost)
+        .unwrap()
+        .detached = true;
+    let parked = controller.intent(&state);
+    assert!(!parked.action.fire, "a parked resume body is not a fight");
 }
 
 #[test]
