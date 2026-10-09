@@ -149,7 +149,7 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo run -p fragr-server --release --locked -- --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42
-cargo llvm-cov --workspace --locked --fail-under-lines 90
+cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2
 cargo build --workspace --release --locked
 cargo deny check licenses bans sources   # advisories are reported, not blocking
 cargo run -p fragr-playtest --locked -- --agents 4 --rounds 1 --frag-limit 3 --time-limit-seconds 45 --assert --report .agents/playtest/ci.json

@@ -99,7 +99,8 @@ jobs:
           if-no-files-found: warn
 
       - name: Check code coverage
-        run: cargo llvm-cov --workspace --locked --fail-under-lines 90
+        # Bound instrumented setup concurrency while retaining every test and deadline.
+        run: cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2
 
       - name: Build release
         run: cargo build --workspace --release --locked
