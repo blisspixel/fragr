@@ -170,3 +170,28 @@ fn overlapping_hazard_and_shared_relay_fail_closed() {
         .to_string()
         .contains("foundry utility shares the relay"));
 }
+
+#[test]
+fn successor_carries_foundry_gates_without_becoming_a_mission() {
+    let map = RuntimeMap::Authored(
+        AuthoredMap::read(Cursor::new(include_bytes!(
+            "../../../maps/m13-weight-of-permission.json"
+        )))
+        .expect("foundry successor"),
+    );
+    let gates = map.m13_gates().expect("successor gates");
+    assert!(!gates.protected.is_empty());
+    assert_ne!(gates.relay, gates.protected[0]);
+    let deck = map.arena().solids[gates.deck_index];
+    let thickness = deck.top - deck.bottom;
+    assert!((0.05..=2.0).contains(&thickness));
+    assert!(gates.lift_top > deck.top + 0.05);
+    let landing = map
+        .arena()
+        .solids
+        .iter()
+        .find(|solid| (solid.top - solid.bottom - 3.0).abs() < 0.001 && solid.covers(0.0, 52.0))
+        .expect("three metre landing");
+    assert_ne!(landing.top, deck.top);
+    assert!(map.campaign_mission_id().is_none());
+}

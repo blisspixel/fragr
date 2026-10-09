@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "map_id": 1016,
+  "name": "Freedom of Movement (development)",
+  "half_extent": 48,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "west_bound", "min": [-46, 0, -20], "max": [-44, 4, 20], "surface": "enamel"},
+    {"id": "north_bound", "min": [-46, 0, 18], "max": [44, 4, 20], "surface": "enamel"},
+    {"id": "south_bound", "min": [-46, 0, -20], "max": [44, 4, -18], "surface": "enamel"},
+    {"id": "north_block_west", "min": [-44, 0, 5], "max": [-12, 3.5, 18], "surface": "enamel"},
+    {"id": "north_block_mid", "min": [-7, 0, 5], "max": [8, 3.5, 18], "surface": "enamel"},
+    {"id": "north_block_east", "min": [13, 0, 5], "max": [28, 3.5, 14], "surface": "enamel"},
+    {"id": "pocket_barricade_back", "min": [-12, 0, 14], "max": [-7, 3.5, 15.5], "surface": "enamel"},
+    {"id": "pocket_checkpoint_back", "min": [8, 0, 13], "max": [13, 3.5, 14.5], "surface": "enamel"},
+    {"id": "south_block_west", "min": [-44, 0, -18], "max": [4, 3.5, -5], "surface": "enamel"},
+    {"id": "south_block_east", "min": [9, 0, -16], "max": [28, 3.5, -5], "surface": "enamel"},
+    {"id": "transit_back", "min": [4, 0, -18], "max": [9, 3.5, -16.5], "surface": "enamel"},
+    {"id": "barricade", "min": [-10.2, 0, -1.6], "max": [-8.8, 1.6, 1.6], "surface": "service_steel"},
+    {"id": "checkpoint_barrier", "min": [9.4, 0, -1.6], "max": [10.8, 1.6, 1.6], "surface": "service_steel"},
+    {"id": "prison_bus", "min": [5.3, 0, -15], "max": [7.7, 2.4, -12.2], "surface": "service_steel"},
+    {"id": "parade_stand", "min": [10.4, 0, 8.8], "max": [11.6, 1.8, 10.6], "surface": "enamel"},
+    {"id": "kiosk", "min": [18, 0, -4.6], "max": [20.2, 2.2, -3.2], "surface": "service_steel"},
+    {"id": "fountain", "min": [30, 0, -2], "max": [34, 1.3, 2], "surface": "concrete"},
+    {"id": "flank_left", "min": [32.2, 0, 7.6], "max": [34.4, 1.6, 11], "surface": "service_steel"},
+    {"id": "flank_right", "min": [32.2, 0, -11], "max": [34.4, 1.6, -7.6], "surface": "service_steel"},
+    {"id": "portico_north", "min": [36.8, 0, 6], "max": [39.2, 4.2, 8.4], "surface": "enamel"},
+    {"id": "portico_south", "min": [36.8, 0, -8.4], "max": [39.2, 4.2, -6], "surface": "enamel"},
+    {"id": "chamber_doors", "min": [38, 0, -1.6], "max": [40, 3.6, 1.6], "surface": "enamel"},
+    {"id": "office_face", "min": [40, 0, -16], "max": [44, 10, 16], "surface": "enamel"},
+    {"id": "post_n1", "min": [-36.35, 0, 4.2], "max": [-35.65, 2.6, 4.85], "surface": "service_steel"},
+    {"id": "post_n2", "min": [-28.35, 0, 4.2], "max": [-27.65, 2.6, 4.85], "surface": "service_steel"},
+    {"id": "post_n3", "min": [-18.35, 0, 4.2], "max": [-17.65, 2.6, 4.85], "surface": "service_steel"},
+    {"id": "post_n4", "min": [-0.35, 0, 4.2], "max": [0.35, 2.6, 4.85], "surface": "service_steel"},
+    {"id": "post_n5", "min": [21.65, 0, 4.2], "max": [22.35, 2.6, 4.85], "surface": "service_steel"},
+    {"id": "post_s1", "min": [-36.35, 0, -4.85], "max": [-35.65, 2.6, -4.2], "surface": "service_steel"},
+    {"id": "post_s2", "min": [-28.35, 0, -4.85], "max": [-27.65, 2.6, -4.2], "surface": "service_steel"},
+    {"id": "post_s3", "min": [-18.35, 0, -4.85], "max": [-17.65, 2.6, -4.2], "surface": "service_steel"},
+    {"id": "post_s4", "min": [21.65, 0, -4.85], "max": [22.35, 2.6, -4.2], "surface": "service_steel"}
+  ],
+  "spawns": [{"id": "gate_plaza", "feet": [-40, 0, 0], "yaw": 0}],
+  "landmarks": [
+    {"id": "ride_start", "feet": [-40, 0, 0]},
+    {"id": "side_pocket_barricade", "feet": [-9.5, 0, 10]},
+    {"id": "side_pocket_checkpoint", "feet": [10.5, 0, 7.2]},
+    {"id": "side_pocket_transit", "feet": [6.5, 0, -8.2]},
+    {"id": "forecourt", "feet": [26.5, 0, 0]},
+    {"id": "office_threshold", "feet": [36.4, 0, 0]}
+  ],
+  "supplies": [
+    {"id": "avenue_pistol", "feet": [-32, 0, 1.2], "grant": {"kind": "weapon", "weapon": "tack"}, "claim": "personal"},
+    {"id": "pocket_rifle", "feet": [-9.5, 0, 8], "grant": {"kind": "weapon", "weapon": "flechette"}, "claim": "personal"},
+    {"id": "transit_shotgun", "feet": [6.5, 0, -7], "grant": {"kind": "weapon", "weapon": "scatter"}, "claim": "personal"},
+    {"id": "transit_medkit", "feet": [7.4, 0, -8.8], "grant": {"kind": "health", "amount": 35}, "claim": "contested"},
+    {"id": "fountain_rocket", "feet": [32, 0, 3.2], "grant": {"kind": "weapon", "weapon": "rocket"}, "claim": "personal", "secret": true},
+    {"id": "fountain_armor", "feet": [32, 0, -3.2], "grant": {"kind": "armor", "amount": 50}, "claim": "contested", "secret": true},
+    {"id": "kiosk_shells", "feet": [16.6, 0, -3.6], "grant": {"kind": "ammo", "pool": "shells", "amount": 8}, "claim": "contested", "secret": true},
+    {"id": "kiosk_bullets", "feet": [21.4, 0, -3.6], "grant": {"kind": "ammo", "pool": "bullets", "amount": 24}, "claim": "contested", "secret": true}
+  ],
+  "decorations": [
+    {"solid": "office_face", "face": "west", "kind": "union_seal", "center": [0, 1.5], "size": [4, 4]},
+    {"solid": "chamber_doors", "face": "west", "kind": "union_seal", "center": [0, 0.3], "size": [1.6, 1.6]},
+    {"solid": "north_block_west", "face": "north", "kind": "strip_light", "center": [-8, 0.8], "size": [1.5, 0.25]},
+    {"solid": "north_block_west", "face": "north", "kind": "strip_light", "center": [8, 0.8], "size": [1.5, 0.25]},
+    {"solid": "north_block_mid", "face": "north", "kind": "strip_light", "center": [0, 0.8], "size": [1.5, 0.25]},
+    {"solid": "south_block_west", "face": "south", "kind": "strip_light", "center": [0, 0.8], "size": [1.5, 0.25]}
+  ],
+  "encounters": [
+    {
+      "id": "first_stretch",
+      "regions": [{"min": [-42, 0, -4], "max": [-16, 3, 4]}],
+      "enemies": [
+        {
+          "id": "first_notary",
+          "kind": "notary",
+          "feet": [-24, 4, 0],
+          "yaw": 3.141592653589793,
+          "hover": {
+            "volume": {"min": [-28, 3.2, -2.5], "max": [-20, 5.2, 2.5]},
+            "band": [3.2, 6.5],
+            "patrol": [[-26, 4, -1], [-22, 4, 1]],
+            "approach": [-24, 0, 3.4]
+          }
+        }
+      ]
+    },
+    {
+      "id": "barricade_post",
+      "regions": [{"min": [-13, 0, -4], "max": [-6, 3, 14]}],
+      "enemies": [
+        {"id": "barricade_clerk_a", "kind": "clerk", "feet": [-10.5, 0, 12], "yaw": 3.141592653589793},
+        {"id": "barricade_clerk_b", "kind": "clerk", "feet": [-8.5, 0, 12], "yaw": 3.141592653589793}
+      ]
+    },
+    {
+      "id": "checkpoint_stand",
+      "regions": [{"min": [7, 0, -4], "max": [14, 3, 13]}],
+      "enemies": [
+        {"id": "parade_turret", "kind": "turret", "feet": [10.5, 0, 6.2], "yaw": 3.141592653589793},
+        {"id": "checkpoint_clerk", "kind": "clerk", "feet": [10.5, 0, 11.6], "yaw": 3.141592653589793}
+      ]
+    },
+    {
+      "id": "transit_stop",
+      "regions": [{"min": [3, 0, -16], "max": [10, 3, -4]}],
+      "enemies": [
+        {"id": "transit_clerk_a", "kind": "clerk", "feet": [5.8, 0, -10.6], "yaw": 0},
+        {"id": "transit_clerk_b", "kind": "clerk", "feet": [7.2, 0, -10.6], "yaw": 0}
+      ]
+    },
+    {
+      "id": "forecourt_assault",
+      "regions": [{"min": [20, 0, -14], "max": [42, 4, 14]}],
+      "enemies": [
+        {"id": "forecourt_enforcer_a", "kind": "enforcer", "feet": [35.2, 0, 3.6], "yaw": 3.141592653589793},
+        {"id": "forecourt_enforcer_b", "kind": "enforcer", "feet": [35.2, 0, -3.6], "yaw": 3.141592653589793},
+        {"id": "portico_turret", "kind": "turret", "feet": [34.6, 0, 6.4], "yaw": 3.141592653589793},
+        {"id": "forecourt_heavy", "kind": "heavy_sweeper", "feet": [30.2, 0, 9.2], "yaw": 3.141592653589793},
+        {
+          "id": "forecourt_assessor",
+          "kind": "assessor",
+          "feet": [31.2, 5, 0],
+          "yaw": 3.141592653589793,
+          "hover": {
+            "volume": {"min": [29.2, 4, -1.5], "max": [33.2, 6, 1.5]},
+            "band": [4, 6.5],
+            "patrol": [[30, 5, -0.6], [32.6, 5, 0.6]],
+            "approach": [23.5, 0, 0]
+          }
+        }
+      ]
+    }
+  ]
+}

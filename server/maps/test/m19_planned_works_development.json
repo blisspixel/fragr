@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "map_id": 1019,
+  "name": "Planned Works (development)",
+  "half_extent": 40,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "concourse_wall_west", "min": [-16, 0, -36], "max": [-10, 4, -14], "surface": "concrete"},
+    {"id": "concourse_wall_east", "min": [10, 0, -36], "max": [16, 4, -14], "surface": "concrete"},
+    {"id": "concourse_wall_south_west", "min": [-16, 0, -36], "max": [-4, 4, -34], "surface": "concrete"},
+    {"id": "concourse_wall_south_east", "min": [4, 0, -36], "max": [16, 4, -34], "surface": "concrete"},
+    {"id": "market_stall", "min": [-18, 0, -14], "max": [-12, 2, -8], "surface": "enamel"},
+    {"id": "meal_table", "min": [-30, 0, -12], "max": [-26, 0.8, -10], "surface": "concrete"},
+    {"id": "clinic_post", "min": [-30, 0, -8], "max": [-28.4, 3, -6.2], "surface": "enamel"},
+    {"id": "west_roof", "min": [-28, 0, -2], "max": [-8, 4, 14], "surface": "concrete"},
+    {"id": "east_roof", "min": [8, 0, -2], "max": [28, 4, 14], "surface": "concrete"},
+    {"id": "roof_bridge", "min": [-8, 3.6, 4], "max": [8, 4, 8], "surface": "service_steel"},
+    {"id": "roof_tank_a", "min": [-24, 4, 8], "max": [-21, 6.5, 11], "surface": "enamel"},
+    {"id": "roof_tank_b", "min": [-16, 4, 1], "max": [-13, 6.5, 4], "surface": "enamel"},
+    {"id": "roof_demolition_west", "min": [-26, 4, 12], "max": [-10, 4.4, 13.2], "surface": "enamel"},
+    {"id": "roof_demolition_east", "min": [10, 4, 12], "max": [26, 4.4, 13.2], "surface": "enamel"},
+    {"id": "trench_wall_west", "min": [-16, 0, 22], "max": [-8, 3, 36], "surface": "concrete"},
+    {"id": "trench_wall_east", "min": [8, 0, 22], "max": [16, 3, 36], "surface": "concrete"}
+  ],
+  "spawns": [
+    {"id": "concourse_entry", "feet": [0, 0, -30], "yaw": 0}
+  ],
+  "landmarks": [
+    {"id": "evacuation_concourse", "feet": [0, 0, -26]},
+    {"id": "concourse_crossing", "feet": [0, 0, -18]},
+    {"id": "changed_home_street", "feet": [0, 0, -10]},
+    {"id": "roof_loop_east", "feet": [34, 0, 6]},
+    {"id": "marked_roof_street", "feet": [0, 0, 6]},
+    {"id": "roof_loop_west", "feet": [-34, 0, 6]},
+    {"id": "latch_departure", "feet": [-22, 0, 18]},
+    {"id": "demolition_marks", "feet": [0, 0, 2]},
+    {"id": "trench_mouth", "feet": [0, 0, 32]}
+  ],
+  "encounters": [
+    {
+      "id": "concourse_crossing_watch",
+      "regions": [{"min": [-8, 0, -24], "max": [8, 3, -16]}],
+      "enemies": [
+        {"id": "concourse_sweeper_west", "kind": "sweeper", "feet": [-4, 0, -20], "yaw": 3.14159265},
+        {"id": "concourse_sweeper_east", "kind": "sweeper", "feet": [4, 0, -20], "yaw": 3.14159265}
+      ]
+    }
+  ]
+}

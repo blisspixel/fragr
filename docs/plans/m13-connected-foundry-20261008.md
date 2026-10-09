@@ -7,10 +7,12 @@ places the office Rocket Launcher, four extra rockets and the freight Assessor.
 `foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geometry`
 passed. The practice map remains SHA-256
 `4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943`. The successor
-is not a mission. It has no MissionId, save promotion, or client, and it does
-not carry the gate key. Relay face hits, hazard cycles, three worker responses
-and freight-lift motion are implemented and tested on a fixture map. Mission
-identity, menu entry and wire changes stay ahead. Connected M13 remains unbuilt.
+is not a mission. It has no MissionId, save promotion, or client. The
+[2026-10-09 contract](m13-mission-contract-20261009.md) attaches the optional
+gate key to this geometry and still leaves `campaign_mission_id` empty. Relay
+face hits, hazard cycles, three worker responses and freight-lift motion are
+implemented. Mission identity, menu entry and wire changes stay ahead.
+Connected M13 remains unbuilt.
 Sequencing remains in the single [full build order](../ROADMAP.md).
 
 ## Preparation record, 2026-10-08
@@ -216,7 +218,7 @@ The exact source, process, actual MapInfo, strict negatives, static controls, re
 
 ## Gate systems, 2026-10-09
 
-`server/src/mission/m13.rs` and `server/src/maps/authored/m13.rs` own the rules. An optional `m13` object on a fixture map loads them. `campaign_mission_id` stays empty, so the map does not become a mission, a save stage, or a menu entry. Production maps omit the key. The practice map `server/maps/test/m13_foundry_development.json` stays byte-exact. The successor geometry file is in this branch and does not carry this key.
+`server/src/mission/m13.rs` and `server/src/maps/authored/m13.rs` own the rules. An optional `m13` object on a fixture map loads them. `campaign_mission_id` stays empty, so the map does not become a mission, a save stage, or a menu entry. The fixture `server/maps/test/m13_gates.json` proved the rules. The successor file now carries the same key and still has no campaign id. Other production maps omit it. The practice map `server/maps/test/m13_foundry_development.json` stays byte-exact.
 
 A positive resolved face hit on the registered relay solid disables that relay once. Protected utility solids take no damage from that path. The foundry progress stays present, so the feed has no off switch. Interior overlap and a wrong face normal leave the relay intact.
 

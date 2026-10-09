@@ -103,6 +103,19 @@
         0.4
       ],
       "solid": "lift_shaft_back"
+    },
+    {
+      "center": [
+        2.0,
+        -0.9
+      ],
+      "face": "north",
+      "kind": "terminal",
+      "size": [
+        0.8,
+        0.8
+      ],
+      "solid": "quarters_back"
     }
   ],
   "encounters": [
@@ -2890,6 +2903,20 @@
         54
       ],
       "surface": "enamel"
+    },
+    {
+      "id": "freight_deck",
+      "min": [
+        -2.2,
+        3.3,
+        48.0
+      ],
+      "max": [
+        2.2,
+        3.6,
+        50.0
+      ],
+      "surface": "lift_panel"
     }
   ],
   "spawns": [
@@ -3204,5 +3231,73 @@
       "secret": true
     }
   ],
+  "m13": {
+    "relay": "ring_relay_housing",
+    "protected": [
+      "ring_water_feed"
+    ],
+    "hazard": {
+      "min": [
+        27.8,
+        0.3,
+        -35.4
+      ],
+      "max": [
+        31.4,
+        2.2,
+        -33.2
+      ]
+    },
+    "bypass": {
+      "min": [
+        27.8,
+        0.3,
+        -32.2
+      ],
+      "max": [
+        31.4,
+        2.2,
+        -30.0
+      ]
+    },
+    "cycle": {
+      "period": 160,
+      "warning": 40,
+      "active": 40
+    },
+    "release": {
+      "panel": {
+        "solid": "quarters_back",
+        "face": "north",
+        "kind": "terminal",
+        "center": [
+          2.0,
+          -0.9
+        ],
+        "size": [
+          0.8,
+          0.8
+        ]
+      },
+      "approach": [
+        -22.0,
+        0.3,
+        7.7
+      ]
+    },
+    "quarters_encounter": "quarters_approach",
+    "deck": "freight_deck",
+    "inset": {
+      "min": [
+        -1.6,
+        48.4
+      ],
+      "max": [
+        1.6,
+        49.6
+      ]
+    },
+    "lift_top": 14.6
+  },
   "version": 1
 }
