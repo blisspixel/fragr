@@ -109,7 +109,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |
 | Client networking (`FRAGR_SERVER`) | `client/scripts/net_client.gd` |
 | Client match orchestration, role, audio routing | `client/scripts/game_manager.gd` |
-| Client resource retirement and application exit | `client/scripts/client_retirement.gd` owns tree-lived weak decoder tracking and pending-environment retirement. Menu, pause, console and window quit use its bounded drain. GameManager transfers pending skies; QA and local campaign harnesses await the same drain. Native process ownership remains in LocalMatch and LocalHost. |
+| Client resource retirement and application exit | `client/scripts/client_retirement.gd` owns tree-lived weak decoder tracking and pending-environment retirement. Menu, pause, console and window quit use its bounded drain. GameManager transfers pending skies and stops match voices before the scene exits. QA and local campaign harnesses await the same drain. Native process ownership remains in LocalMatch and LocalHost. |
 | HUD, combat notices, Host bumpers | `client/scripts/hud.gd`; `combat_feed.gd` owns bounded corner notices. Routine events never use the aiming area; GameManager filters pickup notices by participant ID. |
 | Pawn presentation, first-person weapon face | `client/scripts/player_pawn.gd` |
 | Campaign enemy pose selection and sprites | `client/scripts/enemy_animation.gd`, `enemy_view.gd`; offline source and bake procedure in `client/art/characters/README.md`. Preserve server phase timing, resolved-shot recoil and fixed feet registration. |

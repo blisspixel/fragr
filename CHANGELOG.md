@@ -13,6 +13,8 @@ Release history, newest first. Planned work stays in
 - Show a traveling rocket and a rocket count. No mission grants the launcher.
   Its viewmodel art, the optional habitat secret, connected foundry progression
   and Walker remain unfinished.
+- Stop match voices before leaving a match, so the round-start sample is
+  released before process exit.
 
 These are development prototypes. Full campaign completion, final art,
 fresh-player acceptance, physical LAN evidence and a networked 64-player
