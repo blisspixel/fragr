@@ -22,6 +22,7 @@ mod m09;
 mod m10;
 mod m11;
 mod m12;
+pub(crate) mod m13;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -475,6 +476,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.foundry.is_some() && self.mission.is_none() {
+            self.advance_foundry();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m12.is_some()) {
             self.advance_m12();
             return;

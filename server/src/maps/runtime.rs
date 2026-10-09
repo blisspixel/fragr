@@ -29,6 +29,13 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m13_gates(&self) -> Option<&crate::mission::m13::Gates> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m13.as_deref().map(|prepared| &prepared.gates),
+        }
+    }
+
     pub(crate) fn m12_objectives(&self) -> Option<&super::authored::m12::Prepared> {
         match self {
             Self::BuiltIn(_) => None,

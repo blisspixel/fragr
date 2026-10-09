@@ -1,10 +1,17 @@
 # Connected Weight of Permission foundry
 
-Status: **in flight**, 2026-10-08. Spend: $0. This plan is written before connected
-M13 implementation. Current work prepares the contract and an ignored geometry
-candidate while the M12 and four-map composition is frozen. No production mission,
-wire, save, weapon, client or dated development source changes belong to that
-preparation. Sequencing remains in the single [full build order](../ROADMAP.md).
+Status: **in flight**, 2026-10-09. Spend: $0. Relay face hits, hazard cycles,
+three worker responses and freight-lift motion are implemented and tested on a
+fixture map. Mission identity, save promotion, menu entry and wire changes stay
+ahead. Connected M13 remains unbuilt. Sequencing remains in the single
+[full build order](../ROADMAP.md).
+
+## Preparation record, 2026-10-08
+
+This plan was written before connected M13 implementation. That preparation
+recorded the contract and an ignored geometry candidate while the M12 and
+four-map composition was frozen. No production mission, wire, save, weapon,
+client or dated development source changes belonged to that preparation.
 
 ## Accepted scope and existing source
 
@@ -198,3 +205,17 @@ Against actual candidate MapInfo, the unchanged continuous 77-point shared movem
 The first new mirror check retained the successful 77-point route and full standing headroom, but failed two invented shortcut segments through existing walls and daylight rays started on their own support floor. That failure and source remain retained. The separate corrected checker uses the real ring/stair/shaft approaches and starts sky rays above the standing crown; candidate bytes did not change. All dedicated native processes and headless samplers are retired. The positive dedicated native processes were intentionally terminated by their exact owned handles because the supported frozen development CLI has no shutdown lease. Their termination is not described as a normal local campaign exit.
 
 The exact source, process, actual MapInfo, strict negatives, static controls, recipe reproductions and failure history are bound in `.agents/m13-connected-foundry-20261008/roof-preparation-proof.json`. No canonical map, dated standalone source/helper, client, QA, native binary or runtime contract changed. GPU and spend remain zero. Rocket, connected mission/save/wire, workers, hazards, relay, moving-lift runtime, finite played acceptance and rendered/human gates remain root-coordinated dependencies. This candidate is concrete preparation for the next increment after main integration, not an implemented M13 mission.
+
+## Gate systems, 2026-10-09
+
+`server/src/mission/m13.rs` and `server/src/maps/authored/m13.rs` own the rules. An optional `m13` object on a fixture map loads them. `campaign_mission_id` stays empty, so the map does not become a mission, a save stage, or a menu entry. Production maps omit the key. The practice map `server/maps/test/m13_foundry_development.json` stays byte-exact. The successor geometry file is a separate change and does not carry this key yet.
+
+A positive resolved face hit on the registered relay solid disables that relay once. Protected utility solids take no damage from that path. The foundry progress stays present, so the feed has no off switch. Interior overlap and a wrong face normal leave the relay intact.
+
+Hazard damage is 8 on an active tick when a living participant's body touches the hazard volume and does not also touch the authored bypass. Idle and warning ticks stay safe. A cycle keeps a nonzero warning, a nonzero active window, a safe gap, and a period of at most 400 ticks. Overlapping hazard and bypass volumes fail closed at load. The hit is environmental self-damage: spawn shield does not apply, and the hit awards no frag.
+
+One Use at the release approach, within use distance, after the named quarters encounter is clear and no longer a threat, stores the three authored responses: volunteered, departed independently, and declined and kept working. A dormant or incomplete group refuses. A second use refuses. None of the three responses gates the lift or the exit.
+
+The freight deck is a platform from 0.05 m to 2.0 m thick. Use while supported and parked starts the climb on the next tick. Rise is at most 0.075 m per tick, capped from 1.5 m/s. A blocked step refuses the whole move, deck included. Once moving, the deck continues if the rider steps off, and it stops for a body in the swept column. The moving deck replaces the static solid through `current_arena` while its top differs from the authored deck. Load time requires the full rise to be clear, including a standing rider at the inset corners.
+
+Fixture evidence is `server/maps/test/m13_gates.json`, map id 10130. `cargo test -p fragr-server --locked --lib m13:: -- --test-threads=1` passed 12 tests on 2026-10-09, including the bypass, the protected feed, an uncleared release, a carried rider, and the two fail-closed loads. Spend is $0. This slice is a tested rule set. Played mission acceptance, a menu launch, and human review remain ahead.

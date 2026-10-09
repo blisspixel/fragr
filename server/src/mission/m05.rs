@@ -98,6 +98,9 @@ fn worker_settling_routes(g: &M05MapGeometry) -> Vec<Vec<[f32; 3]>> {
 }
 impl GameState {
     pub fn current_arena(&self) -> Cow<'_, crate::movement::Arena> {
+        if let Some(arena) = self.foundry_arena() {
+            return Cow::Owned(arena);
+        }
         let Some(run) = &self.mission else {
             return Cow::Borrowed(self.map.arena());
         };

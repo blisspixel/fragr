@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "map_id": 10130,
+  "name": "Foundry gate fixture",
+  "half_extent": 16,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "freight_deck", "min": [-2, 0, -2], "max": [2, 0.3, 2], "surface": "lift_panel"},
+    {"id": "relay_housing", "min": [-10, 0, -4], "max": [-9, 2, -2], "surface": "enamel"},
+    {"id": "water_feed", "min": [-13, 0, -4], "max": [-12, 2, -2], "surface": "lift_panel"},
+    {"id": "release_post", "min": [6, 0, 4.6], "max": [6.5, 2.2, 5.4], "surface": "enamel"}
+  ],
+  "spawns": [{"id": "entry", "feet": [0, 0.3, 0], "yaw": 0}],
+  "landmarks": [
+    {"id": "deck_mark", "feet": [0, 0.3, 0]},
+    {"id": "release_mark", "feet": [8, 0, 5]},
+    {"id": "bypass_mark", "feet": [13, 0, 10]},
+    {"id": "relay_mark", "feet": [-7.5, 0, -3]}
+  ],
+  "supplies": [
+    {"id": "bench_flechette", "feet": [-4, 0, 0], "grant": {"kind": "weapon", "weapon": "flechette"}, "claim": "personal"}
+  ],
+  "decorations": [
+    {"solid": "release_post", "face": "east", "kind": "terminal", "center": [0, 0], "size": [0.4, 0.8]}
+  ],
+  "encounters": [
+    {
+      "id": "worker_quarters",
+      "regions": [{"min": [8, 0, -2], "max": [12, 2, 2]}],
+      "enemies": [{"id": "overseer", "kind": "clerk", "feet": [10, 0, 0], "yaw": 3.14159265}]
+    }
+  ],
+  "m13": {
+    "relay": "relay_housing",
+    "protected": ["water_feed"],
+    "hazard": {"min": [12, 0, 6], "max": [14, 2, 8]},
+    "bypass": {"min": [12, 0, 9], "max": [14, 2, 11]},
+    "cycle": {"period": 100, "warning": 20, "active": 30},
+    "release": {
+      "panel": {"solid": "release_post", "face": "east", "kind": "terminal", "center": [0, 0], "size": [0.4, 0.8]},
+      "approach": [8, 0, 5]
+    },
+    "quarters_encounter": "worker_quarters",
+    "deck": "freight_deck",
+    "inset": {"min": [-1.2, -1.2], "max": [1.2, 1.2]},
+    "lift_top": 4.0
+  }
+}
