@@ -89,12 +89,25 @@ func _run() -> void:
 	await _check_tells(scene)
 	await _check_level7(scene)
 	await _check_manager(scene)
+	_check_round_start_release()
 	pawn.queue_free()
 	await create_timer(0.3).timeout
 	if _failures == 0:
 		print("test_combat_audio: PASS pump inside cooldown, resolved impacts, tells, falls, melee, pickups, dry trigger and 48 kHz cues")
 	quit(0 if _failures == 0 else 1)
 
+
+func _check_round_start_release() -> void:
+	var manager: AudioManager = AudioManager.new()
+	var parent: Node = Node.new()
+	parent.name = "AudioPlayers"
+	var voice: AudioStreamPlayer = AudioStreamPlayer.new()
+	voice.stream = load("res://assets/audio/round_start.wav")
+	parent.add_child(voice)
+	manager.add_child(parent)
+	manager._release_match_audio()
+	_check(voice.stream == null, "leaving a match drops the round-start voice before the scene is freed")
+	manager.free()
 
 func _check_cues() -> void:
 	for path: String in CUES:
