@@ -434,8 +434,9 @@ its brief. `main` at `711dfb4` has twelve connected development prototypes
 through Terms of Cooperation, released as v0.80.0, and the Rocket Launcher
 foundation, released as v0.81.0. Connected M13 through M20 and the conditional
 epilogue remain unbuilt. The launcher is not part of v0.80.0, and no mission
-grants it. Connected M13 is the next campaign dependency and keeps its own
-mission gates. Relay, hazard, worker and lift rules are implemented on a
+grants it. The foundry successor opens the shaft and places the rocket lesson,
+and it is not a mission. Connected M13 is the next campaign dependency and keeps
+its own mission gates. Relay, hazard, worker and lift rules are implemented on a
 fixture map and remain short of a connected mission. The optional M12 secret
 stays separate because it changes canonical map bytes.
 

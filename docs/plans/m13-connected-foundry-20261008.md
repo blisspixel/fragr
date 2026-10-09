@@ -1,10 +1,17 @@
 # Connected Weight of Permission foundry
 
-Status: **in flight**, 2026-10-09. Spend: $0. Relay face hits, hazard cycles,
-three worker responses and freight-lift motion are implemented and tested on a
-fixture map. Mission identity, save promotion, menu entry and wire changes stay
-ahead. Connected M13 remains unbuilt. Sequencing remains in the single
-[full build order](../ROADMAP.md).
+Status: **in flight**, 2026-10-09. Spend: $0. The Rocket Launcher foundation is
+on main at `711dfb4`, recorded for v0.81.0, and is not part of v0.80.0. The
+successor `server/maps/m13-weight-of-permission.json` opens the ladle shaft and
+places the office Rocket Launcher, four extra rockets and the freight Assessor.
+`foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geometry`
+passed. The practice map remains SHA-256
+`4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943`. The successor
+is not a mission. It has no MissionId, save promotion, or client, and it does
+not carry the gate key. Relay face hits, hazard cycles, three worker responses
+and freight-lift motion are implemented and tested on a fixture map. Mission
+identity, menu entry and wire changes stay ahead. Connected M13 remains unbuilt.
+Sequencing remains in the single [full build order](../ROADMAP.md).
 
 ## Preparation record, 2026-10-08
 
@@ -182,8 +189,9 @@ Then compose the full native, client, lint, coverage, renderer and clean-exit ga
 The connected mission remains unbuilt until these dependencies and acceptance
 exist. Human comprehension, the political meaning of voluntary work, first-run
 duration, enjoyable difficulty, final art, other-platform play and shipment have
-their own evidence. No paid generation, new cash, cloud apply, dependency change,
-commit or publication is authorized by this preparation.
+their own evidence. No paid generation, new cash, cloud apply or dependency
+change is part of this work. The geometry successor is not a playable mission
+and does not authorize publishing Weight of Permission.
 
 ## Isolated roof and shaft preparation before main integration
 
@@ -208,7 +216,7 @@ The exact source, process, actual MapInfo, strict negatives, static controls, re
 
 ## Gate systems, 2026-10-09
 
-`server/src/mission/m13.rs` and `server/src/maps/authored/m13.rs` own the rules. An optional `m13` object on a fixture map loads them. `campaign_mission_id` stays empty, so the map does not become a mission, a save stage, or a menu entry. Production maps omit the key. The practice map `server/maps/test/m13_foundry_development.json` stays byte-exact. The successor geometry file is a separate change and does not carry this key yet.
+`server/src/mission/m13.rs` and `server/src/maps/authored/m13.rs` own the rules. An optional `m13` object on a fixture map loads them. `campaign_mission_id` stays empty, so the map does not become a mission, a save stage, or a menu entry. Production maps omit the key. The practice map `server/maps/test/m13_foundry_development.json` stays byte-exact. The successor geometry file is in this branch and does not carry this key.
 
 A positive resolved face hit on the registered relay solid disables that relay once. Protected utility solids take no damage from that path. The foundry progress stays present, so the feed has no off switch. Interior overlap and a wrong face normal leave the relay intact.
 
