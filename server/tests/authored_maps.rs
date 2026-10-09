@@ -312,7 +312,11 @@ async fn authored_map_is_shared_by_humans_agents_and_spectators() {
     )
     .await;
     let bullets = loadout.ammo(fragr_server::protocol::AmmoPool::Bullets);
-    assert_eq!(bullets, WeaponType::Tack.pickup_rounds());
+    let authored = WeaponType::Tack.pickup_rounds();
+    // This host is Severe. Ordinary discovery is two thirds of the authored grant.
+    let severe = (authored.saturating_mul(2) / 3).max(1);
+    assert_eq!(bullets, severe);
+    assert!(severe < authored);
     let mut spent = false;
     for _ in 0..80 {
         if let ServerMessage::Loadout(fired) = receive(human).await {

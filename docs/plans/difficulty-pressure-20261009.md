@@ -155,6 +155,9 @@ to two thirds:
   and arcade amounts were unchanged.
 - `cargo clippy -p fragr-server --locked --all-targets -- -D warnings`
   completed with exit 0 after the two-thirds edit.
+- The Severe socket proof in `server/tests/authored_maps.rs` expects the
+  scaled Tack discovery. CI on the first push failed there while it still
+  expected the authored 50.
 
 Checkers were not weakened to pass. No assertion was deleted. This is not
 fresh-player balance acceptance.
