@@ -258,13 +258,14 @@ fn rifle_and_pistol_share_bullets_while_shells_and_cells_stay_separate() {
     assert!(!inventory.grant_weapon(WeaponType::Flechette));
     assert_eq!(inventory.grant_ammo(AmmoPool::Shells, u16::MAX), 39);
     assert_eq!(inventory.grant_ammo(AmmoPool::Cells, u16::MAX), 91);
+    assert_eq!(inventory.grant_ammo(AmmoPool::Rockets, u16::MAX), 20);
     let full = view(&inventory, WeaponType::Rail, 4);
     for pool in AmmoPool::ALL {
         assert_eq!(full.ammo(pool), pool.capacity());
     }
     assert_eq!(
         AmmoPool::ALL.map(AmmoPool::capacity),
-        [200, 50, 100],
+        [200, 50, 100, 20],
         "Doom caps for bullets and shells; one hundred rail cells since 2026-09-25"
     );
     // A known weapon picked up again tops its count up.
@@ -892,6 +893,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
         projectiles: vec![],
         grenades: vec![],
         assessor_canisters: vec![],
+        rockets: vec![],
         mines: vec![],
         remote_mines: vec![],
         auditors: vec![],

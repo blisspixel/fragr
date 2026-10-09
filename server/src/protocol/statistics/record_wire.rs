@@ -28,7 +28,7 @@ fn bounded_weapons<'de, D: serde::Deserializer<'de>>(
     impl<'de> serde::de::Visitor<'de> for Columns {
         type Value = Vec<WeaponCounts>;
         fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            formatter.write_str("at most nine weapon columns")
+            formatter.write_str("at most ten weapon columns")
         }
         fn visit_seq<A: serde::de::SeqAccess<'de>>(
             self,
@@ -54,6 +54,8 @@ impl Counts {
     fn from_counts(counts: CombatCounts, version: u32) -> Self {
         let width = if version == RECORD_VERSION {
             WeaponType::ALL.len()
+        } else if version == NINE_COLUMN_RECORD_VERSION {
+            9
         } else if version == EIGHT_COLUMN_RECORD_VERSION {
             8
         } else {
@@ -85,6 +87,7 @@ impl Counts {
         if !match version {
             LEGACY_RECORD_VERSION => (5..=7).contains(&self.weapons.len()),
             EIGHT_COLUMN_RECORD_VERSION => self.weapons.len() == 8,
+            NINE_COLUMN_RECORD_VERSION => self.weapons.len() == 9,
             RECORD_VERSION => self.weapons.len() == WeaponType::ALL.len(),
             _ => false,
         } {
@@ -215,12 +218,12 @@ mod tests {
         }
         let current = record();
         let base = serde_json::to_value(&current).unwrap();
-        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 9);
+        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 10);
         assert_eq!(
             serde_json::from_value::<PlayerRecord>(base.clone()).unwrap(),
             current
         );
-        for width in [0, 5, 6, 7, 8, 10, 100] {
+        for width in [0, 5, 6, 7, 8, 9, 11, 100] {
             let mut bad = base.clone();
             bad["attempt"]["weapons"].as_array_mut().unwrap().resize(
                 width,

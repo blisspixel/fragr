@@ -78,7 +78,8 @@ func _run() -> void:
 	_check(not CustodyFacts.validation_error(doubled).is_empty(), "duplicate Auditor refused")
 	_check(GrenadeFacts.validation_error(_blast(4.5, 104)).is_empty(), "a mine blast names itself by radius and may exceed a grenade peak")
 	_check(not GrenadeFacts.validation_error(_blast(4.5, 131)).is_empty(), "a mine blast never exceeds its own peak")
-	_check(not GrenadeFacts.validation_error(_blast(4.0, 104)).is_empty(), "a grenade blast keeps its lower peak")
+	_check(GrenadeFacts.validation_error(_blast(4.0, 110)).is_empty(), "a four-metre blast accepts a rocket direct hit plus splash")
+	_check(not GrenadeFacts.validation_error(_blast(4.0, 111)).is_empty(), "a four-metre blast refuses damage past that envelope")
 	_check(not GrenadeFacts.validation_error(_blast(5.0, 10)).is_empty(), "an unknown device radius is refused")
 	# Lamp reads: steady while arming, a slow blink live, a fast flicker tripped.
 	var arming: Dictionary = _mine(20, "arming", 10)["mines"][0]
@@ -155,7 +156,7 @@ func _run() -> void:
 		pawn.queue_free()
 	# Equipment, actors, poses and records.
 	var loadout: Dictionary = {"player_id": OWNER, "tick": 3, "selected": "fists", "weapons": ["fists"],
-		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}],
+		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}],
 		"grenades": 0, "personal_claims": [], "dry_fire_count": 0}
 	_check(EquipmentState.validation_error(loadout, OWNER).is_empty(), "a loadout without mines stays valid")
 	for count: Variant in [1, 4]:

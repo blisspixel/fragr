@@ -5,7 +5,7 @@ extends RefCounted
 ## Cadence mirrors WeaponType::cooldown_ticks; checked by the focused harness.
 const COOLDOWN_TICKS: Dictionary = {
 	"fists": 8, "shiv": 6, "tack": 5, "flechette": 4,
-	"rail": 20, "sniper": 32, "repeater": 2, "scatter": 12, "arc": 3,
+	"rail": 20, "sniper": 32, "repeater": 2, "scatter": 12, "arc": 3, "rocket": 16,
 }
 const TICK_USEC: int = 50000
 const WARMUP_USEC: int = 6 * TICK_USEC

@@ -11,6 +11,38 @@ pub struct AssessorCanisterState {
     pub age_ticks: u32,
 }
 
+/// A rocket in flight. Age is the movement ticks already taken, never the
+/// launch tick, and stays below the eighty-tick life.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RocketState {
+    pub id: u32,
+    pub owner_id: Uuid,
+    pub position: [f32; 3],
+    pub velocity: [f32; 3],
+    pub age_ticks: u32,
+}
+
+impl RocketState {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.id == 0
+            || self.owner_id.is_nil()
+            || self.age_ticks >= 80
+            || !self
+                .position
+                .iter()
+                .all(|v| v.is_finite() && v.abs() <= 1024.0)
+            || !self
+                .velocity
+                .iter()
+                .all(|v| v.is_finite() && v.abs() <= 20.0)
+        {
+            return Err("invalid rocket state");
+        }
+        Ok(())
+    }
+}
+
 impl AssessorCanisterState {
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.id == 0

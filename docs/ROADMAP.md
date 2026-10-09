@@ -369,7 +369,9 @@ The revised level plans place simple doors, switches and lifts in working spaces
 and a later combined-arms vehicle showcase in level 14's launch works. General moving
 lifts and vehicles remain unbuilt. The Sniper Rifle, Grenade and Proximity Mine
 have implemented development roles. The Remote Mine has a development role.
-The Rocket Launcher remains the next campaign find in
+The [Rocket Launcher foundation](plans/rocket-foundation-20261008.md) is a
+server weapon and client presenter, and it is not part of v0.80.0. No mission
+grants it. Its campaign placement remains ahead in
 [the readable arsenal](plans/readable-arsenal.md). Gold
 finishes and curated weapon colors are cosmetic-only achievement directions
 under #197.
@@ -430,7 +432,8 @@ story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follo
 its brief. `main` at `73cd69e8`, released as v0.80.0, has twelve connected
 development prototypes through Terms of Cooperation. Connected M13 through M20
 and the conditional epilogue remain unbuilt. The next weapon dependency is the
-Rocket Launcher foundation. Connected M13 waits for that weapon and its own
+Rocket Launcher foundation, which is not part of v0.80.0.
+Connected M13 waits for that weapon and its own
 mission gates. The optional M12 secret stays separate because it changes
 canonical map bytes.
 
@@ -539,8 +542,7 @@ Final art, human acceptance and the full-game goal remain open.
 
 [Consolidation onto one current main](plans/main-consolidation-20261008.md) is
 that merge, released as v0.80.0. Subsequent full-game work continues from it.
-The Rocket Launcher foundation is the next dependency and is not part of this
-release.
+The Rocket Launcher foundation follows that release and is not part of v0.80.0.
 
 Earlier integration and release checkpoints remain in the
 [changelog](../CHANGELOG.md) and their owning plans, including

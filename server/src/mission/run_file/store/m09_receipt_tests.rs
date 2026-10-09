@@ -62,6 +62,7 @@ fn m09_receipt_v10_v11_completed_upgrade_archives_unknown_without_inventing_crew
         })
         .into();
         value.as_object_mut().unwrap().remove("m09_outcome");
+        super::super::omit_historical_rockets(&mut value);
         let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
         bytes.extend_from_slice(b"\n  \n");
         let directory =

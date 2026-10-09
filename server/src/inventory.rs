@@ -54,7 +54,7 @@ pub struct Inventory {
     /// A weapon-only mutator: this is the one weapon, with unlimited ammunition.
     only: Option<WeaponType>,
     owned: [bool; WeaponType::ALL.len()],
-    ammo: [u16; 3],
+    ammo: [u16; AmmoPool::ALL.len()],
     grenades: u16,
     mines: u16,
     remote_mines: u16,
@@ -96,7 +96,7 @@ impl Inventory {
         for weapon in &saved.weapons {
             self.owned[weapon.index()] = true;
         }
-        self.ammo = [0; 3];
+        self.ammo = [0; AmmoPool::ALL.len()];
         for count in &saved.ammo {
             self.ammo[count.pool.index()] = count.rounds;
         }
@@ -122,7 +122,7 @@ impl Inventory {
             policy,
             only: None,
             owned,
-            ammo: [0; 3],
+            ammo: [0; AmmoPool::ALL.len()],
             grenades: 0,
             mines: 0,
             remote_mines: 0,

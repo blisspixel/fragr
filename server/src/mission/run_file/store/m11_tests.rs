@@ -228,6 +228,7 @@ fn m11_locked_m10_edge_keeps_stock_history_and_does_not_refill() {
         let mut value = serde_json::to_value(&ship).unwrap();
         value["version"] = 13.into();
         value["rules"]["revision"] = (3).into();
+        super::super::omit_historical_rockets(&mut value);
         let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
         bytes.extend_from_slice(b"\n \n");
         fs::write(directory.join(RUN_NAME), &bytes).unwrap();

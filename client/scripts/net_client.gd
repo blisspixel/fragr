@@ -1,5 +1,7 @@
 extends Node
 
+# Version 46 understands the Rocket Launcher, its traveling rockets and
+# ten-column records. No current mission grants the launcher.
 # Version 33 understands completed mission elapsed time on private records.
 # Version 32 understands M07 Declared Goods; 31 M08 Custodian of Record.
 # Version 30 understands the found Sniper Rifle and the Ranged Sweeper; 29 the
@@ -19,7 +21,7 @@ extends Node
 # objective and gate state; 8 private participant records. A shared arena
 # speaks this exact gameplay version and geometry 2. A campaign host still
 # accepts this client when its mission floor is at or below it.
-const GAMEPLAY_VERSION: int = 45
+const GAMEPLAY_VERSION: int = 46
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -557,6 +559,8 @@ func _handle_message(text: String):
 				problem = AssessorFacts.validation_error(data)
 			if problem.is_empty():
 				problem = GrenadeFacts.validation_error(data)
+			if problem.is_empty():
+				problem = RocketFacts.validation_error(data)
 			if problem.is_empty():
 				problem = CustodyFacts.validation_error(data)
 			if problem.is_empty():

@@ -39,7 +39,7 @@ pub use decoration::{
 mod remote_mine;
 pub use explosive::{
     AssessorCanisterState, ExplosionHit, ExplosionResult, GrenadeState, MinePhase, MineState,
-    MINE_ARMING_TICKS, MINE_TRIP_TICKS,
+    RocketState, MINE_ARMING_TICKS, MINE_TRIP_TICKS,
 };
 pub(crate) use loadout::validate_equipment;
 pub use loadout::{
@@ -96,7 +96,7 @@ pub use sabotage::{
 pub use statistics::{
     per_minute_tenths, ratio_scaled, wilson_thousandths, CombatCounts, PlayerRecord, RecordScope,
     RecordStatus, WeaponCounts, EIGHT_COLUMN_RECORD_VERSION, LEGACY_RECORD_VERSION,
-    RECORD_TICKS_PER_SECOND, RECORD_VERSION,
+    NINE_COLUMN_RECORD_VERSION, RECORD_TICKS_PER_SECOND, RECORD_VERSION,
 };
 pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
@@ -509,6 +509,8 @@ pub enum WeaponType {
     Repeater,
     /// M12 find: bounded Cells discharge that bypasses carried armor and plates.
     Arc,
+    /// Discovery projectile. Direct damage plus covered splash. Not an arcade gun.
+    Rocket,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -539,6 +541,8 @@ impl WeaponType {
             WeaponType::Repeater => 14,
             WeaponType::Arc => 18,
             WeaponType::Scatter => 10,
+            // Direct component only. Covered splash is resolved with the projectile.
+            WeaponType::Rocket => 65,
         }
     }
 
@@ -585,6 +589,7 @@ impl WeaponType {
             WeaponType::Repeater => 2,
             WeaponType::Arc => 3,
             WeaponType::Scatter => 12,
+            WeaponType::Rocket => 16,
         }
     }
 
@@ -607,6 +612,7 @@ impl WeaponType {
             // Pellet cone: 5.4 degrees. Every pellet lands inside a body at
             // four units and about half of them still do at eight.
             WeaponType::Scatter => 0.095,
+            WeaponType::Rocket => 0.0,
         }
     }
 
@@ -623,6 +629,7 @@ impl WeaponType {
             WeaponType::Repeater => 35.0,
             WeaponType::Arc => 24.0,
             WeaponType::Scatter => 12.0,
+            WeaponType::Rocket => 72.0,
         }
     }
 
@@ -638,6 +645,7 @@ impl WeaponType {
             WeaponType::Repeater => (7.0, 26.0),
             WeaponType::Arc => (6.0, 18.0),
             WeaponType::Scatter => (2.0, 10.0),
+            WeaponType::Rocket => (8.0, 40.0),
         }
     }
 
@@ -652,6 +660,7 @@ impl WeaponType {
             WeaponType::Repeater => "Repeater",
             WeaponType::Arc => "Arc",
             WeaponType::Scatter => "Scatter",
+            WeaponType::Rocket => "Rocket",
         }
     }
 
@@ -753,9 +762,13 @@ pub const ARC_GAMEPLAY_VERSION: u32 = 42;
 pub const ASSESSOR_GAMEPLAY_VERSION: u32 = 43;
 pub const M12_GAMEPLAY_VERSION: u32 = 44;
 pub const LOW_WATER_SABOTAGE_GAMEPLAY_VERSION: u32 = 45;
+/// Rocket Launcher flight, the `rockets` pool, ten-column records and save 16.
+/// Required wherever a rocket can exist, for every role. Arcade rooms use the
+/// highest contract. No current mission grants the launcher.
+pub const ROCKET_GAMEPLAY_VERSION: u32 = 46;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = LOW_WATER_SABOTAGE_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = ROCKET_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -1364,6 +1377,10 @@ pub struct Snapshot {
     pub grenades: Vec<GrenadeState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub assessor_canisters: Vec<AssessorCanisterState>,
+    /// Live rockets. Omitted when none are in flight, so an older reader that
+    /// never meets one still accepts the snapshot.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rockets: Vec<RocketState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mines: Vec<MineState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -1843,6 +1860,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -2078,6 +2096,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),

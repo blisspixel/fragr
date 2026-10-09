@@ -174,6 +174,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         projectiles,
         grenades,
         assessor_canisters,
+        rockets,
         mines,
         remote_mines,
         auditors,
@@ -218,6 +219,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         && projectiles == &new.projectiles
         && grenades == &new.grenades
         && assessor_canisters == &new.assessor_canisters
+        && rockets == &new.rockets
         && mines == &new.mines
         && remote_mines == &new.remote_mines
         && auditors == &new.auditors

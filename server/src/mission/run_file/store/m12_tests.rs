@@ -248,6 +248,7 @@ fn m12_v14_to_live_promotion_archives_original_bytes_and_recovers_interrupted_re
     let mut legacy = serde_json::to_value(&source).unwrap();
     legacy["version"] = 14.into();
     legacy["rules"]["revision"] = 3.into();
+    super::super::omit_historical_rockets(&mut legacy);
     let mut bytes = serde_json::to_vec_pretty(&legacy).unwrap();
     bytes.extend_from_slice(b"\n\t \n");
     let directory = std::env::temp_dir().join(format!("fragr-m12-promotion-{}", Uuid::new_v4()));

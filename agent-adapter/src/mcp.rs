@@ -2281,7 +2281,8 @@ mod mcp_tests {
             serde_json::json!([
                 {"pool": "bullets", "rounds": 49},
                 {"pool": "shells", "rounds": 0},
-                {"pool": "cells", "rounds": 0}
+                {"pool": "cells", "rounds": 0},
+                {"pool": "rockets", "rounds": 0}
             ])
         );
         assert!(observed["loadout"].get("reload").is_none());

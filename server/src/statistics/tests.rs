@@ -658,7 +658,19 @@ async fn arc_record_and_equipment_delivery_never_truncates_unsupported_actual_fa
             .len(),
         8
     );
-    assert_eq!(current, record);
+    assert_eq!(
+        current,
+        record
+            .record_for_version(crate::protocol::NINE_COLUMN_RECORD_VERSION)
+            .unwrap()
+    );
+    assert_eq!(
+        serde_json::to_value(&current).unwrap()["total"]["weapons"]
+            .as_array()
+            .unwrap()
+            .len(),
+        9
+    );
     let mut actual = current;
     actual.total.weapons[WeaponType::Arc.index()].attacks = 1;
     crate::session::send_unicasts(&clients, &Default::default(), &send(actual.clone())).await;
@@ -692,7 +704,11 @@ async fn arc_record_and_equipment_delivery_never_truncates_unsupported_actual_fa
     assert!(old_rx.try_recv().is_err());
     assert!(clients.lock().await[0].is_closing());
     assert!(!clients.lock().await[1].is_closing());
-    assert!(matches!(current_rx.try_recv(), Ok(ServerMessage::Loadout(l)) if l == loadout));
+    let mut compatible = loadout.clone();
+    compatible
+        .ammo
+        .retain(|count| count.pool != crate::protocol::AmmoPool::Rockets);
+    assert!(matches!(current_rx.try_recv(), Ok(ServerMessage::Loadout(l)) if l == compatible));
 }
 
 #[test]

@@ -158,6 +158,7 @@ fn m10_locked_v12_upgrade_preserves_bytes_then_commits_distinct_transit_once() {
         let mut value = serde_json::to_value(&source).unwrap();
         value["version"] = 12.into();
         value["rules"]["revision"] = (3).into();
+        super::super::omit_historical_rockets(&mut value);
         let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
         bytes.extend_from_slice(b"\n \n");
         let directory = std::env::temp_dir().join(format!("fragr-m10-transit-{}", Uuid::new_v4()));
@@ -292,6 +293,10 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
             AmmoCount {
                 pool: AmmoPool::Cells,
                 rounds: 1,
+            },
+            AmmoCount {
+                pool: AmmoPool::Rockets,
+                rounds: 0,
             },
         ];
         let promoted = before

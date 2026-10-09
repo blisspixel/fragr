@@ -42,6 +42,7 @@ fn v9_bytes(document: &RunDocument) -> Vec<u8> {
     value["version"] = 9.into();
     value["rules"]["revision"] = (3).into();
     value.as_object_mut().unwrap().remove("m08_outcome");
+    super::super::omit_historical_rockets(&mut value);
     let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
     bytes.extend_from_slice(b"\n \n");
     bytes
@@ -55,6 +56,7 @@ fn strict_v10_upgrade_archives_exact_bytes_and_preserves_real_m09_carry() {
     let mut value = serde_json::to_value(&source).unwrap();
     value["version"] = 10.into();
     value["rules"]["revision"] = (3).into();
+    super::super::omit_historical_rockets(&mut value);
     let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
     bytes.extend_from_slice(b"\n \n");
     let directory = std::env::temp_dir().join(format!("fragr-v10-repeater-{}", Uuid::new_v4()));
@@ -179,6 +181,7 @@ fn every_strict_v2_through_v8_reader_refuses_future_gun_before_migration() {
                 .unwrap()
                 .remove("grenades");
         }
+        super::super::omit_historical_rockets(&mut baseline);
         assert!(
             matches!(
                 RunStore::inspect_bytes(&serde_json::to_vec(&baseline).unwrap(), HASHES),

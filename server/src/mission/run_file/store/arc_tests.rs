@@ -28,6 +28,7 @@ fn historical(mut value: serde_json::Value, version: u32) -> serde_json::Value {
     if version < 14 {
         equipment.remove("remote_mines");
     }
+    super::super::omit_historical_rockets(&mut value);
     value
 }
 
@@ -141,7 +142,7 @@ fn arc_v14_tender_upgrade_archives_exact_bytes_and_retries_failed_replacement_wi
     fs::write(directory.join(RUN_NAME), &bytes).unwrap();
     let loaded = store.load().unwrap().unwrap();
     assert_eq!(loaded, source);
-    assert_eq!(loaded.version, 15);
+    assert_eq!(loaded.version, super::super::RUN_FILE_VERSION);
     assert_eq!(loaded.rules.revision, 4);
     assert!(store.needs_upgrade().unwrap());
     assert!(store

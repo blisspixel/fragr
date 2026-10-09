@@ -30,10 +30,11 @@ pub enum AmmoPool {
     Bullets,
     Shells,
     Cells,
+    Rockets,
 }
 
 impl AmmoPool {
-    pub const ALL: [Self; 3] = [Self::Bullets, Self::Shells, Self::Cells];
+    pub const ALL: [Self; 4] = [Self::Bullets, Self::Shells, Self::Cells, Self::Rockets];
 
     /// Doom carries 200 bullets and 50 shells. One cell is one 80 damage rail
     /// shot; the cap of 100 (raised from 50 on 2026-09-25) lets a Railgun
@@ -43,6 +44,7 @@ impl AmmoPool {
             Self::Bullets => 200,
             Self::Shells => 50,
             Self::Cells => 100,
+            Self::Rockets => 20,
         }
     }
 
@@ -55,6 +57,7 @@ impl AmmoPool {
             Self::Bullets => 80,
             Self::Shells => 24,
             Self::Cells => 16,
+            Self::Rockets => 0,
         }
     }
 
@@ -63,14 +66,15 @@ impl AmmoPool {
             Self::Bullets => 0,
             Self::Shells => 1,
             Self::Cells => 2,
+            Self::Rockets => 3,
         }
     }
 }
 
 impl WeaponType {
-    /// Wire and record order. Shiv, Sniper, Repeater and Arc are appended so the
-    /// five original record slots keep their meaning.
-    pub const ALL: [Self; 9] = [
+    /// Wire and record order. Later guns are appended so earlier record slots
+    /// keep their meaning.
+    pub const ALL: [Self; 10] = [
         Self::Fists,
         Self::Tack,
         Self::Flechette,
@@ -80,6 +84,7 @@ impl WeaponType {
         Self::Sniper,
         Self::Repeater,
         Self::Arc,
+        Self::Rocket,
     ];
     pub const ARCADE: [Self; 3] = [Self::Flechette, Self::Rail, Self::Scatter];
 
@@ -94,6 +99,7 @@ impl WeaponType {
             Self::Sniper => 6,
             Self::Repeater => 7,
             Self::Arc => 8,
+            Self::Rocket => 9,
         }
     }
 
@@ -104,6 +110,7 @@ impl WeaponType {
             Self::Tack | Self::Flechette | Self::Repeater => Some(AmmoPool::Bullets),
             Self::Scatter => Some(AmmoPool::Shells),
             Self::Rail | Self::Sniper | Self::Arc => Some(AmmoPool::Cells),
+            Self::Rocket => Some(AmmoPool::Rockets),
         }
     }
 
@@ -118,6 +125,7 @@ impl WeaponType {
             Self::Rail => Some(4),
             Self::Sniper => Some(5),
             Self::Arc => Some(12),
+            Self::Rocket => Some(1),
         }
     }
 
@@ -129,6 +137,7 @@ impl WeaponType {
             Self::Flechette | Self::Repeater | Self::Arc => Some(22),
             Self::Scatter => Some(14),
             Self::Rail | Self::Sniper => Some(28),
+            Self::Rocket => Some(16),
         }
     }
 
@@ -145,6 +154,7 @@ impl WeaponType {
             Self::Sniper => 8,
             Self::Repeater => 60,
             Self::Arc => 40,
+            Self::Rocket => 4,
         }
     }
 }
@@ -267,8 +277,8 @@ impl LoadoutState {
         if !owned[self.selected.index()] {
             return Err("selected or fallback weapon is unowned");
         }
-        let mut seen = [false; 3];
-        let mut amounts = [0u16; 3];
+        let mut seen = [false; AmmoPool::ALL.len()];
+        let mut amounts = [0u16; AmmoPool::ALL.len()];
         for count in &self.ammo {
             if std::mem::replace(&mut seen[count.pool.index()], true)
                 || count.rounds > count.pool.capacity()
@@ -285,7 +295,7 @@ impl LoadoutState {
         // All zeros is a weapon-only magazine: the gun refills without a bag.
         // A finite bag has to hold every round sitting in its magazines.
         if amounts.iter().any(|rounds| *rounds != 0) {
-            let mut used = [0u16; 3];
+            let mut used = [0u16; AmmoPool::ALL.len()];
             for magazine in &self.loaded {
                 let Some(pool) = magazine.weapon.ammo_pool() else {
                     return Err("invalid magazine");
@@ -308,7 +318,7 @@ impl LoadoutState {
             return Ok(());
         }
         self.validate_loaded_entries(false)?;
-        let mut used = [0u16; 3];
+        let mut used = [0u16; AmmoPool::ALL.len()];
         for magazine in &self.loaded {
             let Some(pool) = magazine.weapon.ammo_pool() else {
                 return Err("invalid magazine");
@@ -399,7 +409,7 @@ pub(crate) fn validate_equipment(
     if !owned[WeaponType::Fists.index()] || !owned[selected.index()] {
         return Err("selected or fallback weapon is unowned");
     }
-    let mut pools = [false; 3];
+    let mut pools = [false; AmmoPool::ALL.len()];
     for count in ammo {
         if std::mem::replace(&mut pools[count.pool.index()], true)
             || count.rounds > count.pool.capacity()

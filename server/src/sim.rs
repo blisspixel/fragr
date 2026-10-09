@@ -15,6 +15,7 @@ mod spawn;
 pub(crate) use playlist::slot_playable as validate_show;
 pub mod remote_mine;
 pub(crate) mod repeater;
+mod rocket;
 pub mod sabotage;
 pub mod traveling_shot;
 mod vehicle;
@@ -576,6 +577,7 @@ pub struct GameState {
     traveling_shots: Vec<traveling_shot::TravelingShot>,
     grenades: Vec<grenade::Grenade>,
     assessor_canisters: Vec<assessor::Canister>,
+    rockets: Vec<rocket::Rocket>,
     mines: Vec<mine::Mine>,
     remote_mines: Vec<remote_mine::RemoteMine>,
     explosion_results: Vec<crate::protocol::ExplosionResult>,
@@ -1508,6 +1510,7 @@ impl GameState {
     pub(crate) fn owns_committed_devices(&self, id: Uuid) -> bool {
         self.grenades.iter().any(|grenade| grenade.owner_id == id)
             || self.mines.iter().any(|mine| mine.owner_id == id)
+            || self.rockets.iter().any(|rocket| rocket.owner_id == id)
     }
 
     pub fn remove_player(&mut self, id: Uuid) {
@@ -1526,6 +1529,7 @@ impl GameState {
         self.grenades.retain(|grenade| grenade.owner_id != id);
         self.assessor_canisters
             .retain(|canister| canister.owner_id() != id);
+        self.rockets.retain(|rocket| rocket.owner_id != id);
         self.mines.retain(|mine| mine.owner_id != id);
         self.remote_mines.retain(|mine| mine.state().owner_id != id);
         self.scores.remove(&id);
@@ -2162,6 +2166,7 @@ impl GameState {
         let mut hits = Vec::new();
         let mut jammer_launches = Vec::new();
         let mut assessor_launches = Vec::new();
+        let mut rocket_launches = Vec::new();
         for i in 0..self.players.len() {
             if let Some((index, seat)) = self.vehicle_seat(self.players[i].id) {
                 if seat == crate::protocol::VehicleSeat::Gunner
@@ -2216,6 +2221,10 @@ impl GameState {
                     jammer_launches.push(player.id);
                     continue;
                 }
+                if player.weapon == WeaponType::Rocket {
+                    rocket_launches.push(player.id);
+                    continue;
+                }
                 let dry_before = player.inventory.dry_fire_count();
                 if player.inventory.try_fire(player.weapon) {
                     player.statistics.attack(player.weapon);
@@ -2248,6 +2257,10 @@ impl GameState {
                     player.fire_cooldown = 1;
                 }
             }
+        }
+
+        for id in rocket_launches {
+            self.launch_rocket(id);
         }
 
         let mut mast_hits = Vec::new();
@@ -2448,6 +2461,7 @@ impl GameState {
 
         self.tick_grenades(dt);
         self.tick_assessor_canisters(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
+        self.tick_rockets(dt, arena, &civilian_shot_bodies, &tableau_shot_boxes);
         self.tick_mines(dt);
         self.tick_remote_mines(dt);
         self.update_campaign_run();
@@ -2666,11 +2680,7 @@ impl GameState {
                 normal[1] < -0.5 || facing > 0.25 || (facing < -0.25 && !recovery)
             };
             if trace.pellets.is_empty() {
-                return if protected(&trace.impact) {
-                    (damage + 1) / 2
-                } else {
-                    damage
-                };
+                return self.plated_direct_damage(victim, damage, trace.origin, &trace.impact);
             }
             return trace
                 .pellets
@@ -2696,6 +2706,38 @@ impl GameState {
                 })
                 .sum();
         }
+        self.plated_direct_damage(victim, damage, trace.origin, &trace.impact)
+    }
+
+    /// Plate on one direct impact. Assessor plates use the struck face.
+    /// Auditor plates use the arrival angle. Splash never calls this.
+    pub(super) fn plated_direct_damage(
+        &self,
+        victim: usize,
+        damage: i32,
+        origin: [f32; 3],
+        impact: &ShotImpact,
+    ) -> i32 {
+        if damage <= 1 {
+            return damage;
+        }
+        let player = &self.players[victim];
+        if crate::combat::is_assessor(player.campaign) {
+            let ShotImpact::Fighter { normal } = impact else {
+                return damage;
+            };
+            let normal = *normal;
+            let recovery = matches!(
+                player.campaign,
+                Some(CampaignActor::Union {
+                    phase: EnemyPhase::Recovery,
+                    ..
+                })
+            );
+            let facing = normal[0] * player.yaw.cos() + normal[2] * player.yaw.sin();
+            let protected = normal[1] < -0.5 || facing > 0.25 || (facing < -0.25 && !recovery);
+            return if protected { (damage + 1) / 2 } else { damage };
+        }
         if !matches!(
             player.campaign,
             Some(CampaignActor::Union {
@@ -2705,7 +2747,7 @@ impl GameState {
         ) {
             return damage;
         }
-        let (dx, dz) = (trace.origin[0] - player.x, trace.origin[2] - player.z);
+        let (dx, dz) = (origin[0] - player.x, origin[2] - player.z);
         if dx.hypot(dz) <= f32::EPSILON {
             return damage;
         }
@@ -3211,6 +3253,7 @@ impl GameState {
             projectiles: self.projectile_states(),
             grenades: self.grenade_states(),
             assessor_canisters: self.assessor_canister_states(),
+            rockets: self.rocket_states(),
             mines: self.mine_states(),
             remote_mines: self.remote_mine_states(),
             auditors: self.encounters.auditor_states(),
@@ -4267,6 +4310,7 @@ impl Default for GameState {
             traveling_shots: Vec::new(),
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             explosion_results: Vec::new(),
@@ -4819,6 +4863,7 @@ impl BotController {
             WeaponType::Scatter => 0.55,
             WeaponType::Flechette | WeaponType::Repeater => 0.40,
             WeaponType::Arc => 0.30,
+            WeaponType::Rocket => 0.35,
         };
 
         match self.behavior {

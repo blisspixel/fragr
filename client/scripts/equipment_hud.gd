@@ -22,7 +22,7 @@ var remote_counts: Label
 var _remotes_known: bool = false
 var dry_seconds: float = 0.0
 var _dry_count: int = 0
-## Pool drawn beside the number: bullets, shells, cells, or empty for fists.
+## Pool drawn beside the number: bullets, shells, cells, rockets, or empty for fists.
 var glyph_pool: String = ""
 
 func _ready() -> void:
@@ -156,6 +156,8 @@ func _draw() -> void:
 			_shell(origin + Vector2(15, 2), dim)
 		"cells":
 			_cell(origin, dim)
+		"rockets":
+			_rocket(origin, dim)
 
 func _block(rect: Rect2, colour: Color, dim: float) -> void:
 	draw_rect(rect.grow(2.0), MenuTheme.INK)
@@ -174,6 +176,12 @@ func _cell(at: Vector2, dim: float) -> void:
 	_block(Rect2(at + Vector2(9, 0), Vector2(10, 4)), CELL_STEEL, dim)
 	_block(Rect2(at + Vector2(2, 4), Vector2(24, 28)), CELL_STEEL, dim)
 	_block(Rect2(at + Vector2(8, 10), Vector2(12, 16)), CELL_GLOW, dim)
+
+## A short tube and a nose, drawn beside the rocket count. Final art is later.
+func _rocket(at: Vector2, dim: float) -> void:
+	_block(Rect2(at + Vector2(4, 10), Vector2(16, 8)), SHELL_RED, dim)
+	_block(Rect2(at + Vector2(20, 12), Vector2(6, 4)), BRASS, dim)
+	_block(Rect2(at + Vector2(2, 12), Vector2(4, 4)), CELL_STEEL, dim)
 
 ## A dark puck with its red lamp, the same read as the placed device.
 func _mine(at: Vector2, dim: float) -> void:

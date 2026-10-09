@@ -21,7 +21,7 @@ fn assert_pistol(player: &crate::sim::Player) {
             .iter()
             .map(|count| count.rounds)
             .collect::<Vec<_>>(),
-        vec![50, 0, 0]
+        vec![50, 0, 0, 0]
     );
 }
 
