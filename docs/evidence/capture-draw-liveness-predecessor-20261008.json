@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "historical source binding supplement",
+  "original_receipt": {
+    "path": "docs/evidence/capture-draw-liveness-20261008.json",
+    "sha256": "ee3349378ec5042e101326ef8f6c1fcaacb00924e25827fa08f14baa67e3ace9",
+    "retained_original_path": ".agents/capture-draw-predecessor-20261008/original-capture-draw-liveness.json"
+  },
+  "beneficiary_receipt": {
+    "path": "docs/evidence/splice-live-integration-20261008.json",
+    "relationship": "Its immutable 1,282 bindings include the original liveness receipt and prose.",
+    "sha256": "f61c86ac467d09a8854f470c4899abbaa4bf588d58dac87e77e7017d0cc43c22"
+  },
+  "amendment": "On October 8, the original liveness receipt historical current-source pointers are explicitly mapped to retained identical bytes. The original receipt bytes remain unchanged and retained. These copies match each original recorded SHA exactly; the pending/current empty-magazine implementation is not substituted or represented as the originally tested helper.",
+  "source_mappings": [
+    {
+      "bytes": 141745,
+      "retained_path": ".agents/capture-draw-predecessor-20261008/qa_tour.gd",
+      "retained_sha256": "846468471feec107395a4c7454c50b6f02e534cf17a0d3bfd88c305fd19c7d7e",
+      "recorded_path": "client/scripts/qa_tour.gd",
+      "recorded_sha256": "846468471feec107395a4c7454c50b6f02e534cf17a0d3bfd88c305fd19c7d7e"
+    },
+    {
+      "bytes": 616,
+      "retained_path": ".agents/capture-draw-predecessor-20261008/test_qa_capture_draw.gd",
+      "retained_sha256": "6b2e9ca8c94864b69f216412a9e4d77ce74225e7adb6c655b1171ab66d2a0097",
+      "recorded_path": "client/scripts/test_qa_capture_draw.gd",
+      "recorded_sha256": "6b2e9ca8c94864b69f216412a9e4d77ce74225e7adb6c655b1171ab66d2a0097"
+    },
+    {
+      "bytes": 4674,
+      "retained_path": ".agents/capture-draw-predecessor-20261008/client_retirement.gd",
+      "retained_sha256": "22e000e67fd6ff01013b7a523b6df4a7d92b014820928e314f40f30e68bab0e4",
+      "recorded_path": "client/scripts/client_retirement.gd",
+      "recorded_sha256": "22e000e67fd6ff01013b7a523b6df4a7d92b014820928e314f40f30e68bab0e4"
+    },
+    {
+      "bytes": 2255,
+      "retained_path": ".agents/capture-draw-predecessor-20261008/qa_m11.gd",
+      "retained_sha256": "fca92217d2c01566c1e7983d5441ce76dc31b6c478ae0f5eb8aae7c0d13cd33d",
+      "recorded_path": "client/scripts/qa_m11.gd",
+      "recorded_sha256": "fca92217d2c01566c1e7983d5441ce76dc31b6c478ae0f5eb8aae7c0d13cd33d"
+    },
+    {
+      "bytes": 16814,
+      "retained_path": ".agents/capture-draw-predecessor-20261008/qa_vehicle.gd",
+      "retained_sha256": "cb00bf34ab97cdb14b9513dd0219d9cfb49aebb319c063ad1b67fe7b4fa22ea6",
+      "recorded_path": "client/scripts/qa_vehicle.gd",
+      "recorded_sha256": "cb00bf34ab97cdb14b9513dd0219d9cfb49aebb319c063ad1b67fe7b4fa22ea6"
+    }
+  ],
+  "scope": "Path retention only. No new liveness test, gameplay result, renderer run or retroactive window-mode claim.",
+  "bindings": [
+    {
+      "path": ".agents/capture-draw-predecessor-20261008/client_retirement.gd",
+      "sha256": "22e000e67fd6ff01013b7a523b6df4a7d92b014820928e314f40f30e68bab0e4",
+      "bytes": 4674
+    },
+    {
+      "path": ".agents/capture-draw-predecessor-20261008/original-capture-draw-liveness.json",
+      "sha256": "ee3349378ec5042e101326ef8f6c1fcaacb00924e25827fa08f14baa67e3ace9",
+      "bytes": 18010
+    },
+    {
+      "path": ".agents/capture-draw-predecessor-20261008/qa_m11.gd",
+      "sha256": "fca92217d2c01566c1e7983d5441ce76dc31b6c478ae0f5eb8aae7c0d13cd33d",
+      "bytes": 2255
+    },
+    {
+      "path": ".agents/capture-draw-predecessor-20261008/qa_tour.gd",
+      "sha256": "846468471feec107395a4c7454c50b6f02e534cf17a0d3bfd88c305fd19c7d7e",
+      "bytes": 141745
+    },
+    {
+      "path": ".agents/capture-draw-predecessor-20261008/qa_vehicle.gd",
+      "sha256": "cb00bf34ab97cdb14b9513dd0219d9cfb49aebb319c063ad1b67fe7b4fa22ea6",
+      "bytes": 16814
+    },
+    {
+      "path": ".agents/capture-draw-predecessor-20261008/test_qa_capture_draw.gd",
+      "sha256": "6b2e9ca8c94864b69f216412a9e4d77ce74225e7adb6c655b1171ab66d2a0097",
+      "bytes": 616
+    },
+    {
+      "path": "docs/evidence/capture-draw-liveness-20261008.json",
+      "sha256": "ee3349378ec5042e101326ef8f6c1fcaacb00924e25827fa08f14baa67e3ace9",
+      "bytes": 18010
+    }
+  ]
+}

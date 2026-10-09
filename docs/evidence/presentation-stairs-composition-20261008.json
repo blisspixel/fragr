@@ -1,0 +1,423 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "passed locally",
+  "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+  "presentation_native_sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+  "scope": "Final local campaign, character, stair and multiplayer composition before reviewed main integration. No shipped, final-art, human-balance, physical-LAN, other-platform play or full-campaign claim.",
+  "native": {
+    "actual_default_concurrency_tests": {
+      "passed": 1952,
+      "failed": 0,
+      "ignored": 4,
+      "filtered": 0,
+      "targets": 35
+    },
+    "coverage_command": "cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2",
+    "line_coverage_percent": 93.29,
+    "coverage_floor_percent": 90,
+    "strict_all_target_clippy_passed": true,
+    "formatting_passed": true
+  },
+  "client": {
+    "native_sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+    "scripts": 359,
+    "harnesses": 171,
+    "actual_engine_invocations": 532,
+    "numeric_exit": 0,
+    "all_engines_retired": true,
+    "source_mismatches": [],
+    "retained_source_bindings": 1994,
+    "verifier_fault_scenarios": 10
+  },
+  "build_scope": {
+    "workspace_artifact_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+    "server_only_artifact_sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+    "release_inputs": 154,
+    "all_release_inputs_match_retained_source": true,
+    "binary_equivalence_claim": false,
+    "reason": "Cargo workspace and single-package feature unification select distinct supported artifacts. Native tests, network and ordinary mission receipts retain the workspace artifact; final client, gallery, intake and Windows install use the server-only artifact."
+  },
+  "ordinary_routes": {
+    "m08_states": 37,
+    "m09_states": 32,
+    "m10_states": 30,
+    "m12_states": 17,
+    "historical_entry": "Representative fixtures, not a played M01-M12 chain",
+    "required_deaths_and_departures": "Owning accepted receipts retain actual outcomes and finite equipment"
+  },
+  "network": {
+    "exact_ci_cases": 8,
+    "mixed_roster_cases": 7,
+    "soak_seconds": 120,
+    "scope": "Local Windows loopback with current native and harness, no capacity claim"
+  },
+  "gallery": {
+    "standard_states": 32,
+    "original_strips": 3,
+    "refreshed_tour_files": 14,
+    "published_stills": 12,
+    "published_strips": 2,
+    "fresh_intake_prefix_states": 3,
+    "intake_full_mission": false,
+    "independent_original_review": true,
+    "accepted_render": "tour-third",
+    "corrected_log_reassessment": true,
+    "fresh_render_at_assessment": false,
+    "original_parent_completion_passed": false,
+    "later_failed_attempts": [
+      "tour-fourth: body framing",
+      "tour-fifth: human died before weapon still"
+    ]
+  },
+  "package": {
+    "platform": "Windows x86_64",
+    "exported": true,
+    "unpacked_install_passed": true,
+    "legal_notice_files": 6,
+    "round_trip_files": 8,
+    "external_publication": false
+  },
+  "remaining": [
+    "Reviewed pull request and all applicable CI, then new main CI",
+    "Connected M13-M20 and conditional epilogue",
+    "Splice world-space turns and start/stop foot planting",
+    "Remote Mine live damage aggregate and M09/M10 civilian prediction parity",
+    "Fresh-player clarity, pacing, balance and final artwork",
+    "Other-platform play, physical LAN/WAN and measured population limits"
+  ],
+  "spend": {
+    "verification_paid_asset_calls": 0,
+    "new_cash_usd": 0,
+    "automatic_top_ups": false,
+    "cloud_apply": false,
+    "prior_asset_usage": "Retained separately in its owning receipts"
+  },
+  "bindings": [
+    {
+      "path": ".agents/character-integration-review-20261008/model-readme-corrections.patch",
+      "bytes": 7045,
+      "sha256": "53d637925ec19487ecdf26cb17752616054f6d0b3dfafd225818e1aa4a5b5db7"
+    },
+    {
+      "path": ".agents/character-integration-review-20261008/receipt.json",
+      "bytes": 5933,
+      "sha256": "677f50f82b10b02ee556463b15311f0eac3102f313a5c73084652e4d8a668c65"
+    },
+    {
+      "path": ".agents/crouch-controls-20261008/full-client-composed-fifth/exit.json",
+      "bytes": 367349,
+      "sha256": "4a64d33ff27edbebcce402368f4b4f313008ba1799144405176324ff79f3a78b"
+    },
+    {
+      "path": ".agents/crouch-controls-20261008/full-client-composed-fourth/exit.json",
+      "bytes": 367351,
+      "sha256": "9e694f0a61272c05510ea3f34b45d98ab1ee81b556866ea842d6e5056ee15717"
+    },
+    {
+      "path": ".agents/crouch-controls-20261008/full-client-composed-sixth/checker.log",
+      "bytes": 14948,
+      "sha256": "05889f096ab7cd3668991c237cb10f161bab914cc2af8ac0774ffafce0f34076"
+    },
+    {
+      "path": ".agents/crouch-controls-20261008/full-client-composed-sixth/exit.json",
+      "bytes": 367349,
+      "sha256": "c0574a577ac748fe84783e5d36cf63f6c0529c6a2248a85d644ebebe0375141b"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/body-framing-rejection-review.json",
+      "bytes": 8175,
+      "sha256": "0c124906dae8b5b4b2d7e4bdd3b1b6010fab1a4bea3fe9a29882cce5b7c9dda8"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/client-source-window-delta-first.json",
+      "bytes": 2188,
+      "sha256": "33710169c2dc878e3ec936bb48707b63685d49e50ce93b7d7d15ed7ad0a538fe"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/client-verifier-first.json",
+      "bytes": 350,
+      "sha256": "5d1328f9f0fb9a4dc62b6d1a60a0f8a21b5370af377dbe9d34e2757ec828afae"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/client-verifier-first.log",
+      "bytes": 441,
+      "sha256": "565f0e6a043071e60a7e833dac71171815a0361af27cb1ebb4ea23b299a2eda5"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/cpu-first/bench.log",
+      "bytes": 2578,
+      "sha256": "d81fd4a76bc5c018dd216a116deb23213bdfeab0294c2638349219eeb6ad5bad"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/cpu-first/exit.json",
+      "bytes": 267,
+      "sha256": "aaabd063c358e0a1a4cce62f30d718d09f5c85f44acad7e8f3d93f4cdceefedc"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/cpu-first/host.json",
+      "bytes": 1368,
+      "sha256": "5354a10c1b68ccb09dec1359ca50791fd79b2a469130c0283e817ef5a184b400"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/final-helper-review-first/review.json",
+      "bytes": 8923,
+      "sha256": "515485c0c30ea94638c5ad73f16c3140658681b493be4f5c3e31dc1b5157e619"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/frozen-client-source-fifth/receipt.json",
+      "bytes": 656894,
+      "sha256": "fbb4c588d992312453dcb60ed04a584bdf3b20db5bb9090e960e1bc7b77a5c00"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/frozen-client-source-sixth/receipt.json",
+      "bytes": 656894,
+      "sha256": "ed547d6797ac9f6c463ffed84e2fcc50f41514c6c4a8aff09921e1fda3bbc97a"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/frozen-client-source/receipt.json",
+      "bytes": 644934,
+      "sha256": "392b56be1970c80d72bed9df489a7fbe3ef37094e0c333217318df474474a4cc"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/frozen-native-source/receipt.json",
+      "bytes": 99733,
+      "sha256": "c92327388ac0d582f4d30fd55415761f5d9d5850d91846bbd127ef64100a4c59"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/gallery-final-review-second.json",
+      "bytes": 17160,
+      "sha256": "ffb9f845fd1718f401ef978a5ec0af2b1dbbc75dd74ba883bf489f6447016918"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/independent-integration-review-first.json",
+      "bytes": 2180,
+      "sha256": "dd7779b992128dd3bf429a5ebcf21385387647bcc581521633cdee509399ef16"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/intake-first/completion.json",
+      "bytes": 4303,
+      "sha256": "7e152deecc2cd7651401975cbeaaa6958d6452429df80373d79de8ff5538ace9"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/log-classification-first.json",
+      "bytes": 18024,
+      "sha256": "27994c0aa14ab94f0bf35d51e36b579ea8e75d2a4a23222447bb82235a614db8"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/m08-stair-review-final.json",
+      "bytes": 1722,
+      "sha256": "8c09c37998f0535df8607d4754635b38b7ba6e11cd5271504e5be10360f2691c"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/model-public-metadata-first.json",
+      "bytes": 2779,
+      "sha256": "dfba8b96cd5697a18e30edb270c918de8bf16c8d77a605473929fccd4e4c25da"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/network/completion.json",
+      "bytes": 252,
+      "sha256": "63ea34b49dc61c90349906d4f022561fbc1fc22622def6fbb78b704bb2cce89b"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/package-review-first/review.json",
+      "bytes": 17557,
+      "sha256": "b8e37dc0814ff3f7f85286c63032442bd25d74a797ee74ff0dc8f813a0256c19"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/package-windows-first/completion.json",
+      "bytes": 5575,
+      "sha256": "76f0ee2e3058c72f26629ee18fbe1f9890c4f56a967dbea1b14118b34ccdd2ac"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/package-windows-second/completion.json",
+      "bytes": 5592,
+      "sha256": "f17cb3690b082cb79688aa4c3e5e0ab47c5f2a18bd5ad5a6f24021fd67a33c9e"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/reassess-tour-third-second.ps1",
+      "bytes": 8305,
+      "sha256": "cf81afeff60880fdb2c981e9a30e7093ed7dc24b72da57bd84f9bdefd71a9aef"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/run-intake-fifth.ps1",
+      "bytes": 11157,
+      "sha256": "5b78585e5a91e006ff78073b0353bb7bbef0b5a323df2f5169ff64570ac9ac17"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/run-package-fourth.ps1",
+      "bytes": 7907,
+      "sha256": "bbcd32a7a07a076e9f09d204fa1a830261e464a172cae36776f2a942d0076e68"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/run-tour-fifth.ps1",
+      "bytes": 8264,
+      "sha256": "52fb1c1a720f869bbcb07b65e3685de27a388b8128e2147e65a87cc649504032"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-fifth/completion.json",
+      "bytes": 762,
+      "sha256": "1d7551cd0bfc9719e2d72219b8baf134c3cca5e45440e71b043d8d51fb07a5d2"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-fifth/manifest.json",
+      "bytes": 124455,
+      "sha256": "20d809c1896624396d89c97803397dd351ad8e95be535d34358810b130af21f4"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-first/completion.json",
+      "bytes": 797,
+      "sha256": "6d4d8d0b3e6625bfb397f01f5860a7caa11a7db8e74f2f4bf48f1cd5cccb6fea"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-fourth/completion.json",
+      "bytes": 762,
+      "sha256": "490034568b8c7e417d4caeed4548a62881c2a3afae03297e5ff3110e6cf8fcf6"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-fourth/manifest.json",
+      "bytes": 124898,
+      "sha256": "5defebde989f347b980587e2f0cb928dd353eb5ad1012952298dca7bc17feaf1"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-second/completion.json",
+      "bytes": 762,
+      "sha256": "f2b996ab73931b37c4d48efe22e1e4ca5301705b93fe91de56e340b3aed21f6f"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-third-technical-review.json",
+      "bytes": 27015,
+      "sha256": "e8aa9cb17a222a70c089e2816c86075a65e2eee6a667e4cc08831b20a16acb7c"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-third/completion.json",
+      "bytes": 789,
+      "sha256": "983a6edc6b2aa9dbaa71072a60baf9be443110befd1cb2861b290ec3ba7e308d"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-third/reassessment-second.json",
+      "bytes": 35950,
+      "sha256": "f0b0abfc7f99c6665361bf2a5659b3c05dbe6d9bdd5d4e1801005aa94fdac899"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/write-final-composition-reassessed.ps1",
+      "bytes": 14601,
+      "sha256": "115ef4004f708e91d082591e43c7c537bffdb05bcd1b7b3b9ff84b58dfe28c29"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/write-gallery-reassessed.ps1",
+      "bytes": 9022,
+      "sha256": "7933f9cfee0cfb9c3421d4bc994e7ac21ab1adf29db5a16643a1458243a6c5a1"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/write-gallery-review-second.ps1",
+      "bytes": 4456,
+      "sha256": "bdae49dcafc126a63e274fe63fd94387dc4127d09ca055e49bf6855b1aec579a"
+    },
+    {
+      "path": ".agents/server-release-build-topology-20261008/evidence.json",
+      "bytes": 245126,
+      "sha256": "217da983df20d3a10146c808a4346169ed4c1574ba5aafe21f7bb8928ec4d270"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/clippy-conquest-final-second.log",
+      "bytes": 339,
+      "sha256": "ddc89ee825bec4e910e2910e4a2c9b81eca0683a7eebedd68bbba61c9a5f3b40"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/coverage-conquest-final-third.log",
+      "bytes": 211928,
+      "sha256": "a16727794ee5f4876528dc363291ed7ab706f480c28b76d61d4ef142cf0c8826"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/fmt-conquest-final-fifth.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/manifest.json",
+      "bytes": 4734549,
+      "sha256": "e4edd44c85b0195cb0090674195241af51b1796a143eff8c427b96416839518f"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/process.json",
+      "bytes": 11921,
+      "sha256": "809724e04a234626e259b52436381c9bbaa1dc3ea40cf66eff7bd10bebd784b5"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/workspace-conquest-final-third.log",
+      "bytes": 172364,
+      "sha256": "251eae81205f35758e28c60cd9b271b540cadbc881394aad4c3840d6590d6959"
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/accepted-controls.json",
+      "bytes": 74100,
+      "sha256": "82130ab6a64c944f8c453c1e8a19e874bbe370a352ac5f57e56f805a069918d4"
+    },
+    {
+      "path": "docs/evidence/campaign-stair-ordinary-routes-20261008.json",
+      "bytes": 174727,
+      "sha256": "401812eb7318f87439067778dbc226d8ef4988d8a13fb43692a30f6b117ecf68"
+    },
+    {
+      "path": "docs/evidence/capture-draw-liveness-20261008.json",
+      "bytes": 18010,
+      "sha256": "ee3349378ec5042e101326ef8f6c1fcaacb00924e25827fa08f14baa67e3ace9"
+    },
+    {
+      "path": "docs/evidence/capture-draw-liveness-predecessor-20261008.json",
+      "bytes": 4460,
+      "sha256": "cfdd1280ee4c502dadd1f1fe68243f985054ee022be303771542bc73af6b2fe6"
+    },
+    {
+      "path": "docs/evidence/capture-window-size-20261008.json",
+      "bytes": 25121,
+      "sha256": "9bd587c7961c2b3edf879d4c77412e648a4194fefa83fe166252d370a45f3dfd"
+    },
+    {
+      "path": "docs/evidence/client-composition-corrections-20261008.json",
+      "bytes": 10334,
+      "sha256": "ff0864db48edc4b685141c5ade0f77671ab521c0a854dd4265e9981e114ad8b0"
+    },
+    {
+      "path": "docs/evidence/conquest-combat-determinism-20261008.json",
+      "bytes": 10256,
+      "sha256": "92f93e8b7dc57ffa7aa750d0995235d24a8d66b483a0a045e888bb7304c374f9"
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008.json",
+      "bytes": 28933,
+      "sha256": "b363282ebf3e2b0edadf0f5b07f530b80515e6f56f4b4308f8a7f7968ff2f81e"
+    },
+    {
+      "path": "docs/evidence/m09-search-arrival-20261008.json",
+      "bytes": 12901,
+      "sha256": "bbc917d31a3d44ccb306c42f3725e14ca22ce30b9c2ab722a584b0cfe71b8447"
+    },
+    {
+      "path": "docs/evidence/m12-connected-habitat-final-20261008.json",
+      "bytes": 13926,
+      "sha256": "76c3e92882280909f5c8be3902fbcbc1251921711c4a970cb478725baa536de9"
+    },
+    {
+      "path": "docs/evidence/m12-sign-facing-20261008.json",
+      "bytes": 12014,
+      "sha256": "d649d9aea621cfaa4489ca810b9520107e7b2bb1539a356adedf6736679a6838"
+    },
+    {
+      "path": "docs/evidence/presentation-stairs-network-20261008.json",
+      "bytes": 91848,
+      "sha256": "d1d461e6b1e26942dd47cd66308b12b992c1746520463f864fc9af746ddbca32"
+    },
+    {
+      "path": "docs/evidence/splice-live-integration-20261008.json",
+      "bytes": 321793,
+      "sha256": "f61c86ac467d09a8854f470c4899abbaa4bf588d58dac87e77e7017d0cc43c22"
+    },
+    {
+      "path": "docs/screenshots/readme-20261008.json",
+      "bytes": 31954,
+      "sha256": "1baab967605fca604bf87ef50099e33d599e8ad83f520c77f93516c5a554dcc7"
+    }
+  ]
+}

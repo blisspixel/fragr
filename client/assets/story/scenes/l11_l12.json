@@ -1,0 +1,14 @@
+{
+  "format": 1,
+  "id": "l11_l12",
+  "title_key": "MISSION_M11_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {
+      "id": "MARS",
+      "caption_key": "STORY_M11_DEPARTURE_MARS",
+      "timing": "reader",
+      "hold": 1
+    }
+  ]
+}

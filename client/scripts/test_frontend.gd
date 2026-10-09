@@ -133,9 +133,13 @@ func _run() -> void:
 	menu._show("single")
 	_check(column.get_node_or_null("RightOfSearchSaved") != null and _menu_text(column).contains("RIGHT OF SEARCH"), "completed M10 offers the actual tender continuation")
 	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M11_ID}), "new tender transition plays arrival while its existing entry does not")
+	owned.run_preview["mission"] = MissionState.M12_ID
+	menu._show("single")
+	_check(column.get_node_or_null("TermsOfCooperationSaved") != null and _menu_text(column).contains("TERMS OF COOPERATION"), "completed M11 offers the actual habitat continuation")
+	_check(menu._arrival_for_preview(owned.run_preview) and not menu._arrival_for_preview({"status": "ready", "mission": MissionState.M12_ID}), "new habitat transition plays arrival while its existing entry does not")
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
-	_check(column.get_node_or_null("CommonCarrierSaved") == null and column.get_node_or_null("RightOfSearchSaved") == null and _menu_text(column).contains(tr("M11_NEXT_PENDING")), "pending M12 has no mission launch button")
+	_check(column.get_node_or_null("TermsOfCooperationSaved") == null and _menu_text(column).contains(tr("M12_NEXT_PENDING")), "pending M13 has no mission launch button")
 	menu._onward_pending = true
 	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
 	owned.run_preview = {"status": "loading"}
@@ -149,20 +153,29 @@ func _run() -> void:
 	menu._try_onward()
 	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
 		"an unbuilt next mission settles the onward request on Single Player without launching")
-	_check(_menu_text(column).contains("NEXT: TERMS OF COOPERATION") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M12 previews mission, shared continues and saved body")
+	_check(_menu_text(column).contains("NEXT: THE WEIGHT OF PERMISSION") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M13 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
-		"pending M12 leaves an unbound body visible without an unavailable selector")
+		"pending M13 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 10 and development.get_item_text(4).contains("PORT OF ENTRY")
+	_check(development.item_count == 11 and development.get_item_text(4).contains("PORT OF ENTRY")
 		and development.get_item_text(5).contains("DECLARED GOODS") and development.get_item_text(6).contains("CUSTODIAN OF RECORD")
 		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE")
-		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes ship and tender prototypes")
+		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE") and development.get_item_text(10) == tr("M12_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes the habitat prototype")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
+	var previous_mission: String = owned.mission
+	owned.mission = MissionState.M12_ID
+	menu._campaign_run_mode = "resume"
+	menu._show("launch")
+	_check(_menu_text(column).contains(tr("MISSION_M12_TITLE")) and _menu_text(column).contains(tr("M12_LOCAL_STARTING")) and not _menu_text(column).contains(tr("LOCAL_SERVER_STARTING")), "saved M12 launch names and prepares the habitat")
+	menu._campaign_run_mode = ""
+	menu._show("launch")
+	_check(_menu_text(column).contains(tr("M12_PROTOTYPE_TITLE")), "practice M12 launch retains the habitat prototype title")
+	owned.mission = previous_mission
 	await menu._show("multi")
 	_check(column.get_node_or_null("UseRunningServer") == null and column.get_node_or_null("RunServer") != null and column.get_node_or_null("CheckHost") != null,
 		"run and join are separate controls, and nothing on the join page replaces the address")

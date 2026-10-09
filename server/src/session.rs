@@ -754,6 +754,7 @@ impl GameSession {
                 .cloned(),
         );
         driven.extend(controllers.iter().map(|bot| bot.player_id));
+        self.state.plan_conquest_orders(&controllers);
         self.state.update_bot_senses(&controllers);
         let enemies = self.state.enemy_intents();
         driven.extend(enemies.iter().map(|(id, _)| *id));
@@ -1119,6 +1120,12 @@ pub async fn send_unicasts(
             continue;
         };
         if let Some(client) = clients_lock.iter_mut().find(|c| c.id == client_id) {
+            if client.gameplay_version < protocol::ARC_GAMEPLAY_VERSION
+                && matches!(msg, ServerMessage::Loadout(loadout) if loadout.owns(protocol::WeaponType::Arc))
+            {
+                client.request_close();
+                continue;
+            }
             if client.gameplay_version < protocol::REPEATER_GAMEPLAY_VERSION
                 && matches!(msg, ServerMessage::Loadout(loadout) if loadout.owns(protocol::WeaponType::Repeater))
             {
@@ -1131,18 +1138,25 @@ pub async fn send_unicasts(
                 continue;
             }
             let delivered = if let ServerMessage::Record(record) = msg {
-                let mut compatible =
+                let target_version =
                     if client.gameplay_version < protocol::REPEATER_GAMEPLAY_VERSION {
-                        match record.legacy_record() {
-                            Ok(record) => record,
-                            Err(_) => {
-                                client.request_close();
-                                continue;
-                            }
-                        }
+                        protocol::LEGACY_RECORD_VERSION
+                    } else if client.gameplay_version < protocol::ARC_GAMEPLAY_VERSION {
+                        protocol::EIGHT_COLUMN_RECORD_VERSION
                     } else {
-                        record.clone()
+                        protocol::RECORD_VERSION
                     };
+                let mut compatible = if target_version != record.version {
+                    match record.record_for_version(target_version) {
+                        Ok(record) => record,
+                        Err(_) => {
+                            client.request_close();
+                            continue;
+                        }
+                    }
+                } else {
+                    record.clone()
+                };
                 if client.gameplay_version < protocol::MISSION_RESULTS_GAMEPLAY_VERSION {
                     compatible.mission_elapsed_ticks = None;
                 }

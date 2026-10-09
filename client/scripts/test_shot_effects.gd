@@ -29,6 +29,7 @@ class PawnProbe extends Node:
 		fired.append(weapon)
 
 func _initialize() -> void:
+	set_meta("fragr_automated", true)
 	call_deferred("_run")
 
 func _check(ok: bool, message: String) -> void:
@@ -190,6 +191,7 @@ func _run() -> void:
 			print("test_shot_effects: PASS actual render-camera clearance")
 		quit(0 if _failures == 0 else 1)
 		return
+	var retirement: ClientRetirement = ClientRetirement.for_tree(self)
 	var effects: ShotEffects = ShotEffects.new()
 	root.add_child(effects)
 	# One scatter blast: four pellets in one fighter, two in another, one lost.
@@ -324,6 +326,7 @@ func _run() -> void:
 		and effects.has_shot_from("self", "fighter"), "a no-health neutral body impact retains its resolved endpoint")
 	_check(hud.fired.size() == neutral_fires + 1 and hud.hits.size() == neutral_hits and hud.blocked.size() == neutral_blocked,
 		"a neutral body stop shows actual fire but grants no hit marker")
+	await _resolved_dead_shooter_flash(game)
 	game._clear_world()
 	_check(effects.active_count() == 0, "role teardown clears world effects")
 	game._process_shot_results([_shot()], 1)
@@ -337,9 +340,47 @@ func _run() -> void:
 	hud.free()
 	effects.queue_free()
 	await process_frame
+	_check(await retirement.drain(), "actual shot voices retire before the harness exits")
 	if _failures == 0:
 		print("test_shot_effects: PASS validated traces, bounded geometry, camera clearance, expiry, trades, lifecycle")
 	quit(0 if _failures == 0 else 1)
+
+func _resolved_dead_shooter_flash(game: Node) -> void:
+	var previous: Node = game.players.get("self")
+	for kind: String in PlayerBody.KINDS:
+		var pawn: Node3D = load("res://scenes/player.tscn").instantiate()
+		root.add_child(pawn)
+		await process_frame
+		pawn.set_process(false)
+		pawn.set_player_data("self", "Resolved trade fixture")
+		var state: Dictionary = {"x": 0.0, "y": 1.5, "z": 0.0, "yaw": 0.0,
+			"hp": 100, "weapon": "Rail", "body": kind}
+		pawn.update_state(state, 1)
+		pawn.set_predicted_position(Vector3(0, 1.5, 0), 0.0)
+		pawn._process(0.05)
+		_check(pawn.character_view != null, "trade fixture wears the actual live skin " + kind)
+		# Snapshots apply zero health before presenting the same tick's resolved
+		# shot. The ordinary pose pass must not hide that committed muzzle cue.
+		state.hp = 0
+		pawn.update_state(state, 2)
+		game.players["self"] = pawn
+		game._process_shot_results([_shot("range", "rail")], 11 if kind == PlayerBody.HUMAN else 12)
+		pawn._process(0.01)
+		_check(pawn.hp == 0 and pawn.muzzle.visible and pawn.muzzle.is_visible_in_tree(),
+			"resolved dead shooter retains a visible third-person flash " + kind)
+		_check(not pawn.weapon_sprite.is_visible_in_tree(), "a fallen body hides its carried gun " + kind)
+		pawn.set_local_fp(true)
+		_check(not pawn.muzzle.is_visible_in_tree(), "first-person hides the dead shooter's world flash " + kind)
+		pawn.set_local_fp(false)
+		_check(pawn.muzzle.is_visible_in_tree() and not pawn.weapon_sprite.is_visible_in_tree(),
+			"leaving first-person restores the committed flash independently of its fallen gun " + kind)
+		_check(pawn.muzzle.texture == ShotVfx.muzzle("Rail"), "trade retains the resolved weapon's flash " + kind)
+		var deadline: int = Time.get_ticks_msec() + 2000
+		while pawn.muzzle.visible and Time.get_ticks_msec() < deadline:
+			await process_frame
+		_check(not pawn.muzzle.visible, "resolved trade flash expires through its ordinary timer " + kind)
+		pawn.free()
+	game.players["self"] = previous
 
 func _rendered_camera_change() -> void:
 	var viewport: SubViewport = SubViewport.new()

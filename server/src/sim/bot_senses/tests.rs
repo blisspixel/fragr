@@ -394,3 +394,14 @@ fn weapon_only_has_timed_magazines_and_mode_change_restores_single_count() {
         assert!(state.players[0].inventory.try_fire(WeaponType::Rail));
     }
 }
+
+#[test]
+fn bot_senses_sees_vehicle_occupant_and_seated_bot_sees_target() {
+    let (mut state, bot) = pair(2);
+    state.add_jeep([5.0, 0.0, 0.0], 0.0).unwrap();
+    state.vehicles[0].state.driver = Some(state.players[1].id);
+    assert!(visible(&state, &state.players[0], &state.players[1]));
+
+    state.vehicles[0].state.driver = Some(bot.player_id);
+    assert!(visible(&state, &state.players[0], &state.players[1]));
+}

@@ -231,7 +231,12 @@ impl GameState {
                 return false;
             }
             let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
-            let point = grenade::closest_body_point(mine.position, feet, player.campaign);
+            let point = grenade::closest_body_point_stance(
+                mine.position,
+                feet,
+                player.campaign,
+                player.ducking,
+            );
             grenade::distance(mine.position, point) <= TRIGGER_RADIUS
                 && crate::combat::line_of_sight(mine.position, point, &arena.solids)
         })

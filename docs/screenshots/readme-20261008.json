@@ -1,0 +1,818 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Inspected current development menus and ordinary gameplay before reviewed main integration. No complete campaign, final art, hardware frame-rate or physical-LAN claim.",
+  "engine": "4.7.2-stable (official)",
+  "renderer": "gl_compatibility",
+  "device": "AMD Radeon(TM) 780M",
+  "resolution": [
+    1280,
+    720
+  ],
+  "base_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "working_tree_capture": true,
+  "images": [
+    {
+      "file": "m01_intake_16x9.png",
+      "sha256": "1294de527f5a3e298058cea40481ceb94ebdfe1ec1ae1f7c7c7dc6cd3df10723"
+    },
+    {
+      "file": "tour_menu_16x9.png",
+      "sha256": "37cbd4b4f1a48cf83f94ca8d1e929a60227d40371f96c4f89a718fa505120b23"
+    },
+    {
+      "file": "tour_multiplayer_16x9.png",
+      "sha256": "3f4f0ee6187ede43fe6e6262cd45ac934c4921edc4d5e2e0f75d5e2fd3f4facf"
+    },
+    {
+      "file": "tour_combat_follow_16x9.png",
+      "sha256": "1e6d3646cca43511fc046b1e38d1d7b300e23a1fe673af0cd4879bfe6a58a31c"
+    }
+  ],
+  "full_tour": {
+    "captured_utc": "2026-10-09T00:23:37",
+    "states": 32,
+    "published_files": 14,
+    "published_stills": 12,
+    "published_strips": 2,
+    "native_sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+    "qa_source_sha256": "04ac12892bcedf40da51f1d1b9a0f3b6be71dedb142528fab12f214ea5418ad2",
+    "route": "client/qa/tour.json",
+    "route_sha256": "ac0a76a09596611b43257d58c9317f7f6cce9b5b1d995b055d825f127a7679d7",
+    "numeric_exit": 0,
+    "clean_log": true,
+    "corrected_log_reassessment": true,
+    "fresh_render_at_assessment": false,
+    "original_parent_completion_passed": false,
+    "reassessment": {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-third/reassessment-second.json",
+      "bytes": 35950,
+      "sha256": "f0b0abfc7f99c6665361bf2a5659b3c05dbe6d9bdd5d4e1801005aa94fdac899"
+    },
+    "confirmed_aim": [
+      {
+        "state": "vertical_aim_up",
+        "alive": true,
+        "server_pitch": 0.4,
+        "camera_pitch": 0.400000005960464
+      },
+      {
+        "state": "vertical_aim_down",
+        "alive": true,
+        "server_pitch": -0.4,
+        "camera_pitch": -0.400000005960464
+      }
+    ],
+    "original_stills": [
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/01_boot_menu.png",
+        "bytes": 50384,
+        "sha256": "37cbd4b4f1a48cf83f94ca8d1e929a60227d40371f96c4f89a718fa505120b23"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/02_spectator_eyes.png",
+        "bytes": 458781,
+        "sha256": "fbdca7243973ff36f4da68d3946df7ff2d73d3d4c4d152bb9397d91787c07269"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/02_spectator_eyes_world.png",
+        "bytes": 406888,
+        "sha256": "e3fe0c1c46f9947e5a2395f2c0eac5183976a31d6c70d0c55d09ab3bc295c2b2"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/03_arena_overview.png",
+        "bytes": 1225302,
+        "sha256": "28333f603e69919bae81d61df9315046ce81ed7dd641641ce513de20b380a83c"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/03_arena_overview_world.png",
+        "bytes": 1200579,
+        "sha256": "a071ddeec0db9d5442fbafd445c71298fb0f99e9ba4189c01478746a1fd723f2"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/04_combat_follow.png",
+        "bytes": 839345,
+        "sha256": "1e6d3646cca43511fc046b1e38d1d7b300e23a1fe673af0cd4879bfe6a58a31c"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/04_combat_follow_world.png",
+        "bytes": 793465,
+        "sha256": "bcc74d906d8ac4bb48ce2cd5b23f17818935490c9a8219128b8ab71d31d3840f"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/05_body_human.png",
+        "bytes": 387630,
+        "sha256": "2a511a3b4349b5fd58bd74fbe7249ecf3c1805674e7ee291a4e204d395e10f76"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/05_body_human_world.png",
+        "bytes": 345484,
+        "sha256": "f64197ddb62c1bcf22ce85a3a604c587a4302098d9beb69a70d01df35d184a5b"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/06_body_synthetic.png",
+        "bytes": 362903,
+        "sha256": "d7fd1687b7bd1a1d32987e00d8fdf847edb4417584eb89d00a997856c9ebaad2"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/06_body_synthetic_world.png",
+        "bytes": 329951,
+        "sha256": "1cefcf16731a4c24254304dcb1403fc06b16da802633ecc4fc494475c861fa4e"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/07_hud_first_person.png",
+        "bytes": 465777,
+        "sha256": "93f5d9bf7fe1aa6a0641ee667b5a4517cfb51f241dfd1f65413997cec25d8a30"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/07_hud_first_person_world.png",
+        "bytes": 425794,
+        "sha256": "175002d84c835b25d7cfc93033a523120742e970c20fd475dd4dc5fafd178e22"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/08_hud_legend_pad.png",
+        "bytes": 474910,
+        "sha256": "ecccf5ae7d5b49041946f590d9d79a9e2da48536f5356c6e123ac7e7fbb8c385"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/08_hud_legend_pad_world.png",
+        "bytes": 425850,
+        "sha256": "7145aa04fdb719bf65a2fc2f1f5e5b495fad060cc9be1c595c65c7d264ee916c"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/09_hud_legend_keyboard.png",
+        "bytes": 476833,
+        "sha256": "fdf0f48f4b673f7017e2e8b6e481acd7481573a88b55e7baf1ce502fb4bfa5a5"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/09_hud_legend_keyboard_world.png",
+        "bytes": 425815,
+        "sha256": "1c863993380352213b930c6f686a876045d09a6a1f354442a41b745971e64ea4"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/10_rail_viewmodel.png",
+        "bytes": 462913,
+        "sha256": "f761b3b4010c306561339cfe7798fc7fa341e3c210a15707e2b5960e67ba9b05"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/10_rail_viewmodel_world.png",
+        "bytes": 425975,
+        "sha256": "1cf38ed197b01a698235452a9523bde6b4bcf6dab36773a249c7db10b9f3ae58"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/11_shot_effects.png",
+        "bytes": 454386,
+        "sha256": "ab93992d0fba4321ba32d2052c2ad6d62356fb3f2583eda019d81a3063397d8a"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/11_shot_effects_world.png",
+        "bytes": 426157,
+        "sha256": "9d1082a64887eb61eea5ea56b7f222853f38bb2c863753356f9489065f0b1a8b"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/12_scatter_viewmodel.png",
+        "bytes": 458530,
+        "sha256": "9bab70d1e294c712a9e10d04f8ce2728114bc3c07ae1f1982e60ac015152b12e"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/12_scatter_viewmodel_world.png",
+        "bytes": 426225,
+        "sha256": "a4047c4fe14838549348b19ab5fbde73c2f1451322bc8d5e4407f70bb66e518b"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/13_vertical_aim_up.png",
+        "bytes": 562075,
+        "sha256": "62549717bd1fba27e8f5c464e6dcd912a09063e71d8ed74c2ca99ddd04950764"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/13_vertical_aim_up_world.png",
+        "bytes": 534905,
+        "sha256": "54dc7d5f446709a8458768bceff97e5f4a9c57b79ebadd648628c9a2bd989a5c"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/14_vertical_aim_down.png",
+        "bytes": 377441,
+        "sha256": "737a1f509c9f80a2717ed4f4d1e6bf1ed9ea22b2f36ce12f92db5d6c74d3a083"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/14_vertical_aim_down_world.png",
+        "bytes": 352181,
+        "sha256": "2b93a168eb34a2f4af93bed020b0afe9413af5aa610a02bbc75a9f3df0c30604"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/15_rail_impact.png",
+        "bytes": 379383,
+        "sha256": "0be5b7e47689fb1f1db091a4369838bf86fe17e18cd5178dab5e1ff941d3c654"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/15_rail_impact_world.png",
+        "bytes": 352179,
+        "sha256": "973d05c4e28dc910822bb1190a0f68cfb1f1386b7edabbb5c66e9fb9e33aac7a"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/16_scatter_pellets.png",
+        "bytes": 397217,
+        "sha256": "d83b0dfd061a3e5b899f6faf626da626edeaecd5becabd8ad0c56963b7f43e28"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/16_scatter_pellets_world.png",
+        "bytes": 366475,
+        "sha256": "e3f1db31040654972b450e50c1a91f8bb6a1ba9cfccbea302553355d7ab94cfa"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/17_return_to_spectator.png",
+        "bytes": 199749,
+        "sha256": "e4c0cd7ebd824a4c3038eae4983c1c939e1a1b814ea418d11980e3127dcf2c10"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/17_return_to_spectator_world.png",
+        "bytes": 146208,
+        "sha256": "6017ef37f5c4561c9f47fa0cbff35391f47b510ce0f70f6851b346fa3ac1b229"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/18_spectator_chase.png",
+        "bytes": 794164,
+        "sha256": "fdaadd2ede2faf6424fa3133ff89081333155e205d4b17233861d052ec45c1cd"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/18_spectator_chase_world.png",
+        "bytes": 750799,
+        "sha256": "92766589df7cb217cca183a189f8ab6733103a57909cb077f6750071fcf56780"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/19_profile_menu.png",
+        "bytes": 59775,
+        "sha256": "42ed5a89ace80997221200cc67e307ea55961ac30d13b048c3d503ae91745469"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/20_settings_menu.png",
+        "bytes": 57858,
+        "sha256": "3d6f4fef6a52a070c98088434380f3c441d641dff892f3909476a4d171159830"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/21_settings_display.png",
+        "bytes": 52430,
+        "sha256": "1fb38a5d5256c4b3d9aff2e5071988a8d40f419aec6ce5521906652210f5bb22"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/22_settings_graphics.png",
+        "bytes": 49433,
+        "sha256": "661c505a4aac19bc43520ca2707d92eb0d22574585f1681483f82c0244c00614"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/23_settings_audio.png",
+        "bytes": 48643,
+        "sha256": "62f0460789bbe3a356ed35532a4fddacf950646fadbdeacda8f0d7f602f2c683"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/24_settings_controls.png",
+        "bytes": 57858,
+        "sha256": "3d6f4fef6a52a070c98088434380f3c441d641dff892f3909476a4d171159830"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/25_settings_controls_pad.png",
+        "bytes": 56957,
+        "sha256": "e7c947dd04cdd6469798204b8491bbe3e086b0b5e7ffa0effa0481362317ec01"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/26_settings_look.png",
+        "bytes": 59655,
+        "sha256": "218fa64036d0741f29decea9af7b50ee14c072fe015f48ed2d6aeb26ac67f907"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/27_multiplayer_menu.png",
+        "bytes": 59431,
+        "sha256": "3f4f0ee6187ede43fe6e6262cd45ac934c4921edc4d5e2e0f75d5e2fd3f4facf"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/28_single_player_menu.png",
+        "bytes": 49170,
+        "sha256": "3f74797523b76bbdec4adb5e7d54baf2d56c33dfc38a1385af25989a6efddb3e"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/29_campaign_difficulty.png",
+        "bytes": 60135,
+        "sha256": "490d7214a14f2c5af38b1af12f8523d78fb326d85bf8634bf1325361e5c06cb8"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/30_match_menu.png",
+        "bytes": 357548,
+        "sha256": "5d40fa2d7ef33d70dac68e01c412d38129dd481c3fe94b46ba872d69d0cb51b0"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/30_match_menu_world.png",
+        "bytes": 324281,
+        "sha256": "17ec790a2403c1be4797d35f0e577dbed68869a870badc19c7d96f35372894cf"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/31_match_settings.png",
+        "bytes": 290523,
+        "sha256": "d1bb071fc98ac411a4a2f9bb9d9243e42923e2d777ee24819fc9796f2755a945"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/31_match_settings_world.png",
+        "bytes": 260965,
+        "sha256": "45efef54b6de758dc7284e099854f44803009c677ba857eae126afb4cf3bc50b"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/tour-third/32_service_record.png",
+        "bytes": 66928,
+        "sha256": "6327a3a1fafbdd1587d8bdceb0188499ca3fe675f4e5bdc2db365c35db74c9e6"
+      }
+    ],
+    "original_strips": [
+      {
+        "state": "shot_effects",
+        "image": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/11_shot_effects_strip.png",
+          "bytes": 96656,
+          "sha256": "d1ba2b2e4b2dd0ca9533c0f262e74ea259985757ed1c4bfd434a65fab476afce"
+        },
+        "actual_sample_ms": [
+          2,
+          123,
+          131,
+          138,
+          145,
+          152,
+          161,
+          168,
+          175,
+          183,
+          189,
+          196
+        ]
+      },
+      {
+        "state": "rail_impact",
+        "image": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/15_rail_impact_strip.png",
+          "bytes": 107633,
+          "sha256": "23784b4d51eeb6a53ccb637de581c6fabfcdb046cb93b6f8e588c441195ffcbe"
+        },
+        "actual_sample_ms": [
+          3,
+          83,
+          109,
+          148,
+          185,
+          220,
+          251,
+          283,
+          320,
+          355,
+          393,
+          427
+        ]
+      },
+      {
+        "state": "scatter_pellets",
+        "image": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/16_scatter_pellets_strip.png",
+          "bytes": 106679,
+          "sha256": "96a2e12a562dca6e16c9ce72a1bbe96745264f5493dc1e92bbcf36c176d64fed"
+        },
+        "actual_sample_ms": [
+          2,
+          92,
+          119,
+          154,
+          190,
+          213,
+          237,
+          269
+        ]
+      }
+    ],
+    "published_copies": [
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/07_hud_first_person.png",
+          "bytes": 465777,
+          "sha256": "93f5d9bf7fe1aa6a0641ee667b5a4517cfb51f241dfd1f65413997cec25d8a30"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_first_person_16x9.png",
+          "bytes": 465777,
+          "sha256": "93f5d9bf7fe1aa6a0641ee667b5a4517cfb51f241dfd1f65413997cec25d8a30"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/04_combat_follow.png",
+          "bytes": 839345,
+          "sha256": "1e6d3646cca43511fc046b1e38d1d7b300e23a1fe673af0cd4879bfe6a58a31c"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_combat_follow_16x9.png",
+          "bytes": 839345,
+          "sha256": "1e6d3646cca43511fc046b1e38d1d7b300e23a1fe673af0cd4879bfe6a58a31c"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/05_body_human.png",
+          "bytes": 387630,
+          "sha256": "2a511a3b4349b5fd58bd74fbe7249ecf3c1805674e7ee291a4e204d395e10f76"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_body_human_16x9.png",
+          "bytes": 387630,
+          "sha256": "2a511a3b4349b5fd58bd74fbe7249ecf3c1805674e7ee291a4e204d395e10f76"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/06_body_synthetic.png",
+          "bytes": 362903,
+          "sha256": "d7fd1687b7bd1a1d32987e00d8fdf847edb4417584eb89d00a997856c9ebaad2"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_body_synthetic_16x9.png",
+          "bytes": 362903,
+          "sha256": "d7fd1687b7bd1a1d32987e00d8fdf847edb4417584eb89d00a997856c9ebaad2"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/03_arena_overview.png",
+          "bytes": 1225302,
+          "sha256": "28333f603e69919bae81d61df9315046ce81ed7dd641641ce513de20b380a83c"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_arena_overview_16x9.png",
+          "bytes": 1225302,
+          "sha256": "28333f603e69919bae81d61df9315046ce81ed7dd641641ce513de20b380a83c"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/11_shot_effects_strip.png",
+          "bytes": 96656,
+          "sha256": "d1ba2b2e4b2dd0ca9533c0f262e74ea259985757ed1c4bfd434a65fab476afce"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_shot_strip.png",
+          "bytes": 96656,
+          "sha256": "d1ba2b2e4b2dd0ca9533c0f262e74ea259985757ed1c4bfd434a65fab476afce"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/15_rail_impact_strip.png",
+          "bytes": 107633,
+          "sha256": "23784b4d51eeb6a53ccb637de581c6fabfcdb046cb93b6f8e588c441195ffcbe"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_rail_impact_strip.png",
+          "bytes": 107633,
+          "sha256": "23784b4d51eeb6a53ccb637de581c6fabfcdb046cb93b6f8e588c441195ffcbe"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/01_boot_menu.png",
+          "bytes": 50384,
+          "sha256": "37cbd4b4f1a48cf83f94ca8d1e929a60227d40371f96c4f89a718fa505120b23"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_menu_16x9.png",
+          "bytes": 50384,
+          "sha256": "37cbd4b4f1a48cf83f94ca8d1e929a60227d40371f96c4f89a718fa505120b23"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/27_multiplayer_menu.png",
+          "bytes": 59431,
+          "sha256": "3f4f0ee6187ede43fe6e6262cd45ac934c4921edc4d5e2e0f75d5e2fd3f4facf"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_multiplayer_16x9.png",
+          "bytes": 59431,
+          "sha256": "3f4f0ee6187ede43fe6e6262cd45ac934c4921edc4d5e2e0f75d5e2fd3f4facf"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/18_spectator_chase.png",
+          "bytes": 794164,
+          "sha256": "fdaadd2ede2faf6424fa3133ff89081333155e205d4b17233861d052ec45c1cd"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_spectator_16x9.png",
+          "bytes": 794164,
+          "sha256": "fdaadd2ede2faf6424fa3133ff89081333155e205d4b17233861d052ec45c1cd"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/19_profile_menu.png",
+          "bytes": 59775,
+          "sha256": "42ed5a89ace80997221200cc67e307ea55961ac30d13b048c3d503ae91745469"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_profile_16x9.png",
+          "bytes": 59775,
+          "sha256": "42ed5a89ace80997221200cc67e307ea55961ac30d13b048c3d503ae91745469"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/20_settings_menu.png",
+          "bytes": 57858,
+          "sha256": "3d6f4fef6a52a070c98088434380f3c441d641dff892f3909476a4d171159830"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_settings_16x9.png",
+          "bytes": 57858,
+          "sha256": "3d6f4fef6a52a070c98088434380f3c441d641dff892f3909476a4d171159830"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/29_campaign_difficulty.png",
+          "bytes": 60135,
+          "sha256": "490d7214a14f2c5af38b1af12f8523d78fb326d85bf8634bf1325361e5c06cb8"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_difficulty_16x9.png",
+          "bytes": 60135,
+          "sha256": "490d7214a14f2c5af38b1af12f8523d78fb326d85bf8634bf1325361e5c06cb8"
+        }
+      },
+      {
+        "source": {
+          "path": ".agents/presentation-stairs-composition-20261008/tour-third/32_service_record.png",
+          "bytes": 66928,
+          "sha256": "6327a3a1fafbdd1587d8bdceb0188499ca3fe675f4e5bdc2db365c35db74c9e6"
+        },
+        "copy": {
+          "path": "docs/screenshots/tour_records_16x9.png",
+          "bytes": 66928,
+          "sha256": "6327a3a1fafbdd1587d8bdceb0188499ca3fe675f4e5bdc2db365c35db74c9e6"
+        }
+      }
+    ],
+    "manifest": {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-third/manifest.json",
+      "bytes": 124980,
+      "sha256": "7c4c2a9e0764f92bbc580f09d8df73503002ba6aaa43b80940c3c087304e2714"
+    },
+    "process": {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-third/completion.json",
+      "bytes": 789,
+      "sha256": "983a6edc6b2aa9dbaa71072a60baf9be443110befd1cb2861b290ec3ba7e308d"
+    },
+    "actual_combat_follow": "Active",
+    "service_record_observation": [
+      {
+        "origin": "external",
+        "record": {
+          "attempt": {
+            "alive_ticks": 301.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 2.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 530.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "2ffa33ef-5188-44d7-ace6-04cab298722a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "f1c3cbfd-e9d7-441f-9d94-222df14c16d9",
+          "status": "active",
+          "tick": 831.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 301.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 2.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "version": 3.0
+        }
+      }
+    ]
+  },
+  "intake": {
+    "captured_utc": "2026-10-09T00:37:09",
+    "states": 3,
+    "full_mission": false,
+    "native_sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+    "originals": [
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/intake-first/01_arrival.png",
+        "bytes": 767116,
+        "sha256": "17297693e3fd6bd20e0b28e9bb4723476804c38109e0c529dc501d1f7e240f72"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/intake-first/01_arrival_world.png",
+        "bytes": 763517,
+        "sha256": "b7cf28ba6eb2b6bea9d43a9378ffd91d2f2ae5da0ced04c71513f6aae3245cc1"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/intake-first/02_intake_clerk.png",
+        "bytes": 513743,
+        "sha256": "9fbe029dfcda6ee638babe92132da93369500fe64cdded797586d6c4c83a473c"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/intake-first/02_intake_clerk_world.png",
+        "bytes": 490721,
+        "sha256": "b68fd5a44873740f2c8908166f67e2adec2a2f238f2e4b05db10c1b66a7160dc"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/intake-first/03_intake_sweepers.png",
+        "bytes": 614000,
+        "sha256": "1294de527f5a3e298058cea40481ceb94ebdfe1ec1ae1f7c7c7dc6cd3df10723"
+      },
+      {
+        "path": ".agents/presentation-stairs-composition-20261008/intake-first/03_intake_sweepers_world.png",
+        "bytes": 592877,
+        "sha256": "d77965ea13d759ba4023fdc9653c1490f844bfd2a275d81143dd083d835a097a"
+      }
+    ],
+    "selected_original": {
+      "path": ".agents/presentation-stairs-composition-20261008/intake-first/03_intake_sweepers.png",
+      "bytes": 614000,
+      "sha256": "1294de527f5a3e298058cea40481ceb94ebdfe1ec1ae1f7c7c7dc6cd3df10723"
+    },
+    "manifest": {
+      "path": ".agents/presentation-stairs-composition-20261008/intake-first/manifest.json",
+      "bytes": 242792,
+      "sha256": "578533394d65753583af5ecd4407cbe20c25760d5a6abe1f02436b5523024d8f"
+    },
+    "process": {
+      "path": ".agents/presentation-stairs-composition-20261008/intake-first/completion.json",
+      "bytes": 4303,
+      "sha256": "7e152deecc2cd7651401975cbeaaa6958d6452429df80373d79de8ff5538ace9"
+    }
+  },
+  "inspection": {
+    "path": ".agents/presentation-stairs-composition-20261008/gallery-final-review-second.json",
+    "bytes": 17160,
+    "sha256": "ffb9f845fd1718f401ef978a5ec0af2b1dbbc75dd74ba883bf489f6447016918"
+  },
+  "whole_client": {
+    "path": ".agents/crouch-controls-20261008/full-client-composed-sixth/exit.json",
+    "bytes": 367349,
+    "sha256": "c0574a577ac748fe84783e5d36cf63f6c0529c6a2248a85d644ebebe0375141b"
+  },
+  "predecessor": {
+    "receipt": {
+      "path": ".agents/presentation-stairs-composition-20261008/gallery-predecessor/receipt.json",
+      "bytes": 6076,
+      "sha256": "5c03edec933af60365efe2ee9ac963242cbb5fb486e94ffc665dee11e1e249f1"
+    },
+    "previous_gallery": {
+      "path": ".agents/presentation-stairs-composition-20261008/gallery-predecessor/readme-20261008.json",
+      "bytes": 18269,
+      "sha256": "ae83b2501cdfd9692b7f8bbaa487332ac319fe299f833c5cd2fccb1df49b7c44"
+    },
+    "scope": "Earlier October8 gallery and its distinct source/binary scopes remain retained byte-exact."
+  },
+  "limits": [
+    "Static body-camera frames do not record watched-subject feet or establish final gait",
+    "Small effects-strip tiles do not establish seven separate Scatter impacts or continuous motion",
+    "The intake is a three-state prefix and does not establish complete M01 or fresh-player pacing",
+    "Independent final human art and multiplayer acceptance remain open"
+  ]
+}

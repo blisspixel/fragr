@@ -1,0 +1,799 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally, integration pending",
+  "issue": "https://github.com/blisspixel/fragr/issues/186",
+  "engine": "Godot 4.7.2-stable (ed1daf0bf)",
+  "platform": "Windows x86_64",
+  "device": "AMD Radeon(TM) 780M",
+  "source_files": [
+    {
+      "path": "client/scripts/client_retirement.gd",
+      "sha256": "22e000e67fd6ff01013b7a523b6df4a7d92b014820928e314f40f30e68bab0e4"
+    },
+    {
+      "path": "client/scripts/client_retirement.gd.uid",
+      "sha256": "71ac53d5a5ee491f0f86374db067a9f55acc1e3ca77d3278b8a50c62c27d720b"
+    },
+    {
+      "path": "client/scripts/game_manager.gd",
+      "sha256": "29e19bdacb4bc9a3de71065e39c73ce5471041d37a908e1a96a177cd72d94f4c"
+    },
+    {
+      "path": "client/scripts/boot_menu.gd",
+      "sha256": "36212af17488eea8e1daf36b6b63591c02543e1bdbc208e3e1df012afc66d9fd"
+    },
+    {
+      "path": "client/scripts/pause_menu.gd",
+      "sha256": "14358922a64422067e6c69d26e02847828b4a6da6ab7be8b8d7a4b0c8d4d64b2"
+    },
+    {
+      "path": "client/scripts/console.gd",
+      "sha256": "a324a4919fac505110f8f4650c28a606f2446eb770a578f1dcacc04d0701c4cf"
+    },
+    {
+      "path": "client/scripts/qa_tour.gd",
+      "sha256": "f3a4e499892ac7150a2a414392362f941a8594b656855c5835cc8baaddb4c76a"
+    },
+    {
+      "path": "client/scripts/test_local_campaign.gd",
+      "sha256": "81af3294faf63c4cba3ef519699cf3c38aa5ba4003367a683d9cc8eec9e9b2fd"
+    },
+    {
+      "path": "client/scripts/test_client_retirement.gd",
+      "sha256": "b6e88bbab236ddb42eb4d7a35e9cff1a143f1f0a98c65d7a370d6e0f01e3b976"
+    },
+    {
+      "path": "client/scripts/test_client_retirement.gd.uid",
+      "sha256": "909c9334a803e10e382b79ad22956766d4d347766dfe896171c8d66aaab6119b"
+    }
+  ],
+  "baseline": {
+    "commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+    "boot_menu_blob": "d9b15248bb9cb94294eef3905a2b0dbc83273624",
+    "game_manager_blob": "0a1254473208b1de300bf259024223bc3c8ffb15",
+    "comparison": "Released owner scripts replayed against current imported assets and the pinned engine, not an untouched release package.",
+    "receipts": [
+      {
+        "log": "baseline-menu-normal.log",
+        "sha256": "86af66ce3692a476a3bd731b0fd1c898e25bcc8ffe4900795dd85ae48d7f9743"
+      },
+      {
+        "log": "baseline-menu-verbose.log",
+        "sha256": "890c5694e398f66239de897a193951f6a76cf91d9cd976f4cb02326d7ce4c248"
+      },
+      {
+        "log": "baseline-main-normal.log",
+        "sha256": "cbe441f3f4d53a9dc810765d47494726be8348e450ce7b97c80d9dfb7e633708"
+      },
+      {
+        "log": "baseline-main-verbose.log",
+        "sha256": "4f124e77e80ef46a0b849d65a668f5d540441548db443f56cacaec7a380acd73"
+      }
+    ]
+  },
+  "headless": [
+    {
+      "mode": "menu",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-menu-normal-1.log",
+      "sha256": "a34cd51ecf2c21830eb339b9c904baed55b072e7435892fec6c10acbf09dfe9b"
+    },
+    {
+      "mode": "menu",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-menu-verbose-1.log",
+      "sha256": "d07e7fc5e63851101381c850ed70fa458023cc2227e3016920c767ca9bc2ce9c"
+    },
+    {
+      "mode": "pause",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-pause-normal-1.log",
+      "sha256": "a5674a7346abd0683affc02aca06efe969ad16d7c77c4d4ee76325d3e6350c9d"
+    },
+    {
+      "mode": "pause",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-pause-verbose-1.log",
+      "sha256": "2250100b739cce00b258f505207cd012e165454feebe76a59dfb176a489a95ea"
+    },
+    {
+      "mode": "console",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-console-normal-1.log",
+      "sha256": "2192c721245b6f49b4c03628cbbc6bb352399a20a1321e7953895434e55411e9"
+    },
+    {
+      "mode": "console",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-console-verbose-1.log",
+      "sha256": "b672253c45ea83c35ae209a9719951fe3cd0f6253e362b97ea1c38364a1edf2a"
+    },
+    {
+      "mode": "window",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-window-normal-1.log",
+      "sha256": "c5ccc4d1be90c4f1c43bb873cf7e5074aa2b7ce2aec33c95628bb32ff00ded05"
+    },
+    {
+      "mode": "window",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-window-verbose-1.log",
+      "sha256": "7b05679b8573ecd71cea4f1fbd4258f93c998a256140b12579601c8220a14f81"
+    },
+    {
+      "mode": "owned",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-owned-normal-1.log",
+      "sha256": "7a8d955d334597d62356b57e446da3397aa547b4df590ab6fd34895ecdf7b9da"
+    },
+    {
+      "mode": "owned",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-owned-verbose-1.log",
+      "sha256": "739f27299a155f5c1a96af42cfe308f9cb11795f142ebd3c84ff8959f0f6e3e9"
+    },
+    {
+      "mode": "menu",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-menu-normal-2.log",
+      "sha256": "a34cd51ecf2c21830eb339b9c904baed55b072e7435892fec6c10acbf09dfe9b"
+    },
+    {
+      "mode": "menu",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-menu-verbose-2.log",
+      "sha256": "a50849390dcc8d3f584c90f1022261af4e4d8d1df5fea98152f13b15b0a98a56"
+    },
+    {
+      "mode": "pause",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-pause-normal-2.log",
+      "sha256": "a5674a7346abd0683affc02aca06efe969ad16d7c77c4d4ee76325d3e6350c9d"
+    },
+    {
+      "mode": "pause",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-pause-verbose-2.log",
+      "sha256": "8b44800a86352e4183d7daac2810ac1a8bbd8715a37689161d20879e4c07ad73"
+    },
+    {
+      "mode": "console",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-console-normal-2.log",
+      "sha256": "2192c721245b6f49b4c03628cbbc6bb352399a20a1321e7953895434e55411e9"
+    },
+    {
+      "mode": "console",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-console-verbose-2.log",
+      "sha256": "db566d15f4290eaed3e10e655a380ec0a79d7080e51ed61058943fb969dae29f"
+    },
+    {
+      "mode": "window",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-window-normal-2.log",
+      "sha256": "c5ccc4d1be90c4f1c43bb873cf7e5074aa2b7ce2aec33c95628bb32ff00ded05"
+    },
+    {
+      "mode": "window",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-window-verbose-2.log",
+      "sha256": "a24ea067176457ad1a55c362e7e5484bcb67d337da95aedaeaa7d93682f4ec30"
+    },
+    {
+      "mode": "owned",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-owned-normal-2.log",
+      "sha256": "9866a96c92bfe4133e9472287e856872484907bad34491513c4caa8a287f4376"
+    },
+    {
+      "mode": "owned",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "frozen-headless-owned-verbose-2.log",
+      "sha256": "2b4c8e28ff327082630c690b9dceeef1eb23050949afde28fcffcbcd64ab8ab5"
+    }
+  ],
+  "focused": [
+    {
+      "script": "test_client_retirement",
+      "verbosity": "normal",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_client_retirement-normal.log",
+      "sha256": "a34cd51ecf2c21830eb339b9c904baed55b072e7435892fec6c10acbf09dfe9b"
+    },
+    {
+      "script": "test_client_retirement",
+      "verbosity": "verbose",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_client_retirement-verbose.log",
+      "sha256": "516966f92ddb82ac721f3113f254c4f83e510f4ef15620e4a9873981c58b1657"
+    },
+    {
+      "script": "test_local_campaign",
+      "verbosity": "normal",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_local_campaign-normal.log",
+      "sha256": "4966c55bda72b0ee31f7f349853927adb2a59412001d8246353816fed2cae7f9"
+    },
+    {
+      "script": "test_local_campaign",
+      "verbosity": "verbose",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_local_campaign-verbose.log",
+      "sha256": "a2eec4efe7c6769f3d4f9993d3a7735e653a17ca1b2f058152a776bc0934d0f4"
+    },
+    {
+      "script": "test_frontend",
+      "verbosity": "normal",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_frontend-normal.log",
+      "sha256": "f0355f6897c4af3f66037ef99c2d4ff1eca475f49b573ab93d96b02c016a809b"
+    },
+    {
+      "script": "test_frontend",
+      "verbosity": "verbose",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_frontend-verbose.log",
+      "sha256": "a12f3c284f3a364971585092d4e0b5a541f80e5eb2cf639aac237b1ed3334513"
+    },
+    {
+      "script": "test_qa_audio_retirement",
+      "verbosity": "normal",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_qa_audio_retirement-normal.log",
+      "sha256": "4effa55f5c1144b223d7ae10e6d4f5c09a181f56ada1f6cf642d4c29d9300c72"
+    },
+    {
+      "script": "test_qa_audio_retirement",
+      "verbosity": "verbose",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_qa_audio_retirement-verbose.log",
+      "sha256": "06c52e56175ffee16184bfd341df6d933a8d7aca4a5d92ea98201bcd4e86536b"
+    },
+    {
+      "script": "test_m06_presentation",
+      "verbosity": "normal",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_m06_presentation-normal.log",
+      "sha256": "5117e997dcd2d5a77e2b1a9db42a5822affec90c0a9d7e52c59a89fe632df064"
+    },
+    {
+      "script": "test_m06_presentation",
+      "verbosity": "verbose",
+      "exit": 0,
+      "pass": true,
+      "diagnostics": 0,
+      "log": "final-focused-test_m06_presentation-verbose.log",
+      "sha256": "f9e3e2d96b9d81d4028534c3d23652ec0b2b88db54976594ed6fc633633edf4c"
+    }
+  ],
+  "rendered": [
+    {
+      "renderer": "opengl3",
+      "mode": "menu",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-menu-normal-1.log",
+      "sha256": "87f29ab3f86b6d6c61a013d3c16c919b2f4f3266c8c6d78c96757db578a4c16f"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "menu",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-menu-verbose-1.log",
+      "sha256": "cd50166caea227a25560d73a4edfb78fcf2f09ee1caca76c606ab268e721388b"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "owned",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-owned-normal-1.log",
+      "sha256": "3ea75af8b268c38fd7313dde68037785a439fc915a20e543baf094c9008fbc54"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "owned",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-owned-verbose-1.log",
+      "sha256": "eb337d63d9a40a1f32192b0e772519a3ed742d3c9425bdc7b7c0bc22dddfd344"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "minimized",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-minimized-normal-1.log",
+      "sha256": "e6b2beff51ce884eb7e8d41863731d16c2a04fe7f76cd6023b44a12db37ea564"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "minimized",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-minimized-verbose-1.log",
+      "sha256": "c0008c3f2b4a5c6e2bd5b52373bd27a78921c1c8cfc862150c2107846ad3baed"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "menu",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-vulkan-menu-normal-1.log",
+      "sha256": "b08b5f6305bf6338b093b4e7cf10e6443be5103e9e89bc58402d0ce4563bc68a"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "menu",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [
+        "WARNING: GENERAL - Message Id Number: 0 | Message Id Name: Loader Message",
+        "WARNING: Image format RGB8 not supported by hardware, converting to RGBA8."
+      ],
+      "log": "final-vulkan-menu-verbose-1.log",
+      "sha256": "24b117f3f095bf07d3586d64d0ba2d4a02a9ec25e612fe1895f0d265e0312e67"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "owned",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-vulkan-owned-normal-1.log",
+      "sha256": "78c439989e47f744663bb44324def661ceb82f8443e69c7750b8ba61f0e1820c"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "owned",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [
+        "WARNING: GENERAL - Message Id Number: 0 | Message Id Name: Loader Message",
+        "WARNING: Image format RGB8 not supported by hardware, converting to RGBA8."
+      ],
+      "log": "final-vulkan-owned-verbose-1.log",
+      "sha256": "34e86ebdc93aad961aee478a1c5bb8d316ba7966bf996b2424572879cdea02c9"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "minimized",
+      "verbosity": "normal",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-vulkan-minimized-normal-1.log",
+      "sha256": "227e00bd5a5331d768a6e0538d0c318c74aeaf1d4010a2f8e33fc83da4d54516"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "minimized",
+      "verbosity": "verbose",
+      "run": 1,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [
+        "WARNING: GENERAL - Message Id Number: 0 | Message Id Name: Loader Message",
+        "WARNING: Image format RGB8 not supported by hardware, converting to RGBA8."
+      ],
+      "log": "final-vulkan-minimized-verbose-1.log",
+      "sha256": "c2221fc00d7cf971d7ede2bbc1e5cb976591f369dd2a383bb99efd83750a17d8"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "menu",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-menu-normal-2.log",
+      "sha256": "87f29ab3f86b6d6c61a013d3c16c919b2f4f3266c8c6d78c96757db578a4c16f"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "menu",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-menu-verbose-2.log",
+      "sha256": "aec2441aa716f5c828ee6ec59451cb9ab15551e7f62d43243e1fab23fccd8d71"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "owned",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-owned-normal-2.log",
+      "sha256": "6ef6b695903b81bca1375dce4947634cad17cb449ca46ca23ff20f030c8906fe"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "owned",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-owned-verbose-2.log",
+      "sha256": "2210573d84f2ef94603fb4ed017b2c3b498f8288a5e743e0f48fb27150a35809"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "minimized",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-minimized-normal-2.log",
+      "sha256": "e6b2beff51ce884eb7e8d41863731d16c2a04fe7f76cd6023b44a12db37ea564"
+    },
+    {
+      "renderer": "opengl3",
+      "mode": "minimized",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-opengl3-minimized-verbose-2.log",
+      "sha256": "c9e84b6dd2e949ebeb8af574027afff313559b7b02fa630195f4489df161e342"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "menu",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-vulkan-menu-normal-2.log",
+      "sha256": "b08b5f6305bf6338b093b4e7cf10e6443be5103e9e89bc58402d0ce4563bc68a"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "menu",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [
+        "WARNING: GENERAL - Message Id Number: 0 | Message Id Name: Loader Message",
+        "WARNING: Image format RGB8 not supported by hardware, converting to RGBA8."
+      ],
+      "log": "final-vulkan-menu-verbose-2.log",
+      "sha256": "8c13e15e69e6a0c10b5ce3ec316687edcdf43db784e1e9f3417507d5bd9c4175"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "owned",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-vulkan-owned-normal-2.log",
+      "sha256": "b84dd87c67fa4d5d8781260d3413472820b45b5b3983c9c46f75418aab9115d3"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "owned",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [
+        "WARNING: GENERAL - Message Id Number: 0 | Message Id Name: Loader Message",
+        "WARNING: Image format RGB8 not supported by hardware, converting to RGBA8."
+      ],
+      "log": "final-vulkan-owned-verbose-2.log",
+      "sha256": "cffa3ef824294ae5c930979e68e8ca43752c5a9b971879f24eba87ee56d2e27a"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "minimized",
+      "verbosity": "normal",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [],
+      "log": "final-vulkan-minimized-normal-2.log",
+      "sha256": "227e00bd5a5331d768a6e0538d0c318c74aeaf1d4010a2f8e33fc83da4d54516"
+    },
+    {
+      "renderer": "vulkan",
+      "mode": "minimized",
+      "verbosity": "verbose",
+      "run": 2,
+      "exit": 0,
+      "pass": true,
+      "errors": 0,
+      "warnings": [
+        "WARNING: GENERAL - Message Id Number: 0 | Message Id Name: Loader Message",
+        "WARNING: Image format RGB8 not supported by hardware, converting to RGBA8."
+      ],
+      "log": "final-vulkan-minimized-verbose-2.log",
+      "sha256": "92f0e6c7115a5c8255c924ee23417ee4ebd4b483b7bdc23d55edb08d216fcca6"
+    }
+  ],
+  "expected_rejection": {
+    "log": "expected-timeout.log",
+    "exit": 1,
+    "elapsed_ms": 2002,
+    "retained_playbacks": 1,
+    "sha256": "1e727dabd59328042c24a8bcd520bd976091d1750e22be3d9fe8ff082461b32c"
+  },
+  "limits": [
+    "Historical untyped ObjectDB counts and the earlier M14 two-texture warning remain individually unattributed.",
+    "Six verbose Vulkan checks retain loader registry and RGB8-to-RGBA8 startup warnings. No warning filter or clean-log threshold changed.",
+    "Windows hardware evidence does not establish Linux, macOS or all GPU support.",
+    "No forced process termination, full-animation, human feel or final-art acceptance is inferred."
+  ],
+  "diagnostic_root": ".agents/open-issues-20261008/186",
+  "new_cash_usd": 0,
+  "layout_rebuild_comparison": {
+    "path": ".agents/open-issues-20261008/186/layout_swap_probe.gd",
+    "sha256": "f34c10bf1e47c97b3e3b273b075c5d6eb8add33d3062f26e003757c4967c1ca4",
+    "description": "Same-map layout replacement before the first draw, while GameManager remains alive. Released owner source reproduces exactly two 349524-byte OpenGL texture leaks; current source is clean.",
+    "runs": [
+      {
+        "comparison": "baseline",
+        "verbosity": "normal",
+        "exit": 0,
+        "errors": [
+          "ERROR: Texture with GL ID of 98: leaked 349524 bytes.",
+          "ERROR: Texture with GL ID of 99: leaked 349524 bytes."
+        ],
+        "warnings": [],
+        "log": "layout-swap-baseline-normal.log",
+        "sha256": "28795dea1677eeb87857c0dc6b583e4ce91d4c0456e6fc8c35761cde155cae04"
+      },
+      {
+        "comparison": "baseline",
+        "verbosity": "verbose",
+        "exit": 0,
+        "errors": [
+          "ERROR: Texture with GL ID of 98: leaked 349524 bytes.",
+          "ERROR: Texture with GL ID of 99: leaked 349524 bytes."
+        ],
+        "warnings": [],
+        "log": "layout-swap-baseline-verbose.log",
+        "sha256": "ce94ffadf6d46d715e20fc427fcc7a84531c074759c524bde8144d4d0b33dd4f"
+      },
+      {
+        "comparison": "current",
+        "verbosity": "normal",
+        "exit": 0,
+        "errors": [],
+        "warnings": [],
+        "log": "layout-swap-current-normal.log",
+        "sha256": "b1728a50cd5b0e078bba56f849f428ea6df18e11eea658de13093a728a69c2c7"
+      },
+      {
+        "comparison": "current",
+        "verbosity": "verbose",
+        "exit": 0,
+        "errors": [],
+        "warnings": [],
+        "log": "layout-swap-current-verbose.log",
+        "sha256": "2c1f2357956909fbf237f7eafbffded1dc244f96ad4f29023d1524586a09418b"
+      }
+    ]
+  },
+  "post_verification_source_changes": [
+    {
+      "date": "2026-10-08",
+      "path": "client/scripts/qa_tour.gd",
+      "verification_sha256": "f3a4e499892ac7150a2a414392362f941a8594b656855c5835cc8baaddb4c76a",
+      "later_sha256": "b6fdcf1fb7a45e232a0492fc303c997e0b6ac388da8879733052d45578187c80",
+      "delta": "_set_aim_pitch waits for a living snapshot and resends ordinary camera aim across respawn. The five-second deadline and exact pitch assertions remain unchanged.",
+      "retirement_changed": false,
+      "other_recorded_source_hash_matches": 9,
+      "provenance": "The original source_files and 24 rendered-run receipts remain unchanged. This separate QA helper correction and the subsequent standard-tour retry do not retroactively alter those runs.",
+      "retry_artifact_root": ".agents/open-issues-20261008/tour-aim-retry"
+    }
+  ],
+  "post_verification_standard_tour": {
+    "artifact_root": ".agents/open-issues-20261008/tour-aim-retry",
+    "seed": 42,
+    "states": 32,
+    "wrapper_exit": 0,
+    "error_or_warning_diagnostics": 0,
+    "client_log_sha256": "50bb9f4b06c87aef9873f0f70702b5f697d1746c2d385e56b847a1f498334707",
+    "manifest_sha256": "d68e4c38836e715690d907330d56d32804d26a8053f44167e912bc2813c590eb",
+    "qa_tour_sha256": "b6fdcf1fb7a45e232a0492fc303c997e0b6ac388da8879733052d45578187c80",
+    "original_stills_inspected": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32
+    ],
+    "effect_strips_inspected": [
+      "11_shot_effects_strip.png",
+      "15_rail_impact_strip.png",
+      "16_scatter_pellets_strip.png"
+    ],
+    "effect_sample_frames": 32,
+    "visible_service_record": {
+      "status": "active",
+      "origin": "external",
+      "label": "incomplete observation",
+      "deaths": 0.0,
+      "hp_lost": 0.0,
+      "alive_ticks": 321.0,
+      "ticks_per_second": 20.0
+    },
+    "finding": "No material visual defect in inspected original menus, spectator return, match overlays, records or transient effects. Full strip resolution cannot prove seven separate pellet impacts.",
+    "provenance": "Separate integration observation after the unrelated QA aiming correction. Original lifecycle matrices and source hashes remain unchanged."
+  }
+}

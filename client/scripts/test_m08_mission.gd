@@ -60,7 +60,7 @@ static func fixture_state(info: Dictionary, done: int = 0, extra: Dictionary = {
 		"transfer_evidence": done > 5, "captives_evacuated": false}
 	facts.merge(extra, true)
 	facts["current"] = M08MissionState.step(info["m08"], done, facts["node_hp"])
-	return {"type": "mission", "tick": 40, "state": {"id": MissionState.M08_ID, "rules": {"difficulty": "standard", "revision": 3},
+	return {"type": "mission", "tick": 40, "state": {"id": MissionState.M08_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION},
 		"attempt": 1, "phase": "in_progress", "changed_at": 10,
 		"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": true, "aboard": done == 7}], "prompts": [],
 		"m08": facts}}
@@ -143,7 +143,7 @@ func _run() -> void:
 	_check(StoryScene.BEFORE_MISSION.get(MissionState.M08_ID) == "m08_arrival" and StoryScene.exists("m08_arrival")
 		and StoryScene.AFTER_MISSION.get(MissionState.M08_ID) == "l08_l09" and StoryScene.exists("l08_l09"), "keyed arrival and departure pages exist")
 	_check(tr("MISSION_M08_TITLE") != "MISSION_M08_TITLE" and tr("WORLD_M08_AUTHORIZED_NOISE") != "WORLD_M08_AUTHORIZED_NOISE", "archive words are keyed")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M08_ID) == 31 and NET.GAMEPLAY_VERSION >= 37, "the archive retains capability 31 while the client supports magazines")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M08_ID) == LocalMatch.M08_GAMEPLAY and LocalMatch.M08_GAMEPLAY == 43 and NET.GAMEPLAY_VERSION >= 43, "the archive uses the current rules capability")
 	await process_frame
 	if failures == 0:
 		print("test_m08_mission: PASS strict archive contract, stage flags, node targets, rescues, HUD, presenter and pages")

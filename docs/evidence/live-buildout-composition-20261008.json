@@ -1,0 +1,508 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "base_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "branch": "feat/host-rotation-campaign-bests",
+  "working_tree": true,
+  "scope": "Local combined source verification and inspected presentation; no publication, cloud apply, completed campaign, final art, human acceptance, physical LAN, performance or population claim",
+  "checks": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "numeric_exit": 0,
+      "result": "passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/fmt.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "numeric_exit": 0,
+      "result": "passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/clippy.log",
+        "sha256": "64faf294e6a18affdf59166d0ffcc1c63a70b053474addac9f939d256cdb480c",
+        "bytes": 339
+      }
+    },
+    {
+      "command": "cargo test --workspace --locked",
+      "numeric_exit": 0,
+      "result": "1867 passed, zero failed, three existing ignored",
+      "log": {
+        "path": ".agents/live-buildout-20261008/workspace.log",
+        "sha256": "b1fcdc15d9c1138b41b6f79f05c2f8d826ffd492c24ddfe9feffc0ede62af453",
+        "bytes": 161548
+      }
+    },
+    {
+      "command": "cargo llvm-cov --workspace --locked --fail-under-lines 90",
+      "numeric_exit": 0,
+      "result": "93.34 percent lines, 75743 total, 5048 missed, no exclusions",
+      "log": {
+        "path": ".agents/live-buildout-20261008/coverage.log",
+        "sha256": "339f1691e171341ab3ab172378f8e8e855d4963f87f42b0129b7c11484338cf6",
+        "bytes": 199464
+      }
+    },
+    {
+      "command": "cargo build --workspace --release --locked",
+      "numeric_exit": 0,
+      "result": "passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/release.log",
+        "sha256": "0a224c5b5cc0031aaae283df9aba92e52b216d73777cbe274720d7739c414d5b",
+        "bytes": 329
+      }
+    },
+    {
+      "command": "cargo build -p fragr-server --release --locked",
+      "numeric_exit": 0,
+      "result": "passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/standalone.log",
+        "sha256": "a9160f4f2a94849d92ef43ea4f02eca09e15a6797a5a1655bebf31c9d5f990f1",
+        "bytes": 123
+      }
+    },
+    {
+      "command": "target/release/fragr-server.exe --bench 16 --bench-ticks 1200 --bench-check --bench-assert --seed 42",
+      "numeric_exit": 0,
+      "result": "deterministic check and original assertions passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/bench.log",
+        "sha256": "c6c2d19ffcf989ee7b92b6b6a5ef6d125bec746fd5cdbfe479f4e7f35dae808d",
+        "bytes": 2575
+      }
+    },
+    {
+      "command": "cargo deny check licenses bans sources advisories",
+      "numeric_exit": 0,
+      "result": "passed, existing warnings retained",
+      "log": {
+        "path": ".agents/live-buildout-20261008/dependencies.log",
+        "sha256": "1921cd25e3e38aed464bb85da6d2914a25158658797c2bdaefdc4adfd07977b2",
+        "bytes": 27721
+      }
+    },
+    {
+      "command": "GODOT_BIN=C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe bash tools/godot_check.sh",
+      "numeric_exit": 0,
+      "result": "336 scripts and 155 harnesses passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/godot.log",
+        "sha256": "a5e2e6b584c99dd48307a1534b3f8b2f550588a11b4f7870a36212e842ad6eb8",
+        "bytes": 13805
+      }
+    },
+    {
+      "command": "bash tools/test_godot_check.sh",
+      "numeric_exit": 0,
+      "result": "ten success/failure scenarios passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/godot-verifier.log",
+        "sha256": "565f0e6a043071e60a7e833dac71171815a0361af27cb1ebb4ea23b299a2eda5",
+        "bytes": 441
+      }
+    },
+    {
+      "command": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path client --script res://scripts/test_qa_combat.gd",
+      "numeric_exit": 0,
+      "result": "ready-magazine versus total-pool regression and malformed-expectation negative controls passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/qa-pool-rounds-final-manifest.log",
+        "sha256": "1cd66982a79fbd61cea1de7708a8ba35532f923fa1ceea41167b41c8daffdbf8",
+        "bytes": 97
+      }
+    },
+    {
+      "command": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path client --script res://scripts/qa_tour.gd --check-only",
+      "numeric_exit": 0,
+      "result": "final QA checker parsed cleanly",
+      "log": {
+        "path": ".agents/live-buildout-20261008/qa-final-parse.log",
+        "sha256": "83cf0b082206af2aa236c83064fbcfa76be1e00a4aa3558574b2f65965d9481c",
+        "bytes": 75
+      }
+    },
+    {
+      "command": "FRAGR_PORT=16731 FRAGR_SERVER=127.0.0.1:16731 FRAGR_QA_SEED=42 tools/qa_tour.sh --publish .agents/live-buildout-20261008/tour-final",
+      "numeric_exit": 0,
+      "result": "32 states passed; 14 originals published locally; all states and three strips inspected",
+      "log": {
+        "path": ".agents/live-buildout-20261008/tour-final-wrapper.log",
+        "sha256": "5dcf39e4f7e1511d25bb5797e47488ab42e3c8f1549e8369ac656dbe962aab5e",
+        "bytes": 4881
+      }
+    },
+    {
+      "command": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe --headless --path client --export-release \"Windows Desktop\" C:/GitHub/fragr/.agents/live-buildout-20261008/package/fragr.exe",
+      "numeric_exit": 0,
+      "result": "Windows release export passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/export-windows.log",
+        "sha256": "924fe403aa24cd44287cdc561211c213200093000f511e24953b4ba78c650f83",
+        "bytes": 243005
+      }
+    },
+    {
+      "command": "FRAGR_RUN_DIR=C:/GitHub/fragr/.agents/live-buildout-20261008/package/run /c/GitHub/fragr/.agents/live-buildout-20261008/package/fragr.exe --headless --log-file C:/GitHub/fragr/.agents/live-buildout-20261008/package-engine-final.log -- --check-install (Git Bash)",
+      "numeric_exit": 0,
+      "result": "own PASS marker; three skins/support loaded; TDM and Sabotage ready/wire/owned Stop passed",
+      "log": {
+        "path": ".agents/live-buildout-20261008/package-bash.log",
+        "sha256": "40565cb259acfafed6e1597718477b09880bf88bef9c0a73dcb1a1a4f71565ca",
+        "bytes": 714
+      }
+    }
+  ],
+  "native_executables": [
+    {
+      "path": "target/release/fragr-server.exe",
+      "sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61",
+      "bytes": 9685504
+    },
+    {
+      "path": "target/release/fragr-playtest.exe",
+      "sha256": "35d386017ea10cc96acc8aeb6a3dd9d11d159bacaa9cffa9f98551378531bf82",
+      "bytes": 10693120
+    }
+  ],
+  "exported_game": {
+    "path": ".agents/live-buildout-20261008/package/fragr.exe",
+    "sha256": "d53ba556510d697b00f8afdc05b40d2c27d3044cd6d24afab21dfa1acea7e9cb",
+    "bytes": 757853440
+  },
+  "exported_native": {
+    "path": ".agents/live-buildout-20261008/package/fragr-server.exe",
+    "sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61",
+    "bytes": 9685504
+  },
+  "export_scope": "Local Windows resource/install smoke, not full release ZIP/legal-notice/signing/cross-platform acceptance",
+  "engine_log": {
+    "path": ".agents/live-buildout-20261008/package-engine-final.log",
+    "sha256": "ea10757d93ddac6a93c7199bf7fcbf53e9be53916d7dedfa0485a3f3e9252eb9",
+    "bytes": 703
+  },
+  "source_files": [
+    {
+      "path": "client/project.godot",
+      "sha256": "20466aa724dee9efb1fa69e5059d7872eb829c391ed058287d246b87d95971a1",
+      "bytes": 8484
+    },
+    {
+      "path": "client/export_presets.cfg",
+      "sha256": "816d54e1a3dca6a4581a0b2834f51e06eaddbe2c3f5653336e03f104a32209c3",
+      "bytes": 3237
+    },
+    {
+      "path": "client/scripts/skinned_character.gd",
+      "sha256": "777b1992de3e390e21ab5b4ecc109b3f122a4f9b52f8cba074236b84738b2498",
+      "bytes": 7180
+    },
+    {
+      "path": "client/scripts/player_pawn.gd",
+      "sha256": "a9ea838c6cd3b4a057e42ed103fb75b43cc91638b1515750755816f4ab59a840",
+      "bytes": 37727
+    },
+    {
+      "path": "client/scripts/civilian_figure.gd",
+      "sha256": "36f656e43b984afd81ed6ae80e65f8eaed4f71cb4a2428b3b9d6e81dafbdd946",
+      "bytes": 1912
+    },
+    {
+      "path": "client/scripts/m09_berth.gd",
+      "sha256": "9a92dd695b3b220563d203f75d8d6641dfada9f87bcd83d104623f7989b4178a",
+      "bytes": 5693
+    },
+    {
+      "path": "client/scripts/m10_ship.gd",
+      "sha256": "612ccca71255dbac60baa5c08ff7b294639d2e14f1213d3a60c023f73285cfc0",
+      "bytes": 2098
+    },
+    {
+      "path": "client/scripts/install_check.gd",
+      "sha256": "f3e8eee854e57927f59e17782c8ce68c0e1ed8457909786965c5d7e4945293ef",
+      "bytes": 10354
+    },
+    {
+      "path": "client/scripts/qa_tour.gd",
+      "sha256": "c7703ff0ba1000bc4731ebc8d55e691b03175a23da0c986007054b5964353c17",
+      "bytes": 138718
+    },
+    {
+      "path": "client/scripts/test_skinned_character.gd",
+      "sha256": "b865f45396d6a4dcb3ea85bd48f70f2b0a68e8786f1327f1249334fd82cfb0cb",
+      "bytes": 15786
+    },
+    {
+      "path": "client/scripts/test_player_body.gd",
+      "sha256": "2e6d5b4571022ce3e362d6479e414fcba2f3643f76e34da4c45d286e623d60d2",
+      "bytes": 12768
+    },
+    {
+      "path": "client/scripts/test_shot_effects.gd",
+      "sha256": "7ee6984c82fe597259bc95b7d9f2416bfdc23e29077730b9276a45d72a057bf6",
+      "bytes": 21929
+    },
+    {
+      "path": "client/scripts/test_qa_combat.gd",
+      "sha256": "0a18de4a0ed7406c8806c49cc36d5164842782295134b05f8c005be74c287662",
+      "bytes": 62752
+    },
+    {
+      "path": "client/scripts/test_foundry_route.gd",
+      "sha256": "37b31170be0f1425a856aa485a1104970dae8013da61c5044d843b8977488d04",
+      "bytes": 1789
+    },
+    {
+      "path": "client/scripts/test_m09_mission.gd",
+      "sha256": "e96075ddd1b3b9e636ec2e653b6b6325e77025091141b28b4f4d04a4082cb4ea",
+      "bytes": 12372
+    },
+    {
+      "path": "client/scripts/test_m10_mission.gd",
+      "sha256": "8a7bfab485309372697610571fdf0b84989184b13d6b8c2ba3b6f6deb0b5e96c",
+      "bytes": 8648
+    },
+    {
+      "path": "client/qa/live_character_review.gd",
+      "sha256": "39c72cd3b12f9de2162fecfadd90d2e8f4735a09855dbf31b33391783dd90fbf",
+      "bytes": 14327
+    },
+    {
+      "path": "client/qa/live_crew_tour.gd",
+      "sha256": "7772227d2d19f2a388c1f37b6d50524b00fff4db244869566d692d40f0b718fd",
+      "bytes": 6973
+    },
+    {
+      "path": "client/qa/tour.json",
+      "sha256": "ac0a76a09596611b43257d58c9317f7f6cce9b5b1d995b055d825f127a7679d7",
+      "bytes": 8787
+    },
+    {
+      "path": "client/qa/m09_passenger_manifest.json",
+      "sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a",
+      "bytes": 16438
+    },
+    {
+      "path": "client/qa/m10_common_carrier.json",
+      "sha256": "1507dca7378f803406bf7000d8ded3cb5a1571dd3053f1459495d19764ae0071",
+      "bytes": 22191
+    },
+    {
+      "path": "client/qa/m13-foundry-development.json",
+      "sha256": "cb63e541f9bf5602f2ba00f732d6e933df09ee4f8a625422993e66de0a67167b",
+      "bytes": 14359
+    },
+    {
+      "path": "client/assets/models/character_support.json",
+      "sha256": "17284ae17e739e78877e00859ac55be31eb88fe64c7784917b0ddf3bd5469ed3",
+      "bytes": 30688
+    },
+    {
+      "path": "tools/bake_character_support.gd",
+      "sha256": "7304934cb96d8335ede647c08450f848755c22de00a0ae3bf63745d2831791cf",
+      "bytes": 3405
+    },
+    {
+      "path": "tools/prepare_tern_source.gd",
+      "sha256": "8fc2a92c138eeeddc21a3c03da98a0c503339a0e7dc620a45aae0d49c54a1462",
+      "bytes": 6200
+    },
+    {
+      "path": "tools/validate_tern_source.gd",
+      "sha256": "fd570d849941aeb9236d0e1260df548d2377cb28304dedf2bbbfceafb2331599",
+      "bytes": 11881
+    },
+    {
+      "path": "tools/preview_tern_source.gd",
+      "sha256": "fa46911a1a1e5ae26a1d80e9b11f975b93a77d239409d7913bdb2fac08aef2b6",
+      "bytes": 6206
+    },
+    {
+      "path": "tools/author_foundry_development.gd",
+      "sha256": "f07bb68601d77e45d958fdb530c2d98fed7f92d86daa43b24dde11a0f1051842",
+      "bytes": 14186
+    },
+    {
+      "path": "server/maps/test/m13_foundry_development.json",
+      "sha256": "4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943",
+      "bytes": 39708
+    },
+    {
+      "path": "server/tests/foundry_development.rs",
+      "sha256": "c7e8caa5c01dc73e5c507f55de1b3244871af6737755ab408157bdf170b4bdf9",
+      "bytes": 18630
+    },
+    {
+      "path": "server/src/sim/conquest/coordination.rs",
+      "sha256": "8b37563c6392bfc3b65ae348dc1b4c9f64bc768d5eeafb8d9fc2e24730258621",
+      "bytes": 7122
+    },
+    {
+      "path": "server/src/sim/conquest/coordination_tests.rs",
+      "sha256": "9067e47a853e196295e47c93f39388da20aa81d8c08416709759dd14979fb601",
+      "bytes": 20382
+    },
+    {
+      "path": "server/src/session.rs",
+      "sha256": "efb0c42e5301f7303c492f104f937447ed79ad6ba8f241dd22e4d45d42a27b7a",
+      "bytes": 78140
+    },
+    {
+      "path": "server/src/sim.rs",
+      "sha256": "1b1dc2a9370110f4c1aefa0145acb1cf3a13986674456d8f79a5dcd6430a62c2",
+      "bytes": 186215
+    },
+    {
+      "path": "server/src/sim/bot_senses.rs",
+      "sha256": "82c28e64bba25350e8ce56e842aa4a348ef171ff74247d65c8d12fc25910f409",
+      "bytes": 15557
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "4ac4897bf243dfaa6c1ce3c225e862fc82f13050567baa38444e0ccbbb6fc760",
+      "bytes": 629
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "9222c1f108e902cb3e0feffae11f1baa2a90bb37ad4d1eeb2fae6c6607fbefed",
+      "bytes": 64966
+    },
+    {
+      "path": "tools/qa_tour.sh",
+      "sha256": "37899dae514eae7ac262539c25ba82e22ebca6a4e03ac6e0cc489bab822db6ed",
+      "bytes": 8272
+    },
+    {
+      "path": "tools/godot_check.sh",
+      "sha256": "9d622e76c6553db4c94d886a932f94f840a70815c13f54071dcf7b75ddf9b957",
+      "bytes": 2039
+    }
+  ],
+  "packaged_live_models": [
+    {
+      "path": "client/assets/models/free_human_live.glb",
+      "sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff",
+      "bytes": 6143304
+    },
+    {
+      "path": "client/assets/models/free_synthetic_live.glb",
+      "sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7",
+      "bytes": 2080632
+    },
+    {
+      "path": "client/assets/models/tern_live.glb",
+      "sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f",
+      "bytes": 5796592
+    }
+  ],
+  "owning_evidence": [
+    {
+      "path": "docs/evidence/tern-source-preparation-20261008.md",
+      "sha256": "80228c1914594a2e015ed63b94df092a68956118392450ca415d4ca51a948c7e",
+      "bytes": 6434
+    },
+    {
+      "path": "docs/evidence/tern-source-preparation-20261008.json",
+      "sha256": "9de86dc7536f7494a0912bf7957605c3a8527fe153500276e54887b6c74a1129",
+      "bytes": 38335
+    },
+    {
+      "path": "docs/evidence/live-character-fixtures-20261008.md",
+      "sha256": "f68996a0c95109fe6cd6c4c0b31ed6a102d66d6ff572e4c959472fd7651663a8",
+      "bytes": 7941
+    },
+    {
+      "path": "docs/evidence/live-character-fixtures-20261008.json",
+      "sha256": "4bdc405c36e992ff938260fb72bef3cbf1bbe089c429555ed0ba4a1135a8c33b",
+      "bytes": 75073
+    },
+    {
+      "path": "docs/evidence/live-crew-routes-20261008.md",
+      "sha256": "ee05f745a01d3345fdef85c3bb911e87ca0bb02c5efd7305bdc13efa38607a56",
+      "bytes": 6879
+    },
+    {
+      "path": "docs/evidence/live-crew-routes-20261008.json",
+      "sha256": "600fda16d4866cef3e60adae559e7d0bf50838131493594bf3193426f026a8e8",
+      "bytes": 124861
+    },
+    {
+      "path": "docs/evidence/m13-foundry-development-20261008.md",
+      "sha256": "e78e036c7a7eb3b6dd06259ce028e6adb18592cd6e08c5717015bd613fd46749",
+      "bytes": 6989
+    },
+    {
+      "path": "docs/screenshots/m13-foundry-development-20261008.json",
+      "sha256": "8c7e9306f205d3ef783f1fc21427fe0db44de1aece20069e91a6ad8bb1769f37",
+      "bytes": 15006
+    },
+    {
+      "path": "docs/evidence/conquest-coordination-20261008.md",
+      "sha256": "f59c389d5fb9900b62e77a717ad500830b3360eb5d8f5747e68185da9ac98779",
+      "bytes": 3848
+    },
+    {
+      "path": "docs/evidence/conquest-coordination-20261008.json",
+      "sha256": "c9c87b126f79f6224eb9f55ea831606d86a60dd052b2d9a84f8848f22e1dc0a8",
+      "bytes": 3916
+    },
+    {
+      "path": "docs/evidence/live-buildout-network-20261008.md",
+      "sha256": "ad0d027cb5e156bc4e7b9a27bb857e469711cf5d549138123e6dcade832563a6",
+      "bytes": 3041
+    },
+    {
+      "path": "docs/evidence/live-buildout-network-20261008.json",
+      "sha256": "4d7dae51dcd968c33cecd9eb38022f8fa92e18dc11e0b7b0986589d8c46b8ff6",
+      "bytes": 78893
+    },
+    {
+      "path": "docs/screenshots/readme-20261008.json",
+      "sha256": "ae83b2501cdfd9692b7f8bbaa487332ac319fe299f833c5cd2fccb1df49b7c44",
+      "bytes": 18269
+    }
+  ],
+  "composition_note": {
+    "path": "docs/evidence/live-buildout-composition-20261008.md",
+    "sha256": "d6f393dcaf51ef4cee6dbfef2597cfd08932a3dc0d8ababe560702e557430cf5",
+    "bytes": 7838
+  },
+  "qa_amendment": "Only explicit finite pool expectations added; M10 cabin76/32/1 and cargo136 bullets. Runtime and native source frozen earlier; QA amendment landed during client gate after initial parsing and passed focused regression, final parse, full M10 replay and fresh standard tour.",
+  "network_scope": "16 exact existing cases on frozen copied artifacts. Route CTF1take/1capture. Fresh contested CTF12frags/0takes/0captures/time-limit. 120s soak not long-duration or population proof.",
+  "crew_scope": "27 ordinary M09 development states plus28 ordinary M10 states after canonical promotion of labelled historical v12 fixture. Not one seamless save. Source-owned LocalMatch.IDLE retirement assertion; no independent native PID enumeration claim.",
+  "retained_failures": [
+    "Original carried fixed-Y profile discards actual accepted pitch; exact restored renderer negative control and final fixtures retained in owning receipt",
+    "Independent stale fallback root/reflection and dead-shooter hidden flash probes retained with focused corrections",
+    "Camera toggle ordering briefly restored dead carried weapon; failed and fixed actual-pawn regressions retained",
+    "Original M10 magazine-versus-total assertion and unchanged bounded diagnostic retained with exact private wire facts",
+    "Initial export path absent and missing console-wrapper launch retained; only actual Bash-captured install PASS used"
+  ],
+  "remaining_acceptance": [
+    "Edda walking skin repair",
+    "Splice mechanical pivots",
+    "wider live enemy/civilian conversion",
+    "individual grips and contacts",
+    "Tern lighting/optics/shoulder refinements",
+    "connected M12-M20 mission systems and finale",
+    "human balance/fresh-player acceptance",
+    "physical LAN/WAN",
+    "other desktop executions and complete release packages",
+    "long-duration soak and population evidence"
+  ],
+  "external_issues": [
+    336,
+    186,
+    197,
+    195,
+    180
+  ],
+  "external_issue_state": "remain open; no external writes",
+  "new_cash_usd": 0,
+  "paid_generation_calls": 0,
+  "topups_or_overages_enabled": false
+}

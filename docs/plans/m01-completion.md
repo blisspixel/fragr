@@ -1,8 +1,65 @@
 # Recall Notice: complete mission
 
-Status: in flight, 2026-09-22. [Task #195](https://github.com/blisspixel/fragr/issues/195).
-The 2026-10-02 [polish pass](campaign-polish-20261002.md) quieted the objective card and sealed the ground under the reception threshold, which led out of the building; an M01 entry saved before it needs a new run.
-The active slice is the [full build order](../ROADMAP.md#full-build-order-2026-09-27). Routes, the balcony view of the lift, departure copy, the leave warning, and the published room stills shipped through v0.40.0. The objective card leaves after the introduction. The bypass is its own fight. The east route leaves all four file-stack guards alive. The Clerk and Sweeper silhouettes now separate in the local unshaded atlases. The two static optional supply detours are in [review](m01-optional-supply-detours.md). The imperfect-aim supply check, Shiv, moving secret, disk saves, final art, and fresh-player acceptance remain open. Continue automated campaign review now; defer unsteered human acceptance until near 1.0.
+Status: **in flight**, audited 2026-10-08. [Task #195](https://github.com/blisspixel/fragr/issues/195) owns finished-mission acceptance. The authoritative mission and durable solo-run foundation are implemented; final art, final difficulty/pacing and unsteered fresh-player acceptance remain open. The [full build order](../ROADMAP.md#full-build-order-updated-2026-10-08) remains the sole active sequence.
+
+Current source contains the inhabited records/transfer rooms, both ordinary
+approaches, a separate east-bypass fight, a balcony view of the lift, physical
+record recovery, an authoritative lift gate and departure. The bypass leaves
+the four file-stack guards alive. Safe fists-to-Pistol discovery, finite Rifle
+ammunition, enemy tells, room-specific materials and the quieter exit are
+implemented. The [optional walking medkit and armor detours](m01-optional-supply-detours.md)
+shipped in #221. The [secret Shiv](m01-secret-shiv.md) shipped in #251; its
+ordinary walking find supersedes the paused moving-wall proposal. A moving
+secret is not a remaining requirement.
+
+[Mission-start continues](campaign-continues.md) and
+[durable local run files](campaign-run-file.md) are implemented. Current
+version-14 files carry the connected development campaign through M11, with
+explicit episode refills, locked replacement and strict historical migration;
+M06 and its Episode II refill are implemented. The connected prototypes do not
+establish a finished campaign. Entry restoration, exhaustion, duplicate/stale
+refusal and save/quit without replenishing continues remain authoritative
+contracts, not open disk-save implementation tasks.
+
+The October 8 [finite-supply validation](m01-finite-supply-validation-20261008.md)
+is implemented locally. Its [evidence](../evidence/m01-finite-supply-validation-20261008.md)
+and [machine-readable receipt](../evidence/m01-finite-supply-validation-20261008.json)
+retain the passing tier/route/control-role matrix, every-fourth-resolved-shot
+miss profile and actual enemy-caused death, continue and exhaustion cases.
+These checks establish bounded authoring evidence on the recorded seed, with
+ordinary input, finite equipment and unchanged combat rules. Historical
+accurate-aim clears below retain their original scope. Current complete-route
+rendered proof and the local earned-profile increment are separately being
+verified; neither is promoted here before its owning receipt passes.
+
+The [current enemy source audit](m01-intake-encounter.md) replaces the old
+placeholder-art description with the selected skinned Clerk and Sweeper and
+paired normals. Final gameplay-distance silhouettes, full tells/hit/collapse
+motion under venue lighting, sound cadence and whole-route art acceptance
+remain review gates. Near 1.0, unsteered players must establish story and route
+comprehension, whether optional finds are legible, cover/retreat usefulness,
+pacing and fun. Deterministic miss budgets and renderer captures cannot replace
+that review or settle final tier balance. Full-campaign co-op is not required.
+
+The 2026-10-02 [polish pass](campaign-polish-20261002.md) quieted the objective
+card and sealed the reception underfloor escape; an M01 entry saved before it
+needs a new run. The dated checkpoints below preserve their original source,
+assets, counts and acceptance limits. The old Clerk reference reservation is
+[reconciled as charged](art-pass-20261002.md#ledger-reconciliation-2026-10-02),
+not a current pending-spend gate. This audit spends $0.
+
+| Acceptance concern | Current technical state | Remaining gate |
+|---|---|---|
+| Main route and east bypass | Authoritative walking, guard identities, finite equipment, physical record and lift departure have focused tests. | Fresh complete-route evidence uses the actual current assets and binary; unsteered route comprehension and pacing remain open. |
+| Supplies and difficulty | Existing accurate-aim and wasted-magazine controls remain; the October 8 declared-miss and real-death/continue/exhaustion matrices pass on their recorded seed. | Final tier balance, fresh-player aim and supply discoverability still need player review; multi-seed and contention evidence are separate. |
+| Secrets and progression | Optional medkit/armor detours, walking Shiv, exactly-once claims, continue restoration and durable saves are implemented. | Final reward/readability review; the discarded moving-wall secret is not an outstanding feature. |
+| Campaign control and observation | Human/agent wire roles, shared authoritative readiness/continue tools and historical spectator following are implemented and tested within their recorded scopes. | Keep a current whole-route participant/spectator inspection and slow-tool evidence distinct from server simulations; never move combat onto the slow control plane. |
+| Enemy and room production | Selected skinned Clerk/Sweeper sources, role poses, paired normals, keyed signs/lights and room materials are present. | Complete gameplay-distance silhouette, lighting, attack/hit/death motion, sound-cadence and full-route art review; automation cannot declare final quality or fun. |
+
+The original brief and dated checkpoints below preserve earlier design proposals
+and acceptance checklists. Current facts and remaining gates are summarized
+above; an old unchecked box is not evidence that a subsequently shipped feature
+is still absent.
 
 Live check, 2026-09-22, Godot 4.7.2 against v0.43.0 on `127.0.0.1:6767`, Recall Notice, no bots. Headless `test_equipment`, `test_enemy_animation`, and `test_mission` passed. The windowed tour showed the boot menu, the multiplayer line `RECALL NOTICE: INTAKE PROTOTYPE. MISSION. 0 FIGHTERS. 0 CONNECTIONS.`, fists at arrival, the intro card, then the card gone. The pistol pickup read PISTOL and `+24 BULLETS`. The clerk was on screen in a windup, pistol raised. The mouse wheel moved fists to the pistol and back. Key 3 did not equip a shotgun that was not carried. Key 1, while the pistol was out, left the pistol in hand. The intro card was also visible again at the pistol pickup, after the earlier still had hidden it. Frames are under `.agents/qa/validate-now/` and `.agents/qa/validate-guns/` on the machine that ran the tour. They are not published README stills.
 Baseline: v0.28.0, `e845236`. Its tree matches the final revision of #193, with all
@@ -109,10 +166,12 @@ needed. No parallel map loader, pathfinder, inventory or client authority.
 Use existing typed wire state for compatible changes; revise capability and both
 consumer boundaries deliberately if a new contract is necessary.
 
-The provisional Clerk/Sweeper rigs remain the local art source. Final reference,
-silhouette, pose and fresh-player encounter acceptance are tracked in #180.
-Do not replace the unresolved paid reference with a duplicate request. Check
-current price and quota before any approved batch; no overages or top-ups.
+The selected skinned Clerk/Sweeper sources and their directional albedo/normal
+atlases remain the reproducible local art sources. Final silhouette, pose and
+fresh-player encounter acceptance are tracked in #180. The historical paid
+reference reservation is reconciled; do not duplicate that request. Any new
+approved production batch still requires its current price and quota check,
+with no overages or top-ups.
 
 ## Completion evidence
 

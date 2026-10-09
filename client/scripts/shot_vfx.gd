@@ -12,6 +12,7 @@ const MUZZLE: Dictionary[String, Texture2D] = {
 	"Scatter": preload("res://assets/vfx/shots/muzzle_scatter.png"),
 	"Rail": preload("res://assets/vfx/shots/muzzle_rail.png"),
 	"Sniper": preload("res://assets/vfx/shots/muzzle_sniper.png"),
+	"Arc": preload("res://assets/weapons/arc/arc_muzzle.png"),
 }
 
 ## Four frames per row, one row per impact kind, 32 pixel cells.

@@ -2,6 +2,10 @@
 use super::{BotController, BotIntent, GameState, Player, RoundState, Standing, PLAYER_FLOOR_Y};
 use crate::protocol::{CapturePoint, ConquestState, GameMode, Team, TeamScores};
 
+pub(super) mod coordination;
+#[cfg(test)]
+mod coordination_tests;
+
 pub(crate) const CAPTURE_TICKS: u16 = 160;
 const START_TICKETS: u32 = 200;
 pub(crate) const POINTS: [(&str, [f32; 3]); 5] = [
@@ -80,6 +84,7 @@ fn advance(point: &mut CapturePoint, presence: [bool; 2]) {
 
 impl GameState {
     pub(super) fn reset_conquest(&mut self) {
+        self.conquest_orders = coordination::Orders::default();
         self.conquest =
             (self.config.rules.mode() == GameMode::Conquest && self.map.id() == 7).then(initial);
     }
@@ -156,36 +161,40 @@ impl BotController {
         let (Some(team), Some(conquest)) = (bot.team, &state.conquest) else {
             return BotIntent::default();
         };
-        let ordinal = state
-            .bots
-            .iter()
-            .filter(|b| {
-                state
-                    .players
-                    .iter()
-                    .any(|p| p.id == b.player_id && p.team == Some(team))
-            })
-            .position(|b| b.player_id == self.player_id)
-            .unwrap_or(0);
-        let mut candidates: Vec<(usize, &CapturePoint)> = conquest
-            .points
-            .iter()
-            .enumerate()
-            .filter(|(_, point)| {
-                point.owner != Some(team) || point.contested || point.capturing.is_some()
-            })
-            .collect();
-        candidates.sort_by(|(a, left), (b, right)| {
-            let distance = |p: &CapturePoint| (bot.x - p.position[0]).hypot(bot.z - p.position[2]);
-            distance(left).total_cmp(&distance(right)).then(a.cmp(b))
-        });
-        let point = if candidates.is_empty() {
-            &conquest.points[ordinal % conquest.points.len()]
-        } else {
-            candidates[ordinal % candidates.len().min(3)].1
+        if !state.contact_eligible(bot)
+            || bot.role == crate::protocol::Role::Spectator
+            || state.vehicle_seat(bot.id).is_some()
+        {
+            return BotIntent::default();
+        }
+        let Some(point) = state.conquest_orders.point(bot.id, conquest).or_else(|| {
+            // Standalone BotController::update callers have no Session pass.
+            // Keep their ordinary movement useful without a second global plan.
+            conquest
+                .points
+                .iter()
+                .enumerate()
+                .min_by(|(a, left), (b, right)| {
+                    let priority = |p: &CapturePoint| {
+                        (p.owner == Some(team)
+                            && (p.contested || p.capturing == Some(team.other())))
+                            as u8
+                            * 2
+                            + (p.owner != Some(team)) as u8
+                    };
+                    priority(right).cmp(&priority(left)).then_with(|| {
+                        let distance =
+                            |p: &CapturePoint| (bot.x - p.position[0]).hypot(bot.z - p.position[2]);
+                        distance(left).total_cmp(&distance(right)).then(a.cmp(b))
+                    })
+                })
+                .map(|(_, point)| point)
+        }) else {
+            return BotIntent::default();
         };
         let feet = point.position;
-        let near = (bot.x - feet[0]).hypot(bot.z - feet[2]) < point.radius * 0.6;
+        let near = (bot.x - feet[0]).hypot(bot.z - feet[2]) < point.radius * 0.6
+            && (bot.y - PLAYER_FLOOR_Y - feet[1]).abs() <= 3.0;
         let mut action = super::face_flag_goal(bot, feet);
         action.forward = !near;
         if let Some(combat) = self.sensed_objective_aim(state, bot) {

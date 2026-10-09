@@ -22,6 +22,9 @@ func _column(weapon_name: String) -> int:
 		"Sniper":
 			# The registered drawn pair has its right cuff at this column.
 			return 174
+		"Arc":
+			# Right leather wrist shared by idle, discharge and capacitor reset.
+			return 184
 	return 112
 
 func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> void:
@@ -41,18 +44,18 @@ func _source_span(weapon: TextureRect, a: Vector2, b: Vector2) -> float:
 	var transform: Transform2D = root.get_stretch_transform() * weapon.get_global_transform_with_canvas()
 	return (transform * (a * fit)).distance_to(transform * (b * fit))
 
-func _check_shiv_transformed_bottom(weapon: TextureRect) -> void:
+func _check_transformed_bottom(weapon: TextureRect, column: int, context: String) -> void:
 	var image: Image = weapon.texture.get_image()
 	var fit: float = minf(weapon.size.x / image.get_width(), weapon.size.y / image.get_height())
 	var inset: Vector2 = (weapon.size - Vector2(image.get_size()) * fit) * 0.5
 	var transform: Transform2D = root.get_stretch_transform() * weapon.get_global_transform_with_canvas()
 	var bottom: float = root.size.y
-	var wrist_base: Vector2 = transform * (inset + Vector2(190, image.get_height()) * fit)
-	_check(wrist_base.y > bottom + 2.0, "actual transformed Shiv wrist base remains below the physical window")
+	var wrist_base: Vector2 = transform * (inset + Vector2(column, image.get_height()) * fit)
+	_check(wrist_base.y > bottom + 2.0, context + ": actual wrist base remains below the physical window")
 	var sample: Vector2 = (transform.affine_inverse() * Vector2(wrist_base.x, bottom - 1.0) - inset) / fit
-	_check(sample.y >= 0.0 and sample.y < image.get_height(), "actual physical bottom samples the Shiv picture during use")
+	_check(sample.y >= 0.0 and sample.y < image.get_height(), context + ": actual physical bottom samples the picture during use")
 	if sample.y >= 0.0 and sample.y < image.get_height():
-		_check(image.get_pixel(190, floori(sample.y)).a > 0.99, "actual transformed Shiv wrist is opaque at the physical bottom")
+		_check(image.get_pixel(column, floori(sample.y)).a > 0.99, context + ": actual wrist is opaque at the physical bottom")
 
 func _check_shiv_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
@@ -70,17 +73,43 @@ func _check_shiv_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 	for frame: int in range(60):
 		hud._process(1.0 / 120.0)
 		longest = maxf(longest, _source_span(weapon, Vector2(106, 44), Vector2(142, 98)))
-		_check_shiv_transformed_bottom(weapon)
+		_check_transformed_bottom(weapon, 190, "Shiv")
 	_check(longest > blade_rest * 1.15, "ordinary resolved use still reaches forward visibly")
 	var settled: float = _source_span(weapon, Vector2(164, 160), Vector2(191, 150)) / Vector2(164, 160).distance_to(Vector2(191, 150))
 	_check(is_equal_approx(settled, reference), "resolved use settles to the same player's glove scale")
+	hud.head_bob_enabled = true
+
+func _check_arc_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.set_fp_walk_speed(0.0)
+	hud.head_bob_enabled = false
+	hud._process(1.0)
+	hud.set_fp_weapon("Scatter")
+	var reference: float = _source_span(weapon, Vector2(51, 163), Vector2(83, 178)) / Vector2(51, 163).distance_to(Vector2(83, 178))
+	hud.set_fp_weapon("Arc")
+	var actual: float = _source_span(weapon, Vector2(32, 160), Vector2(57, 178)) / Vector2(32, 160).distance_to(Vector2(57, 178))
+	_check(is_equal_approx(actual, reference), "Arc glove texels match the actual Shotgun display scale at this aspect")
+	for texture: Texture2D in [WeaponArt.IDLE["Arc"], WeaponArt.FIRE["Arc"], WeaponArt.CYCLE["Arc"], WeaponArt.ARC_RELOAD]:
+		_check(texture.get_size() == WeaponArt.IDLE["Scatter"].get_size(), "all Arc held poses share the actual approved full canvas")
+		weapon.texture = texture
+		var used: Rect2i = texture.get_image().get_used_rect()
+		_check(used.size.x >= 180 and used.size.y >= 160 and used.end.y == 180, "Arc has a substantial receiver and gloves through the canvas bottom")
+		_check_transformed_bottom(weapon, _column("Arc"), "Arc held pose")
+	var state: Dictionary = {"selected":"arc", "tick":20, "weapons":["fists", "arc"], "ammo":[{"pool":"bullets","rounds":0},{"pool":"shells","rounds":0},{"pool":"cells","rounds":40}], "loaded":[{"weapon":"arc","rounds":0,"ready_at":42}], "dry_fire_count":0}
+	hud.equipment_hud.apply(state)
+	hud._process(0.01)
+	_check(weapon.texture == WeaponArt.ARC_RELOAD, "HUD shows capacitor reset only for the actual pending reload")
+	_check_transformed_bottom(weapon, _column("Arc"), "Arc authoritative reload")
+	hud.equipment_hud.tick = 42
+	hud._process(0.01)
+	_check(weapon.texture == WeaponArt.IDLE["Arc"], "authoritative ready tick returns the Arc to idle")
+	hud.equipment_hud.apply({})
 	hud.head_bob_enabled = true
 
 ## Each gun shows its drawn fire frame for the shot, the Shotgun pumps after
 ## it, and every gun settles back to its idle pose.
 func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
-	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper"]:
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Arc"]:
 		hud.set_fp_weapon(weapon_name)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
 		hud.show_fire_juice(weapon_name)
@@ -174,7 +203,8 @@ func _run() -> void:
 		root.size = viewport_size
 		await process_frame
 		_check_shiv_hand_scale(hud, weapon)
-		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Sniper", "Shiv"]:
+		_check_arc_hand_scale(hud, weapon)
+		for weapon_name: String in ["Flechette", "Rail", "Scatter", "Tack", "Sniper", "Shiv", "Arc"]:
 			hud.call("set_fp_weapon", weapon_name)
 			_check_bottom(weapon, weapon_name + " swap", _column(weapon_name))
 			hud.call("set_fp_walk_speed", MoveStep.TOP_SPEED)
@@ -183,6 +213,8 @@ func _run() -> void:
 					hud.call("show_fire_juice", weapon_name)
 				hud.call("_process", 1.0 / 120.0)
 				_check_bottom(weapon, weapon_name + " moving/firing", _column(weapon_name))
+				if weapon_name == "Arc":
+					_check_transformed_bottom(weapon, _column("Arc"), "Arc moving/firing")
 			hud.call("set_fp_walk_speed", 0.0)
 			for frame in range(60):
 				hud.call("_process", 1.0 / 60.0)

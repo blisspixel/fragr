@@ -8,6 +8,9 @@ use crate::sim::PLAYER_FLOOR_Y;
 use std::collections::VecDeque;
 use uuid::Uuid;
 
+#[cfg(test)]
+mod stalled_observations;
+
 #[derive(Debug, Clone, Copy)]
 pub struct NavigationGoal {
     pub feet: [f32; 3],
@@ -158,7 +161,7 @@ impl Navigator {
                 .iter()
                 .find(|player| player.id == id && me.is_hostile_to(player))
         }) {
-            if crate::combat::is_notary(target.campaign) && !action.forward {
+            if crate::combat::is_flying(target.campaign) && !action.forward {
                 let origin = [from[0], from[1] + EYE_HEIGHT, from[2]];
                 let centre = [
                     target.x,
@@ -174,7 +177,7 @@ impl Navigator {
                 feet: [
                     target.x,
                     target.y - PLAYER_FLOOR_Y
-                        + if crate::combat::is_notary(target.campaign) {
+                        + if crate::combat::is_flying(target.campaign) {
                             (crate::combat::target_height(target.campaign) - FIGHTER_HEIGHT) * 0.5
                         } else {
                             0.0
@@ -297,7 +300,12 @@ impl Navigator {
             return action;
         }
         if tick != self.avoidance_tick {
-            self.avoidance_stalled = if tick == self.avoidance_tick.saturating_add(1)
+            // Wire readers can receive a newer snapshot after intervening ones
+            // were coalesced. Require six observed stationary positions, while
+            // tolerating at most three missed ticks between observations.
+            // Duplicate, reversed and stale clocks do not add evidence.
+            self.avoidance_stalled = if tick > self.avoidance_tick
+                && tick <= self.avoidance_tick.saturating_add(4)
                 && self.avoidance_position.is_some_and(|previous| {
                     distance(previous, [me.from.x, me.from.y, me.from.z]) < 0.02
                 }) {

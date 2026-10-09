@@ -157,6 +157,7 @@ fn m10_locked_v12_upgrade_preserves_bytes_then_commits_distinct_transit_once() {
         }
         let mut value = serde_json::to_value(&source).unwrap();
         value["version"] = 12.into();
+        value["rules"]["revision"] = (3).into();
         let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
         bytes.extend_from_slice(b"\n \n");
         let directory = std::env::temp_dir().join(format!("fragr-m10-transit-{}", Uuid::new_v4()));
@@ -211,6 +212,14 @@ fn m10_transit_refuses_forged_current_and_historical_ownership_or_arrivals() {
     for version in [10, 11, 12] {
         let mut value = serde_json::to_value(&promoted).unwrap();
         value["version"] = version.into();
+        value["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         value.as_object_mut().unwrap().remove("m10_transit");
         if version < 12 {
             value.as_object_mut().unwrap().remove("m09_outcome");
@@ -224,6 +233,14 @@ fn m10_transit_refuses_forged_current_and_historical_ownership_or_arrivals() {
         );
         let mut value = serde_json::to_value(&before).unwrap();
         value["version"] = version.into();
+        value["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         if version < 12 {
             value.as_object_mut().unwrap().remove("m09_outcome");
         }
@@ -349,18 +366,20 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
             [-6.55, 3.4, -4.5],
             [-4.45, 3.4, -4.5],
             [-4.45, 4.8, -14.5],
-            [-4.45, 4.8, -13.2],
-            [-2.8, 4.8, -13.2],
-            [-4.45, 4.8, -13.2],
+            [-4.45, 4.8, -17.2],
+            [0.0, 4.8, -17.2],
+            [0.0, 4.8, -12.1],
+            [0.0, 4.8, -17.2],
+            [-4.45, 4.8, -17.2],
             [-4.45, 4.8, -14.5],
             [-6.55, 4.8, -14.5],
             [-6.55, 6.2, -4.5],
             [-4.45, 6.2, -4.5],
             [-4.45, 7.6, -14.5],
-            [-2.8, 7.6, -14.5],
+            [-2.5, 7.6, -14.5],
             [-4.0, 7.6, -14.5],
-            [-2.8, 7.6, -14.5],
-            [-2.8, 7.6, 14.0],
+            [-2.5, 7.6, -14.5],
+            [-2.5, 7.6, 14.0],
             [0.0, 7.6, 14.0],
             [6.65, 7.6, 14.5],
             [0.0, 7.6, 14.0],
@@ -374,8 +393,8 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
             [6.65, 6.2, 4.5],
             [6.65, 7.6, 14.5],
             [0.0, 7.6, 14.0],
-            [-2.8, 7.6, 14.0],
-            [-2.8, 7.6, -14.5],
+            [-2.5, 7.6, 14.0],
+            [-2.5, 7.6, -14.5],
             [-4.0, 7.6, -14.5],
             [-4.45, 7.6, -14.5],
             [-4.45, 6.2, -4.5],
@@ -724,6 +743,7 @@ fn m10_actual_transit_bodies_stop_shots_and_unknown_people_do_not() {
                 feet: [feet[0] + 1.2, feet[1], feet[2]],
                 yaw: 0.0,
                 seated: false,
+                armor: None,
                 hover: None,
             });
             let rear_hp_before = state.players.iter().find(|p| p.id == rear).unwrap().hp;

@@ -127,6 +127,19 @@ func _check_pawn() -> void:
 	state["body"] = PlayerBody.SYNTHETIC
 	pawn.call("update_state", state, 2)
 	_check(body.texture.resource_path == strip[PlayerBody.SYNTHETIC], "the accepted body is worn")
+	var live: SkinnedCharacter = pawn.get("character_view") as SkinnedCharacter
+	_check(live != null and live.kind == PlayerBody.SYNTHETIC and not body.visible,
+		"accepted synthetic uses its live weighted mesh; strip remains a fallback")
+	pawn.call("_process", 0.05)
+	var hand: Transform3D = live.transform * live.hand_transform()
+	_check((pawn.get("_held_root") as Node3D).position.distance_to(hand.origin) < 0.00001,
+		"carried presentation follows the posed skinned hand")
+	pawn.call("set_local_fp", true)
+	_check(not live.visible and not (pawn.get("_held_root") as Node3D).visible and not body.visible,
+		"first-person hides the full skin and carried effects")
+	pawn.call("set_local_fp", false)
+	_check(live.visible and (pawn.get("_held_root") as Node3D).visible and not body.visible,
+		"leaving first-person restores only the live body")
 	_check(body.hframes == 8 and body.vframes == 1, "idle and walk cells")
 	_check(is_equal_approx(body.pixel_size, EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE),
 		"the same field as the Union bake, never enlarged")
@@ -145,9 +158,33 @@ func _check_pawn() -> void:
 	state["name"] = "COMPLIANCE-DRONE"
 	pawn.call("update_state", state, 5)
 	_check(body.texture.resource_path == strip[PlayerBody.HUMAN], "the body follows the server, never the callsign")
+	_check((pawn.get("character_view") as SkinnedCharacter).kind == PlayerBody.HUMAN,
+		"accepted body replacement changes the live model independently of callsign")
 	state["body"] = "robot"
 	pawn.call("update_state", state, 6)
 	_check(pawn.get("body_kind") == PlayerBody.HUMAN, "an unknown body changes nothing")
+	# A missing replacement model must restore the existing strip arrangement,
+	# including carried nodes that previously followed a live hand.
+	var retained_source: Variant = SkinnedCharacter._packed[PlayerBody.SYNTHETIC]
+	state["body"] = PlayerBody.HUMAN
+	state["weapon"] = "Tack"
+	pawn.call("update_state", state, 7)
+	pawn.call("_process", 0.05)
+	_check((pawn.get("weapon_sprite") as Sprite3D).flip_h,
+		"the accepted live pistol uses its reflected profile")
+	SkinnedCharacter._packed[PlayerBody.SYNTHETIC] = null
+	state["body"] = PlayerBody.SYNTHETIC
+	state["weapon"] = "Rail"
+	pawn.call("update_state", state, 8)
+	_check(pawn.get("character_view") == null and pawn.get("_held_root") == null and body.visible,
+		"failed replacement selects the visible strip and retires its old carried root")
+	_check((pawn.get("weapon_sprite") as Node3D).get_parent() == body and (pawn.get("muzzle") as Node3D).get_parent() == body,
+		"fallback weapon and muzzle return to the strip")
+	_check((pawn.get("weapon_sprite") as Node3D).position.is_equal_approx(Vector3(0.34, 0.0, 0.02)),
+		"fallback restores the strip weapon anchor")
+	_check(not (pawn.get("weapon_sprite") as Sprite3D).flip_h,
+		"fallback clears the previous live profile's reflected direction")
+	SkinnedCharacter._packed[PlayerBody.SYNTHETIC] = retained_source
 	pawn.queue_free()
 	var enemy: Node3D = load("res://scenes/player.tscn").instantiate()
 	root.add_child(enemy)

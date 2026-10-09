@@ -282,7 +282,7 @@ fn difficulty_keeps_the_new_tell_identical_and_existing_rules_unchanged() {
     ] {
         assert_eq!(attack_timing(EnemyKind::Jammer, difficulty), (24, 40));
     }
-    assert_eq!(crate::protocol::CAMPAIGN_RULES_REVISION, 3);
+    assert_eq!(crate::protocol::CAMPAIGN_RULES_REVISION, 4);
     assert_eq!(
         attack_timing(EnemyKind::Clerk, CampaignDifficulty::Standard),
         (12, 20)
@@ -405,13 +405,16 @@ async fn live_jammer_admission_rejects_old_roles_and_sends_geometry_before_snaps
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::GAMEPLAY_VERSION {
+                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",
                             "old actor reader received a game message"
                         );
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains("26"));
+                        assert!(value["message"].as_str().unwrap().contains(&format!(
+                            "version {}",
+                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                        )));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

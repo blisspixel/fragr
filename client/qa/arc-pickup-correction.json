@@ -1,0 +1,67 @@
+{
+  "height": 720,
+  "states": [
+    {
+      "join": "human",
+      "camera": "first_person",
+      "expect_equipment": {
+        "ammo": 20,
+        "selected": "flechette",
+        "pool_rounds": {
+          "cells": 0
+        }
+      },
+      "name": "arc_unclaimed_industrial_pickup",
+      "walk_to": [
+        [
+          2,
+          0,
+          -18
+        ],
+        [
+          -2,
+          0,
+          -18
+        ],
+        [
+          -8,
+          0,
+          -12
+        ]
+      ],
+      "scene": "res://scenes/main.tscn",
+      "look_at": [
+        -8,
+        0.55,
+        -16
+      ],
+      "radio_off": true
+    },
+    {
+      "look_at": [
+        0,
+        1,
+        -5
+      ],
+      "name": "arc_pickup_acquired",
+      "walk_to": [
+        [
+          -8,
+          0,
+          -16
+        ]
+      ],
+      "expect_equipment": {
+        "ammo": 12,
+        "selected": "arc",
+        "pool_rounds": {
+          "cells": 40
+        }
+      },
+      "camera": "first_person"
+    }
+  ],
+  "combat_travel": false,
+  "comment": "Unclaimed Arc pickup and ordinary acquisition on the unchanged finite maintenance practice map. Exactly two actual human first-person states, no inventory grants or combat outcome injection.",
+  "width": 1280
+}

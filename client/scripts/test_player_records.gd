@@ -43,11 +43,20 @@ func _run() -> void:
 		_check(not PlayerRecord.validation_error(broken, found["player_id"]).is_empty(), "weapon slots must be five, six or seven")
 	var scoped: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://golden/player_record_sniper.json"))
 	_check(PlayerRecord.validation_error(scoped, scoped["player_id"]).is_empty(), "shared seven-slot Sniper record validates")
-	var current: Dictionary = scoped.duplicate(true)
+	var eight_column: Dictionary = scoped.duplicate(true)
+	eight_column["version"] = PlayerRecord.EIGHT_COLUMN_VERSION
+	for field: String in ["total", "attempt"]:
+		eight_column[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(PlayerRecord.validation_error(eight_column, eight_column["player_id"]).is_empty(), "retained version two has exactly eight columns")
+	var current: Dictionary = eight_column.duplicate(true)
 	current["version"] = PlayerRecord.VERSION
 	for field: String in ["total", "attempt"]:
 		current[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
-	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has explicit eighth Repeater column")
+	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has a distinct ninth Arc column")
+	for width: int in [5, 6, 7, 9, 10]:
+		var forged_eight: Dictionary = eight_column.duplicate(true)
+		forged_eight["attempt"]["weapons"].resize(width)
+		_check(not PlayerRecord.validation_error(forged_eight, forged_eight["player_id"]).is_empty(), "version two refuses width " + str(width))
 	var remote_counts: Dictionary = {"alive_ticks": 20, "deaths": 0, "hp_lost": 0, "armor_lost": 0, "dry_triggers": 0, "weapons": [], "remote_mines": {"attacks": 2, "damaging_attacks": 1, "kills": 1, "hp_damage": 35, "armor_damage": 20}}
 	for _index: int in range(EquipmentState.WEAPONS.size()):
 		remote_counts["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
@@ -70,10 +79,10 @@ func _run() -> void:
 	var forged_legacy: Dictionary = current.duplicate(true)
 	forged_legacy["version"] = PlayerRecord.LEGACY_VERSION
 	_check(not PlayerRecord.validation_error(forged_legacy, forged_legacy["player_id"]).is_empty(), "legacy record refuses zero eighth column")
-	for size: int in [5, 6, 7, 9]:
+	for size: int in [5, 6, 7, 8, 10]:
 		var wrong_current: Dictionary = current.duplicate(true)
 		wrong_current["attempt"]["weapons"].resize(size)
-		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact eight columns")
+		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact nine columns")
 	_check(PlayerRecord.weapon_count(scoped["total"], 6, "kills") == 1 and PlayerRecord.weapon_count(found["total"], 6, "attacks") == 0, "a six-slot record reads as no Sniper use")
 	var overkill: Dictionary = scoped.duplicate(true)
 	overkill["total"]["weapons"][6]["kills"] = 3
@@ -120,8 +129,19 @@ func _run() -> void:
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M10 records bind the authored ship mission")
 	berth["scope"]["mission"] = "right_of_search"
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M11 records bind the authored tender mission")
-	berth["scope"]["mission"] = "terms_of_cooperation"
-	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M12 cannot forge a playable participant record")
+	berth["scope"]["mission"] = MissionState.M12_ID
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M12 records bind the authored habitat mission")
+	berth["scope"]["mission"] = "weight_of_permission"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M13 cannot forge a playable participant record")
+	var habitat: Dictionary = current.duplicate(true)
+	habitat["map_id"] = 1012
+	habitat["map_name"] = "Terms of Cooperation"
+	habitat["status"] = "active"
+	habitat["scope"] = {"kind": "mission", "mission": MissionState.M12_ID, "attempt": 2, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "run": {"id": mission["scope"]["run"]["id"], "status": "playing", "continues": 1, "level_start_continues": 2}}
+	_check(PlayerRecord.validation_error(habitat, habitat["player_id"]).is_empty(), "current nine-column M12 record accepts its retained second-attempt allowance")
+	var habitat_bad: Dictionary = habitat.duplicate(true)
+	habitat_bad["scope"]["run"]["continues"] = 2
+	_check(not PlayerRecord.validation_error(habitat_bad, habitat["player_id"]).is_empty(), "M12 record still rejects an allowance that contradicts its actual attempt")
 	yard["scope"]["mission"] = MissionState.M04_ID
 	yard["scope"]["rules"]["revision"] = MissionState.RULES_REVISION
 	_check(PlayerRecord.validation_error(yard, yard["player_id"]).is_empty(), "M04 retained allowance and current rules validate")
@@ -150,6 +170,21 @@ func _run() -> void:
 	network._handle_message(JSON.stringify(wire))
 	_check(received.size() == 1 and errors.size() == 1 and network.record.is_empty(), "invalid network record closes without presentation")
 	network.free()
+	var habitat_network: Node = load("res://scripts/net_client.gd").new()
+	habitat_network.player_id = habitat["player_id"]
+	var habitat_received: Array[Dictionary] = []
+	var habitat_errors: Array[String] = []
+	habitat_network.record_received.connect(func(record: Dictionary) -> void: habitat_received.append(record))
+	habitat_network.server_error.connect(func(message: String) -> void: habitat_errors.append(message))
+	# Compare the decoded wire shape, including JSON numeric variants.
+	var habitat_wire: Dictionary = JSON.parse_string(JSON.stringify(habitat))
+	habitat_wire["type"] = "record"
+	habitat_network._handle_message(JSON.stringify(habitat_wire))
+	_check(habitat_received.size() == 1 and habitat_errors.is_empty() and habitat_network.record == habitat_wire, "live M12 record reaches presentation without disconnecting the owned mission: received=%d, errors=%s, unchanged=%s" % [habitat_received.size(), str(habitat_errors), str(habitat_network.record == habitat_wire)])
+	habitat_wire["scope"]["mission"] = "weight_of_permission"
+	habitat_network._handle_message(JSON.stringify(habitat_wire))
+	_check(habitat_received.size() == 1 and habitat_errors.size() == 1 and habitat_network.record.is_empty(), "live M12 boundary still refuses an unimplemented successor mission")
+	habitat_network.free()
 
 	var path: String = "user://test-records-%d" % OS.get_process_id()
 	var store: PlayerRecords = PlayerRecords.new(path)

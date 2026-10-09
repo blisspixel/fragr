@@ -49,7 +49,7 @@ func _run() -> void:
 		_expect(not MissionState.map_error(bad).is_empty(), "invalid mission geometry rejected: " + str(patch))
 	var message: Dictionary = _message()
 	_expect(MissionState.validation_error(message, info["mission"]).is_empty(), "valid prompt accepted")
-	for rules: Variant in [null, {}, {"difficulty": "severe"}, {"difficulty": "standard", "revision": 4}, {"difficulty": "standard", "revision": 2}, {"difficulty": "standard", "revision": 1},
+	for rules: Variant in [null, {}, {"difficulty": "severe"}, {"difficulty": "standard", "revision": MissionState.RULES_REVISION + 1}, {"difficulty": "standard", "revision": 3}, {"difficulty": "standard", "revision": 2}, {"difficulty": "standard", "revision": 1},
 		{"difficulty": "invented", "revision": 1}, {"difficulty": "assisted", "revision": true},
 		{"difficulty": "standard", "revision": 1, "adaptive": true}]:
 		var bad: Dictionary = message.duplicate(true)

@@ -202,6 +202,12 @@ async fn prove_wire(ready: &ArenaReady) {
                         assert_eq!(map_id, ready.map_id);
                         assert_eq!(rules.unwrap().mode, ready.mode);
                         assert_eq!(sabotage.is_some(), ready.mode == GameMode::Sabotage);
+                        if ready.map_id == 8 {
+                            assert_eq!(
+                                sabotage,
+                                fragr_server::sim::MapKind::LowWater.sabotage_map()
+                            );
+                        }
                         assert!(mission.is_none());
                         return;
                     }
@@ -254,6 +260,33 @@ async fn tdm_child_serves_real_players_and_eof_retires_listener_without_campaign
     finish(&mut child, &mut reader, true);
     assert!(std::net::TcpListener::bind(&ready.listen).is_ok());
     assert!(!run.exists());
+}
+
+#[tokio::test]
+async fn low_water_owned_child_advertises_original_sites_and_eof_retires_its_listener() {
+    let (mut child, ready, mut reader) = start(&[
+        "--desktop-host",
+        "--mode",
+        "sabotage",
+        "--map",
+        "8",
+        "--sabotage-five-v-five",
+        "--bots",
+        "0",
+        "--bind",
+        "127.0.0.1:0",
+    ]);
+    assert_eq!(ready.map_id, 8);
+    assert_eq!(ready.mode, GameMode::Sabotage);
+    assert!(ready.five_vs_five);
+    assert_eq!(
+        ready.gameplay_version,
+        fragr_server::protocol::GAMEPLAY_VERSION
+    );
+    prove_wire(&ready).await;
+    drop(child.0.stdin.take());
+    finish(&mut child, &mut reader, true);
+    assert!(std::net::TcpListener::bind(&ready.listen).is_ok());
 }
 
 #[tokio::test]

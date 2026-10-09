@@ -45,7 +45,7 @@ impl RunDocumentV10 {
         hashes: store::ContentHashes,
         expected_version: u32,
     ) -> Result<RunDocument, &'static str> {
-        if self.version != expected_version || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != expected_version || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
         let completed_m09 = matches!(&self.step, SavedStep::AwaitingMission {
@@ -58,7 +58,7 @@ impl RunDocumentV10 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -69,9 +69,10 @@ impl RunDocumentV10 {
             m09_outcome: completed_m09.then_some(M09Outcome::HistoricalUnrecorded {}),
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         document.validate(
-            *hashes
+            *hashes[..9]
                 .get(store::stage_index(document.stage_mission()))
                 .ok_or("mission was not supported by this historical version")?,
         )?;
@@ -80,6 +81,7 @@ impl RunDocumentV10 {
 }
 
 fn pre_repeater_step(step: SavedStep) -> Result<SavedStep, &'static str> {
+    let step = super::legacy_v14::pre_arc_step(step)?;
     if matches!(
         &step,
         SavedStep::MissionEntry {
@@ -151,7 +153,7 @@ pub(crate) struct RunDocumentV9 {
 
 impl RunDocumentV9 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
-        if self.version != 9 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != 9 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
         if matches!(
@@ -185,7 +187,7 @@ impl RunDocumentV9 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -196,9 +198,10 @@ impl RunDocumentV9 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         document.validate(
-            *hashes
+            *hashes[..8]
                 .get(store::stage_index(document.stage_mission()))
                 .ok_or("mission was not supported by this historical version")?,
         )?;
@@ -232,7 +235,7 @@ pub(crate) struct RunDocumentV8 {
 
 impl RunDocumentV8 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
-        if self.version != 8 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != 8 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
         let document = RunDocument {
@@ -242,7 +245,7 @@ impl RunDocumentV8 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -253,6 +256,7 @@ impl RunDocumentV8 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -262,7 +266,7 @@ impl RunDocumentV8 {
             return Err("M08 was not supported by version 8");
         }
         document.validate(
-            *hashes
+            *hashes[..7]
                 .get(store::stage_index(mission))
                 .ok_or("mission was not supported by this historical version")?,
         )?;
@@ -298,7 +302,7 @@ pub(crate) struct RunDocumentV7 {
 
 impl RunDocumentV7 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
-        if self.version != 7 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != 7 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
         let document = RunDocument {
@@ -308,7 +312,7 @@ impl RunDocumentV7 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -319,6 +323,7 @@ impl RunDocumentV7 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -328,7 +333,7 @@ impl RunDocumentV7 {
             return Err("mission was not supported by version 7");
         }
         document.validate(
-            *hashes
+            *hashes[..6]
                 .get(store::stage_index(mission))
                 .ok_or("mission was not supported by this historical version")?,
         )?;
@@ -362,7 +367,7 @@ pub(crate) struct RunDocumentV6 {
 
 impl RunDocumentV6 {
     pub fn upgrade(self, hashes: [[u8; 32]; 5]) -> Result<RunDocument, &'static str> {
-        if self.version != 6 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != 6 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
         let document = RunDocument {
@@ -372,7 +377,7 @@ impl RunDocumentV6 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -383,6 +388,7 @@ impl RunDocumentV6 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -395,7 +401,8 @@ impl RunDocumentV6 {
             | MissionId::CustodianOfRecord
             | MissionId::PassengerManifest
             | MissionId::CommonCarrier
-            | MissionId::RightOfSearch => return Err("M08 was not supported by version 6"),
+            | MissionId::RightOfSearch
+            | MissionId::TermsOfCooperation => return Err("M08 was not supported by version 6"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -482,9 +489,10 @@ impl From<PreRemoteEquipment> for SavedEquipment {
 fn deserialize_pre_remote_step<'de, D: serde::Deserializer<'de>>(
     decoder: D,
 ) -> Result<SavedStep, D::Error> {
-    Ok(convert_step(LegacyStep::<PreRemoteEquipment>::deserialize(
+    super::legacy_v14::pre_arc_step(convert_step(LegacyStep::<PreRemoteEquipment>::deserialize(
         decoder,
     )?))
+    .map_err(serde::de::Error::custom)
 }
 
 /// Exact version 13 fields, including real M10 transit and Repeater carry,
@@ -521,15 +529,21 @@ pub(crate) struct RunDocumentV13 {
 impl RunDocumentV13 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
         if self.version != 13
-            || self.rules.revision != CAMPAIGN_RULES_REVISION
+            || self.rules.revision != PRE_ASSESSOR_RULES_REVISION
             || match &self.step {
                 SavedStep::MissionEntry { mission, .. }
                 | SavedStep::PendingContinue { mission, .. }
                 | SavedStep::Failed { mission, .. }
-                | SavedStep::Abandoned { mission, .. } => *mission == MissionId::RightOfSearch,
+                | SavedStep::Abandoned { mission, .. } => matches!(
+                    *mission,
+                    MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                ),
                 SavedStep::AwaitingMission {
                     completed_mission, ..
-                } => *completed_mission == MissionId::RightOfSearch,
+                } => matches!(
+                    *completed_mission,
+                    MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                ),
             }
         {
             return Err("unsupported historical campaign rules");
@@ -541,7 +555,7 @@ impl RunDocumentV13 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -552,9 +566,10 @@ impl RunDocumentV13 {
             m09_outcome: self.m09_outcome,
             m10_transit: self.m10_transit,
             m11_outcome: None,
+            m12_outcome: None,
         };
         document.validate(
-            *hashes
+            *hashes[..10]
                 .get(store::stage_index(document.stage_mission()))
                 .ok_or("mission was not supported by this historical version")?,
         )?;
@@ -696,6 +711,7 @@ impl RunDocumentV5 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -708,7 +724,8 @@ impl RunDocumentV5 {
             | MissionId::CustodianOfRecord
             | MissionId::PassengerManifest
             | MissionId::CommonCarrier
-            | MissionId::RightOfSearch => return Err("M05 was not supported by version 5"),
+            | MissionId::RightOfSearch
+            | MissionId::TermsOfCooperation => return Err("M05 was not supported by version 5"),
         };
         document.validate(hash)?;
         Ok(document)
@@ -753,7 +770,10 @@ impl RunDocumentV4 {
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
-                | MissionId::RightOfSearch => return Err("mission was not supported by version 4"),
+                | MissionId::RightOfSearch
+                | MissionId::TermsOfCooperation => {
+                    return Err("mission was not supported by version 4")
+                }
             },
             SavedStep::AwaitingMission {
                 completed_mission, ..
@@ -768,7 +788,10 @@ impl RunDocumentV4 {
                 | MissionId::CustodianOfRecord
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
-                | MissionId::RightOfSearch => return Err("mission was not supported by version 4"),
+                | MissionId::RightOfSearch
+                | MissionId::TermsOfCooperation => {
+                    return Err("mission was not supported by version 4")
+                }
             },
         };
         let document = RunDocument {
@@ -789,6 +812,7 @@ impl RunDocumentV4 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         document.validate(expected)?;
         Ok(document)
@@ -835,6 +859,7 @@ impl RunDocumentV3 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
@@ -847,7 +872,8 @@ impl RunDocumentV3 {
             | MissionId::CustodianOfRecord
             | MissionId::PassengerManifest
             | MissionId::CommonCarrier
-            | MissionId::RightOfSearch => return Err("M05 was not supported by version 3"),
+            | MissionId::RightOfSearch
+            | MissionId::TermsOfCooperation => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");
@@ -906,6 +932,7 @@ impl RunDocumentV2 {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         document.validate(m01_hash)?;
         Ok(document)
@@ -941,7 +968,7 @@ pub(crate) struct RunDocumentV12 {
 
 impl RunDocumentV12 {
     pub fn upgrade(self, hashes: store::ContentHashes) -> Result<RunDocument, &'static str> {
-        if self.version != 12 || self.rules.revision != CAMPAIGN_RULES_REVISION {
+        if self.version != 12 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
         let document = RunDocument {
@@ -951,7 +978,7 @@ impl RunDocumentV12 {
             remaining_continues: self.remaining_continues,
             level_start_continues: self.level_start_continues,
             body: self.body,
-            rules: self.rules,
+            rules: CampaignRules::new(self.rules.difficulty),
             content_sha256: self.content_sha256,
             step: self.step,
             m03_outcome: self.m03_outcome,
@@ -962,9 +989,10 @@ impl RunDocumentV12 {
             m09_outcome: self.m09_outcome,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
         };
         document.validate(
-            *hashes
+            *hashes[..9]
                 .get(store::stage_index(document.stage_mission()))
                 .ok_or("mission was not supported by this historical version")?,
         )?;

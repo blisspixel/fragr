@@ -19,7 +19,7 @@ extends Node
 # objective and gate state; 8 private participant records. A shared arena
 # speaks this exact gameplay version and geometry 2. A campaign host still
 # accepts this client when its mission floor is at or below it.
-const GAMEPLAY_VERSION: int = 41
+const GAMEPLAY_VERSION: int = 45
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -445,6 +445,10 @@ func _handle_message(text: String):
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
 			remote_supported = data.get("m11") is Dictionary
+			if geometry.get("id") == MissionState.M12_ID and mission_geometry.get("id") == MissionState.M12_ID and not M12MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M11_ID and mission_geometry.get("id") == MissionState.M11_ID and not M11MissionState.same_contract(mission_geometry, geometry):
 				disconnect_from_server()
 				server_error.emit(MissionState.INVALID)
@@ -503,7 +507,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
@@ -549,6 +553,8 @@ func _handle_message(text: String):
 
 		"snapshot":
 			var problem: String = ActorState.validation_error(data)
+			if problem.is_empty():
+				problem = AssessorFacts.validation_error(data)
 			if problem.is_empty():
 				problem = GrenadeFacts.validation_error(data)
 			if problem.is_empty():

@@ -34,6 +34,7 @@ var _firing: bool = false
 var _ward_position: Vector3 = Vector3.INF
 var _screen: MeshInstance3D
 var _eyes: MeshInstance3D
+var face: LatchFace = LatchFace.new()
 
 func _init() -> void:
 	_source_body = load(Source.LATCH_SOURCE).instantiate() as Node3D
@@ -57,17 +58,7 @@ func _init() -> void:
 	_gun.visible = false
 	# Independent optics cover the painted display, following the actual head skin.
 	_screen = _box(self, "FaceRecess", Vector3.ZERO, Vector3(0.139, 0.155, 0.004), _material(DARK))
-	var optics: SurfaceTool = SurfaceTool.new()
-	optics.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for x: float in [-0.035, 0.035]:
-		_workshop.quad(optics, Vector3(x - 0.009, 0.018, 0), Vector3(x + 0.009, 0.018, 0),
-			Vector3(x + 0.009, 0.044, 0), Vector3(x - 0.009, 0.044, 0), Vector3.BACK)
-	_workshop.quad(optics, Vector3(-0.018, -0.032, 0), Vector3(0.018, -0.032, 0),
-		Vector3(0.018, -0.026, 0), Vector3(-0.018, -0.026, 0), Vector3.BACK)
-	for x: float in [-0.021, 0.021]:
-		_workshop.quad(optics, Vector3(x - 0.003, -0.027, 0), Vector3(x + 0.003, -0.027, 0),
-			Vector3(x + 0.003, -0.018, 0), Vector3(x - 0.003, -0.018, 0), Vector3.BACK)
-	_eyes = _workshop.instance(self, "PixelEyes", optics.commit(), _material(CYAN, true))
+	_eyes = _workshop.instance(self, "PixelEyes", LatchFace.mesh(face.state), _material(CYAN, true))
 	_pose_source()
 	set_process(false)
 
@@ -162,11 +153,22 @@ func _texture_channel(channel: int) -> Vector4:
 
 ## Optics remain independently expressive instead of relying on painted pixels.
 func set_screen_expression(openness: float) -> void:
-	_eyes.scale.y = clampf(openness, 0.1, 1.0)
+	_eyes.mesh = LatchFace.mesh(face.state, is_finite(openness) and openness < 0.3)
+
+func observe_health(health: int) -> void:
+	face.observe_health(health)
+	_refresh_face()
+
+func advance_face(delta: float) -> void:
+	face.tick(delta)
+	_refresh_face()
+
+func _refresh_face() -> void:
+	_eyes.mesh = LatchFace.mesh(face.state, face.blinking)
 
 ## The open right hand and balancing left arm are a voluntary second-bay action.
 ## Call with a server-derived release timeline; it never advances mission state.
-func pose_release(progress: float) -> void:
+func pose_release(progress: float, released: bool = false) -> void:
 	_ward_pose = true
 	var travel: float = position.distance_to(_ward_position) if _ward_position != Vector3.INF else 0.0
 	_ward_position = position
@@ -176,9 +178,13 @@ func pose_release(progress: float) -> void:
 	elif travel >= 2.0:
 		_stride = 0.0
 	_release = clampf(progress, 0.0, 1.0)
+	face.ward(progress, released or progress > 0.0)
+	_refresh_face()
 	_pose_source()
 
 func advance(delta: float, travel: float, phase: String) -> void:
+	face.advance(delta, travel, phase)
+	_refresh_face()
 	# During M02 release the visible server pawn replaces the hidden tableau.
 	# Retain its previous zero-release pose until ordinary following begins.
 	_ward_pose = phase == "releasing"
@@ -195,6 +201,8 @@ func advance(delta: float, travel: float, phase: String) -> void:
 func shot() -> void:
 	if not _gun.visible:
 		return
+	face.shot()
+	_refresh_face()
 	_flash_left = 0.1
 	_flash.visible = true
 

@@ -27,6 +27,8 @@ pub enum EnemyKind {
     Enforcer,
     /// Ordinary human covert guard with a visible approach and locked close strike.
     Redactor,
+    /// Heavy flying equipment with three finite, locked ballistic canisters.
+    Assessor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

@@ -2,6 +2,12 @@ extends SceneTree
 
 const Source = preload("res://art/models/sweeper_skinned_source.gd")
 const ClerkSource = preload("res://art/models/clerk_source.gd")
+const SWEEPER_SOURCES: Array[String] = [Source.SKIN_SOURCE, Source.SKIN_SOURCE + ".import",
+	"res://art/models/sweeper_skinned_source.gd", "res://art/models/clerk_source.gd",
+	"res://art/models/sweeper_source.gd", "res://art/characters/geometry.gd",
+	"res://scripts/model_geometry.gd", "res://scripts/enemy_animation.gd",
+	"res://art/models/normal_bake.gdshader", "res://assets/models/finishes/metal.png",
+	"res://assets/models/finishes/enamel.png", "res://assets/models/finishes/wood.png"]
 var _failures: int = 0
 
 func _initialize() -> void:
@@ -84,13 +90,44 @@ func _run() -> void:
 	clerk.free()
 	var receipt: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/characters/union/manifest.json"))
 	if not receipt is Dictionary or not receipt.get("sources") is Dictionary \
-		or not receipt.get("rendered_kinds") is Array or not receipt.get("retained_kinds") is Array:
+		or not receipt.get("rendered_kinds") is Array or not receipt.get("retained_kinds") is Array \
+		or not receipt.get("entries") is Array:
 		_check(false, "standing receipt describes current and retained roles")
 	else:
 		_check(receipt["sources"].get(Source.SKIN_SOURCE, "") == FileAccess.get_sha256(Source.SKIN_SOURCE),
 			"live selected skin is included in standing atlas source freshness")
-		_check(receipt["rendered_kinds"].has("sweeper"),
-			"receipt distinguishes the newly rendered Sweeper from retained cast")
+		_check(_sweeper_role_has_proof(receipt),
+			"receipt gives Sweeper exactly one rendered or source-bound retained role")
+		var unassigned: Dictionary = receipt.duplicate(true)
+		unassigned["rendered_kinds"].erase("sweeper")
+		unassigned["retained_kinds"].erase("sweeper")
+		_check(not _sweeper_role_has_proof(unassigned), "receipt refuses an unassigned Sweeper")
+		var duplicated: Dictionary = unassigned.duplicate(true)
+		duplicated["rendered_kinds"].append("sweeper")
+		duplicated["retained_kinds"].append("sweeper")
+		_check(not _sweeper_role_has_proof(duplicated), "receipt refuses contradictory Sweeper roles")
+		var retained: Dictionary = unassigned.duplicate(true)
+		retained["retained_kinds"].append("sweeper")
+		var sources: Dictionary = {}
+		for path: String in SWEEPER_SOURCES:
+			sources[path] = FileAccess.get_sha256(path)
+		retained["retained_receipt"] = {"sources": sources}
+		_check(_sweeper_role_has_proof(retained), "partial bake retains unchanged Sweeper geometry and atlas outputs")
+		for path: String in SWEEPER_SOURCES:
+			var stale: Dictionary = retained.duplicate(true)
+			stale["retained_receipt"]["sources"][path] = "0".repeat(64)
+			_check(not _sweeper_role_has_proof(stale), "retained Sweeper refuses stale dependency " + path)
+		var stale_atlas: Dictionary = retained.duplicate(true)
+		for entry: Dictionary in stale_atlas["entries"]:
+			if entry["file"] == "sweeper_normals.png":
+				entry["sha256"] = "0".repeat(64)
+		_check(not _sweeper_role_has_proof(stale_atlas), "retained Sweeper refuses stale paired output")
+		var rendered: Dictionary = unassigned.duplicate(true)
+		rendered["rendered_kinds"].append("sweeper")
+		rendered.erase("retained_receipt")
+		_check(_sweeper_role_has_proof(rendered), "a newly rendered Sweeper needs no retained source history")
+		retained.erase("retained_receipt")
+		_check(not _sweeper_role_has_proof(retained), "retained Sweeper requires its historical skin receipt")
 		if not receipt["retained_kinds"].is_empty():
 			var prior: Variant = receipt.get("retained_receipt")
 			_check(prior is Dictionary and prior.get("sources") is Dictionary
@@ -102,6 +139,30 @@ func _run() -> void:
 	if _failures == 0:
 		print("test_sweeper_skin: PASS skin, two-hand rifle grip, gait, root registration, recoil, recovery, melee and settled death")
 	quit(0 if _failures == 0 else 1)
+
+func _sweeper_role_has_proof(receipt: Dictionary) -> bool:
+	var rendered: bool = receipt["rendered_kinds"].has("sweeper")
+	var retained: bool = receipt["retained_kinds"].has("sweeper")
+	if rendered == retained:
+		return false
+	var found: Dictionary = {}
+	for entry: Dictionary in receipt["entries"]:
+		var file: String = entry.get("file", "")
+		if file not in ["sweeper.png", "sweeper_normals.png"]:
+			continue
+		if found.has(file) or entry.get("sha256", "") != FileAccess.get_sha256("res://assets/characters/union/" + file):
+			return false
+		found[file] = true
+	if found.size() != 2:
+		return false
+	if retained:
+		var prior: Variant = receipt.get("retained_receipt")
+		if not prior is Dictionary or not prior.get("sources") is Dictionary:
+			return false
+		for path: String in SWEEPER_SOURCES:
+			if prior["sources"].get(path, "") != FileAccess.get_sha256(path):
+				return false
+	return true
 
 func _bone(model: Node3D, label: String) -> Vector3:
 	var skeleton: Skeleton3D = model.get_node("Sweeper/Armature/Skeleton3D") as Skeleton3D

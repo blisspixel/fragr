@@ -48,6 +48,9 @@ fn useful_supply(loadout: &LoadoutState, pickup: &PickupState, seek_upgrade: boo
                     .iter()
                     .any(|weapon| weapon.ammo_pool() == Some(pool))
         }),
+        "grenade" => loadout.grenades < 6,
+        "proximity_mine" => loadout.proximity_mines < crate::protocol::MINE_CARRY_CAP,
+        "remote_mine" => loadout.remote_mines < crate::protocol::REMOTE_MINE_CARRY_CAP,
         _ => false,
     }
 }
@@ -156,6 +159,7 @@ pub fn control_action_with_target_filter(
                 WeaponType::Scatter,
                 WeaponType::Rail,
                 WeaponType::Sniper,
+                WeaponType::Arc,
             ]
             .into_iter()
             .find(|weapon| usable(loadout, *weapon))
@@ -163,6 +167,23 @@ pub fn control_action_with_target_filter(
         .unwrap_or_else(|| melee(loadout));
     // A hostile beyond the chosen gun's reach but inside the Sniper's takes
     // the carried Sniper. An explicit usable request is never overridden.
+    if requested.is_none()
+        && usable(loadout, WeaponType::Arc)
+        && nearest.is_some_and(|target| {
+            (target.x - me.x).hypot(target.z - me.z) <= WeaponType::Arc.range_units()
+                && (target.armor > 0
+                    || matches!(
+                        target.campaign,
+                        Some(crate::protocol::CampaignActor::Union {
+                            kind: crate::protocol::EnemyKind::Auditor
+                                | crate::protocol::EnemyKind::Assessor,
+                            ..
+                        })
+                    ))
+        })
+    {
+        selected = WeaponType::Arc;
+    }
     if requested.is_none()
         && usable(loadout, WeaponType::Sniper)
         && nearest.is_some_and(|target| {

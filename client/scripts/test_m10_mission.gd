@@ -38,7 +38,7 @@ static func fixture_state(info: Dictionary, done: int = 0, arrivals: Array[Strin
 	var facts: Dictionary = {"completed": completed, "transit": transit, "pilot": info["m10"]["pilot"].duplicate(), "passengers": people}
 	if done < 5:
 		facts["current"] = info["m10"]["objectives"][done] if done < 4 else {"id": "party_departed", "action": {"kind": "use", "target": info["m10"]["departure"]}}
-	return {"type": "mission", "tick": 40, "state": {"id": MissionState.M10_ID, "rules": {"difficulty": "standard", "revision": 3}, "attempt": 1, "phase": "departed" if done == 5 else "in_progress", "changed_at": 10,
+	return {"type": "mission", "tick": 40, "state": {"id": MissionState.M10_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "attempt": 1, "phase": "departed" if done == 5 else "in_progress", "changed_at": 10,
 		"party": [{"id": PLAYER, "name": "Ship visitor", "ready": true, "alive": true, "aboard": done >= 4}], "prompts": [], "m10": facts}}
 
 func _run() -> void:
@@ -93,16 +93,25 @@ func _run() -> void:
 	ship.configure_map(info)
 	ship.apply_state(first["state"])
 	_check(ship._figures.keys() == ["tern"], "unknown history stages only current pilot")
-	var actual_pilot: Sprite3D = ship._figures["tern"]
-	_check(actual_pilot.texture == load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)), "current pilot retains an embodied-agent body even with unknown historical transit")
+	var actual_pilot: CivilianFigure = ship._figures["tern"]
+	_check(actual_pilot.skin != null and actual_pilot.skin.kind == "tern" and actual_pilot.strip == null,
+		"current pilot retains the same named berth skin even with unknown historical transit")
+	_check(actual_pilot.position == Vector3(first["state"]["m10"]["pilot"][0], first["state"]["m10"]["pilot"][1], first["state"]["m10"]["pilot"][2]),
+		"live pilot is registered at actual authoritative feet")
 	ship.apply_state(fixture_state(info, 0, ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"])["state"])
 	_check(ship._figures.size() == 5 and ship._figures.has("edda") and ship._figures.has("splice"), "only recorded actual arrivals appear")
-	for id: String in ["tern", "splice"]:
-		var actual_agent: Sprite3D = ship._figures[id]
-		_check(actual_agent.texture == load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)), id + " retains its embodied-agent body on the ship")
-	for id: String in ["edda", "berth_crew_a", "berth_crew_b"]:
-		var actual_human: Sprite3D = ship._figures[id]
+	var actual_splice: CivilianFigure = ship._figures["splice"]
+	_check(actual_splice.rigid != null and actual_splice.skin == null and actual_splice.strip == null, "recorded Splice arrival selects the named rigid source")
+	actual_splice._process(0.05)
+	_check(actual_splice._moving_age > 0.15, "arrived ship passenger remains calm")
+	for id: String in ["berth_crew_a", "berth_crew_b"]:
+		var actual_human: Sprite3D = ship._figures[id].strip
 		_check(actual_human.texture == load(PlayerBody.strip_path(PlayerBody.HUMAN)), id + " retains the human ship body fallback")
+	var actual_edda: CivilianFigure = ship._figures["edda"]
+	_check(actual_edda.skin != null and actual_edda.skin.kind == "edda" and actual_edda.strip == null,
+		"only recorded Edda arrival selects her repaired live skin")
+	ship.apply_state(first["state"])
+	_check(ship._figures.keys() == ["tern"], "Unknown transit retires recorded passengers rather than inventing an arrival")
 	ship.clear_map()
 	_check(ship._geometry.is_empty() and ship._figures.is_empty() and ship.get_child_count() == 0, "map retirement removes all occupants")
 	ship.queue_free()
@@ -116,7 +125,7 @@ func _run() -> void:
 	_check(hud.prompt_text == InputGlyphs.plain(tr("M10_USE_DEPARTURE")), "only physical server prompt offers confirmation")
 	hud.queue_free()
 	_check(StoryScene.exists("m10_arrival") and StoryScene.exists("l10_l11") and StoryScene.BEFORE_MISSION.get(MissionState.M10_ID) == "m10_arrival", "story uses established dismissal/readiness seam")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == 36 and preload("res://scripts/net_client.gd").GAMEPLAY_VERSION >= LocalMatch.M11_GAMEPLAY and LocalMatch.NEXT_MISSION == "terms_of_cooperation", "strict capability and honest pending M12")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == LocalMatch.M10_GAMEPLAY and preload("res://scripts/net_client.gd").GAMEPLAY_VERSION >= LocalMatch.MISSION_GAMEPLAY[MissionState.M12_ID] and LocalMatch.NEXT_MISSION == "weight_of_permission", "strict capability and honest pending M13")
 	await process_frame
 	await process_frame
 	if failures == 0:

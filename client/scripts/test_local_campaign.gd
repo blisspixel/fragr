@@ -247,6 +247,7 @@ func _run() -> void:
 	current_scene.queue_free()
 	await process_frame
 	await process_frame
+	_expect(await ClientRetirement.for_tree(self).drain(), "scene audio and pending skies retire before harness exit")
 	if failures == 0:
 		print("test_local_campaign: PASS")
 	quit(0 if failures == 0 else 1)

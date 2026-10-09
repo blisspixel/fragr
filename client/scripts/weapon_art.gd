@@ -25,6 +25,7 @@ const IDLE: Dictionary[String, Texture2D] = {
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_idle.png"),
 	"Sniper": preload("res://assets/weapons/sniper-sprite-20261005/sniper_idle.png"),
 	"Shiv": preload("res://assets/weapons/viewmodels/shiv_idle.png"),
+	"Arc": preload("res://assets/weapons/arc/arc_idle.png"),
 }
 
 ## The frame at the instant of the shot, its muzzle flash painted in. Each was
@@ -35,12 +36,18 @@ const FIRE: Dictionary[String, Texture2D] = {
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_fire.png"),
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_fire.png"),
 	"Sniper": preload("res://assets/weapons/sniper-sprite-20261005/sniper_fire.png"),
+	"Arc": preload("res://assets/weapons/arc/arc_fire.png"),
 }
 
 ## A follow-through after the shot: the Shotgun's pump stroke.
 const CYCLE: Dictionary[String, Texture2D] = {
 	"Scatter": preload("res://assets/weapons/viewmodels/shotgun_pump.png"),
+	"Arc": preload("res://assets/weapons/arc/arc_settle.png"),
 }
+
+## The Arc's left hand works its capacitor reset collar during the actual
+## magazine reload. Its receiver and wrists share the held pose canvas.
+const ARC_RELOAD: Texture2D = preload("res://assets/weapons/arc/arc_reload.png")
 
 ## Seconds the fire frame stays up, then when the cycle frame starts and ends.
 const FIRE_SECONDS: float = 0.08
@@ -77,6 +84,7 @@ const PROFILE: Dictionary[String, Texture2D] = {
 	"Rail": preload("res://assets/weapons/pickups/railgun.png"),
 	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper.png"),
 	"Shiv": preload("res://assets/weapons/48/shiv.png"),
+	"Arc": preload("res://assets/weapons/arc/arc_profile.png"),
 }
 
 ## Supplies by pickup kind, and ammunition by pool.
@@ -113,11 +121,27 @@ static func pickup_texture(kind: String, weapon: String, pool: String) -> Textur
 
 ## Which first-person frame a gun shows `since` seconds after its last shot.
 static func frame_after_shot(weapon: String, since: float) -> Texture2D:
+	if weapon == "Arc":
+		if since >= 0.0 and since < 0.055:
+			return FIRE[weapon]
+		if since >= 0.055 and since < 0.14:
+			return CYCLE[weapon]
+		return IDLE[weapon]
 	if since >= 0.0 and since < FIRE_SECONDS and FIRE.has(weapon):
 		return FIRE[weapon]
 	if since >= CYCLE_FROM and since < CYCLE_UNTIL and CYCLE.has(weapon):
 		return CYCLE[weapon]
 	return IDLE.get(weapon)
+
+## Only an authoritative unfinished Arc magazine reload selects this pose.
+## A local R press, another gun's reload, or an expired receipt cannot do so.
+static func reload_frame(weapon: String, state: Dictionary, tick: int) -> Texture2D:
+	if weapon != "Arc" or state.get("selected", "") != "arc":
+		return null
+	for magazine: Dictionary in state.get("loaded", []):
+		if magazine.get("weapon", "") == "arc" and int(magazine.get("ready_at", tick)) > tick:
+			return ARC_RELOAD
+	return null
 
 ## The face-on picture of a placed mine for a wire phase and whether its lamp
 ## is lit on this server tick: a steady amber lamp while arming, red when a

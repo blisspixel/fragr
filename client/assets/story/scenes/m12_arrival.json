@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "id": "m12_arrival",
+  "title_key": "MISSION_M12_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {
+      "id": "HABITAT",
+      "caption_key": "STORY_M12_ARRIVAL_LATE",
+      "timing": "reader",
+      "hold": 1
+    },
+    {
+      "id": "AID",
+      "caption_key": "STORY_M12_ARRIVAL_AID",
+      "timing": "reader",
+      "hold": 1
+    }
+  ]
+}

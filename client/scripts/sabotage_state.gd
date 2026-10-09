@@ -229,7 +229,7 @@ static func shows_carrier(viewer_team: String) -> bool:
 
 ## The corner line for a `sabotage` event, or empty when it is not for this
 ## viewer or not worth a line. Carrier moves are told only to the attack.
-static func event_line(data: Dictionary, viewer_team: String) -> String:
+static func event_line(data: Dictionary, viewer_team: String, layout: Dictionary = {}) -> String:
 	var kind: Variant = data.get("kind")
 	if not kind is String or not _one_of(EVENTS, kind):
 		return ""
@@ -240,8 +240,18 @@ static func event_line(data: Dictionary, viewer_team: String) -> String:
 	var site: Variant = data.get("site")
 	return _text("SABOTAGE_EVENT_" + str(kind).to_upper()).format({
 		"player": str(data.get("player", "")).to_upper(),
-		"site": _text("SABOTAGE_SITE_" + str(site).to_upper()) if _one_of(SITES, site) else "",
+		"site": site_name(str(site), layout) if _one_of(SITES, site) else "",
 	})
+
+## Site identity comes from the registered callout at the accepted plant centre.
+static func site_name(site_id: String, layout: Dictionary = {}) -> String:
+	for site: Dictionary in layout.get("sites", []):
+		if site.get("id") == site_id and _point(site.get("center"), 3):
+			var center: Array = site["center"]
+			var callout: String = callout_at(layout, float(center[0]), float(center[2]))
+			if callout in ["clinic_steps", "tram_stop"]:
+				return _text("SABOTAGE_SITE_" + callout.to_upper())
+	return _text("SABOTAGE_SITE_" + site_id.to_upper())
 
 
 ## The round card for a Sabotage `round_end`, or empty when malformed.

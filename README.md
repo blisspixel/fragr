@@ -21,21 +21,27 @@ Local play and self-hosting need no account or paid service.
 ## Play now
 
 Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
-The current source build has eleven connected development levels through Right
-of Search, mission-entry saves, finite ammunition and three continues per episode.
+The current source build has twelve connected development levels through Terms
+of Cooperation, mission-entry saves, finite ammunition and three continues per episode.
 Check the release notes for the contents of a downloaded package. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
 
+The remaining campaign levels, the Walker encounter and the ending are still
+to be built. Multiplayer needs further map refinement, human balance review,
+two-machine LAN evidence and measured network capacity. The current modes and
+missions are a playable foundation for that work.
+
 | Choose | What you can play | Start here |
 |---|---|---|
-| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior and custody tender | **Single Player > Recall Notice**, then **Continue Run** |
+| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior, custody tender and Martian habitat | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
-| Multiplayer | Host team deathmatch on six arenas, 5v5 plant/defuse on Sector 9 or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Host**, or enter a running server's address |
+| Multiplayer | Host team deathmatch, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Host**, or enter a running server's address |
 | Calibration | A separate arena challenge against named bots with the Host and objectives | `./tools/solo_scrap.sh` |
 
 Sabotage also has an optional 5v5 profile: start with a Pistol, find stronger
-weapons on the map, and carry surviving equipment between rounds.
+weapons on the map, and carry surviving equipment between rounds. Current source
+adds Low Water's Clinic Steps and Tram Stop sites, with human balance review ahead.
 [Host setup and rules](infra/docs/HOME-LAN.md#optional-5v5-sabotage) explain seats,
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
@@ -51,6 +57,29 @@ and Holdfast Atoll's five-site Conquest mode. The island remains a development
 blockout with further art, balance and human playtesting ahead. The
 [build order](docs/ROADMAP.md#full-build-order) records implementation and review
 gates, including human reloads, crouching and the remaining player tests.
+
+Current development adds [next-show controls](docs/HOSTING.md#join-tickets-and-access-lists)
+for a dedicated host and [local campaign best times](docs/PLAYING.md#solo-runs-and-local-records).
+Both extend existing matches and records; check release notes for package availability.
+
+Local development also adds two earned awards for saved solo play: completing
+Recall Notice and finding an authored secret. **Your callsign > Awards and
+Appearance** previews titles, an emblem and first-person gun finishes. Standard
+steel and oxide are available immediately. Awards and appearance survive failed
+runs; full-campaign rewards await the finished campaign.
+
+The connected Terms of Cooperation prototype adds the Arc, flying Assessor,
+shelter controls, vulnerable pumps and deliberate coalition departure.
+Three retained [standalone development maps](docs/PLAYING.md#standalone-development-maps)
+explore the habitat, foundry and launch works. Connected foundry progression,
+the Rocket Launcher, Walker and later campaign remain unfinished.
+
+Current source work also moves the selectable human and synthetic bodies and
+Tern to live animated meshes, reusing retained models. Splice uses an articulated
+mechanical body with further gait refinement ahead. Latch's screen expressions
+respond to movement, firing and ward release. Conquest bots coordinate
+captures and threatened-site defense. These development changes retain separate
+art, human play and release gates in the roadmap.
 
 The **Benchmark** page measures the current graphics preset or
 compares all three using the same recorded ten-bot fight. Results include average
@@ -73,7 +102,7 @@ Host a match or join a running server:
 
 A watched match:
 
-![A live watched fight with free human and synthetic participants](docs/screenshots/tour_combat_follow_16x9.png)
+![A live watched Arena Duel fight between rule bots](docs/screenshots/tour_combat_follow_16x9.png)
 
 ## Quick start
 

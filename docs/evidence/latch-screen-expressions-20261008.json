@@ -1,0 +1,667 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "scope": "Distinct screen expressions on the retained weighted Latch source and real pawn/ward presentation seams. Controlled accepted-state rendered fixtures, not an ordinary new damaged or shutdown outcome.",
+  "source_sha256": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
+  "engine_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+  "renderer": "gl_compatibility",
+  "device": "AMD Radeon(TM) 780M",
+  "focused_checks": [
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-fourth.log",
+      "pass": true,
+      "sha256": "73ce99eabcf7b4e61e39c3de8cc611237aa8fe80031031353a92ca24f6891bf6",
+      "clean": true
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_latch_source-second.log",
+      "pass": true,
+      "sha256": "fc47651cbcf98a7cb9d795398859c6000f171430984fc3d28253b2d8dc3c34a3",
+      "clean": true
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_latch_near_clip-first.log",
+      "pass": true,
+      "sha256": "3bdbc5039fa7653f2f3dd47e27954468203e5607cc8af996038a8dfc54a45ec0",
+      "clean": true
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_m02_ward-first.log",
+      "pass": true,
+      "sha256": "4a41de1621c8b1159364bf5cdda44f5680c24f239c4c782262fb451e2c7859ad",
+      "clean": true
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_m02_mission-first.log",
+      "pass": true,
+      "sha256": "075b3c5ee3314bbf1663db6948ed4b2fb129f3465c09a201862079e6bd92003b",
+      "clean": true
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_m02_tableau_bodies-first.log",
+      "pass": true,
+      "sha256": "6152ce0230fa9c8d44b54edd6b8208a5be253dd04cf1fbf89fe37a2aab52e0bf",
+      "clean": true
+    }
+  ],
+  "rendered_frames": 61,
+  "rendered_exit": 0,
+  "renderer_retired": true,
+  "public_originals": [
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/relaxed_close_neutral.png",
+      "sha256": "213d3a5576873b8927df26869379802e42fe488bd15a7fdfca0bf67feb8fb19a",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/relaxed_close_neutral.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/walking_close_neutral.png",
+      "sha256": "9d96d3b39b48594ed5ebcba6019485d69e4d6910d3dca5c619deea3eb75c6464",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/walking_close_neutral.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/focused_close_dim.png",
+      "sha256": "7ab4f48b949db870e1965e6bc01d5ad0818f2dabbf098dd9e53fade567de8190",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/focused_close_dim.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/concerned_close_neutral.png",
+      "sha256": "81eebba45ec408ea6c7388ad5e813d5ae3274b00470886b8ecf926ae590a55fa",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/concerned_close_neutral.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/hopeful_close_neutral.png",
+      "sha256": "4569ae323339720ef8fb8eda5fe44f5f83773f56982f217b9bc20ef9c8bbf3e8",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/hopeful_close_neutral.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/reassured_close_dim.png",
+      "sha256": "0c84da9a3aad52909cab6a787c702ff5cad3e8e40d1c6e26e5eccfaecb9d6120",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/reassured_close_dim.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/wince_close_neutral.png",
+      "sha256": "ca645192d2aa927d1c8d179144a7aff09e03c61ca55e908fbed838e5a592f3dd",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/wince_close_neutral.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/blink_00.png",
+      "sha256": "fac17be221499da78ca9de7bddf594df0fcb3eb0c5af8502de595eeb3dcb57ef",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/blink_00.png"
+    },
+    {
+      "public": "docs/evidence/latch-screen-expressions-20261008/motion_04.png",
+      "sha256": "a92fc095dc70a292d1cdcc80424a8e2f1113897667ef375bc3ee6059632a822d",
+      "original": ".agents/latch-screen-expressions-20261008/preview-first/motion_04.png"
+    }
+  ],
+  "inspection": {
+    "selected": [
+      "relaxed_close_neutral",
+      "concerned_close_neutral",
+      "hopeful_close_neutral",
+      "reassured_close_dim",
+      "focused_close_dim",
+      "wince_close_neutral",
+      "walking_body_neutral",
+      "blink_00",
+      "blink_03",
+      "motion_04",
+      "motion_10",
+      "motion_23",
+      "near_120",
+      "near_080"
+    ],
+    "scope": "Selected original full-size views; no claim that every retained image was independently inspected.",
+    "findings": [
+      "Distinct soft cyan personal expressions remain inside the actual screen recess.",
+      "Blink reopens without compressing the mouth.",
+      "Actual sampled walking-head tilt retains fitted face attachment.",
+      "Live near-camera material fades the source and optics coherently.",
+      "The motion window ends at the wince boundary. Expiry is established by the focused transition check, not a post-expiry rendered frame."
+    ]
+  },
+  "limitations": [
+    "Companions are currently immune to incoming attacks; the rendered HP-drop fixture is synthetic supported positive ingress.",
+    "No shutdown or death companion state exists in the accepted client boundary.",
+    "No source mesh, source maps, server state, wire contract or paid API was changed.",
+    "Whole-client/package composition and final human art acceptance remain separate."
+  ],
+  "bindings": [
+    {
+      "path": ".agents/latch-screen-expressions-20261008/before/bindings.json",
+      "sha256": "82981ea94916175fbe3f6a28ec6b337a08698a629af58678de8369ff326b0e80",
+      "bytes": 1012
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/before/latch_view.gd",
+      "sha256": "e3b494b252f312dcd80331d16e6aace5d65aaab4d6b75d2cd4de7f4cab64bfcc",
+      "bytes": 9633
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/before/m02_ward.gd",
+      "sha256": "bd65a56a31ba1fc28b6ee3fcfd6488d84c72dc4f5db34c6cecb92e81f06ef39c",
+      "bytes": 23956
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/before/player_pawn.gd",
+      "sha256": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f",
+      "bytes": 38580
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/before/test_latch_source.gd",
+      "sha256": "a3eab59cbaa2edc0b4b78eba7746bd03d253a1d94176dc7d3c11860a55d2f002",
+      "bytes": 15883
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/focused-checks.json",
+      "sha256": "1935e6ed9c4fa829736367d087b1016f3e240d62822343a1a92195ba06dbc460",
+      "bytes": 1311
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/import-first.log",
+      "sha256": "bd17c17233b61f3ab789418dc9dad845d1821324f14a72f676603a9310ed8071",
+      "bytes": 2229
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-face.gd",
+      "sha256": "111bfc27e3236372ee92b3597d4e95940084ba1bccc7b7ff2570d4a0fd92d124",
+      "bytes": 5608
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_00.png",
+      "sha256": "fac17be221499da78ca9de7bddf594df0fcb3eb0c5af8502de595eeb3dcb57ef",
+      "bytes": 203523
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_01.png",
+      "sha256": "fac17be221499da78ca9de7bddf594df0fcb3eb0c5af8502de595eeb3dcb57ef",
+      "bytes": 203523
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_02.png",
+      "sha256": "fac17be221499da78ca9de7bddf594df0fcb3eb0c5af8502de595eeb3dcb57ef",
+      "bytes": 203523
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_03.png",
+      "sha256": "72598a6c9d62784ecb3e0da964855c14349a844f7728d9870323dc3cb07540d3",
+      "bytes": 202729
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_04.png",
+      "sha256": "72598a6c9d62784ecb3e0da964855c14349a844f7728d9870323dc3cb07540d3",
+      "bytes": 202729
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_05.png",
+      "sha256": "72598a6c9d62784ecb3e0da964855c14349a844f7728d9870323dc3cb07540d3",
+      "bytes": 202729
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/client-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/client.log",
+      "sha256": "4f0363c76c5a070ad68d8946ca9b97a50aa0e3887b0508794a9473f894330700",
+      "bytes": 255
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/concerned_body_dim.png",
+      "sha256": "d29501f2e9b556570e409319ba66eed0ae35a0f73ddffe2fb8eba839ebef7ad1",
+      "bytes": 108534
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/concerned_body_neutral.png",
+      "sha256": "a2f309499392864df9c47dfd8483617efd4c2a6f3192f89db8174ba926bd06f3",
+      "bytes": 125781
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/concerned_close_dim.png",
+      "sha256": "50ca220ccb0e6e2549ac88224da073b9bce9b06c04fcff559c8bb873b513943f",
+      "bytes": 181000
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/concerned_close_neutral.png",
+      "sha256": "81eebba45ec408ea6c7388ad5e813d5ae3274b00470886b8ecf926ae590a55fa",
+      "bytes": 215903
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/focused_body_dim.png",
+      "sha256": "aa15246be35883fea196b26146a82f655a44645074d03ddd9a020f8396875597",
+      "bytes": 105455
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/focused_body_neutral.png",
+      "sha256": "753c3aead89d0ff8c6c36e88a472a954159cb6c4d521b87c4e38d7bdfb4f45dd",
+      "bytes": 122256
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/focused_close_dim.png",
+      "sha256": "7ab4f48b949db870e1965e6bc01d5ad0818f2dabbf098dd9e53fade567de8190",
+      "bytes": 175712
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/focused_close_neutral.png",
+      "sha256": "a99092b9ff9bc42aa688ec66950db6026ac8b0af861fee90175a55ddcacc71b3",
+      "bytes": 208322
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/hopeful_body_dim.png",
+      "sha256": "3b968b4fd628f25f98aeae5d8a7b81cfe98f13a3ce744c31eb47e59d82005c4b",
+      "bytes": 108478
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/hopeful_body_neutral.png",
+      "sha256": "db0402a6ef10994166488e943cc839cd4ad7130f5597a4a46fe89c509448e1ae",
+      "bytes": 125699
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/hopeful_close_dim.png",
+      "sha256": "8539b7dc7c0cfde05d60a8bfef25897dd579c7d755695271eef8d34176f0e36a",
+      "bytes": 180707
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/hopeful_close_neutral.png",
+      "sha256": "4569ae323339720ef8fb8eda5fe44f5f83773f56982f217b9bc20ef9c8bbf3e8",
+      "bytes": 215672
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/latch_face.gd",
+      "sha256": "dbae2a83d4414c8f67fc78fef5cf07d839a5767b2d1b96b18193248018436166",
+      "bytes": 4909
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/latch_source.gd",
+      "sha256": "8ffdb3ed25c36cf84f95fcae4e86d5adeea36f5e82ba2d7868963e7a478df816",
+      "bytes": 5793
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/latch_view.gd",
+      "sha256": "334d7202d9eca643fd594996ac318bf39011b1ab36b581e397332c1c447a8378",
+      "bytes": 9514
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/latch-screen-expressions-20261008.md",
+      "sha256": "ab8b328fcf348f603c3360a39d33c151afe803a569dd88bf1dac372138e63752",
+      "bytes": 2429
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/m02_ward.gd",
+      "sha256": "0f3ca0fb664b91adcb8a8d534f555a321b86b0f533513ca8b00b866460ed9cb4",
+      "bytes": 23994
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/player_pawn.gd",
+      "sha256": "dc320d1d230361b7e76526e9fbce5cbdbc34d486a56ce24a3d27026323629243",
+      "bytes": 38636
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/preview-face.gd",
+      "sha256": "111bfc27e3236372ee92b3597d4e95940084ba1bccc7b7ff2570d4a0fd92d124",
+      "bytes": 5608
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/test_latch_face.gd",
+      "sha256": "7223bca6219fc89f6d04ed6f6fba814881d2b9129b2627f975172b10fd44467e",
+      "bytes": 8392
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/loaded-source/test_latch_source.gd",
+      "sha256": "3d1d17af8645507764ffefe1f212d62fc69147b5ee43fc084569504da1db35d6",
+      "bytes": 15984
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_00.png",
+      "sha256": "5c5929036909c517324b2c091826298cc254460626fb158eff2b0b9cc2e62700",
+      "bytes": 185393
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_01.png",
+      "sha256": "577b44cb0fff98e30b3b7c6f3b96c2f9a9e63652a87a299ee5069a1bfd579f7a",
+      "bytes": 167583
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_02.png",
+      "sha256": "b50a882cc483061d2d7d68f4a32f4118bfd60289525d63b1bbf169db9e809967",
+      "bytes": 156999
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_03.png",
+      "sha256": "e5b416e65975a36dbd07d555c132ee43bcf1563a5a2d1991b0697ce53d27e0fb",
+      "bytes": 158911
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_04.png",
+      "sha256": "a92fc095dc70a292d1cdcc80424a8e2f1113897667ef375bc3ee6059632a822d",
+      "bytes": 182442
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_05.png",
+      "sha256": "be7a98cccd7ccfb9e7a17fd155e1ae546e251a8835a30bb4d591b1bce8a12997",
+      "bytes": 191481
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_06.png",
+      "sha256": "ede4bdeacee7776a8c868ad1284093a914212956545331e2c750c3555b9bcd7c",
+      "bytes": 183604
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_07.png",
+      "sha256": "e92a49074cf7951bbb46b0eba4391d173b498a7b4bbf2fc1329a312cc4e1d3d9",
+      "bytes": 163675
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_08.png",
+      "sha256": "580e2e0c235974566cc53817357636adfe5346161c62b3dc3a00976c5c8a7c1f",
+      "bytes": 149966
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_09.png",
+      "sha256": "f643e3bef8e45bf00c30b9278bb2b6c475ed515d80405b77cb6e13ea84ef2713",
+      "bytes": 155903
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_10.png",
+      "sha256": "865217f0d6fa21a2d206bb8edcbc403ee7a919d2bcc380d2e11a209bcc32d0cc",
+      "bytes": 182308
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_11.png",
+      "sha256": "013b5fda0c9a63f020bdcc791a0d1fe4960c64e8133f504285cb77cde5f3046e",
+      "bytes": 205944
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_12.png",
+      "sha256": "15dd1f23740f70df74815322914791729269df097ac6b7eda12b3b264327f278",
+      "bytes": 216486
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_13.png",
+      "sha256": "74344437dcdfd5ff6d4e1257a830570188e4d0c8f8c42690906f525ffc672c39",
+      "bytes": 189035
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_14.png",
+      "sha256": "348701d86adb7b000640295816b31eaccc4f64254041cdf1a36f07f0b551cf5c",
+      "bytes": 168425
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_15.png",
+      "sha256": "29395695897a31a0bbf9eada0da0d30da5072be609e3fa25197db5fe4f70fffc",
+      "bytes": 159374
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_16.png",
+      "sha256": "0460032d8e36a2d0d1f375e33033fff10cbb04ef1facc9580221591f0f16aa95",
+      "bytes": 158764
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_17.png",
+      "sha256": "90816f6fabb18f3f1cee11df88b442308a4d500f24d8248ec91297556bca5ab1",
+      "bytes": 181586
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_18.png",
+      "sha256": "961fb2b6c90269f3ff8f35a5d6c10eef03d5369a2b098a86ce445c85b4ea1b45",
+      "bytes": 203414
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_19.png",
+      "sha256": "961fb2b6c90269f3ff8f35a5d6c10eef03d5369a2b098a86ce445c85b4ea1b45",
+      "bytes": 203414
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_20.png",
+      "sha256": "961fb2b6c90269f3ff8f35a5d6c10eef03d5369a2b098a86ce445c85b4ea1b45",
+      "bytes": 203414
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_21.png",
+      "sha256": "961fb2b6c90269f3ff8f35a5d6c10eef03d5369a2b098a86ce445c85b4ea1b45",
+      "bytes": 203414
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_22.png",
+      "sha256": "961fb2b6c90269f3ff8f35a5d6c10eef03d5369a2b098a86ce445c85b4ea1b45",
+      "bytes": 203414
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_23.png",
+      "sha256": "961fb2b6c90269f3ff8f35a5d6c10eef03d5369a2b098a86ce445c85b4ea1b45",
+      "bytes": 203414
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/near_080.png",
+      "sha256": "f60b4b25a6845633bb333f238dee1393c1238f16e11c38dc926fa5a591955b7e",
+      "bytes": 5325
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/near_120.png",
+      "sha256": "6b7735000f2da9da29b2f1cbee47ad5314991de79691d4a29e4f6b3a2700120a",
+      "bytes": 363292
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/near_165.png",
+      "sha256": "e086e5e2d27557cdc85f448f1bdf8232afa1d49b0008ace43a2d00d3de164ad7",
+      "bytes": 204762
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/preview.json",
+      "sha256": "3e72781f1c7332756b90b24440e5d8011662645164ae55d0391e8b286f3cbbac",
+      "bytes": 33355
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/process.json",
+      "sha256": "484e9324d426c12202db3a82d861ff1e2e468ca96d5818acf5dd19f208e85958",
+      "bytes": 3194
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/reassured_body_dim.png",
+      "sha256": "1cf302673876f7db55ff2821e7a093efc5260b907d75253b8ef850c41bce2f88",
+      "bytes": 102811
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/reassured_body_neutral.png",
+      "sha256": "b0068b64217dbe53c78f78d08b250530e27cdfcc236476b1c23d26bae9ab0db2",
+      "bytes": 118535
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/reassured_close_dim.png",
+      "sha256": "0c84da9a3aad52909cab6a787c702ff5cad3e8e40d1c6e26e5eccfaecb9d6120",
+      "bytes": 179248
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/reassured_close_neutral.png",
+      "sha256": "8d80546f94ee534ac667978bffb9b16cf9ff328c8065d24d04f9c89257276aeb",
+      "bytes": 213660
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/relaxed_body_dim.png",
+      "sha256": "1f8b29e169629a7fbfb1dfa297d5af8286b08d103ee548eb6238b2dc110e69fa",
+      "bytes": 105269
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/relaxed_body_neutral.png",
+      "sha256": "97ae4ee9216cacaa3b7b4fc1cc74952d25945592d765d3ebfef426ae807cde39",
+      "bytes": 121836
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/relaxed_close_dim.png",
+      "sha256": "14d4cb91e36f41e003562f6596ec04258b4312d47fea60f53fb2bb1943dcb4c6",
+      "bytes": 177438
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/relaxed_close_neutral.png",
+      "sha256": "213d3a5576873b8927df26869379802e42fe488bd15a7fdfca0bf67feb8fb19a",
+      "bytes": 209346
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/walking_body_dim.png",
+      "sha256": "565f2cd4a328ba3c8c49d372c5997cbc862682fd96684d832b427b753dbcddef",
+      "bytes": 101199
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/walking_body_neutral.png",
+      "sha256": "60052dc7cc9c72e84413df984f0423a29307a5755f2162fd64e3242d021ea66e",
+      "bytes": 117393
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/walking_close_dim.png",
+      "sha256": "74929efb7fdee9a937e5cb876320fed4bd1541808ce110092d26c77a9061b473",
+      "bytes": 186237
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/walking_close_neutral.png",
+      "sha256": "9d96d3b39b48594ed5ebcba6019485d69e4d6910d3dca5c619deea3eb75c6464",
+      "bytes": 225940
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/wince_body_dim.png",
+      "sha256": "cea6a03b3ad432f8d6134dbd79645d5473f295450bf189ca2e9e627ed0481696",
+      "bytes": 105308
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/wince_body_neutral.png",
+      "sha256": "2ceec6114dfa4cfbcc7b1a1bfcbbd5a18703fdb774334dfb84e6df634b0188cc",
+      "bytes": 121935
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/wince_close_dim.png",
+      "sha256": "0cf72234ee8a276e488f6d8f6401913108688efca451905c178fd6b35b047306",
+      "bytes": 178186
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/wince_close_neutral.png",
+      "sha256": "ca645192d2aa927d1c8d179144a7aff09e03c61ca55e908fbed838e5a592f3dd",
+      "bytes": 210133
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-parse-first.log",
+      "sha256": "83cf0b082206af2aa236c83064fbcfa76be1e00a4aa3558574b2f65965d9481c",
+      "bytes": 75
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/run-preview.ps1",
+      "sha256": "21b02415fcc805875d8bcde89689746ca555405a7f8dc8d77cb174b3ca7bab62",
+      "bytes": 4230
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/selected-source/latch_stylized.glb",
+      "sha256": "8b1ec57399ec51a70617a42c9777a04347170d5ddf78dc54b67649b3f6992951",
+      "bytes": 6681572
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_latch_near_clip-first.log",
+      "sha256": "3bdbc5039fa7653f2f3dd47e27954468203e5607cc8af996038a8dfc54a45ec0",
+      "bytes": 184
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_latch_source-first.log",
+      "sha256": "788c4b263747528d319bd1dfba7be974c32275086f3360c78affe4ca0a78659f",
+      "bytes": 374
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_latch_source-second.log",
+      "sha256": "fc47651cbcf98a7cb9d795398859c6000f171430984fc3d28253b2d8dc3c34a3",
+      "bytes": 177
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_m02_mission-first.log",
+      "sha256": "075b3c5ee3314bbf1663db6948ed4b2fb129f3465c09a201862079e6bd92003b",
+      "bytes": 181
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_m02_tableau_bodies-first.log",
+      "sha256": "6152ce0230fa9c8d44b54edd6b8208a5be253dd04cf1fbf89fe37a2aab52e0bf",
+      "bytes": 203
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test_m02_ward-first.log",
+      "sha256": "4a41de1621c8b1159364bf5cdda44f5680c24f239c4c782262fb451e2c7859ad",
+      "bytes": 180
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-first-source.gd",
+      "sha256": "846d93a8a904f226f8b0e441b34d1a9f89197e477f6b9a11afe222e8101edc1e",
+      "bytes": 6697
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-first.log",
+      "sha256": "d0bd3a9631a7f4e1d5a955b44d1d46d51c885be18c32cf3285b63217568256c6",
+      "bytes": 475
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-fourth.log",
+      "sha256": "73ce99eabcf7b4e61e39c3de8cc611237aa8fe80031031353a92ca24f6891bf6",
+      "bytes": 194
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-second-source.gd",
+      "sha256": "fe12edeebb206fb1da9a8b665cd91ac9ec4be65d828c5a0ef9b942e9f0b71418",
+      "bytes": 6847
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-second.log",
+      "sha256": "8741baef8951a4f544864d4cd37a9af606bf356698b2dc89426b92568f753d86",
+      "bytes": 475
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-face-third.log",
+      "sha256": "73ce99eabcf7b4e61e39c3de8cc611237aa8fe80031031353a92ca24f6891bf6",
+      "bytes": 194
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/test-latch-source-first-source.gd",
+      "sha256": "c91dade0b3841ff46244a824630ce6351058e8c1d1dded3942e59b4027739afa",
+      "bytes": 15970
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/blink_00.png",
+      "sha256": "fac17be221499da78ca9de7bddf594df0fcb3eb0c5af8502de595eeb3dcb57ef",
+      "bytes": 203523
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/concerned_close_neutral.png",
+      "sha256": "81eebba45ec408ea6c7388ad5e813d5ae3274b00470886b8ecf926ae590a55fa",
+      "bytes": 215903
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/focused_close_dim.png",
+      "sha256": "7ab4f48b949db870e1965e6bc01d5ad0818f2dabbf098dd9e53fade567de8190",
+      "bytes": 175712
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/hopeful_close_neutral.png",
+      "sha256": "4569ae323339720ef8fb8eda5fe44f5f83773f56982f217b9bc20ef9c8bbf3e8",
+      "bytes": 215672
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/motion_04.png",
+      "sha256": "a92fc095dc70a292d1cdcc80424a8e2f1113897667ef375bc3ee6059632a822d",
+      "bytes": 182442
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/reassured_close_dim.png",
+      "sha256": "0c84da9a3aad52909cab6a787c702ff5cad3e8e40d1c6e26e5eccfaecb9d6120",
+      "bytes": 179248
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/relaxed_close_neutral.png",
+      "sha256": "213d3a5576873b8927df26869379802e42fe488bd15a7fdfca0bf67feb8fb19a",
+      "bytes": 209346
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/walking_close_neutral.png",
+      "sha256": "9d96d3b39b48594ed5ebcba6019485d69e4d6910d3dca5c619deea3eb75c6464",
+      "bytes": 225940
+    },
+    {
+      "path": "docs/evidence/latch-screen-expressions-20261008/wince_close_neutral.png",
+      "sha256": "ca645192d2aa927d1c8d179144a7aff09e03c61ca55e908fbed838e5a592f3dd",
+      "bytes": 210133
+    }
+  ]
+}

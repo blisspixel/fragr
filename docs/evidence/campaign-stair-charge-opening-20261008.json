@@ -1,0 +1,365 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "in flight",
+  "cash_spend_usd": 0,
+  "scope": "Correct the real M09 charge/descent regression caused by the first stair enclosure; retain the enclosed flight and actual mission challenge",
+  "earlier_source_evidence": {
+    "path": "docs/evidence/campaign-stair-enclosures-20261008.json",
+    "sha256": "36fd24ea2045aeb7c0982e9d94833f4109417db61a5b1633adf380e9ac6ddb67",
+    "m09_sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+    "retained_as_historical": true
+  },
+  "maps": [
+    {
+      "stage": 8,
+      "path": "server/maps/m08_custodian_of_record.json",
+      "sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864"
+    },
+    {
+      "stage": 9,
+      "path": "server/maps/m09_passenger_manifest.json",
+      "sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85"
+    },
+    {
+      "stage": 10,
+      "path": "server/maps/m10_common_carrier.json",
+      "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557"
+    },
+    {
+      "stage": 12,
+      "path": "server/maps/m12-terms-of-cooperation.json",
+      "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431"
+    }
+  ],
+  "m09": {
+    "original_solids": 132,
+    "added_solids": 7,
+    "original_prefix_and_non_solid_semantics_preserved": true,
+    "opening_z": [
+      -32.5,
+      -29.5
+    ],
+    "opening_width_m": 3,
+    "charge_axis_z": -31,
+    "guarded_control_z": -33.5,
+    "original_sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381",
+    "intermediate_sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+    "successor_sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+    "exact_original_and_intermediate_migration_pairs_prepared": true
+  },
+  "actual_causal_actor_checks": {
+    "passed": 7,
+    "original": {
+      "feet": [
+        -17.400005,
+        0.9749994,
+        -31
+      ],
+      "hp": 0,
+      "charge_falls": 1
+    },
+    "continuous_guard": {
+      "feet": [
+        -19.06602,
+        4,
+        -27.50438
+      ],
+      "hp": 140,
+      "charge_falls": 0
+    },
+    "corrected_opening": {
+      "feet": [
+        -17.400005,
+        0.9749994,
+        -31
+      ],
+      "hp": 0,
+      "charge_falls": 1
+    },
+    "zero_player_frags_and_no_double_count": true
+  },
+  "focused_native": {
+    "candidate_stair_cases_passed": 10,
+    "canonical_stair_cases_passed": 10,
+    "both_hatch_worlds": true,
+    "opening_passage_and_clear_ray": true,
+    "adjacent_guard_refusal_and_cover": true,
+    "all_prior_stair_controls_retained": true
+  },
+  "source_render": {
+    "states": 6,
+    "width": 1280,
+    "height": 720,
+    "device": "AMD Radeon(TM) 780M",
+    "renderer": "gl_compatibility",
+    "all_supported_standing_poses": true,
+    "numeric_exit": 0,
+    "clean_logs": true,
+    "renderer_retired": true,
+    "landing_pair_and_enclosed_stair_top_inspected": true,
+    "ordinary_socket_play": false,
+    "states_binding": [
+      {
+        "eye_height": 1.6,
+        "feet": [
+          -20.0,
+          4.0,
+          -31.0
+        ],
+        "file": "m09_charge_transfer_landing_continuous_guard.png",
+        "height": 720,
+        "look_at": [
+          -16.0,
+          2.8,
+          -31.0
+        ],
+        "mode": "continuous_guard",
+        "sha256": "a330ef5f458e5c9d9cd8f13c3fffa1ebc1ea3958962a2520a06a36b4603025ca",
+        "source": "res://../.agents/stair-architecture-20261008/m09-stair-candidate.json",
+        "source_sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+        "stage": 9,
+        "supported_standing_pose": true,
+        "view": "charge_transfer_landing",
+        "width": 1280
+      },
+      {
+        "eye_height": 1.6,
+        "feet": [
+          -15.5,
+          0.0,
+          -31.0
+        ],
+        "file": "m09_charge_transfer_lower_continuous_guard.png",
+        "height": 720,
+        "look_at": [
+          -19.0,
+          5.0,
+          -31.0
+        ],
+        "mode": "continuous_guard",
+        "sha256": "34a385b63343ef734e8eebb10e0c6260cb3facb4e769989219034d2212a715b0",
+        "source": "res://../.agents/stair-architecture-20261008/m09-stair-candidate.json",
+        "source_sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+        "stage": 9,
+        "supported_standing_pose": true,
+        "view": "charge_transfer_lower",
+        "width": 1280
+      },
+      {
+        "eye_height": 1.6,
+        "feet": [
+          -41.0,
+          4.0,
+          -26.5
+        ],
+        "file": "m09_enclosed_office_stair_top_continuous_guard.png",
+        "height": 720,
+        "look_at": [
+          -41.0,
+          0.5,
+          -35.8
+        ],
+        "mode": "continuous_guard",
+        "sha256": "2ff84afd1d8fda28ef18cd23805b1eca9389a0271eb98f132189b6a989be66ba",
+        "source": "res://../.agents/stair-architecture-20261008/m09-stair-candidate.json",
+        "source_sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+        "stage": 9,
+        "supported_standing_pose": true,
+        "view": "enclosed_office_stair_top",
+        "width": 1280
+      },
+      {
+        "eye_height": 1.6,
+        "feet": [
+          -20.0,
+          4.0,
+          -31.0
+        ],
+        "file": "m09_charge_transfer_landing_charge_opening.png",
+        "height": 720,
+        "look_at": [
+          -16.0,
+          2.8,
+          -31.0
+        ],
+        "mode": "charge_opening",
+        "sha256": "46bd37103bf3a51fc176bbdfaad5ad6ec7e53ae03f4b2c838acff11961caee9a",
+        "source": "res://../.agents/stair-architecture-20261008/m09-charge-opening-candidate.json",
+        "source_sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+        "stage": 9,
+        "supported_standing_pose": true,
+        "view": "charge_transfer_landing",
+        "width": 1280
+      },
+      {
+        "eye_height": 1.6,
+        "feet": [
+          -15.5,
+          0.0,
+          -31.0
+        ],
+        "file": "m09_charge_transfer_lower_charge_opening.png",
+        "height": 720,
+        "look_at": [
+          -19.0,
+          5.0,
+          -31.0
+        ],
+        "mode": "charge_opening",
+        "sha256": "11caed4a4f15f4585596553c4d9364b7d586877c61bbd870c21154777d59d97b",
+        "source": "res://../.agents/stair-architecture-20261008/m09-charge-opening-candidate.json",
+        "source_sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+        "stage": 9,
+        "supported_standing_pose": true,
+        "view": "charge_transfer_lower",
+        "width": 1280
+      },
+      {
+        "eye_height": 1.6,
+        "feet": [
+          -41.0,
+          4.0,
+          -26.5
+        ],
+        "file": "m09_enclosed_office_stair_top_charge_opening.png",
+        "height": 720,
+        "look_at": [
+          -41.0,
+          0.5,
+          -35.8
+        ],
+        "mode": "charge_opening",
+        "sha256": "1e83fd4f99764077789772e58549d02ba951552c1d2e148a5c65d8650927e685",
+        "source": "res://../.agents/stair-architecture-20261008/m09-charge-opening-candidate.json",
+        "source_sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+        "stage": 9,
+        "supported_standing_pose": true,
+        "view": "enclosed_office_stair_top",
+        "width": 1280
+      }
+    ]
+  },
+  "exact_offline_reproductions": 2,
+  "ordinary_route_preparation": [
+    {
+      "stage": 8,
+      "baseline_route": "client/qa/m08_custodian_of_record.json",
+      "baseline_route_sha256": "72d0db1bb22f2c14d58abb6f5d338c4ea096bc36834ae0b183f4a56abb7040ef",
+      "capture_route": ".agents/stair-architecture-20261008/ordinary-routes/m08-stair-ordinary.json",
+      "capture_route_sha256": "23ee1762e7c41f7bf62d531ed77dea572bd7fc854d8166692303d061fbe9cf13",
+      "states": 37,
+      "source_sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864"
+    },
+    {
+      "stage": 9,
+      "baseline_route": "client/qa/m09_passenger_manifest.json",
+      "baseline_route_sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a",
+      "capture_route": ".agents/stair-architecture-20261008/ordinary-routes/m09-stair-ordinary.json",
+      "capture_route_sha256": "30ea3660485227613e0c6c5d9572dd5d241d915c2b6f21961840b49e5935723b",
+      "states": 30,
+      "source_sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85"
+    },
+    {
+      "stage": 10,
+      "baseline_route": "client/qa/m10_common_carrier.json",
+      "baseline_route_sha256": "9dc5912487dd1455b52a2c32fde74ccd44e36455f1a3679bb9f89c38fc970b9f",
+      "capture_route": ".agents/stair-architecture-20261008/ordinary-routes/m10-stair-ordinary.json",
+      "capture_route_sha256": "874f864ed542895b6c476fc113ce5eebd4e8b8ebbe183d70aa6b8f9134ddc3cd",
+      "states": 30,
+      "source_sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557"
+    }
+  ],
+  "source_bindings": [
+    {
+      "path": "tools/author_campaign_stairs.gd",
+      "sha256": "021fc9309afcf238cc1850e60f7dd0753e0c0a288407e6694cff143656867447"
+    },
+    {
+      "path": "server/tests/campaign_stairs.rs",
+      "sha256": "8bd2370cc684d99c2b4370ee91e261dc031bdfec78360e8a9d84867e0fd0df73"
+    },
+    {
+      "path": "server/src/tests/m09.rs",
+      "sha256": "f89f210c47f246b73a85bd291ce9a53a6d398e1ae8a801a643677b2ca61d1ef4"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/campaign_stairs-charge-opening-candidate-provider.rs",
+      "sha256": "a88bd9a20ee9436b913b281a5562e5a4e7d80e66569bd7427a4ef116e4f1cfb3"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/campaign_stairs-charge-opening-canonical-provider.rs",
+      "sha256": "8bd2370cc684d99c2b4370ee91e261dc031bdfec78360e8a9d84867e0fd0df73"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m09-candidate-provider-causal-tests.rs",
+      "sha256": "9035242ced1200fb49f0a9f2f817408427ed316cff378be2cae2af1e9ff02fe7"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/author_campaign_stairs-before-charge-opening.gd",
+      "sha256": "b1f41b54a7e863143127481516cf7c307613fc0db91f11eb554da70d2d5c999d"
+    },
+    {
+      "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest.json",
+      "sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381"
+    },
+    {
+      "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest_enclosed.json",
+      "sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397"
+    }
+  ],
+  "receipt_bindings": [
+    {
+      "path": ".agents/stair-architecture-20261008/m09-charge-causal-candidate-first.log",
+      "sha256": "aceebd6b0793560b5d3f8d9a8b1662409a502b7367d0e555ae4543f8764a5229"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/native-charge-opening-candidate-first.log",
+      "sha256": "c42ce081981e63a3d29d25045267f7b48e37a87a380465cb16965556629ef4c0"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/native-charge-opening-canonical-first.log",
+      "sha256": "5adb3b6dd1b32799cef898bd749e2277272965fa661e71a5456bb386fbfe7027"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m09-charge-opening-install.json",
+      "sha256": "a75dca0af8ec04a60cb70d199a1cdfce5e5925781b6b4c3a226fd5b79e532ccf"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m09-charge-opening-preview-first/review.json",
+      "sha256": "f83a97347191b81446a6a36ad82bc17e87d6dcfaf9aa9ef61a9cd2bcd23ea38d"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m09-charge-opening-preview-first/process.json",
+      "sha256": "54f719235416f08e786ffa2818d73a1b46e8d79b55bafafcbc9e6af4cf10ad17"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/recipe-charge-opening-first/process.json",
+      "sha256": "a1f0984aa1e817a2b84c7bb0e0219ba334be0fc6ed908adb891c1c51c4cca542"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/recipe-charge-opening-second/process.json",
+      "sha256": "292a78250906884a10a7e6c5266b48fa31615a06380508d8de7736c911e33e9f"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-routes-charge-opening-preflight-first/process.json",
+      "sha256": "741289d3780b64f87e6de556ebc5a4ef5c23843d59336a39ae90d0af2c51edaa"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-routes/prepared-charge-opening.json",
+      "sha256": "ea0de86da192610aee3863220045330e32faeb6bb97b333476af6c3bac52ed98"
+    }
+  ],
+  "pending": [
+    "Final exact original/intermediate save-store and owned-child checks on installed3197",
+    "Full composed native/client gates and final release hash",
+    "Actual M08/M09/M10 ordinary rendered capture routes on the final composition",
+    "Human architecture and difficulty acceptance"
+  ],
+  "receipt_generation": {
+    "corrected": true,
+    "rejected_first_generation": ".agents/stair-architecture-20261008/charge-opening-receipt-generation-first-rejected.json",
+    "reason": "Integer indexing on an ordered dictionary returned missing map names; corrected explicit stage records and reverified every source/receipt binding",
+    "native_or_renderer_failure": false
+  }
+}

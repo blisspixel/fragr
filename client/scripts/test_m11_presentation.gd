@@ -27,7 +27,7 @@ static func fixture_map() -> Dictionary:
 			"companion_start": [-4, 0, 0], "transfer_people": [[3, 0, 0], [5, 0, 0], [7, 0, 0]]}}
 
 static func fixture_state(info: Dictionary) -> Dictionary:
-	return {"type": "mission", "tick": 50, "state": {"id": MissionState.M11_ID, "rules": {"difficulty": "standard", "revision": 3}, "attempt": 1,
+	return {"type": "mission", "tick": 50, "state": {"id": MissionState.M11_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "attempt": 1,
 		"phase": "in_progress", "changed_at": 10, "party": [{"id": PLAYER, "name": "Tender visitor", "ready": true, "alive": true, "aboard": false}], "prompts": [],
 		"m11": {"completed": [], "current": info["m11"]["objectives"][0].duplicate(true), "challenges": {"transfer_released": false, "records_read": false, "counter_boarder_blast_kills": 0}}}}
 
@@ -82,7 +82,7 @@ func _run() -> void:
 	_check(FileAccess.get_sha256("res://assets/characters/union/redactor.png") == receipt["sha256"], "Redactor atlas binds bake receipt")
 	_check(FileAccess.get_sha256("res://assets/characters/union/redactor_normals.png") == receipt["normals_sha256"], "Redactor normals bind the same poses")
 	_check(EnemyView.atlas_path("redactor").ends_with("/redactor.png"), "Redactor never borrows another enemy silhouette")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M11_ID) == 38 and StoryScene.exists("m11_arrival"), "capability and story handoff are registered")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M11_ID) == LocalMatch.M11_GAMEPLAY and LocalMatch.M11_GAMEPLAY == 43 and StoryScene.exists("m11_arrival"), "current rules capability and story handoff are registered")
 	var tender_steel: ShaderMaterial = ArenaMaterials.authored("service_steel", "right_of_search") as ShaderMaterial
 	_check(tender_steel.get_shader_parameter("tile_enabled") == true and tender_steel.get_shader_parameter("trim_glow") == 0.0, "custody tender has actual quiet steel tiles")
 	_check(EnvironmentTextures.path_for("enamel", "right_of_search") != EnvironmentTextures.path_for("enamel", "common_carrier"), "custody wall source differs from the civilian Carrier")

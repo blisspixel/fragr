@@ -31,6 +31,7 @@ var mine_phases: Dictionary[int, String] = {}
 var stick_cues: int = 0
 var lamps_lit: int = 0
 var remote_effects: RemoteMineEffects
+var canisters: Dictionary[int, Node3D] = {}
 
 ## A grenade newly in flight on a live snapshot, by the participant who threw
 ## it. Bodies already present when a snapshot stream starts are not throws.
@@ -39,6 +40,9 @@ signal thrown(owner_id: String)
 signal placed(owner_id: String)
 
 func reset() -> void:
+	for canister: Node3D in canisters.values():
+		canister.queue_free()
+	canisters.clear()
 	if remote_effects != null:
 		remote_effects.reset()
 	for body: MeshInstance3D in bodies.values():
@@ -64,6 +68,7 @@ func reset() -> void:
 
 func apply(snapshot: Dictionary, listener: Vector3) -> void:
 	if not GrenadeFacts.validation_error(snapshot).is_empty() or not CustodyFacts.validation_error(snapshot).is_empty() \
+		or not AssessorFacts.validation_error(snapshot).is_empty() \
 		or int(snapshot["tick"]) <= last_tick:
 		return
 	var initial: bool = last_tick < 0
@@ -74,6 +79,7 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 		add_child(remote_effects)
 	remote_effects.apply(snapshot)
 	_apply_mines(snapshot, listener, initial)
+	_apply_canisters(snapshot)
 	var current: Dictionary[int, bool] = {}
 	for fact: Dictionary in snapshot.get("grenades", []):
 		var id: int = int(fact["id"])
@@ -126,6 +132,27 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 		if listener.is_finite():
 			_sound(BLASTS.get(float(fact["radius"]), BLAST), position, listener)
 			blast_cues += 1
+
+func _apply_canisters(snapshot: Dictionary) -> void:
+	var current: Dictionary[int, bool] = {}
+	for fact: Dictionary in snapshot.get("assessor_canisters", []):
+		var id: int = int(fact["id"])
+		current[id] = true
+		if not canisters.has(id):
+			var canister: Node3D = Node3D.new()
+			canister.name = "AssessorCanister_%d" % id
+			canister.add_child(_mesh(Vector3(0.22, 0.22, 0.24), Color("a49366")))
+			var seam: MeshInstance3D = _mesh(Vector3(0.23, 0.06, 0.23), Color("d74932"))
+			canister.add_child(seam)
+			canisters[id] = canister
+			add_child(canister)
+		var node: Node3D = canisters[id]
+		node.position = GrenadeFacts.vector(fact["position"])
+		node.rotation.z = float(fact["age_ticks"]) * 0.35
+	for id: int in canisters.keys():
+		if not current.has(id):
+			canisters[id].queue_free()
+			canisters.erase(id)
 
 ## Placed mines: the face-on device laid on its surface over a dark body, its
 ## lamp steady amber while arming, blinking red once live and flickering fast

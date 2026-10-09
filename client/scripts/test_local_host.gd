@@ -61,6 +61,9 @@ func _run() -> void:
 		for lan: bool in [false, true]:
 			for sabotage: bool in [false, true]:
 				_test_profile(_config(lan, sabotage, policy))
+			var town: Dictionary = _config(lan, true, policy)
+			town["map_id"] = 8
+			_test_profile(town)
 			var island: Dictionary = _config(lan, false, policy)
 			island["mode"] = "conquest"
 			island["map_id"] = 7

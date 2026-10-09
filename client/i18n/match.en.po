@@ -387,6 +387,12 @@ msgstr "A FRAME"
 msgid "SABOTAGE_SITE_B"
 msgstr "B SERVER"
 
+msgid "SABOTAGE_SITE_CLINIC_STEPS"
+msgstr "A CLINIC STEPS"
+
+msgid "SABOTAGE_SITE_TRAM_STOP"
+msgstr "B TRAM STOP"
+
 msgid "SABOTAGE_EVENT_LIVE"
 msgstr "WEAPONS LIVE"
 

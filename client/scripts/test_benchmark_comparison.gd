@@ -112,18 +112,21 @@ func _run() -> void:
 	var console: FragrConsole = FragrConsole.new()
 	console.preferences = prefs
 	root.add_child(console)
-	var manager: Node = load("res://scripts/game_manager.gd").new()
-	manager.console = console
-	console.set_open(true)
-	manager._prepare_benchmark_presentation()
-	_check(not console.is_open() and not console.is_processing_unhandled_input(), "benchmark closes and disables console input before capture")
-	manager.free()
-	console.queue_free()
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
 	var hud: CanvasLayer = scene.get_node("HUD")
 	scene.remove_child(hud)
 	scene.free()
 	root.add_child(hud)
+	var manager: Node = load("res://scripts/game_manager.gd").new()
+	manager.console = console
+	manager.hud = hud
+	hud.set_weapon_finish("oxide")
+	console.set_open(true)
+	manager._prepare_benchmark_presentation()
+	_check(not console.is_open() and not console.is_processing_unhandled_input(), "benchmark closes and disables console input before capture")
+	_check(hud._weapon_finish == "standard", "benchmark resets personal gun paint before capture")
+	manager.free()
+	console.queue_free()
 	hud.show_warmup_bumper("Warmup", 2, [])
 	_check(hud.warmup_tv_active, "retained-state fixture starts with a real warmup card")
 	hud.set_round_info("Active", 30, 0)

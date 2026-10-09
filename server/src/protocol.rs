@@ -19,6 +19,7 @@ pub(crate) use moon_residents::moon_residents;
 mod m09;
 mod m10;
 mod m11;
+mod m12;
 mod mission;
 mod rules;
 mod sabotage;
@@ -37,8 +38,8 @@ pub use decoration::{
 };
 mod remote_mine;
 pub use explosive::{
-    ExplosionHit, ExplosionResult, GrenadeState, MinePhase, MineState, MINE_ARMING_TICKS,
-    MINE_TRIP_TICKS,
+    AssessorCanisterState, ExplosionHit, ExplosionResult, GrenadeState, MinePhase, MineState,
+    MINE_ARMING_TICKS, MINE_TRIP_TICKS,
 };
 pub(crate) use loadout::validate_equipment;
 pub use loadout::{
@@ -68,6 +69,10 @@ pub use m10::{
 pub use m11::{
     M11ChallengeState, M11MapGeometry, M11ObjectiveState, M11_OBJECTIVE_IDS, M11_SIGNAL_TICKS,
 };
+pub use m12::{
+    M12AidVehicle, M12ChallengeState, M12MapGeometry, M12ObjectiveState, M12PumpGeometry,
+    M12_OBJECTIVE_IDS, M12_PUMP_MAX_HP,
+};
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,
@@ -90,7 +95,8 @@ pub use sabotage::{
 };
 pub use statistics::{
     per_minute_tenths, ratio_scaled, wilson_thousandths, CombatCounts, PlayerRecord, RecordScope,
-    RecordStatus, WeaponCounts, LEGACY_RECORD_VERSION, RECORD_TICKS_PER_SECOND, RECORD_VERSION,
+    RecordStatus, WeaponCounts, EIGHT_COLUMN_RECORD_VERSION, LEGACY_RECORD_VERSION,
+    RECORD_TICKS_PER_SECOND, RECORD_VERSION,
 };
 pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
@@ -501,6 +507,8 @@ pub enum WeaponType {
     Sniper,
     /// Sustained-fire discovery prototype with server-owned warmup.
     Repeater,
+    /// M12 find: bounded Cells discharge that bypasses carried armor and plates.
+    Arc,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -529,6 +537,7 @@ impl WeaponType {
             // two, where one Rail hit drops it: the Rail owns the middle.
             WeaponType::Sniper => 70,
             WeaponType::Repeater => 14,
+            WeaponType::Arc => 18,
             WeaponType::Scatter => 10,
         }
     }
@@ -574,6 +583,7 @@ impl WeaponType {
             WeaponType::Rail => 20,
             WeaponType::Sniper => 32,
             WeaponType::Repeater => 2,
+            WeaponType::Arc => 3,
             WeaponType::Scatter => 12,
         }
     }
@@ -593,6 +603,7 @@ impl WeaponType {
             // radius out to the full 90 m reach.
             WeaponType::Sniper => 0.004,
             WeaponType::Repeater => 0.035,
+            WeaponType::Arc => 0.02,
             // Pellet cone: 5.4 degrees. Every pellet lands inside a body at
             // four units and about half of them still do at eight.
             WeaponType::Scatter => 0.095,
@@ -610,6 +621,7 @@ impl WeaponType {
             WeaponType::Rail => 60.0,
             WeaponType::Sniper => 90.0,
             WeaponType::Repeater => 35.0,
+            WeaponType::Arc => 24.0,
             WeaponType::Scatter => 12.0,
         }
     }
@@ -624,6 +636,7 @@ impl WeaponType {
             WeaponType::Rail => (18.0, 45.0),
             WeaponType::Sniper => (40.0, 88.0),
             WeaponType::Repeater => (7.0, 26.0),
+            WeaponType::Arc => (6.0, 18.0),
             WeaponType::Scatter => (2.0, 10.0),
         }
     }
@@ -637,8 +650,15 @@ impl WeaponType {
             WeaponType::Rail => "Rail",
             WeaponType::Sniper => "Sniper",
             WeaponType::Repeater => "Repeater",
+            WeaponType::Arc => "Arc",
             WeaponType::Scatter => "Scatter",
         }
+    }
+
+    /// Energy discharge leaves armor intact while ordinary protection and
+    /// world collision still apply. Plate owners use the same property.
+    pub const fn ignores_armor(self) -> bool {
+        matches!(self, Self::Arc)
     }
 }
 
@@ -728,9 +748,14 @@ pub const M11_GAMEPLAY_VERSION: u32 = 38;
 pub const CONQUEST_GAMEPLAY_VERSION: u32 = 40;
 /// Registered water, swimming, boat hulls and flyable light aircraft.
 pub const WATER_GAMEPLAY_VERSION: u32 = 41;
+/// Arc Cells discharge, armor bypass and strict nine-column record revision 3.
+pub const ARC_GAMEPLAY_VERSION: u32 = 42;
+pub const ASSESSOR_GAMEPLAY_VERSION: u32 = 43;
+pub const M12_GAMEPLAY_VERSION: u32 = 44;
+pub const LOW_WATER_SABOTAGE_GAMEPLAY_VERSION: u32 = 45;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = WATER_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = LOW_WATER_SABOTAGE_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -858,6 +883,7 @@ mod geometry_tests {
             m09: None,
             m10: None,
             m11: None,
+            m12: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -990,6 +1016,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m11: Option<M11MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m12: Option<M12MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1330,6 +1362,8 @@ pub struct Snapshot {
     pub projectiles: Vec<ProjectileState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub grenades: Vec<GrenadeState>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub assessor_canisters: Vec<AssessorCanisterState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub mines: Vec<MineState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -1808,6 +1842,7 @@ mod protocol_tests {
             shot_results: vec![shot.clone()],
             projectiles: vec![],
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -2042,6 +2077,7 @@ mod protocol_tests {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),

@@ -69,12 +69,12 @@ impl GameState {
             (progress.support_shots, progress.last_support_tick)
         } else if let Some(progress) = run.m03.as_ref() {
             (progress.support_shots, progress.last_support_tick)
+        } else if let Some(progress) = run.m04.as_ref() {
+            (progress.support_shots, progress.last_support_tick)
         } else if let Some(progress) = run.m06.as_ref() {
             (progress.support_shots, progress.last_support_tick)
-        } else if let Some(progress) = run.m07.as_ref() {
-            (progress.support_shots, progress.last_support_tick)
         } else {
-            let progress = run.m04.as_ref()?;
+            let progress = run.m07.as_ref()?;
             (progress.support_shots, progress.last_support_tick)
         };
         if run.phase != MissionPhase::InProgress || self.campaign_run_frozen() {

@@ -143,6 +143,7 @@ fn weapon_from_wire(name: &str) -> Option<WeaponType> {
         "shiv" => Some(WeaponType::Shiv),
         "sniper" => Some(WeaponType::Sniper),
         "repeater" => Some(WeaponType::Repeater),
+        "arc" => Some(WeaponType::Arc),
         _ => None,
     }
 }
@@ -1779,6 +1780,7 @@ fn preferred_band(weapon: WeaponType) -> (f32, f32) {
         WeaponType::Rail => (18.0, 28.0),
         WeaponType::Sniper => (40.0, 70.0),
         WeaponType::Repeater => (7.0, 12.0),
+        WeaponType::Arc => (6.0, 16.0),
     }
 }
 
@@ -2153,6 +2155,7 @@ async fn agent_task(
                 m09,
                 m10,
                 m11,
+                m12,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2207,6 +2210,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m11(m11.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M11 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m12(m12.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M12 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2614,6 +2620,7 @@ mod tests {
             shot_results: Vec::new(),
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -3545,6 +3552,7 @@ mod combat_tests {
             shot_results: shots,
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -4129,6 +4137,7 @@ mod planner_tests {
             shot_results: Vec::new(),
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -4645,6 +4654,7 @@ mod line_of_sight_tests {
             shot_results: Vec::new(),
             projectiles: Vec::new(),
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),

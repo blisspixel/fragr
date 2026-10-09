@@ -134,6 +134,18 @@ impl GameState {
                 }
             }
         }
+        if run.m12.is_some() {
+            if let Some(g) = run.initial_map.m12_geometry() {
+                for (kind, people) in [
+                    ("shelter_people", &g.shelter_people),
+                    ("workers", &g.workers),
+                ] {
+                    for (index, feet) in people.iter().enumerate() {
+                        bodies.push(civilian(format!("m12/{kind}/{index}"), *feet));
+                    }
+                }
+            }
+        }
         if let Some(p) = &run.m09 {
             for crew in &p.crew {
                 bodies.push(civilian(format!("m09/{}", crew.id), crew.feet));

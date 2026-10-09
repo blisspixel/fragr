@@ -1,0 +1,292 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "scope": "M12 shelter and mutual-aid occupied-facing fitted signs",
+  "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+  "checks": {
+    "renderer_retired": true,
+    "original_frames": 12,
+    "host_wall_corner_checks": "PASS",
+    "focused_m12_presentation": "PASS numeric 0 clean",
+    "paired_renderer": "PASS numeric 0 clean"
+  },
+  "geometry": {
+    "shelter": {
+      "occupied_side": "west",
+      "yaw_radians": -1.57079632679,
+      "at": [
+        19.98,
+        2.15,
+        28.85
+      ],
+      "host": "shelter_front_north",
+      "plate_metres": [
+        1.55,
+        0.7
+      ]
+    },
+    "aid": {
+      "occupied_side": "south",
+      "yaw_radians": 3.14159265359,
+      "at": [
+        0,
+        3.45,
+        34.68
+      ],
+      "host": "north_pressure_boundary",
+      "plate_metres": [
+        4.2,
+        0.75
+      ]
+    }
+  },
+  "source_control": "before/m12_habitat.gd retains exact original bytes. before-loadable.gd derives those bytes by removing only class_name M12Habitat to load the original side by side with the corrected global class.",
+  "render_scope": "Actual current native spectator MapInfo and production cover/presenters. Three exact retained ordinary camera poses and three supported detail views, each old/new. Only the registered shelter door cover mesh is hidden to reproduce the retained open doorway, without changing native state.",
+  "visual_review": {
+    "result": "Forward shelter copy is bounded on its actual enamel jamb, and aid copy is readable forward on its wall plaque. Doorway is clear. The bridge comparison establishes removal of distant mirrored copy only.",
+    "selected_originals": [
+      "shelter_doorway_after.png",
+      "shelter_jamb_close_after.png",
+      "aid_front_after.png",
+      "m12_greenhouse_bridge_ordinary_pose_after.png",
+      "shelter_doorway_before.png",
+      "aid_front_before.png",
+      "m12_shelter_opened_ordinary_pose_after.png",
+      "m12_real_aid_depot_ordinary_pose_after.png",
+      "m12_greenhouse_bridge_ordinary_pose_before.png"
+    ]
+  },
+  "limitations": [
+    "Controlled source comparison, not another gameplay or save run.",
+    "The exact ordinary button-facing shelter/aid poses do not show the complete corrected plaque. Readability is established by the separate supported doorway and aid-facing views.",
+    "Whole-client composition, exported package and final human art acceptance remain separate."
+  ],
+  "bindings": [
+    {
+      "bytes": 3634,
+      "sha256": "cfd28ed1f7fb715560273905110b5025bf9a074eeb3fe7a793439bec5083bde6",
+      "path": ".agents/m12-sign-facing-20261008/before-loadable.gd"
+    },
+    {
+      "bytes": 1354,
+      "sha256": "b045b4c26e6cf84afef9b43634e6ae6ca1c7fe1194781571fa390cdf77f82d93",
+      "path": ".agents/m12-sign-facing-20261008/capture-map.gd"
+    },
+    {
+      "bytes": 2295,
+      "sha256": "e6837971894ba7bc5f535be92dfe0d2f2b4e1556f728522d94eda718b96bf6a0",
+      "path": ".agents/m12-sign-facing-20261008/capture-map.ps1"
+    },
+    {
+      "bytes": 75,
+      "sha256": "83cf0b082206af2aa236c83064fbcfa76be1e00a4aa3558574b2f65965d9481c",
+      "path": ".agents/m12-sign-facing-20261008/preview-parse.log"
+    },
+    {
+      "bytes": 5660,
+      "sha256": "00b88009a4af092b0c11a06c0f39851c27947c699133162e293431962fcaef28",
+      "path": ".agents/m12-sign-facing-20261008/preview-signs.gd"
+    },
+    {
+      "bytes": 3835,
+      "sha256": "c70578516fa34b1caad85320f098648f9b073108f1b8446f098e32fccebf20fc",
+      "path": ".agents/m12-sign-facing-20261008/run-preview.ps1"
+    },
+    {
+      "bytes": 196,
+      "sha256": "016f28867075346029cf842b12d9805bcdd654b46feed77d3d3f9cb99acd4234",
+      "path": ".agents/m12-sign-facing-20261008/test-m12-first.log"
+    },
+    {
+      "bytes": 451137,
+      "sha256": "b7ba00a8d6a6fbddcccabdb3887d10ba21d73b8ee1756b5e74fc4f681edbf076",
+      "path": ".agents/m12-sign-facing-20261008/before/bridge-world.png"
+    },
+    {
+      "bytes": 3656,
+      "sha256": "00a0b0d5f9e31c11347f3afb0010407efaa7cdea69c55a2e08ff329b83826f01",
+      "path": ".agents/m12-sign-facing-20261008/before/m12_habitat.gd"
+    },
+    {
+      "bytes": 335363,
+      "sha256": "db8e85533a9b04f02fc60801a01a55acb8d28dba5f4e56cab3ec9238d2e30256",
+      "path": ".agents/m12-sign-facing-20261008/before/shelter-opened-world.png"
+    },
+    {
+      "bytes": 5388,
+      "sha256": "e95bf95021fe51ca6f1f4013f0a379c259559bbdd70f33d966925f6083bd7a7b",
+      "path": ".agents/m12-sign-facing-20261008/before/test_m12_presentation.gd"
+    },
+    {
+      "bytes": 120,
+      "sha256": "e05f53c83b82dbf94ba39d69d3a371dadd6f783e8797ebf5435dff3171f410ba",
+      "path": ".agents/m12-sign-facing-20261008/native-map-first/client.log"
+    },
+    {
+      "bytes": 28269,
+      "sha256": "3fc613b1142fc0de6f01bdcac076cbbfe3ecae609886f6add2f9fb563777d040",
+      "path": ".agents/m12-sign-facing-20261008/native-map-first/map-info.json"
+    },
+    {
+      "bytes": 423,
+      "sha256": "4efbd5d9b9e07614ed530428da5ff5ce72ee5b6974aeb71836a69501be13a1be",
+      "path": ".agents/m12-sign-facing-20261008/native-map-first/process.json"
+    },
+    {
+      "bytes": 1829,
+      "sha256": "d3b43f12dbc7cfb400b21a0a465eff1c6bd4f9382ea12d6b66e84791bfa30982",
+      "path": ".agents/m12-sign-facing-20261008/native-map-first/server-error.log"
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".agents/m12-sign-facing-20261008/native-map-first/server.log"
+    },
+    {
+      "bytes": 184964,
+      "sha256": "719170288d28c884d3c6a31afd425fce27a1b6ca0abd6f6be34d4a8c5b5fa3b1",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/aid_front_after.png"
+    },
+    {
+      "bytes": 214076,
+      "sha256": "8a84f20ae0d14af67e7f8ed22c7f52ea754623dd0579fb4608b173f0cbe58978",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/aid_front_before.png"
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/client-error.log"
+    },
+    {
+      "bytes": 253,
+      "sha256": "7b6f531a2fb0e65b0cf84375a699e67a50e5dc8ede943631b769b89f3425ea2d",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/client.log"
+    },
+    {
+      "bytes": 10425,
+      "sha256": "edff95006a0b762fb514f47364a95c74fb5a241855f02e701d58496a90ec981f",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/arena_cover.gd"
+    },
+    {
+      "bytes": 3634,
+      "sha256": "cfd28ed1f7fb715560273905110b5025bf9a074eeb3fe7a793439bec5083bde6",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/before-loadable.gd"
+    },
+    {
+      "bytes": 4082,
+      "sha256": "f20432c829c9c6dbc11f84e62eb3ebf4c92be237efe162f19ebb788413442427",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/m12_habitat.gd"
+    },
+    {
+      "bytes": 47378,
+      "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/m12-terms-of-cooperation.json"
+    },
+    {
+      "bytes": 5660,
+      "sha256": "00b88009a4af092b0c11a06c0f39851c27947c699133162e293431962fcaef28",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/preview-signs.gd"
+    },
+    {
+      "bytes": 6356,
+      "sha256": "69cf7354c83e702664df3e5f2a010ff1d6f561394a2bf4f0b1905701ad69962e",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/test_m12_presentation.gd"
+    },
+    {
+      "bytes": 1420,
+      "sha256": "3eb842b9cf8e0c2f22e743288caf454b406a8b678425670971c79c2a592bc8e3",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/loaded-source/world_sign.gd"
+    },
+    {
+      "bytes": 366316,
+      "sha256": "a6bdc33888c07acc8185945e8cb6b2aac77cf2efa2db2f9b5bd00d4d8d2bb3d7",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_greenhouse_bridge_ordinary_pose_after.png"
+    },
+    {
+      "bytes": 368332,
+      "sha256": "89d691766b0ca55f22061613f9c32d7d6fd8a15a72b076bb4cfc7731dda9eb1e",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_greenhouse_bridge_ordinary_pose_before.png"
+    },
+    {
+      "bytes": 371074,
+      "sha256": "f1c1d67cbfffaac62ee5585673262f140a4fb7da7df2356bd395a410779a7f5a",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_real_aid_depot_ordinary_pose_after.png"
+    },
+    {
+      "bytes": 373691,
+      "sha256": "dd353752645d0d929f74b6d9d5db33365bdd0667ede0286018cece3ddf3a8510",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_real_aid_depot_ordinary_pose_before.png"
+    },
+    {
+      "bytes": 214106,
+      "sha256": "707f9436c8870e01b6096754aea3eba60a311bdd7acfef647eecb637de272f56",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_shelter_opened_ordinary_pose_after.png"
+    },
+    {
+      "bytes": 247595,
+      "sha256": "b4d7f1e64604e1366463830ddc7843cf30a06ddebbd8b3f9b335dab88da3084a",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_shelter_opened_ordinary_pose_before.png"
+    },
+    {
+      "bytes": 5289,
+      "sha256": "ff512bc62154a4069dbbc4b35799a3da6bd0ea0d9a7718d7b552bd3e5866424a",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/preview.json"
+    },
+    {
+      "bytes": 2535,
+      "sha256": "0618ed82fc9a85549f8e49023131649378cac37c65cd5fc7376a19a7af82d4a9",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/process.json"
+    },
+    {
+      "bytes": 324253,
+      "sha256": "8815adfb772d4d22e49406994e773fe40a5014729d3187a11c7c51ac3efca97a",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/shelter_doorway_after.png"
+    },
+    {
+      "bytes": 349029,
+      "sha256": "225be9afd5dcf6f5672de475bd0528405bcc0b0f6a57d2d5be8a3adc9ea66e3d",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/shelter_doorway_before.png"
+    },
+    {
+      "bytes": 196773,
+      "sha256": "2a75364ef1a74d0cb5953c97ae38dfc87ea6424ecce2b32f596649fa42953bca",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/shelter_jamb_close_after.png"
+    },
+    {
+      "bytes": 255841,
+      "sha256": "8600d56b8b610fcab6761455c3c7908d737d88b76259ac471d4959ca238c2ada",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/shelter_jamb_close_before.png"
+    },
+    {
+      "bytes": 184964,
+      "sha256": "719170288d28c884d3c6a31afd425fce27a1b6ca0abd6f6be34d4a8c5b5fa3b1",
+      "path": "docs/evidence/m12-sign-facing-20261008/aid_front_after.png"
+    },
+    {
+      "bytes": 214076,
+      "sha256": "8a84f20ae0d14af67e7f8ed22c7f52ea754623dd0579fb4608b173f0cbe58978",
+      "path": "docs/evidence/m12-sign-facing-20261008/aid_front_before.png"
+    },
+    {
+      "bytes": 366316,
+      "sha256": "a6bdc33888c07acc8185945e8cb6b2aac77cf2efa2db2f9b5bd00d4d8d2bb3d7",
+      "path": "docs/evidence/m12-sign-facing-20261008/m12_greenhouse_bridge_ordinary_pose_after.png"
+    },
+    {
+      "bytes": 324253,
+      "sha256": "8815adfb772d4d22e49406994e773fe40a5014729d3187a11c7c51ac3efca97a",
+      "path": "docs/evidence/m12-sign-facing-20261008/shelter_doorway_after.png"
+    },
+    {
+      "bytes": 349029,
+      "sha256": "225be9afd5dcf6f5672de475bd0528405bcc0b0f6a57d2d5be8a3adc9ea66e3d",
+      "path": "docs/evidence/m12-sign-facing-20261008/shelter_doorway_before.png"
+    },
+    {
+      "bytes": 196773,
+      "sha256": "2a75364ef1a74d0cb5953c97ae38dfc87ea6424ecce2b32f596649fa42953bca",
+      "path": "docs/evidence/m12-sign-facing-20261008/shelter_jamb_close_after.png"
+    }
+  ]
+}

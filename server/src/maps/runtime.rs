@@ -29,6 +29,32 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m12_objectives(&self) -> Option<&super::authored::m12::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m12.as_deref(),
+        }
+    }
+    pub fn m12_geometry(&self) -> Option<crate::protocol::M12MapGeometry> {
+        let mut g = self.m12_objectives()?.geometry.clone();
+        g.shelter_open = matches!(self,Self::Authored(map) if map.shelter_open);
+        Some(g)
+    }
+    pub fn m12_encounter_index(&self, step: usize) -> Option<usize> {
+        self.m12_objectives()?;
+        super::authored::m12::OBJECTIVE_GROUPS.get(step).copied()
+    }
+    pub fn prepared_m12_world(&self) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let p = map.m12.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.arena = p.opened.clone();
+        selected.navigation = p.opened_navigation.clone();
+        selected.shelter_open = true;
+        Some(Self::Authored(Arc::new(selected)))
+    }
     pub(crate) fn m11_objectives(&self) -> Option<&super::authored::m11::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -252,8 +278,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m11_objectives()
-            .map(|_| crate::protocol::MissionId::RightOfSearch)
+        self.m12_objectives()
+            .map(|_| crate::protocol::MissionId::TermsOfCooperation)
+            .or_else(|| {
+                self.m11_objectives()
+                    .map(|_| crate::protocol::MissionId::RightOfSearch)
+            })
             .or_else(|| {
                 self.m10_objectives()
                     .map(|_| crate::protocol::MissionId::CommonCarrier)
@@ -366,6 +396,22 @@ impl RuntimeMap {
         })
     }
 
+    /// Every role must understand the new Cells weapon and nine-column records.
+    pub fn requires_arc_contract(&self) -> bool {
+        self.pickups().iter().any(|pickup| {
+            pickup.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Arc)
+        })
+    }
+
+    pub fn requires_assessor_contract(&self) -> bool {
+        self.encounters().iter().any(|group| {
+            group
+                .enemies
+                .iter()
+                .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Assessor)
+        })
+    }
+
     pub fn requires_m10_contract(&self) -> bool {
         self.m10_objectives().is_some()
             || self
@@ -401,6 +447,21 @@ impl RuntimeMap {
         match self {
             Self::BuiltIn(_) => crate::protocol::EquipmentPolicy::FullArsenal,
             Self::Authored(map) => map.equipment,
+        }
+    }
+
+    pub fn has_authored_vehicles(&self) -> bool {
+        matches!(self, Self::Authored(map) if !map.vehicles.is_empty())
+    }
+
+    pub(crate) fn vehicle_spawns(&self) -> Vec<(crate::protocol::VehicleKind, [f32; 3], f32)> {
+        match self {
+            Self::BuiltIn(kind) => crate::vehicles::spawns(kind.id()),
+            Self::Authored(map) => map
+                .vehicles
+                .iter()
+                .map(|p| (crate::protocol::VehicleKind::Jeep, p.feet, p.yaw))
+                .collect(),
         }
     }
 
@@ -453,6 +514,7 @@ impl RuntimeMap {
 
     pub fn presentation_ref(&self) -> Option<&crate::protocol::MapPresentation> {
         match self {
+            Self::BuiltIn(MapKind::LowWater) => Some(super::low_water::presentation()),
             Self::BuiltIn(_) => None,
             Self::Authored(map) => Some(&map.presentation),
         }
@@ -479,8 +541,22 @@ impl RuntimeMap {
     pub(crate) fn pickups(&self) -> Vec<ArenaPickup> {
         match self {
             Self::BuiltIn(kind) => kind.pickups(),
-            Self::Authored(map) => map.supplies.clone(),
+            Self::Authored(map) => {
+                let mut supplies = map.supplies.clone();
+                if map.m12.is_some() {
+                    for supply in &mut supplies {
+                        if super::authored::m12::AID_SUPPLY_IDS.contains(&supply.id.as_str()) {
+                            supply.available = false;
+                        }
+                    }
+                }
+                supplies
+            }
         }
+    }
+
+    pub(crate) fn is_m12_aid_supply(&self, id: &str) -> bool {
+        self.m12_objectives().is_some() && super::authored::m12::AID_SUPPLY_IDS.contains(&id)
     }
 
     pub(crate) fn spawn_slots(&self) -> usize {

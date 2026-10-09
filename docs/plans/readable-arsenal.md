@@ -1,6 +1,7 @@
 # Readable arsenal and explosives
 
-Status: names and cycling shipped, 2026-09-22. v0.41.0 reads Pistol, Rifle,
+Status: original names and cycling shipped, 2026-09-22; implementation status
+reconciled 2026-10-08. v0.41.0 reads Pistol, Rifle,
 Shotgun, and Railgun, and ammo pads read Bullets, Shells, and Cells. v0.42.0
 walks those guns with the wheel, the bracket keys, and 1 through 5. Wire ids
 for the original guns are unchanged. The found Shiv is the sixth existing gun
@@ -10,10 +11,14 @@ slots. The Sniper Rifle is the seventh gun slot, implemented on its development
 range for level 7 by the [Declared Goods plan](l07-declared-goods-prototype.md),
 which records why it plays differently from the Railgun. The Proximity Mine is
 a counted device with its own `place_mine` action, implemented on the
-[level 8 custody range](l08-custodian-of-record-prototype.md). Rocket Launcher
-and Remote Mine remain planned campaign finds. Repeater (M10), Arc (M12),
-Article Blade (M15) and Denial (M17) are also accepted introductions in
-[CAMPAIGN-MISSIONS.md](../CAMPAIGN-MISSIONS.md), awaiting implementation.
+[level 8 custody range](l08-custodian-of-record-prototype.md). The separately
+counted Remote Mine is implemented in M11. Repeater has a finite CPU combat
+foundation, with its M10 find and presentation still open. Arc has a finite
+combat and presentation foundation with a native development lesson; its
+rendered acceptance and connected M12 introduction are in flight in the
+[Arc plan](arc-foundation-20261008.md). Rocket Launcher (M13), Article Blade
+(M15) and Denial (M17) remain accepted introductions awaiting implementation
+in [CAMPAIGN-MISSIONS.md](../CAMPAIGN-MISSIONS.md).
 The table below follows the accepted twenty-level
 treatment, replacing this plan's historical ten-mission numbering.
 
@@ -37,7 +42,7 @@ menu and not present in the arcade full arsenal:
 | Sniper Rifle | `sniper`, implemented on its range | Level 7, Declared Goods, after customs teaches the Railgun | Slow, tight, high-damage hitscan. A scope is presentation. |
 | Grenade | `throw_grenade` Action and `grenades` count | Level 5, No Forwarding Address, on the ordinary route | Thrown arc, bounce, forty-tick fuse, then covered falloff blast. |
 | Proximity Mine | `place_mine` Action and `proximity_mines` count, development prototype | Level 8, Custodian of Record | Sticks, arms after a visible delay, blinks, then triggers on a body. |
-| Remote Mine | `remote_mine`, planned | Level 11, Right of Search | Sticks and waits for its separate owner detonator. |
+| Remote Mine | `place_remote_mine` and `trigger_remote_mines` Actions, separately counted, implemented | Level 11, Right of Search | Sticks and waits for its separate owner detonator. |
 | Rocket Launcher | `rocket`, planned | Level 13, The Weight of Permission | Flying rocket, impact blast, falloff and solid occlusion. |
 
 GoldenEye is the reference for the grenade and the two mines: place them,
@@ -49,7 +54,7 @@ not a second splash gun and a second mine.
 ## How you earn them
 
 M01 still starts with fists and finds the pistol, then the rifle. These five
-are not in that kit, not in a secret menu, and not on the six arcade maps.
+are not in that kit, not in a secret menu, and not in the default arcade kit.
 
 Each one sits on the ordinary route of its teaching mission, with enough
 ammunition to learn the new verb and a space that makes that verb the
@@ -60,9 +65,12 @@ pistol, rifle, shotgun, railgun, sniper rifle and grenades at once, each with
 its own ammunition pool. A continue restores that mission's entry kit, so a
 death before leaving puts the found copy back on the floor until you pick it
 up again. The local mission-entry save carries completed equipment and earlier
-choices through levels 1 to 5; leaving retains that run. It provides no permanent
-account unlock. Version 6 stores the grenade count independently, and strict
-historical upgrades assign zero grenades with exact prior-byte archives.
+choices through connected development missions; leaving retains that run.
+It provides no permanent weapon unlock. Current save version 15 preserves the
+independent grenade, proximity mine and remote mine counts and strictly upgrades
+the original historical documents with exact prior-byte archives. Completed
+M11-to-M12 promotion, Arc discovery and retry preservation have their own
+[connected habitat](m12-connected-habitat-20261008.md) acceptance gate.
 
 None of the five is required to finish an earlier mission. The customs lane
 in level 6 still teaches the Railgun without a sniper. Level 5 has no new
@@ -84,7 +92,7 @@ Grenades use one bounded authoritative projectile with owner, velocity, contact
 count and fixed fuse. Explicit leave removes owned devices, while a dead owner
 retains committed throws. Round/map/mission resets clear them. Future rockets
 may reuse its geometry helpers, with a separately validated impact policy.
-Planned mines share one placed-device record with a trigger policy
+Implemented mines share the counted-device and swept-contact seams with a trigger policy
 (proximity or remote), an arming delay, a cap on live devices, and the same
 cleanup. Blast damage is server-side, reduced by distance, and blocked by
 solids. The owner can be hurt. The Godot client sends the throw, the place,
@@ -95,9 +103,11 @@ not draw Bullets, Shells, or Cells. Rockets use a new `rockets` pool, shown
 as Rockets. Remote detonation is its own action.
 
 Agents can explicitly throw through the same Action and equipment controller.
-Grenade records have a separate compatible default-zero counter, preserving the
-six weapon slots and record version 1. A future new gun must extend and version its
-own gun contract; no fake grenade gun slot is introduced.
+Grenade and mine records use separate compatible counters. Arc extends the gun
+contract to nine weapons in record version 3, with strict version 2 eight-weapon
+compatibility and bounded version 1 historical decoding. Recipient capability
+checks refuse to discard nonzero newer weapon facts. A future gun must extend
+and version its own contract; explosives are never fake gun slots.
 
 ## Verification
 
@@ -118,5 +128,8 @@ Success means each earned weapon is found where its mission brief says, plays
 differently from the pistol, rifle, shotgun, and railgun, and is absent from
 M01 and from the default arcade kit. Grenade implementation evidence belongs
 to its bounded foundation and M05 plans; Sniper Rifle evidence to the level 7
-plan. Proximity Mine evidence belongs to the level 8 custody plan. Remote Mine,
-Rocket Launcher, Repeater, Arc, Article Blade and Denial remain unbuilt.
+plan. Proximity Mine evidence belongs to the level 8 custody plan and Remote
+Mine evidence to the level 11 plan. Repeater and Arc foundations retain their
+separate find, presentation and played acceptance gates. Rocket Launcher,
+Article Blade and Denial remain unbuilt. A passing development lesson does not
+establish a connected mission or human weapon feel.

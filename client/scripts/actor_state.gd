@@ -2,7 +2,7 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
-const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor"]
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor", "assessor"]
 const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling", "charging"]
 const COMPANION_PHASES: Array[String] = ["releasing", "following", "firing"]
 
@@ -74,6 +74,8 @@ static func validation_error(snapshot: Dictionary) -> String:
 			return INVALID
 		if campaign["kind"] == "redactor" and campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]:
 			return INVALID
+		if campaign["kind"] == "assessor" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
+			return INVALID
 		if campaign.has("seated") and (campaign.size() != 6 \
 			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \
 			or campaign["kind"] != "clerk" or campaign["phase"] != "idle"):
@@ -91,5 +93,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 			or float(health) != floorf(float(health)):
 			return INVALID
 		if (campaign["phase"] == "dead") != (float(health) <= 0.0):
+			return INVALID
+		if campaign["kind"] == "assessor" and float(health) > 240.0:
 			return INVALID
 	return ""

@@ -91,12 +91,24 @@ func set_layout(layout: Dictionary) -> void:
 		ring.rotation = Vector3(-PI / 2.0, 0.0, 0.0)
 		ring.position = Vector3(0.0, 0.03, 0.0)
 		root.add_child(ring)
-		var prop_art: Texture2D = SabotageArt.site_prop(id)
+		var callout: String = SabotageState.callout_at(layout, float(center[0]), float(center[2]))
+		var prop_art: Texture2D = SabotageArt.site_prop(id, callout)
 		var prop: Sprite3D = _sprite(prop_art, PROP_HEIGHT / float(prop_art.get_height()))
 		prop.name = "Prop"
 		prop.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 		prop.position = Vector3(0.0, PROP_HEIGHT * 0.5, 0.0)
 		root.add_child(prop)
+		if callout in ["clinic_steps", "tram_stop"]:
+			var label: Label3D = Label3D.new()
+			label.name = "SiteName"
+			label.text = SabotageState.site_name(id, layout)
+			label.position.y = PLATE_HEIGHT + 0.65
+			label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			label.font_size = 28
+			label.pixel_size = 0.018
+			label.modulate = SabotageArt.BONE
+			label.outline_modulate = SabotageArt.SHADOW
+			root.add_child(label)
 		var plate_art: Texture2D = SabotageArt.site_plate(id)
 		var plate: Sprite3D = _sprite(plate_art, PLATE_WIDTH / float(plate_art.get_width()))
 		plate.name = "Plate"

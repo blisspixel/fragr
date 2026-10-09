@@ -1,0 +1,464 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally, final native gates pass",
+  "base_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "branch": "feat/host-rotation-campaign-bests",
+  "working_tree": true,
+  "spend_usd": 0,
+  "scope": "Exact four-map local geometry compatibility, including original and retained intermediate M09 identities and actual original/blocked/corrected charge causality. Focused, complete native, unfiltered coverage, strict lint, formatting and release build pass. Client, rendered mission acceptance, prior played campaign, publication and human acceptance remain separate.",
+  "save_version": 15,
+  "campaign_rules_revision": 4,
+  "sources": [
+    {
+      "path": "server/src/mission/run_file/geometry.rs",
+      "sha256": "56b1625e47edd1c339f9e83f98600e8b4194b2796986bebdefdb1789eb372bd6",
+      "bytes": 5270
+    },
+    {
+      "path": "server/src/mission/run_file/store.rs",
+      "sha256": "a21ecf65ed36627ce2c17538a12e794bda0af8deb3055cf80f509d27681230be",
+      "bytes": 44908
+    },
+    {
+      "path": "server/src/mission/run_file.rs",
+      "sha256": "3df42f0085849a5a0983c09b3028c0cb528837a594b54c99c7a42e1af7c2189e",
+      "bytes": 89305
+    },
+    {
+      "path": "server/src/mission/run_file/store/geometry_tests.rs",
+      "sha256": "6185eb7f694d634b1b0d72e892f69150cf4438d930ae40bd26d002198d2f9bd9",
+      "bytes": 39037
+    },
+    {
+      "path": "server/src/mission/run_file/store/m10_tests.rs",
+      "sha256": "fccaba3f2cabf5cc410acca56e5ec3d9ee6a04f862495037f8ed064575778b82",
+      "bytes": 30674
+    },
+    {
+      "path": "server/src/tests/m09.rs",
+      "sha256": "f89f210c47f246b73a85bd291ce9a53a6d398e1ae8a801a643677b2ca61d1ef4",
+      "bytes": 19902
+    }
+  ],
+  "exact_worlds": [
+    {
+      "mission": "M08",
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m08_custodian_of_record.json",
+        "sha256": "b9964704b9bf51e837118f25fbec9d93574d16634b1d281caf694181f44de666",
+        "bytes": 23846
+      },
+      "successor": {
+        "path": "server/maps/m08_custodian_of_record.json",
+        "sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864",
+        "bytes": 55933
+      }
+    },
+    {
+      "mission": "M09",
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest.json",
+        "sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381",
+        "bytes": 50529
+      },
+      "successor": {
+        "path": "server/maps/m09_passenger_manifest.json",
+        "sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+        "bytes": 57525
+      }
+    },
+    {
+      "mission": "M10",
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m10_common_carrier.json",
+        "sha256": "d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d",
+        "bytes": 39793
+      },
+      "successor": {
+        "path": "server/maps/m10_common_carrier.json",
+        "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557",
+        "bytes": 41073
+      }
+    },
+    {
+      "mission": "M12",
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m12-terms-of-cooperation.json",
+        "sha256": "8f84cca779909790d23c8af2fa59db38bb25c9b94f4422a969e79180a137c78d",
+        "bytes": 43246
+      },
+      "successor": {
+        "path": "server/maps/m12-terms-of-cooperation.json",
+        "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431",
+        "bytes": 47378
+      }
+    }
+  ],
+  "checks": [
+    {
+      "command": "cargo fmt --all -- --check",
+      "numeric_exit": 0,
+      "result": "Passed, empty stdout preserved after the numeric 0 tool result",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/fmt-after-owned-diagnostic-third.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "command": "cargo test -p fragr-server --lib mission::run_file::store --locked -- --nocapture",
+      "numeric_exit": 0,
+      "result": "71 passed, zero failed; all 12 geometry cases, exact original/intermediate M09 and real owned launch, promotion, pending continue and closed refusal",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/save-store-owned-deadline-diagnostic-ninth.log",
+        "sha256": "3e1d6abbce08546a1014dfe6e8a12638ed05be34ac884f30a2dad85d2b7c5490",
+        "bytes": 12804
+      }
+    },
+    {
+      "command": "cargo test -p fragr-server --test local_child --locked",
+      "numeric_exit": 0,
+      "result": "18 passed, zero failed",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/local-child-charge-opening-fourth.log",
+        "sha256": "f2bb34ddae8d4ef0c283e05131a7f263c729d47587ce492732d7f342ab83419d",
+        "bytes": 1754
+      }
+    },
+    {
+      "command": "cargo test -p fragr-server --lib tests::m09:: --locked -- --nocapture",
+      "numeric_exit": 0,
+      "result": "Seven canonical actor cases pass, including actual original/continuous-guard/opening causal proof",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/m09-charge-causal-installed-second.log",
+        "sha256": "3dbc639cab602d96c4dcddcc8931b534accbcfc6d9f53ac5f1096ace74a4d581",
+        "bytes": 1224
+      }
+    },
+    {
+      "command": "cargo test -p fragr-server --test campaign_stairs --locked -- --nocapture",
+      "numeric_exit": 0,
+      "result": "Ten canonical stair, actual opening and adjacent protected-edge cases pass",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/native-charge-opening-canonical-first.log",
+        "sha256": "5adb3b6dd1b32799cef898bd749e2277272965fa661e71a5456bb386fbfe7027",
+        "bytes": 1345
+      }
+    },
+    {
+      "command": "cargo test -p fragr-agent-adapter --bin fragr-agent-adapter tests::scripted_bot_uses_raised_geometry_under_continuous_snapshots --locked -- --exact --nocapture",
+      "numeric_exit": 0,
+      "result": "Unchanged exact adapter diagnostic passes in 0.22 seconds",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/adapter-raised-clock-diagnostic-first.log",
+        "sha256": "d7ae81229c6eb7fd680229645daf5de144ad5d1c582120fc693fdbae7b2c1e1b",
+        "bytes": 445
+      }
+    },
+    {
+      "command": "cargo test -p fragr-agent-adapter --bin fragr-agent-adapter --locked -- --nocapture",
+      "numeric_exit": 0,
+      "result": "Unchanged complete adapter suite passes 101 cases in 4.11 seconds",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/adapter-full-clock-diagnostic-second.log",
+        "sha256": "ed6e34a7589f6dcec8fcc0154a6b97ee22a2a7aaaeb5b13cdb4cad955c55e736",
+        "bytes": 6989
+      }
+    },
+    {
+      "command": "cargo test -p fragr-server --test habitat_development --locked",
+      "numeric_exit": 0,
+      "result": "Seven cases pass after correcting only the obsolete unknown actor fixture identity",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/habitat-fixture-correction-second.log",
+        "sha256": "70503592ab07343338e49400087cc7453f42ef76cfccb63fd1d87e66038f5ed3",
+        "bytes": 949
+      }
+    },
+    {
+      "command": "cargo build --workspace --release --locked",
+      "numeric_exit": 0,
+      "result": "Passed; final corrected source composition",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/release-workspace-charge-opening-second.log",
+        "sha256": "b89c97a8b15929bc9dbbba05907f5c0d35ab39a92ead27869228aae533934847",
+        "bytes": 329
+      }
+    },
+    {
+      "command": "cargo test --workspace --all-targets --locked --no-fail-fast",
+      "numeric_exit": 0,
+      "result": "1951 passed, zero failed, four existing ignored; complete renewed source composition",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/workspace-charge-opening-final-second.log",
+        "sha256": "82439a1d6aea9f6943cee0cb2057f6fbb04443ac0d3447761e2388fe9f3706e1",
+        "bytes": 172767
+      }
+    },
+    {
+      "command": "cargo test --workspace --all-targets --locked --no-fail-fast",
+      "numeric_exit": 0,
+      "passed": 1952,
+      "failed": 0,
+      "ignored": 4,
+      "filtered": 0,
+      "completed_targets": 35,
+      "concurrency": "ordinary default libtest concurrency",
+      "server_library": {
+        "passed": 1352,
+        "failed": 0,
+        "ignored": 3,
+        "seconds": 232.62
+      },
+      "log": {
+        "path": ".agents/stair-architecture-20261008/workspace-conquest-final-third.log",
+        "sha256": "251eae81205f35758e28c60cd9b271b540cadbc881394aad4c3840d6590d6959",
+        "bytes": 172364
+      }
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "numeric_exit": 0,
+      "seconds": 23.13,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/clippy-conquest-final-second.log",
+        "sha256": "ddc89ee825bec4e910e2910e4a2c9b81eca0683a7eebedd68bbba61c9a5f3b40",
+        "bytes": 339
+      }
+    },
+    {
+      "command": "cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2",
+      "numeric_exit": 0,
+      "passed": 1952,
+      "failed": 0,
+      "ignored": 4,
+      "filtered": 0,
+      "completed_targets": 31,
+      "concurrent_tests": 2,
+      "line_threshold_percent": 90,
+      "lines": {
+        "total": 78516,
+        "missed": 5267,
+        "covered_percent": 93.29
+      },
+      "regions": {
+        "total": 119879,
+        "missed": 8643,
+        "covered_percent": 92.79
+      },
+      "functions": {
+        "total": 6426,
+        "missed": 545,
+        "covered_percent": 91.52
+      },
+      "server_library": {
+        "passed": 1352,
+        "failed": 0,
+        "ignored": 3,
+        "seconds": 415.31
+      },
+      "test_exclusions_added": false,
+      "deadlines_changed": false,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/coverage-conquest-final-third.log",
+        "sha256": "a16727794ee5f4876528dc363291ed7ab706f480c28b76d61d4ef142cf0c8826",
+        "bytes": 211928
+      }
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "numeric_exit": 0,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/fmt-conquest-final-fifth.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    }
+  ],
+  "retained_failures": [
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/save-geometry-installed-fourth.log",
+        "sha256": "b671121a0f2605cd9018eecf12c4d151fc8a906e4c33755b1774b4f8db391260",
+        "bytes": 2399
+      },
+      "result": "10 passed, one fixture failure",
+      "resolution": "PendingContinue retains readiness through the existing recovery path, so the additional acknowledgement must return false."
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/save-store-installed-fifth.log",
+        "sha256": "67dcb7ef8668a864282094dedc9b716a0660e71f6dfe4e3688ce827d81a2ef7f",
+        "bytes": 9945
+      },
+      "result": "68 passed, two fixture failures",
+      "resolution": "M10 test now uses the actual stair mouth and upper aisle with all five cast combinations. M12 clearance check first proves feet agree with authoritative support within the existing epsilon, then tests unchanged full standing height at that support."
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/save-standing-entry-diagnostic-sixth.log",
+        "sha256": "621291688ed0da64fe3987e003def2a783f439330f0859cc0779f9e264063d8c",
+        "bytes": 1266
+      },
+      "result": "M12 actual feet 0.29999995, support 0.3, roof underside 3.9",
+      "resolution": "No production movement, player relocation or height reduction."
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/workspace-installed-final-first.log",
+        "sha256": "e0d4b3b0633ec83e4c2db04d273ba4253fc0ca4556132f0da32695e24635dbae",
+        "bytes": 174089
+      },
+      "numeric_exit": 101,
+      "result": "1945 passed, three failed, four ignored",
+      "resolution": "M09 continuous east guard caused a real charge-lesson regression, fixed and proved causally. Unchanged adapter diagnostics pass without changing bounds, but original outer timeout phase is unknown. Habitat obsolete unknown-actor fixture corrected separately."
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/save-store-charge-opening-eighth.log",
+        "sha256": "cd0d934a9aa1a1969093568a95aabc4794d9ce357ea896da931f78f06219b5d1",
+        "bytes": 9745
+      },
+      "numeric_exit": 101,
+      "result": "70 passed, one first-M08 owned-runner timeout before a run lock or archive existed",
+      "resolution": "Added test-only case/phase/timing diagnostics; complete following 71-case run passes with the same 30-second individual deadline. Source/topology preparation contention is consistent with the failure, not proven by original phase logging.",
+      "test_source": {
+        "path": ".agents/stair-architecture-20261008/geometry_tests-before-owned-deadline-diagnostic.rs",
+        "sha256": "e6dd4ca0f1a32ffd36ac40d08f4ff4d4b3980f1a397551d9601b7bf90ceb488d",
+        "bytes": 38003
+      }
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/coverage-charge-opening-final-first.log",
+        "sha256": "0f7c78570364f5c92d9e2dd14fd080fc92db941d50bbef0ba6169e721661cb1f",
+        "bytes": 154272
+      },
+      "command": "cargo llvm-cov --workspace --locked --fail-under-lines 90",
+      "numeric_exit": 101,
+      "result": "1728 passed, three failed, three existing ignored across completed targets; stopped at server library before remaining integration targets and no coverage percentage established",
+      "resolution": "First M08 predecessor launch passed in 4.5635304 seconds; current-entry restart timed out waiting_ready in 30.0155019 seconds. M12 abandoned-run refusal timed out waiting_ready in 30.0150682 seconds. Wire readiness assertion received an unexpected command without recording its identity. Full rerun uses two concurrent tests, no exclusions or deadline changes.",
+      "retained_entry": {
+        "path": ".agents/stair-architecture-20261008/coverage-first-owned-entry/run.json",
+        "sha256": "2f47c8937f43854e72a5ef772bf62bc63c2fb3247f7e513da4316d5ffdcadc84",
+        "bytes": 961
+      },
+      "retained_archive": {
+        "path": ".agents/stair-architecture-20261008/coverage-first-owned-entry/run.prior-e7f7eac8c43637ac6e820a6b79fe33beb7b19fd5e2d28f5f22f8e805784f677e.json",
+        "sha256": "e7f7eac8c43637ac6e820a6b79fe33beb7b19fd5e2d28f5f22f8e805784f677e",
+        "bytes": 1668
+      }
+    },
+    {
+      "command": "cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2",
+      "log": {
+        "path": ".agents/stair-architecture-20261008/coverage-charge-opening-bounded-second.log",
+        "sha256": "9bbf679aded9b14f01e9d8508a5dac332bf937a86f55ffdab86d4bd46d6e6a86",
+        "bytes": 150975
+      },
+      "numeric_exit": 101,
+      "result": "1730 passed, one Conquest actual defender-clear failure, three existing ignored across completed targets; stopped at server library before remaining integration targets and no coverage percentage established",
+      "resolution": "All three first coverage failures pass unchanged at two concurrent tests, including all owned geometry matrices. Separate Conquest actual shots/death assertion reproduces independently and is under bounded causal investigation, with no production or deadline changes."
+    }
+  ],
+  "representative_render_input": {
+    "scope": "Strictly validated representative test input retained from the real owned-launch fixture before cleanup. Prior M01-M11 outcomes are test values, not played history. Any subsequent played attempt needs its own evidence.",
+    "current_entry": {
+      "path": ".agents/stair-architecture-20261008/representative-m12-run.json",
+      "sha256": "9c9c73ae9c9be99f69d73e45404468f824bd59c7c2de968255031b0f4c3685f0",
+      "bytes": 1468
+    },
+    "exact_predecessor_entry": {
+      "path": ".agents/stair-architecture-20261008/representative-m12-predecessor-run.json",
+      "sha256": "c76d2e93d41dd9ac0c8f941a9de3cc45cc92fca469981eb0aad7453428781dda",
+      "bytes": 2384
+    },
+    "test_log": {
+      "path": ".agents/stair-architecture-20261008/representative-m12-fixture-bake-first.log",
+      "sha256": "aee6cd76cb9ec6e11ec626545135610af102d781476863c93c7004aeea0d79d6",
+      "bytes": 483
+    },
+    "temporary_test_source": {
+      "path": ".agents/stair-architecture-20261008/geometry_tests-fixture-bake-temporary.rs",
+      "sha256": "ce18362e929fff6a97138ddfb5a31689d0699523eb6aed3e6ec8144134b7f6b4",
+      "bytes": 37510
+    },
+    "source_restored_sha256": "11c08bd03e9ccef94d32352442d20d9982312f3bd4b4cbbc25677008794f7f46",
+    "health": 37,
+    "armor": 19,
+    "difficulty": "Standard",
+    "body": "synthetic",
+    "selected_weapon": "Repeater",
+    "bullets": 23,
+    "shells": 7,
+    "cells": 5,
+    "grenades": 2,
+    "proximity_mines": 3,
+    "remote_mines": 2,
+    "continues_remaining": 1,
+    "continue_level_baseline": 2,
+    "attempt": 2
+  },
+  "remaining": "Client, rendered mission, package, publication and human acceptance are owned separately. Representative prior campaign outcomes are test inputs, not played history. No production reader, world or release changes followed the passing runtime composition.",
+  "m09_intermediate": {
+    "predecessor": {
+      "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest_enclosed.json",
+      "sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+      "bytes": 57307
+    },
+    "successor_sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+    "first_save_version": 15,
+    "historical_versions_refused": true
+  },
+  "first_installed_snapshot": {
+    "path": ".agents/stair-architecture-20261008/save-geometry-first-installed-receipt.json",
+    "sha256": "a7fa1f777335fab6154538bd374516de44985502f925009b54bed280d11f4247",
+    "bytes": 8275
+  },
+  "final_release": {
+    "path": ".agents/stair-architecture-20261008/bin/fragr-server-charge-opening-final.exe",
+    "sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+    "bytes": 10207232,
+    "build_output_path": "target/release/fragr-server.exe"
+  },
+  "owned_runner_timing": {
+    "individual_deadline_seconds": 30,
+    "first_m08_seconds": 9.3976152,
+    "maximum_observed_individual_seconds": 13.7725678,
+    "timing_bounds_changed": false
+  },
+  "first_release_preserved": {
+    "path": ".agents/stair-architecture-20261008/bin/fragr-server-first-composed.exe",
+    "sha256": "e4804f1963430481970ebdd222e96e5bf69d9bf21aa18987faa58f8715186b79",
+    "bytes": 10191360
+  },
+  "frozen_source_manifest": {
+    "path": ".agents/stair-architecture-20261008/save-geometry-final-source/manifest.json",
+    "sha256": "69595515ef932bfa78cca2a56a693ecc36fe5f3c1696b63fb38a72e9027398dd",
+    "bytes": 2846,
+    "root": ".agents/stair-architecture-20261008/save-geometry-final-source",
+    "input_files": 15,
+    "scope": "Byte-exact retained save reader/tests, four installed worlds and five predecessor fixtures for this native composition. No later feature or prior played-history claim."
+  },
+  "complete_native_source_manifest": {
+    "path": ".agents/presentation-stairs-composition-20261008/frozen-native-source/receipt.json",
+    "sha256": "c92327388ac0d582f4d30fd55415761f5d9d5850d91846bbd127ef64100a4c59",
+    "files": 318,
+    "scope": "Complete stage source matching native3d, retained independently by the composition owner before subsequent test diagnostics or feature changes."
+  },
+  "final_test_overlay": {
+    "scope": "Test-only Conquest fixture correction applied after the complete runtime source freeze; no production or release change.",
+    "source": {
+      "path": "server/src/sim/conquest/coordination_tests.rs",
+      "sha256": "630ca42b70f83bd5edd51ef95d38b1796265ed559227573641df7668ca252146",
+      "bytes": 25412
+    },
+    "retained_source": {
+      "path": ".agents/stair-architecture-20261008/conquest-final-source/server/src/sim/conquest/coordination_tests.rs",
+      "sha256": "630ca42b70f83bd5edd51ef95d38b1796265ed559227573641df7668ca252146",
+      "bytes": 25412
+    },
+    "evidence": "docs/evidence/conquest-combat-determinism-20261008.json"
+  }
+}

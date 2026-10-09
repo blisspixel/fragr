@@ -213,6 +213,7 @@ func _process(delta: float) -> void:
 	if not _built:
 		return
 	_notary.advance(delta)
+	_latch.advance_face(delta)
 	if _machine_fade_elapsed >= 0.0:
 		_machine_fade_elapsed = minf(_machine_fade_elapsed + delta, MACHINE_FADE_SECONDS)
 		if _machine_fade_elapsed >= MACHINE_FADE_SECONDS:
@@ -283,7 +284,7 @@ func _set_visual(seconds: float, released: bool) -> void:
 		_latch.rotation.y = lerp_angle(bay_turn, -PI / 2.0, clampf((seconds - 8.0) / 2.0, 0.0, 1.0))
 	else:
 		_latch.rotation.y = -PI / 2.0
-	_latch.pose_release(clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) if released else 0.0)
+	_latch.pose_release(clampf((seconds - CROSS_END) / 0.5, 0.0, 1.0) if released else 0.0, released)
 	var open: float = clampf((seconds - CROSS_END) / (SECOND_OPEN_END - CROSS_END), 0.0, 1.0) if released else 0.0
 	_second_left.position.x = -0.3 - open * 0.68
 	_second_right.position.x = 0.3 + open * 0.68

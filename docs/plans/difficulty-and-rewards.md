@@ -1,12 +1,69 @@
 # Difficulty and earned customization
 
-Status: in flight, 2026-09-20. Task #197. The first increment implements explicit
-new-run difficulty selection and shared, versioned enemy timing rules to M01.
-Persistent achievements and earned cosmetics remain planned. Local work, no paid
-services. The campaign now targets a compact solo run with limited continues;
-spending one restores the current mission's entry state. Three per run is the
-initial balance proposal. The local M01 lifecycle is now implemented in
-[campaign-continues.md](campaign-continues.md); disk saves remain unbuilt.
+Status: in flight, updated 2026-10-08. [Task #197](https://github.com/blisspixel/fragr/issues/197).
+Explicit difficulty and shared enemy rules are implemented. Current main has
+eleven connected development missions, version 14 durable run files and three
+mission-start continues refilled at implemented episode boundaries. Final tier
+balance and broader reward acceptance remain in flight. The two local awards
+and appearance selectors below are implemented locally; final composed checks
+are recorded separately. Historical
+increments below retain their original version and evidence.
+
+## October 8 local reward increment, planned before implementation
+
+Use the existing `PlayerRecords` profile and two-generation writer. Version 3
+retains version 1/2 history without inventing historical awards; add a bounded
+ledger of two supported award identities and three cosmetic selections. Each
+award retains its validated authoritative participant record, exact owned server
+hash, stable session/player/round identity, mission, run and attempt. Unlocks
+survive the 256-entry history limit and failed or exhausted runs. They are local
+editable progress, with no competitive verification or account service.
+
+| Award | Eligibility | Unlocks |
+|---|---|---|
+| Recall Notice complete | Locally owned durable M01, human participant, current campaign rules, actual complete record and run | ON FILE title and transfer stamp emblem. |
+| Authored secret found | Locally owned durable mission, human participant, current campaign rules, participant's authoritative total secret count at least one | MARGIN READER title and margin teal first-person finish. Finding the secret survives subsequent failure. |
+
+All ordinary tiers, character bodies and input/accessibility preferences are
+eligible. Development hosts, remote records, spectators, agent records, story
+replay and menu previews cannot award these local human cosmetics. Repeated
+snapshots, retries, reconnects, save/load and another qualifying run grant each
+award at most once per profile. Historical records remain readable; only new
+validated ingress can earn these awards. Unknown formats/IDs fail closed and
+preserve files. Retain the previous committed generation on failed replacement.
+
+The existing callsign page gains localized award criteria, locked previews,
+title/emblem selectors and a first-person finish preview. Save and Cancel retain
+their existing meaning. Standard and oxide finishes are available immediately;
+margin teal is earned. Finish shading changes only neutral dark gun pixels,
+preserving alpha, shape, warm glove/muzzle colors, bright highlights and frame
+timing. It never changes world pickups, other players, faction colors, combat
+or network state. Fists, knives and thrown devices retain their original art.
+The graphics benchmark always uses the default finish. Gold and full-campaign
+awards remain planned until actual finale eligibility exists.
+
+Research checked October 8 against the primary [CanvasItem shader reference](https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/canvas_item_shader.html)
+and [OptionButton reference](https://docs.godotengine.org/en/stable/classes/class_optionbutton.html).
+The installed Godot 4.7.2 APIs and existing profile writer remain the baseline;
+no dependency, engine pin, combat wire or save-run format changes.
+
+Verification: isolated persistence tests cover duplicate/reconnect/retry history,
+eviction, version upgrades, corrupt newest generation, future format, failed
+replacement/retry and illegal selections. Actual server records establish award
+ingress. Inspect locked and earned menus with keyboard/controller navigation,
+save/cancel, and idle/fire/cycle first-person frames. Run full native/client gates
+and the standard published tour after composing changes. A separate actual-input
+M01 tier/route/miss matrix supplies authoring evidence, not fresh-player fun.
+
+Spend: $0, existing art and the existing profile seam. No paid services.
+
+The [October 8 local receipt](../evidence/local-awards-20261008.md) records
+actual secret/completion ingress, save/reload, both-renderer pixel controls,
+independent menu/frame review and retained corrections. The
+[finite-supply matrix](../evidence/m01-finite-supply-validation-20261008.md)
+adds imperfect-aim and real-death authoring evidence across all three tiers.
+These supported local awards are implemented; broader campaign rewards, final
+art and fresh-player difficulty acceptance remain in flight.
 
 This increment implements the independent new-run selection boundary. Changing
 a running mission, supply variants, campaign-run persistence
@@ -107,7 +164,8 @@ persistence before art can be advertised as earned in play.
 Names and art need the faction/palette review. Unlock data must be bounded,
 versioned and recoverably saved through the campaign/profile persistence seam.
 The [local record implementation](benchmark-and-stats.md) supplies validated
-facts and two-generation recovery, not an achievement ledger yet.
+facts and two-generation recovery. Version 3 adds the two supported local award
+proofs above; broader campaign awards remain planned.
 Local records are editable local progress, not proof of a
 globally verified competitive achievement. Accounts and platform integrations
 are separate later work.

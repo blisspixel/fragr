@@ -476,6 +476,18 @@ msgstr "CLINIC: {clinic}\nPHOTOGRAPHS: {photos}"
 msgid "WORLD_M04_NOTARY_FAN"
 msgstr "DUCTED FANS ABOVE THE AWNINGS"
 
+msgid "WORLD_ASSESSOR_FAN"
+msgstr "HEAVY FANS ABOVE THE COURT"
+
+msgid "WORLD_ASSESSOR_COUNTDOWN"
+msgstr "ASSESSOR LAUNCHER OPENING"
+
+msgid "WORLD_ASSESSOR_LAUNCH"
+msgstr "CANISTER IN FLIGHT"
+
+msgid "WORLD_ASSESSOR_CRASH"
+msgstr "ASSESSOR WRECK LANDED"
+
 msgid "WORLD_M04_MARA_EVACUATE"
 msgstr "Mara: They are still arguing over the trucks. Get everyone up."
 

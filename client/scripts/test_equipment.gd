@@ -58,6 +58,18 @@ func _run() -> void:
 	family.erase("flechette")
 	_check(EquipmentState.slot_if_owned(family, 4, "tack") == "repeater" and EquipmentState.slot_if_owned(family, 4, "repeater") == "repeater", "sole automatic family ownership always selects the real gun")
 	_check("repeater" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("repeater") == 7, "arcade kit and seven historical indices remain unchanged")
+	var arc: Dictionary = automatic.duplicate(true)
+	arc["weapons"].append("arc")
+	arc["selected"] = "arc"
+	arc["ammo"][2]["rounds"] = 40
+	_check(EquipmentState.validation_error(arc, "self").is_empty(), "Arc is distinct finite carried equipment")
+	_check(EquipmentState.shots(arc, "arc") == 40 and EquipmentState.shots(arc, "rail") == 40, "Arc shares the one Cells count with Rail")
+	var arc_family: Array[String] = EquipmentState.carried_names(arc)
+	_check(EquipmentState.slot_if_owned(arc_family, 5, "rail") == "arc" and EquipmentState.slot_if_owned(arc_family, 5, "arc") == "rail", "key five cycles the two carried Cells guns")
+	_check(EquipmentState.cycle(arc, "rail", 1) == "arc" and EquipmentState.cycle(arc, "arc", 1) == "fists", "the wheel puts Arc beside Rail")
+	arc_family.erase("rail")
+	_check(EquipmentState.slot_if_owned(arc_family, 5, "tack") == "arc" and EquipmentState.slot_if_owned(arc_family, 5, "arc") == "arc", "Arc alone keeps key five usable")
+	_check("arc" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("arc") == 8 and EquipmentState.SLOTS.size() == 6, "Arc appends an identity without expanding the arcade kit or physical keys")
 	var found: Dictionary = state.duplicate(true)
 	found["weapons"] = ["fists", "tack", "shiv"]
 	found["selected"] = "shiv"

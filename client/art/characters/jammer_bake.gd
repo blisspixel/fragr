@@ -70,7 +70,7 @@ func bake() -> void:
 		return
 	var sources: Dictionary[String, String] = {}
 	for path: String in ["res://art/characters/jammer_rig.gd",
-			"res://art/characters/jammer_bake.gd", "res://art/characters/geometry.gd",
+			"res://art/characters/jammer_bake.gd", "res://art/characters/geometry.gd", "res://art/characters/pose_support.gd",
 			"res://scripts/jammer_animation.gd"]:
 		sources[path] = FileAccess.get_sha256(path)
 	var receipt: FileAccess = FileAccess.open(MANIFEST, FileAccess.WRITE)

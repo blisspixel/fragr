@@ -4,7 +4,7 @@ The [art bible](ART_STORY_BIBLE.md) and [design continuity guides](design/README
 keep worlds, characters, voices and future scenes consistent. The
 [level plans](campaign/README.md) apply those rules to individual places.
 
-**Status, 2026-10-07:** twenty levels in five episodes, plus a survival-gated
+**Status, 2026-10-08:** twenty levels in five episodes, plus a survival-gated
 playable epilogue, accepted as the contract. This replaces the ten-mission
 structure agreed 2026-09-20, which itself replaced the earlier twelve-mission
 structure. The [campaign expansion plan](plans/campaign-expansion.md) records
@@ -26,15 +26,22 @@ grenades, optional workshop rescue, a bounded authoritative tram and deliberate
 freight departure. M04-to-M05 carry retains earlier car, patient and photograph
 outcomes. The connected development run continues through M06 Port of Entry,
 M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
-Carrier and M11 Right of Search. Version 14 saves retain mission-entry retries,
+Carrier, M11 Right of Search and M12 Terms of Cooperation. Version 15 saves retain mission-entry retries,
 equipment, remaining continues and completed choices, distinguishing released
 people from those actually evacuated or aboard. Historical saves upgrade
-explicitly and retain exact-byte archives. Completed M11 records pending M12;
-M12 through M20 and the epilogue remain unbuilt.
+explicitly and retain exact-byte archives. M12 adds the Arc, Assessor, shelter,
+pump conditions and coalition departure; completed M12 records pending M13.
+Connected M13 through M20 and the epilogue remain unbuilt. Local standalone
+[M12 habitat](plans/m12-habitat-development-20261008.md),
+[M13 foundry](plans/m12-m14-foundry-slice-20261008.md) and
+[M14 launch-works](plans/m14-vehicle-development-20261006.md) maps have supplied
+ordinary-input development routes; they do not advance the saved campaign.
 These development routes do not certify a finished mission.
 Scene art, named-character performances and final encounter acceptance remain
 unfinished. Nine prototype transition narration clips are implemented with text
-fallback. [M01 completion](plans/m01-completion.md) retains that level's acceptance
+fallback. Current local presentation also selects live human/synthetic player
+bodies and Tern in M09/M10, with [bounded model and mission evidence](evidence/live-buildout-composition-20261008.md).
+[M01 completion](plans/m01-completion.md) retains that level's acceptance
 work; the [roadmap](ROADMAP.md#full-build-order) owns the next build.
 Solo Broadcast:
 Calibration is the shipped Episode 0 arena prototype, not the campaign opening.
@@ -334,8 +341,10 @@ moral penalty for using the shooter's core mechanics.
   fast, physical beat: break a line of restraint frames, clear the guards on a
   freight car, take a depot's registration desk. It never becomes an escort
   task or a second objective to babysit.
-- Levels 13 and 14 (formerly M08) are the planned combined-arms showcase, with
-  vehicles and infantry routes; vehicles are not implemented yet. [MAP-DESIGN.md](MAP-DESIGN.md)
+- Level 13 is the on-foot foundry. Level 14's exterior launch works are the
+  planned combined-arms showcase, retaining an infantry route. Shared vehicles
+  and static development placements exist; the connected launch-works mission,
+  Walker and mounted-fight acceptance remain unbuilt. [MAP-DESIGN.md](MAP-DESIGN.md)
   owns the rules.
 - Difficulty changes authored enemy mixes, resources, and optional challenges.
   Core rescues and story remain on easy; avoid health-sponge scaling.
@@ -386,9 +395,10 @@ with its starting equipment and world state restored. No mid-level checkpoint
 retry or teammate revival. With no continues left, the next death ends the run.
 
 Decided 2026-09-25: three continues, refilled to three at the start of each
-episode. M01 enforces the three-continue allowance. M01-to-M02 and local
-M02-to-M03 and M03-to-M04 carry preserve what remains without a refill. Later episode refills are a design rule and are
-not implemented. The allowance still needs playtests. A successful run
+episode. M01 enforces the three-continue allowance. Saved promotion refills once
+on entry to M06 (Episode II) and M10 (Episode III). Same-episode carry and retries
+do not refill it. Later episode starts remain unimplemented with their missions.
+The allowance still needs playtests. A successful run
 targets about four hours, excluding failed attempts. Cutscenes remain skippable
 on retries and mandatory travel must stay purposeful.
 
@@ -420,8 +430,10 @@ retains completed recall-car choices throughout M04 and its retries. M04 saves
 patient rescue and photograph outcomes through M05 entry and retries. M05's
 development prototype adds counted grenades, workshop rescue, a real translating
 tram and freight departure, preserving released/physically aboard outcomes at
-pending Port of Entry. M06 and later levels, episode refills and any cloud save
-policy remain unbuilt. Complete pacing and fresh-player acceptance stay open.
+Port of Entry. The version 15 run continues through M12, retaining actual
+completed outcomes, entry resources and the M06/M10 episode refills. Completed
+M12 retains pending M13. Connected M13-M20, the epilogue and any cloud-save policy
+remain unbuilt. Complete pacing and fresh-player acceptance stay open.
 
 ## Story presentation and localization
 

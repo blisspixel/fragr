@@ -9,6 +9,9 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
 	if venue == "holdfast_atoll":
 		return
+	if venue in ["launch_works", "mars_habitat", "mars_foundry"]:
+		_build_mars(half, venue == "mars_habitat")
+		return
 	if venue in ["common_carrier", "right_of_search"]:
 		# An in-transit pressure ship has no surrounding industrial streets.
 		return
@@ -61,6 +64,33 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	_sign("AUTHORIZED PERSONNEL ONLY" if map_id in [2, 3, 4] else "MEAT PROXIES WELCOME", Vector3(0.0, 4.0, -half + 0.55), 0.0, 0.015)
 	_sign("BAY 02", Vector3(-half + 0.54, 5.4, 0.0), PI * 0.5, 0.04)
 	_sign("BAY 03", Vector3(half - 0.54, 5.4, 0.0), -PI * 0.5, 0.04)
+
+func _build_mars(half: float, habitat: bool) -> void:
+	var dust: Material = ArenaMaterials.scenery_tile(OffworldMaterials.DIRECTORY + "mars_regolith.png", Color("95644e"))
+	var rock: Material = ArenaMaterials.scenery_tile(OffworldMaterials.DIRECTORY + "mars_basalt.png", Color("66544b"))
+	var shell: Material = ArenaMaterials.authored("enamel", "mars_habitat")
+	var frame: Material = ArenaMaterials.authored("service_steel", "launch_works")
+	# Four dust strips begin beyond the playable square. Nothing here is
+	# presented as usable cover, a platform or a mission interaction.
+	for side: int in [-1, 1]:
+		_box(Vector3(0, -0.35, side * (half + 25.5)), Vector3(half * 2 + 100, 0.5, 50), dust)
+		_box(Vector3(side * (half + 25.5), -0.35, 0), Vector3(50, 0.5, half * 2), dust)
+		for index: int in range(4):
+			var along: float = (index - 1.5) * half * 0.55
+			var height: float = 9.0 + (index % 3) * 4.0
+			_box(Vector3(along, height * 0.5, side * (half + 20)), Vector3(half * 0.5, height, 15), rock)
+			_box(Vector3(side * (half + 19), height * 0.3, along), Vector3(13, height * 0.6, half * 0.48), rock)
+	# Maintained pressure modules and a service mast connect the launch works
+	# to settlement logistics. Their nearest face remains four metres outside.
+	for index: int in range(3 if habitat else 2):
+		var x: float = -half * 0.5 + index * 16.0
+		var z: float = -half - 12.0
+		_box(Vector3(x, 3, z), Vector3(12, 6, 12), shell)
+		_box(Vector3(x, 6.3, z), Vector3(13, 0.6, 13), frame)
+		for bay: int in range(3):
+			_box(Vector3(x - 4 + bay * 4, 3.5, z + 6.05), Vector3(2.1, 1.3, 0.12), frame)
+	_box(Vector3(half + 8, 9, -half * 0.4), Vector3(0.8, 18, 0.8), frame)
+	_box(Vector3(half + 8, 17, -half * 0.4), Vector3(4, 0.7, 0.7), shell)
 
 func _build_town(half: float) -> void:
 	_riverside(half)

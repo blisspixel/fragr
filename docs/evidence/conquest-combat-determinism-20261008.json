@@ -1,0 +1,255 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "test-only correction verified, final native gates pass",
+  "spend_usd": 0,
+  "scope": "Ordinary Conquest defender-clear seeded fixture and overstrict two-hit assertion corrected; no production controller, map, rules, protocol, release binary or deadline change.",
+  "source": {
+    "path": "server/src/sim/conquest/coordination_tests.rs",
+    "sha256": "630ca42b70f83bd5edd51ef95d38b1796265ed559227573641df7668ca252146",
+    "bytes": 25412
+  },
+  "retained_source": {
+    "path": ".agents/stair-architecture-20261008/conquest-final-source/server/src/sim/conquest/coordination_tests.rs",
+    "sha256": "630ca42b70f83bd5edd51ef95d38b1796265ed559227573641df7668ca252146",
+    "bytes": 25412
+  },
+  "original_source": {
+    "path": ".agents/stair-architecture-20261008/conquest-coordination-before-diagnostics.rs",
+    "sha256": "9067e47a853e196295e47c93f39388da20aa81d8c08416709759dd14979fb601",
+    "bytes": 20382
+  },
+  "baseline_source_manifest": {
+    "path": ".agents/presentation-stairs-composition-20261008/frozen-native-source/receipt.json",
+    "sha256": "c92327388ac0d582f4d30fd55415761f5d9d5850d91846bbd127ef64100a4c59",
+    "bytes": 99733
+  },
+  "production_binary": {
+    "path": ".agents/stair-architecture-20261008/bin/fragr-server-charge-opening-final.exe",
+    "sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+    "bytes": 10207232
+  },
+  "unchanged_instrumented_baseline": {
+    "path": ".agents/stair-architecture-20261008/bin/fragr-server-coverage-conquest-baseline.exe",
+    "sha256": "b6d37796624e8536aeb0c3636489825450467a1e0a70ad68691574dc855a8a95",
+    "bytes": 43780096
+  },
+  "cause": "A legitimate one-shot Scatter head kill resolves the body and both site stages but is rejected by the former hits >= 2 assumption. Random UUIDs despite a seeded gameplay RNG were a separate reproducibility gap. Fixture round 0 prevented private records; neither fact demonstrates a production controller defect.",
+  "scenario": {
+    "seed": 20261008,
+    "round": 1,
+    "budget_ticks": 600,
+    "attacker_feet": [
+      -90,
+      3,
+      65
+    ],
+    "initial_yaw_radians": 3.141592653589793,
+    "defender_id": "00000000-0000-0000-0000-000000000320",
+    "defender_feet": [
+      -105,
+      3,
+      65
+    ],
+    "initial_site_owner": "Coalition",
+    "final_site_owner": "Union",
+    "neutralization_ticks": 160,
+    "capture_ticks": 160,
+    "final_union_tickets": 200,
+    "final_coalition_tickets": 199,
+    "defender_deaths": 1
+  },
+  "general_replay": {
+    "first_id": "00000000-0000-0000-0000-000000000001",
+    "damaging_hits": 2,
+    "effective_hp": 100,
+    "effective_armor": 0,
+    "neutral_tick": 215,
+    "capture_tick": 375,
+    "private_owner_and_victim_validated": true,
+    "live_damage_matches": true
+  },
+  "retained_failure": {
+    "first_id": "b56644a2-130f-41d8-b221-8f37b87f0892",
+    "damaging_hits": 1,
+    "heads": 1,
+    "effective_hp": 100,
+    "effective_armor": 0,
+    "neutral_tick": 202,
+    "capture_tick": 362,
+    "original_guard_exit": 101,
+    "corrected_guard_pass": true,
+    "source": {
+      "path": ".agents/stair-architecture-20261008/conquest-retained-identity-original-guard.rs",
+      "sha256": "9ca0b972da15a8049e941b5e8c277f8f3472c6f8a75fd5f437e5f4b9882a4535",
+      "bytes": 23338
+    },
+    "log": {
+      "path": ".agents/stair-architecture-20261008/conquest-retained-identity-original-guard-fourth.log",
+      "sha256": "b957d2609c9070c38d0a9d02c74945a3a3d7c6600216f94f58c63a526baa4bb2",
+      "bytes": 10925
+    }
+  },
+  "measurement": "Actual pre/post living HP and armor, clamped at zero and adjusted by actual same-tick pickup gained amounts, must agree exactly with validated owner damage/kills, victim loss/deaths and the live damage total. Raw resolved-shot damage is used only to identify a positive resolved shot, never to compute effective loss.",
+  "checks": [
+    {
+      "command": "cargo test -p fragr-server --lib sim::conquest --locked -- --nocapture",
+      "numeric_exit": 0,
+      "passed": 21,
+      "failed": 0,
+      "seconds": 2.54,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/conquest-causal-corrected-sixth.log",
+        "sha256": "d95aad84b09c327dafe4c40882f53e8bc97bc4eded7e9ed841d91e4658b677dc",
+        "bytes": 3289
+      }
+    },
+    {
+      "command": "cargo fmt --all -- --check",
+      "numeric_exit": 0,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/fmt-conquest-final-fifth.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      }
+    },
+    {
+      "command": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "numeric_exit": 0,
+      "seconds": 23.13,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/clippy-conquest-final-second.log",
+        "sha256": "ddc89ee825bec4e910e2910e4a2c9b81eca0683a7eebedd68bbba61c9a5f3b40",
+        "bytes": 339
+      }
+    },
+    {
+      "command": "cargo test --workspace --all-targets --locked --no-fail-fast",
+      "numeric_exit": 0,
+      "passed": 1952,
+      "failed": 0,
+      "ignored": 4,
+      "filtered": 0,
+      "completed_targets": 35,
+      "concurrency": "ordinary default libtest concurrency",
+      "server_library": {
+        "passed": 1352,
+        "failed": 0,
+        "ignored": 3,
+        "seconds": 232.62
+      },
+      "log": {
+        "path": ".agents/stair-architecture-20261008/workspace-conquest-final-third.log",
+        "sha256": "251eae81205f35758e28c60cd9b271b540cadbc881394aad4c3840d6590d6959",
+        "bytes": 172364
+      }
+    },
+    {
+      "command": "cargo llvm-cov --workspace --locked --fail-under-lines 90 -- --test-threads=2",
+      "numeric_exit": 0,
+      "passed": 1952,
+      "failed": 0,
+      "ignored": 4,
+      "filtered": 0,
+      "completed_targets": 31,
+      "concurrent_tests": 2,
+      "line_threshold_percent": 90,
+      "lines": {
+        "total": 78516,
+        "missed": 5267,
+        "covered_percent": 93.29
+      },
+      "regions": {
+        "total": 119879,
+        "missed": 8643,
+        "covered_percent": 92.79
+      },
+      "functions": {
+        "total": 6426,
+        "missed": 545,
+        "covered_percent": 91.52
+      },
+      "server_library": {
+        "passed": 1352,
+        "failed": 0,
+        "ignored": 3,
+        "seconds": 415.31
+      },
+      "test_exclusions_added": false,
+      "deadlines_changed": false,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/coverage-conquest-final-third.log",
+        "sha256": "a16727794ee5f4876528dc363291ed7ab706f480c28b76d61d4ef142cf0c8826",
+        "bytes": 211928
+      }
+    }
+  ],
+  "retained_failures": [
+    {
+      "result": "Complete default-concurrency instrumented coverage stops with two owned readiness timeouts and one unexpected wire command; original wire command identity was not recorded",
+      "numeric_exit": 101,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/coverage-charge-opening-final-first.log",
+        "sha256": "0f7c78570364f5c92d9e2dd14fd080fc92db941d50bbef0ba6169e721661cb1f",
+        "bytes": 154272
+      }
+    },
+    {
+      "result": "Complete two-thread instrumented coverage passes prior failures but stops with actual Conquest two-hit assertion; 1350 server cases pass, one fails and three existing cases remain ignored",
+      "numeric_exit": 101,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/coverage-charge-opening-bounded-second.log",
+        "sha256": "9bbf679aded9b14f01e9d8508a5dac332bf937a86f55ffdab86d4bd46d6e6a86",
+        "bytes": 150975
+      }
+    },
+    {
+      "result": "Unchanged instrumented single-case baseline reproduces actual defender-clear assertion independently",
+      "numeric_exit": 101,
+      "seconds": 1.63,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/conquest-unchanged-instrumented-diagnostic-first.log",
+        "sha256": "7ec0fb05b0a657ac3c021c3135e59ac0e5da780b4e35474843610812f392e992",
+        "bytes": 714
+      }
+    },
+    {
+      "result": "First test-only diagnostic incorrectly required a private record at fixture round 0 and stops before original assertion",
+      "numeric_exit": 101,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/conquest-failure-diagnostics-second.log",
+        "sha256": "c7b863764bbc10fb95a6672a0b50276cb58773548d57497e105e78dca0b4e47c",
+        "bytes": 988
+      }
+    },
+    {
+      "result": "Random-ID diagnostic captures legitimate one-shot head kill rejected by original assertion",
+      "numeric_exit": 101,
+      "log": {
+        "path": ".agents/stair-architecture-20261008/conquest-failure-diagnostics-sample-06.log",
+        "sha256": "71f116de8f2949c9d80899c6b56709ed8e1c14fbf48e7b380a1ac7e6afe68965",
+        "bytes": 7006
+      }
+    },
+    {
+      "result": "First corrected suite: 20 pass, one diagnostic failure. Unclamped negative internal dead HP counted 130 rather than 100 effective HP; not a game or healing defect.",
+      "numeric_exit": 101,
+      "source": {
+        "path": ".agents/stair-architecture-20261008/conquest-before-clamped-measurement.rs",
+        "sha256": "2673f20b78decf1eac6d93c5d5a55d841e8865724b619a09fa5e192b1546f11f",
+        "bytes": 24081
+      },
+      "log": {
+        "path": ".agents/stair-architecture-20261008/conquest-causal-corrected-fifth.log",
+        "sha256": "c6122dfe2d5307b422baeac646134d4dcc048b0462f8d2581f3dca6fe48129d3",
+        "bytes": 3647
+      }
+    }
+  ],
+  "remaining": "Rendered human match, balance and supported-population acceptance remain open. Production source and retained release server remain unchanged. Client and package acceptance are owned separately.",
+  "final_native_comparison": {
+    "path": ".agents/stair-architecture-20261008/conquest-final-native-source-comparison.json",
+    "sha256": "0dc9e063281f32938b70baab7036d78ae6900f138d208ad25c52e6ff43e98222",
+    "bytes": 1005
+  }
+}

@@ -1,0 +1,754 @@
+{
+  "scope": "original static source measurements and rejected labels; no accepted rig, motion, live selection or renderer",
+  "schema": 1,
+  "source": {
+    "acceptance": "read-only measurements; no pivots, parts, pose or runtime selected",
+    "actual_paint_dimensions": [
+      4096,
+      4096
+    ],
+    "animations": 0,
+    "bounds_max": [
+      0.48100408911705,
+      0.949709951877594,
+      0.20008996129036
+    ],
+    "bounds_min": [
+      -0.475128024816513,
+      -0.948779046535492,
+      -0.193764060735703
+    ],
+    "coincident_1e6_components": 1,
+    "coincident_position_groups": 8153,
+    "forearm_color_hints": {
+      "negative_x_magenta": 70,
+      "negative_x_rust": 23,
+      "positive_x_magenta": 0,
+      "positive_x_rust": 239
+    },
+    "geometry_degenerate_1e12": 0,
+    "indexed_components": 5401,
+    "normal_disagreement": 0,
+    "schema": 1,
+    "sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1",
+    "skins": 0,
+    "source": "art/raw/meshy-pilot-20261003/splice-named-v1-ultra-0.glb",
+    "triangle_csv_sha256": "1b403009c503651e271abb2c5a97412aff5cf612d348da208375f898b9aaa38e",
+    "triangles": 16602,
+    "uv_degenerate_1e12": 0,
+    "vertices": 27283
+  },
+  "new_cash_usd": 0,
+  "bindings": [
+    {
+      "bytes": 37778976,
+      "path": "art/raw/meshy-pilot-20261003/splice-named-v1-ultra-0.glb",
+      "sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1"
+    },
+    {
+      "bytes": 8937,
+      "path": "tools/audit_splice_source.gd",
+      "sha256": "ae9f52ac0d5b62217b3aaf67f632d40f0bb7809a55e9b77558c3f5c639097922"
+    },
+    {
+      "bytes": 13978,
+      "path": "tools/partition_splice_diagnostic.gd",
+      "sha256": "b43b9f682a9edf9f38d196ca807237d0dea791c7032958899cc53de9a82e2c7c"
+    },
+    {
+      "bytes": 8411,
+      "path": ".agents/splice-mechanical-source-20261008/historical-checkpoint/plan-before-refinement.md",
+      "sha256": "1acc0f1f6690af560ae97226427720fa1af7648ef75d86cfc6906b584ab4aa62",
+      "original_path": "docs/plans/splice-mechanical-source-20261008.md",
+      "relocation": "October 8: relocated to retained identical historical plan bytes; reconstructed by removing the sole later appended refinement section and matching the original receipt SHA-256. The current owning plan is not the historical source."
+    },
+    {
+      "bytes": 244439,
+      "path": "docs/evidence/named-cast-source-production-20261005/splice-0.png",
+      "sha256": "470dae222991db5942cd31ff71a4c201c3207c693f099d0496e3e794a4ed8930"
+    },
+    {
+      "bytes": 198599,
+      "path": "docs/evidence/named-cast-source-production-20261005/splice-1.png",
+      "sha256": "a9c98bf7baa8c7cfd223faef58ac126d05f0962bd7987c9f98fd8ac5700d0096"
+    },
+    {
+      "bytes": 250000,
+      "path": "docs/evidence/named-cast-source-production-20261005/splice-2.png",
+      "sha256": "2188d76a5d314e4ed50565cfeeb12770654d8f85c3d4751a503fd47a11211192"
+    },
+    {
+      "bytes": 204131,
+      "path": "docs/evidence/named-cast-source-production-20261005/splice-3.png",
+      "sha256": "f8a1f7113df653f59d6e8eba1c4c2b786996406b4d0a74bc970d46f75e409eee"
+    },
+    {
+      "bytes": 37886672,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v1/labels.glb",
+      "sha256": "9fd7107e7184738c2a2175f3441e0252985983220aebf9734748410522273f5e"
+    },
+    {
+      "bytes": 174037,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v1/partition.json",
+      "sha256": "e3bfbfb1c1711c2e5d8f62409c7fe8712a85d6ee2ae2770904e502b6c2445f39"
+    },
+    {
+      "bytes": 179,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v1/partition.log",
+      "sha256": "8c6fd762393870e1839b4079da1d8b6d9ba0fd7515e8dcbda10999c380ab2dd8"
+    },
+    {
+      "bytes": 37886672,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v2/labels.glb",
+      "sha256": "9fd7107e7184738c2a2175f3441e0252985983220aebf9734748410522273f5e"
+    },
+    {
+      "bytes": 174200,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v2/partition.json",
+      "sha256": "18d51384b3c21e60b6143705eaa1ef03ae06dc257f360bc3f0076ab674b449ed"
+    },
+    {
+      "bytes": 313,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v2/partition.log",
+      "sha256": "5dc292a7a821e9cfb7d5e4910d7d469d4141453783276f85c29ab5e8d852a86d"
+    },
+    {
+      "bytes": 37886672,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v3/labels.glb",
+      "sha256": "9fd7107e7184738c2a2175f3441e0252985983220aebf9734748410522273f5e"
+    },
+    {
+      "bytes": 174199,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v3/partition.json",
+      "sha256": "dca729251f598ed352a0770e0c68e720d45e213b87ba6e805f96e4dfeb921285"
+    },
+    {
+      "bytes": 179,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v3/partition.log",
+      "sha256": "8c6fd762393870e1839b4079da1d8b6d9ba0fd7515e8dcbda10999c380ab2dd8"
+    },
+    {
+      "bytes": 37886672,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v4/labels.glb",
+      "sha256": "9fd7107e7184738c2a2175f3441e0252985983220aebf9734748410522273f5e"
+    },
+    {
+      "bytes": 184306,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v4/partition.json",
+      "sha256": "5a328acdb6fb1c470c36f074e7c95411661b594b0cfc04240f4ed07daa760505"
+    },
+    {
+      "bytes": 179,
+      "path": ".agents/splice-mechanical-source-20261008/labels-v4/partition.log",
+      "sha256": "8c6fd762393870e1839b4079da1d8b6d9ba0fd7515e8dcbda10999c380ab2dd8"
+    },
+    {
+      "bytes": 197,
+      "path": ".agents/splice-mechanical-source-20261008/raw-final/audit.log",
+      "sha256": "56a099aef7e1a0e8e13139c0aa8d3533bf5d0d82a42fe97a2399246d76639827"
+    },
+    {
+      "bytes": 4055233,
+      "path": ".agents/splice-mechanical-source-20261008/raw-final/original-triangles.csv",
+      "sha256": "1b403009c503651e271abb2c5a97412aff5cf612d348da208375f898b9aaa38e"
+    },
+    {
+      "bytes": 951,
+      "path": ".agents/splice-mechanical-source-20261008/raw-final/source.json",
+      "sha256": "439592fd12639a7b6321a7aca8c7a39e3babcbe33f784791fb44b2a1f9f56951"
+    },
+    {
+      "bytes": 197,
+      "path": ".agents/splice-mechanical-source-20261008/raw-first/audit.log",
+      "sha256": "56a099aef7e1a0e8e13139c0aa8d3533bf5d0d82a42fe97a2399246d76639827"
+    },
+    {
+      "bytes": 4055067,
+      "path": ".agents/splice-mechanical-source-20261008/raw-first/original-triangles.csv",
+      "sha256": "6c1cad786d7f735c56d58bdb429f499163b788c3779a9b445d4197eb0839505c"
+    },
+    {
+      "bytes": 949,
+      "path": ".agents/splice-mechanical-source-20261008/raw-first/source.json",
+      "sha256": "9644f5cb172c4ec5c5c8ae96675642de49eb532fecf1b44ee26deef397b033b2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/historical-checkpoint/original-receipt.json",
+      "bytes": 21922,
+      "sha256": "4c3e5efb258a0d4bafb497a45488c8cfaf8b93bde7e07d6b0b59adf7a3747942"
+    }
+  ],
+  "generation_credits": 0,
+  "partition": {
+    "diagnostic_sha256": "9fd7107e7184738c2a2175f3441e0252985983220aebf9734748410522273f5e",
+    "accepted": false,
+    "exact_original_triangle_coverage": true,
+    "added_closure_triangles": 0,
+    "boundaries": {
+      "cross_part_cut_edges": 810,
+      "interfaces": [
+        {
+          "bounds_max": [
+            -0.233398020267487,
+            -0.000977002084255219,
+            0.127454996109009
+          ],
+          "bounds_min": [
+            -0.461960017681122,
+            -0.05910300090909,
+            -0.0347199998795986
+          ],
+          "cut_edges": 36,
+          "edge_end_mean": [
+            -0.357759058475494,
+            -0.0254290383309126,
+            0.051577016711235
+          ],
+          "parts": [
+            "right_forearm",
+            "right_hand"
+          ],
+          "total_edge_length_m": 1.09537606686354
+        },
+        {
+          "bounds_max": [
+            -0.2552689909935,
+            0.324929028749466,
+            -0.0102250203490257
+          ],
+          "bounds_min": [
+            -0.377768009901047,
+            0.291992008686066,
+            -0.114414028823376
+          ],
+          "cut_edges": 32,
+          "edge_end_mean": [
+            -0.316315859556198,
+            0.310005128383636,
+            -0.0547638945281506
+          ],
+          "parts": [
+            "right_upper_arm",
+            "right_forearm"
+          ],
+          "total_edge_length_m": 0.668516853824258
+        },
+        {
+          "bounds_max": [
+            -0.14791601896286,
+            -0.760082006454468,
+            0.0112320706248283
+          ],
+          "bounds_min": [
+            -0.267158031463623,
+            -0.780733048915863,
+            -0.121307946741581
+          ],
+          "cut_edges": 28,
+          "edge_end_mean": [
+            -0.210869207978249,
+            -0.769568026065826,
+            -0.0628796443343163
+          ],
+          "parts": [
+            "right_lower_leg",
+            "right_foot"
+          ],
+          "total_edge_length_m": 0.634443841874599
+        },
+        {
+          "bounds_max": [
+            -0.231022015213966,
+            0.651879072189331,
+            0.045418955385685
+          ],
+          "bounds_min": [
+            -0.259243994951248,
+            0.363697022199631,
+            -0.09329704195261
+          ],
+          "cut_edges": 41,
+          "edge_end_mean": [
+            -0.245131626725197,
+            0.530391693115234,
+            -0.0258790161460638
+          ],
+          "parts": [
+            "torso",
+            "right_upper_arm"
+          ],
+          "total_edge_length_m": 1.11970217432827
+        },
+        {
+          "bounds_max": [
+            -0.229772001504898,
+            -0.0033470094203949,
+            0.134235993027687
+          ],
+          "bounds_min": [
+            -0.263724029064178,
+            -0.164867997169495,
+            -0.0415149889886379
+          ],
+          "cut_edges": 35,
+          "edge_end_mean": [
+            -0.243892371654511,
+            -0.0963816270232201,
+            0.0487485714256763
+          ],
+          "parts": [
+            "right_hand",
+            "right_upper_leg_and_unresolved_rack"
+          ],
+          "total_edge_length_m": 0.936171640176326
+        },
+        {
+          "bounds_max": [
+            -0.232432007789612,
+            0.119682013988495,
+            0.117118999361992
+          ],
+          "bounds_min": [
+            -0.263724029064178,
+            -0.05910300090909,
+            -0.0347199998795986
+          ],
+          "cut_edges": 22,
+          "edge_end_mean": [
+            -0.246523842215538,
+            0.0357958935201168,
+            0.0282256826758385
+          ],
+          "parts": [
+            "right_forearm",
+            "right_upper_leg_and_unresolved_rack"
+          ],
+          "total_edge_length_m": 0.72307753097266
+        },
+        {
+          "bounds_max": [
+            -0.232432007789612,
+            0.120678007602692,
+            0.0248929969966412
+          ],
+          "bounds_min": [
+            -0.248605012893677,
+            0.0960339978337288,
+            -0.0312830097973347
+          ],
+          "cut_edges": 3,
+          "edge_end_mean": [
+            -0.244493842124939,
+            0.113091677427292,
+            -0.00446650851517916
+          ],
+          "parts": [
+            "pelvis",
+            "right_forearm"
+          ],
+          "total_edge_length_m": 0.063893998041749
+        },
+        {
+          "bounds_max": [
+            0.0267049968242645,
+            0.151887014508247,
+            0.131408989429474
+          ],
+          "bounds_min": [
+            -0.248605012893677,
+            0.0674070045351982,
+            -0.0659340098500252
+          ],
+          "cut_edges": 81,
+          "edge_end_mean": [
+            -0.138860389590263,
+            0.104010015726089,
+            0.0260465499013662
+          ],
+          "parts": [
+            "pelvis",
+            "right_upper_leg_and_unresolved_rack"
+          ],
+          "total_edge_length_m": 1.95714124012738
+        },
+        {
+          "bounds_max": [
+            -0.115819007158279,
+            -0.310339003801346,
+            0.0677820295095444
+          ],
+          "bounds_min": [
+            -0.236819013953209,
+            -0.359487026929855,
+            -0.0551059767603874
+          ],
+          "cut_edges": 29,
+          "edge_end_mean": [
+            -0.175539121031761,
+            -0.33941638469696,
+            0.0134375095367432
+          ],
+          "parts": [
+            "right_upper_leg_and_unresolved_rack",
+            "right_lower_leg"
+          ],
+          "total_edge_length_m": 0.748380953446031
+        },
+        {
+          "bounds_max": [
+            0.149903997778893,
+            0.687834084033966,
+            0.115749970078468
+          ],
+          "bounds_min": [
+            -0.163086012005806,
+            0.602499067783356,
+            -0.186891064047813
+          ],
+          "cut_edges": 152,
+          "edge_end_mean": [
+            -0.0126474536955357,
+            0.640093326568604,
+            -0.0289334747940302
+          ],
+          "parts": [
+            "neck",
+            "torso"
+          ],
+          "total_edge_length_m": 4.08048326638527
+        },
+        {
+          "bounds_max": [
+            0.245943024754524,
+            0.303018987178802,
+            0.0932909920811653
+          ],
+          "bounds_min": [
+            -0.116747006773949,
+            0.258269041776657,
+            -0.109636031091213
+          ],
+          "cut_edges": 50,
+          "edge_end_mean": [
+            0.0329093150794506,
+            0.279085993766785,
+            0.0200722590088844
+          ],
+          "parts": [
+            "torso",
+            "pelvis"
+          ],
+          "total_edge_length_m": 1.09756779437885
+        },
+        {
+          "bounds_max": [
+            0.0328930020332336,
+            0.749023079872131,
+            0.0556389540433884
+          ],
+          "bounds_min": [
+            -0.0796740055084229,
+            0.723662078380585,
+            -0.0707580596208572
+          ],
+          "cut_edges": 63,
+          "edge_end_mean": [
+            -0.0189652852714062,
+            0.735064208507538,
+            -0.00788120646029711
+          ],
+          "parts": [
+            "head",
+            "neck"
+          ],
+          "total_edge_length_m": 0.859929071739316
+        },
+        {
+          "bounds_max": [
+            0.184273019433022,
+            0.125532001256943,
+            0.13128399848938
+          ],
+          "bounds_min": [
+            0.0254350025206804,
+            0.0712579935789108,
+            -0.0650300160050392
+          ],
+          "cut_edges": 59,
+          "edge_end_mean": [
+            0.0968534350395203,
+            0.104188717901707,
+            0.0257007349282503
+          ],
+          "parts": [
+            "pelvis",
+            "left_upper_leg"
+          ],
+          "total_edge_length_m": 1.36694127786905
+        },
+        {
+          "bounds_max": [
+            0.0267050005495548,
+            0.108165010809898,
+            0.13128399848938
+          ],
+          "bounds_min": [
+            0.0211390014737844,
+            0.0443450100719929,
+            -0.0581110082566738
+          ],
+          "cut_edges": 4,
+          "edge_end_mean": [
+            0.0227450020611286,
+            0.0622688829898834,
+            0.0578568801283836
+          ],
+          "parts": [
+            "left_upper_leg",
+            "right_upper_leg_and_unresolved_rack"
+          ],
+          "total_edge_length_m": 0.238594144582748
+        },
+        {
+          "bounds_max": [
+            0.21015702188015,
+            -0.311523020267487,
+            0.0683600306510925
+          ],
+          "bounds_min": [
+            0.0882020071148872,
+            -0.362304985523224,
+            -0.0405229739844799
+          ],
+          "cut_edges": 30,
+          "edge_end_mean": [
+            0.14936389029026,
+            -0.340284883975983,
+            0.0129785621538758
+          ],
+          "parts": [
+            "left_upper_leg",
+            "left_lower_leg"
+          ],
+          "total_edge_length_m": 0.707012809813023
+        },
+        {
+          "bounds_max": [
+            0.221120998263359,
+            -0.753667056560516,
+            0.0112050622701645
+          ],
+          "bounds_min": [
+            0.101635009050369,
+            -0.783735036849976,
+            -0.126562938094139
+          ],
+          "cut_edges": 35,
+          "edge_end_mean": [
+            0.158711686730385,
+            -0.77021449804306,
+            -0.064987912774086
+          ],
+          "parts": [
+            "left_lower_leg",
+            "left_foot"
+          ],
+          "total_edge_length_m": 0.727109121158719
+        },
+        {
+          "bounds_max": [
+            0.274818032979965,
+            0.618772983551025,
+            0.0291769579052925
+          ],
+          "bounds_min": [
+            0.213229015469551,
+            0.308100998401642,
+            -0.110754035413265
+          ],
+          "cut_edges": 47,
+          "edge_end_mean": [
+            0.245430678129196,
+            0.444859981536865,
+            -0.0460199378430843
+          ],
+          "parts": [
+            "torso",
+            "left_upper_arm"
+          ],
+          "total_edge_length_m": 1.5164864170365
+        },
+        {
+          "bounds_max": [
+            0.261411041021347,
+            0.310940027236938,
+            -0.0247920230031013
+          ],
+          "bounds_min": [
+            0.232936009764671,
+            0.273448020219803,
+            -0.114576026797295
+          ],
+          "cut_edges": 6,
+          "edge_end_mean": [
+            0.245529770851135,
+            0.292421221733093,
+            -0.069321520626545
+          ],
+          "parts": [
+            "torso",
+            "left_forearm"
+          ],
+          "total_edge_length_m": 0.156150283291936
+        },
+        {
+          "bounds_max": [
+            0.251293033361435,
+            0.274345993995667,
+            -0.0283600240945816
+          ],
+          "bounds_min": [
+            0.237779006361961,
+            0.244047999382019,
+            -0.109636031091213
+          ],
+          "cut_edges": 6,
+          "edge_end_mean": [
+            0.243650749325752,
+            0.255416840314865,
+            -0.0766147002577782
+          ],
+          "parts": [
+            "pelvis",
+            "left_forearm"
+          ],
+          "total_edge_length_m": 0.131470469757915
+        },
+        {
+          "bounds_max": [
+            0.344309002161026,
+            0.324486017227173,
+            -0.0364620238542557
+          ],
+          "bounds_min": [
+            0.241793036460876,
+            0.290039002895355,
+            -0.115373022854328
+          ],
+          "cut_edges": 19,
+          "edge_end_mean": [
+            0.31319722533226,
+            0.309993177652359,
+            -0.0730970799922943
+          ],
+          "parts": [
+            "left_upper_arm",
+            "left_forearm"
+          ],
+          "total_edge_length_m": 0.354098225478083
+        },
+        {
+          "bounds_max": [
+            0.478137016296387,
+            -0.00390600040555,
+            0.0693769976496696
+          ],
+          "bounds_min": [
+            0.35351300239563,
+            -0.047884002327919,
+            -0.0690089985728264
+          ],
+          "cut_edges": 23,
+          "edge_end_mean": [
+            0.409116238355637,
+            -0.0275961738079786,
+            0.00156317662913352
+          ],
+          "parts": [
+            "left_forearm",
+            "left_hand"
+          ],
+          "total_edge_length_m": 0.678213015198708
+        },
+        {
+          "bounds_max": [
+            0.402587026357651,
+            -0.251940041780472,
+            0.0347010232508183
+          ],
+          "bounds_min": [
+            0.364323019981384,
+            -0.270186007022858,
+            -0.00293298112228513
+          ],
+          "cut_edges": 9,
+          "edge_end_mean": [
+            0.380267947912216,
+            -0.260244905948639,
+            0.0130645744502544
+          ],
+          "parts": [
+            "left_hand",
+            "left_upper_leg"
+          ],
+          "total_edge_length_m": 0.159426042810082
+        }
+      ],
+      "original_nonmanifold_edges": 93,
+      "original_open_edges": 68,
+      "original_unique_edges": 24873,
+      "scope": "actual original welded interfaces, unaccepted joint proposals; mean is not an accepted pivot",
+      "weld_tolerance_m": 1E-06
+    },
+    "reason": "unwanted hand/leg and torso/forearm boundaries; right rack unresolved",
+    "negative_controls": {
+      "displaced_part": true,
+      "duplicate_triangle": true,
+      "normal": true,
+      "omitted_triangle": true,
+      "uv": true,
+      "winding": true
+    }
+  },
+  "paid_requests": 0,
+  "date": "2026-10-08",
+  "observed_exits": [
+    {
+      "case": "raw-first",
+      "acceptance": "rejected inverted texture V diagnostic",
+      "exit_code": 0
+    },
+    {
+      "case": "raw-final",
+      "acceptance": "read-only structural measurements",
+      "exit_code": 0
+    },
+    {
+      "case": "labels-v1",
+      "acceptance": "unaccepted labels, first static coverage only",
+      "exit_code": 0
+    },
+    {
+      "case": "labels-v2",
+      "acceptance": "retained parsed numeric-type comparison failure",
+      "exit_code": 1
+    },
+    {
+      "case": "labels-v3",
+      "acceptance": "static coverage and six negative controls only",
+      "exit_code": 0
+    },
+    {
+      "case": "labels-v4",
+      "acceptance": "static coverage, six controls and actual rejected joint interfaces",
+      "exit_code": 0
+    }
+  ],
+  "status": "in flight",
+  "historical_plan_binding_relocation": {
+    "date": "2026-10-08",
+    "original_receipt_path": ".agents/splice-mechanical-source-20261008/historical-checkpoint/original-receipt.json",
+    "original_receipt_sha256": "4c3e5efb258a0d4bafb497a45488c8cfaf8b93bde7e07d6b0b59adf7a3747942",
+    "scope": "One historical plan pointer relocated to identical retained original bytes. Original receipt retained unchanged. Later source-motion evidence uses a separate receipt."
+  }
+}

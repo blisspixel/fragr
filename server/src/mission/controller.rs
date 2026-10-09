@@ -15,6 +15,7 @@ mod m08;
 mod m09;
 mod m10;
 mod m11;
+mod m12;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -42,6 +43,9 @@ pub struct MissionClient {
     m11_map: Option<crate::protocol::M11MapGeometry>,
     m11_point: Option<[f32; 3]>,
     m11_pending: bool,
+    m12_map: Option<crate::protocol::M12MapGeometry>,
+    m12_points: Option<[[f32; 3]; 2]>,
+    m12_pending: bool,
     m10_map: Option<crate::protocol::M10MapGeometry>,
     m10_point: Option<[f32; 3]>,
     m10_pending: bool,
@@ -384,6 +388,17 @@ impl MissionClient {
                 self.observed = old.observed;
             }
         }
+        if old.m12_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1012
+        {
+            self.m12_map = old.m12_map.clone();
+            self.m12_points = old.m12_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m12_pending = true;
+        }
         if old.m11_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1011
         {
             self.m11_map = old.m11_map.clone();
@@ -464,7 +479,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::RightOfSearch {
+        let map_matches = if state.id == MissionId::TermsOfCooperation {
+            self.validate_m12_target(&state)?;
+            true
+        } else if state.id == MissionId::RightOfSearch {
             self.validate_m11_target(&state)?;
             true
         } else if state.id == MissionId::CommonCarrier {
@@ -528,6 +546,7 @@ impl MissionClient {
         self.m09_pending = false;
         self.m10_pending = false;
         self.m11_pending = false;
+        self.m12_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -627,7 +646,8 @@ impl MissionClient {
             && self.m08_map.is_none()
             && self.m09_map.is_none()
             && self.m10_map.is_none()
-            && self.m11_map.is_none())
+            && self.m11_map.is_none()
+            && self.m12_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -708,6 +728,16 @@ impl MissionClient {
                     append(format!("m11/transfer/{index}"), feet);
                 }
             }
+            if let Some(g) = &self.m12_map {
+                for (kind, people) in [
+                    ("shelter_people", &g.shelter_people),
+                    ("workers", &g.workers),
+                ] {
+                    for (index, feet) in people.iter().enumerate() {
+                        append(format!("m12/{kind}/{index}"), *feet);
+                    }
+                }
+            }
             if let Some(f) = &state.m10 {
                 append("m10/tern".into(), f.pilot);
                 for person in &f.passengers {
@@ -747,9 +777,17 @@ impl MissionClient {
             || self.m09_pending
             || self.m10_pending
             || self.m11_pending
+            || self.m12_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::TermsOfCooperation)
+        {
+            return self.steer_m12(navigator, world, id, snapshot, action);
         }
         if self
             .state

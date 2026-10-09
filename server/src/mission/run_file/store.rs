@@ -1,8 +1,8 @@
 //! Bounded local run storage. The lock file is never renamed with the save.
 use super::{
-    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2,
-    RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7, RunDocumentV8,
-    RunDocumentV9,
+    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV14,
+    RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
+    RunDocumentV8, RunDocumentV9,
 };
 use crate::protocol::MissionId;
 use sha2::{Digest, Sha256};
@@ -16,7 +16,7 @@ const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
 /// Internally supported save stages, independent of network capability admission.
-pub(crate) const CAMPAIGN_STAGES: usize = 11;
+pub(crate) const CAMPAIGN_STAGES: usize = 12;
 /// Bundled content hashes for every playable campaign stage.
 pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 
@@ -33,6 +33,7 @@ pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = [
     MissionId::PassengerManifest,
     MissionId::CommonCarrier,
     MissionId::RightOfSearch,
+    MissionId::TermsOfCooperation,
 ];
 
 /// Index of a playable mission in [`ContentHashes`].
@@ -49,6 +50,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::PassengerManifest => 8,
         MissionId::CommonCarrier => 9,
         MissionId::RightOfSearch => 10,
+        MissionId::TermsOfCooperation => 11,
     }
 }
 
@@ -137,7 +139,9 @@ impl RunStore {
         // A readable document of another format version is a real run this
         // build cannot continue, not damage. New Run archives its bytes.
         let version = value.get("version").and_then(serde_json::Value::as_u64);
-        let document = match version {
+        let current_hashes = hashes;
+        let hashes = super::geometry::validation_hashes(&value, hashes);
+        let mut document = match version {
             Some(2) => {
                 let legacy: RunDocumentV2 = match serde_json::from_value(value) {
                     Ok(document) => document,
@@ -258,6 +262,16 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(14) => {
+                let legacy: RunDocumentV14 = match serde_json::from_value(value) {
+                    Ok(legacy) => legacy,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                match legacy.upgrade(hashes) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -273,6 +287,18 @@ impl RunStore {
         if document.validate(*expected).is_err() {
             return RunProbe::Incompatible;
         }
+        super::geometry::normalize_entry(&mut document, current_hashes);
+        // Entry normalization changes only the content identity, but the
+        // successor must still satisfy ordinary complete validation.
+        if matches!(
+            document.step,
+            super::SavedStep::MissionEntry { .. } | super::SavedStep::PendingContinue { .. }
+        ) && document
+            .validate(current_hashes[stage_index(document.stage_mission())])
+            .is_err()
+        {
+            return RunProbe::Incompatible;
+        }
         RunProbe::Compatible(Box::new(document))
     }
 
@@ -285,10 +311,16 @@ impl RunStore {
             return Err(invalid("campaign run exceeds size limit"));
         }
         let value: serde_json::Value = serde_json::from_slice(&bytes)?;
-        Ok(matches!(
-            value.get("version").and_then(serde_json::Value::as_u64),
-            Some(2..=13)
-        ))
+        let RunProbe::Compatible(document) = Self::inspect_bytes(&bytes, self.hashes) else {
+            return Err(invalid("campaign run cannot be upgraded"));
+        };
+        let original_hash = value
+            .get("content_sha256")
+            .cloned()
+            .and_then(|hash| serde_json::from_value::<[u8; 32]>(hash).ok());
+        Ok(original_hash != Some(document.content_sha256)
+            || value.get("version").and_then(serde_json::Value::as_u64)
+                != Some(u64::from(super::RUN_FILE_VERSION)))
     }
 
     /// Archive source bytes without removing run.json, then atomically replace
@@ -531,6 +563,7 @@ mod tests {
             m09_outcome: None,
             m10_transit: None,
             m11_outcome: None,
+            m12_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -614,7 +647,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32],
             ],
         )
         .unwrap();
@@ -637,7 +670,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32]
                 ]
             )
             .unwrap(),
@@ -768,7 +801,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32],
             ],
         )
         .unwrap();
@@ -815,7 +848,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32],
             ],
         )
         .unwrap();
@@ -876,12 +909,13 @@ mod tests {
             &directory,
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32],
             ],
         )
         .unwrap();
         let mut legacy = super::super::tests::completed_market_document();
         legacy.version = 5;
+        legacy.rules.revision = 3;
         let bytes = serde_json::to_vec_pretty(&super::super::historical_value(&legacy)).unwrap();
         fs::write(directory.join(RUN_NAME), &bytes).unwrap();
         let loaded = store.load().unwrap().unwrap();
@@ -939,7 +973,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32],
             ],
         )
         .unwrap();
@@ -987,7 +1021,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32]
                 ]
             )
             .unwrap(),
@@ -1004,7 +1038,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32],
             ],
         )
         .unwrap();
@@ -1056,7 +1090,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32]
                 ]
             )
             .unwrap(),
@@ -1102,6 +1136,10 @@ mod tests {
 }
 
 #[cfg(test)]
+mod arc_tests;
+#[cfg(test)]
+mod geometry_tests;
+#[cfg(test)]
 mod m06_tests;
 #[cfg(test)]
 mod m07_tests;
@@ -1115,5 +1153,7 @@ mod m09_tests;
 mod m10_tests;
 #[cfg(test)]
 mod m11_tests;
+#[cfg(test)]
+mod m12_tests;
 #[cfg(test)]
 mod remote_tests;

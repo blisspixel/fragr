@@ -252,6 +252,28 @@ pub fn local_point(position: [f32; 3], yaw: f32, local: [f32; 3]) -> [f32; 3] {
     ]
 }
 
+/// The standing-body sweep used by live boarding, exit and authored access
+/// checks. Exact contact with a supporting floor or ceiling remains legal.
+pub(crate) fn body_passage_blocked(from: [f32; 3], to: [f32; 3], solid: &Solid) -> bool {
+    let margin = CONTACT_EPSILON;
+    crate::combat::Ray {
+        origin: from,
+        direction: std::array::from_fn(|axis| to[axis] - from[axis]),
+    }
+    .solid(
+        &Solid {
+            min_x: solid.min_x - crate::movement::RADIUS + margin,
+            max_x: solid.max_x + crate::movement::RADIUS - margin,
+            min_z: solid.min_z - crate::movement::RADIUS + margin,
+            max_z: solid.max_z + crate::movement::RADIUS - margin,
+            bottom: solid.bottom - crate::movement::BODY_HEIGHT + margin,
+            top: solid.top - margin,
+        },
+        1.0,
+    )
+    .is_some()
+}
+
 pub fn hull(state: &VehicleState) -> Solid {
     let [length, span, height] = dimensions(state.kind);
     let width = state.yaw.cos().abs() * length + state.yaw.sin().abs() * span;

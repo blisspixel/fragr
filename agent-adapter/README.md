@@ -693,6 +693,10 @@ facts, including `node_hp`. On the `machine_wrecked` step the shared controller
 walks to the next node's approach and fires at its aim; in the mine lesson it
 throws one mine at the alcove mouth and holds.
 M07 Declared Goods requires 32 for its strict town and crater envelope.
+Encounter-bearing authored development maps with explicit jeep placements
+require 39 for every role; shared arcade rooms retain the current 41 floor.
+They use the existing `act` movement, `interact`, `seat`, aim and
+fire fields. They add no mission readiness or campaign progression operation.
 `observe` preserves each actor's typed `campaign` identity and attack phase.
 `side: participant` includes human and external-agent allies. M02 adds one
 `side: companion`, `kind: latch` actor after the guarded release. Its

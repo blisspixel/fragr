@@ -1,0 +1,15 @@
+{
+  "comment": "Actual spectator presentation on the map8 ordinary-socket finite5v5 trial. Start the explicit low_water_sabotage integration fixture and point FRAGR_SERVER at its logged loopback URL. Every site, charge, actor, phase and score comes from that server. Camera placement is presentation only; no player pose injection.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "low_water_overview", "scene": "res://scenes/main.tscn", "at_seconds": 1, "camera": "overview", "camera_position": [0, 46, -55], "camera_look_at": [0, 1, 0], "settle_seconds": 0.3, "note": "Original compact town: north checkpoint, repair market, west clinic, east depot, three tram crossings and two plant sites."},
+    {"name": "low_water_clinic_steps", "camera": "sabotage_site", "site": "a", "camera_offset": [7, 3.2, 6], "settle_seconds": 0.3, "note": "A Clinic Steps: authoritative raised street, ring, civic control and proper local site words."},
+    {"name": "low_water_tram_stop", "camera": "sabotage_site", "site": "b", "camera_offset": [-7, 3.2, 6], "settle_seconds": 0.3, "note": "B Tram Stop: its distinct service control and loading kerb on the east street bank."},
+    {"name": "low_water_trench", "camera": "overview", "camera_position": [-2, 2, -1], "camera_look_at": [24, 1.2, 0], "settle_seconds": 0.3, "note": "Dry tram trench under the raised street bridges. Authoritative geometry leaves standing clearance and stair exits at both ends."},
+    {"name": "low_water_carried", "camera": "sabotage_charge", "await_sabotage": {"phase": "live", "charge_status": "carried"}, "await_timeout_seconds": 90, "camera_distance": 5, "camera_height": 2.2, "settle_seconds": 0.2, "note": "An ordinary socket fighter carries the real charge toward the current round's site. Spectators can see the charge."},
+    {"name": "low_water_planted", "camera": "sabotage_charge", "await_sabotage": {"phase": "planted", "charge_status": "planted"}, "await_timeout_seconds": 90, "camera_distance": 5, "camera_height": 2.4, "settle_seconds": 0.3, "expect_sabotage": {"phase": "planted", "charge_status": "planted"}, "note": "Actual held Use plants the charge with the default three-second clock. The planted timer and floor light are presented from the snapshot."},
+    {"name": "low_water_defusing", "camera": "sabotage_actor", "await_sabotage": {"phase": "planted", "progress_kind": "defuse", "progress_at_least": 0.2}, "await_timeout_seconds": 35, "settle_seconds": 0.3, "expect_sabotage": {"phase": "planted", "progress_kind": "defuse"}, "note": "An ordinary defending socket walked the retake and is holding Use through the default six-second defuse."},
+    {"name": "low_water_defused", "camera": "sabotage_charge", "await_sabotage": {"phase": "over", "charge_status": "defused"}, "await_timeout_seconds": 20, "camera_distance": 5, "camera_height": 2.4, "settle_seconds": 0.3, "expect_sabotage": {"phase": "over", "charge_status": "defused"}, "note": "The authoritative defuse result and round card. The ten mixed-control fighters remain alive in this mechanics fixture; native bot combat is measured separately."}
+  ]
+}

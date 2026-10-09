@@ -176,6 +176,7 @@ impl GameState {
             m09: None,
             m10: None,
             m11: None,
+            m12: None,
             m02: Some(M02ObjectiveState {
                 completed,
                 total: u8::try_from(prepared.len()).ok()?,

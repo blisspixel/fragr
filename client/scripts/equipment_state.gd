@@ -4,14 +4,14 @@ extends RefCounted
 ## Private server inventory. These limits validate presentation, never award ammo.
 ## The carried count is the total, including rounds sitting in a human magazine.
 ## A shot still spends one unit. Agents keep the single count and omit `loaded`.
-## Wire and record order. Shiv, Sniper and Repeater append so old record
+## Wire and record order. Shiv, Sniper, Repeater and Arc append so old record
 ## slots keep their meaning.
-const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater"]
-const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "repeater": "bullets", "scatter": "shells", "rail": "cells", "sniper": "cells"}
+const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater", "arc"]
+const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "repeater": "bullets", "scatter": "shells", "rail": "cells", "sniper": "cells", "arc": "cells"}
 const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 100}
 ## Pool order on the wire, matching the server.
 const POOL_ORDER: Array[String] = ["bullets", "shells", "cells"]
-const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "repeater": "Repeater", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle"}
+const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "repeater": "Repeater", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle", "arc": "Arc"}
 const POOL_NAMES: Dictionary = {"bullets": "Bullets", "shells": "Shells", "cells": "Cells"}
 ## Rays in one shot. The shotgun's seven pellets still spend one shell.
 const PELLETS: Dictionary = {"scatter": 7}
@@ -20,7 +20,7 @@ const PELLETS: Dictionary = {"scatter": 7}
 ## holds the Shiv, as Doom's holds the chainsaw.
 const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail", "sniper"]
 ## The wheel order: the Shiv sits beside the fists it shares a key with.
-const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "sniper"]
+const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "arc", "sniper"]
 ## Weapons that offer a scope. The view is presentation only: aim and hits stay
 ## with the server.
 const SCOPED: Array[String] = ["sniper"]
@@ -28,7 +28,7 @@ const MELEE: Array[String] = ["fists", "shiv"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 ## Rounds one human magazine holds. Melee has none.
 const MAGAZINE_SIZES: Dictionary = {
-	"tack": 12, "flechette": 20, "repeater": 30, "scatter": 6, "rail": 4, "sniper": 5,
+	"tack": 12, "flechette": 20, "repeater": 30, "scatter": 6, "rail": 4, "sniper": 5, "arc": 12,
 }
 const MAX_EXACT_INTEGER: int = 9007199254740991
 const MAX_GRENADES: int = 6
@@ -238,7 +238,7 @@ static func cycle(state: Dictionary, current: String, step: int) -> String:
 	return cycle_owned(carried_names(state), current, step)
 
 ## Slot one draws the Shiv when carried, and a second press while holding it
-## goes back to fists. Slot four cycles owned Rifle/Repeater; other slots name one gun.
+## goes back to fists. Slot four cycles Rifle/Repeater; slot five cycles Rail/Arc.
 static func slot_if_owned(carried: Array, slot: int, current: String = "") -> String:
 	if slot < 1 or slot > SLOTS.size():
 		return ""
@@ -249,6 +249,9 @@ static func slot_if_owned(carried: Array, slot: int, current: String = "") -> St
 	if slot == 4 and owned.has("repeater"):
 		if current.to_lower() != "repeater" or not owned.has("flechette"):
 			return "repeater"
+	if slot == 5 and owned.has("arc"):
+		if current.to_lower() != "arc" or not owned.has("rail"):
+			return "arc"
 	if not owned.has(weapon):
 		return ""
 	return weapon

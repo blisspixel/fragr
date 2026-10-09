@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "base_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "working_tree_capture": true,
+  "scope": "Two local human awards, recoverable selections, final earned/locked presenters and static firearm frame comparisons. No campaign finale, fresh-player balance, spectator or competitive-proof claim.",
+  "engine": "4.7.2-stable (official)",
+  "device": "AMD Radeon(TM) 780M",
+  "actual_ingress": {
+    "captured_utc": "2026-10-08T14:57:56",
+    "renderer": "gl_compatibility",
+    "states": 16,
+    "resolution": [
+      1280,
+      720
+    ],
+    "native_sha256": "04d4c775f23a31a569c16a8218637daf20c112c512c2ed7ea0ea5c378c3ce1a0",
+    "private_manifest_sha256": "f1af3c423b48de2f100d66a93997c9a1060832a3386d14c57ff4568eb6431ed7",
+    "private_record_sha256": "c93b16149a83ee51eb268183306ff16939140cdbc5b5ff7ff4a25db6e5366d21",
+    "private_log_sha256": "ca95f09fbae601d674756408991a01f8475c05a1695f9cbb56e29aa21a7fdffd",
+    "status": "complete",
+    "completed_tick": 2973,
+    "mission_elapsed_ticks": 2911,
+    "kills": 20,
+    "secrets": 1,
+    "deaths": 0,
+    "hp_lost": 0,
+    "armor_lost": 50,
+    "awards": [
+      {
+        "tick": 246,
+        "status": "active",
+        "id": "authored_secret_found"
+      },
+      {
+        "tick": 2973,
+        "status": "complete",
+        "id": "recall_notice_complete"
+      }
+    ],
+    "source_scope": "Actual ingress capture precedes later save-error, notice retry and enclosing-profile-draft fixes plus the shared QA retirement drain. Its exact then-current base QA script hash was not recorded. The final presenter review and focused checks cover the final source listed below.",
+    "departure_frame": "Departure story page 1 of 3, not a results-statistics frame."
+  },
+  "final_presentation": {
+    "reviewed_utc": "2026-10-08T15:15:57.5181546Z",
+    "renderers": [
+      "gl_compatibility",
+      "mobile/vulkan"
+    ],
+    "menu_resolution": [
+      1280,
+      720
+    ],
+    "comparison_resolution": [
+      960,
+      360
+    ],
+    "menus_per_renderer": 2,
+    "firearm_comparisons_per_renderer": 11,
+    "assertions": "Actual capture dimensions; dark neutral metal changes; warm, bright, colored light, transparent and lower-grip controls exact; all alpha exact; luminance within 0.005; locked Save disabled.",
+    "opengl_log_sha256": "d317ff1071207a0dfa671d66b5ace929e4892eea9f8ba08224a7ef894622c46e",
+    "vulkan_log_sha256": "a07f537b484cfb29129377af046d0750458dfadbd797f222ba698ff10e73a369",
+    "scope": "Same live-earned persisted profile replayed by current presenters. Both renderers exit0 with PASS and clean logs. Static idle/fire/cycle comparisons do not establish complete motion acceptance.",
+    "retained_initial_capture": "Initial review used fullscreen defaults and inherited logical scaling. Final review isolates windowed preferences, asserts output dimensions and uses matching logical dimensions for frame comparisons. Initial files remain private and are not selected evidence."
+  },
+  "selected_images": [
+    {
+      "sha256": "a32a3fddeb73ddadebd877b39d0c9e654eced297522d06c778859e5d228b3a32",
+      "file": "rewards_earned_20261008.png",
+      "scope": "Final presenter loaded from the profile earned by the owned M01 run."
+    },
+    {
+      "sha256": "5fa3ab1c9bb25720e65cef5d4d37c851bf7c7dea93f34824bcc9a4807390aad8",
+      "file": "rewards_locked_20261008.png",
+      "scope": "Fresh isolated profile previews the locked finish; Save remains disabled."
+    },
+    {
+      "sha256": "c0cb4647522d9734deac474a49d53a1fa5dc9e78ff3759eae9df777f70409e2e",
+      "file": "rewards_scatter_fire_20261008.png",
+      "scope": "Same original Shotgun fire texture shown with standard, oxide and margin teal materials; static frame comparison."
+    }
+  ],
+  "final_sources": [
+    {
+      "sha256": "5b63bc2487fb14bddc0c9aa39463f1137e17f171e420319cbcc377ee6a460cbc",
+      "file": "client/scripts/player_rewards.gd"
+    },
+    {
+      "sha256": "879528bf9e6585d757b9e6aa8e191b97fa5c935c54522209f01b0a9dc6752808",
+      "file": "client/scripts/player_records.gd"
+    },
+    {
+      "sha256": "ff15875780f2c81a0d82e0e094725f2e757d153c498f87ef8c806015bfd45fb7",
+      "file": "client/scripts/rewards_panel.gd"
+    },
+    {
+      "sha256": "95be4f3d7ccbf5379f8ff004ab428fc3735291c1c826dfa18531fd1ff8fcd414",
+      "file": "client/scripts/weapon_finish.gdshader"
+    },
+    {
+      "sha256": "36212af17488eea8e1daf36b6b63591c02543e1bdbc208e3e1df012afc66d9fd",
+      "file": "client/scripts/boot_menu.gd"
+    },
+    {
+      "sha256": "29e19bdacb4bc9a3de71065e39c73ce5471041d37a908e1a96a177cd72d94f4c",
+      "file": "client/scripts/game_manager.gd"
+    },
+    {
+      "sha256": "dfc7d1ba18b11f342ebb40b2ef7cf738f6b0fd35b86a5f18f293ea8f6ca866b1",
+      "file": "client/scripts/hud.gd"
+    },
+    {
+      "sha256": "556db1083089ba9e717b1292a80487f8738b9b49cfe9a3f4014c7bf29589d945",
+      "file": "client/scripts/records_panel.gd"
+    },
+    {
+      "sha256": "2f1f29eb5a9a64ed2bcceef75d07a0785225a6cbc33291cdb3e3b89ec4a7fc17",
+      "file": "client/scripts/test_player_rewards.gd"
+    },
+    {
+      "sha256": "a5aceef4ded0c6b7031ed2fa873a064c51a6cea2155875ec0d5ca21772da37e6",
+      "file": "client/scripts/test_benchmark_comparison.gd"
+    },
+    {
+      "sha256": "fe770168915a489514c0889b550a87e8a5606285f828d9af117f48059ff4b6ba",
+      "file": "client/qa/rewards_review.gd"
+    },
+    {
+      "sha256": "eda1d717ed576acdd6183a61109421bae31bcf5a5230cb3cb27e7cc4506e6109",
+      "file": "client/qa/earned_rewards_live.gd"
+    }
+  ],
+  "spend": {
+    "paid_asset_calls": 0,
+    "new_cash_usd": 0
+  }
+}

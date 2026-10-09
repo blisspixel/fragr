@@ -85,8 +85,8 @@ a committed device or objective action. The refusal says to try next round;
 Watch remains available. Ordinary late joiners wait for the next Muster with
 the existing round rules. Fixed bots retain their existing seat behavior.
 
-A server started with one mode keeps that rule set until it stops.
-`--playlist` is the exception: the process stays up and moves through the
+A server started with one mode repeats that show until it stops or the
+attached desk queues another. `--playlist` keeps the process up and moves through the
 built-in night list when the current show ends. The order is Arena Duel
 free-for-all, Compliance Yard free-for-all, Directive 17 team deathmatch,
 Arena Duel capture the flag, Reclamation Gulch team deathmatch, Sector 9
@@ -97,7 +97,7 @@ keep the three-minute clock. Capture the flag is first to three captures.
 The list has no mutators. A playlist file is later. Two weapon mutators cannot
 combine; Golden Rail also cannot combine with Licence to Kill, Shotgun Only
 or Fists Only. Invalid combinations fail at startup. A night-list server,
-a fixed team server, and capture the flag speak gameplay 37 and geometry 2.
+a fixed team server, and capture the flag speak gameplay 41 and geometry 2.
 An older or newer client is refused before Welcome. Campaign missions keep
 their own floors.
 [Multiplayer mode details](plans/multiplayer-modes.md) cover the rule contract.
@@ -234,7 +234,8 @@ caps see a reverse proxy's address if the proxy hides real peer addresses.
 
 A dedicated arcade server started with `--console` opens a venue desk on
 that terminal: `who`, `kick <name>`, `ban <name> [reason]`,
-`say <sentence>`, and `stats`. `who` and `stats` are for the operator.
+`say <sentence>`, `stats`, `shows`, `next` and `map <map> <mode>`.
+`who` and `stats` are for the operator.
 `who` is not added to `GET /status`. `stats` reads the night sheet: rounds
 finished, the busiest room, and the latest shows. That card may name a
 top score. `GET /status` adds only `ops.night` with `rounds_finished`,
@@ -245,6 +246,18 @@ Desktop Host and a local mission already use stdin as a lease, so they
 refuse the desk. A container with no stdin has nothing for the desk to
 read. A process started without the desk still records the sheet and
 serves the three counts.
+
+In current development, `shows` prints the live show, any queued choice and
+the night list when one is running. `map holdfast conquest`, `map 4 sabotage`
+or `map 2 tdm` queues a validated pair using the existing `--map` tokens and
+`ffa`, `tdm`, `ctf`, `sabotage` or `conquest`. The live show finishes first,
+including both halves of a Sabotage match. Players and spectators keep their
+connections; the new map and rules arrive before its first snapshot. A manual
+choice then repeats and turns off automatic rotation. A later valid choice
+replaces it; an invalid choice leaves it alone. On a `--playlist` server,
+`next` cancels a queued manual choice and resumes the usual night order after
+the current show. It does not skip an active round. These verbs are attached
+operator controls, with no remote administration or playlist file implied.
 
 That same process keeps a wire board. `floor` is the room: a successful
 speak, and a venue `say`, are copied there. `notices` hold posted lines

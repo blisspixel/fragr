@@ -17,6 +17,11 @@ func _expect(value: bool, message: String) -> void:
 		push_error("test_install_check: " + message)
 
 func _run() -> void:
+	_expect(InstallCheck._current_composition_error().is_empty(), "current named mesh, M12 copy, Arc surfaces/cues and actual Assessor construct from packaged resources")
+	var saved: PackedScene = SpliceCharacter._packed[SpliceCharacter.SOURCE]
+	SpliceCharacter._packed[SpliceCharacter.SOURCE] = null
+	_expect(InstallCheck._current_composition_error().contains("Splice"), "rigid source availability is required outside the humanoid registry")
+	SpliceCharacter._packed[SpliceCharacter.SOURCE] = saved
 	var first: LocalMatch = LocalMatch.for_tree(self)
 	_expect(LocalMatch.for_tree(self) == first, "a second request before attachment reuses the pending owner")
 	await process_frame

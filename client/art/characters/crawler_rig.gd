@@ -10,7 +10,7 @@ func build_pose(action: String, progress: float) -> Node3D:
 	var land: float = 1.0 - progress if action == "land" else 0.0
 	var pain: float = sin(progress * PI) if action == "hit" else 0.0
 	var collapse: float = progress if action == "death" else 0.0
-	var pitch: float = leap * 6.0 - land * 8.0 + pain * 10.0 + collapse * 22.0
+	var pitch: float = leap * 6.0 - land * 8.0 + pain * 10.0 + collapse * 7.0
 	var body: Node3D = Node3D.new()
 	root.add_child(body)
 	body.position = Vector3(0, -crouch * 0.13 - collapse * 0.26,

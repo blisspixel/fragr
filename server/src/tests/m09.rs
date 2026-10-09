@@ -19,7 +19,13 @@ fn map() -> Arc<AuthoredMap> {
     .clone()
 }
 fn fixture(difficulty: CampaignDifficulty) -> (GameSession, Uuid) {
-    let mut s = GameSession::with_authored_map(map());
+    fixture_with_map(difficulty, map())
+}
+fn fixture_with_map(
+    difficulty: CampaignDifficulty,
+    source: Arc<AuthoredMap>,
+) -> (GameSession, Uuid) {
+    let mut s = GameSession::with_authored_map(source);
     s.state.seed(42);
     s.state.set_campaign_difficulty(difficulty).unwrap();
     let id = Uuid::from_u128(9009);
@@ -196,9 +202,8 @@ fn m09_departure_requires_final_clear_fresh_use_and_all_ready_living_aboard() {
     assert!(g.boarding.contains([3.0, 12.0, -26.0]));
 }
 
-#[test]
-fn m09_real_lesson_charge_descent_counts_once_without_player_frag() {
-    let (mut s, id) = fixture(CampaignDifficulty::Severe);
+fn lesson_charge_descent(source: Arc<AuthoredMap>) -> (GameSession, Uuid, String) {
+    let (mut s, id) = fixture_with_map(CampaignDifficulty::Severe, source);
     clear(&mut s, id, 0);
     place(&mut s, id, [-19.0, 4.0, -31.0]);
     let name = s.state.map.encounters()[1].enemies[0].id.clone();
@@ -225,12 +230,28 @@ fn m09_real_lesson_charge_descent_counts_once_without_player_frag() {
     }
     assert!(told, "actual office-landing windup");
     place(&mut s, id, [-19.0, 4.0, -28.0]);
+    let mut charged = false;
     for _ in 0..120 {
         advance(&mut s, 1);
+        let enemy = s.state.players.iter().find(|p| p.name == name).unwrap();
+        charged |= matches!(
+            enemy.campaign,
+            Some(CampaignActor::Union {
+                phase: EnemyPhase::Charging,
+                ..
+            })
+        );
         if facts(&s).charge_falls == 1 {
             break;
         }
     }
+    assert!(charged, "the actual locked charge must leave windup");
+    (s, id, name)
+}
+
+#[test]
+fn m09_real_lesson_charge_descent_counts_once_without_player_frag() {
+    let (mut s, id, name) = lesson_charge_descent(map());
     assert_eq!(facts(&s).charge_falls, 1);
     let enemy = s.state.players.iter().find(|p| p.name == name).unwrap();
     assert_eq!(enemy.hp, 0);
@@ -238,6 +259,50 @@ fn m09_real_lesson_charge_descent_counts_once_without_player_frag() {
     assert_eq!(s.state.scores.get(&id).copied().unwrap_or(0), 0);
     advance(&mut s, 20);
     assert_eq!(facts(&s).charge_falls, 1);
+}
+
+#[test]
+fn m09_charge_lesson_original_continuous_guard_and_opening_have_actual_causal_outcomes() {
+    let original = AuthoredMap::read(
+        include_bytes!(
+            "../mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest.json"
+        )
+        .as_slice(),
+    )
+    .unwrap();
+    let continuous_guard = AuthoredMap::read(
+        include_bytes!(
+            "../mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest_enclosed.json"
+        )
+        .as_slice(),
+    )
+    .unwrap();
+    for (label, world, expected_falls) in [
+        ("original", original, 1),
+        ("continuous_guard", continuous_guard, 0),
+        ("opening", map(), 1),
+    ] {
+        let (mut s, id, name) = lesson_charge_descent(world);
+        let enemy = s.state.players.iter().find(|p| p.name == name).unwrap();
+        let feet = [enemy.x, enemy.y - PLAYER_FLOOR_Y, enemy.z];
+        eprintln!(
+            "M09 charge {label}: actual feet {feet:?}, HP {}, charge falls {}",
+            enemy.hp,
+            facts(&s).charge_falls
+        );
+        assert_eq!(facts(&s).charge_falls, expected_falls, "{label}");
+        if expected_falls == 1 {
+            assert_eq!(enemy.hp, 0, "{label}: the committed descent is lethal");
+            assert!(feet[1] < 1.5, "{label}: actual four-metre descent");
+        } else {
+            assert!(enemy.hp > 0, "the continuous guard prevents the fall");
+            assert!((feet[1] - 4.0).abs() < crate::movement::CONTACT_EPSILON);
+            assert!(feet[0] <= -18.0 - crate::movement::RADIUS);
+        }
+        assert_eq!(s.state.scores.get(&id).copied().unwrap_or(0), 0);
+        advance(&mut s, 20);
+        assert_eq!(facts(&s).charge_falls, expected_falls);
+    }
 }
 
 #[test]

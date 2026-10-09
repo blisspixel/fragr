@@ -1,18 +1,43 @@
 # M01 intake encounter
 
-Status: foundation **shipped** in #182 and v0.25.0. Production character/motion
-and fresh-player pacing acceptance remain **in flight** in
-[task #180](https://github.com/blisspixel/fragr/issues/180), 2026-09-20.
-Current play has safe Tack discovery, one Clerk, two Sweepers and directional
-poses, with both approaches and spectator eyes inspected. Transfer/gate/departure,
-local launch and text opening followed in v0.26.0 through v0.28.0. Full mission
-completion is tracked in [M01 completion](m01-completion.md), #195.
+Status: foundation **shipped** in #182 and v0.25.0; final character, motion and
+fresh-player acceptance remain **in flight** in
+[task #180](https://github.com/blisspixel/fragr/issues/180). Current audit:
+2026-10-08. Safe Pistol discovery, the initial Clerk and two Sweepers, attack
+phases, resolved recoil, collapse and exhausted melee are implemented. The
+expanded rooms, record, lift, local launch, opening, secret and durable run
+followed in separate increments tracked by [M01 completion](m01-completion.md).
+
+The selected human Clerk now comes from the prepared 24-bone
+[`clerk.glb`](../../client/art/models/candidates/clerk.glb) and authored
+[`clerk_source.gd`](../../client/art/models/clerk_source.gd). The bot Sweeper
+uses its distinct skinned model and
+[`sweeper_skinned_source.gd`](../../client/art/models/sweeper_skinned_source.gd).
+Both have directional albedo and paired normal atlases in the checked
+[`manifest`](../../client/assets/characters/union/manifest.json), received by
+the live enemy presenter. The [Clerk revision](union-field-uniform.md) and
+[Sweeper source](sweeper-stylized-source.md) retain their actual motion and played
+evidence. The earlier shared placeholder and robot-labelled Clerk no longer
+describe the selected runtime art. Selected art remains subject to final
+silhouette, motion, venue-light and subjective production review.
+
+Current automated supply and recovery acceptance is owned by the implemented
+[finite-supply matrix](m01-finite-supply-validation-20261008.md) and its
+[evidence](../evidence/m01-finite-supply-validation-20261008.md). Its passing
+declared-miss, real-enemy death, continue and exhaustion rows retain their
+recorded seed and controlled input limits, rather than establishing unsteered
+human balance. Historical main/service and spectator inspections below retain
+their original assets, renderer and hardware scope. Fresh-player clarity,
+pacing and fun, final enemy art/motion, and current complete-route
+participant/spectator acceptance remain open. No further paid reference request
+is required to audit these gates.
 
 The checkpoints below preserve historical evidence, including superseded draft
-status and counts. They are not the current release state. One later Clerk
-reference submission has an uncertain $0.107 reservation; no request ID was
-preserved. #191 repaired identity persistence. Dashboard reconciliation remains
-necessary before resuming that request; do not assume a refund or repurchase it.
+status and counts. The old reference reservation was reconciled as charged in
+the [October 2 ledger](art-pass-20261002.md#ledger-reconciliation-2026-10-02);
+the [October 3 production receipt](../evidence/art-production-20261003.md)
+reports no unresolved image reservations. Its missing original polling identity
+is historical provenance, not permission or a need to repurchase it.
 
 ## Outcome
 
@@ -27,9 +52,10 @@ M01 discovers the destination and M02 performs the rescue. No Inheritance contac
 Crawler, boss or explosive weapon belongs in this introduction. Procedural
 absurdity can be funny; captive suffering is not the joke. Radio is optional.
 
-This is not the complete mission. Objectives, extraction, checkpoints, the opening
-scene, full co-op lifecycle and the rest of M01's population remain separate work.
-Several connected participants do not establish finished co-op.
+This bounded plan owns the introductory fight. The later rooms, objectives,
+departure, opening and solo-run recovery belong to the linked completion plans.
+Several connected participants do not establish finished co-op, and full-mission
+co-op is not a campaign requirement.
 
 ## Authority and identity
 

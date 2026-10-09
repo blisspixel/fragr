@@ -173,6 +173,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         shot_results,
         projectiles,
         grenades,
+        assessor_canisters,
         mines,
         remote_mines,
         auditors,
@@ -216,6 +217,7 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         && frag_limit == &new.frag_limit
         && projectiles == &new.projectiles
         && grenades == &new.grenades
+        && assessor_canisters == &new.assessor_canisters
         && mines == &new.mines
         && remote_mines == &new.remote_mines
         && auditors == &new.auditors

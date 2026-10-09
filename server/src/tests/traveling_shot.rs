@@ -260,3 +260,21 @@ fn a_departed_shooter_leaves_no_damage() {
     assert_eq!(hp(&state, target), PLAYER_MAX_HP);
     assert!(state.snapshot().projectiles.is_empty());
 }
+
+#[test]
+fn traveling_shot_is_blocked_by_vehicle_hull() {
+    let mut state = range(json!([]));
+    let shooter = place(&mut state, "Shooter", 0.0, 0.0, 0.0);
+    let target = place(&mut state, "Target", 8.0, 0.0, 0.0);
+    state
+        .players
+        .iter_mut()
+        .find(|player| player.id == shooter)
+        .unwrap()
+        .ducking = true;
+    state.add_jeep([4.0, 0.0, 0.0], 0.0);
+    assert!(state.launch_traveling_shot(shooter));
+    advance(&mut state, ticks_to_reach(8.0));
+    assert_eq!(hp(&state, target), PLAYER_MAX_HP);
+    assert!(state.snapshot().projectiles.is_empty());
+}

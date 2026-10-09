@@ -40,9 +40,9 @@ func _run() -> void:
 	view.shot()
 	_check(not view._flash.visible, "unarmed release cannot display a shot")
 	view.set_screen_expression(0.0)
-	_check(is_equal_approx(view._eyes.scale.y, 0.1), "independent optics bound closed expression")
+	_check(view._eyes.mesh == LatchFace.mesh(view.face.state, true) and view._eyes.scale.is_equal_approx(Vector3.ONE), "closed optics preserve the mouth and head scale")
 	view.set_screen_expression(2.0)
-	_check(is_equal_approx(view._eyes.scale.y, 1.0), "independent optics bound open expression")
+	_check(view._eyes.mesh == LatchFace.mesh(view.face.state, false), "independent optics restore the cached open expression")
 	view.set_render_layers(ArenaSky.ACTOR_LAYERS)
 	for node: Node in view.find_children("*", "VisualInstance3D", true, false):
 		_check((node as VisualInstance3D).layers == ArenaSky.ACTOR_LAYERS, "skin and attachments preserve actor-only lighting")

@@ -56,6 +56,7 @@ class Preset extends RefCounted:
 	var ambient_energy: float
 	## Enclosed venues ignore the outdoor arena's sun and ember props.
 	var interior: bool = false
+	var outdoor_embers: bool = true
 	## The scene's DirectionalLight3D, and the arena's overhead omni fill.
 	var key_color: Color = Color(1.0, 0.86, 0.72)
 	var key_energy: float = 1.15
@@ -191,6 +192,12 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
+	if key == "launch authority (development)":
+		return mars_launch()
+	if key in ["terms of cooperation", "terms of cooperation (development)", "arc maintenance (development)"]:
+		return mars_habitat()
+	if key == "the weight of permission (development)":
+		return mars_foundry()
 	if key.contains("holdfast"):
 		return holdfast()
 	if key.contains("common carrier") or key.contains("right of search"):
@@ -201,7 +208,7 @@ static func preset_for(map_name: String) -> Preset:
 		return moon_archive()
 	if key.contains("declared goods"):
 		return moon_town()
-	if key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
+	if key == "low water" or key.contains("notice to vacate") or key.contains("low water market") or key.contains("no forwarding address"):
 		return low_water()
 	if key.contains("scheduled service") or key.contains("recall freight yard"):
 		return freight_yard()
@@ -210,6 +217,55 @@ static func preset_for(map_name: String) -> Preset:
 	if key.contains("compliance") or key.contains("yard"):
 		return compliance()
 	return scrapyard()
+
+## Dust-filtered afternoon over launch services. Neutral work lights and pale
+## shielding preserve enemy silhouettes against the rust terrain.
+static func mars_launch() -> Preset:
+	var preset: Preset = Preset.new(Color("8d786d"), Color("d9aa83"),
+		Color("97644c"), Color("c29b7a"), 0.0015, Color("d6cec2"), 0.72)
+	preset.outdoor_embers = false
+	preset.key_color = Color("ffdeb2")
+	preset.key_energy = 1.3
+	preset.scene_fill_energy = 0.10
+	preset.practical_color = Color("e1ebe5")
+	preset.practical_energy = 1.7
+	preset.practical_range = 10.0
+	preset.view_fill_energy = 0.4
+	preset.view_fill_range = 60.0
+	preset.contrast = 1.05
+	preset.saturation = 0.9
+	return preset
+
+## Protected habitat courts retain amber daylight with quieter, neutral work
+## light under their authored roofs. This is an exterior development venue.
+static func mars_habitat() -> Preset:
+	var preset: Preset = mars_launch()
+	preset.sky_top = Color("a18b7c")
+	preset.sky_horizon = Color("dfba98")
+	preset.fog_color = Color("c8ac91")
+	preset.fog_density = 0.0018
+	preset.ambient_color = Color("d4dbd0")
+	preset.ambient_energy = 0.78
+	preset.practical_energy = 2.0
+	preset.key_energy = 1.1
+	return preset
+
+## The foundry is roofed working space. Neutral task lighting keeps fighters
+## separate from the protected warm process surfaces and exterior Mars dust.
+static func mars_foundry() -> Preset:
+	var preset: Preset = mars_launch()
+	preset.interior = true
+	preset.ambient_color = Color("c9d0ca")
+	preset.ambient_energy = 0.82
+	preset.key_energy = 0.0
+	preset.scene_fill_energy = 0.0
+	preset.practical_color = Color("e3ede5")
+	preset.practical_energy = 2.1
+	preset.practical_range = 13.0
+	preset.view_fill_energy = 0.48
+	preset.view_fill_range = 45.0
+	preset.fog_density = 0.0008
+	return preset
 
 static func holdfast() -> Preset:
 	var preset: Preset = Preset.new(Color("367c9a"), Color("aec8bd"),
@@ -391,7 +447,7 @@ static func apply_scene_lights(layout: Node, map_name: String) -> void:
 	for ember: String in ["EmberPit", "EmberCornerNE", "EmberCornerSW"]:
 		var lamp: Node3D = layout.get_node_or_null(ember) as Node3D
 		if lamp != null:
-			lamp.visible = not preset.interior
+			lamp.visible = not preset.interior and preset.outdoor_embers
 
 
 ## One faint fill at the eye, kept under the active camera. No shadow map, no

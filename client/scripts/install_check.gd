@@ -50,6 +50,17 @@ func _ready() -> void:
 	if not live_available:
 		_finish(false, "the live Latch skin or walking clip is missing from this build")
 		return
+	for kind: String in SkinnedCharacter.SOURCES:
+		var character: SkinnedCharacter = SkinnedCharacter.new()
+		var available: bool = character.configure(kind)
+		character.free()
+		if not available:
+			_finish(false, "a live character skin or support curve is missing from this build")
+			return
+	var composition_problem: String = _current_composition_error()
+	if not composition_problem.is_empty():
+		_finish(false, composition_problem)
+		return
 	# The Enforcer uses packaged directional surfaces, never offline source art.
 	for path: String in ["res://assets/characters/union/enforcer.png",
 		"res://assets/characters/union/enforcer_normals.png"]:
@@ -131,6 +142,36 @@ func _ready() -> void:
 	_local.run_preview_changed.connect(_on_preview)
 	_deadline = Time.get_ticks_msec() + TIMEOUT_MS
 	_local.refresh_run_preview()
+
+static func _current_composition_error() -> String:
+	var splice: SpliceCharacter = SpliceCharacter.new()
+	var available: bool = splice.configure()
+	splice.free()
+	if not available:
+		return "the live Splice mesh or rigid clips are missing from this build"
+	for id: String in ["l11_l12", "m12_arrival"]:
+		var scene: Dictionary = StoryScene.load_scene(id)
+		if scene.is_empty():
+			return "the M12 story manifests are missing or invalid"
+		for key: String in StoryScene.catalog_keys(scene):
+			if TranslationServer.translate(key) == key:
+				return "the M12 story copy is missing"
+	var arc_poses: Array[Texture2D] = [WeaponArt.IDLE.get("Arc"), WeaponArt.FIRE.get("Arc"),
+		WeaponArt.CYCLE.get("Arc"), WeaponArt.ARC_RELOAD, WeaponArt.PROFILE.get("Arc")]
+	for texture: Texture2D in arc_poses:
+		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+			return "an Arc weapon surface is missing from this build"
+	for path: String in ["res://assets/audio/arc/fire.wav", "res://assets/audio/arc/impact.wav",
+		"res://assets/audio/assessor/tell.wav", "res://assets/audio/assessor/launch.wav"]:
+		if not ResourceLoader.exists(path) or not load(path) is AudioStream:
+			return "an Arc or Assessor cue is missing from this build"
+	var assessor: AssessorRig = AssessorRig.new()
+	var assessor_available: bool = assessor.fans.size() == 4 and assessor.optics.size() == 2 \
+		and assessor.vents.size() == 3 and assessor.launcher != null and not assessor._parts.is_empty()
+	assessor.free()
+	if not assessor_available:
+		return "the Assessor presentation is incomplete in this build"
+	return ""
 
 func _process(_delta: float) -> void:
 	if _deadline > 0 and Time.get_ticks_msec() > _deadline:

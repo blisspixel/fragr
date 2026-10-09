@@ -5,7 +5,7 @@ use crate::protocol::{BodyKind, CampaignDifficulty, CampaignRules, EquipmentPoli
 
 const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
-    [103; 32],
+    [103; 32], [104; 32],
 ];
 
 fn completed_workshop() -> RunDocument {
@@ -55,6 +55,7 @@ fn completed_workshop() -> RunDocument {
 fn historical_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 6.into();
+    value["rules"]["revision"] = (3).into();
     super::super::remove_historical_mines(&mut value);
     serde_json::to_vec_pretty(&value).unwrap()
 }

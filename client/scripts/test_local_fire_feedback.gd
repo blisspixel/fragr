@@ -56,10 +56,18 @@ func _check(condition: bool, label: String) -> void:
 	if not condition:
 		failures.append(label)
 
-func _equipment(weapon: String = "flechette", rounds: int = 20, tick: int = 100) -> Dictionary:
-	return {"tick": tick, "selected": weapon, "weapons": ["fists", "shiv", "tack", "flechette", "scatter", "rail", "sniper", "repeater"],
-		"ammo": [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}],
-		"loaded": [{"weapon": weapon, "rounds": rounds}]}
+func _equipment(weapon: String = "flechette", rounds: int = -1, tick: int = 100) -> Dictionary:
+	var equipment: Dictionary = {"tick": tick, "selected": weapon, "weapons": EquipmentState.WEAPONS.duplicate(),
+		"ammo": [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]}
+	if EquipmentState.MAGAZINE_SIZES.has(weapon):
+		equipment["loaded"] = [{"weapon": weapon, "rounds": int(EquipmentState.MAGAZINE_SIZES[weapon]) if rounds < 0 else rounds}]
+	return equipment
+
+func _arc_equipment(arc_rounds: int = 12, rail_rounds: int = 4, cells: int = 16, tick: int = 100) -> Dictionary:
+	return {"type": "loadout", "player_id": "self", "tick": tick, "selected": "arc", "weapons": ["fists", "rail", "arc"],
+		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": cells}],
+		"loaded": [{"weapon": "rail", "rounds": rail_rounds}, {"weapon": "arc", "rounds": arc_rounds}],
+		"personal_claims": [], "dry_fire_count": 0, "grenades": 0}
 
 func _action(seq: int, held: bool = true) -> Dictionary:
 	return {"seq": seq, "fire": held}
@@ -81,6 +89,7 @@ func _cadence_and_inventory() -> void:
 	for weapon: String in EquipmentState.WEAPONS:
 		var cue: LocalFireFeedback = LocalFireFeedback.new()
 		var inventory: Dictionary = _equipment(weapon)
+		var initial_rounds: int = EquipmentState.shots(inventory, weapon)
 		var now: int = 1000000
 		if weapon == "repeater":
 			_check(not cue.sent(_action(1), inventory, weapon, 100, now, true), "Repeater does not skip warmup")
@@ -92,7 +101,7 @@ func _cadence_and_inventory() -> void:
 		inventory["tick"] = 101
 		cue.observe_equipment(inventory)
 		_check(cue.sent(_action(4), inventory, weapon, 101, now + interval, true), weapon + " held fire follows cadence")
-		_check(inventory["loaded"][0]["rounds"] == 20, "prediction cannot modify inventory")
+		_check(EquipmentState.shots(inventory, weapon) == initial_rounds, "prediction cannot modify inventory")
 	var empty: LocalFireFeedback = LocalFireFeedback.new()
 	_check(not empty.sent(_action(1), _equipment("flechette", 0), "flechette", 100, 0, true), "empty magazine stays silent")
 	var loaded: Dictionary = _equipment("flechette", 1)
@@ -113,6 +122,53 @@ func _cadence_and_inventory() -> void:
 		suppressed[key] = true
 		_check(not empty.sent(suppressed, loaded, "flechette", 105, 500000, true), key + " suppresses gun cue")
 	_check(not empty.sent(_action(8), {}, "flechette", 105, 500000, true), "unknown inventory uses authoritative fallback")
+
+func _finite_arc_and_cells() -> void:
+	var cue: LocalFireFeedback = LocalFireFeedback.new()
+	var inventory: Dictionary = _arc_equipment()
+	var original: Dictionary = inventory.duplicate(true)
+	_check(EquipmentState.validation_error(inventory, "self").is_empty(), "Arc and Rail begin with valid finite human magazines")
+	_check(cue.sent(_action(1), inventory, "arc", 100, 0, true), "loaded Arc predicts immediately")
+	_check(not cue.sent(_action(2), inventory, "arc", 100, 149999, true), "Arc waits all three server ticks")
+	_check(cue.confirm("arc", 101, 50000), "resolved Arc confirms one cue")
+	var updated: Dictionary = _arc_equipment(11, 4, 15, 101)
+	cue.observe_equipment(updated)
+	_check(cue.sent(_action(3), updated, "arc", 101, 150000, true), "Arc continues at the exact three-tick cadence")
+	_check(inventory == original, "Arc prediction leaves all finite equipment unchanged")
+	cue.reset()
+	var last_round: Dictionary = _arc_equipment(1, 4, 5)
+	_check(cue.sent(_action(1), last_round, "arc", 100, 0, true), "last Arc magazine round predicts once")
+	_check(not cue.sent(_action(2), last_round, "arc", 100, 150000, true), "unconfirmed Arc receipt reserves its last round")
+	_check(cue.confirm("arc", 101, 150000), "last Arc round confirms")
+	_check(not cue.sent(_action(3), last_round, "arc", 101, 150001, true), "Arc confirmation waits for matching equipment before retiring reservation")
+	var empty: Dictionary = _arc_equipment(0, 4, 4, 101)
+	cue.observe_equipment(empty)
+	_check(cue.pending.is_empty() and not cue.sent(_action(4), empty, "arc", 101, 150002, true), "empty Arc cannot spend Cells parked in Rail")
+	var rail: Dictionary = empty.duplicate(true)
+	rail["selected"] = "rail"
+	_check(cue.sent(_action(5), rail, "rail", 101, 150003, true), "separately loaded Rail remains available")
+	cue.reset()
+	_check(cue.sent(_action(1), last_round, "arc", 100, 0, true), "Arc begins independent magazine reservation")
+	rail = last_round.duplicate(true)
+	rail["selected"] = "rail"
+	_check(cue.sent(_action(2), rail, "rail", 100, 150000, true), "pending Arc magazine receipt cannot reserve a separately loaded Rail round")
+	var legacy: Dictionary = _arc_equipment(0, 0, 1)
+	legacy.erase("loaded")
+	_check(EquipmentState.validation_error(legacy, "self").is_empty(), "legacy single-Cell fixture is valid")
+	cue.reset()
+	_check(cue.sent(_action(1), legacy, "arc", 100, 0, true), "legacy Arc reserves the shared Cell")
+	legacy["selected"] = "rail"
+	_check(not cue.sent(_action(2), legacy, "rail", 100, 150000, true), "legacy Rail cannot spend the same reserved Cell")
+	cue.acknowledge(1, 101)
+	_check(not cue.reconcile(102) and cue.reconcile(103) and cue.pending.is_empty(), "denied Arc ACK preserves grace then retires exactly once")
+	_check(cue.sent(_action(3), legacy, "rail", 103, 150001, true), "denied Arc receipt releases the unchanged shared Cell")
+	cue.reset()
+	var reloading: Dictionary = _arc_equipment()
+	reloading["loaded"][1]["ready_at"] = 122
+	_check(not cue.sent(_action(1), reloading, "arc", 100, 0, true), "known Arc capacitor reload stays silent")
+	var reload_action: Dictionary = _action(2)
+	reload_action["reload"] = true
+	_check(not cue.sent(reload_action, inventory, "arc", 100, 0, true), "ordinary Arc reload input suppresses speculation")
 
 func _reconciliation() -> void:
 	var cue: LocalFireFeedback = LocalFireFeedback.new()
@@ -256,6 +312,23 @@ func _live_seams() -> void:
 	_check(pawn.fired.back() == "Mounted" and hud.fired.size() == 4, "resolved mounted fire has mounted audio without handheld viewmodel")
 	Input.action_release("fire")
 	Input.action_release("throw_grenade")
+	game._reset_local_fire()
+	game.latest_snapshot = {"tick": 200, "round_state": "Active"}
+	network.equipment = _arc_equipment()
+	pawn.weapon = "Arc"
+	var previous_cues: int = pawn.fired.size()
+	var previous_juice: int = hud.fired.size()
+	var previous_hits: int = hud.hits.size()
+	Input.action_press("fire")
+	game._send_local_action(3000000)
+	_check(pawn.fired.size() == previous_cues + 1 and pawn.fired.back() == "Arc"
+		and hud.fired.size() == previous_juice + 1 and hud.hits.size() == previous_hits,
+		"actual sent Arc input gives immediate cue without an invented hit")
+	game._process_shot_results([_shot("arc", 18)], 201)
+	_check(pawn.fired.size() == previous_cues + 1 and hud.fired.size() == previous_juice + 1
+		and hud.hits.size() == previous_hits + 1 and hud.hits.back() == 18,
+		"resolved Arc gives one marker without a duplicate gun cue")
+	Input.action_release("fire")
 	game.free()
 	network.free()
 	pawn.free()
@@ -270,6 +343,7 @@ func _run() -> void:
 		_finish()
 		return
 	_cadence_and_inventory()
+	_finite_arc_and_cells()
 	_reconciliation()
 	_switch_and_warmup()
 	_live_seams()

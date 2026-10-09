@@ -169,7 +169,7 @@ func run(line: String) -> void:
 			if _output != null:
 				_output.text = ""
 		"quit", "exit":
-			get_tree().quit()
+			ClientRetirement.for_tree(get_tree()).request_quit()
 		"fullscreen":
 			_set_fullscreen(rest.is_empty() or rest[0] != "0")
 		"windowed":

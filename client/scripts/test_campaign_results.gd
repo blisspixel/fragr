@@ -39,7 +39,7 @@ func _run() -> void:
 	_check(not selected.is_empty(), "completed authoritative record is selected")
 	_check(selected["attempt"] == {"kills": 1, "secrets": 0, "deaths": 0}, "successful attempt uses resolved columns")
 	_check(selected["total"] == {"kills": 1, "secrets": 1, "deaths": 1}, "retry effort retains distinct secrets and earlier deaths")
-	_check(CampaignResult.elapsed_text(selected) == "0:01" and not selected.has("par"), "server time is formatted without invented par")
+	_check(CampaignResult.elapsed_text(selected) == "0:01.00" and not selected.has("par"), "server time retains tick precision without invented par")
 	var explosive: Dictionary = record.duplicate(true)
 	for scope: String in ["total", "attempt"]:
 		explosive[scope]["grenades"] = {"attacks": 1, "damaging_attacks": 1, "kills": 2, "hp_damage": 100, "armor_damage": 0}

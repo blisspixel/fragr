@@ -39,6 +39,8 @@ func _initialize() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	_check(QaCombat.valid_finish_search_route({}) and QaCombat.valid_finish_search_route({"finish_search_route":false}), "existing combat captures keep their completion behavior")
+	_check(not QaCombat.valid_finish_search_route({"finish_search_route":true,"search_route":[]}), "a return capture cannot accept an absent search loop")
 	var magazine: Dictionary = {"selected":"flechette", "ammo":[{"pool":"bullets","rounds":40}], "loaded":[{"weapon":"flechette","rounds":0}]}
 	_check(QaCombat.reload_needed(magazine), "ordinary capture control reloads an empty gun from finite reserve")
 	magazine["loaded"][0]["ready_at"] = 24
@@ -47,11 +49,20 @@ func _run() -> void:
 	magazine["loaded"].append({"weapon":"tack","rounds":40})
 	_check(not QaCombat.reload_needed(magazine), "rounds parked in another gun are not spare reserve")
 	_check(not QaCombat.reload_needed({"selected":"flechette","ammo":[{"pool":"bullets","rounds":40}]}), "older single-count agents are not given reload behavior")
+	var carried: Dictionary = {"selected": "flechette", "ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}],
+		"loaded": [{"weapon": "flechette", "rounds": 20}]}
+	_check(EquipmentState.shots(carried, "flechette") == 20 and TOUR._pool_rounds_match(carried, {"bullets": 76, "shells": 32, "cells": 1}),
+		"M10 carry proof distinguishes total pools from the ready human magazine")
+	_check(not TOUR._pool_rounds_match(carried, {"bullets": 20}) and not TOUR._pool_rounds_match(carried, {"bullets": 75}),
+		"a magazine count or missing carried round cannot satisfy the exact pool proof")
+	for invalid: Variant in [{}, {"unknown": 76}, {"bullets": -1}, {"bullets": 201}, {"bullets": 76.5}, {"bullets": "76"}, [76]]:
+		_check(not TOUR._pool_rounds_match(carried, invalid), "malformed ammunition pool expectations fail closed")
 	await _check_aim_pitch()
 	_check_engagement_distance()
 	_check_focused_route()
 	_check_m06_gallery_contact()
 	_check_m06_contact_dodge()
+	_check_m08_contact_context()
 	_check_approach_arrival()
 	_check_turret_peek()
 	_check_resolved_shots()
@@ -820,6 +831,43 @@ func _check_m06_contact_dodge() -> void:
 	snapshot["players"][0]["hp"] = 100
 	snapshot["players"][0]["x"] = INF
 	_check(not QaCombat.strafe_contacts(snapshot, {}, "human")["error"].is_empty(), "invalid snapshot coordinate refuses speculative movement")
+
+func _check_m08_contact_context() -> void:
+	var info: Dictionary = preload("res://scripts/test_m08_mission.gd").fixture_map(true)
+	var layout: Dictionary = M08NeutralBodies.layout(info)
+	_check(not layout.is_empty(), "archive contact regression binds accepted map panels")
+	if layout.is_empty():
+		return
+	var feet: Vector3 = layout["held"][0]
+	var me: Dictionary = {"id":"human", "x":feet.x, "y":feet.y + 1.5, "z":feet.z - 1.05,
+		"hp":100, "campaign":{"side":"participant"}}
+	var snapshot: Dictionary = {"tick":12, "players":[me]}
+	var mission: Dictionary = {"phase":"in_progress", "party":[{"id":"human", "ready":true}],
+		"m08":{"custodian_joined":true, "custody_released":false}}
+	_check(not QaCombat.strafe_contacts(snapshot, mission, "human")["error"].is_empty(),
+		"omitted archive map context preserves strict refusal instead of dropping civilians")
+	var contacts: Dictionary = QaCombat.strafe_contacts(snapshot, mission, "human", info)
+	_check(contacts["error"].is_empty() and contacts["peers"].size() == 5,
+		"valid archive map supplies Renn and all four actual held civilian bodies")
+	var floor_solid: Array[Dictionary] = [{"min_x":-64.0,"max_x":64.0,"min_z":-64.0,"max_z":64.0,
+		"bottom":feet.y - 0.3,"top":feet.y}]
+	_check(QaCombat.safe_strafe(me, floor_solid, 64.0, 0.0, false),
+		"isolated contact control has clear supported sideways movement")
+	_check(not QaCombat.safe_strafe(me, floor_solid, 64.0, 0.0, false, contacts["peers"])
+		and QaCombat.safe_strafe(me, floor_solid, 64.0, 0.0, true, contacts["peers"]),
+		"registered civilian blocks its occupied dodge while the opposite direction remains clear")
+	mission["m08"]["custody_released"] = true
+	contacts = QaCombat.strafe_contacts(snapshot, mission, "human", info)
+	_check(contacts["error"].is_empty() and contacts["peers"][1]["from"]["x"] == layout["released"][0].x
+		and contacts["peers"][1]["from"]["z"] == layout["released"][0].z,
+		"accepted release switches contact to actual waiting feet")
+	var malformed: Dictionary = info.duplicate(true)
+	malformed["presentation"]["decorations"].clear()
+	_check(not QaCombat.strafe_contacts(snapshot, mission, "human", malformed)["error"].is_empty(),
+		"missing archive placement panels cannot claim safe evasion")
+	mission["party"][0]["ready"] = false
+	_check(not QaCombat.strafe_contacts(snapshot, mission, "human", info)["error"].is_empty(),
+		"valid map does not bypass participant readiness")
 
 func _check_m06_gallery_contact() -> void:
 	var authored: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://../server/maps/m06_port_of_entry.json"))

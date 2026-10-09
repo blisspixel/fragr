@@ -16,6 +16,12 @@ var _tabs: Dictionary[String, Button] = {}
 func _ready() -> void:
 	add_theme_constant_override("separation", 10)
 	_label(24).text = tr("RECORD_TITLE")
+	var appearance: Array[String] = []
+	for kind: String in ["title", "emblem"]:
+		if records.customization[kind] != "none":
+			appearance.append(PlayerRewards.label(records.customization[kind]))
+	if not appearance.is_empty():
+		_label(16).text = " | ".join(appearance)
 	var tabs: HBoxContainer = HBoxContainer.new()
 	var group: ButtonGroup = ButtonGroup.new()
 	for kind: String in ["mission", "arena", "practice"]:
@@ -120,6 +126,12 @@ func _show_record(index: int) -> void:
 		lines.append(tr("RECORD_LATE_JOIN"))
 	if scope["kind"] == "mission":
 		lines.append(tr("RECORD_MISSION").format({"difficulty": tr("DIFFICULTY_" + String(scope["rules"]["difficulty"]).to_upper()), "attempt": int(scope["attempt"])}))
+		if record.has("mission_elapsed_ticks"):
+			lines.append(tr("RESULT_TIME") + ": " + CampaignResult.precise_time(int(record["mission_elapsed_ticks"])))
+		var comparison: Dictionary = records.mission_comparison(record, str(entry.get("server_sha256", "")))
+		if not comparison.is_empty():
+			lines.append(tr("RECORD_MISSION_BEST").format({"time": CampaignResult.precise_time(int(comparison["best_ticks"])), "count": comparison["count"]}))
+			lines.append(tr("RESULT_BEST_SCOPE"))
 	var kills: int = PlayerRecord.sum_combat(total, "kills")
 	var deaths: int = int(total["deaths"])
 	var alive: int = int(total["alive_ticks"])

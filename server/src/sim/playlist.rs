@@ -5,6 +5,8 @@
 use super::{GameState, MapKind, MatchConfig};
 use crate::protocol::{GameMode, SabotageFormat};
 use crate::rules::{SabotageConfig, CTF_CAPTURE_LIMIT};
+#[cfg(test)]
+mod desk_tests;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct PlaylistSlot {
@@ -49,14 +51,14 @@ pub(crate) const NIGHT: [PlaylistSlot; 8] = [
     },
 ];
 
-/// Capture the flag needs stands. Sabotage needs the Sector 9 layout.
+/// Capture the flag needs stands. Sabotage needs a validated two-site layout.
 pub(crate) fn slot_playable(map: MapKind, mode: GameMode) -> Result<(), &'static str> {
     match mode {
         GameMode::Ctf if map.ctf_stands().is_none() => {
             Err("capture the flag requires a map with validated flag stands")
         }
         GameMode::Sabotage if map.sabotage_map().is_none() => {
-            Err("sabotage requires a map with validated sites (Sector 9)")
+            Err("sabotage requires a map with validated sites (Sector 9 or Low Water)")
         }
         GameMode::Conquest if map != MapKind::HoldfastAtoll => {
             Err("conquest requires Holdfast Atoll")
@@ -124,6 +126,13 @@ impl GameState {
 
     /// Called at the top of `start_round`, before Sabotage records the fallen.
     pub(super) fn advance_rotation(&mut self) {
+        if self.queued_show.is_some() && self.playlist_show_finished() {
+            let slot = self.queued_show.take().expect("queued show was checked");
+            self.playlist = false;
+            self.map_rotate = false;
+            self.install_show(slot);
+            return;
+        }
         if self.playlist {
             if self.playlist_show_finished() {
                 let next = (self.playlist_index + 1) % NIGHT.len();
@@ -157,10 +166,13 @@ impl GameState {
 
     fn install_slot(&mut self, index: usize) {
         let slot = NIGHT[index];
+        self.playlist_index = index;
+        self.install_show(slot);
+    }
+
+    fn install_show(&mut self, slot: PlaylistSlot) {
         let warmup_ticks = self.config.warmup_ticks;
         let end_delay_ticks = self.config.end_delay_ticks;
-        let previous = self.map.clone();
-        self.playlist_index = index;
         self.map = crate::maps::RuntimeMap::BuiltIn(slot.map);
         self.apply_config(slot_config(slot.mode, warmup_ticks, end_delay_ticks));
         // A team left on a free-for-all fighter blocks damage between them.
@@ -169,15 +181,83 @@ impl GameState {
                 player.team = None;
             }
         }
-        if self.map != previous {
-            self.clear_grenades();
-            self.clear_mines();
-        }
+        self.clear_grenades();
+        self.clear_mines();
+        self.clear_remote_mines();
         // Sabotage carries a discovery arsenal. The next scrap show is the
         // map's own kit. An armed human keeps magazines, so the bag does not
         // fall back open after the match leaves Sector 9.
         self.refit_show_loadouts();
         tracing::info!("Playlist -> {} {}", self.map.name(), slot.mode.name());
+    }
+
+    pub(crate) fn queue_show(
+        &mut self,
+        map: MapKind,
+        mode: GameMode,
+    ) -> Result<String, &'static str> {
+        if self.map.is_authored() || self.solo_broadcast.enabled {
+            return Err("The desk changes arcade shows only.");
+        }
+        slot_playable(map, mode)?;
+        self.queued_show = Some(PlaylistSlot { map, mode });
+        Ok(format!(
+            "Next show: {} / {}. The live show finishes first; this choice then repeats.",
+            map.name(),
+            mode.name()
+        ))
+    }
+
+    pub(crate) fn queue_next_show(&mut self) -> Result<String, &'static str> {
+        if !self.playlist {
+            return Err("No night playlist is running. Use map <map> <mode>.");
+        }
+        self.queued_show = None;
+        let slot = NIGHT[(self.playlist_index + 1) % NIGHT.len()];
+        Ok(format!(
+            "Next show: {} / {}. The live show finishes first; the night list continues.",
+            slot.map.name(),
+            slot.mode.name()
+        ))
+    }
+
+    pub(crate) fn desk_shows(&self) -> String {
+        let mut lines = vec![format!(
+            "Live: {} / {}",
+            self.map.name(),
+            self.config.rules.mode().name()
+        )];
+        if let Some(slot) = self.queued_show {
+            lines.push(format!(
+                "Queued: {} / {} (then repeats)",
+                slot.map.name(),
+                slot.mode.name()
+            ));
+        } else if self.playlist {
+            let slot = NIGHT[(self.playlist_index + 1) % NIGHT.len()];
+            lines.push(format!("Next: {} / {}", slot.map.name(), slot.mode.name()));
+        } else if self.map_rotate {
+            lines.push("Map rotation is running.".into());
+        } else {
+            lines.push("This show repeats. Use map <map> <mode> to queue another.".into());
+        }
+        if self.playlist {
+            lines.push("Night list:".into());
+            for (index, slot) in NIGHT.iter().enumerate() {
+                lines.push(format!(
+                    "{} {} / {}{}",
+                    index + 1,
+                    slot.map.name(),
+                    slot.mode.name(),
+                    if index == self.playlist_index {
+                        " (live)"
+                    } else {
+                        ""
+                    }
+                ));
+            }
+        }
+        lines.join("\n")
     }
 
     fn refit_show_loadouts(&mut self) {
@@ -202,9 +282,10 @@ impl GameState {
             if armed {
                 inventory.arm_magazines();
             }
-            player.inventory = inventory;
+            player.inventory.restore_entry(&inventory);
             player.weapon = weapon;
             player.golden = false;
+            player.clear_input();
         }
     }
 }

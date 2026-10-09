@@ -77,6 +77,19 @@ static func make(map_id: int, kind: int) -> ShaderMaterial:
 	return material
 
 static func authored(surface: String, venue: String = "") -> Material:
+	if venue == "mars_foundry" and surface == "records_tile":
+		# This venue reserves the registered surface for three shielded process
+		# solids. Its steady light is appearance only, with no heat rule.
+		var process: StandardMaterial3D = StandardMaterial3D.new()
+		process.albedo_color = Color("d78d47")
+		process.albedo_texture = EnvironmentTextures.texture_at(OffworldMaterials.DIRECTORY + "offworld_thermal_ceramic.png")
+		process.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		process.roughness = 1.0
+		process.metallic_specular = 0.0
+		process.emission_enabled = true
+		process.emission = Color("b05b22")
+		process.emission_energy_multiplier = 1.3
+		return process
 	if surface == "inspection_glass":
 		var glass: StandardMaterial3D = StandardMaterial3D.new()
 		glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -101,17 +114,28 @@ static func authored(surface: String, venue: String = "") -> Material:
 	elif venue == "low_water":
 		bases = [Color("788078"), Color("bd9c80"), Color("537574"), Color("adc0aa"), Color("49534c")]
 		accents = [Color("5a655f"), Color("6f6554"), Color("aa7451"), Color("577165"), Color("b6a579")]
+	elif venue in ["launch_works", "mars_habitat"]:
+		bases = [Color("ab7961"), Color("c7c5b1"), Color("414b4b"), Color("a4b0a3"), Color("424f50")]
+		accents = [Color("835d4d"), Color("7c8473"), Color("9a302a"), Color("657d6d"), Color("9aafa6")]
+	elif venue == "mars_foundry":
+		bases = [Color("818276"), Color("c5bda7"), Color("394749"), Color("d78d47"), Color("465552")]
+		accents = [Color("636d65"), Color("7c8172"), Color("79928d"), Color("b05b22"), Color("99aaa1")]
 	elif venue in ["moon_port", "moon_town"]:
 		bases = [Color("a9a698"), Color("d0cbb8"), Color("394144"), Color("9aa397"), Color("505954")]
 		accents = [Color("6c6e64"), Color("7f8278"), Color("9a302a"), Color("4e5c55"), Color("a9ad99")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
-	if venue in ["low_water", "common_carrier", "right_of_search"] or (venue == "moon_town" and surface == "enamel"):
+	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
 		material.set_shader_parameter("warning_color", accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
 	EnvironmentTextures.apply(material, surface, venue)
+	if venue == "launch_works" and surface == "concrete":
+		# This venue uses dust and berm terrain. Keep
+		# its pixel grain without painting an institutional slab grid over it.
+		material.set_shader_parameter("markings_enabled", false)
+		material.set_shader_parameter("panel_contrast", 0.2)
 	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:
 		material.set_shader_parameter("detail_enabled", true)
 		material.set_shader_parameter("detail_texture", STEEL_DETAIL if surface == "service_steel" else PLASTER_DETAIL)

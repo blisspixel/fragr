@@ -1,0 +1,3026 @@
+{
+  "decorations": [
+    {
+      "center": [
+        1.0,
+        0.7
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        2.0,
+        0.25
+      ],
+      "solid": "arrival_east"
+    },
+    {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "face": "east",
+      "kind": "vent",
+      "size": [
+        1.6,
+        0.8
+      ],
+      "solid": "arrival_west"
+    },
+    {
+      "center": [
+        0.0,
+        0.25
+      ],
+      "face": "south",
+      "kind": "maintenance_sign",
+      "size": [
+        2.1,
+        0.65
+      ],
+      "solid": "arrival_north_right"
+    },
+    {
+      "center": [
+        0.0,
+        -0.3
+      ],
+      "face": "east",
+      "kind": "lockers",
+      "size": [
+        2.8,
+        1.6
+      ],
+      "solid": "market_store_east"
+    },
+    {
+      "center": [
+        0.0,
+        0.65
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        2.0,
+        0.25
+      ],
+      "solid": "bay_east"
+    },
+    {
+      "center": [
+        0.0,
+        0.15
+      ],
+      "face": "west",
+      "kind": "maintenance_sign",
+      "size": [
+        2.0,
+        0.65
+      ],
+      "solid": "bay_west_rear"
+    },
+    {
+      "center": [
+        -8.0,
+        0.5
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        2.0,
+        0.25
+      ],
+      "solid": "utility_inner"
+    },
+    {
+      "center": [
+        8.0,
+        0.5
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        2.0,
+        0.25
+      ],
+      "solid": "utility_inner"
+    },
+    {
+      "center": [
+        0.0,
+        -0.7
+      ],
+      "face": "south",
+      "kind": "terminal",
+      "size": [
+        1.2,
+        1.5
+      ],
+      "solid": "pump_tower_0"
+    },
+    {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "face": "south",
+      "kind": "vent",
+      "size": [
+        1.5,
+        1.5
+      ],
+      "solid": "pump_tower_2"
+    },
+    {
+      "center": [
+        -2.0,
+        0.2
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        2.0,
+        0.25
+      ],
+      "solid": "shelter_frontage"
+    },
+    {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "face": "south",
+      "kind": "property_sign",
+      "size": [
+        1.9,
+        0.65
+      ],
+      "solid": "depot_empty_supply_rack"
+    }
+  ],
+  "encounters": [
+    {
+      "enemies": [
+        {
+          "feet": [
+            -4.5,
+            0.3,
+            -18.5
+          ],
+          "id": "market_clerk_left",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            3.5,
+            0.3,
+            -15.0
+          ],
+          "id": "market_clerk_right",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -12.0,
+            0.3,
+            -11.0
+          ],
+          "id": "market_sweeper_left",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            5.0,
+            0.3,
+            -11.0
+          ],
+          "id": "market_sweeper_right",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "market_defense",
+      "regions": [
+        {
+          "max": [
+            25.0,
+            2.5,
+            -10.0
+          ],
+          "min": [
+            -25.0,
+            0.0,
+            -25.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "market_defense",
+      "enemies": [
+        {
+          "armor": 100,
+          "feet": [
+            15.0,
+            0.3,
+            -4.5
+          ],
+          "id": "maintenance_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            12.0,
+            0.3,
+            -7.0
+          ],
+          "id": "maintenance_clerk",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "maintenance_defense",
+      "regions": [
+        {
+          "max": [
+            25.0,
+            2.5,
+            0.0
+          ],
+          "min": [
+            -25.0,
+            0.0,
+            -10.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "maintenance_defense",
+      "enemies": [
+        {
+          "feet": [
+            17.3,
+            0.3,
+            6.2
+          ],
+          "id": "greenhouse_clerk_west",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            18.7,
+            0.3,
+            6.2
+          ],
+          "id": "greenhouse_clerk_east",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            18.0,
+            0.3,
+            7.5
+          ],
+          "id": "greenhouse_clerk_north",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            18.0,
+            4.2,
+            6.5
+          ],
+          "hover": {
+            "approach": [
+              12.0,
+              0.3,
+              7.0
+            ],
+            "band": [
+              3.5,
+              5.8
+            ],
+            "patrol": [
+              [
+                17.7,
+                4.2,
+                6.2
+              ],
+              [
+                18.3,
+                4.4,
+                6.8
+              ]
+            ],
+            "volume": {
+              "max": [
+                19.2,
+                5.0,
+                7.7
+              ],
+              "min": [
+                16.8,
+                3.5,
+                5.3
+              ]
+            }
+          },
+          "id": "greenhouse_assessor",
+          "kind": "assessor",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "greenhouse_defense",
+      "regions": [
+        {
+          "max": [
+            25.0,
+            3.0,
+            12.0
+          ],
+          "min": [
+            -25.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "greenhouse_defense",
+      "enemies": [
+        {
+          "feet": [
+            -10.0,
+            0.3,
+            19.0
+          ],
+          "id": "court_clerk_west",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            10.0,
+            0.3,
+            18.0
+          ],
+          "id": "court_clerk_east",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -14.0,
+            0.3,
+            26.0
+          ],
+          "id": "court_sweeper_west",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            14.0,
+            0.3,
+            26.0
+          ],
+          "id": "court_sweeper_east",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -17.5,
+            0.3,
+            22.0
+          ],
+          "id": "court_enforcer",
+          "kind": "enforcer",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            0.0,
+            4.3,
+            26.0
+          ],
+          "hover": {
+            "approach": [
+              0.0,
+              0.3,
+              22.0
+            ],
+            "band": [
+              3.5,
+              5.8
+            ],
+            "patrol": [
+              [
+                -1.5,
+                4.3,
+                24.5
+              ],
+              [
+                1.5,
+                4.6,
+                27.5
+              ]
+            ],
+            "volume": {
+              "max": [
+                2.0,
+                5.5,
+                28.0
+              ],
+              "min": [
+                -2.0,
+                3.5,
+                24.0
+              ]
+            }
+          },
+          "id": "court_notary",
+          "kind": "notary",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -18.0,
+            4.3,
+            27.0
+          ],
+          "hover": {
+            "approach": [
+              -17.0,
+              0.3,
+              23.0
+            ],
+            "band": [
+              3.5,
+              5.8
+            ],
+            "patrol": [
+              [
+                -19.0,
+                4.3,
+                26.0
+              ],
+              [
+                -17.0,
+                4.6,
+                28.0
+              ]
+            ],
+            "volume": {
+              "max": [
+                -16.5,
+                5.5,
+                28.5
+              ],
+              "min": [
+                -19.5,
+                3.5,
+                25.5
+              ]
+            }
+          },
+          "id": "court_notary_west",
+          "kind": "notary",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "court_defense",
+      "regions": [
+        {
+          "max": [
+            28.0,
+            3.0,
+            31.0
+          ],
+          "min": [
+            -28.0,
+            0.0,
+            12.0
+          ]
+        }
+      ]
+    }
+  ],
+  "equipment": "discovery",
+  "ground": "concrete",
+  "half_extent": 40.0,
+  "landmarks": [
+    {
+      "feet": [
+        0.0,
+        0.3,
+        -30.5
+      ],
+      "id": "arrival_hall"
+    },
+    {
+      "feet": [
+        0.0,
+        0.3,
+        -15.0
+      ],
+      "id": "market_crossing"
+    },
+    {
+      "feet": [
+        -11.0,
+        0.3,
+        -19.0
+      ],
+      "id": "market_store"
+    },
+    {
+      "feet": [
+        15.0,
+        0.3,
+        -5.0
+      ],
+      "id": "maintenance_bay"
+    },
+    {
+      "feet": [
+        -12.0,
+        0.3,
+        2.4
+      ],
+      "id": "west_greenhouse_flank"
+    },
+    {
+      "feet": [
+        0.0,
+        1.3,
+        2.4
+      ],
+      "id": "greenhouse_bridge"
+    },
+    {
+      "feet": [
+        12.0,
+        0.3,
+        2.4
+      ],
+      "id": "east_greenhouse_flank"
+    },
+    {
+      "feet": [
+        -23.0,
+        0.3,
+        6.0
+      ],
+      "id": "utility_gallery"
+    },
+    {
+      "feet": [
+        -17.0,
+        0.3,
+        23.0
+      ],
+      "id": "utility_court_entrance"
+    },
+    {
+      "feet": [
+        0.0,
+        0.3,
+        22.0
+      ],
+      "id": "pumping_court"
+    },
+    {
+      "feet": [
+        16.0,
+        0.3,
+        26.0
+      ],
+      "id": "shelter_approach"
+    },
+    {
+      "feet": [
+        0.0,
+        0.3,
+        32.0
+      ],
+      "id": "depot_approach"
+    }
+  ],
+  "m12": {
+    "aid_vehicles": [
+      {
+        "feet": [
+          -4.0,
+          0.3,
+          32.0
+        ],
+        "id": "aid_west",
+        "yaw": 1.5707963267948966
+      },
+      {
+        "feet": [
+          4.0,
+          0.3,
+          32.0
+        ],
+        "id": "aid_east",
+        "yaw": 1.5707963267948966
+      }
+    ],
+    "boarding": {
+      "max": [
+        2.2,
+        2.6,
+        34.3
+      ],
+      "min": [
+        -2.0,
+        0.0,
+        30.5
+      ]
+    },
+    "commitment": {
+      "approach": [
+        -0.5,
+        0.3,
+        32.5
+      ],
+      "panel": {
+        "center": [
+          0.0,
+          0.0
+        ],
+        "face": "west",
+        "kind": "terminal",
+        "size": [
+          0.3,
+          0.8
+        ],
+        "solid": "depot_commitment"
+      }
+    },
+    "departure": {
+      "approach": [
+        0.5,
+        0.3,
+        33.5
+      ],
+      "panel": {
+        "center": [
+          0.0,
+          0.0
+        ],
+        "face": "east",
+        "kind": "terminal",
+        "size": [
+          0.3,
+          0.8
+        ],
+        "solid": "depot_departure"
+      }
+    },
+    "objectives": [
+      {
+        "approach": [
+          0.0,
+          0.3,
+          -15.0
+        ],
+        "arrival": {
+          "max": [
+            2.0,
+            3.0,
+            -13.0
+          ],
+          "min": [
+            -2.0,
+            0.0,
+            -17.0
+          ]
+        },
+        "id": "market_secured",
+        "requires_encounter": "market_defense"
+      },
+      {
+        "approach": [
+          13.0,
+          0.3,
+          -8.5
+        ],
+        "arrival": {
+          "max": [
+            15.0,
+            3.0,
+            -6.5
+          ],
+          "min": [
+            11.0,
+            0.0,
+            -10.5
+          ]
+        },
+        "id": "arc_found",
+        "requires_encounter": "maintenance_defense"
+      },
+      {
+        "approach": [
+          12.0,
+          0.3,
+          10.0
+        ],
+        "arrival": {
+          "max": [
+            14.0,
+            3.0,
+            12.0
+          ],
+          "min": [
+            10.0,
+            0.0,
+            8.0
+          ]
+        },
+        "id": "greenhouse_secured",
+        "requires_encounter": "greenhouse_defense"
+      },
+      {
+        "approach": [
+          0.0,
+          0.3,
+          22.0
+        ],
+        "arrival": {
+          "max": [
+            2.0,
+            3.0,
+            24.0
+          ],
+          "min": [
+            -2.0,
+            0.0,
+            20.0
+          ]
+        },
+        "id": "shelter_route_secured",
+        "requires_encounter": "court_defense"
+      },
+      {
+        "approach": [
+          0.0,
+          0.3,
+          31.0
+        ],
+        "arrival": {
+          "max": [
+            2.0,
+            3.0,
+            33.0
+          ],
+          "min": [
+            -2.0,
+            0.0,
+            29.0
+          ]
+        },
+        "id": "aid_force_arrived",
+        "requires_encounter": "court_defense"
+      },
+      {
+        "id": "coalition_commitment",
+        "requires_encounter": "court_defense"
+      }
+    ],
+    "shelter_door": "shelter_door",
+    "shelter_people": [
+      [
+        24.0,
+        0.3,
+        21.0
+      ],
+      [
+        26.0,
+        0.3,
+        23.0
+      ],
+      [
+        24.0,
+        0.3,
+        27.0
+      ]
+    ],
+    "shelter_release": {
+      "approach": [
+        17.2,
+        0.3,
+        24.4
+      ],
+      "panel": {
+        "center": [
+          0.0,
+          0.0
+        ],
+        "face": "west",
+        "kind": "terminal",
+        "size": [
+          0.3,
+          0.8
+        ],
+        "solid": "shelter_control"
+      }
+    },
+    "worker_release": {
+      "approach": [
+        -23.1,
+        0.3,
+        13.0
+      ],
+      "panel": {
+        "center": [
+          0.0,
+          0.0
+        ],
+        "face": "east",
+        "kind": "terminal",
+        "size": [
+          0.3,
+          0.8
+        ],
+        "solid": "worker_control"
+      }
+    },
+    "workers": [
+      [
+        -23.0,
+        0.3,
+        9.0
+      ],
+      [
+        -23.0,
+        0.3,
+        11.0
+      ],
+      [
+        -23.0,
+        0.3,
+        15.0
+      ]
+    ]
+  },
+  "map_id": 1012,
+  "name": "Terms of Cooperation",
+  "solids": [
+    {
+      "id": "habitat_foundation",
+      "max": [
+        31.0,
+        0.3,
+        35.0
+      ],
+      "min": [
+        -31.0,
+        0.0,
+        -35.0
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "west_pressure_boundary",
+      "max": [
+        -30.7,
+        4.0,
+        35.0
+      ],
+      "min": [
+        -31.0,
+        0.3,
+        -35.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_pressure_boundary",
+      "max": [
+        31.0,
+        4.0,
+        35.0
+      ],
+      "min": [
+        30.7,
+        0.3,
+        -35.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "south_pressure_boundary",
+      "max": [
+        30.7,
+        4.0,
+        -34.7
+      ],
+      "min": [
+        -30.7,
+        0.3,
+        -35.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "north_pressure_boundary",
+      "max": [
+        30.7,
+        4.0,
+        35.0
+      ],
+      "min": [
+        -30.7,
+        0.3,
+        34.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_west",
+      "max": [
+        -7.7,
+        3.9,
+        -24.0
+      ],
+      "min": [
+        -8.0,
+        0.3,
+        -34.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_east",
+      "max": [
+        8.0,
+        3.9,
+        -24.0
+      ],
+      "min": [
+        7.7,
+        0.3,
+        -34.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_north_left",
+      "max": [
+        -2.5,
+        3.9,
+        -24.0
+      ],
+      "min": [
+        -7.7,
+        0.3,
+        -24.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_north_right",
+      "max": [
+        7.7,
+        3.9,
+        -24.0
+      ],
+      "min": [
+        2.5,
+        0.3,
+        -24.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_lintel",
+      "max": [
+        2.5,
+        3.9,
+        -24.0
+      ],
+      "min": [
+        -2.5,
+        3.0,
+        -24.3
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "arrival_roof",
+      "max": [
+        8.0,
+        4.2,
+        -24.0
+      ],
+      "min": [
+        -8.0,
+        3.9,
+        -35.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_bench_left",
+      "max": [
+        -5.5,
+        0.8,
+        -27.0
+      ],
+      "min": [
+        -6.9,
+        0.3,
+        -32.8
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "arrival_bench_right",
+      "max": [
+        6.9,
+        0.8,
+        -27.0
+      ],
+      "min": [
+        5.5,
+        0.3,
+        -32.8
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "utility_outer",
+      "max": [
+        -25.4,
+        3.4,
+        23.5
+      ],
+      "min": [
+        -25.7,
+        0.3,
+        -19.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "utility_inner",
+      "max": [
+        -20.3,
+        3.4,
+        18.0
+      ],
+      "min": [
+        -20.6,
+        0.3,
+        -10.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "utility_roof",
+      "max": [
+        -20.3,
+        3.7,
+        23.5
+      ],
+      "min": [
+        -25.7,
+        3.4,
+        -19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_pipe_0",
+      "max": [
+        -24.7,
+        2.5,
+        -13.0
+      ],
+      "min": [
+        -25.2,
+        0.3,
+        -15.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "gallery_pipe_1",
+      "max": [
+        -24.7,
+        2.5,
+        -5.0
+      ],
+      "min": [
+        -25.2,
+        0.3,
+        -7.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "gallery_pipe_2",
+      "max": [
+        -24.7,
+        2.5,
+        3.0
+      ],
+      "min": [
+        -25.2,
+        0.3,
+        1.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "gallery_pipe_3",
+      "max": [
+        -24.7,
+        2.5,
+        11.0
+      ],
+      "min": [
+        -25.2,
+        0.3,
+        9.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "gallery_pipe_4",
+      "max": [
+        -24.7,
+        2.5,
+        19.0
+      ],
+      "min": [
+        -25.2,
+        0.3,
+        17.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "market_store_west",
+      "max": [
+        -15.0,
+        3.5,
+        -14.0
+      ],
+      "min": [
+        -15.3,
+        0.3,
+        -24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_store_east",
+      "max": [
+        -6.7,
+        3.5,
+        -14.0
+      ],
+      "min": [
+        -7.0,
+        0.3,
+        -24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_store_south",
+      "max": [
+        -7.0,
+        3.5,
+        -23.7
+      ],
+      "min": [
+        -15.0,
+        0.3,
+        -24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_store_front_left",
+      "max": [
+        -12.5,
+        3.5,
+        -14.0
+      ],
+      "min": [
+        -15.0,
+        0.3,
+        -14.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_store_front_right",
+      "max": [
+        -7.0,
+        3.5,
+        -14.0
+      ],
+      "min": [
+        -9.5,
+        0.3,
+        -14.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_store_roof",
+      "max": [
+        -6.7,
+        3.8,
+        -14.0
+      ],
+      "min": [
+        -15.3,
+        3.5,
+        -24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "market_counter",
+      "max": [
+        -10.5,
+        1.1,
+        -20.8
+      ],
+      "min": [
+        -14.6,
+        0.3,
+        -22.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "market_tools",
+      "max": [
+        -12.8,
+        1.55,
+        -21.1
+      ],
+      "min": [
+        -14.6,
+        1.1,
+        -21.8
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "east_workroom",
+      "max": [
+        16.0,
+        3.3,
+        -15.0
+      ],
+      "min": [
+        7.0,
+        0.3,
+        -23.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_workroom_frame",
+      "max": [
+        7.0,
+        3.7,
+        -14.7
+      ],
+      "min": [
+        6.6,
+        0.3,
+        -23.7
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "market_service_screen",
+      "max": [
+        -0.8,
+        1.1,
+        -16.9
+      ],
+      "min": [
+        -3.0,
+        0.3,
+        -18.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "market_supply_screen",
+      "max": [
+        4.0,
+        1.2,
+        -10.3
+      ],
+      "min": [
+        1.8,
+        0.3,
+        -11.5
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "bay_west_rear",
+      "max": [
+        9.6,
+        3.5,
+        0.0
+      ],
+      "min": [
+        9.3,
+        0.3,
+        -7.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_east",
+      "max": [
+        20.7,
+        3.5,
+        0.0
+      ],
+      "min": [
+        20.4,
+        0.3,
+        -10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_north_left",
+      "max": [
+        13.0,
+        3.5,
+        0.0
+      ],
+      "min": [
+        9.6,
+        0.3,
+        -0.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_north_right",
+      "max": [
+        20.4,
+        3.5,
+        0.0
+      ],
+      "min": [
+        17.0,
+        0.3,
+        -0.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_south_left",
+      "max": [
+        12.5,
+        3.5,
+        -9.7
+      ],
+      "min": [
+        9.3,
+        0.3,
+        -10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_south_right",
+      "max": [
+        20.7,
+        3.5,
+        -9.7
+      ],
+      "min": [
+        17.5,
+        0.3,
+        -10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_roof",
+      "max": [
+        20.7,
+        3.8,
+        0.0
+      ],
+      "min": [
+        9.3,
+        3.5,
+        -10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "bay_blast_screen",
+      "max": [
+        19.8,
+        1.2,
+        -5.2
+      ],
+      "min": [
+        16.5,
+        0.3,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "bay_workbench",
+      "max": [
+        20.0,
+        1.15,
+        -1.0
+      ],
+      "min": [
+        18.8,
+        0.3,
+        -3.4
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "greenhouse_post_0_0",
+      "max": [
+        -8.12,
+        4.5,
+        -5.25
+      ],
+      "min": [
+        -8.48,
+        0.3,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_0_1",
+      "max": [
+        -8.12,
+        4.5,
+        -1.25
+      ],
+      "min": [
+        -8.48,
+        0.3,
+        -1.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_0_2",
+      "max": [
+        -8.12,
+        4.5,
+        2.75
+      ],
+      "min": [
+        -8.48,
+        0.3,
+        2.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_0_3",
+      "max": [
+        -8.12,
+        4.5,
+        6.75
+      ],
+      "min": [
+        -8.48,
+        0.3,
+        6.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_0_4",
+      "max": [
+        -8.12,
+        4.5,
+        10.75
+      ],
+      "min": [
+        -8.48,
+        0.3,
+        10.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_2_0",
+      "max": [
+        8.48,
+        4.5,
+        -5.25
+      ],
+      "min": [
+        8.12,
+        0.3,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_2_1",
+      "max": [
+        8.48,
+        4.5,
+        -1.25
+      ],
+      "min": [
+        8.12,
+        0.3,
+        -1.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_2_2",
+      "max": [
+        8.48,
+        4.5,
+        2.75
+      ],
+      "min": [
+        8.12,
+        0.3,
+        2.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_2_3",
+      "max": [
+        8.48,
+        4.5,
+        6.75
+      ],
+      "min": [
+        8.12,
+        0.3,
+        6.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_post_2_4",
+      "max": [
+        8.48,
+        4.5,
+        10.75
+      ],
+      "min": [
+        8.12,
+        0.3,
+        10.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_roof_rib_0",
+      "max": [
+        8.5,
+        4.65,
+        -5.25
+      ],
+      "min": [
+        -8.5,
+        4.4,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_roof_rib_1",
+      "max": [
+        8.5,
+        4.65,
+        -1.25
+      ],
+      "min": [
+        -8.5,
+        4.4,
+        -1.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_roof_rib_2",
+      "max": [
+        8.5,
+        4.65,
+        2.75
+      ],
+      "min": [
+        -8.5,
+        4.4,
+        2.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_roof_rib_3",
+      "max": [
+        8.5,
+        4.65,
+        6.75
+      ],
+      "min": [
+        -8.5,
+        4.4,
+        6.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_roof_rib_4",
+      "max": [
+        8.5,
+        4.65,
+        10.75
+      ],
+      "min": [
+        -8.5,
+        4.4,
+        10.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "growth_bed_0_0",
+      "max": [
+        -3.5,
+        1.15,
+        0.5
+      ],
+      "min": [
+        -6.5,
+        0.3,
+        -5.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_0_0",
+      "max": [
+        -3.95,
+        1.5,
+        -3.95
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        -4.4
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_0_1",
+      "max": [
+        -3.95,
+        1.5,
+        -2.65
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        -3.1
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_0_2",
+      "max": [
+        -3.95,
+        1.5,
+        -1.35
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        -1.8
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_0_3",
+      "max": [
+        -3.95,
+        1.5,
+        -0.05
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        -0.5
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "growth_bed_0_1",
+      "max": [
+        -3.5,
+        1.15,
+        10.5
+      ],
+      "min": [
+        -6.5,
+        0.3,
+        5.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_1_0",
+      "max": [
+        -3.95,
+        1.5,
+        6.05
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        5.6
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_1_1",
+      "max": [
+        -3.95,
+        1.5,
+        7.35
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        6.9
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_1_2",
+      "max": [
+        -3.95,
+        1.5,
+        8.65
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        8.2
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_0_1_3",
+      "max": [
+        -3.95,
+        1.5,
+        9.95
+      ],
+      "min": [
+        -6.05,
+        1.15,
+        9.5
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "growth_bed_2_0",
+      "max": [
+        6.5,
+        1.15,
+        0.5
+      ],
+      "min": [
+        3.5,
+        0.3,
+        -5.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_0_0",
+      "max": [
+        6.05,
+        1.5,
+        -3.95
+      ],
+      "min": [
+        3.95,
+        1.15,
+        -4.4
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_0_1",
+      "max": [
+        6.05,
+        1.5,
+        -2.65
+      ],
+      "min": [
+        3.95,
+        1.15,
+        -3.1
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_0_2",
+      "max": [
+        6.05,
+        1.5,
+        -1.35
+      ],
+      "min": [
+        3.95,
+        1.15,
+        -1.8
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_0_3",
+      "max": [
+        6.05,
+        1.5,
+        -0.05
+      ],
+      "min": [
+        3.95,
+        1.15,
+        -0.5
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "growth_bed_2_1",
+      "max": [
+        6.5,
+        1.15,
+        10.5
+      ],
+      "min": [
+        3.5,
+        0.3,
+        5.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_1_0",
+      "max": [
+        6.05,
+        1.5,
+        6.05
+      ],
+      "min": [
+        3.95,
+        1.15,
+        5.6
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_1_1",
+      "max": [
+        6.05,
+        1.5,
+        7.35
+      ],
+      "min": [
+        3.95,
+        1.15,
+        6.9
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_1_2",
+      "max": [
+        6.05,
+        1.5,
+        8.65
+      ],
+      "min": [
+        3.95,
+        1.15,
+        8.2
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "cultivation_2_1_3",
+      "max": [
+        6.05,
+        1.5,
+        9.95
+      ],
+      "min": [
+        3.95,
+        1.15,
+        9.5
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "greenhouse_bridge_deck",
+      "max": [
+        8.0,
+        1.3,
+        3.4
+      ],
+      "min": [
+        -8.0,
+        1.05,
+        1.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_step_0",
+      "max": [
+        2.0,
+        0.55,
+        -1.6
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        -2.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_step_0",
+      "max": [
+        2.0,
+        0.55,
+        7.4
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        6.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_step_1",
+      "max": [
+        2.0,
+        0.8,
+        -0.6
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        -1.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_step_1",
+      "max": [
+        2.0,
+        0.8,
+        6.4
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        5.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_step_2",
+      "max": [
+        2.0,
+        1.05,
+        0.4
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        -0.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_step_2",
+      "max": [
+        2.0,
+        1.05,
+        5.4
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        4.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_step_3",
+      "max": [
+        2.0,
+        1.3,
+        1.4
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        0.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_step_3",
+      "max": [
+        2.0,
+        1.3,
+        4.4
+      ],
+      "min": [
+        -2.0,
+        0.3,
+        3.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_west_service_shelf",
+      "max": [
+        -15.6,
+        1.1,
+        10.0
+      ],
+      "min": [
+        -17.5,
+        0.3,
+        7.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "greenhouse_east_recycling",
+      "max": [
+        26.5,
+        2.6,
+        10.0
+      ],
+      "min": [
+        23.5,
+        0.3,
+        2.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "pump_tower_0",
+      "max": [
+        -3.5,
+        6.3,
+        20.5
+      ],
+      "min": [
+        -6.5,
+        0.3,
+        16.5
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "pump_cap_0",
+      "max": [
+        -3.2,
+        6.7,
+        20.8
+      ],
+      "min": [
+        -6.8,
+        6.3,
+        16.2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pump_ground_feed_0",
+      "max": [
+        -4.45,
+        1.15,
+        16.5
+      ],
+      "min": [
+        -5.55,
+        0.3,
+        12.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "court_service_cover_0",
+      "max": [
+        -10.0,
+        1.3,
+        23.2
+      ],
+      "min": [
+        -13.0,
+        0.3,
+        22.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "pump_tower_2",
+      "max": [
+        6.5,
+        6.3,
+        20.5
+      ],
+      "min": [
+        3.5,
+        0.3,
+        16.5
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "pump_cap_2",
+      "max": [
+        6.8,
+        6.7,
+        20.8
+      ],
+      "min": [
+        3.2,
+        6.3,
+        16.2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pump_ground_feed_2",
+      "max": [
+        5.55,
+        1.15,
+        16.5
+      ],
+      "min": [
+        4.45,
+        0.3,
+        12.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "court_service_cover_2",
+      "max": [
+        13.0,
+        1.3,
+        23.2
+      ],
+      "min": [
+        10.0,
+        0.3,
+        22.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "court_overhead_feed",
+      "max": [
+        6.5,
+        5.6,
+        17.6
+      ],
+      "min": [
+        -6.5,
+        5.2,
+        17.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "shelter_frontage",
+      "max": [
+        28.5,
+        4.5,
+        30.0
+      ],
+      "min": [
+        28.2,
+        0.3,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_antechamber_south",
+      "max": [
+        20.0,
+        3.0,
+        18.3
+      ],
+      "min": [
+        16.0,
+        0.3,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_antechamber_roof",
+      "max": [
+        20.0,
+        3.3,
+        30.0
+      ],
+      "min": [
+        16.0,
+        3.0,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "depot_canopy",
+      "max": [
+        10.0,
+        5.1,
+        34.7
+      ],
+      "min": [
+        -10.0,
+        4.8,
+        30.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "depot_support_0",
+      "max": [
+        -9.3,
+        4.8,
+        30.4
+      ],
+      "min": [
+        -9.7,
+        0.3,
+        30.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "depot_support_2",
+      "max": [
+        9.7,
+        4.8,
+        30.4
+      ],
+      "min": [
+        9.3,
+        0.3,
+        30.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "depot_empty_supply_rack",
+      "max": [
+        -6.0,
+        1.5,
+        34.3
+      ],
+      "min": [
+        -8.8,
+        0.3,
+        32.5
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "shelter_south",
+      "max": [
+        28.2,
+        4.5,
+        18.3
+      ],
+      "min": [
+        20.0,
+        0.3,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_north",
+      "max": [
+        28.2,
+        4.5,
+        30.0
+      ],
+      "min": [
+        20.0,
+        0.3,
+        29.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_front_south",
+      "max": [
+        20.3,
+        4.5,
+        24.8
+      ],
+      "min": [
+        20.0,
+        0.3,
+        18.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_front_north",
+      "max": [
+        20.3,
+        4.5,
+        29.7
+      ],
+      "min": [
+        20.0,
+        0.3,
+        28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_roof",
+      "max": [
+        28.5,
+        4.8,
+        30.0
+      ],
+      "min": [
+        20.0,
+        4.5,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "shelter_control",
+      "max": [
+        19.0,
+        2.7,
+        24.6
+      ],
+      "min": [
+        18.7,
+        0.3,
+        24.2
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "worker_control",
+      "max": [
+        -24.6,
+        2.7,
+        13.2
+      ],
+      "min": [
+        -25.0,
+        0.3,
+        12.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "depot_commitment",
+      "max": [
+        1.4,
+        2.7,
+        32.7
+      ],
+      "min": [
+        1.0,
+        0.3,
+        32.3
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "depot_departure",
+      "max": [
+        -1.0,
+        2.7,
+        33.7
+      ],
+      "min": [
+        -1.4,
+        0.3,
+        33.3
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "shelter_door",
+      "max": [
+        20.3,
+        3.3,
+        28.0
+      ],
+      "min": [
+        20.0,
+        0.3,
+        24.8
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_stair_cheek_west",
+      "max": [
+        -2.0,
+        3.3,
+        1.4
+      ],
+      "min": [
+        -2.4,
+        0.3,
+        -2.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_stair_cheek_east",
+      "max": [
+        2.4,
+        3.3,
+        1.4
+      ],
+      "min": [
+        2.0,
+        0.3,
+        -2.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_landing_return_west",
+      "max": [
+        -2.4,
+        3.3,
+        -2.3000000000000003
+      ],
+      "min": [
+        -2.9,
+        0.3,
+        -2.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_south_landing_return_east",
+      "max": [
+        2.9,
+        3.3,
+        -2.3000000000000003
+      ],
+      "min": [
+        2.4,
+        0.3,
+        -2.6
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_stair_cheek_west",
+      "max": [
+        -2.0,
+        3.3,
+        7.4
+      ],
+      "min": [
+        -2.4,
+        0.3,
+        3.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_stair_cheek_east",
+      "max": [
+        2.4,
+        3.3,
+        7.4
+      ],
+      "min": [
+        2.0,
+        0.3,
+        3.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_landing_return_west",
+      "max": [
+        -2.4,
+        3.3,
+        7.3999999999999995
+      ],
+      "min": [
+        -2.9,
+        0.3,
+        7.1
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_north_landing_return_east",
+      "max": [
+        2.9,
+        3.3,
+        7.3999999999999995
+      ],
+      "min": [
+        2.4,
+        0.3,
+        7.1
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_guard_south_west",
+      "max": [
+        -2.0,
+        2.4,
+        1.4000000000000001
+      ],
+      "min": [
+        -8.0,
+        0.3,
+        1.1
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_guard_south_east",
+      "max": [
+        8.0,
+        2.4,
+        1.4000000000000001
+      ],
+      "min": [
+        2.0,
+        0.3,
+        1.1
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_guard_north_west",
+      "max": [
+        -2.0,
+        2.4,
+        3.6999999999999997
+      ],
+      "min": [
+        -8.0,
+        0.3,
+        3.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_guard_north_east",
+      "max": [
+        8.0,
+        2.4,
+        3.6999999999999997
+      ],
+      "min": [
+        2.0,
+        0.3,
+        3.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_guard_west_end",
+      "max": [
+        -8.0,
+        2.4,
+        3.7
+      ],
+      "min": [
+        -8.3,
+        0.3,
+        1.1
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_guard_east_end",
+      "max": [
+        8.3,
+        2.4,
+        3.7
+      ],
+      "min": [
+        8.0,
+        0.3,
+        1.1
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_support_west_south",
+      "max": [
+        -6.25,
+        1.05,
+        2.15
+      ],
+      "min": [
+        -6.75,
+        0.3,
+        1.65
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_support_west_north",
+      "max": [
+        -6.25,
+        1.05,
+        3.15
+      ],
+      "min": [
+        -6.75,
+        0.3,
+        2.65
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_support_east_south",
+      "max": [
+        6.75,
+        1.05,
+        2.15
+      ],
+      "min": [
+        6.25,
+        0.3,
+        1.65
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "greenhouse_bridge_support_east_north",
+      "max": [
+        6.75,
+        1.05,
+        3.15
+      ],
+      "min": [
+        6.25,
+        0.3,
+        2.65
+      ],
+      "surface": "service_steel"
+    }
+  ],
+  "spawns": [
+    {
+      "feet": [
+        0.0,
+        0.3,
+        -32.0
+      ],
+      "id": "pressure_arrival",
+      "yaw": 1.5707963267949
+    }
+  ],
+  "supplies": [
+    {
+      "claim": "personal",
+      "feet": [
+        0.0,
+        0.3,
+        -29.0
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "tack"
+      },
+      "id": "arrival_pistol"
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        -1.4,
+        0.3,
+        -25.7
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "flechette"
+      },
+      "id": "arrival_rifle"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        0.0,
+        0.3,
+        -27.5
+      ],
+      "grant": {
+        "amount": 80,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "arrival_bullets",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        2.0,
+        0.3,
+        -28.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "id": "arrival_armor",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -11.0,
+        0.3,
+        -19.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "market_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -11.0,
+        0.3,
+        -17.0
+      ],
+      "grant": {
+        "amount": 60,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "market_bullets",
+      "secret": false
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        10.5,
+        0.3,
+        -12.5
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "scatter"
+      },
+      "id": "bay_scatter"
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        13.0,
+        0.3,
+        -8.5
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "arc"
+      },
+      "id": "bay_arc"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        15.0,
+        0.3,
+        -8.5
+      ],
+      "grant": {
+        "amount": 40,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "bay_cells",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        17.0,
+        0.3,
+        -8.5
+      ],
+      "grant": {
+        "amount": 12,
+        "kind": "ammo",
+        "pool": "shells"
+      },
+      "id": "bay_shells",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        15.0,
+        0.3,
+        -1.5
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "bay_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -12.0,
+        0.3,
+        8.0
+      ],
+      "grant": {
+        "amount": 12,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "west_cells",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        12.0,
+        0.3,
+        10.0
+      ],
+      "grant": {
+        "amount": 60,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "east_bullets",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -23.0,
+        0.3,
+        12.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "utility_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -23.0,
+        0.3,
+        -4.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "id": "utility_armor",
+      "secret": true
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -12.0,
+        0.3,
+        25.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "court_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        10.0,
+        0.3,
+        20.5
+      ],
+      "grant": {
+        "amount": 16,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "court_cells",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        1.8,
+        0.3,
+        31.0
+      ],
+      "grant": {
+        "amount": 40,
+        "kind": "health"
+      },
+      "id": "aid_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -1.8,
+        0.3,
+        31.0
+      ],
+      "grant": {
+        "amount": 24,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "aid_cells"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -1.8,
+        0.3,
+        32.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "id": "aid_armor"
+    }
+  ],
+  "version": 1
+}

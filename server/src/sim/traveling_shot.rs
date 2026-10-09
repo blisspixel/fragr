@@ -115,10 +115,12 @@ impl GameState {
             };
             let mut limit = step;
             let mut solid = false;
+            let mut victim: Option<usize> = None;
             if let Some(distance) = ray.floor(limit) {
                 if distance <= limit {
                     limit = distance;
                     solid = true;
+                    victim = None;
                 }
             }
             for volume in &arena.solids {
@@ -126,15 +128,30 @@ impl GameState {
                     if hit.distance <= limit {
                         limit = hit.distance;
                         solid = true;
+                        victim = None;
                     }
                 }
             }
-            let mut victim: Option<usize> = None;
+            for jeep in &self.vehicles {
+                if jeep.state.driver == Some(shot.shooter_id)
+                    || jeep.state.gunner == Some(shot.shooter_id)
+                {
+                    continue;
+                }
+                if let Some(hit) = crate::vehicles::ray_hit(&jeep.state, ray, limit) {
+                    if hit.distance <= limit {
+                        limit = hit.distance;
+                        solid = true;
+                        victim = None;
+                    }
+                }
+            }
             for body in tableau {
                 if let Some(hit) = ray.solid(body, limit) {
                     if hit.distance <= limit {
                         limit = hit.distance;
                         solid = true;
+                        victim = None;
                     }
                 }
             }
@@ -148,6 +165,7 @@ impl GameState {
                     if hit.distance <= limit {
                         limit = hit.distance;
                         solid = true;
+                        victim = None;
                     }
                 }
             }

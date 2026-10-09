@@ -98,6 +98,12 @@ func _test_cone_and_range() -> void:
 		"aim help points inside the elevated Notary box")
 	_check(AimAssist.body_centre(server, {"side":"union", "kind":"crawler"}).is_equal_approx(Vector3(3, 0.4, 4)),
 		"aim help points inside the Crawler's low authoritative hit volume")
+	var assessor: Dictionary = {"side":"union", "kind":"assessor"}
+	_check(AimAssist.body_centre(Vector3(3, 5.5, 4), assessor).is_equal_approx(Vector3(3, 4.6, 4))
+		and is_equal_approx(AimAssist.target_height(assessor), 1.2),
+		"aim help and ordinary QA target the middle of the actual elevated Assessor box")
+	_check(is_equal_approx(AimAssist.target_height({"side":"coalition", "kind":"assessor"}), 1.8),
+		"a kind word without Union identity cannot change the target geometry")
 
 func _test_visibility() -> void:
 	var eye: Vector3 = Vector3(0, 1.6, 0)

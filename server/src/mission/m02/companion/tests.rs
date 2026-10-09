@@ -425,3 +425,13 @@ fn companion_idle_release_and_mission_phase_drop_stale_goal() {
     }
     assert!(session.state.m02_companion_intent().is_none());
 }
+
+#[test]
+fn companion_intent_returns_none_for_m11_mission() {
+    let (mut session, _id, _ally) = recorded_roof();
+    // In M11 (without Latch progress), companion intent must return None.
+    let run = session.state.mission.as_mut().unwrap();
+    run.m03 = None;
+    run.m11 = Some(crate::mission::m11::M11Progress::default());
+    assert!(session.state.m02_companion_intent().is_none());
+}

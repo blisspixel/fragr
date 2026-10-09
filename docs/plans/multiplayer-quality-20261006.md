@@ -4,11 +4,16 @@ Status: **in flight**, 2026-10-06. This implements the current multiplayer
 priority in the [full build order](../ROADMAP.md#full-build-order). It is not a
 second campaign or mode queue.
 
+The October 8 [vehicle-aware spawn refinement](vehicle-aware-spawns-20261008.md)
+checks current hull clearance and firing lanes for joins and respawns. It
+preserves established stair-edge bays and uses supported same-side offsets or
+the existing respawn wait when the fleet obstructs every fixed bay.
+
 ## Goal and scope
 
 Make existing fights fair, responsive and readable, then measure the composed
 server. Nick requested concurrent implementation and asset work after reviewing
-the README and roadmap. Preserve the current branch's reviewed work and all ten
+the README and roadmap. Preserve reviewed work and all existing
 campaign prototypes.
 
 Nick subsequently directed concurrent unfinished campaign levels, vehicle
@@ -76,6 +81,11 @@ merged, locally implemented and measured remain separate states.
 
 ## Composed acceptance, October 7
 
+This composition is on main at `e4df1a0b`, tagged v0.79.0. Its mission, vehicle,
+control and renderer receipts retain their bounded scope. The current
+[host rotation and campaign bests](host-rotation-campaign-bests-20261007.md)
+continuation remains separate local development until integrated.
+
 The local composition includes M11's complete rendered departure and version 14
 carry, Holdfast's shared jeep/boat/aircraft and swimming, five-site Conquest,
 human reloads and crouching, bounded bot senses, immediate eligible local fire,
@@ -118,3 +128,21 @@ fallback are the next campaign vehicle proof after this composition is green.
 Holdfast landscape dressing, cockpit refinement, human match balance, physical
 LAN evidence and finished campaign pacing remain open. Keep those gates in the
 roadmap's existing full build order.
+
+## Multiplayer menu diagnosis, October 8
+
+Reinspection of the original standard-tour `27_multiplayer_menu.png` at its
+full 1280x720 size confirms that Back and the navigation hint are fully visible
+inside the menu card. Its SHA-256 is
+`816465d0e0f4d0d07edb919f2efe0d3eba857ac78adf14b5ea26c003bc4f4710`.
+The prior focused still also fits. The earlier combined-tour Back-clipping
+observation was mistaken; the fresh standard-tour still is usable.
+
+The unchanged `test_multiplayer_layout.gd` passes empty through full saved-host
+lists, ordinary focus scrolling, fixed Back visibility and return to the main
+page. Source inspection found no concrete defect in the shared page rebuild,
+scroll reparenting or deferred size pass. No layout, viewport, saved data or
+test change was made. The focused log is retained under
+`.agents/open-issues-20261008/multiplayer-layout/existing-layout-check.log`.
+This diagnosis does not add profile/settings return coverage to the existing
+test or establish hardware performance.

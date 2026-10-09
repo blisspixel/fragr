@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "receipt_sha256": "d649d9aea621cfaa4489ca810b9520107e7b2bb1539a356adedf6736679a6838",
+  "scope": "Independent selected full-size original review, four frames only",
+  "result": "Accept bounded forward-facing fitted plaques and clear doorway. Bridge frame establishes removal of mirrored far copy, with no claim that the far sign is readable.",
+  "bindings": [
+    {
+      "bytes": 324253,
+      "sha256": "8815adfb772d4d22e49406994e773fe40a5014729d3187a11c7c51ac3efca97a",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/shelter_doorway_after.png"
+    },
+    {
+      "bytes": 196773,
+      "sha256": "2a75364ef1a74d0cb5953c97ae38dfc87ea6424ecce2b32f596649fa42953bca",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/shelter_jamb_close_after.png"
+    },
+    {
+      "bytes": 184964,
+      "sha256": "719170288d28c884d3c6a31afd425fce27a1b6ca0abd6f6be34d4a8c5b5fa3b1",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/aid_front_after.png"
+    },
+    {
+      "bytes": 366316,
+      "sha256": "a6bdc33888c07acc8185945e8cb6b2aac77cf2efa2db2f9b5bd00d4d8d2bb3d7",
+      "path": ".agents/m12-sign-facing-20261008/preview-first/m12_greenhouse_bridge_ordinary_pose_after.png"
+    }
+  ]
+}

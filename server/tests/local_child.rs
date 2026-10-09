@@ -45,7 +45,7 @@ fn spawn() -> (OwnedChild, Ready) {
     assert_eq!(ready.mission, MissionId::RecallNotice);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::M05_GAMEPLAY_VERSION
+        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     assert!(ready.url.starts_with("ws://127.0.0.1:"));
     (child, ready)
@@ -171,7 +171,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         );
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::M05_GAMEPLAY_VERSION
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
         socket
@@ -264,7 +264,7 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
         .unwrap()
         .remove("level_start_continues");
     legacy.as_object_mut().unwrap().remove("body");
-    // A historical v2 document has neither explosive count. Keep this a valid
+    // A historical v2 document has no explosive counts. Keep this a valid
     // legacy save so the first refusal proves the requested mission is wrong.
     legacy["step"]["entry"]["equipment"]
         .as_object_mut()
@@ -274,6 +274,13 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
         .as_object_mut()
         .unwrap()
         .remove("proximity_mines");
+    if let Some(count) = legacy["step"]["entry"]["equipment"].get("remote_mines") {
+        assert_eq!(count, 0);
+    }
+    legacy["step"]["entry"]["equipment"]
+        .as_object_mut()
+        .unwrap()
+        .remove("remote_mines");
     let entry = legacy["step"]["entry"].clone();
     legacy["step"] = serde_json::json!({
         "kind":"awaiting_mission",
@@ -324,7 +331,7 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
     let (child, ready) = spawn_persistent_mission(&directory, "persons_unknown", "resume", None);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::M05_GAMEPLAY_VERSION
+        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     drop(child);
     assert_eq!(preview(&directory)["mission"], "persons_unknown");
@@ -360,7 +367,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         assert_eq!(ready.mission, MissionId::ScheduledService);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::M05_GAMEPLAY_VERSION
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
@@ -441,7 +448,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 14);
+        assert_eq!(live["version"], 15);
         assert_eq!(live["step"]["mission"], "scheduled_service");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -497,7 +504,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         assert_eq!(ready.mission, MissionId::NoticeToVacate);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::M05_GAMEPLAY_VERSION
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
@@ -582,7 +589,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 14);
+        assert_eq!(live["version"], 15);
         assert_eq!(live["step"]["mission"], "notice_to_vacate");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -644,7 +651,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
         assert_eq!(ready.mission, MissionId::PortOfEntry);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::M06_GAMEPLAY_VERSION
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
@@ -755,7 +762,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
         drop(child);
         let mut live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 14);
+        assert_eq!(live["version"], 15);
         assert_eq!(live["remaining_continues"], expected_continues);
         assert_eq!(live["level_start_continues"], 3);
         assert_eq!(live["m05_outcome"], prior["m05_outcome"]);
@@ -806,7 +813,7 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         assert_eq!(ready.mission, MissionId::NoForwardingAddress);
         assert_eq!(
             ready.gameplay_version,
-            fragr_server::protocol::M05_GAMEPLAY_VERSION
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         assert_eq!(
             ready.difficulty,
@@ -896,7 +903,7 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 14);
+        assert_eq!(live["version"], 15);
         assert_eq!(live["step"]["entry"]["equipment"]["grenades"], 0);
         assert_eq!(live["m04_outcome"], prior["m04_outcome"]);
         assert_eq!(live["step"]["mission"], "no_forwarding_address");
@@ -1280,7 +1287,7 @@ async fn m02_development_child_serves_the_graybox_without_a_durable_run() {
     assert_eq!(ready.mission, MissionId::PersonsUnknown);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::M05_GAMEPLAY_VERSION
+        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     let (mut old, _) = connect_async(&ready.url).await.unwrap();
     old.send(Message::Text(
@@ -1389,7 +1396,7 @@ async fn m08_development_child_serves_the_archive_to_current_readers_only() {
     assert_eq!(ready.mission, MissionId::CustodianOfRecord);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::M08_GAMEPLAY_VERSION
+        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     for (version, admitted) in [
         (fragr_server::protocol::CUSTODY_GAMEPLAY_VERSION, false),
@@ -1464,7 +1471,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
     assert_eq!(ready.mission, MissionId::PassengerManifest);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::M09_GAMEPLAY_VERSION
+        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1577,7 +1584,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
     assert_eq!(ready.mission, MissionId::CommonCarrier);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::M10_GAMEPLAY_VERSION
+        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();

@@ -1,0 +1,439 @@
+{
+  "comment": "Terms of Cooperation standalone development route. Ordinary human movement, finite magazines, existing weapons and 15 established enemies. No M12 unlock, Arc, Assessor, shelter rescue, pump damage, aid arrival, duration or fresh-player acceptance claim.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {
+      "name": "m12_arrival",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "camera": "first_person",
+      "radio_off": true,
+      "walk_to": [
+        [
+          0,
+          0.3,
+          -29
+        ],
+        [
+          2,
+          0.3,
+          -28
+        ],
+        [
+          0,
+          0.3,
+          -27.5
+        ],
+        [
+          -1.4,
+          0.3,
+          -25.7
+        ]
+      ],
+      "look_at": [
+        0,
+        2,
+        -15
+      ]
+    },
+    {
+      "name": "m12_market",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "walk_to": [
+        [
+          0,
+          0.3,
+          -23
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "market_clerk_left",
+          "market_clerk_right",
+          "market_sweeper_left",
+          "market_sweeper_right"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            0,
+            0.3,
+            -22
+          ],
+          [
+            -4.5,
+            0.3,
+            -18.5
+          ],
+          [
+            -4.5,
+            0.3,
+            -12
+          ],
+          [
+            -12,
+            0.3,
+            -11
+          ],
+          [
+            5,
+            0.3,
+            -11
+          ]
+        ]
+      }
+    },
+    {
+      "name": "m12_market_store",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          0.3,
+          -12.5
+        ],
+        [
+          -11,
+          0.3,
+          -12.5
+        ],
+        [
+          -11,
+          0.3,
+          -19
+        ],
+        [
+          -11,
+          0.3,
+          -17
+        ],
+        [
+          -11,
+          0.3,
+          -12
+        ]
+      ],
+      "look_at": [
+        0,
+        5,
+        18
+      ],
+      "note": "The cleared store returns to the cross-passage; pump towers and greenhouse frames remain route landmarks."
+    },
+    {
+      "name": "m12_maintenance_stock",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "maintenance_heavy",
+        "maintenance_clerk"
+      ],
+      "walk_to": [
+        [
+          0,
+          0.3,
+          -12.5
+        ],
+        [
+          10.5,
+          0.3,
+          -12.5
+        ],
+        [
+          15,
+          0.3,
+          -11
+        ],
+        [
+          15,
+          0.3,
+          -8.5
+        ],
+        [
+          13,
+          0.3,
+          -8.5
+        ]
+      ],
+      "look_at": [
+        15,
+        1.5,
+        -4.5
+      ]
+    },
+    {
+      "name": "m12_maintenance_heavy",
+      "camera": "first_person",
+      "weapon": "Rail",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "maintenance_heavy",
+          "maintenance_clerk"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            15,
+            0.3,
+            -8.5
+          ],
+          [
+            15,
+            0.3,
+            -4.5
+          ],
+          [
+            15,
+            0.3,
+            -1.5
+          ]
+        ]
+      },
+      "note": "Actual Heavy and ordinary guns. The intended Arc is unbuilt."
+    },
+    {
+      "name": "m12_greenhouse_fight",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          15,
+          0.3,
+          -1.5
+        ],
+        [
+          15,
+          0.3,
+          1.5
+        ],
+        [
+          12,
+          0.3,
+          2.4
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "greenhouse_clerk",
+          "greenhouse_sweeper",
+          "greenhouse_notary"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            12,
+            0.3,
+            2.4
+          ],
+          [
+            12,
+            0.3,
+            7
+          ],
+          [
+            12,
+            0.3,
+            12
+          ],
+          [
+            -12,
+            0.3,
+            12
+          ],
+          [
+            -12,
+            0.3,
+            8
+          ]
+        ]
+      }
+    },
+    {
+      "name": "m12_greenhouse_bridge",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          12,
+          0.3,
+          12
+        ],
+        [
+          -12,
+          0.3,
+          12
+        ],
+        [
+          -12,
+          0.3,
+          8
+        ],
+        [
+          -12,
+          0.3,
+          -7
+        ],
+        [
+          0,
+          0.3,
+          -7
+        ],
+        [
+          0,
+          1.3,
+          2.4
+        ]
+      ],
+      "look_at": [
+        0,
+        5,
+        18
+      ],
+      "note": "Four small authoritative steps reach the actual bridge. The two outer flanks stay at floor height."
+    },
+    {
+      "name": "m12_utility_bypass",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          0.3,
+          -7
+        ],
+        [
+          -12,
+          0.3,
+          -7
+        ],
+        [
+          -12,
+          0.3,
+          -12.5
+        ],
+        [
+          -23,
+          0.3,
+          -12.5
+        ],
+        [
+          -23,
+          0.3,
+          -4
+        ],
+        [
+          -23,
+          0.3,
+          12
+        ]
+      ],
+      "look_at": [
+        -23,
+        1.8,
+        22
+      ]
+    },
+    {
+      "name": "m12_pumping_court",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "court_clerk_west",
+        "court_clerk_east",
+        "court_sweeper_west",
+        "court_sweeper_east",
+        "court_enforcer",
+        "court_notary"
+      ],
+      "walk_to": [
+        [
+          -23,
+          0.3,
+          20
+        ],
+        [
+          -17,
+          0.3,
+          23
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "court_clerk_west",
+          "court_clerk_east",
+          "court_sweeper_west",
+          "court_sweeper_east",
+          "court_enforcer",
+          "court_notary"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35,
+        "search_route": [
+          [
+            -17,
+            0.3,
+            23
+          ],
+          [
+            -12,
+            0.3,
+            25
+          ],
+          [
+            0,
+            0.3,
+            22
+          ],
+          [
+            10,
+            0.3,
+            20.5
+          ],
+          [
+            14,
+            0.3,
+            20.5
+          ],
+          [
+            14,
+            0.3,
+            26
+          ]
+        ]
+      }
+    },
+    {
+      "name": "m12_depot_approach",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0,
+          0.3,
+          28
+        ],
+        [
+          0,
+          0.3,
+          32
+        ]
+      ],
+      "look_at": [
+        -7,
+        1.2,
+        33
+      ],
+      "note": "An empty depot approach, with no claimed aid-arrival or campaign-completion fact."
+    }
+  ]
+}

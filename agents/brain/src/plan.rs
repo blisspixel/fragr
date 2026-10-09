@@ -139,6 +139,7 @@ pub fn parse_weapon(name: &str) -> Option<WeaponType> {
         "scatter" => Some(WeaponType::Scatter),
         "sniper" => Some(WeaponType::Sniper),
         "repeater" => Some(WeaponType::Repeater),
+        "arc" => Some(WeaponType::Arc),
         _ => None,
     }
 }
@@ -153,6 +154,7 @@ pub fn weapon_name(weapon: WeaponType) -> &'static str {
         WeaponType::Scatter => "scatter",
         WeaponType::Sniper => "sniper",
         WeaponType::Repeater => "repeater",
+        WeaponType::Arc => "arc",
     }
 }
 

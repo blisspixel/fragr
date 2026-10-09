@@ -27,6 +27,24 @@ msgstr "ATTEMPT TIME"
 msgid "RESULT_TIME_UNAVAILABLE"
 msgstr "UNAVAILABLE"
 
+msgid "RESULT_FIRST_BEST"
+msgstr "FIRST LOCAL BEST: {time}"
+
+msgid "RESULT_NEW_BEST"
+msgstr "NEW LOCAL BEST: {time}, faster by {delta}"
+
+msgid "RESULT_TIED_BEST"
+msgstr "LOCAL BEST TIED: {time}"
+
+msgid "RESULT_BEHIND_BEST"
+msgstr "LOCAL BEST: {time}, behind by {delta}"
+
+msgid "RESULT_BEST_SCOPE"
+msgstr "Same version and difficulty. Campaign and practice compared separately."
+
+msgid "RECORD_MISSION_BEST"
+msgstr "Local best: {time} across {count} retained completions."
+
 msgid "RESULT_CONTINUE"
 msgstr "CONTINUE"
 
@@ -512,3 +530,144 @@ msgstr "The boarding tube opens onto a Union custody tender. The armory is close
 
 msgid "STORY_M11_ARRIVAL_TERN"
 msgstr "Tern: \"My crew have a card game to finish. Try to leave us a ship.\""
+
+msgid "REWARD_TITLE"
+msgstr "AWARDS AND APPEARANCE"
+
+msgid "REWARD_LOCAL"
+msgstr "Local progress. All ordinary difficulties, bodies and controls qualify."
+
+msgid "REWARD_RECALL_NOTICE_COMPLETE"
+msgstr "RECALL NOTICE COMPLETE"
+
+msgid "REWARD_AUTHORED_SECRET_FOUND"
+msgstr "AN ENTRY IN THE MARGIN"
+
+msgid "REWARD_CRITERIA_RECALL_NOTICE_COMPLETE"
+msgstr "Complete Recall Notice in your saved solo run. Unlocks ON FILE and the transfer stamp."
+
+msgid "REWARD_CRITERIA_AUTHORED_SECRET_FOUND"
+msgstr "Find an authored secret in your saved solo run. Unlocks MARGIN READER and margin teal."
+
+msgid "REWARD_EARNED"
+msgstr "EARNED"
+
+msgid "REWARD_LOCKED"
+msgstr "LOCKED"
+
+msgid "REWARD_SELECT_TITLE"
+msgstr "TITLE"
+
+msgid "REWARD_SELECT_EMBLEM"
+msgstr "EMBLEM"
+
+msgid "REWARD_SELECT_FINISH"
+msgstr "GUN FINISH"
+
+msgid "REWARD_CHOICE_NONE"
+msgstr "NONE"
+
+msgid "REWARD_CHOICE_ON_FILE"
+msgstr "ON FILE"
+
+msgid "REWARD_CHOICE_MARGIN_READER"
+msgstr "MARGIN READER"
+
+msgid "REWARD_CHOICE_TRANSFER_STAMP"
+msgstr "TRANSFER STAMP"
+
+msgid "REWARD_CHOICE_STANDARD"
+msgstr "STANDARD STEEL"
+
+msgid "REWARD_CHOICE_OXIDE"
+msgstr "OXIDE"
+
+msgid "REWARD_CHOICE_MARGIN_TEAL"
+msgstr "MARGIN TEAL"
+
+msgid "REWARD_STAMP"
+msgstr "TRANSFER\nCLEARED"
+
+msgid "REWARD_PREVIEW_LOCKED"
+msgstr "Preview only. Earn the listed award to save this choice."
+
+msgid "REWARD_FINISH_SCOPE"
+msgstr "First-person gun paint only. Combat, pickups and other players keep their normal appearance."
+
+msgid "REWARD_SAVE"
+msgstr "SAVE AND BACK"
+
+msgid "REWARD_CANCEL"
+msgstr "CANCEL"
+
+msgid "REWARD_NOTICE"
+msgstr "AWARD EARNED: {award}"
+
+msgid "MISSION_M12_TITLE"
+msgstr "TERMS OF COOPERATION"
+
+msgid "M12_PROTOTYPE_TITLE"
+msgstr "Terms of Cooperation prototype"
+
+msgid "M12_LOCAL_STARTING"
+msgstr "PREPARING HABITAT"
+
+msgid "M12_RUN_DESCRIPTION"
+msgstr "Secure the habitat, open a route to the shelter and meet the mutual-aid crews at the depot."
+
+msgid "M12_NEXT_TITLE"
+msgstr "THE WEIGHT OF PERMISSION"
+
+msgid "M12_NEXT_PENDING"
+msgstr "The next mission is still being built."
+
+msgid "M12_WAITING"
+msgstr "Independent habitat. Ready when you are."
+
+msgid "M12_DEPARTED"
+msgstr "The route is secure. The communities have joined the coalition."
+
+msgid "M12_OBJECTIVE_MARKET_SECURED"
+msgstr "Clear the market and reach its main aisle."
+
+msgid "M12_OBJECTIVE_ARC_FOUND"
+msgstr "Find the Arc and Cells in maintenance. Clear the armored guard."
+
+msgid "M12_OBJECTIVE_GREENHOUSE_SECURED"
+msgstr "Clear the greenhouse and its Assessor."
+
+msgid "M12_OBJECTIVE_SHELTER_ROUTE_SECURED"
+msgstr "Clear the pumping court. Secure the shelter approach."
+
+msgid "M12_OBJECTIVE_AID_FORCE_ARRIVED"
+msgstr "Reach the depot to receive the mutual-aid force."
+
+msgid "M12_OBJECTIVE_COALITION_COMMITMENT"
+msgstr "Use the depot terminal to confirm the coalition commitment."
+
+msgid "M12_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Gather everyone at the depot and use the departure terminal."
+
+msgid "M12_USE_PANEL"
+msgstr "{interact} Use habitat terminal"
+
+msgid "M12_SHELTER_OPEN"
+msgstr "SHELTER OPEN"
+
+msgid "M12_WORKERS_RELEASED"
+msgstr "WORKERS RELEASED"
+
+msgid "M12_SHELTER_SIGN"
+msgstr "COMMUNITY SHELTER"
+
+msgid "M12_AID_SIGN"
+msgstr "MUTUAL AID DEPOT"
+
+msgid "STORY_M11_DEPARTURE_MARS"
+msgstr "The tender is behind you. Ahead, Mars's independent habitats are under Union fire."
+
+msgid "STORY_M12_ARRIVAL_LATE"
+msgstr "The greenhouse is broken. Frost marks the paths where people tried to carry food inside. Help was delayed."
+
+msgid "STORY_M12_ARRIVAL_AID"
+msgstr "The mutual-aid crews are still outside. Secure the shelter route, then reach their depot. Their supplies and vehicles are needed here."

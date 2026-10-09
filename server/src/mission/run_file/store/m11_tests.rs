@@ -227,6 +227,7 @@ fn m11_locked_m10_edge_keeps_stock_history_and_does_not_refill() {
         );
         let mut value = serde_json::to_value(&ship).unwrap();
         value["version"] = 13.into();
+        value["rules"]["revision"] = (3).into();
         let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
         bytes.extend_from_slice(b"\n \n");
         fs::write(directory.join(RUN_NAME), &bytes).unwrap();
@@ -452,6 +453,7 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
     ));
     let mut historical = serde_json::to_value(&completed).unwrap();
     historical["version"] = 13.into();
+    historical["rules"]["revision"] = (3).into();
     assert!(matches!(
         RunStore::inspect_bytes(&serde_json::to_vec(&historical).unwrap(), hashes),
         RunProbe::Corrupt
@@ -459,7 +461,11 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
     assert!(GameState::with_authored_map(map())
         .load_campaign_run(&completed)
         .is_err());
-    assert!(serde_json::from_str::<MissionId>("\"terms_of_cooperation\"").is_err());
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"terms_of_cooperation\"").unwrap(),
+        MissionId::TermsOfCooperation
+    );
+    assert!(serde_json::from_str::<MissionId>("\"weight_of_permission\"").is_err());
 }
 
 #[test]
@@ -493,6 +499,14 @@ fn m11_saved_boundary_refuses_null_forged_outcome_pre_find_and_historical_entry(
     for version in 2..=13 {
         let mut forged = serde_json::to_value(&next).unwrap();
         forged["version"] = version.into();
+        forged["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         assert!(!matches!(
             RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),
             RunProbe::Compatible(_)

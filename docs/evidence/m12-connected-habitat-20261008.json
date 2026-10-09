@@ -1,0 +1,396 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "in flight",
+  "cash_spend_usd": 0,
+  "scope": "Actual connected M12 owned Standard socket route and durable departure from an exact representative prior-history entry, on early M12-only native e4804f; no played M01-M11 claim or corrected M09 composition claim",
+  "native": {
+    "sha256": "e4804f1963430481970ebdd222e96e5bf69d9bf21aa18987faa58f8715186b79",
+    "scope": "Early M12-only runtime evidence",
+    "renderer_pid": 19908,
+    "owned_native_pid": 3064,
+    "owned_native_creation_utc": "2026-10-08T20:07:21.5331196Z",
+    "retained_artifact": {
+      "path": ".agents/stair-architecture-20261008/bin/fragr-server-first-composed.exe",
+      "sha256": "e4804f1963430481970ebdd222e96e5bf69d9bf21aa18987faa58f8715186b79",
+      "retention_verified_utc": "2026-10-08T20:17:10.5337583Z",
+      "scope": "Exact early M12-only capture binary retained before final target/release replacement; original process receipt unchanged"
+    }
+  },
+  "renderer": {
+    "godot": "4.7.2-stable (official)",
+    "engine_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+    "device": "AMD Radeon(TM) 780M",
+    "renderer": "gl_compatibility",
+    "width": 1280,
+    "height": 720,
+    "frame_rate_benchmark": false
+  },
+  "representative_input": {
+    "sha256": "9c9c73ae9c9be99f69d73e45404468f824bd59c7c2de968255031b0f4c3685f0",
+    "body": "synthetic",
+    "hp": 37,
+    "armor": 19,
+    "selected": "repeater",
+    "bullets": 23,
+    "shells": 7,
+    "cells": 5,
+    "grenades": 2,
+    "proximity_mines": 3,
+    "remote_mines": 2,
+    "remaining_continues": 1,
+    "level_start_continues": 2,
+    "physical_selection": "Initially select the already-owned Flechette; all other canonical states, finite fights and objectives unchanged"
+  },
+  "states": [
+    "m12_pressure_arrival",
+    "m12_market_fight",
+    "m12_market_store",
+    "m12_actual_arc_find",
+    "m12_armored_heavy",
+    "m12_greenhouse_assessor",
+    "m12_greenhouse_squad",
+    "m12_greenhouse_bridge",
+    "m12_workers_released",
+    "m12_pumping_court",
+    "m12_shelter_route_secured",
+    "m12_shelter_opened",
+    "m12_shelter_people",
+    "m12_real_aid_depot",
+    "m12_finite_aid_stock",
+    "m12_coalition_commitment",
+    "m12_shared_departure"
+  ],
+  "state_count": 17,
+  "record": {
+    "attacks": 91,
+    "connects": 69,
+    "kills": 17,
+    "flechette_kills": 14,
+    "arc_kills": 3,
+    "alive_ticks": 2449,
+    "hp_lost": 101,
+    "armor_lost": 99,
+    "deaths": 0,
+    "dry_triggers": 0,
+    "status": "complete"
+  },
+  "outcome": {
+    "completed": [
+      "market_secured",
+      "arc_found",
+      "greenhouse_secured",
+      "shelter_route_secured",
+      "aid_force_arrived",
+      "coalition_commitment",
+      "party_departed"
+    ],
+    "aid_vehicle_ids": [
+      1.0,
+      2.0
+    ],
+    "shelter_opened": true,
+    "workers_released": true,
+    "pump_health": [
+      0,
+      100
+    ],
+    "pumps_intact_at_route_secure": false,
+    "assessor_wreck_union_kills": 0,
+    "all_challenges_completed": false
+  },
+  "durable_exit": {
+    "kind": "awaiting_mission",
+    "completed_mission": "terms_of_cooperation",
+    "next_mission": "weight_of_permission",
+    "completed_run_sha256": "6f5d37cb928b85e0982fe5328478bfc22c22425e0b331063ac4ba2d478bf409a",
+    "actual_run_json_identical": true,
+    "finite_equipment_matches_final_authoritative_loadout": true,
+    "prior_history_keys_preserved": [
+      "id",
+      "body",
+      "rules",
+      "starting_continues",
+      "remaining_continues",
+      "level_start_continues",
+      "m03_outcome",
+      "m04_outcome",
+      "m05_outcome",
+      "m06_outcome",
+      "m08_outcome",
+      "m09_outcome",
+      "m10_transit",
+      "m11_outcome"
+    ],
+    "prior_missions_played_in_this_run": false
+  },
+  "verification": {
+    "numeric_exit": 0,
+    "clean_logs": true,
+    "renderer_retired": true,
+    "native_retired": true,
+    "local_match_idle": true,
+    "canonical_route_states_retained": true,
+    "independent_audit_pass": true,
+    "verified_image_bindings": 34,
+    "all_captures_nonblank_original_size": true
+  },
+  "original_images_inspected": [
+    {
+      "sha256": "87fd8343c10f8887de6addfe27678ef0795dd9780c5d94be5bf7abf573c6f57c",
+      "path": "01_m12_pressure_arrival_world.png"
+    },
+    {
+      "sha256": "aefff885f7e81bd47dcaf478967b9eae3f65b498f7b9baa53dbf14822e9d3680",
+      "path": "04_m12_actual_arc_find_world.png"
+    },
+    {
+      "sha256": "4b3a34f11d38eb4b44a0a03328460baacf5c79a4f5ee402fc9ce7775d0d1f2ad",
+      "path": "08_m12_greenhouse_bridge_world.png"
+    },
+    {
+      "sha256": "d941c8214fac927ec0b3690c8012101ca1c57195f165a4491cdeb9ccbc2371f6",
+      "path": "17_m12_shared_departure_world.png"
+    }
+  ],
+  "source_bindings": [
+    {
+      "path": "server/maps/m12-terms-of-cooperation.json",
+      "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431"
+    },
+    {
+      "path": "client/qa/m12_terms_of_cooperation.json",
+      "sha256": "ff3840154405ca299610dea32381e877a5f0f47f3f6f71d47c46ab038a61bcb0"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-routes/m12-stair-ordinary.json",
+      "sha256": "2fa85ef2c45df015765080b79c5636b0cd5b21f352655e21e30f0ae7a70e7101"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/owned_m12_stair_tour.gd",
+      "sha256": "b10f5d8f10649da2d9d608f69a796e0626b8eff9f7ad4afc10f10a01f78ca548"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/run-owned-m12-stairs.ps1",
+      "sha256": "1d7c8df58ecfc559eb8ea56fe07cf80cf7065d48cc1688a25e5ab2e4ea3bef87"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/audit_owned_m12_third.ps1",
+      "sha256": "9bd78acbd8e23370ed41d038352d91aa6b30ee962377bedf7733f39353b7358c"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/representative-m12-run.json",
+      "sha256": "9c9c73ae9c9be99f69d73e45404468f824bd59c7c2de968255031b0f4c3685f0"
+    }
+  ],
+  "receipt_bindings": [
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/process.json",
+      "sha256": "9f68d3ba0251b8e4f28a4f4fbafad093b085d7f1803005a1b2edf3e3ca13bb46"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/manifest.json",
+      "sha256": "f5c47642c58432558f574e41a4cf75cd043a166f74677531438eedbf92396926"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/saved-exit.json",
+      "sha256": "013cb75abb6b3d7ff944b11e2b61a29abd113ff011c2d9b9da12bf9aae693f08"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/completed-run.json",
+      "sha256": "6f5d37cb928b85e0982fe5328478bfc22c22425e0b331063ac4ba2d478bf409a"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/owned-child.json",
+      "sha256": "fb8709d20e097d15856f9968148dab6cbbbafcd3b74b90c62f877eea9e57cdf4"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/child-retirement.json",
+      "sha256": "16b196b972fba87aab87aa4c8a40a45f3fe3741e1e6a8e785de81ee23342fdc3"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/independent-audit.json",
+      "sha256": "6fb8f65d28537c5e0c2274e21d48544e0a79742820f074fa74f558c6a666e4e2"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/lifecycle.jsonl",
+      "sha256": "7e121a06308155527fdcdc787a69118e914baa265d7127ff2213997c13bfcc02"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/client.log",
+      "sha256": "831ad248f10c82728dba2af907b9a08a93557bb75a44e14fa02d69a33567f60b"
+    },
+    {
+      "path": ".agents/m12-connected-habitat-20261008/owned-canonical-third/client-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "image_bindings": [
+    {
+      "sha256": "54266dd42ec48f3294a3433e1320159f1cb4b0d98eaec7161c409fe9006790a6",
+      "path": "01_m12_pressure_arrival.png"
+    },
+    {
+      "sha256": "87fd8343c10f8887de6addfe27678ef0795dd9780c5d94be5bf7abf573c6f57c",
+      "path": "01_m12_pressure_arrival_world.png"
+    },
+    {
+      "sha256": "a33f56caaadf4c5703b57b1a1e6f407010b504e70379b33f9b3f2b88ee37e239",
+      "path": "02_m12_market_fight.png"
+    },
+    {
+      "sha256": "3f2029e2c83d6a92e2e6231a90c2023063b01eca5a2a751e44b9c217f348b2ed",
+      "path": "02_m12_market_fight_world.png"
+    },
+    {
+      "sha256": "c8c2397f284c63bdd7ee32e4a41237769543ca2e78f81b5413048b6c7635eadb",
+      "path": "03_m12_market_store.png"
+    },
+    {
+      "sha256": "e4935375f250c7c6ec3ab4f190338c4dd5370026bf2aa9a992b18aecd4a70693",
+      "path": "03_m12_market_store_world.png"
+    },
+    {
+      "sha256": "e8faf050f47a63f814664cc8c1599d2ffc9cf2f320072408d709f35502d8da6d",
+      "path": "04_m12_actual_arc_find.png"
+    },
+    {
+      "sha256": "aefff885f7e81bd47dcaf478967b9eae3f65b498f7b9baa53dbf14822e9d3680",
+      "path": "04_m12_actual_arc_find_world.png"
+    },
+    {
+      "sha256": "68960dfc2413992b24c391e92d3c39e25d68a6e14a2469b1975f0c779d796971",
+      "path": "05_m12_armored_heavy.png"
+    },
+    {
+      "sha256": "d5d44f7e40d80c98d3dca00c856b35fe6979712850693bae085b28251464ec25",
+      "path": "05_m12_armored_heavy_world.png"
+    },
+    {
+      "sha256": "a8561bd0a7868ea1fc88930e0f09c2e512a63379663ae6411cb71c1382fd6cdd",
+      "path": "06_m12_greenhouse_assessor.png"
+    },
+    {
+      "sha256": "8fedca0859b1c10fb4e25eecd434b5d2c260610d4fce3d787d2f89755d73d19d",
+      "path": "06_m12_greenhouse_assessor_world.png"
+    },
+    {
+      "sha256": "a3eebee12d3de4b9a64f9d3c7b988f0cbc3bf1e4ba2713939e105802ec215a9c",
+      "path": "07_m12_greenhouse_squad.png"
+    },
+    {
+      "sha256": "c4836e09d5f48e99c47b7721d36628e53aa6e8fd847ffe18b6dfdbc80a3f21d0",
+      "path": "07_m12_greenhouse_squad_world.png"
+    },
+    {
+      "sha256": "db2f45b86d0ec6cee8d045905c7d4111433c2f73d1059e7a9b2b3177e0104c00",
+      "path": "08_m12_greenhouse_bridge.png"
+    },
+    {
+      "sha256": "4b3a34f11d38eb4b44a0a03328460baacf5c79a4f5ee402fc9ce7775d0d1f2ad",
+      "path": "08_m12_greenhouse_bridge_world.png"
+    },
+    {
+      "sha256": "7e80adcf90a4bf50f60ce6588a8ee3b99ce55cc641d0b93da2de3fe6318c0ac8",
+      "path": "09_m12_workers_released.png"
+    },
+    {
+      "sha256": "26d879c51dd0476070d1fbff6c8c81430c1eb142574eeba452f814e9788bc6ee",
+      "path": "09_m12_workers_released_world.png"
+    },
+    {
+      "sha256": "8c97afd205efa07a2f82deb07133e781e8230e672200422f20b683f014b44cb2",
+      "path": "10_m12_pumping_court.png"
+    },
+    {
+      "sha256": "e0f24550d4e86ad72aa817103257cc07b46862d37984589b4e9f8e6863ef51fe",
+      "path": "10_m12_pumping_court_world.png"
+    },
+    {
+      "sha256": "e8e7f35f5c094bab7776e52d96937efb20d6287799c2328c75667261fe28c086",
+      "path": "11_m12_shelter_route_secured.png"
+    },
+    {
+      "sha256": "867874dd34c8c35df2d94e40403c6a4f96390d4e1855cbec4ffd097a223a1c43",
+      "path": "11_m12_shelter_route_secured_world.png"
+    },
+    {
+      "sha256": "672a0e5a36f7b2f6113bd3a7c70f8f1f8390365719ce3805b54a618d74937019",
+      "path": "12_m12_shelter_opened.png"
+    },
+    {
+      "sha256": "38e31b58087f44fa31bed59cc51e1980bbddc3033afa618ce31c91c6126e64f9",
+      "path": "12_m12_shelter_opened_world.png"
+    },
+    {
+      "sha256": "e883edfdc7a2a932ca22c8925094a4fae2992385b0196cc3a8844376a60759a7",
+      "path": "13_m12_shelter_people.png"
+    },
+    {
+      "sha256": "88f84a5a943e0686f822e7ed32c355be43bbb938a210f89432a12c30bd8fe74a",
+      "path": "13_m12_shelter_people_world.png"
+    },
+    {
+      "sha256": "dc0e26edce174abcd38a272fc0c2d173e4e3cfab20e90d700ca9c85b5ecc0f52",
+      "path": "14_m12_real_aid_depot.png"
+    },
+    {
+      "sha256": "657d83effe6fb03fb1be33c8f3ebd8403bcafa5880ac9eba0a040cea5478fb97",
+      "path": "14_m12_real_aid_depot_world.png"
+    },
+    {
+      "sha256": "4c3d4e015f4e8d164885c4193929285322040e17983f203b1a0caebfc798b080",
+      "path": "15_m12_finite_aid_stock.png"
+    },
+    {
+      "sha256": "ab8061dd252f3705f3fade14d05299399c0eab38c5b49166cb5dee04f7fc4dc8",
+      "path": "15_m12_finite_aid_stock_world.png"
+    },
+    {
+      "sha256": "b4172832aa33251c00cc56534d742b4ca581a9bab4ccf0c8a6ebc97ea5fe35f3",
+      "path": "16_m12_coalition_commitment.png"
+    },
+    {
+      "sha256": "688dacad03bc20c74566d12087a7e5704da492e9957fa47e36a219c515a3550c",
+      "path": "16_m12_coalition_commitment_world.png"
+    },
+    {
+      "sha256": "da8edfdcedd79ac825aad51a99e00ebfc35b794932d569253405f9cd0bf05a5b",
+      "path": "17_m12_shared_departure.png"
+    },
+    {
+      "sha256": "d941c8214fac927ec0b3690c8012101ca1c57195f165a4491cdeb9ccbc2371f6",
+      "path": "17_m12_shared_departure_world.png"
+    }
+  ],
+  "retained_failed_attempts": [
+    {
+      "directory": ".agents/m12-connected-habitat-20261008/owned-canonical-first",
+      "process_receipt_sha256": "74fad73dbc7c2e14fc41d141432d9476d2b49891fcabcc9a9ec1c0496996a7e6",
+      "exit": 1,
+      "renderer_retired": true,
+      "native_retired": true,
+      "helper_sha256": "1662c0504aa90d3b961a2c5a1f063b66e52b811c58ae8bf122be047ea487b313",
+      "cause": "Correct M12 map and briefing followed by participant-record rejection before first capture; existing scope boundary omitted M12",
+      "counted_as_pass": false
+    },
+    {
+      "directory": ".agents/m12-connected-habitat-20261008/owned-canonical-second",
+      "process_receipt_sha256": "cef4221ee34c8736f3c94ec4e683cafa6d5b04f67a3834ba89caa029d2733ac4",
+      "exit": 1,
+      "renderer_retired": true,
+      "native_retired": true,
+      "helper_sha256": "b10f5d8f10649da2d9d608f69a796e0626b8eff9f7ad4afc10f10a01f78ca548",
+      "cause": "Correct M12 map and briefing followed by participant-record rejection before first capture; existing scope boundary omitted M12",
+      "counted_as_pass": false
+    }
+  ],
+  "pending": [
+    "Final composed native and full client gates with corrected M09 geometry and final native hash",
+    "M08/M09/M10 ordinary rendered stair routes on that final composition",
+    "Human difficulty and duration acceptance",
+    "All M12 rescue/challenge permutations",
+    "Final greenhouse art and other-platform execution",
+    "Connected M13 remains pending"
+  ]
+}

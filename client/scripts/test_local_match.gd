@@ -33,7 +33,7 @@ class Fixture extends LocalMatch:
 	func executable_path() -> String:
 		return path
 
-const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":26}\n'
+const RECORD: String = '{"version":2,"mission":"recall_notice","difficulty":"standard","url":"ws://127.0.0.1:12345","gameplay_version":43}\n'
 var failures: int = 0
 
 func _initialize() -> void:
@@ -45,9 +45,9 @@ func _expect(value: bool, message: String) -> void:
 		push_error("test_local_match: " + message)
 
 func _run() -> void:
-	var lunar_ready: Dictionary = {"version": 2, "mission": MissionState.M06_ID, "difficulty": "severe", "url": "ws://127.0.0.1:12345", "gameplay_version": 27}
-	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "") == "ws://127.0.0.1:12345", "lunar child readiness requires capability27")
-	lunar_ready["gameplay_version"] = 26
+	var lunar_ready: Dictionary = {"version": 2, "mission": MissionState.M06_ID, "difficulty": "severe", "url": "ws://127.0.0.1:12345", "gameplay_version": 43}
+	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "") == "ws://127.0.0.1:12345", "lunar child readiness requires current rules4 capability43")
+	lunar_ready["gameplay_version"] = 42
 	_expect(LocalMatch.readiness_url(JSON.stringify(lunar_ready).to_utf8_buffer(), "severe", MissionState.M06_ID, "").is_empty(), "old-capability executable cannot launch the lunar client")
 	_expect(LocalMatch.parse_run_preview(JSON.stringify({"status": "awaiting_mission", "mission": MissionState.M06_ID, "difficulty": "severe", "continues": 0, "body": "synthetic"}).to_utf8_buffer()).get("continues") == 0, "pending episode preview reports its spent old allowance")
 	var fixture: Fixture = Fixture.new()
@@ -139,7 +139,7 @@ func _run() -> void:
 	awaiting["mission"] = MissionState.M04_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M04_ID, "M03 completion previews the available M04 destination")
 	awaiting["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M09 completion previews the unbuilt M10 destination")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M12 completion previews the pending M13 destination")
 	awaiting["mission"] = MissionState.M09_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M09_ID, "M08 completion previews the playable berth")
 	awaiting["mission"] = MissionState.M08_ID
@@ -147,7 +147,7 @@ func _run() -> void:
 	m02_preview["mission"] = MissionState.M08_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M08_ID, "M08 entry is a valid saved resume")
 	m02_preview["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).is_empty(), "M10 cannot claim a playable saved entry")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).is_empty(), "M13 cannot claim a playable saved entry")
 	m02_preview["mission"] = MissionState.M09_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M09_ID, "M09 accepts its supported saved entry")
 	m02_preview["mission"] = MissionState.M03_ID
@@ -168,19 +168,19 @@ func _run() -> void:
 		print("test_local_match: PASS")
 	quit(0 if failures == 0 else 1)
 
-## M02 development and durable resume use distinct bootstrap capabilities.
+## M02 development and durable resume share the current rules capability.
 func _development(fixture: Fixture, child: FakeProcess) -> void:
 	var record: Dictionary = JSON.parse_string(RECORD)
 	var m02: Dictionary = record.duplicate()
 	m02["mission"] = "persons_unknown"
-	m02["gameplay_version"] = 26
+	m02["gameplay_version"] = LocalMatch.M02_GAMEPLAY
 	var bytes: PackedByteArray = JSON.stringify(m02).to_ascii_buffer()
 	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown", "").is_empty(), "development M02 readiness names its own contract")
 	_expect(LocalMatch.readiness_url(bytes).is_empty(), "an M02 child cannot satisfy an M01 launch")
 	_expect(LocalMatch.readiness_url(JSON.stringify(record).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "an M01 child cannot satisfy an M02 launch")
 	var old: Dictionary = m02.duplicate()
 	old["gameplay_version"] = 20
-	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "development M02 requires the capability 26 contract")
+	_expect(LocalMatch.readiness_url(JSON.stringify(old).to_ascii_buffer(), "standard", "persons_unknown", "").is_empty(), "development M02 requires the current rules contract")
 	_expect(LocalMatch.readiness_url(bytes, "standard", "m03").is_empty(), "an unregistered mission fails closed")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("standard", "new", "persons_unknown") and child.starts == starts, "M02 refuses a run mode")
@@ -195,25 +195,25 @@ func _development(fixture: Fixture, child: FakeProcess) -> void:
 	_expect(fixture.error_key == "LOCAL_SERVER_STOPPED", "a stopped M02 child is reported")
 	fixture.stop()
 	var durable: Dictionary = m02.duplicate()
-	durable["gameplay_version"] = 26
+	durable["gameplay_version"] = LocalMatch.M02_GAMEPLAY
 	child.expected = PackedStringArray(["--local-mission", "persons_unknown", "--run-mode", "resume", "--difficulty", "standard"])
 	_expect(fixture.start_mission("standard", "resume", "persons_unknown"), "saved M02 resumes as a durable child")
 	child.output = JSON.stringify(durable).to_ascii_buffer() + PackedByteArray([10])
 	fixture._process(0)
-	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M02 requires capability 26")
+	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M02 requires the current rules capability")
 	_expect(not LocalMatch.readiness_url(bytes, "standard", "persons_unknown", "resume").is_empty(),
-		"both M02 launch modes use the same capability 26 readiness envelope")
+		"both M02 launch modes use the same current readiness envelope")
 	child.alive = false
 	fixture._process(0)
 	fixture.stop()
 	child.expected = PackedStringArray(["--local-mission", "recall_notice", "--run-mode", "new", "--difficulty", "standard"])
 
 func _m03(fixture: Fixture, child: FakeProcess) -> void:
-	var ready: Dictionary = {"version": 2, "mission": MissionState.M03_ID, "difficulty": "standard", "url": "ws://127.0.0.1:12345", "gameplay_version": 26}
-	for version: int in [18, 22, 23, 24, 25, 27]:
+	var ready: Dictionary = {"version": 2, "mission": MissionState.M03_ID, "difficulty": "standard", "url": "ws://127.0.0.1:12345", "gameplay_version": LocalMatch.M03_GAMEPLAY}
+	for version: int in [18, 22, 23, 24, 25, 26, 27, 42, 44]:
 		var bad: Dictionary = ready.duplicate()
 		bad["gameplay_version"] = version
-		_expect(LocalMatch.readiness_url(JSON.stringify(bad).to_ascii_buffer(), "standard", MissionState.M03_ID, "").is_empty(), "M03 requires exact capability 26")
+		_expect(LocalMatch.readiness_url(JSON.stringify(bad).to_ascii_buffer(), "standard", MissionState.M03_ID, "").is_empty(), "M03 requires the exact current capability")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("standard", "new", MissionState.M03_ID) and child.starts == starts,
 		"standalone M03 cannot create or overwrite a personal campaign run")
@@ -229,18 +229,18 @@ func _m03(fixture: Fixture, child: FakeProcess) -> void:
 	_expect(fixture.start_mission("standard", "resume", MissionState.M03_ID), "saved M03 uses the existing resume mode")
 	child.output = JSON.stringify(ready).to_ascii_buffer() + PackedByteArray([10])
 	fixture._process(0)
-	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M03 also binds exact capability 26")
+	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M03 also binds the exact current capability")
 	fixture.stop()
 	child.alive = false
 	fixture._process(0)
 	child.expected = PackedStringArray(["--local-mission", "recall_notice", "--run-mode", "new", "--difficulty", "standard"])
 
 func _m04(fixture: Fixture, child: FakeProcess) -> void:
-	var ready: Dictionary = {"version": 2, "mission": MissionState.M04_ID, "difficulty": "standard", "url": "ws://127.0.0.1:12345", "gameplay_version": 26}
-	for version: int in [18, 22, 23, 24, 25, 27]:
+	var ready: Dictionary = {"version": 2, "mission": MissionState.M04_ID, "difficulty": "standard", "url": "ws://127.0.0.1:12345", "gameplay_version": LocalMatch.M04_GAMEPLAY}
+	for version: int in [18, 22, 23, 24, 25, 26, 27, 42, 44]:
 		var bad: Dictionary = ready.duplicate()
 		bad["gameplay_version"] = version
-		_expect(LocalMatch.readiness_url(JSON.stringify(bad).to_ascii_buffer(), "standard", MissionState.M04_ID, "").is_empty(), "M04 requires exact capability 26")
+		_expect(LocalMatch.readiness_url(JSON.stringify(bad).to_ascii_buffer(), "standard", MissionState.M04_ID, "").is_empty(), "M04 requires the exact current capability")
 	var starts: int = child.starts
 	_expect(not fixture.start_mission("standard", "new", MissionState.M04_ID) and child.starts == starts,
 		"standalone M04 cannot create or overwrite a personal campaign run")
@@ -256,7 +256,7 @@ func _m04(fixture: Fixture, child: FakeProcess) -> void:
 	_expect(fixture.start_mission("standard", "resume", MissionState.M04_ID), "saved M04 uses the existing resume mode")
 	child.output = JSON.stringify(ready).to_ascii_buffer() + PackedByteArray([10])
 	fixture._process(0)
-	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M04 also binds exact capability 26")
+	_expect(fixture.state == LocalMatch.State.RUNNING and fixture.has_durable_run(), "durable M04 also binds the exact current capability")
 	fixture.stop()
 	child.alive = false
 	fixture._process(0)

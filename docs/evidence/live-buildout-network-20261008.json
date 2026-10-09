@@ -1,0 +1,2385 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "passed locally",
+  "os": "windows",
+  "arch": "x86_64",
+  "source_head": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "source_branch": "feat/host-rotation-campaign-bests",
+  "binaries": [
+    {
+      "name": "fragr-server.exe",
+      "original_path": "C:\\GitHub\\fragr\\target\\release\\fragr-server.exe",
+      "sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61",
+      "copy": {
+        "path": ".agents/live-buildout-20261008/network/bin/fragr-server.exe",
+        "sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61",
+        "bytes": 9685504
+      }
+    },
+    {
+      "name": "fragr-playtest.exe",
+      "original_path": "C:\\GitHub\\fragr\\target\\release\\fragr-playtest.exe",
+      "sha256": "35d386017ea10cc96acc8aeb6a3dd9d11d159bacaa9cffa9f98551378531bf82",
+      "copy": {
+        "path": ".agents/live-buildout-20261008/network/bin/fragr-playtest.exe",
+        "sha256": "35d386017ea10cc96acc8aeb6a3dd9d11d159bacaa9cffa9f98551378531bf82",
+        "bytes": 10693120
+      }
+    }
+  ],
+  "source_manifest": {
+    "path": ".agents/live-buildout-20261008/network/source-binaries.json",
+    "sha256": "c43cf5c88b218173a6ee512c07613d5e20707c360e2ba584d6cf6e88e7198e8d",
+    "bytes": 53371
+  },
+  "source_files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "62526244b3b5c92a4761b328fc23060ca94c8a1cfe0c153e197ce29be9e5d1a1",
+      "bytes": 9457
+    },
+    {
+      "path": "agent-adapter/src/main.rs",
+      "sha256": "cbe5880edff416e2e37182cd6cc41de11fe349207baebb7b3b9ede59141258d9",
+      "bytes": 96247
+    },
+    {
+      "path": "agent-adapter/src/mcp.rs",
+      "sha256": "b4dd2e74b08dd95112b6ade9164e40bde7c1dd9cb8ea67345b5c0ac3a7b238ae",
+      "bytes": 135334
+    },
+    {
+      "path": "agents/brain/src/bot.rs",
+      "sha256": "d0b471814d595987f0aa295b4320f83adbba376e2511bfa0f0010813b863d465",
+      "bytes": 128731
+    },
+    {
+      "path": "agents/brain/src/budget.rs",
+      "sha256": "48f35fe55e02b16b5e60377ebb3f54bc47bf5d9fc530fed6d42a502c70e3b0c9",
+      "bytes": 35426
+    },
+    {
+      "path": "agents/brain/src/decision.rs",
+      "sha256": "e213b782f98eaf7705cec3c8c771e696c83c991eff15cfa447a3aadb13a8677a",
+      "bytes": 31880
+    },
+    {
+      "path": "agents/brain/src/dotenv.rs",
+      "sha256": "fedc519aabd034b015b9a6669398370aa7f95b00c12abac4145b3dc59fe962bd",
+      "bytes": 4825
+    },
+    {
+      "path": "agents/brain/src/lib.rs",
+      "sha256": "ff8d8d9a9693920e4412c0cff8233e73b108c961a0275fe534d3137a528c977b",
+      "bytes": 4327
+    },
+    {
+      "path": "agents/brain/src/local_model.rs",
+      "sha256": "20c48b5ffc62b1d10a7b39089e50e44529ef0403be398c977b5ceaa7528204ab",
+      "bytes": 48983
+    },
+    {
+      "path": "agents/brain/src/main.rs",
+      "sha256": "c7dc457bfb689b8e469f9a4e5e8314c18cdce6259fdd7827346ed1c6ac2455fd",
+      "bytes": 41312
+    },
+    {
+      "path": "agents/brain/src/plan.rs",
+      "sha256": "075665f21b72d8fd9ee656470ea8504c5177a55dcb97ac57e7d1470d6d24d5e5",
+      "bytes": 69005
+    },
+    {
+      "path": "agents/brain/src/provider.rs",
+      "sha256": "45bc88925df27dbec0ace121981d634fb0d20e4fb568a610f1ada713ca4f692e",
+      "bytes": 40065
+    },
+    {
+      "path": "agents/brain/src/telemetry.rs",
+      "sha256": "31a0291a319ebcb6677afeb2cb94953803a7680510f9be6f2a42256af1f3880f",
+      "bytes": 24366
+    },
+    {
+      "path": "agents/brain/src/timeline.rs",
+      "sha256": "ed0b05aa515b5aca2c4635986be5869b14f7036a5a4ef8f0dcfdfc9463d59627",
+      "bytes": 11723
+    },
+    {
+      "path": "Cargo.lock",
+      "sha256": "9222c1f108e902cb3e0feffae11f1baa2a90bb37ad4d1eeb2fae6c6607fbefed",
+      "bytes": 64966
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "4ac4897bf243dfaa6c1ce3c225e862fc82f13050567baa38444e0ccbbb6fc760",
+      "bytes": 629
+    },
+    {
+      "path": "server/Cargo.toml",
+      "sha256": "ec13e21eb1f43df84e4622c764770fd2491fcd8c890d393913055315c7550728",
+      "bytes": 779
+    },
+    {
+      "path": "server/examples/holdfast_map.rs",
+      "sha256": "dc73c9e91f0269badd0ed8fe477dfa9900b611f144fc7819faf572456df2673a",
+      "bytes": 396
+    },
+    {
+      "path": "server/examples/vehicle_vectors.rs",
+      "sha256": "f81e7219ac64286dc8fc6588ea2de56463dadd31e4ddbfe5609a6548847b78b1",
+      "bytes": 2840
+    },
+    {
+      "path": "server/examples/water_air_vectors.rs",
+      "sha256": "2fb9d3b5b5b6cb628d22585739c1c8ae046ca01d852249e1e928266bc3ea7780",
+      "bytes": 4844
+    },
+    {
+      "path": "server/examples/water_vectors.rs",
+      "sha256": "6800820d74fa5f8c288806aa4060b28ee3db97f00a046323254c622321377738",
+      "bytes": 2580
+    },
+    {
+      "path": "server/maps/m01-recall-notice.json",
+      "sha256": "25e605c67cf4e97c8bfb2a980ffa9bee6b39140a431ae99f86f61ff5fec9f30e",
+      "bytes": 21027
+    },
+    {
+      "path": "server/maps/m02-persons-unknown.json",
+      "sha256": "313441acf6fe2026b9809872e79464c3f6bad0a7b04fc897de4507d68b2e3549",
+      "bytes": 15929
+    },
+    {
+      "path": "server/maps/m03-scheduled-service.json",
+      "sha256": "7848569bc10f15d6367d7536e50cd16ea2b85832e932f1a0b41270f0821fbc66",
+      "bytes": 14213
+    },
+    {
+      "path": "server/maps/m04_notice_to_vacate.json",
+      "sha256": "3a44041640f5fbb9fb79b9e0eec077c21a84a72f1899c800e9ca0bae257c662b",
+      "bytes": 43276
+    },
+    {
+      "path": "server/maps/m05_no_forwarding_address.json",
+      "sha256": "e9bda4f3e903ce4fbc9eb6ab819da5c44e096101866a50436a678b6d0c24f4c6",
+      "bytes": 31883
+    },
+    {
+      "path": "server/maps/m06_port_of_entry.json",
+      "sha256": "a36172af57d72e8c42b9a93abb3e132bf02da3f35550df72c0beff39690ea662",
+      "bytes": 38578
+    },
+    {
+      "path": "server/maps/m07_declared_goods.json",
+      "sha256": "1235400735b3140cfc0049480261b6115d18b48b66cb6da62a96d9e02a3c48b2",
+      "bytes": 24871
+    },
+    {
+      "path": "server/maps/m08_custodian_of_record.json",
+      "sha256": "b9964704b9bf51e837118f25fbec9d93574d16634b1d281caf694181f44de666",
+      "bytes": 23846
+    },
+    {
+      "path": "server/maps/m09_passenger_manifest.json",
+      "sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381",
+      "bytes": 50529
+    },
+    {
+      "path": "server/maps/m10_common_carrier.json",
+      "sha256": "d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d",
+      "bytes": 39793
+    },
+    {
+      "path": "server/maps/m11_right_of_search.json",
+      "sha256": "3a6158dea520d38e6ba7e8a705ec9738f7c2f9a4bd8d261c33e12436e7076ee0",
+      "bytes": 34488
+    },
+    {
+      "path": "server/maps/README.md",
+      "sha256": "e881897c488df90d12806f0df898875aaebbb865002bf8bcda51a54af69eb0b6",
+      "bytes": 24905
+    },
+    {
+      "path": "server/maps/test/custody-range.json",
+      "sha256": "28933c25610880a606107f382d546d28d856f219cd8b459b94e58fb2549be620",
+      "bytes": 2686
+    },
+    {
+      "path": "server/maps/test/heavy-turret-range.json",
+      "sha256": "a1519eb63248743cca8dda19e04cf56a28c1084dc4e69ee5e1fe06e4ea8296c7",
+      "bytes": 2291
+    },
+    {
+      "path": "server/maps/test/jammer-range.json",
+      "sha256": "065e87f6ad051a2c1eebd1e99bae88a48245a53fe4cce628700ccfc0e06fa502",
+      "bytes": 1701
+    },
+    {
+      "path": "server/maps/test/launch_authority_development.json",
+      "sha256": "ebf6e9c1629419aa7b9dc32bfaaa7d365812c33225f42de298f27af0d1628492",
+      "bytes": 38568
+    },
+    {
+      "path": "server/maps/test/m02-wire-fixture.json",
+      "sha256": "21455ffcec06d0e257dce5675dd1eba7511770b5b9cda4b84fde4317848f2048",
+      "bytes": 1389
+    },
+    {
+      "path": "server/maps/test/m11_tender_structure.json",
+      "sha256": "4db8026c36073b2e1316c12d5041601c52572f3570d077d69c12cf155db68eb0",
+      "bytes": 23760
+    },
+    {
+      "path": "server/maps/test/m12_habitat_development.json",
+      "sha256": "7b87fce4739f8d3c7ded9f8228837a736d2b7c0b0ab7286a05f3f07bab4ba630",
+      "bytes": 35435
+    },
+    {
+      "path": "server/maps/test/m13_foundry_development.json",
+      "sha256": "4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943",
+      "bytes": 39708
+    },
+    {
+      "path": "server/maps/test/pistol-source-range.json",
+      "sha256": "d164c2be1da81346f8a73a7b0f16e56a911b54df4db011b1984abd2ac4bb3a53",
+      "bytes": 877
+    },
+    {
+      "path": "server/maps/test/rifle-source-range.json",
+      "sha256": "5eb01c1bb793bdf37fae4b838ffd3420e7730f29e8bac21089f8cbd0bea896a7",
+      "bytes": 884
+    },
+    {
+      "path": "server/maps/test/sniper-range.json",
+      "sha256": "da95f61b385159e206814db5055d4446b2b84962c69f47c6ab9755c23aaafd3f",
+      "bytes": 2525
+    },
+    {
+      "path": "server/maps/test/sniper-source-range.json",
+      "sha256": "96c5d9a1082b1b06deaa517dd1a24959666d3f29da2139ff186423cccb292e20",
+      "bytes": 887
+    },
+    {
+      "path": "server/src/access.rs",
+      "sha256": "d06b0bc6ad8fa5abcd18fff2e5133c53d527e312d2abcb19fc28e52d7eab0fde",
+      "bytes": 31197
+    },
+    {
+      "path": "server/src/announce.rs",
+      "sha256": "5f9784840a00292bca76be054767684875e3a8bf1a68d65329b29d1c69e6a192",
+      "bytes": 4444
+    },
+    {
+      "path": "server/src/bench.rs",
+      "sha256": "d1ac3b99871d7a531a1fe158d8d900dd35e401e1327cacd02cbd4451a1132cab",
+      "bytes": 27830
+    },
+    {
+      "path": "server/src/bin/wire.rs",
+      "sha256": "7f5f7f7e502fd3a6dc4acb4f340474093cdd271ceb185f157682727fc8f287d6",
+      "bytes": 9115
+    },
+    {
+      "path": "server/src/board.rs",
+      "sha256": "33ab7a5d45b06cac65a51729c6aa5873a9bb02b7a33534ef2bef3570d0b58132",
+      "bytes": 5286
+    },
+    {
+      "path": "server/src/bot_fill.rs",
+      "sha256": "69d152a90e27d0fb479ac51eb7512ed7450b603d92573c380637e6e56a01870a",
+      "bytes": 7405
+    },
+    {
+      "path": "server/src/combat.rs",
+      "sha256": "fabcece6b48b0e1caf5450197807e2045ba8f72f3218983d10db0c0535882ea2",
+      "bytes": 29936
+    },
+    {
+      "path": "server/src/desk.rs",
+      "sha256": "124e170093344984fc1beedb323a2fd8a50f6f8a21e2a90197c2367557dcecd5",
+      "bytes": 18865
+    },
+    {
+      "path": "server/src/enclosed_fixture.rs",
+      "sha256": "a78ced8120bd865692b4efb0f5db5fe771253756b98a798a001c5d27862c25ba",
+      "bytes": 887
+    },
+    {
+      "path": "server/src/encounters.rs",
+      "sha256": "1d02a34b17e061d114647e7c7facc8b1aaea4bac279063b9f06e1a13b8b7051f",
+      "bytes": 20823
+    },
+    {
+      "path": "server/src/encounters/enemy.rs",
+      "sha256": "ad29f0aa0b7fb42b5d461cc638d0609bd2ae4ec998e170eda970e3e436faa244",
+      "bytes": 63168
+    },
+    {
+      "path": "server/src/encounters/enemy/enforcer.rs",
+      "sha256": "c4e735e31c3460e287037eda9bd8a2ed8a6a0bfc1876d0f406162b5200e8a066",
+      "bytes": 7331
+    },
+    {
+      "path": "server/src/encounters/enemy/redactor.rs",
+      "sha256": "d5f0d31dd583a97277a5edf4e64ef211a9804e0e5591560127f408c00f3432bd",
+      "bytes": 9285
+    },
+    {
+      "path": "server/src/encounters/enemy/spine_patrol.rs",
+      "sha256": "494e6644f6c680dc48d0ab4e4a0e23a9fe21f9f08752857883cb643f6edaf071",
+      "bytes": 9994
+    },
+    {
+      "path": "server/src/inventory.rs",
+      "sha256": "23af6cef2b4afe4971d976c84f7210caca9fdab4c9e9f7f6207c2f90e547b913",
+      "bytes": 24459
+    },
+    {
+      "path": "server/src/inventory/controller.rs",
+      "sha256": "d5310cc3b84b7c24350ef552586d7b5c90705f5d12ac017b9629baca9237337f",
+      "bytes": 8371
+    },
+    {
+      "path": "server/src/inventory/tests.rs",
+      "sha256": "373b2455f8d8b1bc071dd78a134f299edede19dca920a362288e065bac16245a",
+      "bytes": 33038
+    },
+    {
+      "path": "server/src/join_ticket.rs",
+      "sha256": "695abc417d3fb56a4932a4c877792e6d4d2f45f486102cff3b9a7da084ac3ba6",
+      "bytes": 8883
+    },
+    {
+      "path": "server/src/lib.rs",
+      "sha256": "fafd988b169c5e211226a75c6e9a9c3c3ce50cc12bf561038c4ab4ecdc9066ae",
+      "bytes": 505
+    },
+    {
+      "path": "server/src/local.rs",
+      "sha256": "c272ee5f3e954ed4dce81d27883b54c140981d21cd032d8f7e9cdf7f5f7806f9",
+      "bytes": 29545
+    },
+    {
+      "path": "server/src/main.rs",
+      "sha256": "a9dc4c58db131453f351a45550b3e4854682c9607700d952606c8d5be7b23299",
+      "bytes": 50537
+    },
+    {
+      "path": "server/src/maps.rs",
+      "sha256": "4759498757e7e83fe20b216a8004caa131437442f83141b47c8962daa4aa2826",
+      "bytes": 55944
+    },
+    {
+      "path": "server/src/maps/authored.rs",
+      "sha256": "f62fa7b8f2fce6c92148be71800ea74bf2a9be11d791bee742bfa824641d5dd4",
+      "bytes": 33532
+    },
+    {
+      "path": "server/src/maps/authored/encounters_tests.rs",
+      "sha256": "5670076aba2fc8ffc5c6d2e9567cb39af4d592646004f730e5a0c2680c9b4925",
+      "bytes": 3692
+    },
+    {
+      "path": "server/src/maps/authored/encounters.rs",
+      "sha256": "9170c8c9d5ba9333251cd53b5fc3788045a46be12d4dd652cea744fe89438bc7",
+      "bytes": 5961
+    },
+    {
+      "path": "server/src/maps/authored/m02_tests.rs",
+      "sha256": "e0d22cfb24d3abf9dffb390ab9555f579a9f9df6583d43e9af0f00a559bdf4cb",
+      "bytes": 34613
+    },
+    {
+      "path": "server/src/maps/authored/m02.rs",
+      "sha256": "17d450ed2bf549ae81d68e0bf89f4bd16b39e40bbfdd5be072ade1c418127540",
+      "bytes": 15895
+    },
+    {
+      "path": "server/src/maps/authored/m03.rs",
+      "sha256": "b5d9f185cf7957244e1cf814b489e022616b63f10c8861f57fe2bec6a5f7a73c",
+      "bytes": 9382
+    },
+    {
+      "path": "server/src/maps/authored/m04.rs",
+      "sha256": "48493375d92ec53cac49630af2f7a3840aa966277bd3377073d7f3e790a1fa49",
+      "bytes": 10825
+    },
+    {
+      "path": "server/src/maps/authored/m05.rs",
+      "sha256": "da8218709a9c5e922e40b371e43dde9b22974706b7cc8071e554d5f567a3484b",
+      "bytes": 12003
+    },
+    {
+      "path": "server/src/maps/authored/m06.rs",
+      "sha256": "1ea9af41784e98fa68931551a3c753a5504de86c91a907b61e400c516f318867",
+      "bytes": 6814
+    },
+    {
+      "path": "server/src/maps/authored/m07.rs",
+      "sha256": "9e63ad155b599617f94c8b06a59947c7fc5fe284a45e48ab1c50583a4c491114",
+      "bytes": 6473
+    },
+    {
+      "path": "server/src/maps/authored/m08.rs",
+      "sha256": "338f5121b8495eef4d83e14dc0d218cfa3fc647a22e996fdcdca3e033da018ab",
+      "bytes": 13527
+    },
+    {
+      "path": "server/src/maps/authored/m09_tests.rs",
+      "sha256": "d3b4ffca7a90a022bc2eb29645b0f8426aa49332c96c505834e2feafe77bfc2c",
+      "bytes": 9551
+    },
+    {
+      "path": "server/src/maps/authored/m09.rs",
+      "sha256": "63d3c3cef2d3a61992226c7844de44ec9045cfdb98306d602a3bef38a0a1596a",
+      "bytes": 11123
+    },
+    {
+      "path": "server/src/maps/authored/m10_geometry_tests.rs",
+      "sha256": "15c85b967961050a6bb3813c87c2ee10eea68d55caded0a3cd299261c1f0afc8",
+      "bytes": 16445
+    },
+    {
+      "path": "server/src/maps/authored/m10.rs",
+      "sha256": "8b711721c8484cf04168f0785d4afde5b078a07f65fff34fee9a9c2a35224f9a",
+      "bytes": 6755
+    },
+    {
+      "path": "server/src/maps/authored/m11_geometry_tests.rs",
+      "sha256": "a18d021336f45f22159db4d5a2bdee5f688e01edafeeeb464617d2441e4f6bff",
+      "bytes": 14461
+    },
+    {
+      "path": "server/src/maps/authored/m11.rs",
+      "sha256": "f5a741b8edd425eaf319e2543674eed929e19e65e898f8ed520dfd7b9d023ef7",
+      "bytes": 9445
+    },
+    {
+      "path": "server/src/maps/authored/mission.rs",
+      "sha256": "32effbf08a801070cdee91b8e42f71c53c7a9662f425f49fb57c8a422a386c7a",
+      "bytes": 5363
+    },
+    {
+      "path": "server/src/maps/authored/supplies.rs",
+      "sha256": "be469fa1fb41cb8a82e797fd9cefa249e8439a6d2fb39f3dbf5d47f6e4743548",
+      "bytes": 3998
+    },
+    {
+      "path": "server/src/maps/authored/tests.rs",
+      "sha256": "cf2d63eb5802e93add9885238b16523f45a4826a7df2521ea7f386b58676f262",
+      "bytes": 14829
+    },
+    {
+      "path": "server/src/maps/authored/vehicle_placements.rs",
+      "sha256": "dfd27a5d8e597122686d40590bae9adc6baaf9d277e8f3ca327334f30362560b",
+      "bytes": 12060
+    },
+    {
+      "path": "server/src/maps/holdfast.rs",
+      "sha256": "2c97bc9273d96e3d5acf72a86163e9874cfa1a8e01794a7da6bd2c29382da505",
+      "bytes": 7708
+    },
+    {
+      "path": "server/src/maps/runtime.rs",
+      "sha256": "474ef21c87906f65105215f42dd79de53766f8a5c1f851403f7734aef7980b15",
+      "bytes": 18696
+    },
+    {
+      "path": "server/src/metrics.rs",
+      "sha256": "a15ba03ed4097418ae38015b16edea98d9b8c97f112a6eba3a830fa8d0220b38",
+      "bytes": 20280
+    },
+    {
+      "path": "server/src/metrics/tests.rs",
+      "sha256": "100805c662eeb0ffed3a97808beee4a2982127defa885d41bca7eb45ac12a23b",
+      "bytes": 24861
+    },
+    {
+      "path": "server/src/mission.rs",
+      "sha256": "294a222938a84f1245021681c40ed0eb87a98b43949bea1bb5d323ba86dc895e",
+      "bytes": 19702
+    },
+    {
+      "path": "server/src/mission/contact.rs",
+      "sha256": "aa01d23b306be5992da5c8002d3d7f5ca4f4a88de94c6dbc965e5bef235c2096",
+      "bytes": 11509
+    },
+    {
+      "path": "server/src/mission/controller.rs",
+      "sha256": "9dcd42228b8649cb1f860a80da87b8c2f4ded95a40659f4ea5511994873d5484",
+      "bytes": 35979
+    },
+    {
+      "path": "server/src/mission/controller/m04.rs",
+      "sha256": "584b71d076e5a0785d499212cdac631b9a2dbac0acd4ec5839075d3de92e3d4b",
+      "bytes": 8164
+    },
+    {
+      "path": "server/src/mission/controller/m05.rs",
+      "sha256": "0482c6592749901c1020fa8ce7fcb09406da6dc9f1c3c9c52663086d7cb30dc8",
+      "bytes": 8062
+    },
+    {
+      "path": "server/src/mission/controller/m06.rs",
+      "sha256": "89297bd15a15f6e6909067e4d7dab4d3576f1801984777e982619151634fb271",
+      "bytes": 5077
+    },
+    {
+      "path": "server/src/mission/controller/m07.rs",
+      "sha256": "ec06b6de4a2f0e1cad34cabbc1db881e9bc5d6767e0f28eca1b726a605e738a8",
+      "bytes": 5225
+    },
+    {
+      "path": "server/src/mission/controller/m08.rs",
+      "sha256": "d69d860bcd6d99f48ff29d7bb6f2750260092e9b81a80deab2e7b8cd8f0e7f82",
+      "bytes": 7457
+    },
+    {
+      "path": "server/src/mission/controller/m09.rs",
+      "sha256": "fb2d8af440fd2ebad1d94459d4ee5d9c79a283985bdd8cd42da5f19729b90e4b",
+      "bytes": 6790
+    },
+    {
+      "path": "server/src/mission/controller/m10.rs",
+      "sha256": "46c163cc1a81a9c7692e5035edb046b561b0ef03c65b29a07c092e702f721a71",
+      "bytes": 5325
+    },
+    {
+      "path": "server/src/mission/controller/m11.rs",
+      "sha256": "6939f10f0d9933343d1364c74a92ba75e1337126dfad978ca007c1361bc21820",
+      "bytes": 5472
+    },
+    {
+      "path": "server/src/mission/difficulty_tests.rs",
+      "sha256": "63828fb109fbdaef36654cdd5b22af17410a073273d5e8342ef1c3ab5b436fcd",
+      "bytes": 10472
+    },
+    {
+      "path": "server/src/mission/m02.rs",
+      "sha256": "a3beb40fb934d2f8083d0fe8a261bf1c787734010e3fde40bd880d205575704c",
+      "bytes": 13078
+    },
+    {
+      "path": "server/src/mission/m02/companion.rs",
+      "sha256": "b515d7029877fa055b44dfd4784990eaa2bd78d29ab5f9849dc0f0c5e567a707",
+      "bytes": 9776
+    },
+    {
+      "path": "server/src/mission/m02/companion/formation.rs",
+      "sha256": "b67c7b0c227e28a9483e1a5055112eae155af74fe044fec523fbb440ff6d96cd",
+      "bytes": 7242
+    },
+    {
+      "path": "server/src/mission/m02/companion/tests.rs",
+      "sha256": "89632d4b594a67c5674dcde832d8a63e12d8d61bf353bc07eb1aa24ac7b97711",
+      "bytes": 14460
+    },
+    {
+      "path": "server/src/mission/m02/evacuation.rs",
+      "sha256": "50f3efdfc240d141369c3b8d8ff2635b1bd7c5e890be7172e67a5045173c92e7",
+      "bytes": 11054
+    },
+    {
+      "path": "server/src/mission/m02/route_tests.rs",
+      "sha256": "c50beb731fb1f51aa13c7d4dea4d2f94a6c7ce7a2f0a1295b3a4c232151c29dd",
+      "bytes": 102638
+    },
+    {
+      "path": "server/src/mission/m02/tableau.rs",
+      "sha256": "592ca4bbbd017405d9979032668f9e70eea7314053fa3b6c67521fcee45c4e9b",
+      "bytes": 11786
+    },
+    {
+      "path": "server/src/mission/m02/tests.rs",
+      "sha256": "7f403d8680ba9983128864329da3c49a436bf5290af3e01fb0ac536f94ecaff2",
+      "bytes": 13561
+    },
+    {
+      "path": "server/src/mission/m03.rs",
+      "sha256": "ac69a60e50294aa8ed4dfb36fdda97f1ec47fb57f8ab4dabc5ff8297d49a3848",
+      "bytes": 11959
+    },
+    {
+      "path": "server/src/mission/m04.rs",
+      "sha256": "b66beefae4f7742959d8cee485b6dd8d426c86ec0c54042d4750254780d002d8",
+      "bytes": 13082
+    },
+    {
+      "path": "server/src/mission/m05.rs",
+      "sha256": "9b0ccd386d119b46692dd542e307a943b8e34012991d74d3b5e82024dd5b1c03",
+      "bytes": 21026
+    },
+    {
+      "path": "server/src/mission/m05/platform.rs",
+      "sha256": "9a191c07aa39fcacecaaa1fe9f19a3eb816c70ad31938f65c49f0a839ac79069",
+      "bytes": 3991
+    },
+    {
+      "path": "server/src/mission/m06.rs",
+      "sha256": "70229bac8f6af97ff023d9d3d065343b15763e0ee8a2c7d45a0e173f0ce2c843",
+      "bytes": 9180
+    },
+    {
+      "path": "server/src/mission/m07.rs",
+      "sha256": "7e51e8f27925fea10eaa214ad07d2a8f7e124cf1c363350c02eae1582b7c1850",
+      "bytes": 8567
+    },
+    {
+      "path": "server/src/mission/m08.rs",
+      "sha256": "4f8962a641ce93aebf4734791d4026c39ac87510c225595be9129ec736bffb74",
+      "bytes": 12857
+    },
+    {
+      "path": "server/src/mission/m09.rs",
+      "sha256": "f0eca12720c8113feaa4e5e3fb37165d213adf4b4510f7074dfd8467f600ff55",
+      "bytes": 12991
+    },
+    {
+      "path": "server/src/mission/m10.rs",
+      "sha256": "a2a081f837329e885e417c8a3f16ea3c9aef3397f7add08c6b38b031b07891e0",
+      "bytes": 8115
+    },
+    {
+      "path": "server/src/mission/m11.rs",
+      "sha256": "5e0b3fae4c802dbfb7981a4da0aa25992e28377964e4e3fc3fe6d77fb0fe9dcf",
+      "bytes": 11403
+    },
+    {
+      "path": "server/src/mission/m11/tests.rs",
+      "sha256": "c2f5f44f1658c476e0282f93ec2d23340e468b22bdd4ebf8e5757c8009d5db4d",
+      "bytes": 18193
+    },
+    {
+      "path": "server/src/mission/readiness_tests.rs",
+      "sha256": "dbde2f87430bb6ad03873f203dc6d837fb08be713b6851ef96bd6bdab2e31c23",
+      "bytes": 11396
+    },
+    {
+      "path": "server/src/mission/recovery.rs",
+      "sha256": "85138ba4e660e4a03976e53823b5791000ce12370ff900c584365392c72a7b1c",
+      "bytes": 14205
+    },
+    {
+      "path": "server/src/mission/recovery/tests.rs",
+      "sha256": "3d3675921a4af0638d8a95b3170916b6b193bbcaee36a3c3cc95d5e62404ac31",
+      "bytes": 10949
+    },
+    {
+      "path": "server/src/mission/run_file.rs",
+      "sha256": "e79bdd149754ee95d931d6cae0b15edaabbd23b09548b1fbfe1a8a5ebfba3b8d",
+      "bytes": 85392
+    },
+    {
+      "path": "server/src/mission/run_file/legacy.rs",
+      "sha256": "4aa420dbb73fc81b0dcea5eb230b8143e9460e1c5e84ede1177fdbcec2022dbc",
+      "bytes": 35480
+    },
+    {
+      "path": "server/src/mission/run_file/m09_outcome.rs",
+      "sha256": "90714aaf2c6f6480098614cf247787420ea441d354c7817818749c441667042c",
+      "bytes": 2149
+    },
+    {
+      "path": "server/src/mission/run_file/m11_outcome.rs",
+      "sha256": "6ece567658f099c3e45d2cdd629b800435dfaa45d2c908fe93169fec8a2b5945",
+      "bytes": 1647
+    },
+    {
+      "path": "server/src/mission/run_file/store.rs",
+      "sha256": "ed4c86bbadc4456e6ecb9a623a64f3d87cd8f1e8fd1180f0cbfd02b829271136",
+      "bytes": 43086
+    },
+    {
+      "path": "server/src/mission/run_file/store/m06_tests.rs",
+      "sha256": "99408970c491a7634ae125f652e4b9577ec806b9660d0ab2c5d620f7d3e1c192",
+      "bytes": 8571
+    },
+    {
+      "path": "server/src/mission/run_file/store/m07_tests.rs",
+      "sha256": "bf998abe435e25341e037e8186a310d5c57b45e7dbdacba2620c219eb6b19b2d",
+      "bytes": 7961
+    },
+    {
+      "path": "server/src/mission/run_file/store/m08_tests.rs",
+      "sha256": "41bbe87034a711bb270886454f2eb21d09fad59a9d73ba91ec324ae4eeb8f095",
+      "bytes": 13909
+    },
+    {
+      "path": "server/src/mission/run_file/store/m09_receipt_tests.rs",
+      "sha256": "d5a70dec1d13c91d95d7fc4446059b0553a7d0273de5e462513704b2852e0ec1",
+      "bytes": 7492
+    },
+    {
+      "path": "server/src/mission/run_file/store/m09_tests.rs",
+      "sha256": "b7765d4bb1512b97ce6ea51a3668a05a7258c80a9520d937e0b04945a3e3312c",
+      "bytes": 34025
+    },
+    {
+      "path": "server/src/mission/run_file/store/m10_tests.rs",
+      "sha256": "9298594336546c2b389f2941f66e4381285a332b9d0fe48164136434fc851865",
+      "bytes": 30049
+    },
+    {
+      "path": "server/src/mission/run_file/store/m11_tests.rs",
+      "sha256": "9ad4bb6127dd8f69346681860c407311c919231ba6251beecd2909190f0d97c6",
+      "bytes": 17882
+    },
+    {
+      "path": "server/src/mission/run_file/store/remote_tests.rs",
+      "sha256": "0894ad3b1bdc264f681f33f3b2541f5aa9706b7dad8d3d9eea8e6cbb6bd21cbb",
+      "bytes": 4033
+    },
+    {
+      "path": "server/src/mission/tests.rs",
+      "sha256": "ee87f4e9aba6a9d25d2c11bf8a8342d515745fa3e08713a548a0b66a96d38a16",
+      "bytes": 34978
+    },
+    {
+      "path": "server/src/mission/wire_tests.rs",
+      "sha256": "bcaece79dfe3db3f50a7af30495c4bf4caf23a7f0fd39c5d4ce9162226864f92",
+      "bytes": 21806
+    },
+    {
+      "path": "server/src/movement.rs",
+      "sha256": "c4923d312597be608c7f31f8d29d3dfcdabd5a3b8c21a722f8c4838eac36df9a",
+      "bytes": 56755
+    },
+    {
+      "path": "server/src/movement/contact.rs",
+      "sha256": "7f590b156c9f597d63cce9a32cbf94d51cdedfe72fb6ab470eaa1ba6ba975a99",
+      "bytes": 14870
+    },
+    {
+      "path": "server/src/movement/enclosed_tests.rs",
+      "sha256": "60553095b8d7a52948b932e31f3f3f08853e44aefca042991cadd1d890ce7f99",
+      "bytes": 4770
+    },
+    {
+      "path": "server/src/movement/water.rs",
+      "sha256": "d6bd57b80f6567a9f36663527bd54bb94d60f6f9c99ae60f406310df2b3ae237",
+      "bytes": 6155
+    },
+    {
+      "path": "server/src/navigation.rs",
+      "sha256": "216db4a87b54f3aa755959278c188a9ce4b8589587be425e2ed6206f904e85b1",
+      "bytes": 37554
+    },
+    {
+      "path": "server/src/navigation/controller.rs",
+      "sha256": "05d2430dbc4866dd0c088dc28169bdba8bcfebad5c3f5b856b680aeb9868cf82",
+      "bytes": 51393
+    },
+    {
+      "path": "server/src/navigation/controller/stalled_observations.rs",
+      "sha256": "309006c9f254faa9a46946193fcab18971ee6999a62e8d01c2296e8c5fcb5909",
+      "bytes": 5886
+    },
+    {
+      "path": "server/src/navigation/tests/enclosed.rs",
+      "sha256": "a60fefd47b9df35042b785d005b7571bec87e35df92bcb1098f473bb809e1051",
+      "bytes": 4027
+    },
+    {
+      "path": "server/src/net.rs",
+      "sha256": "e1efdf582975ca6340796dfd1f456fa781b12829f4e87c91a434656673a42ad8",
+      "bytes": 71108
+    },
+    {
+      "path": "server/src/net/outbound.rs",
+      "sha256": "af043ce09ac0f4f29ceabdfe96fd080c92d9b510242af63a3b0771838572e261",
+      "bytes": 10181
+    },
+    {
+      "path": "server/src/net/outbound/tests.rs",
+      "sha256": "c3d5780c5330ed110d867c2c63e4bd6ada464019b286b040d0da734ab7d6d0ef",
+      "bytes": 13859
+    },
+    {
+      "path": "server/src/net/tests.rs",
+      "sha256": "28cea12b64c0597737b60fdb32be79bf01c55f54ddb425f7fd3cf9e5013f6e5a",
+      "bytes": 77385
+    },
+    {
+      "path": "server/src/preflight.rs",
+      "sha256": "fea7c71d08e1fe21ff9f2ad602fa91d20ea8cb1fb43873f954707bf33e4d895b",
+      "bytes": 24264
+    },
+    {
+      "path": "server/src/protocol.rs",
+      "sha256": "171f9a004338d5b9f6c095a32f357982f638727c32f76ff428365a5b83612671",
+      "bytes": 90436
+    },
+    {
+      "path": "server/src/protocol/actors.rs",
+      "sha256": "64955c6be6c430e4e89303dca9251df0cc71017d243b1696c2004f437248a053",
+      "bytes": 7028
+    },
+    {
+      "path": "server/src/protocol/body.rs",
+      "sha256": "03367b2af2d098efea4a664bd5afcbde67ce74300bfe245e7955da4b2d38b492",
+      "bytes": 2935
+    },
+    {
+      "path": "server/src/protocol/conquest.rs",
+      "sha256": "5fe501b3019f71d72c9eba5ae81b96a8e9658d714702bdb3bbfdef8d12bd6786",
+      "bytes": 682
+    },
+    {
+      "path": "server/src/protocol/decoration.rs",
+      "sha256": "762c61e0e254265eca6fc47ba5511d373e8f3525254b2af7d066ba49ac9486cc",
+      "bytes": 7142
+    },
+    {
+      "path": "server/src/protocol/decoration/tests.rs",
+      "sha256": "4aa7ee94eacb50133322f1dd9e562dfb15782f43df79ab6b148677b8e3215aaa",
+      "bytes": 4328
+    },
+    {
+      "path": "server/src/protocol/explosive.rs",
+      "sha256": "c61bb2ac42200b67154335f2fa81b54951901395a76847212491b814453a4039",
+      "bytes": 2875
+    },
+    {
+      "path": "server/src/protocol/loadout.rs",
+      "sha256": "96975165e57287deae2c025a3d732f483cca3bca43b75931047a32e8960d8442",
+      "bytes": 14209
+    },
+    {
+      "path": "server/src/protocol/m04.rs",
+      "sha256": "99e798be008e5c812926fab7366e7ef74ec8343ff3e8f7417f0df102e42f8bc7",
+      "bytes": 9566
+    },
+    {
+      "path": "server/src/protocol/m05.rs",
+      "sha256": "ca23165476509e0cd2a79b2405798a86e982176b5f48f715abe0e66a5bb80316",
+      "bytes": 10015
+    },
+    {
+      "path": "server/src/protocol/m06.rs",
+      "sha256": "b91068983c51aee1672c5e19f430b0e134ef50f1b305cc9f409407d708b63c3f",
+      "bytes": 6801
+    },
+    {
+      "path": "server/src/protocol/m07.rs",
+      "sha256": "8e31be14a0b1e79938d139e22eb0416023ed7c8d311143b6a022355a892eca3f",
+      "bytes": 6549
+    },
+    {
+      "path": "server/src/protocol/m08.rs",
+      "sha256": "903da3a0168850fdefee4976e9bdd624b2f054e8a6354bdbd908a447c374d989",
+      "bytes": 10155
+    },
+    {
+      "path": "server/src/protocol/m08/neutral.rs",
+      "sha256": "306f04e8377b656004c4f99915f7dc998e04c3a12c58cef62d92202ecff33718",
+      "bytes": 3958
+    },
+    {
+      "path": "server/src/protocol/m08/neutral/tests.rs",
+      "sha256": "c57ad6b1090f08cb0f38ce72290360ec869370621ebee3c42bfe6dc58e2670e9",
+      "bytes": 4850
+    },
+    {
+      "path": "server/src/protocol/m09.rs",
+      "sha256": "b3c0bc78ef0b8206ffb6426542bc4360d781b8911caa4e5bd9457171d6673ebd",
+      "bytes": 9993
+    },
+    {
+      "path": "server/src/protocol/m10.rs",
+      "sha256": "9a05e7c7511026a896356d11437f23249c47ae34e75d5718b59eead3ab7b1985",
+      "bytes": 7050
+    },
+    {
+      "path": "server/src/protocol/m11.rs",
+      "sha256": "30b67a29014a8e0d299bef0e673e040d0b5609f351d8a85ceb9114841b5c5f68",
+      "bytes": 9036
+    },
+    {
+      "path": "server/src/protocol/m11/tests.rs",
+      "sha256": "9e12eee5d12003a0e4637d591928197d51b7dcbf9559bd2830d5f6877f6db187",
+      "bytes": 8578
+    },
+    {
+      "path": "server/src/protocol/mission.rs",
+      "sha256": "e38d1d84bf9433adf9ee82f136c0df56fc1643bc38b1b390e460893a478dabcb",
+      "bytes": 41329
+    },
+    {
+      "path": "server/src/protocol/moon_residents.rs",
+      "sha256": "2752c6f9d2359d418c485653c3a6c71658938bb90d94ff8446e928076d2c6c34",
+      "bytes": 5999
+    },
+    {
+      "path": "server/src/protocol/remote_mine.rs",
+      "sha256": "b23ca6f9e3f684f2385d8b0651c1e7df10a5ebc9b6b6ec90441b4eaf9f67b32b",
+      "bytes": 8645
+    },
+    {
+      "path": "server/src/protocol/rules.rs",
+      "sha256": "815c5114e2151a4205f05d3d1f3e13bafa550ee5e061c6e2196db96811ee4461",
+      "bytes": 10867
+    },
+    {
+      "path": "server/src/protocol/sabotage.rs",
+      "sha256": "82a716b6305cc055d979a45df0d30ff302d419ab9b6e9fed065ade7275b6f1bb",
+      "bytes": 15454
+    },
+    {
+      "path": "server/src/protocol/statistics.rs",
+      "sha256": "604f584464f79223ba9ba69db0089055c547dd17e14ce35574c02955ddff254f",
+      "bytes": 22429
+    },
+    {
+      "path": "server/src/protocol/statistics/record_wire.rs",
+      "sha256": "00f1213be71be08fc0e5ac653d430e6da3f8b4a07682e7d55d74083f75a5f929",
+      "bytes": 11132
+    },
+    {
+      "path": "server/src/protocol/status.rs",
+      "sha256": "1fa0e9e86da69b9da00e061a9eb219c41aad6e7d7ab1fc83bd56a239fbbdef96",
+      "bytes": 5345
+    },
+    {
+      "path": "server/src/protocol/vehicle.rs",
+      "sha256": "ab9fc90db23d60b560f6e997e9e171f3a09b1a4d54681672fc693103b3a49de4",
+      "bytes": 2226
+    },
+    {
+      "path": "server/src/protocol/water.rs",
+      "sha256": "bbdbcadde2a7cf9f67390a618c33a501949be9dcf64fda72c0708b8eefe8923a",
+      "bytes": 4336
+    },
+    {
+      "path": "server/src/resume.rs",
+      "sha256": "1fa76b3581ee013aa6e70fa28c653b5e6366c3b3e0404f104d156659bb470144",
+      "bytes": 16074
+    },
+    {
+      "path": "server/src/rules.rs",
+      "sha256": "fc32c7942080cbf75171edbb414bf65019112a2793ae0713e37ef3d2b279bd6a",
+      "bytes": 9045
+    },
+    {
+      "path": "server/src/rules/sabotage.rs",
+      "sha256": "9619f6c58670370d125990741f0427352b08e1a542fe43c8ddb702bf5be546ad",
+      "bytes": 8226
+    },
+    {
+      "path": "server/src/run.rs",
+      "sha256": "ff3e94e356a6e940504050607e5d23dd1bae885845ccd42200b80007acad437e",
+      "bytes": 31797
+    },
+    {
+      "path": "server/src/session.rs",
+      "sha256": "efb0c42e5301f7303c492f104f937447ed79ad6ba8f241dd22e4d45d42a27b7a",
+      "bytes": 78140
+    },
+    {
+      "path": "server/src/session/desk.rs",
+      "sha256": "13441dd6fe64830e54fefdd04193cbdee43500f39713afd9ccc01fb70daa9f2c",
+      "bytes": 22124
+    },
+    {
+      "path": "server/src/session/fill.rs",
+      "sha256": "62f166ca9e305eefa452fb49f75b12e2e86fa5308c2c7059bc78bbcabcb3c56e",
+      "bytes": 23698
+    },
+    {
+      "path": "server/src/session/five_seats_tests.rs",
+      "sha256": "eeadb8cd97fc416a6247e25faf57fa5e03e00932547c08b8aa89bf69ad5ee1a7",
+      "bytes": 14365
+    },
+    {
+      "path": "server/src/sheet.rs",
+      "sha256": "a11fd8b73f164c070e850f0747e990678767385f2ee4284f5b8561e53e375994",
+      "bytes": 6376
+    },
+    {
+      "path": "server/src/sim.rs",
+      "sha256": "1b1dc2a9370110f4c1aefa0145acb1cf3a13986674456d8f79a5dcd6430a62c2",
+      "bytes": 186215
+    },
+    {
+      "path": "server/src/sim/bot_senses.rs",
+      "sha256": "82c28e64bba25350e8ce56e842aa4a348ef171ff74247d65c8d12fc25910f409",
+      "bytes": 15557
+    },
+    {
+      "path": "server/src/sim/bot_senses/tests.rs",
+      "sha256": "d57ec18912b3a9d2746f4b47d1d03025700573647614f989cd07fcd0c89e969d",
+      "bytes": 15471
+    },
+    {
+      "path": "server/src/sim/conquest.rs",
+      "sha256": "3eaa30b3ec28aa94bd629dea7376e4617a7e532692131a78a15cf84076d2131b",
+      "bytes": 13454
+    },
+    {
+      "path": "server/src/sim/conquest/coordination_tests.rs",
+      "sha256": "9067e47a853e196295e47c93f39388da20aa81d8c08416709759dd14979fb601",
+      "bytes": 20382
+    },
+    {
+      "path": "server/src/sim/conquest/coordination.rs",
+      "sha256": "8b37563c6392bfc3b65ae348dc1b4c9f64bc768d5eeafb8d9fc2e24730258621",
+      "bytes": 7122
+    },
+    {
+      "path": "server/src/sim/contact.rs",
+      "sha256": "087ac89375d71285b1a937f33fc8c8e0a2ba84f76fc044e69cb3d60362a47a1e",
+      "bytes": 7705
+    },
+    {
+      "path": "server/src/sim/contact/vehicle_water_tests.rs",
+      "sha256": "e2619ac8c329754ddf3664667e4c9bb345e54a252c1f62efed87527e0645a167",
+      "bytes": 2206
+    },
+    {
+      "path": "server/src/sim/ctf.rs",
+      "sha256": "f9cf19e0251c70a28623d74fc4a41da645d6166cbbd691bd12012e9152372e78",
+      "bytes": 7842
+    },
+    {
+      "path": "server/src/sim/enclosed_tests.rs",
+      "sha256": "517265f837ef352f3fd592bbbf8748e0882e34aa8217aac4ee2c2f3116c45b3c",
+      "bytes": 7697
+    },
+    {
+      "path": "server/src/sim/grenade.rs",
+      "sha256": "e39e4e7a903e8ece4678bc7db1fe2a3dd13dbfc0f188c283ba6235a0d66cc474",
+      "bytes": 15550
+    },
+    {
+      "path": "server/src/sim/grenade/tests.rs",
+      "sha256": "e158668827b84be9ce629c7f27e42fc39582e4535ec9cc2b5c139f3ac2e95330",
+      "bytes": 18007
+    },
+    {
+      "path": "server/src/sim/mine.rs",
+      "sha256": "2a5251b7198c47f5af5fc6532caf4cfd107cab90614902bda7efcea3df42525e",
+      "bytes": 10555
+    },
+    {
+      "path": "server/src/sim/mine/tests.rs",
+      "sha256": "7d94ac03bd3849d6ed27d6ea69e64a6736a09ffbfd10c55cbd9e8fcdb11ec6c2",
+      "bytes": 15810
+    },
+    {
+      "path": "server/src/sim/modes.rs",
+      "sha256": "3a6aef54b00fc9606a9269b6b409f7272819b58d66cbdc1efed3c45fac867cbb",
+      "bytes": 10642
+    },
+    {
+      "path": "server/src/sim/playlist.rs",
+      "sha256": "3d2d8e2fa77fd5c64f38a83e4866322be1760c457e4260625851d5c6ab0cc823",
+      "bytes": 21897
+    },
+    {
+      "path": "server/src/sim/playlist/desk_tests.rs",
+      "sha256": "d6fe14407c55a5d8938507e32e1986c0ae20b2d826043a07ffd1ab0a33527b10",
+      "bytes": 7319
+    },
+    {
+      "path": "server/src/sim/remote_mine.rs",
+      "sha256": "3d02c8811b49a8a4268845cd835c92b7ab5b14a815f33c2cda148b4ef35a8295",
+      "bytes": 12699
+    },
+    {
+      "path": "server/src/sim/remote_mine/live_tests.rs",
+      "sha256": "9d44eaad182634dff3e8122fd104b5b9fc6d133ba99a7e49b72b6384a2821b0a",
+      "bytes": 13878
+    },
+    {
+      "path": "server/src/sim/remote_mine/tests.rs",
+      "sha256": "c420d81fca539cfa05fb6d9166d817178de3d78083456b1a475f872ee099914b",
+      "bytes": 9130
+    },
+    {
+      "path": "server/src/sim/repeater.rs",
+      "sha256": "49b26e7b62abca0980b490c48045360c2fdfc533cd03de47e450878ce4d904db",
+      "bytes": 17912
+    },
+    {
+      "path": "server/src/sim/sabotage.rs",
+      "sha256": "76deca3b8780f237d0bd8a9e5a87a5d0bf3357906cda7c23a478c980558359cb",
+      "bytes": 38481
+    },
+    {
+      "path": "server/src/sim/sabotage/bots.rs",
+      "sha256": "ef21bd47e96c562d10099e1fd3ed3fbb578149ff5f0e81e25e0884dc6b328c30",
+      "bytes": 19273
+    },
+    {
+      "path": "server/src/sim/sabotage/controller.rs",
+      "sha256": "27d959ce6a98be394b4f345bce3c725c6cdb71d12dc42adb10a6924cd67c5aa5",
+      "bytes": 5980
+    },
+    {
+      "path": "server/src/sim/spawn.rs",
+      "sha256": "a6e696df4756aeb67d8dcb27f55553f9e49daedf2345f523fac4f2c57a5d1ff9",
+      "bytes": 10502
+    },
+    {
+      "path": "server/src/sim/spawn/tests.rs",
+      "sha256": "7a25225a06896851aad84e7e37247dce431798f6d3295d950ab154213f66c627",
+      "bytes": 11917
+    },
+    {
+      "path": "server/src/sim/traveling_shot.rs",
+      "sha256": "fe3c75115818239d522fa00686c17d2555b69601d6e3d5a479414001fc094860",
+      "bytes": 7855
+    },
+    {
+      "path": "server/src/sim/vehicle.rs",
+      "sha256": "27fc856e698f6db547b870dc67b6ddb8929ce64f962cc351e8f72d2e6e62d585",
+      "bytes": 23617
+    },
+    {
+      "path": "server/src/sim/vehicle/boarding_tests.rs",
+      "sha256": "e338e312c9d45188ca7f737e01a06386b3609a11d3caf7a635c9a541a12ae95a",
+      "bytes": 6484
+    },
+    {
+      "path": "server/src/sim/vehicle/tests.rs",
+      "sha256": "6d308e48199ba408cbec557c9eed2632e8e013f0c305bf6c5550265f6e4da274",
+      "bytes": 16907
+    },
+    {
+      "path": "server/src/statistics.rs",
+      "sha256": "3cae0805900e587a31564fddb96c8a0f91bd6f6c0cf8ec34de60eea94e7f2f31",
+      "bytes": 7495
+    },
+    {
+      "path": "server/src/statistics/tests.rs",
+      "sha256": "fd96283d73d11b8f775555c4c89718445a80b091a79c106a97a073a5a3b5b008",
+      "bytes": 33376
+    },
+    {
+      "path": "server/src/tests.rs",
+      "sha256": "bebb948049e790198f3aad828ae5cb22399f51684ffb70e1a06bf7f623caaa4a",
+      "bytes": 228794
+    },
+    {
+      "path": "server/src/tests/auditor.rs",
+      "sha256": "91a66af6e61faf7dbfc882de692674be027bd13499794ea517c762d46f84009c",
+      "bytes": 18391
+    },
+    {
+      "path": "server/src/tests/authored_vehicles.rs",
+      "sha256": "edac8080899bebc2c5e387f5eca43ffb18ed6e2c48d8cb36d4414dca8faa1b76",
+      "bytes": 9267
+    },
+    {
+      "path": "server/src/tests/body.rs",
+      "sha256": "22c79458bb566eb2dd20a306d5cc4a25c4a715bb52f34b2145bb94d33068a3f0",
+      "bytes": 11685
+    },
+    {
+      "path": "server/src/tests/discovery.rs",
+      "sha256": "bb9e80e4cb66e37536d3867ba187e001dfe07558a6ce8c28823bec18f7469ddf",
+      "bytes": 17834
+    },
+    {
+      "path": "server/src/tests/duck.rs",
+      "sha256": "181367d5beddcee69eeb91a30defb517127bcf90bdffd107f0b270461545a316",
+      "bytes": 7617
+    },
+    {
+      "path": "server/src/tests/encounters.rs",
+      "sha256": "65075d4c50e79657507f9f586443d851ed73932a2874ec4a916c6ef67a6de05c",
+      "bytes": 28583
+    },
+    {
+      "path": "server/src/tests/enforcer.rs",
+      "sha256": "aea518ffe5d22d228da7446f8cf225ba03f316a89280d31c08abde12ebadf0c1",
+      "bytes": 11524
+    },
+    {
+      "path": "server/src/tests/heavy_turret.rs",
+      "sha256": "aabefed6b1b9945c8c1afdeedb7ac952cb62fbe5b47dbb0e791123a5f8a96e4d",
+      "bytes": 12457
+    },
+    {
+      "path": "server/src/tests/jammer.rs",
+      "sha256": "8eed0333956de7c40953c94e54c2a1eafee1506d766920788771f9e22df32b0c",
+      "bytes": 17862
+    },
+    {
+      "path": "server/src/tests/launch_authority.rs",
+      "sha256": "caa43378fc31bd5da61d9be39e0fa7acb8ad0dc9653393c73ec3c310ff11bb48",
+      "bytes": 19999
+    },
+    {
+      "path": "server/src/tests/m01_acceptance.rs",
+      "sha256": "ee1e1a78b738f3baf69dbc65f4513d941eda40c34e0cbed778f14563ccd0b27d",
+      "bytes": 12255
+    },
+    {
+      "path": "server/src/tests/m01.rs",
+      "sha256": "fc165060ea2cd1977c2253babfc5cafec9c399a8cceb07daa0a435ea21dd8f17",
+      "bytes": 53279
+    },
+    {
+      "path": "server/src/tests/m03_qa.rs",
+      "sha256": "d96d88cf5bd8e202ac8be22d1a88e9c2d475fed6480bf22fa37651b37374dbb4",
+      "bytes": 2772
+    },
+    {
+      "path": "server/src/tests/m03.rs",
+      "sha256": "aa67459f9c03fffd3f46e8bd230a54e2f70fa5a7620d40408cf197facf3d83d0",
+      "bytes": 23767
+    },
+    {
+      "path": "server/src/tests/m04_qa.rs",
+      "sha256": "f1c0fed5291b543fa74e665c030b0be38ca410ccd903a64271680ffa8f44aa04",
+      "bytes": 13841
+    },
+    {
+      "path": "server/src/tests/m04.rs",
+      "sha256": "4ebe353318990164533cc9174525afc0b82c5541d462feec3e5b4888c1fac7f8",
+      "bytes": 30867
+    },
+    {
+      "path": "server/src/tests/m05_qa.rs",
+      "sha256": "5c0b5cfe0f4a4d96d9821f8804103695791e475f24728f44b26d075e5e032ac2",
+      "bytes": 4544
+    },
+    {
+      "path": "server/src/tests/m05.rs",
+      "sha256": "a6f78cf1b0b892e3ff29607757e56bcff6f405575418588989051947cd1a5d3c",
+      "bytes": 30455
+    },
+    {
+      "path": "server/src/tests/m06_qa.rs",
+      "sha256": "f46ff08aef58ed8143dfecc88be0395e971bd5cb43c2d46f2fc38df2f1cefa48",
+      "bytes": 11843
+    },
+    {
+      "path": "server/src/tests/m06.rs",
+      "sha256": "5c31c09a0282b48c47099ff0f4fbc242a39c2bd938194eb64a46b5ad7f53cf6f",
+      "bytes": 29346
+    },
+    {
+      "path": "server/src/tests/m07.rs",
+      "sha256": "c296ec3d52418e566b9bfe093e004cb1842f2a36d73326f88e1bd0d3c00bdda7",
+      "bytes": 31886
+    },
+    {
+      "path": "server/src/tests/m08_qa.rs",
+      "sha256": "8a248570e93b8f1f946588e1669dfc930a57e5524fe1546b8af82a8f09bbb7f2",
+      "bytes": 10079
+    },
+    {
+      "path": "server/src/tests/m08.rs",
+      "sha256": "f704db74b52e3bb3098f56de83d162179487617d4070029df30bca41c91e3ead",
+      "bytes": 23524
+    },
+    {
+      "path": "server/src/tests/m09.rs",
+      "sha256": "5df487ecf482feccb4bc683b5692a47b8105bcf13d3fef7a90cf55cd8bdf6973",
+      "bytes": 17433
+    },
+    {
+      "path": "server/src/tests/m10.rs",
+      "sha256": "3b2f88b3bbb6d549c4957f68cd905b0c152e34c15c6cd12dd129e6b8e290d2c5",
+      "bytes": 18863
+    },
+    {
+      "path": "server/src/tests/modes.rs",
+      "sha256": "1921ba0740d68455110b84002c184c54974c8d2446f2fe39d7d628ea5a103eaf",
+      "bytes": 57572
+    },
+    {
+      "path": "server/src/tests/pellets.rs",
+      "sha256": "f49d699dc235a6238583552ff5e5101055da379b9299a97e8cd79c746fd2a9ab",
+      "bytes": 11830
+    },
+    {
+      "path": "server/src/tests/redactor.rs",
+      "sha256": "7c378d227a23f7f9dfe0e73fa8b96ad01cbd14b4209b65e14d4ac3719a5a0e04",
+      "bytes": 11858
+    },
+    {
+      "path": "server/src/tests/remote_mine_supply.rs",
+      "sha256": "9ff391d42e8094fa504f6c85c88dd95eedb2c809e455176c4911a4a7dcdd2207",
+      "bytes": 5832
+    },
+    {
+      "path": "server/src/tests/roster.rs",
+      "sha256": "e0568a466bf127d3a6c5aa321d9b50b46c770750afd4323eec926656568ebe0c",
+      "bytes": 14847
+    },
+    {
+      "path": "server/src/tests/sabotage.rs",
+      "sha256": "3d462084d9fc7ba4d5c479a5d7e2c90556a423710e5b26ab1574e7d9aa1435e5",
+      "bytes": 46147
+    },
+    {
+      "path": "server/src/tests/shiv.rs",
+      "sha256": "4215da9d694d7d46a584c06fb107ad07d035afeddb9c8120901770eb25830c5c",
+      "bytes": 7809
+    },
+    {
+      "path": "server/src/tests/shot_occlusion.rs",
+      "sha256": "c73972d353797041be119ccad2f5a95d6e5adc6cfd73d525bb8f7f0183c32a7a",
+      "bytes": 23373
+    },
+    {
+      "path": "server/src/tests/sniper.rs",
+      "sha256": "d2437cd54766777a367797a92bdc182820008f768037a17438a766bf0a545aaa",
+      "bytes": 30363
+    },
+    {
+      "path": "server/src/tests/spawns.rs",
+      "sha256": "c9c2cd69294db06b568f7d2161d517462d5ff42c6f90f5fc5c1d8835eb23df3c",
+      "bytes": 19205
+    },
+    {
+      "path": "server/src/tests/traveling_shot.rs",
+      "sha256": "610465afd5c39d29bed9f7ef85a4704ef3f5328839b498a80e8733aff574f73d",
+      "bytes": 9945
+    },
+    {
+      "path": "server/src/trace.rs",
+      "sha256": "0f0bdd051e3e7be231b0a8ff855b64745bd6e967f71e071b916bcfef44553d48",
+      "bytes": 15031
+    },
+    {
+      "path": "server/src/vehicles.rs",
+      "sha256": "c1087e8355344c9b15b23bb7fb57ca9f3c957573582133d00305dee7ee3b483c",
+      "bytes": 13537
+    },
+    {
+      "path": "server/src/vehicles/tests.rs",
+      "sha256": "f953d75a9d26968e409d6db5866395a8b2b916bc3abc7c2ec5d661c435589e7e",
+      "bytes": 5245
+    },
+    {
+      "path": "server/src/vehicles/water_air.rs",
+      "sha256": "403c7d3ab9135e59fc18c85e1e633b78638f4644ea15aa370d31f1a624368158",
+      "bytes": 6068
+    },
+    {
+      "path": "server/src/vehicles/water_air/tests.rs",
+      "sha256": "9344dd249e6c0673dfda1f76dafc9b1b558c4331c49567d6806fbf7cddc2f815",
+      "bytes": 6692
+    },
+    {
+      "path": "server/tests/authored_maps.rs",
+      "sha256": "53866f68d1ea021c1ce14439400cf51a75968feb0abd3e0bdd77d6b25cf16fa5",
+      "bytes": 12961
+    },
+    {
+      "path": "server/tests/benchmark_cli.rs",
+      "sha256": "fb45eaea1ed4bca5c39d2b900dc6411692239f874983f59d929fc98d08ae59a1",
+      "bytes": 2101
+    },
+    {
+      "path": "server/tests/body_identity.rs",
+      "sha256": "b5404899899b2dc00c06d4bf4d8cd04dd3e677f7a85eaac1c225bf874cef7f04",
+      "bytes": 6177
+    },
+    {
+      "path": "server/tests/campaign_encounters.rs",
+      "sha256": "f49291bd4c5c0a8c6441a8b4f8aa5e31590c9f235b8534863702c5a36ea0e43a",
+      "bytes": 6531
+    },
+    {
+      "path": "server/tests/desktop_host.rs",
+      "sha256": "1a2bb61aff52ec78b8710b57b14201bf0dc95060454382975628b65e72a66930",
+      "bytes": 18885
+    },
+    {
+      "path": "server/tests/foundry_development.rs",
+      "sha256": "c7e8caa5c01dc73e5c507f55de1b3244871af6737755ab408157bdf170b4bdf9",
+      "bytes": 18630
+    },
+    {
+      "path": "server/tests/habitat_development.rs",
+      "sha256": "58348e14c8a63201a8460e13664ff6ba31af77cac9365ef2bf0b1941018505a4",
+      "bytes": 17357
+    },
+    {
+      "path": "server/tests/local_child.rs",
+      "sha256": "2b68dcb989d4a84f6206cb179e4001cdf30bb90cab234923b3dc78696c147b5c",
+      "bytes": 63730
+    },
+    {
+      "path": "server/tests/resume_pawn.rs",
+      "sha256": "e0e9c93b3701e77302420361f25372f6e308244ec4c3dadc93322137ffdf45a8",
+      "bytes": 4654
+    },
+    {
+      "path": "server/tests/sabotage_five_seats.rs",
+      "sha256": "afc0499be878eec9297ab627da1dedeeff4f6163e64341789db370dd5b0cf153",
+      "bytes": 18747
+    },
+    {
+      "path": "tools/playtest_roster.sh",
+      "sha256": "9110528594e11e4eb795feb5f95fdf00bf691621f0d08660a5338049355314c8",
+      "bytes": 764
+    },
+    {
+      "path": "tools/playtest/Cargo.toml",
+      "sha256": "3b9400bafba0e1901e24ddd4ad884c7530e27650d3248a69638499d86b6d3030",
+      "bytes": 850
+    },
+    {
+      "path": "tools/playtest/examples/hitscan_alignment.rs",
+      "sha256": "9cdf2b4cf5421becdfbf1c10093a50bf9d1db941e7d263e1b191a3debdf03f82",
+      "bytes": 7032
+    },
+    {
+      "path": "tools/playtest/README.md",
+      "sha256": "0b7e3b9d764b2a3e1b16d61e9bf95ee641a855372e08d0eef28a3c567d89c065",
+      "bytes": 7900
+    },
+    {
+      "path": "tools/playtest/src/fanout.rs",
+      "sha256": "0932923acff1d571be78d42c56da51d98988de0ba4d348889189d7225dc20583",
+      "bytes": 16109
+    },
+    {
+      "path": "tools/playtest/src/lib.rs",
+      "sha256": "4a709709b4e51dc642c30df2d8f278e1c2febddedcbc54d15d09ea0924335afa",
+      "bytes": 191687
+    },
+    {
+      "path": "tools/playtest/src/main.rs",
+      "sha256": "1cc77bb197b14060f005773215c62b4a1806fcb41828ec99015fb807b7f298c6",
+      "bytes": 34503
+    },
+    {
+      "path": "tools/playtest/src/sabotage.rs",
+      "sha256": "fcc81e7519990755cc2dfc09e57e7e919691a41f899b8aa6a687960bc9d3b7ae",
+      "bytes": 13085
+    },
+    {
+      "path": "tools/playtest/src/soak.rs",
+      "sha256": "619c9caca4c4c0c032c1b92f3fd43612a0a692871fea662bad5e5af18afb5140",
+      "bytes": 29908
+    },
+    {
+      "path": "tools/playtest/src/soak/tests.rs",
+      "sha256": "f68f8a0fce6c91d7e60b9a2a79d1bb9d3d1762e2e937e81330eb4c18ddc5608f",
+      "bytes": 12870
+    },
+    {
+      "path": "tools/playtest/src/traffic.rs",
+      "sha256": "a7bbf7572cc382619e91c51a3f42e27ad403f4cf67dca507ab04ccaf298150dc",
+      "bytes": 20006
+    }
+  ],
+  "source_files_unchanged_during_gates": true,
+  "ci_and_roster_case_count": 15,
+  "ci_and_roster_passed": 15,
+  "cases": [
+    {
+      "category": "ci",
+      "name": "ci",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "3",
+        "--time-limit-seconds",
+        "45",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:30:32.890075Z",
+      "finished_utc": "2026-10-08T16:31:04.7957548Z",
+      "elapsed_s": 31.9056798,
+      "agents": 4,
+      "rounds_completed": 1,
+      "simulated_seconds": 31.4,
+      "frags": 8,
+      "longest_observed_stall_s": 0.05,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci.log",
+        "sha256": "dcd4d502a8d2d79b1a8afc1846117fa8f37a9a2feae657e2a2a5648ebcd51d7f",
+        "bytes": 312
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci.json",
+        "sha256": "1ebb8aa67362f59e760fadce0aca5881462c28bc312813e640215e746dc42051",
+        "bytes": 5705
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-tdm",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "tdm",
+        "--frag-limit",
+        "6",
+        "--time-limit-seconds",
+        "60",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-tdm.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:31:04.8373803Z",
+      "finished_utc": "2026-10-08T16:31:35.537283Z",
+      "elapsed_s": 30.6999027,
+      "agents": 4,
+      "rounds_completed": 1,
+      "simulated_seconds": 30.6,
+      "frags": 10,
+      "longest_observed_stall_s": 0.55,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-tdm.log",
+        "sha256": "bb18c5e9e1e395ecb47d03dd1e368339fcdb8210bd98e8d109a47477c8b714d5",
+        "bytes": 337
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-tdm.json",
+        "sha256": "80b03d28b4094e4fa9e64fda62bff7ca2d5c3eba30e95c1ef192915eebc17a1f",
+        "bytes": 5646
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-rail-only",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mutator",
+        "rail-only",
+        "--frag-limit",
+        "3",
+        "--time-limit-seconds",
+        "45",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-rail-only.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:31:35.5547483Z",
+      "finished_utc": "2026-10-08T16:32:07.0610022Z",
+      "elapsed_s": 31.5062539,
+      "agents": 4,
+      "rounds_completed": 1,
+      "simulated_seconds": 31.4,
+      "frags": 9,
+      "longest_observed_stall_s": 0.55,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-rail-only.log",
+        "sha256": "0a2bc61e17c59b73b917a2f490a21b0a39e6c087dc93f2280310019353c6d455",
+        "bytes": 333
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-rail-only.json",
+        "sha256": "f70598e60f95ce81caa71401284c3b243b6d89bcb6b1aa4fd75cdf0cddaaaa87",
+        "bytes": 4043
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-tdm-licence",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "tdm",
+        "--mutator",
+        "licence-to-kill",
+        "--frag-limit",
+        "6",
+        "--time-limit-seconds",
+        "60",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-tdm-licence.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:32:07.0800367Z",
+      "finished_utc": "2026-10-08T16:32:32.3473481Z",
+      "elapsed_s": 25.2673114,
+      "agents": 4,
+      "rounds_completed": 1,
+      "simulated_seconds": 25.15,
+      "frags": 10,
+      "longest_observed_stall_s": 0.05,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-tdm-licence.log",
+        "sha256": "379867d9721601a09d0cfc06fed1953e37cb37d0ae601d8849372468cbf8b5a7",
+        "bytes": 362
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-tdm-licence.json",
+        "sha256": "9106f10ca013a94add6091ec03ccc483b1a2d5974d0f73d762554ca49f5fe5f0",
+        "bytes": 5660
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-ctf-route",
+      "arguments": [
+        "--ctf-route-smoke",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-ctf-route.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:32:32.3648658Z",
+      "finished_utc": "2026-10-08T16:33:33.4692014Z",
+      "elapsed_s": 61.1043356,
+      "agents": 1,
+      "rounds_completed": 1,
+      "simulated_seconds": 61.0,
+      "frags": 0,
+      "longest_observed_stall_s": 0.05,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 1,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 1,
+      "last_round_reason": "Capture limit reached",
+      "last_round_capture_scores": {
+        "union": 0,
+        "coalition": 1
+      },
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-ctf-route.log",
+        "sha256": "cba8e00f3ed2c32aafd102ec75b7f9149c5c7aab8c8de08ec21c16c692079602",
+        "bytes": 487
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-ctf-route.json",
+        "sha256": "bbba2c6f905586b79283d20019768ed0bcf09bb32b2382fd2ec3e99434f7193c",
+        "bytes": 2066
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-ctf",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "ctf",
+        "--map",
+        "4",
+        "--tiers",
+        "reflex,planner",
+        "--capture-limit",
+        "1",
+        "--time-limit-seconds",
+        "180",
+        "--max-seconds",
+        "240",
+        "--assert",
+        "--ctf-contested",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-ctf.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:33:33.4833168Z",
+      "finished_utc": "2026-10-08T16:36:35.5002424Z",
+      "elapsed_s": 182.0169256,
+      "agents": 4,
+      "rounds_completed": 1,
+      "simulated_seconds": 181.9,
+      "frags": 12,
+      "longest_observed_stall_s": 0.9,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "last_round_capture_scores": {
+        "union": 0,
+        "coalition": 0
+      },
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-ctf.log",
+        "sha256": "d821c1743051bf77ba25bee05f72accfa379eb1cc8e338fdedd94c0c61def56d",
+        "bytes": 492
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-ctf.json",
+        "sha256": "a73bc2187f680512c32b041d6a8fc2519d2288a300bb13c1e1030a9e5334616c",
+        "bytes": 4985
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-sabotage-route",
+      "arguments": [
+        "--sabotage-route-smoke",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-sabotage-route.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:36:35.5129401Z",
+      "finished_utc": "2026-10-08T16:37:07.9610515Z",
+      "elapsed_s": 32.4481114,
+      "agents": 2,
+      "rounds_completed": 1,
+      "simulated_seconds": 32.35,
+      "frags": 0,
+      "longest_observed_stall_s": 6.0,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Charge defused",
+      "last_round_capture_scores": null,
+      "sabotage_events": {
+        "defuse_started": 1,
+        "defused": 1,
+        "live": 1,
+        "plant_started": 1,
+        "planted": 1
+      },
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-sabotage-route.log",
+        "sha256": "e0ca049f49eedae7c150a8b47297637c473c037afbdc5b7f466d82fbe196fee2",
+        "bytes": 463
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-sabotage-route.json",
+        "sha256": "00a9ce44d823ef8d36fe98fbbf0dee8e7bfb3ba67824741356d60e4f0533b0f8",
+        "bytes": 2362
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-sabotage",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "sabotage",
+        "--map",
+        "4",
+        "--tiers",
+        "reflex,planner",
+        "--time-limit-seconds",
+        "105",
+        "--max-seconds",
+        "160",
+        "--assert",
+        "--sabotage-contested",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\ci\\ci-sabotage.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:37:07.9725996Z",
+      "finished_utc": "2026-10-08T16:37:34.6298475Z",
+      "elapsed_s": 26.6572479,
+      "agents": 4,
+      "rounds_completed": 1,
+      "simulated_seconds": 26.55,
+      "frags": 3,
+      "longest_observed_stall_s": 3.05,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Side eliminated",
+      "last_round_capture_scores": null,
+      "sabotage_events": {
+        "live": 1,
+        "plant_started": 1,
+        "planted": 1
+      },
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-sabotage.log",
+        "sha256": "004dff9466c3fe69f1410858f9fe4eef252af0e45ab1847c668f33fcf3b50c97",
+        "bytes": 431
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/ci/ci-sabotage.json",
+        "sha256": "800c11732c6cd9bb122d4a61508e62f2458f399cc56665577eb40168bc4e383c",
+        "bytes": 4190
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map1-seed67",
+      "arguments": [
+        "--map",
+        "1",
+        "--agents",
+        "2",
+        "--seed",
+        "67",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map1-seed67.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:37:34.6441679Z",
+      "finished_utc": "2026-10-08T16:38:36.6413674Z",
+      "elapsed_s": 61.9971995,
+      "agents": 2,
+      "rounds_completed": 1,
+      "simulated_seconds": 61.9,
+      "frags": 5,
+      "longest_observed_stall_s": 0.5,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map1-seed67.log",
+        "sha256": "94b904d6e9fba119ea24750a3de71c0ffbf958c4caa46402049a13d3d1c6536d",
+        "bytes": 326
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map1-seed67.json",
+        "sha256": "46cad081c5b406803275f88f4d15988a001fd41c738ccfbcee86a10e4a46989d",
+        "bytes": 4786
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map2-seed42",
+      "arguments": [
+        "--map",
+        "2",
+        "--agents",
+        "6",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map2-seed42.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:38:36.6554811Z",
+      "finished_utc": "2026-10-08T16:39:38.6536797Z",
+      "elapsed_s": 61.9981986,
+      "agents": 6,
+      "rounds_completed": 1,
+      "simulated_seconds": 61.9,
+      "frags": 30,
+      "longest_observed_stall_s": 0.55,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map2-seed42.log",
+        "sha256": "360db1fd0a521300386f5bcaf00845dc62d5118c04182948d92087d70945a456",
+        "bytes": 326
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map2-seed42.json",
+        "sha256": "8fb114bf4f64bee3aa92cbae41f644c461abba8f4c3617cf97902b0a0357e436",
+        "bytes": 6885
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map3-seed19",
+      "arguments": [
+        "--map",
+        "3",
+        "--agents",
+        "6",
+        "--seed",
+        "19",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map3-seed19.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:39:38.6672043Z",
+      "finished_utc": "2026-10-08T16:40:23.5016647Z",
+      "elapsed_s": 44.8344604,
+      "agents": 6,
+      "rounds_completed": 1,
+      "simulated_seconds": 44.7,
+      "frags": 21,
+      "longest_observed_stall_s": 0.3,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map3-seed19.log",
+        "sha256": "29489ab5b701e3ab6b53f393819fb26d02b849d58e879f974be300b5f2897cb0",
+        "bytes": 326
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map3-seed19.json",
+        "sha256": "507cb0b7804973aa75ea5b8724f2788ed876887e059a8ed909fe676f39a3d342",
+        "bytes": 5825
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map4-seed42",
+      "arguments": [
+        "--map",
+        "4",
+        "--agents",
+        "8",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map4-seed42.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:40:23.5101945Z",
+      "finished_utc": "2026-10-08T16:41:25.5126935Z",
+      "elapsed_s": 62.002499,
+      "agents": 8,
+      "rounds_completed": 1,
+      "simulated_seconds": 61.9,
+      "frags": 33,
+      "longest_observed_stall_s": 0.55,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map4-seed42.log",
+        "sha256": "da7d51ffdeb5a698b0ae5c7d0f93f8b8a919d074f50942121714c77111882c74",
+        "bytes": 326
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map4-seed42.json",
+        "sha256": "2fa1c0aa23c09e03ccbe137a5123d06411b2b27e7ddb11f23fa90296e315fc9e",
+        "bytes": 7796
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map5-seed42",
+      "arguments": [
+        "--map",
+        "5",
+        "--agents",
+        "12",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map5-seed42.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:41:25.5224622Z",
+      "finished_utc": "2026-10-08T16:41:59.4537604Z",
+      "elapsed_s": 33.9312982,
+      "agents": 12,
+      "rounds_completed": 1,
+      "simulated_seconds": 33.8,
+      "frags": 27,
+      "longest_observed_stall_s": 0.45,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map5-seed42.log",
+        "sha256": "525612dd156c8e3692f551ce2fbe5f3d3287577debdda9d7714188e6a507f810",
+        "bytes": 328
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map5-seed42.json",
+        "sha256": "ca50690dc2c928ddc92fc6eb74219d64d4c4d064767e8a358653a1510ee3dee4",
+        "bytes": 9550
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map6-seed42",
+      "arguments": [
+        "--map",
+        "6",
+        "--agents",
+        "16",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map6-seed42.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:41:59.4648026Z",
+      "finished_utc": "2026-10-08T16:43:00.1620826Z",
+      "elapsed_s": 60.69728,
+      "agents": 16,
+      "rounds_completed": 1,
+      "simulated_seconds": 60.5,
+      "frags": 74,
+      "longest_observed_stall_s": 0.5,
+      "respawn_window_deaths": 1,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map6-seed42.log",
+        "sha256": "bc99624f498151ad5253e65a0b58d8b72b793449be9ce45b123e36be43f68fbd",
+        "bytes": 609
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map6-seed42.json",
+        "sha256": "9516361efd3c07716b1475741a2c006b45a478bccc5486af504d4699cebc39f1",
+        "bytes": 11658
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map7-seed42",
+      "arguments": [
+        "--map",
+        "7",
+        "--agents",
+        "16",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\roster\\map7-seed42.json"
+      ],
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "started_utc": "2026-10-08T16:43:00.1764817Z",
+      "finished_utc": "2026-10-08T16:43:59.0872753Z",
+      "elapsed_s": 58.9107936,
+      "agents": 16,
+      "rounds_completed": 1,
+      "simulated_seconds": 58.65,
+      "frags": 69,
+      "longest_observed_stall_s": 0.55,
+      "respawn_window_deaths": 0,
+      "opening_deaths": 0,
+      "flag_takes": 0,
+      "flag_drops": 0,
+      "flag_returns": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "last_round_capture_scores": null,
+      "sabotage_events": null,
+      "log": {
+        "path": ".agents/live-buildout-20261008/network/roster/map7-seed42.log",
+        "sha256": "bc2227a94a14467bcb6905abfea57703dc80ffaa8d4fc43308555294b5026b15",
+        "bytes": 328
+      },
+      "report": {
+        "path": ".agents/live-buildout-20261008/network/roster/map7-seed42.json",
+        "sha256": "1e39a5901cd0404d5ff10280cb65276e9efa618d2fa95fa450002b4b8b64fad2",
+        "bytes": 11676
+      }
+    }
+  ],
+  "roster_equivalence": "All seven exact map/agent/seed rows and flags from tools/playtest_roster.sh. Copied prebuilt harness replaces the wrapper cargo build; only output destinations differ.",
+  "ci_equivalence": "All eight playtest argument lists are matched against the current CI source before launch. Cargo is replaced by the copied prebuilt harness; only report and log destinations differ.",
+  "binary_scope": "Ordinary CI and roster cases use real loopback sockets and the copied playtest embedded server library. Soak explicitly launches the copied native server.",
+  "soak": {
+    "arguments": [
+      "--soak",
+      "--soak-seconds",
+      "120",
+      "--soak-sample-seconds",
+      "15",
+      "--soak-bots",
+      "4",
+      "--agents",
+      "4",
+      "--soak-spectators",
+      "2",
+      "--soak-map-rotate",
+      "--assert",
+      "--soak-log",
+      "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\soak\\ci.ndjson",
+      "--soak-server",
+      "C:\\GitHub\\fragr\\.agents\\live-buildout-20261008\\network\\bin\\fragr-server.exe"
+    ],
+    "exit_code": 0,
+    "passed": true,
+    "problems": [],
+    "started_utc": "2026-10-08T16:43:59.1053973Z",
+    "finished_utc": "2026-10-08T16:46:02.1811575Z",
+    "elapsed_s": 123.0757602,
+    "configured_seconds": 120,
+    "sample_seconds": 15,
+    "bots": 4,
+    "agents": 4,
+    "spectators": 2,
+    "map_rotate": true,
+    "observed_maps": [
+      "Arena Duel",
+      "Compliance Yard"
+    ],
+    "summary": {
+      "samples": 9,
+      "measured_s": 120.0161132,
+      "ticks_start": 42,
+      "ticks_end": 2442,
+      "tick_rate_hz": 19.997314827222716,
+      "window_start": {
+        "p50_ms": 0.245759,
+        "p95_ms": 0.4423669999999999,
+        "p99_ms": 1.2506,
+        "max_ms": 1.2506,
+        "count": 40,
+        "over_budget": 0
+      },
+      "window_end": {
+        "p50_ms": 0.237567,
+        "p95_ms": 0.4423669999999999,
+        "p99_ms": 0.753663,
+        "max_ms": 1.6465999999999998,
+        "count": 1023,
+        "over_budget": 0
+      },
+      "lifetime_end": {
+        "p50_ms": 0.27852699999999997,
+        "p95_ms": 0.557055,
+        "p99_ms": 0.8847349999999999,
+        "max_ms": 1.7314999999999998,
+        "count": 2423,
+        "over_budget": 0
+      },
+      "out_bytes_per_client_per_s": 57915.017808903125,
+      "in_bytes_per_client_per_s": 2295.279297546856,
+      "queue_overflows": 0,
+      "degraded_samples": 0,
+      "rss_start": 63221760,
+      "rss_end": 64036864,
+      "rss_max": 64126976,
+      "rss_source": "tasklist_working_set",
+      "build_commit": "unknown"
+    },
+    "anonymous_samples_only": true,
+    "log": {
+      "path": ".agents/live-buildout-20261008/network/soak/ci-soak.log",
+      "sha256": "b8592a154d596484c3940cdcef845d90f270755e8c7ecc88c440cbff36838e04",
+      "bytes": 444
+    },
+    "samples": {
+      "path": ".agents/live-buildout-20261008/network/soak/ci.ndjson",
+      "sha256": "7cbe6f8431e0dd09ed272472d35b51c0dc0182091d5cafd72cb5ea23c76106f6",
+      "bytes": 27455
+    },
+    "native_server_log": {
+      "path": ".agents/live-buildout-20261008/network/soak/ci.server.log",
+      "sha256": "cf29ef010abb1d83053aebc645393596908a32cd5855536064a138e762799fc5",
+      "bytes": 17540
+    }
+  },
+  "orchestration": {
+    "path": ".agents/live-buildout-20261008/network/run-gates.ps1",
+    "sha256": "4e9145f4c3ff909ad15b3e1df20bf6d53a4cac95f619b2dd8571a97e7022a3c8",
+    "bytes": 9609
+  },
+  "case_checkpoint": {
+    "path": ".agents/live-buildout-20261008/network/cases.json",
+    "sha256": "f7442e7189d2409bc6009df9889baad5d0437facd76e8c50637a4b02557b2a5b",
+    "bytes": 17039
+  },
+  "completion": {
+    "path": ".agents/live-buildout-20261008/network/completion.json",
+    "sha256": "598ab0e8bb2c2d17e938a95efa8b7dc90c991a48d53ea26d15de05c830d06929",
+    "bytes": 252
+  },
+  "unchanged_thresholds": true,
+  "builds_during_checks": 0,
+  "retained_failures": [],
+  "new_cash_usd": 0,
+  "paid_calls": 0,
+  "limits": [
+    "Local Windows loopback sockets, not hosted CI, physical LAN or WAN.",
+    "This same-machine soak may overlap composed client checks. Recorded tick percentiles are not an isolated CPU benchmark, capacity ladder or renderer measurement.",
+    "No fresh-player fun, final balance, final art, connected campaign, cross-platform, long-soak or multiplayer live-character visual acceptance claim.",
+    "Historical network receipts remain unchanged and retain their own source and binary scope."
+  ]
+}

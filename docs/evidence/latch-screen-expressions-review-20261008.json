@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Independent full-size selected-original review supplement. The original107-binding receipt remains unchanged.",
+  "original_receipt": {
+    "sha256": "b363282ebf3e2b0edadf0f5b07f530b80515e6f56f4b4308f8a7f7968ff2f81e",
+    "path": "docs/evidence/latch-screen-expressions-20261008.json"
+  },
+  "findings": [
+    "Distinct personal cyan pixel expressions read coherently.",
+    "blink_00 closes the eyes while retaining the smile; blink_03 reopens.",
+    "Sampled motion maintains fitted face through actual head pose and concentrated expression.",
+    "near_120 fades the source and optics with coordinated dithering; near_080 fully hides them."
+  ],
+  "limitations": [
+    "Only these13 selected original files were independently reviewed.",
+    "No rendered expiry claim from motion_23.",
+    "The supported HP-drop preview fixture is synthetic, not ordinary damage.",
+    "Whole-client/package and final human art acceptance remain separate."
+  ],
+  "bindings": [
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/relaxed_close_neutral.png",
+      "bytes": 209346,
+      "sha256": "213d3a5576873b8927df26869379802e42fe488bd15a7fdfca0bf67feb8fb19a"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/concerned_close_neutral.png",
+      "bytes": 215903,
+      "sha256": "81eebba45ec408ea6c7388ad5e813d5ae3274b00470886b8ecf926ae590a55fa"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/reassured_close_dim.png",
+      "bytes": 179248,
+      "sha256": "0c84da9a3aad52909cab6a787c702ff5cad3e8e40d1c6e26e5eccfaecb9d6120"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/focused_close_dim.png",
+      "bytes": 175712,
+      "sha256": "7ab4f48b949db870e1965e6bc01d5ad0818f2dabbf098dd9e53fade567de8190"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_03.png",
+      "bytes": 202729,
+      "sha256": "72598a6c9d62784ecb3e0da964855c14349a844f7728d9870323dc3cb07540d3"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_14.png",
+      "bytes": 168425,
+      "sha256": "348701d86adb7b000640295816b31eaccc4f64254041cdf1a36f07f0b551cf5c"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/blink_00.png",
+      "bytes": 203523,
+      "sha256": "fac17be221499da78ca9de7bddf594df0fcb3eb0c5af8502de595eeb3dcb57ef"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_04.png",
+      "bytes": 182442,
+      "sha256": "a92fc095dc70a292d1cdcc80424a8e2f1113897667ef375bc3ee6059632a822d"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/motion_10.png",
+      "bytes": 182308,
+      "sha256": "865217f0d6fa21a2d206bb8edcbc403ee7a919d2bcc380d2e11a209bcc32d0cc"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/near_165.png",
+      "bytes": 204762,
+      "sha256": "e086e5e2d27557cdc85f448f1bdf8232afa1d49b0008ace43a2d00d3de164ad7"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/near_120.png",
+      "bytes": 363292,
+      "sha256": "6b7735000f2da9da29b2f1cbee47ad5314991de79691d4a29e4f6b3a2700120a"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/near_080.png",
+      "bytes": 5325,
+      "sha256": "f60b4b25a6845633bb333f238dee1393c1238f16e11c38dc926fa5a591955b7e"
+    },
+    {
+      "path": ".agents/latch-screen-expressions-20261008/preview-first/hopeful_body_neutral.png",
+      "bytes": 125699,
+      "sha256": "db0402a6ef10994166488e943cc839cd4ad7130f5597a4a46fe89c509448e1ae"
+    }
+  ]
+}

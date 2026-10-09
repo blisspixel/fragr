@@ -5,6 +5,7 @@ extends "res://art/characters/rig.gd"
 ## sparks are fire, not faction, so they keep palette ember_hot. Poses are
 ## presentation only; server phases decide when each one plays.
 const EMBER_HOT: Color = Color8(220, 140, 60)
+const PoseSupport = preload("res://art/characters/pose_support.gd")
 
 func build_machine(kind: String, action: String, progress: float, unarmed: bool) -> Node3D:
 	if kind == "turret":
@@ -101,6 +102,8 @@ func build_heavy(action: String, progress: float, unarmed: bool) -> Node3D:
 	if walk:
 		upper.rotation_degrees.y = sin(cycle) * 4.0
 		upper.rotation_degrees.z = sin(cycle) * 3.0
+	if collapse > 0.0:
+		PoseSupport.lift_to_floor(upper)
 	return model
 
 func _heavy_torso(root: Node3D, brace: float, dead: bool) -> void:
@@ -183,6 +186,8 @@ func _cannon(root: Node3D, at: Vector3, raised: float, spin: float, recoil: floa
 	part(barrels, Vector3(0, 0, -0.12), Vector3(0.2, 0.2, 0.05), STEEL)
 	if glow:
 		part(barrels, Vector3(0, 0, 0.225), Vector3(0.10, 0.10, 0.02), GLOW)
+	if collapse > 0.0:
+		PoseSupport.lift_to_floor(weapon)
 
 func build_turret(action: String, progress: float) -> Node3D:
 	var model: Node3D = Node3D.new()

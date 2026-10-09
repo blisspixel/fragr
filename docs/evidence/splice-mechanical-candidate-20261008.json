@@ -1,0 +1,2339 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Reviewed source-only rigid candidate. Compact preparation, export and live runtime selection remain open.",
+  "original_source_sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1",
+  "candidate_regions_sha256": "f2191a008a44537b821b80da5bdf181958f69890bf6b9d388a51e1d75ebeb7a8",
+  "source_geometry": {
+    "original_triangles": 16602,
+    "exact_original_triangle_coverage": true,
+    "anatomical_region_identity": true,
+    "original_attribute_payloads_unchanged": true,
+    "regions": 17,
+    "boundary_metrics": {
+      "cross_part_cut_edges": 586,
+      "original_nonmanifold_edges": 93,
+      "original_open_edges": 68,
+      "original_unique_edges": 24873,
+      "scope": "actual welded region interfaces; no accepted joint, pivot or closure",
+      "unwanted_parent_interfaces": 0,
+      "weld_tolerance_m": 1E-06
+    },
+    "actual_negative_controls": {
+      "displaced_part": true,
+      "duplicate_triangle": true,
+      "normal": true,
+      "omitted_triangle": true,
+      "uv": true,
+      "winding": true,
+      "wrong_anatomical_side": true
+    }
+  },
+  "source_motion": {
+    "actual_walking_sole_displacement_m": 0.243947803974152,
+    "added_closure_triangles": 908,
+    "closure_kind": "paired actual original edge caps",
+    "closure_rows": [
+      {
+        "added_closure_triangles": 33,
+        "joint_child": 0,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 1,
+        "owner": 1
+      },
+      {
+        "added_closure_triangles": 31,
+        "joint_child": 0,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 3,
+        "owner": 0
+      },
+      {
+        "added_closure_triangles": 36,
+        "joint_child": 2,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 3
+      },
+      {
+        "added_closure_triangles": 36,
+        "joint_child": 2,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 2
+      },
+      {
+        "added_closure_triangles": 28,
+        "joint_child": 4,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 2
+      },
+      {
+        "added_closure_triangles": 28,
+        "joint_child": 4,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 4
+      },
+      {
+        "added_closure_triangles": 23,
+        "joint_child": 5,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 4
+      },
+      {
+        "added_closure_triangles": 23,
+        "joint_child": 5,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 5
+      },
+      {
+        "added_closure_triangles": 23,
+        "joint_child": 6,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 5
+      },
+      {
+        "added_closure_triangles": 23,
+        "joint_child": 6,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 6
+      },
+      {
+        "added_closure_triangles": 37,
+        "joint_child": 7,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 2
+      },
+      {
+        "added_closure_triangles": 37,
+        "joint_child": 7,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 7
+      },
+      {
+        "added_closure_triangles": 32,
+        "joint_child": 8,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 7
+      },
+      {
+        "added_closure_triangles": 32,
+        "joint_child": 8,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 8
+      },
+      {
+        "added_closure_triangles": 23,
+        "joint_child": 9,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 8
+      },
+      {
+        "added_closure_triangles": 23,
+        "joint_child": 9,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 9
+      },
+      {
+        "added_closure_triangles": 41,
+        "joint_child": 10,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 3
+      },
+      {
+        "added_closure_triangles": 41,
+        "joint_child": 10,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 10
+      },
+      {
+        "added_closure_triangles": 30,
+        "joint_child": 11,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 10
+      },
+      {
+        "added_closure_triangles": 30,
+        "joint_child": 11,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 11
+      },
+      {
+        "added_closure_triangles": 31,
+        "joint_child": 12,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 11
+      },
+      {
+        "added_closure_triangles": 31,
+        "joint_child": 12,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 12
+      },
+      {
+        "added_closure_triangles": 65,
+        "joint_child": 13,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 3
+      },
+      {
+        "added_closure_triangles": 65,
+        "joint_child": 13,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 13
+      },
+      {
+        "added_closure_triangles": 29,
+        "joint_child": 14,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 13
+      },
+      {
+        "added_closure_triangles": 29,
+        "joint_child": 14,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 14
+      },
+      {
+        "added_closure_triangles": 24,
+        "joint_child": 15,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 14
+      },
+      {
+        "added_closure_triangles": 24,
+        "joint_child": 15,
+        "new_degenerate_triangles": 0,
+        "original_nonmanifold_edges_already_closed": 0,
+        "owner": 15
+      }
+    ],
+    "joints": [
+      {
+        "actual_indexed_vertices": 2548,
+        "measured_boundary_circumradius_m": 0.0587192475795746,
+        "parent": "neck",
+        "part": "head",
+        "source_pivot_m": [
+          -0.0135755836963654,
+          0.734651684761047,
+          0.02138801664114
+        ]
+      },
+      {
+        "actual_indexed_vertices": 768,
+        "measured_boundary_circumradius_m": 0.110460050404072,
+        "parent": "torso",
+        "part": "neck",
+        "source_pivot_m": [
+          -0.0284181013703346,
+          0.669442772865295,
+          -0.0203231312334538
+        ]
+      },
+      {
+        "actual_indexed_vertices": 6196,
+        "measured_boundary_circumradius_m": 0.110120378434658,
+        "parent": "pelvis",
+        "part": "torso",
+        "source_pivot_m": [
+          -0.0101810852065682,
+          0.278489500284195,
+          0.047511737793684
+        ]
+      },
+      {
+        "actual_indexed_vertices": 2790,
+        "measured_boundary_circumradius_m": 0.0,
+        "parent": "source_root",
+        "part": "pelvis",
+        "source_pivot_m": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "actual_indexed_vertices": 660,
+        "measured_boundary_circumradius_m": 0.0832269936800003,
+        "parent": "torso",
+        "part": "left_upper_arm",
+        "source_pivot_m": [
+          0.204084679484367,
+          0.557438671588898,
+          -0.0272573996335268
+        ]
+      },
+      {
+        "actual_indexed_vertices": 746,
+        "measured_boundary_circumradius_m": 0.0745267271995544,
+        "parent": "left_upper_arm",
+        "part": "left_forearm",
+        "source_pivot_m": [
+          0.299949675798416,
+          0.310129165649414,
+          -0.0730730220675468
+        ]
+      },
+      {
+        "actual_indexed_vertices": 1697,
+        "measured_boundary_circumradius_m": 0.0918367505073547,
+        "parent": "left_forearm",
+        "part": "left_hand",
+        "source_pivot_m": [
+          0.409116238355637,
+          -0.0275961738079786,
+          0.00156317662913352
+        ]
+      },
+      {
+        "actual_indexed_vertices": 978,
+        "measured_boundary_circumradius_m": 0.0760410279035568,
+        "parent": "torso",
+        "part": "right_upper_arm",
+        "source_pivot_m": [
+          -0.204507783055305,
+          0.568194389343262,
+          -0.00668123411014676
+        ]
+      },
+      {
+        "actual_indexed_vertices": 670,
+        "measured_boundary_circumradius_m": 0.0683596506714821,
+        "parent": "right_upper_arm",
+        "part": "right_forearm",
+        "source_pivot_m": [
+          -0.316315859556198,
+          0.310005128383636,
+          -0.0547638945281506
+        ]
+      },
+      {
+        "actual_indexed_vertices": 1416,
+        "measured_boundary_circumradius_m": 0.077759638428688,
+        "parent": "right_forearm",
+        "part": "right_hand",
+        "source_pivot_m": [
+          -0.413219332695007,
+          -0.0244605652987957,
+          0.0579913482069969
+        ]
+      },
+      {
+        "actual_indexed_vertices": 1699,
+        "measured_boundary_circumradius_m": 0.0842799171805382,
+        "parent": "pelvis",
+        "part": "left_upper_leg",
+        "source_pivot_m": [
+          0.123024940490723,
+          0.100917033851147,
+          0.019547825679183
+        ]
+      },
+      {
+        "actual_indexed_vertices": 874,
+        "measured_boundary_circumradius_m": 0.0728143975138664,
+        "parent": "left_upper_leg",
+        "part": "left_lower_leg",
+        "source_pivot_m": [
+          0.14936389029026,
+          -0.340284883975983,
+          0.0129785621538758
+        ]
+      },
+      {
+        "actual_indexed_vertices": 1039,
+        "measured_boundary_circumradius_m": 0.0718565210700035,
+        "parent": "left_lower_leg",
+        "part": "left_foot",
+        "source_pivot_m": [
+          0.155880555510521,
+          -0.770370841026306,
+          -0.0729854479432106
+        ]
+      },
+      {
+        "actual_indexed_vertices": 3279,
+        "measured_boundary_circumradius_m": 0.124632589519024,
+        "parent": "pelvis",
+        "part": "right_upper_leg",
+        "source_pivot_m": [
+          -0.127127170562744,
+          0.101967088878155,
+          0.0353351756930351
+        ]
+      },
+      {
+        "actual_indexed_vertices": 887,
+        "measured_boundary_circumradius_m": 0.0797133147716522,
+        "parent": "right_upper_leg",
+        "part": "right_lower_leg",
+        "source_pivot_m": [
+          -0.175539121031761,
+          -0.33941638469696,
+          0.0134375095367432
+        ]
+      },
+      {
+        "actual_indexed_vertices": 1100,
+        "measured_boundary_circumradius_m": 0.0704534947872162,
+        "parent": "right_lower_leg",
+        "part": "right_foot",
+        "source_pivot_m": [
+          -0.207518920302391,
+          -0.769907474517822,
+          -0.072955422103405
+        ]
+      },
+      {
+        "actual_indexed_vertices": 446,
+        "measured_boundary_circumradius_m": 0.0,
+        "parent": "right_upper_leg",
+        "part": "right_rack_and_stored_tools",
+        "source_pivot_m": [
+          -0.127127170562744,
+          0.101967088878155,
+          0.0353351756930351
+        ]
+      }
+    ],
+    "maximum_actual_cap_to_original_rim_error_m": 0.0,
+    "maximum_actual_common_joint_center_error_m": 1.23778335137104E-07,
+    "maximum_actual_floor_error_m": 1.19209289550781E-07,
+    "maximum_actual_original_seam_gap_m": 0.0248851329088211,
+    "maximum_shared_parent_rack_error": 0.0,
+    "negative_controls": {
+      "actual_indexed_sole_moves": true,
+      "detached_stored_rack": true,
+      "displaced_pivot_fails_actual_motion": true,
+      "displaced_pivot_rest_still_matches": true,
+      "floating_source": true,
+      "omitted_moving_joint_closure": true
+    },
+    "original_source_sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1",
+    "original_triangles": 16602,
+    "regions_sha256": "f2191a008a44537b821b80da5bdf181958f69890bf6b9d388a51e1d75ebeb7a8",
+    "rest_height_m": 1.79999995231628,
+    "rest_reconstruction_error_m": 1.1926748300084E-07,
+    "sample_count": 256,
+    "schema": 1,
+    "uniform_scale": 0.948122428681224
+  },
+  "source_visual_review": {
+    "candidate_manifest": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/preview.json",
+    "static_originals": 26,
+    "timed_motion_originals": 96,
+    "static_viewed_full_size": [
+      "original_rest_0.png",
+      "original_rest_1.png",
+      "original_rest_2.png",
+      "original_rest_3.png",
+      "candidate_rest_0.png",
+      "candidate_rest_1.png",
+      "candidate_rest_2.png",
+      "candidate_rest_3.png",
+      "walk_025_view_0.png",
+      "walk_025_view_1.png",
+      "walk_025_view_2.png",
+      "walk_025_view_3.png",
+      "walk_075_view_0.png",
+      "walk_075_view_1.png",
+      "walk_075_view_2.png",
+      "walk_075_view_3.png",
+      "walk_front_000.png",
+      "walk_front_125.png",
+      "walk_front_500.png",
+      "walk_front_625.png",
+      "hip_wrist_close_neutral.png",
+      "hip_wrist_close_back_neutral.png",
+      "distant_neutral.png",
+      "hip_wrist_close_dim.png",
+      "hip_wrist_close_back_dim.png",
+      "distant_dim.png"
+    ],
+    "motion_viewed_full_size": [
+      "motion_006.png",
+      "motion_018.png",
+      "motion_030.png",
+      "motion_042.png",
+      "motion_054.png",
+      "motion_066.png",
+      "motion_078.png",
+      "motion_090.png"
+    ],
+    "reviewed_acceptance": "Source-only caps preserve visible original mechanical detail, silhouette, anatomical identity, supported sole and stored attachment in the inspected controls. No final art or live acceptance.",
+    "independent_review_originals": [
+      "candidate_rest_0.png",
+      "hip_wrist_close_dim.png",
+      "hip_wrist_close_back_neutral.png",
+      "walk_075_view_0.png",
+      "walk_075_view_1.png"
+    ],
+    "independent_review_scope": "Separate full-size review supports the bounded source candidate; compact packaging, live gait/feet and runtime lighting remain separate.",
+    "adapter": "AMD Radeon(TM) 780M",
+    "renderer": "gl_compatibility",
+    "resolution": [
+      1024,
+      768
+    ],
+    "rim_precision": "Original 1e-6 m welded representatives; not zero raw UV-duplicate variation.",
+    "timed_capture_scope": "96 scheduled source frames over two pose cycles. Actual capture elapsed values retained; no hardware frame-rate claim."
+  },
+  "rejected_sphere_candidate": {
+    "status": "Rejected on actual visual inspection despite clean numerical second run.",
+    "added_closure_triangles": 2352,
+    "geometry": ".agents/splice-mechanical-source-20261008/rig-second/geometry.json",
+    "preview": ".agents/splice-mechanical-source-20261008/motion-first/preview.json",
+    "frozen_sources": ".agents/splice-mechanical-source-20261008/source-final",
+    "first_geometry_owner_warnings_retained": ".agents/splice-mechanical-source-20261008/rig-first/client.log",
+    "reason": "Large black spheres obscure original hip, wrist and other joint detail.",
+    "inspected_scope": "Eleven full-size originals from the first reviewed subset; not all 120 retained sphere frames."
+  },
+  "frozen_pre_render_tools": [
+    {
+      "implementation_path": "tools/audit_splice_source.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/audit_splice_source.gd",
+      "sha256": "ae9f52ac0d5b62217b3aaf67f632d40f0bb7809a55e9b77558c3f5c639097922"
+    },
+    {
+      "implementation_path": "tools/partition_splice_diagnostic.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/partition_splice_diagnostic.gd",
+      "sha256": "b43b9f682a9edf9f38d196ca807237d0dea791c7032958899cc53de9a82e2c7c"
+    },
+    {
+      "implementation_path": "tools/preview_splice_mechanical.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/preview_splice_mechanical.gd",
+      "sha256": "0ebce400d68e110829d15903b0cc24e3ec7eef4992df1b6c65aca6c961853c45"
+    },
+    {
+      "implementation_path": "tools/preview_splice_partition.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/preview_splice_partition.gd",
+      "sha256": "65a4fde80eaa47fb166f4fb81491cfb489db838416285d86c9dfeb5127c63582"
+    },
+    {
+      "implementation_path": "tools/refine_splice_partition.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/refine_splice_partition.gd",
+      "sha256": "a6b97f5c83679f63adacbf654691fe8931508b16e02d457827f21970851df31a"
+    },
+    {
+      "implementation_path": "tools/splice_joint_closure.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/splice_joint_closure.gd",
+      "sha256": "a6132fc62c905ce2352bf0be3fdb9a327f7c75c059bc6444dcde56c57256d14c"
+    },
+    {
+      "implementation_path": "tools/splice_mechanical_rig.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/splice_mechanical_rig.gd",
+      "sha256": "0709d69ff7dd7f371a267423a89491ba739a082082cca4fcaeccdf2798898644"
+    },
+    {
+      "implementation_path": "tools/test_splice_mechanical_rig.gd",
+      "frozen_path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/test_splice_mechanical_rig.gd",
+      "sha256": "f141755691b8458147e9965495c928f8bc1a20b8489e7c076760849b2a696680"
+    }
+  ],
+  "public_original_copies": [
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/raw-front.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/original_rest_0.png",
+      "sha256": "491b5d860a9a2b48d69cd35748a70b422402a8c56ac3f29e4829ac9ff1d1dc89"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/rejected-spheres-front.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-first/candidate_rest_0.png",
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-rest-front.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/candidate_rest_0.png",
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-walk-side.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_025_view_3.png",
+      "sha256": "706de93db061b076d83de921a345e306c1477915cc1a582594fa3b61e613231a"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-walk-back.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_075_view_2.png",
+      "sha256": "dc81b8e4079cf29e24a8a9dcf8e943604708fe51cae6fe51798167fc175573cd"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-joints-front-dim.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/hip_wrist_close_dim.png",
+      "sha256": "c283f2cba21d047af7ec78ad983883b6fcccd67f70e991ee5d68f9f9afe72e05"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-joints-back-dim.png",
+      "original": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/hip_wrist_close_back_dim.png",
+      "sha256": "e00bda40248b8ae9c6131c5300284179960ca8cbcc8ac4815af5d94e8bc5380e"
+    }
+  ],
+  "remaining_gates": [
+    "Compact matte original maps",
+    "Export and reload measured hierarchy and caps",
+    "Complete limb lengths and stored attachment contract",
+    "Measured support curves",
+    "Coordinated live named civilian adapter",
+    "Ordinary eligible and omitted workshop/crew routes with current geometry",
+    "Composed client and package checks",
+    "Final art and human acceptance"
+  ],
+  "paid_requests": 0,
+  "model_credits_consumed": 0,
+  "cash_charged_usd": 0,
+  "bindings": [
+    {
+      "path": ".agents/splice-mechanical-source-20261008/historical-checkpoint/original-receipt.json",
+      "bytes": 21922,
+      "sha256": "4c3e5efb258a0d4bafb497a45488c8cfaf8b93bde7e07d6b0b59adf7a3747942"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/historical-checkpoint/plan-before-refinement.md",
+      "bytes": 8411,
+      "sha256": "1acc0f1f6690af560ae97226427720fa1af7648ef75d86cfc6906b584ab4aa62"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/candidate_rest_0.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/candidate_rest_1.png",
+      "bytes": 144106,
+      "sha256": "d7ecf43ed117d3b7b60c6bf464844bddd09fb1857086aabe0e93a69d8deb6da6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/candidate_rest_2.png",
+      "bytes": 225910,
+      "sha256": "6b06d1c9014877ee152c19ed5c04116031da9fe1bb7be8fb3744f26f17903f0c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/candidate_rest_3.png",
+      "bytes": 149135,
+      "sha256": "92229ab2c46c9174e49a63992876fd9ee2fa8ce0e81b2f0693613fb787898f34"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/client.log",
+      "bytes": 321,
+      "sha256": "4c216b04623cbe5a05016c0faf75b0fcb771f61960d42f131f60f6fb37a1a5b7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/distant_dim.png",
+      "bytes": 74235,
+      "sha256": "21fa7130063e096f83f3f4ae00e1963ed79930f79b9bb67fa17fc75a3add0088"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/distant_neutral.png",
+      "bytes": 83061,
+      "sha256": "520c5542391535e30d88737f446ac7cc774ca448b69ea1c6fa5920ca20aa6a4d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/hip_wrist_close_back_dim.png",
+      "bytes": 375316,
+      "sha256": "e00bda40248b8ae9c6131c5300284179960ca8cbcc8ac4815af5d94e8bc5380e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/hip_wrist_close_back_neutral.png",
+      "bytes": 447892,
+      "sha256": "8ac3e0cd2aa5dd572dfc052a48f91a5f4ef522a5e99bf8239e8ba5ac3f1bc6e7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/hip_wrist_close_dim.png",
+      "bytes": 383859,
+      "sha256": "c283f2cba21d047af7ec78ad983883b6fcccd67f70e991ee5d68f9f9afe72e05"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/hip_wrist_close_neutral.png",
+      "bytes": 440228,
+      "sha256": "7cfe99b1daa625cc38dd14399295b20903279358fe234953509d5c173a5e4921"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_000.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_001.png",
+      "bytes": 225845,
+      "sha256": "5ef0ddaafa444bd0e1f703dbc05381c50c12743be7e18f1a87a0528e91ba7213"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_002.png",
+      "bytes": 226278,
+      "sha256": "a5c744f102e404fe5c610637ea31e1b37f71a9870c5b8b60ad0bf25ef6d140de"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_003.png",
+      "bytes": 225338,
+      "sha256": "73f727f9b89e0019e5d937182935874f4623795cc3fdcda1dcb071ce4c72e3aa"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_004.png",
+      "bytes": 225291,
+      "sha256": "13ce7f45e5d12de118b9e58552d065f485fad53e2c25e4ef8f038a336e6d3e06"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_005.png",
+      "bytes": 224893,
+      "sha256": "0d09e3eca2b1c3e192aa830861518e5b810bf6d1f6621a4373c421b4629e0dc3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_006.png",
+      "bytes": 224837,
+      "sha256": "68f9eabe76b749913b0b75a22580342fa9d302f9492fb60de0a29bb7befd41b4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_007.png",
+      "bytes": 224749,
+      "sha256": "bb5d2ad7a7de74308a938f6cf93acaef2606b81d42f02a76b874181ccbc075bc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_008.png",
+      "bytes": 224209,
+      "sha256": "31fbdce890dd56d59e9f6a77e975fe43e5fbf429b89e9d0d899c953c293974ee"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_009.png",
+      "bytes": 224323,
+      "sha256": "2e66fe7dd380b4d40e9b2718ee7a8d04a84dba44da512fcbe728b7b8c887f5fb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_010.png",
+      "bytes": 224246,
+      "sha256": "0da04cbd76b0c782da5d36ecbee3ba8f9c99d32f8d38ca0942891099ab935bac"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_011.png",
+      "bytes": 223731,
+      "sha256": "84e6e16136aea68d07029e203ae32e6c5a9130266b3747deb677489cf8be70e6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_012.png",
+      "bytes": 223660,
+      "sha256": "7d4942476921530383135aff52d5a457bb9268c87ce37ed80cc40b80617b76e9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_013.png",
+      "bytes": 223565,
+      "sha256": "dc16811190ee58f7f5e4fb4d843b104d47fb3aba801b76bb8301ca0447ac132c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_014.png",
+      "bytes": 224079,
+      "sha256": "705623a112db858c77821446505d05dc298888643f63790be22c3a8e3aa3fd18"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_015.png",
+      "bytes": 224729,
+      "sha256": "7aa0e9e39587edff7c5cff337876ba218433b2d019283504be26a51bbd1c4e74"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_016.png",
+      "bytes": 224561,
+      "sha256": "a94e05e0a7b898856fc0eae437b9aa7f7f47a37f04134f1d1da536410d616397"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_017.png",
+      "bytes": 224847,
+      "sha256": "91007685f7a61747c8f34c9272b11aa4cd33380fa2fe89d43dbb5d659c6205e1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_018.png",
+      "bytes": 225248,
+      "sha256": "7254fe20bccf497bd571f3ee058a75d92c3fd8112531e6bb4de6eb1cf637fb4d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_019.png",
+      "bytes": 225106,
+      "sha256": "efddb6fa3c0470e2050cbd7f4c7dffbe4d9c3c305f8227dca38ec582e57f6258"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_020.png",
+      "bytes": 225636,
+      "sha256": "4d7ef96d2357f860cf05d62869bb70cd2380137430a133637dfa14b9a28e502c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_021.png",
+      "bytes": 225568,
+      "sha256": "882874a7d697e692c544de90127f6e1eee0938ddee4a9fa5dc4054b0aac4c43d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_022.png",
+      "bytes": 226398,
+      "sha256": "11682b092ba855e9d4860b6ad258989dee1abfb981f642283900f531abe3b206"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_023.png",
+      "bytes": 226304,
+      "sha256": "0a5f42644fd4567cffa6f64b79ad3ebfc7c6b166fc0ffe48092a80de37ad3d45"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_024.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_025.png",
+      "bytes": 226611,
+      "sha256": "437bd43231ff7575704dc3ca78e1f3a3352de05d90d09df39c265a40fe2f78f6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_026.png",
+      "bytes": 226621,
+      "sha256": "634f3eba8eb6a5ba41f8595f4513bbfe718c163addc1d7ba33d64765d00f0d9f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_027.png",
+      "bytes": 226132,
+      "sha256": "dc6d377806f0c1d582926f8726b62ff6dbf443d549e1cbe940de1928751fd64e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_028.png",
+      "bytes": 225729,
+      "sha256": "39683e246d2807070d3132fe3f3cf19127225e0b1b7c03ef6c01daa1cff99dcf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_029.png",
+      "bytes": 225536,
+      "sha256": "396f6f63c7bd21b9969f1f40d0f899690787e5ae82f6451ae2195f5204948ca8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_030.png",
+      "bytes": 225399,
+      "sha256": "bacaa09dda6f001cf36baf0a0633a54f9051f201701e1ce0ef5466f3ce4daf18"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_031.png",
+      "bytes": 224984,
+      "sha256": "7e50a94ca2b117fe1f17f7f57f020a0d508d28e63d16864647a635e10a586e6f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_032.png",
+      "bytes": 225478,
+      "sha256": "f80b2bae5d69395a6e874d32c0e957eeb4300244e0af100a66e9539a037bf4d5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_033.png",
+      "bytes": 225733,
+      "sha256": "321f64c9882936a79819e03c168a77f54c602a97f34aeda9ce55150f2f272217"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_034.png",
+      "bytes": 225081,
+      "sha256": "39c92dc6d1e100cdc2ecc76c56f76dedd78eed11463b9dfb68eda337d9845194"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_035.png",
+      "bytes": 225184,
+      "sha256": "be10d509dd7af98e369e9d6a4bed3e46fbbdc8d26b7d8b43e923a08a98ac237f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_036.png",
+      "bytes": 225442,
+      "sha256": "579fef22b4614a147e6ed6eaa363cd08ca364f55ba76452094ad4ca0ce1705dc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_037.png",
+      "bytes": 225374,
+      "sha256": "1c8cc11c9c16675106c14a223b5ee89ab6004eb3b3688a1a0d7cf0443115aa06"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_038.png",
+      "bytes": 225549,
+      "sha256": "5aee92a392981632650ceaa199c2288ea5a537cd614433159fc5508e04221506"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_039.png",
+      "bytes": 225820,
+      "sha256": "bddc7484b51c1a9284765de816850505662bd02387d95c4f32dd470ed70fea86"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_040.png",
+      "bytes": 225749,
+      "sha256": "4903ec07bf6121efe76d04ca38a49e182f816f52e491e2052f4aaf360d03e4be"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_041.png",
+      "bytes": 225949,
+      "sha256": "731de4cd98d75fd4761584d04e9b9815bc3aa0434f74d47483228179d28c3e58"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_042.png",
+      "bytes": 225893,
+      "sha256": "4812ff5968550e75e55541fc80c46fde380b448e17284649d99cf1413afa35f7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_043.png",
+      "bytes": 226430,
+      "sha256": "5db023863f41813b983a9316bc870be80cc814e20c74d63fbf22abc38b7c994b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_044.png",
+      "bytes": 226564,
+      "sha256": "68c96d7dc945c55b68975405542e73f74245e086f09241a97746a191849caade"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_045.png",
+      "bytes": 226451,
+      "sha256": "cb20317ac99e46362e16c43564ebd989898e26be196bfa836f21110b3a0a5851"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_046.png",
+      "bytes": 227093,
+      "sha256": "b878a90978ac9a1be683ff2394d0440f35102c5d97ddc2f0b4bf62f5fd69f2d2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_047.png",
+      "bytes": 226859,
+      "sha256": "991ef02ef4045453d0a27cc96423fb44a3f388894c822521390705c91478d6ae"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_048.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_049.png",
+      "bytes": 225845,
+      "sha256": "5ef0ddaafa444bd0e1f703dbc05381c50c12743be7e18f1a87a0528e91ba7213"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_050.png",
+      "bytes": 226278,
+      "sha256": "a5c744f102e404fe5c610637ea31e1b37f71a9870c5b8b60ad0bf25ef6d140de"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_051.png",
+      "bytes": 225338,
+      "sha256": "73f727f9b89e0019e5d937182935874f4623795cc3fdcda1dcb071ce4c72e3aa"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_052.png",
+      "bytes": 225291,
+      "sha256": "13ce7f45e5d12de118b9e58552d065f485fad53e2c25e4ef8f038a336e6d3e06"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_053.png",
+      "bytes": 224893,
+      "sha256": "0d09e3eca2b1c3e192aa830861518e5b810bf6d1f6621a4373c421b4629e0dc3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_054.png",
+      "bytes": 224837,
+      "sha256": "68f9eabe76b749913b0b75a22580342fa9d302f9492fb60de0a29bb7befd41b4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_055.png",
+      "bytes": 224749,
+      "sha256": "bb5d2ad7a7de74308a938f6cf93acaef2606b81d42f02a76b874181ccbc075bc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_056.png",
+      "bytes": 224209,
+      "sha256": "31fbdce890dd56d59e9f6a77e975fe43e5fbf429b89e9d0d899c953c293974ee"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_057.png",
+      "bytes": 224323,
+      "sha256": "2e66fe7dd380b4d40e9b2718ee7a8d04a84dba44da512fcbe728b7b8c887f5fb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_058.png",
+      "bytes": 224246,
+      "sha256": "0da04cbd76b0c782da5d36ecbee3ba8f9c99d32f8d38ca0942891099ab935bac"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_059.png",
+      "bytes": 223731,
+      "sha256": "84e6e16136aea68d07029e203ae32e6c5a9130266b3747deb677489cf8be70e6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_060.png",
+      "bytes": 223660,
+      "sha256": "7d4942476921530383135aff52d5a457bb9268c87ce37ed80cc40b80617b76e9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_061.png",
+      "bytes": 223565,
+      "sha256": "dc16811190ee58f7f5e4fb4d843b104d47fb3aba801b76bb8301ca0447ac132c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_062.png",
+      "bytes": 224079,
+      "sha256": "705623a112db858c77821446505d05dc298888643f63790be22c3a8e3aa3fd18"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_063.png",
+      "bytes": 224729,
+      "sha256": "7aa0e9e39587edff7c5cff337876ba218433b2d019283504be26a51bbd1c4e74"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_064.png",
+      "bytes": 224561,
+      "sha256": "a94e05e0a7b898856fc0eae437b9aa7f7f47a37f04134f1d1da536410d616397"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_065.png",
+      "bytes": 224847,
+      "sha256": "91007685f7a61747c8f34c9272b11aa4cd33380fa2fe89d43dbb5d659c6205e1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_066.png",
+      "bytes": 225248,
+      "sha256": "7254fe20bccf497bd571f3ee058a75d92c3fd8112531e6bb4de6eb1cf637fb4d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_067.png",
+      "bytes": 225106,
+      "sha256": "efddb6fa3c0470e2050cbd7f4c7dffbe4d9c3c305f8227dca38ec582e57f6258"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_068.png",
+      "bytes": 225636,
+      "sha256": "4d7ef96d2357f860cf05d62869bb70cd2380137430a133637dfa14b9a28e502c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_069.png",
+      "bytes": 225568,
+      "sha256": "882874a7d697e692c544de90127f6e1eee0938ddee4a9fa5dc4054b0aac4c43d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_070.png",
+      "bytes": 226398,
+      "sha256": "11682b092ba855e9d4860b6ad258989dee1abfb981f642283900f531abe3b206"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_071.png",
+      "bytes": 226304,
+      "sha256": "0a5f42644fd4567cffa6f64b79ad3ebfc7c6b166fc0ffe48092a80de37ad3d45"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_072.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_073.png",
+      "bytes": 226611,
+      "sha256": "437bd43231ff7575704dc3ca78e1f3a3352de05d90d09df39c265a40fe2f78f6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_074.png",
+      "bytes": 226621,
+      "sha256": "634f3eba8eb6a5ba41f8595f4513bbfe718c163addc1d7ba33d64765d00f0d9f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_075.png",
+      "bytes": 226132,
+      "sha256": "dc6d377806f0c1d582926f8726b62ff6dbf443d549e1cbe940de1928751fd64e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_076.png",
+      "bytes": 225729,
+      "sha256": "39683e246d2807070d3132fe3f3cf19127225e0b1b7c03ef6c01daa1cff99dcf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_077.png",
+      "bytes": 225536,
+      "sha256": "396f6f63c7bd21b9969f1f40d0f899690787e5ae82f6451ae2195f5204948ca8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_078.png",
+      "bytes": 225399,
+      "sha256": "bacaa09dda6f001cf36baf0a0633a54f9051f201701e1ce0ef5466f3ce4daf18"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_079.png",
+      "bytes": 224984,
+      "sha256": "7e50a94ca2b117fe1f17f7f57f020a0d508d28e63d16864647a635e10a586e6f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_080.png",
+      "bytes": 225478,
+      "sha256": "f80b2bae5d69395a6e874d32c0e957eeb4300244e0af100a66e9539a037bf4d5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_081.png",
+      "bytes": 225733,
+      "sha256": "321f64c9882936a79819e03c168a77f54c602a97f34aeda9ce55150f2f272217"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_082.png",
+      "bytes": 225081,
+      "sha256": "39c92dc6d1e100cdc2ecc76c56f76dedd78eed11463b9dfb68eda337d9845194"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_083.png",
+      "bytes": 225184,
+      "sha256": "be10d509dd7af98e369e9d6a4bed3e46fbbdc8d26b7d8b43e923a08a98ac237f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_084.png",
+      "bytes": 225442,
+      "sha256": "579fef22b4614a147e6ed6eaa363cd08ca364f55ba76452094ad4ca0ce1705dc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_085.png",
+      "bytes": 225374,
+      "sha256": "1c8cc11c9c16675106c14a223b5ee89ab6004eb3b3688a1a0d7cf0443115aa06"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_086.png",
+      "bytes": 225549,
+      "sha256": "5aee92a392981632650ceaa199c2288ea5a537cd614433159fc5508e04221506"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_087.png",
+      "bytes": 225820,
+      "sha256": "bddc7484b51c1a9284765de816850505662bd02387d95c4f32dd470ed70fea86"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_088.png",
+      "bytes": 225749,
+      "sha256": "4903ec07bf6121efe76d04ca38a49e182f816f52e491e2052f4aaf360d03e4be"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_089.png",
+      "bytes": 225949,
+      "sha256": "731de4cd98d75fd4761584d04e9b9815bc3aa0434f74d47483228179d28c3e58"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_090.png",
+      "bytes": 225893,
+      "sha256": "4812ff5968550e75e55541fc80c46fde380b448e17284649d99cf1413afa35f7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_091.png",
+      "bytes": 226430,
+      "sha256": "5db023863f41813b983a9316bc870be80cc814e20c74d63fbf22abc38b7c994b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_092.png",
+      "bytes": 226564,
+      "sha256": "68c96d7dc945c55b68975405542e73f74245e086f09241a97746a191849caade"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_093.png",
+      "bytes": 226451,
+      "sha256": "cb20317ac99e46362e16c43564ebd989898e26be196bfa836f21110b3a0a5851"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_094.png",
+      "bytes": 227093,
+      "sha256": "b878a90978ac9a1be683ff2394d0440f35102c5d97ddc2f0b4bf62f5fd69f2d2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/motion_095.png",
+      "bytes": 226859,
+      "sha256": "991ef02ef4045453d0a27cc96423fb44a3f388894c822521390705c91478d6ae"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/original_rest_0.png",
+      "bytes": 226580,
+      "sha256": "491b5d860a9a2b48d69cd35748a70b422402a8c56ac3f29e4829ac9ff1d1dc89"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/original_rest_1.png",
+      "bytes": 144174,
+      "sha256": "1054930b0e19de9e2651b9a2cbce0e04758637f6f9fa9778735405ae730d554a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/original_rest_2.png",
+      "bytes": 226081,
+      "sha256": "8f0f755fa33ca5a6814cb87e84df552ac9e2d2816dd1d5cd01d0b8adae2d757d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/original_rest_3.png",
+      "bytes": 149552,
+      "sha256": "b2158187ff31f1d0bc21432f197dab4a4a28ff3e9f542ed59547db0e7107d3e7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/preview.json",
+      "bytes": 80311,
+      "sha256": "87322fdf87d18ffbf3ebbeac289f6b2e633696a965a3cac333826e692e12074e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/process.json",
+      "bytes": 515,
+      "sha256": "ae3d88119477487eb905157d9964415bda203e0ead31a52bee4e6616e87427d7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_025_view_0.png",
+      "bytes": 223660,
+      "sha256": "7d4942476921530383135aff52d5a457bb9268c87ce37ed80cc40b80617b76e9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_025_view_1.png",
+      "bytes": 183117,
+      "sha256": "04cf457e619b685d1893e7c0359c2c31de2b1871a3a98a313e6ab6d22687093a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_025_view_2.png",
+      "bytes": 223648,
+      "sha256": "6b0d019aa94d56e31afacaa4a40e800200b197294cb59a2d113fca71cc4d2689"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_025_view_3.png",
+      "bytes": 191237,
+      "sha256": "706de93db061b076d83de921a345e306c1477915cc1a582594fa3b61e613231a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_075_view_0.png",
+      "bytes": 225442,
+      "sha256": "579fef22b4614a147e6ed6eaa363cd08ca364f55ba76452094ad4ca0ce1705dc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_075_view_1.png",
+      "bytes": 177220,
+      "sha256": "503d6fe781b5775d65657c6d988469830788a03d6a1d2d5ba37f5971223ae40f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_075_view_2.png",
+      "bytes": 226159,
+      "sha256": "dc81b8e4079cf29e24a8a9dcf8e943604708fe51cae6fe51798167fc175573cd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_075_view_3.png",
+      "bytes": 181439,
+      "sha256": "6436b9b189875a12c4ace49ef82f29b3a98f6351bc3badb4de1b97d28b89360b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_front_000.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_front_125.png",
+      "bytes": 224837,
+      "sha256": "68f9eabe76b749913b0b75a22580342fa9d302f9492fb60de0a29bb7befd41b4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_front_500.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-edge-caps-first/walk_front_625.png",
+      "bytes": 225399,
+      "sha256": "bacaa09dda6f001cf36baf0a0633a54f9051f201701e1ce0ef5466f3ce4daf18"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/candidate_rest_0.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/candidate_rest_1.png",
+      "bytes": 128221,
+      "sha256": "7f08fa1cfbed13f5846da699c6ce30402facdb498b9b172b4051be67500b444d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/candidate_rest_2.png",
+      "bytes": 198620,
+      "sha256": "d8c4dbc6cd743f1fc62254822f6ee32bf9b834b54813a80b3e7e04850a7b929a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/candidate_rest_3.png",
+      "bytes": 133580,
+      "sha256": "b31268629ff4f331705b93447c6f6c82a0105bd5768adcb0621777de40ba44e1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/client.log",
+      "bytes": 321,
+      "sha256": "ca6886eae60df440ac36fcdf526faad7d4db3b1f9d2b09a7f8042deaeaa06c99"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/distant_dim.png",
+      "bytes": 68067,
+      "sha256": "38f2b679a5895a92f86e4a9a5b1ab07295d1af756da6e2bb8b3e84d674de81f1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/distant_neutral.png",
+      "bytes": 76767,
+      "sha256": "5c377c634749f431aa491ed33580657774763635104e4b973f1ea680ea6f944e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/hip_wrist_close_dim.png",
+      "bytes": 317243,
+      "sha256": "401add8bd3743ffb9f4578b8958bae75e7b477a2d64cad0cb0b3aa9495138889"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/hip_wrist_close_neutral.png",
+      "bytes": 363915,
+      "sha256": "8ab32b08837c15c04351a42554427e6e1fac7709d97fbc6fb28d4511e906bb14"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_000.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_001.png",
+      "bytes": 197983,
+      "sha256": "e7db7b8a6b201bb6716b94b3aab8aed8485f1abfd7848fe8d9ccb001b7d7b8cf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_002.png",
+      "bytes": 198291,
+      "sha256": "5be8ddd9e6974c6169e90b2a6b5c1292a5fd258a0f1edfde94faf84ac467ac5a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_003.png",
+      "bytes": 198156,
+      "sha256": "d8b522e7dc45183360af7dcd3daf40862b2835d44967b9e5d13a3b99c504c5dd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_004.png",
+      "bytes": 198085,
+      "sha256": "55256b9897062ded50ec8d226ca23bead07fac6a224b315cc4b8634ffc6e87de"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_005.png",
+      "bytes": 198044,
+      "sha256": "554e092e310b666e5152a222a2285ebf0b48da9e22a5fccfbee111de4037168e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_006.png",
+      "bytes": 197857,
+      "sha256": "4d4df9021aef2346a42a729a62131c6399e0bc5a1d36ccfc238b086a741d91d6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_007.png",
+      "bytes": 197726,
+      "sha256": "997e50547052208fca4739c79b32bc04463734eef19ba40faee02fe1368dfe85"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_008.png",
+      "bytes": 197524,
+      "sha256": "03480921d7261a76a5c43100c295abed101d2227e032334720a8336c36d6b3f2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_009.png",
+      "bytes": 197325,
+      "sha256": "66effff010be7d0655b34e39f95cdf118bb891aefd1e0d0acf0cbf3b2ebcf847"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_010.png",
+      "bytes": 197428,
+      "sha256": "625bbc2c3f606d854f2dfd265e7b3824b28c6ec9dccd36f00c6cda07800c549d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_011.png",
+      "bytes": 197012,
+      "sha256": "9f6eb8307eb4eb92cba7909637a947ac81f0cebe87e9b3b6c375b0108da6693c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_012.png",
+      "bytes": 197066,
+      "sha256": "7a3481524932d0300e97d00c7b85a24a9be699ac849499d4f23a4150de7e7aa9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_013.png",
+      "bytes": 196887,
+      "sha256": "12dd3a0e8449b16c20369931cebe01efb476f50ffdafbcbf0557e59ba1f2dad5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_014.png",
+      "bytes": 196868,
+      "sha256": "f822bbb95299be06fecaa1fe7ab5e565bd05b72ed84b115d7928d073c0ad2c62"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_015.png",
+      "bytes": 197486,
+      "sha256": "b60d216326a42795cd2f677f27614c2a700a3a8e3a62eba8bec2a520762885fe"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_016.png",
+      "bytes": 197763,
+      "sha256": "f3097a96c7b52054119e3661171377f00ae139857bf2ba6cc7c3c08c1a900138"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_017.png",
+      "bytes": 197824,
+      "sha256": "2c0e81c776b188ce4a9dcf653d5003837af3ae34dcbf379621b13b5755146cf9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_018.png",
+      "bytes": 197899,
+      "sha256": "0afdc68dfbbce989799a7a6bb032bdc206add9813ef5bfcc146c8dfe016a250f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_019.png",
+      "bytes": 197844,
+      "sha256": "98ff77882f2e30170dd8df3a4c836ae04c818e142b73a824bfe50ebc8d1d88f8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_020.png",
+      "bytes": 198271,
+      "sha256": "9ce28837d75f42e24f0231ccb094c0ef76509103caeff9446a4d056cfad11179"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_021.png",
+      "bytes": 198058,
+      "sha256": "876ad986dc08610cf108625d8a5ae7785d6371beb59a4dd4e9d8526c7c5e2a89"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_022.png",
+      "bytes": 198339,
+      "sha256": "5ba789885304b13030572b8151f0fcf3acdfa87e334f9b630539512fa1122467"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_023.png",
+      "bytes": 198440,
+      "sha256": "94e6cad02c33d2d4f71ddff1265b4341b75ff9e01d9bc9f79eed515fdbae3e8c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_024.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_025.png",
+      "bytes": 198501,
+      "sha256": "8f19e5190ac166178672762e380ba062b73127d36317a253a545f3bb882ae84c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_026.png",
+      "bytes": 198559,
+      "sha256": "f6d07d5f81c097c95da0bdd9210243191907703b3704ad35c07a12e209de674f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_027.png",
+      "bytes": 198406,
+      "sha256": "2f8e764112c6b2b9711c069d8175dadbb061fcbce6bb45564d41878e153ae733"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_028.png",
+      "bytes": 198011,
+      "sha256": "0d60ec7b6677329198668fb88e39f5f26b63fce8017aca2f7649d6fb5435f1e7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_029.png",
+      "bytes": 197998,
+      "sha256": "4a519fddf70ea2d0d90a1b770f375220d10b06e719425e0c69672dc252cca7e3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_030.png",
+      "bytes": 197526,
+      "sha256": "5429313ae4899af1a77382c0f6398374971dbe5b279a57db03c9378a848dd683"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_031.png",
+      "bytes": 197326,
+      "sha256": "ae718db52fca41db1ab583a51cbf030c4fcd1e1c173d239ae4de1995f8edca16"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_032.png",
+      "bytes": 197012,
+      "sha256": "fbd3ab50ac4ab096c303a75470f792a7f7100ab37c94b39f56d2ea0cca4739ce"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_033.png",
+      "bytes": 197881,
+      "sha256": "f9f376eae4b974469585ccae962cad6005fecb85b204a268c1f323cc2431c407"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_034.png",
+      "bytes": 197450,
+      "sha256": "38168a3164f2b6b326fbc4dada2b885b9a6a83c390648a532999d36172062031"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_035.png",
+      "bytes": 197593,
+      "sha256": "dec6cc7f56a516e6f34788d012bdd6f8ac6948142acb6b749f08bb426dbd9f03"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_036.png",
+      "bytes": 197341,
+      "sha256": "30bf4b21a462aa9a4f085f444ac920d0ac0a0a31666f45c512021f96701b6252"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_037.png",
+      "bytes": 197420,
+      "sha256": "2dd948ef20a3a5a7246d8987baf0e619a699c729732d4e37ee50427a40a0cccb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_038.png",
+      "bytes": 197651,
+      "sha256": "d28f5065d2936f091a05a955c6096d14625def7f16654f077d30a35806914cb8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_039.png",
+      "bytes": 197962,
+      "sha256": "24d66f37c88e4328e0fc8405260bc61e6f213baeb2b1fe4bc738ab0cbb48e629"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_040.png",
+      "bytes": 197501,
+      "sha256": "cdfe5953f90ba717d0a9b03b87f9ac3df584b2b557a1b06690777746159769b0"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_041.png",
+      "bytes": 197968,
+      "sha256": "8dfa5cd143c464a76c210fca579c2b73549689de49000a15e2e9d4b1adfea02f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_042.png",
+      "bytes": 198318,
+      "sha256": "288de3dbb11da242ed5ad14183e195d8afea6917dcfafc2d61a994e748faaf5e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_043.png",
+      "bytes": 198505,
+      "sha256": "4d3654dcbd0618dae119358c496ef164c61b54c500cf2733476e1788d7e372f1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_044.png",
+      "bytes": 198600,
+      "sha256": "31e6a10c89aec10db807155f23b335b86b173407d4de401893a0f0255962c817"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_045.png",
+      "bytes": 198696,
+      "sha256": "8457ce368f1c46b5ab48ccfa0e8d0e8e50d2c3cd4d66bd6c308a5d1f0a69e86b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_046.png",
+      "bytes": 198778,
+      "sha256": "bc5668240824339008cef4e57d6677366933d0cf276a01ee0e5de561e88c620d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_047.png",
+      "bytes": 198982,
+      "sha256": "cfa33a2242a0388a891770c05a6b963176ee096791547a773aba5755b8e0860f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_048.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_049.png",
+      "bytes": 197983,
+      "sha256": "e7db7b8a6b201bb6716b94b3aab8aed8485f1abfd7848fe8d9ccb001b7d7b8cf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_050.png",
+      "bytes": 198291,
+      "sha256": "5be8ddd9e6974c6169e90b2a6b5c1292a5fd258a0f1edfde94faf84ac467ac5a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_051.png",
+      "bytes": 198156,
+      "sha256": "d8b522e7dc45183360af7dcd3daf40862b2835d44967b9e5d13a3b99c504c5dd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_052.png",
+      "bytes": 198085,
+      "sha256": "55256b9897062ded50ec8d226ca23bead07fac6a224b315cc4b8634ffc6e87de"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_053.png",
+      "bytes": 198044,
+      "sha256": "554e092e310b666e5152a222a2285ebf0b48da9e22a5fccfbee111de4037168e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_054.png",
+      "bytes": 197857,
+      "sha256": "4d4df9021aef2346a42a729a62131c6399e0bc5a1d36ccfc238b086a741d91d6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_055.png",
+      "bytes": 197726,
+      "sha256": "997e50547052208fca4739c79b32bc04463734eef19ba40faee02fe1368dfe85"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_056.png",
+      "bytes": 197524,
+      "sha256": "03480921d7261a76a5c43100c295abed101d2227e032334720a8336c36d6b3f2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_057.png",
+      "bytes": 197325,
+      "sha256": "66effff010be7d0655b34e39f95cdf118bb891aefd1e0d0acf0cbf3b2ebcf847"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_058.png",
+      "bytes": 197428,
+      "sha256": "625bbc2c3f606d854f2dfd265e7b3824b28c6ec9dccd36f00c6cda07800c549d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_059.png",
+      "bytes": 197012,
+      "sha256": "9f6eb8307eb4eb92cba7909637a947ac81f0cebe87e9b3b6c375b0108da6693c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_060.png",
+      "bytes": 197066,
+      "sha256": "7a3481524932d0300e97d00c7b85a24a9be699ac849499d4f23a4150de7e7aa9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_061.png",
+      "bytes": 196887,
+      "sha256": "12dd3a0e8449b16c20369931cebe01efb476f50ffdafbcbf0557e59ba1f2dad5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_062.png",
+      "bytes": 196868,
+      "sha256": "f822bbb95299be06fecaa1fe7ab5e565bd05b72ed84b115d7928d073c0ad2c62"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_063.png",
+      "bytes": 197486,
+      "sha256": "b60d216326a42795cd2f677f27614c2a700a3a8e3a62eba8bec2a520762885fe"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_064.png",
+      "bytes": 197763,
+      "sha256": "f3097a96c7b52054119e3661171377f00ae139857bf2ba6cc7c3c08c1a900138"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_065.png",
+      "bytes": 197824,
+      "sha256": "2c0e81c776b188ce4a9dcf653d5003837af3ae34dcbf379621b13b5755146cf9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_066.png",
+      "bytes": 197899,
+      "sha256": "0afdc68dfbbce989799a7a6bb032bdc206add9813ef5bfcc146c8dfe016a250f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_067.png",
+      "bytes": 197844,
+      "sha256": "98ff77882f2e30170dd8df3a4c836ae04c818e142b73a824bfe50ebc8d1d88f8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_068.png",
+      "bytes": 198271,
+      "sha256": "9ce28837d75f42e24f0231ccb094c0ef76509103caeff9446a4d056cfad11179"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_069.png",
+      "bytes": 198058,
+      "sha256": "876ad986dc08610cf108625d8a5ae7785d6371beb59a4dd4e9d8526c7c5e2a89"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_070.png",
+      "bytes": 198339,
+      "sha256": "5ba789885304b13030572b8151f0fcf3acdfa87e334f9b630539512fa1122467"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_071.png",
+      "bytes": 198440,
+      "sha256": "94e6cad02c33d2d4f71ddff1265b4341b75ff9e01d9bc9f79eed515fdbae3e8c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_072.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_073.png",
+      "bytes": 198501,
+      "sha256": "8f19e5190ac166178672762e380ba062b73127d36317a253a545f3bb882ae84c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_074.png",
+      "bytes": 198559,
+      "sha256": "f6d07d5f81c097c95da0bdd9210243191907703b3704ad35c07a12e209de674f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_075.png",
+      "bytes": 198406,
+      "sha256": "2f8e764112c6b2b9711c069d8175dadbb061fcbce6bb45564d41878e153ae733"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_076.png",
+      "bytes": 198011,
+      "sha256": "0d60ec7b6677329198668fb88e39f5f26b63fce8017aca2f7649d6fb5435f1e7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_077.png",
+      "bytes": 197998,
+      "sha256": "4a519fddf70ea2d0d90a1b770f375220d10b06e719425e0c69672dc252cca7e3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_078.png",
+      "bytes": 197526,
+      "sha256": "5429313ae4899af1a77382c0f6398374971dbe5b279a57db03c9378a848dd683"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_079.png",
+      "bytes": 197326,
+      "sha256": "ae718db52fca41db1ab583a51cbf030c4fcd1e1c173d239ae4de1995f8edca16"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_080.png",
+      "bytes": 197012,
+      "sha256": "fbd3ab50ac4ab096c303a75470f792a7f7100ab37c94b39f56d2ea0cca4739ce"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_081.png",
+      "bytes": 197881,
+      "sha256": "f9f376eae4b974469585ccae962cad6005fecb85b204a268c1f323cc2431c407"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_082.png",
+      "bytes": 197450,
+      "sha256": "38168a3164f2b6b326fbc4dada2b885b9a6a83c390648a532999d36172062031"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_083.png",
+      "bytes": 197593,
+      "sha256": "dec6cc7f56a516e6f34788d012bdd6f8ac6948142acb6b749f08bb426dbd9f03"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_084.png",
+      "bytes": 197341,
+      "sha256": "30bf4b21a462aa9a4f085f444ac920d0ac0a0a31666f45c512021f96701b6252"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_085.png",
+      "bytes": 197420,
+      "sha256": "2dd948ef20a3a5a7246d8987baf0e619a699c729732d4e37ee50427a40a0cccb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_086.png",
+      "bytes": 197651,
+      "sha256": "d28f5065d2936f091a05a955c6096d14625def7f16654f077d30a35806914cb8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_087.png",
+      "bytes": 197962,
+      "sha256": "24d66f37c88e4328e0fc8405260bc61e6f213baeb2b1fe4bc738ab0cbb48e629"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_088.png",
+      "bytes": 197501,
+      "sha256": "cdfe5953f90ba717d0a9b03b87f9ac3df584b2b557a1b06690777746159769b0"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_089.png",
+      "bytes": 197968,
+      "sha256": "8dfa5cd143c464a76c210fca579c2b73549689de49000a15e2e9d4b1adfea02f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_090.png",
+      "bytes": 198318,
+      "sha256": "288de3dbb11da242ed5ad14183e195d8afea6917dcfafc2d61a994e748faaf5e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_091.png",
+      "bytes": 198505,
+      "sha256": "4d3654dcbd0618dae119358c496ef164c61b54c500cf2733476e1788d7e372f1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_092.png",
+      "bytes": 198600,
+      "sha256": "31e6a10c89aec10db807155f23b335b86b173407d4de401893a0f0255962c817"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_093.png",
+      "bytes": 198696,
+      "sha256": "8457ce368f1c46b5ab48ccfa0e8d0e8e50d2c3cd4d66bd6c308a5d1f0a69e86b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_094.png",
+      "bytes": 198778,
+      "sha256": "bc5668240824339008cef4e57d6677366933d0cf276a01ee0e5de561e88c620d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/motion_095.png",
+      "bytes": 198982,
+      "sha256": "cfa33a2242a0388a891770c05a6b963176ee096791547a773aba5755b8e0860f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/original_rest_0.png",
+      "bytes": 226580,
+      "sha256": "491b5d860a9a2b48d69cd35748a70b422402a8c56ac3f29e4829ac9ff1d1dc89"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/original_rest_1.png",
+      "bytes": 144174,
+      "sha256": "1054930b0e19de9e2651b9a2cbce0e04758637f6f9fa9778735405ae730d554a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/original_rest_2.png",
+      "bytes": 226081,
+      "sha256": "8f0f755fa33ca5a6814cb87e84df552ac9e2d2816dd1d5cd01d0b8adae2d757d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/original_rest_3.png",
+      "bytes": 149552,
+      "sha256": "b2158187ff31f1d0bc21432f197dab4a4a28ff3e9f542ed59547db0e7107d3e7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/preview.json",
+      "bytes": 57754,
+      "sha256": "80a193015a8df5f8d1af10ec4425d5cd2262baf13ce2545bd3ad90331e66add7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/process.json",
+      "bytes": 505,
+      "sha256": "46024e78645f0183de76b03780d1145a65ddeaa267d627d1b758cf9ddee255bc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_025_view_0.png",
+      "bytes": 197066,
+      "sha256": "7a3481524932d0300e97d00c7b85a24a9be699ac849499d4f23a4150de7e7aa9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_025_view_1.png",
+      "bytes": 163553,
+      "sha256": "40b22296b7016a13f49f08da5a5f13da0462e97a613d43911d91ab6982bb74c6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_025_view_2.png",
+      "bytes": 197133,
+      "sha256": "3119cb8767b675284c6d194e77b8b17048c5fc5f3ceed9e6d7a84cc3beb03155"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_025_view_3.png",
+      "bytes": 171833,
+      "sha256": "88722a621c22480656b8dbe58d586619ccdc5eeebda4e59a87152f7e06819539"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_075_view_0.png",
+      "bytes": 197341,
+      "sha256": "30bf4b21a462aa9a4f085f444ac920d0ac0a0a31666f45c512021f96701b6252"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_075_view_1.png",
+      "bytes": 159164,
+      "sha256": "42b9038cb79df7f03093e9e9b8c49e7766eb16f448d937ba32d7491159b3cc2b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_075_view_2.png",
+      "bytes": 200278,
+      "sha256": "ea904eeee08f592b9306d6f0d2b722c5e9a447bdc419a516ac3737b70cd1841d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_075_view_3.png",
+      "bytes": 167617,
+      "sha256": "5d343074482871f91c2d82f7e1e9640ce4d439140a49daa1689fafa593b4ba31"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_front_000.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_front_125.png",
+      "bytes": 197857,
+      "sha256": "4d4df9021aef2346a42a729a62131c6399e0bc5a1d36ccfc238b086a741d91d6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_front_500.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/motion-first/walk_front_625.png",
+      "bytes": 197526,
+      "sha256": "5429313ae4899af1a77382c0f6398374971dbe5b279a57db03c9378a848dd683"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/client.log",
+      "bytes": 300,
+      "sha256": "f3adf33b2ddf79abac0117d4fccca2bb7623d1f865168f33a2f378f988fdc38b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/original_full_0.png",
+      "bytes": 226598,
+      "sha256": "00d666da82d878af36ce205ec11f7e0848404812b57dc5c9f23126e828dff3c2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/original_full_1.png",
+      "bytes": 144183,
+      "sha256": "de65bcc89bb7070407ae425ede8b1adc6c444518ff3ae10f005bbf6488d3265f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/original_full_2.png",
+      "bytes": 226085,
+      "sha256": "27bf7bf9af61a3088460aa9da3417f4dd07adfea4d294126b808b78ed8b243ca"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/original_full_3.png",
+      "bytes": 149549,
+      "sha256": "66df18eef036b3d37498cdd6309b3e9e9df21b26345cbc67d15c9840fde5612c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/original_hip_wrists_0.png",
+      "bytes": 499295,
+      "sha256": "45516e10b8020f6eeccd4fccf10fa95859429dd64cbc5acaebda530b38e25bd3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/original_hip_wrists_1.png",
+      "bytes": 505436,
+      "sha256": "a6f2a5f1bd58bbebe2246bac4631d82412ed6ecf1c6533a018d9a97cbc5ee368"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/preview.json",
+      "bytes": 3001,
+      "sha256": "d2b03ea24cde876808313cab08cb05ddbe7455cca34c8b69e2c7e6436008aa0f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/process.json",
+      "bytes": 478,
+      "sha256": "657532e99b31fbe2a312714409e3c513974fd95eaa569fb4be00b1b097730a65"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/refined_labels_full_0.png",
+      "bytes": 97034,
+      "sha256": "706da0d35a79801c0e94d890f5a28c1245295d17c4ab3b60ed935d2091a37b2e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/refined_labels_full_1.png",
+      "bytes": 68928,
+      "sha256": "0f0b7cb77969a6e7e2a93cfc6e21db8131cc0399f4dfa5aae51a59cf4a83c905"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/refined_labels_full_2.png",
+      "bytes": 102499,
+      "sha256": "79544960017c986cbf04901cea33f6a33c6f87842c9e591cc5ea628f983bb1c7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/refined_labels_full_3.png",
+      "bytes": 70823,
+      "sha256": "641c55c329c9a3957ea7887f9fb717e94d2653d2e7e956fad7c289348b292dc4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/refined_labels_hip_wrists_0.png",
+      "bytes": 149574,
+      "sha256": "de7945e6f0f85148cbe6d224e2a6856cb1378552022df9f69119a1d34fc91bd9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-refined-first/refined_labels_hip_wrists_1.png",
+      "bytes": 160554,
+      "sha256": "9fc1d52a6dc45569a42c3577422cc6c09386dd254e71ce11ca8fdbc5c7f59f33"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/client.log",
+      "bytes": 301,
+      "sha256": "c2484ef628dd1b9456ed51732803e8fa3185efc03e8a8057fe4ce97208ba426a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/original_full_0.png",
+      "bytes": 226598,
+      "sha256": "00d666da82d878af36ce205ec11f7e0848404812b57dc5c9f23126e828dff3c2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/original_full_1.png",
+      "bytes": 144183,
+      "sha256": "de65bcc89bb7070407ae425ede8b1adc6c444518ff3ae10f005bbf6488d3265f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/original_full_2.png",
+      "bytes": 226085,
+      "sha256": "27bf7bf9af61a3088460aa9da3417f4dd07adfea4d294126b808b78ed8b243ca"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/original_full_3.png",
+      "bytes": 149549,
+      "sha256": "66df18eef036b3d37498cdd6309b3e9e9df21b26345cbc67d15c9840fde5612c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/original_hip_wrists_0.png",
+      "bytes": 499295,
+      "sha256": "45516e10b8020f6eeccd4fccf10fa95859429dd64cbc5acaebda530b38e25bd3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/original_hip_wrists_1.png",
+      "bytes": 505436,
+      "sha256": "a6f2a5f1bd58bbebe2246bac4631d82412ed6ecf1c6533a018d9a97cbc5ee368"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/preview-script-snapshot.gd",
+      "bytes": 5621,
+      "sha256": "65a4fde80eaa47fb166f4fb81491cfb489db838416285d86c9dfeb5127c63582"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/preview.json",
+      "bytes": 3002,
+      "sha256": "46172ff45a48155dee9a359c57302fb792726291bc911d66cd1aa46a444d33f9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/process.json",
+      "bytes": 447,
+      "sha256": "45c5dce25b9593d45732848f88d699eedab3f3aa13d854e751cd118791c7019b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/rejected_labels_full_0.png",
+      "bytes": 97474,
+      "sha256": "e241cdae1161c55420dd71dd8f3dfead066db01b297b3206cd20748f2272834c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/rejected_labels_full_1.png",
+      "bytes": 69164,
+      "sha256": "f067f210ce5273e3e3bcd735d2af7b71bedffb14011c715f87503ad13eaaf7ea"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/rejected_labels_full_2.png",
+      "bytes": 102923,
+      "sha256": "537abd232a2f7d0ccd0c938fd84cc61dbf22afa9bef9a058b90c444d7c8d8536"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/rejected_labels_full_3.png",
+      "bytes": 70949,
+      "sha256": "9ee0babb82b3a94a62cb019eab485254a468c1ceed665db009ec6c6c8df393cc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/rejected_labels_hip_wrists_0.png",
+      "bytes": 150199,
+      "sha256": "623389cbb57b2a0aa78f0534452ff9878b5d8cbf145bf714ed701944ca7d52c2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/preview-rejected-first/rejected_labels_hip_wrists_1.png",
+      "bytes": 161105,
+      "sha256": "5ca25afc49e8ee963bab5eae5cff367a97eedceb492c8eeefbc833dec0a08a54"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/receipt-sources/edda_skin_repair.gd",
+      "bytes": 12676,
+      "sha256": "8ef49b692b1e2774709c9970df8dd96e62e1721606db14aeb7fac4092d9be872"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/receipt-sources/splice-mechanical-source-20261008.md",
+      "bytes": 13056,
+      "sha256": "eb6eeb9bdb5171512f2361d1825ce080e6ab73d626f2160855742cc4448ca00a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/receipt-sources/tern_glb.gd",
+      "bytes": 3694,
+      "sha256": "c0c7f42449058be0460141a2964f9e328f98ee25859de56434cb2d05d5d4d90e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-first/client.log",
+      "bytes": 1814,
+      "sha256": "17df7eea577995a626ba5891c2f2c2f85e13256039343227e599f97e6aa4d18b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-first/labels.glb",
+      "bytes": 37887164,
+      "sha256": "7936ac4c4c858c3603ad1ac2662f4b95866a97939589117c72fd8006504cf598"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-first/partition.json",
+      "bytes": 184210,
+      "sha256": "9f044be83898a0c1c11454d2759930090246120e58753203a150a09dc9b54e30"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-first/process.json",
+      "bytes": 350,
+      "sha256": "56ec88913304386635354b9928c542c007eb91d590983952458bc6196964a536"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/client.log",
+      "bytes": 1814,
+      "sha256": "17df7eea577995a626ba5891c2f2c2f85e13256039343227e599f97e6aa4d18b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/labels.glb",
+      "bytes": 37887164,
+      "sha256": "f2191a008a44537b821b80da5bdf181958f69890bf6b9d388a51e1d75ebeb7a8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/partition.json",
+      "bytes": 189293,
+      "sha256": "3f50ee027f5835c9c05f34a919f8418930a7e908645e937871fdfbd9b7100be2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/process.json",
+      "bytes": 351,
+      "sha256": "5efb62693c24db288a44955dedc5a81993549890c70d0ef9c18df7ead86ca77d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-second/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-second/client.log",
+      "bytes": 1814,
+      "sha256": "17df7eea577995a626ba5891c2f2c2f85e13256039343227e599f97e6aa4d18b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-second/labels.glb",
+      "bytes": 37887164,
+      "sha256": "6cf3e4d8ac9e4df7fc1fd6948efcb9a1f01e790ea5a31084b1187cecc70e46f5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-second/partition.json",
+      "bytes": 183184,
+      "sha256": "af0b92df711bb61fd3604b4ee0edc1f33434003cacaddeeca106077d1568452c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-second/process.json",
+      "bytes": 350,
+      "sha256": "90d137209b400334f97d443ecc61f2e48fe3a861a135a091cda3af2b95343e5c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-third/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-third/client.log",
+      "bytes": 1814,
+      "sha256": "17df7eea577995a626ba5891c2f2c2f85e13256039343227e599f97e6aa4d18b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-third/labels.glb",
+      "bytes": 37887164,
+      "sha256": "6cf3e4d8ac9e4df7fc1fd6948efcb9a1f01e790ea5a31084b1187cecc70e46f5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-third/partition.json",
+      "bytes": 185329,
+      "sha256": "917274f19b20396c95e7ff0516f8db0a880dc8112e4992b673bc1189b231010e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-third/process.json",
+      "bytes": 349,
+      "sha256": "bfa83530765099af8a8cf851c04d30012b8118ce91b16b83459bec8a2f648388"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-edge-caps-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-edge-caps-first/client.log",
+      "bytes": 12610,
+      "sha256": "1a35a9b8fea47e6645da9ce6b66dc0b09d3c15684cadac0e06d98336e4e537cb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-edge-caps-first/geometry.json",
+      "bytes": 125050,
+      "sha256": "b8b44b095ee2ce20b4d04cc2b53a821275697d038c3c9bed78d110955cf37e6b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-edge-caps-first/process.json",
+      "bytes": 527,
+      "sha256": "a4a2a1584bee7e34a1ff663359266e0abae3e4d536b11c64b78f65e5ce5ca7a0"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-first/client-error.log",
+      "bytes": 6376,
+      "sha256": "da640cb5c3ccc4a27f4a55fbb90f9cf49eef181123365f877bf1fb364ac99dca"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-first/client.log",
+      "bytes": 12610,
+      "sha256": "24b1421bbbef82c350b2f8d05937fc037f1bb25e4f1c539be06b3045e44eba10"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-first/geometry.json",
+      "bytes": 104164,
+      "sha256": "49a079f463f66b13924089a3fbd3af2a626b4539578ad75e66315289a2671ea7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-first/process.json",
+      "bytes": 517,
+      "sha256": "0204d97432731566238b1e52e370697efc3b86267846a6e5735df4b741e7d9fe"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-second/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-second/client.log",
+      "bytes": 12610,
+      "sha256": "1a35a9b8fea47e6645da9ce6b66dc0b09d3c15684cadac0e06d98336e4e537cb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-second/geometry.json",
+      "bytes": 104164,
+      "sha256": "49a079f463f66b13924089a3fbd3af2a626b4539578ad75e66315289a2671ea7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/rig-second/process.json",
+      "bytes": 517,
+      "sha256": "832ece52dba0a74e3994a7ea5065a6995c5d80ff6b3f54d8e36d5d4fdf366759"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/audit_splice_source.gd",
+      "bytes": 8937,
+      "sha256": "ae9f52ac0d5b62217b3aaf67f632d40f0bb7809a55e9b77558c3f5c639097922"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/partition_splice_diagnostic.gd",
+      "bytes": 13978,
+      "sha256": "b43b9f682a9edf9f38d196ca807237d0dea791c7032958899cc53de9a82e2c7c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/preview_splice_mechanical.gd",
+      "bytes": 6315,
+      "sha256": "0ebce400d68e110829d15903b0cc24e3ec7eef4992df1b6c65aca6c961853c45"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/preview_splice_partition.gd",
+      "bytes": 5621,
+      "sha256": "65a4fde80eaa47fb166f4fb81491cfb489db838416285d86c9dfeb5127c63582"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/refine_splice_partition.gd",
+      "bytes": 21717,
+      "sha256": "a6b97f5c83679f63adacbf654691fe8931508b16e02d457827f21970851df31a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/snapshot.json",
+      "bytes": 140,
+      "sha256": "75eb5e4c025dc0b22b84c4414f322b06286d91993df90e4bb9a2a71723c67bfa"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/splice_joint_closure.gd",
+      "bytes": 5169,
+      "sha256": "a6132fc62c905ce2352bf0be3fdb9a327f7c75c059bc6444dcde56c57256d14c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/splice_mechanical_rig.gd",
+      "bytes": 10613,
+      "sha256": "0709d69ff7dd7f371a267423a89491ba739a082082cca4fcaeccdf2798898644"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/test_splice_mechanical_rig.gd",
+      "bytes": 5483,
+      "sha256": "f141755691b8458147e9965495c928f8bc1a20b8489e7c076760849b2a696680"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/audit_splice_source.gd",
+      "bytes": 8937,
+      "sha256": "ae9f52ac0d5b62217b3aaf67f632d40f0bb7809a55e9b77558c3f5c639097922"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/partition_splice_diagnostic.gd",
+      "bytes": 13978,
+      "sha256": "b43b9f682a9edf9f38d196ca807237d0dea791c7032958899cc53de9a82e2c7c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/preview_splice_mechanical.gd",
+      "bytes": 6008,
+      "sha256": "a4ff0fe149007ca24575c972ad9a21391f7bec4ff1c3555cdb9e1e73195c5bae"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/preview_splice_partition.gd",
+      "bytes": 5621,
+      "sha256": "65a4fde80eaa47fb166f4fb81491cfb489db838416285d86c9dfeb5127c63582"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/refine_splice_partition.gd",
+      "bytes": 21717,
+      "sha256": "a6b97f5c83679f63adacbf654691fe8931508b16e02d457827f21970851df31a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/snapshot.json",
+      "bytes": 110,
+      "sha256": "24e6dda9f3dca6aeaca5a4c79990315c87fc98f4e2d2938dab1e5b88cfab8d2b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/splice_mechanical_rig.gd",
+      "bytes": 11395,
+      "sha256": "620d7e36876ead9c44ca4a2ae806faf5743ed72caee53ec20d721b8d1c9b9462"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-final/test_splice_mechanical_rig.gd",
+      "bytes": 5125,
+      "sha256": "2b7033e4788e213948918835c8d825858751872115564d5c7142dcec45c543d9"
+    },
+    {
+      "path": "art/raw/meshy-pilot-20261003/splice-named-v1-ultra-0.glb",
+      "bytes": 37778976,
+      "sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-joints-back-dim.png",
+      "bytes": 375316,
+      "sha256": "e00bda40248b8ae9c6131c5300284179960ca8cbcc8ac4815af5d94e8bc5380e"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-joints-front-dim.png",
+      "bytes": 383859,
+      "sha256": "c283f2cba21d047af7ec78ad983883b6fcccd67f70e991ee5d68f9f9afe72e05"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-rest-front.png",
+      "bytes": 226291,
+      "sha256": "c603ab1e73d1358dff0cc352fbc9bcbf68240d130a5dd8dc45f1361e2560ee8d"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-walk-back.png",
+      "bytes": 226159,
+      "sha256": "dc81b8e4079cf29e24a8a9dcf8e943604708fe51cae6fe51798167fc175573cd"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/caps-walk-side.png",
+      "bytes": 191237,
+      "sha256": "706de93db061b076d83de921a345e306c1477915cc1a582594fa3b61e613231a"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/raw-front.png",
+      "bytes": 226580,
+      "sha256": "491b5d860a9a2b48d69cd35748a70b422402a8c56ac3f29e4829ac9ff1d1dc89"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008/rejected-spheres-front.png",
+      "bytes": 198472,
+      "sha256": "56481f58405d5afb8939a090d25a4bed8d08a067c008a692fa8d2b9b20aff935"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-checkpoint-20261008.json",
+      "bytes": 22999,
+      "sha256": "4534975e75ffa7787af1a2609629a6db18155bc13bee7b509e8cc689a2350796"
+    }
+  ]
+}

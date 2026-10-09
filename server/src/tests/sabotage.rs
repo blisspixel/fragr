@@ -1224,7 +1224,10 @@ fn the_sector_9_layout_is_clear_inside_its_zones_and_near_its_pistols() {
             assert!(layout.wire.callout_at(x as f32, z as f32).is_some());
         }
     }
-    for other in MapKind::ALL.into_iter().filter(|m| *m != MapKind::Sector9) {
+    for other in MapKind::ALL
+        .into_iter()
+        .filter(|m| !matches!(m, MapKind::Sector9 | MapKind::LowWater))
+    {
         assert!(
             other.sabotage_map().is_none(),
             "{other:?} is not built for Sabotage"

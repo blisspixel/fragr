@@ -21,6 +21,7 @@ var _seen: Dictionary[String, Dictionary] = {}
 var _streams: Dictionary[String, AudioStream] = {}
 var _map_id: int = -1
 var _caption_ticks: Dictionary[String, int] = {}
+var _last_canister: int = 0
 
 func _ready() -> void:
 	for kind: String in ["fan", "shutter", "crash"]:
@@ -34,6 +35,8 @@ func _ready() -> void:
 				_streams[kind] = loop
 		else:
 			push_warning("Notary audio is unavailable: " + kind)
+	if ResourceLoader.exists("res://assets/audio/assessor/launch.wav"):
+		_streams["canister"] = load("res://assets/audio/assessor/launch.wav")
 
 func reset() -> void:
 	for voice: AudioStreamPlayer3D in fan_pool:
@@ -48,6 +51,7 @@ func reset() -> void:
 	crash_count = 0
 	_map_id = -1
 	_caption_ticks.clear()
+	_last_canister = 0
 
 func configure_map(info: Dictionary) -> void:
 	if not MapGeometry.validation_error(info).is_empty():
@@ -64,17 +68,19 @@ func apply(snapshot: Dictionary, listener: Vector3) -> int:
 	var actors: Variant = snapshot.get("players")
 	if not EquipmentState.integer(tick, EquipmentState.MAX_EXACT_INTEGER) or int(tick) <= last_tick or not actors is Array:
 		return 0
+	var initial: bool = last_tick < 0
 	last_tick = int(tick)
 	var active: Dictionary[String, bool] = {}
 	var nearby: bool = listener.is_finite() and _map_id >= 0 and is_inside_tree()
 	var played: int = 0
 	for index: int in range(mini(actors.size(), MAX_ACTORS)):
 		var actor: Variant = actors[index]
-		if not actor is Dictionary or not ActorState.is_union(actor) or actor["campaign"].get("kind") != "notary":
+		if not actor is Dictionary or not ActorState.is_union(actor) or actor["campaign"].get("kind") not in ["notary", "assessor"]:
 			continue
 		var id: Variant = actor.get("id")
 		var position: Vector3 = JammerAudio._position(actor)
 		var identity: Dictionary = actor["campaign"]
+		var heavy: bool = identity["kind"] == "assessor"
 		if not id is String or id.is_empty() or id.length() > 64 or active.has(id) or not position.is_finite() \
 			or not EquipmentState.integer(identity.get("phase_started"), int(tick)) \
 			or identity.get("phase") not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]:
@@ -100,16 +106,29 @@ func apply(snapshot: Dictionary, listener: Vector3) -> int:
 					if _cue("crash", position):
 						crash_count += 1
 						played += 1
-					_caption("crash")
+					_caption("assessor_crash" if heavy else "crash")
 		else:
 			if in_range:
-				_start_fan(id, position, identity["phase"] == "windup")
+				_start_fan(id, position, identity["phase"] == "windup", heavy)
 				if not previous.get("captioned", false):
-					_caption("fan")
+					_caption("assessor_fan" if heavy else "fan")
+				if heavy and identity["phase"] == "windup" and previous.get("phase") != "windup":
+					_caption("assessor_countdown")
 			else:
 				_stop_fan(id)
 		_seen[id] = {"y": position.y, "death_epoch": epoch if dead else -1, "crashed": crashed,
-			"captioned": previous.get("captioned", false) or (in_range and not dead), "tick": tick}
+			"captioned": previous.get("captioned", false) or (in_range and not dead), "tick": tick, "kind": identity["kind"], "phase": identity["phase"]}
+	if AssessorFacts.validation_error(snapshot).is_empty():
+		for canister: Dictionary in snapshot.get("assessor_canisters", []):
+			var serial: int = int(canister["id"])
+			if serial <= _last_canister:
+				continue
+			_last_canister = serial
+			var position: Vector3 = GrenadeFacts.vector(canister["position"])
+			if not initial and nearby and position.distance_squared_to(listener) <= DISTANCE * DISTANCE:
+				if _cue("canister", position):
+					played += 1
+				_caption("assessor_launch")
 	# Resolved trace proves a launch even if the shooter died in this snapshot.
 	var fired: Dictionary[String, bool] = {}
 	var results: Variant = snapshot.get("shot_results", [])
@@ -136,9 +155,10 @@ func _caption(kind: String) -> void:
 	if _caption_ticks.has(kind) and last_tick - _caption_ticks[kind] < CAPTION_TICKS:
 		return
 	_caption_ticks[kind] = last_tick
-	notice_requested.emit(WorldSign.localized("WORLD_M04_NOTARY_" + kind.to_upper()))
+	var key: String = "WORLD_ASSESSOR_" + kind.trim_prefix("assessor_").to_upper() if kind.begins_with("assessor_") else "WORLD_M04_NOTARY_" + kind.to_upper()
+	notice_requested.emit(WorldSign.localized(key))
 
-func _start_fan(id: String, position: Vector3, windup: bool) -> bool:
+func _start_fan(id: String, position: Vector3, windup: bool, heavy: bool = false) -> bool:
 	if not _streams.has("fan"):
 		return false
 	if not fans.has(id):
@@ -158,7 +178,7 @@ func _start_fan(id: String, position: Vector3, windup: bool) -> bool:
 		voice.play()
 	var fan: AudioStreamPlayer3D = fans[id]
 	fan.global_position = position
-	fan.pitch_scale = 1.06 if windup else 1.0
+	fan.pitch_scale = (0.81 if windup else 0.72) if heavy else (1.06 if windup else 1.0)
 	return true
 
 func _stop_fan(id: String) -> void:

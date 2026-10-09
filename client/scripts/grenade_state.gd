@@ -2,7 +2,7 @@ class_name GrenadeFacts
 extends RefCounted
 
 const MAX_ACTIVE: int = 64
-const MAX_RESULTS: int = 64
+const MAX_RESULTS: int = 256
 const MAX_HITS: int = 256
 const INVALID: String = "Invalid grenade snapshot."
 
@@ -39,12 +39,14 @@ static func validation_error(snapshot: Dictionary) -> String:
 			or not EquipmentState.integer(result["id"], 4294967295) or int(result["id"]) < 1 or int(result["id"]) in seen \
 			or not MissionState._uuid(result["owner_id"]) or not point(result["position"]) \
 			or not MapGeometry._number(result["radius"]) \
-			or float(result["radius"]) not in [CustodyFacts.GRENADE_RADIUS, CustodyFacts.MINE_RADIUS] \
+			or float(result["radius"]) not in [CustodyFacts.GRENADE_RADIUS, CustodyFacts.MINE_RADIUS, 3.0, 1.5] \
 			or not result["hits"] is Array or result["hits"].size() > MAX_HITS:
 			return INVALID
 		seen.append(int(result["id"]))
 		# A mine blast peaks higher than a grenade's; its radius names it.
 		var peak: int = CustodyFacts.MINE_PEAK if float(result["radius"]) == CustodyFacts.MINE_RADIUS else 100
+		if float(result["radius"]) in [3.0, 1.5]:
+			peak = 45
 		var targets: Array[String] = []
 		for hit: Variant in result["hits"]:
 			if not M03MissionState._exact(hit, ["target_id", "hp_damage", "armor_damage", "target_hp_after", "killed"]) \
@@ -52,7 +54,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 				or not EquipmentState.integer(hit["hp_damage"], peak) or not EquipmentState.integer(hit["armor_damage"], peak) \
 				or int(hit["hp_damage"]) + int(hit["armor_damage"]) > peak \
 				or not MapGeometry._number(hit["target_hp_after"]) or float(hit["target_hp_after"]) != floorf(float(hit["target_hp_after"])) \
-				or float(hit["target_hp_after"]) < -float(peak) or float(hit["target_hp_after"]) > 200.0 or not hit["killed"] is bool \
+				or float(hit["target_hp_after"]) < -float(peak) or float(hit["target_hp_after"]) > 240.0 or not hit["killed"] is bool \
 				or hit["killed"] != (int(hit["target_hp_after"]) <= 0) \
 				or int(hit["hp_damage"]) + int(hit["armor_damage"]) == 0:
 				return INVALID

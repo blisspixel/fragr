@@ -3,7 +3,7 @@ use crate::mission::run_file::{M08Outcome, SavedStep};
 
 pub(super) const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
-    [103; 32],
+    [103; 32], [104; 32],
 ];
 
 pub(super) fn completed_archive() -> RunDocument {
@@ -40,6 +40,7 @@ pub(super) fn completed_archive() -> RunDocument {
 fn v9_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 9.into();
+    value["rules"]["revision"] = (3).into();
     value.as_object_mut().unwrap().remove("m08_outcome");
     let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
     bytes.extend_from_slice(b"\n \n");
@@ -53,6 +54,7 @@ fn strict_v10_upgrade_archives_exact_bytes_and_preserves_real_m09_carry() {
         .unwrap();
     let mut value = serde_json::to_value(&source).unwrap();
     value["version"] = 10.into();
+    value["rules"]["revision"] = (3).into();
     let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
     bytes.extend_from_slice(b"\n \n");
     let directory = std::env::temp_dir().join(format!("fragr-v10-repeater-{}", Uuid::new_v4()));
@@ -95,6 +97,14 @@ fn strict_historical_and_current_pre_m10_documents_refuse_repeater_ownership() {
         for selected in [false, true] {
             let mut value = serde_json::to_value(&source).unwrap();
             value["version"] = version.into();
+            value["rules"]["revision"] = (if version <= 4 {
+                2
+            } else if version < super::super::RUN_FILE_VERSION {
+                3
+            } else {
+                crate::protocol::CAMPAIGN_RULES_REVISION
+            })
+            .into();
             if version == 9 {
                 value.as_object_mut().unwrap().remove("m08_outcome");
             }
@@ -132,6 +142,14 @@ fn every_strict_v2_through_v8_reader_refuses_future_gun_before_migration() {
     for version in 2..=8 {
         let mut baseline = serde_json::to_value(&initial).unwrap();
         baseline["version"] = version.into();
+        baseline["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         for key in [
             "m03_outcome",
             "m04_outcome",

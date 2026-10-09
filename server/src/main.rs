@@ -23,7 +23,7 @@ struct Args {
     fill_target: usize,
 
     /// Map: 1/arena, 2/compliance-yard, 3/directive-17, 4/sector-9,
-    /// 5/reclamation-gulch, 6/tripoint-works.
+    /// 5/reclamation-gulch, 6/tripoint-works, 7/holdfast-atoll, 8/low-water.
     #[arg(long, default_value = "1")]
     map: String,
 
@@ -35,7 +35,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search", "terms_of_cooperation"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
@@ -80,7 +80,7 @@ struct Args {
 
     /// Match mode: ffa, tdm, ctf, sabotage or conquest. Conquest uses Holdfast Atoll.
     /// Capture the flag runs on Arena
-    /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9.
+    /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9 or Low Water.
     #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
 
@@ -222,6 +222,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "passenger_manifest" => fragr_server::protocol::MissionId::PassengerManifest,
             "common_carrier" => fragr_server::protocol::MissionId::CommonCarrier,
             "right_of_search" => fragr_server::protocol::MissionId::RightOfSearch,
+            "terms_of_cooperation" => fragr_server::protocol::MissionId::TermsOfCooperation,
             "declared_goods" => fragr_server::protocol::MissionId::DeclaredGoods,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };
@@ -500,6 +501,7 @@ mod tests {
             "passenger_manifest",
             "common_carrier",
             "right_of_search",
+            "terms_of_cooperation",
         ] {
             let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
             assert_eq!(args.local_mission.as_deref(), Some(mission));

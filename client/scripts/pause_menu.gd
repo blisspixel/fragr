@@ -82,7 +82,7 @@ func _build() -> void:
 		_add_button(tr("HOST_STOP"), func() -> void:
 			close()
 			stop_server_requested.emit())
-	_add_button("Quit to desktop", func() -> void: get_tree().quit())
+	_add_button("Quit to desktop", func() -> void: ClientRetirement.for_tree(get_tree()).request_quit())
 
 	var hint: Label = Label.new()
 	_hint = hint

@@ -216,13 +216,10 @@ impl BotController {
         // Gather out of sight first, then take the site together.
         let pushing = sab.bot_push;
         let stage = stage_spot(layout, sab.attack_site, slot);
-        // Through mid first: still east of the mid wall and short of the
-        // site's end of mid, walk to the approach point.
+        // Each venue owns the approach that reaches its stage without cutting
+        // across the defended site. Sector 9 retains its existing mid predicate.
         let approach = layout.approaches[sab.attack_site.index()];
-        let short_of = |p: &Player| {
-            p.x > -20.0 && (p.z - approach[2]).abs() > 8.0 && p.z.abs() < approach[2].abs()
-        };
-        let stage = if !pushing && short_of(bot) {
+        let stage = if !pushing && (layout.approach_needed)(feet(bot), approach) {
             approach
         } else {
             stage

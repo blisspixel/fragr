@@ -44,7 +44,7 @@ static func fixture_state(info: Dictionary, done: int = 0, cast: Array[String] =
 	var facts: Dictionary = {"completed": completed, "crew_released": done >= 3, "crew": crew, "hatch_open": done >= 7, "charge_falls": 0}
 	if done < 9:
 		facts["current"] = M09MissionState.step(info["m09"], done)
-	return {"type": "mission", "tick": 40, "state": {"id": MissionState.M09_ID, "rules": {"difficulty": "standard", "revision": 3},
+	return {"type": "mission", "tick": 40, "state": {"id": MissionState.M09_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION},
 		"attempt": 1, "phase": "departed" if done == 9 else "in_progress", "changed_at": 10,
 		"party": [{"id": PLAYER, "name": "Visitor", "ready": true, "alive": true, "aboard": done >= 8}], "prompts": [], "m09": facts}}
 
@@ -125,23 +125,30 @@ func _run() -> void:
 	berth.configure_map(info)
 	berth.apply_state(fixture_state(info, 0, ["edda", "splice"])["state"])
 	_check(berth.state_applied == 1 and berth._crew.size() == 5, "only actual carried cast is shown")
-	for id: String in ["tern", "splice"]:
-		var synthetic: Sprite3D = berth._crew[id]
-		_check(synthetic.texture == load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)), id + " retains an embodied-agent body rather than borrowing a human strip")
-	for id: String in ["edda", "berth_crew_a", "berth_crew_b"]:
-		var human: Sprite3D = berth._crew[id]
+	var splice: CivilianFigure = berth._crew["splice"]
+	_check(splice.rigid != null and splice.skin == null and splice.strip == null, "actual carried Splice selects the named rigid source without a duplicate strip")
+	_check(splice.position == Vector3(-6, 0, -12), "named source stays registered to accepted berth feet")
+	for id: String in ["berth_crew_a", "berth_crew_b"]:
+		var human: Sprite3D = berth._crew[id].strip
 		_check(human.texture == load(PlayerBody.strip_path(PlayerBody.HUMAN)), id + " retains the existing human body fallback")
-	var tern: Sprite3D = berth._crew["tern"]
+	var tern: CivilianFigure = berth._crew["tern"]
+	_check(tern.skin != null and tern.skin.kind == "tern" and tern.strip == null,
+		"Tern uses the named weighted pilot skin without a duplicate strip")
+	var edda: CivilianFigure = berth._crew["edda"]
+	_check(edda.skin != null and edda.skin.kind == "edda" and edda.strip == null,
+		"recorded clinic rescue uses Edda's repaired named skin without a duplicate strip")
 	var earlier_position: Vector3 = tern.position
 	berth.apply_state(bad["state"])
 	_check(tern.position == earlier_position and berth.state_applied == 1, "mismatched hatch facts cannot steer presentation")
 	berth.configure_map(opened)
+	berth.apply_state(fixture_state(opened, 7)["state"])
+	_check(not berth._crew.has("splice"), "omitted prior rescue cannot invent Splice at the berth")
 	var walking: Dictionary = fixture_state(opened, 7, ["edda", "splice"])
 	walking["state"]["m09"]["crew"][0]["feet"] = opened["m09"]["crew"][0]["route"][1]
 	walking["state"]["m09"]["crew"][0]["aboard"] = true
 	berth.apply_state(walking["state"])
-	_check(berth._crew["tern"].position == Vector3(-2, EnemyAnimation.CENTRE_HEIGHT, 10), "presented feet follow the recorded route")
-	berth._process(0.05)
+	_check(berth._crew["tern"].position == Vector3(-2, 0, 10), "live figure feet follow the recorded route")
+	berth._crew["tern"]._process(0.05)
 	var glazed: Dictionary = info.duplicate(true)
 	glazed["solids"].append({"min_x": -5, "max_x": 5, "min_z": -6, "max_z": 6, "bottom": 10, "top": 10.4})
 	glazed["presentation"]["solids"].append("inspection_glass")
@@ -170,7 +177,7 @@ func _run() -> void:
 	_check(not hud._evac_badge.visible, "Standard does not inherit the Severe optional badge")
 	hud.queue_free()
 	_check(StoryScene.exists("m09_arrival") and StoryScene.exists("l09_l10") and StoryScene.BEFORE_MISSION.get(MissionState.M09_ID) == "m09_arrival", "arrival and departure reuse the story boundary")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == 34 and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == 36 and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M11_ID) == 38 and LocalMatch.NEXT_MISSION == "terms_of_cooperation", "mission floors stay independent and M12 stays pending")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == LocalMatch.M09_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == LocalMatch.M10_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M11_ID) == LocalMatch.M11_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M12_ID) == 44 and LocalMatch.NEXT_MISSION == "weight_of_permission", "registered mission floors and honest pending M13")
 	await process_frame
 	await process_frame
 	if failures == 0:

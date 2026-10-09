@@ -137,14 +137,13 @@ fn m10_service_approach_routes_around_the_actual_cargo_and_stair_corner() {
         assert!((next.y - 2.0).abs() <= 0.03, "ordinary lower-deck support");
         body = next;
     }
-    assert_eq!(map.arena.solids.len(), 123);
+    assert_eq!(map.arena.solids.len(), 129);
 }
 
 #[test]
 fn m10_workbench_has_real_cabinets_worktop_and_open_knee_rays() {
     let map = AuthoredMap::read(SOURCE).unwrap();
-    assert_eq!(map.arena.solids.len(), 123);
-    assert!(map.arena.solids.len() <= 128);
+    assert_eq!(map.arena.solids.len(), 129);
     let doc: Document = serde_json::from_slice(SOURCE).unwrap();
     assert!(!doc.solids.iter().any(|s| s.id == "passenger_repair_bench"));
     assert_eq!(
@@ -266,7 +265,7 @@ fn m10_collision_shell_has_three_supported_decks_and_a_sealed_freight_volume() {
             .all(|s| !matches!(s.kind, crate::sim::PickupKind::Weapon(_))),
         "no gun grant before the real lesson presentation"
     );
-    assert!(map.arena.solids.len() <= 128);
+    assert_eq!(map.arena.solids.len(), 129);
     for (feet, expected_ceiling) in [
         ([0.0, 2.0, -15.0], 4.6),
         ([0.0, 4.8, -15.0], 7.4),

@@ -830,6 +830,7 @@ async fn m06_capability_refusal_and_map_before_mission_snapshot_hold_for_all_rol
     for version in [
         crate::protocol::M05_GAMEPLAY_VERSION,
         crate::protocol::M06_GAMEPLAY_VERSION,
+        crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -853,12 +854,16 @@ async fn m06_capability_refusal_and_map_before_mission_snapshot_hold_for_all_rol
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::M06_GAMEPLAY_VERSION {
+                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(
                             value["type"], "error",
                             "retired M06 reader receives no welcome/geometry/state"
                         );
                         assert_eq!(value["code"], "unsupported_gameplay");
+                        assert!(value["message"].as_str().unwrap().contains(&format!(
+                            "version {}",
+                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                        )));
                         break;
                     }
                     match value["type"].as_str().unwrap() {
