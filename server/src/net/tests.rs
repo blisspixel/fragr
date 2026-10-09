@@ -65,7 +65,7 @@ async fn accepted_socket_disables_nagle() {
 
 #[tokio::test]
 async fn automatic_admission_validates_before_reservation_and_keeps_watchers_open() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server =
         NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
             .await
@@ -138,7 +138,7 @@ async fn automatic_admission_validates_before_reservation_and_keeps_watchers_ope
 
 #[tokio::test]
 async fn automatic_abandoned_welcome_cancels_only_its_request_and_resume_arm() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let table = Arc::new(crate::resume::ResumeTable::new());
     let abandoned = Uuid::from_u128(101);
     let retained = Uuid::from_u128(102);
@@ -177,7 +177,7 @@ async fn automatic_abandoned_welcome_cancels_only_its_request_and_resume_arm() {
 
 #[tokio::test]
 async fn automatic_registration_lock_uses_the_shared_finite_deadline_and_cancels_exact_request() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server =
         NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
             .await
@@ -297,7 +297,7 @@ async fn stalled_writer_times_out_and_wakes_connection_cleanup() {
 
 #[tokio::test]
 async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind_with_geometry("127.0.0.1:0", tx, 2)
         .await
         .unwrap();
@@ -387,7 +387,7 @@ async fn raised_geometry_rejects_legacy_roles_before_welcome_or_join() {
 
 #[tokio::test]
 async fn a_hello_newer_than_this_binary_is_refused_on_a_floor_listener() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind_with_requirements("127.0.0.1:0", tx, 1, 1)
         .await
         .unwrap();
@@ -453,7 +453,7 @@ async fn a_hello_newer_than_this_binary_is_refused_on_a_floor_listener() {
 
 #[tokio::test]
 async fn human_socket_drops_server_aim_and_an_agent_keeps_it() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.require_client_aim();
     let address = server.local_addr().unwrap();
@@ -557,7 +557,7 @@ fn status_request_requires_the_exact_path() {
 
 #[tokio::test]
 async fn a_status_line_that_arrives_after_connect_is_still_status() {
-    let (tx, _commands) = mpsc::unbounded_channel();
+    let (tx, _commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.share_status(std::sync::Arc::new(tokio::sync::RwLock::new(
         crate::protocol::LiveStatus {
@@ -590,7 +590,7 @@ async fn a_status_line_that_arrives_after_connect_is_still_status() {
 
 #[tokio::test]
 async fn status_get_reports_the_match_without_taking_a_slot() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
     let status = std::sync::Arc::new(tokio::sync::RwLock::new(crate::protocol::LiveStatus {
@@ -636,7 +636,7 @@ async fn status_get_reports_the_match_without_taking_a_slot() {
 
 #[tokio::test]
 async fn a_busy_status_lock_answers_503_and_not_schema_one() {
-    let (tx, _commands) = mpsc::unbounded_channel();
+    let (tx, _commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     let status = std::sync::Arc::new(tokio::sync::RwLock::new(crate::protocol::LiveStatus {
         schema_version: 2,
@@ -693,7 +693,7 @@ async fn a_busy_status_lock_answers_503_and_not_schema_one() {
 
 #[tokio::test]
 async fn status_reads_stop_at_their_own_cap_and_leave_game_slots_free() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(4, 8, Duration::from_secs(2), Duration::from_secs(2));
     server.tighten_status_slots(1);
@@ -737,7 +737,7 @@ async fn status_reads_stop_at_their_own_cap_and_leave_game_slots_free() {
 
 #[tokio::test]
 async fn unadmitted_connections_stop_at_the_connection_cap() {
-    let (tx, _commands) = mpsc::unbounded_channel();
+    let (tx, _commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
     let address = server.local_addr().unwrap();
@@ -759,7 +759,7 @@ async fn unadmitted_connections_stop_at_the_connection_cap() {
 
 #[tokio::test]
 async fn a_full_server_drops_refusals_past_the_explanation_cap() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
     server.tighten_rejection_slots(0);
@@ -786,7 +786,7 @@ async fn a_full_server_drops_refusals_past_the_explanation_cap() {
 
 #[tokio::test]
 async fn connection_caps_reject_without_admitting_the_game() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 8, Duration::from_secs(2), Duration::from_secs(2));
     let address = server.local_addr().unwrap();
@@ -827,15 +827,16 @@ async fn connection_caps_reject_without_admitting_the_game() {
 
 #[tokio::test]
 async fn loopback_roster_of_sixteen_agents_plus_an_observer_fits() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(24, 17, Duration::from_secs(2), Duration::from_secs(2));
     let address = server.local_addr().unwrap();
     let accept = tokio::spawn(server.accept_loop());
     let mut held = Vec::new();
-    for _ in 0..17 {
-        held.push(welcome_spectator(address).await);
+    for _ in 0..16 {
+        held.push(welcome_fighter(address, false).await);
     }
+    held.push(welcome_spectator(address).await);
     for _ in 0..17 {
         assert!(matches!(
             timeout(Duration::from_secs(2), skip_seat_notes(&mut commands))
@@ -863,7 +864,7 @@ async fn loopback_roster_of_sixteen_agents_plus_an_observer_fits() {
 
 #[tokio::test]
 async fn one_address_cannot_hold_every_connection_slot() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(8, 2, Duration::from_secs(2), Duration::from_secs(2));
     let address = server.local_addr().unwrap();
@@ -898,7 +899,7 @@ async fn one_address_cannot_hold_every_connection_slot() {
 
 #[tokio::test]
 async fn oversized_text_closes_without_blocking_the_next_client() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     let address = server.local_addr().unwrap();
     let accept = tokio::spawn(server.accept_loop());
@@ -922,7 +923,7 @@ async fn oversized_text_closes_without_blocking_the_next_client() {
 
 #[tokio::test]
 async fn action_flood_is_dropped_before_the_tick_queue() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     let address = server.local_addr().unwrap();
     let accept = tokio::spawn(server.accept_loop());
@@ -980,7 +981,7 @@ async fn action_flood_is_dropped_before_the_tick_queue() {
 
 #[tokio::test]
 async fn stalled_handshake_and_hello_release_their_slot() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 8, Duration::from_millis(200), Duration::from_millis(200));
     let address = server.local_addr().unwrap();
@@ -1009,7 +1010,7 @@ async fn stalled_handshake_and_hello_release_their_slot() {
 #[tokio::test]
 async fn server_rejects_unsupported_geometry_configuration() {
     for version in [0, crate::protocol::GEOMETRY_VERSION + 1] {
-        let (tx, _) = mpsc::unbounded_channel();
+        let (tx, _) = game_channel();
         let result = NetServer::bind_with_geometry("127.0.0.1:0", tx, version).await;
         assert!(matches!(result, Err(error) if error.kind() == std::io::ErrorKind::InvalidInput));
     }
@@ -1017,7 +1018,7 @@ async fn server_rejects_unsupported_geometry_configuration() {
 
 #[tokio::test]
 async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_continue() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
@@ -1095,7 +1096,7 @@ async fn solo_run_admission_reserves_one_lifetime_seat_and_spectators_cannot_con
 
 #[tokio::test]
 async fn rules_three_missions_refuse_retired_readers_before_any_role_is_admitted() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
@@ -1165,7 +1166,7 @@ async fn rules_three_missions_refuse_retired_readers_before_any_role_is_admitted
 /// Shiv-blind reader is refused before Welcome and the current reader is admitted.
 #[tokio::test]
 async fn m01_refuses_shiv_blind_capability_ten_and_admits_eleven() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
@@ -1220,7 +1221,7 @@ async fn m01_refuses_shiv_blind_capability_ten_and_admits_eleven() {
 
 #[tokio::test]
 async fn mission_admission_bounds_participants_and_keeps_spectators_separate() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind_with_requirements(
         "127.0.0.1:0",
         tx,
@@ -1305,7 +1306,7 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
             .unwrap()
             .unwrap(),
     );
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server =
         NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
             .await
@@ -1454,7 +1455,7 @@ async fn join_secret_rejects_before_the_solo_seat_and_leaves_watchers_open() {
 
 #[tokio::test]
 async fn an_open_server_ignores_a_presented_ticket() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server =
         NetServer::bind_with_requirements("127.0.0.1:0", tx, 2, crate::protocol::GAMEPLAY_VERSION)
             .await
@@ -1499,7 +1500,7 @@ async fn an_open_server_ignores_a_presented_ticket() {
 
 #[tokio::test]
 async fn server_close_signal_releases_idle_spectator_without_stalling_peers() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(3, 3, Duration::from_secs(2), Duration::from_secs(2));
     let address = server.local_addr().unwrap();
@@ -1672,7 +1673,7 @@ async fn closing_code(socket: &mut ClientSocket) -> (String, String) {
     }
 }
 
-async fn next_command(commands: &mut mpsc::UnboundedReceiver<GameCommand>) -> GameCommand {
+async fn next_command(commands: &mut mpsc::Receiver<GameCommand>) -> GameCommand {
     timeout(Duration::from_secs(3), skip_seat_notes(commands))
         .await
         .expect("command timeout")
@@ -1748,7 +1749,7 @@ fn kick_codes_and_pawn_rules_are_stable() {
 
 #[tokio::test]
 async fn venue_close_removes_a_resume_armed_human_and_says_why() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     let address = server.local_addr().unwrap();
     let clients = server.clients.clone();
@@ -1834,7 +1835,7 @@ async fn venue_close_removes_a_resume_armed_human_and_says_why() {
 
 #[tokio::test]
 async fn quiet_spectator_that_answers_pings_is_not_idle() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_session(quick_limits());
     let address = server.local_addr().unwrap();
@@ -1864,7 +1865,7 @@ async fn quiet_spectator_that_answers_pings_is_not_idle() {
 
 #[tokio::test]
 async fn silent_fighter_is_dropped_as_idle_and_keeps_a_resumable_pawn() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_session(quick_limits());
     let address = server.local_addr().unwrap();
@@ -1887,7 +1888,7 @@ async fn silent_fighter_is_dropped_as_idle_and_keeps_a_resumable_pawn() {
 
 #[tokio::test]
 async fn sustained_flood_is_kicked_and_loses_its_pawn() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_session(SessionLimits {
         flood_drain_per_sec: 0.0,
@@ -1929,7 +1930,7 @@ async fn sustained_flood_is_kicked_and_loses_its_pawn() {
 
 #[tokio::test]
 async fn ping_flood_is_rate_limited_like_a_text_flood() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_session(SessionLimits {
         flood_drain_per_sec: 0.0,
@@ -1963,7 +1964,7 @@ async fn ping_flood_is_rate_limited_like_a_text_flood() {
 
 #[tokio::test]
 async fn repeated_junk_is_kicked_but_unknown_types_are_ignored() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_session(SessionLimits {
         junk_drain_per_sec: 0.0,
@@ -2015,7 +2016,7 @@ fn policy_from(ban: &str, allow: Option<&str>) -> Arc<crate::access::AccessPolic
 
 #[tokio::test]
 async fn a_listed_refusal_does_not_hold_a_game_slot() {
-    let (tx, _commands) = mpsc::unbounded_channel();
+    let (tx, _commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     server.tighten_admission(1, 32, Duration::from_secs(5), Duration::from_secs(5));
     server.tighten_rejection_slots(0);
@@ -2050,7 +2051,7 @@ async fn listed_addresses_are_refused_before_any_seat_or_status() {
         ),
         (policy_from("", Some("10.0.0.0/8\n")), "address_not_allowed"),
     ] {
-        let (tx, mut commands) = mpsc::unbounded_channel();
+        let (tx, mut commands) = game_channel();
         let mut server = NetServer::bind_with_requirements(
             "127.0.0.1:0",
             tx,
@@ -2121,7 +2122,7 @@ async fn listed_addresses_are_refused_before_any_seat_or_status() {
 
 #[tokio::test]
 async fn a_new_ban_closes_a_live_session_and_an_unrelated_edit_does_not() {
-    let (tx, mut commands) = mpsc::unbounded_channel();
+    let (tx, mut commands) = game_channel();
     let mut server = NetServer::bind("127.0.0.1:0", tx).await.unwrap();
     let (policy_tx, policy_rx) = watch::channel(policy_from("", None));
     server.set_access(policy_rx);

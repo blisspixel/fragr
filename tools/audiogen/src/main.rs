@@ -5,11 +5,12 @@
 
 use clap::{Parser, Subcommand};
 use fragr_audiogen::{
-    parse_spec, read_dotenv_key, resolve_api_key, run_command, Command, Error, Job, Method,
-    MusicParams, Request, Response, RunOptions, SfxParams, Transport, TtsParams, API_KEY_ENV,
-    DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL, DEFAULT_SFX_FORMAT,
+    parse_spec, read_capped, read_dotenv_key, resolve_api_key, run_command, Command, Error, Job,
+    Method, MusicParams, Request, Response, RunOptions, SfxParams, Transport, TtsParams,
+    API_KEY_ENV, DEFAULT_BASE_URL, DEFAULT_MUSIC_FORMAT, DEFAULT_MUSIC_MODEL, DEFAULT_SFX_FORMAT,
     DEFAULT_TTS_FORMAT, DEFAULT_TTS_MODEL,
 };
+use std::io::Read;
 use std::path::PathBuf;
 use std::time::Duration;
 use tracing_subscriber::EnvFilter;
@@ -301,10 +302,14 @@ impl Transport for HttpTransport {
             .send()
             .map_err(|err| Error::Transport(err.to_string()))?;
         let status = response.status().as_u16();
-        let body = response
-            .bytes()
-            .map_err(|err| Error::Transport(err.to_string()))?
-            .to_vec();
+        let media = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .is_some_and(|value| value.contains("audio") || value.contains("octet-stream"));
+        let limit = if media { 20 * 1024 * 1024 } else { 256 * 1024 };
+        let declared = response.content_length();
+        let body = read_capped(&mut response.take(limit as u64 + 1), declared, limit)?;
         Ok(Response { status, body })
     }
 }

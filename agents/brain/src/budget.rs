@@ -91,13 +91,13 @@ struct PendingRequest {
 }
 
 impl Charge {
-    /// What the ledger counts: the reported actual when it is a finite,
-    /// non-negative number, else the estimate. A provider can never lower the
-    /// running total by reporting a negative or nonsense cost.
+    /// What the ledger counts toward the cap. A positive verified actual can
+    /// raise the estimate. A zero, missing, or smaller figure cannot reopen it.
     pub fn billed_usd(&self) -> f64 {
-        self.actual_usd
-            .filter(|a| a.is_finite() && *a >= 0.0)
-            .unwrap_or(self.estimated_usd)
+        match self.actual_usd {
+            Some(actual) if actual.is_finite() && actual > 0.0 => actual.max(self.estimated_usd),
+            _ => self.estimated_usd,
+        }
     }
 }
 
@@ -246,6 +246,8 @@ impl Default for Caps {
 /// The most one run may be allowed to spend, the developer ceiling in AGENTS.md.
 /// Raising it is a code change, which is the written approval the rules ask for.
 pub const MAX_RUN_CAP_USD: f64 = 5.0;
+/// Applies when a run does not set its own call cap.
+const DEFAULT_RUN_CALLS: u64 = 64;
 
 impl Caps {
     /// Every cap finite, non-negative, and under the ceiling.
@@ -442,13 +444,12 @@ impl Budget {
         if self.caps.run_usd <= 0.0 {
             return Err(Refusal::NoCap);
         }
-        if let Some(cap) = self.caps.run_calls {
-            if self.run_calls >= cap {
-                return Err(Refusal::CallCap {
-                    calls: self.run_calls,
-                    cap,
-                });
-            }
+        let call_cap = self.caps.run_calls.unwrap_or(DEFAULT_RUN_CALLS);
+        if self.run_calls >= call_cap {
+            return Err(Refusal::CallCap {
+                calls: self.run_calls,
+                cap: call_cap,
+            });
         }
         if self.run_usd + estimate_usd > self.caps.run_usd + EPSILON {
             return Err(Refusal::RunCap {
@@ -679,7 +680,9 @@ mod tests {
     #[test]
     fn charge_bills_actual_over_estimate() {
         assert_eq!(charge(0.5, None).billed_usd(), 0.5);
-        assert_eq!(charge(0.5, Some(0.1)).billed_usd(), 0.1);
+        assert_eq!(charge(0.5, Some(0.1)).billed_usd(), 0.5);
+        assert_eq!(charge(0.5, Some(0.0)).billed_usd(), 0.5);
+        assert_eq!(charge(0.5, Some(0.8)).billed_usd(), 0.8);
     }
 
     #[test]
@@ -698,7 +701,7 @@ mod tests {
         resumed.record(original.clone()).unwrap();
         assert_eq!(resumed.run_usd(), 0.0);
         assert_eq!(Ledger::load(&path).unwrap().charges.len(), 1);
-        original.actual_usd = Some(0.04);
+        original.actual_usd = Some(0.25);
         assert!(resumed.record(original).is_err());
         fs::remove_file(path).unwrap();
     }
@@ -765,10 +768,10 @@ mod tests {
         fs::write(&pending_path, reservation_bytes).unwrap();
         let mut restarted = Budget::with_ledger(caps, Pricing::default(), &path).unwrap();
         restarted
-            .reserve_request(0.08, "openrouter", "jev")
+            .reserve_request(0.04, "openrouter", "jev")
             .unwrap();
         assert_eq!(Ledger::load(&path).unwrap().calls(), 1);
-        let mut second = charge(0.08, Some(0.08));
+        let mut second = charge(0.04, Some(0.04));
         second.provider = "openrouter".into();
         second.model = "jev".into();
         restarted.finish_request(&mut second, true).unwrap();

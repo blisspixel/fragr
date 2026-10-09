@@ -8,7 +8,7 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::{mpsc, watch, Mutex, OwnedSemaphorePermit, Semaphore};
 use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
-use tokio_tungstenite::{accept_async_with_config, tungstenite::Message};
+use tokio_tungstenite::{accept_hdr_async_with_config, tungstenite::Message};
 use uuid::Uuid;
 
 type ServerSocket = tokio_tungstenite::WebSocketStream<TcpStream>;
@@ -328,6 +328,38 @@ impl InboundBudget {
     }
 }
 
+fn accept_limited(
+    stream: TcpStream,
+    origins: &[String],
+) -> impl std::future::Future<Output = Result<ServerSocket, tokio_tungstenite::tungstenite::Error>>
+{
+    let origins = origins.to_vec();
+    accept_hdr_async_with_config(
+        stream,
+        // The handshake callback returns the refusal response itself.
+        #[allow(clippy::result_large_err)]
+        move |request: &http::Request<()>, response: http::Response<()>| {
+            let origin = request
+                .headers()
+                .get(http::header::ORIGIN)
+                .map(|value| value.to_str().unwrap_or(""));
+            if crate::admission_bounds::origin_allowed(&origins, origin) {
+                Ok(response)
+            } else {
+                Err(forbidden_origin())
+            }
+        },
+        Some(websocket_limits()),
+    )
+}
+
+fn forbidden_origin() -> http::Response<Option<String>> {
+    http::Response::builder()
+        .status(http::StatusCode::FORBIDDEN)
+        .body(Some("origin refused".to_string()))
+        .unwrap_or_else(|_| http::Response::new(None))
+}
+
 fn websocket_limits() -> WebSocketConfig {
     #[allow(deprecated)]
     WebSocketConfig {
@@ -543,10 +575,56 @@ impl ClientSession {
     }
 }
 
+const GAME_COMMAND_CAPACITY: usize = 256;
+
+/// Bounded game commands. A full queue keeps the latest action for each player
+/// and drops anything else. The socket never waits on this send.
+#[derive(Clone)]
+pub struct GameSender {
+    tx: mpsc::Sender<GameCommand>,
+    pending: std::sync::Arc<std::sync::Mutex<HashMap<Uuid, crate::protocol::Action>>>,
+}
+
+pub fn game_channel() -> (GameSender, mpsc::Receiver<GameCommand>) {
+    let (tx, rx) = mpsc::channel(GAME_COMMAND_CAPACITY);
+    (
+        GameSender {
+            tx,
+            pending: std::sync::Arc::new(std::sync::Mutex::new(HashMap::new())),
+        },
+        rx,
+    )
+}
+
+impl GameSender {
+    pub fn send(&self, command: GameCommand) -> Result<(), mpsc::error::SendError<()>> {
+        match self.tx.try_send(command) {
+            Ok(()) => Ok(()),
+            Err(mpsc::error::TrySendError::Closed(_)) => Err(mpsc::error::SendError(())),
+            Err(mpsc::error::TrySendError::Full(GameCommand::Action { player_id, action })) => {
+                self.pending
+                    .lock()
+                    .unwrap_or_else(|error| error.into_inner())
+                    .insert(player_id, action);
+                Ok(())
+            }
+            Err(mpsc::error::TrySendError::Full(_)) => Err(mpsc::error::SendError(())),
+        }
+    }
+
+    pub fn take_pending_actions(&self) -> Vec<(Uuid, crate::protocol::Action)> {
+        self.pending
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .drain()
+            .collect()
+    }
+}
+
 pub struct NetServer {
     listener: TcpListener,
     pub clients: Arc<Mutex<Vec<ClientSession>>>,
-    game_tx: mpsc::UnboundedSender<GameCommand>,
+    game_tx: GameSender,
     geometry_version: u32,
     gameplay_version: u32,
     /// Shared arcade rooms drop `look_at` on a human socket. Campaign doors
@@ -563,6 +641,13 @@ pub struct NetServer {
     resume: std::sync::Arc<crate::resume::ResumeTable>,
     access: Option<AccessWatch>,
     traffic: Arc<crate::metrics::TrafficCounters>,
+    preclass: crate::admission_bounds::PreclassGate,
+    population: crate::admission_bounds::Population,
+    origins: Arc<Vec<String>>,
+    board_budget: crate::admission_bounds::BoardBudget,
+    join_audience: Option<String>,
+    spectator_tickets: bool,
+    nonces: Arc<std::sync::Mutex<crate::join_ticket::NonceCache>>,
 }
 
 type AccessWatch = watch::Receiver<Arc<crate::access::AccessPolicy>>;
@@ -578,7 +663,7 @@ pub struct JoinIdentity {
 struct AutoJoinGuard {
     client_id: Uuid,
     gate: crate::bot_fill::AdmissionGate,
-    game_tx: mpsc::UnboundedSender<GameCommand>,
+    game_tx: GameSender,
     resume: Arc<crate::resume::ResumeTable>,
     player_id: Option<Uuid>,
     armed: bool,
@@ -599,6 +684,47 @@ impl Drop for AutoJoinGuard {
         let _ = self.game_tx.send(GameCommand::CancelAutoJoin {
             client_id: self.client_id,
         });
+    }
+}
+
+/// Releases a reserved seat when hello fails before the session owns it.
+struct PopulationHold {
+    population: crate::admission_bounds::Population,
+    id: Uuid,
+    spectator: bool,
+    armed: bool,
+}
+
+impl PopulationHold {
+    fn pawn(population: crate::admission_bounds::Population, id: Uuid) -> Self {
+        Self {
+            population,
+            id,
+            spectator: false,
+            armed: true,
+        }
+    }
+
+    fn spectator(population: crate::admission_bounds::Population, id: Uuid) -> Self {
+        Self {
+            population,
+            id,
+            spectator: true,
+            armed: true,
+        }
+    }
+}
+
+impl Drop for PopulationHold {
+    fn drop(&mut self) {
+        if !self.armed {
+            return;
+        }
+        if self.spectator {
+            self.population.release_spectator(self.id);
+        } else {
+            self.population.release_pawn(self.id);
+        }
     }
 }
 
@@ -711,7 +837,7 @@ pub enum GameCommand {
 /// that travels ahead of it. Production applies both, in order.
 #[cfg(test)]
 pub(crate) async fn skip_seat_notes(
-    commands: &mut mpsc::UnboundedReceiver<GameCommand>,
+    commands: &mut mpsc::Receiver<GameCommand>,
 ) -> Option<GameCommand> {
     loop {
         match commands.recv().await {
@@ -722,16 +848,13 @@ pub(crate) async fn skip_seat_notes(
 }
 
 impl NetServer {
-    pub async fn bind(
-        addr: &str,
-        game_tx: mpsc::UnboundedSender<GameCommand>,
-    ) -> std::io::Result<Self> {
+    pub async fn bind(addr: &str, game_tx: GameSender) -> std::io::Result<Self> {
         Self::bind_with_geometry(addr, game_tx, crate::protocol::legacy_geometry_version()).await
     }
 
     pub async fn bind_with_geometry(
         addr: &str,
-        game_tx: mpsc::UnboundedSender<GameCommand>,
+        game_tx: GameSender,
         geometry_version: u32,
     ) -> std::io::Result<Self> {
         Self::bind_with_requirements(addr, game_tx, geometry_version, 1).await
@@ -739,7 +862,7 @@ impl NetServer {
 
     pub async fn bind_with_requirements(
         addr: &str,
-        game_tx: mpsc::UnboundedSender<GameCommand>,
+        game_tx: GameSender,
         geometry_version: u32,
         gameplay_version: u32,
     ) -> std::io::Result<Self> {
@@ -779,7 +902,31 @@ impl NetServer {
             resume: std::sync::Arc::new(crate::resume::ResumeTable::new()),
             access: None,
             traffic: Arc::default(),
+            preclass: crate::admission_bounds::PreclassGate::new(),
+            population: crate::admission_bounds::Population::default(),
+            origins: Arc::new(Vec::new()),
+            board_budget: crate::admission_bounds::BoardBudget::default(),
+            join_audience: None,
+            spectator_tickets: false,
+            nonces: Arc::new(std::sync::Mutex::new(
+                crate::join_ticket::NonceCache::default(),
+            )),
         })
+    }
+
+    pub(crate) fn share_population(&mut self, population: crate::admission_bounds::Population) {
+        self.population = population;
+    }
+
+    pub(crate) fn set_admission_policy(
+        &mut self,
+        audience: Option<String>,
+        origins: Vec<String>,
+        spectator_tickets: bool,
+    ) {
+        self.join_audience = audience;
+        self.origins = Arc::new(origins);
+        self.spectator_tickets = spectator_tickets;
     }
 
     /// Refuse listed addresses before a slot or seat, and close live sessions
@@ -933,11 +1080,15 @@ impl NetServer {
                     let resume_table = std::sync::Arc::clone(&self.resume);
                     let access = self.access.clone();
                     let traffic = Arc::clone(&self.traffic);
+                    let preclass_gate = self.preclass.clone();
+                    let population = self.population.clone();
+                    let origins = Arc::clone(&self.origins);
+                    let board_budget = self.board_budget.clone();
+                    let join_audience = self.join_audience.clone();
+                    let spectator_tickets = self.spectator_tickets;
+                    let nonces = Arc::clone(&self.nonces);
 
                     tokio::spawn(async move {
-                        let Ok(probe) = Arc::clone(&admission.probes).try_acquire_owned() else {
-                            return;
-                        };
                         let verdict =
                             access
                                 .as_ref()
@@ -947,7 +1098,6 @@ impl NetServer {
                                         .check(addr.ip(), crate::join_ticket::unix_now())
                                 });
                         if let Some(code) = verdict.code() {
-                            drop(probe);
                             audit_refusal(addr, &verdict);
                             // Same bound as a full server: the explanation does not
                             // take a game slot. A banned or unlisted flood must not
@@ -955,18 +1105,35 @@ impl NetServer {
                             if let Ok(_rejection) =
                                 Arc::clone(&admission.rejections).try_acquire_owned()
                             {
-                                reject_before_hello(stream, code, handshake_timeout).await;
+                                reject_before_hello(stream, code, handshake_timeout, &origins)
+                                    .await;
                             }
                             return;
                         }
-                        let status_slots = Arc::clone(&admission.status_slots);
-                        let Some(probe) =
-                            serve_status_if_requested(&mut stream, &status, status_slots, probe)
-                                .await
+                        let Ok(preclass) =
+                            preclass_gate.try_acquire(addr.ip(), std::time::Instant::now())
                         else {
                             return;
                         };
+                        let Ok(probe) = Arc::clone(&admission.probes).try_acquire_owned() else {
+                            return;
+                        };
+                        let status_slots = Arc::clone(&admission.status_slots);
+                        let Some(probe) = serve_status_if_requested(
+                            &mut stream,
+                            &status,
+                            status_slots,
+                            probe,
+                            &preclass_gate,
+                            addr.ip(),
+                        )
+                        .await
+                        else {
+                            drop(preclass);
+                            return;
+                        };
                         drop(probe);
+                        drop(preclass);
                         let permit = match admission.try_admit(addr.ip()) {
                             Ok(permit) => permit,
                             Err(code) => {
@@ -974,7 +1141,8 @@ impl NetServer {
                                 if let Ok(_rejection) =
                                     Arc::clone(&admission.rejections).try_acquire_owned()
                                 {
-                                    reject_before_hello(stream, code, handshake_timeout).await;
+                                    reject_before_hello(stream, code, handshake_timeout, &origins)
+                                        .await;
                                 }
                                 return;
                             }
@@ -1001,6 +1169,12 @@ impl NetServer {
                                 access,
                                 limits,
                                 traffic,
+                                population,
+                                origins,
+                                board_budget,
+                                join_audience,
+                                spectator_tickets,
+                                nonces,
                             },
                         )
                         .await
@@ -1053,6 +1227,8 @@ async fn serve_status_if_requested(
     status: &tokio::sync::RwLock<crate::protocol::LiveStatus>,
     status_slots: Arc<Semaphore>,
     probe: OwnedSemaphorePermit,
+    gate: &crate::admission_bounds::PreclassGate,
+    ip: IpAddr,
 ) -> Option<OwnedSemaphorePermit> {
     let mut buf = [0u8; 24];
     let mut seen = 0usize;
@@ -1091,6 +1267,11 @@ async fn serve_status_if_requested(
     if !status_get {
         return Some(probe);
     }
+    let Ok(_address_status) = gate.try_status(ip) else {
+        drop(probe);
+        let _ = stream.shutdown().await;
+        return None;
+    };
     let Ok(_status_permit) = status_slots.try_acquire_owned() else {
         drop(probe);
         let _ = stream.shutdown().await;
@@ -1158,12 +1339,13 @@ fn http_json(code: u16, reason: &str, body: &str) -> String {
     )
 }
 
-async fn reject_before_hello(stream: TcpStream, code: &str, handshake_timeout: Duration) {
-    let accepted = tokio::time::timeout(
-        handshake_timeout,
-        accept_async_with_config(stream, Some(websocket_limits())),
-    )
-    .await;
+async fn reject_before_hello(
+    stream: TcpStream,
+    code: &str,
+    handshake_timeout: Duration,
+    origins: &[String],
+) {
+    let accepted = tokio::time::timeout(handshake_timeout, accept_limited(stream, origins)).await;
     let Ok(Ok(ws)) = accepted else {
         return;
     };
@@ -1210,6 +1392,12 @@ struct HelloPolicy {
     access: Option<AccessWatch>,
     limits: SessionLimits,
     traffic: Arc<crate::metrics::TrafficCounters>,
+    population: crate::admission_bounds::Population,
+    origins: Arc<Vec<String>>,
+    board_budget: crate::admission_bounds::BoardBudget,
+    join_audience: Option<String>,
+    spectator_tickets: bool,
+    nonces: Arc<std::sync::Mutex<crate::join_ticket::NonceCache>>,
 }
 
 /// What the reader loop learned about the session as it ended.
@@ -1238,7 +1426,7 @@ struct SessionIdentity {
 async fn read_session(
     ws_stream: &mut futures_util::stream::SplitStream<ServerSocket>,
     shutdown_rx: &mut watch::Receiver<StopSignal>,
-    game_tx: &mpsc::UnboundedSender<GameCommand>,
+    game_tx: &GameSender,
     identity: SessionIdentity,
     policy: &HelloPolicy,
     traffic: &crate::metrics::ClientTraffic,
@@ -1260,6 +1448,7 @@ async fn read_session(
     let idle = tokio::time::sleep(limits.idle_after);
     tokio::pin!(idle);
     let mut left = false;
+    let mut board_window = crate::admission_bounds::fresh_board_window(std::time::Instant::now());
     let kick = loop {
         let msg = tokio::select! {
             msg = ws_stream.next() => msg,
@@ -1356,6 +1545,23 @@ async fn read_session(
             continue;
         }
         if let ClientMessage::Board(request) = &message {
+            let posted = matches!(request.op, crate::protocol::BoardOp::Post);
+            let bytes = if posted {
+                request.text.as_ref().map(String::len).unwrap_or(0)
+            } else {
+                1
+            };
+            if posted && (bytes == 0 || bytes > crate::sim::SPEAK_MAX_CHARS) {
+                continue;
+            }
+            if !policy.board_budget.allow(
+                policy.peer.ip(),
+                &mut board_window,
+                std::time::Instant::now(),
+                bytes,
+            ) {
+                continue;
+            }
             let _ = game_tx.send(GameCommand::Board {
                 client_id,
                 op: request.op,
@@ -1411,14 +1617,14 @@ async fn send_welcome(
 
 async fn handle_connection(
     stream: TcpStream,
-    game_tx: mpsc::UnboundedSender<GameCommand>,
+    game_tx: GameSender,
     clients: Arc<Mutex<Vec<ClientSession>>>,
     policy: HelloPolicy,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let peer = policy.peer;
     let ws_stream = match tokio::time::timeout(
         policy.handshake_timeout,
-        accept_async_with_config(stream, Some(websocket_limits())),
+        accept_limited(stream, &policy.origins),
     )
     .await
     {
@@ -1462,12 +1668,22 @@ async fn handle_connection(
                 resume,
                 body: requested_body,
             }) => {
-                if !crate::join_ticket::admit(
-                    policy.join_secret.as_deref(),
-                    r,
-                    ticket.as_deref(),
-                    crate::join_ticket::unix_now(),
-                ) {
+                let admitted = {
+                    let mut nonces = policy
+                        .nonces
+                        .lock()
+                        .unwrap_or_else(|error| error.into_inner());
+                    crate::join_ticket::admit_presented(
+                        policy.join_secret.as_deref(),
+                        r,
+                        ticket.as_deref(),
+                        crate::join_ticket::unix_now(),
+                        policy.join_audience.as_deref(),
+                        policy.spectator_tickets,
+                        &mut nonces,
+                    )
+                };
+                if !admitted {
                     let rejection = ServerMessage::Error {
                         code: "join_rejected".into(),
                         message: "This server refused the join.".into(),
@@ -1656,6 +1872,49 @@ async fn handle_connection(
                     if let Some(guard) = auto_join.as_mut() {
                         guard.player_id = player_id;
                     }
+                    let mut seat_hold = if r == Role::Spectator {
+                        match policy.population.reserve_spectator(client_id, peer.ip()) {
+                            Ok(()) => {
+                                PopulationHold::spectator(policy.population.clone(), client_id)
+                            }
+                            Err(_) => {
+                                return reject_connection(
+                                    ws_sink,
+                                    ws_stream,
+                                    ServerMessage::Error {
+                                        code: "spectator_limit".into(),
+                                        message: "This server is not taking more spectators."
+                                            .into(),
+                                    },
+                                    peer,
+                                )
+                                .await;
+                            }
+                        }
+                    } else {
+                        let Some(id) = player_id else {
+                            return Ok(());
+                        };
+                        match policy.population.reserve_pawn(
+                            id,
+                            peer.ip(),
+                            std::time::Instant::now(),
+                        ) {
+                            Ok(()) => PopulationHold::pawn(policy.population.clone(), id),
+                            Err(_) => {
+                                return reject_connection(
+                                    ws_sink,
+                                    ws_stream,
+                                    ServerMessage::Error {
+                                        code: "connection_limit".into(),
+                                        message: "This server is not taking more players.".into(),
+                                    },
+                                    peer,
+                                )
+                                .await;
+                            }
+                        }
+                    };
                     let issued = if r != Role::Spectator && resume.is_some() {
                         keep_pawn = true;
                         player_id.map(|id| policy.resume.arm(id, r))
@@ -1793,6 +2052,7 @@ async fn handle_connection(
                             seat.forget();
                         }
                     }
+                    seat_hold.armed = false;
 
                     tracing::info!(
                         target: AUDIT_TARGET,

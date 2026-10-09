@@ -65,12 +65,14 @@ async fn a_drop_keeps_the_same_pawn_and_leave_removes_it() {
     assert!(spectator_token.is_none());
 
     human.close(None).await.unwrap();
-    for _ in 0..8 {
-        assert!(
-            snapshot_has(&mut spectator, "Patch").await,
-            "a drop removed the pawn"
-        );
+    let mut parked = false;
+    for _ in 0..20 {
+        if !snapshot_has(&mut spectator, "Patch").await {
+            parked = true;
+            break;
+        }
     }
+    assert!(parked, "a drop still published the parked pawn");
 
     let (mut again, _) = connect_async(&url).await.unwrap();
     again

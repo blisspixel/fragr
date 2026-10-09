@@ -1486,8 +1486,8 @@ pub enum FlagEventKind {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerState {
-    /// Additive body-contact eligibility. Historical snapshots default to true;
-    /// current servers explicitly publish inactive, detached and dead bodies false.
+    /// Additive body-contact eligibility. Historical snapshots default to true.
+    /// A published row is explicit. Parked, eliminated, and respawning bodies are omitted.
     #[serde(default = "collidable_by_default")]
     pub collidable: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]

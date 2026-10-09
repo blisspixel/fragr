@@ -171,6 +171,72 @@ func join_ticket(for_role: String, secret: String, exp: int) -> String:
 		return ""
 	return "v1.%d.%s.%s" % [exp, for_role, mac.hex_encode()]
 
+func join_ticket_v2(for_role: String, secret: String, exp: int, nonce: String, audience: String) -> String:
+	if for_role != "human" and for_role != "agent":
+		return ""
+	if nonce.length() != 32:
+		return ""
+	var key := secret.strip_edges().to_utf8_buffer()
+	if key.size() < 16 or key.size() > 256 or audience.is_empty():
+		return ""
+	var payload := "fragr-join-v2\n%d\n%s\n%s\n%s" % [exp, for_role, nonce, audience]
+	var ctx := HMACContext.new()
+	if ctx.start(HashingContext.HASH_SHA256, key) != OK or ctx.update(payload.to_utf8_buffer()) != OK:
+		return ""
+	var mac := ctx.finish()
+	if mac.is_empty():
+		return ""
+	return "v2.%d.%s.%s.%s.%s" % [exp, for_role, nonce, _b64url(audience), mac.hex_encode()]
+
+func audience_for(url: String) -> String:
+	var endpoint: Dictionary = ServerEndpoint.parse(url)
+	if endpoint.is_empty():
+		return ""
+	var scheme: String = "wss" if bool(endpoint["secure"]) else "ws"
+	var host: String = str(endpoint["host"])
+	var port: int = int(endpoint["port"])
+	if host.contains(":"):
+		return "%s://[%s]:%d" % [scheme, host, port]
+	return "%s://%s:%d" % [scheme, host, port]
+
+func ticket_transport_allowed(url: String) -> bool:
+	var endpoint: Dictionary = ServerEndpoint.parse(url)
+	if endpoint.is_empty():
+		return false
+	if bool(endpoint["secure"]):
+		return true
+	return _private_host(str(endpoint["host"]))
+
+func presented_ticket(url: String, secret: String, exp: int, nonce: String) -> String:
+	if not ticket_transport_allowed(url):
+		return ""
+	return join_ticket_v2("human", secret, exp, nonce, audience_for(url))
+
+func _b64url(text: String) -> String:
+	return Marshalls.raw_to_base64(text.to_utf8_buffer()).replace("+", "-").replace("/", "_").trim_suffix("=")
+
+func _private_host(host: String) -> bool:
+	if host == "::1":
+		return true
+	var text: String = host.to_lower()
+	if text.begins_with("fc") or text.begins_with("fd") or text.begins_with("fe8") or text.begins_with("fe9") or text.begins_with("fea") or text.begins_with("feb"):
+		return true
+	var parts: PackedStringArray = text.split(".", false)
+	if parts.size() != 4:
+		return false
+	var octets: Array[int] = []
+	for part: String in parts:
+		if not part.is_valid_int():
+			return false
+		octets.append(part.to_int())
+	if octets[0] == 10 or octets[0] == 127:
+		return true
+	if octets[0] == 169 and octets[1] == 254:
+		return true
+	if octets[0] == 172 and octets[1] >= 16 and octets[1] <= 31:
+		return true
+	return octets[0] == 192 and octets[1] == 168
+
 func _try_resume() -> bool:
 	if _leaving or _resume_used or _resume_token == "" or (role != "human" and role != "agent"):
 		return false
@@ -191,7 +257,10 @@ func send_hello():
 		"geometry_version": MapGeometry.VERSION,
 		"gameplay_version": GAMEPLAY_VERSION
 	}
-	var ticket := join_ticket(role, OS.get_environment("FRAGR_JOIN_SECRET"), int(Time.get_unix_time_from_system()) + 60)
+	var ticket := ""
+	if ticket_transport_allowed(server_url):
+		var nonce := Crypto.new().generate_random_bytes(16).hex_encode()
+		ticket = join_ticket_v2(role, OS.get_environment("FRAGR_JOIN_SECRET"), int(Time.get_unix_time_from_system()) + 60, nonce, audience_for(server_url))
 	if ticket != "":
 		hello["ticket"] = ticket
 	if role == "human" or role == "agent":

@@ -627,7 +627,7 @@ mod tests {
 
     #[tokio::test]
     async fn require_status_reads_a_live_match_line() {
-        let (tx, _commands) = tokio::sync::mpsc::unbounded_channel();
+        let (tx, _commands) = crate::net::game_channel();
         let mut server = crate::net::NetServer::bind("127.0.0.1:0", tx)
             .await
             .unwrap();

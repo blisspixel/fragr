@@ -185,11 +185,11 @@ async fn five_seats_mixed_sockets_bots_overflow_spectators_leave_and_parked_resu
     let parked_id = identities[0].clone();
     clients.remove(0).close(None).await.unwrap();
     snapshot(&mut watcher, |s| {
-        s["players"]
+        !s["players"]
             .as_array()
             .unwrap()
             .iter()
-            .any(|p| p["id"] == parked_id && p["collidable"] == false)
+            .any(|p| p["id"] == parked_id)
     })
     .await;
     let (_, rejection) = hello(&url, "agent", None).await;
@@ -293,12 +293,17 @@ async fn five_seats_mixed_sockets_bots_overflow_spectators_leave_and_parked_resu
     // No successful reconnect follows this second drop. Observe actual grace
     // expiry, then claim its vacant seat with a new participant identity.
     resumed.close(None).await.unwrap();
-    snapshot(&mut watcher, |s| {
+    let hidden = snapshot(&mut watcher, |s| {
         !s["players"]
             .as_array()
             .unwrap()
             .iter()
             .any(|p| p["id"] == parked_id)
+    })
+    .await;
+    let parked_tick = hidden["tick"].as_u64().unwrap();
+    snapshot(&mut watcher, |s| {
+        s["tick"].as_u64().unwrap() >= parked_tick + fragr_server::resume::RESUME_GRACE_TICKS + 20
     })
     .await;
     let (fresh, welcome) = hello(&url, "human", None).await;
@@ -500,11 +505,11 @@ async fn five_seats_real_pistol_shots_spend_finite_ammo_and_resume_keeps_it() {
     assert_eq!(spent["ammo"][0]["rounds"], 49);
     shooter.close(None).await.unwrap();
     snapshot(&mut watcher, |s| {
-        s["players"]
+        !s["players"]
             .as_array()
             .unwrap()
             .iter()
-            .any(|p| p["id"] == id && p["collidable"] == false)
+            .any(|p| p["id"] == id)
     })
     .await;
     let (mut resumed, restored) = hello(&url, "human", Some(&token)).await;

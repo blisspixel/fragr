@@ -25,17 +25,34 @@ static func participants(actors: Array) -> Array[Dictionary]:
 			result.append(actor)
 	return result
 
+const MAX_PLAYERS: int = 64
+const MAX_PICKUPS: int = 256
+const MAX_NODES: int = 320
+const MAX_LABEL: int = 64
+
 static func validation_error(snapshot: Dictionary) -> String:
 	const INVALID: String = "The server sent invalid campaign actors. Connection closed."
+	var crowded: String = collection_error(snapshot)
+	if not crowded.is_empty():
+		return crowded
 	var actors: Variant = snapshot.get("players")
 	if not actors is Array:
 		return INVALID
+	if (actors as Array).size() > MAX_PLAYERS:
+		return INVALID
 	var companions: int = 0
+	var seen: Dictionary = {}
 	for actor: Variant in actors:
 		if not actor is Dictionary:
 			return INVALID
 		if actor.has("collidable") and typeof(actor["collidable"]) != TYPE_BOOL:
 			return INVALID
+		if not _row_ok(actor):
+			return INVALID
+		var identity: String = str(actor.get("id", ""))
+		if seen.has(identity):
+			return INVALID
+		seen[identity] = true
 		var campaign: Variant = actor.get("campaign")
 		if campaign == null:
 			continue
@@ -97,3 +114,71 @@ static func validation_error(snapshot: Dictionary) -> String:
 		if campaign["kind"] == "assessor" and float(health) > 240.0:
 			return INVALID
 	return ""
+
+static func collection_error(snapshot: Dictionary) -> String:
+	const INVALID: String = "The server sent invalid campaign actors. Connection closed."
+	var players: Variant = snapshot.get("players", [])
+	var pickups: Variant = snapshot.get("pickups", [])
+	if not players is Array or not pickups is Array:
+		return INVALID
+	if (players as Array).size() > MAX_PLAYERS or (pickups as Array).size() > MAX_PICKUPS:
+		return INVALID
+	var nodes: int = (players as Array).size() + (pickups as Array).size()
+	for key: String in ["vehicles", "grenades", "mines", "projectiles"]:
+		var extra: Variant = snapshot.get(key, [])
+		if extra == null:
+			continue
+		if not extra is Array:
+			return INVALID
+		nodes += (extra as Array).size()
+	if nodes > MAX_NODES:
+		return INVALID
+	if not _labels_fit(players) or not _labels_fit(pickups):
+		return INVALID
+	return ""
+
+static func _labels_fit(rows: Variant) -> bool:
+	if not rows is Array:
+		return false
+	for row: Variant in rows:
+		if not row is Dictionary:
+			continue
+		for key: String in ["name", "kind", "id", "weapon"]:
+			if not (row as Dictionary).has(key):
+				continue
+			var value: Variant = (row as Dictionary)[key]
+			if value is String and (value as String).length() > MAX_LABEL:
+				return false
+	return true
+
+static func _row_ok(actor: Dictionary) -> bool:
+	var identity: Variant = actor.get("id")
+	var label: Variant = actor.get("name")
+	if not identity is String or (identity as String).is_empty() or (identity as String).length() > MAX_LABEL:
+		return false
+	if not label is String or (label as String).is_empty() or (label as String).length() > MAX_LABEL:
+		return false
+	for axis: String in ["x", "y", "z", "yaw", "pitch"]:
+		if not actor.has(axis):
+			continue
+		var coordinate: Variant = actor[axis]
+		if not (coordinate is int or coordinate is float) or not is_finite(float(coordinate)):
+			return false
+	if actor.has("hp") and not _whole(actor["hp"]):
+		return false
+	if actor.has("score") and not _whole(actor["score"]):
+		return false
+	if actor.has("weapon"):
+		var weapon: Variant = actor["weapon"]
+		if not weapon is String or not str(weapon).to_lower() in EquipmentState.WEAPONS:
+			return false
+	if actor.has("team"):
+		var team: Variant = actor["team"]
+		if not team is String or not str(team) in ["union", "coalition"]:
+			return false
+	if actor.has("body") and not PlayerBody.valid(actor["body"]):
+		return false
+	return true
+
+static func _whole(value: Variant) -> bool:
+	return (value is int or value is float) and is_finite(float(value)) and float(value) == floorf(float(value))

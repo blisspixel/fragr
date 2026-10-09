@@ -11,6 +11,8 @@ use uuid::Uuid;
 
 const MAX_POINTS: usize = 2048;
 const SAMPLE_TICKS: u64 = 20;
+const MAX_TRACE_BYTES: usize = 256 * 1024;
+const MAX_PICKUP_CHARS: usize = 64;
 
 #[derive(Debug, Serialize)]
 struct Point {
@@ -117,7 +119,7 @@ impl Timeline {
                 ..
             } if *player_id == id => {
                 let mut point = Point::marker(tick, state, "pickup");
-                point.pickup = Some(pickup_id.clone());
+                point.pickup = Some(pickup_id.chars().take(MAX_PICKUP_CHARS).collect());
                 self.push(point);
             }
             _ => {}
@@ -203,16 +205,37 @@ impl Timeline {
         if let Some(parent) = parent {
             std::fs::create_dir_all(parent)?;
         }
-        let text = serde_json::to_vec_pretty(&serde_json::json!({
-            "version": 1,
-            "player_id": id,
-            "dropped": self.dropped,
-            "points": self.points,
-        }))
-        .map_err(|error| crate::Error::Malformed(error.to_string()))?;
+        let points: Vec<&Point> = self.points.iter().collect();
+        let mut start = 0usize;
+        let mut text = encode_trace(&points, self.dropped, id)?;
+        while text.len() > MAX_TRACE_BYTES && start + 1 < points.len() {
+            start += 1;
+            text = encode_trace(
+                &points[start..],
+                self.dropped.saturating_add(start as u64),
+                id,
+            )?;
+        }
+        if text.len() > MAX_TRACE_BYTES {
+            text = encode_trace(&[], self.dropped.saturating_add(points.len() as u64), id)?;
+        }
         std::fs::write(path, text)?;
         Ok(())
     }
+}
+
+fn encode_trace(
+    points: &[&Point],
+    dropped: u64,
+    id: Option<Uuid>,
+) -> Result<Vec<u8>, crate::Error> {
+    serde_json::to_vec_pretty(&serde_json::json!({
+        "version": 1,
+        "player_id": id,
+        "dropped": dropped,
+        "points": points,
+    }))
+    .map_err(|error| crate::Error::Malformed(error.to_string()))
 }
 
 #[cfg(test)]

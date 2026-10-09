@@ -35,6 +35,19 @@ func _run() -> void:
 	if str(network.call("join_ticket", "human", "  0123456789abcdef  ", 1700000060)) != expected:
 		_fail("surrounding space changed the secret")
 		return
+	var v2_expected := "v2.1700000060.human.00112233445566778899aabbccddeeff.d3NzOi8vcGxheS5leGFtcGxlOjY3Njc.0ec6964cd92cc8c6b91dea2c4491f9454ebc20e7aadce35b355e4d675df4b6d8"
+	var v2_ticket: String = str(network.call("join_ticket_v2", "human", "0123456789abcdef", 1700000060, "00112233445566778899aabbccddeeff", "wss://play.example:6767"))
+	if v2_ticket != v2_expected:
+		_fail("v2 ticket was " + v2_ticket)
+		return
+	var public_ws: String = str(network.call("presented_ticket", "ws://203.0.113.8:6767", "0123456789abcdef", 1700000060, "00112233445566778899aabbccddeeff"))
+	if public_ws != "":
+		_fail("a public cleartext host received a ticket")
+		return
+	var local_ticket: String = str(network.call("presented_ticket", "ws://127.0.0.1:6767", "0123456789abcdef", 1700000060, "00112233445566778899aabbccddeeff"))
+	if not local_ticket.begins_with("v2.1700000060.human."):
+		_fail("loopback did not present a v2 ticket")
+		return
 	var seen: Array[String] = []
 	network.connect("server_error", func(message: String) -> void: seen.append(message))
 	if not bool(network.call("_admission_error", "join_rejected")) or seen != ["This server refused the join."]:

@@ -13,28 +13,31 @@ func _check(condition: bool, message: String) -> void:
 func _run() -> void:
 	var path: String = "user://test-server-book-%d.cfg" % OS.get_process_id()
 	var book: ServerBook = ServerBook.new(path)
-	_check(book.canonical("192.0.2.10") == "192.0.2.10:6767", "a bare host uses the game port")
-	_check(book.canonical("ws://192.0.2.10:6767") == "192.0.2.10:6767", "a game URL stores as host and port")
+	_check(book.canonical("192.0.2.10") == "ws://192.0.2.10:6767", "a bare host uses cleartext and the game port")
+	_check(book.canonical("ws://192.0.2.10:6767") == "ws://192.0.2.10:6767", "a cleartext game URL keeps its scheme")
+	_check(book.canonical("wss://192.0.2.10:6767") == "wss://192.0.2.10:6767", "a secure game URL stays distinct")
 	_check(book.canonical("http://192.0.2.10:6767").is_empty(), "an http URL is not a saved host")
 	_check(book.keep("192.0.2.10"), "save accepts a host")
-	_check(book.favorites == ["192.0.2.10:6767"], "save stores the canonical address once")
+	_check(book.favorites == ["ws://192.0.2.10:6767"], "save stores the canonical address once")
 	_check(book.remember("192.0.2.11:6767"), "a new answered host is recent")
 	_check(not book.remember("192.0.2.10:6767"), "a favorite checked again is not a new row")
 	var rows: Array[Dictionary] = book.rows()
-	_check(rows.size() == 2 and rows[0]["address"] == "192.0.2.10:6767" and rows[0]["kept"] \
-		and rows[1]["address"] == "192.0.2.11:6767" and not rows[1]["kept"],
+	_check(rows.size() == 2 and rows[0]["address"] == "ws://192.0.2.10:6767" and rows[0]["kept"] \
+		and not rows[0]["secure"] and rows[1]["address"] == "ws://192.0.2.11:6767" and not rows[1]["kept"],
 		"kept hosts lead, then recent ones")
+	_check(book.keep("wss://play.example:6767") and book.rows()[0]["secure"], "a saved secure host is marked secure")
+	book.drop_address("wss://play.example:6767")
 	book.drop_address("192.0.2.10:6767")
-	_check(book.rows().size() == 1 and book.rows()[0]["address"] == "192.0.2.11:6767", "drop removes that host only")
+	_check(book.rows().size() == 1 and book.rows()[0]["address"] == "ws://192.0.2.11:6767", "drop removes that host only")
 	var again: ServerBook = ServerBook.new(path)
-	_check(again.recent == ["192.0.2.11:6767"] and again.favorites.is_empty(), "the book reloads from this computer")
+	_check(again.recent == ["ws://192.0.2.11:6767"] and again.favorites.is_empty(), "the book reloads from this computer")
 	var junk: ServerBook = ServerBook.new(path + ".junk")
 	var cfg: ConfigFile = ConfigFile.new()
 	cfg.set_value("book", "favorites", "not a host\n192.0.2.12:6767\n192.0.2.12:6767")
 	cfg.set_value("book", "recent", "192.0.2.13:1\n\nhttp://nope")
 	_check(cfg.save(path + ".junk") == OK, "fixture book writes")
 	junk.load_from_disk()
-	_check(junk.favorites == ["192.0.2.12:6767"] and junk.recent == ["192.0.2.13:1"], "junk lines are dropped")
+	_check(junk.favorites == ["ws://192.0.2.12:6767"] and junk.recent == ["ws://192.0.2.13:1"], "old host lines load as cleartext")
 	var live: Dictionary = {"schema_version": 2, "kind": "arena", "map": "Arena Duel", "fighters": 4, "connections": 2, "mode": "tdm", "callsign": "VenueFox"}
 	var detail: String = ServerBook.detail(live, 18)
 	_check(detail.contains("Arena Duel") and detail.contains("4 fighters") and detail.ends_with("18 ms.") \
@@ -64,12 +67,12 @@ func _run() -> void:
 	var capped: ServerBook = ServerBook.new(path + ".cap")
 	for n: int in 20:
 		_check(capped.keep("203.0.113.%d" % (n + 1)), "save accepts host %d" % (n + 1))
-	_check(capped.favorites.size() == ServerBook.MAX_FAVORITES and capped.favorites[0] == "203.0.113.20:6767",
+	_check(capped.favorites.size() == ServerBook.MAX_FAVORITES and capped.favorites[0] == "ws://203.0.113.20:6767",
 		"favorites keep the twelve newest")
 	var recent_book: ServerBook = ServerBook.new(path + ".recent")
 	for n: int in 20:
 		_check(recent_book.remember("198.51.100.%d" % (n + 1)), "a new host is recent")
-	_check(recent_book.recent.size() == ServerBook.MAX_RECENT and recent_book.recent[0] == "198.51.100.20:6767",
+	_check(recent_book.recent.size() == ServerBook.MAX_RECENT and recent_book.recent[0] == "ws://198.51.100.20:6767",
 		"recent keeps the eight newest")
 	_check(ServerBook.beacon_port("FRAGR/1 6767\n".to_utf8_buffer()) == 6767, "beacon names 6767")
 	_check(ServerBook.beacon_port("FRAGR/1 1\n".to_utf8_buffer()) == 1, "beacon names port 1")

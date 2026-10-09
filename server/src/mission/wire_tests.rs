@@ -176,7 +176,7 @@ async fn connect(
 
 #[tokio::test]
 async fn broadcast_cannot_overtake_join_geometry_for_any_role() {
-    let (commands_tx, mut commands_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (commands_tx, mut commands_rx) = crate::net::game_channel();
     let net = crate::net::NetServer::bind_with_requirements(
         "127.0.0.1:0",
         commands_tx,
@@ -444,7 +444,7 @@ async fn live_mixed_party_and_late_spectator_observe_the_same_gate_and_departure
 async fn four_readers_share_one_start_and_spectators_cannot_acknowledge() {
     use crate::net::GameCommand;
     use crate::protocol::MissionReady;
-    let (commands_tx, mut commands_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (commands_tx, mut commands_rx) = crate::net::game_channel();
     let net = crate::net::NetServer::bind_with_requirements(
         "127.0.0.1:0",
         commands_tx,

@@ -59,6 +59,8 @@ pub struct GameSession {
     venue_said_tick: Option<u64>,
     pub(crate) sheet: crate::sheet::NightSheet,
     board: crate::board::Board,
+    population: crate::admission_bounds::Population,
+    population_enforced: bool,
 }
 
 struct SpectatorSeat {
@@ -138,7 +140,14 @@ impl GameSession {
             venue_said_tick: None,
             sheet: crate::sheet::NightSheet::default(),
             board: crate::board::Board::default(),
+            population: crate::admission_bounds::Population::default(),
+            population_enforced: false,
         }
+    }
+
+    pub(crate) fn share_population(&mut self, population: crate::admission_bounds::Population) {
+        self.population = population;
+        self.population_enforced = true;
     }
 
     /// Contested Frequency scrap-league rule-bot roster (callsigns + sticky behaviors).
@@ -303,6 +312,7 @@ impl GameSession {
     }
 
     fn remove_pawn(&mut self, player_id: Uuid) {
+        self.population.release_pawn(player_id);
         self.fighter_peers.remove(&player_id);
         self.live_client.remove(&player_id);
         let (player_name, player_score) = self
@@ -450,6 +460,23 @@ impl GameSession {
                 player_id,
                 body,
             } => {
+                if self.population_enforced {
+                    let reserved = if let Some(pid) = player_id {
+                        self.population.contains_pawn(pid)
+                    } else {
+                        self.population.contains_spectator(id)
+                    };
+                    if !reserved {
+                        self.pending_unicasts.push((
+                            Recipient::Client(id),
+                            ServerMessage::Error {
+                                code: "connection_limit".into(),
+                                message: "This server is not taking more connections.".into(),
+                            },
+                        ));
+                        return;
+                    }
+                }
                 let peer = self.take_pending_peer(id);
                 // Every connection needs geometry, including late spectators.
                 self.pending_unicasts
@@ -518,14 +545,18 @@ impl GameSession {
 
             GameCommand::Disconnected { id } => {
                 self.client_versions.remove(&id);
-                self.spectators.remove(&id);
+                if self.spectators.remove(&id).is_some() {
+                    self.population.release_spectator(id);
+                }
                 self.take_pending_peer(id);
                 if let Some(player_id) = self.client_to_player.remove(&id) {
                     self.remove_pawn(player_id);
                 }
             }
             GameCommand::Detached { id } => {
-                self.spectators.remove(&id);
+                if self.spectators.remove(&id).is_some() {
+                    self.population.release_spectator(id);
+                }
                 self.take_pending_peer(id);
                 if let Some(player_id) = self.client_to_player.remove(&id) {
                     self.live_client.remove(&player_id);
@@ -636,6 +667,15 @@ impl GameSession {
         }
     }
 
+    fn seat_peer(&self, client_id: Uuid) -> Option<SocketAddr> {
+        if let Some(player_id) = self.client_to_player.get(&client_id) {
+            if let Some(peer) = self.fighter_peers.get(player_id) {
+                return Some(*peer);
+            }
+        }
+        self.spectators.get(&client_id).and_then(|seat| seat.peer)
+    }
+
     fn seat_name(&self, client_id: Uuid) -> Option<String> {
         if let Some(player_id) = self.client_to_player.get(&client_id) {
             return self
@@ -692,12 +732,15 @@ impl GameSession {
                 let Some(name) = self.seat_name(client_id) else {
                     return board_code(op, board, crate::board::Fault::Rejected);
                 };
+                let Some(peer) = self.seat_peer(client_id) else {
+                    return board_code(op, board, crate::board::Fault::Rejected);
+                };
                 let Some(board_id) = board else {
                     return board_code(op, None, crate::board::Fault::Unknown);
                 };
                 let tick = self.state.tick;
                 match self.board.post(
-                    client_id,
+                    peer.ip(),
                     &name,
                     &board_id,
                     text.as_deref().unwrap_or(""),
@@ -1809,6 +1852,10 @@ mod session_tests {
             text: "nice scrap".to_string(),
         });
         let watcher = Uuid::new_v4();
+        session.apply_command(GameCommand::NoteSeat {
+            client_id: watcher,
+            peer: std::net::SocketAddr::from(([203, 0, 113, 40], 40000)),
+        });
         session.apply_command(GameCommand::Connected {
             body: crate::protocol::BodyKind::Human,
             id: watcher,

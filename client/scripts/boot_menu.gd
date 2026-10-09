@@ -967,13 +967,9 @@ func _drop_probe_hooks(probe: HTTPRequest) -> void:
 		if probe.request_completed.is_connected(hook):
 			probe.request_completed.disconnect(hook)
 
-## The address Check host actually requested, including the default port.
+## The saved game URL Check host actually requested, including scheme and port.
 func _probe_target_for(endpoint: Dictionary) -> String:
-	var host: String = str(endpoint.get("host", ""))
-	var port: int = int(endpoint.get("port", 0))
-	if host.contains(":"):
-		return "[%s]:%d" % [host, port]
-	return "%s:%d" % [host, port]
+	return str(endpoint.get("game_url", ""))
 
 ## Empty when the body should be read. Otherwise the sentence for this result.
 func probe_failure_line(result: int, code: int, target: String) -> String:

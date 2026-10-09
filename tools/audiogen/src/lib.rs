@@ -563,9 +563,103 @@ pub fn api_error_message(status: u16, body: &[u8]) -> String {
     }
 }
 
-/// Rate limiting and server-side failures are worth another attempt.
-pub fn should_retry(status: u16) -> bool {
-    status == 429 || (500..600).contains(&status)
+/// GET status polls may retry. A generation POST is not retried.
+pub fn should_retry(method: Method, status: u16) -> bool {
+    !matches!(method, Method::Post) && (status == 429 || (500..600).contains(&status))
+}
+
+/// Read at most `limit` bytes. A declared length above the limit is rejected
+/// before the body is stored.
+pub fn read_capped(
+    reader: &mut dyn std::io::Read,
+    declared: Option<u64>,
+    limit: usize,
+) -> Result<Vec<u8>, Error> {
+    if declared.is_some_and(|length| length > limit as u64) {
+        return Err(Error::Transport(format!(
+            "response of {declared:?} bytes exceeds the {limit} byte cap"
+        )));
+    }
+    let mut body = Vec::new();
+    let mut chunk = [0u8; 8192];
+    loop {
+        let read = reader
+            .read(&mut chunk)
+            .map_err(|error| Error::Transport(error.to_string()))?;
+        if read == 0 {
+            break;
+        }
+        if body.len().saturating_add(read) > limit {
+            return Err(Error::Transport(format!(
+                "response exceeds the {limit} byte cap"
+            )));
+        }
+        body.extend_from_slice(&chunk[..read]);
+    }
+    Ok(body)
+}
+
+pub(crate) fn write_refusing_symlinks(path: &Path, bytes: &[u8]) -> Result<(), Error> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    reject_symlink_components(path)?;
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    let file_name = path
+        .file_name()
+        .ok_or_else(|| Error::InvalidArgument("missing file name".into()))?;
+    let temporary = parent.join(format!(
+        ".{}.part",
+        file_name.to_string_lossy().replace('/', "_")
+    ));
+    if is_symlink(&temporary) {
+        return Err(Error::InvalidArgument(
+            "refusing to write through a symlink".into(),
+        ));
+    }
+    if temporary.exists() {
+        fs::remove_file(&temporary)?;
+    }
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)?;
+    file.write_all(bytes)?;
+    file.sync_all()?;
+    drop(file);
+    if is_symlink(path) {
+        let _ = fs::remove_file(&temporary);
+        return Err(Error::InvalidArgument(
+            "refusing to replace a symlink".into(),
+        ));
+    }
+    if path.exists() {
+        fs::remove_file(path)?;
+    }
+    fs::rename(&temporary, path)?;
+    Ok(())
+}
+
+fn is_symlink(path: &Path) -> bool {
+    fs::symlink_metadata(path).is_ok_and(|meta| meta.file_type().is_symlink())
+}
+
+fn reject_symlink_components(path: &Path) -> Result<(), Error> {
+    let mut current = PathBuf::new();
+    for component in path.components() {
+        current.push(component);
+        if is_symlink(&current) {
+            return Err(Error::InvalidArgument(
+                "refusing to follow a symlink".into(),
+            ));
+        }
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -599,7 +693,7 @@ pub fn send_with_retry(
             return Ok(response);
         }
         attempt += 1;
-        if should_retry(response.status) && attempt < attempts {
+        if should_retry(request.method, response.status) && attempt < attempts {
             let delay = policy.base_delay * 2u32.saturating_pow(attempt - 1);
             tracing::warn!(
                 status = response.status,
@@ -1021,7 +1115,7 @@ pub fn save_manifest(dir: &Path, manifest: &Manifest) -> Result<(), Error> {
     fs::create_dir_all(dir)?;
     let text =
         serde_json::to_string_pretty(manifest).map_err(|err| Error::Spec(err.to_string()))?;
-    fs::write(dir.join(MANIFEST_FILE), format!("{text}\n"))?;
+    write_refusing_symlinks(&dir.join(MANIFEST_FILE), format!("{text}\n").as_bytes())?;
     Ok(())
 }
 
@@ -1100,6 +1194,33 @@ pub enum Outcome {
     },
 }
 
+fn pending_receipt(out_dir: &Path, name: &str) -> PathBuf {
+    let relative = Path::new(name);
+    let parent = relative.parent().unwrap_or(Path::new(""));
+    let file = relative.file_name().unwrap_or(relative.as_os_str());
+    out_dir
+        .join(parent)
+        .join(format!(".{}.audiogen-pending", file.to_string_lossy()))
+}
+
+fn reserve_generation(out_dir: &Path, name: &str, credits: u64) -> Result<(), Error> {
+    let path = pending_receipt(out_dir, name);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    if path.symlink_metadata().is_ok() {
+        return Err(Error::InvalidArgument(format!(
+            "unreconciled generation receipt for {name}; leave it until the provider charge is known"
+        )));
+    }
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)?;
+    writeln!(file, "{credits}")?;
+    Ok(())
+}
+
 pub struct Generator<'a> {
     pub transport: &'a dyn Transport,
     pub api_key: String,
@@ -1107,6 +1228,8 @@ pub struct Generator<'a> {
     pub overwrite: bool,
     pub dry_run: bool,
     pub retry: RetryPolicy,
+    /// Required before a paid POST. Dry runs and skipped files do not need it.
+    pub max_credits: Option<u64>,
 }
 
 impl Generator<'_> {
@@ -1117,6 +1240,7 @@ impl Generator<'_> {
         sleep: &mut dyn FnMut(Duration),
     ) -> Result<Outcome, Error> {
         validate_name(name)?;
+        let _ = sleep;
         let encoding = job.encoding()?;
         let request = job.request()?;
         let path = self
@@ -1128,8 +1252,30 @@ impl Generator<'_> {
         if path.exists() && !self.overwrite {
             return Ok(Outcome::Skipped(path));
         }
-        let response =
-            send_with_retry(self.transport, &self.api_key, &request, &self.retry, sleep)?;
+        let credits = estimate_credits(job);
+        if request.method == Method::Post {
+            let Some(cap) = self.max_credits else {
+                return Err(Error::InvalidArgument(
+                    "a finite --max-credits cap is required before a paid generation".into(),
+                ));
+            };
+            if credits > cap {
+                return Err(Error::InvalidArgument(format!(
+                    "estimated {credits} credits exceeds --max-credits {cap}"
+                )));
+            }
+            reserve_generation(&self.out_dir, name, credits)?;
+        }
+        let response = match self.transport.send(&self.api_key, &request) {
+            Ok(response) if (200..300).contains(&response.status) => response,
+            Ok(response) => {
+                return Err(Error::Api {
+                    status: response.status,
+                    message: api_error_message(response.status, &response.body),
+                });
+            }
+            Err(error) => return Err(error),
+        };
         if response.body.is_empty() {
             return Err(Error::Api {
                 status: response.status,
@@ -1140,7 +1286,7 @@ impl Generator<'_> {
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent)?;
         }
-        fs::write(&path, &bytes)?;
+        write_refusing_symlinks(&path, &bytes)?;
         let mut manifest = load_manifest(&self.out_dir)?;
         manifest.entries.insert(
             name.to_string(),
@@ -1167,6 +1313,9 @@ impl Generator<'_> {
             },
         );
         save_manifest(&self.out_dir, &manifest)?;
+        if request.method == Method::Post {
+            let _ = fs::remove_file(pending_receipt(&self.out_dir, name));
+        }
         Ok(Outcome::Written {
             path,
             bytes: bytes.len(),
@@ -1438,6 +1587,7 @@ pub fn run_command(
                 overwrite: options.overwrite,
                 dry_run: options.dry_run,
                 retry: RetryPolicy::default(),
+                max_credits: options.max_credits,
             };
             let credits = estimate_credits(job);
             if let Some(max) = options.max_credits {
@@ -1468,6 +1618,7 @@ pub fn run_command(
                 overwrite: options.overwrite,
                 dry_run: options.dry_run,
                 retry: RetryPolicy::default(),
+                max_credits: options.max_credits,
             };
             // Plan first so the credit estimate covers exactly what this run will generate.
             let mut matched = 0;
@@ -1533,6 +1684,7 @@ pub fn run_command(
 mod tests {
     use super::*;
     use std::cell::RefCell;
+    use std::io::Read;
 
     struct FakeTransport {
         responses: RefCell<Vec<Response>>,
@@ -1774,12 +1926,14 @@ mod tests {
 
     #[test]
     fn retry_only_on_rate_limit_and_server_errors() {
-        assert!(should_retry(429));
-        assert!(should_retry(500));
-        assert!(should_retry(503));
-        assert!(!should_retry(400));
-        assert!(!should_retry(401));
-        assert!(!should_retry(422));
+        assert!(should_retry(Method::Get, 429));
+        assert!(should_retry(Method::Get, 500));
+        assert!(should_retry(Method::Get, 503));
+        assert!(!should_retry(Method::Get, 400));
+        assert!(!should_retry(Method::Get, 401));
+        assert!(!should_retry(Method::Get, 422));
+        assert!(!should_retry(Method::Post, 429));
+        assert!(!should_retry(Method::Post, 500));
     }
 
     #[test]
@@ -1869,6 +2023,55 @@ mod tests {
         .unwrap_err();
         assert!(matches!(err, Error::Transport(_)));
         assert!(err.to_string().contains("no scripted response"));
+    }
+
+    #[test]
+    fn a_generation_post_is_not_sent_twice_after_a_server_error() {
+        let transport = FakeTransport::new(vec![
+            Response {
+                status: 500,
+                body: Vec::new(),
+            },
+            Response {
+                status: 200,
+                body: b"again".to_vec(),
+            },
+        ]);
+        let request = Request {
+            method: Method::Post,
+            path: "/v1/sound-generation".into(),
+            query: Vec::new(),
+            body: None,
+        };
+        let err = send_with_retry(
+            &transport,
+            "k",
+            &request,
+            &RetryPolicy::default(),
+            &mut no_sleep(),
+        )
+        .unwrap_err();
+        assert!(matches!(err, Error::Api { status: 500, .. }));
+        assert_eq!(transport.seen.borrow().len(), 1);
+    }
+
+    #[test]
+    fn read_capped_rejects_a_declared_oversize_body_before_reading_it() {
+        struct Huge {
+            claimed: bool,
+        }
+        impl Read for Huge {
+            fn read(&mut self, _buf: &mut [u8]) -> std::io::Result<usize> {
+                self.claimed = true;
+                Ok(0)
+            }
+        }
+        let mut reader = Huge { claimed: false };
+        let err = read_capped(&mut reader, Some(u64::MAX), 8).unwrap_err();
+        assert!(err.to_string().contains("exceeds"));
+        assert!(!reader.claimed);
+        let mut one_past = std::io::Cursor::new([1u8, 2, 3, 4, 5]);
+        assert!(read_capped(&mut one_past, None, 4).is_err());
     }
 
     #[test]
@@ -2089,6 +2292,7 @@ mod tests {
             overwrite: false,
             dry_run: false,
             retry: RetryPolicy::default(),
+            max_credits: Some(100_000),
         };
         let outcome = generator
             .run("sfx/fire_rail", &Job::Sfx(sfx("rail")), &mut no_sleep())
@@ -2132,6 +2336,7 @@ mod tests {
             overwrite: true,
             dry_run: false,
             retry: RetryPolicy::default(),
+            max_credits: Some(100_000),
         };
         let outcome = generator
             .run("bed", &Job::Music(music("bed")), &mut no_sleep())
@@ -2163,6 +2368,7 @@ mod tests {
             overwrite: false,
             dry_run: true,
             retry: RetryPolicy::default(),
+            max_credits: Some(100_000),
         };
         let outcome = generator
             .run("fire", &Job::Sfx(sfx("x")), &mut no_sleep())
@@ -2212,7 +2418,7 @@ mod tests {
             out_dir: Some(dir.clone()),
             overwrite: false,
             dry_run: false,
-            max_credits: None,
+            max_credits: Some(100_000),
         };
         let command = Command::Generate {
             name: "hit".into(),
@@ -2282,7 +2488,10 @@ mod tests {
         };
         run_command(
             &command,
-            &RunOptions::default(),
+            &RunOptions {
+                max_credits: Some(100_000),
+                ..RunOptions::default()
+            },
             &transport,
             "k",
             &mut out,
@@ -2330,7 +2539,7 @@ mod tests {
             out_dir: Some(dir.clone()),
             overwrite: true,
             dry_run: false,
-            max_credits: None,
+            max_credits: Some(100_000),
         };
         let err = run_command(
             &all,
@@ -2423,6 +2632,25 @@ mod tests {
         assert!(err
             .to_string()
             .contains("estimated 40 credits exceeds --max-credits 10"));
+        assert!(transport.seen.borrow().is_empty());
+    }
+
+    #[test]
+    fn generate_without_a_credit_cap_does_not_post() {
+        let transport = FakeTransport::ok(vec![0u8; 10]);
+        let err = run_command(
+            &Command::Generate {
+                name: "hit".into(),
+                job: Job::Sfx(sfx("hit")),
+            },
+            &RunOptions::default(),
+            &transport,
+            "k",
+            &mut Vec::new(),
+            &mut no_sleep(),
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("--max-credits"));
         assert!(transport.seen.borrow().is_empty());
     }
 
@@ -2680,6 +2908,7 @@ mod tests {
             overwrite: false,
             dry_run: false,
             retry: RetryPolicy::default(),
+            max_credits: Some(100_000),
         };
         let outcome = generator
             .run(

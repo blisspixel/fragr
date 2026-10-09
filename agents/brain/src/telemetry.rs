@@ -39,6 +39,13 @@ pub fn pad_bucket(dist: Option<f32>) -> &'static str {
 }
 
 /// Hits landed on this fighter, stamped with the tick they were seen at.
+const MAX_RECENT_HITS: usize = 64;
+const MAX_LABEL_CHARS: usize = 64;
+
+fn bounded_label(value: &str) -> String {
+    value.chars().take(MAX_LABEL_CHARS).collect()
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct RecentHits {
     hits: VecDeque<(u64, i32)>,
@@ -53,6 +60,9 @@ impl RecentHits {
         {
             if *target_id == me {
                 self.hits.push_back((tick, *damage));
+                while self.hits.len() > MAX_RECENT_HITS {
+                    self.hits.pop_front();
+                }
                 return true;
             }
         }
@@ -176,7 +186,7 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
         if enemy.as_ref().is_none_or(|e| dist < e.dist) {
             enemy = Some(EnemyView {
                 id: other.id,
-                name: other.name.clone(),
+                name: bounded_label(&other.name),
                 dist,
                 hp: other.hp,
                 weapon: other.weapon.to_ascii_lowercase(),
@@ -217,7 +227,7 @@ pub fn observe(me: Uuid, snapshot: &Snapshot, hits: &mut RecentHits) -> Option<T
         // anything from one tick to the next.
         recent: VecDeque::new(),
         tick: snapshot.tick,
-        name: mine.name.clone(),
+        name: bounded_label(&mine.name),
         hp: mine.hp,
         armor: mine.armor,
         weapon: mine.weapon.to_ascii_lowercase(),

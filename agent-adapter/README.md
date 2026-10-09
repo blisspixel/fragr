@@ -324,7 +324,7 @@ Get the current game state snapshot including self player ID and recent events.
 - Returns connecting state until first snapshot arrives from server
 - Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`). A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
 - `self_player_id`: UUID of your agent's player (null for spectators)
-- `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order
+- `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order. Each stored event is truncated near 2 KiB, and the ring also stops at 32 KiB. An inbound server frame above 64 KiB is ignored.
 - Dead players (HP <= 0) are omitted from players array
 - `behavior` field is present only for server-side bots
 - `weapon` field shows current weapon: "Flechette" (balanced), "Rail" (precision), or "Scatter" (close-range)

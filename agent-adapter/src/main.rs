@@ -6,7 +6,19 @@ use futures_util::{SinkExt, StreamExt};
 use mcp::{handle_mcp_request, ingest_server_text, McpError, McpRequest, McpResponse, ToolState};
 use serde_json::Value;
 use std::io::{self, BufRead, Write};
-use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio_tungstenite::{
+    connect_async_with_config,
+    tungstenite::{protocol::WebSocketConfig, Message},
+};
+
+fn socket_config() -> WebSocketConfig {
+    #[allow(deprecated)]
+    WebSocketConfig {
+        max_message_size: Some(64 * 1024),
+        max_frame_size: Some(64 * 1024),
+        ..WebSocketConfig::default()
+    }
+}
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug, PartialEq, Eq)]
@@ -117,7 +129,8 @@ async fn mcp_connect_and_hello(
     name: &str,
     tool_state: &std::sync::Arc<tokio::sync::Mutex<ToolState>>,
 ) -> Result<McpWsSession, Box<dyn std::error::Error>> {
-    let (ws_stream, _) = connect_async(server_url).await?;
+    let (ws_stream, _) =
+        connect_async_with_config(server_url, Some(socket_config()), false).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let body = tool_state.lock().await.body;
@@ -382,7 +395,8 @@ async fn run_scripted_bot(
         server_url
     );
 
-    let (ws_stream, _) = connect_async(&server_url).await?;
+    let (ws_stream, _) =
+        connect_async_with_config(&server_url, Some(socket_config()), false).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
 
     let hello = ClientMessage::Hello {

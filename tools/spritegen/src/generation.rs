@@ -188,12 +188,46 @@ fn io_error(error: std::io::Error) -> Error {
 
 pub(crate) fn write_artifact(out: &std::path::Path, name: &str, bytes: &[u8]) -> Result<(), Error> {
     crate::validation::validate_file_name(name)?;
-    let temporary = out.join(format!("{name}.part"));
-    let mut file = std::fs::File::create(&temporary).map_err(io_error)?;
+    let destination = out.join(name);
+    reject_symlink_path(&destination)?;
+    let temporary = out.join(format!(".{name}.part"));
+    if is_symlink(&temporary) {
+        return Err(Error::Io("refusing to write through a symlink".into()));
+    }
+    if temporary.exists() {
+        std::fs::remove_file(&temporary).map_err(io_error)?;
+    }
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)
+        .map_err(io_error)?;
     file.write_all(bytes).map_err(io_error)?;
     file.sync_all().map_err(io_error)?;
     drop(file);
-    std::fs::rename(temporary, out.join(name)).map_err(io_error)
+    if is_symlink(&destination) {
+        let _ = std::fs::remove_file(&temporary);
+        return Err(Error::Io("refusing to replace a symlink".into()));
+    }
+    if destination.exists() {
+        std::fs::remove_file(&destination).map_err(io_error)?;
+    }
+    std::fs::rename(temporary, destination).map_err(io_error)
+}
+
+fn is_symlink(path: &std::path::Path) -> bool {
+    std::fs::symlink_metadata(path).is_ok_and(|meta| meta.file_type().is_symlink())
+}
+
+fn reject_symlink_path(path: &std::path::Path) -> Result<(), Error> {
+    let mut current = std::path::PathBuf::new();
+    for component in path.components() {
+        current.push(component);
+        if is_symlink(&current) {
+            return Err(Error::Io("refusing to follow a symlink".into()));
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -357,7 +391,7 @@ mod tests {
                 "download" => vec![Err(Error::Transport("CDN unavailable".into()))],
                 "empty" => vec![Ok(vec![])],
                 "write" => {
-                    std::fs::create_dir(dir.0.join("tack_0.png.part")).unwrap();
+                    std::fs::create_dir(dir.0.join(".tack_0.png.part")).unwrap();
                     vec![Ok(vec![8])]
                 }
                 _ => vec![],
@@ -371,7 +405,7 @@ mod tests {
                 Stage::Submitted { .. } | Stage::Completed { .. }
             ));
             if failure == "write" {
-                std::fs::remove_dir(dir.0.join("tack_0.png.part")).unwrap();
+                std::fs::remove_dir(dir.0.join(".tack_0.png.part")).unwrap();
             }
             let resume = Fake::new(&dir, vec![completed()], vec![Ok(vec![7])]);
             run(&resume, &spec).unwrap();

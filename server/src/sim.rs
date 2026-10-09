@@ -3220,7 +3220,7 @@ impl GameState {
             players: self
                 .players
                 .iter()
-                .filter(|p| p.respawn_timer.is_none() && !p.eliminated)
+                .filter(|p| p.respawn_timer.is_none() && !p.eliminated && !p.detached)
                 .map(|p| {
                     let behavior = self
                         .bots

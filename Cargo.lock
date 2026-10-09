@@ -545,6 +545,7 @@ dependencies = [
  "clap",
  "futures-util",
  "getrandom 0.2.15",
+ "http",
  "if-addrs",
  "rand 0.8.8",
  "serde",

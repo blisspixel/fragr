@@ -52,11 +52,12 @@ jobs:
             os: macos-26
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
+          toolchain: 1.97.1
           targets: ${{ matrix.platform == 'macos-universal' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
         with:
           key: release-${{ matrix.platform }}
       - name: Build fragr-server
@@ -98,7 +99,7 @@ jobs:
           # Fails when any linked crate lacks a license the deny.toml allowlist accepts,
           # or has neither its own license file nor a standard text for its license.
           cargo run -p fragr-licenses --locked -- "${targets[@]}" --deny deny.toml --out out/THIRD_PARTY_LICENSES.txt
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: server-${{ matrix.platform }}
           path: out/
@@ -108,24 +109,24 @@ jobs:
   client:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Restore export templates
         id: templates
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ~/.local/share/godot/export_templates/${{ env.GODOT_TEMPLATES }}
-          key: godot-export-templates-${{ env.GODOT_TEMPLATES }}-desktop
+          key: godot-export-templates-${{ env.GODOT_TEMPLATES }}-desktop-sha512
       - name: Install Godot 4.7.2-stable and its desktop templates
         env:
           TEMPLATES_HIT: ${{ steps.templates.outputs.cache-hit }}
         run: |
           set -euo pipefail
-          curl -fsSL -o SHA512-SUMS.txt "$GODOT_RELEASE/SHA512-SUMS.txt"
           curl -fsSL -o Godot_v4.7.2-stable_linux.x86_64.zip "$GODOT_RELEASE/Godot_v4.7.2-stable_linux.x86_64.zip"
+          bash tools/check_godot_archive.sh Godot_v4.7.2-stable_linux.x86_64.zip Godot_v4.7.2-stable_linux.x86_64.zip
           if [ "$TEMPLATES_HIT" != "true" ]; then
             curl -fsSL -o Godot_v4.7.2-stable_export_templates.tpz "$GODOT_RELEASE/Godot_v4.7.2-stable_export_templates.tpz"
+            bash tools/check_godot_archive.sh Godot_v4.7.2-stable_export_templates.tpz Godot_v4.7.2-stable_export_templates.tpz
           fi
-          sha512sum --check --ignore-missing --strict SHA512-SUMS.txt
           unzip -q Godot_v4.7.2-stable_linux.x86_64.zip
           chmod +x Godot_v4.7.2-stable_linux.x86_64
           echo "GODOT_BIN=$PWD/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
@@ -164,21 +165,21 @@ jobs:
             if grep -qE 'SCRIPT ERROR|(^|[[:space:]])ERROR:' <<<"$log"; then printf '%s\n' "$log"; exit 1; fi
           done
           ls -l builds/windows builds/linux builds/macos
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: client-windows-x86_64
           path: builds/windows/
           compression-level: 1
           retention-days: 3
           if-no-files-found: error
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: client-linux-x86_64
           path: builds/linux/
           compression-level: 1
           retention-days: 3
           if-no-files-found: error
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: client-macos-universal
           path: builds/macos/
@@ -204,12 +205,12 @@ jobs:
     env:
       PLATFORM: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v8
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: server-${{ matrix.platform }}
           path: stage/server
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: client-${{ matrix.platform }}
           path: stage/client
@@ -307,12 +308,12 @@ jobs:
           [System.Drawing.Icon]::ExtractAssociatedIcon($exe.FullName).ToBitmap().Save("$env:RUNNER_TEMP/fragr-exe-icon.png")
       - name: Keep the Windows icon evidence
         if: matrix.platform == 'windows-x86_64'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: windows-exe-icon
           path: ${{ runner.temp }}/fragr-exe-icon.png
           retention-days: 7
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: package-${{ matrix.platform }}
           path: ${{ env.PACKAGE }}
@@ -327,7 +328,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           pattern: package-*
           path: packages
