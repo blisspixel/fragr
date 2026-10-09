@@ -600,12 +600,12 @@ pub fn read_capped(
 }
 
 pub(crate) fn write_refusing_symlinks(path: &Path, bytes: &[u8]) -> Result<(), Error> {
+    reject_symlink_components(path)?;
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
             fs::create_dir_all(parent)?;
         }
     }
-    reject_symlink_components(path)?;
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
@@ -650,16 +650,34 @@ fn is_symlink(path: &Path) -> bool {
 }
 
 fn reject_symlink_components(path: &Path) -> Result<(), Error> {
+    // macOS temp and `/tmp` live behind `/var` and `/tmp` symlinks. Those
+    // ancestors are the platform layout. A symlink at the file, or inside
+    // the directory this write creates, is still refused.
+    let roots = platform_roots();
     let mut current = PathBuf::new();
     for component in path.components() {
         current.push(component);
-        if is_symlink(&current) {
-            return Err(Error::InvalidArgument(
-                "refusing to follow a symlink".into(),
-            ));
+        if !is_symlink(&current) {
+            continue;
         }
+        if roots.iter().any(|root| root.starts_with(&current)) {
+            current = fs::canonicalize(&current)
+                .map_err(|_| Error::InvalidArgument("refusing to follow a symlink".into()))?;
+            continue;
+        }
+        return Err(Error::InvalidArgument(
+            "refusing to follow a symlink".into(),
+        ));
     }
     Ok(())
+}
+
+fn platform_roots() -> Vec<PathBuf> {
+    let mut roots = vec![std::env::temp_dir()];
+    if let Ok(cwd) = std::env::current_dir() {
+        roots.push(cwd);
+    }
+    roots
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

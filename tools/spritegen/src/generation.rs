@@ -220,12 +220,25 @@ fn is_symlink(path: &std::path::Path) -> bool {
 }
 
 fn reject_symlink_path(path: &std::path::Path) -> Result<(), Error> {
+    // macOS temp and `/tmp` live behind `/var` and `/tmp` symlinks. Those
+    // ancestors are the platform layout. A symlink at the file, or inside
+    // the directory this write creates, is still refused.
+    let mut roots = vec![std::env::temp_dir()];
+    if let Ok(cwd) = std::env::current_dir() {
+        roots.push(cwd);
+    }
     let mut current = std::path::PathBuf::new();
     for component in path.components() {
         current.push(component);
-        if is_symlink(&current) {
-            return Err(Error::Io("refusing to follow a symlink".into()));
+        if !is_symlink(&current) {
+            continue;
         }
+        if roots.iter().any(|root| root.starts_with(&current)) {
+            current = std::fs::canonicalize(&current)
+                .map_err(|_| Error::Io("refusing to follow a symlink".into()))?;
+            continue;
+        }
+        return Err(Error::Io("refusing to follow a symlink".into()));
     }
     Ok(())
 }
