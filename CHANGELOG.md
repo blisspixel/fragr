@@ -15,6 +15,9 @@ Release history, newest first. Planned work stays in
   and Walker remain unfinished.
 - Stop match voices before leaving a match, so the round-start sample is
   released before process exit.
+- Add the foundry successor map. It opens the ladle shaft and places an office
+  Rocket Launcher and a freight Assessor. It is not a mission, and no menu
+  launches it.
 
 These are development prototypes. Full campaign completion, final art,
 fresh-player acceptance, physical LAN evidence and a networked 64-player
