@@ -52,6 +52,11 @@ fn launch_authority_development_has_explicit_fleet_ordered_guards_and_infantry_r
         "marksman_flank",
         "apron_resupply_approach",
         "apron_resupply",
+        "trench_south_mouth",
+        "trench_lane",
+        "trench_bunker_west",
+        "trench_bunker_east",
+        "trench_north_mouth",
     ] {
         let feet = map().landmark(name).unwrap();
         assert_eq!(
@@ -78,6 +83,76 @@ fn launch_authority_development_has_explicit_fleet_ordered_guards_and_infantry_r
     assert!(
         crate::combat::line_of_sight([-46., 3.6, -52.], [5., 27., 41.], &world.arena().solids),
         "gantry frame must be visible from the freight lift"
+    );
+    let lane = map().landmark("trench_lane").unwrap();
+    let eye = [lane[0], lane[1] + crate::movement::EYE_HEIGHT, lane[2]];
+    let solids = &world.arena().solids;
+    // The parapet covers a standing eye. The lane itself stays open.
+    assert!(
+        !crate::combat::line_of_sight([-4., crate::movement::EYE_HEIGHT, lane[2]], eye, solids),
+        "standing fire from the west field must stop in the trench parapet"
+    );
+    assert!(
+        !crate::combat::line_of_sight([4., crate::movement::EYE_HEIGHT, lane[2]], eye, solids),
+        "standing fire from the east field must stop in the trench parapet"
+    );
+    assert!(
+        crate::combat::line_of_sight(
+            [lane[0], crate::movement::EYE_HEIGHT, lane[2] - 2.],
+            [lane[0], crate::movement::EYE_HEIGHT, lane[2] + 2.],
+            solids,
+        ),
+        "the trench lane stays open along its length"
+    );
+    assert!(!world
+        .arena()
+        .blocked_at(lane[0], lane[2], crate::movement::STEP_UP));
+    assert!(world
+        .arena()
+        .blocked_at(-0.5, lane[2], crate::movement::STEP_UP));
+    assert!(world
+        .arena()
+        .blocked_at(1.5, lane[2], crate::movement::STEP_UP));
+    for point in [[0., 0., 25.], [-24., 0., 27.], [26., 0., 27.]] {
+        assert!(
+            !world
+                .arena()
+                .blocked_at(point[0], point[2], crate::movement::STEP_UP),
+            "open crossing blocked at {point:?}"
+        );
+    }
+    for id in ["trench_west_bullets", "trench_east_medkit"] {
+        assert!(world.pickups().iter().any(|pad| pad.id == id), "{id}");
+    }
+    let kinds = |name: &str| {
+        world
+            .encounters()
+            .iter()
+            .find(|group| group.id == name)
+            .unwrap()
+            .enemies
+            .iter()
+            .map(|enemy| enemy.kind)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(
+        kinds("depot_defense"),
+        vec![
+            crate::protocol::EnemyKind::Clerk,
+            crate::protocol::EnemyKind::Clerk,
+            crate::protocol::EnemyKind::Sweeper,
+            crate::protocol::EnemyKind::Sweeper,
+            crate::protocol::EnemyKind::Turret,
+        ]
+    );
+    assert_eq!(
+        kinds("berm_watch"),
+        vec![
+            crate::protocol::EnemyKind::Clerk,
+            crate::protocol::EnemyKind::Clerk,
+            crate::protocol::EnemyKind::RangedSweeper,
+            crate::protocol::EnemyKind::Turret,
+        ]
     );
 }
 

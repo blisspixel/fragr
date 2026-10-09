@@ -1,0 +1,144 @@
+{
+  "version": 1,
+  "map_id": 1017,
+  "name": "Peace Without Interruption (development)",
+  "half_extent": 44,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "approach_west", "min": [-44, 0, -44], "max": [-6, 4.5, -22], "surface": "enamel"},
+    {"id": "approach_east", "min": [6, 0, -44], "max": [44, 4.5, -22], "surface": "enamel"},
+    {"id": "approach_pier_a", "min": [-4, 0, -36], "max": [-2, 4.5, -32], "surface": "concrete"},
+    {"id": "approach_pier_b", "min": [2, 0, -30], "max": [4, 4.5, -26], "surface": "concrete"},
+    {"id": "hall_south_west", "min": [-18, 0, -22], "max": [-3, 4.5, -20], "surface": "enamel"},
+    {"id": "hall_south_east", "min": [3, 0, -22], "max": [18, 4.5, -20], "surface": "enamel"},
+    {"id": "hall_west_south", "min": [-18, 0, -20], "max": [-16, 4.5, -12], "surface": "enamel"},
+    {"id": "hall_west_north", "min": [-18, 0, -6], "max": [-16, 4.5, -2], "surface": "enamel"},
+    {"id": "hall_east", "min": [16, 0, -20], "max": [44, 4.5, 0], "surface": "enamel"},
+    {"id": "hall_north_west", "min": [-18, 0, -2], "max": [-3, 4.5, 0], "surface": "enamel"},
+    {"id": "hall_north_east", "min": [3, 0, -2], "max": [18, 4.5, 0], "surface": "enamel"},
+    {"id": "hall_bench_west", "min": [-12, 0, -16], "max": [-6, 1.1, -12], "surface": "records_tile"},
+    {"id": "hall_bench_east", "min": [6, 0, -16], "max": [12, 1.1, -12], "surface": "records_tile"},
+    {"id": "hall_rostrum", "min": [-3, 0, -8], "max": [3, 1.2, -5], "surface": "records_tile"},
+    {"id": "lane_west", "min": [-5, 0, 0], "max": [-3, 4.5, 18], "surface": "service_steel"},
+    {"id": "lane_east", "min": [3, 0, 0], "max": [5, 4.5, 18], "surface": "service_steel"},
+    {"id": "ring_west", "min": [-44, 0, -18], "max": [-34, 4.5, 4], "surface": "enamel"},
+    {"id": "ring_south", "min": [-34, 0, -18], "max": [-16, 4.5, -16], "surface": "enamel"},
+    {"id": "ring_north_west", "min": [-34, 0, 2], "max": [-28, 4.5, 4], "surface": "enamel"},
+    {"id": "ring_north_east", "min": [-22, 0, 2], "max": [-16, 4.5, 4], "surface": "enamel"},
+    {"id": "ring_core", "min": [-30, 0, -12], "max": [-24, 4.5, -4], "surface": "records_tile"},
+    {"id": "ring_east_cap", "min": [-18, 0, -2], "max": [-16, 4.5, 2], "surface": "enamel"},
+    {"id": "gallery_west", "min": [-44, 0, 4], "max": [-34, 4.5, 20], "surface": "enamel"},
+    {"id": "gallery_south_west", "min": [-34, 0, 4], "max": [-28, 4.5, 6], "surface": "enamel"},
+    {"id": "gallery_south_east", "min": [-22, 0, 4], "max": [-5, 4.5, 6], "surface": "enamel"},
+    {"id": "gallery_east", "min": [-8, 0, 6], "max": [-5, 4.5, 18], "surface": "enamel"},
+    {"id": "gallery_north_west", "min": [-34, 0, 18], "max": [-26, 4.5, 20], "surface": "enamel"},
+    {"id": "gallery_north_east", "min": [-20, 0, 18], "max": [-5, 4.5, 20], "surface": "enamel"},
+    {"id": "chamber_south_west", "min": [-16, 0, 18], "max": [-3, 4.5, 20], "surface": "enamel"},
+    {"id": "chamber_south_east", "min": [3, 0, 18], "max": [16, 4.5, 20], "surface": "enamel"},
+    {"id": "chamber_west_south", "min": [-16, 0, 20], "max": [-14, 4.5, 24], "surface": "enamel"},
+    {"id": "chamber_west_north", "min": [-16, 0, 30], "max": [-14, 4.5, 34], "surface": "enamel"},
+    {"id": "chamber_east_south", "min": [14, 0, 20], "max": [16, 4.5, 24], "surface": "enamel"},
+    {"id": "chamber_east_north", "min": [14, 0, 30], "max": [16, 4.5, 34], "surface": "enamel"},
+    {"id": "chamber_north", "min": [-14, 0, 34], "max": [14, 4.5, 36], "surface": "enamel"},
+    {"id": "flank_west", "min": [-44, 0, 20], "max": [-34, 4.5, 42], "surface": "enamel"},
+    {"id": "wrap_north", "min": [-34, 0, 40], "max": [32, 4.5, 44], "surface": "enamel"},
+    {"id": "exit_east", "min": [30, 0, 0], "max": [44, 4.5, 44], "surface": "enamel"},
+    {"id": "exit_south", "min": [16, 0, 16], "max": [30, 4.5, 18], "surface": "enamel"}
+  ],
+  "spawns": [
+    {"id": "entry", "feet": [0, 0, -38], "yaw": 0}
+  ],
+  "landmarks": [
+    {"id": "civic_approach", "feet": [0, 0, -34]},
+    {"id": "occupied_public_hall", "feet": [0, 0, -17]},
+    {"id": "administration_ring", "feet": [-32, 0, -14]},
+    {"id": "command_galleries", "feet": [-24, 0, 12]},
+    {"id": "frontal_kill_lane", "feet": [0, 0, 9]},
+    {"id": "flank_bypass", "feet": [-28, 0, 26]},
+    {"id": "north_wrap", "feet": [-20, 0, 38]},
+    {"id": "assembly_chamber", "feet": [0, 0, 27]},
+    {"id": "later_exit", "feet": [24, 0, 38]}
+  ],
+  "supplies": [
+    {
+      "id": "hall_flechette",
+      "feet": [-10, 0, -18],
+      "grant": {"kind": "weapon", "weapon": "flechette"},
+      "claim": "personal"
+    },
+    {
+      "id": "hall_bullets",
+      "feet": [10, 0, -18],
+      "grant": {"kind": "ammo", "pool": "bullets", "amount": 40},
+      "claim": "contested"
+    },
+    {
+      "id": "ring_health",
+      "feet": [-32, 0, 0],
+      "grant": {"kind": "health", "amount": 25},
+      "claim": "contested"
+    },
+    {
+      "id": "exit_armor",
+      "feet": [24, 0, 28],
+      "grant": {"kind": "armor", "amount": 50},
+      "claim": "contested"
+    }
+  ],
+  "decorations": [
+    {"solid": "ring_core", "face": "north", "kind": "records_sign", "center": [0, 0.2], "size": [2, 1.5]},
+    {"solid": "chamber_north", "face": "north", "kind": "union_seal", "center": [-4, 0.3], "size": [2.5, 2]},
+    {"solid": "chamber_north", "face": "north", "kind": "terminal", "center": [4, 0.2], "size": [6, 2]}
+  ],
+  "encounters": [
+    {
+      "id": "approach_watch",
+      "regions": [{"min": [-5, 0, -42], "max": [5, 2, -24]}],
+      "enemies": [
+        {"id": "approach_clerk", "kind": "clerk", "feet": [0, 0, -30], "yaw": 3.14159265},
+        {"id": "approach_sweeper", "kind": "sweeper", "feet": [-3, 0, -27], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "hall_occupation",
+      "after": "approach_watch",
+      "regions": [{"min": [-15, 0, -20], "max": [15, 2, -1]}],
+      "enemies": [
+        {"id": "hall_clerk_west", "kind": "clerk", "feet": [-9, 0, -10], "yaw": 0},
+        {"id": "hall_clerk_east", "kind": "clerk", "feet": [9, 0, -10], "yaw": 3.14159265},
+        {"id": "hall_enforcer", "kind": "enforcer", "feet": [-9, 0, -4], "yaw": 3.14159265},
+        {"id": "hall_auditor", "kind": "auditor", "feet": [9, 0, -4], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "ring_holding",
+      "after": "hall_occupation",
+      "regions": [{"min": [-38, 0, -16], "max": [-17, 3, 2]}],
+      "enemies": [
+        {"id": "ring_sweeper_west", "kind": "sweeper", "feet": [-32, 0, -8], "yaw": 1.5707963},
+        {"id": "ring_sweeper_east", "kind": "sweeper", "feet": [-22, 0, -9], "yaw": 0},
+        {"id": "ring_enforcer", "kind": "enforcer", "feet": [-27, 0, -1], "yaw": 1.5707963}
+      ]
+    },
+    {
+      "id": "lane_defense",
+      "after": "hall_occupation",
+      "regions": [{"min": [-2.5, 0, 1], "max": [2.5, 3, 17]}],
+      "enemies": [
+        {"id": "lane_turret_south", "kind": "turret", "feet": [-1.2, 0, 6], "yaw": 3.14159265},
+        {"id": "lane_turret_north", "kind": "turret", "feet": [1.2, 0, 12], "yaw": 3.14159265},
+        {"id": "lane_heavy", "kind": "heavy_sweeper", "feet": [0, 0, 15], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "gallery_watch",
+      "after": "ring_holding",
+      "regions": [{"min": [-34, 0, 7], "max": [-9, 3, 17]}],
+      "enemies": [
+        {"id": "gallery_clerk", "kind": "clerk", "feet": [-30, 0, 12], "yaw": 3.14159265},
+        {"id": "gallery_enforcer", "kind": "enforcer", "feet": [-18, 0, 14], "yaw": 0}
+      ]
+    }
+  ]
+}

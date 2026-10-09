@@ -434,11 +434,14 @@ its brief. `main` at `711dfb4` has twelve connected development prototypes
 through Terms of Cooperation, released as v0.80.0, and the Rocket Launcher
 foundation, released as v0.81.0. Connected M13 through M20 and the conditional
 epilogue remain unbuilt. The launcher is not part of v0.80.0, and no mission
-grants it. The foundry successor opens the shaft and places the rocket lesson,
-and it is not a mission. Connected M13 is the next campaign dependency and keeps
-its own mission gates. Relay, hazard, worker and lift rules are implemented on a
-fixture map and remain short of a connected mission. The optional M12 secret
-stays separate because it changes canonical map bytes.
+grants it. The foundry successor opens the shaft, places the rocket lesson, and carries
+the optional foundry gate key. It is still not a mission. Connected M13 is the
+next campaign dependency and keeps its own mission gates. Relay, hazard, worker
+and lift rules load from a fixture and from that successor key, and remain short
+of a connected mission. Development grayboxes for levels 15 through 20, and a
+sheltered trench on the level 14 battlefield, are not missions. The epilogue
+remains a plan. The optional M12 secret stays separate because it changes
+canonical map bytes.
 
 **Current composition, 2026-10-08.** The numbered rungs below remain the single
 build order. Rungs 1 and 2 now run together for the bounded work explicitly

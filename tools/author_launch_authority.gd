@@ -11,6 +11,7 @@ func _initialize() -> void:
 	_arrival_and_depot()
 	_field()
 	_gantry()
+	_trenches()
 	_stock()
 	var document: Dictionary = {
 		"version": 1, "map_id": 1014, "name": "Launch Authority (development)",
@@ -143,6 +144,21 @@ func _gantry() -> void:
 	_box("lander_left_foot", [24, 0.2, 41], [27, 1.0, 43])
 	_box("lander_right_foot", [32, 0.2, 41], [35, 1.0, 43])
 
+func _trenches() -> void:
+	# Head-high parapets cut the berm field. Flank lanes and the outer circuit
+	# stay open, so infantry can use either the trench or the road.
+	var top := 1.75
+	_box("trench_west_00", [-0.75, 0, 6.25], [-0.25, top, 15.0], "concrete")
+	_box("trench_west_01", [-0.75, 0, 17.5], [-0.25, top, 22.25], "concrete")
+	_box("trench_east_00", [1.25, 0, 6.25], [1.75, top, 8.0], "concrete")
+	_box("trench_east_01", [1.25, 0, 10.5], [1.75, top, 22.25], "concrete")
+	_box("trench_bunker_west_south", [-4.25, 0, 14.5], [-0.75, top, 15.0], "concrete")
+	_box("trench_bunker_west_north", [-4.25, 0, 17.5], [-0.75, top, 18.0], "concrete")
+	_box("trench_bunker_west_back", [-4.25, 0, 14.5], [-3.75, top, 18.0], "concrete")
+	_box("trench_bunker_east_south", [1.75, 0, 7.5], [5.0, top, 8.0], "concrete")
+	_box("trench_bunker_east_north", [1.75, 0, 10.5], [5.0, top, 11.0], "concrete")
+	_box("trench_bunker_east_back", [4.5, 0, 7.5], [5.0, top, 11.0], "concrete")
+
 func _supply(id: String, feet: Array, grant: Dictionary, personal: bool = false, secret: bool = false) -> void:
 	var value: Dictionary = {"id": id, "feet": feet, "grant": grant, "claim": "personal" if personal else "contested"}
 	if secret:
@@ -171,6 +187,8 @@ func _stock() -> void:
 	_supply("apron_shells", [-24, 0, 33], {"kind": "ammo", "pool": "shells", "amount": 24})
 	_supply("apron_medkit", [-24, 0, 35], {"kind": "health", "amount": 70})
 	_supply("gantry_armor", [14, 0, 45], {"kind": "armor", "amount": 50}, false, true)
+	_supply("trench_west_bullets", [-2.5, 0, 16.5], {"kind": "ammo", "pool": "bullets", "amount": 80})
+	_supply("trench_east_medkit", [3.5, 0, 9.5], {"kind": "health", "amount": 50})
 
 func _landmarks() -> Array[Dictionary]:
 	var result: Array[Dictionary] = [
@@ -189,6 +207,11 @@ func _landmarks() -> Array[Dictionary]:
 	var circuit: Array = [[-50, 0, -24], [-50, 0, 30], [-40, 0, 50], [-20, 0, 56], [28, 0, 56], [48, 0, 38], [50, 0, -22], [48, 0, -54], [36, 0, -63], [-36, 0, -63], [-56, 0, -63], [-56, 0, -50], [-56, 0, -24]]
 	for index: int in range(circuit.size()):
 		result.append({"id": "circuit_%02d" % index, "feet": circuit[index]})
+	result.append({"id": "trench_south_mouth", "feet": [0.5, 0, 5.5]})
+	result.append({"id": "trench_lane", "feet": [0.5, 0, 12.5]})
+	result.append({"id": "trench_bunker_west", "feet": [-2.5, 0, 16.5]})
+	result.append({"id": "trench_bunker_east", "feet": [3.5, 0, 9.5]})
+	result.append({"id": "trench_north_mouth", "feet": [0.5, 0, 23.5]})
 	return result
 
 func _enemy(id: String, kind: String, feet: Array, yaw: float = PI * 1.5) -> Dictionary:

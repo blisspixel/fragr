@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "map_id": 1020,
+  "name": "Local Exception (development)",
+  "half_extent": 40,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "waterworks_tower", "min": [-34, 0, 4], "max": [-29, 6.5, 10], "surface": "service_steel"},
+    {"id": "sluice_north", "min": [-32, 0, 3], "max": [-18, 1.5, 6], "surface": "service_steel"},
+    {"id": "sluice_south", "min": [-32, 0, -6], "max": [-18, 1.5, -3], "surface": "service_steel"},
+    {"id": "valve_house", "min": [-28, 0, -14], "max": [-22, 3.4, -9], "surface": "enamel"},
+    {"id": "pump_house", "min": [-26, 0, 8], "max": [-20, 3.2, 13], "surface": "service_steel"},
+    {"id": "waterworks_approach_north", "min": [-14, 0, 2.6], "max": [-8, 1.7, 4.2], "surface": "concrete"},
+    {"id": "waterworks_approach_south", "min": [-14, 0, -4.2], "max": [-8, 1.7, -2.6], "surface": "concrete"},
+    {"id": "pier_north_west", "min": [-8, 0, 5], "max": [-3, 1.8, 7], "surface": "concrete"},
+    {"id": "pier_north_east", "min": [3, 0, 5], "max": [14, 1.8, 7], "surface": "concrete"},
+    {"id": "pier_south_west", "min": [-8, 0, -7], "max": [1, 1.8, -5], "surface": "concrete"},
+    {"id": "pier_south_east", "min": [7, 0, -7], "max": [14, 1.8, -5], "surface": "concrete"},
+    {"id": "pier_crane", "min": [11, 0, 8], "max": [14.5, 5.2, 12], "surface": "service_steel"},
+    {"id": "harbour_screen", "min": [8, 0, 0.6], "max": [10, 2.5, 3], "surface": "enamel"},
+    {"id": "eddas_bollard", "min": [4.2, 0, 2.2], "max": [5.2, 1.4, 3.2], "surface": "enamel"},
+    {"id": "pier_crates", "min": [-5, 0, -3.4], "max": [-3, 1.15, -1.4], "surface": "concrete"},
+    {"id": "yard_west", "min": [1, 0, -26], "max": [3, 1.8, -8], "surface": "concrete"},
+    {"id": "yard_east", "min": [7, 0, -26], "max": [9, 1.8, -8], "surface": "concrete"},
+    {"id": "trench_west", "min": [-5, 0, 8], "max": [-3, 1.8, 26], "surface": "service_steel"},
+    {"id": "trench_east", "min": [1, 0, 8], "max": [3, 1.8, 26], "surface": "service_steel"},
+    {"id": "refuge_north", "min": [16, 0, 4], "max": [26, 2.1, 6.2], "surface": "concrete"},
+    {"id": "refuge_south", "min": [16, 0, -6.2], "max": [26, 2.1, -4], "surface": "concrete"},
+    {"id": "freight_platform", "min": [17, 0, -12], "max": [24, 1.5, -8], "surface": "concrete"},
+    {"id": "refuge_gate", "min": [28, 0, -6.2], "max": [30.5, 3.8, 6.2], "surface": "enamel"}
+  ],
+  "spawns": [{"id": "entry", "feet": [-24, 0, 0], "yaw": 0}],
+  "landmarks": [
+    {"id": "waterworks", "feet": [-22, 0, 0]},
+    {"id": "approach_waterworks", "feet": [-11, 0, 0]},
+    {"id": "freight_pier", "feet": [2, 0, 0]},
+    {"id": "approach_tram_trench", "feet": [-1, 0, 6]},
+    {"id": "approach_freight_yard", "feet": [4, 0, -6]},
+    {"id": "refuge_approach", "feet": [21, 0, 0]},
+    {"id": "eddas_lamp", "feet": [2.4, 0, 1.4]}
+  ],
+  "supplies": [
+    {"id": "pier_flechette", "feet": [-1, 0, -2], "grant": {"kind": "weapon", "weapon": "flechette"}, "claim": "personal"},
+    {"id": "pier_shells", "feet": [1, 0, -2], "grant": {"kind": "ammo", "pool": "shells", "amount": 8}, "claim": "contested"},
+    {"id": "pier_cells", "feet": [1, 0, 2], "grant": {"kind": "ammo", "pool": "cells", "amount": 8}, "claim": "contested"},
+    {"id": "pier_health", "feet": [-1, 0, 2], "grant": {"kind": "health", "amount": 25}, "claim": "contested"},
+    {"id": "lamp_armor", "feet": [3.2, 0, 0.6], "grant": {"kind": "armor", "amount": 50}, "claim": "contested", "secret": true},
+    {"id": "valve_rockets", "feet": [-20, 0, -11], "grant": {"kind": "weapon", "weapon": "rocket"}, "claim": "personal", "secret": true}
+  ],
+  "encounters": [
+    {
+      "id": "waterworks_sluice",
+      "regions": [{"min": [-30, 0, -2.4], "max": [-16, 3, 2.4]}],
+      "enemies": [{"id": "sluice_sweeper", "kind": "sweeper", "feet": [-20, 0, 0], "yaw": 3.14159265}]
+    },
+    {
+      "id": "crew_crossing",
+      "regions": [{"min": [-14, 0, -2.2], "max": [-8, 3, 2.2]}],
+      "enemies": [{"id": "crossing_heavy", "kind": "heavy_sweeper", "feet": [-9, 0, 1.2], "yaw": 3.14159265}]
+    },
+    {
+      "id": "freight_yard",
+      "regions": [{"min": [3.2, 0, -24], "max": [6.8, 3, -9]}],
+      "enemies": [{"id": "freight_sweeper", "kind": "sweeper", "feet": [5, 0, -16], "yaw": 0}]
+    },
+    {
+      "id": "tram_trench",
+      "regions": [{"min": [-2.6, 0, 9], "max": [0.6, 3, 24]}],
+      "enemies": [{"id": "trench_sweeper", "kind": "sweeper", "feet": [-1, 0, 16], "yaw": 0}]
+    },
+    {
+      "id": "pier_hold",
+      "regions": [{"min": [-2, 0, -4], "max": [12, 3, 4]}],
+      "enemies": [{"id": "pier_sweeper", "kind": "sweeper", "feet": [6, 0, -1], "yaw": 0}]
+    }
+  ]
+}

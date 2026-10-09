@@ -1,0 +1,189 @@
+{
+  "version": 1,
+  "map_id": 1015,
+  "name": "Civic Pressure Valve (development)",
+  "half_extent": 36,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "perimeter_south", "min": [-35, 0, -35], "max": [35, 6, -34], "surface": "concrete"},
+    {"id": "perimeter_north", "min": [-35, 0, 34], "max": [35, 6, 35], "surface": "concrete"},
+    {"id": "perimeter_west", "min": [-35, 0, -34], "max": [-34, 6, 34], "surface": "concrete"},
+    {"id": "perimeter_east", "min": [34, 0, -34], "max": [35, 6, 34], "surface": "concrete"},
+    {"id": "placard_post_04", "min": [-16.25, 0, -31.2], "max": [-15.75, 2, -30.6], "surface": "service_steel"},
+    {"id": "placard_post_12", "min": [-12.25, 0, -31.2], "max": [-11.75, 2, -30.6], "surface": "service_steel"},
+    {"id": "placard_post_44", "min": [-8.25, 0, -31.2], "max": [-7.75, 2, -30.6], "surface": "service_steel"},
+    {"id": "placard_post_71", "min": [-4.25, 0, -31.2], "max": [-3.75, 2, -30.6], "surface": "service_steel"},
+    {"id": "placard_post_67", "min": [11.75, 0, -28.4], "max": [12.25, 2, -27.8], "surface": "service_steel"},
+    {"id": "arming_crate", "min": [6, 0, -26.5], "max": [7.8, 0.9, -25.2], "surface": "service_steel"},
+    {"id": "south_stand_west", "min": [-30, 0, -22], "max": [-4, 2.4, -12], "surface": "enamel"},
+    {"id": "south_stand_east", "min": [4, 0, -22], "max": [30, 2.4, -12], "surface": "enamel"},
+    {"id": "south_stand_bridge", "min": [-4, 2.2, -22], "max": [4, 2.4, -12], "surface": "enamel"},
+    {"id": "west_stand_south", "min": [-30, 0, -12], "max": [-12, 2.4, -4], "surface": "enamel"},
+    {"id": "west_landing", "min": [-30, 0, -4], "max": [-14, 2.4, 4], "surface": "enamel"},
+    {"id": "west_stair_00", "min": [-9, 0, -2], "max": [-8, 0.4, 2], "surface": "concrete"},
+    {"id": "west_stair_01", "min": [-10, 0, -2], "max": [-9, 0.8, 2], "surface": "concrete"},
+    {"id": "west_stair_02", "min": [-11, 0, -2], "max": [-10, 1.2, 2], "surface": "concrete"},
+    {"id": "west_stair_03", "min": [-12, 0, -2], "max": [-11, 1.6, 2], "surface": "concrete"},
+    {"id": "west_stair_04", "min": [-13, 0, -2], "max": [-12, 2, 2], "surface": "concrete"},
+    {"id": "west_stair_05", "min": [-14, 0, -2], "max": [-13, 2.4, 2], "surface": "concrete"},
+    {"id": "west_stand_north_outer", "min": [-30, 0, 4], "max": [-16, 2.4, 12], "surface": "enamel"},
+    {"id": "west_tunnel_jamb_south", "min": [-16, 0, 4], "max": [-12, 2.4, 6], "surface": "enamel"},
+    {"id": "west_tunnel_jamb_north", "min": [-16, 0, 10], "max": [-12, 2.4, 12], "surface": "enamel"},
+    {"id": "west_tunnel_lintel", "min": [-16, 2.2, 6], "max": [-12, 2.4, 10], "surface": "enamel"},
+    {"id": "east_stand_south_outer", "min": [16, 0, -12], "max": [30, 2.4, -4], "surface": "enamel"},
+    {"id": "east_tunnel_jamb_south", "min": [12, 0, -12], "max": [16, 2.4, -10], "surface": "enamel"},
+    {"id": "east_tunnel_jamb_north", "min": [12, 0, -6], "max": [16, 2.4, -4], "surface": "enamel"},
+    {"id": "east_tunnel_lintel", "min": [12, 2.2, -10], "max": [16, 2.4, -6], "surface": "enamel"},
+    {"id": "east_stair_00", "min": [8, 0, -2], "max": [9, 0.4, 2], "surface": "concrete"},
+    {"id": "east_stair_01", "min": [9, 0, -2], "max": [10, 0.8, 2], "surface": "concrete"},
+    {"id": "east_stair_02", "min": [10, 0, -2], "max": [11, 1.2, 2], "surface": "concrete"},
+    {"id": "east_stair_03", "min": [11, 0, -2], "max": [12, 1.6, 2], "surface": "concrete"},
+    {"id": "east_stair_04", "min": [12, 0, -2], "max": [13, 2, 2], "surface": "concrete"},
+    {"id": "east_stair_05", "min": [13, 0, -2], "max": [14, 2.4, 2], "surface": "concrete"},
+    {"id": "east_landing", "min": [14, 0, -4], "max": [30, 2.4, 4], "surface": "enamel"},
+    {"id": "east_stand_north", "min": [12, 0, 4], "max": [30, 2.4, 12], "surface": "enamel"},
+    {"id": "booth_sill", "min": [17.2, 2.4, 5], "max": [18, 3.4, 10], "surface": "enamel"},
+    {"id": "booth_header", "min": [17.2, 4.6, 5], "max": [18, 5.6, 10], "surface": "enamel"},
+    {"id": "booth_east", "min": [26, 2.4, 5], "max": [26.8, 5.4, 10], "surface": "enamel"},
+    {"id": "booth_north", "min": [18, 2.4, 10], "max": [26, 5.4, 10.8], "surface": "enamel"},
+    {"id": "booth_south_west", "min": [18, 2.4, 4.4], "max": [20.2, 5.4, 5.2], "surface": "enamel"},
+    {"id": "booth_south_east", "min": [23.8, 2.4, 4.4], "max": [26, 5.4, 5.2], "surface": "enamel"},
+    {"id": "north_stand_west", "min": [-30, 0, 12], "max": [-4, 2.4, 22], "surface": "enamel"},
+    {"id": "north_stand_east", "min": [4, 0, 12], "max": [30, 2.4, 22], "surface": "enamel"},
+    {"id": "north_bridge", "min": [-4, 2.2, 12], "max": [4, 2.4, 22], "surface": "enamel"},
+    {"id": "gate_west_leaf", "min": [-4, 0, 16.2], "max": [-0.4, 2, 17.4], "surface": "service_steel"},
+    {"id": "gate_east_leaf", "min": [0.4, 0, 16.2], "max": [4, 2, 17.4], "surface": "service_steel"},
+    {"id": "concourse_end_west", "min": [-34, 0, 18], "max": [-30, 5, 19], "surface": "concrete"},
+    {"id": "concourse_end_east", "min": [30, 0, 18], "max": [34, 5, 19], "surface": "concrete"},
+    {"id": "concourse_turnstile", "min": [31.2, 0, -0.3], "max": [31.8, 1.2, 0.3], "surface": "service_steel"},
+    {"id": "plinth", "min": [-1.5, 0, -1.5], "max": [1.5, 1.2, 1.5], "surface": "lift_panel"},
+    {"id": "lift_south", "min": [-2.2, 0, -6.2], "max": [2.2, 0.3, -3.6], "surface": "lift_panel"},
+    {"id": "lift_east", "min": [3.6, 0, -2.2], "max": [6.8, 0.3, 2.2], "surface": "lift_panel"},
+    {"id": "lift_west", "min": [-6.8, 0, -2.2], "max": [-3.6, 0.3, 2.2], "surface": "lift_panel"},
+    {"id": "lift_north", "min": [-2.2, 0, 3.2], "max": [2.2, 0.3, 5.6], "surface": "lift_panel"},
+    {"id": "podium_block", "min": [-2.6, 0, 6.4], "max": [2.6, 0.4, 8.8], "surface": "enamel"},
+    {"id": "ceremony_screen", "min": [-4.2, 0, 9.4], "max": [4.2, 4.6, 10.4], "surface": "service_steel"}
+  ],
+  "spawns": [
+    {"id": "entrant_pen", "feet": [0, 0, -32], "yaw": 0}
+  ],
+  "landmarks": [
+    {"id": "entry", "feet": [0, 0, -32]},
+    {"id": "placard_04", "feet": [-16, 0, -29.4]},
+    {"id": "placard_12", "feet": [-12, 0, -29.4]},
+    {"id": "placard_44", "feet": [-8, 0, -29.4]},
+    {"id": "placard_71", "feet": [-4, 0, -29.4]},
+    {"id": "placard_67", "feet": [12, 0, -26.4]},
+    {"id": "arming", "feet": [6.9, 0, -24.2]},
+    {"id": "players_tunnel", "feet": [0, 0, -16]},
+    {"id": "bowl", "feet": [0, 0, -8]},
+    {"id": "podium", "feet": [0, 0.4, 7.6]},
+    {"id": "broadcast_booth", "feet": [22, 2.4, 7.4]},
+    {"id": "exit", "feet": [0, 0, 14.2]}
+  ],
+  "supplies": [
+    {"id": "entry_rifle", "feet": [2.4, 0, -32], "grant": {"kind": "weapon", "weapon": "flechette"}, "claim": "personal"},
+    {"id": "entry_bullets", "feet": [2.4, 0, -30.2], "grant": {"kind": "ammo", "pool": "bullets", "amount": 40}, "claim": "contested"},
+    {"id": "pen_pistol", "feet": [4.6, 0, -25.8], "grant": {"kind": "weapon", "weapon": "tack"}, "claim": "personal"},
+    {"id": "pen_bullets", "feet": [4.6, 0, -24.4], "grant": {"kind": "ammo", "pool": "bullets", "amount": 36}, "claim": "contested"},
+    {"id": "floor_shotgun", "feet": [8, 0, -8], "grant": {"kind": "weapon", "weapon": "scatter"}, "claim": "personal"},
+    {"id": "floor_shells", "feet": [8, 0, -6.4], "grant": {"kind": "ammo", "pool": "shells", "amount": 12}, "claim": "contested"},
+    {"id": "podium_medkit", "feet": [-6, 0, 8], "grant": {"kind": "health", "amount": 40}, "claim": "contested"},
+    {"id": "concourse_armor", "feet": [32, 0, 2], "grant": {"kind": "armor", "amount": 50}, "claim": "contested", "secret": true}
+  ],
+  "encounters": [
+    {
+      "id": "pen_gate",
+      "regions": [{"min": [-12, 0, -33], "max": [12, 3, -22]}],
+      "enemies": [
+        {"id": "pen_clerk_west", "kind": "clerk", "feet": [-2, 0, -23.2], "yaw": 3.14159265},
+        {"id": "pen_clerk_mid", "kind": "clerk", "feet": [0, 0, -23.2], "yaw": 3.14159265},
+        {"id": "pen_clerk_east", "kind": "clerk", "feet": [2, 0, -23.2], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "floor_lifts",
+      "after": "pen_gate",
+      "regions": [{"min": [-12, 0, -12], "max": [12, 3, -6]}],
+      "enemies": [
+        {"id": "lift_sweeper_south", "kind": "sweeper", "feet": [0, 0.3, -4.9], "yaw": 0},
+        {"id": "lift_sweeper_east", "kind": "sweeper", "feet": [5.2, 0.3, 0], "yaw": 1.57079633},
+        {"id": "lift_sweeper_west", "kind": "sweeper", "feet": [-5.2, 0.3, 0], "yaw": 4.71238898}
+      ]
+    },
+    {
+      "id": "tunnel_wardens",
+      "after": "floor_lifts",
+      "regions": [{"min": [-14, 0, -12], "max": [14, 3, 12]}],
+      "enemies": [
+        {"id": "tunnel_clerk_west", "kind": "clerk", "feet": [-8, 0, -8], "yaw": 0.78539816},
+        {"id": "tunnel_clerk_east", "kind": "clerk", "feet": [8, 0, 8], "yaw": 3.92699082},
+        {"id": "tunnel_enforcer", "kind": "enforcer", "feet": [0, 0, -10.2], "yaw": 0}
+      ]
+    },
+    {
+      "id": "overhead_notaries",
+      "after": "tunnel_wardens",
+      "regions": [{"min": [-12, 0, -12], "max": [12, 3, 12]}],
+      "enemies": [
+        {
+          "id": "camera_notary_east",
+          "kind": "notary",
+          "feet": [7, 4.6, -7],
+          "yaw": 3.14159265,
+          "hover": {
+            "volume": {"min": [5.8, 4.2, -8.4], "max": [8.2, 5.4, -5.6]},
+            "band": [4, 6.5],
+            "patrol": [[7, 4.6, -8], [7, 4.6, -6]],
+            "approach": [3, 0, -7]
+          }
+        },
+        {
+          "id": "camera_notary_west",
+          "kind": "notary",
+          "feet": [-8, 4.6, 8],
+          "yaw": 0,
+          "hover": {
+            "volume": {"min": [-9.2, 4.2, 6.6], "max": [-6.8, 5.4, 9.4]},
+            "band": [4, 6.5],
+            "patrol": [[-8, 4.6, 7.2], [-8, 4.6, 8.8]],
+            "approach": [-4, 0, 4]
+          }
+        }
+      ]
+    },
+    {
+      "id": "booth_wardens",
+      "after": "overhead_notaries",
+      "regions": [{"min": [14, 2, 2], "max": [30, 6, 12]}],
+      "enemies": [
+        {"id": "booth_clerk_west", "kind": "clerk", "feet": [20, 2.4, 7.2], "yaw": 3.14159265},
+        {"id": "booth_clerk_east", "kind": "clerk", "feet": [24, 2.4, 7.2], "yaw": 3.14159265},
+        {"id": "booth_auditor", "kind": "auditor", "feet": [22, 2.4, 8.6], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "last_wave",
+      "after": "booth_wardens",
+      "regions": [{"min": [-16, 0, -12], "max": [16, 4, 16]}],
+      "enemies": [
+        {"id": "last_heavy", "kind": "heavy_sweeper", "feet": [0, 0.3, 4.4], "yaw": 3.14159265},
+        {
+          "id": "floor_assessor",
+          "kind": "assessor",
+          "feet": [0, 4.4, -6],
+          "yaw": 0,
+          "hover": {
+            "volume": {"min": [-1.6, 3.8, -7.6], "max": [1.6, 5.2, -4.4]},
+            "band": [3.4, 6.8],
+            "patrol": [[0, 4.4, -7], [0, 4.4, -5]],
+            "approach": [0, 0, -10.8]
+          }
+        },
+        {"id": "last_enforcer_west", "kind": "enforcer", "feet": [-14, 0, 8], "yaw": 0},
+        {"id": "last_enforcer_east", "kind": "enforcer", "feet": [14, 0, -8], "yaw": 3.14159265}
+      ]
+    }
+  ]
+}
