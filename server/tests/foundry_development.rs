@@ -212,8 +212,8 @@ fn successor() -> Value {
 }
 
 /// The practice map stays byte-exact. The successor opens the ladle shaft,
-/// keeps the checked stair cheeks, and places the office rocket plus the
-/// freight Assessor. It is still not a connected mission.
+/// keeps the checked stair cheeks, places the office rocket plus the freight
+/// Assessor, and carries the optional foundry gates. It is still not a mission.
 #[test]
 fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geometry() {
     let practice: String = sha2::Sha256::digest(SOURCE)
@@ -227,13 +227,34 @@ fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geomet
     let value = successor();
     assert_eq!(value["map_id"], 1013);
     assert_eq!(value["name"], "The Weight of Permission");
-    assert!(value.get("m13").is_none());
-    assert_eq!(value["solids"].as_array().unwrap().len(), 157);
+    assert_eq!(value["m13"]["relay"], "ring_relay_housing");
+    assert_eq!(value["m13"]["protected"][0], "ring_water_feed");
+    assert_ne!(value["m13"]["relay"], value["m13"]["protected"][0]);
+    assert_eq!(value["m13"]["quarters_encounter"], "quarters_approach");
+    assert_eq!(value["m13"]["deck"], "freight_deck");
+    let deck = value["solids"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|solid| solid["id"] == "freight_deck")
+        .expect("freight deck");
+    let thickness = deck["max"][1].as_f64().unwrap() - deck["min"][1].as_f64().unwrap();
+    assert!((0.05..=2.0).contains(&thickness));
+    let landing = value["solids"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|solid| solid["id"] == "lift_landing")
+        .expect("lift landing");
+    let landing_thickness =
+        landing["max"][1].as_f64().unwrap() - landing["min"][1].as_f64().unwrap();
+    assert!(landing_thickness > 2.0);
+    assert_eq!(value["solids"].as_array().unwrap().len(), 158);
     let map = AuthoredMap::read(SUCCESSOR).expect("foundry successor");
     let world = RuntimeMap::Authored(map.clone());
     assert_eq!(world.id(), 1013);
     assert_eq!(world.name(), "The Weight of Permission");
-    assert_eq!(world.solids().len(), 157);
+    assert_eq!(world.solids().len(), 158);
     let state = GameState::with_authored_map(map.clone());
     assert!(state.mission_state().is_none());
     assert!(matches!(
@@ -285,6 +306,7 @@ fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geomet
     }
     let mut bare = value.clone();
     bare["encounters"] = json!([]);
+    bare.as_object_mut().unwrap().remove("m13");
     let mut state = GameState::with_authored_map(
         AuthoredMap::read(serde_json::to_vec(&bare).unwrap().as_slice()).unwrap(),
     );
