@@ -167,7 +167,7 @@ func _run() -> void:
 		var bad: Dictionary = loadout.duplicate(true)
 		bad["proximity_mines"] = count
 		_check(not EquipmentState.validation_error(bad, OWNER).is_empty(), "invalid mine count refused: %s" % str(count))
-	var actor: Dictionary = {"id": AUDITOR, "x": 0, "y": 1.5, "z": 0, "yaw": 0, "hp": 120, "weapon": "Tack",
+	var actor: Dictionary = {"id": AUDITOR, "name": "Auditor", "x": 0, "y": 1.5, "z": 0, "yaw": 0, "hp": 120, "weapon": "Tack",
 		"campaign": {"side": "union", "kind": "auditor", "phase": "channeling", "phase_started": 4, "phase_ends": 48}}
 	_check(ActorState.validation_error({"tick": 10, "players": [actor]}).is_empty(), "a channeling Auditor is a valid actor")
 	var sweeper: Dictionary = actor.duplicate(true)

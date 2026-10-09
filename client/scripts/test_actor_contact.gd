@@ -17,7 +17,7 @@ func _body(key: String, x: float, z: float, dx: float, dz: float) -> Dictionary:
 	return body
 
 func _actor(id: String, hp: int = 100) -> Dictionary:
-	return {"id": id, "x": 0.0, "y": 1.5, "z": 0.0, "hp": hp}
+	return {"id": id, "name": "Meat", "x": 0.0, "y": 1.5, "z": 0.0, "hp": hp}
 
 func _initialize() -> void:
 	_goldens()

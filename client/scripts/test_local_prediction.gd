@@ -24,8 +24,8 @@ func _action(seq: int, forward: bool = true, jump: bool = false) -> Dictionary:
 
 func _snapshot(at_tick: int, peer_x: float = 1.1, collidable: bool = true) -> Dictionary:
 	return {"tick": at_tick, "players": [
-		{"id": LOCAL_ID, "x": 0.0, "y": 1.5, "z": 0.0, "hp": 100},
-		{"id": PEER_ID, "x": peer_x, "y": 1.5, "z": 0.0, "hp": 100, "collidable": collidable}]}
+		{"id": LOCAL_ID, "name": "Meat", "x": 0.0, "y": 1.5, "z": 0.0, "hp": 100},
+		{"id": PEER_ID, "name": "Probe", "x": peer_x, "y": 1.5, "z": 0.0, "hp": 100, "collidable": collidable}]}
 
 
 func _check_contacts(map: Dictionary) -> void:
