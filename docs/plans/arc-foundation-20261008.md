@@ -1,9 +1,10 @@
 # Arc weapon foundation
 
-Status: **in flight**, 2026-10-08. This bounded weapon foundation prepares the
-accepted M12 discovery. Connected Terms of Cooperation now passes its complete
-seventeen-state route with the actual finite Arc find and departure; final shared
-composition and human acceptance remain separate gates.
+Status: **shipped** in [PR #375](https://github.com/blisspixel/fragr/pull/375),
+released as v0.80.0. This bounded weapon foundation is the M12 discovery.
+Connected Terms of Cooperation passes its complete seventeen-state route with
+the actual finite Arc find and departure. Fresh-player and final-art acceptance
+remain open.
 The [campaign contract](../CAMPAIGN.md), [weapon brief](../WEAPONS.md) and
 [M12 lesson](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
 own its purpose. It is a real Cells-fed armor-bypass weapon, not a replacement

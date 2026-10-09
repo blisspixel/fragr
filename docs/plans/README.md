@@ -17,11 +17,11 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [main consolidation](main-consolidation-20261008.md) is in flight under
-Nick's explicit request to bring verified local work onto one current,
-CI-passing `main`. It preserves unfinished local work and the full-game order.
-The local composition gates are complete; reviewed PR, CI and `main` integration
-remain pending.
+The [main consolidation](main-consolidation-20261008.md) shipped in
+[PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
+released as v0.80.0. Human acceptance, final art and the unbuilt campaign
+remain open. The next dependency is the
+[Rocket Launcher foundation](rocket-foundation-20261008.md).
 
 On 2026-10-08 Nick reported $4.65 remaining in the image account and offered a
 further top-up if needed. This is a reported balance, not a live reconciliation
@@ -65,15 +65,15 @@ remain open.
 |---|---|---|
 | [`latch-screen-expressions-20261008.md`](./latch-screen-expressions-20261008.md) | **implemented locally** | Distinct personal screen shapes, accepted-state transitions, blink and retained head/near-clip behavior pass six focused checks and a 61-frame renderer preview. Local composition passes; final human art review remains open. |
 | [`splice-contact-gait-20261008.md`](./splice-contact-gait-20261008.md) | **in flight** | Ignored straight-walk contact candidate passes actual planted-foot, reach and continuity controls. Selected runtime gait remains unchanged; export, visual, start/stop and turn acceptance remain open. |
-| [`presentation-stairs-composition-20261008.md`](./presentation-stairs-composition-20261008.md) | **implemented** | Bound native, sixth whole-client, ordinary routes, multiplayer, separately reassessed and inspected third tour, intake prefix and matching Windows package pass. Reviewed PR, CI and main integration remain pending; final art and human acceptance are separate. |
+| [`presentation-stairs-composition-20261008.md`](./presentation-stairs-composition-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375) | Bound native, sixth whole-client, ordinary routes, multiplayer, separately reassessed and inspected third tour, intake prefix and matching Windows package pass. Final art and human acceptance remain separate. |
 | [`stair-architecture-correction-20261008.md`](./stair-architecture-correction-20261008.md) | **in flight** | Enclose interior stairwells and add supported guards at industrial flights and landings, with authoritative collision, ordinary routes and explicit save compatibility. |
 | [`campaign-geometry-upgrades-20261008.md`](./campaign-geometry-upgrades-20261008.md) | **implemented** | Final four-map save compatibility passes 71 store and 18 owned-child cases, including both exact M09 predecessors, full standing continues and the restored charge-fall lesson. Full composition is separate. |
 | [`enemy-ground-registration-20261008.md`](./enemy-ground-registration-20261008.md) | **in flight** | Reproduce and fix the 0.45 m enemy origin overwrite, then correct three collapsed source poses and verify actual floor contact. |
 | [`arc-visual-consistency-20261008.md`](./arc-visual-consistency-20261008.md) | **implemented locally** | Corrected industrial Arc, registered poses and pickup profile pass focused checks, ordinary finite combat and local composition; human art review remains open. |
-| [`m12-connected-habitat-20261008.md`](./m12-connected-habitat-20261008.md) | **in flight** | Connect the habitat with actual Arc discovery, Assessor wreck and pump receipts, one shelter door, aid vehicles, coalition commitment and strict M11 carry/retry. |
-| [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **in flight** | Prepare the accepted on-foot foundry contract and ignored supported architecture candidate, with explicit Rocket, voluntary workers, relay, hazards, lift and strict save dependencies. Production mission work waits for the current composition. |
-| [`assessor-foundation-20261008.md`](./assessor-foundation-20261008.md) | **in flight** | Real heavy flying drone, visible ballistic volley, armored faces and Union-only falling wreck, preceding connected M12. |
-| [`arc-foundation-20261008.md`](./arc-foundation-20261008.md) | **in flight** | Finite Cells-fed armor-bypass gun with its own resolved shots, controls, records and presentation. |
+| [`m12-connected-habitat-20261008.md`](./m12-connected-habitat-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Connected habitat with actual Arc discovery, Assessor wreck and pump receipts, one shelter door, aid vehicles, coalition commitment and strict M11 carry/retry. Fresh-player and final-art acceptance remain open. |
+| [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **in flight** | Prepare the accepted on-foot foundry contract and ignored supported architecture candidate, with explicit Rocket, voluntary workers, relay, hazards, lift and strict save dependencies. Production mission work waits for the Rocket Launcher foundation. Composition is on main. |
+| [`assessor-foundation-20261008.md`](./assessor-foundation-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Real heavy flying drone, visible ballistic volley, armored faces and Union-only falling wreck in connected M12. Fresh-player and final-art acceptance remain open. |
+| [`arc-foundation-20261008.md`](./arc-foundation-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Finite Cells-fed armor-bypass gun with its own resolved shots, controls, records and presentation. Fresh-player and final-art acceptance remain open. |
 | [`rocket-foundation-20261008.md`](./rocket-foundation-20261008.md) | **planned** | Finite traveling Rocket Launcher for M13 and an optional M12 secret, with four-pool inventory, single combined damage commits and strict historical compatibility. |
 | [`low-water-sabotage-20261008.md`](./low-water-sabotage-20261008.md) | **implemented locally** | Original town, 69 walking routes, two finite bot matches and a full ordinary-socket 5v5 match with five plants, four defuses and a detonation; human and two-machine acceptance remain open. |
 | [`custody-archive-venue-20261008.md`](./custody-archive-venue-20261008.md) | **implemented** | Isolated next-increment geometry preparation: two-level curved rotunda, four workshops, enclosed stairs, eighteen supported respawn candidates and ten nominated 5v5 points. Deterministic candidate, ordinary routes, strict native navigation and obstruction control pass. Runtime venue, Control, Sabotage integration and played acceptance remain separate. |

@@ -1,6 +1,7 @@
 # Campaign, character and presentation composition
 
-Status: **implemented**, 2026-10-08. This local checkpoint composes the current
+Status: **shipped** in [PR #375](https://github.com/blisspixel/fragr/pull/375)
+at `73cd69e8`, released as v0.80.0. This checkpoint composed the
 Arc, Assessor, connected habitat, live cast, stair architecture, multiplayer and
 crouch work under the sole [full build order](../ROADMAP.md#full-build-order).
 Nick's subsequent request added state-responsive Latch screen expressions to

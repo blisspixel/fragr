@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.80.0 (2026-10-09)
 
 - Add Terms of Cooperation as the twelfth connected campaign prototype, with
   the Arc, flying Assessor, vulnerable pumps, optional shelter and worker
@@ -60,6 +60,10 @@ Release history, newest first. Planned work stays in
   build, difficulty and practice groups.
 - Keep campaign documentation aligned with twelve playable prototypes and
   version 15 run saves, retaining unfinished missions and human review gates.
+
+These are development prototypes. Full campaign completion, final art,
+fresh-player acceptance, physical LAN evidence and a networked 64-player
+capacity claim remain open.
 
 ## v0.79.0 (2026-10-07)
 

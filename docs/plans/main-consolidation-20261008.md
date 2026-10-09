@@ -1,9 +1,13 @@
 # Consolidate verified fragr work on main
 
-Status: **in flight**, 2026-10-08. Nick explicitly requested that temporary
-branches converge on one current, CI-passing `main`. This plan owns integration of the current
-development work, not another feature sequence. The [full build order](../ROADMAP.md#full-build-order)
-continues to own the complete game.
+Status: **shipped** in [PR #375](https://github.com/blisspixel/fragr/pull/375)
+at `73cd69e8`, released as v0.80.0 on 2026-10-09. Applicable CI on the merge
+passed. Nick
+explicitly requested that temporary branches converge on one current,
+CI-passing `main`. This plan owns that integration, not another feature
+sequence. The [full build order](../ROADMAP.md#full-build-order) continues to
+own the complete game. Human acceptance, final art and the unbuilt campaign
+remain open.
 
 ## Baseline and ownership
 
@@ -32,6 +36,9 @@ force-push `main`.
 
 ## Gates and integration
 
+The steps below are the completed record of the merge. They do not direct
+another integration.
+
 The [presentation composition](presentation-stairs-composition-20261008.md)
 is implemented locally. Its [receipt](../evidence/presentation-stairs-composition-20261008.md)
 and [exact bindings](../evidence/presentation-stairs-composition-20261008.json)
@@ -50,8 +57,7 @@ artifact; the final client, tour, intake and package use the separately bound
 server-only build. Preserve both scopes and every failed attempt. These local
 gates do not establish final art, human acceptance, other-platform execution or
 a completed campaign. [PR #375](https://github.com/blisspixel/fragr/pull/375)
-contains the audited integration. Applicable CI and `main` integration remain
-pending. Its initial commit is `a311505f`; the twenty excluded infrastructure
+is merged. Its initial commit was `a311505f`; the twenty excluded infrastructure
 drafts remain byte-identical outside the commit.
 
 Audit the complete resulting diff, attribution, legal assets, ignored paths,

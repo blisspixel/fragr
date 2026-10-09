@@ -1,9 +1,10 @@
 # Connected Terms of Cooperation habitat
 
-Status: in flight, 2026-10-08. Spend: $0. This plan is written before connected
-M12 implementation. The dated standalone map and its evidence remain exact
-historical artifacts. The current campaign still ends after M11 until the new
-contract, save promotion and played acceptance pass together.
+Status: **shipped** in [PR #375](https://github.com/blisspixel/fragr/pull/375)
+at `73cd69e8`, released as v0.80.0. Spend: $0. The connected habitat, Arc
+discovery, Assessor, shelter, pumps and coalition departure are on `main`.
+Fresh-player, difficulty and final-art acceptance remain open. The dated
+standalone map and its evidence remain historical artifacts.
 
 ## Source and intended behavior
 

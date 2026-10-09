@@ -47,12 +47,13 @@ reviewed-head CI jobs and all three desktop package checks passed before merge.
 M11 adds a composed prototype with Remote Mines, the Redactor, version
 14 run carry and a complete ordinary-input rendered departure. Its
 [receipt](evidence/m11-quality-composition-20261006.md) records the exact route
-and remaining review. The locally implemented
-[M12 habitat](plans/m12-connected-habitat-20261008.md) adds the Arc, Assessor,
-shelter and pump facts, coalition departure and version 15 carry. Its
-[final owned route](evidence/m12-connected-habitat-final-20261008.md) passes on
-the composed native; complete client and main integration remain separate.
-M13 through M20 remain unbuilt as connected missions.
+and remaining review. The [M12 habitat](plans/m12-connected-habitat-20261008.md) is on `main` at
+`73cd69e8` through [PR #375](https://github.com/blisspixel/fragr/pull/375),
+released as v0.80.0. It
+adds the Arc, Assessor, shelter and pump facts, coalition departure and version
+15 carry. Its [final owned route](evidence/m12-connected-habitat-final-20261008.md)
+passed before that merge. Fresh-player, difficulty and final-art acceptance
+remain open. M13 through M20 remain unbuilt as connected missions.
 The local M12 habitat, M13 foundry and M14 launch works development maps are described in
 the full build order below. Fresh-player, difficulty
 and final art acceptance remain open for every level. The full build order
@@ -367,8 +368,9 @@ players' frag/streak camera shakes. Round summaries remain separate.
 The revised level plans place simple doors, switches and lifts in working spaces,
 and a later combined-arms vehicle showcase in level 14's launch works. General moving
 lifts and vehicles remain unbuilt. The Sniper Rifle, Grenade and Proximity Mine
-have implemented development roles; the Remote Mine and Rocket Launcher remain
-planned campaign finds in [the readable arsenal](plans/readable-arsenal.md). Gold
+have implemented development roles. The Remote Mine has a development role.
+The Rocket Launcher remains the next campaign find in
+[the readable arsenal](plans/readable-arsenal.md). Gold
 finishes and curated weapon colors are cosmetic-only achievement directions
 under #197.
 
@@ -425,9 +427,12 @@ feedback and necessary fixes continue during authorized development. Cloud
 apply, cash charges, top-ups and matchmaking have no new authorization. Source,
 geometry, rendered evidence and played acceptance remain separate gates. The
 story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follows
-its brief. The preceding main has eleven connected development prototypes; the
-local M12 prototype passes its complete ordinary route before integration. Connected M13
-through M20 and the conditional epilogue remain unbuilt.
+its brief. `main` at `73cd69e8`, released as v0.80.0, has twelve connected
+development prototypes through Terms of Cooperation. Connected M13 through M20
+and the conditional epilogue remain unbuilt. The next weapon dependency is the
+Rocket Launcher foundation. Connected M13 waits for that weapon and its own
+mission gates. The optional M12 secret stays separate because it changes
+canonical map bytes.
 
 **Current composition, 2026-10-08.** The numbered rungs below remain the single
 build order. Rungs 1 and 2 now run together for the bounded work explicitly
@@ -517,24 +522,25 @@ client check passes in the checkpoint below; final human acceptance remains
 open. Splice's selected live gait also retains an explicit horizontal foot-slide
 finding, separate from its passing source, closure and vertical support checks.
 
-The [shared checkpoint](plans/presentation-stairs-composition-20261008.md) is
-implemented locally, with its [composition receipt](evidence/presentation-stairs-composition-20261008.md)
-and [exact bindings](evidence/presentation-stairs-composition-20261008.json).
-Native, coverage, network and complete ordinary M08/M09/M10 departures pass.
-The sixth whole-client window passes 359 scripts and 171 harnesses through
-532 zero-exit retired invocations on unchanged inputs. The third official tour
-passes separate corrected-log reassessment and original-image review for all
-32 states, 51 raw originals and three effect strips. Its original parent
-rejection and later failed captures remain intact. The matching second Windows
-package and three-state intake prefix also pass. Workspace-native and
-server-only presentation artifacts retain separate evidence scopes. Integration,
-final art, human acceptance and the full-game goal remain open.
+The [shared checkpoint](plans/presentation-stairs-composition-20261008.md)
+shipped in [PR #375](https://github.com/blisspixel/fragr/pull/375) at
+`73cd69e8`. Its [composition receipt](evidence/presentation-stairs-composition-20261008.md)
+and [exact bindings](evidence/presentation-stairs-composition-20261008.json)
+record the pre-merge evidence. Native, coverage, network and complete ordinary
+M08/M09/M10 departures passed. The sixth whole-client window passed 359 scripts
+and 171 harnesses through 532 zero-exit retired invocations on unchanged inputs.
+The third official tour passed separate corrected-log reassessment and
+original-image review for all 32 states, 51 raw originals and three effect
+strips. Its original parent rejection and later failed captures remain intact.
+The matching second Windows package and three-state intake prefix also passed.
+Workspace-native and server-only presentation artifacts retain separate evidence
+scopes. Applicable CI passed on the merge. This desktop release is v0.80.0.
+Final art, human acceptance and the full-game goal remain open.
 
-Nick then requested [consolidation onto one current, CI-passing main](plans/main-consolidation-20261008.md).
-With the local composition gates complete, audit the actual diff and use the
-existing reviewed, passing-PR merge workflow. PR, CI and `main` integration
-remain pending. Subsequent full-game work continues from that
-integrated baseline; temporary branches retain unfinished work safely.
+[Consolidation onto one current main](plans/main-consolidation-20261008.md) is
+that merge, released as v0.80.0. Subsequent full-game work continues from it.
+The Rocket Launcher foundation is the next dependency and is not part of this
+release.
 
 Earlier integration and release checkpoints remain in the
 [changelog](../CHANGELOG.md) and their owning plans, including

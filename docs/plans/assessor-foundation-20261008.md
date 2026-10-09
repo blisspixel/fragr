@@ -1,9 +1,11 @@
 # Assessor combat foundation
 
-Status: in flight, 2026-10-08. This implements the heavy drone required by the
+Status: **shipped** in [PR #375](https://github.com/blisspixel/fragr/pull/375),
+released as v0.80.0. This is the heavy drone required by the
 accepted [M12 brief](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
-and [flying-drone contract](flying-drones.md). The connected habitat now passes
-its complete seventeen-state route and durable departure. This foundation runs
+and [flying-drone contract](flying-drones.md). The connected habitat passes
+its complete seventeen-state route and durable departure. Fresh-player and
+final-art acceptance remain open. This foundation runs
 beside the [Arc](arc-foundation-20261008.md),
 [Low Water Sabotage](low-water-sabotage-20261008.md) and
 [Edda repair](edda-live-repair-20261008.md) increments under the roadmap's one
