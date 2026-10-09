@@ -648,7 +648,7 @@ fn assessor_session_commits_three_real_rounds_six_ticks_apart_and_stops_at_thirt
         launched[0].0, 26,
         "full Standard windup before the first actual launch"
     );
-    for volley in launched.chunks_exact(3) {
+    for volley in launched.as_chunks::<3>().0 {
         assert_eq!(volley[1].0 - volley[0].0, 6);
         assert_eq!(volley[2].0 - volley[1].0, 6);
     }
