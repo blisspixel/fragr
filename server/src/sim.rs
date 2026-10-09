@@ -553,6 +553,8 @@ pub struct GameState {
     pub(crate) statistics_round_started: u64,
     pub(crate) encounters: crate::encounters::Encounters,
     pub(crate) mission: Option<crate::mission::MissionRun>,
+    /// Present only on a map that authored the foundry gates. Not a campaign id.
+    pub(crate) foundry: Option<crate::mission::m13::Progress>,
     /// Offline recordings opt into stable entity identities. Live sessions keep
     /// UUIDv4; identity allocation must not consume the gameplay random stream.
     replay_id_counter: Option<u128>,
@@ -1016,8 +1018,10 @@ impl GameState {
     /// Authored missions and traversal have no arcade clock or escalation.
     pub fn with_authored_map(map: std::sync::Arc<crate::maps::AuthoredMap>) -> Self {
         let map = crate::maps::RuntimeMap::Authored(map);
+        let foundry = map.m13_gates().map(crate::mission::m13::Progress::new);
         let mut state = Self {
             mission: crate::mission::MissionRun::new(&map),
+            foundry,
             pickups: map.pickups(),
             map,
             round_state: RoundState::Active,
@@ -1824,8 +1828,9 @@ impl GameState {
             return;
         }
         self.advance_m05_tram(dt);
+        self.advance_foundry_lift(dt);
         let map = self.map.clone();
-        if map.m05_objectives().is_some() {
+        if map.m05_objectives().is_some() || self.foundry.is_some() {
             let arena = self.current_arena().into_owned();
             self.tick_active(dt, &arena);
         } else {
@@ -2046,6 +2051,7 @@ impl GameState {
             }
         }
 
+        self.tick_foundry_hazards();
         // Commit leap contacts from actual server movement, including both
         // bodies' displacement this tick. Record before gunfire so a Crawler
         // shot on the same frame can still trade its already-landed contact.
@@ -2427,6 +2433,7 @@ impl GameState {
             self.damage_m03_mast(shooter, solid, end, normal, damage);
             self.damage_m08_node(shooter, solid, end, normal, damage);
             self.damage_m12_pump(shooter, solid, end, normal, damage);
+            self.damage_foundry_relay(shooter, solid, end, normal, damage);
         }
         for (id, damage, attacker) in vehicle_hits {
             self.damage_vehicle(id, damage, Some(attacker));
@@ -2763,6 +2770,12 @@ impl GameState {
 
     /// Commit one fighter's share of a shot: every pellet that struck them,
     /// summed, so armour absorbs once and one death awards one frag.
+    /// Machinery and other self hits. A participant frag is not awarded.
+    pub(crate) fn environmental_self_damage(&mut self, index: usize, damage: i32) -> (u64, u64) {
+        let (hp, armor, _) = self.resolve_fighter_hit(index, index, damage, None);
+        (hp, armor)
+    }
+
     fn resolve_fighter_hit(
         &mut self,
         shooter_idx: usize,
@@ -4294,6 +4307,7 @@ impl Default for GameState {
             statistics_round_started: 0,
             encounters: crate::encounters::Encounters::default(),
             mission: None,
+            foundry: None,
             replay_id_counter: None,
             rng_state: 0x2545_F491_4F6C_DD1D,
             tick: 0,

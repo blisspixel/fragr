@@ -22,6 +22,7 @@ pub(crate) mod m09;
 pub(crate) mod m10;
 pub(crate) mod m11;
 pub(crate) mod m12;
+pub(crate) mod m13;
 mod mission;
 mod supplies;
 mod vehicle_placements;
@@ -57,6 +58,7 @@ pub struct AuthoredMap {
     pub(super) m10: Option<Arc<m10::Prepared>>,
     pub(super) m11: Option<Arc<m11::Prepared>>,
     pub(super) m12: Option<Arc<m12::Prepared>>,
+    pub(super) m13: Option<Arc<m13::Prepared>>,
     pub(super) shelter_open: bool,
     pub(super) hatch_open: bool,
     /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
@@ -104,6 +106,8 @@ struct Document {
     m11: Option<m11::Definition>,
     #[serde(default)]
     m12: Option<m12::Definition>,
+    #[serde(default)]
+    m13: Option<m13::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -777,6 +781,13 @@ impl AuthoredMap {
             })
             .transpose()?
             .map(Arc::new);
+        let m13 = doc
+            .m13
+            .map(|definition| {
+                definition.prepare(&arena, &solid_ids, &doc.encounters, &presentation)
+            })
+            .transpose()?
+            .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         if m12.is_some() {
             m12::validate_supplies(&supplies)?;
@@ -927,6 +938,7 @@ impl AuthoredMap {
             m10,
             m11,
             m12,
+            m13,
             shelter_open: false,
             hatch_open: false,
             m08_stage: 0,
