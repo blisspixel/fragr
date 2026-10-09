@@ -66,6 +66,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`difficulty-pressure-20261009.md`](./difficulty-pressure-20261009.md) | **in flight** | Assisted, Standard, and Severe: pursuit memory 40/100/160, recovery hold or closer step-in, and campaign supply margins. Not fresh-player balance. |
 | [`latch-screen-expressions-20261008.md`](./latch-screen-expressions-20261008.md) | **implemented locally** | Distinct personal screen shapes, accepted-state transitions, blink and retained head/near-clip behavior pass six focused checks and a 61-frame renderer preview. Local composition passes; final human art review remains open. |
 | [`splice-contact-gait-20261008.md`](./splice-contact-gait-20261008.md) | **in flight** | Ignored straight-walk contact candidate passes actual planted-foot, reach and continuity controls. Selected runtime gait remains unchanged; export, visual, start/stop and turn acceptance remain open. |
 | [`presentation-stairs-composition-20261008.md`](./presentation-stairs-composition-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375) | Bound native, sixth whole-client, ordinary routes, multiplayer, separately reassessed and inspected third tour, intake prefix and matching Windows package pass. Final art and human acceptance remain separate. |

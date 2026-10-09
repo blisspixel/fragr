@@ -50,11 +50,12 @@ pub struct MissionContinue {
     pub attempt: u32,
 }
 
-/// Revision changes whenever campaign difficulty semantics change. Revision 2
-/// removed magazines and reloading: guards no longer pause to reload and a
-/// scatter blast is seven pellets. Revision 3 adds Notary photograph timing;
-/// earlier enemy timings remain unchanged. Revision 4 adds the Assessor's
-/// counted canister attack and Arc bypass for registered armor plates.
+/// Revision changes when campaign tell timing or the rules wire shape changes.
+/// Revision 2 removed magazines and reloading: guards no longer pause to reload
+/// and a scatter blast is seven pellets. Revision 3 adds Notary photograph
+/// timing; earlier enemy timings remain unchanged. Revision 4 adds the
+/// Assessor's counted canister attack and Arc bypass for registered armor
+/// plates. Supply amounts and visual pursuit memory are not a new revision.
 pub const CAMPAIGN_RULES_REVISION: u32 = 4;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, clap::ValueEnum)]
@@ -64,6 +65,42 @@ pub enum CampaignDifficulty {
     #[default]
     Standard,
     Severe,
+}
+
+/// A campaign grant the difficulty tier may scale. Explosives stay authored.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum CampaignSupply {
+    Ammunition,
+    Health,
+    Armor,
+    /// The claim site does not construct this. Tests use it to show the count
+    /// stays authored. Grenades and mines never pass through the scaler.
+    #[cfg_attr(not(test), allow(dead_code))]
+    Explosive,
+}
+
+impl CampaignDifficulty {
+    /// Grant before the carrier's capacity cap.
+    ///
+    /// Secrets, Standard, explosive counts, and non-positive amounts stay
+    /// authored. Assisted recovery stock is `ceil(authored * 3 / 2)`. Severe
+    /// ammunition, health, and armor are `max(1, authored * 2 / 3)`.
+    pub(crate) fn supply_grant(self, supply: CampaignSupply, authored: i32, secret: bool) -> i32 {
+        if secret || authored <= 0 {
+            return authored;
+        }
+        match (self, supply) {
+            (Self::Standard, _) | (_, CampaignSupply::Explosive) => authored,
+            (
+                Self::Assisted,
+                CampaignSupply::Ammunition | CampaignSupply::Health | CampaignSupply::Armor,
+            ) => authored.saturating_mul(3).saturating_add(1) / 2,
+            (
+                Self::Severe,
+                CampaignSupply::Ammunition | CampaignSupply::Health | CampaignSupply::Armor,
+            ) => (authored.saturating_mul(2) / 3).max(1),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

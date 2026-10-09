@@ -73,6 +73,7 @@ pub use m12::{
     M12AidVehicle, M12ChallengeState, M12MapGeometry, M12ObjectiveState, M12PumpGeometry,
     M12_OBJECTIVE_IDS, M12_PUMP_MAX_HP,
 };
+pub(crate) use mission::CampaignSupply;
 pub use mission::{
     CampaignDifficulty, CampaignRules, CampaignRunState, CampaignRunStatus, InteractionKind,
     InteractionPrompt, M02EvacuationPhase, M02EvacuationState, M02ObjectiveState, M03CarGeometry,

@@ -181,6 +181,32 @@ impl GameState {
             .map_or_else(CampaignRules::default, |run| run.rules)
     }
 
+    /// The mission rules field. Arcade and other sessions without a mission
+    /// have no campaign difficulty to invent.
+    pub(crate) fn campaign_difficulty(&self) -> Option<CampaignDifficulty> {
+        self.mission.as_ref().map(|run| run.rules.difficulty)
+    }
+
+    pub(crate) fn campaign_supply_amount(
+        &self,
+        supply: crate::protocol::CampaignSupply,
+        authored: i32,
+        secret: bool,
+    ) -> i32 {
+        self.campaign_difficulty()
+            .map(|difficulty| difficulty.supply_grant(supply, authored, secret))
+            .unwrap_or(authored)
+    }
+
+    pub(crate) fn supply_rounds(&self, authored: u16, secret: bool) -> u16 {
+        let scaled = self.campaign_supply_amount(
+            crate::protocol::CampaignSupply::Ammunition,
+            i32::from(authored),
+            secret,
+        );
+        u16::try_from(scaled).unwrap_or(authored)
+    }
+
     pub fn acknowledge_mission(&mut self, player_id: Uuid, ready: MissionReady) -> bool {
         if ready.id == MissionId::PersonsUnknown {
             return self.acknowledge_m02(player_id, ready.attempt);
