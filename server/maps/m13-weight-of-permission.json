@@ -1,0 +1,3208 @@
+{
+  "decorations": [
+    {
+      "center": [
+        0.0,
+        0.6
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        3.0,
+        0.3
+      ],
+      "solid": "entry_east"
+    },
+    {
+      "center": [
+        0.0,
+        0.5
+      ],
+      "face": "west",
+      "kind": "strip_light",
+      "size": [
+        3.0,
+        0.3
+      ],
+      "solid": "ring_divider_n21"
+    },
+    {
+      "center": [
+        0.0,
+        0.05
+      ],
+      "face": "south",
+      "kind": "terminal",
+      "size": [
+        1.1,
+        0.7
+      ],
+      "solid": "machine_control_n1"
+    },
+    {
+      "center": [
+        0.0,
+        0.5
+      ],
+      "face": "south",
+      "kind": "maintenance_sign",
+      "size": [
+        2.4,
+        0.8
+      ],
+      "solid": "quarters_back"
+    },
+    {
+      "center": [
+        0.0,
+        0.5
+      ],
+      "face": "south",
+      "kind": "property_sign",
+      "size": [
+        2.4,
+        0.8
+      ],
+      "solid": "office_back"
+    },
+    {
+      "center": [
+        0.0,
+        0.0
+      ],
+      "face": "down",
+      "kind": "strip_light",
+      "size": [
+        3.0,
+        0.3
+      ],
+      "solid": "office_roof"
+    },
+    {
+      "center": [
+        0.0,
+        1.0
+      ],
+      "face": "south",
+      "kind": "lift_sign",
+      "size": [
+        3.0,
+        1.3
+      ],
+      "solid": "lift_shaft_back"
+    },
+    {
+      "center": [
+        0.0,
+        3.5
+      ],
+      "face": "south",
+      "kind": "strip_light",
+      "size": [
+        4.0,
+        0.4
+      ],
+      "solid": "lift_shaft_back"
+    }
+  ],
+  "encounters": [
+    {
+      "enemies": [
+        {
+          "feet": [
+            -18.0,
+            0.3,
+            -28.0
+          ],
+          "id": "edge_clerk_west",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            7.0,
+            0.3,
+            -29.0
+          ],
+          "id": "edge_clerk_east",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -7.0,
+            0.3,
+            -24.0
+          ],
+          "id": "edge_sweeper_west",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            29.0,
+            0.3,
+            -25.0
+          ],
+          "id": "edge_sweeper_east",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "foundry_edge",
+      "regions": [
+        {
+          "max": [
+            39.0,
+            9.0,
+            -21.0
+          ],
+          "min": [
+            -39.0,
+            0.0,
+            -38.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "foundry_edge",
+      "enemies": [
+        {
+          "feet": [
+            0.0,
+            0.3,
+            -8.0
+          ],
+          "id": "machine_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -15.0,
+            0.3,
+            -6.0
+          ],
+          "id": "machine_clerk",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            15.0,
+            0.3,
+            -3.0
+          ],
+          "id": "machine_sweeper",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -20.0,
+            5.0,
+            -10.0
+          ],
+          "hover": {
+            "approach": [
+              -20.0,
+              0.3,
+              -16.0
+            ],
+            "band": [
+              4.0,
+              7.0
+            ],
+            "patrol": [
+              [
+                -21.5,
+                5.0,
+                -12.5
+              ],
+              [
+                -18.5,
+                5.8,
+                -7.5
+              ]
+            ],
+            "volume": {
+              "max": [
+                -18.0,
+                7.0,
+                -7.0
+              ],
+              "min": [
+                -22.0,
+                4.0,
+                -13.0
+              ]
+            }
+          },
+          "id": "machine_notary_west",
+          "kind": "notary",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            20.0,
+            5.0,
+            -10.0
+          ],
+          "hover": {
+            "approach": [
+              20.0,
+              0.3,
+              -16.0
+            ],
+            "band": [
+              4.0,
+              7.0
+            ],
+            "patrol": [
+              [
+                18.5,
+                5.0,
+                -12.5
+              ],
+              [
+                21.5,
+                5.8,
+                -7.5
+              ]
+            ],
+            "volume": {
+              "max": [
+                22.0,
+                7.0,
+                -7.0
+              ],
+              "min": [
+                18.0,
+                4.0,
+                -13.0
+              ]
+            }
+          },
+          "id": "machine_notary_east",
+          "kind": "notary",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "machine_hall",
+      "regions": [
+        {
+          "max": [
+            39.0,
+            9.0,
+            2.0
+          ],
+          "min": [
+            -39.0,
+            0.0,
+            -21.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "machine_hall",
+      "enemies": [
+        {
+          "feet": [
+            -16.0,
+            0.3,
+            6.0
+          ],
+          "id": "quarters_clerk",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            18.0,
+            0.3,
+            6.0
+          ],
+          "id": "office_clerk",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "quarters_approach",
+      "regions": [
+        {
+          "max": [
+            39.0,
+            5.0,
+            12.0
+          ],
+          "min": [
+            -39.0,
+            0.0,
+            2.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "quarters_approach",
+      "enemies": [
+        {
+          "feet": [
+            -10.0,
+            0.3,
+            18.0
+          ],
+          "id": "freight_sweeper_west",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            0.0,
+            0.3,
+            23.0
+          ],
+          "id": "freight_sweeper_center",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            10.0,
+            0.3,
+            18.0
+          ],
+          "id": "freight_sweeper_east",
+          "kind": "sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -17.0,
+            0.3,
+            22.0
+          ],
+          "id": "freight_clerk_west",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            18.0,
+            0.3,
+            16.0
+          ],
+          "id": "freight_clerk_east",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            7.0,
+            0.3,
+            24.0
+          ],
+          "id": "freight_enforcer",
+          "kind": "enforcer",
+          "yaw": 4.71238898038469
+        },
+        {
+          "id": "freight_assessor",
+          "kind": "assessor",
+          "feet": [
+            -2.0,
+            4.2,
+            15.0
+          ],
+          "yaw": 4.71238898038469,
+          "hover": {
+            "approach": [
+              -6.0,
+              0.3,
+              12.0
+            ],
+            "band": [
+              3.5,
+              6.2
+            ],
+            "patrol": [
+              [
+                -3.2,
+                4.2,
+                14.0
+              ],
+              [
+                -0.8,
+                4.4,
+                16.0
+              ]
+            ],
+            "volume": {
+              "min": [
+                -4.0,
+                3.5,
+                13.2
+              ],
+              "max": [
+                0.2,
+                5.2,
+                16.8
+              ]
+            }
+          }
+        }
+      ],
+      "id": "freight_counterattack",
+      "regions": [
+        {
+          "max": [
+            39.0,
+            9.0,
+            27.0
+          ],
+          "min": [
+            -39.0,
+            0.0,
+            12.0
+          ]
+        }
+      ]
+    },
+    {
+      "after": "freight_counterattack",
+      "enemies": [
+        {
+          "feet": [
+            -23.5,
+            3.3,
+            35.0
+          ],
+          "id": "gallery_clerk_west",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            23.5,
+            3.3,
+            35.0
+          ],
+          "id": "gallery_clerk_east",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            10.0,
+            3.3,
+            49.0
+          ],
+          "id": "gallery_clerk_back",
+          "kind": "clerk",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            -15.0,
+            3.3,
+            49.0
+          ],
+          "id": "gallery_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 4.71238898038469
+        },
+        {
+          "feet": [
+            16.0,
+            3.3,
+            29.5
+          ],
+          "id": "gallery_marksman",
+          "kind": "ranged_sweeper",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "ladle_galleries",
+      "regions": [
+        {
+          "max": [
+            39.0,
+            10.0,
+            53.0
+          ],
+          "min": [
+            -39.0,
+            0.0,
+            27.0
+          ]
+        }
+      ]
+    }
+  ],
+  "equipment": "discovery",
+  "ground": "concrete",
+  "half_extent": 58.0,
+  "landmarks": [
+    {
+      "feet": [
+        0.0,
+        0.3,
+        -49.0
+      ],
+      "id": "service_entrance"
+    },
+    {
+      "feet": [
+        -23.0,
+        0.3,
+        -29.0
+      ],
+      "id": "foundry_edge_bypass"
+    },
+    {
+      "feet": [
+        -20.0,
+        0.3,
+        -8.0
+      ],
+      "id": "machine_west_flank"
+    },
+    {
+      "feet": [
+        20.0,
+        0.3,
+        -8.0
+      ],
+      "id": "machine_east_flank"
+    },
+    {
+      "feet": [
+        -34.0,
+        0.3,
+        -35.0
+      ],
+      "id": "maintenance_ring_south"
+    },
+    {
+      "feet": [
+        -34.0,
+        0.3,
+        24.0
+      ],
+      "id": "maintenance_ring_north"
+    },
+    {
+      "feet": [
+        -21.0,
+        0.3,
+        6.0
+      ],
+      "id": "worker_quarters"
+    },
+    {
+      "feet": [
+        21.0,
+        0.3,
+        6.0
+      ],
+      "id": "freight_office"
+    },
+    {
+      "feet": [
+        -11.0,
+        0.3,
+        20.0
+      ],
+      "id": "freight_loop_west"
+    },
+    {
+      "feet": [
+        10.0,
+        0.3,
+        23.0
+      ],
+      "id": "freight_loop_east"
+    },
+    {
+      "feet": [
+        -11.0,
+        0.3,
+        22.0
+      ],
+      "id": "gallery_resupply_approach"
+    },
+    {
+      "feet": [
+        -7.0,
+        0.3,
+        23.0
+      ],
+      "id": "gallery_resupply"
+    },
+    {
+      "feet": [
+        -23.5,
+        0.3,
+        15.0
+      ],
+      "id": "west_stair_foot"
+    },
+    {
+      "feet": [
+        -23.5,
+        3.3,
+        29.5
+      ],
+      "id": "west_stair_top"
+    },
+    {
+      "feet": [
+        23.5,
+        0.3,
+        15.0
+      ],
+      "id": "east_stair_foot"
+    },
+    {
+      "feet": [
+        23.5,
+        3.3,
+        29.5
+      ],
+      "id": "east_stair_top"
+    },
+    {
+      "feet": [
+        12.0,
+        3.3,
+        49.0
+      ],
+      "id": "ladle_gallery_back"
+    },
+    {
+      "feet": [
+        0.0,
+        3.3,
+        52.0
+      ],
+      "id": "freight_lift_landing"
+    }
+  ],
+  "map_id": 1013,
+  "name": "The Weight of Permission",
+  "solids": [
+    {
+      "id": "foundry_foundation",
+      "max": [
+        40.0,
+        0.3,
+        54.0
+      ],
+      "min": [
+        -40.0,
+        0.0,
+        -54.0
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "west_perimeter",
+      "max": [
+        -39.5,
+        10.0,
+        54.0
+      ],
+      "min": [
+        -40.0,
+        0.3,
+        -54.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_perimeter",
+      "max": [
+        40.0,
+        10.0,
+        54.0
+      ],
+      "min": [
+        39.5,
+        0.3,
+        -54.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "south_perimeter",
+      "max": [
+        39.5,
+        10.0,
+        -53.5
+      ],
+      "min": [
+        -39.5,
+        0.3,
+        -54.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "north_perimeter",
+      "max": [
+        39.5,
+        14.0,
+        54.0
+      ],
+      "min": [
+        -39.5,
+        0.3,
+        53.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "main_roof",
+      "max": [
+        39.5,
+        10.1,
+        27.0
+      ],
+      "min": [
+        -29.0,
+        9.8,
+        -39.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ladle_roof",
+      "max": [
+        39.5,
+        14.3,
+        46.75
+      ],
+      "min": [
+        -39.5,
+        14.0,
+        27.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_roof",
+      "max": [
+        8.0,
+        4.8,
+        -39.0
+      ],
+      "min": [
+        -8.0,
+        4.5,
+        -53.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_west",
+      "max": [
+        -7.6,
+        4.5,
+        -39.0
+      ],
+      "min": [
+        -8.0,
+        0.3,
+        -53.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_east",
+      "max": [
+        8.0,
+        4.5,
+        -39.0
+      ],
+      "min": [
+        7.6,
+        0.3,
+        -53.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "entry_supply_counter",
+      "max": [
+        -4.8,
+        1.2,
+        -46.0
+      ],
+      "min": [
+        -6.7,
+        0.3,
+        -51.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "entry_roof_lintel",
+      "max": [
+        7.6,
+        4.5,
+        -39.0
+      ],
+      "min": [
+        -7.6,
+        3.5,
+        -39.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ring_roof",
+      "max": [
+        -29.0,
+        4.5,
+        27.0
+      ],
+      "min": [
+        -39.5,
+        4.2,
+        -39.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ring_divider_n39",
+      "max": [
+        -29.0,
+        4.2,
+        -25.0
+      ],
+      "min": [
+        -29.4,
+        0.3,
+        -39.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ring_divider_n21",
+      "max": [
+        -29.0,
+        4.2,
+        0.0
+      ],
+      "min": [
+        -29.4,
+        0.3,
+        -21.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ring_divider_4",
+      "max": [
+        -29.0,
+        4.2,
+        22.0
+      ],
+      "min": [
+        -29.4,
+        0.3,
+        4.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ring_water_feed",
+      "max": [
+        -37.2,
+        2.4,
+        20.0
+      ],
+      "min": [
+        -38.7,
+        0.3,
+        -31.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "ring_relay_housing",
+      "max": [
+        -35.7,
+        2.0,
+        11.0
+      ],
+      "min": [
+        -36.8,
+        0.3,
+        9.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "edge_furnace_base",
+      "max": [
+        26.0,
+        1.0,
+        -27.0
+      ],
+      "min": [
+        13.0,
+        0.3,
+        -36.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "edge_heat_shield_west",
+      "max": [
+        13.0,
+        2.4,
+        -26.5
+      ],
+      "min": [
+        12.5,
+        0.3,
+        -36.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "edge_heat_shield_front",
+      "max": [
+        26.5,
+        2.4,
+        -26.5
+      ],
+      "min": [
+        13.0,
+        0.3,
+        -27.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "edge_heat_shield_east",
+      "max": [
+        26.5,
+        2.4,
+        -27.0
+      ],
+      "min": [
+        26.0,
+        0.3,
+        -36.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "edge_furnace_back",
+      "max": [
+        26.0,
+        4.0,
+        -36.0
+      ],
+      "min": [
+        13.0,
+        0.3,
+        -36.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "edge_furnace_hood",
+      "max": [
+        26.5,
+        6.2,
+        -26.5
+      ],
+      "min": [
+        13.0,
+        5.4,
+        -36.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "edge_furnace_duct",
+      "max": [
+        21.0,
+        9.8,
+        -30.0
+      ],
+      "min": [
+        18.0,
+        6.2,
+        -33.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "edge_west_machine",
+      "max": [
+        -17.0,
+        2.0,
+        -31.0
+      ],
+      "min": [
+        -23.0,
+        0.3,
+        -35.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "edge_west_screen",
+      "max": [
+        -9.0,
+        1.35,
+        -27.2
+      ],
+      "min": [
+        -15.0,
+        0.3,
+        -28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "edge_central_cart",
+      "max": [
+        3.0,
+        1.2,
+        -29.0
+      ],
+      "min": [
+        -3.0,
+        0.3,
+        -32.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "edge_south_beam",
+      "max": [
+        39.0,
+        9.3,
+        -22.0
+      ],
+      "min": [
+        -28.5,
+        8.7,
+        -23.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_n1",
+      "max": [
+        -6.0,
+        2.3,
+        -10.0
+      ],
+      "min": [
+        -12.0,
+        0.3,
+        -17.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "machine_head_n1",
+      "max": [
+        -7.0,
+        3.2,
+        -11.5
+      ],
+      "min": [
+        -11.0,
+        2.3,
+        -15.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_control_n1",
+      "max": [
+        -9.5,
+        1.3,
+        -7.0
+      ],
+      "min": [
+        -11.5,
+        0.3,
+        -8.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "machine_1",
+      "max": [
+        12.0,
+        2.3,
+        -10.0
+      ],
+      "min": [
+        6.0,
+        0.3,
+        -17.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "machine_head_1",
+      "max": [
+        11.0,
+        3.2,
+        -11.5
+      ],
+      "min": [
+        7.0,
+        2.3,
+        -15.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_control_1",
+      "max": [
+        8.5,
+        1.3,
+        -7.0
+      ],
+      "min": [
+        6.5,
+        0.3,
+        -8.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "machine_center_press",
+      "max": [
+        2.5,
+        3.0,
+        -1.0
+      ],
+      "min": [
+        -2.5,
+        0.3,
+        -4.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_press_header",
+      "max": [
+        4.0,
+        5.6,
+        0.0
+      ],
+      "min": [
+        -4.0,
+        5.0,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_press_left",
+      "max": [
+        -3.3,
+        5.0,
+        0.0
+      ],
+      "min": [
+        -4.0,
+        0.3,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_press_right",
+      "max": [
+        4.0,
+        5.0,
+        0.0
+      ],
+      "min": [
+        3.3,
+        0.3,
+        -5.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_overhead_service",
+      "max": [
+        38.0,
+        9.2,
+        -1.0
+      ],
+      "min": [
+        -28.0,
+        8.7,
+        -2.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "machine_east_screen",
+      "max": [
+        28.0,
+        2.2,
+        -5.0
+      ],
+      "min": [
+        27.0,
+        0.3,
+        -18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_back",
+      "max": [
+        -13.0,
+        3.8,
+        10.4
+      ],
+      "min": [
+        -27.0,
+        0.3,
+        10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_south",
+      "max": [
+        -13.0,
+        3.8,
+        2.4
+      ],
+      "min": [
+        -27.0,
+        0.3,
+        2.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_roof",
+      "max": [
+        -13.0,
+        4.1,
+        10.4
+      ],
+      "min": [
+        -27.0,
+        3.8,
+        2.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_outer",
+      "max": [
+        -26.6,
+        3.8,
+        10.0
+      ],
+      "min": [
+        -27.0,
+        0.3,
+        2.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_door_south",
+      "max": [
+        -13.0,
+        3.8,
+        4.5
+      ],
+      "min": [
+        -13.4,
+        0.3,
+        2.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_door_north",
+      "max": [
+        -13.0,
+        3.8,
+        10.0
+      ],
+      "min": [
+        -13.4,
+        0.3,
+        7.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "quarters_door_lintel",
+      "max": [
+        -13.0,
+        3.8,
+        7.5
+      ],
+      "min": [
+        -13.4,
+        3.0,
+        4.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_back",
+      "max": [
+        27.0,
+        3.8,
+        10.4
+      ],
+      "min": [
+        13.0,
+        0.3,
+        10.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_south",
+      "max": [
+        27.0,
+        3.8,
+        2.4
+      ],
+      "min": [
+        13.0,
+        0.3,
+        2.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_roof",
+      "max": [
+        27.0,
+        4.1,
+        10.4
+      ],
+      "min": [
+        13.0,
+        3.8,
+        2.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_outer",
+      "max": [
+        27.0,
+        3.8,
+        10.0
+      ],
+      "min": [
+        26.6,
+        0.3,
+        2.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_door_south",
+      "max": [
+        13.4,
+        3.8,
+        4.5
+      ],
+      "min": [
+        13.0,
+        0.3,
+        2.4
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_door_north",
+      "max": [
+        13.4,
+        3.8,
+        10.0
+      ],
+      "min": [
+        13.0,
+        0.3,
+        7.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_door_lintel",
+      "max": [
+        13.4,
+        3.8,
+        7.5
+      ],
+      "min": [
+        13.0,
+        3.0,
+        4.5
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "worker_frame_0",
+      "max": [
+        -23.0,
+        2.6,
+        9.0
+      ],
+      "min": [
+        -24.0,
+        0.3,
+        8.3
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "worker_frame_1",
+      "max": [
+        -19.7,
+        2.6,
+        9.0
+      ],
+      "min": [
+        -20.7,
+        0.3,
+        8.3
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "worker_frame_2",
+      "max": [
+        -16.4,
+        2.6,
+        9.0
+      ],
+      "min": [
+        -17.4,
+        0.3,
+        8.3
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "quarters_bench",
+      "max": [
+        -19.0,
+        0.8,
+        4.0
+      ],
+      "min": [
+        -25.5,
+        0.3,
+        3.1
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "office_freight_desk",
+      "max": [
+        25.5,
+        1.2,
+        9.4
+      ],
+      "min": [
+        19.0,
+        0.3,
+        8.3
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "office_supply_pallet",
+      "max": [
+        26.0,
+        0.7,
+        4.2
+      ],
+      "min": [
+        23.5,
+        0.3,
+        3.2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "freight_cart",
+      "max": [
+        4.5,
+        1.25,
+        21.0
+      ],
+      "min": [
+        -4.5,
+        0.3,
+        17.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "freight_cart_load",
+      "max": [
+        1.5,
+        2.2,
+        20.2
+      ],
+      "min": [
+        -3.8,
+        1.25,
+        17.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "freight_west_crates",
+      "max": [
+        -14.0,
+        1.8,
+        17.0
+      ],
+      "min": [
+        -19.0,
+        0.3,
+        13.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "freight_east_crates",
+      "max": [
+        18.0,
+        2.1,
+        25.0
+      ],
+      "min": [
+        13.0,
+        0.3,
+        21.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "freight_rail_n1",
+      "max": [
+        -2.9,
+        0.36,
+        27.0
+      ],
+      "min": [
+        -3.1,
+        0.3,
+        11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "freight_rail_1",
+      "max": [
+        3.1,
+        0.36,
+        27.0
+      ],
+      "min": [
+        2.9,
+        0.3,
+        11.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "freight_hoist_beam",
+      "max": [
+        28.0,
+        8.7,
+        19.0
+      ],
+      "min": [
+        -27.0,
+        8.1,
+        18.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "freight_hoist_hook",
+      "max": [
+        0.4,
+        8.1,
+        18.8
+      ],
+      "min": [
+        -0.4,
+        5.7,
+        18.2
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "gallery_staging_screen",
+      "max": [
+        -7.0,
+        1.2,
+        24.6
+      ],
+      "min": [
+        -13.0,
+        0.3,
+        24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_00",
+      "max": [
+        -21.0,
+        0.55,
+        17.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_01",
+      "max": [
+        -21.0,
+        0.8,
+        18.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        17.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_02",
+      "max": [
+        -21.0,
+        1.05,
+        19.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_03",
+      "max": [
+        -21.0,
+        1.3,
+        20.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_04",
+      "max": [
+        -21.0,
+        1.55,
+        21.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        20.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_05",
+      "max": [
+        -21.0,
+        1.8,
+        22.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        21.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_06",
+      "max": [
+        -21.0,
+        2.05,
+        23.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        22.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_07",
+      "max": [
+        -21.0,
+        2.3,
+        24.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        23.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_08",
+      "max": [
+        -21.0,
+        2.55,
+        25.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_09",
+      "max": [
+        -21.0,
+        2.8,
+        26.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_10",
+      "max": [
+        -21.0,
+        3.05,
+        27.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        26.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_n1_11",
+      "max": [
+        -21.0,
+        3.3,
+        28.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        27.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_side_n1",
+      "max": [
+        -21.0,
+        3.3,
+        47.0
+      ],
+      "min": [
+        -26.0,
+        3.0,
+        28.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gallery_outer_rail_n1",
+      "max": [
+        -25.7,
+        4.4,
+        50.0
+      ],
+      "min": [
+        -26.0,
+        3.3,
+        28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_00",
+      "max": [
+        26.0,
+        0.55,
+        17.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_01",
+      "max": [
+        26.0,
+        0.8,
+        18.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        17.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_02",
+      "max": [
+        26.0,
+        1.05,
+        19.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        18.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_03",
+      "max": [
+        26.0,
+        1.3,
+        20.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_04",
+      "max": [
+        26.0,
+        1.55,
+        21.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        20.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_05",
+      "max": [
+        26.0,
+        1.8,
+        22.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        21.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_06",
+      "max": [
+        26.0,
+        2.05,
+        23.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        22.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_07",
+      "max": [
+        26.0,
+        2.3,
+        24.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        23.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_08",
+      "max": [
+        26.0,
+        2.55,
+        25.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        24.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_09",
+      "max": [
+        26.0,
+        2.8,
+        26.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_10",
+      "max": [
+        26.0,
+        3.05,
+        27.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        26.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_stair_1_11",
+      "max": [
+        26.0,
+        3.3,
+        28.0
+      ],
+      "min": [
+        21.0,
+        0.3,
+        27.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_side_1",
+      "max": [
+        26.0,
+        3.3,
+        47.0
+      ],
+      "min": [
+        21.0,
+        3.0,
+        28.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gallery_outer_rail_1",
+      "max": [
+        26.0,
+        4.4,
+        50.0
+      ],
+      "min": [
+        25.7,
+        3.3,
+        28.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_front_bridge",
+      "max": [
+        26.0,
+        3.3,
+        31.0
+      ],
+      "min": [
+        -26.0,
+        3.0,
+        28.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gallery_back_bridge",
+      "max": [
+        26.0,
+        3.3,
+        51.0
+      ],
+      "min": [
+        -26.0,
+        3.0,
+        47.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "gallery_back_rail_west",
+      "max": [
+        -5.0,
+        4.4,
+        51.0
+      ],
+      "min": [
+        -26.0,
+        3.3,
+        50.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_back_rail_east",
+      "max": [
+        26.0,
+        4.4,
+        51.0
+      ],
+      "min": [
+        5.0,
+        3.3,
+        50.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "gallery_north_cover",
+      "max": [
+        -6.0,
+        4.2,
+        47.7
+      ],
+      "min": [
+        -12.0,
+        3.3,
+        47.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ladle_basin",
+      "max": [
+        8.0,
+        7.0,
+        43.0
+      ],
+      "min": [
+        -8.0,
+        6.6,
+        33.0
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "ladle_west_wall",
+      "max": [
+        -8.0,
+        9.1,
+        43.5
+      ],
+      "min": [
+        -8.8,
+        6.1,
+        32.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_east_wall",
+      "max": [
+        8.8,
+        9.1,
+        43.5
+      ],
+      "min": [
+        8.0,
+        6.1,
+        32.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_back_wall",
+      "max": [
+        8.0,
+        9.1,
+        43.8
+      ],
+      "min": [
+        -8.0,
+        6.1,
+        43.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_front_left",
+      "max": [
+        -1.0,
+        9.1,
+        33.0
+      ],
+      "min": [
+        -8.0,
+        6.1,
+        32.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_front_right",
+      "max": [
+        8.0,
+        9.1,
+        33.0
+      ],
+      "min": [
+        1.0,
+        6.1,
+        32.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "protected_pour",
+      "max": [
+        0.6,
+        7.0,
+        33.3
+      ],
+      "min": [
+        -0.6,
+        0.3,
+        32.7
+      ],
+      "surface": "records_tile"
+    },
+    {
+      "id": "pour_shield_front",
+      "max": [
+        9.5,
+        2.6,
+        32.3
+      ],
+      "min": [
+        -9.5,
+        0.3,
+        31.8
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pour_shield_west",
+      "max": [
+        -9.0,
+        2.6,
+        44.0
+      ],
+      "min": [
+        -9.5,
+        0.3,
+        32.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pour_shield_east",
+      "max": [
+        9.5,
+        2.6,
+        44.0
+      ],
+      "min": [
+        9.0,
+        0.3,
+        32.3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "pour_shield_back",
+      "max": [
+        9.5,
+        2.6,
+        44.5
+      ],
+      "min": [
+        -9.5,
+        0.3,
+        44.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ladle_crane_beam",
+      "max": [
+        28.0,
+        12.1,
+        39.0
+      ],
+      "min": [
+        -28.0,
+        11.3,
+        36.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_crane_hanger_west",
+      "max": [
+        -5.7,
+        11.3,
+        38.5
+      ],
+      "min": [
+        -6.5,
+        9.1,
+        36.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_crane_hanger_east",
+      "max": [
+        6.5,
+        11.3,
+        38.5
+      ],
+      "min": [
+        5.7,
+        9.1,
+        36.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "lift_landing",
+      "max": [
+        5.0,
+        3.3,
+        53.5
+      ],
+      "min": [
+        -5.0,
+        0.3,
+        47.0
+      ],
+      "surface": "lift_panel"
+    },
+    {
+      "id": "lift_shaft_back",
+      "max": [
+        5.0,
+        13.5,
+        53.5
+      ],
+      "min": [
+        -5.0,
+        3.3,
+        53.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "lift_shaft_west",
+      "max": [
+        -4.6,
+        13.5,
+        53.0
+      ],
+      "min": [
+        -5.0,
+        3.3,
+        51.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "lift_shaft_east",
+      "max": [
+        5.0,
+        13.5,
+        53.0
+      ],
+      "min": [
+        4.6,
+        3.3,
+        51.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_outer_0",
+      "max": [
+        -26.0,
+        2.1500000000000004,
+        19.0
+      ],
+      "min": [
+        -26.35,
+        0.3,
+        16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_outer_1",
+      "max": [
+        -26.0,
+        2.9000000000000004,
+        22.0
+      ],
+      "min": [
+        -26.35,
+        0.3,
+        19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_outer_2",
+      "max": [
+        -26.0,
+        3.65,
+        25.0
+      ],
+      "min": [
+        -26.35,
+        0.3,
+        22.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_outer_3",
+      "max": [
+        -26.0,
+        4.4,
+        28.0
+      ],
+      "min": [
+        -26.35,
+        0.3,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_inner_0",
+      "max": [
+        -20.65,
+        2.1500000000000004,
+        19.0
+      ],
+      "min": [
+        -21.0,
+        0.3,
+        16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_inner_1",
+      "max": [
+        -20.65,
+        2.9000000000000004,
+        22.0
+      ],
+      "min": [
+        -21.0,
+        0.3,
+        19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_inner_2",
+      "max": [
+        -20.65,
+        3.65,
+        25.0
+      ],
+      "min": [
+        -21.0,
+        0.3,
+        22.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_n1_inner_3",
+      "max": [
+        -20.65,
+        4.4,
+        28.0
+      ],
+      "min": [
+        -21.0,
+        0.3,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_inner_gallery_guard_n1",
+      "max": [
+        -20.65,
+        4.4,
+        47
+      ],
+      "min": [
+        -21.0,
+        3.3,
+        31
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_gallery_pier_n1_n26p0_32p0",
+      "max": [
+        -25.7,
+        3.0,
+        32.45
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        32.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_gallery_pier_n1_n26p0_44p55",
+      "max": [
+        -25.7,
+        3.0,
+        45.0
+      ],
+      "min": [
+        -26.0,
+        0.3,
+        44.55
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_gallery_pier_n1_n21p0_32p0",
+      "max": [
+        -20.7,
+        3.0,
+        32.45
+      ],
+      "min": [
+        -21.0,
+        0.3,
+        32.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_gallery_pier_n1_n21p0_44p55",
+      "max": [
+        -20.7,
+        3.0,
+        45.0
+      ],
+      "min": [
+        -21.0,
+        0.3,
+        44.55
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_stair_1_outer_0",
+      "max": [
+        26.35,
+        2.1500000000000004,
+        19.0
+      ],
+      "min": [
+        26.0,
+        0.3,
+        16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_outer_1",
+      "max": [
+        26.35,
+        2.9000000000000004,
+        22.0
+      ],
+      "min": [
+        26.0,
+        0.3,
+        19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_outer_2",
+      "max": [
+        26.35,
+        3.65,
+        25.0
+      ],
+      "min": [
+        26.0,
+        0.3,
+        22.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_outer_3",
+      "max": [
+        26.35,
+        4.4,
+        28.0
+      ],
+      "min": [
+        26.0,
+        0.3,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_inner_0",
+      "max": [
+        21.0,
+        2.1500000000000004,
+        19.0
+      ],
+      "min": [
+        20.65,
+        0.3,
+        16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_inner_1",
+      "max": [
+        21.0,
+        2.9000000000000004,
+        22.0
+      ],
+      "min": [
+        20.65,
+        0.3,
+        19.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_inner_2",
+      "max": [
+        21.0,
+        3.65,
+        25.0
+      ],
+      "min": [
+        20.65,
+        0.3,
+        22.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_stair_1_inner_3",
+      "max": [
+        21.0,
+        4.4,
+        28.0
+      ],
+      "min": [
+        20.65,
+        0.3,
+        25.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_inner_gallery_guard_1",
+      "max": [
+        21.0,
+        4.4,
+        47
+      ],
+      "min": [
+        20.65,
+        3.3,
+        31
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_gallery_pier_1_20p65_32p0",
+      "max": [
+        20.95,
+        3.0,
+        32.45
+      ],
+      "min": [
+        20.65,
+        0.3,
+        32.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_gallery_pier_1_20p65_44p55",
+      "max": [
+        20.95,
+        3.0,
+        45.0
+      ],
+      "min": [
+        20.65,
+        0.3,
+        44.55
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_gallery_pier_1_25p7_32p0",
+      "max": [
+        26.0,
+        3.0,
+        32.45
+      ],
+      "min": [
+        25.7,
+        0.3,
+        32.0
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_gallery_pier_1_25p7_44p55",
+      "max": [
+        26.0,
+        3.0,
+        45.0
+      ],
+      "min": [
+        25.7,
+        0.3,
+        44.55
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_front_bridge_south_guard",
+      "max": [
+        20.65,
+        4.4,
+        28
+      ],
+      "min": [
+        -20.65,
+        3.3,
+        27.65
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_front_bridge_north_guard",
+      "max": [
+        20.65,
+        4.4,
+        31.35
+      ],
+      "min": [
+        -20.65,
+        3.3,
+        31
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_back_bridge_inner_guard",
+      "max": [
+        20.65,
+        4.4,
+        47
+      ],
+      "min": [
+        -20.65,
+        3.3,
+        46.65
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "connected_front_bridge_pier_n13p0",
+      "max": [
+        -12.6,
+        3.0,
+        30.6
+      ],
+      "min": [
+        -13.0,
+        0.3,
+        28.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_back_bridge_pier_n13p0",
+      "max": [
+        -12.6,
+        3.0,
+        50.5
+      ],
+      "min": [
+        -13.0,
+        0.3,
+        47.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_front_bridge_pier_12p6",
+      "max": [
+        13.0,
+        3.0,
+        30.6
+      ],
+      "min": [
+        12.6,
+        0.3,
+        28.4
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "connected_back_bridge_pier_12p6",
+      "max": [
+        13.0,
+        3.0,
+        50.5
+      ],
+      "min": [
+        12.6,
+        0.3,
+        47.5
+      ],
+      "surface": "service_steel"
+    },
+    {
+      "id": "ladle_roof_west",
+      "min": [
+        -39.5,
+        14,
+        46.75
+      ],
+      "max": [
+        -5.25,
+        14.3,
+        54
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ladle_roof_east",
+      "min": [
+        5.25,
+        14,
+        46.75
+      ],
+      "max": [
+        39.5,
+        14.3,
+        54
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "ladle_roof_north",
+      "min": [
+        -5.25,
+        14,
+        53.5
+      ],
+      "max": [
+        5.25,
+        14.3,
+        54
+      ],
+      "surface": "enamel"
+    }
+  ],
+  "spawns": [
+    {
+      "feet": [
+        0.0,
+        0.3,
+        -49.0
+      ],
+      "id": "service_arrival",
+      "yaw": 1.5707963267949
+    }
+  ],
+  "supplies": [
+    {
+      "claim": "personal",
+      "feet": [
+        0.0,
+        0.3,
+        -49.0
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "tack"
+      },
+      "id": "entry_tack"
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        0.0,
+        0.3,
+        -44.0
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "flechette"
+      },
+      "id": "entry_flechette"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        2.0,
+        0.3,
+        -46.0
+      ],
+      "grant": {
+        "amount": 90,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "entry_bullets",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -2.0,
+        0.3,
+        -46.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "id": "entry_armor",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -23.0,
+        0.3,
+        -27.0
+      ],
+      "grant": {
+        "amount": 70,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "edge_bullets",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -24.0,
+        0.3,
+        -24.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "edge_medical",
+      "secret": false
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        -20.0,
+        0.3,
+        -23.0
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "rail"
+      },
+      "id": "machine_rail"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -18.0,
+        0.3,
+        -23.0
+      ],
+      "grant": {
+        "amount": 24,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "machine_cells",
+      "secret": false
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        -18.0,
+        0.3,
+        6.0
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "scatter"
+      },
+      "id": "quarters_scatter"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -24.0,
+        0.3,
+        6.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "quarters_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        21.0,
+        0.3,
+        6.0
+      ],
+      "grant": {
+        "amount": 80,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "office_bullets",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        23.0,
+        0.3,
+        6.0
+      ],
+      "grant": {
+        "amount": 20,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "office_cells",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        25.0,
+        0.3,
+        6.0
+      ],
+      "grant": {
+        "amount": 20,
+        "kind": "ammo",
+        "pool": "shells"
+      },
+      "id": "office_shells",
+      "secret": false
+    },
+    {
+      "id": "office_rocket",
+      "feet": [
+        17.0,
+        0.3,
+        5.0
+      ],
+      "claim": "personal",
+      "grant": {
+        "kind": "weapon",
+        "weapon": "rocket"
+      }
+    },
+    {
+      "id": "office_rockets",
+      "feet": [
+        19.0,
+        0.3,
+        4.5
+      ],
+      "claim": "contested",
+      "secret": false,
+      "grant": {
+        "kind": "ammo",
+        "pool": "rockets",
+        "amount": 4
+      }
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -34.0,
+        0.3,
+        -12.0
+      ],
+      "grant": {
+        "amount": 12,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "ring_secret_cells",
+      "secret": true
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -34.0,
+        0.3,
+        15.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "ring_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -11.0,
+        0.3,
+        23.0
+      ],
+      "grant": {
+        "amount": 80,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "staging_bullets",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -9.0,
+        0.3,
+        23.0
+      ],
+      "grant": {
+        "amount": 20,
+        "kind": "ammo",
+        "pool": "cells"
+      },
+      "id": "staging_cells",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -7.0,
+        0.3,
+        23.0
+      ],
+      "grant": {
+        "amount": 60,
+        "kind": "health"
+      },
+      "id": "staging_medical",
+      "secret": false
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        23.5,
+        3.3,
+        41.0
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "armor"
+      },
+      "id": "gallery_armor",
+      "secret": true
+    }
+  ],
+  "version": 1
+}

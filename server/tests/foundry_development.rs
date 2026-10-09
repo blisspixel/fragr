@@ -2,11 +2,13 @@ use fragr_server::maps::{AuthoredMap, RuntimeMap};
 use fragr_server::movement::{BODY_HEIGHT, CONTACT_EPSILON, EYE_HEIGHT};
 use fragr_server::navigation::{NavigationGoal, Navigator, RouteStatus, SEARCH_LIMIT};
 use fragr_server::protocol::{
-    Action, CampaignActor, EnemyPhase, LookAt, Role, ServerMessage, WeaponType,
+    Action, AmmoPool, CampaignActor, EnemyPhase, LookAt, Role, ServerMessage, WeaponType,
 };
 use fragr_server::session::GameSession;
+use fragr_server::sim::PickupKind;
 use fragr_server::sim::{GameState, PLAYER_FLOOR_Y};
 use serde_json::{json, Value};
+use sha2::Digest;
 use std::collections::HashSet;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -201,6 +203,123 @@ fn foundry_loader_rejects_missing_stairs_bad_support_and_unknown_actor() {
     let mut unknown = document();
     unknown["encounters"][1]["enemies"][0]["kind"] = json!("assessor");
     assert!(AuthoredMap::read(serde_json::to_vec(&unknown).unwrap().as_slice()).is_err());
+}
+
+const SUCCESSOR: &[u8] = include_bytes!("../maps/m13-weight-of-permission.json");
+
+fn successor() -> Value {
+    serde_json::from_slice(SUCCESSOR).unwrap()
+}
+
+/// The practice map stays byte-exact. The successor opens the ladle shaft,
+/// keeps the checked stair cheeks, and places the office rocket plus the
+/// freight Assessor. It is still not a connected mission.
+#[test]
+fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geometry() {
+    let practice: String = sha2::Sha256::digest(SOURCE)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect();
+    assert_eq!(
+        practice,
+        "4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943"
+    );
+    let value = successor();
+    assert_eq!(value["map_id"], 1013);
+    assert_eq!(value["name"], "The Weight of Permission");
+    assert!(value.get("m13").is_none());
+    assert_eq!(value["solids"].as_array().unwrap().len(), 157);
+    let map = AuthoredMap::read(SUCCESSOR).expect("foundry successor");
+    let world = RuntimeMap::Authored(map.clone());
+    assert_eq!(world.id(), 1013);
+    assert_eq!(world.name(), "The Weight of Permission");
+    assert_eq!(world.solids().len(), 157);
+    let state = GameState::with_authored_map(map.clone());
+    assert!(state.mission_state().is_none());
+    assert!(matches!(
+        state.map_info(),
+        ServerMessage::MapInfo { mission: None, .. }
+    ));
+    let rocket = state
+        .pickups
+        .iter()
+        .find(|stock| stock.id == "office_rocket")
+        .expect("office rocket");
+    assert_eq!(rocket.kind, PickupKind::Weapon(WeaponType::Rocket));
+    assert!(!rocket.secret);
+    let rounds = state
+        .pickups
+        .iter()
+        .find(|stock| stock.id == "office_rockets")
+        .expect("office rockets");
+    assert_eq!(
+        rounds.kind,
+        PickupKind::Ammo {
+            pool: AmmoPool::Rockets,
+            rounds: 4
+        }
+    );
+    let freight = value["encounters"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|group| group["id"] == "freight_counterattack")
+        .unwrap();
+    let assessors = freight["enemies"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|enemy| enemy["kind"] == "assessor")
+        .count();
+    assert_eq!(assessors, 1);
+    let entry = point(&value["spawns"][0]["feet"]);
+    for destination in [[17.0, 0.3, 5.0], [19.0, 0.3, 4.5], [-6.0, 0.3, 12.0]] {
+        assert_eq!(
+            world
+                .navigation()
+                .route(entry, destination, SEARCH_LIMIT)
+                .status,
+            RouteStatus::Complete,
+            "unreachable lesson point {destination:?}"
+        );
+    }
+    let mut bare = value.clone();
+    bare["encounters"] = json!([]);
+    let mut state = GameState::with_authored_map(
+        AuthoredMap::read(serde_json::to_vec(&bare).unwrap().as_slice()).unwrap(),
+    );
+    let id = Uuid::from_u128(1013);
+    state.add_player(id, "Foundry successor route".into(), Role::Human);
+    state.start_round();
+    walk(
+        &mut state,
+        id,
+        &[
+            [0., 0.3, -40.],
+            [-23., 0.3, -29.],
+            [-34., 0.3, -23.],
+            [-34., 0.3, 24.],
+            [-23.5, 0.3, 15.],
+            [-23.5, 3.3, 29.5],
+            [-23.5, 3.3, 49.],
+            [0., 3.3, 52.],
+            [23.5, 3.3, 49.],
+            [23.5, 3.3, 29.5],
+            [23.5, 0.3, 15.],
+            [17., 0.3, 5.],
+            [21., 0.3, 6.],
+            [10., 0.3, 1.],
+            [-10., 0.3, 1.],
+            [-21., 0.3, 6.],
+            [-20., 0.3, -8.],
+            [0., 0.3, -23.],
+            [20., 0.3, -8.],
+            [29., 0.3, -25.],
+            [0., 0.3, -40.],
+            [0., 0.3, -49.],
+        ],
+    );
+    assert_eq!(state.players.iter().find(|p| p.id == id).unwrap().hp, 100);
 }
 
 #[derive(Default)]
