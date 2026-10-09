@@ -1,10 +1,15 @@
 # Connected Weight of Permission foundry
 
-Status: **in flight**, 2026-10-08. Spend: $0. This plan is written before connected
-M13 implementation. Current work prepares the contract and an ignored geometry
-candidate while the M12 and four-map composition is frozen. No production mission,
-wire, save, weapon, client or dated development source changes belong to that
-preparation. Sequencing remains in the single [full build order](../ROADMAP.md).
+Status: **in flight**, 2026-10-09. Spend: $0. The Rocket Launcher foundation is
+on main at `711dfb4`, recorded for v0.81.0, and is not part of v0.80.0. This change adds
+`server/maps/m13-weight-of-permission.json`: the roof-split successor, the
+office Rocket Launcher, four extra rockets and the freight Assessor.
+`foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geometry`
+passed. The practice map remains SHA-256
+`4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943`. The successor
+is not a mission. It has no MissionId, save promotion, client, worker choice,
+hazard, relay or moving lift. Sequencing remains in the single
+[full build order](../ROADMAP.md).
 
 ## Accepted scope and existing source
 
@@ -175,8 +180,9 @@ Then compose the full native, client, lint, coverage, renderer and clean-exit ga
 The connected mission remains unbuilt until these dependencies and acceptance
 exist. Human comprehension, the political meaning of voluntary work, first-run
 duration, enjoyable difficulty, final art, other-platform play and shipment have
-their own evidence. No paid generation, new cash, cloud apply, dependency change,
-commit or publication is authorized by this preparation.
+their own evidence. No paid generation, new cash, cloud apply or dependency
+change is part of this work. The geometry successor is not a playable mission
+and does not authorize publishing Weight of Permission.
 
 ## Isolated roof and shaft preparation before main integration
 
