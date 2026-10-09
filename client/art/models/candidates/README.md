@@ -28,14 +28,16 @@ packaging, actual skin/gesture checks and mission-route acceptance.
 
 ## Free human
 
-`free_human.glb` is the October 4 stylized civilian source. It retains a
+`free_human.glb` is the October 4 hatless civilian revision. It retains a
 24-bone skin, a walking clip and embedded 1024-pixel PBR maps. The pose sampler
 removes horizontal root travel when it uses the clip for the runtime strip.
 Its SHA-256 is
-`8b131e404a0155cae8eec586cbd22f5f19750238059f561074fdcbf1583d6f13`.
-The measured unrigged candidate has 11,888 triangles. It uses an angular
-painted face, warm worn leather, a teal shirt, work trousers, ochre scarf and
-a practical hat. The source is unarmed and carries no gameplay collision.
+`94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff`.
+The measured unrigged candidate has 12,330 triangles. It uses an angular
+painted face, short informal hair, a rust utility jacket, teal casual layer,
+patched work trousers and practical shoes. The source is unarmed and carries
+no gameplay collision. The [civilian revision receipt](../../../../docs/evidence/free-human-civilian-20261004.md)
+retains its source and inspection history.
 
 Preparation reuses `tools/prepare_clerk_source.gd` with its retained walking
 GLB, output path and `FreeHuman` as the optional third argument. The preparer
@@ -44,13 +46,28 @@ and preserves legal copyright. The import preset keeps images embedded.
 `../free_human_source.gd` shares the existing pose cache, walking sampler and
 arm solver while keeping the human's separate source identity and relaxed
 empty-hand stance. `../../characters/player_bake.gd` renders the existing
-eight-cell selectable strip with explicit studio illumination; the source
-scene is excluded from desktop packages.
+eight-cell selectable strip with explicit studio illumination. This offline
+source is excluded from desktop packages; the identical compact GLB is packaged
+at `client/assets/models/free_human_live.glb` for the live player body.
 
 Focused source and live-body boundary harnesses pass. Inspected bake views
 show the civilian and issued bodies at the same camera scale. Whole-cast,
 venue-light and fresh-player acceptance remain open under the
 [cast plan](../../../../docs/plans/cast-model-buildout-20261004.md).
+
+## Tern and Edda
+
+`tern.glb` and `edda.glb` retain their distinct named civilian identities,
+24-bone skins and original walking keys. Their prepared SHA-256 values are
+`0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f`
+and `cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40`.
+The [Tern preparation](../../../../docs/evidence/tern-source-preparation-20261008.md)
+and [Edda repair](../../../../docs/plans/edda-live-repair-20261008.md) preserve
+original source, legal metadata and the separately measured skin corrections.
+Identical packaged copies at `assets/models/tern_live.glb` and
+`assets/models/edda_live.glb` supply current eligible M09 and M10 appearances.
+Splice's selected `assets/models/splice_live.glb` uses rigid articulated regions,
+with source and provisional gait gates in the [mechanical plan](../../../../docs/plans/splice-mechanical-source-20261008.md).
 
 ## Clerk
 

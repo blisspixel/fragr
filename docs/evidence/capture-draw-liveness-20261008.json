@@ -1,0 +1,599 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "in flight",
+  "cash_spend_usd": 0,
+  "scope": "Bounded capture-only liveness correction,actual inherited timed strips and paused HUD measurement; not a native/combat/FPS/platform-wide claim",
+  "engine": {
+    "version": "4.7.2-stable (official)",
+    "console_path": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+    "console_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+    "force_draw_metadata": [
+      {
+        "args": [
+          {
+            "class_name": "",
+            "hint": 0,
+            "hint_string": "",
+            "name": "swap_buffers",
+            "type": 1,
+            "usage": 6
+          },
+          {
+            "class_name": "",
+            "hint": 0,
+            "hint_string": "",
+            "name": "frame_step",
+            "type": 3,
+            "usage": 6
+          }
+        ],
+        "default_args": [
+          true,
+          0.0
+        ],
+        "flags": 1,
+        "id": 2705,
+        "name": "force_draw",
+        "return": {
+          "class_name": "",
+          "hint": 0,
+          "hint_string": "",
+          "name": "",
+          "type": 0,
+          "usage": 6
+        }
+      }
+    ]
+  },
+  "primary_api": "https://docs.godotengine.org/en/stable/classes/class_renderingserver.html#class-renderingserver-method-force-draw",
+  "mechanism": {
+    "capture_tool_only": true,
+    "headless_excluded": true,
+    "actual_window_can_draw_required_false": true,
+    "undrawn_seconds_before_pump": 0.25,
+    "swap_buffers": false,
+    "normal_controls_force_zero_draws": true,
+    "all_existing_capture_and_combat_deadlines_unchanged": true
+  },
+  "untreated_controls": [
+    {
+      "can_draw": true,
+      "draws": 5426,
+      "elapsed_ms": 1300,
+      "phase": "windowed_before",
+      "process_frames": 5426,
+      "render_loop_enabled": true,
+      "requested_mode": "windowed",
+      "strip_done_after_restore": true,
+      "strip_done_before_restore": true,
+      "strip_frames_after_restore": 30,
+      "strip_frames_before_restore": 30,
+      "time_scale": 1.0,
+      "timer_fired": true,
+      "tree_paused": false,
+      "window_mode": 0,
+      "window_visible": true
+    },
+    {
+      "can_draw": true,
+      "draws": 5376,
+      "elapsed_ms": 1300,
+      "phase": "hidden_launch_control",
+      "process_frames": 5376,
+      "render_loop_enabled": true,
+      "requested_mode": "hidden_launch",
+      "strip_done_after_restore": true,
+      "strip_done_before_restore": true,
+      "strip_frames_after_restore": 30,
+      "strip_frames_before_restore": 30,
+      "time_scale": 1.0,
+      "timer_fired": true,
+      "tree_paused": false,
+      "window_mode": 0,
+      "window_visible": true
+    },
+    {
+      "can_draw": false,
+      "draws": 0,
+      "elapsed_ms": 1304,
+      "phase": "minimized_control",
+      "process_frames": 190,
+      "render_loop_enabled": true,
+      "requested_mode": "minimized",
+      "strip_done_after_restore": true,
+      "strip_done_before_restore": false,
+      "strip_frames_after_restore": 30,
+      "strip_frames_before_restore": 0,
+      "time_scale": 1.0,
+      "timer_fired": true,
+      "tree_paused": false,
+      "window_mode": 1,
+      "window_visible": true
+    },
+    {
+      "can_draw": true,
+      "draws": 0,
+      "elapsed_ms": 1300,
+      "phase": "draw_loop_disabled_control",
+      "process_frames": 169722,
+      "render_loop_enabled": false,
+      "requested_mode": "render_loop_disabled",
+      "strip_done_after_restore": true,
+      "strip_done_before_restore": false,
+      "strip_frames_after_restore": 30,
+      "strip_frames_before_restore": 0,
+      "time_scale": 1.0,
+      "timer_fired": true,
+      "tree_paused": false,
+      "window_mode": 0,
+      "window_visible": true
+    },
+    {
+      "can_draw": true,
+      "draws": 4625,
+      "elapsed_ms": 1300,
+      "phase": "windowed_after",
+      "process_frames": 4625,
+      "render_loop_enabled": true,
+      "requested_mode": "windowed",
+      "strip_done_after_restore": true,
+      "strip_done_before_restore": true,
+      "strip_frames_after_restore": 30,
+      "strip_frames_before_restore": 30,
+      "time_scale": 1.0,
+      "timer_fired": true,
+      "tree_paused": false,
+      "window_mode": 0,
+      "window_visible": true
+    }
+  ],
+  "actual_central_cases": [
+    {
+      "case": "normal_unpaused",
+      "pass": true,
+      "minimized": false,
+      "start_paused": false,
+      "strip_frames": 30,
+      "strip_times_ms": [
+        6,
+        40,
+        58,
+        83,
+        108,
+        133,
+        158,
+        183,
+        209,
+        234,
+        259,
+        284,
+        309,
+        334,
+        359,
+        384,
+        409,
+        434,
+        459,
+        485,
+        510,
+        535,
+        560,
+        586,
+        611,
+        636,
+        661,
+        686,
+        711,
+        736
+      ],
+      "elapsed_ms": 875,
+      "full_image_size": [
+        1280,
+        720
+      ],
+      "distinct_animated_samples": 30,
+      "forced_strip_draws": 0,
+      "forced_paused_measure_draws": 0,
+      "can_draw_after_strip": true,
+      "window_mode_after_strip": 0,
+      "measure_complete": true,
+      "world_blank": false,
+      "hud_coverage": 0.00586805555555556
+    },
+    {
+      "case": "normal_paused",
+      "pass": true,
+      "minimized": false,
+      "start_paused": true,
+      "strip_frames": 30,
+      "strip_times_ms": [
+        1,
+        28,
+        59,
+        84,
+        109,
+        135,
+        159,
+        184,
+        209,
+        234,
+        260,
+        285,
+        310,
+        335,
+        360,
+        385,
+        410,
+        435,
+        460,
+        486,
+        513,
+        536,
+        561,
+        586,
+        611,
+        636,
+        662,
+        687,
+        712,
+        737
+      ],
+      "elapsed_ms": 828,
+      "full_image_size": [
+        1280,
+        720
+      ],
+      "distinct_animated_samples": 1,
+      "forced_strip_draws": 0,
+      "forced_paused_measure_draws": 0,
+      "can_draw_after_strip": true,
+      "window_mode_after_strip": 0,
+      "measure_complete": true,
+      "world_blank": false,
+      "hud_coverage": 0.00586805555555556
+    },
+    {
+      "case": "minimized_unpaused",
+      "pass": true,
+      "minimized": true,
+      "start_paused": false,
+      "strip_frames": 30,
+      "strip_times_ms": [
+        246,
+        487,
+        742,
+        997,
+        1253,
+        1508,
+        1763,
+        2019,
+        2274,
+        2530,
+        2785,
+        3040,
+        3295,
+        3551,
+        3806,
+        4061,
+        4316,
+        4572,
+        4827,
+        5082,
+        5338,
+        5593,
+        5848,
+        6103,
+        6359,
+        6614,
+        6870,
+        7125,
+        7382,
+        7636
+      ],
+      "elapsed_ms": 8235,
+      "full_image_size": [
+        1280,
+        720
+      ],
+      "distinct_animated_samples": 30,
+      "forced_strip_draws": 32,
+      "forced_paused_measure_draws": 5,
+      "can_draw_after_strip": false,
+      "window_mode_after_strip": 1,
+      "measure_complete": true,
+      "world_blank": false,
+      "hud_coverage": 0.00586805555555556
+    },
+    {
+      "case": "minimized_paused",
+      "pass": true,
+      "minimized": true,
+      "start_paused": true,
+      "strip_frames": 30,
+      "strip_times_ms": [
+        255,
+        502,
+        764,
+        1019,
+        1274,
+        1530,
+        1785,
+        2040,
+        2296,
+        2551,
+        2806,
+        3062,
+        3317,
+        3572,
+        3828,
+        4083,
+        4338,
+        4593,
+        4849,
+        5104,
+        5359,
+        5614,
+        5870,
+        6125,
+        6381,
+        6636,
+        6891,
+        7146,
+        7402,
+        7657
+      ],
+      "elapsed_ms": 8247,
+      "full_image_size": [
+        1280,
+        720
+      ],
+      "distinct_animated_samples": 1,
+      "forced_strip_draws": 32,
+      "forced_paused_measure_draws": 5,
+      "can_draw_after_strip": false,
+      "window_mode_after_strip": 1,
+      "measure_complete": true,
+      "world_blank": false,
+      "hud_coverage": 0.00586805555555556
+    },
+    {
+      "case": "normal_after",
+      "pass": true,
+      "minimized": false,
+      "start_paused": false,
+      "strip_frames": 30,
+      "strip_times_ms": [
+        0,
+        36,
+        61,
+        86,
+        111,
+        136,
+        161,
+        186,
+        211,
+        237,
+        262,
+        287,
+        312,
+        337,
+        362,
+        387,
+        412,
+        438,
+        463,
+        488,
+        513,
+        538,
+        563,
+        588,
+        614,
+        639,
+        664,
+        689,
+        714,
+        739
+      ],
+      "elapsed_ms": 831,
+      "full_image_size": [
+        1280,
+        720
+      ],
+      "distinct_animated_samples": 30,
+      "forced_strip_draws": 0,
+      "forced_paused_measure_draws": 0,
+      "can_draw_after_strip": true,
+      "window_mode_after_strip": 0,
+      "measure_complete": true,
+      "world_blank": false,
+      "hud_coverage": 0.00586805555555556
+    }
+  ],
+  "verification": {
+    "numeric_exit": 0,
+    "clean_logs": true,
+    "owned_renderer_retired": true,
+    "cases": 5,
+    "timed_strip_frames": 150,
+    "image_bindings": 10,
+    "actual_image_width": 1280,
+    "actual_image_height": 720,
+    "actual_paused_hud_measurement": true,
+    "actual_headless_callback_zero_forced_draws": true,
+    "outer_deadline_seconds": 45
+  },
+  "image_bindings": [
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/minimized_paused_shot.png",
+      "sha256": "318179c62aebf0667b742a7ce3364367f221f2c0c88f2eed90516b92a32a968e"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/minimized_paused_strip.png",
+      "sha256": "ea4b157d0b8a3ba114275db35864d21fb8df55a178800ec04c2a25768356cb59"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/minimized_unpaused_shot.png",
+      "sha256": "3dda3e5f459afc71e4082e547f0e2a936214abc08f3c0c51f02ac0a1a3836c68"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/minimized_unpaused_strip.png",
+      "sha256": "c35467314f66e48e0e33eaa8abf81d3a293f048de6523481e0bbb5946babfb16"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/normal_after_shot.png",
+      "sha256": "ffe79412db2bd2734d2b3f02dc228ce60b6fa0287405987ae4c30aca1f2b5190"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/normal_after_strip.png",
+      "sha256": "1112944b1461bab745f4d85eb4bc74d007aaccdfc4b25a3c381c26eacb217613"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/normal_paused_shot.png",
+      "sha256": "3fa3ec9ba04207f042760604b5fd73c69effb3e1e11a85bc69e9ed61c6a8b90c"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/normal_paused_strip.png",
+      "sha256": "0af5ca1ce315e47db47fc152b6a620387fff6f86263bb3cf97d69b60c9b24aaa"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/normal_unpaused_shot.png",
+      "sha256": "bcc3bc95dcfda2f807b606e47229d3bf5d28862c483f9bc6e5758b205960c4b0"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/normal_unpaused_strip.png",
+      "sha256": "2ab8568304040007d7aeb0c1c0c4057c25567aaee2909f4a9bee2d1ebf77f0a4"
+    }
+  ],
+  "source_bindings": [
+    {
+      "path": "client/scripts/qa_tour.gd",
+      "sha256": "846468471feec107395a4c7454c50b6f02e534cf17a0d3bfd88c305fd19c7d7e"
+    },
+    {
+      "path": "client/scripts/test_qa_capture_draw.gd",
+      "sha256": "6b2e9ca8c94864b69f216412a9e4d77ce74225e7adb6c655b1171ab66d2a0097"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/qa_tour-before-capture-draw-liveness.gd",
+      "sha256": "fc9d5f45d00f0eff675883ca3f2aed913b04a83fdb75fbaaed4ceb80efbd0f28"
+    },
+    {
+      "path": "client/scripts/client_retirement.gd",
+      "sha256": "22e000e67fd6ff01013b7a523b6df4a7d92b014820928e314f40f30e68bab0e4"
+    },
+    {
+      "path": "client/scripts/qa_m11.gd",
+      "sha256": "fca92217d2c01566c1e7983d5441ce76dc31b6c478ae0f5eb8aae7c0d13cd33d"
+    },
+    {
+      "path": "client/scripts/qa_vehicle.gd",
+      "sha256": "cb00bf34ab97cdb14b9513dd0219d9cfb49aebb319c063ad1b67fe7b4fa22ea6"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/qa_capture_window_probe_second.gd",
+      "sha256": "9f5fbefac41c9a16c36f7f5bde98dab8f4738fd37f2338ff9dd295dc1f8e5fb8"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/qa_capture_pump_probe_second.gd",
+      "sha256": "1db7265d920dc5191e9fec40c9664c87f7c572ecef273045f297a84216fc4d51"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/qa_capture_pump_probe_central.gd",
+      "sha256": "b0c47f4ed52d456912a9359f4b56b86b79c6d246c724eaba18617382c69851ec"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/run-capture-window-probe.ps1",
+      "sha256": "7ce55d2e2b25136d868f7a56ac08be22e3acd2a4f70b5411d8be6de7886b34dd"
+    }
+  ],
+  "receipt_bindings": [
+    {
+      "path": ".agents/stair-architecture-20261008/capture-window-probe-first/process.json",
+      "sha256": "6f3ce6bb18892764b5532c7bf3c0df439d1fed0a305657405ead2c47a597a734"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-window-probe-first/client-error.log",
+      "sha256": "420f5be85af7df886eaa48cfb6482b3c85b183fbb0791d810bb47e36e7095282"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-window-probe-second/process.json",
+      "sha256": "981956738a49aae4aa8f3198c71ec279f12bcdfe4ae1efb14155b5e2978d2aca"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-window-probe-second/probe.json",
+      "sha256": "ad39cb4d8d0521231d420aaea179b60a1ee39ebf9c4830d26253f7cd065601f3"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-first/process.json",
+      "sha256": "eac058635a0bf85d4a4a7ada4874568609c0d0f0b845c39b9ccdc6d57c0628f2"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-first/probe.json",
+      "sha256": "ac549d606cae61b48347ad080748b7a90c53fa72dbb7f3754a07cee9109cf8e0"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-second/process.json",
+      "sha256": "ba0ad31c7d5ddc85c08ef18e94d702fc12b2c26a2ea424e606ad413cd3c5c7e4"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-second/probe.json",
+      "sha256": "58ebdea6ac563dc1f5170e85d21fe4d8b2483ced8cb42d477b446ae4a1d53334"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/process.json",
+      "sha256": "39a21bd2ab0673af9204ddd10a9e4935d443044c6b548917f484d95bf1cf8fb9"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/probe.json",
+      "sha256": "7c9cc7cf31410aa112e413c48c62970a04e3f8f7cee311ca378547a94df425c2"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/client.log",
+      "sha256": "8505fd4828dbb6020ed312152ace0aa43583cd3c87252de4995320f8e9b778d5"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-pump-probe-central-first/client-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-draw-headless-first/process.json",
+      "sha256": "dfbd4f7e6df52914132271d2c01f1d4a0226ad1103081f877494e12dfcfd027e"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/capture-draw-headless-first/client.log",
+      "sha256": "786fadc1fa97e757019c359450e433d747281bddae35cdfd5d7c83f9001faaeb"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-rail-bridge-candidate-first/intentional-stop.json",
+      "sha256": "d9c592565527d58ad04b02dde4c1f21461ac47b1977dce6532d17ed1bc2f1e6e"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-rail-bridge-candidate-first/process.json",
+      "sha256": "6c4646889b218a710e46e872f9a2cceaeaa5a62cf1726c922ef5d66eefdd3c1c"
+    }
+  ],
+  "retained_failures": [
+    {
+      "directory": ".agents/stair-architecture-20261008/capture-window-probe-first",
+      "cause": "Main Window.hide is unsupported; strict error log gate rejects numeric0",
+      "accepted": false
+    },
+    {
+      "directory": ".agents/stair-architecture-20261008/capture-pump-probe-first",
+      "cause": "Probe set size before leaving inherited fullscreen; actual1254x649images correctly fail1280x720gate",
+      "accepted": false
+    },
+    {
+      "directory": ".agents/stair-architecture-20261008/ordinary-m08-rail-bridge-candidate-first",
+      "cause": "Unchanged mine-live strip incomplete before Rail branch; original actual window mode unknown, no damage/death while native continued",
+      "accepted": false
+    }
+  ],
+  "pending": [
+    "Fresh affected ordinary mission routes using actual central capture callback",
+    "Final whole-client composition",
+    "No retroactive claim that an uninstrumented historical attempt was minimized",
+    "No frame-rate,other-hardware or game-authority inference"
+  ]
+}

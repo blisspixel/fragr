@@ -1,0 +1,58 @@
+{
+  "comment": "Ordinary finite human inputs in the separate Assessor court. Find the Arc, cross the real activation region, observe the first recovery before returning fire, reload normally and walk out. No equipment, damage, movement or outcome grants.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {
+      "name": "assessor_maintenance_arrival",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "camera": "first_person",
+      "radio_off": true,
+      "walk_to": [[-2,0,-18],[-10,0,-17]],
+      "look_at": [-10,1,-20]
+    },
+    {
+      "name": "assessor_counter_found",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "expect_equipment": {"selected":"arc","ammo":12,"pool_rounds":{"cells":40}},
+      "look_at": [8,4.6,0]
+    },
+    {
+      "name": "assessor_actual_volley_and_counter",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "combat": {
+        "kind":"assessor",
+        "required":["court_assessor"],
+        "target_required_only":true,
+        "phase_kind":"assessor",
+        "observe_phase":"recovery",
+        "required_phases":["windup","firing","recovery","dead"],
+        "evade_tells":true,
+        "engagement_distance":24,
+        "approach_route":[[0,0,-6.5],[0,0,0]],
+        "approach_focus":"court_assessor",
+        "search_route":[[0,0,0],[-3,0,0],[0,0,5]]
+      },
+      "look_at": [8,0.6,0]
+    },
+    {
+      "name": "assessor_supported_court_exit",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "walk_to": [[0,0,4],[-4,0,4],[-4,0,10],[0,0,20]],
+      "look_at": [8,0.6,0]
+    },
+    {
+      "name": "assessor_finite_lesson_record",
+      "scene":"res://scenes/boot_menu.tscn",
+      "camera":"none",
+      "menu_page":"records",
+      "record_kind":"practice",
+      "expect_records":true
+    }
+  ]
+}

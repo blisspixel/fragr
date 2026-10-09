@@ -74,12 +74,16 @@ fn a_resting_grenade_does_not_invent_repeated_bounces_and_bad_delta_is_safe() {
 #[test]
 fn blast_distance_uses_actual_cylinder_and_raised_notary_box() {
     assert_eq!(
-        closest_body_point([0.0, 1.0, 0.0], [0.0; 3], None),
+        closest_body_point_stance([0.0, 1.0, 0.0], [0.0; 3], None, false),
         [0.0, 1.0, 0.0]
     );
     assert_eq!(
-        closest_body_point([3.0, 5.0, 0.0], [0.0; 3], None),
+        closest_body_point_stance([3.0, 5.0, 0.0], [0.0; 3], None, false),
         [0.5, 1.8, 0.0]
+    );
+    assert_eq!(
+        closest_body_point_stance([3.0, 5.0, 0.0], [0.0; 3], None, true),
+        [0.5, crate::movement::DUCK_HEIGHT, 0.0]
     );
     let notary = crate::protocol::CampaignActor::Union {
         kind: crate::protocol::EnemyKind::Notary,
@@ -88,7 +92,7 @@ fn blast_distance_uses_actual_cylinder_and_raised_notary_box() {
         phase_ends: 0,
         seated: false,
     };
-    let point = closest_body_point([3.0, 0.0, 3.0], [0.0, 4.0, 0.0], Some(notary));
+    let point = closest_body_point_stance([3.0, 0.0, 3.0], [0.0, 4.0, 0.0], Some(notary), false);
     assert_eq!(point, [0.65, 4.0, 0.65]);
 }
 

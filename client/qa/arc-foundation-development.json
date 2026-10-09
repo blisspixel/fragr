@@ -1,0 +1,75 @@
+{
+  "comment": "Arc finite maintenance practice, separate from connected M12. Ordinary owned human input, one forty-Cell Arc find, twelve-round magazines, normal reloads and three actual Heavy Sweepers with 100 carried armor each. No inventory, damage, HP, encounter or outcome grants.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {
+      "name": "arc_maintenance_arrival",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "camera": "first_person",
+      "radio_off": true,
+      "walk_to": [[2,0,-18],[-2,0,-18],[-8,0,-16]],
+      "look_at": [-8,1,-19]
+    },
+    {
+      "name": "arc_discovered",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "expect_equipment": {"selected":"arc", "ammo":12, "pool_rounds":{"cells":40}},
+      "look_at": [0,1,-5]
+    },
+    {
+      "name": "arc_first_armor_lesson",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "walk_to": [[0,0,-5]],
+      "combat": {"kind":"union", "required":["first_heavy"], "target_required_only":true, "evade_tells":true, "engagement_distance":24, "search_route":[[0,0,-5],[-3,0,-4],[3,0,-4]]},
+      "look_at": [0,1,1]
+    },
+    {
+      "name": "arc_court_reload",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "walk_to": [[0,0,8]],
+      "combat": {"kind":"union", "required":["court_heavy"], "target_required_only":true, "evade_tells":true, "engagement_distance":24, "search_route":[[0,0,8],[-3,0,9],[0,0,13.5]]},
+      "look_at": [-9,1,11]
+    },
+    {
+      "name": "arc_pre_final_medical",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "walk_to": [[-2,0,13.5]],
+      "look_at": [0,1,16]
+    },
+    {
+      "name": "arc_final_armor",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "combat_travel": true,
+      "combat_travel_targets": ["final_heavy"],
+      "walk_to": [[0,0,17],[0,0,21]],
+      "combat": {"kind":"union", "required":["final_heavy"], "target_required_only":true, "evade_tells":true, "engagement_distance":24, "search_route":[[0,0,17],[3,0,18],[0,0,21]]},
+      "look_at": [9,1,19]
+    },
+    {
+      "name": "arc_resolved_discharge",
+      "camera": "first_person",
+      "weapon": "Arc",
+      "look_at": [9,1,23],
+      "strip_frames": 6,
+      "trigger": "fire",
+      "probe": "FpMuzzle",
+      "single_shot": true
+    },
+    {
+      "name": "arc_finite_lesson_record",
+      "scene": "res://scenes/boot_menu.tscn",
+      "camera": "none",
+      "menu_page": "records",
+      "record_kind": "practice",
+      "expect_records": true
+    }
+  ]
+}

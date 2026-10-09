@@ -46,7 +46,7 @@ static func valid_settings(value: Variant) -> bool:
 	if data.size() != 7 or not data.get("mode") is String \
 		or data["mode"] not in ["tdm", "sabotage", "conquest"] or not data.get("lan") is bool \
 		or not data.get("bot_policy") is String or data["bot_policy"] not in ["none", "fixed", "auto"] \
-		or not EquipmentState.integer(data.get("map_id"), 7) or data["map_id"] < 1 \
+		or not EquipmentState.integer(data.get("map_id"), 8) or data["map_id"] < 1 \
 		or not EquipmentState.integer(data.get("bots"), 10) \
 		or not EquipmentState.integer(data.get("fill_target"), 10) \
 		or not EquipmentState.integer(data.get("port"), 65535):
@@ -56,7 +56,7 @@ static func valid_settings(value: Variant) -> bool:
 			return false
 	elif data["bots"] != 0 or (data["fill_target"] < 1 if data["bot_policy"] == "auto" else data["fill_target"] != 0):
 		return false
-	if data["mode"] == "sabotage" and data["map_id"] != 4:
+	if data["mode"] == "sabotage" and data["map_id"] not in [4, 8]:
 		return false
 	if data["mode"] == "conquest" and data["map_id"] != 7:
 		return false
@@ -113,7 +113,7 @@ static func parse_ready(bytes: PackedByteArray, requested: Dictionary) -> Dictio
 	if data.size() != 11 or not EquipmentState.integer(data.get("version"), 1) or data["version"] != 1 \
 		or data.get("kind") != "arena" or data.get("mode") != requested["mode"] \
 		or not data.get("five_vs_five") is bool or data["five_vs_five"] != (requested["mode"] == "sabotage") \
-		or not EquipmentState.integer(data.get("map_id"), 7) or data["map_id"] != requested["map_id"] \
+		or not EquipmentState.integer(data.get("map_id"), 8) or data["map_id"] != requested["map_id"] \
 		or not EquipmentState.integer(data.get("bots"), 10) or data["bots"] != requested["bots"] \
 		or not data.get("bot_policy") is String or data["bot_policy"] != requested["bot_policy"] \
 		or not EquipmentState.integer(data.get("fill_target"), 10) or data["fill_target"] != requested["fill_target"] \

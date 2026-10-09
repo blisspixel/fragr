@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-08",
+  "status": "local development slice",
+  "map_id": 1012,
+  "map_name": "Terms of Cooperation (development)",
+  "source": "server/maps/test/m12_habitat_development.json",
+  "source_sha256": "7b87fce4739f8d3c7ded9f8228837a736d2b7c0b0ab7286a05f3f07bab4ba630",
+  "authoring_helper": "tools/bake_m12_habitat.gd",
+  "deterministic_repeat": true,
+  "solids": 104,
+  "supplies": 18,
+  "encounter_groups": 4,
+  "established_enemies": 15,
+  "native_tests": {
+    "count": 7,
+    "passed": 7,
+    "directional_route_checks": 90,
+    "actual_session_clear_ticks": 1441,
+    "kills": 15,
+    "enemy_attacks": 8,
+    "hp_lost": 0,
+    "armor_lost": 0,
+    "deaths": 0,
+    "finite_human_magazines": true,
+    "no_teleport": true,
+    "last_participant_leave_resets_stock": true
+  },
+  "rendered": {
+    "manifest": "client/qa/m12-habitat-development.json",
+    "manifest_sha256": "4ab1e75a4d52e8291d8766dd0417c2df959683f0fafbe5f741ca262755568972",
+    "renderer": "gl_compatibility",
+    "device": "AMD Radeon(TM) 780M",
+    "godot": "4.7.2-stable (official)",
+    "resolution": [
+      1280,
+      720
+    ],
+    "captured_utc": "2026-10-08T13:42:23",
+    "server_sha256": "a1cce3933ce27dc1d34af13742f654e212ae4a0fb7430acdb67ee5d16e52a59f",
+    "states": [
+      {
+        "state": "m12_arrival",
+        "walk_count": 4,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0473
+      },
+      {
+        "state": "m12_market",
+        "walk_count": 1,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 4,
+        "hud_coverage": 0.0261
+      },
+      {
+        "state": "m12_market_store",
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0266
+      },
+      {
+        "state": "m12_maintenance_stock",
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.024
+      },
+      {
+        "state": "m12_maintenance_heavy",
+        "walk_count": 0,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 2,
+        "hud_coverage": 0.0234
+      },
+      {
+        "state": "m12_greenhouse_fight",
+        "walk_count": 3,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 3,
+        "hud_coverage": 0.023
+      },
+      {
+        "state": "m12_greenhouse_bridge",
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.023
+      },
+      {
+        "state": "m12_utility_bypass",
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.024
+      },
+      {
+        "state": "m12_pumping_court",
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 6,
+        "hud_coverage": 0.0238
+      },
+      {
+        "state": "m12_depot_approach",
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0238
+      }
+    ],
+    "retained_record_tick": 2115.0,
+    "retained_alive_ticks": 2001.0,
+    "kills": 15.0,
+    "attacks": 49.0,
+    "hp_lost": 70.0,
+    "armor_lost": 50.0,
+    "deaths": 0.0,
+    "dry_triggers": 0.0,
+    "record_scope": "practice",
+    "record_status": "active",
+    "inspected_stills": 10,
+    "images": [
+      {
+        "file": "m12_arrival_20261008.png",
+        "sha256": "3e3a2d3d020908fa1bfe95ed82b2fbf2300c154cee298fd45ed469ffb6804a7d"
+      },
+      {
+        "file": "m12_greenhouse_bridge_20261008.png",
+        "sha256": "0e46f87dbade980131aebacb074e71917ace620394e26bbd2b60ff8c75392e82"
+      },
+      {
+        "file": "m12_utility_bypass_20261008.png",
+        "sha256": "de214ea2ffe2131eee14f99dd9276aa47a15ae45e45e5f5cb86bb9c6437cbf4a"
+      },
+      {
+        "file": "m12_pumping_court_20261008.png",
+        "sha256": "8c669c8de6a70599a5a6d971e51fcc54bf2d2ebb9f1aecf778dd4f6e8d5e70e7"
+      }
+    ]
+  },
+  "retained_failure": "First rendered attempt used a direct QA waypoint through a cultivation bed. The retry follows the clear north cross-passage. No geometry gate or checker was weakened.",
+  "acceptance_limits": [
+    "No campaign unlock or mission completion.",
+    "No Arc or Assessor implementation.",
+    "Crop art, pressure glazing and sealed-habitat acceptance remain unfinished.",
+    "No shelter rescue, damageable pumps, arriving aid or coalition commitment.",
+    "Automated aiming and renderer inspection do not prove fresh-player understanding, human fun, par time, target duration or hardware frame rates."
+  ],
+  "new_cash_usd": 0,
+  "paid_asset_calls": 0
+}

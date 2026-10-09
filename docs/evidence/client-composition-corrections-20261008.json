@@ -1,0 +1,231 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "passed focused checks, whole-client gate pending",
+  "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+  "scope": "Causal corrections after the rejected third combined client attempt. No final whole-client, main integration or human art acceptance claim.",
+  "original": {
+    "numeric_exit": 1,
+    "parsed_scripts": 359,
+    "passed_harnesses": 166,
+    "failed_harnesses": 5,
+    "actual_engine_invocations": 532,
+    "all_retired": true,
+    "source_mismatch": "Art README changed during the source window; attempt independently rejected",
+    "retention_metadata": "First basename-only source copy collided for two manifests. The separately bound correction retains all nine unique source copies and preserves the rejected first receipt."
+  },
+  "corrections": [
+    "Arc local presentation uses the actual three-tick server cadence; valid finite Arc/Rail magazines and shared Cells, reloads, ACK rejection, confirmation and actual GameManager feedback pass",
+    "Host selector offers exact Sabotage maps4 and8, retaining default4 and existing native launch/readiness assertions",
+    "Canonical model library rebake registers the face helper dependency and refreshes the actual Latch export and preview",
+    "M12 keyed arrival remains reader-paced and joins the existing strict arrival assertions",
+    "Partial atlas bakes accept retained Sweeper only with paired output hashes and twelve unchanged historical dependencies; all physical pose/skin checks remain"
+  ],
+  "focused": {
+    "corrected_production_harnesses": 4,
+    "model_and_face_harnesses": 4,
+    "canonical_bake_and_import": 2,
+    "actual_owned_engines": 10,
+    "all_numeric_exit_zero": true,
+    "all_retired": true,
+    "clean_logs": true
+  },
+  "library": {
+    "outputs": 76,
+    "changed_outputs": [
+      "client/assets/models/latch_studio.png",
+      "client/assets/models/latch.glb",
+      "client/assets/models/manifest.json"
+    ],
+    "actual_original_preview_inspected": true,
+    "selected_live_source_replaced": false,
+    "paid_asset_calls": 0
+  },
+  "remaining": [
+    "Fresh complete unchanged client source window",
+    "Refreshed inspected standard tour and unpacked Windows install",
+    "All applicable pull-request and resulting main CI",
+    "Final artwork, ordinary human acceptance and remaining campaign"
+  ],
+  "selected_sources": [
+    {
+      "original_path": "client/art/models/bake.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/00_bake.gd",
+      "bytes": 6416,
+      "sha256": "9a592fc2c1d03ccef06726520b7d3e5e2876527518ea88d3c61c88c557f93f7c"
+    },
+    {
+      "original_path": "client/assets/characters/union/manifest.json",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/01_manifest.json",
+      "bytes": 6834,
+      "sha256": "b6be2b4a5a55506ae0b2dba123241bc90d8f4718812be442920e64a6893e4105"
+    },
+    {
+      "original_path": "client/assets/models/latch_studio.png",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/02_latch_studio.png",
+      "bytes": 149920,
+      "sha256": "859637d0fd35ace3cb1ffe2de436cd99c4c3865698d796966e8c0209b25942f3"
+    },
+    {
+      "original_path": "client/assets/models/latch.glb",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/03_latch.glb",
+      "bytes": 6751700,
+      "sha256": "9c8b5ddd33b3f7e9d7d9fb04382e9aa8a95503ec6054d860ceda1d066c06197f"
+    },
+    {
+      "original_path": "client/assets/models/manifest.json",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/04_manifest.json",
+      "bytes": 3779,
+      "sha256": "2c7348a2fe4971235dc5ed0eaee035644c936684a41ba1f2b47471f2ed5d8351"
+    },
+    {
+      "original_path": "client/scripts/latch_face.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/05_latch_face.gd",
+      "bytes": 4909,
+      "sha256": "dbae2a83d4414c8f67fc78fef5cf07d839a5767b2d1b96b18193248018436166"
+    },
+    {
+      "original_path": "client/scripts/latch_view.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/06_latch_view.gd",
+      "bytes": 9514,
+      "sha256": "334d7202d9eca643fd594996ac318bf39011b1ab36b581e397332c1c447a8378"
+    },
+    {
+      "original_path": "client/scripts/local_fire_feedback.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/07_local_fire_feedback.gd",
+      "bytes": 5717,
+      "sha256": "dfc62d4fe784222ceaa3e71d5bd7cb3b5012cb5090923e263c9385d3c65877ff"
+    },
+    {
+      "original_path": "client/scripts/test_host_menu.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/08_test_host_menu.gd",
+      "bytes": 7967,
+      "sha256": "1b10df20db8514216c3a805ff178efd231cddc5b98f0128e4214475b57973e0b"
+    },
+    {
+      "original_path": "client/scripts/test_local_fire_feedback.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/09_test_local_fire_feedback.gd",
+      "bytes": 23062,
+      "sha256": "9bea42a24e0a9f3145b05c69336eb25826455151a5320ed51780d48d4b3c7b9d"
+    },
+    {
+      "original_path": "client/scripts/test_story_scene.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/10_test_story_scene.gd",
+      "bytes": 8571,
+      "sha256": "4501f26f2164bfc81b7299c97ded11bde29da94bad1daf66719a9480cbf6cba2"
+    },
+    {
+      "original_path": "client/scripts/test_sweeper_skin.gd",
+      "retained_path": ".agents/client-composition-corrections-20261008/selected/11_test_sweeper_skin.gd",
+      "bytes": 10616,
+      "sha256": "3ab77c981e737fcd83a355f2731585f68dc56a09baf9f1e90c6e804b73cbfa83"
+    }
+  ],
+  "bindings": [
+    {
+      "path": ".agents/client-composition-corrections-20261008/focused-first/test_local_fire_feedback.json",
+      "bytes": 376,
+      "sha256": "fd70847e3c44da5348cf73469b15cb26dcaf1c335d88d34623dd83dd4b0a6555"
+    },
+    {
+      "path": ".agents/client-composition-corrections-20261008/focused-first/test_host_menu.json",
+      "bytes": 366,
+      "sha256": "c2e5604fbd5bb3a8287ee0fa740059f95831d93e4cb3de6564be939f120beca5"
+    },
+    {
+      "path": ".agents/client-composition-corrections-20261008/focused-first/test_story_scene.json",
+      "bytes": 368,
+      "sha256": "e64a03ed6554cb518a20a12d1cf4f125ae8ff3bd325089796d22c9628d5ca42d"
+    },
+    {
+      "path": ".agents/client-composition-corrections-20261008/focused-first/test_sweeper_skin.json",
+      "bytes": 369,
+      "sha256": "3cf082736ea063b1f101b4596919c5b42698bd3cbdefb7ce667c693f89e725ca"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/bake.json",
+      "bytes": 402,
+      "sha256": "9b3d32b1b1ee53d93cb03548096dec53678c6aef0353d59e91b1f41cbdb0060c"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/import.json",
+      "bytes": 332,
+      "sha256": "b7047537bb6fefd63c1cb261fcd13524eefeec33b3ddad2ab323fd1b9316c9c4"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/test_model_assets.json",
+      "bytes": 369,
+      "sha256": "81536b69bbb885e15ed28ce68e20231e05e22180c363caaf1f46bad52588b278"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/test_latch_face.json",
+      "bytes": 367,
+      "sha256": "1af21b7d5995fcd151d36e6ccfdef95e8e42039d41a61166290e640bfe6292ca"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/test_latch_source.json",
+      "bytes": 369,
+      "sha256": "4107373c1b9b71be76cd1e7289b243bd84ba81c3a7a650c05dffeca130a11f19"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/test_latch_near_clip.json",
+      "bytes": 372,
+      "sha256": "7c2905643e931894e085817ef64d2116f4c27a3beeda458186e52c1c4d062b21"
+    },
+    {
+      "path": ".agents/client-composition-corrections-20261008/baseline-retention-correction.json",
+      "bytes": 3554,
+      "sha256": "cd0f169a5f889261bfea75f3e4f5fb443e39817bb92efa745a0c7a17832c41bc"
+    },
+    {
+      "path": ".agents/client-composition-corrections-20261008/focused-first/completion.json",
+      "bytes": 1747,
+      "sha256": "b7455ef03a7f4bb0a6d4b845bd227c94d011ad55d7a46db459ffd2346773ffa9"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/previous.json",
+      "bytes": 25556,
+      "sha256": "01dd5f985a573f1752500eaf26455d31912e33e9d5ad01ad525aa3b6fa894f59"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/completion.json",
+      "bytes": 14625,
+      "sha256": "72a0e88b3fae01008ac16d2218193a6a8afbe33e18a1734a8c9463f378ea2791"
+    },
+    {
+      "path": ".agents/model-library-refresh-20261008/first/review.json",
+      "bytes": 881,
+      "sha256": "161489701b5ba4a2f200aa919a75160cfdc0c27ca2c5c6812120c00e59c385e7"
+    },
+    {
+      "path": ".agents/crouch-controls-20261008/full-client-composed-third/exit.json",
+      "bytes": 367469,
+      "sha256": "b5e6ea47bee545a78b341e711d99af7aa9fc3f53c638e1d42d787b6526b59ad0"
+    },
+    {
+      "path": ".agents/crouch-controls-20261008/full-client-composed-third/checker.log",
+      "bytes": 107303,
+      "sha256": "35157e73a4b92d889ada7e1e492f5ffa168634efd0fbc0cec1629a5bbede6d6a"
+    },
+    {
+      "path": ".agents/arc-local-fire-diagnosis-20261008/arc-fire-host.patch",
+      "bytes": 9743,
+      "sha256": "a951535fd1ba5444bcb4977bd5111658147f4aede2354e4374e38f65ed92e828"
+    },
+    {
+      "path": ".agents/arc-local-fire-diagnosis-20261008/candidate-proof.json",
+      "bytes": 3429,
+      "sha256": "47b93d03d5c1d7e1b7e15f54295f0c0cc271d077e18270ace0e14ddbbd78084a"
+    },
+    {
+      "path": ".agents/client-fixture-corrections-20261008/client-fixture-corrections.patch",
+      "bytes": 6276,
+      "sha256": "21ac6850310b85a29e60e103fd16ad41726a7232ef5c8ab068c1853015f87485"
+    },
+    {
+      "path": ".agents/client-fixture-corrections-20261008/evidence.json",
+      "bytes": 14453,
+      "sha256": "01a9f804c6290a1899118f4271b91653ab00bae322eac27f342bf223db545e2e"
+    }
+  ]
+}

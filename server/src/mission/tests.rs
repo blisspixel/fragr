@@ -950,3 +950,35 @@ fn target_filter_preserves_mission_route_through_inventory_and_steering() {
     );
     assert_eq!(exposed.look_at.unwrap().player_id, Some(target));
 }
+
+#[test]
+fn crouched_player_interaction_uses_ducked_eye_height() {
+    let mut session = session();
+    let id = add(&mut session.state, Role::Human);
+    let target = &session.state.map.mission().unwrap().record;
+    let point = target
+        .point(
+            session.state.map.presentation_ref().unwrap(),
+            &session.state.map.arena().solids,
+        )
+        .unwrap();
+    let player = session
+        .state
+        .players
+        .iter_mut()
+        .find(|p| p.id == id)
+        .unwrap();
+    [player.x, player.y, player.z] = target.approach;
+    player.y += PLAYER_FLOOR_Y + 0.2;
+    player.ducking = true;
+    (player.yaw, player.pitch) = crate::combat::aim_at(
+        [
+            player.x,
+            player.y - PLAYER_FLOOR_Y + crate::movement::DUCK_EYE_HEIGHT,
+            player.z,
+        ],
+        point,
+    )
+    .unwrap();
+    assert!(super::can_use(player, target, &session.state.map));
+}

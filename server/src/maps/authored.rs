@@ -21,8 +21,10 @@ pub(crate) mod m08;
 pub(crate) mod m09;
 pub(crate) mod m10;
 pub(crate) mod m11;
+pub(crate) mod m12;
 mod mission;
 mod supplies;
+mod vehicle_placements;
 
 const MAX_BYTES: u64 = 1_048_576;
 const MAX_PLACEMENTS: usize = 128;
@@ -54,6 +56,8 @@ pub struct AuthoredMap {
     pub(super) m09: Option<Arc<m09::Prepared>>,
     pub(super) m10: Option<Arc<m10::Prepared>>,
     pub(super) m11: Option<Arc<m11::Prepared>>,
+    pub(super) m12: Option<Arc<m12::Prepared>>,
+    pub(super) shelter_open: bool,
     pub(super) hatch_open: bool,
     /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
     pub(super) m08_stage: u8,
@@ -66,6 +70,7 @@ pub struct AuthoredMap {
     pub(super) arena: Arena,
     pub(super) navigation: Arc<Navigation>,
     pub(super) spawns: Vec<Placement>,
+    pub(super) vehicles: Vec<Placement>,
     pub(super) presentation: MapPresentation,
     pub(super) equipment: crate::protocol::EquipmentPolicy,
     pub(super) supplies: Vec<crate::sim::ArenaPickup>,
@@ -98,6 +103,8 @@ struct Document {
     #[serde(default)]
     m11: Option<m11::Definition>,
     #[serde(default)]
+    m12: Option<m12::Definition>,
+    #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
     encounters: Vec<encounters::EncounterDefinition>,
@@ -112,6 +119,8 @@ struct Document {
     ground: MapSurface,
     solids: Vec<Volume>,
     spawns: Vec<Placement>,
+    #[serde(default)]
+    vehicles: Vec<Placement>,
     landmarks: Vec<Landmark>,
 }
 
@@ -214,11 +223,36 @@ impl AuthoredMap {
             || doc.landmarks.is_empty()
             || doc.landmarks.len() > MAX_PLACEMENTS
             || doc.supplies.len() > MAX_PLACEMENTS
+            || doc.vehicles.len() > crate::protocol::MAX_VEHICLES
             || doc.decorations.len() > crate::protocol::MAX_MAP_DECORATIONS
         {
             return Err(invalid("map requires bounded solids, spawns and landmarks"));
         }
         let mut seen = HashSet::new();
+        // A parked fleet must be checked against every possible collision
+        // world. The first authored fleet is deliberately static-only.
+        if !doc.vehicles.is_empty()
+            && [
+                doc.mission.is_some(),
+                doc.m02.is_some(),
+                doc.m03.is_some(),
+                doc.m04.is_some(),
+                doc.m05.is_some(),
+                doc.m06.is_some(),
+                doc.m07.is_some(),
+                doc.m08.is_some(),
+                doc.m09.is_some(),
+                doc.m10.is_some(),
+                doc.m11.is_some(),
+                doc.m12.is_some(),
+            ]
+            .into_iter()
+            .any(|v| v)
+        {
+            return Err(invalid(
+                "authored vehicles require a static development world",
+            ));
+        }
         let mut solids = Vec::with_capacity(doc.solids.len());
         let mut surfaces = Vec::with_capacity(doc.solids.len());
         let mut solid_ids = std::collections::HashMap::with_capacity(doc.solids.len());
@@ -486,6 +520,26 @@ impl AuthoredMap {
         if doc.m11.is_none() && presentation.decorations.iter().any(|p| p.kind.is_m11()) {
             return Err(invalid("M11 registered panels require Right of Search"));
         }
+        if doc.m12.is_some()
+            && (doc.map_id != 1012
+                || doc.name != "Terms of Cooperation"
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                || doc.mission.is_some()
+                || doc.m02.is_some()
+                || doc.m03.is_some()
+                || doc.m04.is_some()
+                || doc.m05.is_some()
+                || doc.m06.is_some()
+                || doc.m07.is_some()
+                || doc.m08.is_some()
+                || doc.m09.is_some()
+                || doc.m10.is_some()
+                || doc.m11.is_some())
+        {
+            return Err(invalid(
+                "M12 requires canonical map1012, discovery and no other mission",
+            ));
+        }
         let mission = doc
             .mission
             .map(|definition| definition.prepare(&arena, &solid_ids, &mut presentation))
@@ -566,8 +620,25 @@ impl AuthoredMap {
             }
         }
         let start = doc.spawns[0].feet;
+        vehicle_placements::validate(&doc.vehicles, &arena, &mut seen)?;
+        let parked_navigation =
+            vehicle_placements::boarding_navigation(&doc.vehicles, &arena, start, &doc.encounters)?;
         let m11 = doc
             .m11
+            .map(|definition| {
+                definition.prepare(
+                    &arena,
+                    &solid_ids,
+                    &doc.encounters,
+                    &mut presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
+        let m12 = doc
+            .m12
             .map(|definition| {
                 definition.prepare(
                     &arena,
@@ -707,8 +778,13 @@ impl AuthoredMap {
             .transpose()?
             .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
+        if m12.is_some() {
+            m12::validate_supplies(&supplies)?;
+        }
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &m11 {
+        let navigation = if let Some(prepared) = &m12 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m11 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m10 {
             prepared.navigation.clone()
@@ -791,6 +867,8 @@ impl AuthoredMap {
             {
                 return Err(invalid("map spawn is unreachable from the entry"));
             }
+            vehicle_placements::reachable(parked_navigation.as_deref(), start, spawn.feet)
+                .map_err(|error| invalid(&format!("map placement {}: {error}", spawn.id)))?;
         }
         for (id, destination) in doc
             .landmarks
@@ -810,6 +888,8 @@ impl AuthoredMap {
                 })
             }))
         {
+            vehicle_placements::reachable(parked_navigation.as_deref(), start, destination)
+                .map_err(|error| invalid(&format!("map placement {id}: {error}")))?;
             if navigation
                 .route(start, destination, crate::navigation::SEARCH_LIMIT)
                 .status
@@ -846,6 +926,8 @@ impl AuthoredMap {
             m09,
             m10,
             m11,
+            m12,
+            shelter_open: false,
             hatch_open: false,
             m08_stage: 0,
             m07,
@@ -860,6 +942,7 @@ impl AuthoredMap {
             arena,
             navigation,
             spawns: doc.spawns,
+            vehicles: doc.vehicles,
             presentation,
             landmarks: doc.landmarks,
         };

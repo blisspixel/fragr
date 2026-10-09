@@ -2,7 +2,8 @@ class_name PlayerRecord
 extends RefCounted
 
 ## Mirror of protocol/statistics.rs. Display and persistence share this boundary.
-const VERSION: int = 2
+const VERSION: int = 3
+const EIGHT_COLUMN_VERSION: int = 2
 const LEGACY_VERSION: int = 1
 const LEGACY_MAX_WEAPONS: int = 7
 const STATUSES: Array[String] = ["active", "continue", "complete", "failed", "abandoned"]
@@ -24,7 +25,7 @@ static func key(record: Dictionary) -> String:
 
 static func validation_error(data: Dictionary, owner: Variant, previous: Dictionary = {}) -> String:
 	if data.size() != (16 if data.has("type") else 15) + int(data.has("mission_elapsed_ticks")) or (data.has("type") and data["type"] != "record") \
-		or (data.get("version") != LEGACY_VERSION and data.get("version") != VERSION) or data.get("ticks_per_second") != 20 \
+		or not EquipmentState.integer(data.get("version"), VERSION) or int(data["version"]) not in [LEGACY_VERSION, EIGHT_COLUMN_VERSION, VERSION] or data.get("ticks_per_second") != 20 \
 		or not MissionState._uuid(data.get("session_id")) or not MissionState._uuid(data.get("player_id")) \
 		or data.get("player_id") != owner or data.get("role") not in ["human", "agent"] \
 		or data.get("status") not in STATUSES:
@@ -72,8 +73,9 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 		return false
 	var width: int = value["weapons"].size()
 	if (record_version == LEGACY_VERSION and (width < LEGACY_WEAPONS or width > LEGACY_MAX_WEAPONS)) \
+		or (record_version == EIGHT_COLUMN_VERSION and width != 8) \
 		or (record_version == VERSION and width != EquipmentState.WEAPONS.size()) \
-		or record_version not in [LEGACY_VERSION, VERSION]:
+		or record_version not in [LEGACY_VERSION, EIGHT_COLUMN_VERSION, VERSION]:
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")
@@ -159,7 +161,7 @@ static func _valid_scope(data: Dictionary) -> bool:
 		return false
 	if scope.get("kind") in ["arena", "practice"]:
 		return scope.size() == 2 and EquipmentState.integer(scope.get("round"), 4294967295) and scope.get("round") == data["round"] and data["attempt"] == data["total"]
-	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] \
+	if scope.get("kind") != "mission" or scope.size() != 5 or scope.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] \
 		or not EquipmentState.integer(scope.get("attempt"), 4294967295) or int(scope["attempt"]) < 1 \
 		or not MissionState.valid_rules(scope.get("rules"), 1) or not scope.has("run"):
 		return false

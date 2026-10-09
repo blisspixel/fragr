@@ -1,0 +1,154 @@
+{
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "spend_usd": 0,
+  "map": {
+    "id": 8,
+    "name": "Low Water",
+    "mode": "Sabotage",
+    "sites": [
+      "Clinic Steps",
+      "Tram Stop"
+    ],
+    "players_per_side": 5,
+    "gameplay_floor": 45
+  },
+  "native": {
+    "sabotage_cases": 44,
+    "low_water_cases": 5,
+    "ordinary_routes": 69,
+    "defender_arrival_ticks": [
+      120,
+      168
+    ],
+    "attacker_arrival_ticks": [
+      267,
+      316
+    ],
+    "retake_ticks": 186,
+    "plant_ticks": 60,
+    "defuse_ticks": 120,
+    "drop_contact_grace_ticks": 10,
+    "bot_matches": [
+      {
+        "seed": 71,
+        "ticks": 9445,
+        "rounds": 8,
+        "plants": 3,
+        "defuses": 2,
+        "drops": 11,
+        "frags": 51,
+        "swaps": 1
+      },
+      {
+        "seed": 72,
+        "ticks": 10911,
+        "rounds": 10,
+        "plants": 3,
+        "defuses": 1,
+        "drops": 16,
+        "frags": 65,
+        "swaps": 2
+      }
+    ],
+    "seed_limit": "UUID ties are not frozen; these are measured completed outcomes, not bit-identical golden replays."
+  },
+  "socket": {
+    "roles": {
+      "human": 5,
+      "agent": 5
+    },
+    "normal_format": "short",
+    "finite_initial_weapon": "Tack",
+    "initial_rounds": 50,
+    "human_loaded": 12,
+    "ticks": 5108,
+    "rounds": 5,
+    "plants": 5,
+    "defuses": 4,
+    "detonations": 1,
+    "swaps": 1,
+    "deaths": 0,
+    "winner": "coalition",
+    "score": {
+      "coalition": 5,
+      "union": 0
+    },
+    "elapsed_seconds": 255.51,
+    "driver": "Ordinary move/aim/held-use messages with shared controller and navigator; no fire, pose, HP, clock or outcome injection."
+  },
+  "client": {
+    "focused_checks": [
+      "test_low_water_sabotage",
+      "test_local_host",
+      "test_sabotage_state",
+      "test_sabotage_art"
+    ],
+    "rendered_states": 8,
+    "inspected_originals": 8,
+    "exit_code": 0,
+    "clean_log": true,
+    "width": 1280,
+    "height": 720,
+    "godot": "4.7.2-stable official",
+    "renderer": "gl_compatibility",
+    "device": "AMD Radeon(TM) 780M",
+    "capture_utc": "2026-10-08T17:38:59",
+    "role": "spectator",
+    "first_person_defuse": "Spectator followed the actual socket defuser; this is not joined-human gameplay."
+  },
+  "retained_artifacts": ".agents/low-water-sabotage-20261008",
+  "limitations": [
+    "Integration/package gates are owned by the integration lane.",
+    "No human balance, enjoyment, side-swapped LAN, other-platform or final-art acceptance.",
+    "Socket match is scripted mechanics; native bot matches separately include actual combat.",
+    "Carrier satchel detail is not established as readable from the retained front view.",
+    "Failed initial warmup assumption and initial class-import checks remain retained and excluded from clean-pass evidence."
+  ],
+  "hashes": [
+    {
+      "path": "server/src/maps/low_water.rs",
+      "sha256": "c7186e8240301f27bfb2edf07fab0cfb01d7fac9939655548fa824fa536753af"
+    },
+    {
+      "path": "server/src/maps/low_water/tests.rs",
+      "sha256": "dd87b5b6459690dc7e32423ddee3edab9d3b951479434f6e6c4ce6af69786c11"
+    },
+    {
+      "path": "server/tests/low_water_sabotage.rs",
+      "sha256": "70869da6afe6519ff4fd9adf3759aceb5b5db02dfdbf38d13d5f7c8ceb98ea3a"
+    },
+    {
+      "path": "client/qa/low_water_sabotage.json",
+      "sha256": "9f81c71fde4537898535ca3d490144b8deab7710df5483f350d6725389abbd6e"
+    },
+    {
+      "path": "client/scripts/test_low_water_sabotage.gd",
+      "sha256": "72191483ba1a9e95ee6e51bd5b1c1eb28f84e21e01897894293a1db358a41273"
+    },
+    {
+      "path": ".agents/low-water-sabotage-20261008/native/low_water_socket.exe",
+      "sha256": "fd5bb696899f996873d73652eaa2acb311a42b3034d3490a74138e7d47658238"
+    },
+    {
+      "path": ".agents/low-water-sabotage-20261008/tour/manifest.json",
+      "sha256": "e459c3b195258e5d73720f80ae7b1b376f84a8338f359b1791d1595b8f0fd210"
+    },
+    {
+      "path": "docs/screenshots/low-water-sabotage-20261008/overview.png",
+      "sha256": "4d6d8a132cb20dd5253e507b740f2e875cc6ea80e9a0a4e5d10fceb495e7f64a"
+    },
+    {
+      "path": "docs/screenshots/low-water-sabotage-20261008/clinic_steps.png",
+      "sha256": "32ae40d776bf52b8e8cb00b3f2024bc2d18981b4303df13c453225c902115660"
+    },
+    {
+      "path": "docs/screenshots/low-water-sabotage-20261008/trench.png",
+      "sha256": "fbb6e2451b0df63757951fbfd24145ac2af7f0e433ab4c7d5ea358b17193bc12"
+    },
+    {
+      "path": "docs/screenshots/low-water-sabotage-20261008/defusing.png",
+      "sha256": "145d3f01b9fc7c3e8d2c977413bf66551ab3768c318c1acc27933dea52c2e752"
+    }
+  ]
+}

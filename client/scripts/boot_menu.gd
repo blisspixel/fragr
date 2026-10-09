@@ -81,6 +81,7 @@ var _tagline: Label
 var _device_revision: int = -1
 
 func _ready() -> void:
+	ClientRetirement.for_tree(get_tree())
 	MouseCapture.release()
 	_local_match = LocalMatch.for_tree(get_tree())
 	_local_match.stop()
@@ -278,8 +279,8 @@ func _show(page: String) -> void:
 	if _release_fetch != null:
 		_release_fetch.cancel()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile", "multi", "host", "benchmark"] else 154))
-	_tagline.visible = page not in ["records", "settings", "profile", "single", "practice", "multi", "host", "benchmark"]
+	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile", "rewards", "multi", "host", "benchmark"] else 154))
+	_tagline.visible = page not in ["records", "settings", "profile", "rewards", "single", "practice", "multi", "host", "benchmark"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
 	match page:
@@ -301,6 +302,13 @@ func _show(page: String) -> void:
 			_page_settings()
 		"profile":
 			_page_profile()
+		"rewards":
+			var rewards: RewardsPanel = RewardsPanel.new()
+			rewards.name = "RewardsPanel"
+			rewards.records = PlayerRecords.for_tree(get_tree())
+			rewards.profile_name = _settings.player_name()
+			rewards.completed.connect(func() -> void: _show("profile"))
+			_root.add_child(rewards)
 		"benchmark":
 			_page_benchmark()
 		"records":
@@ -322,6 +330,9 @@ func _show(page: String) -> void:
 		return
 	if page == "records":
 		(_root.get_node("ServiceRecord") as RecordsPanel).focus_first()
+		return
+	if page == "rewards":
+		(_root.get_node("RewardsPanel") as RewardsPanel).focus_first()
 		return
 	for child in _root.get_children():
 		if child is Button and (child as Button).visible and not (child as Button).disabled:
@@ -346,7 +357,7 @@ func _page_main() -> void:
 	_button(tr("RECORD_TITLE"), func() -> void: _show("records"))
 	_button("Settings", func() -> void: _show("settings"))
 	_button("Benchmark", func() -> void: _show("benchmark")).name = "Benchmark"
-	_button("Quit", func() -> void: get_tree().quit())
+	_button("Quit", func() -> void: ClientRetirement.for_tree(get_tree()).request_quit())
 
 func _page_single() -> void:
 	_label(tr("MENU_CAMPAIGN"))
@@ -370,7 +381,7 @@ func _page_single() -> void:
 			mission.disabled = not can_start
 		"awaiting_mission":
 			var pending_mission: String = str(_local_match.run_preview.get("mission", ""))
-			if pending_mission in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID]:
+			if pending_mission in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID]:
 				var next: Button = _button(tr("RUN_CONTINUE"), _start_campaign_resume)
 				next.name = _saved_mission_button(pending_mission)
 				next.disabled = not can_start
@@ -381,7 +392,7 @@ func _page_single() -> void:
 				_label(tr("RUN_SAVED_MISSION").format({"mission": _saved_mission_title(LocalMatch.NEXT_MISSION)}))
 				_label(tr("RUN_AWAITING_DETAIL").format({"continues": int(_local_match.run_preview["continues"]), "difficulty": _local_match.run_preview["difficulty"]}))
 				_saved_body_choice(_local_match.run_preview, false)
-				_label(tr("M11_NEXT_PENDING"))
+				_label(tr("M12_NEXT_PENDING"))
 			_button(tr("RUN_NEW"), func() -> void: _show("new_confirm")).disabled = not can_start
 		"failed":
 			_label(tr("RUN_FAILED"))
@@ -416,6 +427,8 @@ func _page_single() -> void:
 				description = "M07_RUN_DESCRIPTION"
 			elif _local_match.run_preview.get("mission") == MissionState.M08_ID:
 				description = "M08_RUN_DESCRIPTION"
+			elif _local_match.run_preview.get("mission") == MissionState.M12_ID:
+				description = "M12_RUN_DESCRIPTION"
 			elif _local_match.run_preview.get("mission") == MissionState.M11_ID:
 				description = "M11_RUN_DESCRIPTION"
 			elif _local_match.run_preview.get("mission") == MissionState.M10_ID:
@@ -433,12 +446,12 @@ func _page_practice() -> void:
 	var selector: OptionButton = OptionButton.new()
 	selector.name = "DevelopmentMission"
 	selector.custom_minimum_size.y = 46.0
-	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE"]:
+	for key: String in ["MISSION_M02_GRAYBOX", "M03_PROTOTYPE_TITLE", "M04_PROTOTYPE_TITLE", "M05_PROTOTYPE_TITLE", "M06_PROTOTYPE_TITLE", "M07_PROTOTYPE_TITLE", "M08_PROTOTYPE_TITLE", "M09_PROTOTYPE_TITLE", "M10_PROTOTYPE_TITLE", "M11_PROTOTYPE_TITLE", "M12_PROTOTYPE_TITLE"]:
 		selector.add_item(tr(key))
 	selector.select(5)
 	_root.add_child(selector)
 	var launch: Button = _button(tr("M05_LAUNCH_PROTOTYPE"), func() -> void:
-		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID]
+		var ids: Array[String] = [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID]
 		_start_development(ids[selector.selected]))
 	launch.name = "LaunchDevelopmentMission"
 	launch.disabled = not can_start
@@ -474,10 +487,12 @@ func _saved_mission_title(mission_id: String) -> String:
 			return tr("MISSION_M09_TITLE")
 		MissionState.M10_ID:
 			return tr("MISSION_M10_TITLE")
+		MissionState.M12_ID:
+			return tr("MISSION_M12_TITLE")
 		MissionState.M11_ID:
 			return tr("MISSION_M11_TITLE")
 		LocalMatch.NEXT_MISSION:
-			return tr("M11_NEXT_TITLE")
+			return tr("M12_NEXT_TITLE")
 	return tr("MISSION_M01_TITLE")
 
 func _saved_mission_button(mission_id: String) -> String:
@@ -498,6 +513,8 @@ func _saved_mission_button(mission_id: String) -> String:
 			return "CustodianOfRecordSaved"
 		MissionState.M10_ID:
 			return "CommonCarrierSaved"
+		MissionState.M12_ID:
+			return "TermsOfCooperationSaved"
 		MissionState.M11_ID:
 			return "RightOfSearchSaved"
 		MissionState.M09_ID:
@@ -579,7 +596,7 @@ func _start_development_m04() -> void:
 	_on_local_state_changed()
 
 func _start_development(mission_id: String) -> void:
-	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID]:
+	if _launch_pending or mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID]:
 		return
 	_launch_pending = true
 	_campaign_run_mode = ""
@@ -592,7 +609,7 @@ func _start_campaign_resume() -> void:
 	if _launch_pending or preview.get("status") not in ["ready", "awaiting_mission"]:
 		return
 	var mission_id: String = str(preview.get("mission", ""))
-	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID]):
+	if mission_id not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] or (preview["status"] == "awaiting_mission" and mission_id not in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID]):
 		return
 	var difficulty: String = str(preview["difficulty"])
 	_launch_pending = true
@@ -605,15 +622,19 @@ func _start_campaign_resume() -> void:
 static func _arrival_for_preview(preview: Dictionary) -> bool:
 	var mission_id: String = str(preview.get("mission", ""))
 	return preview.get("status") == "awaiting_mission" \
-		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] \
+		and mission_id in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] \
 		and StoryScene.BEFORE_MISSION.has(mission_id)
 
 func _page_launch() -> void:
 	var title: String = _saved_mission_title(_local_match.mission)
-	if _campaign_run_mode.is_empty():
+	if _campaign_run_mode.is_empty() and _local_match.mission == MissionState.M12_ID:
+		title = tr("M12_PROTOTYPE_TITLE")
+	elif _campaign_run_mode.is_empty():
 		title = tr("M11_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M11_ID else tr("M10_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M10_ID else tr("M09_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M09_ID else tr("M07_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M07_ID else tr("M08_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M08_ID else tr("M06_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M06_ID else (tr("M05_PROTOTYPE_TITLE") if _local_match.mission == MissionState.M05_ID else tr("M04_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M04_ID else ("M03_PROTOTYPE_TITLE" if _local_match.mission == MissionState.M03_ID else "MISSION_M02_GRAYBOX")))
 	_label(title)
 	var preparing: String = "M11_LOCAL_STARTING" if _local_match.mission == MissionState.M11_ID else "M10_LOCAL_STARTING" if _local_match.mission == MissionState.M10_ID else "M09_LOCAL_STARTING" if _local_match.mission == MissionState.M09_ID else "M07_LOCAL_STARTING" if _local_match.mission == MissionState.M07_ID else "M08_LOCAL_STARTING" if _local_match.mission == MissionState.M08_ID else "M06_LOCAL_STARTING" if _local_match.mission == MissionState.M06_ID else ("M05_LOCAL_STARTING" if _local_match.mission == MissionState.M05_ID else "M04_LOCAL_STARTING" if _local_match.mission == MissionState.M04_ID else ("M03_LOCAL_STARTING" if _local_match.mission == MissionState.M03_ID else "LOCAL_SERVER_STARTING"))
+	if _local_match.mission == MissionState.M12_ID:
+		preparing = "M12_LOCAL_STARTING"
 	_label(tr("LOCAL_SERVER_STOPPING") if _local_match.state == LocalMatch.State.STOPPING else tr(preparing))
 	_button(tr("MENU_CANCEL"), _cancel_campaign)
 
@@ -872,6 +893,8 @@ func _rebuild_host_maps() -> void:
 	_host_map.clear()
 	if _host_mode.selected == 1:
 		_host_map.add_item("Sector 9", 4)
+		_host_map.add_item("Low Water", 8)
+		_host_map.select(1 if _host_settings["map_id"] == 8 else 0)
 		return
 	if _host_mode.selected == 2:
 		_host_map.add_item("Holdfast Atoll", 7)
@@ -1110,7 +1133,7 @@ func _on_release_started(quit_after: bool) -> void:
 	var timer: SceneTreeTimer = get_tree().create_timer(0.4)
 	timer.timeout.connect(func() -> void:
 		if is_inside_tree():
-			get_tree().quit()
+			ClientRetirement.for_tree(get_tree()).request_quit()
 	)
 
 func _page_profile() -> void:
@@ -1168,6 +1191,7 @@ func _page_profile() -> void:
 	bob.button_pressed = bool(_settings.get_value("gameplay", "head_bob"))
 	bob.toggled.connect(func(on: bool) -> void: _settings.set_value("gameplay", "head_bob", on))
 	_root.add_child(bob)
+	_button(tr("REWARD_TITLE"), _open_rewards)
 	_button("Save and back", _save_profile)
 	_button("Cancel", func() -> void:
 		_settings.load_from_disk()
@@ -1177,6 +1201,11 @@ func _page_profile() -> void:
 func _open_profile(return_page: String) -> void:
 	_profile_return = return_page
 	_show("profile")
+
+func _open_rewards() -> void:
+	# Keep the profile draft while visiting its independent appearance page.
+	_settings.set_value("profile", "name", _name_edit.text)
+	_show("rewards")
 
 ## The standing figure inside the first idle cell of a baked body strip.
 const BODY_PREVIEW: Rect2 = Rect2(40, 22, 80, 114)
@@ -1528,13 +1557,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _console != null and _console.is_open():
 		return
 	if event.is_action_pressed("ui_cancel") and not event.is_echo() and _page != "main":
-		_settings.load_from_disk()
+		if _page != "rewards":
+			_settings.load_from_disk()
 		if _launch_pending:
 			_cancel_campaign()
 		elif _page == "benchmark":
 			_cancel_benchmark()
 		else:
-			_show(_profile_return if _page == "profile" else ("single" if _page in ["difficulty", "new_confirm", "practice"] else "main"))
+			_show("profile" if _page == "rewards" else (_profile_return if _page == "profile" else ("single" if _page in ["difficulty", "new_confirm", "practice"] else "main")))
 		get_viewport().set_input_as_handled()
 
 func _launch(mode: String, host: String, run_mode: String = "") -> void:

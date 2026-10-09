@@ -6,6 +6,14 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
+Current contract, 2026-10-08: matching readers advertise gameplay 45 and geometry
+2. Shared arcade rooms require the aggregate gameplay contract. Every live
+campaign map requires at least gameplay 43 and campaign rules revision 4;
+Terms of Cooperation requires 44 and Low Water Sabotage requires 45. Numbered
+capabilities below record when a feature first appeared. Earlier per-map floors
+and rules-3 bootstrap examples are historical allocations, not current live
+campaign admission. Dated evidence retains the exact contract it exercised.
+
 Use matching client/server releases. The vertical-aim server accepts older actions
 without pitch, and current readers accept older snapshots/recordings with pitch
 defaulted to zero. Older servers can reject the new action field; this is not
@@ -90,9 +98,10 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `37`; omission means `1`. Discovery-only maps first
+  and the Godot client send `45`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
-  Current discovery and campaign admission requires 26 as described below.
+  Current admission follows the contract above. The allocations below preserve
+  the feature's original boundary and do not lower a current room's floor.
   Versions 4 and 5 introduced physical controls and party readiness respectively;
   they cannot enter current missions. Solo runs require 7 for explicit continues.
   Version 8 adds private participant records. Record delivery is gated by the
@@ -113,7 +122,7 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. A shared arcade room speaks gameplay 38. That floor
+  without teams misleads. A shared arcade room speaks gameplay 45. That floor
   is above capability 4, and the arcade roster stays open. The four-seat
   mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
@@ -832,10 +841,22 @@ Vehicle maps use the existing `Action` and snapshot channel. Optional `seat`
 accepts `driver` or `gunner`, selecting a free seat in the currently occupied
 stopped jeep. Its request survives an intervening Action that omits it until
 the next active tick consumes it. A rising `interact` enters the nearest free
-seat within 2 m horizontally and 2 m vertically with clear line of sight,
+seat within 2 m horizontally and 2 m vertically with a clear standing-body sweep,
 driver first, or exits the current jeep to clear reachable ground. Entry,
 exit and switching require absolute speed at most 2 m/s. A refused exit
 retains the seat. Enemy team occupants cannot share the same jeep.
+
+Static authored development maps may supply up to 32 explicit `vehicles`
+placements, each `{id,feet,yaw}` for the shared jeep. Encounter-bearing
+development maps require capability 39 for every role; shared arcade rooms
+retain the current capability 41 floor. A numeric authored map ID never creates a fleet.
+The loader rejects duplicate identities, unsupported or obstructed footprints,
+overlapping exposed occupants and inaccessible boarding or required walking
+routes. Airborne hover volumes and their grounded firing approaches must also
+remain clear in the parked-fleet world. Registered staged mission objectives
+cannot yet carry a nonempty fleet.
+Initial load and encounter retry restore the same fleet without rewinding
+ticks or input acknowledgements. This local authoring field adds no wire type.
 
 The driver uses `forward`/`back` for throttle, `left`/`right` for steering and
 `jump` for braking. Steering follows chassis yaw; aim remains free. The gunner
@@ -2095,6 +2116,18 @@ its full short match before the list moves. A playlist file is not on the wire.
 
 Rules the server enforces:
 
+Arcade admission and respawn score the current collision world, including all
+vehicle hulls and eligible living bodies. Fixed bays retain ordinary stair-step
+clearance, while each vehicle must leave the full standing spawn body clear.
+If every fixed bay is obstructed, at most 24 supported positions within six
+metres of each bay are tried. A team with fixed bays in its half stays in that
+half; a map without bays on that side retains its existing all-bay selection.
+If none fit, the existing
+respawn timer retries next tick without emitting a respawn or granting a shield.
+Hull-covered firing lanes affect the existing exposure ranking. Wrecks obstruct
+spawns for as long as they obstruct walking; airborne hulls above the body do
+not block a ground bay. No new action or snapshot field is added.
+
 - **Team deathmatch.** Sides are `union` and `coalition`. Every join, human,
   agent or rule bot, takes the smaller side (ties go to the side behind on
   frags, then the coalition). At a round start a side two or more ahead gives
@@ -2628,7 +2661,7 @@ or status change sends immediately. The record's tick can precede the latest
 snapshot. No record is delivered during initial arena warmup or to someone who
 joins after a round has already ended without participating.
 
-The current version-2 record includes `session_id`, `player_id`, `round`, `tick`,
+The current version-3 record includes `session_id`, `player_id`, `round`, `tick`,
 `entered_at`, `round_started_at`, `ticks_per_second` (20), `map_id`, `map_name`,
 `role`, `scope`, `status`, `total` and `attempt`. Its identity is the session UUID,
 player UUID and round number, never a callsign. `entered_at` is the admission tick
@@ -2638,17 +2671,21 @@ The [shared format fixture](../client/golden/player_record.json) is read by Rust
 MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.json)
 covers the sixth slot and a found secret on both sides, and the
 [Sniper fixture](../client/golden/player_record_sniper.json) the seventh.
-Those fixtures retain historical revision 1. Current revision 2 requires exactly
-eight weapon entries, with Repeater appended after Sniper. Revision 1 accepts
+Those fixtures retain historical revision 1. Current revision 3 requires exactly
+nine weapon entries, with Repeater after Sniper and Arc appended after Repeater.
+Historical revision 2 requires exactly eight entries. Revision 1 accepts
 only its strict five/six/seven-column shapes and refuses an eighth even when
 zero. Unknown revisions and a revision change within one record are refused.
-The private per-recipient sender uses revision 2 for capability 35 or later;
-earlier compatible readers receive revision 1 only when total and attempt
-Repeater counts are genuinely empty. Nonzero new counts close incompatible
-delivery instead of being truncated or assigned to Rifle. The unversioned
+The private per-recipient sender uses revision 3 for capability 42 or later,
+revision 2 for capabilities 35 through 41, and revision 1 below 35. A compatible
+older shape is delivered only when total and attempt counts for every omitted
+weapon are genuinely empty. Nonzero new counts close incompatible delivery
+instead of being truncated or assigned to another gun. The unversioned
 standalone CombatCounts format stays historical five/six/seven columns and
-refuses serialization with nonzero Repeater counts; eight columns belong to
-the explicit revision 2 record envelope.
+refuses serialization with nonzero Repeater or Arc counts; eight and nine
+columns belong to their explicit revision 2 and 3 record envelopes. Retained
+mission records accept original rules revisions 1 through 4 without relabeling
+old facts. Current live mission state accepts only rules revision 4.
 
 Scopes are `arena` or `practice` with `round`, or `mission` with `mission`,
 `attempt`, `rules` and nullable `run` (the solo run contract above). Calibration
@@ -2673,8 +2710,8 @@ not zero. No runtime par is currently authored. The completion tally uses the
 existing attempt and total resolved counts, and never counts client-side kills.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
-`dry_triggers` and eight `weapons` entries in fists, Tack, flechette, scatter,
-rail, Shiv, Sniper and Repeater order. A historical revision 1 writer sends
+`dry_triggers` and nine `weapons` entries in fists, Tack, flechette, scatter,
+rail, Shiv, Sniper, Repeater and Arc order. A historical revision 1 writer sends
 the shortest five/six/seven-entry prefix holding every nonzero old entry.
 Revision 1 readers treat missing later old entries as zero, so retained history
 keeps its shape and no slot changes meaning. `secrets`, present only when nonzero,
@@ -2750,6 +2787,30 @@ with local-process versus external-server provenance. Its own format version is
 separate from wire capabilities. Local files and external hosts are not an
 authenticated public ranking or achievement authority. No background telemetry
 or paid runtime generation is involved.
+
+Local history document version 3 retains version 1 and 2 entries. A new local entry
+may also carry `server_sha256`, the lowercase SHA-256 of the owned server
+executable measured before launch. This is local provenance, never a network
+record field or an authenticated identity. Compatible human mission bests
+require that exact build, mission, map id, rules and difficulty, with durable
+and development runs separate. Missing provenance or completion time remains
+unknown. Retention still covers only the latest 256 observations. The wire
+record revision, negotiated capability and campaign run document are unchanged.
+
+Version 3 adds `unlocks` (at most the two supported award proofs) and
+`customization` (`title`, `emblem`, `finish`) to the existing profile/generation/
+entries envelope. Each proof contains a stable award `id`, the complete validated
+participant `record` and owned `server_sha256`. The Recall Notice award requires
+map 1001, the actual complete mission/run and a human durable local participant.
+The authored-secret award requires that participant's positive authoritative
+total secret count. Revision 3 or later campaign rules qualify, on every ordinary
+difficulty. External, development and agent records do not qualify. Historical
+loading creates no awards. Repeated ingress cannot duplicate an award ID, and
+proofs survive history eviction and failed runs. Unknown IDs, malformed proofs
+and unearned selections fail validation. The existing two-generation writer
+preserves the preceding valid profile on failed replacement. These fields are
+local progress and cosmetic selection, never new wire state or combat authority.
+
 ### Common Carrier prototype contract
 
 Capability 36 gates all roles before Welcome on Common Carrier (map 1010),
@@ -2849,7 +2910,7 @@ strike, recovery and interruptible hit/death states. The client selects its
 own directional atlas and paired normals. Cosmetic scan distortion during
 approach never changes server position, hit boxes, visibility or damage.
 
-Strict run-file version 14 upgrades exact historical v2 through v13 documents
+Historical run-file version 14 upgraded exact historical v2 through v13 documents
 with zero invented Remote Mines and archives the original bytes. M10 completion
 promotes to M11 under the existing writer lock, clears old personal supply
 claims, preserves actual finite equipment and crew history, and grants no
@@ -2857,4 +2918,121 @@ episode refill. Retry restores that exact entry and clears live devices without
 rewinding tick, sequence or inventory revisions. Only actual completed M11
 equipment may carry remote charges onward. Completion stores `m11_outcome`
 with release, records, single-blast count and elapsed `bridge_response_ticks`,
-then retains pending `terms_of_cooperation`; M12 cannot launch yet.
+then retained pending `terms_of_cooperation`. The current version-15 boundary
+and connected M12 work are described below.
+
+### Arc, current records and strict saves (capability 42)
+
+The appended weapon identity is `arc`, at stable gun index 8. Earlier IDs,
+indices and the six physical selection keys retain their meaning. Repeated key
+5 cycles owned Railgun and Arc; the wheel places Arc beside Railgun. An Arc
+find grants forty actual Cells. Each resolved ray spends one Cell, reaches at
+most 24 m, uses 0.02-radian spread, deals 18 body damage and observes a three-tick
+cooldown. Ordinary geometric heads double the damage. It bypasses actual
+carried armor and registered Auditor or Assessor plates, preserving the carried
+armor count. Cover, immunity and friendly-fire policy still apply. There is no
+chain target, splash result or separate combat channel.
+
+Human `loadout.loaded` may include `{weapon:"arc",rounds:12}`. Its twenty-two-tick
+reload uses the existing rising-edge `Action.reload`; holding R cannot restart
+it. Its loaded Cells, Railgun's and Sniper's all belong to the same carried
+Cells count. Agents and campaign enemies keep the single count. Default arcade
+equipment gains no Arc. Unsupported ownership or nonzero Arc record facts
+refuse private delivery to readers below capability 42. The current live
+campaign and shared-room floors may be higher than that feature allocation.
+
+Authored Heavy Sweeper placements alone may declare integer `armor` from zero
+through 100. Omission means zero; explicit null, another enemy kind, fractional
+or out-of-range values refuse authoring. This is actual spawned armor, consumed
+by ordinary guns and bypassed by Arc. Earlier omitted placements retain their
+existing combat balance.
+
+Current local run-file version 15 uses campaign rules revision 4. Exact v2-v4
+readers require their original rules revision 2 and exact v5-v14 readers require
+revision 3, then explicitly upgrade the live run to revision 4 under the
+existing writer lock. The content-addressed archive retains the original bytes.
+Every pre-v15 reader rejects selected or owned Arc, even with zero Cells, and
+retains its original supported stage bounds. Historical records and earned
+award proofs keep their original rules revisions rather than acquiring new
+timing claims.
+
+The local geometry reader separately registers exact mission, predecessor and
+successor SHA-256 pairs for the October 8 M08, M09, M10 and M12 stair correction.
+Each pair is inactive unless the expected canonical source equals its exact
+registered successor. The full historical decoder first validates the actual
+predecessor identity, supported stage, original rules and complete finite state.
+M09 also registers its exact continuous-guard intermediate source, which first
+exists at document version 15; earlier historical versions cannot claim it.
+Only `mission_entry` and `pending_continue` normalize the content identity;
+their remaining values stay exact, and a pending continue still spends normally.
+The writer re-reads under its existing lock, archives the exact original bytes
+and atomically replaces the run, including a same-version 15 entry. Preview
+does not write. Completed `awaiting_mission`, failed and abandoned history
+retains the original content identity. A completed predecessor can promote by
+the existing edge; it never becomes evidence that the successor was completed.
+Unknown predecessors, wrong stages and unregistered successor changes remain
+incompatible. No live map or retry-anchor replacement occurs. Exact identities
+and owning evidence are in the
+[geometry upgrade plan](plans/campaign-geometry-upgrades-20261008.md).
+
+M11 completion promotes once to the exact M12 entry, retaining HP, armor, body,
+actual finite equipment, remaining continues and prior outcomes, including the
+immutable tender receipt. Old personal supply claims clear; no episode refill
+occurs. M12 entry and retry cannot carry Arc before its actual discovery.
+Only completed M12 equipment can retain it. A completed M12 document requires
+the exact portable `m12_outcome`: `shelter_opened`, `workers_released`, two
+`pump_health` counts in 0..100, `assessor_wreck_union_kills` in 0..3, and
+`pumps_intact_at_route_secure`. The last fact derives from the authoritative
+chronology; same-tick pump damage fails the intact condition, while later damage
+does not rewrite the earlier result. Process-local timestamps are not saved.
+M12 completion retains pending `weight_of_permission`; that pending name does
+not make connected M13 playable. The connected M12 plan remains in flight until
+its own native, socket and inspected rendered acceptance completes.
+
+### Assessor and traveling canisters (capability 43)
+
+`campaign.kind:"assessor"` identifies the distinct Union heavy drone. Its
+raised body has 240 HP, 1.2 m height and 1.3 m horizontal half-width. Supported
+phases are `idle`, `moving`, `windup`, `firing`, `recovery`, `hit` and `dead`.
+The equipment field remains `fists`, but this role never substitutes a Fists
+ray or attack record for its canister launcher. Its authored hover volume
+uses a 3-7 m underside band, full body clearance, a grounded gun approach
+and two to eight patrol points. No general airborne route search is implied.
+
+`Snapshot.assessor_canisters`, omitted while empty, contains exact objects:
+
+```json
+{"id":43,"owner_id":"00000000-0000-0000-0000-000000000001","position":[8,4.6,0],"velocity":[-11.8,-2.1,0],"age_ticks":0}
+```
+
+The nonzero serial shares the existing projectile/device namespace. Positions
+are finite and bounded by 1024 per component; velocities are finite and bounded
+by 32 per component. Age is an integer from zero through 79 and cannot exceed
+the snapshot tick. The owner must remain a registered Assessor in the snapshot,
+including its dead body while an already launched round remains committed.
+At most six live rounds per owner and 64 globally are accepted. Unknown fields,
+duplicate serials, impossible identities and malformed values reject the fact.
+
+A full windup precedes three real launches six ticks apart. Assisted,
+Standard and Severe windup/recovery windows are respectively 32/50, 24/40
+and 18/32 ticks. Each successfully launched round spends one of thirty
+canisters; capacity or serial refusal spends none. A committed low-angle
+ballistic root travels at an initial 12 m/s under 4 m/s squared gravity, with
+four swept substeps per tick. A dodge does not update the locked target.
+Broken sight or a heavy stagger cancels unlaunched rounds. Launched rounds
+survive owner death, while explicit leave and shared reset retire them.
+
+Actual contact produces an existing `ExplosionResult` with radius 3 m and
+45 centre damage through covered linear falloff. Expiry at eighty ticks
+removes flight without creating a hidden hit. Resolved front and belly
+bullet normals halve damage, as do closed rear vents. Recovery opens the
+rear; side and top faces remain exposed. Each Scatter pellet resolves its
+own face before one armor share. Arc and splash bypass the plates.
+
+The one supported wreck uses radius 1.5 m and 45 centre damage against
+living Union bodies only, respecting cover and immunity. It cannot damage
+participants, companions, civilians, pumps or vehicles. M12 challenge
+receipts consume the actual killed targets of that supported wreck, rather
+than inferring success from animation, phase, generic frags or a timer.
+The client presents motion, folding, countdown, vents and bounded sound
+from accepted facts; it never decides contact, damage or wreck kills.

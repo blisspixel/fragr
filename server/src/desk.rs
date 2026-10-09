@@ -6,6 +6,8 @@
 //! input does not stop the match. Nothing it prints belongs on `GET /status`.
 
 use crate::access;
+use crate::protocol::GameMode;
+use crate::sim::MapKind;
 use std::io::Write;
 use std::net::IpAddr;
 use std::path::PathBuf;
@@ -29,6 +31,12 @@ pub enum DeskVerb {
         text: String,
     },
     Stats,
+    Shows,
+    Next,
+    Map {
+        map: MapKind,
+        mode: GameMode,
+    },
 }
 
 /// A person the desk has already resolved to one address.
@@ -77,6 +85,9 @@ enum Parsed {
     Ban { query: String },
     Say { text: String },
     Stats,
+    Shows,
+    Next,
+    Map { map: MapKind, mode: GameMode },
 }
 
 #[derive(Debug)]
@@ -85,6 +96,7 @@ enum ParseFault {
     NeedsName,
     NeedsSentence,
     TooLong,
+    BadShow,
 }
 
 /// Read desk lines until the channel closes. A closed channel is the end of
@@ -110,6 +122,17 @@ pub async fn serve<W: Write>(
                 write_line(out, ask(&requests, DeskVerb::Say { text }).await.text());
             }
             Ok(Parsed::Stats) => write_line(out, ask(&requests, DeskVerb::Stats).await.text()),
+            Ok(Parsed::Shows) => write_line(out, ask(&requests, DeskVerb::Shows).await.text()),
+            Ok(Parsed::Next) => write_line(out, ask(&requests, DeskVerb::Next).await.text()),
+            Ok(Parsed::Map { map, mode }) => {
+                // Topology construction must not stall the 20 Hz match loop.
+                if tokio::task::spawn_blocking(move || crate::maps::prepare_navigation(map, false))
+                    .await.is_err() {
+                    write_line(out, "That map could not be prepared. The queued show is unchanged.");
+                    continue;
+                }
+                write_line(out, ask(&requests, DeskVerb::Map { map, mode }).await.text());
+            }
             Ok(Parsed::Ban { query }) => {
                 let Some(path) = ban_list.clone() else {
                     write_line(
@@ -141,13 +164,14 @@ pub async fn serve<W: Write>(
                 }
             }
             Err(ParseFault::Unknown) => {
-                write_line(out, "The desk knows who, kick, ban, say, and stats.");
+                write_line(out, "The desk knows who, kick, ban, say, stats, shows, next, and map.");
             }
             Err(ParseFault::NeedsName) => {
                 write_line(out, "Say who. Use the name from who.");
             }
             Err(ParseFault::NeedsSentence) => write_line(out, "Say the sentence."),
             Err(ParseFault::TooLong) => write_line(out, "That line is too long."),
+            Err(ParseFault::BadShow) => write_line(out, "Use map <map> <mode>. Maps: 1-7 or a --map token. Modes: ffa, tdm, ctf, sabotage, conquest. The map must support the mode."),
         }
     }
 }
@@ -158,6 +182,10 @@ kick <name>
 ban <name> [reason]
 say <sentence>
 stats
+shows
+next
+map <map> <mode>
+Map and next wait for the whole live show. A manual map then repeats. \
 Names are what who prints. A ban keeps the address, not the name. \
 Closing this input leaves the match running.";
 
@@ -187,6 +215,23 @@ fn parse_line(line: &str) -> Result<Parsed, ParseFault> {
             text: rest.to_string(),
         }),
         "stats" if rest.is_empty() => Ok(Parsed::Stats),
+        "shows" if rest.is_empty() => Ok(Parsed::Shows),
+        "next" if rest.is_empty() => Ok(Parsed::Next),
+        "map" => {
+            let mut words = rest.split_whitespace();
+            let map = words
+                .next()
+                .and_then(MapKind::from_cli)
+                .ok_or(ParseFault::BadShow)?;
+            let mode = words
+                .next()
+                .and_then(|word| GameMode::ALL.into_iter().find(|mode| mode.id() == word))
+                .ok_or(ParseFault::BadShow)?;
+            if words.next().is_some() || crate::sim::validate_show(map, mode).is_err() {
+                return Err(ParseFault::BadShow);
+            }
+            Ok(Parsed::Map { map, mode })
+        }
         _ => Err(ParseFault::Unknown),
     }
 }
@@ -255,6 +300,34 @@ mod tests {
             other => panic!("ban: {other:?}"),
         }
         assert!(matches!(parse_line("stats"), Ok(Parsed::Stats)));
+        assert!(matches!(parse_line("shows"), Ok(Parsed::Shows)));
+        assert!(matches!(parse_line("next"), Ok(Parsed::Next)));
+        assert!(matches!(
+            parse_line("map holdfast conquest"),
+            Ok(Parsed::Map {
+                map: MapKind::HoldfastAtoll,
+                mode: GameMode::Conquest
+            })
+        ));
+        assert!(matches!(
+            parse_line("map sector9 sabotage"),
+            Ok(Parsed::Map {
+                map: MapKind::Sector9,
+                mode: GameMode::Sabotage
+            })
+        ));
+        for bad in [
+            "map",
+            "map 1",
+            "map 1 ctf extra",
+            "map yard ctf",
+            "map 1 sabotage",
+            "map 1 conquest",
+            "map 999 tdm",
+            "map 1 fly",
+        ] {
+            assert!(matches!(parse_line(bad), Err(ParseFault::BadShow)), "{bad}");
+        }
         assert!(matches!(
             parse_line("stats tonight"),
             Err(ParseFault::Unknown)
@@ -322,10 +395,44 @@ mod tests {
         assert!(text.contains("Patch  human  2  203.0.113.7"), "{text}");
         assert!(text.contains("Patch is off the floor."), "{text}");
         assert!(
-            text.contains("The desk knows who, kick, ban, say, and stats."),
+            text.contains("The desk knows who, kick, ban, say, stats, shows, next, and map."),
             "{text}"
         );
         assert_eq!(seen.lock().unwrap().len(), 2);
+    }
+
+    #[tokio::test]
+    async fn show_verbs_prepare_then_use_the_existing_desk_channel() {
+        let (line_tx, line_rx) = mpsc::unbounded_channel();
+        let (call_tx, mut call_rx) = mpsc::unbounded_channel::<DeskCall>();
+        let answers = tokio::spawn(async move {
+            let mut seen = Vec::new();
+            while let Some(call) = call_rx.recv().await {
+                seen.push(call.verb);
+                let _ = call.reply.send(DeskOutcome::Text("show answer".into()));
+            }
+            seen
+        });
+        for line in ["shows", "map 2 tdm", "map yard ctf", "next"] {
+            line_tx.send(line.into()).unwrap();
+        }
+        drop(line_tx);
+        let mut output = Vec::new();
+        serve(line_rx, call_tx, None, &mut output).await;
+        assert_eq!(
+            answers.await.unwrap(),
+            vec![
+                DeskVerb::Shows,
+                DeskVerb::Map {
+                    map: MapKind::ComplianceYard,
+                    mode: GameMode::Tdm
+                },
+                DeskVerb::Next,
+            ]
+        );
+        let text = String::from_utf8(output).unwrap();
+        assert_eq!(text.matches("show answer").count(), 3);
+        assert!(text.contains("The map must support the mode."));
     }
 
     #[tokio::test]

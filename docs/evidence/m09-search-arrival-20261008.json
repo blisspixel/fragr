@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "cash_spend_usd": 0,
+  "scope": "Complete ordinary M09 route on the composed native, canonical QA search/arrival correction and focused regression. Historical entry is a labelled fixture, not a played M01-M08 run. No final art, difficulty, planted gait, physical LAN or shipment claim.",
+  "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+  "engine_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+  "actual_command": "pwsh -NoProfile -File .agents/m09-cast-search-20261008/run-gallery-side-candidate.ps1 -Mission m09 -Carry eligible -Attempt gallery-side-first",
+  "actual_route_sha256": "d8e87fc7529f6f70b266895182636689323f2375c9906fd905b646c32805e826",
+  "actual_states": 32,
+  "canonical_states": 27,
+  "numeric_exit": 0,
+  "renderer_retired": true,
+  "native_retired": true,
+  "outcomes": {
+    "party_departed": true,
+    "deaths": 0,
+    "dry_triggers": 0.0,
+    "hp_lost": 58.0,
+    "armor_lost": 67.0,
+    "attacks": 67.0,
+    "kills": 21.0
+  },
+  "canonical_equivalence": {
+    "accepted_sha256": "d8e87fc7529f6f70b266895182636689323f2375c9906fd905b646c32805e826",
+    "accepted_states": 32,
+    "before_sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a",
+    "canonical_sha256": "9a5065f5004999af59dd98886ba5dbcfb4008ee543585b6dd0c2f328cabdde91",
+    "canonical_states": 27,
+    "changed_states": [
+      "m09_gantry_three_clear",
+      "m09_clamps_release"
+    ],
+    "pass": true,
+    "schema": 1,
+    "scope": "All27canonical state dictionaries equal their actual accepted32-state route counterparts. Only two existing canonical states differ from the retained predecessor; three added stair views and two character observations stay ignored."
+  },
+  "static_controls": "All128 retained Notary samples reproduce with zero old/current stair differences. Original centre route is occluded; six-point candidate exposes the recorded Notary within214ticks. At actual stopped gallery feet, geometry-only direct arrival passes; a controlled stationary Tern at its authored waiting point blocks that endpoint, while the side approach takes24ticks. The old live blocker identity was not recorded.",
+  "inspection": "Three actual final originals inspected: gantry corridor after the fight, clear gallery side arrival with updated objective, readable departure page. The gantry still alone does not establish every enemy death; actual accepted combat/record facts do. No full final-art or continuous-motion conclusion.",
+  "retained_failures": [
+    "Original incomplete east-gantry combat route",
+    "Two-vantage pre-fix capture wait with an actual death, historical window mode unknown",
+    "Draw-corrected two-vantage route stops at occupied authored gallery waypoint after26states",
+    "First focused regression omitted the recorded Union side and used the wrong target height",
+    "First equivalence diagnostic incorrectly assumed30canonicalstates; actual27 preserved"
+  ],
+  "remaining": "M09/M10 civilian prediction parity and contact-aware Splice gait remain separately planned. Other composed client/package/main gates retain their own receipts.",
+  "bindings": [
+    {
+      "path": ".agents/m09-cast-search-20261008/canonical-equivalence-first.json",
+      "bytes": 640,
+      "sha256": "a88806138602f724901c17acbf23dc749d7e865e01e598eb634287068c99a6a0"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/canonical-equivalence-second.json",
+      "bytes": 665,
+      "sha256": "9a8deb4afd2256b1bcd58dedc29608b4c0dead534dcbeba5f0677686f231173b"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/canonical-focused-first.log",
+      "bytes": 343,
+      "sha256": "10fcbbb82bca8921f0d561d903e66a8ec4cd4f1ca23b4dd88aa1f11052d767a6"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/canonical-focused-second.log",
+      "bytes": 208,
+      "sha256": "d57d51a17814aed1493e00edc441570f379e0aa478562923d0a89736dd596cdb"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/check-canonical-equivalence-first.gd",
+      "bytes": 1986,
+      "sha256": "d3ea9df2233f6be77750d862f64cbb2ffd6ae80f93fe2218c80eabf46ff4a2ca"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/check-canonical-equivalence.gd",
+      "bytes": 2013,
+      "sha256": "2038fc4976406a445ac20bfe19e478105a561f30e4f7c9c68b642aad70cd4ff2"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/check-gallery-arrival.gd",
+      "bytes": 3112,
+      "sha256": "fe4806577765b5d8c5ea245f12d19bfd32bc566b1c08a3afc6154f43e5837447"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/east-gantry-static-first.json",
+      "bytes": 2856,
+      "sha256": "b9423e3a71828bf985f1d04faff82591e718c169ece27428b59c5fdf628e0706"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/gallery-arrival-static-first.json",
+      "bytes": 932,
+      "sha256": "023564b0792bb7e983443907553bec63dafc25b2bd6d7a897008cdab9a1e6d0b"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/gallery-side-candidate-proof.json",
+      "bytes": 462,
+      "sha256": "7090e28db24759a333bc24010a8e5b5786896339e9abe13d7e405796e74244f6"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/m09-canonical-before-search.json",
+      "bytes": 16438,
+      "sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/m09-eligible-before.json",
+      "bytes": 19916,
+      "sha256": "2554bee74fccff3b54ce37072225e79e06c41b99d6596e04e7ad57550e15856e"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/m09-eligible-candidate.json",
+      "bytes": 20082,
+      "sha256": "7087e93cbfc80eaeae05ea079ecba8f3dc6549ba913479504e47431c4537a0d9"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/m09-eligible-gallery-side-candidate.json",
+      "bytes": 20230,
+      "sha256": "d8e87fc7529f6f70b266895182636689323f2375c9906fd905b646c32805e826"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/run-gallery-side-candidate.ps1",
+      "bytes": 7313,
+      "sha256": "350f686fe49bb0fa4aa517d0829bc217268933738173c94b311aaccaed865855"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/splice-live-diagnostic.gd",
+      "bytes": 1708,
+      "sha256": "ec24d0b176f58771f8e304cfc1a7ea269c6a2641583d3d22079c3f04ee807eff"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/static-first-process.json",
+      "bytes": 359,
+      "sha256": "012de9a74e2646b2daffaf1d7ecf1bb7c93187417187e3d39ac6b892569ee267"
+    },
+    {
+      "path": ".agents/m09-cast-search-20261008/test_m09_search_route.gd",
+      "bytes": 4316,
+      "sha256": "19c5097557f06324ad5c2be20eb7f486f325c2db130a8d228c4fce4c4ab857d7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-draw-recovery-first/26_m09_gallery_counter.png",
+      "bytes": 510576,
+      "sha256": "e42ccc041202751efe297d3a9068e6a2ff12d373dc5faa021ce955fad98a91d2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-draw-recovery-first/client-error.log",
+      "bytes": 302,
+      "sha256": "cb3b724f664d287b7b83b346d2cc97f61787b01bda9c6e8175482d6f0797dc70"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-draw-recovery-first/process.json",
+      "bytes": 3785,
+      "sha256": "5e716b87207edf86625b4cc82d2446c24dca878eee3ca82767e8e47a58f033d8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/24_m09_gantry_three_clear.png",
+      "bytes": 557763,
+      "sha256": "00195dd4fb40a7c1afeec86755372ca5518c9c377e7520a6b2d5e526b7b8a5fc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/27_m09_clamps_release.png",
+      "bytes": 439338,
+      "sha256": "dbb0ca1ccfb0f660879eef77f99072eca0866cee0abc2e2a3287bc9fe2f2959d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/32_m09_departure.png",
+      "bytes": 33622,
+      "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/child-retirement.json",
+      "bytes": 119,
+      "sha256": "1da39878954c7631ffd47ffaa370258c2b4d9725a296ffa9560ca33f26f3587d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/client.log",
+      "bytes": 3739,
+      "sha256": "8b4b4097dd8049db469447757037c77be444d8efafe2d249ea7cacd3e1747c71"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/gallery-live-observations.json",
+      "bytes": 80685,
+      "sha256": "6bd3058f6f8cae2e66fc762c3143971c30fec45daf248fb90a21380ef8b659bc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/manifest.json",
+      "bytes": 3028566,
+      "sha256": "f8dcc2e3c527082c4120c77b8764c954757fad629eafcf5a04a51cef3d91f756"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/process.json",
+      "bytes": 13709,
+      "sha256": "358bb0ee50d7816fb5bdf332609ec8da0cc20195d0369f846bfbe93765a8561e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/run/run.json",
+      "bytes": 1249,
+      "sha256": "515fd7572d4883b7e3868429ca36b08adf070179a92cb822b615dd489c1f2ddc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/civilian_figure.gd",
+      "bytes": 2294,
+      "sha256": "5d094a5f63731da517b951b4ce679d86c8cdfb7e80217ae91e9f540a41aefcbf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/m05_town.gd",
+      "bytes": 6386,
+      "sha256": "ee30015435e5899b3824422c9027cf8808f5fc40e6aff176543525ef66f93bae"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/m09_berth.gd",
+      "bytes": 5704,
+      "sha256": "15b6ee2f8e97586bf37571c796cb827b467f53c32679740f2d378526921c6a47"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/m09_passenger_manifest.json",
+      "bytes": 57525,
+      "sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/m10_ship.gd",
+      "bytes": 2109,
+      "sha256": "c5f589151c8de39a76aa044edb5001b0e561f7497cb556408f8175881fada74f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/qa_combat.gd",
+      "bytes": 43870,
+      "sha256": "d6a4a0bf6f1639acc16834274f4bedec6706b6ad1b28986f7b17d687085829d6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/qa_tour.gd",
+      "bytes": 141745,
+      "sha256": "846468471feec107395a4c7454c50b6f02e534cf17a0d3bfd88c305fd19c7d7e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/splice_character.gd",
+      "bytes": 4854,
+      "sha256": "cdbf83f9f20da68f000b66e733699d289cc02d2cbb8c1adc14115df5b208465f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/splice-live-diagnostic.gd",
+      "bytes": 1708,
+      "sha256": "ec24d0b176f58771f8e304cfc1a7ea269c6a2641583d3d22079c3f04ee807eff"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/live/m09-eligible-gallery-side-first/loaded-source/splice-live-tour.gd",
+      "bytes": 10215,
+      "sha256": "99ce488e85d3fddbf47c9a595d8d95d77bd7fb6f155c9be198ee84df96302ee0"
+    },
+    {
+      "path": "client/qa/m09_passenger_manifest.json",
+      "bytes": 16708,
+      "sha256": "9a5065f5004999af59dd98886ba5dbcfb4008ee543585b6dd0c2f328cabdde91"
+    },
+    {
+      "path": "client/scripts/test_m09_search_route.gd",
+      "bytes": 4391,
+      "sha256": "bb7f5fdf393da74d6188ce26f008a13ed3d7d16c91cb8bb3f8a7d28af0685502"
+    }
+  ]
+}

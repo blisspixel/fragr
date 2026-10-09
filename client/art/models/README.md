@@ -16,7 +16,14 @@ owns quality acceptance.
 | `sniper_source.gd`, `candidates/sniper.glb` | Reviewed walnut precision Rifle source with recessed optics, authored independent bolt and connected plain work gloves. Retains 9,552 source triangles including clipped fragments and separately counts 3,992 local hardware triangles. Accepted held/fire/pickup pictures are selected in `assets/weapons/sniper-source-20261004/`; the original art and raw source remain retained. |
 | `clerk_source.gd`, `candidates/clerk.glb` | Prepared 24-bone human source, retained gait and authored combat, unarmed, seated and collapse poses. Bakes directional sprites and paired normals through the existing character layout. |
 | `auditor_source.gd`, `candidates/auditor.glb` | Skinned black/red custody officer, held shield, repair sockets, upper-back cable and raised channel emitter. Supplies directional sprites and paired normals. |
-| `free_human_source.gd`, `candidates/free_human.glb` | Warm civilian skin, empty hands and stationary-root gait for the selectable eight-cell body strip. |
+| `enforcer_source.gd`, `candidates/enforcer.glb` | Prepared issued combat source for the directional Enforcer and paired normals; runtime follows authoritative attack phases. |
+| `redactor_source.gd`, `candidates/redactor.glb` | Distinct prepared walking source with authored Shiv raise, strike and recovery; supplies directional Redactor art and paired normals. |
+| `free_human_source.gd`, `candidates/free_human.glb` | Warm civilian skin and retained 24-bone gait. The compact source is packaged as `assets/models/free_human_live.glb` for the live player body; its eight-cell strip remains the menu and missing-model fallback. |
+| `free_synthetic_source.gd`, `candidates/free_synthetic.glb` | Civilian worker with retained 24-bone gait, bone/olive plates and amber expression. Packaged as `assets/models/free_synthetic_live.glb` for the live player body; its eight-cell strip remains the menu and missing-model fallback. |
+| `tern_source.gd`, `candidates/tern.glb` | Prepared named civilian, retaining actual source geometry and walking keys. Packaged as `assets/models/tern_live.glb` for current Tern in M09 and M10. Optics and original shoulder asymmetry remain separately documented art gates. |
+| `edda_source.gd`, `candidates/edda.glb` | Repaired weighted civilian source, packaged unchanged as `assets/models/edda_live.glb` for eligible M09 and M10 appearances. Retains Edda's face, apron and medical satchel. |
+| `../../scripts/splice_character.gd`, `assets/models/splice_live.glb` | Selected rigid civilian with 17 measured regions and 28 joint closures, retaining original faces, UVs and stored tools. Complete-source fallback is checked; horizontal foot planting remains provisional. |
+| `../../scripts/skinned_character.gd`, `../../scripts/civilian_figure.gd` | Shared live weighted presenter and accepted-feet mission wrapper. Offline weighted bounds produce packaged support curves; no asset service or offline art source runs during play. |
 | `../../scripts/latch_view.gd`, `../../scripts/latch_source.gd` | Packaged 24-bone civilian chassis with retained gait, expressive screen, left antenna, repairs and voluntary hand gesture. Live companion and ward share the prepared `assets/models/latch_stylized.glb` skin. |
 | `../../scripts/facility_geometry.gd` | Merged vent, locker, terminal, light and sign housings on registered faces, with two or three material surfaces and at most 8 mm protrusion. |
 | `../../scripts/model_geometry.gd` | Shared chamfered prisms, hollow lathes, tapered shells, pipes, UVs and material cache. Kept in runtime scripts because offline art sources are excluded from desktop packages. |
@@ -25,8 +32,21 @@ owns quality acceptance.
 GLB exports, previews, pose frames and the source/output hash manifest live in
 `client/assets/models/`. Mechanical clips animate rigid parts; they do not
 claim skeletal skinning. The separate prepared bodies use weighted skins.
-The live Latch helper and its embedded 1K maps are packaged; the offline cast
-sources and reference library remain excluded. No asset service runs in play.
+The live Latch helper, selected cast models and their compact embedded maps
+are packaged; offline cast sources and the reference library remain excluded.
+No asset service runs in play.
+
+The prepared enemy models above still supply baked directional pixel art.
+Current source selects Latch, both player bodies, Tern and Edda as live weighted
+meshes; see the [live presenter plan](../../../docs/plans/live-character-presenters-20261008.md)
+and [Edda integration](../../../docs/evidence/edda-live-integration-20261008.md)
+for integration evidence and remaining acceptance.
+[Edda and Splice](../../../docs/evidence/named-cast-source-production-20261005.md)
+remain separate retained identities. Edda's [satchel-weight repair](../../../docs/plans/edda-live-repair-20261008.md)
+has its own source evidence. Current source selects the prepared rigid Splice mesh for
+eligible mission appearances, with complete-source fallback; world-space foot
+planting remains provisional. Their source, skeleton and motion receipts remain
+the authority for what was actually produced.
 
 From repository root, using the pinned Godot 4.7.2 binary:
 

@@ -114,7 +114,7 @@ impl Definition {
         crate::movement::validate_geometry(opened.half, &opened.solids).map_err(invalid)?;
         for enemy in definitions.iter().flat_map(|group| &group.enemies) {
             if let Some(hover) = &enemy.hover {
-                hover.validate(&opened, enemy.feet)?;
+                hover.validate_for(&opened, enemy.feet, enemy.kind)?;
             } else if !standing(&opened, enemy.feet) {
                 return Err(invalid(
                     "M04 enemy must remain supported and clear after clinic opening",

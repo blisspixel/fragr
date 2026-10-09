@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-08",
+  "status": "local static development slice",
+  "map_id": 1014,
+  "map_name": "Launch Authority (development)",
+  "source": "server/maps/test/launch_authority_development.json",
+  "source_sha256": "ebf6e9c1629419aa7b9dc32bfaaa7d365812c33225f42de298f27af0d1628492",
+  "authoring_helper": "tools/author_launch_authority.gd",
+  "deterministic_repeat": true,
+  "solids": 119,
+  "supplies": 20,
+  "encounter_groups": 5,
+  "established_enemies": 20,
+  "explicit_jeeps": 1,
+  "native_tests": {
+    "source": "server/src/tests/launch_authority.rs",
+    "source_sha256": "caa43378fc31bd5da61d9be39e0fa7acb8ad0dc9653393c73ec3c310ff11bb48",
+    "count": 3,
+    "passed": 3,
+    "no_teleport": true,
+    "finite_agent_ammunition": true,
+    "pre_final_stock_approach_outside_trigger": true,
+    "ordinary_useful_stock_claim": true,
+    "final_guards_asleep_until_explicit_push": true,
+    "no_seat_use": true,
+    "no_mounted_shot_trace": true,
+    "circuit_metres": 457.93,
+    "circuit_landmarks": 13,
+    "clears": [
+      {
+        "fleet": "present",
+        "kills": 20,
+        "participant_shots": 162,
+        "enemy_attacks": 2,
+        "ticks": 3308,
+        "hp_end": 100
+      },
+      {
+        "fleet": "absent throughout",
+        "kills": 20,
+        "participant_shots": 150,
+        "enemy_attacks": 2,
+        "ticks": 3208,
+        "hp_end": 100
+      },
+      {
+        "fleet": "initially destroyed",
+        "kills": 20,
+        "participant_shots": 162,
+        "enemy_attacks": 2,
+        "ticks": 3308,
+        "hp_end": 100
+      }
+    ],
+    "destroyed_case_limit": "The ordinary abandonment timer may restore the jeep later. The infantry driver never occupies it or uses its mount."
+  },
+  "static_client_route": {
+    "test": "client/scripts/test_launch_authority_route.gd",
+    "source_sha256": "3a9436a3b8a9c2758b8d91c9a03d36995f9bc1c585614872cc38f1532604000e",
+    "passed": true,
+    "straight_walk_waypoints": 66,
+    "parked_hull": true,
+    "enemy_decisions": false
+  },
+  "rendered": {
+    "manifest": "client/qa/launch_authority_development.json",
+    "manifest_sha256": "a99897937e70d9394650c6a10ee9221cb5004acb2ac26d6c5d51cd1ee614ed6e",
+    "raw_capture": ".agents/launch-authority-20261008/tour-resupply-final/manifest.json",
+    "raw_manifest_sha256": "21f801766bfa38ce2a5ab79c020712e352e20d7cca4cbf22bf960ec5476e65a1",
+    "renderer": "gl_compatibility",
+    "device": "AMD Radeon(TM) 780M",
+    "godot": "4.7.2-stable (official)",
+    "resolution": [
+      1280.0,
+      720.0
+    ],
+    "captured_utc": "2026-10-08T14:42:12Z",
+    "server_sha256": "8f6d7da7f8889b746024165f42cd361bfdb968001792f81ce7df76aa97f4824d",
+    "presentation_sources": [
+      {
+        "file": "client/scripts/arena_sky.gd",
+        "sha256": "33287e683ed38f5f0845ab7234fba129f2aad90cdf3045d9e049757bb25a4fba"
+      },
+      {
+        "file": "client/scripts/arena_cover.gd",
+        "sha256": "0d4b29e5d727e5a91ff68dbda44ef42ea22e68d80e5997fe5283869a759fa4e0"
+      },
+      {
+        "file": "client/scripts/arena_backdrop.gd",
+        "sha256": "c320b370685a5eb971d7c36f09fb8852ac41a745cf96f31852c868a5754210b6"
+      },
+      {
+        "file": "client/scripts/arena_materials.gd",
+        "sha256": "5d67aac895fac099713f17d5f013cc8f72d7a34409b5d0141d0a471312a2511c"
+      },
+      {
+        "file": "client/scripts/environment_textures.gd",
+        "sha256": "2c784047c55c58e15966e5a9d0671b2eb665c50a73272ee200beca039108a51d"
+      }
+    ],
+    "states": [
+      {
+        "state": "launch_freight_arrival",
+        "walk_count": 1,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0482
+      },
+      {
+        "state": "launch_depot_supply",
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0273
+      },
+      {
+        "state": "launch_depot_stock",
+        "walk_count": 1,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0268
+      },
+      {
+        "state": "launch_depot_court",
+        "walk_count": 7,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0291
+      },
+      {
+        "state": "launch_depot_roof_flank",
+        "walk_count": 4,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 5,
+        "hud_coverage": 0.0268
+      },
+      {
+        "state": "launch_captured_motorpool",
+        "walk_count": 7,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0269
+      },
+      {
+        "state": "launch_notary_foot_alternative",
+        "walk_count": 3,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 2,
+        "hud_coverage": 0.0266
+      },
+      {
+        "state": "launch_repair_bay",
+        "walk_count": 4,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0273
+      },
+      {
+        "state": "launch_west_trench_supplies",
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0292
+      },
+      {
+        "state": "launch_west_infantry_flank",
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0276
+      },
+      {
+        "state": "launch_east_trench_supplies",
+        "walk_count": 9,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0264
+      },
+      {
+        "state": "launch_bend_turret_flank",
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 4,
+        "hud_coverage": 0.0246
+      },
+      {
+        "state": "launch_pad_apron",
+        "walk_count": 4,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 4,
+        "hud_coverage": 0.0276
+      },
+      {
+        "state": "launch_apron_resupply",
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.025
+      },
+      {
+        "state": "launch_gantry_defense",
+        "walk_count": 1,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "confirmed_count": 5,
+        "hud_coverage": 0.0246
+      },
+      {
+        "state": "launch_control_development_end",
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "confirmed_count": 0,
+        "hud_coverage": 0.0246
+      }
+    ],
+    "retained_record_tick": 3646.0,
+    "retained_alive_ticks": 3521.0,
+    "kills": 20.0,
+    "attacks": 76.0,
+    "hp_lost": 0.0,
+    "armor_lost": 0.0,
+    "deaths": 0.0,
+    "dry_triggers": 0.0,
+    "record_scope": "practice",
+    "record_status": "active",
+    "finite_human_magazines": true,
+    "inspected_stills": 16,
+    "images": [
+      {
+        "file": "m14_arrival_20261008.png",
+        "source_capture": "01_launch_freight_arrival_world.png",
+        "sha256": "34bed22809d2384423e29bf559b28ce6cf53bb5dce0790bab48f98e77e6502e7"
+      },
+      {
+        "file": "m14_field_20261008.png",
+        "source_capture": "05_launch_depot_roof_flank_world.png",
+        "sha256": "626656fe8b256e32b184201bd21cb2c9ba2693ba3bf4ec79794d09957d53ef7c"
+      },
+      {
+        "file": "m14_motorpool_20261008.png",
+        "source_capture": "06_launch_captured_motorpool_world.png",
+        "sha256": "78a0eef3919a58fdec9551564baafbe09e1c150a2ace2aaffd8ed33cba77bd6d"
+      },
+      {
+        "file": "m14_west_shelter_20261008.png",
+        "source_capture": "09_launch_west_trench_supplies_world.png",
+        "sha256": "b0a28fbc08bac7dded841b07aca215b54b7237de4fc4f626b61b8058aa5a7a44"
+      },
+      {
+        "file": "m14_gantry_20261008.png",
+        "source_capture": "15_launch_gantry_defense_world.png",
+        "sha256": "df960a67215dc7235304b52032df5843e57f13813916ca3521a0436506d33eca"
+      }
+    ]
+  },
+  "renderer_shutdown": {
+    "clean_exit": true,
+    "process_exit_code": 0,
+    "diagnostic_count": 0,
+    "remaining_texture_allocation_bytes": [],
+    "note": "This corrected-source run exited without engine error diagnostics. The preceding completed route reported paired texture allocations also seen in earlier unrelated render logs."
+  },
+  "retained_failures": "Earlier attempts remain in .agents/launch-authority-20261008. They exposed unsafe arrival activation, late ammunition and early shotgun selection, QA segments crossing solids, final-group activation during an idle capture, a surviving apron Clerk hidden after an evade, and pre-final apron stock inside the gantry trigger. The earlier tour-final completed20kills with paired shutdown texture diagnostics; the unchanged tour-clean-retry died after13 captures on that unsafe resupply approach. The corrected final route relocates only those existing stocks and holds fire outside the trigger before its explicit final push. The passing route retains ordinary collision, damage and finite inventory.",
+  "acceptance_limits": [
+    "No campaign unlock or mission completion.",
+    "Actual mounted combat in this specific yard remains separate played acceptance.",
+    "No Walker, other-site flares, voiced coalition departure, launch operation or episode ending.",
+    "Blockout berms, perimeter, lander and service shells require a final Mars art pass.",
+    "Automated aiming and renderer inspection do not prove fresh-player understanding, human fun, balance, par time, target duration or hardware frame rates."
+  ],
+  "new_cash_usd": 0,
+  "paid_asset_calls": 0
+}

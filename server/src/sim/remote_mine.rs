@@ -271,7 +271,8 @@ impl GameState {
             };
             let origin = [
                 player.x,
-                player.y - PLAYER_FLOOR_Y + crate::combat::eye_height(player.campaign),
+                player.y - PLAYER_FLOOR_Y
+                    + crate::combat::stance_eye(player.campaign, player.ducking),
                 player.z,
             ];
             let Ok(device) = RemoteMine::launch(

@@ -1,0 +1,301 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "in flight",
+  "scope": "Installed exact stair enclosures, strict native geometry and source-rendered inspection; ordinary rendered mission and save acceptance remain separate",
+  "new_cash_usd": 0,
+  "paid_requests": 0,
+  "maps": [
+    {
+      "successor": {
+        "path": "server/maps/m08_custodian_of_record.json",
+        "bytes": 55933,
+        "sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864"
+      },
+      "stage": 8,
+      "original_solids": 144,
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m08_custodian_of_record.json",
+        "bytes": 23846,
+        "sha256": "b9964704b9bf51e837118f25fbec9d93574d16634b1d281caf694181f44de666"
+      },
+      "appended_solids": 9
+    },
+    {
+      "successor": {
+        "path": "server/maps/m09_passenger_manifest.json",
+        "bytes": 57307,
+        "sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397"
+      },
+      "stage": 9,
+      "original_solids": 132,
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest.json",
+        "bytes": 50529,
+        "sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381"
+      },
+      "appended_solids": 6
+    },
+    {
+      "successor": {
+        "path": "server/maps/m10_common_carrier.json",
+        "bytes": 41073,
+        "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557"
+      },
+      "stage": 10,
+      "original_solids": 123,
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m10_common_carrier.json",
+        "bytes": 39793,
+        "sha256": "d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d"
+      },
+      "appended_solids": 6
+    },
+    {
+      "successor": {
+        "path": "server/maps/m12-terms-of-cooperation.json",
+        "bytes": 47378,
+        "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431"
+      },
+      "stage": 12,
+      "original_solids": 114,
+      "predecessor": {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m12-terms-of-cooperation.json",
+        "bytes": 43246,
+        "sha256": "8f84cca779909790d23c8af2fa59db38bb25c9b94f4422a969e79180a137c78d"
+      },
+      "appended_solids": 18
+    }
+  ],
+  "sources": [
+    {
+      "path": "server/tests/campaign_stairs.rs",
+      "bytes": 14572,
+      "sha256": "651b605e6e9c210148e6e789aae126b1b8ef9dcd2e48441c00562854ca0b75ff"
+    },
+    {
+      "path": "server/src/maps/authored/m10_geometry_tests.rs",
+      "bytes": 16402,
+      "sha256": "8e280f8b9597f899be301e3cb9150441b9fa001d2bf6865744ee507390b59317"
+    },
+    {
+      "path": "server/tests/m12_campaign.rs",
+      "bytes": 15450,
+      "sha256": "4ac3b808bcd3127a511c5a0913e53d1bde4d66b33d88a8e33c7db0ffe13f1eb2"
+    },
+    {
+      "path": "tools/author_campaign_stairs.gd",
+      "bytes": 6052,
+      "sha256": "b1f41b54a7e863143127481516cf7c307613fc0db91f11eb554da70d2d5c999d"
+    },
+    {
+      "path": "tools/author_common_carrier.gd",
+      "bytes": 13462,
+      "sha256": "4cbba313eb5e2434f5cc3bc82eab67743e442c340e265319b63867af77fc8a9e"
+    },
+    {
+      "path": "tools/bake_m12_campaign.gd",
+      "bytes": 4917,
+      "sha256": "135b528983d16951b3da8443b4f0fc851e88ea91231b1653d2688d5ba703b1e6"
+    },
+    {
+      "path": "client/qa/m08_custodian_of_record.json",
+      "bytes": 11789,
+      "sha256": "72d0db1bb22f2c14d58abb6f5d338c4ea096bc36834ae0b183f4a56abb7040ef"
+    },
+    {
+      "path": "client/qa/m09_passenger_manifest.json",
+      "bytes": 16438,
+      "sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a"
+    },
+    {
+      "path": "client/qa/m10_common_carrier.json",
+      "bytes": 22680,
+      "sha256": "9dc5912487dd1455b52a2c32fde74ccd44e36455f1a3679bb9f89c38fc970b9f"
+    },
+    {
+      "path": "client/scripts/test_m10_search_route.gd",
+      "bytes": 5660,
+      "sha256": "9cc4e73d5eecbfa8c003783880c251d14962e6e725b30393ff685866170c0828"
+    }
+  ],
+  "native_checks": [
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/native-canonical-first.log",
+        "bytes": 1257,
+        "sha256": "f7d50d5140f9e34b545f3f4d47362a3733e009a9845431ceb8daf387fc88a758"
+      },
+      "command": "cargo test -p fragr-server --test campaign_stairs --locked -- --nocapture",
+      "passed": 9
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/native-m09-geometry-first.log",
+        "bytes": 1172,
+        "sha256": "165841aefc6a2ae66788581bac494b7b2e72a7d8c3fedf25d9a46143b20bcb0c"
+      },
+      "command": "cargo test -p fragr-server --lib --locked maps::authored::m09_tests -- --nocapture",
+      "passed": 8
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/native-m10-geometry-second.log",
+        "bytes": 1261,
+        "sha256": "b700ca29c61e67273e98bb6d5bbf7911c84cbf688ccc6a6fde0ce3588eeb5097"
+      },
+      "command": "cargo test -p fragr-server --lib --locked maps::authored::m10_geometry_tests -- --nocapture",
+      "passed": 8
+    },
+    {
+      "log": {
+        "path": ".agents/stair-architecture-20261008/native-m12-ordinary-first.log",
+        "bytes": 1582,
+        "sha256": "4da69ce303f1f62876b4d661571f1730b29227f7d2a41372c83c9e7730401850"
+      },
+      "command": "cargo test -p fragr-server --test m12_campaign --locked -- --nocapture",
+      "passed": 1
+    }
+  ],
+  "native_m08": {
+    "prepared_worlds": 3,
+    "side_refusals": 12,
+    "walk_segments": 108,
+    "ticks": 2628
+  },
+  "native_m10": {
+    "side_refusals": 2,
+    "floor_connections": 4,
+    "walk_segments": 56,
+    "ticks": 1116
+  },
+  "native_m12": {
+    "released_civilians": "Static authored positions",
+    "reloads": 4,
+    "states": 17,
+    "guard_deaths": 17,
+    "enemy_attacks": 22,
+    "actual_parked_aid_vehicles": 2,
+    "participant_deaths": 0,
+    "ticks": 2446
+  },
+  "search_loop": {
+    "points": 16,
+    "deadline_ticks": 500,
+    "interrupted_returns": 15,
+    "no_fire_controls": true,
+    "process": {
+      "path": ".agents/stair-architecture-20261008/m10-search-final-first/process.json",
+      "bytes": 264,
+      "sha256": "c9d6863f7e902c793e1ed1fc00d2cd49680f15823a39cd915563d6f0f93ea810"
+    },
+    "unchanged": true,
+    "retained_occlusion_negative": true
+  },
+  "recipe": {
+    "duplicate_negative": {
+      "path": ".agents/stair-architecture-20261008/recipe-duplicate-negative/client.log",
+      "bytes": 408,
+      "sha256": "3c767809649fe280fe845cc53528c1830fdbd06e92ac01b088e6ea34419e1acf"
+    },
+    "source": {
+      "path": "tools/author_campaign_stairs.gd",
+      "bytes": 6052,
+      "sha256": "b1f41b54a7e863143127481516cf7c307613fc0db91f11eb554da70d2d5c999d"
+    },
+    "m12_current_builder": {
+      "path": ".agents/stair-architecture-20261008/m12-builder-public-repeat.json",
+      "bytes": 47378,
+      "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431"
+    },
+    "exact_four_map_output_directory": ".agents/stair-architecture-20261008/recipe-final-repeat/maps",
+    "m10_current_builder": {
+      "path": ".agents/stair-architecture-20261008/m10-builder-public-final.json",
+      "bytes": 41073,
+      "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557"
+    }
+  },
+  "source_render": {
+    "process": {
+      "path": ".agents/stair-architecture-20261008/paired-source-preview-final/process.json",
+      "bytes": 379,
+      "sha256": "420947921edfe04b605737adb9eb898aff4fe8f59dc10ef0253412407ff64a57"
+    },
+    "ordinary_server_play": false,
+    "review": {
+      "path": ".agents/stair-architecture-20261008/paired-source-preview-final/review.json",
+      "bytes": 14713,
+      "sha256": "2252fda2ecfa660152ce00b40d65ace98c16c2daf7cce358a3e41734a7f50305"
+    },
+    "states": 24,
+    "scope": "Source geometry inspection only",
+    "final_art_acceptance": false
+  },
+  "m01_inspection": {
+    "canonical_unchanged": true,
+    "review": {
+      "path": ".agents/stair-architecture-20261008/m01-source-inspection-first/review.json",
+      "bytes": 2356,
+      "sha256": "a8e20bde475dea697348c96ba0fb2e3d9a4430947f14e326df1c6253c73d07ac"
+    },
+    "process": {
+      "path": ".agents/stair-architecture-20261008/m01-source-inspection-first/process.json",
+      "bytes": 384,
+      "sha256": "af73152981f141330e53e15bb310e2d1ee289538fca8fece150ba48ebf5c99a0"
+    },
+    "states": 3,
+    "ignored_candidate": {
+      "path": ".agents/stair-architecture-20261008/m01-stair-candidate.json",
+      "sha256": "0d997d154c1150b9a115e9137789e511d75d2336083f0c628f7704cc8cb8f636",
+      "predecessor_sha256": "25e605c67cf4e97c8bfb2a980ffa9bee6b39140a431ae99f86f61ff5fec9f30e",
+      "canonical_installed": false,
+      "exact_save_compatibility_registered": false,
+      "mirror_segments": 20,
+      "mirror_ticks": 516,
+      "ordinary_native_verified": false
+    }
+  },
+  "ordinary_capture_preparation": {
+    "bindings": {
+      "path": ".agents/stair-architecture-20261008/ordinary-routes/prepared.json",
+      "bytes": 1645,
+      "sha256": "43e187b0dbdb47e03172ac221a78080a5ad90b8d75b6ab18a0fc014b2d02b163"
+    },
+    "executed": false,
+    "launcher": {
+      "path": ".agents/stair-architecture-20261008/run-ordinary-stairs.ps1",
+      "bytes": 6294,
+      "sha256": "079ddeb099878fb7eec7ca2986810a87725748f957efeb2cfb856ef721584ef4"
+    },
+    "preflight": {
+      "path": ".agents/stair-architecture-20261008/ordinary-routes-preflight-first/process.json",
+      "bytes": 303,
+      "sha256": "222e1a460fbe96c97091f0dd89ed9deeb0bc33fd278696a7d9cc6ad581ae8f15"
+    },
+    "script": {
+      "path": ".agents/stair-architecture-20261008/ordinary_stair_tour.gd",
+      "bytes": 4171,
+      "sha256": "9e0be893b0106e6589b688985f076292a995e6ad736813a801f347ef8b74db95"
+    }
+  },
+  "remaining": [
+    "Actual historical launch/continue acceptance",
+    "Composed native and client gates",
+    "New complete ordinary rendered M08/M09/M10/M12 mission routes",
+    "Human art and difficulty acceptance"
+  ],
+  "retained_diagnostic_failures": [
+    {
+      "reason": "Temporary provider replacement changed predecessor fixture names; final canonical nine-case run succeeds",
+      "path": ".agents/stair-architecture-20261008/native-candidate-sixth.log"
+    },
+    {
+      "reason": "Actual old QA diagonals and upper aisle intersect newly enclosed stair sides; corrected strict second run succeeds",
+      "path": ".agents/stair-architecture-20261008/native-m10-geometry-first.log"
+    },
+    {
+      "reason": "Wrapper expected wrong marker; builder returned numeric zero and exact source bytes, corrected-marker repeat succeeds",
+      "path": ".agents/stair-architecture-20261008/m12-builder-public-final-check/process.json"
+    }
+  ]
+}

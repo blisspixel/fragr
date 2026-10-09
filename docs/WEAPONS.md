@@ -1,22 +1,28 @@
 # The weapons
 
-Player-facing names, as of 2026-10-04: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
-Sniper Rifle. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
-`flechette`, `scatter`, `rail`, `shiv` and `sniper`. Ammunition is still one
+Player-facing names, as of 2026-10-08: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
+Sniper Rifle, Repeater and Arc. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
+`flechette`, `scatter`, `rail`, `shiv`, `sniper`, `repeater` and `arc`. Ammunition is still one
 count per type. That count is everything carried, including rounds in each gun.
 A joined human has a magazine in each gun and presses R to move rounds into
 the gun in hand. Agents, rule bots and campaign enemies keep the single count.
 Pistol and Rifle share Bullets, the
-Shotgun uses Shells and the Railgun and Sniper Rifle use Cells. A Sniper Rifle, Rocket
+Shotgun uses Shells and the Railgun, Sniper Rifle and Arc use Cells. A Sniper Rifle, Rocket
 Launcher, Grenade, Proximity Mine, and Remote Mine are earned on later
 missions. Level 5's prototype implements counted grenades through a separate
 throw control, capped at six; they leave gun selection unchanged. The Sniper
 Rifle is implemented in level 7. Level 8 implements counted Proximity Mines,
-capped at four, through a separate place control. Rocket Launcher and Remote
-Mine remain unbuilt. Repeater has a locally implemented CPU-only combat and
+capped at four, through a separate place control. M11 implements separately
+counted Remote Mines, capped at six. Rocket Launcher remains unbuilt.
+Repeater has a locally implemented CPU-only combat and
 compatibility foundation, with its M10 find, actual art/audio and played feel
-still open. Arc, Article Blade and Denial remain accepted later finds awaiting
-implementation. These additions are not in M01
+still open. Arc has an implemented finite combat, inventory, compatibility and
+client presentation foundation. Its separate development lesson and connected
+M12 introduction pass ordinary-input checks. The larger industrial presentation
+has [inspected correction evidence](evidence/presentation-corrections-20261008.md);
+final human feel and integration retain their gates in
+[its plan](plans/arc-foundation-20261008.md). Article Blade
+and Denial remain accepted later finds awaiting implementation. These additions are not in M01
 or the default arcade kit.
 The order and the rules are
 [the readable arsenal](plans/readable-arsenal.md). Lobber and proximity tin in
@@ -50,11 +56,12 @@ enemies fire, is live again as soon as that pool has a round. M01 death
 offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
-through the connected authored development missions, including the M10 prototype.
-Save version 13 preserves actual counts through the existing locked writer;
-strict historical version 12 and earlier upgrades archive exact original bytes
-and refuse forged Repeater ownership. Supported entries through M10 likewise
-refuse ownership before its completed edge. The current M10 prototype grants no
+through the connected authored development missions, including the M12 prototype.
+Save version 15 preserves actual counts through the existing locked writer;
+strict historical version 14 and earlier upgrades archive exact original bytes
+and refuse forged Arc ownership. Earlier formats retain their original weapon
+and stage boundaries, including Repeater and Remote Mine restrictions.
+The current M10 prototype grants no
 Repeater; its actual source, cue and discovery lesson remain open.
 
 Balance numbers live here and nowhere else. `plans/gunfeel.md` explains how they were arrived at, `plans/weapon-economy.md` explains the ammunition and the pickup economy, and `docs/lore/guns.md` is what they get called on the radio.
@@ -96,7 +103,7 @@ There is one number per ammunition type and it is everything you carry, includin
 | 6b | **Sniper** (implemented) | Far precision, scoped, 90 m reach | 70 | 1.60 s | 8 | Cells | Level 7 rack, campaign only |
 | 7 | **Repeater** (CPU foundation, feel candidate) | Held full auto after 0.30 s warmup | 14 | 0.10 s | 60 | Bullets | M10 lesson planned; no production find |
 | 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
-| 9 | **Arc** | Energy, ignores armour | 18 | 0.15 s | 40 | Cells | Pad, outer ring |
+| 9 | **Arc** (implemented foundation) | 24 m energy, bypasses carried armour and registered plates | 18 | 0.15 s | 40 | Cells | Separate finite practice lesson; connected M12 in flight |
 | 10 | **Proximity Mine** (implemented) | Thrown, sticks | Up to 130, covered 4.5 m falloff | 2 s to arm, 0.2 s triggered fuse | 4 carried maximum | none | M08 |
 | 11 | **Article Blade** | Melee upgrade | 70 | 0.45 s | 12 swings | none | Plinth, near centre |
 | 12 | **Denial** | Signature | 250 | 1.25 s | 5, no refill | none | Plinth, centre |
@@ -125,13 +132,34 @@ See [the foundation](plans/repeater-foundation.md) and its
 [local evidence](evidence/repeater-foundation-20261004.md).
 
 Six physical weapon keys remain unchanged: key 1 Fists/Shiv, key 2 Pistol, key 3
-Shotgun, key 4 Rifle, key 5 Railgun and key 6 Sniper Rifle. Repeated key 4 cycles
+Shotgun, key 4 Rifle, key 5 Railgun/Arc and key 6 Sniper Rifle. Repeated key 4 cycles
 the owned Rifle/Repeater family, while the existing wheel includes Repeater
-beside Rifle. Shiv retains its existing melee-family selection. Repeater is
-appended at wire/record index 7; no earlier index changes. Current participant
-record revision 2 uses exactly eight columns. Strict historical revision 1
-keeps five/six/seven columns and can be delivered to older compatible clients
-only when actual Repeater counts are zero.
+beside Rifle, and repeated key 5 cycles owned Railgun/Arc. The wheel places Arc
+beside Railgun. Shiv retains its existing melee-family selection. Repeater is
+appended at wire/record index 7 and Arc at index 8; no earlier index changes.
+Current participant record revision 3 uses exactly nine columns. Strict
+historical revision 2 keeps exactly eight and revision 1 keeps five/six/seven.
+Older readers receive a compatible shape only when every unsupported column is
+actually empty. Actual Arc facts are never assigned to Railgun or discarded.
+
+Arc resolves one ordinary ray every three ticks, with 0.02-radian spread and
+24 m reach. A body hit deals 18; the existing geometric head band doubles that
+number. Each resolved shot spends one Cell. It bypasses the target's actual
+carried armor and an Auditor or Assessor plate, leaving that armor intact.
+World cover, immunity and friendly-fire policy still apply. There is no chain
+damage, splash, target lock or unbounded electrical reach. A human's capacitor
+magazine holds twelve Cells and reloads in twenty-two ticks (1.1 seconds) through
+the same rising-edge R control. Loaded Railgun, Sniper and Arc rounds all belong
+to the one finite Cells total. The default arcade kit gains no Arc.
+
+An optional authored `armor` count is accepted only on Heavy Sweeper placements,
+from zero through 100. Absent means zero, preserving earlier missions. The
+Arc practice guards explicitly carry 100, so the counter is a real server
+outcome rather than a label or recolored effect. Independent fork-electrode
+frames, discharge and impact cues come from the local repeatable
+`tools/bake_arc.gd`; resolved discharge segments expire after 0.09 seconds and
+cannot choose another target. Final art, listening and player balance remain
+acceptance gates.
 
 **The Scatter is seven pellets.** Each blast fires seven seeded rays inside a 0.095 radian (5.4 degree) half-angle cone, Doom's pellet count. Every pellet is tested against cover and fighters on its own and falls off by its own distance: full 10 damage to 4 metres, then linearly to 4 at its 12 metre reach. Point blank all seven land for 70, so two blasts kill a bare fighter in 0.60 s and three go through full armour in 1.20 s. At four metres every pellet still lands; at eight about half do; a waist-high sill stops the pellets that hit it. The blast costs one shell however many pellets land.
 
@@ -141,10 +169,10 @@ The Proximity Mine is implemented in M08: forty-tick arming, a two-metre body
 trip, four-tick fuse and the shared covered blast path. Its independent carry
 cap is four; a placed device goes dark with its owner. See the
 [custody prototype](plans/l08-custodian-of-record-prototype.md) for evidence.
-The remote-detonated charge remains its planned paired gadget: throw or place
-it, move away, then trigger a deliberate ambush. Reuse the existing swept
-contact and blast helpers with a separately validated trigger policy. Its final
-limits and balance still need prototype evidence. Both are game devices with
+The Remote Mine is implemented in M11 as its paired gadget: throw or place it,
+move away, then deliberately trigger owned armed charges. Its six-count stock
+uses the shared swept contact and covered blast paths, with independent wire
+facts and record counters. Both are game devices with
 readable silhouettes and arming feedback.
 
 Teach placement in a safe setting, then give enemies routes that reward a trap.
@@ -152,9 +180,9 @@ Later encounters can use an obvious demolition target with a nearby usable charg
 never a hidden bomb hunt or a finicky wiring puzzle. Multiplayer needs visible
 counterplay, bounded active devices and explicit owner/death/round cleanup rules.
 Server authority covers placement, arming, detonation, cover-blocked splash and
-damage. Cosmetics cannot hide the device or its tell. Remote charges and
-rockets remain unbuilt. Reuse the counted grenade's server-owned projectile,
-covered blast and cleanup seams when their bounded plans reach implementation.
+damage. Cosmetics cannot hide the device or its tell. Rockets remain unbuilt.
+Reuse the counted grenade's server-owned projectile, covered blast and cleanup
+seams when their bounded plan reaches implementation.
 
 ## Ammunition economy
 

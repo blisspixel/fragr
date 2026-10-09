@@ -154,6 +154,16 @@ var fp_muzzle_timer: float = 0.0
 var fp_muzzle_texture: Texture2D
 var fp_kick_amount = Vector2.ZERO
 var current_fp_weapon = ""
+var _weapon_finish: String = "standard"
+var _weapon_finish_material: ShaderMaterial
+
+func set_weapon_finish(finish: String) -> void:
+	if finish == _weapon_finish:
+		return
+	_weapon_finish = finish
+	_weapon_finish_material = PlayerRewards.material(finish)
+	if fp_weapon != null:
+		fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(current_fp_weapon) else null
 ## Presentation-only scope for the Sniper Rifle. The server owns aim and hits.
 var sniper_scope: SniperScope
 var equipment_hud: EquipmentHud
@@ -1546,7 +1556,9 @@ func _vitals_icon(icon_name: String, texture: Texture2D, at: Vector2) -> Texture
 func _update_fp_frame() -> void:
 	if fp_weapon == null or not WeaponArt.FIRE.has(current_fp_weapon):
 		return
-	var frame: Texture2D = WeaponArt.frame_after_shot(current_fp_weapon, fp_shot_age)
+	var frame: Texture2D = WeaponArt.reload_frame(current_fp_weapon, equipment_hud.state, equipment_hud.tick)
+	if frame == null:
+		frame = WeaponArt.frame_after_shot(current_fp_weapon, fp_shot_age)
 	if frame != null and fp_weapon.texture != frame:
 		fp_weapon.texture = frame
 
@@ -1744,6 +1756,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 	var changed = weapon_name != current_fp_weapon
 	current_fp_weapon = weapon_name
 	fp_weapon.texture = viewmodel_textures[weapon_name]
+	fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(weapon_name) else null
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:
 		melee_view.reset()
@@ -1974,6 +1987,9 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		"Rail":
 			fp_kick_amount = Vector2(8, 22)
 			fp_kick_timer = 0.18
+		"Arc":
+			fp_kick_amount = Vector2(1, 5)
+			fp_kick_timer = 0.09
 		"Sniper":
 			# A heavier, slower shove than the Rail: the rifle settles back.
 			fp_kick_amount = Vector2(4, 34)

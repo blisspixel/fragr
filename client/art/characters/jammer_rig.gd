@@ -1,4 +1,5 @@
 extends "res://art/characters/geometry.gd"
+const PoseSupport = preload("res://art/characters/pose_support.gd")
 
 ## An exposed service transmitter, with a folding dish instead of a gun.
 func build_pose(action: String, progress: float) -> Node3D:
@@ -49,4 +50,6 @@ func build_pose(action: String, progress: float) -> Node3D:
 	oval(emitter, hub + Vector3(0, 0, 0.12), Vector3(0.20, 0.20, 0.13), INK)
 	oval(emitter, hub + Vector3(0, 0, 0.19), Vector3(0.10 + recoil * 0.09,
 		0.10 + recoil * 0.09, 0.04), INK if collapse > 0.0 else (GLOW if spread > 0.35 else RED))
+	if collapse > 0.0:
+		PoseSupport.lift_to_floor(emitter)
 	return root

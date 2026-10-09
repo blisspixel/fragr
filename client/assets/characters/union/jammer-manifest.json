@@ -34,11 +34,12 @@
 	"poses": 21,
 	"rows": 10,
 	"schema": 1,
-	"sha256": "ae4a6d732e3ff9bc69ebc9b11cc21deff219eb302154f880674d2d6c35b9abe4",
+	"sha256": "bc75017a1003efb017372b51e5674fdf212a0876aebd783e5905cf587da9159c",
 	"sources": {
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
-		"res://art/characters/jammer_bake.gd": "23920c77c6693df0f9d86fa2ec64bc83449a8fa87c3e333537bb9dde21758955",
-		"res://art/characters/jammer_rig.gd": "3176cbd4853dbdbd3441f41fcd3d6d6b7bb7260ef4d3c3f40773f74d7840885d",
+		"res://art/characters/jammer_bake.gd": "6adbe3d89328621017a535f786e3d1326f006e18a8a33d2cb080eca73202d02b",
+		"res://art/characters/jammer_rig.gd": "14e3ee9dae753c289279440fcd70acb2626a7c82af18ac5ff8ecc2a71012e176",
+		"res://art/characters/pose_support.gd": "772d1b858763bf830d8e204f52abcf86361f4d85ecb6fefd68a2a545b9acad99",
 		"res://scripts/jammer_animation.gd": "d5e890deb5f5e8c009c0daa3c79f3417073e8fd9b14e9f6315e318ff5d226f36"
 	},
 	"tile_pixels": 160

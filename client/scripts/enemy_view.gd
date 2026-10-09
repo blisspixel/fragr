@@ -27,6 +27,7 @@ var _landed: bool = false
 ## A repaired bot stands back up through its death clip in reverse.
 var _standing: bool = false
 var _last_phase: String = ""
+var assessor_rig: AssessorRig
 
 func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 	actor = state["campaign"]
@@ -42,6 +43,15 @@ func update(state: Dictionary, snapshot_tick: int, body: Sprite3D) -> void:
 		tick = snapshot_tick
 		elapsed = 0.0
 	var kind: String = actor["kind"]
+	if kind == "assessor":
+		if assessor_rig == null:
+			assessor_rig = AssessorRig.new()
+			assessor_rig.position.y = -CAMERA.FP_SERVER_REFERENCE_Y
+			body.get_parent().add_child(assessor_rig)
+		body.visible = false
+		_kind = kind
+		assessor_rig.present(actor, tick, elapsed)
+		return
 	if kind == "notary":
 		var feet: Vector3 = Vector3(float(state["x"]), float(state["y"]) - CAMERA.FP_SERVER_REFERENCE_Y, float(state["z"]))
 		_landed = actor["phase"] == "dead" and absf(feet.y - NotaryAnimation.support(feet)) <= 0.04
@@ -113,6 +123,9 @@ func _place_lamps(body: Sprite3D, channeling: bool) -> void:
 	var plate: Node = pawn.get_node_or_null("AuditorPlate") if pawn != null else null
 	if plate == null:
 		return
+	# Standing plate sockets cannot remain suspended above a fallen or rising body.
+	plate.visible = actor.get("kind") == "auditor" and actor.get("phase") != "dead" \
+		and not (_standing and actor.get("phase") == "recovery")
 	var places: Array[Vector3] = CHANNEL_LAMPS if channeling else PLATE_LAMPS
 	for index: int in range(places.size()):
 		var lamp: Node3D = plate.get_node_or_null("Lamp%d" % index)
@@ -141,6 +154,8 @@ static func atlas_path(kind: String) -> String:
 
 func advance(delta: float, distance: float) -> void:
 	elapsed += delta
+	if assessor_rig != null:
+		assessor_rig.advance(delta)
 	shot_age += delta
 	var phase: String = str(actor.get("phase", ""))
 	stepping = distance >= 0.002 and distance < 2.0
@@ -154,6 +169,9 @@ func shot() -> void:
 
 func render(body: Sprite3D, yaw: float, to_camera: Vector3) -> void:
 	if actor.is_empty():
+		return
+	if _kind == "assessor" and assessor_rig != null:
+		assessor_rig.present(actor, tick, elapsed)
 		return
 	if _kind == "redactor":
 		var material: ShaderMaterial = body.material_override as ShaderMaterial

@@ -112,7 +112,7 @@ func _run() -> void:
 			return
 		fixture.free()
 	var sources: Dictionary[String, String] = {}
-	for path: String in ["res://scripts/model_geometry.gd", "res://art/models/shotgun_source.gd", "res://art/models/sweeper_source.gd", "res://art/models/model_clips.gd", "res://scripts/facility_geometry.gd", "res://art/models/bake.gd", "res://art/models/glb_metadata.gd", "res://scripts/latch_view.gd", "res://scripts/latch_source.gd", "res://assets/models/latch_stylized.glb", "res://assets/shaders/latch_near_clip.gdshader", "res://assets/models/finishes/wood.png", "res://assets/models/finishes/metal.png", "res://assets/models/finishes/enamel.png"]:
+	for path: String in ["res://scripts/model_geometry.gd", "res://art/models/shotgun_source.gd", "res://art/models/sweeper_source.gd", "res://art/models/model_clips.gd", "res://scripts/facility_geometry.gd", "res://art/models/bake.gd", "res://art/models/glb_metadata.gd", "res://scripts/latch_view.gd", "res://scripts/latch_face.gd", "res://scripts/latch_source.gd", "res://assets/models/latch_stylized.glb", "res://assets/shaders/latch_near_clip.gdshader", "res://assets/models/finishes/wood.png", "res://assets/models/finishes/metal.png", "res://assets/models/finishes/enamel.png"]:
 		sources[path] = FileAccess.get_sha256(path)
 	var file: FileAccess = FileAccess.open(OUTPUT + "manifest.json", FileAccess.WRITE)
 	if file == null:

@@ -421,3 +421,25 @@ fn remote_live_control_preserves_placement_aim_and_empty_carry_trigger() {
     );
     assert!(triggered.trigger_remote_mines && !triggered.place_remote_mine);
 }
+
+#[test]
+fn remote_placement_uses_crouched_eye_height_when_ducking() {
+    let (mut state, owner, _) = combat(true);
+    state.set_action(
+        owner,
+        Action {
+            duck: true,
+            place_remote_mine: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    assert_eq!(state.remote_mines.len(), 1);
+    let mine = &state.remote_mines[0];
+    assert!(
+        (mine.state().position[1] - crate::movement::DUCK_EYE_HEIGHT).abs() < 0.001,
+        "expected crouched eye height {}, got {}",
+        crate::movement::DUCK_EYE_HEIGHT,
+        mine.state().position[1]
+    );
+}

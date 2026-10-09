@@ -12,15 +12,18 @@ const M07_ID: String = "declared_goods"
 const M09_ID: String = "passenger_manifest"
 const M10_ID: String = "common_carrier"
 const M11_ID: String = "right_of_search"
+const M12_ID: String = "terms_of_cooperation"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
-## Records keep their earned revision; current live facts require revision 3.
-const RULES_REVISION: int = 3
+## Records keep their earned revision; current live facts require revision 4.
+const RULES_REVISION: int = 4
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete", "abandoned"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
 
 static func map_error(info: Dictionary) -> String:
+	if info.has("m12"):
+		return M12MissionState.map_error(info)
 	if info.has("m11"):
 		return M11MissionState.map_error(info)
 	if info.has("m10"):
@@ -81,6 +84,8 @@ static func map_error(info: Dictionary) -> String:
 
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var claimed: Variant = message.get("state")
+	if geometry.get("id") == M12_ID or (claimed is Dictionary and claimed.get("id") == M12_ID):
+		return M12MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M11_ID or (claimed is Dictionary and claimed.get("id") == M11_ID):
 		return M11MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M10_ID or (claimed is Dictionary and claimed.get("id") == M10_ID):
@@ -231,6 +236,8 @@ static func m02_map_error(info: Dictionary) -> String:
 
 ## The validated contract a later mission message must match, or empty.
 static func geometry_for(info: Dictionary) -> Dictionary:
+	if info.has("m12"):
+		return M12MissionState.geometry_for(info)
 	if info.has("m11"):
 		return M11MissionState.geometry_for(info)
 	if info.has("m10"):

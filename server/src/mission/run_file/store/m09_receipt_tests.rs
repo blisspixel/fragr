@@ -53,6 +53,14 @@ fn m09_receipt_v10_v11_completed_upgrade_archives_unknown_without_inventing_crew
         let source = completed_berth(true, true);
         let mut value = serde_json::to_value(&source).unwrap();
         value["version"] = version.into();
+        value["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         value.as_object_mut().unwrap().remove("m09_outcome");
         let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
         bytes.extend_from_slice(b"\n  \n");
@@ -147,6 +155,14 @@ fn m09_receipt_historical_fields_and_missing_transit_facts_refuse_strictly() {
         ] {
             let mut value = serde_json::to_value(&document).unwrap();
             value["version"] = version.into();
+            value["rules"]["revision"] = (if version <= 4 {
+                2
+            } else if version < super::super::RUN_FILE_VERSION {
+                3
+            } else {
+                crate::protocol::CAMPAIGN_RULES_REVISION
+            })
+            .into();
             value["m09_outcome"] = outcome;
             assert!(matches!(
                 RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), HASHES),
@@ -179,6 +195,7 @@ fn m09_receipt_historical_fields_and_missing_transit_facts_refuse_strictly() {
         "current M10 identity and matching content cannot bypass required transit"
     );
     m10["version"] = 12.into();
+    m10["rules"]["revision"] = (3).into();
     assert!(
         matches!(
             RunStore::inspect_bytes(&serde_json::to_vec(&m10).unwrap(), HASHES),

@@ -68,9 +68,9 @@ impl AmmoPool {
 }
 
 impl WeaponType {
-    /// Wire and record order. Shiv, Sniper and Repeater are appended so the
+    /// Wire and record order. Shiv, Sniper, Repeater and Arc are appended so the
     /// five original record slots keep their meaning.
-    pub const ALL: [Self; 8] = [
+    pub const ALL: [Self; 9] = [
         Self::Fists,
         Self::Tack,
         Self::Flechette,
@@ -79,6 +79,7 @@ impl WeaponType {
         Self::Shiv,
         Self::Sniper,
         Self::Repeater,
+        Self::Arc,
     ];
     pub const ARCADE: [Self; 3] = [Self::Flechette, Self::Rail, Self::Scatter];
 
@@ -92,6 +93,7 @@ impl WeaponType {
             Self::Shiv => 5,
             Self::Sniper => 6,
             Self::Repeater => 7,
+            Self::Arc => 8,
         }
     }
 
@@ -101,7 +103,7 @@ impl WeaponType {
             Self::Fists | Self::Shiv => None,
             Self::Tack | Self::Flechette | Self::Repeater => Some(AmmoPool::Bullets),
             Self::Scatter => Some(AmmoPool::Shells),
-            Self::Rail | Self::Sniper => Some(AmmoPool::Cells),
+            Self::Rail | Self::Sniper | Self::Arc => Some(AmmoPool::Cells),
         }
     }
 
@@ -115,6 +117,7 @@ impl WeaponType {
             Self::Scatter => Some(6),
             Self::Rail => Some(4),
             Self::Sniper => Some(5),
+            Self::Arc => Some(12),
         }
     }
 
@@ -123,7 +126,7 @@ impl WeaponType {
         match self {
             Self::Fists | Self::Shiv => None,
             Self::Tack => Some(16),
-            Self::Flechette | Self::Repeater => Some(22),
+            Self::Flechette | Self::Repeater | Self::Arc => Some(22),
             Self::Scatter => Some(14),
             Self::Rail | Self::Sniper => Some(28),
         }
@@ -141,6 +144,7 @@ impl WeaponType {
             // second Railgun pool.
             Self::Sniper => 8,
             Self::Repeater => 60,
+            Self::Arc => 40,
         }
     }
 }

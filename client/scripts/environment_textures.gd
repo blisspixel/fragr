@@ -10,6 +10,18 @@ const ISLAND_GROUND: String = "res://assets/environment/island-ground/"
 static var _textures: Dictionary[String, Texture2D] = {}
 
 static func path_for(surface: String, venue: String, horizontal: bool = false) -> String:
+	if venue == "mars_foundry":
+		match surface:
+			"concrete": return PRODUCTION + "mars_floor.png"
+			"enamel": return OffworldMaterials.DIRECTORY + ("offworld_thermal_ceramic.png" if horizontal else "offworld_pressure_habitat.png")
+			"service_steel", "lift_panel": return PRODUCTION + ("mars_floor.png" if horizontal else "mars_steel.png")
+			"records_tile": return OffworldMaterials.DIRECTORY + "offworld_thermal_ceramic.png"
+	if venue in ["launch_works", "mars_habitat"]:
+		match surface:
+			"concrete": return OffworldMaterials.DIRECTORY + "mars_regolith.png"
+			"enamel": return OffworldMaterials.DIRECTORY + ("offworld_thermal_ceramic.png" if horizontal else "offworld_pressure_habitat.png")
+			"service_steel", "lift_panel": return PRODUCTION + ("mars_floor.png" if horizontal else "mars_steel.png")
+			"records_tile": return OffworldMaterials.DIRECTORY + "offworld_thermal_ceramic.png"
 	if venue == "holdfast_atoll":
 		match surface:
 			"concrete": return ISLAND_GROUND + "holdfast_groundcover.png"

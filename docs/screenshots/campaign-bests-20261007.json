@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "base_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "working_tree": true,
+  "engine": "4.7.2-stable (official)",
+  "renderer": "gl_compatibility",
+  "device": "AMD Radeon(TM) 780M",
+  "scope": "Local host controls and best-time comparison. Automated completed missions and local loopback checks; human enjoyment, physical LAN and larger-server capacity remain open.",
+  "checks": {
+    "workspace_tests_passed": 1814,
+    "line_coverage_percent": 93.25,
+    "parsed_scripts": 325,
+    "client_harnesses": 149,
+    "multiplayer_cases": 8,
+    "mixed_roster_maps": 7,
+    "visual_tour_states": 32,
+    "native_desk": {
+      "stdin_eof_survived": true,
+      "initial": {
+        "mode": "ffa",
+        "map": "Arena Duel",
+        "round": 0
+      },
+      "final": {
+        "bots": 4,
+        "mode": "tdm",
+        "map": "Compliance Yard",
+        "round": 2
+      }
+    },
+    "soak": {
+      "samples": 9,
+      "measured_s": 120.0161765,
+      "ticks_start": 33,
+      "ticks_end": 2433,
+      "tick_rate_hz": 19.997304280060945,
+      "window_start": {
+        "p50_ms": 0.221183,
+        "p95_ms": 0.475135,
+        "p99_ms": 0.9113,
+        "max_ms": 0.9113,
+        "count": 20,
+        "over_budget": 0
+      },
+      "window_end": {
+        "p50_ms": 0.221183,
+        "p95_ms": 0.425983,
+        "p99_ms": 0.655359,
+        "max_ms": 1.5471,
+        "count": 1017,
+        "over_budget": 0
+      },
+      "lifetime_end": {
+        "p50_ms": 0.253951,
+        "p95_ms": 0.557055,
+        "p99_ms": 0.819199,
+        "max_ms": 1.7152999999999998,
+        "count": 2417,
+        "over_budget": 0
+      },
+      "out_bytes_per_client_per_s": 57804.69379753431,
+      "in_bytes_per_client_per_s": 2328.1333801420233,
+      "queue_overflows": 0,
+      "degraded_samples": 0,
+      "rss_start": 62115840,
+      "rss_end": 63524864,
+      "rss_max": 63524864,
+      "rss_source": "tasklist_working_set",
+      "build_commit": "unknown"
+    }
+  },
+  "campaign": {
+    "mission": "recall_notice",
+    "difficulty": "standard",
+    "rules_revision": 3,
+    "ticks_per_second": 20,
+    "server_sha256": "f3481eb69542d6d448e4579decf3f235dd9830492a08ecf681ee04a2d0f2b539",
+    "first_elapsed_ticks": 2857.0,
+    "second_elapsed_ticks": 2784.0,
+    "comparison": {
+      "best_ticks": 2784,
+      "count": 2,
+      "delta_ticks": -73,
+      "previous_ticks": 2857
+    },
+    "route_states_each": 14,
+    "kills_each": 20,
+    "deaths_each": 0,
+    "separate_owned_processes": true,
+    "source_route": "client/qa/m01-records.json"
+  },
+  "source_sha256": {
+    "client/scripts/campaign_result.gd": "7ae329dd04e07b40ebf28778839a2c98b26114e0c5785591803517f855f567a3",
+    "client/scripts/campaign_results.gd": "89ad0891b247dc10cc3b59c793259b201ddfdd847a5c6691328bd22f1489c03e",
+    "client/scripts/player_records.gd": "a0a84d3db63300737a47ff12abe1a0504ebe83b815a44c42c6d014d2a2605f30",
+    "client/scripts/records_panel.gd": "709df49ceceb20d209b5bc7138759678e873d1f0f44c049ab15b914d7f861252",
+    "client/qa/m01-records.json": "ec4627bce5aae92d9c85e9b81f6abdc9942202170b2ab4b7ff2a34c5ffbcb5db"
+  },
+  "images": [
+    {
+      "file": "campaign_best_result_20261007.png",
+      "scope": "Current result presenter replaying the second actual completion and its derived comparison. Plain backdrop, no gameplay claim.",
+      "sha256": "db67e682c8cdfdaceb1afa73f382f382c31c124723ddbbd8409384aea6f8bb14"
+    },
+    {
+      "file": "campaign_best_record_20261007.png",
+      "scope": "Current Service Record presenter reading the actual two-completion history. Plain backdrop.",
+      "sha256": "32e6af4d208eb9f8e63d888269c20791f00cba99e54f869db3ca92d61e00402b"
+    }
+  ],
+  "limitations": [
+    "Bests cover retained compatible human completions only, with an exact server binary boundary.",
+    "The full tour has a multiplayer title clipping anomaly; the selected gallery uses a separate inspected normal-menu capture.",
+    "The local 120-second soak is a regression check, not a physical LAN, WAN, large-room or long-duration claim.",
+    "No paid asset generation, new cash charge, deployment or release occurred."
+  ]
+}

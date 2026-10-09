@@ -1,0 +1,427 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-08",
+  "status": "implemented standalone static development slice",
+  "map_id": 1013,
+  "map_name": "The Weight of Permission (development)",
+  "source": "server/maps/test/m13_foundry_development.json",
+  "source_sha256": "4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943",
+  "authoring_helper": "tools/author_foundry_development.gd",
+  "authoring_sha256": "f07bb68601d77e45d958fdb530c2d98fed7f92d86daa43b24dde11a0f1051842",
+  "deterministic_repeat": true,
+  "solids": 121,
+  "finite_supplies": 19,
+  "ordered_groups": 5,
+  "established_guards": 22,
+  "mission_document": false,
+  "vehicles": 0,
+  "native": {
+    "test": "server/tests/foundry_development.rs",
+    "sha256": "c7e8caa5c01dc73e5c507f55de1b3244871af6737755ab408157bdf170b4bdf9",
+    "tests_passed": 4,
+    "log": ".agents/foundry-development-20261008/native-final.log",
+    "log_sha256": "935a1b6c521c6495ecaf4a28e8e3a23d57e4b34313ad4a89b59258dc833c4256",
+    "return_routes": 118,
+    "actual_walking_ticks": 2080,
+    "both_stairs_without_jump": true,
+    "finite_human_clear_ticks": 2550,
+    "participant_shots": 44,
+    "enemy_attacks": 18,
+    "reload_input_presses": 87,
+    "kills": 22,
+    "hp_lost": 25,
+    "armor_lost": 50,
+    "deaths": 0,
+    "optional_ring_cells_unused": true,
+    "pre_final_approach_outside_trigger": true,
+    "useful_staging_cells_claimed": true,
+    "gallery_guards_idle_until_push": true,
+    "last_participant_reset": true,
+    "clock_rewind": false,
+    "clippy_log": ".agents/foundry-development-20261008/clippy-final.log"
+  },
+  "shared_mirror": {
+    "test": "client/scripts/test_foundry_route.gd",
+    "sha256": "37b31170be0f1425a856aa485a1104970dae8013da61c5044d843b8977488d04",
+    "waypoints": 77,
+    "passed": true,
+    "enemy_controllers": false,
+    "pre_final_exclusion": true
+  },
+  "rendered": {
+    "manifest": "client/qa/m13-foundry-development.json",
+    "manifest_sha256": "cb63e541f9bf5602f2ba00f732d6e933df09ee4f8a625422993e66de0a67167b",
+    "raw_manifest": ".agents/foundry-development-20261008/tour-first/manifest.json",
+    "raw_manifest_sha256": "859227f83c703fb6ddce43a3546715278593e3e9d44cc5add90e622d2fb095f0",
+    "server_sha256": "339de54d19925bc00a6d114a9fbf4884514ca168608c7bf65ff280d0e3baacc8",
+    "godot": "4.7.2-stable (official)",
+    "renderer": "gl_compatibility",
+    "device": "AMD Radeon(TM) 780M",
+    "resolution": [
+      1280.0,
+      720.0
+    ],
+    "captured_utc": "2026-10-08T16:08:39",
+    "presentation_sources": [
+      {
+        "file": "client/scripts/arena_sky.gd",
+        "sha256": "30f0b6963da8418051832b73b9fc12ef423c0870692a7e2a668e56896ed541d0"
+      },
+      {
+        "file": "client/scripts/arena_cover.gd",
+        "sha256": "3fc2f6f78a677f9568c9558cceb5f34f9cc731bc167f18fa51224a3a718b306b"
+      },
+      {
+        "file": "client/scripts/arena_materials.gd",
+        "sha256": "225b2c6a99c459841bf30d71c71ef3f53ca6b2df3cd4c291658074fbe9c0e8b7"
+      },
+      {
+        "file": "client/scripts/environment_textures.gd",
+        "sha256": "0bc531c0751dbc7bb00103271cbacc258941eb127f7f8d6cbe59d768cffbf70b"
+      },
+      {
+        "file": "client/scripts/arena_backdrop.gd",
+        "sha256": "8243a486051029d55f828521786f6f371dfdba78bed90ed3626dddddb739f48a"
+      }
+    ],
+    "states": [
+      {
+        "state": "m13_service_arrival",
+        "world_file": "01_m13_service_arrival_world.png",
+        "world_sha256": "bc106797dd695d42b03ab9216a891380baaf4d8c09b22deb6ca122f3d859c51e",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 3,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_foundry_edge",
+        "world_file": "02_m13_foundry_edge_world.png",
+        "world_sha256": "10e1ff8b82185cd1a0c0cc0b651b09326c1df05396e1ed89f4ef962e477966f9",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 3,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_edge_supply",
+        "world_file": "03_m13_edge_supply_world.png",
+        "world_sha256": "58f8aa296e696e1149b3f75afd7cd449a2b506b583f26f01da0c5b1e75fd3233",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_machine_hall",
+        "world_file": "04_m13_machine_hall_world.png",
+        "world_sha256": "ef87ffaf451592dbd2e078278cccf409380bb91bd5b9c9f6e787586843146354",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_machine_west_flank",
+        "world_file": "05_m13_machine_west_flank_world.png",
+        "world_sha256": "99576773f7ca2c1842583c2ad4e0b6b9d6944291ad423cdb56b350220015d752",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 3,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_quarters_approach",
+        "world_file": "06_m13_quarters_approach_world.png",
+        "world_sha256": "76afbeea6be4b799b346b7569b45812668bfb743a8815b591355a1400d021680",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_worker_quarters_blockout",
+        "world_file": "07_m13_worker_quarters_blockout_world.png",
+        "world_sha256": "c1e32c297483b296dea76dcc7e8be822536087dc5cfdce3cfc9e13edc70adef6",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 3,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_freight_office",
+        "world_file": "08_m13_freight_office_world.png",
+        "world_sha256": "eb4fef1bbc5447ebcf696b6513d5a979fa69a9486b06d7329552a5982d6f0fac",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_freight_counterattack",
+        "world_file": "09_m13_freight_counterattack_world.png",
+        "world_sha256": "7fc27fb3704674147d451b4eb4ad32ec04f771938b360873067d297d4b58c62a",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_pre_gallery_stock",
+        "world_file": "10_m13_pre_gallery_stock_world.png",
+        "world_sha256": "db3c2c2005921bfb2baa757ea25705d7e2ab8f5757f15b87b21398d4e2da75ac",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 7,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_maintenance_ring",
+        "world_file": "11_m13_maintenance_ring_world.png",
+        "world_sha256": "5483d28e34fbf0ee93f670a3cc693b3e9463986c51537b96602aa2813cdaf4ae",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 7,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_west_stair_approach",
+        "world_file": "12_m13_west_stair_approach_world.png",
+        "world_sha256": "e060f13f634d4a7a5dab5c11651a6b678a6d2ccd13a0912ffad037fdc5958ec9",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 4,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_ladle_galleries",
+        "world_file": "13_m13_ladle_galleries_world.png",
+        "world_sha256": "53947e86b549fc6b700d27a242af6d456723a762353874c23646437c240ec1ba",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": true,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_upper_gallery_ladle",
+        "world_file": "14_m13_upper_gallery_ladle_world.png",
+        "world_sha256": "6464aeb03bec3e84dfa154d16bd8a870f305612bb7c3977c340c4094acb1c971",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 1,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_upper_freight_overlook",
+        "world_file": "15_m13_upper_freight_overlook_world.png",
+        "world_sha256": "35115f3053cf11e5560512339052b2cea3140012b063d634d26bad6b0367f5ae",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_second_supported_stair",
+        "world_file": "16_m13_second_supported_stair_world.png",
+        "world_sha256": "599bbd663e3cd81cdd278578e8ee1da9aa125d13d95ccf89ac46c9442fe093bb",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 5,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_gallery_return",
+        "world_file": "17_m13_gallery_return_world.png",
+        "world_sha256": "8b4d48d92b0cbe331b7fd487178478359c8d966f4fceb9b2f2c34c931c50e24d",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 6,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      },
+      {
+        "state": "m13_freight_lift_development_end",
+        "world_file": "18_m13_freight_lift_development_end_world.png",
+        "world_sha256": "662ddb944dad54b08fc8826ba8128c24eb5512b7013978ff8ef152c137905e91",
+        "resolution": [
+          1280,
+          720
+        ],
+        "walk_count": 2,
+        "walks_passed": true,
+        "world_blank": false,
+        "combat_passed": null,
+        "human": true,
+        "eye_view": true
+      }
+    ],
+    "inspected_world_stills": 18,
+    "walks_passed": 77,
+    "combat_groups_passed": 5,
+    "retained_record_tick": 4924.0,
+    "retained_alive_ticks": 4781.0,
+    "kills": 22.0,
+    "participant_attacks": 45.0,
+    "hp_lost": 0.0,
+    "armor_lost": 0.0,
+    "deaths": 0.0,
+    "secrets": 1.0,
+    "dry_triggers": 0.0,
+    "record_scope": "practice",
+    "record_status": "active",
+    "end_hp": 100,
+    "end_armor": 100,
+    "finite_human_magazines": true,
+    "exit_code": 0,
+    "clean_logs": true,
+    "images": [
+      {
+        "file": "m13_arrival_20261008.png",
+        "source_capture": "01_m13_service_arrival_world.png",
+        "sha256": "bc106797dd695d42b03ab9216a891380baaf4d8c09b22deb6ca122f3d859c51e"
+      },
+      {
+        "file": "m13_machine_hall_20261008.png",
+        "source_capture": "05_m13_machine_west_flank_world.png",
+        "sha256": "99576773f7ca2c1842583c2ad4e0b6b9d6944291ad423cdb56b350220015d752"
+      },
+      {
+        "file": "m13_maintenance_ring_20261008.png",
+        "source_capture": "11_m13_maintenance_ring_world.png",
+        "sha256": "5483d28e34fbf0ee93f670a3cc693b3e9463986c51537b96602aa2813cdaf4ae"
+      },
+      {
+        "file": "m13_stair_approach_20261008.png",
+        "source_capture": "12_m13_west_stair_approach_world.png",
+        "sha256": "e060f13f634d4a7a5dab5c11651a6b678a6d2ccd13a0912ffad037fdc5958ec9"
+      },
+      {
+        "file": "m13_ladle_gallery_20261008.png",
+        "source_capture": "14_m13_upper_gallery_ladle_world.png",
+        "sha256": "6464aeb03bec3e84dfa154d16bd8a870f305612bb7c3977c340c4094acb1c971"
+      },
+      {
+        "file": "m13_freight_overlook_20261008.png",
+        "source_capture": "15_m13_upper_freight_overlook_world.png",
+        "sha256": "35115f3053cf11e5560512339052b2cea3140012b063d634d26bad6b0367f5ae"
+      }
+    ]
+  },
+  "adjacency": {
+    "habitat_source_unchanged_sha256": "7b87fce4739f8d3c7ded9f8228837a736d2b7c0b0ab7286a05f3f07bab4ba630",
+    "launch_source_unchanged_sha256": "ebf6e9c1629419aa7b9dc32bfaaa7d365812c33225f42de298f27af0d1628492",
+    "finding": "No material adjacency or route defect found in the existing standalone sources. Habitat depot, later foundry operation and launch freight arrival follow the accepted story order; their actual transitions remain unbuilt."
+  },
+  "limits": [
+    "This is one new static development map, not three connected or finished campaign missions.",
+    "Rocket Launcher, Assessor, worker-release choice, relay state, heat hazard and moving freight lift are unbuilt.",
+    "Warm process surfaces, machinery and restraint frames are provisional blockouts; vented roof seams do not establish a sealed habitat.",
+    "Rendered route collects one gallery armor secret; the native ordinary clear leaves optional ring cells unused.",
+    "The final two wall-facing frames prove actual route arrival, not a readable lift artwork or animated departure.",
+    "Precise automated aiming, one renderer/device and inspected stills do not establish fresh-player understanding, human fun, tier balance, target duration, final art, performance or cross-platform acceptance.",
+    "The captured executable predates parallel Conquest source changes; no Conquest or new live-character acceptance is inferred."
+  ],
+  "new_cash_usd": 0,
+  "paid_asset_calls": 0
+}

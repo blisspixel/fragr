@@ -305,9 +305,44 @@ muted cyan patch. Preserve screen-expression habits, the single left antenna
 and repair identity across Earth, Moon, Mars
 and story scenes. They are personal traits rather than issued status lights.
 
+`latch_face.gd` now caches distinct friendly pixel drawings for relaxed and
+walking smiles, concentration, ward concern and release relief, with brief
+natural blinks. Existing accepted travel, companion phase and release timeline
+drive them. A positive validated HP drop can briefly wince, but companions are
+currently immune to incoming attacks; no ordinary damaged or shutdown state is
+claimed. The [expression plan](../../../docs/plans/latch-screen-expressions-20261008.md)
+keeps rendered transitions, composition and final human art review separate.
+
 The [live mesh plan](../../../docs/plans/latch-live-mesh.md) records actual
 skin, palm, travel, near-visibility and exported Windows install checks.
 Mission-route and wider art acceptance remain distinct. The supplied skin
 has no finger bones, so the voluntary gesture moves the real wrist and palm
 without claiming articulated fingers. Future art and casting follow the
 personhood and personal-choice contract in the character guide.
+
+## Splice live civilian source
+
+Splice's locally selected `assets/models/splice_live.glb` retains the original
+screen, unequal repaired arms and secured right-hip tools. Seventeen measured
+rigid regions preserve the original faces and UVs; 28 closures follow the
+actual cut edges. Calm and walking clips include baked support at 1.8 m. The
+1024-pixel original material maps keep a matte surface under actor lighting.
+`scripts/splice_character.gd` samples the packaged rigid clips without a
+humanoid skeleton or weapon grip. Its initial binding rejects missing regions,
+null meshes and missing closures, restoring the existing synthetic strip.
+
+`CivilianFigure` follows accepted server feet and travel. M05 gives named
+Splice a separate figure beside the two unnamed workshop workers; M09 and M10
+select that figure only from the actual carried roster. Release alone never
+establishes evacuation or arrival. The tools remain secured to their existing
+shared hip transform; there is no independent grip, repair action or finger
+articulation. The current walk is vertically supported but its stance foot
+slides horizontally. The [contact-aware gait follow-up](../../../docs/plans/splice-contact-gait-20261008.md)
+keeps planted gait and final motion acceptance open. The [owning plan](../../../docs/plans/splice-mechanical-source-20261008.md)
+separates prepared-source review, focused local integration, ordinary renderer,
+package and final human/art gates.
+
+The [ordinary integration receipt](../../../docs/evidence/splice-live-integration-20261008.md)
+passes 67 current-map states: complete M05/M09 routes, bounded M10 calm presence
+and actual omitted-roster controls. Exact source, vertical support and roster
+acceptance remain separate from the measured open stance-slide repair.

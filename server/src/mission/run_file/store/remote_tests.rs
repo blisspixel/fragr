@@ -11,6 +11,7 @@ fn remote_v13_upgrade_preserves_actual_crew_and_archives_exact_original_bytes() 
         .unwrap();
     let mut old = serde_json::to_value(&source).unwrap();
     old["version"] = 13.into();
+    old["rules"]["revision"] = (3).into();
     let mut bytes = serde_json::to_vec_pretty(&old).unwrap();
     bytes.extend_from_slice(b"\n \n");
     let directory = std::env::temp_dir().join(format!("fragr-remote-v13-{}", Uuid::new_v4()));
@@ -61,6 +62,7 @@ fn remote_v13_refuses_forged_count_even_zero_and_current_pre_find_carry() {
     ] {
         let mut old = serde_json::to_value(&source).unwrap();
         old["version"] = 13.into();
+        old["rules"]["revision"] = (3).into();
         old["step"]["entry"]["equipment"]["remote_mines"] = bad;
         assert!(matches!(
             RunStore::inspect_bytes(&serde_json::to_vec(&old).unwrap(), m09_tests::HASHES),
@@ -92,6 +94,14 @@ fn m11_carry_refuses_incomplete_ship_edge_wrong_hash_and_historical_identity() {
     for version in [13, super::super::RUN_FILE_VERSION] {
         let mut forged = serde_json::to_value(&source).unwrap();
         forged["version"] = version.into();
+        forged["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         forged["step"]["mission"] = "right_of_search".into();
         assert!(matches!(
             RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), m09_tests::HASHES),

@@ -64,6 +64,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::PassengerManifest => "passenger_manifest",
                         MissionId::CommonCarrier => "common_carrier",
                         MissionId::RightOfSearch => "right_of_search",
+                        MissionId::TermsOfCooperation => "terms_of_cooperation",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -143,22 +144,11 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // M06 adds a distinct envelope; earlier mission readers retain
-            // their existing capability boundary and unchanged rules.
-            gameplay_version: if mission == MissionId::RightOfSearch {
-                crate::protocol::M11_GAMEPLAY_VERSION
-            } else if mission == MissionId::CommonCarrier {
-                crate::protocol::M10_GAMEPLAY_VERSION
-            } else if mission == MissionId::PassengerManifest {
-                crate::protocol::M09_GAMEPLAY_VERSION
-            } else if mission == MissionId::DeclaredGoods {
-                crate::protocol::M07_GAMEPLAY_VERSION
-            } else if mission == MissionId::CustodianOfRecord {
-                crate::protocol::M08_GAMEPLAY_VERSION
-            } else if mission == MissionId::PortOfEntry {
-                crate::protocol::M06_GAMEPLAY_VERSION
+            // Current owned campaigns use rules4; M12 also carries habitat facts.
+            gameplay_version: if mission == MissionId::TermsOfCooperation {
+                crate::protocol::M12_GAMEPLAY_VERSION
             } else {
-                crate::protocol::M05_GAMEPLAY_VERSION
+                crate::protocol::ASSESSOR_GAMEPLAY_VERSION
             },
         })
     }
@@ -252,9 +242,7 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
     })?;
     let valid_mode = match config.rules.mode() {
         GameMode::Tdm => !config.sabotage.five_vs_five,
-        GameMode::Sabotage => {
-            config.sabotage.five_vs_five && options.map == crate::sim::MapKind::Sector9
-        }
+        GameMode::Sabotage => config.sabotage.five_vs_five && options.map.sabotage_map().is_some(),
         GameMode::Conquest => {
             !config.sabotage.five_vs_five && options.map == crate::sim::MapKind::HoldfastAtoll
         }
@@ -626,6 +614,22 @@ mod tests {
                 crate::sim::MapKind::Sector9,
                 true,
             ),
+            (
+                GameMode::Sabotage,
+                vec![],
+                false,
+                true,
+                crate::sim::MapKind::LowWater,
+                true,
+            ),
+            (
+                GameMode::Sabotage,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::LowWater,
+                false,
+            ),
         ] {
             let mut options = base.clone();
             options.map = map;
@@ -772,7 +776,7 @@ mod tests {
         assert_eq!(ready.url, "ws://127.0.0.1:6767");
         assert_eq!(
             ready.gameplay_version,
-            crate::protocol::M05_GAMEPLAY_VERSION
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
         );
         let m02 = Ready::new(
             MissionId::PersonsUnknown,
@@ -781,7 +785,10 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(m02.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
+        assert_eq!(
+            m02.gameplay_version,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+        );
         let m03 = Ready::new(
             MissionId::ScheduledService,
             CampaignDifficulty::Severe,
@@ -789,7 +796,10 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(m03.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
+        assert_eq!(
+            m03.gameplay_version,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+        );
         assert_eq!(m03.mission, MissionId::ScheduledService);
         let m04 = Ready::new(
             MissionId::NoticeToVacate,
@@ -798,7 +808,10 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(m04.gameplay_version, crate::protocol::M05_GAMEPLAY_VERSION);
+        assert_eq!(
+            m04.gameplay_version,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+        );
         assert_eq!(m04.mission, MissionId::NoticeToVacate);
         let m06 = Ready::new(
             MissionId::PortOfEntry,
@@ -807,7 +820,10 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(m06.gameplay_version, crate::protocol::M06_GAMEPLAY_VERSION);
+        assert_eq!(
+            m06.gameplay_version,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+        );
         assert_eq!(m06.mission, MissionId::PortOfEntry);
         let m08 = Ready::new(
             MissionId::CustodianOfRecord,
@@ -816,7 +832,10 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(m08.gameplay_version, crate::protocol::M08_GAMEPLAY_VERSION);
+        assert_eq!(
+            m08.gameplay_version,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+        );
         assert_eq!(m08.mission, MissionId::CustodianOfRecord);
         let m11 = Ready::new(
             MissionId::RightOfSearch,
@@ -825,7 +844,10 @@ mod tests {
             false,
         )
         .unwrap();
-        assert_eq!(m11.gameplay_version, crate::protocol::M11_GAMEPLAY_VERSION);
+        assert_eq!(
+            m11.gameplay_version,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+        );
         assert!(
             m11.gameplay_version <= crate::protocol::GAMEPLAY_VERSION,
             "the current protocol supports the tender readiness capability"

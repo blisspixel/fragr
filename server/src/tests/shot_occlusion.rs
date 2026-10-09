@@ -205,6 +205,7 @@ fn companion_lane(companion_shoots: bool) -> (GameState, Uuid, Uuid, Uuid) {
         feet: [1.4, 0.0, 0.0],
         yaw: 0.0,
         seated: false,
+        armor: None,
         hover: None,
     });
     let (shooter, near) = if companion_shoots {
@@ -257,6 +258,7 @@ fn real_jammer_pulse_stops_at_companion_or_shielded_body() {
             feet: [-1.0, 0.0, 0.0],
             yaw: 0.0,
             seated: false,
+            armor: None,
             hover: None,
         });
         place(&mut state, participant, [1.4, 0.0, 0.0]);
@@ -434,6 +436,7 @@ fn traveling_point_hits_a_front_fighter_before_the_neutral_stop() {
         feet: [feet[0], feet[1], feet[2] - 1.2],
         yaw: 0.0,
         seated: false,
+        armor: None,
         hover: None,
     });
     let before = hp(&state, near);

@@ -178,6 +178,19 @@ recognition of the intelligence. Play continues into the aftermath.
 | Spectating | Fighter perspective is first class. Broadcast identity and optional richer match information can frame watching. |
 | Story surfaces | Original slogans, unreliable radio, environmental contradictions, and occasional 67 jokes. No real broadcaster names or tribute skins. |
 
+Weapon consistency was reaffirmed on 2026-10-08. Judge the whole set at the
+same actual playing size: shared perspective, glove construction, deliberate
+pixel shading and material treatment, with substantial silhouettes appropriate
+to each role. Hands enter through the bottom of the frame. Empty source-canvas
+borders must not shrink a new gun or leave its wrists floating above that edge.
+The held, firing, cycling, reloading, carried and pickup views describe the same
+physical equipment. Detailed established guns are the comparison for new art;
+an enlarged inventory icon or flat placeholder does not pass that comparison.
+Apply the [weapon fiction](lore/guns.md) to construction and ownership marks:
+practical civilian forms, maintained workshop equipment and repeatable Union
+issue can differ without becoming unrelated visual styles. Check these qualities
+in ordinary rendered play, including motion and dark rooms, before selecting art.
+
 Free communities repair and repurpose. Union spaces impose repeated forms,
 inspection lanes, serial numbers, and controlled institutional color. The Inheritance
 leaves unsettling order and regrowth among evidence of human and agent loss.

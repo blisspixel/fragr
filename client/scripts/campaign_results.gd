@@ -48,6 +48,12 @@ func _ready() -> void:
 		for scope: String in ["attempt", "total"]:
 			grid.add_child(_label(str(result[scope][field]), 28))
 	column.add_child(_label(tr("RESULT_TIME") + ": " + CampaignResult.elapsed_text(result), 24))
+	var comparison: String = CampaignResult.comparison_text(result.get("comparison", {}))
+	if not comparison.is_empty():
+		var best: Label = _label(comparison, 20)
+		best.add_theme_color_override("font_color", MenuTheme.EMBER)
+		column.add_child(best)
+		column.add_child(_label(tr("RESULT_BEST_SCOPE"), 16))
 	_continue = Button.new()
 	_continue.text = tr("RESULT_CONTINUE")
 	_continue.disabled = true

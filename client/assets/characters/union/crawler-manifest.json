@@ -38,10 +38,10 @@
 	"poses": 20,
 	"rows": 9,
 	"schema": 1,
-	"sha256": "4c204e717a7481d3071bc4988d711430bfa4fb483637ce1b80d2d24ed252b700",
+	"sha256": "8c9cb6d322223cfc379184c2415232a8cada3c6a676fa1c8622b8056d72b0259",
 	"sources": {
 		"res://art/characters/crawler_bake.gd": "5240fe161f71d9edf402bfe689d14ccb010ca88cdd6253c7f9f3b6a484ae7553",
-		"res://art/characters/crawler_rig.gd": "3197bd2565c6c8ee52899ea631245bf949a623883c77d9c2c32bf0a607c1cf85",
+		"res://art/characters/crawler_rig.gd": "1626b39c4d499df763b424b7cd332ed058c9bba9720edb8a6b714ab0f1b7b381",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 		"res://scripts/crawler_animation.gd": "783928f4d2eb7909d9f911760a171bedccc4bb31b5d9e1cd45678e3b9d5ba0bc"
 	},

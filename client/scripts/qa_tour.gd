@@ -19,6 +19,8 @@ const CameraScript = preload("res://scripts/spectator_cam.gd")
 const THUMB_WIDTH: int = 320
 const CONTACT_COLUMNS: int = 4
 const STRIP_TILE_WIDTH: int = 320
+const CAPTURE_SIZE_SETTLE_DRAWS: int = 32
+const CAPTURE_SIZE_SETTLE_MSEC: int = 2000
 const DIFF_EPSILON: float = 0.02
 const RADIO_COMPARE_TRACK: String = "radio/lockin/01-push"
 
@@ -62,6 +64,9 @@ var _audio_started_ms: int = 0
 var _audio_start_state: String = ""
 const MAX_LIVE_AUDIO_MS: int = 90000
 var _capture_size: Vector2i = Vector2i.ZERO
+var _capture_last_drawn: int = -1
+var _capture_undrawn_seconds: float = 0.0
+var _capture_forced_draws: int = 0
 ## The fighter a "body" camera holds on, and the side it had to be on.
 var _body_pawn: Node3D = null
 var _body_kind: String = ""
@@ -81,7 +86,7 @@ func _finalize() -> void:
 	_combat_probe.finish()
 	MouseCapture.release()
 
-func _process(_delta: float) -> bool:
+func _process(delta: float) -> bool:
 	if _audio_recorder != null and Time.get_ticks_msec() - _audio_started_ms > MAX_LIVE_AUDIO_MS:
 		push_error("qa_tour: live audio capture exceeded 90 seconds")
 		_discard_audio()
@@ -90,6 +95,17 @@ func _process(_delta: float) -> bool:
 		MouseCapture.release()
 		push_error("qa_tour: automation attempted to capture the desktop pointer")
 		_failed = true
+	# A minimized capture can stop drawing while its owned match keeps running.
+	# Reuse the non-presenting draw used by retirement and local capture tools.
+	# This keeps timed strips and paused HUD measurements live, never measures FPS.
+	var drawn: int = Engine.get_frames_drawn()
+	_capture_undrawn_seconds = _capture_undrawn_seconds + delta if drawn == _capture_last_drawn else 0.0
+	_capture_last_drawn = drawn
+	if _capture_undrawn_seconds >= 0.25 and DisplayServer.get_name() != "headless" \
+			and not DisplayServer.window_can_draw(root.get_window_id()):
+		_capture_forced_draws += 1
+		RenderingServer.force_draw(false)
+		_capture_undrawn_seconds = 0.0
 	return false
 
 func _run() -> void:
@@ -682,6 +698,16 @@ func _run() -> void:
 		if state.has("expect_m11_completed") and observed.get("m11", {}).get("completed") != state["expect_m11_completed"]:
 			push_error("qa_tour: M11 completed disagrees with " + state_name)
 			_failed = true
+		for key: String in ["completed", "pump_health", "shelter_opened", "workers_released", "assessor_wreck_union_kills"]:
+			if state.has("expect_m12_" + key):
+				var facts: Dictionary = observed.get("m12", {})
+				var actual: Variant = facts.get(key) if key == "completed" else facts.get("challenges", {}).get(key)
+				if actual != state["expect_m12_" + key]:
+					push_error("qa_tour: M12 " + key + " disagrees with " + state_name)
+					_failed = true
+		if state.has("expect_m12_aid_count") and observed.get("m12", {}).get("aid_vehicle_ids", []).size() != int(state["expect_m12_aid_count"]):
+			push_error("qa_tour: M12 actual aid identity count disagrees with " + state_name)
+			_failed = true
 		if state.has("expect_m10_completed") and observed.get("m10", {}).get("completed") != state["expect_m10_completed"]:
 			push_error("qa_tour: M10 completed disagrees with " + state_name)
 			_failed = true
@@ -813,6 +839,9 @@ func _retire_scene() -> void:
 	if not _retiring_audio.is_empty():
 		push_error("qa_tour: %d audio playbacks remain after scene retirement" % _retiring_audio.size())
 		_failed = true
+	# Include earlier scene removals and skies transferred from a departing owner.
+	if not await ClientRetirement.for_tree(self).drain():
+		_failed = true
 
 static func audio_reference_retired(reference: WeakRef) -> bool:
 	# Keep the temporary strong reference out of the awaiting caller's frame.
@@ -917,7 +946,7 @@ static func valid_walks(states: Variant) -> bool:
 	var live_audio_open: bool = false
 	var scene_path: String = ""
 	for state: Variant in states:
-		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state):
+		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state) or not valid_m12_expectations(state):
 			return false
 		if state.has("combat_travel_targets"):
 			var targets: Variant = state["combat_travel_targets"]
@@ -977,6 +1006,30 @@ static func valid_walks(states: Variant) -> bool:
 				float(combat_seconds) > 120.0 or state.get("join") != "human":
 				return false
 	return not live_audio_open
+
+static func valid_m12_expectations(state: Dictionary) -> bool:
+	if state.has("expect_m12_completed"):
+		var completed: Variant = state["expect_m12_completed"]
+		var order: Array[String] = M12MissionState.OBJECTIVES.duplicate()
+		order.append(M12MissionState.DEPARTURE)
+		if not completed is Array or completed.size() > order.size():
+			return false
+		for index: int in range(completed.size()):
+			if completed[index] != order[index]:
+				return false
+	for key: String in ["shelter_opened", "workers_released"]:
+		if state.has("expect_m12_" + key) and not state["expect_m12_" + key] is bool:
+			return false
+	if state.has("expect_m12_pump_health"):
+		var pumps: Variant = state["expect_m12_pump_health"]
+		if not pumps is Array or pumps.size() != 2:
+			return false
+		for hp: Variant in pumps:
+			if not EquipmentState.integer(hp,100):
+				return false
+	if state.has("expect_m12_assessor_wreck_union_kills") and not EquipmentState.integer(state["expect_m12_assessor_wreck_union_kills"],3):
+		return false
+	return not state.has("expect_m12_aid_count") or (EquipmentState.integer(state["expect_m12_aid_count"],2) and int(state["expect_m12_aid_count"]) != 1)
 
 static func valid_m11_expectations(state: Dictionary) -> bool:
 	if not state.has("expect_m11_completed"):
@@ -1182,6 +1235,47 @@ func _apply_graphics_capture(options: Variant) -> void:
 	if frame_counter != null:
 		frame_counter.apply_preferences()
 
+## Restore capture dimensions before an acknowledged shot or a frozen still.
+## Window mode and focus belong to the desktop. A minimized window stays so.
+func _ensure_capture_window_size(context: String) -> bool:
+	# Canvas stretching can give Texture2D metadata a logical size. The raw
+	# rendered image owns capture dimensions, as it does in the final PNG gate.
+	var captured: Image = _grab()
+	var image_size: Vector2i = captured.get_size() if captured != null else Vector2i.ZERO
+	if root.size == _capture_size and image_size == _capture_size:
+		return true
+	var original_size: Vector2i = root.size
+	var started: int = Time.get_ticks_msec()
+	var draws: Array[int] = [0]
+	var count_draw: Callable = func() -> void: draws[0] += 1
+	RenderingServer.frame_post_draw.connect(count_draw)
+	var last_checked_draw: int = 0
+	var stable_draws: int = 0
+	var process_frames: int = 0
+	while Time.get_ticks_msec() - started < CAPTURE_SIZE_SETTLE_MSEC \
+			and draws[0] < CAPTURE_SIZE_SETTLE_DRAWS:
+		if root.size != _capture_size:
+			stable_draws = 0
+			root.size = _capture_size
+		if draws[0] != last_checked_draw:
+			last_checked_draw = draws[0]
+			captured = _grab()
+			image_size = captured.get_size() if captured != null else Vector2i.ZERO
+			stable_draws = stable_draws + 1 if root.size == _capture_size and image_size == _capture_size else 0
+			if stable_draws >= 2:
+				RenderingServer.frame_post_draw.disconnect(count_draw)
+				print("qa_tour: restored capture size for %s from %s after %d draws, %d process frames, %d ms (mode %d)" % [
+					context, original_size, draws[0], process_frames, Time.get_ticks_msec() - started, root.mode])
+				return true
+		process_frames += 1
+		await process_frame
+	RenderingServer.frame_post_draw.disconnect(count_draw)
+	push_error("qa_tour: capture size did not settle for %s within %d ms/%d draws: expected %s, window %s, raw image %s, mode %d (observed %d draws, %d process frames, %d ms)" % [
+		context, CAPTURE_SIZE_SETTLE_MSEC, CAPTURE_SIZE_SETTLE_DRAWS, _capture_size, root.size,
+		image_size, root.mode, draws[0], process_frames, Time.get_ticks_msec() - started])
+	_failed = true
+	return false
+
 ## Frame pacing for a held view: wall time between drawn frames plus the
 ## renderer's own CPU and GPU measurements for the root viewport. The capture
 ## settings leave VSync off and the frame cap unlimited, so the wall time is
@@ -1191,14 +1285,8 @@ func _sample_frames(count: int) -> Dictionary:
 		push_error("qa_tour: frame_sample needs 10 to 2000 frames")
 		_failed = true
 		return {}
-	# The desktop can resize a large capture window between states. Timing is
-	# only comparable at the manifest's size, so restore it before sampling.
-	if root.size != _capture_size:
-		print("qa_tour: restoring capture window from ", root.size)
-		root.mode = Window.MODE_WINDOWED
-		root.size = _capture_size
-		for _settle: int in range(10):
-			await RenderingServer.frame_post_draw
+	if not await _ensure_capture_window_size("frame sample"):
+		return {}
 	var viewport: RID = root.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(viewport, true)
 	for _warm: int in range(30):
@@ -1260,6 +1348,8 @@ func _grab() -> Image:
 ## of the screen the HUD paints over, measured rather than argued about, and
 ## whether there is a game behind it at all.
 func _measure() -> Dictionary:
+	if not await _ensure_capture_window_size("still"):
+		return {}
 	var out: Dictionary = {"hud_coverage": 0.0, "world_blank": false}
 	# Freeze first. Without this the two frames are a fight two frames apart,
 	# and every bot that moved between them counts as HUD.
@@ -1302,6 +1392,8 @@ func _measure() -> Dictionary:
 
 ## Capture consecutive frames or timed samples through an effect's full lifetime.
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
+	if not await _ensure_capture_window_size("strip " + file_name):
+		return
 	var trigger: String = state.get("trigger", "")
 	_grenade_strip_report = {}
 	_fire_strip_report.clear()
@@ -1364,6 +1456,10 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 			_probe_frames += 1
 		var img: Image = _grab()
 		if img != null:
+			if img.get_size() != _capture_size:
+				push_error("qa_tour: capture size changed during strip %s frame %d: expected %s, got %s" % [
+					file_name, i, _capture_size, img.get_size()])
+				_failed = true
 			img.convert(Image.FORMAT_RGBA8)
 			if i == 0 and img.save_png(_out_dir.path_join(file_name.trim_suffix("_strip.png") + "_shot.png")) != OK:
 				push_error("qa_tour: could not save full-size acknowledged shot")
@@ -1463,6 +1559,28 @@ func _await_fire_strip(state: Dictionary, probe: Node) -> void:
 			await _set_aim_pitch(float(state["aim_pitch"]))
 		var receipt: Dictionary = {"before": _fire_strip_status(), "respawn_retry": attempt}
 		_fire_strip_report.append(receipt)
+		var empty_loadout: Dictionary = _equipment().duplicate(true)
+		if QaCombat.reload_needed(empty_loadout):
+			# Fire strips use the same finite human magazines as ordinary play.
+			# Request one normal reload and wait for the authoritative reply.
+			receipt["reload_before"] = empty_loadout
+			var reload_started: int = Time.get_ticks_msec()
+			var press: InputEventAction = InputEventAction.new()
+			press.action = "reload"
+			press.pressed = true
+			Input.parse_input_event(press)
+			var release: InputEventAction = press.duplicate()
+			release.pressed = false
+			Input.parse_input_event(release)
+			var reload_deadline: int = reload_started + 2500
+			while EquipmentState.shots(_equipment(), str(empty_loadout["selected"])) == 0 and Time.get_ticks_msec() < reload_deadline:
+				await process_frame
+			receipt["reload_after"] = _equipment().duplicate(true)
+			receipt["reload_elapsed_ms"] = Time.get_ticks_msec() - reload_started
+			if EquipmentState.shots(_equipment(), str(empty_loadout["selected"])) <= 0:
+				push_error("qa_tour: ordinary reload did not produce loaded rounds within 2500 ms")
+				_failed = true
+				return
 		if not _local_human_alive(manager):
 			receipt["interrupted_by_death"] = true
 			continue
@@ -1597,6 +1715,7 @@ func _observed_state() -> Dictionary:
 		"m09": gm.get("net_client").get("mission").get("state", {}).get("m09", {}),
 		"m10": gm.get("net_client").get("mission").get("state", {}).get("m10", {}),
 		"m11": gm.get("net_client").get("mission").get("state", {}).get("m11", {}),
+		"m12": gm.get("net_client").get("mission").get("state", {}).get("m12", {}),
 		"m07": gm.get("net_client").get("mission").get("state", {}).get("m07", {}),
 		"m07_lamps_lit": gm.get("m07_town").lamps_lit_count if gm.get("m07_town") != null else -1,
 		"m05_workers_aboard": MissionHud.workers_aboard(gm.get("net_client").get("mission").get("state", {}), gm.get("net_client").get("mission_geometry").get("m05", {}).get("boarding", {})),
@@ -1677,12 +1796,29 @@ func _check_equipment(expected: Dictionary) -> void:
 		_failed = true
 		return
 	for key: String in expected:
+		if key == "pool_rounds":
+			if not _pool_rounds_match(state, expected[key]):
+				push_error("qa_tour: carried ammunition does not match %s; observed %s" % [expected[key], state.get("ammo", [])])
+				_failed = true
+			continue
 		var actual: Variant = state.get(key)
 		if key == "ammo":
 			actual = EquipmentState.shots(state, state["selected"])
 		if actual != expected[key]:
 			push_error("qa_tour: expected %s %s, observed %s" % [key, expected[key], actual])
 			_failed = true
+
+static func _pool_rounds_match(state: Dictionary, expected: Variant) -> bool:
+	# The carried pool includes loaded rounds; shots() reads the ready magazine.
+	if not expected is Dictionary or expected.is_empty():
+		return false
+	for pool: Variant in expected:
+		if not pool is String or not EquipmentState.CAPACITIES.has(pool) \
+				or not EquipmentState.integer(expected[pool], EquipmentState.CAPACITIES[pool]):
+			return false
+		if EquipmentState.ammo(state, pool) != int(expected[pool]):
+			return false
+	return true
 
 func _local_server_yaw(gm: Node) -> float:
 	var snapshot: Dictionary = gm.get("latest_snapshot")
@@ -1946,9 +2082,10 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
-			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
 			or (mission_state.get("id") == MissionState.M09_ID and expected_phase in mission_state.get("m09", {}).get("completed", [])) \
 			or (mission_state.get("id") == MissionState.M11_ID and expected_phase in ["transfer_released", "records_read"] and mission_state.get("m11", {}).get("challenges", {}).get(expected_phase) == true) \
+			or (mission_state.get("id") == MissionState.M12_ID and (expected_phase in mission_state.get("m12", {}).get("completed", []) or (expected_phase in ["shelter_opened", "workers_released"] and mission_state.get("m12", {}).get("challenges", {}).get(expected_phase) == true))) \
 			or (mission_state.get("id") == MissionState.M04_ID and expected_phase == "clinic_shutter" and mission_state.get("m04", {}).get("clinic_open") == true) \
 			or (progress is Dictionary and expected_phase in progress.get("completed", [])):
 			print("qa_tour: mission reached ", expected_phase)
@@ -2388,13 +2525,18 @@ func _set_aim_pitch(pitch: float) -> void:
 		push_error("qa_tour: pitch capture requires a joined human")
 		_failed = true
 		return
-	cam.set("fp_pitch", pitch)
 	var deadline: int = Time.get_ticks_msec() + 5000
-	while absf(_local_server_pitch(gm) - pitch) > 0.001 and Time.get_ticks_msec() < deadline:
+	# A live arcade opponent can kill this participant during the request.
+	# Respawn restores facing, so keep sending the requested ordinary input
+	# until a living snapshot and camera agree. Never accept a dead pose.
+	while Time.get_ticks_msec() < deadline:
+		if _self_alive(gm, gm.latest_snapshot):
+			cam.set("fp_pitch", pitch)
+			if absf(_local_server_pitch(gm) - pitch) <= 0.001:
+				return
 		await process_frame
-	if absf(_local_server_pitch(gm) - pitch) > 0.001:
-		push_error("qa_tour: pitch did not reach the authoritative snapshot (expected %.6f, server %.6f)" % [pitch, _local_server_pitch(gm)])
-		_failed = true
+	push_error("qa_tour: living pitch did not reach the authoritative snapshot (expected %.6f, server %.6f)" % [pitch, _local_server_pitch(gm)])
+	_failed = true
 
 func _ctf_matches(expected: Dictionary, observed: Dictionary) -> bool:
 	if expected.has("status"):

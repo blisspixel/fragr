@@ -8,7 +8,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 #[tokio::test]
-async fn live_rules_three_missions_refuse_old_readers_and_deliver_geometry_first() {
+async fn live_campaign_rules_refuse_old_readers_and_deliver_geometry_first() {
     use futures_util::{SinkExt, StreamExt};
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
@@ -36,7 +36,13 @@ async fn live_rules_three_missions_refuse_old_readers_and_deliver_geometry_first
             .await
             .unwrap()
             .unwrap();
-        for version in [retired, 25, crate::protocol::GAMEPLAY_VERSION] {
+        for version in [
+            retired,
+            25,
+            26,
+            crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
+            crate::protocol::GAMEPLAY_VERSION,
+        ] {
             for role in ["human", "agent", "spectator"] {
                 let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
                 socket.send(Message::Text(json!({"type":"hello","role":role,"name":"NoticeProbe","gameplay_version":version,"geometry_version":crate::protocol::GEOMETRY_VERSION}).to_string())).await.unwrap();
@@ -49,10 +55,13 @@ async fn live_rules_three_missions_refuse_old_readers_and_deliver_geometry_first
                             continue;
                         };
                         let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                        if version < crate::protocol::GAMEPLAY_VERSION {
+                        if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                             assert_eq!(value["type"], "error", "retired reader received state");
                             assert_eq!(value["code"], "unsupported_gameplay");
-                            assert!(value["message"].as_str().unwrap().contains("26"));
+                            assert!(value["message"].as_str().unwrap().contains(&format!(
+                                "version {}",
+                                crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                            )));
                             break;
                         }
                         match value["type"].as_str().unwrap() {
@@ -72,7 +81,10 @@ async fn live_rules_three_missions_refuse_old_readers_and_deliver_geometry_first
                                     value["state"]["id"],
                                     serde_json::to_value(mission).unwrap()
                                 );
-                                assert_eq!(value["state"]["rules"]["revision"], 3);
+                                assert_eq!(
+                                    value["state"]["rules"]["revision"],
+                                    crate::protocol::CAMPAIGN_RULES_REVISION
+                                );
                                 mission_seen = true;
                             }
                             "snapshot" => {

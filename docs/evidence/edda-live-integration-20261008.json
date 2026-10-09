@@ -1,0 +1,4169 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "scope": "Edda-only live weighted selection and four owned canonical finite-carry routes; separate from source acceptance and final composed gates",
+  "native": {
+    "path": "target/release/fragr-server.exe",
+    "sha256": "f35a6ce41b1ea3d48d121712df99bfd7e6a86b78b2f93900282f5e0faf1d3cff",
+    "retained_unchanged_across_routes": true
+  },
+  "engine": {
+    "path": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+    "sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+    "scope": "Compatibility/OpenGL renderer on recorded AMD Radeon 780M, no hardware-performance claim"
+  },
+  "prepared_source_sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40",
+  "pose_sha256": "2f58b72100f49b57e4e6f753995dd5a0a83ba23177e678c43f260dc6b45a9b4c",
+  "support_sha256": "168be06b02311b32190eaaaa9d27aa82edf2e419cf32605887ccbff8c026c0fe",
+  "spend": {
+    "paid_requests": 0,
+    "new_credits": 0,
+    "cash_usd": 0
+  },
+  "focused_gates": [
+    "test_edda_figure: actual skin, accepted travel, stationary/stale expiry, original arms, source alias isolation, per-instance tint, cast eligibility",
+    "test_skinned_character: four actual weighted sources at seven off-grid phases and unchanged 0.01 m floor tolerance",
+    "test_m09_mission and test_m10_mission: strict current facts and carried cast"
+  ],
+  "preserved_other_cast": {
+    "support_decimal_tokens_byte_identical": true,
+    "actual_pose_control_rows": 84,
+    "before_after_json_sha256": "a8fedf9dc1324107b7f73c1efc04e41eb9aeae53c31bc607fde5f95ce1021465"
+  },
+  "routes": [
+    {
+      "id": "m09-eligible",
+      "artifact_directory": ".agents/edda-live-repair-20261008/live/m09-eligible-first",
+      "mission": "m09",
+      "carry": "eligible",
+      "completed_states": 29,
+      "exit_code": 0,
+      "clean_logs": true,
+      "owned_child_idle": true,
+      "renderer_retired": true,
+      "native_sha256": "f35a6ce41b1ea3d48d121712df99bfd7e6a86b78b2f93900282f5e0faf1d3cff",
+      "model_sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40",
+      "pawn_sha256": "b842c96b2dff9ed6b782ab96ec9e51984516ef7bc6ae64360fd9b48e692bcad4",
+      "godot": "4.7.2-stable (official)",
+      "renderer": "gl_compatibility",
+      "adapter": "AMD Radeon(TM) 780M",
+      "viewport": [
+        1280.0,
+        720.0
+      ],
+      "bounded_samples": 2747,
+      "moving_samples": 1612,
+      "stationary_samples": 1135,
+      "changed_horizontal_samples": 1500,
+      "distinct_actual_leg_rotations": 1411,
+      "motion_frames": 96,
+      "confirmed_guard_names": [
+        "cradle_notary_east",
+        "cradle_notary_west",
+        "first_enforcer",
+        "gallery_clerk_a",
+        "gallery_clerk_b",
+        "gantry_one_enforcer",
+        "gantry_one_sweeper",
+        "gantry_three_enforcer",
+        "gantry_three_sweeper",
+        "gantry_two_enforcer",
+        "gantry_two_sweeper",
+        "hatch_enforcer",
+        "loading_clerk_a",
+        "loading_clerk_b",
+        "loading_sweeper_a",
+        "loading_sweeper_b",
+        "office_clerk_a",
+        "office_clerk_b",
+        "office_stair_turret",
+        "upper_enforcer_a",
+        "upper_enforcer_b"
+      ],
+      "launch": {
+        "FRAGR_SERVER": "removed",
+        "FRAGR_QA_DIR": "C:/GitHub/fragr/.agents/edda-live-repair-20261008/live/m09-eligible-first",
+        "FRAGR_EDDA_MISSION": "m09",
+        "FRAGR_EDDA_CARRY": "eligible",
+        "arguments": [
+          "--path",
+          "C:/GitHub/fragr/client",
+          "--rendering-driver",
+          "opengl3",
+          "--windowed",
+          "--resolution",
+          "1280x720",
+          "--script",
+          "res://qa/edda_live_tour.gd"
+        ]
+      },
+      "states": [
+        {
+          "state": "m09_berth_reveal",
+          "file": "01_m09_berth_reveal.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 3.29555555555554,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_loading_equipment",
+          "file": "02_m09_loading_equipment.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 6.70439814814819,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_loading_clear",
+          "file": "03_m09_loading_clear.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 15.7139159100533,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_loading_arrival",
+          "file": "04_m09_loading_arrival.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 17.9713991164028,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_office_stair",
+          "file": "05_m09_office_stair.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 28.6456725132297,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_enforcer_lesson",
+          "file": "06_m09_enforcer_lesson.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 32.518466719579,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_lesson_arrival",
+          "file": "07_m09_lesson_arrival.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 34.5426790899487,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_landing_rail",
+          "file": "08_m09_landing_rail.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 37.607833312171,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_office_clear",
+          "file": "09_m09_office_clear.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 46.4288013424734,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_edda_calm_player_height",
+          "file": "10_m09_edda_calm_player_height.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -21.0
+            ],
+            "moving_age": 47.3461640192405,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_crew_release",
+          "file": "11_m09_crew_release.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -22.500006
+            ],
+            "moving_age": 0.0195412222222236,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 1.5000057220459
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_edda_player_height",
+          "file": "12_m09_edda_player_height.png",
+          "live_edda": {
+            "feet": [
+              -27.0,
+              4.0,
+              -27.000023
+            ],
+            "moving_age": 0.0910496666666652,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 6.00002288818359
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_office_supplies",
+          "file": "13_m09_office_supplies.png",
+          "live_edda": {
+            "feet": [
+              -21.0,
+              4.0,
+              -24.399986
+            ],
+            "moving_age": 0.044713,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 16.6000137329102
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_west_gantry_entry",
+          "file": "14_m09_west_gantry_entry.png",
+          "live_edda": {
+            "feet": [
+              -21.0,
+              6.0,
+              -14.0
+            ],
+            "moving_age": 5.38325104761903,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 27.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_gantry_one_clear",
+          "file": "15_m09_gantry_one_clear.png",
+          "live_edda": {
+            "feet": [
+              -21.0,
+              6.0,
+              -14.0
+            ],
+            "moving_age": 10.3510338571429,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 27.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_gantry_one_arrival",
+          "file": "16_m09_gantry_one_arrival.png",
+          "live_edda": {
+            "feet": [
+              -20.58742,
+              6.0,
+              -2.1080022
+            ],
+            "moving_age": 0.0303136666666667,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 38.8998091295362
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_north_gantry_entry",
+          "file": "17_m09_north_gantry_entry.png",
+          "live_edda": {
+            "feet": [
+              -20.087782,
+              6.0,
+              11.082528
+            ],
+            "moving_age": 0.0583661481481482,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 52.0997987911105
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_gantry_two_clear",
+          "file": "18_m09_gantry_two_clear.png",
+          "live_edda": {
+            "feet": [
+              -20.0,
+              8.0,
+              25.199871
+            ],
+            "moving_age": 0.761509727272729,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 66.2188036646694
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_gantry_two_arrival",
+          "file": "19_m09_gantry_two_arrival.png",
+          "live_edda": {
+            "feet": [
+              -13.199974,
+              8.0,
+              25.999874
+            ],
+            "moving_age": 0.02157585714286,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 73.8188326563686
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_east_gantry_entry",
+          "file": "20_m09_east_gantry_entry.png",
+          "live_edda": {
+            "feet": [
+              5.800037,
+              8.0,
+              25.999874
+            ],
+            "moving_age": 0.00277777777777778,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 92.8188436236233
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_gantry_three_clear",
+          "file": "21_m09_gantry_three_clear.png",
+          "live_edda": {
+            "feet": [
+              19.300077,
+              8.0,
+              25.99998
+            ],
+            "moving_age": 0.0151515151515152,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 106.318884154782
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_gantry_three_arrival",
+          "file": "22_m09_gantry_three_arrival.png",
+          "live_edda": {
+            "feet": [
+              27.300003,
+              10.0,
+              26.0
+            ],
+            "moving_age": 0.0282724545454512,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 114.318809768185
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_gallery_counter",
+          "file": "23_m09_gallery_counter.png",
+          "live_edda": {
+            "feet": [
+              30.0,
+              10.0,
+              3.3999362
+            ],
+            "moving_age": 0.0509259259259259,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 139.618870517239
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_clamps_release",
+          "file": "24_m09_clamps_release.png",
+          "live_edda": {
+            "feet": [
+              30.0,
+              10.0,
+              -2.200063
+            ],
+            "moving_age": 0.0151817777777778,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 4.20000040531158
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_gallery_supplies",
+          "file": "25_m09_gallery_supplies.png",
+          "live_edda": {
+            "feet": [
+              30.0,
+              10.0,
+              -14.300082
+            ],
+            "moving_age": 0.0448412698412698,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 16.3000196218491
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_boarding_entry",
+          "file": "26_m09_boarding_entry.png",
+          "live_edda": {
+            "feet": [
+              20.0,
+              10.0,
+              -18.2
+            ],
+            "moving_age": 0.0125,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 30.1999381780624
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_hatch_clear",
+          "file": "27_m09_hatch_clear.png",
+          "live_edda": {
+            "feet": [
+              20.0,
+              11.4,
+              -26.600012
+            ],
+            "moving_age": 0.0254656666666667,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 38.5999492406845
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m09_hatch_arrival",
+          "file": "28_m09_hatch_arrival.png",
+          "live_edda": {
+            "feet": [
+              20.0,
+              12.0,
+              -31.800013
+            ],
+            "moving_age": 0.0285383703703704,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 43.799950003624
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_departure",
+          "file": "29_m09_departure.png",
+          "live_edda": {
+            "feet": [
+              16.799988,
+              12.0,
+              -32.999996
+            ],
+            "moving_age": 0.766423296296293,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 48.199945807457
+          },
+          "combat_passed": null
+        }
+      ]
+    },
+    {
+      "id": "m10-eligible",
+      "artifact_directory": ".agents/edda-live-repair-20261008/live/m10-eligible-final",
+      "mission": "m10",
+      "carry": "eligible",
+      "completed_states": 29,
+      "exit_code": 0,
+      "clean_logs": true,
+      "owned_child_idle": true,
+      "renderer_retired": true,
+      "native_sha256": "f35a6ce41b1ea3d48d121712df99bfd7e6a86b78b2f93900282f5e0faf1d3cff",
+      "model_sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40",
+      "pawn_sha256": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f",
+      "godot": "4.7.2-stable (official)",
+      "renderer": "gl_compatibility",
+      "adapter": "AMD Radeon(TM) 780M",
+      "viewport": [
+        1280.0,
+        720.0
+      ],
+      "bounded_samples": 3199,
+      "moving_samples": 0,
+      "stationary_samples": 3199,
+      "changed_horizontal_samples": 0,
+      "distinct_actual_leg_rotations": 1,
+      "motion_frames": 0,
+      "confirmed_guard_names": [
+        "aft_clerk",
+        "aft_heavy",
+        "aft_notary",
+        "aft_sweeper",
+        "forward_clerk_a",
+        "forward_clerk_b",
+        "forward_sweeper_a",
+        "forward_sweeper_b",
+        "passenger_clerk_a",
+        "passenger_clerk_b",
+        "passenger_enforcer",
+        "passenger_sweeper",
+        "service_clerk",
+        "service_crawler_a",
+        "service_crawler_b",
+        "service_crawler_c",
+        "service_sweeper"
+      ],
+      "launch": {
+        "FRAGR_SERVER": "removed",
+        "FRAGR_QA_DIR": "C:/GitHub/fragr/.agents/edda-live-repair-20261008/live/m10-eligible-final",
+        "FRAGR_EDDA_MISSION": "m10",
+        "FRAGR_EDDA_CARRY": "eligible",
+        "arguments": [
+          "--path",
+          "C:/GitHub/fragr/client",
+          "--rendering-driver",
+          "opengl3",
+          "--windowed",
+          "--resolution",
+          "1280x720",
+          "--script",
+          "res://qa/edda_live_tour.gd"
+        ]
+      },
+      "states": [
+        {
+          "state": "m10_passenger_entry",
+          "file": "01_m10_passenger_entry.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 3.27995633333334,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_cabin_stock",
+          "file": "02_m10_cabin_stock.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 6.93649507070702,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_edda_player_height",
+          "file": "03_m10_edda_player_height.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 8.55371990909087,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_passenger_hall",
+          "file": "04_m10_passenger_hall.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 12.0249629090909,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_west_stair_down",
+          "file": "05_m10_west_stair_down.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 20.0112163838392,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_cargo_stock",
+          "file": "06_m10_cargo_stock.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 24.062951171718,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_forward_lower",
+          "file": "07_m10_forward_lower.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 29.1831607272737,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_west_stair_return",
+          "file": "08_m10_west_stair_return.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 39.6279732323259,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_forward_gallery",
+          "file": "09_m10_forward_gallery.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 41.3205373593103,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_forward_arrival",
+          "file": "10_m10_forward_arrival.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 52.0407609740315,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_service_defense",
+          "file": "11_m10_service_defense.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 61.6043968326174,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_repair_stock",
+          "file": "12_m10_repair_stock.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 65.3521987215071,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_service_arrival",
+          "file": "13_m10_service_arrival.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 70.1077596339647,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_aft_stock",
+          "file": "14_m10_aft_stock.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 73.0243474790823,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_east_middle",
+          "file": "15_m10_east_middle.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 80.5663268470463,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_east_upper",
+          "file": "16_m10_east_upper.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 86.8316082323263,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_aft_upper",
+          "file": "17_m10_aft_upper.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 90.4345209865339,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_freight_overlook",
+          "file": "18_m10_freight_overlook.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 95.923482616162,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_command_stock",
+          "file": "19_m10_command_stock.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 103.379383282827,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_lower_return",
+          "file": "20_m10_lower_return.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 121.444276010094,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_aft_notary",
+          "file": "21_m10_aft_notary.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 123.151995121205,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_aft_heavy",
+          "file": "22_m10_aft_heavy.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 125.837709406919,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_aft_middle",
+          "file": "23_m10_aft_middle.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 133.995180073587,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_aft_arrival",
+          "file": "24_m10_aft_arrival.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 141.726582821059,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_passenger_return",
+          "file": "25_m10_passenger_return.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 158.059672305903,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_surplus_stock",
+          "file": "26_m10_surplus_stock.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 167.749896548324,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_passenger_defense",
+          "file": "27_m10_passenger_defense.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 172.362089295797,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": true
+        },
+        {
+          "state": "m10_passenger_arrival",
+          "file": "28_m10_passenger_arrival.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 173.30924351802,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_shared_departure",
+          "file": "29_m10_shared_departure.png",
+          "live_edda": {
+            "feet": [
+              2.0,
+              4.8,
+              -14.0
+            ],
+            "moving_age": 175.202374369872,
+            "source": "res://assets/models/edda_live.glb",
+            "walked": 0.0
+          },
+          "combat_passed": null
+        }
+      ]
+    },
+    {
+      "id": "m09-omitted",
+      "artifact_directory": ".agents/edda-live-repair-20261008/live/m09-omitted-first",
+      "mission": "m09",
+      "carry": "omitted",
+      "completed_states": 2,
+      "exit_code": 0,
+      "clean_logs": true,
+      "owned_child_idle": true,
+      "renderer_retired": true,
+      "native_sha256": "f35a6ce41b1ea3d48d121712df99bfd7e6a86b78b2f93900282f5e0faf1d3cff",
+      "model_sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40",
+      "pawn_sha256": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f",
+      "godot": "4.7.2-stable (official)",
+      "renderer": "gl_compatibility",
+      "adapter": "AMD Radeon(TM) 780M",
+      "viewport": [
+        1280.0,
+        720.0
+      ],
+      "bounded_samples": 0,
+      "moving_samples": 0,
+      "stationary_samples": 0,
+      "changed_horizontal_samples": 0,
+      "distinct_actual_leg_rotations": 0,
+      "motion_frames": 0,
+      "confirmed_guard_names": [],
+      "launch": {
+        "FRAGR_SERVER": "removed",
+        "FRAGR_QA_DIR": "C:/GitHub/fragr/.agents/edda-live-repair-20261008/live/m09-omitted-first",
+        "FRAGR_EDDA_MISSION": "m09",
+        "FRAGR_EDDA_CARRY": "omitted",
+        "arguments": [
+          "--path",
+          "C:/GitHub/fragr/client",
+          "--rendering-driver",
+          "opengl3",
+          "--windowed",
+          "--resolution",
+          "1280x720",
+          "--script",
+          "res://qa/edda_live_tour.gd"
+        ]
+      },
+      "states": [
+        {
+          "state": "m09_berth_reveal",
+          "file": "01_m09_berth_reveal.png",
+          "live_edda": {
+            "present": false
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m09_loading_equipment",
+          "file": "02_m09_loading_equipment.png",
+          "live_edda": {
+            "present": false
+          },
+          "combat_passed": null
+        }
+      ]
+    },
+    {
+      "id": "m10-unknown",
+      "artifact_directory": ".agents/edda-live-repair-20261008/live/m10-unknown-first",
+      "mission": "m10",
+      "carry": "omitted",
+      "completed_states": 2,
+      "exit_code": 0,
+      "clean_logs": true,
+      "owned_child_idle": true,
+      "renderer_retired": true,
+      "native_sha256": "f35a6ce41b1ea3d48d121712df99bfd7e6a86b78b2f93900282f5e0faf1d3cff",
+      "model_sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40",
+      "pawn_sha256": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f",
+      "godot": "4.7.2-stable (official)",
+      "renderer": "gl_compatibility",
+      "adapter": "AMD Radeon(TM) 780M",
+      "viewport": [
+        1280.0,
+        720.0
+      ],
+      "bounded_samples": 0,
+      "moving_samples": 0,
+      "stationary_samples": 0,
+      "changed_horizontal_samples": 0,
+      "distinct_actual_leg_rotations": 0,
+      "motion_frames": 0,
+      "confirmed_guard_names": [],
+      "launch": {
+        "FRAGR_SERVER": "removed",
+        "FRAGR_QA_DIR": "C:/GitHub/fragr/.agents/edda-live-repair-20261008/live/m10-unknown-first",
+        "FRAGR_EDDA_MISSION": "m10",
+        "FRAGR_EDDA_CARRY": "omitted",
+        "arguments": [
+          "--path",
+          "C:/GitHub/fragr/client",
+          "--rendering-driver",
+          "opengl3",
+          "--windowed",
+          "--resolution",
+          "1280x720",
+          "--script",
+          "res://qa/edda_live_tour.gd"
+        ]
+      },
+      "states": [
+        {
+          "state": "m10_passenger_entry",
+          "file": "01_m10_passenger_entry.png",
+          "live_edda": {
+            "present": false
+          },
+          "combat_passed": null
+        },
+        {
+          "state": "m10_cabin_stock",
+          "file": "02_m10_cabin_stock.png",
+          "live_edda": {
+            "present": false
+          },
+          "combat_passed": null
+        }
+      ]
+    }
+  ],
+  "total_completed_states": 62.0,
+  "source_timeline": {
+    "m09_pawn_pre_fix": "b842c96b2dff9ed6b782ab96ec9e51984516ef7bc6ae64360fd9b48e692bcad4",
+    "remaining_routes_pawn_post_fix": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f",
+    "reason": "Independent enemy origin fix between routes, no Edda source, eligibility or native change",
+    "m09_pre_fix_enemy_example": "06_m09_enforcer_lesson.png"
+  },
+  "failed_attempt": {
+    "directory": ".agents/edda-live-repair-20261008/live/m10-eligible-first",
+    "exit_code": 1,
+    "completed_captures": 26,
+    "owned_child_idle": true,
+    "renderer_retired": true,
+    "cause": "Remaining passenger_clerk_a alive on west stair with no clear shot from exhausted cabin-only search",
+    "guard_feet": [
+      -6.499695,
+      2.6,
+      -10.025003
+    ],
+    "guard_hp": 60,
+    "participant_hp": 100,
+    "bullets_total": 113,
+    "bullets_loaded": 17,
+    "original_manifest_sha256": "1507dca7378f803406bf7000d8ded3cb5a1571dd3053f1459495d19764ae0071",
+    "original_manifest_retention": "Exact inverse of the sole later route edit, verified against immutable previous receipt hash; not an independently captured launch snapshot"
+  },
+  "qa_correction": {
+    "scope": "Only M10 final defense opts into finishing its existing ordinary search loop; all four guards, stocks and original 25-second combat deadline retained",
+    "old_cabin_search_points": 4,
+    "new_closed_loop_points": 16,
+    "actual_interrupted_return_controls": 15,
+    "default_completion_unchanged": true,
+    "no_production_map_or_enemy_change": true,
+    "final_full_retry_search_index": 0,
+    "new_branch_exercised_in_full_retry": false,
+    "final_passenger_death_ticks": {
+      "passenger_enforcer": 3325,
+      "passenger_sweeper": 3333,
+      "passenger_clerk_b": 3345,
+      "passenger_clerk_a": 3451
+    },
+    "branch_scope": "Focused actual ordinary inputs through shared movement mirror, not this successful full retry"
+  },
+  "inspected_originals": [
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/10_m09_edda_calm_player_height.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/12_m09_edda_player_height.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_000.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_003.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_006.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_008.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_012.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_016.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_020.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_040.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_060.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_095.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/03_m09_loading_clear.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/06_m09_enforcer_lesson.png",
+    ".agents/edda-live-repair-20261008/live/m09-eligible-first/15_m09_gantry_one_clear.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-first/01_m10_passenger_entry.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-first/03_m10_edda_player_height.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-first/22_m10_aft_heavy.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-first/25_m10_passenger_return.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-final/03_m10_edda_player_height.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-final/25_m10_passenger_return.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-final/27_m10_passenger_defense.png",
+    ".agents/edda-live-repair-20261008/live/m10-eligible-final/29_m10_shared_departure.png",
+    ".agents/edda-live-repair-20261008/live/m09-omitted-first/01_m09_berth_reveal.png",
+    ".agents/edda-live-repair-20261008/live/m10-unknown-first/01_m10_passenger_entry.png"
+  ],
+  "limits": [
+    "Labelled historical inputs, independent canonical promotions rather than a continuous rescue-to-ship save",
+    "M04 generic clinic patients remain unchanged, no individual Edda rescue fiction",
+    "Samples and motion filenames alone do not prove Edda is on camera",
+    "Omission controls cover only two entry states each",
+    "Original untouched apron edge stretch and the edited local cloth crease remain documented source limits",
+    "No individual finger, satchel treatment, tool contact, final-art, fresh-player or general hardware-performance acceptance",
+    "Source-owned LocalMatch.IDLE and renderer process exit establish this bounded retirement scope; no port/name kills",
+    "Loading/control-copy acceptance and imported-translation hashes are outside this receipt",
+    "Root-owned composed client and package checks are separate"
+  ],
+  "bindings": [
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/01_m09_berth_reveal_world.png",
+      "bytes": 758834,
+      "sha256": "31680d99edc5419a550f7feffa0d48c4b381c611e2aed11dee1e956f14f46b3a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/01_m09_berth_reveal.png",
+      "bytes": 772466,
+      "sha256": "2aa3cffea9335bda589905489c626459f240ca287fe9359d4d396e5cf4a0c84f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/02_m09_loading_equipment_world.png",
+      "bytes": 359608,
+      "sha256": "1255b0175ad3bef8dc0c2e4308fbe7fa24401e1b75be84eda3734a5f2225acaa"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/02_m09_loading_equipment.png",
+      "bytes": 396996,
+      "sha256": "0bdcb19c56e840feb2350fb71d1959fb0f16ff7a2b1792bf1331b58f99c6ae1c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/03_m09_loading_clear_world.png",
+      "bytes": 254021,
+      "sha256": "2046487258d44b3b7cf4a378c81e1dae37fd5d2d54d550b710fa94f249d6ca63"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/03_m09_loading_clear.png",
+      "bytes": 273204,
+      "sha256": "74944aecafc0e7fa43c4bc223b483c540561572ed5e2dba075538669c895b9d6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/04_m09_loading_arrival_world.png",
+      "bytes": 319265,
+      "sha256": "f0c4e892c87a227ce42e5a430137e652f083f9fef3a9e7536f8a992a6bad1d9c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/04_m09_loading_arrival.png",
+      "bytes": 340549,
+      "sha256": "ae7d69a6f7349e8e1a1938e24900409731108aa4d7484ef06f77c4819973f41b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/05_m09_office_stair_world.png",
+      "bytes": 372970,
+      "sha256": "a70df672136d5f5ca9387229805e3c7e21b3e2c3a817efa5c0974649b54c5cb4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/05_m09_office_stair.png",
+      "bytes": 393955,
+      "sha256": "11fe3656a915d2010029d448c2e214450d2348ea9dfe6f85825822052bce243b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/06_m09_enforcer_lesson_world.png",
+      "bytes": 433383,
+      "sha256": "93db95892c4a9a188a310f21a073b768cf6d5f7ea4fa579ed9847fcb4e7ecfe5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/06_m09_enforcer_lesson.png",
+      "bytes": 449752,
+      "sha256": "d109a4d678d126a337b424792930d82846a73fee9387fdf387aedfabad0bbb05"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/07_m09_lesson_arrival_world.png",
+      "bytes": 458786,
+      "sha256": "b1b24fad69611f2d5f7ba765fed9527864082d4e45321ffb6deae7dd75171e5f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/07_m09_lesson_arrival.png",
+      "bytes": 479599,
+      "sha256": "7b7b175fdc61d02c1b1bc98860fe34a40a5eff3f4a4d1e161f4815687a217993"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/08_m09_landing_rail_world.png",
+      "bytes": 445332,
+      "sha256": "06ae0ee76cd0532bdacf5555022aa263a3d39a551abc69fa7adf9321b198a1fc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/08_m09_landing_rail.png",
+      "bytes": 459279,
+      "sha256": "851e56daad91983ebeebc1c7fb95a871ae508b605fd74a037d4d1276a83b4619"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/09_m09_office_clear_world.png",
+      "bytes": 351900,
+      "sha256": "cc55b7c6b96f50198a4435bf3edb2a92c626867d4df3c95f11032a72e1e1d22d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/09_m09_office_clear.png",
+      "bytes": 366932,
+      "sha256": "cfc91b4cd28865ada8267d9870add5d338bdc64c98b1fabacfa46516a2de5b53"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/10_m09_edda_calm_player_height_world.png",
+      "bytes": 393375,
+      "sha256": "f62f94dc94a8a7f31c270c64939dcad1289599aae0268c1ae11b4b0f15dd61f0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/10_m09_edda_calm_player_height.png",
+      "bytes": 407262,
+      "sha256": "03d17ca372e24261f3f4f8a42244d03a495c244f9bc494d7ea896c97d7239bf0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/11_m09_crew_release_world.png",
+      "bytes": 155442,
+      "sha256": "b886d794dc57010a83e5df94525da63510640b08bb4cbeab529f2a301cedc50e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/11_m09_crew_release.png",
+      "bytes": 183290,
+      "sha256": "e1a2abae581132016adcf68b0c82c892616b85af3525b0d94b5232376a18c55b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/12_m09_edda_player_height_shot.png",
+      "bytes": 483087,
+      "sha256": "ce8be11b0f2b3740751ccbcbd1a9bf51bc09b5bc50125b1d0c7013ddf395cb41"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/12_m09_edda_player_height_strip.png",
+      "bytes": 207050,
+      "sha256": "6a65f880cf67488e00440e561a18af86b2fa0945cab1d3b99f04bfbe3ffd605b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/12_m09_edda_player_height_world.png",
+      "bytes": 458616,
+      "sha256": "bd848cc1b2cabc6acc7fadcf92ba7dcd34f3bd5c9ead0f8d49d984b9013a41b4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/12_m09_edda_player_height.png",
+      "bytes": 477698,
+      "sha256": "e4f7f70e40701b0c2b580c4babc9d5e0e0650161959e94bd2ee3340d04c0b8f1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/13_m09_office_supplies_world.png",
+      "bytes": 155254,
+      "sha256": "b06f483f57fbab8283383f21609a5285c474421f5ec1c1b591798fea22d4bde9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/13_m09_office_supplies.png",
+      "bytes": 174620,
+      "sha256": "3a2878cf7ca3f4613a2ecadebf2b0f8508b26043809ba40486004b310297ad0d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/14_m09_west_gantry_entry_world.png",
+      "bytes": 509400,
+      "sha256": "7f5894e385225001abcbfc3811347ef7cea04fb3a75ca2776f831ecbd11efe9d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/14_m09_west_gantry_entry.png",
+      "bytes": 528117,
+      "sha256": "66213eb83da3c6166c86d9bcc912d15bfaf4483af86f2366fefc238a5890f173"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/15_m09_gantry_one_clear_world.png",
+      "bytes": 561179,
+      "sha256": "5671925e2255b65ac290f38b4fbb3707b0c2556fe1c188c7dfeaa0ce82a76ca2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/15_m09_gantry_one_clear.png",
+      "bytes": 571901,
+      "sha256": "343d520d073d699bf4bba85b6ac5c7ba3f5488e9bf572677730ced8ce524462e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/16_m09_gantry_one_arrival_world.png",
+      "bytes": 498480,
+      "sha256": "15c172f5b14e625dd88d9017a7eda4e63dd2bffe6c30fdd079d84f442669220d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/16_m09_gantry_one_arrival.png",
+      "bytes": 521273,
+      "sha256": "a66f695efe187f83f200906098c14565b59dfe06ae7c00e489e2da21d1057429"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/17_m09_north_gantry_entry_world.png",
+      "bytes": 549907,
+      "sha256": "536e377081d42335df1e3f2e8500b73faba0481f732179f94e5a0dbc75f90b25"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/17_m09_north_gantry_entry.png",
+      "bytes": 561233,
+      "sha256": "79ae3d7719cde24d897bd517576017acd01b1fcc7ea1628ca991a6cc9612bb30"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/18_m09_gantry_two_clear_world.png",
+      "bytes": 522758,
+      "sha256": "dd024e6cdb33732bc1656ffd415ba1f4001310f578c23c07ebdf4408ccbb984e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/18_m09_gantry_two_clear.png",
+      "bytes": 541939,
+      "sha256": "62448e624e3f56d355e29a44d01f37669a9b0231f313f7c0e9da36782cdafc4e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/19_m09_gantry_two_arrival_world.png",
+      "bytes": 475347,
+      "sha256": "6b80235cb7b542dbfe28848304059341e25de076089083706e230d47601ddb41"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/19_m09_gantry_two_arrival.png",
+      "bytes": 499335,
+      "sha256": "178e25dc4bc56018b3576e658a8b5a9c07bd2d22b20227cbf0522651a4cb0174"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/20_m09_east_gantry_entry_world.png",
+      "bytes": 605567,
+      "sha256": "84c222c6a906f7b0a2684d5513bedfa3b8fe7408e448983a908a82a478f9804f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/20_m09_east_gantry_entry.png",
+      "bytes": 619815,
+      "sha256": "4ece0cc7fd1b2dc35c00a257b0b439d960ac0a4113006ae50038f905ea18c2b3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/21_m09_gantry_three_clear_world.png",
+      "bytes": 535134,
+      "sha256": "3b1fc2eed74e7a8dc753da49ebd9733cfc6146e3e8f02e334f0fbc33c3bf3d37"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/21_m09_gantry_three_clear.png",
+      "bytes": 556866,
+      "sha256": "b018b9d3b2b0a5be241ad2beb903760d7d15fb41a6f0d973abacfe126198ad40"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/22_m09_gantry_three_arrival_world.png",
+      "bytes": 539682,
+      "sha256": "d8f5bba52b311f736e6a85683006a0d759258f64bc873d3dc23453dfdf80ad1b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/22_m09_gantry_three_arrival.png",
+      "bytes": 555416,
+      "sha256": "8bc13b4931d0f35ec72fe37b8891e8af5bf12dd87c41a7b7c27dea5735d701b2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/23_m09_gallery_counter_world.png",
+      "bytes": 522570,
+      "sha256": "83094d01365543902e84f8a429c64712f892fb10b014beee717b90311ca31960"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/23_m09_gallery_counter.png",
+      "bytes": 538999,
+      "sha256": "9be206e1d3f5f670788901e5428bb2d32a157a61dd9f89b472856199305f888c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/24_m09_clamps_release_world.png",
+      "bytes": 392612,
+      "sha256": "cbf629429d5c37d2a97568a1a975819cc871961e0bf35787f932516a157575a9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/24_m09_clamps_release.png",
+      "bytes": 419072,
+      "sha256": "e3ecba92490dbe8abc998b831be772354bca5b5a36eaa63df662cbbaebfaca45"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/25_m09_gallery_supplies_world.png",
+      "bytes": 495180,
+      "sha256": "b55f816424d97c541efa02c06d390d097c7c28ffbe475ad712098eea79ed71a4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/25_m09_gallery_supplies.png",
+      "bytes": 518675,
+      "sha256": "ff2ace9e8b1b268521fde73d87377f0129e464fe82bb8a8216cab06caa335556"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/26_m09_boarding_entry_world.png",
+      "bytes": 505397,
+      "sha256": "20ef4b339b2d0c3dad2d9472e2094697d75f052416f5242a0ab5ab761d9bd207"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/26_m09_boarding_entry.png",
+      "bytes": 516704,
+      "sha256": "9133709c5c0e972419ee41faa0055d3846e7e15cca292ec1bfddd8e621eb0e1a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/27_m09_hatch_clear_world.png",
+      "bytes": 474883,
+      "sha256": "44e703bedf5c5692f2bef9b5f7bdef6c80e570f14a7e09a813405b64303d5201"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/27_m09_hatch_clear.png",
+      "bytes": 493535,
+      "sha256": "72d47de7518f2ff267c93a7a8ce688f4de3f57b4f585b2860106d4430e2c150d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/28_m09_hatch_arrival_world.png",
+      "bytes": 488427,
+      "sha256": "cd3316f346a8269815391c627cfc4a0e43549289489f0acb8250a0f79ee6d250"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/28_m09_hatch_arrival.png",
+      "bytes": 502428,
+      "sha256": "7961e9d972630c19135b6c9f4d77ef5cb3cf65201379532f7f316279f6c6c06a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/29_m09_departure_world.png",
+      "bytes": 33622,
+      "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/29_m09_departure.png",
+      "bytes": 33622,
+      "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/contact.png",
+      "bytes": 1979805,
+      "sha256": "9ef9cd35e776f5fa6d2dace350fe0f438a4bc21928e709aa597da85cde499f33"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_000.png",
+      "bytes": 183480,
+      "sha256": "70edbe7ff1aa01a9e1ad959421c822ba7111f154101d4eb82af4b55d5252c080"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_001.png",
+      "bytes": 183376,
+      "sha256": "748cea75cea1ebca47d08acae7db14bc2fe8f55d6685b10d52ad276d550f10e3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_002.png",
+      "bytes": 183376,
+      "sha256": "748cea75cea1ebca47d08acae7db14bc2fe8f55d6685b10d52ad276d550f10e3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_003.png",
+      "bytes": 183376,
+      "sha256": "748cea75cea1ebca47d08acae7db14bc2fe8f55d6685b10d52ad276d550f10e3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_004.png",
+      "bytes": 495765,
+      "sha256": "3cb0a0621a27968aade5ce8383291f0ebcda94a1dbaff6a904518e6029833242"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_005.png",
+      "bytes": 488743,
+      "sha256": "57b048db860d277d5581983d79794769a8021d86903a7de6fa290a94728f7f41"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_006.png",
+      "bytes": 486980,
+      "sha256": "5cd0346076980445ffb98ffa974cc529f2301d249b8c01b12fc98cc31411f86a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_007.png",
+      "bytes": 483087,
+      "sha256": "ce8be11b0f2b3740751ccbcbd1a9bf51bc09b5bc50125b1d0c7013ddf395cb41"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_008.png",
+      "bytes": 483415,
+      "sha256": "3d8109afc8ae54998d94fe6b60cae826bdc65d186f3d00470323d0b570e7be13"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_009.png",
+      "bytes": 482777,
+      "sha256": "f16725b917c6392e0a757945dc934466996baffdfb9fc503d1389d81b1a34d26"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_010.png",
+      "bytes": 480600,
+      "sha256": "a35e47ffb68a07fe1f52b8fcd919f62628ccdb985b386b3ea52ea69be1015e4e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_011.png",
+      "bytes": 479971,
+      "sha256": "e6ec996b7b6a17b4a524d5fa6b3956a1dbc69e7592544e371c8a3c40d33ad681"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_012.png",
+      "bytes": 479547,
+      "sha256": "b6072acc372762720a72efd50f116968f5f671146ea29014581d96df4ab285fc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_013.png",
+      "bytes": 243090,
+      "sha256": "0f56a8d344c3339d8dc38b7306621d728e334e704162c05dfa345545698b8633"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_014.png",
+      "bytes": 225654,
+      "sha256": "7252c551e006e4056f266f754b6e6838790a5cdf78b6f076c5efc07d509a8d5c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_015.png",
+      "bytes": 204733,
+      "sha256": "26ea8692a9242e2157b9d5f6331df17bb5768c01212fcbcd6830313d06f7f053"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_016.png",
+      "bytes": 405075,
+      "sha256": "e71cd1f55ecf1f042e6d2caae013eff010e71f6d7fa6143262aebbe7ca468502"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_017.png",
+      "bytes": 422211,
+      "sha256": "7cd5ed27fb7962a0bc41135173b695dc6ffe68494c24325a7ed33a562233218c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_018.png",
+      "bytes": 421964,
+      "sha256": "efd1f141909be625209d8bdf454e9aff7ccacf41f4dfc7c7997a3d90d3df8205"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_019.png",
+      "bytes": 432121,
+      "sha256": "2061ef1b540bdb898a781056b2987eabf1af9c25cd4b82962472a0eb7fc04579"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_020.png",
+      "bytes": 455204,
+      "sha256": "0bd244d85aa072fd59b2a7c66a8f06efa9760be6211e8ef38af0c56af24a043d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_021.png",
+      "bytes": 475086,
+      "sha256": "54e93da83be3e66ac99e15e59b7489e12cafeb4ea9146d56ae098133f76c4923"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_022.png",
+      "bytes": 485960,
+      "sha256": "64fac2e1157a7d1772d8bfaa28e5e9ea055712859497293ff72c5b8bbca7de42"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_023.png",
+      "bytes": 382692,
+      "sha256": "b5b1e8981e1dd30e5e8b25df91f9c5f75cff923ce2e23b6953072dfbffad0f04"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_024.png",
+      "bytes": 477631,
+      "sha256": "16527e62111a241e71dd84f4219f17d90b18470c22b2165fec13ccb1106d03fa"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_025.png",
+      "bytes": 480731,
+      "sha256": "445637fa2267ce5015cf726d9b113f124412901b854ada7c9889d75581dde2d1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_026.png",
+      "bytes": 281885,
+      "sha256": "7dd28636311bfa74590ff4c139be509c5069f7890be9f922c8364c4bb3c117a6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_027.png",
+      "bytes": 254513,
+      "sha256": "5af6a66ac6a494049d45db06c549921c3b333095c4f12fb9d1a67066b410255c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_028.png",
+      "bytes": 240612,
+      "sha256": "c5d4f5ae8e6cf2390c2119cec90e930e19f234faf9dab95b8a52b36ee97bb14e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_029.png",
+      "bytes": 368721,
+      "sha256": "448d5922cbc2718ac479387bae055956c67782a5694c7f3277509fd132bea814"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_030.png",
+      "bytes": 239508,
+      "sha256": "81dfb4b4bd6de46ecb4f7a9c0308e1551ed5f365b2f23d30a06d86845f2b898d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_031.png",
+      "bytes": 206509,
+      "sha256": "5401d82d66c3b76d8da4dc87b8896857ba74691db2fa58bebbc943cc06a23c43"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_032.png",
+      "bytes": 195349,
+      "sha256": "0713d832f37a96e22aaedf807287ef6aa767f1ae2e83e70af99faeffb3982fc0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_033.png",
+      "bytes": 179997,
+      "sha256": "35b5c8b405bc7c0046876f13b58994c3dd5c0ff34982dae67943854e1a4dbb88"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_034.png",
+      "bytes": 179997,
+      "sha256": "35b5c8b405bc7c0046876f13b58994c3dd5c0ff34982dae67943854e1a4dbb88"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_035.png",
+      "bytes": 174620,
+      "sha256": "3a2878cf7ca3f4613a2ecadebf2b0f8508b26043809ba40486004b310297ad0d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_036.png",
+      "bytes": 174620,
+      "sha256": "3a2878cf7ca3f4613a2ecadebf2b0f8508b26043809ba40486004b310297ad0d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_037.png",
+      "bytes": 276829,
+      "sha256": "8b8a38d95449cb924365f196895f632546fe284708622901078eaa7b1720dc6f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_038.png",
+      "bytes": 220598,
+      "sha256": "f320ff05048430188e3c3948ceb5413349d626489d0a16b3bfaa597af0103fb3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_039.png",
+      "bytes": 398741,
+      "sha256": "887d62a55b5bc45b29b9c9c78f613672d42b80c8008b8e0d69d7b8804bd6fd72"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_040.png",
+      "bytes": 410113,
+      "sha256": "88d080cf965d4646de344955f170a9b0cba51a4a3402cfd34252c7db95b87daa"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_041.png",
+      "bytes": 448061,
+      "sha256": "597ae76407fa670d56787c9fb199b74415a92f33021780d177c0732da6c3d3bc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_042.png",
+      "bytes": 466047,
+      "sha256": "aaefba561595fe8b3cc4759246fdd0f0144a307443a6b3e4f73b97d2baebfa1c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_043.png",
+      "bytes": 475949,
+      "sha256": "dd086e1bdbf310526ed8e10150af65652c2dc8e15744ac9bfc07a8c96a80067a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_044.png",
+      "bytes": 474856,
+      "sha256": "4fd0e02e460fee3e1f60100e8dbc49d0f0054bc133542656914d2bf550fb9196"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_045.png",
+      "bytes": 496826,
+      "sha256": "13b71fdca40c77f41674624ad6bb58158b5061cb6d159086a09a43e3ca253d95"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_046.png",
+      "bytes": 500820,
+      "sha256": "00ba6115c1321a73d1110ec34d4b659cdc57c41fb48cde4c30dcf678bee8c135"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_047.png",
+      "bytes": 506608,
+      "sha256": "eb4a7860abd9c18a1409685f075e6ce8995de5d91a909bd8744eae5c22a11914"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_048.png",
+      "bytes": 508759,
+      "sha256": "bbe8f09aca46a2ca3905574f7018d250c4b1c63ac57a29269b16b90c9e303e65"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_049.png",
+      "bytes": 430908,
+      "sha256": "e2abaedcbbd16ff3dbe4873cb1670f5b844fd040af40a03f8fe3ac112655e4b0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_050.png",
+      "bytes": 422751,
+      "sha256": "8a1040526ed259a8d9c196d93c3bd9b745a47b440574e14c4e06f51df23326a9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_051.png",
+      "bytes": 390317,
+      "sha256": "e6992662af4a667ff0da871752679cec6d3adee1db233738d30c11c0872afc7a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_052.png",
+      "bytes": 378715,
+      "sha256": "236be74ab0cd5b023c89518c11e3060e2fdd33a174026e8c770ca9f3dbc23688"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_053.png",
+      "bytes": 525199,
+      "sha256": "a62103fcd66f7b835ffd972000db090c2fe65513b4394dcd07fb4de4d0ffe8e2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_054.png",
+      "bytes": 515040,
+      "sha256": "6a65cef4845e184149b322c0e4948b4f6bef5d03e2deefdf87405b4f6307c5e9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_055.png",
+      "bytes": 502148,
+      "sha256": "b720b5fe268bee0944b9bcb54e88538e25ef60defe96cdc712251d688bb47f70"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_056.png",
+      "bytes": 466609,
+      "sha256": "5ea63ac392a04156e4b79156a2afc2f96216d887e371d605d9fe15f9f4ff8913"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_057.png",
+      "bytes": 452492,
+      "sha256": "ac37acc6db7e878b2d83998e70d3276596bf612feaa3621018fec1ab9a596622"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_058.png",
+      "bytes": 444015,
+      "sha256": "871aa7b6f74858620e3bb7253a8dde94ae58d73ddd987055d6d6747a26baa954"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_059.png",
+      "bytes": 442049,
+      "sha256": "899648c20673e4b7434dec98c769ac5f305c4d1ca7dfa8869feb42b25755e9ab"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_060.png",
+      "bytes": 577738,
+      "sha256": "a4ca8dbc34fd4e2e72fe07bbc978d899e7f9573336aaddb15f84fb10e41c1c82"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_061.png",
+      "bytes": 575810,
+      "sha256": "1f6e6e0ced8c218547fb3ae0376631b612e48e93ad184f4e6040205ed2c14ae2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_062.png",
+      "bytes": 562603,
+      "sha256": "42f96760f231f1c7e9adf8ed751ef9ce0cc3a317bd36d27b957de0b3c7b5ac51"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_063.png",
+      "bytes": 557693,
+      "sha256": "9f0d532fa61636256a83f676bf4cab6fddc5ee3e00d26dde45e89c6663bc15c8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_064.png",
+      "bytes": 548076,
+      "sha256": "af333cb4a99c02679c9ff992fabe90f8e011ebe03595677db2225d004e089890"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_065.png",
+      "bytes": 527742,
+      "sha256": "16045c2e85f10d88db3d3b61b14106065c4e831e49b5dd92f5b6d9d767bf5721"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_066.png",
+      "bytes": 513513,
+      "sha256": "057eeb1197126aff32a6222b1ad82f1996609ecfa39f1b4069ef013e83beb1a5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_067.png",
+      "bytes": 490470,
+      "sha256": "abc3345cdacbf0f8c2815375ed093f648c0311a61154f4fa4c4418969f94eda8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_068.png",
+      "bytes": 437131,
+      "sha256": "b803d77f8bb6136a71d47417ee1ec9871e9902c3ef14c407a38580e51f9006df"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_069.png",
+      "bytes": 502303,
+      "sha256": "d01384b63d8b9ac745d79655fd1111d259e0dcdaa414fb1f93cfeade9c10dcf6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_070.png",
+      "bytes": 546309,
+      "sha256": "af6471b016692dff2cd9273ef5d29e0d7d2c5051b94bf9ea275694737861a50f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_071.png",
+      "bytes": 571888,
+      "sha256": "cba75231113488b2dab465543bbe1e16aed2a3e29b538f42881179e9e8c44d11"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_072.png",
+      "bytes": 570046,
+      "sha256": "10cff69466659d757bfab2e03b2d0441a4a8c1621ce89657ad36217f23b1b360"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_073.png",
+      "bytes": 424760,
+      "sha256": "4d48149cf4242ecd17b3d33479c6f2b3a9b2cad410fe80d476f78afda01e27cf"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_074.png",
+      "bytes": 426339,
+      "sha256": "14f688801c83dfb51c0e47e40b646c61d1d5abb219d17a6bbbde97b1f706f931"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_075.png",
+      "bytes": 558953,
+      "sha256": "f15799609098a18554e0c03f2daa2ac72a1eae8266f6e8ed438509ea4d695b19"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_076.png",
+      "bytes": 559437,
+      "sha256": "67ae5ada15814dd89175f854e0447393c54894199ce3889612f9b20e42467d97"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_077.png",
+      "bytes": 534291,
+      "sha256": "b43db5e794f875d31369de6d09a5334feaabec17d5ef6062b6661e5933d302d4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_078.png",
+      "bytes": 541515,
+      "sha256": "64666aa918a0102a2a5f1e8ea04073142d7efb12da34b183f9a1e2a7dbd6b0ba"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_079.png",
+      "bytes": 538259,
+      "sha256": "734c6d6a8ede5949a371f3c3ed367a83353f4c2c5cafc97068e44c65107cb97f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_080.png",
+      "bytes": 529963,
+      "sha256": "df467fa69898650a6ea628bf44a68f3f35fa4a34b101e3c215c1963a41ca9845"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_081.png",
+      "bytes": 533666,
+      "sha256": "2bbe66cfffca97a2ee4dc08e980854233b6c5866c28c00fc87445d4b03aeffe7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_082.png",
+      "bytes": 530743,
+      "sha256": "638a2e843f12ec193b258114161432430fd69bf6524fb3bf77e42ff06b4da0e1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_083.png",
+      "bytes": 522645,
+      "sha256": "26e250a5fe62a475cbf503c11c330959ea626447a69dbdaef9200ec4203ec8fc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_084.png",
+      "bytes": 521793,
+      "sha256": "31b56613cb7dc2d51214cfd55a5008b110e168e44151ad0857bb9de3646d1b2c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_085.png",
+      "bytes": 521254,
+      "sha256": "7239990f428a7fa67f5f0587612669b6b18e9a5bffd9e7a0c3e1084a75cc297a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_086.png",
+      "bytes": 521256,
+      "sha256": "ff8602dcb558039817ef990d5f8b46f18f72bd7e4a26ab1b43fd80c315275c05"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_087.png",
+      "bytes": 521273,
+      "sha256": "a66f695efe187f83f200906098c14565b59dfe06ae7c00e489e2da21d1057429"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_088.png",
+      "bytes": 514266,
+      "sha256": "b513b0f730b0ac1bb5b43ef247bd4862ca95f485ed2cef1c92ec5b2d5001ce16"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_089.png",
+      "bytes": 522048,
+      "sha256": "82740c15ea73b393acbf6e47a29c3415a7c396217f8ebfaf2b17acc3d656c161"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_090.png",
+      "bytes": 557552,
+      "sha256": "42da2ff27af0020a15d46cbe7dae764f28b43c977825f2dd996c5de113ff74db"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_091.png",
+      "bytes": 602476,
+      "sha256": "3b3963eab98144bdceac23fb4ea8cbda26297390db1224c50b1a070eeb7fd8e2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_092.png",
+      "bytes": 552424,
+      "sha256": "8135234c0db59c04532ad034839f0a96c22cd50209242655d4ad0330d2949f81"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_093.png",
+      "bytes": 489199,
+      "sha256": "43e39dd8268e23285c357a67d48332bd367773123213e6e62957e9dc9abb0f82"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_094.png",
+      "bytes": 463292,
+      "sha256": "f876ded6c4058e01164b0e7f86dc882876cfd3a5e0ab7b4f3b646820afdcbfdc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/edda_motion_095.png",
+      "bytes": 486238,
+      "sha256": "eb926fcfd66c40c0e19a1cd45203b93288e5be09bd82b17453794b5d59eb7476"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/historical-input.json",
+      "bytes": 1000,
+      "sha256": "9a01cbdfbb91505aa4e00b93306680dcdd5ddcc0154d8370900d43fcd0d4bfbd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/live-edda.json",
+      "bytes": 766821,
+      "sha256": "569565c5bf6f36e60bb6fca27063bbfa8574612d66b4ab2ff94d0bdec2801ad8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_enforcer_lesson_combat.png",
+      "bytes": 910187,
+      "sha256": "96ba7566637d3a9e925b7cc2afd7019afe6173b25cf059187e7eee201628aef9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_enforcer_lesson_enforcer_dead.png",
+      "bytes": 449972,
+      "sha256": "53e4009fa586cfdb538217b4321fba30c9de820378981cdeb7681f90422be091"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_enforcer_lesson_enforcer_recovery.png",
+      "bytes": 440957,
+      "sha256": "0abe64736a8c32cf8ca3a609930db92a9e6e6a8728d29723ea9ad4b3cf026ccb"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_enforcer_lesson_enforcer_windup.png",
+      "bytes": 440611,
+      "sha256": "6fbb8a6f7e385e6250589554b0b945ba36cf74c4822cf2b514c6a224e9e49080"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_clerk_dead.png",
+      "bytes": 536892,
+      "sha256": "dfa54176eacf031e75e531515cd13ab0b1b69833ac6df5a7934f552095166dc8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_clerk_firing.png",
+      "bytes": 543810,
+      "sha256": "3cada3d29247b2d4a679982d46bbce0684b8216a1a62c0738f3fcb02bde2a163"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_clerk_recovery.png",
+      "bytes": 458291,
+      "sha256": "427fde3f86dda963e9487cfbdd16c37636d75a6a46fff0a39604ee39192e334f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_clerk_windup.png",
+      "bytes": 442111,
+      "sha256": "dd84f310b8d30eb1d08e2baa3685c254d09e5167ee85931b38ff390120d846e6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_combat.png",
+      "bytes": 2997033,
+      "sha256": "ec04385633c0f170deb7aa7d11995bee2541e1f49f2112e35603fe0cf58cdbb7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_enforcer_charging.png",
+      "bytes": 547934,
+      "sha256": "e0d34371cf5dfc923566595733cd460d1c4d9a15ccc485bfe5cba8ce3755bf9d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_enforcer_hit.png",
+      "bytes": 493411,
+      "sha256": "a4c90074ae20601b4e0a181d980339f13be2916db8b4cd1b6940388510efef49"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gallery_counter_enforcer_windup.png",
+      "bytes": 433140,
+      "sha256": "a18cfb027a9249324ac8bb41e6e12c2e1376917bba686e739bc164172dc38cb4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_combat.png",
+      "bytes": 1877526,
+      "sha256": "3b5450a51a981d6d44d6d3b57b95b35793322c00eaf32a49efe4f6409fab2f69"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_enforcer_hit.png",
+      "bytes": 556792,
+      "sha256": "0562afe23b56168e146ee04c5fe8049da735bc68217befc746cf023e92c58239"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_enforcer_idle.png",
+      "bytes": 558599,
+      "sha256": "ea21670f6f49c81ee23a472332efa1f1bf6d77714b6e8100c5c731d463382fb6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_enforcer_windup.png",
+      "bytes": 596307,
+      "sha256": "6fc74a8fcb39973fcfa88384dd0ba291d63932d0d0a8770205185d620f9a6c44"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_sweeper_dead.png",
+      "bytes": 564661,
+      "sha256": "b950012d21c6fb4263be5ac987a229027c674a70e6259a78bf219513c84baf86"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_sweeper_recovery.png",
+      "bytes": 412095,
+      "sha256": "13afebf1ed64f6f9267f17722229e4fb5fb217292fd57f4937ccabada06d4fcd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_one_clear_sweeper_windup.png",
+      "bytes": 502451,
+      "sha256": "601d961d61c4b11ede02bcd5afc8e6645fd307d47d54d91d05980d4cf0d1ba73"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_combat.png",
+      "bytes": 2642060,
+      "sha256": "baced03ed60bf74b4f38ac6f1f7bd0cecd731af3ee5e238cc9261053b8fbe673"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_enforcer_hit.png",
+      "bytes": 628843,
+      "sha256": "3560a811c2bf4d3b43631a0258a68880adc73ebe8f6025af6e0da8cb8df5b5ad"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_enforcer_recovery.png",
+      "bytes": 630140,
+      "sha256": "da0db66cef92cdee14420713537130416ca2b47d8754cbc0a105f020b96e6e04"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_enforcer_windup.png",
+      "bytes": 594076,
+      "sha256": "49e14eb5c12fc2b52c890e7c739919dd5b3bdbc6b7c0b0d6273b7eca9fcfb472"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_notary_moving.png",
+      "bytes": 607946,
+      "sha256": "a1ebe99b23de6f0cadadc067e40dc0cf44910988ea9b8c35762ddb5bc6719bb6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_sweeper_dead.png",
+      "bytes": 554128,
+      "sha256": "7166384c0800de2e9910160a3eebac4e6d196111c2f30bef133559b5dd05b10b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_sweeper_firing.png",
+      "bytes": 583794,
+      "sha256": "65fa45dc55b59c267ee87e76df3aba8eb88f791472389fedca6ef56580e997d7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_sweeper_recovery.png",
+      "bytes": 592057,
+      "sha256": "35ab2951b4214bc1cdcb07539f1287d89cfab5b09dac1516474375596662d4a2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_three_clear_sweeper_windup.png",
+      "bytes": 569327,
+      "sha256": "a176fc7e5ee7d647c6738c13d458d1ba8433843178ae0508112e54c955a43219"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_combat.png",
+      "bytes": 3490328,
+      "sha256": "9e729be44da2ab78eafc6b500cff14231c5909f65fcb704d2446cb754e68b0ec"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_enforcer_charging.png",
+      "bytes": 616235,
+      "sha256": "e595b5fe73edc8fa7b9d2b4c84a876424b12921fc10810a7906aeaa8a36e457d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_enforcer_hit.png",
+      "bytes": 630124,
+      "sha256": "e1b032a8e2eee675b059e048dc546f57227f40aa74eb2b1fc8fd934992864974"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_enforcer_recovery.png",
+      "bytes": 632867,
+      "sha256": "2813e7e2efd8777b0860826b09777373581916bf1688a42161c7670190dc2b5e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_enforcer_windup.png",
+      "bytes": 631395,
+      "sha256": "0fd63c61f3e74055240b45f90b201872aa1d0fe6172068841928cd6b5ad6ffc7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_notary_firing.png",
+      "bytes": 644423,
+      "sha256": "4695d6d0c0bc6ca993b9d32713e411a00a2130418a70e5444576309e14313fdf"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_notary_windup.png",
+      "bytes": 627329,
+      "sha256": "a0b932df8a9a14bff388f9a8731d22dae744773537cf01ac5972a6e387177d70"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_sweeper_dead.png",
+      "bytes": 536923,
+      "sha256": "d5f4397bda47c77536fa56f167033eea7c24dabff16fb4ebde99b4ed202d7249"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_sweeper_firing.png",
+      "bytes": 550104,
+      "sha256": "5c509088e80298199267c9da4b9af0a6653231bf1f35c05ea5d4d8a542a2fc36"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_sweeper_recovery.png",
+      "bytes": 539497,
+      "sha256": "35b1756366df3ad3094ba889e168a61510a010413025be1924b370ce4fa13ee1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_gantry_two_clear_sweeper_windup.png",
+      "bytes": 538300,
+      "sha256": "7365b35f71b540c5e0af64c198a3288c31521233071e84c1c9f9b39bc5d0b85f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_hatch_clear_combat.png",
+      "bytes": 731459,
+      "sha256": "39d6cbea86bd4c766d37b7a26acd8d6a269c6bafe3e0ef0f6a05ef873976b135"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_hatch_clear_enforcer_dead.png",
+      "bytes": 463557,
+      "sha256": "b22ac7084d64a67661d906767a3ecd2586b6391a57c56a8ec5eb611b5db6a8ca"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_hatch_clear_enforcer_hit.png",
+      "bytes": 504916,
+      "sha256": "dad9bda9e7963a623d3ef1c2d08846d732e1fab393ffd2f7a78b98afe4bafbcb"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_hatch_clear_enforcer_recovery.png",
+      "bytes": 491885,
+      "sha256": "f69e2c87ce7a0817c599830989aed9a80bd61cde327df633d53fb9605028dfce"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_hatch_clear_enforcer_windup.png",
+      "bytes": 495632,
+      "sha256": "1552644817d25fb14029a9d28bdd6cdd73034441def97a0306530385603881af"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_clerk_hit.png",
+      "bytes": 314842,
+      "sha256": "770db4fbcb77e2cee91dc58fd7c280dfb1a24f32f494cb96c9eef6554a1af920"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_clerk_moving.png",
+      "bytes": 221189,
+      "sha256": "2a04646c4746a480ae930aa540e25a09e28d3aaf8f842febd307aaf457db937e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_clerk_recovery.png",
+      "bytes": 357002,
+      "sha256": "3f98e7ce50f66d260de5a8cd66d7c39e9cc42ce7aeed5b21e47e77427d96def1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_clerk_windup.png",
+      "bytes": 360315,
+      "sha256": "55a71a586cf1b326e04f72ea1f836ef101d33ca0f45a6380d646afafb04c2ea6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_combat.png",
+      "bytes": 2525899,
+      "sha256": "439158c018a7593bbd6ccc3dfad73231bfd8eec912105c5bfbf8aac7103b00b0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_sweeper_dead.png",
+      "bytes": 344287,
+      "sha256": "701639cb19c5e34de6eef2031ef038564b1081426e91e5e1ab977e1dbbbf95f5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_sweeper_firing.png",
+      "bytes": 372941,
+      "sha256": "ee057e00d35bd697e62c4ff5451946d2aa8b3fe71655c37baec3a71a0bd12611"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_sweeper_hit.png",
+      "bytes": 383689,
+      "sha256": "7a5cfa28e409081ca4be74097e371700ca6f42af3cd4ef0fca180c4e8fdda0a1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_sweeper_recovery.png",
+      "bytes": 318998,
+      "sha256": "f64f9eff007666581a18fb2569b5da8ff299d04341144c2542581e05c89bfee8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_sweeper_windup.png",
+      "bytes": 309611,
+      "sha256": "46ede299f5435e175cc0d8e1a336bdc3c0fcd36abb0ec787a8f3f01924c599f8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_loading_clear_turret_idle.png",
+      "bytes": 367534,
+      "sha256": "842810ce34c75622cdad3d2223d9b7c6363addb5767d2d06ae3932a585bef1a4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_office_clear_clerk_dead.png",
+      "bytes": 373249,
+      "sha256": "b6d5255faa199e611b05f319bf2f921e6da7ad938158149115afe56cdf1973f8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_office_clear_clerk_firing.png",
+      "bytes": 393290,
+      "sha256": "a58630391bdfe98890dbfb5d390873bc5adfd39d3492919b17c0dba123c2a767"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_office_clear_clerk_hit.png",
+      "bytes": 462034,
+      "sha256": "47b65137aaa0175479d8df0f7ea21925a238717c879d13f6aee677c59a7d05e3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_office_clear_clerk_recovery.png",
+      "bytes": 370732,
+      "sha256": "22e00a953fda8524a33226b4b7de754cccba1f1d36147b3cc179fa0129853669"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_office_clear_clerk_windup.png",
+      "bytes": 485449,
+      "sha256": "83a87ec3060a076700acef83ac91ad6fcdf835b5226c68c5238ac2f1c5ccf549"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/m09_office_clear_combat.png",
+      "bytes": 2369993,
+      "sha256": "c924f586a982fa90b5072afcd65570a1585daf00184c913fa7406ef9974e4956"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/manifest.json",
+      "bytes": 2891764,
+      "sha256": "edf0eb15bb6b47a5bee5444d4a9463e9243c6a9f925ec41e27d97841de009b35"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/process.json",
+      "bytes": 466,
+      "sha256": "2c9f8e11285b2614877582cab08bcd976beb0e9a96724922c471c2a5ac6666d5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/renderer-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/renderer.log",
+      "bytes": 3278,
+      "sha256": "0c64e77035d73c850b9d59c563038c25eadd03dfa24834b90e1cca23ac4eb762"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/run/run.json",
+      "bytes": 1246,
+      "sha256": "1e4129ef64c383dbcc2425c115dfc526ecc19aeb72d5b28d6595a9daffc555fe"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/run/run.prior-9a01cbdfbb91505aa4e00b93306680dcdd5ddcc0154d8370900d43fcd0d4bfbd.json",
+      "bytes": 1000,
+      "sha256": "9a01cbdfbb91505aa4e00b93306680dcdd5ddcc0154d8370900d43fcd0d4bfbd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/service-record.0.json",
+      "bytes": 5188,
+      "sha256": "a6d6b7025ce4f700583098f9d71e1676e41e9f1702a3fe21a45ee781308f019c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/service-record.1.json",
+      "bytes": 5222,
+      "sha256": "503f5867a37fcb9cdd22a97ef0181efd7ef4795368f5034c1688c7a2a3c6053a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/civilian_figure.gd",
+      "bytes": 1940,
+      "sha256": "629784903161e013a98346fb9bc154884ffca742dd3ab954d0d8a13ba8d3529f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/edda_live_tour.gd",
+      "bytes": 9461,
+      "sha256": "7c7c71dcfb469f8e55ef4bb0698342c0420f0f0be06b49f6f6861fdab263ccb8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/enemy_view.gd",
+      "bytes": 10102,
+      "sha256": "518a109d33551463bac2ad21f7260091c568482c18edb7c0fb53411f44a2533f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/local_match.gd",
+      "bytes": 12159,
+      "sha256": "5a93e3a2a88a87b3b8156c63b471078462ad08d3cd0632256f20c9a52a08ffc6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/local_process.gd",
+      "bytes": 2075,
+      "sha256": "58fb2b9a8899b98861b3f21d92270db2fe835da7f81b5e166bcfe3f7f76dd015"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/m09_berth.gd",
+      "bytes": 5704,
+      "sha256": "15b6ee2f8e97586bf37571c796cb827b467f53c32679740f2d378526921c6a47"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/m09_mission_state.gd",
+      "bytes": 12969,
+      "sha256": "f03d506f114e1d369520ad1dc7e1aac5131bd85be3f0749cabdaa9cb89731b93"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/m10_mission_state.gd",
+      "bytes": 8994,
+      "sha256": "c5992eff7fd0dd4c504e0fba9a389db8760c03bfe472fd8616807d7c3ebc5f98"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/m10_ship.gd",
+      "bytes": 2109,
+      "sha256": "c5f589151c8de39a76aa044edb5001b0e561f7497cb556408f8175881fada74f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/mission_state.gd",
+      "bytes": 22505,
+      "sha256": "8b5d872f3dbc8f62f19d16093962391e7c1b7911d3eef60207682f231c8b6740"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/player_pawn.gd",
+      "bytes": 38395,
+      "sha256": "b842c96b2dff9ed6b782ab96ec9e51984516ef7bc6ae64360fd9b48e692bcad4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/qa_combat.gd",
+      "bytes": 42084,
+      "sha256": "a087c44e8af9ee7f7879161227480b2e9164fc569cabf27872ac1d770c1cc405"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/qa_tour.gd",
+      "bytes": 140981,
+      "sha256": "fc9d5f45d00f0eff675883ca3f2aed913b04a83fdb75fbaaed4ceb80efbd0f28"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-eligible-first/source/skinned_character.gd",
+      "bytes": 7690,
+      "sha256": "2f58b72100f49b57e4e6f753995dd5a0a83ba23177e678c43f260dc6b45a9b4c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/01_m10_passenger_entry_world.png",
+      "bytes": 439807,
+      "sha256": "8b9d51b4d78148954e5392e07c262b03796adfa1f5015ed9ca102d767637c57d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/01_m10_passenger_entry.png",
+      "bytes": 474349,
+      "sha256": "d64404e5a74ff265ba71973b23d535272527c6a22db7ca81e611fba0268d2486"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/02_m10_cabin_stock_world.png",
+      "bytes": 379981,
+      "sha256": "ad8c7d96b26763464dff35f9e103dd1b94a95f1ebdb42aa88c56848e3727fe77"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/02_m10_cabin_stock.png",
+      "bytes": 406866,
+      "sha256": "7adec99e71f6f1bb8cb930e4c83940ebff67cf3b16297137eecb9d9523aafe7b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/03_m10_edda_player_height_shot.png",
+      "bytes": 424365,
+      "sha256": "ce5b039f2e6d7415ded5b393dcb560fa3d7030e5fc40d64207bdc7d5d1097ddd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/03_m10_edda_player_height_strip.png",
+      "bytes": 88730,
+      "sha256": "f1ac2d459b81c7ec361b4b451ffac3574ab508180043f3d8782b8566fb32efcd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/03_m10_edda_player_height_world.png",
+      "bytes": 393816,
+      "sha256": "fb92ef315e2f7531fcdf610b8c1d3066570abe969df7c43d4b3d688b594f418c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/03_m10_edda_player_height.png",
+      "bytes": 414606,
+      "sha256": "9142640cb73e205f70b2e15c6debc4cbe8be8160d53c106707e8b29744443d2e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/04_m10_passenger_hall_world.png",
+      "bytes": 342399,
+      "sha256": "8dc0535db25753d0b58da41491552c72de8fe23ebb6e9d99fd90f0349fae2727"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/04_m10_passenger_hall.png",
+      "bytes": 356098,
+      "sha256": "04a968a133a9d8fefafeb1f0cb3b628d740059fedc67c8e5e1b9d0b445195944"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/05_m10_west_stair_down_world.png",
+      "bytes": 334655,
+      "sha256": "ca8c31824a3ae5632a783eded4cbd2a6c3a0ac09c426484f1cb8d939055c167c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/05_m10_west_stair_down.png",
+      "bytes": 348957,
+      "sha256": "1b20e1c7948f1b2a1c4ef4032ebd62d928d9946005fd2c43b4625a737f389e56"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/06_m10_cargo_stock_world.png",
+      "bytes": 234717,
+      "sha256": "a61a9ffffa8b32bff3cae742ba0f4edd859a83dd7e1310efce4cee1315c06273"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/06_m10_cargo_stock.png",
+      "bytes": 253163,
+      "sha256": "5107af7993f4d91b545681de29b943d3f950c61ff08158aff8be6110c75638d6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/07_m10_forward_lower_world.png",
+      "bytes": 326483,
+      "sha256": "e74fd7344302578b2696838211232411b603f5c024ab035f4cbf88db857933bf"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/07_m10_forward_lower.png",
+      "bytes": 348367,
+      "sha256": "9453adc363d57b5d910a0135a91f38e90f6000c8278fa457d6e904b45a23eec3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/08_m10_west_stair_return_world.png",
+      "bytes": 352828,
+      "sha256": "d50da00239cf67a2a23bcdfb96d32a0fccf582f810efbf6c711c0d3634fd97ee"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/08_m10_west_stair_return.png",
+      "bytes": 372006,
+      "sha256": "41f9f6704880625b86849953949b32c21bf63cd9eedd1852f4f8bfae109f2c1d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/09_m10_forward_gallery_world.png",
+      "bytes": 352779,
+      "sha256": "f0911d61aba6d87b7bcd8f6c1031ba34885f73f0259d0994049cdf897b3b35c7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/09_m10_forward_gallery.png",
+      "bytes": 371336,
+      "sha256": "25fdba16c414e1b0e41c1bc49ad69e38369d3c7d4a4a11f8948cf5c1b1e285c2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/10_m10_forward_arrival_world.png",
+      "bytes": 308720,
+      "sha256": "0a75f45b706f9935b97bcda91ffefc9fca94540ead2183a682126516a852aa00"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/10_m10_forward_arrival.png",
+      "bytes": 324491,
+      "sha256": "640a9571a2be6002f6038ad0dd725e57810cf800ed86b934607c284956ec519f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/11_m10_service_defense_world.png",
+      "bytes": 284680,
+      "sha256": "4e6d9a3b57076243d4c9022df5eca35aa785dff26d5a879ab8c0da5bbe6f9796"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/11_m10_service_defense.png",
+      "bytes": 304416,
+      "sha256": "29270405f0e1f78464c8c3aa4fb1c37dcde169edd08031502f0c6acd0f5fbbd3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/12_m10_repair_stock_world.png",
+      "bytes": 397028,
+      "sha256": "a7464779ca234c44b6c9e850851712ae49aa08840c50d235944fa454f52d26f2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/12_m10_repair_stock.png",
+      "bytes": 404824,
+      "sha256": "34cc54fc5703de49e930ceb201c31b861c7296e814084057987e1d7d3cf2bf07"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/13_m10_service_arrival_world.png",
+      "bytes": 255889,
+      "sha256": "dc7a96d49fd5dff8859b7ce50f166348e79f1bc78bc92eba79261d71857c181e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/13_m10_service_arrival.png",
+      "bytes": 271706,
+      "sha256": "723a27faf8319c34edf8368dd5a67fec05e30946ee64f8ae8dae7261ffca7fb1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/14_m10_aft_stock_world.png",
+      "bytes": 267825,
+      "sha256": "3560a7f4665bb216929cf2e8419818fe523e896c25383287e694af1d29dd66d8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/14_m10_aft_stock.png",
+      "bytes": 293244,
+      "sha256": "146438edaf27d8c4b604ae43efcdf0bd1bea1b25771addb77b6faa2bb40ab645"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/15_m10_east_middle_world.png",
+      "bytes": 353977,
+      "sha256": "65d35a867d740cf892ff2c89a99b916867ecf7f02ca53730f2a3aac45229d0f6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/15_m10_east_middle.png",
+      "bytes": 365013,
+      "sha256": "e372dd58df6051cc333611c1bf8183bbc9df1b68fa1f3c89890aaeaf289a388f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/16_m10_east_upper_world.png",
+      "bytes": 312730,
+      "sha256": "c1fd0cf2631dfed4efdf754db28d8c5b42c62a934a2d2ef4283bfdd290d3b079"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/16_m10_east_upper.png",
+      "bytes": 327008,
+      "sha256": "996a88137a8b13e23d430950d47f2be6c7828b28fa7088acefa1703d145b2ab2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/17_m10_aft_upper_world.png",
+      "bytes": 426045,
+      "sha256": "861623b0863162dba84e2605bbb1febe0860a0fd742e7c0bc944970da3ff079a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/17_m10_aft_upper.png",
+      "bytes": 442387,
+      "sha256": "93d73956895d69140021a3714e3fb108198c5f4d5622bf641dab3677eabc0787"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/18_m10_freight_overlook_world.png",
+      "bytes": 183172,
+      "sha256": "bec128014d8ffc867e5f4259f18b1d64b757fa2074d4d233760102418b9cad19"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/18_m10_freight_overlook.png",
+      "bytes": 201370,
+      "sha256": "c4898c0024c846af4158fe9dc67d856fd4a7e80fb8797d03302948d66b008972"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/19_m10_command_stock_world.png",
+      "bytes": 330003,
+      "sha256": "b91da7b72e646b8164890e795f9d20c9aa3acb3720908fe4a53fbd7e3756e8e1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/19_m10_command_stock.png",
+      "bytes": 356303,
+      "sha256": "a1c37224b48260aa0e0ace719bc60feee3749cc7c3be5ce5e0ad628bf80a2fe0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/20_m10_lower_return_world.png",
+      "bytes": 424460,
+      "sha256": "c0fad54951d5430dbef212dfbff7ec1c5d02938bcc86c90a803a7f671499a999"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/20_m10_lower_return.png",
+      "bytes": 436554,
+      "sha256": "1d6dfd7bc490ca8870ecd35ca3150f200e683d527629347f4034087d07dc814b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/21_m10_aft_notary_world.png",
+      "bytes": 386406,
+      "sha256": "4e568aea2b8c7ed324950dd3ba351c698073cf2177322bf7d8c3334810f030a1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/21_m10_aft_notary.png",
+      "bytes": 397938,
+      "sha256": "3e402a5ff085377359776ec5a5eb7df9229198dd9e7f5969502bfe71db9253d9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/22_m10_aft_heavy_world.png",
+      "bytes": 209523,
+      "sha256": "3f966479c68da6563919491ecdbcac7014f7b89d42d8392d791872ae14e94f8a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/22_m10_aft_heavy.png",
+      "bytes": 236089,
+      "sha256": "cd937ba3d6cfd7514542cb714ee9f42699225ba113618b6cb66de1636d43e7e3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/23_m10_aft_middle_world.png",
+      "bytes": 389172,
+      "sha256": "743a2fdb3890f767b007ee91beae0cfa014ce379edf127a7e9dae0880205fd81"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/23_m10_aft_middle.png",
+      "bytes": 399181,
+      "sha256": "7761b3f3a978adb6d4d00407c0bfdfd3176a15c39a449982eef8fd1b2ea246db"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/24_m10_aft_arrival_world.png",
+      "bytes": 345292,
+      "sha256": "0993b91f4fd3f767e9635905a2776dc4e76ae3f087ef025b34fb59b4ddef044e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/24_m10_aft_arrival.png",
+      "bytes": 368268,
+      "sha256": "0ba5147dcd2713e4c4aca6a68aa80a5377fdce426932ad7f23ac941b139c34d7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/25_m10_passenger_return_world.png",
+      "bytes": 470624,
+      "sha256": "ae1855b8aeddcfad796552e6a66c0c1a319533ab238657e80e47ace9b5580b8a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/25_m10_passenger_return.png",
+      "bytes": 476301,
+      "sha256": "1884e654b72f6af2604b1d648db620ad8a84206591ba822cf94161c8deb86cb3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/26_m10_surplus_stock_world.png",
+      "bytes": 400320,
+      "sha256": "353a04b71351a26c678f45c8aea682023dfca829f4d4c97f12d3727b23f88d4d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/26_m10_surplus_stock.png",
+      "bytes": 418858,
+      "sha256": "7ff7ef0ddd1f2b51438a2283971295594686d3f7dff8e8d76f08d7a3edc9c8ed"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/27_m10_passenger_defense_world.png",
+      "bytes": 231100,
+      "sha256": "6afc7274f4c5cd0338b81bb929d89bc898b810965cd201474508cdad4bd472af"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/27_m10_passenger_defense.png",
+      "bytes": 246116,
+      "sha256": "02ba64ff7cba9cccfca17aba4b4d5bb4cc1fbc8dc5c80af24dd77c2e466534ee"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/28_m10_passenger_arrival_world.png",
+      "bytes": 323623,
+      "sha256": "9d8c4845ed5983977a8103f4b4992ec073f4ba7c505b27cedc427e6ce7ecb4a5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/28_m10_passenger_arrival.png",
+      "bytes": 337542,
+      "sha256": "fc3dc2fe1c7296f4bb0129cd53140309fdaeb2ab1e1f289fff72e3d512284912"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/29_m10_shared_departure_world.png",
+      "bytes": 48604,
+      "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/29_m10_shared_departure.png",
+      "bytes": 48604,
+      "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/contact.png",
+      "bytes": 1885519,
+      "sha256": "96f5f5471f781e886eec7b1c7661fa01575e4f064384b7c0798219d476c9571f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/historical-input.json",
+      "bytes": 1243,
+      "sha256": "f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/live-edda.json",
+      "bytes": 834028,
+      "sha256": "2289ffb37f16b6de3114c7df492c70f8bd565fc555285a3b4454b31b59ea19ad"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_heavy_combat.png",
+      "bytes": 121101,
+      "sha256": "a2fb89a50aea0e3b5c6ac964ff56b89a90f598e7f53acc39932cd5eeaa157eb6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_middle_combat.png",
+      "bytes": 130216,
+      "sha256": "df628f08d01f673512551aee0a49080b26c56a706dfeadf202f0c2d91e913647"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_notary_combat.png",
+      "bytes": 144757,
+      "sha256": "783f50b6240260d3a4cdf70aecc1e8e5e48d238c2b57b51f87810326be07289c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_upper_clerk_dead.png",
+      "bytes": 448823,
+      "sha256": "60cad735d1605075ab638882878fa2c98316406918d823ba82eadb4355bc8d01"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_upper_clerk_hit.png",
+      "bytes": 443156,
+      "sha256": "3b9ee2a2cc263d38ba5fa12d52c40c6a706203309f5f004ba363bf307e0d0708"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_upper_clerk_windup.png",
+      "bytes": 381707,
+      "sha256": "e3ed1e7cfbd21d69252810032f9f3122dcc364d2411b584cc64a2a774e7ff028"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_aft_upper_combat.png",
+      "bytes": 431920,
+      "sha256": "ab299d0ae37eb8c61c0657daf937caf9d6c23fa5af3fc55429da622bae76b650"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_gallery_combat.png",
+      "bytes": 141513,
+      "sha256": "5ea94553f4b2b9269a296d03d2f7e79584a9f3a07595fd2500b5f0a6e3ac06f9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_clerk_hit.png",
+      "bytes": 395910,
+      "sha256": "ea27ffde7ae0e3f31184dda9260ed774f1c4261baf26f7591d9d9047da4461e2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_clerk_idle.png",
+      "bytes": 394532,
+      "sha256": "37119a7e57543f622b1ea74faaf904a5944d019e0b806494e644cc6064f3d5cb"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_clerk_windup.png",
+      "bytes": 350470,
+      "sha256": "09c44451980e25d789bbfbb1492be664d669d5563f00cdb43d36767bcd7136cd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_combat.png",
+      "bytes": 1017694,
+      "sha256": "9cca091068b7df70f5a674e8021a906e4817c0fbca126350583af711b3d324cc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_sweeper_dead.png",
+      "bytes": 362463,
+      "sha256": "36dd887c9b13ed99aeb8718e4824ac7494e6bb18cfefa9b59394a8c7e7c4cadd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_sweeper_hit.png",
+      "bytes": 362944,
+      "sha256": "806edd1cdec7c15d95f7812245188df1b0d54e392400a4c5f65b41c496e19d45"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_forward_lower_sweeper_recovery.png",
+      "bytes": 354797,
+      "sha256": "adca1ff19dce0c65645b845d610a19c7bf9ec6f48d507b5cfff4ff3e78b82a6b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_passenger_defense_combat.png",
+      "bytes": 152072,
+      "sha256": "911d16030a4be7f4ad46c6b9cd993761f86ccb6ecbc8d36d273a53a52b334f68"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/m10_service_defense_combat.png",
+      "bytes": 181682,
+      "sha256": "42958ee6a1a1692c0e18a5afae8a86072a3efba62ac725f21aed7ad6d461c1e2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/manifest.json",
+      "bytes": 1284060,
+      "sha256": "b4fd30de799b61d5115af0a0cc66755babcd3db7d593cb86b1158ad2d0e97ed9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/process.json",
+      "bytes": 466,
+      "sha256": "7e8aa1d9dc5c9925e8ca8adf9fb65ecaed95ccdf6645a76b870a473f9fab8ede"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/renderer-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/renderer.log",
+      "bytes": 3131,
+      "sha256": "448ccad12f11deac52375520745583e57f171201c73f5a82e53a2007368a7716"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/run/run.json",
+      "bytes": 1334,
+      "sha256": "183314ef30a680f7153479f66950ba825d53b3edcf38b4cdd846f5e8ec953f93"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/run/run.prior-f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20.json",
+      "bytes": 1243,
+      "sha256": "f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/service-record.0.json",
+      "bytes": 5196,
+      "sha256": "9a8fbd56cbdac6f94b290d13666661ab0f21ff61702cecb6e076dd7eeccd210f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/service-record.1.json",
+      "bytes": 5162,
+      "sha256": "2e96f20fa6d5703f1f63814e63e2f9dbae5f6d97053912a518ca561157286660"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/civilian_figure.gd",
+      "bytes": 1940,
+      "sha256": "629784903161e013a98346fb9bc154884ffca742dd3ab954d0d8a13ba8d3529f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/edda_live_tour.gd",
+      "bytes": 9461,
+      "sha256": "7c7c71dcfb469f8e55ef4bb0698342c0420f0f0be06b49f6f6861fdab263ccb8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/enemy_animation.gd",
+      "bytes": 3728,
+      "sha256": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/enemy_view.gd",
+      "bytes": 10102,
+      "sha256": "518a109d33551463bac2ad21f7260091c568482c18edb7c0fb53411f44a2533f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/hud.gd",
+      "bytes": 82462,
+      "sha256": "4c90faa695b9634e7e80bc2f4c66a8c34e7cd303ac547e18554e16d3c18d5fd1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/install_check.gd",
+      "bytes": 10354,
+      "sha256": "f3e8eee854e57927f59e17782c8ce68c0e1ed8457909786965c5d7e4945293ef"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/local_match.gd",
+      "bytes": 12159,
+      "sha256": "5a93e3a2a88a87b3b8156c63b471078462ad08d3cd0632256f20c9a52a08ffc6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/local_process.gd",
+      "bytes": 2075,
+      "sha256": "58fb2b9a8899b98861b3f21d92270db2fe835da7f81b5e166bcfe3f7f76dd015"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/m09_berth.gd",
+      "bytes": 5704,
+      "sha256": "15b6ee2f8e97586bf37571c796cb827b467f53c32679740f2d378526921c6a47"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/m09_mission_state.gd",
+      "bytes": 12969,
+      "sha256": "f03d506f114e1d369520ad1dc7e1aac5131bd85be3f0749cabdaa9cb89731b93"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/m10_common_carrier.json",
+      "bytes": 22580,
+      "sha256": "4c53c9233b539e03591e306f6f0084eca4139e3e95905f0f34858e98557e5350"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/m10_mission_state.gd",
+      "bytes": 8994,
+      "sha256": "c5992eff7fd0dd4c504e0fba9a389db8760c03bfe472fd8616807d7c3ebc5f98"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/m10_ship.gd",
+      "bytes": 2109,
+      "sha256": "c5f589151c8de39a76aa044edb5001b0e561f7497cb556408f8175881fada74f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/mission_state.gd",
+      "bytes": 22505,
+      "sha256": "8b5d872f3dbc8f62f19d16093962391e7c1b7911d3eef60207682f231c8b6740"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/player_pawn.gd",
+      "bytes": 38580,
+      "sha256": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/qa_combat.gd",
+      "bytes": 43608,
+      "sha256": "4181a3a29abc2823a12e624855d5d0bc7a34991b11285f5cd902e61b7ab9aaa7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/qa_tour.gd",
+      "bytes": 140981,
+      "sha256": "fc9d5f45d00f0eff675883ca3f2aed913b04a83fdb75fbaaed4ceb80efbd0f28"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/skinned_character.gd",
+      "bytes": 7690,
+      "sha256": "2f58b72100f49b57e4e6f753995dd5a0a83ba23177e678c43f260dc6b45a9b4c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-final/source/source-hashes.json",
+      "bytes": 2632,
+      "sha256": "506a313a6bfd42bae551862f9d787e11b396f116172e83a82c9f320c66b74073"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/01_m09_berth_reveal_world.png",
+      "bytes": 759153,
+      "sha256": "3c769e40d8b2d16b68c2a1c210dea6b1c85b1c69d565bf8e18fc5e6b81fb1818"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/01_m09_berth_reveal.png",
+      "bytes": 776060,
+      "sha256": "483ed0f3fa25b9a5a169d40dc41b1e6dfaa0cf849ebe8beb38485540f12c88f7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/02_m09_loading_equipment_world.png",
+      "bytes": 357659,
+      "sha256": "2cb5c5f1d4940103ce3fac7d6055e658d0416f5cf7ed950ba75bce19b3662a84"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/02_m09_loading_equipment.png",
+      "bytes": 397061,
+      "sha256": "8acf8b81022c56bda61d77bec18517b6a3f49c3dcd9b5d95c35a7b082e8e9b83"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/contact.png",
+      "bytes": 164519,
+      "sha256": "c506c93635eb2fc5062617514cd6ec0662ad27f39f7cf1db02c0b96e9edcd1b3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/historical-input.json",
+      "bytes": 987,
+      "sha256": "abb0ff1b0085dee905fac18724bbcebe84142a5837c105b31f041030ba23121e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/live-edda.json",
+      "bytes": 383,
+      "sha256": "19773b4624ebc647e2069ab1c2161f90340b616e112271353ec91c73dcf34270"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/manifest.json",
+      "bytes": 32915,
+      "sha256": "29e29db117f9ca40c1f3492c01170e3d8febf257ce6eebce070f51a51c51cf3e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/process.json",
+      "bytes": 465,
+      "sha256": "518cfff29673dc7aa5c7c4d1a8a4cf34c850d43bd6b8548da9cabdb4e9639fe5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/renderer-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/renderer.log",
+      "bytes": 754,
+      "sha256": "6c3dbcac8b0fd85f9770f7a92e9005bb6be329e0e40da652695d6622e14f60e2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/run/run.json",
+      "bytes": 971,
+      "sha256": "5891f6b18301ce4a0a4ef72d429ea38aa0218f97908d29aaa337ddab4d2294a8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/run/run.prior-abb0ff1b0085dee905fac18724bbcebe84142a5837c105b31f041030ba23121e.json",
+      "bytes": 987,
+      "sha256": "abb0ff1b0085dee905fac18724bbcebe84142a5837c105b31f041030ba23121e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/service-record.0.json",
+      "bytes": 2565,
+      "sha256": "c338381af3e334b3a8715ac00f0b13f8f0e67b41567a24ef67a763482e5d47b4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/service-record.1.json",
+      "bytes": 2562,
+      "sha256": "965189670beaf664caeb77d79f7829134d2a374d72936dd3d73c71b50820da99"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m09-omitted-first/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/01_m10_passenger_entry_world.png",
+      "bytes": 351316,
+      "sha256": "6a697604e357ce879b0a9cecaff94e5af303a742b28acae44c63eae94fb876d7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/01_m10_passenger_entry.png",
+      "bytes": 392653,
+      "sha256": "0b4db2c4f6712de5645bb0e6116b99b3753f3f2dfca7666ccb6e63bd053a10f5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/02_m10_cabin_stock_world.png",
+      "bytes": 416727,
+      "sha256": "e45aea32f9d0e3d11fd0f6a4a9294b2ffd3d6762fafaba8e3ca7555015560697"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/02_m10_cabin_stock.png",
+      "bytes": 438510,
+      "sha256": "fd634450d160aa00c3b62336694006504c0f22cf9d6c2469ea5f2cc49addef61"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/contact.png",
+      "bytes": 142399,
+      "sha256": "6897da098eb9c93a9ca106828b9f61d9217351932ce12431e30cde1fe722b039"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/historical-input.json",
+      "bytes": 1113,
+      "sha256": "d29c9f1df04c737985de9a02a42154c299fee6dac8fb69f2399c846a15627ec8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/live-edda.json",
+      "bytes": 383,
+      "sha256": "4868387247bffabf39e2036e902d33120407e93dc7ae277d96c3a784f35554b4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/manifest.json",
+      "bytes": 32578,
+      "sha256": "ec43fe370cf08e00717a8de0c3a59ae542d6e27891bc559b11f839777548f6c3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/process.json",
+      "bytes": 465,
+      "sha256": "31c7e09cf9b95fa7e25b0ad06c20838ab625a3b7b88f7469b2005bd12fad068c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/renderer-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/renderer.log",
+      "bytes": 748,
+      "sha256": "a25038436f0e0104999f4d0416c762ff2eabfbf656ba602f76c2e2d0d81d0e09"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/run/run.json",
+      "bytes": 1146,
+      "sha256": "4d34e1b3573e87a01ea3e583398dafb7a6c34bc1cad60a506b99d0e78d304687"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/run/run.prior-d29c9f1df04c737985de9a02a42154c299fee6dac8fb69f2399c846a15627ec8.json",
+      "bytes": 1113,
+      "sha256": "d29c9f1df04c737985de9a02a42154c299fee6dac8fb69f2399c846a15627ec8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/service-record.0.json",
+      "bytes": 2557,
+      "sha256": "61904521024d76095053cf194743a3e0fd0392ca5df3de33833edc9034ddce3d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/service-record.1.json",
+      "bytes": 2554,
+      "sha256": "91597cba886c330393a5811ffa18832fb0ef590c18ca73c8c84e337a98f52be1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-unknown-first/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": "art/raw/meshy-pilot-20261003/edda-named-v1-rig-1.glb",
+      "bytes": 30114076,
+      "sha256": "bb5511f280147bb3f4fa81db6ce1b42a58cb10daebdf486def6a807d3286693f"
+    },
+    {
+      "path": "client/art/models/candidates/edda.glb",
+      "bytes": 4895504,
+      "sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40"
+    },
+    {
+      "path": "client/art/models/edda_source.gd",
+      "bytes": 1489,
+      "sha256": "d1fb6d9406cbe82430fa0eb89c7e382f4a2b362c18e076db728683583659056b"
+    },
+    {
+      "path": "client/art/models/edda_source.gd.uid",
+      "bytes": 20,
+      "sha256": "373b8951093cf1f9579a33ca841d5abfa90d80cf7e7f43ed1204ac8abe4feb99"
+    },
+    {
+      "path": "client/assets/models/edda_live.glb",
+      "bytes": 4895504,
+      "sha256": "cbf1e1e16329da194fdf058f308676e72bfefb357faeea915fc3d9500d57ea40"
+    },
+    {
+      "path": "client/assets/models/edda_live.glb.import",
+      "bytes": 1156,
+      "sha256": "a4aceaf6b50da5bfee82efb5b791bd2a7dbb630edee26e17ab7d0cfa4ab5ebf8"
+    },
+    {
+      "path": "client/assets/models/character_support.json",
+      "bytes": 39164,
+      "sha256": "168be06b02311b32190eaaaa9d27aa82edf2e419cf32605887ccbff8c026c0fe"
+    },
+    {
+      "path": "client/scripts/skinned_character.gd",
+      "bytes": 7690,
+      "sha256": "2f58b72100f49b57e4e6f753995dd5a0a83ba23177e678c43f260dc6b45a9b4c"
+    },
+    {
+      "path": "client/scripts/civilian_figure.gd",
+      "bytes": 1940,
+      "sha256": "629784903161e013a98346fb9bc154884ffca742dd3ab954d0d8a13ba8d3529f"
+    },
+    {
+      "path": "client/scripts/m09_berth.gd",
+      "bytes": 5704,
+      "sha256": "15b6ee2f8e97586bf37571c796cb827b467f53c32679740f2d378526921c6a47"
+    },
+    {
+      "path": "client/scripts/m10_ship.gd",
+      "bytes": 2109,
+      "sha256": "c5f589151c8de39a76aa044edb5001b0e561f7497cb556408f8175881fada74f"
+    },
+    {
+      "path": "client/scripts/test_skinned_character.gd",
+      "bytes": 15863,
+      "sha256": "1819f58430b9514a28cf19e9bdbf01410e065081698fc549231761fe492e3aca"
+    },
+    {
+      "path": "client/scripts/test_edda_figure.gd",
+      "bytes": 6204,
+      "sha256": "900e5a0ed962f7002ad9b56d2cf2a6f1e262b65a6dc482498d997f562fd54860"
+    },
+    {
+      "path": "client/scripts/test_edda_figure.gd.uid",
+      "bytes": 20,
+      "sha256": "dc1348e816226b993ea4ffc653f05956924d1571a871e5f0a9548082ee13a4d9"
+    },
+    {
+      "path": "client/scripts/test_m09_mission.gd",
+      "bytes": 12724,
+      "sha256": "b0913299f6cb847fc87bd755bdb54ea3adf0a8b79d4f26632c691e5a03431097"
+    },
+    {
+      "path": "client/scripts/test_m10_mission.gd",
+      "bytes": 8932,
+      "sha256": "4ac254cd15d6c7c970f52fb41923d01035c3d272c240077094d226ccf20f5f30"
+    },
+    {
+      "path": "client/scripts/install_check.gd",
+      "bytes": 10354,
+      "sha256": "f3e8eee854e57927f59e17782c8ce68c0e1ed8457909786965c5d7e4945293ef"
+    },
+    {
+      "path": "client/qa/edda_live_tour.gd",
+      "bytes": 9461,
+      "sha256": "7c7c71dcfb469f8e55ef4bb0698342c0420f0f0be06b49f6f6861fdab263ccb8"
+    },
+    {
+      "path": "client/qa/edda_live_tour.gd.uid",
+      "bytes": 20,
+      "sha256": "cacc9c40be5ec518eb897a594bd2d4175b224a874a17f8626792e1cc1a157cc8"
+    },
+    {
+      "path": "client/qa/m09_passenger_manifest.json",
+      "bytes": 16438,
+      "sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a"
+    },
+    {
+      "path": "client/qa/m10_common_carrier.json",
+      "bytes": 22580,
+      "sha256": "4c53c9233b539e03591e306f6f0084eca4139e3e95905f0f34858e98557e5350"
+    },
+    {
+      "path": "tools/bake_character_support.gd",
+      "bytes": 5464,
+      "sha256": "4452c4daf9e51f6f48a94346530e74de3e1a152f09d37ec2a6a2dc64dc1a8af0"
+    },
+    {
+      "path": "docs/plans/edda-live-repair-20261008.md",
+      "bytes": 11020,
+      "sha256": "78def0d226e56eda4dbc7cd7c29027db174f5f667c71770b8f740aee69959a89"
+    },
+    {
+      "path": "docs/evidence/edda-live-repair-20261008.md",
+      "bytes": 7152,
+      "sha256": "2df77e87640883b87d775614369ccc808f87f7c2f06f17878d2af5aa6a749b57"
+    },
+    {
+      "path": "docs/evidence/edda-live-repair-20261008.json",
+      "bytes": 102433,
+      "sha256": "90320303133ed7fdbc19203ec031ce431894b6efca929f2a52fd954410520fef"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008.md",
+      "bytes": 9988,
+      "sha256": "423b6ef76b139a53bc0f49b4181a0ef6675f9b52b2b83dba668e9fd1fee33c0d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/run-live.ps1",
+      "bytes": 3240,
+      "sha256": "6d99d1467615218f3267d28074800ffc2faf5b260b6b899e6551fe20698667ba"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/write_live_receipt.ps1",
+      "bytes": 13782,
+      "sha256": "632d585a8cc7d1a2cf40c31371b163f125c95374354ba8f08ae83d229347a47d"
+    },
+    {
+      "path": "client/scripts/qa_combat.gd",
+      "bytes": 43608,
+      "sha256": "4181a3a29abc2823a12e624855d5d0bc7a34991b11285f5cd902e61b7ab9aaa7"
+    },
+    {
+      "path": "client/scripts/test_qa_combat.gd",
+      "bytes": 63081,
+      "sha256": "a4a48885c34a0f57a58d007af6574ac24a260e0b287a855fad6c120344a58e02"
+    },
+    {
+      "path": "client/scripts/test_m10_search_route.gd",
+      "bytes": 5660,
+      "sha256": "9cc4e73d5eecbfa8c003783880c251d14962e6e725b30393ff685866170c0828"
+    },
+    {
+      "path": "client/scripts/test_m10_search_route.gd.uid",
+      "bytes": 20,
+      "sha256": "e87d62c7ef4a1ea431ed1777cab02a4f6ae5ac89b2db1fcc7ce21440b5e2f99d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/civilian_figure.gd",
+      "bytes": 1940,
+      "sha256": "629784903161e013a98346fb9bc154884ffca742dd3ab954d0d8a13ba8d3529f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/edda_live_tour.gd",
+      "bytes": 9461,
+      "sha256": "7c7c71dcfb469f8e55ef4bb0698342c0420f0f0be06b49f6f6861fdab263ccb8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/enemy_view.gd",
+      "bytes": 10102,
+      "sha256": "518a109d33551463bac2ad21f7260091c568482c18edb7c0fb53411f44a2533f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/local_match.gd",
+      "bytes": 12159,
+      "sha256": "5a93e3a2a88a87b3b8156c63b471078462ad08d3cd0632256f20c9a52a08ffc6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/local_process.gd",
+      "bytes": 2075,
+      "sha256": "58fb2b9a8899b98861b3f21d92270db2fe835da7f81b5e166bcfe3f7f76dd015"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/m09_berth.gd",
+      "bytes": 5704,
+      "sha256": "15b6ee2f8e97586bf37571c796cb827b467f53c32679740f2d378526921c6a47"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/m09_mission_state.gd",
+      "bytes": 12969,
+      "sha256": "f03d506f114e1d369520ad1dc7e1aac5131bd85be3f0749cabdaa9cb89731b93"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/m10_mission_state.gd",
+      "bytes": 8994,
+      "sha256": "c5992eff7fd0dd4c504e0fba9a389db8760c03bfe472fd8616807d7c3ebc5f98"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/m10_ship.gd",
+      "bytes": 2109,
+      "sha256": "c5f589151c8de39a76aa044edb5001b0e561f7497cb556408f8175881fada74f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/mission_state.gd",
+      "bytes": 22505,
+      "sha256": "8b5d872f3dbc8f62f19d16093962391e7c1b7911d3eef60207682f231c8b6740"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/player_pawn.gd",
+      "bytes": 38580,
+      "sha256": "8682ccc845c8324d2b71632ec2e755aeea11af0a566e6c1e0a49f4bc62df6d6f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/qa_combat.gd",
+      "bytes": 42084,
+      "sha256": "a087c44e8af9ee7f7879161227480b2e9164fc569cabf27872ac1d770c1cc405"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/qa_tour.gd",
+      "bytes": 140981,
+      "sha256": "fc9d5f45d00f0eff675883ca3f2aed913b04a83fdb75fbaaed4ceb80efbd0f28"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/post-origin-source/skinned_character.gd",
+      "bytes": 7690,
+      "sha256": "2f58b72100f49b57e4e6f753995dd5a0a83ba23177e678c43f260dc6b45a9b4c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/01_m10_passenger_entry_world.png",
+      "bytes": 439831,
+      "sha256": "8ebd248a06470edc7737560a9a34cceece273b99570e9dd88e422ea6d063a56d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/01_m10_passenger_entry.png",
+      "bytes": 471585,
+      "sha256": "4d0a8041cb288b1973def932c9bfe9563b66fbb69b55d6ccf99416fd36ef9f42"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/02_m10_cabin_stock_world.png",
+      "bytes": 382965,
+      "sha256": "43faa2f9466e0e5c072f81c40f13c743b7203ebd320e1cbf69cbeff8b7e0211d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/02_m10_cabin_stock.png",
+      "bytes": 408151,
+      "sha256": "e12bc154c8f9c5aece1389c849508b2ec4504b62fddf5a6656203eb8090c0657"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/03_m10_edda_player_height_shot.png",
+      "bytes": 425523,
+      "sha256": "f0fc4d36bf92cbe3fab55e677913260eb841ba03a37b6113cd40086a9290fae0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/03_m10_edda_player_height_strip.png",
+      "bytes": 89248,
+      "sha256": "1c6cf78c8cef560b6694879b94c136fda9fb5a5d9b7e16e5ebb6362b22a3e049"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/03_m10_edda_player_height_world.png",
+      "bytes": 397566,
+      "sha256": "bf96468972823539c9c7b4fef7c37a0a50e792086e4872536efccd94c4cdb457"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/03_m10_edda_player_height.png",
+      "bytes": 417964,
+      "sha256": "7e5d54bde69bd460413e105ed48fee239c34b50271fc79b90c024dc342d6c857"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/04_m10_passenger_hall_world.png",
+      "bytes": 351885,
+      "sha256": "15059063cef7411ff7ee03a850187ac0d378aa2ea72790e3bdb2f16312ea6015"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/04_m10_passenger_hall.png",
+      "bytes": 365250,
+      "sha256": "0d23747ec078c67beb1e0ef2ae073025aebf03165d9cd385c19419678e1b4551"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/05_m10_west_stair_down_world.png",
+      "bytes": 352762,
+      "sha256": "ae2386457b65092a4dd8fd120d822716289bc62bef141aeed1a9d2be973f9807"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/05_m10_west_stair_down.png",
+      "bytes": 366901,
+      "sha256": "3c26460278b23044c19e541115dae8897e5d665ef0136f7b0aabd5fd7cd6e988"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/06_m10_cargo_stock_world.png",
+      "bytes": 240297,
+      "sha256": "2a515f419b309939fc451fc1d823d1b29e536f4a39dc190c3d32e3db317caca8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/06_m10_cargo_stock.png",
+      "bytes": 258111,
+      "sha256": "9afd7c131a3ecd3a3f6bf50b3b8ef986e8ea8239b5b4070938fd0318d69970c0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/07_m10_forward_lower_world.png",
+      "bytes": 337848,
+      "sha256": "5d76a54bd4e40e950c82316956a3c60d661ba7e4357d1d3f7d9312452ad02f63"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/07_m10_forward_lower.png",
+      "bytes": 351112,
+      "sha256": "0bc7290d7c32522199b53eb18b5ece005a503df4d5d11547e358969cc446ff90"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/08_m10_west_stair_return_world.png",
+      "bytes": 358694,
+      "sha256": "23590f69a956b023b8f7f071fa3575f673d6ecd34ae5af012523e845191c3bca"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/08_m10_west_stair_return.png",
+      "bytes": 380243,
+      "sha256": "02ef28a6e733109bcfb60fa6015d0d431bcd24b9646fd2ab37f855ffd7103350"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/09_m10_forward_gallery_world.png",
+      "bytes": 354025,
+      "sha256": "3667ca5b28024f5466d34ab2d40144350dd83a3bb3692e294740373ab19b8375"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/09_m10_forward_gallery.png",
+      "bytes": 374289,
+      "sha256": "bc5eaf4647a5024e36dcc5485898b9202e17fa56adbd685bf3bb2123fb072058"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/10_m10_forward_arrival_world.png",
+      "bytes": 301062,
+      "sha256": "d4d44e5b03422b20e177065847090be16886b64a36d258c2e1d8cfa22ec1d936"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/10_m10_forward_arrival.png",
+      "bytes": 321404,
+      "sha256": "23d551ca78230fce04dd3ab56bccd00fe0fb00923c3a79d5e895cdc894c53d4c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/11_m10_service_defense_world.png",
+      "bytes": 281179,
+      "sha256": "16f4393a7fe7fa1aaaf48dd21cab6291e21b0675e01617fa6719a286f2799b12"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/11_m10_service_defense.png",
+      "bytes": 302431,
+      "sha256": "43ea7c7ceef349b0d94e4bbadc3c5a460867a995d5a684905138425acbc00af5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/12_m10_repair_stock_world.png",
+      "bytes": 410361,
+      "sha256": "3124a2d2c3cf4bd91f83986cbc403a68f81407290d919847cacbecce96d68117"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/12_m10_repair_stock.png",
+      "bytes": 419400,
+      "sha256": "329b4ed2e660dcff78e8d3af443a8a20c03af9ba965d2d38319807665314fc78"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/13_m10_service_arrival_world.png",
+      "bytes": 254095,
+      "sha256": "72802191e070ba69f5f2dff4e0033f493b8f697d6a14292a320ef86e0c84e9e7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/13_m10_service_arrival.png",
+      "bytes": 270693,
+      "sha256": "ac099a0a80a2ad1fb88fe298e7c86f7272c288487071bde1e510feb53da677ae"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/14_m10_aft_stock_world.png",
+      "bytes": 268198,
+      "sha256": "f3592106b9ec8ff82fc44560cc02922d6de5d395864e7e3b487e54f5e642ad67"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/14_m10_aft_stock.png",
+      "bytes": 294633,
+      "sha256": "5e0656da7da1f1637772990e5f206173f0104c33c8df77558e8a64f7226a5142"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/15_m10_east_middle_world.png",
+      "bytes": 324818,
+      "sha256": "8781c6a76df81fb7a719caede19e2ebcf26f1c58be51487aef462f066b576fee"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/15_m10_east_middle.png",
+      "bytes": 335929,
+      "sha256": "557e11aea2fb227bcbcf5474617b0e746620768b85c04328014c9498c246aa3e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/16_m10_east_upper_world.png",
+      "bytes": 325247,
+      "sha256": "2847f8f3ef67a444ecd24f4fdfc82d69406a20534cebf6c00ceaf9af57ae1abc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/16_m10_east_upper.png",
+      "bytes": 347339,
+      "sha256": "d575d2b173c73bc7e436796d09d4caf599fe74653ad61816bf09bcbe87cf002a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/17_m10_aft_upper_world.png",
+      "bytes": 423269,
+      "sha256": "0fe9fd8b2b9c7db7d945296a15786bd22b315309ab765a1fe18ab8e61394b301"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/17_m10_aft_upper.png",
+      "bytes": 436949,
+      "sha256": "f61577a9816255facadf312984a744aa5e6d387a616c681f22ae8792334c601c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/18_m10_freight_overlook_world.png",
+      "bytes": 188895,
+      "sha256": "4b175e277d9447d05ec0cb86d40e4e3fc15d220f675f8125712fcf63632e41d4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/18_m10_freight_overlook.png",
+      "bytes": 208703,
+      "sha256": "15bd26452f1934f294f06dcafce3d93a77631930728411497cd55ff638face6b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/19_m10_command_stock_world.png",
+      "bytes": 325710,
+      "sha256": "2f2df2866171b47e0b750c8a5f0c8183a814c812a8c0d95546ab11a7862c3306"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/19_m10_command_stock.png",
+      "bytes": 351223,
+      "sha256": "6da45b1394db072446dc6da97c8755fa5b929673a57dea2c69d8e7e2ba27b709"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/20_m10_lower_return_world.png",
+      "bytes": 422988,
+      "sha256": "a9a9c72fda7b5950d9c757629a80116a9c4f7d2b84c9a5445192d018eaeb0ce8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/20_m10_lower_return.png",
+      "bytes": 434626,
+      "sha256": "73cea5dd9990262e1d1cdc39a3d8eae679164afc62519f8198adf82001f650b5"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/21_m10_aft_notary_world.png",
+      "bytes": 385126,
+      "sha256": "fc9064f82656f3d081386e5f5cbd4f30ba82cd4bee3ae824f85db2983cf4a6a1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/21_m10_aft_notary.png",
+      "bytes": 396706,
+      "sha256": "595f8c480e9c49b7e06e9ff267fb0f7041b346a18e226f444221911092a12579"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/22_m10_aft_heavy_world.png",
+      "bytes": 201846,
+      "sha256": "26ce328e27d82c6aa6278f7d890bfceb8f6df41a6f166936d7882ca06b4bb082"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/22_m10_aft_heavy.png",
+      "bytes": 228462,
+      "sha256": "146be68ae11d1aeb32c7540ccb6bf7ddbf7d03cf94a71d7deb5193a53914c7c7"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/23_m10_aft_middle_world.png",
+      "bytes": 413929,
+      "sha256": "4374c052d2baa7969eade920241646ce8c4aec2785ec2df7ad4e66e1a660a4af"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/23_m10_aft_middle.png",
+      "bytes": 422195,
+      "sha256": "36233650af2782b611814635fd59411b0d593c4a69df6ddf74ec57aa43125a76"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/24_m10_aft_arrival_world.png",
+      "bytes": 345092,
+      "sha256": "e4136008b90bb29dd2bb4bfaf2856ffc73615583a8511bdba744ce9efa64560d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/24_m10_aft_arrival.png",
+      "bytes": 367983,
+      "sha256": "9823e9b3ac484997083cd5d0e273b39416a1d5abeb43d57628ff12fa0a9be463"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/25_m10_passenger_return_world.png",
+      "bytes": 450895,
+      "sha256": "ddc208514cf5fa88fb9685801f48d76260cb880c0dcabd54b3f762097b5bf83a"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/25_m10_passenger_return.png",
+      "bytes": 460838,
+      "sha256": "6f61fbd5f50743d6e39fbf131c4a224f98c1d4dcc0e002be2c9b2a1ae4199058"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/26_m10_surplus_stock_world.png",
+      "bytes": 414032,
+      "sha256": "50d6cf30ef200447df337f2a217cf7aa521b587d3a92d7b7122475b43d4c2b3f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/26_m10_surplus_stock.png",
+      "bytes": 432954,
+      "sha256": "ab6cecb7aa415a63ed24f936e688bba83a1d7d49cdd986f5242464d9eb3e2b98"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/contact.png",
+      "bytes": 1758898,
+      "sha256": "32944678f3e8b2559d9bb82cf7c0396b5246f77b7a2c32f4131c78df87bfbb19"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/historical-input.json",
+      "bytes": 1243,
+      "sha256": "f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/live-edda.json",
+      "bytes": 978069,
+      "sha256": "78ab6d88435d527c08ba815bd3eb480d8e7439b3d3b0d81e1eaa092ee4d6a429"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_heavy_combat.png",
+      "bytes": 118812,
+      "sha256": "caf8a9f85dad39771143204d0a4237973fdb8f01f44a3b2a7d3bb7f33cb3a05b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_middle_combat.png",
+      "bytes": 132747,
+      "sha256": "1de1cd71a36696bff94e13975ad26c2a70d56e40f29c6ed97b805796c2c0ffb2"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_notary_combat.png",
+      "bytes": 147849,
+      "sha256": "60582193bde824aaf4667cf185368c888eecd1ab08e4ff6bb4ec0a9ad8326f67"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_upper_clerk_dead.png",
+      "bytes": 444628,
+      "sha256": "e478c77f91f18428dfa0fe40c6eb0133d84efc989dec5c71c4e37c18cba64ff0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_upper_clerk_hit.png",
+      "bytes": 440650,
+      "sha256": "60558a59f9ac7e2859d00635ab34a4826d21ec87e4cfae082fa1aa7dbfcc94bc"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_upper_clerk_windup.png",
+      "bytes": 389499,
+      "sha256": "1bd823ba8c3582020defb3e362a0d9ffabe16e637f904d6fe174a38926e9aafe"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_aft_upper_combat.png",
+      "bytes": 380496,
+      "sha256": "6e7ca351203f6bc2892299d9c65795bd4fb7f028b0d0d7530c1d735d23bd0b2e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_gallery_combat.png",
+      "bytes": 141677,
+      "sha256": "a87065e18c0a9a3edd7e4556ef97ec72ad9a09d419fe57672473e7485bccb128"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_clerk_hit.png",
+      "bytes": 354521,
+      "sha256": "8395ba4d92f775c688aae763ab34341464fe943e14313e42218ba49006d4184f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_clerk_idle.png",
+      "bytes": 355832,
+      "sha256": "3fe7a324e965f43e87b2f2183bde886686be9f086895cd046a2c84c5187e999c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_clerk_windup.png",
+      "bytes": 412289,
+      "sha256": "e851de904b588987bf0df80e6d5134bfea70849731e005da689e18347f67aa3f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_combat.png",
+      "bytes": 961330,
+      "sha256": "980fd26de514e1f715afac2049535a1f71274e15ab8771c460e63ad71aa7c330"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_sweeper_dead.png",
+      "bytes": 378811,
+      "sha256": "50517cc46d23a086589eed98e43e551763c927488818465295e0bf5a407ef718"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_sweeper_firing.png",
+      "bytes": 396864,
+      "sha256": "ed9d5f517487fa58f570ef91276c651a77f666fdeb8ab31103c58a3c1e2b6564"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_forward_lower_sweeper_hit.png",
+      "bytes": 381490,
+      "sha256": "95ea2a2fec99fde456999f2e2ef8ea338b7c3f6fa00b3346be9005754651509e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_passenger_defense_combat.png",
+      "bytes": 2636816,
+      "sha256": "bfca611cd11f8198fdb3c3e8179bf2d99a50d8cca1a5e6a4e6d15e020b1aba67"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_passenger_defense_failure.json",
+      "bytes": 360436,
+      "sha256": "da482c7dc804b98530be3d223a590e92d2f6db9b5d9267bb57d5fec5403b8569"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/m10_service_defense_combat.png",
+      "bytes": 120859,
+      "sha256": "ec1574c36d7a34f1f669e39a53ada7c584755ffddec780a2f55989d01eb761c6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/manifest.json",
+      "bytes": 1242075,
+      "sha256": "f2d0acb0ac81a66b954db8ccf22ddfa2f4406cfcb293085aae82a8ec3b3462b3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/process.json",
+      "bytes": 468,
+      "sha256": "8506c0bf65ba274301d99856e3ac607896ad5b559ec5b3ba6de76f4dd4cf7a38"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/renderer-error.log",
+      "bytes": 475,
+      "sha256": "2e2bf212c607579bef029f827b5439da7bd51fd69acdc3782d5d49ee3ce29945"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/renderer.log",
+      "bytes": 2719,
+      "sha256": "9d354021fe853f2f2c70893d5a7bec35f471a1a066c1beee6e28d0e10466f4aa"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/run/run.json",
+      "bytes": 1286,
+      "sha256": "50f22114810e36e187cec27d0f97e1672b219c6436153025f1865ed2de864da0"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/run/run.prior-f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20.json",
+      "bytes": 1243,
+      "sha256": "f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/service-record.0.json",
+      "bytes": 5162,
+      "sha256": "17d8c5cf6b04fdb1a121073b1b45b974479f817254ef6228cfab851130030684"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/service-record.1.json",
+      "bytes": 5162,
+      "sha256": "1408971388e2b59e6c25b8dff16e6eca8c7090af27d79dc3ca72521a15beeccd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/live/m10-eligible-first/source/m10_common_carrier-pre-search.json",
+      "bytes": 22191,
+      "sha256": "1507dca7378f803406bf7000d8ded3cb5a1571dd3053f1459495d19764ae0071"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/before-character_support.json",
+      "bytes": 30688,
+      "sha256": "17284ae17e739e78877e00859ac55be31eb88fe64c7784917b0ddf3bd5469ed3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/before-skinned_character.gd",
+      "bytes": 7180,
+      "sha256": "777b1992de3e390e21ab5b4ecc109b3f122a4f9b52f8cba074236b84738b2498"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/cast_pose_control.gd",
+      "bytes": 1370,
+      "sha256": "eafb1f825467866aa0a21a390213a16f0729fd68824842d87bebfef84cf368d3"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/before-cast-poses.json",
+      "bytes": 551316,
+      "sha256": "a8fedf9dc1324107b7f73c1efc04e41eb9aeae53c31bc607fde5f95ce1021465"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/before-cast-poses.log",
+      "bytes": 132,
+      "sha256": "0a2aeb1176c60f83f6337d596c619a6f191cb12681f0c7da7da3f51d95892fc9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/after-cast-poses-final.json",
+      "bytes": 551316,
+      "sha256": "a8fedf9dc1324107b7f73c1efc04e41eb9aeae53c31bc607fde5f95ce1021465"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/after-cast-poses-final.log",
+      "bytes": 132,
+      "sha256": "0a2aeb1176c60f83f6337d596c619a6f191cb12681f0c7da7da3f51d95892fc9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/after-cast-poses.json",
+      "bytes": 551316,
+      "sha256": "a8fedf9dc1324107b7f73c1efc04e41eb9aeae53c31bc607fde5f95ce1021465"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/after-cast-poses.log",
+      "bytes": 132,
+      "sha256": "0a2aeb1176c60f83f6337d596c619a6f191cb12681f0c7da7da3f51d95892fc9"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/compare_support_final.gd",
+      "bytes": 1144,
+      "sha256": "6ea8813220f37193b9a1dac4aa62a3edb826824128a097c6d3a0a798a83a9e26"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/other-support-final.json",
+      "bytes": 830,
+      "sha256": "d6544208f8b0ad0f041c438d9188c6410635d81ae97ce56366fbd8bb1b8165b1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/other-support-final.log",
+      "bytes": 104,
+      "sha256": "e0619fc8bcc4b7181a9d14b9b1be9e521663d27052e59943c7604ea7fb4aa73f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/other-support-comparison.json",
+      "bytes": 440,
+      "sha256": "4295e5506606d105f3aeb172d6c006d5b58fb1196f26b8bace30c9bda4380761"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/support-first-ulp.json",
+      "bytes": 41027,
+      "sha256": "6b56f32e250e2ba9f76f156d99a434f5f2fe34725c77aa66d1a5c933527d0325"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/support-bake.log",
+      "bytes": 157,
+      "sha256": "87efb2a8807b655707b4a0246d03439e10c554a96771ec5af003c94016318d72"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/support-bake-final.log",
+      "bytes": 157,
+      "sha256": "87efb2a8807b655707b4a0246d03439e10c554a96771ec5af003c94016318d72"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/figure-final.log",
+      "bytes": 222,
+      "sha256": "42dea82258b2da17a7d7b8acb61be5b0cd2613b8df5176d6b619dd60f970c4c1"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/weighted-final.json",
+      "bytes": 1526,
+      "sha256": "908ac537d13e8b0f2d1fed138821e9cba03fef8c789d7d77c67ed709d9b4de72"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/weighted-final.log",
+      "bytes": 200,
+      "sha256": "13617e4e0d57a54482267ab02be43bd9c3dc974d1d188bd7a8f631598c8d6103"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m09-current-final.log",
+      "bytes": 99,
+      "sha256": "a1da0448784b560b63a077b1bbf76fe45b690adcaa80376fd7bc1b51041e58b4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-current-final.log",
+      "bytes": 99,
+      "sha256": "182042383451e1d7259ad4c5e33b0406ab634ba9194df392585fa3116c3503e4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/figure-gate-revision-first.log",
+      "bytes": 559,
+      "sha256": "482b94198a167397150b69e57679c2503ea17dda80c0563f8cbe68f8abb9ddaf"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/figure-gate.log",
+      "bytes": 559,
+      "sha256": "482b94198a167397150b69e57679c2503ea17dda80c0563f8cbe68f8abb9ddaf"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m09-gate.log",
+      "bytes": 3844,
+      "sha256": "1726a0b58491ea874fa92c067810089cd199d896c40e48cef9596e585a741342"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-gate.log",
+      "bytes": 8552,
+      "sha256": "0678013425664d6fa1fb7cd9743b1c0f6cd8a46659060fa3c330aa703c7411f6"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m09-final.log",
+      "bytes": 378,
+      "sha256": "682410f187e81c8c713309e1bcf2b7fa25aad479625814c9b5a7c8dcf8208f5c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-final.log",
+      "bytes": 365,
+      "sha256": "faa4d9466440f64e72cbe24331ea9dbdf060d577cc8af5d984f3b0caa01a5f45"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/import-embedded.log",
+      "bytes": 2705,
+      "sha256": "f3a2a74c40fd8fcaf925ec521af4f4521405b211239dc53724ee6f7fa63c8f46"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/import-first.log",
+      "bytes": 2762,
+      "sha256": "7751b5fbeab579314fbd04b2a632364681f845eed9d6a2c84f6976f403034a9f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/final-script-import.log",
+      "bytes": 2183,
+      "sha256": "3b2572e7f2bdfdbbd20437ca6f687003dc055e36c12c1f828b0bfbc14e2f971c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/tour-final-parse.log",
+      "bytes": 75,
+      "sha256": "83cf0b082206af2aa236c83064fbcfa76be1e00a4aa3558574b2f65965d9481c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/tour-frozen-parse.log",
+      "bytes": 75,
+      "sha256": "83cf0b082206af2aa236c83064fbcfa76be1e00a4aa3558574b2f65965d9481c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/tour-parse.log",
+      "bytes": 75,
+      "sha256": "83cf0b082206af2aa236c83064fbcfa76be1e00a4aa3558574b2f65965d9481c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/write_preflight_fixture.gd",
+      "bytes": 369,
+      "sha256": "e892a4e08de52aca0d00fc3d37c0485d55545e28a0a7438698a572b77b69e25f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10_search_probe.gd",
+      "bytes": 3718,
+      "sha256": "4c97a0b931947b0858169ed447d63b5d34884183090445a07ac1642a74f04e91"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10_search_probe_first.gd",
+      "bytes": 3640,
+      "sha256": "9fcfe87035dbc251a8e091965bedfb5d1b0cd7c4bfa5b7c2b366f08fb57a4574"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-search-probe-first.log",
+      "bytes": 431,
+      "sha256": "e85861101866e0ecc953aa09d83ac6b0f0f8f617f30d34a13c612963adbfd995"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-search-probe-second.log",
+      "bytes": 972,
+      "sha256": "e259e85a661aa9a95e017140a05f680bcf74dc1ec33a1e0d769d202e9d51085f"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-search-probe.json",
+      "bytes": 3024,
+      "sha256": "076efd4ed0ed5d990e2e63d734aba25dad280a65a8f0a0d871ba87ba63bd888b"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-search-focused-first.log",
+      "bytes": 215,
+      "sha256": "4d10b6e8713dfca946fc5e2b90a694560b0458278415cca035e1544a28a189cf"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/qa-combat-search-final.log",
+      "bytes": 97,
+      "sha256": "1cd66982a79fbd61cea1de7708a8ba35532f923fa1ceea41167b41c8daffdbf8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/m10-search-manifest-final.log",
+      "bytes": 99,
+      "sha256": "182042383451e1d7259ad4c5e33b0406ab634ba9194df392585fa3116c3503e4"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-eligible-preview.log",
+      "bytes": 119,
+      "sha256": "66391173a9d79a74db23e93c5c09de03635fa90d62c7a4bd61f08a0db7608392"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-eligible-write.log",
+      "bytes": 106,
+      "sha256": "d96dc8e3401e2553e1a8f17e2e3858871c228a05da90ddabccb6903f14690f1c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-eligible/historical-input.json",
+      "bytes": 1000,
+      "sha256": "9a01cbdfbb91505aa4e00b93306680dcdd5ddcc0154d8370900d43fcd0d4bfbd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-eligible/run/run.json",
+      "bytes": 1000,
+      "sha256": "9a01cbdfbb91505aa4e00b93306680dcdd5ddcc0154d8370900d43fcd0d4bfbd"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-omitted-preview.log",
+      "bytes": 119,
+      "sha256": "66391173a9d79a74db23e93c5c09de03635fa90d62c7a4bd61f08a0db7608392"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-omitted-write.log",
+      "bytes": 106,
+      "sha256": "d96dc8e3401e2553e1a8f17e2e3858871c228a05da90ddabccb6903f14690f1c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-omitted/historical-input.json",
+      "bytes": 987,
+      "sha256": "abb0ff1b0085dee905fac18724bbcebe84142a5837c105b31f041030ba23121e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m09-omitted/run/run.json",
+      "bytes": 987,
+      "sha256": "abb0ff1b0085dee905fac18724bbcebe84142a5837c105b31f041030ba23121e"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-eligible-preview.log",
+      "bytes": 115,
+      "sha256": "efeb10b65fe64ec8261b88b785db3f105d4b1e414bba5a327c3685a19534fd9d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-eligible-write.log",
+      "bytes": 106,
+      "sha256": "d96dc8e3401e2553e1a8f17e2e3858871c228a05da90ddabccb6903f14690f1c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-eligible/historical-input.json",
+      "bytes": 1243,
+      "sha256": "f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-eligible/run/run.json",
+      "bytes": 1243,
+      "sha256": "f496a22f549110766fbd168a791c686b7318a176b0c84adc2060d0b486ba3d20"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-omitted-preview.log",
+      "bytes": 115,
+      "sha256": "efeb10b65fe64ec8261b88b785db3f105d4b1e414bba5a327c3685a19534fd9d"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-omitted-write.log",
+      "bytes": 106,
+      "sha256": "d96dc8e3401e2553e1a8f17e2e3858871c228a05da90ddabccb6903f14690f1c"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-omitted/historical-input.json",
+      "bytes": 1113,
+      "sha256": "d29c9f1df04c737985de9a02a42154c299fee6dac8fb69f2399c846a15627ec8"
+    },
+    {
+      "path": ".agents/edda-live-repair-20261008/runtime/carry-preflight/m10-omitted/run/run.json",
+      "bytes": 1113,
+      "sha256": "d29c9f1df04c737985de9a02a42154c299fee6dac8fb69f2399c846a15627ec8"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m09_omitted.png",
+      "bytes": 776060,
+      "sha256": "483ed0f3fa25b9a5a169d40dc41b1e6dfaa0cf849ebe8beb38485540f12c88f7"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m09_rest.png",
+      "bytes": 407262,
+      "sha256": "03d17ca372e24261f3f4f8a42244d03a495c244f9bc494d7ea896c97d7239bf0"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m09_walk_006.png",
+      "bytes": 486980,
+      "sha256": "5cd0346076980445ffb98ffa974cc529f2301d249b8c01b12fc98cc31411f86a"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m09_walk_012.png",
+      "bytes": 479547,
+      "sha256": "b6072acc372762720a72efd50f116968f5f671146ea29014581d96df4ab285fc"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m10_rest.png",
+      "bytes": 414606,
+      "sha256": "9142640cb73e205f70b2e15c6debc4cbe8be8160d53c106707e8b29744443d2e"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m10_return.png",
+      "bytes": 476301,
+      "sha256": "1884e654b72f6af2604b1d648db620ad8a84206591ba822cf94161c8deb86cb3"
+    },
+    {
+      "path": "docs/evidence/edda-live-integration-20261008/m10_unknown.png",
+      "bytes": 392653,
+      "sha256": "0b4db2c4f6712de5645bb0e6116b99b3753f3f2dfca7666ccb6e63bd053a10f5"
+    }
+  ]
+}

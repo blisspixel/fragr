@@ -28,6 +28,8 @@ const SNIPER_TRACER_WIDTH: float = 0.02
 const SNIPER_TRACER_TINT: Color = Color("ffa45c")
 ## No streak is drawn within this distance of the viewing camera.
 const SNIPER_TRACER_VIEWER_CLEARANCE: float = 3.0
+const ARC_REACH: float = 24.0
+const ARC_DISCHARGE_SECONDS: float = 0.09
 
 class Effect:
 	var shooter: String
@@ -137,6 +139,8 @@ static func _parse(value: Variant) -> Effect:
 	var end: Vector3 = _vector(trace.get("end"))
 	if not origin.is_finite() or not end.is_finite() or origin.distance_to(end) > MAX_TRACE_LENGTH:
 		return null
+	if weapon == "arc" and origin.distance_to(end) > ARC_REACH + 0.01:
+		return null
 	if weapon in EquipmentState.MELEE and (kind == "range" or origin.distance_to(end) > MELEE_REACH[weapon] + 0.01):
 		return null
 	if kind == "range" and origin.distance_to(end) <= 0.05:
@@ -179,6 +183,8 @@ func _process(delta: float) -> void:
 		var lifetime: float = LIFETIME
 		if _effects[i].kind == "range":
 			lifetime = 0.14 if _effects[i].weapon == "rail" else (SNIPER_TRACER_SECONDS if _effects[i].weapon == "sniper" else 0.065)
+			if _effects[i].weapon == "arc":
+				lifetime = ARC_DISCHARGE_SECONDS
 		if _effects[i].age >= lifetime:
 			_effects.remove_at(i)
 	_rebuild()
@@ -217,6 +223,9 @@ func _rebuild() -> void:
 func _draw_effect(effect: Effect) -> void:
 	if effect.weapon in EquipmentState.MELEE:
 		_draw_melee_impact(effect)
+		return
+	if effect.weapon == "arc":
+		_draw_arc(effect)
 		return
 	if effect.weapon == "sniper":
 		_draw_sniper_tracer(effect)
@@ -270,6 +279,28 @@ func _draw_sniper_tracer(effect: Effect) -> void:
 	var centre: Vector3 = effect.end + normal * 0.025
 	_quad(centre - tangent * size - bitangent * size, centre + tangent * size - bitangent * size,
 		centre + tangent * size + bitangent * size, centre - tangent * size + bitangent * size, Color("f2efe4"))
+
+func _draw_arc(effect: Effect) -> void:
+	if effect.age >= ARC_DISCHARGE_SECONDS:
+		return
+	var distance: float = effect.origin.distance_to(effect.end)
+	if distance < 0.05:
+		return
+	var direction: Vector3 = (effect.end - effect.origin).normalized()
+	var side: Vector3 = direction.cross(Vector3.UP if absf(direction.y) < 0.9 else Vector3.RIGHT).normalized()
+	var up: Vector3 = direction.cross(side)
+	var start: Vector3 = effect.origin + direction * minf(0.35, distance * 0.1)
+	var previous: Vector3 = start
+	var fade: float = 1.0 - effect.age / ARC_DISCHARGE_SECONDS
+	# Six bounded cosmetic links share the exact resolved origin and endpoint.
+	# No world query, target search or secondary damage is performed here.
+	for link: int in range(1, 7):
+		var fraction: float = float(link) / 6.0
+		var point: Vector3 = start.lerp(effect.end, fraction)
+		if link < 6:
+			point += (side * (1.0 if link % 2 == 0 else -1.0) + up * sin(link * 2.3)) * minf(0.11, distance * 0.02) * fade
+		_segment(previous, point, 0.025 * fade + 0.004, Color("fff2c4") if link % 2 == 0 else Color("d6bb76"))
+		previous = point
 
 func _draw_melee_impact(effect: Effect) -> void:
 	var tangent: Vector3 = effect.normal.cross(Vector3.UP if absf(effect.normal.y) < 0.9 else Vector3.RIGHT).normalized()

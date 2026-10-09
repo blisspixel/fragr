@@ -9,8 +9,10 @@ use crate::protocol::{
 #[cfg(test)]
 use crate::session::GameSession;
 
+mod authored_vehicles;
 mod body;
 mod discovery;
+mod launch_authority;
 mod m03;
 mod m03_qa;
 mod m04;
@@ -421,6 +423,7 @@ fn test_protocol_snapshot_serialization() {
         shot_results: vec![],
         projectiles: vec![],
         grenades: Vec::new(),
+        assessor_canisters: Vec::new(),
         mines: Vec::new(),
         remote_mines: Vec::new(),
         auditors: Vec::new(),
@@ -464,6 +467,7 @@ fn test_protocol_snapshot_empty_players() {
         shot_results: vec![],
         projectiles: vec![],
         grenades: Vec::new(),
+        assessor_canisters: Vec::new(),
         mines: Vec::new(),
         remote_mines: Vec::new(),
         auditors: Vec::new(),
@@ -2760,6 +2764,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             shot_results: vec![],
             projectiles: vec![],
             grenades: Vec::new(),
+            assessor_canisters: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -6587,11 +6592,16 @@ mod map_roster {
     }
 
     #[test]
-    fn every_map_is_bigger_than_the_square_it_replaced() {
-        // The tip was one flat hundred metre square, twice over. Nothing in
-        // the roster may be smaller than that, which is the whole complaint.
+    fn arena_roster_retains_scale_and_low_water_keeps_its_compact_town_extent() {
+        // The original arcade roster replaced the flat hundred metre square.
+        // Low Water is a separately authored compact two-site town, with its
+        // own routes and five-per-side profile, rather than a field replacement.
         for map in MapKind::ALL {
             let extent = map.half_extent() * 2.0;
+            if map == MapKind::LowWater {
+                assert_eq!(extent, 84.0, "Low Water retains its authored town bounds");
+                continue;
+            }
             assert!(
                 extent > 100.0,
                 "{} is {extent} m across, no bigger than the old square",
@@ -6633,7 +6643,20 @@ mod map_roster {
     fn every_map_has_a_full_pad_set_and_one_of_them_is_off_the_floor() {
         for map in MapKind::ALL {
             let pads = map.pickups();
-            let (expected, ground): (&[&str], f32) = if map == MapKind::HoldfastAtoll {
+            let (expected, ground): (&[&str], f32) = if map == MapKind::LowWater {
+                (
+                    &[
+                        "low_water_clinic_rifle",
+                        "low_water_depot_rifle",
+                        "low_water_trench_scatter",
+                        "low_water_bridge_rail",
+                        "low_water_clinic_health",
+                        "low_water_market_health",
+                        "low_water_trench_armor",
+                    ],
+                    0.0,
+                )
+            } else if map == MapKind::HoldfastAtoll {
                 (
                     &[
                         "harbour_scatter",

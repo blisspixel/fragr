@@ -168,6 +168,20 @@ difficulty acceptance, wider network conditions and broader hardware remain open
 
 ## Verification and acceptance
 
+### October 8 follow-up, pending implementation
+
+Read-only composition review finds that the server includes M09 crew and M10
+pilot/passengers in living contact while `ActorContact._append_civilians` omits
+both missions. `LocalPrediction.accept_snapshot` consumes that incomplete set,
+so local prediction can enter those bodies before authoritative correction.
+Verify the exact accepted mission state boundaries before adding speculative
+contacts, including omitted historical people, malformed feet, inactive phases and
+authoritative reconciliation. This is separate from the unchanged server
+contact math. A fresh M09 capture also encounters an occupied authored gallery
+waypoint; the integration owner is testing an ordinary side approach without
+weakening collision or arrival assertions. Source inspection alone does not
+establish the original live blocker identity.
+
 Require deterministic stop, slide, mutual approach, overlap escape, dead/inactive
 body, vertical separation, static wall and stair/tram cases. Shared Rust and
 GDScript vectors must verify contact math at the owning boundary. Exercise

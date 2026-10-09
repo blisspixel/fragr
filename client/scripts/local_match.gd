@@ -13,24 +13,26 @@ const MAX_READY_BYTES: int = 4096
 const PENDING_META: StringName = &"fragr_local_match_pending"
 ## Set by a finished mission that asked to continue the saved run directly.
 const ONWARD_META: StringName = &"fragr_run_onward"
-## Rules revision 3 retires older live mission readers on every authored map.
-const DURABLE_GAMEPLAY: int = 26
-const M02_GAMEPLAY: int = 26
-const M03_GAMEPLAY: int = 26
-const M04_GAMEPLAY: int = 26
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "declared_goods": M07_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY, "passenger_manifest": M09_GAMEPLAY, "common_carrier": M10_GAMEPLAY, "right_of_search": M11_GAMEPLAY}
-const M05_GAMEPLAY: int = 26
-const M06_GAMEPLAY: int = 27
-const M07_GAMEPLAY: int = 32
-const M08_GAMEPLAY: int = 31
-const M09_GAMEPLAY: int = 34
-const M10_GAMEPLAY: int = 36
-const M11_GAMEPLAY: int = 38
-const NEXT_MISSION: String = "terms_of_cooperation"
+## Current rules revision 4 requires the shared Assessor capability floor.
+const DURABLE_GAMEPLAY: int = 43
+const M02_GAMEPLAY: int = 43
+const M03_GAMEPLAY: int = 43
+const M04_GAMEPLAY: int = 43
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "declared_goods": M07_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY, "passenger_manifest": M09_GAMEPLAY, "common_carrier": M10_GAMEPLAY, "right_of_search": M11_GAMEPLAY, "terms_of_cooperation": 44}
+const M05_GAMEPLAY: int = 43
+const M06_GAMEPLAY: int = 43
+const M07_GAMEPLAY: int = 43
+const M08_GAMEPLAY: int = 43
+const M09_GAMEPLAY: int = 43
+const M10_GAMEPLAY: int = 43
+const M11_GAMEPLAY: int = 43
+const NEXT_MISSION: String = "weight_of_permission"
 
 var state: State = State.IDLE
 var url: String = ""
 var error_key: String = ""
+## Conservative comparison boundary for records from this exact owned server.
+var server_sha256: String = ""
 var process: LocalProcess = LocalProcess.new()
 var run_preview: Dictionary = {}
 var _preview_process: LocalProcess = LocalProcess.new()
@@ -113,6 +115,7 @@ func start_mission(difficulty: String = "standard", run_mode: String = "new", mi
 	mission = mission_id
 	process.dispose()
 	url = ""
+	server_sha256 = ""
 	error_key = ""
 	_pending.clear()
 	_failure_pending = false
@@ -120,6 +123,7 @@ func start_mission(difficulty: String = "standard", run_mode: String = "new", mi
 	if executable.is_empty():
 		_fail("LOCAL_SERVER_MISSING")
 		return false
+	server_sha256 = FileAccess.get_sha256(executable)
 	var arguments: PackedStringArray = PackedStringArray(["--local-mission", mission_id])
 	if not development:
 		arguments.append_array(PackedStringArray(["--run-mode", run_mode]))
@@ -227,12 +231,12 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 	if status in ["missing", "failed", "abandoned", "incompatible", "corrupt"]:
 		return data if data.size() == 1 else {}
 	if status == "awaiting_mission":
-		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, NEXT_MISSION] \
+		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, NEXT_MISSION] \
 			and data.get("difficulty") in MissionState.DIFFICULTIES \
 			and EquipmentState.integer(data.get("continues"), 3) \
 			and (data.get("body") == null or PlayerBody.valid(data["body"])) else {}
 	if status != "ready" or data.size() != 7 or not data.has("body") \
-		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID] \
+		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] \
 		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
 		or not EquipmentState.integer(data.get("continues"), 3) \
 		or not EquipmentState.integer(data.get("attempt"), 4) or int(data["attempt"]) < 1 \

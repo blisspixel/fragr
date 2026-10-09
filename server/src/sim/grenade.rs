@@ -27,6 +27,8 @@ pub(super) enum BlastSource {
     Mine,
     Vehicle,
     RemoteMine,
+    AssessorCanister,
+    AssessorWreck,
 }
 
 pub(super) struct Grenade {
@@ -114,6 +116,7 @@ impl GameState {
 impl GameState {
     pub(crate) fn clear_grenades(&mut self) {
         self.grenades.clear();
+        self.assessor_canisters.clear();
         self.explosion_results.clear();
         for player in &mut self.players {
             player.throw_requested = false;
@@ -219,7 +222,17 @@ impl GameState {
     }
 
     pub(super) fn resolve_blast(&mut self, blast: &Blast, arena: &Arena) {
-        self.blast_vehicles(blast, arena);
+        if blast.source != BlastSource::AssessorWreck {
+            self.note_m12_blast(
+                blast.id,
+                blast.owner_id,
+                blast.position,
+                blast.radius,
+                blast.peak,
+                arena,
+            );
+            self.blast_vehicles(blast, arena);
+        }
         let owner = self
             .players
             .iter()
@@ -246,19 +259,29 @@ impl GameState {
             let player = &self.players[target];
             if player.hp <= 0
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
-                || owner.is_some_and(|owner| owner != target && !self.damage_lands(owner, target))
+                || (blast.source == BlastSource::AssessorWreck
+                    && !player.campaign.is_some_and(|actor| actor.is_enemy()))
+                || (blast.source != BlastSource::AssessorWreck
+                    && owner
+                        .is_some_and(|owner| owner != target && !self.damage_lands(owner, target)))
             {
                 continue;
             }
             let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
-            let point = closest_body_point(blast.position, feet, player.campaign);
+            let point =
+                closest_body_point_stance(blast.position, feet, player.campaign, player.ducking);
             let distance = distance(blast.position, point);
             let damage = (blast.peak * (1.0 - distance / blast.radius)).floor() as i32;
             if damage <= 0 || !crate::combat::line_of_sight(blast.position, point, &arena.solids) {
                 continue;
             }
-            let (hp, armor, died) =
-                self.resolve_fighter_hit(owner.unwrap_or(target), target, damage, None);
+            let (hp, armor, died) = self.resolve_fighter_hit_for(
+                owner.unwrap_or(target),
+                target,
+                damage,
+                None,
+                blast.source == BlastSource::AssessorWreck,
+            );
             if hp + armor == 0 {
                 continue;
             }
@@ -285,7 +308,9 @@ impl GameState {
                 BlastSource::Grenade => statistics.grenade_hit(hp_total, armor_total, kills),
                 BlastSource::Mine => statistics.mine_hit(hp_total, armor_total, kills),
                 BlastSource::RemoteMine => statistics.remote_mine_hit(hp_total, armor_total, kills),
-                BlastSource::Vehicle => {}
+                BlastSource::Vehicle
+                | BlastSource::AssessorCanister
+                | BlastSource::AssessorWreck => {}
             }
         }
         self.explosion_results.push(ExplosionResult {
@@ -309,14 +334,17 @@ pub(super) fn distance(a: [f32; 3], b: [f32; 3]) -> f32 {
         .sqrt()
 }
 
-pub(super) fn closest_body_point(
+pub(super) fn closest_body_point_stance(
     origin: [f32; 3],
     feet: [f32; 3],
     identity: Option<crate::protocol::CampaignActor>,
+    ducking: bool,
 ) -> [f32; 3] {
-    let y = origin[1].clamp(feet[1], feet[1] + crate::combat::target_height(identity));
-    if crate::combat::is_notary(identity) {
-        let radius = crate::combat::NOTARY_HALF_WIDTH;
+    let y = origin[1].clamp(
+        feet[1],
+        feet[1] + crate::combat::body_height(identity, ducking),
+    );
+    if let Some(radius) = crate::combat::flying_half_width(identity) {
         return [
             origin[0].clamp(feet[0] - radius, feet[0] + radius),
             y,

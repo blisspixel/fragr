@@ -5,6 +5,20 @@ Nick authorized substantially broader model production alongside independent
 gameplay, results and level work. Colors identify allegiance; faction design
 remains part of the broader circa-2070 world rather than its sole subject.
 
+October 8 source reconciliation: prepared Clerk, Sweeper, Auditor, Enforcer,
+Redactor, free-human and free-synthetic models already supply selected directional
+pixel art. Current source now selects both free player bodies and Tern as live
+weighted meshes alongside Latch. The [live presenter increment](live-character-presenters-20261008.md)
+owns their current checks and remaining acceptance. Edda's repaired skin and
+Splice's complete prepared source are also locally selected. Their
+[repair](edda-live-repair-20261008.md) and
+[live integration](splice-mechanical-source-20261008.md) retain separate evidence;
+Splice's world-space foot planting and final human art review remain open.
+The [model inventory](../../client/art/models/README.md) distinguishes those uses.
+The current buildout needs preparation of existing models, not another blanket
+generation batch. The dated credit readings below remain historical; no new paid
+stage was requested for this reconciliation.
+
 ## Scope and continuity
 
 Prepare coherent stylized references and model candidates for the Sweeper,
@@ -41,7 +55,8 @@ prepare compact embedded textures, feet registration, legal metadata and
 reproducible source hashes before public integration. Additional animations
 are not in this batch; reuse retained gait and authored role poses first.
 
-The last user-reported image-service balance is $14.42, not a live API balance.
+At the October 4 planning checkpoint, the user-reported image-service balance
+was $14.42. Nick's October 8 report is $4.65; neither is a live API reading.
 This model batch does not authorize additional image-service cash charges.
 
 ## Acceptance and verification

@@ -11,14 +11,18 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## Current README gallery, October 7, 2026
+## Current README gallery, October 8, 2026
 
-The current composition passed the full 32-state visual tour and published
-fourteen stills. They were inspected at full size, including the human and
-synthetic bodies, menus and transient gun effects. A body-camera obstruction
-and a Rail setup race exposed by earlier runs were corrected. The passing run
-includes an actual human death, respawn and continued firing after the native
-facing correction. Its manifest records the actual states, not just their names.
+The current working-tree composition on main `e4df1a0b` passed the full
+32-state visual tour and copied fourteen stills again after live character
+integration. They were inspected at full size, including all three original
+effects strips. Human and synthetic participants now use weighted live meshes;
+the menu retains its small strip preview. The selected Multiplayer still comes from the final clean full tour,
+including a real owned loopback probe and bounded scrolling content.
+Its title and Back fit within the card. Independent original-size review
+corrected a previous mistaken clipping observation; no layout repair was needed.
+The earlier title anomaly remains in its dated receipt. Earlier body-camera and Rail setup corrections remain in
+the owning release receipts.
 
 | README image | Actual state |
 |---|---|
@@ -27,13 +31,54 @@ facing correction. Its manifest records the actual states, not just their names.
 | `tour_multiplayer_16x9.png` | Populated join page after a real loopback status probe, with the saved host and bounded scrolling content |
 | `tour_combat_follow_16x9.png` | Spectator chase view of an Active Arena Duel round with rule bots |
 
-The [receipt](readme-20261007.json) records image, route, QA-source and native
+The [receipt](readme-20261008.json) records image, route, QA-source and native
 hashes. All selected images are copied without retouching, cropping or resizing.
-The intake is a three-state prefix, not a full campaign completion. The updated
-multiplayer page has a separate focused render after its scrolling correction.
+The [October 7 receipt](readme-20261007.json) retains its historical hashes.
+The intake retains its earlier three-state prefix, not a full campaign
+completion. The earlier focused Multiplayer capture remains historical in the
+receipt; the current selection is the full-tour original.
 The tour uses isolated settings and history, Godot 4.7.2-stable, Windows,
 OpenGL Compatibility, an AMD Radeon 780M and 1280x720 output. These screenshots
 do not establish final art, human enjoyment, LAN behavior or hardware performance.
+All three effect strips were inspected, containing 32 sampled frames. Their
+small tiles do not establish seven separate Scatter impacts. Neither body
+still records watched-subject feet or airborne state. Weighted floor support
+and sampled motion have separate [fixture evidence](../evidence/live-character-fixtures-20261008.md);
+ordinary Tern movement has its [mission-route receipt](../evidence/live-crew-routes-20261008.md).
+The open hands and pronounced retained stride still need art refinement.
+The current service record is an incomplete Arena Duel observation with zero
+kills, one actual death and fourteen seconds alive, rather than a completed round.
+An earlier final tour failed when a real death/respawn reset a one-shot QA aim
+request. The helper now resends ordinary aim until a living server pose matches,
+with the same five-second deadline and exact assertions. The unchanged
+32-state, seed-42 retry passed. The later live-character run also passes and
+supplies the current selected stills. Both successful earlier runs and the
+failed attempt retain their dated hashes in the receipt. This changes no
+gameplay rule or protection.
+
+The [M12 habitat receipt](m12-habitat-development-20261008.json),
+[M13 foundry receipt](m13-foundry-development-20261008.json) and
+[M14 launch receipt](m14-launch-authority-development-20261008.json) record
+separate ordinary-input development-map routes and their selected originals.
+Their evidence describes blockout art, missing mission mechanics and any
+retained failures separately from this standard arena tour.
+
+The [campaign best-time receipt](campaign-bests-20261007.json) records two
+actual fourteen-state Standard Recall Notice completions across separate owned
+server processes. Their retained history establishes 2:19.20 against the
+previous 2:22.85. `campaign_best_result_20261007.png` and
+`campaign_best_record_20261007.png` show the current presenters replaying that
+actual completion and persisted history on plain backdrops, at 1920x1280.
+They verify the displayed comparison and scope, not an additional gameplay run.
+
+The [local award receipt](earned-rewards-20261008.json) records an actual owned
+M01 secret and completion, then final presenters loading the earned profile.
+`rewards_earned_20261008.png` and `rewards_locked_20261008.png` are the inspected
+1280x720 OpenGL menus. `rewards_scatter_fire_20261008.png` compares the same
+Shotgun fire texture with three finish materials at 960x360. Both OpenGL and
+Vulkan pass rendered pixel controls and clean exit checks. These are static
+presentation comparisons, with actual earning and retained capture corrections
+scoped in the [evidence](../evidence/local-awards-20261008.md).
 
 ## Previous README gallery, October 5, 2026
 

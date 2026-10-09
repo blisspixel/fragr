@@ -82,6 +82,7 @@ impl Encounters {
             .iter_mut()
             .for_each(|group| *group = Group::Unplaced);
         state.pickups = state.map.pickups();
+        state.reset_vehicles();
         self.waiting_for_party = true;
     }
     /// Called once per simulation tick, and on participant departure. Crossing
@@ -132,7 +133,9 @@ impl Encounters {
                 || map.m08_objectives().is_some()
                 || map.m09_objectives().is_some()
                 || map.m10_objectives().is_some()
-                || map.m11_objectives().is_some())
+                || map.m11_objectives().is_some()
+                || map.m12_objectives().is_some()
+                || map.has_authored_vehicles())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
                         .iter()
@@ -238,7 +241,9 @@ impl Encounters {
         let emitters: Vec<Uuid> = state
             .players
             .iter()
-            .filter(|player| state.has_traveling_shot(player.id))
+            .filter(|player| {
+                state.has_traveling_shot(player.id) || state.has_assessor_canister(player.id)
+            })
             .map(|player| player.id)
             .collect();
         state.players.retain(|player| {
@@ -323,7 +328,7 @@ impl Encounters {
             };
             let eye = [
                 me.x,
-                me.y - PLAYER_FLOOR_Y + crate::combat::eye_height(me.campaign),
+                me.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(me.campaign, me.ducking),
                 me.z,
             ];
             let reaches = |body: &Player| {
@@ -486,6 +491,18 @@ impl Encounters {
             .find(|(_, enemy)| enemy.id == id)
             .and_then(|(_, enemy)| enemy.claim_notary_photo_target())
     }
+    pub(crate) fn assessor_target(&self, id: Uuid) -> Option<[f32; 3]> {
+        self.enemies
+            .iter()
+            .find(|(_, enemy)| enemy.id == id)
+            .and_then(|(_, enemy)| enemy.canister_target())
+    }
+    pub(crate) fn spend_assessor_canister(&mut self, id: Uuid) -> bool {
+        self.enemies
+            .iter_mut()
+            .find(|(_, enemy)| enemy.id == id)
+            .is_some_and(|(_, enemy)| enemy.spend_canister())
+    }
     pub(crate) fn claim_enforcer_contact(&mut self, id: Uuid) -> bool {
         self.enemies
             .iter_mut()
@@ -511,6 +528,18 @@ impl GameState {
             let mut encounters = std::mem::take(&mut self.encounters);
             encounters.update(self);
             self.encounters = encounters;
+            // Shared blast damage and mission receipts must see the registered
+            // controllers. Resolving while `encounters` is taken loses both
+            // same-tick death phases and the M12 squad membership evidence.
+            let wrecks: Vec<Uuid> = self
+                .encounters
+                .enemies
+                .iter_mut()
+                .filter_map(|(_, enemy)| enemy.take_wreck().then_some(enemy.id))
+                .collect();
+            for owner in wrecks {
+                self.resolve_assessor_wreck(owner);
+            }
         }
     }
 

@@ -17,6 +17,17 @@ func _run() -> void:
 	var ward: ArenaSky.Preset = ArenaSky.preset_for("Persons Unknown: ward graybox")
 	var freight: ArenaSky.Preset = ArenaSky.preset_for("Scheduled Service: recall freight yard")
 	var town: ArenaSky.Preset = ArenaSky.preset_for("Notice to Vacate: Low Water market")
+	var launch: ArenaSky.Preset = ArenaSky.preset_for("Launch Authority (development)")
+	var habitat: ArenaSky.Preset = ArenaSky.preset_for("Terms of Cooperation (development)")
+	var foundry: ArenaSky.Preset = ArenaSky.preset_for("The Weight of Permission (development)")
+	_check(foundry.interior and foundry.key_energy == 0.0 and not foundry.outdoor_embers and foundry.practical_color.g > foundry.practical_color.r,
+		"roofed foundry requires explicit neutral work lighting without an exterior sun")
+	_check(not launch.interior and launch.key_color.r > launch.key_color.b and launch.sky_top != scrap.sky_top,
+		"launch works require an explicitly registered dust-lit Mars exterior")
+	_check(habitat.sky_top != launch.sky_top and habitat.practical_energy > launch.practical_energy,
+		"habitat courts need their distinct neutral work-light plan")
+	_check(ArenaSky.preset_for("Launch Authority test fixture").sky_top == scrap.sky_top,
+		"a similar unknown display name must keep the established fallback")
 	_check(not town.interior and town.sky_top != freight.sky_top and town.key_color.r > town.key_color.b,
 		"Low Water needs its own warm afternoon sky and light")
 	_check(not freight.interior and freight.sky_top != scrap.sky_top and freight.fog_density < scrap.fog_density,
@@ -49,6 +60,8 @@ func _run() -> void:
 	_check(not ember.visible and is_equal_approx(key.light_energy, recall.key_energy), "interior kept the outdoor ember props or sun")
 	ArenaSky.apply_scene_lights(layout, "Arena Duel")
 	_check(ember.visible and is_equal_approx(key.light_energy, scrap.key_energy), "arena lost its ember props or sun")
+	ArenaSky.apply_scene_lights(layout, "Launch Authority (development)")
+	_check(not ember.visible and is_equal_approx(key.light_energy, launch.key_energy), "Mars retained unmotivated scrapyard ember lamps")
 
 	var camera: Camera3D = Camera3D.new()
 	root.add_child(camera)

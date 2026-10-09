@@ -1,0 +1,502 @@
+{
+  "decorations": [
+    {
+      "center": [
+        0,
+        0.4
+      ],
+      "face": "north",
+      "kind": "maintenance_sign",
+      "size": [
+        3,
+        0.8
+      ],
+      "solid": "maintenance_rack"
+    },
+    {
+      "center": [
+        0,
+        1
+      ],
+      "face": "south",
+      "kind": "strip_light",
+      "size": [
+        4,
+        0.2
+      ],
+      "solid": "arrival_left"
+    },
+    {
+      "center": [
+        0,
+        1
+      ],
+      "face": "south",
+      "kind": "strip_light",
+      "size": [
+        4,
+        0.2
+      ],
+      "solid": "court_right"
+    },
+    {
+      "center": [
+        0,
+        1
+      ],
+      "face": "south",
+      "kind": "strip_light",
+      "size": [
+        4,
+        0.2
+      ],
+      "solid": "final_left"
+    }
+  ],
+  "encounters": [
+    {
+      "enemies": [
+        {
+          "armor": 100,
+          "feet": [
+            0,
+            0,
+            1
+          ],
+          "id": "first_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "first_armor",
+      "regions": [
+        {
+          "max": [
+            20,
+            3,
+            5.5
+          ],
+          "min": [
+            -20,
+            0,
+            -8
+          ]
+        }
+      ]
+    },
+    {
+      "after": "first_armor",
+      "enemies": [
+        {
+          "armor": 100,
+          "feet": [
+            -9,
+            0,
+            11
+          ],
+          "id": "court_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "court_armor",
+      "regions": [
+        {
+          "max": [
+            20,
+            3,
+            15
+          ],
+          "min": [
+            -20,
+            0,
+            6.5
+          ]
+        }
+      ]
+    },
+    {
+      "after": "court_armor",
+      "enemies": [
+        {
+          "armor": 100,
+          "feet": [
+            9,
+            0,
+            19
+          ],
+          "id": "final_heavy",
+          "kind": "heavy_sweeper",
+          "yaw": 4.71238898038469
+        }
+      ],
+      "id": "final_armor",
+      "regions": [
+        {
+          "max": [
+            20,
+            3,
+            22
+          ],
+          "min": [
+            -20,
+            0,
+            16
+          ]
+        }
+      ]
+    }
+  ],
+  "equipment": "discovery",
+  "ground": "concrete",
+  "half_extent": 24,
+  "landmarks": [
+    {
+      "feet": [
+        -8,
+        0,
+        -16
+      ],
+      "id": "maintenance_bay"
+    },
+    {
+      "feet": [
+        0,
+        0,
+        -5
+      ],
+      "id": "first_approach"
+    },
+    {
+      "feet": [
+        0,
+        0,
+        8
+      ],
+      "id": "court_approach"
+    },
+    {
+      "feet": [
+        -2,
+        0,
+        13.5
+      ],
+      "id": "pre_final_stock"
+    },
+    {
+      "feet": [
+        0,
+        0,
+        21
+      ],
+      "id": "exit"
+    }
+  ],
+  "map_id": 1042,
+  "name": "Arc Maintenance (development)",
+  "solids": [
+    {
+      "id": "perimeter_west",
+      "max": [
+        -22,
+        4,
+        23
+      ],
+      "min": [
+        -23,
+        0,
+        -23
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "perimeter_east",
+      "max": [
+        23,
+        4,
+        23
+      ],
+      "min": [
+        22,
+        0,
+        -23
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "perimeter_south",
+      "max": [
+        22,
+        4,
+        -22
+      ],
+      "min": [
+        -22,
+        0,
+        -23
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "perimeter_north",
+      "max": [
+        22,
+        4,
+        23
+      ],
+      "min": [
+        -22,
+        0,
+        22
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "maintenance_rack",
+      "max": [
+        -4,
+        2.2,
+        -19
+      ],
+      "min": [
+        -13,
+        0,
+        -20
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "maintenance_side",
+      "max": [
+        -14,
+        2.8,
+        -11
+      ],
+      "min": [
+        -15,
+        0,
+        -20
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_left",
+      "max": [
+        -4,
+        4,
+        -6
+      ],
+      "min": [
+        -22,
+        0,
+        -6.4
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "arrival_right",
+      "max": [
+        22,
+        4,
+        -6
+      ],
+      "min": [
+        4,
+        0,
+        -6.4
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_left",
+      "max": [
+        -4,
+        4,
+        6.4
+      ],
+      "min": [
+        -22,
+        0,
+        6
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "court_right",
+      "max": [
+        22,
+        4,
+        6.4
+      ],
+      "min": [
+        4,
+        0,
+        6
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "final_left",
+      "max": [
+        -4,
+        4,
+        15.9
+      ],
+      "min": [
+        -22,
+        0,
+        15.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "final_right",
+      "max": [
+        22,
+        4,
+        15.9
+      ],
+      "min": [
+        4,
+        0,
+        15.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "first_cover_west",
+      "max": [
+        -6,
+        1.2,
+        0
+      ],
+      "min": [
+        -10,
+        0,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "first_cover_east",
+      "max": [
+        10,
+        1.2,
+        2
+      ],
+      "min": [
+        6,
+        0,
+        0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "second_cover_east",
+      "max": [
+        7,
+        1.2,
+        12
+      ],
+      "min": [
+        3,
+        0,
+        9
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "final_cover_west",
+      "max": [
+        -6,
+        1.2,
+        20
+      ],
+      "min": [
+        -10,
+        0,
+        18
+      ],
+      "surface": "enamel"
+    }
+  ],
+  "spawns": [
+    {
+      "feet": [
+        0,
+        0,
+        -18
+      ],
+      "id": "entry",
+      "yaw": 1.5707963267949
+    }
+  ],
+  "supplies": [
+    {
+      "claim": "personal",
+      "feet": [
+        -8,
+        0,
+        -16
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "arc"
+      },
+      "id": "maintenance_arc"
+    },
+    {
+      "claim": "personal",
+      "feet": [
+        2,
+        0,
+        -18
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "flechette"
+      },
+      "id": "arrival_rifle"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -2,
+        0,
+        -18
+      ],
+      "grant": {
+        "amount": 100,
+        "kind": "armor"
+      },
+      "id": "arrival_armor"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -17,
+        0,
+        -12
+      ],
+      "grant": {
+        "amount": 40,
+        "kind": "health"
+      },
+      "id": "maintenance_medical"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -2,
+        0,
+        13.5
+      ],
+      "grant": {
+        "amount": 40,
+        "kind": "health"
+      },
+      "id": "pre_final_medical"
+    }
+  ],
+  "version": 1
+}

@@ -171,7 +171,7 @@ func bake() -> void:
 		print("character_bake: wrote ", kind)
 	var sources: Dictionary[String, String] = {}
 	for source: String in ["res://art/characters/geometry.gd", "res://art/characters/rig.gd",
-		"res://art/characters/machines.gd", "res://art/characters/bake.gd", "res://scripts/enemy_animation.gd",
+		"res://art/characters/machines.gd", "res://art/characters/pose_support.gd", "res://art/characters/bake.gd", "res://scripts/enemy_animation.gd",
 		"res://scripts/model_geometry.gd", "res://art/models/sweeper_source.gd", "res://art/models/normal_bake.gdshader",
 		"res://art/models/sweeper_skinned_source.gd", "res://art/models/candidates/sweeper.glb", "res://art/models/candidates/sweeper.glb.import",
 		"res://art/models/clerk_source.gd", "res://art/models/candidates/clerk.glb",

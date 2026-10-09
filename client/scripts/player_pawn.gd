@@ -36,6 +36,8 @@ var campaign_actor: Dictionary = {}
 var _has_authoritative_state: bool = false
 var enemy_view: EnemyView = null
 var latch_view: LatchView = null
+var character_view: SkinnedCharacter = null
+var _held_root: Node3D = null
 var _notary_shadow: MeshInstance3D = null
 ## Scope glint of a Ranged Sweeper, shown only during its server windup.
 var marksman_tell: RangedSweeperTell = null
@@ -109,7 +111,7 @@ const TELL_PITCH_MAX: float = 1.25
 const DOWN_BODY_PATH: String = "res://assets/audio/down/body.wav"
 const DOWN_ROBOT_PATH: String = "res://assets/audio/down/robot.wav"
 ## Union machines fall as machines; the Notary keeps its own crash.
-const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer"]
+const ROBOT_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "assessor"]
 
 var muzzle_flash_texture: Texture2D
 var rail_beam_texture: Texture2D
@@ -217,6 +219,13 @@ func _load_audio_streams():
 		fire_streams["Sniper"] = load(L07Assets.SNIPER_FIRE_SOUND)
 	if ResourceLoader.exists(L07Assets.SNIPER_HIT_SOUND):
 		hit_streams["Sniper"] = load(L07Assets.SNIPER_HIT_SOUND)
+	for cue: String in ["fire", "impact"]:
+		var arc_path: String = "res://assets/audio/arc/%s.wav" % cue
+		if ResourceLoader.exists(arc_path):
+			if cue == "fire":
+				fire_streams["Arc"] = load(arc_path)
+			else:
+				hit_streams["Arc"] = load(arc_path)
 	if fire_sound and ResourceLoader.exists(fallback_fire):
 		fire_sound.stream = load(fallback_fire)
 	if ResourceLoader.exists(fallback_hit):
@@ -302,6 +311,12 @@ func _process(delta: float) -> void:
 			marksman_tell.present(campaign_actor, enemy_view.tick, enemy_view.elapsed)
 	elif latch_view != null:
 		latch_view.advance(delta, travel, str(campaign_actor.get("phase", "following")))
+	elif character_view != null:
+		var gait_travel: float = presentation_speed * delta if prediction_active else travel
+		character_view.aim_pitch = presentation_pitch
+		character_view.advance(delta, 0.0 if vehicle_seated else gait_travel, hp > 0,
+			current_weapon not in ["", "Fists", "Shiv"] and not vehicle_seated, ducking, vehicle_seated and ducking)
+		_attach_carried()
 	else:
 		idle_anim_timer += delta * 4.0
 	if body and enemy_view == null and latch_view == null:
@@ -359,15 +374,18 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 			muzzle.position = Vector3(0.88, 0.52, -0.14)
 			muzzle.pixel_size = 0.005
 		enemy_view.update(state, snapshot_tick, body)
+		# The presenter selected this role's atlas origin. Scale and hit refreshes
+		# must retain it instead of restoring the scene's earlier sprite offset.
+		_body_rest_y = body.position.y
 		if campaign_actor.get("kind") == "ranged_sweeper" and marksman_tell == null:
 			marksman_tell = RangedSweeperTell.new()
 			marksman_tell.name = "MarksmanTell"
 			add_child(marksman_tell)
-		if campaign_actor.get("kind") == "notary" and _notary_shadow == null:
+		if campaign_actor.get("kind") in ["notary", "assessor"] and _notary_shadow == null:
 			_notary_shadow = MeshInstance3D.new()
-			_notary_shadow.name = "NotaryFloorShadow"
+			_notary_shadow.name = "AssessorFloorShadow" if campaign_actor.get("kind") == "assessor" else "NotaryFloorShadow"
 			var shadow_plane: PlaneMesh = PlaneMesh.new()
-			shadow_plane.size = Vector2(1.6, 1.3)
+			shadow_plane.size = Vector2(2.8, 2.8) if campaign_actor.get("kind") == "assessor" else Vector2(1.6, 1.3)
 			_notary_shadow.mesh = shadow_plane
 			var shadow_material: ShaderMaterial = ShaderMaterial.new()
 			shadow_material.shader = preload("res://assets/shaders/notary_shadow.gdshader")
@@ -397,6 +415,8 @@ func update_state(state: Dictionary, snapshot_tick: int = 0):
 	var old_hp = hp
 	hp = state.hp
 	armor = int(state.get("armor", 0))
+	if latch_view != null:
+		latch_view.observe_health(hp)
 	if not is_campaign_enemy and not is_campaign_companion and snapshot_tick > 0:
 		if remote_presentation.accept(snapshot_tick, target_position, target_yaw,
 				target_pitch, hp > 0, Time.get_ticks_usec()) and remote_presentation.discontinuity \
@@ -503,12 +523,80 @@ func _wear_body(kind: String) -> void:
 	body.position.y = EnemyAnimation.CENTRE_HEIGHT - EnemyView.CAMERA.FP_SERVER_REFERENCE_Y
 	# Scale and crouch restore this rest. The scene default is the legacy strip.
 	_body_rest_y = body.position.y
+	# A previous live body may have owned the carried nodes. Restore the strip
+	# arrangement before attempting the next source, including failed loads.
+	if _held_root != null:
+		_held_root.remove_child(weapon_sprite)
+		body.add_child(weapon_sprite)
+		_held_root.remove_child(muzzle)
+		body.add_child(muzzle)
+		remove_child(_held_root)
+		_held_root.queue_free()
+		_held_root = null
+	weapon_sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	weapon_sprite.rotation = Vector3.ZERO
+	weapon_sprite.flip_h = false
 	# The held weapon sits at the resting hands, about hip height.
 	weapon_sprite.position = Vector3(0.34, 0.0, 0.02)
 	muzzle.position = Vector3(0.64, 0.2, 0.04)
 	# The plate rides just over a 1.8 metre head, not over the old tall strip.
 	label.position.y = 0.65
+	if character_view != null:
+		remove_child(character_view)
+		character_view.queue_free()
+		character_view = null
+	var candidate: SkinnedCharacter = SkinnedCharacter.new()
+	if candidate.configure(kind):
+		character_view = candidate
+		character_view.name = "LiveBody"
+		character_view.position.y = -EnemyView.CAMERA.FP_SERVER_REFERENCE_Y
+		character_view.rotation.y = PI / 2.0
+		add_child(character_view)
+		body.visible = false
+		if _held_root == null:
+			_held_root = Node3D.new()
+			_held_root.name = "CarriedPresentation"
+			add_child(_held_root)
+			body.remove_child(weapon_sprite)
+			_held_root.add_child(weapon_sprite)
+			body.remove_child(muzzle)
+			_held_root.add_child(muzzle)
+		_attach_carried()
+	else:
+		candidate.free()
+		body.visible = not is_local_fp
 	_update_body_color(false)
+	set_local_fp(is_local_fp)
+
+func _attach_carried() -> void:
+	if character_view == null or _held_root == null:
+		return
+	var grip: Transform3D = character_view.transform * character_view.hand_transform()
+	_held_root.position = grip.origin
+	# Rotate the profile about its actual gun axis, rather than fixed world Y.
+	# A fixed-Y billboard silently discards the visible accepted aim pitch.
+	var gun_axis: Vector3 = Vector3(cos(presentation_pitch), sin(presentation_pitch), 0.0)
+	var up: Vector3 = Vector3(-sin(presentation_pitch), cos(presentation_pitch), 0.0)
+	var camera: Camera3D = get_viewport().get_camera_3d()
+	if camera != null:
+		var toward_camera: Vector3 = to_local(camera.global_position) - grip.origin
+		var normal: Vector3 = toward_camera - gun_axis * toward_camera.dot(gun_axis)
+		if normal.length_squared() > 0.000001:
+			var facing_up: Vector3 = normal.normalized().cross(gun_axis).normalized()
+			up = facing_up if facing_up.dot(up) >= 0.0 else -facing_up
+	_held_root.basis = Basis(gun_axis, up, gun_axis.cross(up))
+	weapon_sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	weapon_sprite.rotation = Vector3.ZERO
+	# The existing pistol and sniper profiles have their muzzle on image left.
+	weapon_sprite.flip_h = current_weapon in ["Tack", "Sniper"]
+	# The pistol's painted grip is seven texels left and three below centre
+	# after reflection. Put that grip at the posed wrist, not the canvas centre.
+	weapon_sprite.position = Vector3(0.0728, 0.0312, 0.0) if current_weapon == "Tack" else Vector3(0.20, 0.03, 0.0)
+	muzzle.position = Vector3(0.208, 0.104, 0.0) if current_weapon == "Tack" else Vector3(0.56, 0.08, 0.0)
+	_held_root.visible = not is_local_fp and not vehicle_seated
+	# A resolved shot can arrive after its shooter died. Hide the carried gun
+	# independently so that the sibling muzzle still presents that shot.
+	weapon_sprite.visible = not is_local_fp and hp > 0 and not vehicle_seated and weapon_textures.has(current_weapon)
 
 func _update_weapon_sprite():
 	if not weapon_sprite:
@@ -560,6 +648,10 @@ func _update_body_color(hit: bool):
 	else:
 		# Near-white multiply so Cyanex/Kragge pixel art reads; brand on label.
 		body.modulate = Color(1.0, 1.0, 1.0).lerp(player_color, 0.18)
+	if character_view != null:
+		character_view.tint(body.modulate)
+	if enemy_view != null and enemy_view.assessor_rig != null:
+		enemy_view.assessor_rig.set_hit(hit)
 	_apply_body_scale(hit)
 
 func _update_notary_shadow() -> void:
@@ -850,7 +942,11 @@ func set_local_fp(enabled: bool) -> void:
 	# Hide local billboard in FP so the HUD viewmodel owns the scrap face.
 	is_local_fp = enabled
 	if body:
-		body.visible = not enabled and not is_campaign_companion
+		body.visible = not enabled and not is_campaign_companion and character_view == null and campaign_actor.get("kind") != "assessor"
+	if enemy_view != null and enemy_view.assessor_rig != null:
+		enemy_view.assessor_rig.visible = not enabled
+	if character_view != null:
+		character_view.visible = not enabled
 	if label:
 		label.visible = nameplate_enabled and not enabled
 	if highlight:
@@ -859,6 +955,8 @@ func set_local_fp(enabled: bool) -> void:
 		weapon_sprite.visible = false
 	elif weapon_sprite:
 		_update_weapon_sprite()
+	if _held_root != null:
+		_attach_carried()
 
 func set_team_relation(relation: String) -> void:
 	var next: String = relation if relation == "mate" or relation == "foe" else ""

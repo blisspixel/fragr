@@ -6,6 +6,7 @@ use crate::protocol::{
 use crate::sim::{BotIntent, GameState, PLAYER_FLOOR_Y};
 use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
+mod assessor;
 mod enforcer;
 mod redactor;
 mod spine_patrol;
@@ -59,7 +60,7 @@ fn crawler_body_exposed(
 ) -> bool {
     let origin = [
         viewer.x,
-        viewer.y - PLAYER_FLOOR_Y + crate::combat::eye_height(viewer.campaign),
+        viewer.y - PLAYER_FLOOR_Y + crate::combat::stance_eye(viewer.campaign, viewer.ducking),
         viewer.z,
     ];
     let dx = crawler_feet[0] - viewer.x;
@@ -99,6 +100,7 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::RangedSweeper => (70, WeaponType::Sniper),
         EnemyKind::Enforcer => (140, WeaponType::Fists),
         EnemyKind::Redactor => (90, WeaponType::Shiv),
+        EnemyKind::Assessor => (240, WeaponType::Fists),
     }
 }
 
@@ -107,7 +109,11 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
     match kind {
         EnemyKind::Clerk | EnemyKind::Sweeper => 0.5,
         EnemyKind::HeavySweeper => 0.3,
-        EnemyKind::Turret | EnemyKind::Jammer | EnemyKind::Notary | EnemyKind::RangedSweeper => 0.0,
+        EnemyKind::Turret
+        | EnemyKind::Jammer
+        | EnemyKind::Notary
+        | EnemyKind::RangedSweeper
+        | EnemyKind::Assessor => 0.0,
         EnemyKind::Crawler => 0.7,
         EnemyKind::Auditor => 0.4,
         EnemyKind::Enforcer => 0.45,
@@ -126,7 +132,7 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::RangedSweeper
         | EnemyKind::Redactor => 1,
         EnemyKind::Enforcer => 1,
-        EnemyKind::Sweeper | EnemyKind::Notary => 3,
+        EnemyKind::Sweeper | EnemyKind::Notary | EnemyKind::Assessor => 3,
         EnemyKind::HeavySweeper => 4,
     }
 }
@@ -145,13 +151,14 @@ fn stun(kind: EnemyKind) -> u64 {
         EnemyKind::HeavySweeper => 16,
         EnemyKind::Enforcer => 16,
         EnemyKind::Turret => 10,
+        EnemyKind::Assessor => 16,
     }
 }
 
 fn armored(kind: EnemyKind) -> bool {
     matches!(
         kind,
-        EnemyKind::HeavySweeper | EnemyKind::Turret | EnemyKind::Enforcer
+        EnemyKind::HeavySweeper | EnemyKind::Turret | EnemyKind::Enforcer | EnemyKind::Assessor
     )
 }
 
@@ -204,6 +211,10 @@ pub(super) struct EnemyController {
     patrol_point: usize,
     hover_tick: Option<u64>,
     landed: bool,
+    wreck_pending: bool,
+    wreck_resolved: bool,
+    canisters_left: u8,
+    canister_target: Option<[f32; 3]>,
     photograph_pending: Option<Uuid>,
     /// Auditor only: completed repairs it may still make.
     repairs_left: u8,
@@ -257,6 +268,9 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Redactor, CampaignDifficulty::Assisted) => (24, 30),
         (EnemyKind::Redactor, CampaignDifficulty::Standard) => (18, 24),
         (EnemyKind::Redactor, CampaignDifficulty::Severe) => (14, 18),
+        (EnemyKind::Assessor, CampaignDifficulty::Assisted) => (32, 50),
+        (EnemyKind::Assessor, CampaignDifficulty::Standard) => (24, 40),
+        (EnemyKind::Assessor, CampaignDifficulty::Severe) => (18, 32),
     }
 }
 
@@ -402,6 +416,10 @@ impl EnemyController {
             patrol_point: 0,
             hover_tick: None,
             landed: false,
+            wreck_pending: false,
+            wreck_resolved: false,
+            canisters_left: 30,
+            canister_target: None,
             photograph_pending: None,
             repairs_left: if kind == EnemyKind::Auditor {
                 crate::protocol::AUDITOR_REPAIRS
@@ -515,7 +533,11 @@ impl EnemyController {
             SIGHT_RANGE
         };
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
-        let eye = [me.x, feet[1] + crate::combat::eye_height(me.campaign), me.z];
+        let eye = [
+            me.x,
+            feet[1] + crate::combat::stance_eye(me.campaign, me.ducking),
+            me.z,
+        ];
         let chest = |p: &crate::protocol::PlayerState| {
             crate::combat::aim_point_for([p.x, p.y - PLAYER_FLOOR_Y, p.z], p.campaign, p.ducking)
         };
@@ -724,6 +746,9 @@ impl EnemyController {
         if self.kind == EnemyKind::Jammer {
             return self.jammer(target, eye, (windup, recovery), tick, state);
         }
+        if self.kind == EnemyKind::Assessor {
+            return self.assessor(target, eye, (windup, recovery), tick);
+        }
         // Guards spend the same finite ammunition counts as participants.
         // An empty guard can still defend themselves at melee distance.
         if let Some(loadout) = body.inventory.state(body.id, body.weapon, state.tick) {
@@ -925,6 +950,10 @@ impl EnemyController {
             player.yaw = crate::movement::normalize_yaw(player.yaw + 0.12);
             if next <= support {
                 self.landed = true;
+                if self.kind == EnemyKind::Assessor && !self.wreck_resolved {
+                    self.wreck_resolved = true;
+                    self.wreck_pending = true;
+                }
                 player.vy = 0.0;
                 self.until = state.tick.saturating_add(20);
             }
@@ -974,7 +1003,11 @@ impl EnemyController {
                 ..from
             },
             height: crate::combat::target_height(player.campaign),
-            radius: crate::movement::RADIUS,
+            radius: if self.kind == EnemyKind::Assessor {
+                crate::combat::ASSESSOR_HALF_WIDTH
+            } else {
+                crate::movement::RADIUS
+            },
             jump: false,
         };
         let fraction = contacts

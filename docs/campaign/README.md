@@ -2,11 +2,18 @@
 
 Detailed level plans for twenty campaign levels in five episodes and a
 conditional epilogue, accepted 2026-09-25 as the contract (formerly ten
-missions and a conditional epilogue). Levels 1-6 have authored development
+missions and a conditional epilogue). Levels 1-12 have connected development
 prototypes; no complete level has reached the design's quality gate. The
 [campaign contract](../CAMPAIGN.md) distinguishes confirmed story
 from proposals and owns the twenty-level table; the [treatment](../CAMPAIGN-MISSIONS.md)
 gives the complete arc.
+The separate [M12 habitat](../plans/m12-habitat-development-20261008.md),
+[M13 foundry](../plans/m12-m14-foundry-slice-20261008.md) and
+[M14 launch-works](../plans/m14-vehicle-development-20261006.md) development
+maps have supplied walking/combat routes. Connected M12 now has its own
+[habitat implementation](../plans/m12-connected-habitat-20261008.md) and version
+15 carry, with completed departure retaining pending M13. The separate foundry
+and launch-works maps still lack their connected mission systems and progression.
 This directory owns room sequence, cast staging, encounter beats and mission
 state proposals. Working names are defined in [cast](../lore/cast.md).
 The [art bible](../ART_STORY_BIBLE.md#factions-places-and-continuity) owns shared

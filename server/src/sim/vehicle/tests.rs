@@ -525,3 +525,39 @@ fn aircraft_single_seat_takes_off_and_water_crash_releases_occupant() {
     assert!(state.vehicle_seat(id).is_none());
     assert_eq!(state.vehicles[index].state.burning_ticks, 0);
 }
+
+#[test]
+fn vehicle_driver_and_gunner_stances_are_preserved_in_active_tick() {
+    let (mut state, driver_id) = scene();
+    let gunner_id = Uuid::from_u128(502);
+    state.add_player(gunner_id, "Gunner".into(), Role::Human);
+    state.players[1].x = 0.0;
+    state.players[1].z = -1.6;
+    state.players[1].y = PLAYER_FLOOR_Y;
+
+    use_vehicle(&mut state, driver_id);
+    assert_eq!(
+        state.vehicle_seat(driver_id),
+        Some((0, VehicleSeat::Driver))
+    );
+    use_vehicle(&mut state, gunner_id);
+    assert_eq!(
+        state.vehicle_seat(gunner_id),
+        Some((0, VehicleSeat::Gunner))
+    );
+
+    state.set_action(driver_id, Action::default());
+    state.set_action(gunner_id, Action::default());
+    state.tick(0.05);
+
+    let driver = state.players.iter().find(|p| p.id == driver_id).unwrap();
+    assert!(
+        driver.ducking,
+        "driver must stay in seated/ducking stance during active ticks"
+    );
+    let gunner = state.players.iter().find(|p| p.id == gunner_id).unwrap();
+    assert!(
+        !gunner.ducking,
+        "gunner must stay standing in turret during active ticks"
+    );
+}

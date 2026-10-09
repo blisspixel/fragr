@@ -1,6 +1,6 @@
 # Enemy roster
 
-**Status, 2026-10-04:** Clerk and Sweeper prototype encounters are implemented
+**Status, 2026-10-08:** Clerk and Sweeper prototype encounters are implemented
 through shared simulation bodies, typed campaign identity and directional
 animation. Their selected paired albedo/normal atlases have distinct outlines: the Sweeper is
 the wide bot with the level rifle, and the Clerk is the narrower human whose
@@ -15,10 +15,15 @@ steel and restrained red Union issue. Full-mission tuning and a fresh-player
 review remain open. The Jammer fights in M03 and the bounded flying Notary in
 M04/M05. The campaign Auditor and its bounded repair are a development
 prototype in level 8 and on the [custody range](plans/l08-custodian-of-record-prototype.md).
-Ranged Sweeper fights in level 7. These nine roles exist in source. Stylized
+Ranged Sweeper fights in level 7. Enforcer fights in M09 and Redactor in M10.
+The [Assessor foundation](plans/assessor-foundation-20261008.md) adds a finite
+ballistic heavy drone, raised body, directional plates and supported wreck.
+Its separate ordinary-input lesson and complete connected M12 route pass.
+Final visual, human combat and integration acceptance remain in flight.
+These twelve roles exist in current source. Stylized
 Clerk, Sweeper and Auditor presentation ships through PR #346 and #348; full
-M02 art-route and Auditor-range acceptance remain open. Enforcer, Redactor,
-Assessor, Continuance Walker and the three restoration roles remain unbuilt.
+M02 art-route and Auditor-range acceptance remain open. Continuance Walker
+and the three restoration roles remain unbuilt.
 Calibration's NODS
 and arcade "AUDITOR" label are separate arcade prototypes, not implementations
 of the proposed roster.
@@ -83,8 +88,9 @@ equipment with a narrow onboard controller under network supervision, like
 the Turret. They carry no assumed personhood, so the fiction adds no cost to
 shooting them down. The bounded Notary combat pilot is implemented in the
 [M04 prototype](plans/m04-notice-to-vacate-prototype.md), with its rendered and
-fresh-player gates tracked separately. The Assessor and broader air routing
-remain unbuilt; the [flying drones plan](plans/flying-drones.md) owns that scope.
+fresh-player gates tracked separately. The Assessor's bounded combat foundation
+is implemented locally; broader air routing and fresh-player acceptance remain
+open. The [flying drones plan](plans/flying-drones.md) owns that larger scope.
 
 Not NODS. The arena's Null-Objective Drones are corrected bots on foot; "drone"
 in their name is Office jargon for an obedient worker, and they do not fly. In
@@ -109,12 +115,16 @@ armored belly and front, a gimbal launcher and exposed rear vents. It holds a
 higher band (about 3 to 7 m) and needs a tall hall or open sky. Its tell is the
 launcher unfolding while two red optics count down with a rising chirp; then it
 lobs a volley of three slow, visible canisters that burst on impact. After the
-volley its vents open and glow through a long recovery. Proposed: about three
-Sweepers of HP; plates halve bullet damage from the front and below, vents take
-full damage, and the Arc and splash ignore the plates. Its falling wreck damages
-Union units it lands on and never participants, so dropping it on a squad is a
-reward, not a trap. It needs the shared server projectile seam; it never fires
-delayed invisible hitscan.
+volley its vents open and glow through a long recovery. Current foundation:
+240 HP, thirty canisters, three launch attempts six ticks apart, and 12 m/s
+ballistic travel with four swept substeps. Covered contact blasts peak at
+45 damage within 3 m. Plates halve traced damage from the front, below and
+closed rear; rear recovery vents take full damage. Arc and splash bypass those
+plates. One supported wreck can damage Union combatants within 1.5 m, with
+cover and falloff, and never participants, civilians, vehicles or pumps.
+The server owns every launch, contact and victim; no delayed invisible hitscan
+substitutes for travel. The original articulated presenter remains development
+art awaiting the complete visual and human-play gates.
 
 **Vertical space without frustration.**
 
@@ -148,7 +158,7 @@ can mix these established roles. During the level 18 wipe, the Inheritance can
 seize surviving Notaries as infrastructure; their issued shape remains, while
 their targets and timing change. These placements follow the accepted
 [campaign order](CAMPAIGN.md#structure). M04/M05 implement bounded Notary combat;
-the later Assessor and takeover behavior remain unbuilt.
+connected Assessor introduction is in flight, and takeover behavior remains unbuilt.
 
 **What the existing Compliance Drone gives.** Less than its name suggests. It is
 an arena prototype: an ordinary player body with an `is_boss` flag, spawned once
@@ -161,7 +171,8 @@ the difficulty timing table, `CampaignActor` identity and hostility,
 `combat::line_of_sight` against solids, alarm memory, encounter reset on a
 continue, true vertical aim, and directional sprites in `enemy_animation.gd`.
 Bounded Notary hover, a raised hit volume, the supported fall and crash are now
-implemented. General air routing and the Assessor's projectiles remain planned.
+implemented. Assessor canisters now reuse resolved blast damage with their own
+finite travel and stock. General air routing remains planned.
 The arena prototype keeps its behavior
 until a deliberate migration.
 
@@ -225,7 +236,7 @@ then mix it with an established role. Proposed progression:
 | Crawler + Sweeper | Keep space from the close threat without backing into a ranged lane | Level 2 service stair authored in draft; live proof pending. Later correction spaces planned |
 | Heavy + mobile security | Spend ammunition on suppression or take the exposed flank while lighter units move | Level 5 Low Water freight prototype, acceptance open; later industrial spaces planned |
 | Notary + Sweeper | Look up to break the flash or keep pressure on the ground burst; take the roof to meet the drone level | Level 4 Low Water prototype, acceptance open |
-| Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | Level 12 Martian habitat, planned |
+| Assessor + human security | Leave the canister splash while the squad pushes, or spend Arc charge on the vents | Connected level 12 Martian habitat, in flight |
 | Ranged Sweeper + Jammer | Break the precision sightline while dodging clearly traveling interference shots | Lunar galleries with side routes, planned |
 | Auditor + disabled bodies | Interrupt a bounded repair channel or finish an immediate attacker | Level 8 lunar custody archive, planned |
 | Absorbed bot + restoration machine | Apply the learned weapon counter while responding to newly marked work zones | Levels 18 to 20, planned |

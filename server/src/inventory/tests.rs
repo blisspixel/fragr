@@ -1,9 +1,99 @@
 use super::*;
+use crate::protocol::{Action, PickupState, Snapshot, SupplyClaim};
 
 fn view(inventory: &Inventory, selected: WeaponType, tick: u64) -> LoadoutState {
     let state = inventory.state(Uuid::nil(), selected, tick).unwrap();
     state.validate().unwrap();
     state
+}
+
+#[test]
+fn arc_keeps_one_cells_bag_with_rail_and_sniper_magazines_and_saved_entry() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    assert!(inventory.grant_weapon(WeaponType::Arc));
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 0).ammo(AmmoPool::Cells),
+        40
+    );
+    assert!(inventory.grant_weapon(WeaponType::Rail));
+    assert!(inventory.grant_weapon(WeaponType::Sniper));
+    inventory.arm_magazines();
+    let armed = view(&inventory, WeaponType::Arc, 1);
+    assert_eq!(armed.ammo(AmmoPool::Cells), 58);
+    assert_eq!(armed.shots(WeaponType::Arc), Some(12));
+    assert_eq!(armed.shots(WeaponType::Rail), Some(4));
+    assert_eq!(armed.shots(WeaponType::Sniper), Some(5));
+    for gun in [WeaponType::Arc, WeaponType::Rail, WeaponType::Sniper] {
+        assert!(inventory.try_fire(gun));
+    }
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 2).ammo(AmmoPool::Cells),
+        55
+    );
+    let saved = inventory.saved_equipment(WeaponType::Arc).unwrap();
+    let entry = inventory.clone();
+    for _ in 0..11 {
+        assert!(inventory.try_fire(WeaponType::Arc));
+    }
+    assert!(!inventory.try_fire(WeaponType::Arc));
+    let cells = view(&inventory, WeaponType::Arc, 3).ammo(AmmoPool::Cells);
+    assert!(inventory.request_reload(WeaponType::Arc, 3));
+    inventory.finish_reload(25);
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 25).ammo(AmmoPool::Cells),
+        cells,
+        "reload only moves already carried Cells"
+    );
+    let revision = inventory.revision();
+    inventory.restore_entry(&entry);
+    assert!(inventory.revision() > revision);
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 26).ammo(AmmoPool::Cells),
+        55
+    );
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 26).shots(WeaponType::Arc),
+        Some(11)
+    );
+    let mut restored = Inventory::new(EquipmentPolicy::Discovery);
+    restored.arm_magazines();
+    restored.restore_saved_equipment(&saved).unwrap();
+    assert_eq!(
+        view(&restored, WeaponType::Arc, 27).ammo(AmmoPool::Cells),
+        55
+    );
+    assert_eq!(restored.saved_equipment(WeaponType::Arc).unwrap(), saved);
+}
+
+#[test]
+fn arc_duplicate_find_refills_finite_bag_without_refilling_partial_magazine() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    inventory.arm_magazines();
+    assert!(inventory.grant_weapon(WeaponType::Arc));
+    assert!(inventory.try_fire(WeaponType::Arc));
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 1).shots(WeaponType::Arc),
+        Some(11)
+    );
+    assert!(inventory.grant_weapon(WeaponType::Arc));
+    let duplicate = view(&inventory, WeaponType::Arc, 2);
+    assert_eq!(duplicate.ammo(AmmoPool::Cells), 79);
+    assert_eq!(duplicate.shots(WeaponType::Arc), Some(11));
+    assert!(inventory.grant_weapon(WeaponType::Arc));
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 3).ammo(AmmoPool::Cells),
+        100
+    );
+    assert!(!inventory.grant_weapon(WeaponType::Arc));
+    assert_eq!(
+        view(&inventory, WeaponType::Arc, 4).shots(WeaponType::Arc),
+        Some(11)
+    );
+    assert!(inventory.request_reload(WeaponType::Arc, 4));
+    inventory.finish_reload(26);
+    let loaded = view(&inventory, WeaponType::Arc, 26);
+    assert_eq!(loaded.ammo(AmmoPool::Cells), 100);
+    assert_eq!(loaded.shots(WeaponType::Arc), Some(12));
 }
 
 #[test]
@@ -759,4 +849,96 @@ fn remote_stock_boundary_refuses_malformed_counts_and_omits_current_zero() {
     let mut loadout = view(&inventory, WeaponType::Fists, 0);
     loadout.remote_mines = 7;
     assert!(loadout.validate().is_err());
+}
+
+#[test]
+fn useful_supply_recognizes_grenades_and_mines() {
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    let id = Uuid::new_v4();
+    let loadout = view(&inventory, WeaponType::Fists, 0);
+    let snapshot = Snapshot {
+        tick: 0,
+        players: vec![crate::protocol::PlayerState {
+            id,
+            name: "Seeker".into(),
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            yaw: 0.0,
+            pitch: 0.0,
+            hp: 100,
+            armor: 0,
+            just_fired: false,
+            behavior: None,
+            score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
+            weapon: "fists".into(),
+            team: None,
+            lives: None,
+            golden: false,
+            ducking: false,
+            body: None,
+            collidable: true,
+            campaign: None,
+        }],
+        round_state: Some("Active".into()),
+        round_time_left: None,
+        frag_limit: None,
+        shot_results: vec![],
+        projectiles: vec![],
+        grenades: vec![],
+        assessor_canisters: vec![],
+        mines: vec![],
+        remote_mines: vec![],
+        auditors: vec![],
+        explosions: vec![],
+        mode_name: "FFA".into(),
+        playlist: "Standard".into(),
+        pressure: None,
+        host_line: "".into(),
+        mvp: None,
+        mvp_frags: None,
+        pickups: vec![PickupState {
+            id: "grenade_1".into(),
+            kind: "grenade".into(),
+            weapon: "".into(),
+            amount: Some(2),
+            pool: None,
+            x: 5.0,
+            y: 0.0,
+            z: 0.0,
+            available: true,
+            respawn_in: None,
+            claim: SupplyClaim::Contested,
+        }],
+        map_id: 1,
+        map_name: "Arena Duel".into(),
+        episode_id: None,
+        episode_title: None,
+        episode_objective: None,
+        episode_progress: None,
+        episode_phase: None,
+        jammer_dish: None,
+        team_scores: None,
+        flags: None,
+        capture_scores: None,
+        capture_limit: None,
+        sabotage: None,
+        conquest: None,
+        vehicles: vec![],
+    };
+    let action = control_action(id, &snapshot, Some(&loadout), Action::default());
+    assert!(action.forward);
+    assert_eq!(action.look_at.unwrap().x, Some(5.0));
+
+    // When grenades are full, bot does not steer towards grenade pickup.
+    inventory.grant_grenades(6);
+    let full_loadout = view(&inventory, WeaponType::Fists, 0);
+    let action_full = control_action(id, &snapshot, Some(&full_loadout), Action::default());
+    assert!(!action_full.forward);
+    assert!(action_full.look_at.is_none());
 }

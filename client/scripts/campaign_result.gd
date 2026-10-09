@@ -28,8 +28,24 @@ static func counts(value: Dictionary) -> Dictionary:
 static func elapsed_text(result: Dictionary) -> String:
 	if result.get("elapsed_ticks") == null:
 		return TranslationServer.translate("RESULT_TIME_UNAVAILABLE")
-	var seconds: int = int(result["elapsed_ticks"]) / int(result["ticks_per_second"])
-	return "%d:%02d" % [seconds / 60, seconds % 60]
+	return precise_time(int(result["elapsed_ticks"]))
+
+## Records use a 20 Hz clock. Keep its 0.05 second precision visible so two
+## times inside the same displayed second cannot claim an unexplained record.
+static func precise_time(ticks: int) -> String:
+	var seconds: int = ticks / 20
+	return "%d:%02d.%02d" % [seconds / 60, seconds % 60, (ticks % 20) * 5]
+
+static func comparison_text(comparison: Dictionary) -> String:
+	if comparison.is_empty():
+		return ""
+	if int(comparison["previous_ticks"]) < 0:
+		return TranslationServer.translate("RESULT_FIRST_BEST").format({"time": precise_time(int(comparison["best_ticks"]))})
+	var delta: int = int(comparison["delta_ticks"])
+	if delta == 0:
+		return TranslationServer.translate("RESULT_TIED_BEST").format({"time": precise_time(int(comparison["best_ticks"]))})
+	return TranslationServer.translate("RESULT_NEW_BEST" if delta < 0 else "RESULT_BEHIND_BEST").format({
+		"time": precise_time(int(comparison["best_ticks"])), "delta": precise_time(absi(delta))})
 
 static func controls_released() -> bool:
 	for action: String in ["ui_accept", "ui_cancel", "fire", "jump", "interact", "throw_grenade", "place_mine", "move_forward", "move_back", "move_left", "move_right"]:

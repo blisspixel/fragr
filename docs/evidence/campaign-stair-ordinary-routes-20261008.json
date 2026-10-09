@@ -1,0 +1,5979 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "bounded ordinary stair route acceptance passed; final composed client, package and human art gates remain separate",
+  "spend_usd": 0,
+  "scope": "Actual independent Standard M08 and M09 development entries and labelled historical finite-carry M10 entry on exact final native; no complete campaign continuity claim",
+  "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+  "routes": [
+    {
+      "clean_logs": true,
+      "renderer_pid": 28600,
+      "manifest": {
+        "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/manifest.json",
+        "sha256": "e4edd44c85b0195cb0090674195241af51b1796a143eff8c427b96416839518f"
+      },
+      "scope": "Independent Standard development mission child",
+      "renderer_retired": true,
+      "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+      "route": {
+        "path": ".agents/stair-architecture-20261008/ordinary-routes/m08-stair-released-lane-candidate-second.json",
+        "sha256": "83b30feb431306cad46a1ef11cda817aeecdba3c05baecf21adfd440e20750e3"
+      },
+      "participant_record": {
+        "attempt": {
+          "alive_ticks": 7018.0,
+          "armor_lost": 120.0,
+          "deaths": 0.0,
+          "dry_triggers": 2.0,
+          "hp_lost": 90.0,
+          "mines": {
+            "armor_damage": 0.0,
+            "attacks": 1.0,
+            "damaging_attacks": 1.0,
+            "hp_damage": 80.0,
+            "kills": 1.0
+          },
+          "secrets": 3.0,
+          "weapons": [
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 172.0,
+              "connects": 75.0,
+              "damaging_attacks": 75.0,
+              "heads": 16.0,
+              "hp_damage": 1700.0,
+              "kills": 23.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 6.0,
+              "connects": 6.0,
+              "damaging_attacks": 6.0,
+              "heads": 2.0,
+              "hp_damage": 480.0,
+              "kills": 6.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            }
+          ]
+        },
+        "entered_at": 29.0,
+        "map_id": 1008.0,
+        "map_name": "Custodian of Record",
+        "mission_elapsed_ticks": 7018.0,
+        "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+        "role": "human",
+        "round": 1.0,
+        "round_started_at": 0.0,
+        "scope": {
+          "attempt": 1.0,
+          "kind": "mission",
+          "mission": "custodian_of_record",
+          "rules": {
+            "difficulty": "standard",
+            "revision": 4.0
+          },
+          "run": null
+        },
+        "session_id": "42f68af7-ca0c-448c-be8b-4e2c7fbd7531",
+        "status": "complete",
+        "tick": 7074.0,
+        "ticks_per_second": 20.0,
+        "total": {
+          "alive_ticks": 7018.0,
+          "armor_lost": 120.0,
+          "deaths": 0.0,
+          "dry_triggers": 2.0,
+          "hp_lost": 90.0,
+          "mines": {
+            "armor_damage": 0.0,
+            "attacks": 1.0,
+            "damaging_attacks": 1.0,
+            "hp_damage": 80.0,
+            "kills": 1.0
+          },
+          "secrets": 3.0,
+          "weapons": [
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 172.0,
+              "connects": 75.0,
+              "damaging_attacks": 75.0,
+              "heads": 16.0,
+              "hp_damage": 1700.0,
+              "kills": 23.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 6.0,
+              "connects": 6.0,
+              "damaging_attacks": 6.0,
+              "heads": 2.0,
+              "hp_damage": 480.0,
+              "kills": 6.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            }
+          ]
+        },
+        "type": "record",
+        "version": 3.0
+      },
+      "stage": 8,
+      "numeric_exit": 0,
+      "finished_utc": "2026-10-08T22:22:39.8307622Z",
+      "native_pid": 7448,
+      "process": {
+        "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/process.json",
+        "sha256": "809724e04a234626e259b52436381c9bbaa1dc3ea40cf66eff7bd10bebd784b5"
+      },
+      "native_retired": true,
+      "states": 37,
+      "fights": [
+        {
+          "confirmed": {
+            "hall_clerk_east": 425,
+            "hall_clerk_north": 596,
+            "hall_clerk_west": 437,
+            "hall_sweeper_east": 525,
+            "hall_sweeper_west": 521
+          },
+          "shots": 27,
+          "search_index": 1,
+          "search_complete": true,
+          "participant_armor_end": 25,
+          "search_points": 8,
+          "state": "m08_records_hall_clear",
+          "required": [
+            "hall_clerk_west",
+            "hall_clerk_east",
+            "hall_clerk_north",
+            "hall_sweeper_west",
+            "hall_sweeper_east"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "lower_clerk_south": 1482,
+            "lower_clerk_west": 1429,
+            "lower_sweeper": 1417
+          },
+          "shots": 16,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 4,
+          "state": "m08_lower_gallery_clear",
+          "required": [
+            "lower_clerk_west",
+            "lower_clerk_south",
+            "lower_sweeper"
+          ],
+          "participant_hp_end": 85
+        },
+        {
+          "confirmed": {
+            "post_sweeper_a": 2445,
+            "post_sweeper_b": 2291
+          },
+          "shots": 21,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 3,
+          "state": "m08_mine_cleanup",
+          "required": [
+            "post_sweeper_a",
+            "post_sweeper_b"
+          ],
+          "participant_hp_end": 85
+        },
+        {
+          "confirmed": {
+            "upper_sweeper_east": 2908
+          },
+          "shots": 3,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 50,
+          "search_points": 0,
+          "state": "m08_first_custody_sweeper",
+          "required": [
+            "upper_sweeper_east"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "gallery_auditor": 3208,
+            "upper_sweeper_east": 2908,
+            "upper_sweeper_middle": 3041,
+            "upper_sweeper_south": 3092
+          },
+          "shots": 39,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 4,
+          "state": "m08_upper_auditor_clear",
+          "required": [
+            "gallery_auditor",
+            "upper_sweeper_east",
+            "upper_sweeper_south",
+            "upper_sweeper_middle"
+          ],
+          "participant_hp_end": 50
+        },
+        {
+          "confirmed": {
+            "ring_clerk_cabinet": 4224,
+            "ring_clerk_pipes": 4211,
+            "ring_sweeper": 4237
+          },
+          "shots": 10,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 4,
+          "state": "m08_service_ambush",
+          "required": [
+            "ring_clerk_pipes",
+            "ring_clerk_cabinet",
+            "ring_sweeper"
+          ],
+          "participant_hp_end": 50
+        },
+        {
+          "confirmed": {
+            "bridge_clerk_far": 4620,
+            "bridge_clerk_near": 4600,
+            "well_auditor": 4831,
+            "well_sweeper_east": 4933,
+            "well_sweeper_north": 5035,
+            "well_sweeper_west": 5010
+          },
+          "shots": 6,
+          "search_index": 7,
+          "search_complete": true,
+          "participant_armor_end": 30,
+          "search_points": 7,
+          "state": "m08_bridge_fight",
+          "required": [
+            "well_auditor",
+            "well_sweeper_west",
+            "well_sweeper_east",
+            "well_sweeper_north",
+            "bridge_clerk_near",
+            "bridge_clerk_far"
+          ],
+          "participant_hp_end": 90
+        },
+        {
+          "confirmed": {
+            "exit_clerk_east": 6338,
+            "exit_clerk_west": 6290,
+            "exit_heavy": 6342,
+            "exit_sweeper_east": 6379,
+            "exit_sweeper_west": 6370
+          },
+          "shots": 32,
+          "search_index": 11,
+          "search_complete": true,
+          "participant_armor_end": 30,
+          "search_points": 11,
+          "state": "m08_exit_counter",
+          "required": [
+            "exit_clerk_west",
+            "exit_clerk_east",
+            "exit_sweeper_west",
+            "exit_sweeper_east",
+            "exit_heavy"
+          ],
+          "participant_hp_end": 90
+        }
+      ],
+      "started_utc": "2026-10-08T22:16:39.2926141Z",
+      "map": {
+        "path": "server/maps/m08_custodian_of_record.json",
+        "sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864"
+      },
+      "image_count": 74,
+      "directory": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth",
+      "image_hashes": [
+        {
+          "path": "01_m08_checkpoint.png",
+          "sha256": "c501aa3345eecfdc382c0ac6cd7f8d66573b16a85cd034b71b8fc13d3c9056c3"
+        },
+        {
+          "path": "01_m08_checkpoint_world.png",
+          "sha256": "05ec9e3c09034f8968db7bbc1f3c149e9acd4e3590d7f84262dd8fb0c3a19167"
+        },
+        {
+          "path": "02_m08_entry_equipment.png",
+          "sha256": "a1e030e28ad61d9d6c9ab893c7ef0dbef6d55782f36e97c623644d9aaca4b122"
+        },
+        {
+          "path": "02_m08_entry_equipment_world.png",
+          "sha256": "589b271de5f94535e6088866efb6a29b07679ff425dd5fdb52632f1c3268cb14"
+        },
+        {
+          "path": "03_m08_observation_secret.png",
+          "sha256": "b183eeb55d604a00b4dd8f6b923b47d89c2a36d8ab341b682b9045c02c070609"
+        },
+        {
+          "path": "03_m08_observation_secret_world.png",
+          "sha256": "d552498893263242b75bc4f62a29c0f98eba4e3b7a27f03755114fa0242a8308"
+        },
+        {
+          "path": "04_m08_shaft_reveal.png",
+          "sha256": "dba583f4ee9ebbb1da79cbcf883dff3d5f859ddc768c22b266320a466810f3fe"
+        },
+        {
+          "path": "04_m08_shaft_reveal_world.png",
+          "sha256": "e5874b782650ceeea357d06b347b0f59a8bf0558c27a9658bc4e790455370757"
+        },
+        {
+          "path": "05_m08_records_hall_clear.png",
+          "sha256": "10878b7a7aae4afd7e158bcc02eb6569d8f512b23b92f8b565bfec4abee7363f"
+        },
+        {
+          "path": "05_m08_records_hall_clear_world.png",
+          "sha256": "eba76ea34b4c8d97ef04082634950363672c86efa6b863eab860a110ac8504a9"
+        },
+        {
+          "path": "06_m08_hall_arrival.png",
+          "sha256": "4ec754db0cba1c379579e626148ebdebf5d2fe14f18ecf154e8b06bcce6941a9"
+        },
+        {
+          "path": "06_m08_hall_arrival_world.png",
+          "sha256": "16c4d3ad7e3a026b20c18e68e7f9e93eec81f1153a1bc5a3f87dc7cb33921973"
+        },
+        {
+          "path": "07_m08_lost_property_secret.png",
+          "sha256": "fd7a11e74d1b10adb31ad3c1c5ccedb495efe978a5eb53ff59f61fc83f2c86ed"
+        },
+        {
+          "path": "07_m08_lost_property_secret_world.png",
+          "sha256": "b3dc4469045521993ecba27c1ff8dbb1200ff27aad96a1475fe5b4c158710cf2"
+        },
+        {
+          "path": "08_m08_west_stair.png",
+          "sha256": "d3e46303b4caecb22fbe5320b91dbb3db2dffb49ee638559927fa09cf1fbd097"
+        },
+        {
+          "path": "08_m08_west_stair_world.png",
+          "sha256": "d2edf6f7b78eabdea8240e026ad19472f46db5843412e83d095bb058dddf36e8"
+        },
+        {
+          "path": "09_m08_lower_gallery_clear.png",
+          "sha256": "38ca56a81d7ce9bc3e4f247414a21fb5b482df811d535dc137b6f4b0b171531a"
+        },
+        {
+          "path": "09_m08_lower_gallery_clear_world.png",
+          "sha256": "40ee85d7327acd264fdd76db2e225c86f976f5478f5aadfbfc4d5ebde78328ba"
+        },
+        {
+          "path": "10_m08_registry.png",
+          "sha256": "6a0b194f43627f29a325c07f6aa47f3ff0006ff101ddac4f6816a20a73e4b799"
+        },
+        {
+          "path": "10_m08_registry_world.png",
+          "sha256": "a693758a2a1e2d8315179c346fc364900eafafccf999be9a7e34dfd61aa828fc"
+        },
+        {
+          "path": "11_m08_mine_cage.png",
+          "sha256": "d55e7196831f6e7e053600d4ca5b9e48c57dac908c4645d92c49cb54226b37ed"
+        },
+        {
+          "path": "11_m08_mine_cage_world.png",
+          "sha256": "256524fc069cd9f1290db50fc331f9259ea766a9678b3cf4f8f8236a99b919af"
+        },
+        {
+          "path": "12_m08_mine_corridor.png",
+          "sha256": "a7d8cb5ea161d75a51b973bfda780972c32111a98ca3e501f95e2c5335b5ca2e"
+        },
+        {
+          "path": "12_m08_mine_corridor_world.png",
+          "sha256": "a065d4170d93a9c926911166864b40704efc2b4211a6ab117932b8e296a2fa88"
+        },
+        {
+          "path": "13_m08_mine_live.png",
+          "sha256": "c7107e3010c0c1975c5e956787aeae3096562dd7eb5cf8c95e714f39e45431a2"
+        },
+        {
+          "path": "13_m08_mine_live_world.png",
+          "sha256": "f19bbeed980726a5aefe5119388b33773ab14ce14765b100e772f7cbc4f6111c"
+        },
+        {
+          "path": "14_m08_mine_cleanup.png",
+          "sha256": "aa5f4026af472ca2f4b9f088cdcb4ecbce180516cd7e0cb324e848142584881f"
+        },
+        {
+          "path": "14_m08_mine_cleanup_world.png",
+          "sha256": "50a42dbca60e11e6fc6444ec28e8c74c5aa7db3972d6c1f6f56bbb08a2c82634"
+        },
+        {
+          "path": "15_m08_east_stair.png",
+          "sha256": "8633fbfa33708e4d478fb33fad356cb584542983d92d918c0a22807bdb86d094"
+        },
+        {
+          "path": "15_m08_east_stair_world.png",
+          "sha256": "438b63667fb0ab1d799aa1982c0c574e25203aacd2801037dc979b6317d0a3d3"
+        },
+        {
+          "path": "16_m08_first_custody_sweeper.png",
+          "sha256": "0e135bb9e7b695967ce3ccf8218d2e6caffabb1994bd5f295f65e0c7afdd9440"
+        },
+        {
+          "path": "16_m08_first_custody_sweeper_world.png",
+          "sha256": "5bb3087fae2ca3c8e09bf30708b3b04142b318b314cce4fad14543524c2b0a33"
+        },
+        {
+          "path": "17_m08_auditor_channel.png",
+          "sha256": "437713161f99ccd4fc606c17e10054666a8c04a1ff6ba6d426dfc430012b1dc4"
+        },
+        {
+          "path": "17_m08_auditor_channel_world.png",
+          "sha256": "2427e1e60439aa7f225ad675af1e5d91957e4ef159beab2688e6ba015315eec0"
+        },
+        {
+          "path": "18_m08_upper_auditor_clear.png",
+          "sha256": "6cda840d9922ad11f107cff0e92bbb90e1b13c30d05798da6b82cf5c1982756e"
+        },
+        {
+          "path": "18_m08_upper_auditor_clear_world.png",
+          "sha256": "f20b65f9ac02cddfcc99588bc87c0decf39c84ebda34273daedd2659fdc88713"
+        },
+        {
+          "path": "19_m08_seal_lifted.png",
+          "sha256": "d9c3741116c5e3a589f8146be07de63a55e6692d75e5fd83ce215e2c50da75a4"
+        },
+        {
+          "path": "19_m08_seal_lifted_world.png",
+          "sha256": "7d206c457532cffd6ef3f0810d7d2091255535df9b55c6cbe7ff1dcbafcf2f32"
+        },
+        {
+          "path": "20_m08_stair_review_east_tower_descent.png",
+          "sha256": "022dd0af81037fbe36ab6855a3936db5b3d428eda68ec4e852735ba87eaafe10"
+        },
+        {
+          "path": "20_m08_stair_review_east_tower_descent_world.png",
+          "sha256": "84582972b6a930c6e2d75d1093a8cc765157aa939d5f774c4dcbc4353029b7df"
+        },
+        {
+          "path": "21_m08_lower_bays.png",
+          "sha256": "2bfdee3470a7cbf45345181fd50b82633e335ba748be16f674d928cdc67905d8"
+        },
+        {
+          "path": "21_m08_lower_bays_world.png",
+          "sha256": "4e31a964eef67aa570d6c9d8b0f9d751b808a097c858dc41b3cf0fd5d82c4f37"
+        },
+        {
+          "path": "22_m08_service_ambush.png",
+          "sha256": "59db7c9169d1d92b96a9b75072b3b7ceebf01b73a5173942c68b849f92c405e0"
+        },
+        {
+          "path": "22_m08_service_ambush_world.png",
+          "sha256": "1629b7d0f4551a5111a10b1e599914afae2fbb3cdd4dcf0a1c9fef17e5646a79"
+        },
+        {
+          "path": "23_m08_service_ring.png",
+          "sha256": "a5edf28b2bdd7026bcda88279ae7243f09f7ceb1f5820ec981acbe99faaee129"
+        },
+        {
+          "path": "23_m08_service_ring_world.png",
+          "sha256": "4009300135cd7137c74361fef791c27b6ec3cecb3e1bcba73ae2c21dd9df856f"
+        },
+        {
+          "path": "24_m08_cold_cabinet.png",
+          "sha256": "830f88de4826e907de508e13e8830279714d5be6f00dc0f4c2192145005e5f94"
+        },
+        {
+          "path": "24_m08_cold_cabinet_world.png",
+          "sha256": "4675af733ad1538663c439d4d4322ed7e558b0d904e390c0e813015930ee2973"
+        },
+        {
+          "path": "25_m08_bridge_fight.png",
+          "sha256": "741d39feac080729ba1b90cb924948dc0f25b5df4a10f7c2614123b82ba96045"
+        },
+        {
+          "path": "25_m08_bridge_fight_world.png",
+          "sha256": "3c4b91cf0d02dedfbef750f0bc2c853bc0a7fb21cd495a9161ef016037683f93"
+        },
+        {
+          "path": "26_m08_node_north_west.png",
+          "sha256": "309f8154fcf174a1a421cf78704e41cd14a4192791a66f6c42d65f39518159cc"
+        },
+        {
+          "path": "26_m08_node_north_west_world.png",
+          "sha256": "c6c9dbff1c0546dae9e2d71de062e85eb1987646e8d11e37420086eacfbe29ff"
+        },
+        {
+          "path": "27_m08_node_north_east.png",
+          "sha256": "86a49f4305bb2f35d08d4491062a3dedbf873413379e68a10bbbdf3345c06904"
+        },
+        {
+          "path": "27_m08_node_north_east_world.png",
+          "sha256": "e275f20ac6c6e494604fe9fd745397caa04812e6287098b4b4e5c66e4d2e3add"
+        },
+        {
+          "path": "28_m08_node_south_west.png",
+          "sha256": "515155ac019bed9ecde2e6446c2a0eee911946be81fdfaf601eb1d4200b3d08e"
+        },
+        {
+          "path": "28_m08_node_south_west_world.png",
+          "sha256": "40f04a9ae2b419a2ebd299b79ac93126889d2e2654bca3184628c882bf6da406"
+        },
+        {
+          "path": "29_m08_node_south_east.png",
+          "sha256": "319f228fc4ef9cc2fb45078cca435c43b441ef8a8744d7d5374486e848c9eda3"
+        },
+        {
+          "path": "29_m08_node_south_east_world.png",
+          "sha256": "1d34cdb98a3bef6ba877339fa3f034a2606f3de1ba3190d9760eea06eb1e8d02"
+        },
+        {
+          "path": "30_m08_machine_fallen.png",
+          "sha256": "ee5575e9fae2548938d5fab85ae594a367134329530ec60c861969ba9f1f55b2"
+        },
+        {
+          "path": "30_m08_machine_fallen_world.png",
+          "sha256": "950b66d734772224d54eae57fdb59b2fb1d9dfaa84ca42c936be80430f326fed"
+        },
+        {
+          "path": "31_m08_evidence.png",
+          "sha256": "d8b423b3a8483905495afbdff0eb8982a40e6d433141273039e83c3b1545f6b5"
+        },
+        {
+          "path": "31_m08_evidence_world.png",
+          "sha256": "fc6b97dc397e0d4817bfdb6b0fdb5064f595e525fcea420db8842b303cd1f09d"
+        },
+        {
+          "path": "32_m08_exit_counter.png",
+          "sha256": "c846a005acccac27987819146ba050778a3b960e5566d3b8db5aee0fc1f81fac"
+        },
+        {
+          "path": "32_m08_exit_counter_world.png",
+          "sha256": "1ab087c5e82c68e9ecfd975479a33673cac6e49676ebef7fc99d07f43bf0fc91"
+        },
+        {
+          "path": "33_m08_authorized_noise.png",
+          "sha256": "e27d00248cfb4cbc132e7c3945ed089bb8052674670a50981d3c18ddb5db05a4"
+        },
+        {
+          "path": "33_m08_authorized_noise_world.png",
+          "sha256": "6ed507a421af55763a34a0a19a702648a476c2c7919825494fc3562af23d4701"
+        },
+        {
+          "path": "34_m08_exit_arrival.png",
+          "sha256": "eda394ee2e7de5effc6f0af9ae529b5623e398bfb9d73cf8a6e9043bf6aabba2"
+        },
+        {
+          "path": "34_m08_exit_arrival_world.png",
+          "sha256": "bc63dd8a840ff02cff53c880461c4890e0eccbc588fd15d5dbc2c8139b628eee"
+        },
+        {
+          "path": "35_m08_stair_review_freight_lower_return.png",
+          "sha256": "49992672142eb49aef91c2627ce58359af893b09717e68e34c1192745e8695f8"
+        },
+        {
+          "path": "35_m08_stair_review_freight_lower_return_world.png",
+          "sha256": "09a4f6824227ec56091c8063d0b4f460708f6ca5b393f3e5d7873c4bc3768435"
+        },
+        {
+          "path": "36_m08_stair_review_return_to_lane.png",
+          "sha256": "cd58c947c6537290db055ce778b7798f28c7dab4cde4bc4669319930893162d3"
+        },
+        {
+          "path": "36_m08_stair_review_return_to_lane_world.png",
+          "sha256": "34fac02c7cdbbb987d8df2e8ea9df2c79000fde5a0472d7a955d3da7f8b135e1"
+        },
+        {
+          "path": "37_m08_departure.png",
+          "sha256": "34830aef5885dd54d8b233202bc4c637f2cf9f9ca11a92cecb16244da9524b1a"
+        },
+        {
+          "path": "37_m08_departure_world.png",
+          "sha256": "34830aef5885dd54d8b233202bc4c637f2cf9f9ca11a92cecb16244da9524b1a"
+        }
+      ]
+    },
+    {
+      "clean_logs": true,
+      "renderer_pid": 22996,
+      "manifest": {
+        "path": ".agents/stair-architecture-20261008/ordinary-m09-final-first/manifest.json",
+        "sha256": "b01cc02c8b13fef12113aba946dfe5699d8ecdbf3b767e192b40e24a5676e958"
+      },
+      "scope": "Independent Standard development mission child",
+      "renderer_retired": true,
+      "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+      "route": {
+        "path": ".agents/stair-architecture-20261008/ordinary-routes/m09-stair-ordinary.json",
+        "sha256": "30ea3660485227613e0c6c5d9572dd5d241d915c2b6f21961840b49e5935723b"
+      },
+      "participant_record": {
+        "attempt": {
+          "alive_ticks": 3387.0,
+          "armor_lost": 50.0,
+          "deaths": 0.0,
+          "dry_triggers": 0.0,
+          "hp_lost": 150.0,
+          "secrets": 4.0,
+          "weapons": [
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 39.0,
+              "connects": 32.0,
+              "damaging_attacks": 32.0,
+              "hp_damage": 640.0,
+              "kills": 8.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 22.0,
+              "connects": 19.0,
+              "damaging_attacks": 19.0,
+              "heads": 1.0,
+              "hp_damage": 1300.0,
+              "kills": 13.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            }
+          ]
+        },
+        "entered_at": 44.0,
+        "map_id": 1009.0,
+        "map_name": "Passenger Manifest",
+        "mission_elapsed_ticks": 3387.0,
+        "player_id": "f6a30d91-3409-41bd-8196-bf8a49e278c3",
+        "role": "human",
+        "round": 1.0,
+        "round_started_at": 0.0,
+        "scope": {
+          "attempt": 1.0,
+          "kind": "mission",
+          "mission": "passenger_manifest",
+          "rules": {
+            "difficulty": "standard",
+            "revision": 4.0
+          },
+          "run": null
+        },
+        "session_id": "bb1a6d9b-6d76-4caf-b37a-ded8502f1622",
+        "status": "complete",
+        "tick": 3461.0,
+        "ticks_per_second": 20.0,
+        "total": {
+          "alive_ticks": 3387.0,
+          "armor_lost": 50.0,
+          "deaths": 0.0,
+          "dry_triggers": 0.0,
+          "hp_lost": 150.0,
+          "secrets": 4.0,
+          "weapons": [
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 39.0,
+              "connects": 32.0,
+              "damaging_attacks": 32.0,
+              "hp_damage": 640.0,
+              "kills": 8.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 22.0,
+              "connects": 19.0,
+              "damaging_attacks": 19.0,
+              "heads": 1.0,
+              "hp_damage": 1300.0,
+              "kills": 13.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            }
+          ]
+        },
+        "type": "record",
+        "version": 3.0
+      },
+      "stage": 9,
+      "numeric_exit": 0,
+      "finished_utc": "2026-10-08T20:27:20.6521783Z",
+      "native_pid": 3608,
+      "process": {
+        "path": ".agents/stair-architecture-20261008/ordinary-m09-final-first/process.json",
+        "sha256": "e115d6c5930fd30efa91134e5d4bfe82398edfbb579396ebf296dfc94fe045fd"
+      },
+      "native_retired": true,
+      "states": 30,
+      "fights": [
+        {
+          "confirmed": {
+            "loading_clerk_a": 291,
+            "loading_clerk_b": 307,
+            "loading_sweeper_a": 262,
+            "loading_sweeper_b": 322,
+            "office_stair_turret": 204
+          },
+          "shots": 19,
+          "search_index": 1,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 5,
+          "state": "m09_loading_clear",
+          "required": [
+            "loading_clerk_a",
+            "loading_clerk_b",
+            "loading_sweeper_a",
+            "loading_sweeper_b",
+            "office_stair_turret"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "first_enforcer": 676
+          },
+          "shots": 7,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 3,
+          "state": "m09_enforcer_lesson",
+          "required": [
+            "first_enforcer"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "office_clerk_a": 964,
+            "office_clerk_b": 906
+          },
+          "shots": 13,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 3,
+          "state": "m09_office_clear",
+          "required": [
+            "office_clerk_a",
+            "office_clerk_b"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "gantry_one_enforcer": 1711,
+            "gantry_one_sweeper": 1731
+          },
+          "shots": 4,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 3,
+          "state": "m09_gantry_one_clear",
+          "required": [
+            "gantry_one_enforcer",
+            "gantry_one_sweeper"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "cradle_notary_west": 2119,
+            "gantry_two_enforcer": 2099,
+            "gantry_two_sweeper": 2152
+          },
+          "shots": 5,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 4,
+          "state": "m09_gantry_two_clear",
+          "required": [
+            "gantry_two_enforcer",
+            "gantry_two_sweeper",
+            "cradle_notary_west"
+          ],
+          "participant_hp_end": 75
+        },
+        {
+          "confirmed": {
+            "cradle_notary_east": 2551,
+            "gantry_three_enforcer": 2521,
+            "gantry_three_sweeper": 2571
+          },
+          "shots": 5,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 4,
+          "state": "m09_gantry_three_clear",
+          "required": [
+            "gantry_three_enforcer",
+            "gantry_three_sweeper",
+            "cradle_notary_east"
+          ],
+          "participant_hp_end": 50
+        },
+        {
+          "confirmed": {
+            "gallery_clerk_a": 2900,
+            "gallery_clerk_b": 2880,
+            "upper_enforcer_a": 2860,
+            "upper_enforcer_b": 2840
+          },
+          "shots": 6,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 4,
+          "state": "m09_gallery_counter",
+          "required": [
+            "upper_enforcer_a",
+            "upper_enforcer_b",
+            "gallery_clerk_a",
+            "gallery_clerk_b"
+          ],
+          "participant_hp_end": 50
+        },
+        {
+          "confirmed": {
+            "hatch_enforcer": 3324
+          },
+          "shots": 2,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 3,
+          "state": "m09_hatch_clear",
+          "required": [
+            "hatch_enforcer"
+          ],
+          "participant_hp_end": 70
+        }
+      ],
+      "started_utc": "2026-10-08T20:24:20.4704008Z",
+      "map": {
+        "path": "server/maps/m09_passenger_manifest.json",
+        "sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85"
+      },
+      "image_count": 60,
+      "directory": ".agents/stair-architecture-20261008/ordinary-m09-final-first",
+      "image_hashes": [
+        {
+          "sha256": "88ff30058c450f62df6a93c77d3896636e88fb2383579e03895fb266c8679faf",
+          "path": "01_m09_berth_reveal.png"
+        },
+        {
+          "sha256": "47fd3357c31491f583fad62fd6d3de47569bcaed667612d075fd4fc96d87b870",
+          "path": "01_m09_berth_reveal_world.png"
+        },
+        {
+          "sha256": "17bc360d222d78d2ad9dadbf702d7b08e2a900b377d47a6a2035de249ac6f036",
+          "path": "02_m09_loading_equipment.png"
+        },
+        {
+          "sha256": "1e8408d9d187bc3a0be3881fabb31e33f06996f7369889c12f50f7160feb108f",
+          "path": "02_m09_loading_equipment_world.png"
+        },
+        {
+          "sha256": "9f182d0892b0fc05649a681c94a63ce481ffc56621779f5224d13aeea0ab5fe6",
+          "path": "03_m09_loading_clear.png"
+        },
+        {
+          "sha256": "d2286770b09f7f246a83459e100b1590179a43a1dfa0319c7e67a5ace67e80a3",
+          "path": "03_m09_loading_clear_world.png"
+        },
+        {
+          "sha256": "b04754745c565a01eb92fd0c2237f54bcd073c26a4592094fd4c4a86ed854d57",
+          "path": "04_m09_loading_arrival.png"
+        },
+        {
+          "sha256": "8ed256fe86849a35a2b470512b4e13f2b47101af6115dde2bd535a97e9ba98c0",
+          "path": "04_m09_loading_arrival_world.png"
+        },
+        {
+          "sha256": "5944f639fe724d7eceb9dee0aaf809b449044008fec1999929a20ba717615410",
+          "path": "05_m09_office_stair.png"
+        },
+        {
+          "sha256": "db0e9dce2be96148f0b1967710049254e15be58bc54006201a1b705ac59de06a",
+          "path": "05_m09_office_stair_world.png"
+        },
+        {
+          "sha256": "6bbccbdcabac6a8540d8cc0dbf0cc296da4eea7d1f454504bd897235d0ebdd2c",
+          "path": "06_m09_enforcer_lesson.png"
+        },
+        {
+          "sha256": "eb43fc1973133a39185cf931d44bac51ae194ac3d29f0c5089d5b7db0bbdd7ee",
+          "path": "06_m09_enforcer_lesson_world.png"
+        },
+        {
+          "sha256": "54c6cfd43cc6374ccd6789b5c9c2e49ad1c1f6c751b0cfd4d470144c1c35df86",
+          "path": "07_m09_lesson_arrival.png"
+        },
+        {
+          "sha256": "bfa8b3b7676c8f9b1ea09df5875003b343b97531eaf1acbc9c1c56c28f3c60f2",
+          "path": "07_m09_lesson_arrival_world.png"
+        },
+        {
+          "sha256": "6ff12140640bfa5487443916e8e8168370a8352753b4dbbd09b0743092f37a90",
+          "path": "08_m09_landing_rail.png"
+        },
+        {
+          "sha256": "3d7073aea6ea19116b3297cd384058bad1b3ae231d0c0af30e8336c7c1b7417e",
+          "path": "08_m09_landing_rail_world.png"
+        },
+        {
+          "sha256": "bbc6cf7b46e62900b9eef9419f2167075fb12c8c53f9dcb73acc60936a01f1a1",
+          "path": "09_m09_office_clear.png"
+        },
+        {
+          "sha256": "3ae8bc328c1b7769550f8531d833a02c188781cabbdc8f06f7499bac5e10971a",
+          "path": "09_m09_office_clear_world.png"
+        },
+        {
+          "sha256": "50e8687669ded8dd831d3713a246b0fdf5c21e942998b4f1a7ef489ce81ad234",
+          "path": "10_m09_crew_release.png"
+        },
+        {
+          "sha256": "34fdfb0f3185bb466dc59e7b3cdbf54a13564feeade2532808348dad40ea85bb",
+          "path": "10_m09_crew_release_world.png"
+        },
+        {
+          "sha256": "0278bca708306f0e8d18fb0b0072fb0064f8d3ba86e708e9ea0dbbd4e2c9f0c3",
+          "path": "11_m09_office_supplies.png"
+        },
+        {
+          "sha256": "4e4b05a7783013df866dd630309e25f477f74b42900c441941ff9b4201f89961",
+          "path": "11_m09_office_supplies_world.png"
+        },
+        {
+          "sha256": "471a743a4a0d5d73a8808f7a2d4afb274cfeb75bcd72f1d5b0956e466c16ac4f",
+          "path": "12_m09_stair_review_top_descent.png"
+        },
+        {
+          "sha256": "7a14efed38eeefe58ec58b23e233a4f5f4f0f520cbb844f6bf75c3d6223c3001",
+          "path": "12_m09_stair_review_top_descent_world.png"
+        },
+        {
+          "sha256": "15c440c9e3954800769ae23892e56e33ad6210050a73e019d0ecf466ffdf7c7b",
+          "path": "13_m09_stair_review_lower_return.png"
+        },
+        {
+          "sha256": "1b049e63758f8557a258305be1e377101fb7443565d12e5dcccae747cdde0327",
+          "path": "13_m09_stair_review_lower_return_world.png"
+        },
+        {
+          "sha256": "4641024fd03587190ed27ea9be0a2cbe47f76ebf73015373fbebe3700aab6f10",
+          "path": "14_m09_stair_review_return_to_office.png"
+        },
+        {
+          "sha256": "c342e55fc9767f71da6e22c93f60afb702c2942d1594255ada4514683f20010c",
+          "path": "14_m09_stair_review_return_to_office_world.png"
+        },
+        {
+          "sha256": "f4d5339a75097bbb2112a6e003d0265a5ec894fa0ec0c7dbade28e1edcce508b",
+          "path": "15_m09_west_gantry_entry.png"
+        },
+        {
+          "sha256": "d66719cd5fb08f646f2d7fd7a8a44803626aafd5334d3dae684026f103b49bfb",
+          "path": "15_m09_west_gantry_entry_world.png"
+        },
+        {
+          "sha256": "b3f0d54f03e4d952aaf35def370a8309ca9a039a25820079b9dd8a8077f9432b",
+          "path": "16_m09_gantry_one_clear.png"
+        },
+        {
+          "sha256": "95648161d3b3bbc931022ff1d3a0d543b609748c7ec4ef26b0ff094370864f28",
+          "path": "16_m09_gantry_one_clear_world.png"
+        },
+        {
+          "sha256": "6d5a7737678c6b11a8b18dad4bb50f236de2a55729c412bf95277b15ba0bc2c9",
+          "path": "17_m09_gantry_one_arrival.png"
+        },
+        {
+          "sha256": "b3d83b0e771972481beae914873899cea93a2f3bfd47f15e2b3383e99a199ba1",
+          "path": "17_m09_gantry_one_arrival_world.png"
+        },
+        {
+          "sha256": "ab2b9ddc1c511290b2f95bb5ab88191d4e652e7c90356c4ebfab53325980e417",
+          "path": "18_m09_north_gantry_entry.png"
+        },
+        {
+          "sha256": "c629effc7fa5b17a5d365c8b1b0debd57a9fcc3a20458ca56026b9b03deeac3b",
+          "path": "18_m09_north_gantry_entry_world.png"
+        },
+        {
+          "sha256": "8a4b5db682826dd8d3708329f569e8fa843cf99e348a2b6335d59ae75126cabb",
+          "path": "19_m09_gantry_two_clear.png"
+        },
+        {
+          "sha256": "ead5d63002823b0f26d476a8745c64b24c9b803f95dc087c874f7500d362c2aa",
+          "path": "19_m09_gantry_two_clear_world.png"
+        },
+        {
+          "sha256": "5987ea5d6c31d01fae332978fb08908159098cb6a1886accdbf3ce7207d7e943",
+          "path": "20_m09_gantry_two_arrival.png"
+        },
+        {
+          "sha256": "4f3bf2ec728a215849ba96f7464560e0e9f244486d86c09034a346e799a0e6d1",
+          "path": "20_m09_gantry_two_arrival_world.png"
+        },
+        {
+          "sha256": "52527a369478c1f77be10b63397003bd3d6a0fc94e036b17813a9b3c9ad65d9f",
+          "path": "21_m09_east_gantry_entry.png"
+        },
+        {
+          "sha256": "ded149f7dfa2570d34885c055ac48821d9eac1aa7b0a91d49440c1284041935f",
+          "path": "21_m09_east_gantry_entry_world.png"
+        },
+        {
+          "sha256": "eb240d17d36a856fa93f1979e1fe8cefb7590f5cbba4d146fbadbca5d101901f",
+          "path": "22_m09_gantry_three_clear.png"
+        },
+        {
+          "sha256": "4e0a723341fe5f504085fe4fe83e49617a1d56119f4f99ca24aec3e86a8ee938",
+          "path": "22_m09_gantry_three_clear_world.png"
+        },
+        {
+          "sha256": "a7a58afcab9693e17797e751db744020acc17ed0ae4d169cddf1d750eca39c1d",
+          "path": "23_m09_gantry_three_arrival.png"
+        },
+        {
+          "sha256": "5d82d5dd65c32ecd799c5415d58a478954671fc5d11c36e97cbc3ad31112250a",
+          "path": "23_m09_gantry_three_arrival_world.png"
+        },
+        {
+          "sha256": "439a222aace047b2b396d93521831dbd114209cea9718c1d31c6a982d43e1172",
+          "path": "24_m09_gallery_counter.png"
+        },
+        {
+          "sha256": "c0a1f975ec631fe819213ec7d33436dd80606d81e104f85f3df8edea67f55214",
+          "path": "24_m09_gallery_counter_world.png"
+        },
+        {
+          "sha256": "78191e46d13c50e4ca26947d9369b3d0a2aa4a8145c63e6044967b2222c3f8ce",
+          "path": "25_m09_clamps_release.png"
+        },
+        {
+          "sha256": "752f0c40e933e8d8af974666b9c1f992c9b898d9c2392017da4da5c7e8c105a7",
+          "path": "25_m09_clamps_release_world.png"
+        },
+        {
+          "sha256": "39f6fc70b1f75ca64ccc6b87b820864cc65f5fdf3b131c3acf05479da944514f",
+          "path": "26_m09_gallery_supplies.png"
+        },
+        {
+          "sha256": "fcd404de197e182fafd6284a0d8657afa6d360cb8f7fdb28cd25d0f5bebdf56d",
+          "path": "26_m09_gallery_supplies_world.png"
+        },
+        {
+          "sha256": "a840f5cb72881e21c9aaac80cab9df0984f190d75f12e78ff48e1ce1a10312e0",
+          "path": "27_m09_boarding_entry.png"
+        },
+        {
+          "sha256": "380e1ad2751aa1cb786340ebc8356bc6412d03ec7586732ee113add76e4eba93",
+          "path": "27_m09_boarding_entry_world.png"
+        },
+        {
+          "sha256": "d5335f1cabe4b299ae902e1c1719d007bcbae94d5e20484776b5b2d1d23f7668",
+          "path": "28_m09_hatch_clear.png"
+        },
+        {
+          "sha256": "8681e453b6172af6b4a3b3267a25b7f4fe536b0970801f357d376f5029e5c0fd",
+          "path": "28_m09_hatch_clear_world.png"
+        },
+        {
+          "sha256": "e5bf2a70b97959482126c2cda1592a7569deda16e1b3b4be27988a1b937a48b2",
+          "path": "29_m09_hatch_arrival.png"
+        },
+        {
+          "sha256": "9f65086f3627b5ccfef429c67a2705785761cf2ecaac58f710ead393fb1cdd1d",
+          "path": "29_m09_hatch_arrival_world.png"
+        },
+        {
+          "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4",
+          "path": "30_m09_departure.png"
+        },
+        {
+          "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4",
+          "path": "30_m09_departure_world.png"
+        }
+      ]
+    },
+    {
+      "clean_logs": true,
+      "renderer_pid": 20888,
+      "manifest": {
+        "path": ".agents/stair-architecture-20261008/ordinary-m10-heavy-search-candidate-first/manifest.json",
+        "sha256": "bfba17d786d8e12cc2ec174082c88b0ee162446556e6584504914ec3945a2874"
+      },
+      "scope": "Labelled historical v12 finite-carry fixture promoted to current M10",
+      "renderer_retired": true,
+      "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+      "route": {
+        "path": ".agents/stair-architecture-20261008/ordinary-routes/m10-stair-heavy-search-candidate.json",
+        "sha256": "79d85e203202b691ed1135ad054a4df9f1bdc499492746a08185d6183e923c03"
+      },
+      "participant_record": {
+        "attempt": {
+          "alive_ticks": 4016.0,
+          "armor_lost": 67.0,
+          "deaths": 0.0,
+          "dry_triggers": 0.0,
+          "hp_lost": 53.0,
+          "secrets": 3.0,
+          "weapons": [
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 69.0,
+              "connects": 50.0,
+              "damaging_attacks": 50.0,
+              "heads": 7.0,
+              "hp_damage": 1115.0,
+              "kills": 16.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 5.0,
+              "connects": 5.0,
+              "damaging_attacks": 5.0,
+              "heads": 2.0,
+              "hp_damage": 160.0,
+              "kills": 1.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            }
+          ]
+        },
+        "entered_at": 31.0,
+        "map_id": 1010.0,
+        "map_name": "Common Carrier",
+        "mission_elapsed_ticks": 4016.0,
+        "player_id": "5d513b3d-9d27-4ed3-b6c9-4b97fd9593fc",
+        "role": "human",
+        "round": 1.0,
+        "round_started_at": 0.0,
+        "scope": {
+          "attempt": 1.0,
+          "kind": "mission",
+          "mission": "common_carrier",
+          "rules": {
+            "difficulty": "standard",
+            "revision": 4.0
+          },
+          "run": {
+            "continues": 3.0,
+            "id": "0dc7302e-c024-4ccc-aac7-19e2aa908ce8",
+            "level_start_continues": 3.0,
+            "status": "complete"
+          }
+        },
+        "session_id": "818f6f5f-02e4-4e40-b852-7dc9353f5ceb",
+        "status": "complete",
+        "tick": 4076.0,
+        "ticks_per_second": 20.0,
+        "total": {
+          "alive_ticks": 4016.0,
+          "armor_lost": 67.0,
+          "deaths": 0.0,
+          "dry_triggers": 0.0,
+          "hp_lost": 53.0,
+          "secrets": 3.0,
+          "weapons": [
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 69.0,
+              "connects": 50.0,
+              "damaging_attacks": 50.0,
+              "heads": 7.0,
+              "hp_damage": 1115.0,
+              "kills": 16.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 5.0,
+              "connects": 5.0,
+              "damaging_attacks": 5.0,
+              "heads": 2.0,
+              "hp_damage": 160.0,
+              "kills": 1.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            },
+            {
+              "armor_damage": 0.0,
+              "attacks": 0.0,
+              "damaging_attacks": 0.0,
+              "hp_damage": 0.0,
+              "kills": 0.0
+            }
+          ]
+        },
+        "type": "record",
+        "version": 3.0
+      },
+      "stage": 10,
+      "numeric_exit": 0,
+      "finished_utc": "2026-10-08T20:48:13.8215Z",
+      "native_pid": 29296,
+      "process": {
+        "path": ".agents/stair-architecture-20261008/ordinary-m10-heavy-search-candidate-first/process.json",
+        "sha256": "da5527108865197359d3163d0223e64428604ebf22dc56f0d24297cc63772ef5"
+      },
+      "native_retired": true,
+      "states": 30,
+      "fights": [
+        {
+          "confirmed": {
+            "forward_clerk_a": 569,
+            "forward_clerk_b": 557,
+            "forward_sweeper_a": 581
+          },
+          "shots": 9,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 17,
+          "search_points": 4,
+          "state": "m10_forward_lower",
+          "required": [
+            "forward_clerk_a",
+            "forward_clerk_b",
+            "forward_sweeper_a"
+          ],
+          "participant_hp_end": 89
+        },
+        {
+          "confirmed": {
+            "forward_sweeper_b": 639
+          },
+          "shots": 0,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 17,
+          "search_points": 3,
+          "state": "m10_forward_gallery",
+          "required": [
+            "forward_sweeper_b"
+          ],
+          "participant_hp_end": 89
+        },
+        {
+          "confirmed": {
+            "service_clerk": 1136,
+            "service_crawler_a": 1180,
+            "service_crawler_b": 1212,
+            "service_crawler_c": 1198,
+            "service_sweeper": 1172
+          },
+          "shots": 0,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 5,
+          "state": "m10_service_defense",
+          "required": [
+            "service_crawler_a",
+            "service_crawler_b",
+            "service_crawler_c",
+            "service_clerk",
+            "service_sweeper"
+          ],
+          "participant_hp_end": 81
+        },
+        {
+          "confirmed": {
+            "aft_clerk": 1859
+          },
+          "shots": 3,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 2,
+          "state": "m10_aft_upper",
+          "required": [
+            "aft_clerk"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "aft_notary": 1993
+          },
+          "shots": 0,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 50,
+          "search_points": 3,
+          "state": "m10_aft_notary",
+          "required": [
+            "aft_notary"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "aft_heavy": 2806
+          },
+          "shots": 10,
+          "search_index": 19,
+          "search_complete": true,
+          "participant_armor_end": 50,
+          "search_points": 19,
+          "state": "m10_aft_heavy",
+          "required": [
+            "aft_heavy"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "aft_sweeper": 2069
+          },
+          "shots": 0,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 50,
+          "search_points": 3,
+          "state": "m10_aft_middle",
+          "required": [
+            "aft_sweeper"
+          ],
+          "participant_hp_end": 100
+        },
+        {
+          "confirmed": {
+            "passenger_clerk_a": 3826,
+            "passenger_clerk_b": 3838,
+            "passenger_enforcer": 3774,
+            "passenger_sweeper": 3814
+          },
+          "shots": 0,
+          "search_index": 0,
+          "search_complete": true,
+          "participant_armor_end": 0,
+          "search_points": 16,
+          "state": "m10_passenger_defense",
+          "required": [
+            "passenger_clerk_a",
+            "passenger_clerk_b",
+            "passenger_sweeper",
+            "passenger_enforcer"
+          ],
+          "participant_hp_end": 55
+        }
+      ],
+      "started_utc": "2026-10-08T20:44:44.9629864Z",
+      "map": {
+        "path": "server/maps/m10_common_carrier.json",
+        "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557"
+      },
+      "image_count": 60,
+      "directory": ".agents/stair-architecture-20261008/ordinary-m10-heavy-search-candidate-first",
+      "image_hashes": [
+        {
+          "path": "01_m10_passenger_entry.png",
+          "sha256": "73c829c6096a29de0dc20ab1c6ddd7f38b4f7e3f3d10ef731cd74d74e84f2cda"
+        },
+        {
+          "path": "01_m10_passenger_entry_world.png",
+          "sha256": "cbf9dbb8b8f088a22f0f0a2acac731ca01c9fd9c289fbe29ca61b3e334b4e7d8"
+        },
+        {
+          "path": "02_m10_cabin_stock.png",
+          "sha256": "a1eb8d67f276b685fd673ba991b28fe00e40285aa4a57e2ff6789867d057a3d8"
+        },
+        {
+          "path": "02_m10_cabin_stock_world.png",
+          "sha256": "80bb22e07acfd58aa6706f2cf5baa3aace22e41e653e3d793b3daa8ac5339fc6"
+        },
+        {
+          "path": "03_m10_passenger_hall.png",
+          "sha256": "b86f3da0c1e9389ddae46cf0474aaa5b7a8a63b52394e8d223557928ac809005"
+        },
+        {
+          "path": "03_m10_passenger_hall_world.png",
+          "sha256": "255b8510f965b22c0055ffa9cd2299da3c2d5a09fa340cfc0199f86361630c12"
+        },
+        {
+          "path": "04_m10_stair_review_upper_descent.png",
+          "sha256": "b334660aa5566524f49ca557e8d82da7e24feab777d7ebafb1f2a2c436ca82bc"
+        },
+        {
+          "path": "04_m10_stair_review_upper_descent_world.png",
+          "sha256": "a8b96b3e0e0ae77452b90573aff0a3a6d2df9269d3728e000ff7daf4e21f01e9"
+        },
+        {
+          "path": "05_m10_stair_review_supported_turn.png",
+          "sha256": "8e986b492850fed31f5b87fef75f6b825ba4bc3f89f9b57a9d0bf710f92a14a2"
+        },
+        {
+          "path": "05_m10_stair_review_supported_turn_world.png",
+          "sha256": "3f79504f55b4218017baff83422ea8198ea8fbd9b04ec137530af88635136c05"
+        },
+        {
+          "path": "06_m10_west_stair_down.png",
+          "sha256": "e9694259bc4c9d9f63614976c41230345700ac1513f760fb2b6018487d8a9c69"
+        },
+        {
+          "path": "06_m10_west_stair_down_world.png",
+          "sha256": "b5469a32e585b518ebc91a154205bd6e861760f1be6bab6b3dab6a052f607a10"
+        },
+        {
+          "path": "07_m10_cargo_stock.png",
+          "sha256": "68fa326cdf3404f0f0d5701a4565919e5f1d60b7beccbac3150e527a1f2f088a"
+        },
+        {
+          "path": "07_m10_cargo_stock_world.png",
+          "sha256": "0458627dcd329777df81a0f4a64ccc71651dd9e3312481e8d3f18f6a1179e633"
+        },
+        {
+          "path": "08_m10_forward_lower.png",
+          "sha256": "0ce2e160b705dc1482c99770a6e7a053c3e36d9ad3fef41c008e4c5971977ae5"
+        },
+        {
+          "path": "08_m10_forward_lower_world.png",
+          "sha256": "a6da39f19080dc0e4813e75f8937792de6cd3cee64f9660f1cf0f19ceb247f9f"
+        },
+        {
+          "path": "09_m10_west_stair_return.png",
+          "sha256": "112d54128640154bfd5f66bdebbe299441985466c5f517839ce1915400b39646"
+        },
+        {
+          "path": "09_m10_west_stair_return_world.png",
+          "sha256": "50735327d65f30e95ebd79f9c751c6997b51281d65e8fb23fd41bf2a1aa2b17b"
+        },
+        {
+          "path": "10_m10_forward_gallery.png",
+          "sha256": "03c7e972cfbf492c07e58d23394a80e8153bbbc4cfad187fc0be0c8e2c588100"
+        },
+        {
+          "path": "10_m10_forward_gallery_world.png",
+          "sha256": "f063b7ef8e56aba9255a001c700e996f107287bb0016c8e48eff08e3af3028e9"
+        },
+        {
+          "path": "11_m10_forward_arrival.png",
+          "sha256": "e95b339137e3966bd92de36724698b50d4d2974d7fcb280ae425fed9a2e6009a"
+        },
+        {
+          "path": "11_m10_forward_arrival_world.png",
+          "sha256": "30086829996d26d94076c058d96235061f9af55ffb69af3f4fcedb415da4324f"
+        },
+        {
+          "path": "12_m10_service_defense.png",
+          "sha256": "1b40d413595c16b660001c15e9445936ff9b9e88e4cf84ce82fa59b07092826c"
+        },
+        {
+          "path": "12_m10_service_defense_world.png",
+          "sha256": "98e93109e0920e80370212914838fa6a07e6df66813534fc5769e5bf519a5d4f"
+        },
+        {
+          "path": "13_m10_repair_stock.png",
+          "sha256": "f739dd16e7bcd87cdb208b4e405c5038dbf172e93e0963d62387e57dad83335f"
+        },
+        {
+          "path": "13_m10_repair_stock_world.png",
+          "sha256": "388166467dd12f4a67bb1fcbd979192dd9f7b9c6f89acbd7138db6d9f77ba0d0"
+        },
+        {
+          "path": "14_m10_service_arrival.png",
+          "sha256": "468469502d99a514220aa629b5065ce3a5d9b5e72efb81aa747e5a8551dbb847"
+        },
+        {
+          "path": "14_m10_service_arrival_world.png",
+          "sha256": "c5b381f9778d5debc0ed566d46a8d40766c984cecb09c4c1e59f97bc2ec6554d"
+        },
+        {
+          "path": "15_m10_aft_stock.png",
+          "sha256": "02fb36ccb55a31963baabbf07660a26f0c7047526ef558556c3eb01f56197179"
+        },
+        {
+          "path": "15_m10_aft_stock_world.png",
+          "sha256": "caf570f1dcec7a6ec053a4ba86ea129859db444509ae8e8abf0880679e52d002"
+        },
+        {
+          "path": "16_m10_east_middle.png",
+          "sha256": "54f3b6055728076e0528f75b383b9a2f4bd4fe4dddf7025f3881fb6b62584306"
+        },
+        {
+          "path": "16_m10_east_middle_world.png",
+          "sha256": "6a19f87c470560464a2c3021c7999feb1d62a420324675b42781660b956530da"
+        },
+        {
+          "path": "17_m10_east_upper.png",
+          "sha256": "45f4adbfb5b94ef2b455b9dea255b490fdd4413435faf2c1932621afc2d3e402"
+        },
+        {
+          "path": "17_m10_east_upper_world.png",
+          "sha256": "b57b2fda52aca5eddfc79c8f199af46204e3c1c4ecbb881dc7099f578a752335"
+        },
+        {
+          "path": "18_m10_aft_upper.png",
+          "sha256": "a606b8d576270f85e594d2483740b2c4e1e54bb458bc833574144faee28a3693"
+        },
+        {
+          "path": "18_m10_aft_upper_world.png",
+          "sha256": "f9b1001bc6e34b4d0f1d650ef6cc3df8da8b2294ccf4011e0a89152cbe740fc0"
+        },
+        {
+          "path": "19_m10_freight_overlook.png",
+          "sha256": "bd1d191bcefd04ab3b83923b019aafb2435000157ee3c80fbf58f6039f7a2325"
+        },
+        {
+          "path": "19_m10_freight_overlook_world.png",
+          "sha256": "9def31557e3e0a278d8a16a76235707576b55f67c594ef8c2decf6152d0cae87"
+        },
+        {
+          "path": "20_m10_command_stock.png",
+          "sha256": "9a7ef3066fa807b6d30c92bee853f788afe4e27d942e3eab0c713a6c5c189860"
+        },
+        {
+          "path": "20_m10_command_stock_world.png",
+          "sha256": "29fac4ecfaeca3e642d4075864ab8a9e8e69532f71ee02ac904080ea0e5bec3e"
+        },
+        {
+          "path": "21_m10_lower_return.png",
+          "sha256": "f23c9dc9be142fc531d371bafe0dd47430841a5c354108674b0ec8e11ea3057b"
+        },
+        {
+          "path": "21_m10_lower_return_world.png",
+          "sha256": "c3a98c22ea3e62e9a65b503f5d8cc6a7463d76f51f75028c2790e61bb8d285f2"
+        },
+        {
+          "path": "22_m10_aft_notary.png",
+          "sha256": "6695e45cc498eb6f2c1a614e469ef84b72b4ecfe04030f095a0e6bd4239f95c0"
+        },
+        {
+          "path": "22_m10_aft_notary_world.png",
+          "sha256": "cbbe4d2f105196f5f2be541167dcd9a670246a6f466e92fa17ed5a4410c1fbc0"
+        },
+        {
+          "path": "23_m10_aft_heavy.png",
+          "sha256": "8f4d1c6b4c1005fea4b139c2c612c1883bc8961d164c7e58caef73dd351f88ee"
+        },
+        {
+          "path": "23_m10_aft_heavy_world.png",
+          "sha256": "5802f528af958abff56367e4570f3e7a7e38bf315dd5bf0bd5c3ab1aa636f62d"
+        },
+        {
+          "path": "24_m10_aft_middle.png",
+          "sha256": "94e71ec1087ea20892f5787bf38b193bb19e6b2fdf37ef755c650a549b62c17d"
+        },
+        {
+          "path": "24_m10_aft_middle_world.png",
+          "sha256": "295e5c8b349996b5b2d23a0a952752d5d34485b3bbd133df417d4678ace381cf"
+        },
+        {
+          "path": "25_m10_aft_arrival.png",
+          "sha256": "87c96841be5400847b0c82343e84af260db4b4ef4baa7c33bd7e6a7a19a40b1b"
+        },
+        {
+          "path": "25_m10_aft_arrival_world.png",
+          "sha256": "7a51a38e38e2e1f2b8679381d9df966dcd4c021bbd8169ef4e8f544b7bf72d67"
+        },
+        {
+          "path": "26_m10_passenger_return.png",
+          "sha256": "29612ec787ee7f68b87f12e81941c5888cb8d3e6ce63defee2202706fba6263b"
+        },
+        {
+          "path": "26_m10_passenger_return_world.png",
+          "sha256": "915ecafede773643e37f4370771d93b5c28bd551d6a0cc0368fd22315209af60"
+        },
+        {
+          "path": "27_m10_surplus_stock.png",
+          "sha256": "584092d48850f14657a2b69268be11c0f3bd95a8eec0b31f511a226a30e17a8e"
+        },
+        {
+          "path": "27_m10_surplus_stock_world.png",
+          "sha256": "ea8e623c329fd970645df866932ed29b8814a8f4c371a53136842c67e043ae0e"
+        },
+        {
+          "path": "28_m10_passenger_defense.png",
+          "sha256": "01630d0231413d2af166a7fa710c7a63831ebf6151aef0759d544202ae04e5b5"
+        },
+        {
+          "path": "28_m10_passenger_defense_world.png",
+          "sha256": "497394ef8335175afedddc47d3c2da706172caab185cc66cea5271466956b66c"
+        },
+        {
+          "path": "29_m10_passenger_arrival.png",
+          "sha256": "e82b139b13d7993043c050166845e52113f7e3b3eebfde2f35619540d9d31614"
+        },
+        {
+          "path": "29_m10_passenger_arrival_world.png",
+          "sha256": "05c3323ac792d32b7bffdb04f29038cf01e6f7d6c06bef8a74ecdc51708afd0b"
+        },
+        {
+          "path": "30_m10_shared_departure.png",
+          "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+        },
+        {
+          "path": "30_m10_shared_departure_world.png",
+          "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+        }
+      ]
+    }
+  ],
+  "m08_install": {
+    "schema": 1,
+    "scope": "Minimal canonical M08 QA change verified by the complete actual37-state finite route; canonical retains34 states",
+    "original_qa_sha256": "72d0db1bb22f2c14d58abb6f5d338c4ea096bc36834ae0b183f4a56abb7040ef",
+    "canonical_qa_sha256": "1cb43bf2acfa983a2578e3df24e6a3eb06d6544da2de72592a2674f73fb1af6e",
+    "actual_route_sha256": "83b30feb431306cad46a1ef11cda817aeecdba3c05baecf21adfd440e20750e3",
+    "actual_process": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/process.json",
+    "actual_process_sha256": "809724e04a234626e259b52436381c9bbaa1dc3ea40cf66eff7bd10bebd784b5",
+    "native_sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+    "capture_source_sha256": "467572abf3096baf7533de3737baa1acf243afd20413f91456a650b91f3d9da3",
+    "combat_source_sha256": "d6a4a0bf6f1639acc16834274f4bedec6706b6ad1b28986f7b17d687085829d6",
+    "actual_central_reload_inherited_without_override": true,
+    "actual_reload_receipts": [
+      {
+        "after": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 167.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5261.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "before": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 167.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 0.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5167.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "elapsed_ms": 1155,
+        "source": "Actual central QaTour fire-strip receipt",
+        "state": "m08_node_north_east"
+      }
+    ],
+    "actual_node_diagnostics_sha256": "52d2ad4bd1d709e4e252e67e2a52ee6b228079c856c52ebadb64ef1728e19766",
+    "actual_states": 37,
+    "canonical_states": 34,
+    "changes": [
+      "Original mine cleanup points split between no-fire approach and ordinary search fire, retaining both required guards",
+      "Existing bridge search prefix plus three supported vantages and actual owned Rail selection, retaining all six required deaths and 25 seconds",
+      "Freight search retains original noise approach as its prefix, appends the supported return and completes without firing, retaining all five required deaths",
+      "Original 16-frame noise observation follows actual counterattack clearance at the same upper landing",
+      "Repeated lower arrival stays within unchanged objective bounds at [0,0,29.5], avoiding the released civilian contact row"
+    ],
+    "physical_bays_route_preserved_across_labelled_capture_split": true,
+    "canonical_cameras_and_all_other_original_state_lines_preserved": true,
+    "focused_test_sha256": "465edab1546c9687aee2be858e302dffad7dccaa402de113381ebd538b804a76",
+    "focused_gate_pending": false,
+    "installed_utc": "2026-10-08T22:22:50.5893083Z",
+    "focused_gate": {
+      "pass": true,
+      "sha256": "3a39d080853d4b0748860c8d91c90d1b095afa22483cd5e4907de3267af7b1a5",
+      "path": ".agents/stair-architecture-20261008/m08-canonical-search-final-first/process.json"
+    },
+    "focused_uid_sha256": "997f3e7173682e3300ddd0a2d9750a91276625934621e2794bb088ce729ee3e1"
+  },
+  "source_bindings": [
+    {
+      "path": "server/maps/m08_custodian_of_record.json",
+      "sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864"
+    },
+    {
+      "path": "server/maps/m09_passenger_manifest.json",
+      "sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85"
+    },
+    {
+      "path": "server/maps/m10_common_carrier.json",
+      "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557"
+    },
+    {
+      "path": "client/qa/m08_custodian_of_record.json",
+      "sha256": "1cb43bf2acfa983a2578e3df24e6a3eb06d6544da2de72592a2674f73fb1af6e"
+    },
+    {
+      "path": "client/scripts/test_m08_search_route.gd",
+      "sha256": "465edab1546c9687aee2be858e302dffad7dccaa402de113381ebd538b804a76"
+    },
+    {
+      "path": "client/scripts/test_m08_search_route.gd.uid",
+      "sha256": "997f3e7173682e3300ddd0a2d9750a91276625934621e2794bb088ce729ee3e1"
+    },
+    {
+      "path": "client/scripts/qa_tour.gd",
+      "sha256": "467572abf3096baf7533de3737baa1acf243afd20413f91456a650b91f3d9da3"
+    },
+    {
+      "path": "client/scripts/qa_combat.gd",
+      "sha256": "d6a4a0bf6f1639acc16834274f4bedec6706b6ad1b28986f7b17d687085829d6"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-canonical-qa-install.json",
+      "sha256": "515864e3f69ec099169793978978c0e8aa453d067ac431be33e46b809578ff44"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-canonical-released-lane-equivalence.json",
+      "sha256": "2e05ce8000e1e19c9781dc5b139454f4df961e859f025a17b0cb9f9acf1f93d9"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-released-lane-control-second/released-lane-control.json",
+      "sha256": "64b5731421a3e87d3a53c451b53edd27488c572365e57b3e2fa5ad4435f0e94f"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-released-lane-control-second/process.json",
+      "sha256": "e947db4b6b837c07ba8aabf4db84b583d788f38036e6efed182e6e86a1fb0d0b"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-released-lane-final-map-control-first/released-lane-control.json",
+      "sha256": "4aa41e33888dda4bdd6790448ac408573e01d4ebf8791306dc6109919c2a3d66"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-released-lane-final-map-control-first/process.json",
+      "sha256": "a679dfa2c615c3bea5a6207bde1ae183911e312da5f662e2709070d00a37e240"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-final-test-import-first/process.json",
+      "sha256": "460d08ffabf8037a9f5e2ddadd544c48a24547f4d3535d3375f87628653b7d51"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/m08-stair-review-fourth.json",
+      "sha256": "f78e19c746737144a4b0804019b4d929d4983f84cd13bc68b064f357d854eb27"
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/m08-stair-review-final.json",
+      "sha256": "8c09c37998f0535df8607d4754635b38b7ba6e11cd5271504e5be10360f2691c"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-actual-map-sample-second/owned-map-receipt.json",
+      "sha256": "c82d823f536294977773e2a7e09eb7a70ed0761dd26054681097103e68708f8f"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-released-canonical-search-second/process.json",
+      "sha256": "2b2af859a85d94ae32bc631f4f06bcbe71fef9e62d96f5a5e64678a6ec09783b"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m08-canonical-search-final-first/process.json",
+      "sha256": "3a39d080853d4b0748860c8d91c90d1b095afa22483cd5e4907de3267af7b1a5"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/actual-map-transitions.json",
+      "sha256": "4f9c321dc8da8a4f7f138ea37e1efa552fb9bd7ab4b9d73edd498774f474cc16"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/node-reload-diagnostics.json",
+      "sha256": "52d2ad4bd1d709e4e252e67e2a52ee6b228079c856c52ebadb64ef1728e19766"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/late-combat-diagnostics.json",
+      "sha256": "f557726e097190a6f5fdbfeb0aba081f62c084948c3e88a223262acd475177f8"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/loaded-source/qa_tour.gd",
+      "sha256": "467572abf3096baf7533de3737baa1acf243afd20413f91456a650b91f3d9da3"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-released-lane-fifth/loaded-source/qa_combat.gd",
+      "sha256": "d6a4a0bf6f1639acc16834274f4bedec6706b6ad1b28986f7b17d687085829d6"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m09-final-review.json",
+      "sha256": "f6043e9996965c4c803c66e88a9fda59a3a92d7d24d14751431fd84071eccfd7"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/m10-ordinary-final-review.json",
+      "sha256": "8f0b73bd1ce520d46a728fc5ead0c62cd75504227d53c0bf5b1222c4f93a4158"
+    },
+    {
+      "path": "docs/evidence/capture-draw-liveness-20261008.json",
+      "sha256": "ee3349378ec5042e101326ef8f6c1fcaacb00924e25827fa08f14baa67e3ace9"
+    },
+    {
+      "path": "docs/evidence/capture-draw-liveness-predecessor-20261008.json",
+      "sha256": "cfdd1280ee4c502dadd1f1fe68243f985054ee022be303771542bc73af6b2fe6"
+    }
+  ],
+  "limitations": [
+    "M09 and M10 captures precede the later central capture/reload helper composition and do not establish that composition",
+    "M10 starts from a labelled historical v12 finite-carry fixture, not an actual played M01-M09 history",
+    "No frame-rate, broad hardware, human difficulty, final art, package or current whole-client claim",
+    "Released civilian placement in the causal contact control is layout-derived from actual initial MapInfo and release facts, not a direct retained civilian-position wire observation",
+    "Final M08 retains actual initial/lifted/fallen MapInfo and inherits the final central reload helper without override",
+    "Historical capture stalls did not retain actual window state at the blocking await; controlled minimized-window acceptance is separate"
+  ],
+  "retained_failures": [
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-final-first",
+      "scope": "Actual participant death with omitted M08 contact context"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-context-control-first",
+      "scope": "Context fix alone passes evasion context but unchanged no-fire approach remains incomplete"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-cleanup-candidate-first",
+      "scope": "Both corridor enemies clear; later bridge search remains occluded"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-final-route-candidate-first",
+      "scope": "Later ranged Auditor survives Flechette search, no route acceptance"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-rail-bridge-candidate-first",
+      "scope": "Intentionally retired incomplete capture before the Rail branch, not a Rail-combat failure"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-rail-diagnostic-second",
+      "scope": "Rail bridge clears; empty magazines leave required node facts incomplete"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-reload-candidate-third",
+      "scope": "Actual finite empty-only reload and all four broken nodes pass; later active-counterattack capture causes participant death"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m08-central-reload-fourth",
+      "scope": "Actual final central reload, all nodes, bridge and every exit enemy pass; no-death finish-search stops against released civilian contact"
+    },
+    {
+      "path": ".agents/stair-architecture-20261008/ordinary-m10-final-first",
+      "scope": "Enclosure images reviewed, later Heavy survives lower-only search; no full-route acceptance"
+    }
+  ],
+  "pass": true,
+  "m08_actual_outcomes": {
+    "central_reload_override": false,
+    "final_m08_facts": {
+      "captives_evacuated": true,
+      "completed": [
+        "hall_cleared",
+        "lower_gallery_cleared",
+        "mines_cleared",
+        "auditor_cleared",
+        "machine_wrecked",
+        "evidence_taken",
+        "exit_cleared",
+        "party_departed"
+      ],
+      "custodian_joined": true,
+      "custody_released": true,
+      "machine_fallen": true,
+      "node_hp": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "recovered_mind_secured": true,
+      "seal_open": true,
+      "transfer_evidence": true
+    },
+    "states": [
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 0.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "personal_claims": [],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "fists",
+          "tick": 30.0,
+          "type": "loadout",
+          "weapons": [
+            "fists"
+          ]
+        },
+        "combat_passed": null,
+        "file": "01_m08_checkpoint.png",
+        "world_file": "01_m08_checkpoint_world.png",
+        "feet": [
+          -1.0,
+          0.0,
+          -33.0
+        ],
+        "state": "m08_checkpoint",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                0.0,
+                -9.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  6.0,
+                  2.0,
+                  -7.0
+                ],
+                "min": [
+                  -6.0,
+                  0.0,
+                  -12.0
+                ]
+              }
+            },
+            "id": "hall_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 120.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 12.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "scatter",
+          "tick": 144.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "02_m08_entry_equipment.png",
+        "world_file": "02_m08_entry_equipment_world.png",
+        "feet": [
+          2.45105624198914,
+          0.0,
+          -29.9774494171143
+        ],
+        "state": "m08_entry_equipment",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                0.0,
+                -9.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  6.0,
+                  2.0,
+                  -7.0
+                ],
+                "min": [
+                  -6.0,
+                  0.0,
+                  -12.0
+                ]
+              }
+            },
+            "id": "hall_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 180.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 12.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "scatter",
+          "tick": 212.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "03_m08_observation_secret.png",
+        "world_file": "03_m08_observation_secret_world.png",
+        "feet": [
+          5.53532934188843,
+          2.0,
+          -23.0911178588867
+        ],
+        "state": "m08_observation_secret",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                0.0,
+                -9.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  6.0,
+                  2.0,
+                  -7.0
+                ],
+                "min": [
+                  -6.0,
+                  0.0,
+                  -12.0
+                ]
+              }
+            },
+            "id": "hall_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 180.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 12.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 246.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "04_m08_shaft_reveal.png",
+        "world_file": "04_m08_shaft_reveal_world.png",
+        "feet": [
+          0.0332100987434387,
+          0.0,
+          -21.490140914917
+        ],
+        "state": "m08_shaft_reveal",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                0.0,
+                -9.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  6.0,
+                  2.0,
+                  -7.0
+                ],
+                "min": [
+                  -6.0,
+                  0.0,
+                  -12.0
+                ]
+              }
+            },
+            "id": "hall_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 197.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 12.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 596.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": true,
+        "file": "05_m08_records_hall_clear.png",
+        "world_file": "05_m08_records_hall_clear_world.png",
+        "feet": [
+          -12.1180353164673,
+          0.0,
+          -16.3388710021973
+        ],
+        "state": "m08_records_hall_clear",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                0.0,
+                -9.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  6.0,
+                  2.0,
+                  -7.0
+                ],
+                "min": [
+                  -6.0,
+                  0.0,
+                  -12.0
+                ]
+              }
+            },
+            "id": "hall_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 197.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 12.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 596.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "06_m08_hall_arrival.png",
+        "world_file": "06_m08_hall_arrival_world.png",
+        "feet": [
+          -7.67297751735896E-05,
+          0.0,
+          -7.0240592956543
+        ],
+        "state": "m08_hall_arrival",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                3.0,
+                -13.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -10.0,
+                  4.5,
+                  -12.2
+                ],
+                "min": [
+                  -18.0,
+                  2.9,
+                  -16.0
+                ]
+              }
+            },
+            "id": "lower_gallery_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 197.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 969.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "07_m08_lost_property_secret.png",
+        "world_file": "07_m08_lost_property_secret_world.png",
+        "feet": [
+          17.0136966705322,
+          0.0,
+          16.9999866485596
+        ],
+        "state": "m08_lost_property_secret",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                3.0,
+                -13.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -10.0,
+                  4.5,
+                  -12.2
+                ],
+                "min": [
+                  -18.0,
+                  2.9,
+                  -16.0
+                ]
+              }
+            },
+            "id": "lower_gallery_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 200.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 1192.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "08_m08_west_stair.png",
+        "world_file": "08_m08_west_stair_world.png",
+        "feet": [
+          -18.0849876403809,
+          3.0,
+          6.00122451782227
+        ],
+        "state": "m08_west_stair",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                3.0,
+                -13.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -10.0,
+                  4.5,
+                  -12.2
+                ],
+                "min": [
+                  -18.0,
+                  2.9,
+                  -16.0
+                ]
+              }
+            },
+            "id": "lower_gallery_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 184.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 17.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 1482.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": true,
+        "file": "09_m08_lower_gallery_clear.png",
+        "world_file": "09_m08_lower_gallery_clear_world.png",
+        "feet": [
+          -16.4212989807129,
+          3.0,
+          6.78642225265503
+        ],
+        "state": "m08_lower_gallery_clear",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                3.0,
+                -13.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -10.0,
+                  4.5,
+                  -12.2
+                ],
+                "min": [
+                  -18.0,
+                  2.9,
+                  -16.0
+                ]
+              }
+            },
+            "id": "lower_gallery_cleared"
+          },
+          "custodian_joined": false,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 184.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 17.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "selected": "flechette",
+          "tick": 1482.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "10_m08_registry.png",
+        "world_file": "10_m08_registry_world.png",
+        "feet": [
+          -13.7353773117065,
+          3.0,
+          -13.4805154800415
+        ],
+        "state": "m08_registry",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -17.5,
+                3.0,
+                15.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -15.0,
+                  4.5,
+                  18.0
+                ],
+                "min": [
+                  -19.0,
+                  2.9,
+                  13.0
+                ]
+              }
+            },
+            "id": "mines_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 184.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 17.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 4.0,
+          "selected": "flechette",
+          "tick": 1874.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "11_m08_mine_cage.png",
+        "world_file": "11_m08_mine_cage_world.png",
+        "feet": [
+          -18.2597045898438,
+          3.0,
+          14.6781845092773
+        ],
+        "state": "m08_mine_cage",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -17.5,
+                3.0,
+                15.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -15.0,
+                  4.5,
+                  18.0
+                ],
+                "min": [
+                  -19.0,
+                  2.9,
+                  13.0
+                ]
+              }
+            },
+            "id": "mines_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 184.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 17.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 1965.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "12_m08_mine_corridor.png",
+        "world_file": "12_m08_mine_corridor_world.png",
+        "feet": [
+          -9.8947639465332,
+          3.0,
+          18.5298385620117
+        ],
+        "state": "m08_mine_corridor",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -17.5,
+                3.0,
+                15.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -15.0,
+                  4.5,
+                  18.0
+                ],
+                "min": [
+                  -19.0,
+                  2.9,
+                  13.0
+                ]
+              }
+            },
+            "id": "mines_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 184.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 17.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 1965.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": null,
+        "file": "13_m08_mine_live.png",
+        "world_file": "13_m08_mine_live_world.png",
+        "feet": [
+          -17.3044986724854,
+          3.0,
+          15.5953779220581
+        ],
+        "state": "m08_mine_live",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -17.5,
+                3.0,
+                15.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -15.0,
+                  4.5,
+                  18.0
+                ],
+                "min": [
+                  -19.0,
+                  2.9,
+                  13.0
+                ]
+              }
+            },
+            "id": "mines_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 163.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 16.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 2445.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter"
+          ]
+        },
+        "combat_passed": true,
+        "file": "14_m08_mine_cleanup.png",
+        "world_file": "14_m08_mine_cleanup_world.png",
+        "feet": [
+          -10.0171318054199,
+          3.0,
+          10.3080196380615
+        ],
+        "state": "m08_mine_cleanup",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -17.5,
+                3.0,
+                15.5
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -15.0,
+                  4.5,
+                  18.0
+                ],
+                "min": [
+                  -19.0,
+                  2.9,
+                  13.0
+                ]
+              }
+            },
+            "id": "mines_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 163.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 10.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 16.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "rail",
+          "tick": 2659.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "15_m08_east_stair.png",
+        "world_file": "15_m08_east_stair_world.png",
+        "feet": [
+          17.956205368042,
+          6.0,
+          1.98912417888641
+        ],
+        "state": "m08_east_stair",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -3.0,
+                6.0,
+                -14.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  0.0,
+                  7.5,
+                  -10.0
+                ],
+                "min": [
+                  -6.0,
+                  5.9,
+                  -18.0
+                ]
+              }
+            },
+            "id": "auditor_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 160.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 10.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 2908.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": true,
+        "file": "16_m08_first_custody_sweeper.png",
+        "world_file": "16_m08_first_custody_sweeper_world.png",
+        "feet": [
+          16.8017730712891,
+          6.0,
+          2.46847534179688
+        ],
+        "state": "m08_first_custody_sweeper",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -3.0,
+                6.0,
+                -14.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  0.0,
+                  7.5,
+                  -10.0
+                ],
+                "min": [
+                  -6.0,
+                  5.9,
+                  -18.0
+                ]
+              }
+            },
+            "id": "auditor_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 160.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 10.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 2908.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "17_m08_auditor_channel.png",
+        "world_file": "17_m08_auditor_channel_world.png",
+        "feet": [
+          16.8017730712891,
+          6.0,
+          2.46847534179688
+        ],
+        "state": "m08_auditor_channel",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -3.0,
+                6.0,
+                -14.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  0.0,
+                  7.5,
+                  -10.0
+                ],
+                "min": [
+                  -6.0,
+                  5.9,
+                  -18.0
+                ]
+              }
+            },
+            "id": "auditor_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": false,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 121.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 10.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 14.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 3208.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": true,
+        "file": "18_m08_upper_auditor_clear.png",
+        "world_file": "18_m08_upper_auditor_clear_world.png",
+        "feet": [
+          15.7333955764771,
+          6.0,
+          3.03236389160156
+        ],
+        "state": "m08_upper_auditor_clear",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -3.0,
+                6.0,
+                -14.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  0.0,
+                  7.5,
+                  -10.0
+                ],
+                "min": [
+                  -6.0,
+                  5.9,
+                  -18.0
+                ]
+              }
+            },
+            "id": "auditor_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 121.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 10.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 14.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 3208.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "19_m08_seal_lifted.png",
+        "world_file": "19_m08_seal_lifted_world.png",
+        "feet": [
+          -2.95889091491699,
+          6.0,
+          -13.8859634399414
+        ],
+        "state": "m08_seal_lifted",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 121.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 10.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 14.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 3208.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "20_m08_stair_review_east_tower_descent.png",
+        "world_file": "20_m08_stair_review_east_tower_descent_world.png",
+        "feet": [
+          27.8650608062744,
+          6.0,
+          3.97745084762573
+        ],
+        "state": "m08_stair_review_east_tower_descent",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": false,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 121.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 20.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 14.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 3737.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "21_m08_lower_bays.png",
+        "world_file": "21_m08_lower_bays_world.png",
+        "feet": [
+          -0.0430786609649658,
+          3.0,
+          -17.5097312927246
+        ],
+        "state": "m08_lower_bays",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 111.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 20.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 4.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 4237.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": true,
+        "file": "22_m08_service_ambush.png",
+        "world_file": "22_m08_service_ambush_world.png",
+        "feet": [
+          -5.69700908660889,
+          6.0,
+          -13.1017713546753
+        ],
+        "state": "m08_service_ambush",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 111.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 20.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 4.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 4330.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "23_m08_service_ring.png",
+        "world_file": "23_m08_service_ring_world.png",
+        "feet": [
+          -18.2982196807861,
+          6.0,
+          -18.4855442047119
+        ],
+        "state": "m08_service_ring",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": false,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 111.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 20.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 4.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 4330.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "24_m08_cold_cabinet.png",
+        "world_file": "24_m08_cold_cabinet_world.png",
+        "feet": [
+          -17.5123252868652,
+          6.0,
+          -2.2545645236969
+        ],
+        "state": "m08_cold_cabinet",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 171.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 4.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "rail",
+          "tick": 5035.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": true,
+        "file": "25_m08_bridge_fight.png",
+        "world_file": "25_m08_bridge_fight_world.png",
+        "feet": [
+          -8.63040161132813,
+          6.0,
+          7.40007352828979
+        ],
+        "state": "m08_bridge_fight",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                -4.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 108.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            50.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 167.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 0.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5167.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "26_m08_node_north_west.png",
+        "world_file": "26_m08_node_north_west_world.png",
+        "feet": [
+          -4.25222969055176,
+          6.0,
+          8.44008445739746
+        ],
+        "state": "m08_node_north_west",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                4.6,
+                7.4,
+                4.6
+              ],
+              "approach": [
+                5.0,
+                6.0,
+                8.5
+              ],
+              "kind": "shoot",
+              "solid": 109.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            0.0,
+            50.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 160.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 13.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5286.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "27_m08_node_north_east.png",
+        "world_file": "27_m08_node_north_east_world.png",
+        "feet": [
+          4.74758148193359,
+          6.0,
+          8.49836540222168
+        ],
+        "state": "m08_node_north_east",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                4.6,
+                7.4,
+                -4.6
+              ],
+              "approach": [
+                8.0,
+                6.0,
+                -4.6
+              ],
+              "kind": "shoot",
+              "solid": 110.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            0.0,
+            0.0,
+            50.0,
+            50.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 154.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 7.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5477.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "28_m08_node_south_west.png",
+        "world_file": "28_m08_node_south_west_world.png",
+        "feet": [
+          -8.22217750549316,
+          6.0,
+          -4.60737037658691
+        ],
+        "state": "m08_node_south_west",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                4.6,
+                7.4,
+                -4.6
+              ],
+              "approach": [
+                8.0,
+                6.0,
+                -4.6
+              ],
+              "kind": "shoot",
+              "solid": 110.0
+            },
+            "id": "machine_wrecked"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": false,
+          "node_hp": [
+            0.0,
+            0.0,
+            50.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 147.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 0.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5734.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "29_m08_node_south_east.png",
+        "world_file": "29_m08_node_south_east_world.png",
+        "feet": [
+          7.95205450057983,
+          6.0,
+          -4.55789756774902
+        ],
+        "state": "m08_node_south_east",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                13.5,
+                6.0,
+                8.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  16.0,
+                  7.5,
+                  8.9
+                ],
+                "min": [
+                  11.0,
+                  5.9,
+                  7.0
+                ]
+              }
+            },
+            "id": "evidence_taken"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 147.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 0.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5734.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "30_m08_machine_fallen.png",
+        "world_file": "30_m08_machine_fallen_world.png",
+        "feet": [
+          7.95205450057983,
+          6.0,
+          -4.55789756774902
+        ],
+        "state": "m08_machine_fallen",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                13.5,
+                6.0,
+                8.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  16.0,
+                  7.5,
+                  8.9
+                ],
+                "min": [
+                  11.0,
+                  5.9,
+                  7.0
+                ]
+              }
+            },
+            "id": "evidence_taken"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": false
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 147.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 0.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5734.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "31_m08_evidence.png",
+        "world_file": "31_m08_evidence_world.png",
+        "feet": [
+          13.4174013137817,
+          6.0,
+          8.00004863739014
+        ],
+        "state": "m08_evidence",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                0.0,
+                27.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  6.0,
+                  2.0,
+                  30.0
+                ],
+                "min": [
+                  -6.0,
+                  0.0,
+                  24.0
+                ]
+              }
+            },
+            "id": "exit_cleared"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 115.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 8.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 6379.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": true,
+        "file": "32_m08_exit_counter.png",
+        "world_file": "32_m08_exit_counter_world.png",
+        "feet": [
+          8.48713684082031,
+          6.0,
+          22.4528789520264
+        ],
+        "state": "m08_exit_counter",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken",
+            "exit_cleared"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  0.0,
+                  0.0,
+                  32.5
+                ],
+                "decoration": 13.0
+              }
+            },
+            "id": "party_departed"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 115.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 8.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 6379.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "33_m08_authorized_noise.png",
+        "world_file": "33_m08_authorized_noise_world.png",
+        "feet": [
+          8.49423503875732,
+          6.0,
+          22.2029800415039
+        ],
+        "state": "m08_authorized_noise",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken",
+            "exit_cleared"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  0.0,
+                  0.0,
+                  32.5
+                ],
+                "decoration": 13.0
+              }
+            },
+            "id": "party_departed"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 115.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 8.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 6379.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "34_m08_exit_arrival.png",
+        "world_file": "34_m08_exit_arrival_world.png",
+        "feet": [
+          0.0625641494989395,
+          0.0,
+          29.5239887237549
+        ],
+        "state": "m08_exit_arrival",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken",
+            "exit_cleared"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  0.0,
+                  0.0,
+                  32.5
+                ],
+                "decoration": 13.0
+              }
+            },
+            "id": "party_departed"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 115.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 8.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 6379.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "35_m08_stair_review_freight_lower_return.png",
+        "world_file": "35_m08_stair_review_freight_lower_return_world.png",
+        "feet": [
+          8.26761341094971,
+          0.0,
+          34.9942169189453
+        ],
+        "state": "m08_stair_review_freight_lower_return",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken",
+            "exit_cleared"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  0.0,
+                  0.0,
+                  32.5
+                ],
+                "decoration": 13.0
+              }
+            },
+            "id": "party_departed"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 115.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 8.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 6379.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "36_m08_stair_review_return_to_lane.png",
+        "world_file": "36_m08_stair_review_return_to_lane_world.png",
+        "feet": [
+          0.0838018804788589,
+          0.0,
+          29.5329113006592
+        ],
+        "state": "m08_stair_review_return_to_lane",
+        "m08": {
+          "captives_evacuated": false,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken",
+            "exit_cleared"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  0.0,
+                  0.0,
+                  32.5
+                ],
+                "decoration": 13.0
+              }
+            },
+            "id": "party_departed"
+          },
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      },
+      {
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 115.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 2.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 8.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 6379.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "combat_passed": null,
+        "file": "37_m08_departure.png",
+        "world_file": "37_m08_departure_world.png",
+        "feet": [
+          0.00616229884326458,
+          0.0,
+          32.2818183898926
+        ],
+        "state": "m08_departure",
+        "m08": {
+          "captives_evacuated": true,
+          "completed": [
+            "hall_cleared",
+            "lower_gallery_cleared",
+            "mines_cleared",
+            "auditor_cleared",
+            "machine_wrecked",
+            "evidence_taken",
+            "exit_cleared",
+            "party_departed"
+          ],
+          "custodian_joined": true,
+          "custody_released": true,
+          "machine_fallen": true,
+          "node_hp": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "recovered_mind_secured": true,
+          "seal_open": true,
+          "transfer_evidence": true
+        },
+        "self_alive": true
+      }
+    ],
+    "all_required_guards_confirmed": true,
+    "all_four_nodes_broken": true,
+    "deaths": 0,
+    "final_participant_hp": 90,
+    "actual_finite_fire_strip_reloads": [
+      {
+        "after": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 167.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5261.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "before": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 167.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 36.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 24.0
+            }
+          ],
+          "dry_fire_count": 1.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 0.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 2.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [
+            "cage_mines",
+            "entry_rifle",
+            "entry_shotgun",
+            "lower_rail"
+          ],
+          "player_id": "e9d74bde-7dc9-40f4-be13-001f6cdcc6c1",
+          "proximity_mines": 3.0,
+          "selected": "flechette",
+          "tick": 5167.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "elapsed_ms": 1155,
+        "source": "Actual central QaTour fire-strip receipt",
+        "state": "m08_node_north_east"
+      }
+    ],
+    "fresh_shared_departure": true,
+    "participant_elapsed_ticks": 7018,
+    "map_stages": [
+      {
+        "seal_open": false,
+        "geometry_version": 2.0,
+        "observed_native_tick": -1,
+        "map_id": 1008.0,
+        "machine_fallen": false,
+        "solids": 153
+      },
+      {
+        "seal_open": true,
+        "geometry_version": 2.0,
+        "observed_native_tick": 3211.0,
+        "map_id": 1008.0,
+        "machine_fallen": false,
+        "solids": 153
+      },
+      {
+        "seal_open": true,
+        "geometry_version": 2.0,
+        "observed_native_tick": 5710.0,
+        "map_id": 1008.0,
+        "machine_fallen": true,
+        "solids": 153
+      }
+    ],
+    "final_participant_armor": 30
+  }
+}

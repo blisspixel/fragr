@@ -17,7 +17,9 @@ impl GameState {
     }
 
     pub(crate) fn reset_vehicles(&mut self) {
-        self.vehicles = vehicles::spawns(self.map.id())
+        self.vehicles = self
+            .map
+            .vehicle_spawns()
             .into_iter()
             .enumerate()
             .filter(|(_, (kind, position, yaw))| {
@@ -73,28 +75,7 @@ impl GameState {
         to: [f32; 3],
         arena: &Arena,
     ) -> bool {
-        let ray = crate::combat::Ray {
-            origin: from,
-            direction: std::array::from_fn(|axis| to[axis] - from[axis]),
-        };
-        let blocked = |solid: &Solid| {
-            let margin = crate::movement::CONTACT_EPSILON;
-            // Expand the obstacle by the moving body's horizontal radius and
-            // standing height. A range of one checks the entire displacement.
-            // Exact floor and roof contact remains legal, as in walking.
-            ray.solid(
-                &Solid {
-                    min_x: solid.min_x - RADIUS + margin,
-                    max_x: solid.max_x + RADIUS - margin,
-                    min_z: solid.min_z - RADIUS + margin,
-                    max_z: solid.max_z + RADIUS - margin,
-                    bottom: solid.bottom - BODY_HEIGHT + margin,
-                    top: solid.top - margin,
-                },
-                1.0,
-            )
-            .is_some()
-        };
+        let blocked = |solid: &Solid| vehicles::body_passage_blocked(from, to, solid);
         !arena.solids.iter().any(blocked)
             && !self
                 .vehicles
@@ -167,11 +148,14 @@ impl GameState {
     fn vehicle_interactions(&mut self, arena: &Arena) {
         let requests: Vec<_> = self
             .players
-            .iter_mut()
-            .filter(|p| p.hp > 0 && !p.detached && !p.eliminated)
-            .map(|p| (p.id, p.interaction_requested, p.pending_action.seat.take()))
+            .iter()
+            .filter(|p| self.contact_eligible(p))
+            .map(|p| (p.id, p.interaction_requested, p.pending_action.seat))
             .collect();
         for (actor, interact, switch) in requests {
+            if let Some(p) = self.players.iter_mut().find(|p| p.id == actor) {
+                p.pending_action.seat = None;
+            }
             if let Some((index, seat)) = self.vehicle_seat(actor) {
                 if let Some(p) = self.players.iter_mut().find(|p| p.id == actor) {
                     p.interaction_requested = false;

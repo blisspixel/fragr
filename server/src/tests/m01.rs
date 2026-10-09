@@ -28,6 +28,13 @@ struct Walkthrough {
     first_shot: Option<u64>,
     /// Pickup ids whose claim event announced a found secret.
     secrets: Vec<String>,
+    miss_every: usize,
+    intentional_misses: usize,
+    enemy_shots: usize,
+    reload_presses: usize,
+    evade_started: Option<u64>,
+    evade_left: bool,
+    combat_anchor: Option<[f32; 2]>,
 }
 
 impl Walkthrough {
@@ -36,15 +43,35 @@ impl Walkthrough {
     }
 
     fn configured(role: Role, solo_run: bool) -> Self {
+        Self::with_rules(
+            role,
+            solo_run,
+            crate::protocol::CampaignDifficulty::Standard,
+            false,
+            0,
+        )
+    }
+
+    fn with_rules(
+        role: Role,
+        solo_run: bool,
+        difficulty: crate::protocol::CampaignDifficulty,
+        magazines: bool,
+        miss_every: usize,
+    ) -> Self {
         let map = AuthoredMap::read(include_bytes!("../../maps/m01-recall-notice.json").as_slice())
             .unwrap();
         let mut session = GameSession::with_authored_map(map);
         session.state.seed(67);
+        session.state.set_campaign_difficulty(difficulty).unwrap();
         if solo_run {
             session.state.enable_campaign_run().unwrap();
         }
         let id = Uuid::from_u128(100);
         session.state.add_player(id, "Visitor".into(), role);
+        if magazines {
+            session.state.arm_joined_magazines(id);
+        }
         let mission = session.state.mission_state().unwrap();
         session.apply_command(crate::net::GameCommand::MissionReady {
             player_id: id,
@@ -65,6 +92,13 @@ impl Walkthrough {
             first_threat: None,
             first_shot: None,
             secrets: Vec::new(),
+            miss_every,
+            intentional_misses: 0,
+            enemy_shots: 0,
+            reload_presses: 0,
+            evade_started: None,
+            evade_left: true,
+            combat_anchor: None,
         }
     }
 
@@ -111,7 +145,7 @@ impl Walkthrough {
                     self.shots
                 );
             });
-        assert!(me.hp > 0, "opening route killed the participant");
+        assert!(me.hp > 0, "opening route killed the participant at tick{} feet{:?} toward{destination:?}, shots{}, misses{}, guards{:?}", snapshot.tick, [me.x,me.y-PLAYER_FLOOR_Y,me.z], self.shots,self.intentional_misses,snapshot.players.iter().filter(|p|p.hp>0 && p.id != self.id).map(|p|(&p.name,p.hp,p.x,p.z)).collect::<Vec<_>>());
         let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
         let eye = [me.x, feet[1] + EYE_HEIGHT, me.z];
         let visible: Vec<_> = snapshot
@@ -142,6 +176,10 @@ impl Walkthrough {
                 .hypot(a.z - me.z)
                 .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
         });
+        let intentional_miss = target.is_some()
+            && self.miss_every > 0
+            && (self.shots + 1).is_multiple_of(self.miss_every);
+        let bullets_before = equipment_bullets(self);
         let action = if let Some(target) = target {
             self.first_threat.get_or_insert(snapshot.tick);
             let player = &self.session.state.players[0];
@@ -150,26 +188,79 @@ impl Walkthrough {
                 .state(self.id, player.weapon, snapshot.tick)
                 .unwrap();
             let dry = loadout.shots(player.weapon) == Some(0);
+            let telling = visible.iter().find_map(|enemy| match enemy.campaign {
+                Some(CampaignActor::Union {
+                    phase: EnemyPhase::Windup | EnemyPhase::Firing,
+                    phase_started,
+                    ..
+                }) => Some(phase_started),
+                _ => None,
+            });
+            if self.miss_every > 0 {
+                let anchor = *self.combat_anchor.get_or_insert([me.x, me.z]);
+                if let Some(started) = telling {
+                    if self.evade_started != Some(started) {
+                        self.evade_started = Some(started);
+                        let yaw = (target.z - me.z).atan2(target.x - me.x);
+                        let side = if self.evade_left { 1. } else { -1. };
+                        let offset = [me.x - anchor[0], me.z - anchor[1]];
+                        if offset[0].hypot(offset[1]) > 1.
+                            && offset[0] * yaw.sin() * side - offset[1] * yaw.cos() * side > 0.
+                        {
+                            self.evade_left = !self.evade_left;
+                        }
+                        if !safe_miss_strafe(
+                            feet,
+                            yaw,
+                            self.evade_left,
+                            self.session.state.map.arena(),
+                        ) {
+                            self.evade_left = !self.evade_left;
+                        }
+                    }
+                }
+            }
             Action {
                 // React to a visible committed tell with ordinary strafing.
-                // This is an accurate-aim moving run, not first-player balance.
-                left: visible.iter().any(|enemy| {
-                    matches!(
-                        enemy.campaign,
-                        Some(CampaignActor::Union {
-                            phase: EnemyPhase::Windup | EnemyPhase::Firing,
-                            ..
-                        })
-                    )
-                }),
-                look_at: Some(LookAt {
-                    player_id: Some(target.id),
-                    ..Default::default()
+                // The optional miss profile retains that tell discipline.
+                // Neither profile establishes fresh-player balance.
+                left: if self.miss_every > 0 {
+                    telling.is_some() && self.evade_left
+                } else {
+                    visible.iter().any(|enemy| {
+                        matches!(
+                            enemy.campaign,
+                            Some(CampaignActor::Union {
+                                phase: EnemyPhase::Windup | EnemyPhase::Firing,
+                                ..
+                            })
+                        )
+                    })
+                },
+                right: self.miss_every > 0 && telling.is_some() && !self.evade_left,
+                look_at: Some(if intentional_miss {
+                    LookAt {
+                        x: Some(me.x + (target.x - me.x) * 0.01),
+                        y: Some(feet[1] + 12.0),
+                        z: Some(me.z + (target.z - me.z) * 0.01),
+                        player_id: None,
+                    }
+                } else {
+                    LookAt {
+                        player_id: Some(target.id),
+                        ..Default::default()
+                    }
                 }),
                 fire: !dry,
+                reload: dry
+                    && !loadout.loaded.is_empty()
+                    && !player.inventory.reloading()
+                    && snapshot.tick.is_multiple_of(2),
                 ..Default::default()
             }
         } else {
+            self.combat_anchor = None;
+            self.evade_started = None;
             self.navigator.steer(
                 self.session.state.map.navigation(),
                 feet,
@@ -182,23 +273,68 @@ impl Walkthrough {
                 true,
             )
         };
+        if action.reload {
+            self.reload_presses += 1;
+        }
         self.session.state.set_action(self.id, action);
+        let mut gained_bullets = 0u16;
         for message in self.session.tick_messages(0.05) {
             if let ServerMessage::Event(GameEvent::Pickup {
-                secret: true,
+                secret,
                 pickup_id,
                 player_id,
+                amount,
                 ..
             }) = message
             {
                 assert_eq!(player_id, self.id);
-                self.secrets.push(pickup_id);
+                if let Some(pad) = self
+                    .session
+                    .state
+                    .pickups
+                    .iter()
+                    .find(|pad| pad.id == pickup_id)
+                {
+                    let bullets = match pad.kind {
+                        crate::sim::PickupKind::Ammo {
+                            pool: AmmoPool::Bullets,
+                            ..
+                        } => true,
+                        crate::sim::PickupKind::Weapon(w) => {
+                            w.ammo_pool() == Some(AmmoPool::Bullets)
+                        }
+                        _ => false,
+                    };
+                    if bullets {
+                        gained_bullets += amount.unwrap_or(0) as u16;
+                    }
+                }
+                if secret {
+                    self.secrets.push(pickup_id);
+                }
             }
         }
         for shot in &self.session.state.shot_results {
             if shot.shooter_id == self.id {
                 self.first_shot.get_or_insert(self.session.state.tick);
                 self.shots += 1;
+                if intentional_miss {
+                    assert!(
+                        !shot.hit && shot.damage == 0,
+                        "declared missed shot damaged an actor: {shot:?}"
+                    );
+                    assert!(
+                        matches!(
+                            shot.trace.as_ref().map(|trace| &trace.impact),
+                            Some(ShotImpact::Solid { .. })
+                        ),
+                        "declared missed shot must resolve against ordinary ceiling collision"
+                    );
+                    self.intentional_misses += 1;
+                    assert_eq!(equipment_bullets(self)+1,bullets_before+gained_bullets,"a resolved missed shot must spend exactly one real round, including same-tick supply claims");
+                }
+            } else {
+                self.enemy_shots += 1;
             }
         }
         for p in &self.session.state.players {
@@ -431,6 +567,34 @@ impl Walkthrough {
         wasted
     }
 }
+
+fn safe_miss_strafe(feet: [f32; 3], yaw: f32, left: bool, arena: &Arena) -> bool {
+    let mut body = crate::movement::MoveState {
+        x: feet[0],
+        y: feet[1],
+        z: feet[2],
+        vx: 0.,
+        vz: 0.,
+        vy: 0.,
+        yaw,
+    };
+    let input = crate::movement::MoveInput {
+        left,
+        right: !left,
+        yaw,
+        ..Default::default()
+    };
+    for _ in 0..8 {
+        body = crate::movement::live_step(body, &input, crate::movement::TOP_SPEED, 0.05, arena);
+        if body.y < feet[1] - 0.2 {
+            return false;
+        }
+    }
+    (body.x - feet[0]).hypot(body.z - feet[2]) > 0.1
+}
+
+#[path = "m01_acceptance.rs"]
+mod acceptance;
 
 #[test]
 fn m01_optional_caches_are_walking_detours_in_both_lift_states() {

@@ -163,6 +163,7 @@ impl Inventory {
     /// Restore durable entry equipment without rolling back observer counters
     /// or carrying a held trigger across attempts.
     pub(crate) fn restore_entry(&mut self, entry: &Self) {
+        self.only = entry.only;
         self.policy = entry.policy;
         self.owned = entry.owned;
         self.ammo = entry.ammo;

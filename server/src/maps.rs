@@ -30,6 +30,7 @@ use std::sync::OnceLock;
 mod authored;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
+mod low_water;
 pub(crate) use authored::m11::SpinePatrol;
 mod runtime;
 pub use authored::AuthoredMap;
@@ -78,6 +79,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::RightOfSearch => {
                 include_bytes!("../maps/m11_right_of_search.json")
             }
+            crate::protocol::MissionId::TermsOfCooperation => {
+                include_bytes!("../maps/m12-terms-of-cooperation.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -115,6 +119,9 @@ impl AuthoredSource {
             Self::Mission(crate::protocol::MissionId::RightOfSearch) => {
                 AuthoredMap::read(include_bytes!("../maps/m11_right_of_search.json").as_slice())
             }
+            Self::Mission(crate::protocol::MissionId::TermsOfCooperation) => AuthoredMap::read(
+                include_bytes!("../maps/m12-terms-of-cooperation.json").as_slice(),
+            ),
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())
             }
@@ -152,7 +159,8 @@ pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
         MapKind::ComplianceYard
         | MapKind::ReclamationGulch
         | MapKind::TripointWorks
-        | MapKind::HoldfastAtoll => None,
+        | MapKind::HoldfastAtoll
+        | MapKind::LowWater => None,
     }
 }
 
@@ -177,6 +185,8 @@ pub(crate) struct SabotageLayout {
     /// The point in mid the attack passes on the way to each stage, A first,
     /// so the walk round never cuts through the defenders' hall.
     pub(crate) approaches: [[f32; 3]; 2],
+    /// Whether this fighter still needs the lane approach before its stage.
+    pub(crate) approach_needed: fn([f32; 3], [f32; 3]) -> bool,
     /// One personal Tack pad inside each muster zone, within two seconds of
     /// every spawn point: every life starts empty, and the pistol is the
     /// first thing a fighter picks up.
@@ -192,8 +202,10 @@ impl SabotageLayout {
 
 pub(crate) fn sabotage_layout(kind: MapKind) -> Option<&'static SabotageLayout> {
     static SECTOR_9: OnceLock<SabotageLayout> = OnceLock::new();
+    static LOW_WATER: OnceLock<SabotageLayout> = OnceLock::new();
     match kind {
         MapKind::Sector9 => Some(SECTOR_9.get_or_init(sector_9_sabotage)),
+        MapKind::LowWater => Some(LOW_WATER.get_or_init(low_water::sabotage)),
         MapKind::ArenaDuel
         | MapKind::ComplianceYard
         | MapKind::Directive17
@@ -273,6 +285,9 @@ fn sector_9_sabotage() -> SabotageLayout {
         ],
         muster: [[-74.0, -13.0, -48.0, 13.0], [28.0, -13.0, 44.0, 13.0]],
         approaches: [[0.0, 0.0, -42.0], [0.0, 0.0, 42.0]],
+        approach_needed: |at, approach| {
+            at[0] > -20.0 && (at[2] - approach[2]).abs() > 8.0 && at[2].abs() < approach[2].abs()
+        },
         // Just inside the north and south mid doors, behind the freight and the
         // spawn bays, so a site's anchors cannot see the attack gather.
         stages: [
@@ -1302,6 +1317,7 @@ fn build(kind: MapKind) -> MapDef {
         MapKind::ReclamationGulch => reclamation_gulch(),
         MapKind::TripointWorks => tripoint_works(),
         MapKind::HoldfastAtoll => holdfast::build(),
+        MapKind::LowWater => low_water::build(),
     }
 }
 

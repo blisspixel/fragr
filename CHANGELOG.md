@@ -4,6 +4,63 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+- Add Terms of Cooperation as the twelfth connected campaign prototype, with
+  the Arc, flying Assessor, vulnerable pumps, optional shelter and worker
+  releases, mutual-aid arrival and deliberate coalition departure. Version 15
+  saves retain its outcomes and pending M13, with strict historical upgrades.
+- Give the Arc a larger industrial weapon face, consistent poses and a readable
+  pickup. Preserve finite combat, ownership and authoritative resolved damage.
+- Enclose interior stair routes in the archive, berth, ship and habitat,
+  preserving walking access and the berth's actual charge-fall opening. Upgrade
+  only exact historical geometry hashes and archive original saves.
+- Register grounded enemy feet consistently and correct the Crawler, Jammer
+  and Heavy Sweeper atlases. Clarify held crouch controls and HUD feedback.
+- Change Latch's screen expressions with movement, firing and ward state,
+  retaining blink, head motion and near-camera behavior. Present eligible
+  Splice with a complete articulated mechanical source; foot planting remains
+  provisional. Fit habitat shelter and aid signs to their visible wall faces.
+- Keep automated captures progressing when a minimized window stops drawing,
+  using bounded non-presenting draws without changing combat deadlines. Check
+  actual window and captured image dimensions before stills and effect strips, and
+  reject resolution changes during a shot sequence.
+- Add Low Water as a second 5v5 Sabotage venue, with Clinic Steps and Tram Stop
+  sites, trench flanks, layout-owned bot approaches and desktop host selection.
+  Keep human balance, physical LAN and final-art acceptance open.
+- Present human and synthetic player bodies, Tern and repaired Edda with live weighted
+  meshes, following accepted movement, crouch, seats and death state. Package
+  the models and precomputed support curves separately from offline source art.
+- Coordinate Conquest bots around active captures and threatened owned sites,
+  retaining useful work through deaths, respawns and roster changes.
+- Recover planner movement when a wire reader receives coalesced snapshots,
+  with actual Gulch corner regressions and unchanged mixed-roster checks.
+- Retire active audio and pending skies through scene changes and ordinary Quit,
+  including window close and minimized rendering, preserving clean-log checks.
+- Earn local Recall Notice and authored-secret awards from owned saved-run
+  records. Keep unlocks through failed runs and bounded history, with recoverable
+  profile storage, locked previews and cosmetic first-person finishes.
+- Verify both M01 routes across three tiers with human magazines, finite agent
+  ammunition, deliberately resolved misses, actual enemy deaths and exhaustion.
+- Add standalone Terms of Cooperation habitat, The Weight of Permission foundry
+  and Launch Authority battlefield development maps, with supplied infantry
+  routes and existing enemy roles.
+  These retained static slices do not advance the campaign. Connected foundry
+  and launch-works progression, the Rocket Launcher and Walker remain unfinished.
+- Author explicit jeeps in static development maps, validating parked clearance,
+  boarding and walking routes before launch and restoring the fleet on retry.
+- Keep multiplayer joins and respawns clear of current vehicle hulls. Retain
+  existing stair-edge bays, try supported positions on the same side when
+  needed, and wait when every bounded candidate is obstructed.
+
+- Let an attached dedicated host inspect shows and queue a validated map/mode.
+  The live show and Sabotage match finish first, preserving connections.
+- Compare compatible local campaign completion times in results and Service
+  Record, with exact ties and deltas, retained historical records and separate
+  build, difficulty and practice groups.
+- Keep campaign documentation aligned with twelve playable prototypes and
+  version 15 run saves, retaining unfinished missions and human review gates.
+
 ## v0.79.0 (2026-10-07)
 
 - Add Right of Search, the eleventh connected campaign prototype, with the

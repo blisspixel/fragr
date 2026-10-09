@@ -161,7 +161,12 @@ static func read_snapshot(snapshot: Dictionary, mission: Dictionary = {}, archiv
 				height = 0.8
 			elif actor["campaign"]["kind"] == "notary":
 				height = 0.7
-		bodies.append(stationary(str(actor["id"]), Vector3(float(actor["x"]), float(actor["y"]) - FLOOR_OFFSET, float(actor["z"])), height))
+			elif actor["campaign"]["kind"] == "assessor":
+				height = 1.2
+		var body: Dictionary = stationary(str(actor["id"]), Vector3(float(actor["x"]), float(actor["y"]) - FLOOR_OFFSET, float(actor["z"])), height)
+		if ActorState.is_union(actor) and actor["campaign"]["kind"] == "assessor":
+			body["radius"] = 1.3
+		bodies.append(body)
 	if not _append_civilians(mission, bodies, archive_neutrals, residents):
 		return {"error": INVALID, "bodies": []}
 	return {"error": "", "bodies": bodies}
@@ -223,7 +228,7 @@ static func _append_civilians(mission: Dictionary, bodies: Array[Dictionary], ar
 			var feet: Vector3 = person["feet"]
 			if not _append_feet(person["key"], [feet.x, feet.y, feet.z], bodies):
 				return false
-	if mission.get("m06") is Dictionary or mission.get("m07") is Dictionary or mission.get("m11") is Dictionary:
+	if mission.get("m06") is Dictionary or mission.get("m07") is Dictionary or mission.get("m11") is Dictionary or mission.get("m12") is Dictionary:
 		for resident: Dictionary in residents:
 			var feet: Vector3 = resident["feet"]
 			if not _append_feet(resident["key"], [feet.x, feet.y, feet.z], bodies):

@@ -82,8 +82,12 @@ func _run() -> void:
 		"Conquest offers its registered island through the ordinary Host form")
 	menu._host_mode.select(1)
 	menu._host_mode.item_selected.emit(1)
-	_check(menu._host_map.item_count == 1 and menu._host_map.get_selected_id() == 4,
-		"Sabotage preset only offers its actual validated objective map")
+	_check(menu._host_map.item_count == 2 and menu._host_map.get_item_id(0) == 4
+		and menu._host_map.get_item_id(1) == 8 and menu._host_map.get_selected_id() == 4,
+		"Sabotage offers exactly Sector 9 and Low Water, defaulting to Sector 9")
+	menu._host_map.select(1)
+	_check(menu._host_map.get_selected_id() == 8, "Low Water is selectable through the ordinary Sabotage form")
+	menu._host_map.select(0)
 	menu._host_bots.value = 0
 	menu._host_lan.button_pressed = true
 	menu._host_lan.toggled.emit(true)

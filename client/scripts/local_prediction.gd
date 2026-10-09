@@ -61,6 +61,10 @@ func configure_map(info: Dictionary) -> void:
 	if info.get("m11") is Dictionary and M11MissionState.map_error(info).is_empty():
 		for index: int in range(info["m11"]["transfer_people"].size()):
 			_moon_residents.append({"key": "m11/transfer/%d" % index, "feet": GrenadeFacts.vector(info["m11"]["transfer_people"][index])})
+	if info.get("m12") is Dictionary and M12MissionState.map_error(info).is_empty():
+		for group: String in ["shelter_people", "workers"]:
+			for index: int in range(info["m12"][group].size()):
+				_moon_residents.append({"key":"m12/%s/%d" % [group,index],"feet":GrenadeFacts.vector(info["m12"][group][index])})
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":

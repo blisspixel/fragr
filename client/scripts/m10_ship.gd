@@ -1,17 +1,17 @@
 class_name M10Ship
 extends Node3D
 
-## Current ship occupants come from accepted mission facts. The reusable strips
-## remain provisional casting, never proof of a named face or historical rescue.
+## Current ship occupants come from accepted mission facts. Tern and Edda share
+## their named berth skins; other retained strips remain provisional casting.
 const TINTS: Dictionary[String, Color] = {"tern": Color("cfc4a5"), "berth_crew_a": Color("a7bbad"), "berth_crew_b": Color("c6a880"), "edda": Color("b8c5c7"), "splice": Color("b6abbe")}
 var _geometry: Dictionary = {}
-var _figures: Dictionary[String, Sprite3D] = {}
+var _figures: Dictionary[String, CivilianFigure] = {}
 var state_applied: int = 0
 
 func clear_map() -> void:
 	_geometry.clear()
 	state_applied = 0
-	for figure: Sprite3D in _figures.values():
+	for figure: CivilianFigure in _figures.values():
 		remove_child(figure)
 		figure.queue_free()
 	_figures.clear()
@@ -34,22 +34,20 @@ func apply_state(state: Dictionary) -> void:
 		var id: String = str(person["id"])
 		present.append(id)
 		if not _figures.has(id):
-			var figure: Sprite3D = Sprite3D.new()
+			var figure: CivilianFigure = CivilianFigure.new()
 			figure.name = "ShipOccupant_" + id
-			figure.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if id in ["tern", "splice"] else PlayerBody.HUMAN)) as Texture2D
-			figure.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
-			figure.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
-			figure.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-			figure.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-			figure.layers = ArenaSky.ACTOR_LAYERS
-			figure.modulate = TINTS[id]
+			figure.configure(id, TINTS[id])
+			# The current pilot stands at the fore-facing command console. This
+			# is venue presentation, not an authoritative steering direction.
+			if id == "tern":
+				figure.rotation.y = PI
 			add_child(figure)
 			_figures[id] = figure
 		var feet: Array = person["feet"]
-		_figures[id].position = Vector3(float(feet[0]), float(feet[1]) + EnemyAnimation.CENTRE_HEIGHT, float(feet[2]))
+		_figures[id].place_feet(Vector3(float(feet[0]), float(feet[1]), float(feet[2])))
 	for id: String in _figures.keys():
 		if id not in present:
-			var figure: Sprite3D = _figures[id]
+			var figure: CivilianFigure = _figures[id]
 			remove_child(figure)
 			figure.queue_free()
 			_figures.erase(id)

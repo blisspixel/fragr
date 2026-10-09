@@ -1,0 +1,1130 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "scope": "Offline named Tern source preparation; runtime integration has a separate owner and acceptance gate",
+  "new_credits": 0,
+  "new_cash_usd": 0,
+  "network_requests": 0,
+  "runtime_selected_by_this_increment": false,
+  "source_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "engine_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+  "embedded_image_handling": 3,
+  "source": {
+    "bytes": 32953524,
+    "path": "art/raw/meshy-pilot-20261003/tern-civilian-pilot-v1-rig-1.glb",
+    "sha256": "9c9b3a8af8fee7c5f3d3fe52254871a4a6e022ed5dd56cbfb1f9cb9e9096ef89"
+  },
+  "candidate": {
+    "bytes": 5796592,
+    "path": "client/art/models/candidates/tern.glb",
+    "sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f"
+  },
+  "commands": [
+    {
+      "executable": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+      "arguments": [
+        "--headless",
+        "--path",
+        "client",
+        "--script",
+        "../tools/prepare_tern_source.gd",
+        "--",
+        "C:/GitHub/fragr/art/raw/meshy-pilot-20261003/tern-civilian-pilot-v1-rig-1.glb",
+        "C:/GitHub/fragr/client/art/models/candidates/tern.glb",
+        "C:/GitHub/fragr/.agents/tern-source-preparation-20261008/preparation"
+      ],
+      "exit_code": 0,
+      "clean": true
+    },
+    {
+      "executable": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+      "arguments": [
+        "--headless",
+        "--path",
+        "client",
+        "--editor",
+        "--import"
+      ],
+      "exit_code": 0,
+      "clean": true,
+      "scope": "Candidate import and new offline script UID creation, not a full harness rerun"
+    },
+    {
+      "executable": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+      "arguments": [
+        "--headless",
+        "--path",
+        "client",
+        "--script",
+        "../tools/validate_tern_source.gd",
+        "--",
+        "C:/GitHub/fragr/art/raw/meshy-pilot-20261003/tern-civilian-pilot-v1-rig-1.glb",
+        "C:/GitHub/fragr/client/art/models/candidates/tern.glb",
+        "C:/GitHub/fragr/.agents/tern-source-preparation-20261008/validation-embedded.json"
+      ],
+      "exit_code": 0,
+      "clean": true
+    },
+    {
+      "executable": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+      "owned_process_retired": true,
+      "arguments": [
+        "--path",
+        "C:/GitHub/fragr/client",
+        "--rendering-driver",
+        "opengl3",
+        "--windowed",
+        "--resolution",
+        "1024x768",
+        "--script",
+        "C:/GitHub/fragr/tools/preview_tern_source.gd",
+        "--",
+        "C:/GitHub/fragr/art/raw/meshy-pilot-20261003/tern-civilian-pilot-v1-rig-1.glb",
+        "C:/GitHub/fragr/.agents/tern-source-preparation-20261008/rendered"
+      ],
+      "exit_code": 0,
+      "clean": true
+    }
+  ],
+  "preservation": {
+    "albedo_and_normal_exact_lanczos_rgb8_controls": true,
+    "imported_position_normal_tangent_uv_skin_index_arrays_equal": true,
+    "optional_software_metadata_removed": true,
+    "packed_green_floor_byte": 224,
+    "non_image_buffer_views_byte_identical": 75,
+    "metallic_factor": 0.08,
+    "roughness_factor": 1.0,
+    "unchanged_top_level_json_values_verbatim": 9,
+    "legal_copyright_retained": true,
+    "original_has_copyright_field": false,
+    "added_or_removed_triangles": 0,
+    "packed_red_blue_unchanged": true,
+    "emissive_map_added": false
+  },
+  "validation": {
+    "calm": {
+      "height": 1.79997265338898,
+      "min_y": -3.27583671300147E-09,
+      "position": [
+        -0.366278886795044,
+        -3.27583671300147E-09,
+        -0.164257913827896
+      ],
+      "size": [
+        0.745751976966858,
+        1.79997265338898,
+        0.335742294788361
+      ]
+    },
+    "calm_skin_edges": {
+      "edges_over_two": 2,
+      "maximum_ratio": 2.04200774050714,
+      "minimum_rest_length_m": 1E-05,
+      "triangle_edges_measured": 37368
+    },
+    "calm_wrists_world": {
+      "LeftHand": [
+        0.239999741315842,
+        0.959999918937683,
+        0.0800000056624413
+      ],
+      "RightHand": [
+        -0.23999984562397,
+        0.959999918937683,
+        0.0799999982118607
+      ]
+    },
+    "candidate_sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f",
+    "external_hand_contact_verified": false,
+    "failures": [],
+    "maps": [
+      {
+        "green_min": null,
+        "image": 0,
+        "size": [
+          1024,
+          1024
+        ]
+      },
+      {
+        "green_min": null,
+        "image": 1,
+        "size": [
+          1024,
+          1024
+        ]
+      },
+      {
+        "green_min": 0.878431379795074,
+        "image": 2,
+        "size": [
+          1024,
+          1024
+        ]
+      }
+    ],
+    "negative_controls": {
+      "skin_weight": true,
+      "uv_shift": true,
+      "winding": true
+    },
+    "preserved": true,
+    "runtime_selected": false,
+    "schema": 1,
+    "skin_joints": 24,
+    "source_sha256": "9c9b3a8af8fee7c5f3d3fe52254871a4a6e022ed5dd56cbfb1f9cb9e9096ef89",
+    "triangles": 12456,
+    "vertices": 19106,
+    "walk_samples": [
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.0925761833786964,
+            0.26205986738205,
+            -0.10423170030117
+          ],
+          "LeftHand": [
+            0.321697443723679,
+            0.880834341049194,
+            -0.00334790349006653
+          ],
+          "RightFoot": [
+            -0.0978301912546158,
+            0.162620723247528,
+            -0.0347337014973164
+          ],
+          "RightHand": [
+            -0.30605411529541,
+            0.906402945518494,
+            0.0733102411031723
+          ]
+        },
+        "original": {
+          "height": 1.80801630020142,
+          "min_y": 0.0150926560163498,
+          "position": [
+            -0.35128852725029,
+            0.0150926560163498,
+            -0.214448571205139
+          ],
+          "size": [
+            0.716781318187714,
+            1.80801630020142,
+            0.455890357494354
+          ]
+        },
+        "phase": 0.0,
+        "registered": {
+          "height": 1.80801630020142,
+          "min_y": 2.22531525650993E-07,
+          "position": [
+            -0.352122932672501,
+            2.22531525650993E-07,
+            -0.228975385427475
+          ],
+          "size": [
+            0.716781377792358,
+            1.80801630020142,
+            0.455890297889709
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 4,
+          "maximum_ratio": 2.06477116207903,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.107266120612621,
+            0.190218955278397,
+            0.258623391389847
+          ],
+          "LeftHand": [
+            0.299002319574356,
+            0.879068732261658,
+            -0.154912680387497
+          ],
+          "RightFoot": [
+            -0.101820029318333,
+            0.162092089653015,
+            -0.174183383584023
+          ],
+          "RightHand": [
+            -0.312522083520889,
+            0.963582277297974,
+            0.209334060549736
+          ]
+        },
+        "original": {
+          "height": 1.80127906799316,
+          "min_y": 0.0214843712747097,
+          "position": [
+            -0.376144587993622,
+            0.0214843712747097,
+            -0.2512127161026
+          ],
+          "size": [
+            0.713985860347748,
+            1.80127906799316,
+            0.79956042766571
+          ]
+        },
+        "phase": 0.125,
+        "registered": {
+          "height": 1.80127906799316,
+          "min_y": 3.34523065248504E-07,
+          "position": [
+            -0.382595092058182,
+            3.34523065248504E-07,
+            -0.255377769470215
+          ],
+          "size": [
+            0.713985800743103,
+            1.80127906799316,
+            0.799560308456421
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 4,
+          "maximum_ratio": 2.04030586213785,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.110101468861103,
+            0.182821184396744,
+            0.377027899026871
+          ],
+          "LeftHand": [
+            0.271176636219025,
+            0.83859646320343,
+            -0.255056917667389
+          ],
+          "RightFoot": [
+            -0.11323170363903,
+            0.177781745791435,
+            -0.374606549739838
+          ],
+          "RightHand": [
+            -0.319945365190506,
+            0.962877690792084,
+            0.301185637712479
+          ]
+        },
+        "original": {
+          "height": 1.7472927570343,
+          "min_y": 0.0229036882519722,
+          "position": [
+            -0.376250594854355,
+            0.0229036882519722,
+            -0.44936466217041
+          ],
+          "size": [
+            0.702086925506592,
+            1.7472927570343,
+            1.12853050231934
+          ]
+        },
+        "phase": 0.25,
+        "registered": {
+          "height": 1.7472927570343,
+          "min_y": 3.52971255779266E-07,
+          "position": [
+            -0.394380986690521,
+            3.52971255779266E-07,
+            -0.46014142036438
+          ],
+          "size": [
+            0.702086746692657,
+            1.7472927570343,
+            1.12853026390076
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 8,
+          "maximum_ratio": 2.25696340570102,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.0760706663131714,
+            0.164793342351913,
+            0.170071393251419
+          ],
+          "LeftHand": [
+            0.319171547889709,
+            0.815314769744873,
+            -0.140416011214256
+          ],
+          "RightFoot": [
+            -0.134936168789864,
+            0.328386038541794,
+            -0.438877701759338
+          ],
+          "RightHand": [
+            -0.343758374452591,
+            0.900209486484528,
+            0.158860370516777
+          ]
+        },
+        "original": {
+          "height": 1.75640273094177,
+          "min_y": 0.00696489959955215,
+          "position": [
+            -0.347883462905884,
+            0.00696489959955215,
+            -0.553494930267334
+          ],
+          "size": [
+            0.743614077568054,
+            1.75640273094177,
+            1.02661943435669
+          ]
+        },
+        "phase": 0.375,
+        "registered": {
+          "height": 1.75640273094177,
+          "min_y": 1.00975739769638E-07,
+          "position": [
+            -0.390738844871521,
+            1.00975739769638E-07,
+            -0.594448447227478
+          ],
+          "size": [
+            0.743613481521606,
+            1.75640273094177,
+            1.02661859989166
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 6,
+          "maximum_ratio": 2.10287233682745,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.0787088423967361,
+            0.1645298153162,
+            -0.0185319893062115
+          ],
+          "LeftHand": [
+            0.291227400302887,
+            0.86874794960022,
+            0.113938502967358
+          ],
+          "RightFoot": [
+            -0.113862119615078,
+            0.318399548530579,
+            -0.170636177062988
+          ],
+          "RightHand": [
+            -0.350065946578979,
+            0.883179366588593,
+            -0.0402465127408504
+          ]
+        },
+        "original": {
+          "height": 1.78971767425537,
+          "min_y": 0.0139943966642022,
+          "position": [
+            -0.349436014890671,
+            0.0139943966642022,
+            -0.283632695674896
+          ],
+          "size": [
+            0.737107753753662,
+            1.78971767425537,
+            0.553821921348572
+          ]
+        },
+        "phase": 0.5,
+        "registered": {
+          "height": 1.7896888256073,
+          "min_y": 2.07379343919456E-07,
+          "position": [
+            -0.393454015254974,
+            2.07379343919456E-07,
+            -0.310263812541962
+          ],
+          "size": [
+            0.736976385116577,
+            1.7896888256073,
+            0.553821682929993
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 6,
+          "maximum_ratio": 2.31112727487052,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.0921129658818245,
+            0.16394017636776,
+            -0.215813368558884
+          ],
+          "LeftHand": [
+            0.186943396925926,
+            0.980810642242432,
+            0.297737181186676
+          ],
+          "RightFoot": [
+            -0.131313011050224,
+            0.217607825994492,
+            0.2528176009655
+          ],
+          "RightHand": [
+            -0.29535835981369,
+            0.87907475233078,
+            -0.207118347287178
+          ]
+        },
+        "original": {
+          "height": 1.78994178771973,
+          "min_y": 0.0193431675434113,
+          "position": [
+            -0.291647493839264,
+            0.0193431675434113,
+            -0.249718397855759
+          ],
+          "size": [
+            0.670600950717926,
+            1.78994178771973,
+            0.813056707382202
+          ]
+        },
+        "phase": 0.625,
+        "registered": {
+          "height": 1.78999400138855,
+          "min_y": 2.99362000077963E-07,
+          "position": [
+            -0.324498414993286,
+            2.99362000077963E-07,
+            -0.27623724937439
+          ],
+          "size": [
+            0.671106815338135,
+            1.78999400138855,
+            0.813229560852051
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 10,
+          "maximum_ratio": 2.7772948996666,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.109410628676414,
+            0.193355292081833,
+            -0.413927972316742
+          ],
+          "LeftHand": [
+            0.151226997375488,
+            1.00605177879334,
+            0.351055085659027
+          ],
+          "RightFoot": [
+            -0.112013339996338,
+            0.166466444730759,
+            0.330843508243561
+          ],
+          "RightHand": [
+            -0.264683932065964,
+            0.84636253118515,
+            -0.264304280281067
+          ]
+        },
+        "original": {
+          "height": 1.75063133239746,
+          "min_y": 0.0164087377488613,
+          "position": [
+            -0.28416845202446,
+            0.0164087377488613,
+            -0.472138226032257
+          ],
+          "size": [
+            0.649955272674561,
+            1.75063133239746,
+            1.12346458435059
+          ]
+        },
+        "phase": 0.75,
+        "registered": {
+          "height": 1.75063097476959,
+          "min_y": 5.06857759319246E-07,
+          "position": [
+            -0.299040704965591,
+            5.06857759319246E-07,
+            -0.509983658790588
+          ],
+          "size": [
+            0.64995551109314,
+            1.75063097476959,
+            1.12346482276917
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 16,
+          "maximum_ratio": 2.5241618143189,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      },
+      {
+        "joints_world": {
+          "LeftFoot": [
+            0.108465977013111,
+            0.353337436914444,
+            -0.416948616504669
+          ],
+          "LeftHand": [
+            0.245216384530067,
+            0.901015818119049,
+            0.242635145783424
+          ],
+          "RightFoot": [
+            -0.082132987678051,
+            0.162902116775513,
+            0.127368941903114
+          ],
+          "RightHand": [
+            -0.308785021305084,
+            0.834875226020813,
+            -0.13402234017849
+          ]
+        },
+        "original": {
+          "height": 1.76031100749969,
+          "min_y": 0.00969803333282471,
+          "position": [
+            -0.351022154092789,
+            0.00969803333282471,
+            -0.535248279571533
+          ],
+          "size": [
+            0.696051061153412,
+            1.76031100749969,
+            0.998988270759583
+          ]
+        },
+        "phase": 0.875,
+        "registered": {
+          "height": 1.76031112670898,
+          "min_y": 1.50266714626923E-07,
+          "position": [
+            -0.3421511054039,
+            1.50266714626923E-07,
+            -0.58169949054718
+          ],
+          "size": [
+            0.696050822734833,
+            1.76031112670898,
+            0.998987674713135
+          ]
+        },
+        "skin_edges": {
+          "edges_over_two": 14,
+          "maximum_ratio": 2.49200121565666,
+          "minimum_rest_length_m": 1E-05,
+          "triangle_edges_measured": 37368
+        }
+      }
+    ],
+    "weighted_rest": {
+      "height": 1.79997265338898,
+      "min_y": -1.22508438948898E-07,
+      "position": [
+        -0.563486814498901,
+        -1.22508438948898E-07,
+        -0.164257913827896
+      ],
+      "size": [
+        1.12636291980743,
+        1.79997265338898,
+        0.325054883956909
+      ]
+    }
+  },
+  "renderer": {
+    "candidate_sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f",
+    "frames": [
+      {
+        "file": "neutral_original_rest_0.png",
+        "sha256": "c53ac269cb0f8bfb0a611ccfbed2f1c43d2aa02038e4f9c375074159ff0be9ba",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "neutral_original_rest_1.png",
+        "sha256": "41e0cc36c02fbdeee8b283ef8c10d8ca1ab7103925c2119fb66561cffb215914",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "neutral_original_rest_2.png",
+        "sha256": "2c0d29166dd89c68f0233e7e86a05dc9c840814bd3a9e2411ace546e0cae84b9",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "neutral_original_rest_3.png",
+        "sha256": "eaff02dea86702c29f6d558eb695ae509f1440e4c8e279ff9436400326d6c55a",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "neutral_original_head.png",
+        "sha256": "fbf69751ce2f8132d34d307aac958c2d84eb0bbb10d2d491a33436243d388455",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "neutral_prepared_rest_0.png",
+        "sha256": "19993b0aa393fdb9b943145c6004574cf306b1aae1457a6965acd0c4be852cc1",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_rest_1.png",
+        "sha256": "224800d387df45a28f27276bec1306324a9ea0c45fd4dfd03ecedf8c4da36ba4",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_rest_2.png",
+        "sha256": "680018f333648392acf05aa2d25eee0438d0e0a1db7c5fe6221dd7c2adf6c6de",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_rest_3.png",
+        "sha256": "f45a3adac78f07d005a11edd451fc1242dc22491ec2421671f97fa84cc5af51d",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_head.png",
+        "sha256": "f2b8f512728665f6e73bce027f01f13fa911d079346d47c817058c78cc6dd224",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "dim_original_rest_0.png",
+        "sha256": "00675def5abc5b58a9d16397b010581de3772cbb1be2a66fca0bb8765b1150d1",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "dim_original_rest_1.png",
+        "sha256": "10db5ffd9afc79f5d98857ec6cd747e538c5a9061e36a7ff54487713c741b951",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "dim_original_rest_2.png",
+        "sha256": "adb65a133205f13c8d60c622a0ce7e695ffa36d63e9250fb436c29a41cddc372",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "dim_original_rest_3.png",
+        "sha256": "db192212fc10ec0a09a67933c43500bf93db55414edbb7ee9975cb8dff5e7815",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "dim_original_head.png",
+        "sha256": "209218cf05dd6fb8870ff314b704737015428a9e5598b2f656e515bdf5d10501",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -1.22508438948898E-07
+      },
+      {
+        "file": "dim_prepared_rest_0.png",
+        "sha256": "2a84d49d54a749522a81bdfbaf7eab3f56544167f6c62affbfeaed688f024aed",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "dim_prepared_rest_1.png",
+        "sha256": "10643575d1798bb26bee4c55e157408ac1e4ad3a36ea1ebc8b0a763d74a7fcb1",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "dim_prepared_rest_2.png",
+        "sha256": "6aa2a177afdb489c0142e583ae48ff7dbad74cef9eb056a235b058c5bc7a1ab9",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "dim_prepared_rest_3.png",
+        "sha256": "4ea96e3da45f44ee1fedb0ecf09a2c471ff68c58f344318157eb31a0cf35f414",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "dim_prepared_head.png",
+        "sha256": "ace473135b3f9384a0c7c370764947991fcd6c0aec04276951376ba94ce22db5",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_walk_0.png",
+        "sha256": "5b1c5899c621e30907b31712fa164b21e8da6ba069c029578bac6cb27ae92757",
+        "vertices": 19106,
+        "weighted_height": 1.80801630020142,
+        "weighted_min_y": 2.22531525650993E-07
+      },
+      {
+        "file": "neutral_prepared_walk_1.png",
+        "sha256": "42ec0e1d03bb44c9eadcc6e20cdb206c800da1a6c4831aaba06f124d4036d84b",
+        "vertices": 19106,
+        "weighted_height": 1.80127906799316,
+        "weighted_min_y": 3.34523065248504E-07
+      },
+      {
+        "file": "neutral_prepared_walk_2.png",
+        "sha256": "a2d5d460e01d52d8b46cca93469b06cda0409c2435f333f5566b2d7b352aacb9",
+        "vertices": 19106,
+        "weighted_height": 1.7472927570343,
+        "weighted_min_y": 3.52971255779266E-07
+      },
+      {
+        "file": "neutral_prepared_walk_3.png",
+        "sha256": "3766ff442f3b8abb4f977ccbb3811beda06f29192a334e4ea3738656a7ef8a82",
+        "vertices": 19106,
+        "weighted_height": 1.75640273094177,
+        "weighted_min_y": 1.00975739769638E-07
+      },
+      {
+        "file": "neutral_prepared_walk_4.png",
+        "sha256": "566da5b6c13801327ce4af49c247f710d67fff5888243dd933d2982470b0776b",
+        "vertices": 19106,
+        "weighted_height": 1.7896888256073,
+        "weighted_min_y": 2.07379343919456E-07
+      },
+      {
+        "file": "neutral_prepared_walk_5.png",
+        "sha256": "dd21445015f0a83bcffaa5a3bf7469d0bd0762848ba247c24f62181aff42bb34",
+        "vertices": 19106,
+        "weighted_height": 1.78999400138855,
+        "weighted_min_y": 2.99362000077963E-07
+      },
+      {
+        "file": "neutral_prepared_walk_6.png",
+        "sha256": "861bad05871ad1411a465de2203c45ac36c6f1e082faf5df5946d659f32257f9",
+        "vertices": 19106,
+        "weighted_height": 1.75063097476959,
+        "weighted_min_y": 5.06857759319246E-07
+      },
+      {
+        "file": "neutral_prepared_walk_7.png",
+        "sha256": "00c2918d2d93e7058855cc062c9d45658a91d0f676bcdd359f5d79e0afe84c97",
+        "vertices": 19106,
+        "weighted_height": 1.76031112670898,
+        "weighted_min_y": 1.50266714626923E-07
+      },
+      {
+        "file": "neutral_prepared_calm_0.png",
+        "sha256": "3a574f5ceebe46bdf8289e222698cd9996ce7a8efaad5fca3fdbfce5b4818450",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_calm_1.png",
+        "sha256": "50626d2b3652074dc42dec8b019e0bb96274d01aaaca6c3c3154c6b45108a009",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_calm_2.png",
+        "sha256": "8a56afdf42e728130d70f284a04787d85849f250cc4f091bbcab540a7e26216c",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      },
+      {
+        "file": "neutral_prepared_calm_3.png",
+        "sha256": "6b9e852be650e2e865108f08677b702acc9af936cbd5ea4172c950a290c5a367",
+        "vertices": 19106,
+        "weighted_height": 1.79997265338898,
+        "weighted_min_y": -3.27583671300147E-09
+      }
+    ],
+    "overview_sha256": "f8ed92c290bf93534bd7cad40c9ad2fa950d3a9b35287bacd9484bc63e673ae0",
+    "renderer": "gl_compatibility",
+    "runtime_selected": false,
+    "schema": 1,
+    "source_sha256": "9c9b3a8af8fee7c5f3d3fe52254871a4a6e022ed5dd56cbfb1f9cb9e9096ef89",
+    "video_adapter": "AMD Radeon(TM) 780M"
+  },
+  "inspected": {
+    "calm_angles": 4,
+    "rest_angles": 4,
+    "full_size_walk_frames": 8,
+    "source_and_prepared_controls": true,
+    "root_independent_selected_full_size_review": true,
+    "findings": [
+      "Lean shape, harness and complete geometry retained. No blocking holes or explosive bends observed.",
+      "Original has small neutral-grey visor lights and brown panels on both shoulders. Preserve instead of inventing paint.",
+      "Dim/distance optics readability and warm rectangular reference treatment remain open.",
+      "Calm wrists reach measured targets beside thighs; no external console/grip or finger articulation claim.",
+      "Raw-derived stride is pronounced. Eight sampled phases are not exhaustive continuous-motion or played acceptance."
+    ]
+  },
+  "negative_controls": {
+    "skin_weight_change_rejected": true,
+    "original_source_hash_unchanged": true,
+    "uv_shift_rejected": true,
+    "raw_source_overwrite_exit_code": 1,
+    "winding_reversal_rejected": true
+  },
+  "retained_failed_attempts": [
+    "Initial native-class name collision, corrected before production.",
+    "Strict comparison rejected JSON decimal-token drift; unchanged source JSON text is now retained verbatim.",
+    "Temporary pose-source lifetime caused static rest samples in the initial adapter check; retained source lifetime and explicit actual-motion witnesses now pass.",
+    "First renderer wrapper receipt write used an invalid PowerShell parameter, corrected. Renderer logs then exposed overview RGB/RGBA mismatch despite its numeric0/PASS; failure retained and image format corrected. Final controlled rerun is error-clean."
+  ],
+  "limitations": [
+    "This increment changes no server, runtime mission, shared bake or source-body selection.",
+    "A separate root-owned live-character integration may package the byte-identical candidate; its checks and acceptance are separate.",
+    "No console reach, restraint release, boarding, wave, finger closure, final art, human review, played M09/M10 or three-platform package acceptance.",
+    "Existing composed application gates predate this offline increment. Renderer observations are on the recorded local adapter; no hardware performance or other-platform claim."
+  ],
+  "source_files": [
+    {
+      "bytes": 3694,
+      "path": "tools/tern_glb.gd",
+      "sha256": "c0c7f42449058be0460141a2964f9e328f98ee25859de56434cb2d05d5d4d90e"
+    },
+    {
+      "bytes": 6200,
+      "path": "tools/prepare_tern_source.gd",
+      "sha256": "8fc2a92c138eeeddc21a3c03da98a0c503339a0e7dc620a45aae0d49c54a1462"
+    },
+    {
+      "bytes": 11881,
+      "path": "tools/validate_tern_source.gd",
+      "sha256": "fd570d849941aeb9236d0e1260df548d2377cb28304dedf2bbbfceafb2331599"
+    },
+    {
+      "bytes": 6206,
+      "path": "tools/preview_tern_source.gd",
+      "sha256": "fa46911a1a1e5ae26a1d80e9b11f975b93a77d239409d7913bdb2fac08aef2b6"
+    },
+    {
+      "bytes": 4209,
+      "path": "client/art/models/tern_source.gd",
+      "sha256": "023a915784713b194feea37d5330f8cb64fcce3c98a8cad8e431ddbc3d00ba50"
+    },
+    {
+      "bytes": 20,
+      "path": "client/art/models/tern_source.gd.uid",
+      "sha256": "a53980009ec88e2847278cfa2679a72c9258a59240199cb74b051324ee0a25cb"
+    },
+    {
+      "bytes": 5796592,
+      "path": "client/art/models/candidates/tern.glb",
+      "sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f"
+    },
+    {
+      "bytes": 1149,
+      "path": "client/art/models/candidates/tern.glb.import",
+      "sha256": "06033bce9d318afe12992b38571d6f2d53644c3366b4bd717c4a22609ac63ad6"
+    }
+  ],
+  "public_images": [
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/overview.png",
+      "sha256": "f8ed92c290bf93534bd7cad40c9ad2fa950d3a9b35287bacd9484bc63e673ae0"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/neutral_original_rest_0.png",
+      "sha256": "c53ac269cb0f8bfb0a611ccfbed2f1c43d2aa02038e4f9c375074159ff0be9ba"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/neutral_prepared_rest_0.png",
+      "sha256": "19993b0aa393fdb9b943145c6004574cf306b1aae1457a6965acd0c4be852cc1"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/neutral_prepared_calm_0.png",
+      "sha256": "3a574f5ceebe46bdf8289e222698cd9996ce7a8efaad5fca3fdbfce5b4818450"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/neutral_prepared_head.png",
+      "sha256": "f2b8f512728665f6e73bce027f01f13fa911d079346d47c817058c78cc6dd224"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/dim_prepared_head.png",
+      "sha256": "ace473135b3f9384a0c7c370764947991fcd6c0aec04276951376ba94ce22db5"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/neutral_prepared_walk_2.png",
+      "sha256": "a2d5d460e01d52d8b46cca93469b06cda0409c2435f333f5566b2d7b352aacb9"
+    },
+    {
+      "path": "docs/screenshots/tern-source-preparation-20261008/neutral_prepared_walk_6.png",
+      "sha256": "861bad05871ad1411a465de2203c45ac36c6f1e082faf5df5946d659f32257f9"
+    }
+  ],
+  "retained_artifacts": [
+    {
+      "path": ".agents/tern-source-preparation-20261008/prepare-final.log",
+      "sha256": "65193112c4f7a4b035c645a2cf342104680a4333b1ee6fc1ae62a307453bd2f0"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validate-final.log",
+      "sha256": "2405063b777e0f0a9047bba4a3bfb7f04ba5e940e731f4bc760fc56dcebeb7d9"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validation-final.json",
+      "sha256": "8cac2b9e5965a4f761cde00f646d992fbe6ca2aaae1cd755c334bbcb3e565f49"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/import-embedded.log",
+      "sha256": "4f230846e7870bb30e3e5a1ab304ca4723fb0c0908dfc1b96d39cad4cb33ccbc"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validate-embedded.log",
+      "sha256": "2405063b777e0f0a9047bba4a3bfb7f04ba5e940e731f4bc760fc56dcebeb7d9"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validation-embedded.json",
+      "sha256": "8cac2b9e5965a4f761cde00f646d992fbe6ca2aaae1cd755c334bbcb3e565f49"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/raw-write-control.log",
+      "sha256": "cfa4f2b67f0a8afae430039af61c59f84c77866a99c5c112426b35a81b78f2a9"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/preparation/preparation.json",
+      "sha256": "ed76b74fc8f728c62c74349785cdc5c1b1ddd2ae2bb026c975ea5e4d20d25687"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/process.json",
+      "sha256": "566b46db452fb24792429048e8e8ed0f6e03e62932f576b71412592b86d63bde"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/renderer.log",
+      "sha256": "61cf77c603c2a82d264849611786816500246dc422f64b37b53b456f0e13435a"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/renderer-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/preview.json",
+      "sha256": "532357aa9a61cad844fff9bb5929f2e269b25b40b691f844b514d3215acb96ec"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/raw-audit.json",
+      "sha256": "0c533dd9bda9f1c85d0c42be79ac107566d81af824114017386935961811b8f5"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/raw-audit.log",
+      "sha256": "a9e1ee34b693068188a1bc3304681cb33f91e1cf600ef747f4574f784059bbce"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/head-uv-islands.json",
+      "sha256": "d55831d38685b3f09dac7e95c0b2aa7659e2c7a84cc1411f86af6b943acdd760"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/head-triangles.csv",
+      "sha256": "ad85f7c9e676a0b21a11a8e095c4e21b5bec8e9c8615dbbf335cce6c9c692710"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/prepared-structure-comparison.json",
+      "sha256": "5c800426b01fe0650febbac1a1ceb9eac1537d96afe69477e985cac2a351028d"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/prepared-map-comparison.json",
+      "sha256": "46cda728da70a8dedcce979f2131d1c675aa3ae9dfe82d52cb05af2097a32c89"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/independent/prepared-map-comparison.log",
+      "sha256": "04e4a85c9dc126ae06acc84f603773497da175cbe24dade000dec5146ffa3540"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/prepare.log",
+      "sha256": "65193112c4f7a4b035c645a2cf342104680a4333b1ee6fc1ae62a307453bd2f0"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validate.log",
+      "sha256": "530aaeb1b4e5960e9e37b794c4def22816019c6ec1e9af40b57e7e91cf8e37b0"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validate-diagnostic.log",
+      "sha256": "cf5a63f39ce14cb2f24cf9fbbd64900f8b9b903f4b5b4df3a9e27fafa476a380"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validate-actual.log",
+      "sha256": "2405063b777e0f0a9047bba4a3bfb7f04ba5e940e731f4bc760fc56dcebeb7d9"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/validate-posed.log",
+      "sha256": "2405063b777e0f0a9047bba4a3bfb7f04ba5e940e731f4bc760fc56dcebeb7d9"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/first-renderer.log",
+      "sha256": "61cf77c603c2a82d264849611786816500246dc422f64b37b53b456f0e13435a"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/first-renderer-error.log",
+      "sha256": "a124af2dabbc290be1bf1717e710c0795546f1e795928e15d6c1455902802e57"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/failed-renderer.log",
+      "sha256": "61cf77c603c2a82d264849611786816500246dc422f64b37b53b456f0e13435a"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/failed-renderer-error.log",
+      "sha256": "a124af2dabbc290be1bf1717e710c0795546f1e795928e15d6c1455902802e57"
+    },
+    {
+      "path": ".agents/tern-source-preparation-20261008/rendered/failed-process.json",
+      "sha256": "705dd6918f702e3a6805620336672fc04cee1774b203b5801036f728e1de83f9"
+    }
+  ]
+}

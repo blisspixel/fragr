@@ -9,6 +9,31 @@ pub const FIGHTER_HEIGHT: f32 = crate::movement::BODY_HEIGHT;
 pub const CRAWLER_HEIGHT: f32 = 0.8;
 pub const NOTARY_HEIGHT: f32 = 0.7;
 pub const NOTARY_HALF_WIDTH: f32 = 0.65;
+pub const ASSESSOR_HEIGHT: f32 = 1.2;
+pub const ASSESSOR_HALF_WIDTH: f32 = 1.3;
+pub fn is_assessor(identity: Option<CampaignActor>) -> bool {
+    matches!(
+        identity,
+        Some(CampaignActor::Union {
+            kind: EnemyKind::Assessor,
+            ..
+        })
+    )
+}
+
+pub fn flying_half_width(identity: Option<CampaignActor>) -> Option<f32> {
+    if is_assessor(identity) {
+        Some(ASSESSOR_HALF_WIDTH)
+    } else if is_notary(identity) {
+        Some(NOTARY_HALF_WIDTH)
+    } else {
+        None
+    }
+}
+
+pub fn is_flying(identity: Option<CampaignActor>) -> bool {
+    flying_half_width(identity).is_some()
+}
 pub fn is_notary(identity: Option<CampaignActor>) -> bool {
     matches!(
         identity,
@@ -43,6 +68,9 @@ pub fn engagement_before(a: (bool, f32), b: (bool, f32)) -> bool {
 }
 
 pub fn target_height(identity: Option<CampaignActor>) -> f32 {
+    if is_assessor(identity) {
+        return ASSESSOR_HEIGHT;
+    }
     if is_notary(identity) {
         return NOTARY_HEIGHT;
     }
@@ -60,6 +88,9 @@ pub fn target_height(identity: Option<CampaignActor>) -> f32 {
 }
 
 pub fn eye_height(identity: Option<CampaignActor>) -> f32 {
+    if is_assessor(identity) {
+        return ASSESSOR_HEIGHT * 0.5;
+    }
     if is_notary(identity) {
         return NOTARY_HEIGHT * 0.5;
     }
@@ -160,7 +191,7 @@ pub fn traced_damage(weapon: crate::protocol::WeaponType, body: i32, head: bool)
 /// A standing fighter's capsule centre is the belt. Shots lock on the chest.
 /// A Crawler and a Notary are short volumes, so the middle of that volume is the body.
 pub fn aim_height(identity: Option<CampaignActor>) -> f32 {
-    if is_notary(identity)
+    if is_flying(identity)
         || matches!(
             identity,
             Some(CampaignActor::Union {
@@ -190,7 +221,7 @@ pub fn aim_point_for(feet: [f32; 3], identity: Option<CampaignActor>, ducking: b
 }
 
 fn short_body(identity: Option<CampaignActor>) -> bool {
-    is_notary(identity)
+    is_flying(identity)
         || matches!(
             identity,
             Some(CampaignActor::Union {
@@ -333,15 +364,15 @@ impl Ray {
         identity: Option<CampaignActor>,
         range: f32,
     ) -> Option<SurfaceHit> {
-        if is_notary(identity) {
+        if let Some(radius) = flying_half_width(identity) {
             self.solid(
                 &Solid {
-                    min_x: feet[0] - NOTARY_HALF_WIDTH,
-                    max_x: feet[0] + NOTARY_HALF_WIDTH,
-                    min_z: feet[2] - NOTARY_HALF_WIDTH,
-                    max_z: feet[2] + NOTARY_HALF_WIDTH,
+                    min_x: feet[0] - radius,
+                    max_x: feet[0] + radius,
+                    min_z: feet[2] - radius,
+                    max_z: feet[2] + radius,
                     bottom: feet[1],
-                    top: feet[1] + NOTARY_HEIGHT,
+                    top: feet[1] + target_height(identity),
                 },
                 range,
             )
@@ -363,7 +394,7 @@ impl Ray {
         ducking: bool,
         range: f32,
     ) -> Option<SurfaceHit> {
-        if is_notary(identity) {
+        if is_flying(identity) {
             return self.actor(feet, identity, range);
         }
         self.fighter_with_height(

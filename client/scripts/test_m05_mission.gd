@@ -38,7 +38,7 @@ func _map() -> Dictionary:
 
 func _state(info: Dictionary, count: int = 0, released: bool = false, tick: int = 20) -> Dictionary:
 	var current: Dictionary = info["m05"]["objectives"][count] if count < 6 else {"id": "party_departed", "action": {"kind": "use", "target": info["m05"]["departure"]}}
-	return {"type": "mission", "tick": tick, "state": {"id": MissionState.M05_ID, "rules": {"difficulty": "standard", "revision": 3}, "attempt": 1, "phase": "in_progress", "changed_at": 10,
+	return {"type": "mission", "tick": tick, "state": {"id": MissionState.M05_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "attempt": 1, "phase": "in_progress", "changed_at": 10,
 		"party": [{"id": PLAYER, "name": "Traveller", "ready": true, "alive": true, "aboard": count == 6}], "prompts": [],
 		"m05": {"completed": M05MissionState.OBJECTIVES.slice(0, count), "current": current, "workshop_secured": released, "group_released": released,
 		"captives": [{"id": "splice", "feet": [3, 0, 8]}, {"id": "workshop_agent_a", "feet": [4, 0, 8]}, {"id": "workshop_agent_b", "feet": [5, 0, 8]}], "freight_open": info["m05"]["freight_open"], "tram": {"phase": "boarding" if released else "parked", "feet": [0, 0, 6], "tick": tick},
@@ -172,11 +172,16 @@ func _run() -> void:
 	var town: M05Town = M05Town.new()
 	root.add_child(town)
 	town.configure_map(info)
-	_check(town._views.size() == 3 and town._views["splice"].texture.resource_path == PlayerBody.strip_path(PlayerBody.SYNTHETIC), "all three registered workers use free-agent body with distinct Splice patch")
+	_check(town._views.size() == 2 and town._splice != null and town._splice.rigid != null and town._splice.strip == null, "named Splice uses the rigid source beside two unnamed synthetic workers")
+	_check(town._splice.position == Vector3(3, 0, 8), "held named figure is registered at server feet")
 	town.apply_state(released["state"])
-	_check(is_equal_approx(town._views["splice"].position.z, 14.0), "presented worker follows actual walking server feet")
+	_check(town._splice.position == Vector3(3, 0, 14), "named worker follows actual server feet")
+	var invalid_people: Dictionary = released["state"].duplicate(true)
+	invalid_people["m05"]["captives"][0]["feet"] = [NAN, 0, 14]
+	town.apply_state(invalid_people)
+	_check(town._splice.position == Vector3(3, 0, 14), "invalid state cannot move the named figure")
 	town.configure_map({})
-	_check(town._views.is_empty() and town._root == null, "malformed or other map retires all town fixtures")
+	_check(town._views.is_empty() and town._splice == null and town._root == null, "malformed or other map retires every named and unnamed fixture")
 	var lamp_info: Dictionary = info.duplicate(true)
 	lamp_info["solids"].append({"min_x": -30, "max_x": -29.6, "min_z": -10, "max_z": 0, "bottom": 0, "top": 4})
 	lamp_info["presentation"]["solids"].append("service_steel")

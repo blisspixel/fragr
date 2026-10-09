@@ -7,7 +7,7 @@ use crate::protocol::{BodyKind, CampaignDifficulty, CampaignRules, EquipmentPoli
 
 const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
-    [103; 32],
+    [103; 32], [104; 32],
 ];
 
 pub(super) fn exit(sniper: bool) -> SavedEntry {
@@ -73,6 +73,7 @@ pub(super) fn completed_port() -> RunDocument {
 fn version_seven_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 7.into();
+    value["rules"]["revision"] = (3).into();
     super::super::remove_historical_mines(&mut value);
     serde_json::to_vec_pretty(&value).unwrap()
 }

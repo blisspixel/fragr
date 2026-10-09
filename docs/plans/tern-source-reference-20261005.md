@@ -1,10 +1,72 @@
 # Tern reference and named body continuity
 
-Status: in flight, 2026-10-05. Bounded reference/source planning from main
+Status: in flight, updated 2026-10-08. Bounded reference/source planning from main
 `0b03dc2c0a6b6da20262a02d26f9c7579e098e11`. One reviewed conversion reference
 exists and the serialized production owner completed one bounded source and
 one separately reviewed rig. Static and eight-phase source-motion inspection
-pass; local finishing, authored pilot poses and runtime acceptance remain open.
+pass. October 8 compact matte source preparation and bounded calm/walk checks
+are implemented locally; optics refinement, tailored pilot contacts and final
+runtime acceptance remain open. The dated production sections below retain the
+original October 5 scope.
+
+The subsequent [live presenter increment](live-character-presenters-20261008.md)
+is implemented locally. Its [weighted renderer fixtures](../evidence/live-character-fixtures-20261008.md)
+and [ordinary M09/M10 routes](../evidence/live-crew-routes-20261008.md) select this
+prepared source for current Tern facts. That bounded runtime selection does not
+finish the optics, shoulder, pilot-contact or human art acceptance above.
+
+## October 8 offline preparation, implemented locally
+
+Prepare the retained 1.8 m walking rig locally at zero credit cost. The bounded
+output is `client/art/models/candidates/tern.glb`, a prepared offline source
+usable by a pixel bake or reviewed live presenter, whose selection has a separate
+owner. Keep all raw
+files intact. New Tern-only preparer, validator, pose source and renderer preview
+tools own this work; no server, runtime script, shared bake or mission selection
+changes belong to it. There is no protocol/API change, new dependency, network
+request, paid stage or package/runtime acceptance claim.
+
+The preparer will preserve the rig's existing geometry, skin, joint bindings,
+animation keys, UVs, normals, winding and triangle count, retaining the original
+non-image buffer bytes. Compact existing color and normal maps to 1K, retain the
+gunmetal, harness and anatomical left ember panel, and lower the source's glossy
+metal response with bounded matte material values. A restrained optics treatment
+must derive from the actual head surface and original paint; no new identity
+paint, shape, fake face or emissive shoulder mark is authorized. Preserve legal
+copyright while removing optional software authorship metadata.
+
+Verification compares original and prepared accessors, scene transforms, skins
+and animation data independently of texture export. Deliberate UV-shift,
+reversed-winding and altered-weight controls must fail. Measure actual weighted
+rest and eight walk phases, including feet and hand positions. An offline named
+pose adapter may reuse the existing two-bone helper, but authored pilot actions
+are accepted only when actual hand-surface contact and ground support are proved.
+Unproven seated console, restraint release, boarding and finger gestures remain
+open instead of being labelled complete.
+
+Real renderer previews will retain the complete model at multiple angles and
+walk phases under neutral and dim light, with same-camera original controls,
+full-size inspection, a compact motion sheet and exact artifact hashes. The
+owning evidence receipt will distinguish source preparation from selected art,
+human review, played M09/M10, full-client and desktop-package gates. The current
+composed application checks predate this separate offline preparation increment.
+
+The [source preparation receipt](../evidence/tern-source-preparation-20261008.md)
+and [machine companion](../evidence/tern-source-preparation-20261008.json) record
+the implemented tools, exact commands and source/artifact hashes. Independent
+checks retain all 75 non-image buffer views byte for byte, all nine unchanged
+JSON values verbatim and exact imported geometry/skin with eight actual walk
+phases. UV, winding and weight negative controls reject. Thirty-two real-renderer
+views retire with numeric zero and clean logs. Actual floor registration and
+calm wrist targets pass, without console/finger contact claims.
+
+The original dim neutral-grey optics and brown panels on both shoulders remain
+visible source/reference differences; no identity repaint conceals them. The
+full tailored pilot-pose and final-art gates above remain open. Nick subsequently
+selected more live animated character meshes. The separate
+[live-character presenter plan](live-character-presenters-20261008.md) owns
+packaging and ordinary M09/M10/player integration; this offline source receipt
+does not promote those in-flight results or the earlier whole-client checks.
 
 ## Goal and existing-source audit
 

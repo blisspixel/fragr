@@ -1,0 +1,379 @@
+{
+  "decorations": [
+    {
+      "center": [
+        0,
+        0.5
+      ],
+      "face": "north",
+      "kind": "maintenance_sign",
+      "size": [
+        3,
+        0.8
+      ],
+      "solid": "maintenance_rack"
+    },
+    {
+      "center": [
+        0,
+        1
+      ],
+      "face": "south",
+      "kind": "strip_light",
+      "size": [
+        4,
+        0.2
+      ],
+      "solid": "arrival_west"
+    },
+    {
+      "center": [
+        0,
+        0.5
+      ],
+      "face": "south",
+      "kind": "strip_light",
+      "size": [
+        4,
+        0.2
+      ],
+      "solid": "north_service_rack"
+    }
+  ],
+  "encounters": [
+    {
+      "enemies": [
+        {
+          "feet": [
+            8,
+            4,
+            0
+          ],
+          "hover": {
+            "approach": [
+              0,
+              0,
+              0
+            ],
+            "band": [
+              3,
+              5
+            ],
+            "patrol": [
+              [
+                8,
+                4,
+                -1
+              ],
+              [
+                8,
+                4,
+                1
+              ]
+            ],
+            "volume": {
+              "max": [
+                8.5,
+                5,
+                2
+              ],
+              "min": [
+                7.5,
+                3,
+                -2
+              ]
+            }
+          },
+          "id": "court_assessor",
+          "kind": "assessor",
+          "yaw": 3.14159265358979
+        }
+      ],
+      "id": "court",
+      "regions": [
+        {
+          "max": [
+            20,
+            3,
+            20
+          ],
+          "min": [
+            -20,
+            0,
+            -7.5
+          ]
+        }
+      ]
+    }
+  ],
+  "equipment": "discovery",
+  "ground": "concrete",
+  "half_extent": 24,
+  "landmarks": [
+    {
+      "feet": [
+        -10,
+        0,
+        -17
+      ],
+      "id": "maintenance_bay"
+    },
+    {
+      "feet": [
+        0,
+        0,
+        0
+      ],
+      "id": "grounded_approach"
+    },
+    {
+      "feet": [
+        -8,
+        0,
+        0
+      ],
+      "id": "west_cover"
+    },
+    {
+      "feet": [
+        12,
+        0,
+        5
+      ],
+      "id": "rear_flank"
+    },
+    {
+      "feet": [
+        0,
+        0,
+        20
+      ],
+      "id": "exit"
+    }
+  ],
+  "map_id": 1043,
+  "name": "Assessor Canister Court (development)",
+  "solids": [
+    {
+      "id": "west_wall",
+      "max": [
+        -22,
+        4,
+        23
+      ],
+      "min": [
+        -23,
+        0,
+        -23
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "east_wall",
+      "max": [
+        23,
+        4,
+        23
+      ],
+      "min": [
+        22,
+        0,
+        -23
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "south_wall",
+      "max": [
+        22,
+        4,
+        -22
+      ],
+      "min": [
+        -22,
+        0,
+        -23
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "north_wall",
+      "max": [
+        22,
+        4,
+        23
+      ],
+      "min": [
+        -22,
+        0,
+        22
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "maintenance_rack",
+      "max": [
+        -6,
+        2.4,
+        -20
+      ],
+      "min": [
+        -16,
+        0,
+        -21
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "maintenance_side",
+      "max": [
+        -16,
+        3,
+        -13
+      ],
+      "min": [
+        -17,
+        0,
+        -21
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "arrival_west",
+      "max": [
+        -3.5,
+        4,
+        -8
+      ],
+      "min": [
+        -22,
+        0,
+        -8.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "arrival_east",
+      "max": [
+        22,
+        4,
+        -8
+      ],
+      "min": [
+        3.5,
+        0,
+        -8.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "west_screen",
+      "max": [
+        -6.6,
+        3.2,
+        3
+      ],
+      "min": [
+        -7,
+        0,
+        -2
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "retake_screen",
+      "max": [
+        2,
+        3.2,
+        7.4
+      ],
+      "min": [
+        -2,
+        0,
+        7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "rear_service_cover",
+      "max": [
+        14.5,
+        2.2,
+        3
+      ],
+      "min": [
+        14,
+        0,
+        -3
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "north_service_rack",
+      "max": [
+        14,
+        2.4,
+        17
+      ],
+      "min": [
+        6,
+        0,
+        16
+      ],
+      "surface": "enamel"
+    }
+  ],
+  "spawns": [
+    {
+      "feet": [
+        0,
+        0,
+        -18
+      ],
+      "id": "entry",
+      "yaw": 1.5707963267949
+    }
+  ],
+  "supplies": [
+    {
+      "claim": "personal",
+      "feet": [
+        -10,
+        0,
+        -17
+      ],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "arc"
+      },
+      "id": "maintenance_arc"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -2,
+        0,
+        -18
+      ],
+      "grant": {
+        "amount": 100,
+        "kind": "armor"
+      },
+      "id": "arrival_armor"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -9,
+        0,
+        4
+      ],
+      "grant": {
+        "amount": 40,
+        "kind": "health"
+      },
+      "id": "court_medical"
+    }
+  ],
+  "version": 1
+}

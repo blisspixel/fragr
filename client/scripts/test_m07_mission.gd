@@ -45,7 +45,7 @@ static func fixture_map() -> Dictionary:
 			"boarding": {"min": [8, 0, 20], "max": [12, 2, 24]}, "companion_start": [-25, 0, 0]}}
 
 static func fixture_state(info: Dictionary, count: int = 0, tick: int = 20) -> Dictionary:
-	return {"type": "mission", "tick": tick, "state": {"id": MissionState.M07_ID, "rules": {"difficulty": "standard", "revision": 3},
+	return {"type": "mission", "tick": tick, "state": {"id": MissionState.M07_ID, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION},
 		"attempt": 1, "phase": "in_progress", "changed_at": 10,
 		"party": [{"id": PLAYER, "name": "Traveller", "ready": true, "alive": true, "aboard": count == 5}], "prompts": [],
 		"m07": {"completed": M07MissionState.OBJECTIVES.slice(0, count), "current": info["m07"]["objectives"][count] if count < 5 else {

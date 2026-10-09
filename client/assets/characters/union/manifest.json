@@ -93,12 +93,6 @@
 			"sha256": "04a08884bbb4f66a331421b4eb03c2e25d4586a5adb9e2aa05785418595b262d"
 		},
 		{
-			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
-			"file": "heavy_sweeper.png",
-			"model": "articulated heavy bot rig",
-			"sha256": "24129b2c1d478d5be9210bd603bc78984f820c8c3a90114ad2e9cdd6c8229272"
-		},
-		{
 			"brief": "Braced column with a rotating bone housing, rail barrel with red charge coils and a red sensor lamp.",
 			"file": "turret.png",
 			"model": "fixed turret rig",
@@ -115,42 +109,52 @@
 			"file": "sweeper_normals.png",
 			"model": "paired normal atlas",
 			"sha256": "68b03b944cfc844268ec1a05e83445406c0db3829e8b0e84249ec9f6a77dd71d"
+		},
+		{
+			"brief": "Broad armored chassis, head sunk between wide pauldrons, ammunition drum, rotary cannon and ember tell lamps.",
+			"file": "heavy_sweeper.png",
+			"model": "articulated heavy bot rig",
+			"sha256": "3276223ded5c00f37ddc3bbf6b996d53f53e84b6815f557614ad237f51d3a661"
 		}
 	],
 	"format": "RGBA8 PNG, nearest sampling, no mipmaps",
 	"poses": 55,
 	"rendered_kinds": [
-		"sweeper"
+		"heavy_sweeper"
 	],
 	"retained_kinds": [
 		"clerk",
-		"heavy_sweeper",
+		"sweeper",
 		"turret"
 	],
 	"retained_receipt": {
-		"sha256": "0475ef0e73ca35384d6831156c84111d9782fde23644aebad580b0c3e1dd685b",
+		"sha256": "0e214e006a153ca30281995a554d58c06f7e3ce0b9a9febefa2a3ccdfb822d9f",
 		"sources": {
-			"res://art/characters/bake.gd": "8e111494847594dfd95c2c784c56a55bbb331003829039c66fa9395472b80bfc",
+			"res://art/characters/bake.gd": "dd89b6bf5a4ad2f21ed8b95cf21e2e0871952b424792a770419109f7ab2939a7",
 			"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
 			"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
 			"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
 			"res://art/models/candidates/clerk.glb": "166a6eab7a203f1e80fb089fc6dc2d39c37f72e2e77b09a234c9d15c22e4cf14",
-			"res://art/models/clerk_source.gd": "fcb420eb304446b2b51736e52853d4a90778899a13319c7a4b110cbe7886427c",
+			"res://art/models/candidates/sweeper.glb": "5c76a57ee1c4239d546c41f65e2eebfee002def27951e991dec2a5927c88a3bd",
+			"res://art/models/candidates/sweeper.glb.import": "d43e6f95d643536b591127c31dbd8590d8c3b892fb55d37caf6bb3a789dffc64",
+			"res://art/models/clerk_source.gd": "002df3f52e26a3ac456cd4aba1d50b06e57776fe507bbf4f118b28393a1d6594",
 			"res://art/models/normal_bake.gdshader": "c091a2dfb26f198d8b49122ffa3a2bc596d1f853904475b1ff287ff79fdefc97",
+			"res://art/models/sweeper_skinned_source.gd": "b25c659d1ef945c431ea97c587608439c584611ee3d5070febac15466788f3dc",
 			"res://art/models/sweeper_source.gd": "3d32bf63894e5193a47b0b3325982dd2ebf729800ebba3ef9d63c3ab2c7c8e38",
 			"res://assets/models/finishes/enamel.png": "0761b8a3d969d03fdd9c4cd55eca4161fef89e979ca3536410d4826c9e6e7ebf",
 			"res://assets/models/finishes/metal.png": "a9dffc7e11b24be341ae7949a2be60f83f276c8a057e6f3f7d68d8f6c530140a",
 			"res://assets/models/finishes/wood.png": "4529cac0e869e2227c5e79613c09e7a906eee15655f7742d917ea591055d3e3e",
-			"res://scripts/enemy_animation.gd": "f2f1ef38f496d2d5a48c3ca81995788b7108aef81f712a6c67a1de3504b84573",
+			"res://scripts/enemy_animation.gd": "c07732c9f29ff5471ff8267cb8e5422ed69b4b759763e748490888c8722eb441",
 			"res://scripts/model_geometry.gd": "cb98302300cee8086127f505d568583bcdc409f6c2483be200462b1dd9021795"
 		}
 	},
 	"rows": 25,
 	"schema": 1,
 	"sources": {
-		"res://art/characters/bake.gd": "dd89b6bf5a4ad2f21ed8b95cf21e2e0871952b424792a770419109f7ab2939a7",
+		"res://art/characters/bake.gd": "b594d177a014f81ef332ddb75cbdf6e120040ce8c9a3138574101639f868c259",
 		"res://art/characters/geometry.gd": "833318a2c94533aac01abbf7c886b616ec11528624fa406e6cad18dc1a14eec9",
-		"res://art/characters/machines.gd": "3ec71c7c9254250069a4efd0d87047d581efd1e7a226844a814bbeecd85a28f7",
+		"res://art/characters/machines.gd": "238b84e8c938ae8e0d0e5548073c2fa1eab1f64855874a83ecf27b2f8b097c36",
+		"res://art/characters/pose_support.gd": "772d1b858763bf830d8e204f52abcf86361f4d85ecb6fefd68a2a545b9acad99",
 		"res://art/characters/rig.gd": "106d5f720f665cffe9a52a16f9969bd6908b084c61521218aa51ddef9bc20441",
 		"res://art/models/candidates/clerk.glb": "166a6eab7a203f1e80fb089fc6dc2d39c37f72e2e77b09a234c9d15c22e4cf14",
 		"res://art/models/candidates/sweeper.glb": "5c76a57ee1c4239d546c41f65e2eebfee002def27951e991dec2a5927c88a3bd",

@@ -213,7 +213,8 @@ async fn run_server_impl(
         && (rotate || options.authored.is_some() || map.sabotage_map().is_none())
     {
         return Err(
-            "sabotage requires a map with validated sites (Sector 9) and no rotation".into(),
+            "sabotage requires a map with validated sites (Sector 9 or Low Water) and no rotation"
+                .into(),
         );
     }
     if options
@@ -389,7 +390,17 @@ async fn run_server_impl(
             .iter()
             .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
     });
-    let required_gameplay = if session.state.map.requires_m11_contract() {
+    let required_gameplay = if map == MapKind::LowWater || rotate {
+        crate::protocol::LOW_WATER_SABOTAGE_GAMEPLAY_VERSION
+    } else if session.state.map.m12_geometry().is_some() {
+        crate::protocol::M12_GAMEPLAY_VERSION
+    } else if session.state.map.is_campaign() || session.state.map.requires_assessor_contract() {
+        crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+    } else if session.state.map.requires_arc_contract() {
+        crate::protocol::ARC_GAMEPLAY_VERSION
+    } else if session.state.map.has_authored_vehicles() {
+        crate::protocol::VEHICLE_GAMEPLAY_VERSION
+    } else if session.state.map.requires_m11_contract() {
         crate::protocol::M11_GAMEPLAY_VERSION
     } else if session.state.map.requires_m10_contract() {
         crate::protocol::M10_GAMEPLAY_VERSION

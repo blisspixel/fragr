@@ -1,0 +1,800 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "in flight",
+  "cash_spend_usd": 0,
+  "scope": "Bounded capture-window dimension correction and actual private controls; official final tour, original still review, final art, performance and package acceptance are separate",
+  "engine": {
+    "version": "4.7.2-stable",
+    "renderer": "gl_compatibility",
+    "device": "AMD Radeon(TM) 780M",
+    "binary": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+    "sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643"
+  },
+  "identities": {
+    "accepted_helper_sha256": "04ac12892bcedf40da51f1d1b9a0f3b6be71dedb142528fab12f214ea5418ad2",
+    "retained_helper": ".agents/tour-capture-size-20261008/candidate-third/client/scripts/qa_tour.gd",
+    "original_helper_sha256": "467572abf3096baf7533de3737baa1acf243afd20413f91456a650b91f3d9da3",
+    "rejected_metadata_helper_sha256": "1b56eca3b61a359d25c605603f692b37a4b4560147f8f2c1400290f3e42d5146",
+    "native_sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+    "retained_native": ".agents/server-release-build-topology-20261008/bin/fragr-server-package-5c1f7984.exe",
+    "private_receipt": ".agents/tour-capture-size-20261008/accepted-controls.json"
+  },
+  "original_failure": {
+    "attempt": ".agents/presentation-stairs-composition-20261008/tour-second",
+    "passed": false,
+    "requested": [
+      1280,
+      720
+    ],
+    "observed": [
+      2256,
+      1363
+    ],
+    "zero_based_indices": [
+      14,
+      15,
+      16,
+      17
+    ],
+    "states": [
+      "rail_impact",
+      "scatter_pellets",
+      "return_to_spectator",
+      "spectator_chase"
+    ],
+    "original_event_cause": "Unknown; original logs do not prove which window event requested the resize",
+    "retained_unchanged": true
+  },
+  "source_finding": "The original helper set dimensions at startup and restored them only in optional frame sampling. The standard tour contains no frame_sample states; raw strip and still capture could inherit a changed window size.",
+  "correction": {
+    "capture_tool_only": true,
+    "before": [
+      "Strip trigger",
+      "Frozen HUD/world measurement",
+      "Frame sampling"
+    ],
+    "dimension_source": "Raw rendered Image.get_size, never stretched Texture2D metadata",
+    "matching_distinct_draws": 2,
+    "maximum_settle_ms": 2000,
+    "maximum_settle_draws": 32,
+    "mode_focus_visibility_changed": false,
+    "existing_minimized_draw_pump_reused": true,
+    "raw_final_png_assertion_preserved": true,
+    "mid_strip_raw_mismatch_is_failure": true,
+    "no_corrective_image_resize_or_crop": true,
+    "existing_strip_thumbnail_assembly_unchanged": true,
+    "native_rebuild": false,
+    "project_import": false
+  },
+  "metadata_diagnosis": {
+    "samples": [
+      {
+        "content_scale_factor": 1.0,
+        "content_scale_mode": 1,
+        "content_scale_size": [
+          1920,
+          1080
+        ],
+        "direct_image": [
+          1280,
+          720
+        ],
+        "display_size": [
+          1280,
+          720
+        ],
+        "image": [
+          1280,
+          720
+        ],
+        "mode": 0,
+        "requested": [
+          1280,
+          720
+        ],
+        "root_is_own_viewport": true,
+        "texture_metadata": [
+          854.0,
+          480.0
+        ],
+        "visible_rect": [
+          1920.0,
+          1080.0
+        ],
+        "window": [
+          1280,
+          720
+        ]
+      },
+      {
+        "content_scale_factor": 1.0,
+        "content_scale_mode": 1,
+        "content_scale_size": [
+          1920,
+          1080
+        ],
+        "direct_image": [
+          960,
+          540
+        ],
+        "display_size": [
+          960,
+          540
+        ],
+        "image": [
+          960,
+          540
+        ],
+        "mode": 0,
+        "requested": [
+          960,
+          540
+        ],
+        "root_is_own_viewport": true,
+        "texture_metadata": [
+          480.0,
+          270.0
+        ],
+        "visible_rect": [
+          1920.0,
+          1080.0
+        ],
+        "window": [
+          960,
+          540
+        ]
+      },
+      {
+        "content_scale_factor": 1.0,
+        "content_scale_mode": 1,
+        "content_scale_size": [
+          1920,
+          1080
+        ],
+        "direct_image": [
+          1280,
+          720
+        ],
+        "display_size": [
+          1280,
+          720
+        ],
+        "image": [
+          1280,
+          720
+        ],
+        "mode": 0,
+        "requested": [
+          1280,
+          720
+        ],
+        "root_is_own_viewport": true,
+        "texture_metadata": [
+          854.0,
+          480.0
+        ],
+        "visible_rect": [
+          1920.0,
+          1080.0
+        ],
+        "window": [
+          1280,
+          720
+        ]
+      }
+    ],
+    "renderer_exit": 0,
+    "clean_logs": true,
+    "retired": true,
+    "interpretation": "In this actual 1920 by 1080 canvas fixture, texture metadata describes a different size from the physical raw image. The final guard checks actual Image dimensions."
+  },
+  "focused_positive": {
+    "assertions": 16,
+    "all_pass": true,
+    "checks": [
+      {
+        "facts": {
+          "forced_draws": 0,
+          "hud_coverage": 0.0482986111111111,
+          "mode_after": 0,
+          "mode_before": 0
+        },
+        "label": "normal_baseline actual unaltered HUD/world1280x720",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "normal_baseline helper preserves actual mode",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "actual windowed resize was applied",
+        "pass": true
+      },
+      {
+        "facts": {
+          "forced_draws": 0,
+          "hud_coverage": 0.0482986111111111,
+          "mode_after": 0,
+          "mode_before": 0
+        },
+        "label": "windowed_resize actual unaltered HUD/world1280x720",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "windowed_resize helper preserves actual mode",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "actual minimized resize premise",
+        "pass": true
+      },
+      {
+        "facts": {
+          "forced_draws": 7,
+          "hud_coverage": 0.0482986111111111,
+          "mode_after": 1,
+          "mode_before": 1
+        },
+        "label": "minimized_resize actual unaltered HUD/world1280x720",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "minimized_resize helper preserves actual mode",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "actual still leaves window minimized",
+        "pass": true
+      },
+      {
+        "facts": {
+          "forced_draws": 9
+        },
+        "label": "paused minimized guard preserves mode/pause",
+        "pass": true
+      },
+      {
+        "facts": {
+          "forced_draws": 14,
+          "hud_coverage": 0.0482986111111111,
+          "mode_after": 1,
+          "mode_before": 1
+        },
+        "label": "paused_minimized_after_guard actual unaltered HUD/world1280x720",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "paused_minimized_after_guard helper preserves actual mode",
+        "pass": true
+      },
+      {
+        "facts": {
+          "elapsed_ms": 4063,
+          "forced_draws": 30,
+          "samples_ms": [
+            256,
+            500,
+            762,
+            1018,
+            1273,
+            1529,
+            1784,
+            2039,
+            2294,
+            2550,
+            2806,
+            3060
+          ]
+        },
+        "label": "actual minimized timed strip retains12frames",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "actual timed strip leaves window minimized",
+        "pass": true
+      },
+      {
+        "facts": {
+          "forced_draws": 30,
+          "hud_coverage": 0.0482986111111111,
+          "mode_after": 0,
+          "mode_before": 0
+        },
+        "label": "normal_after_controls actual unaltered HUD/world1280x720",
+        "pass": true
+      },
+      {
+        "facts": {},
+        "label": "normal_after_controls helper preserves actual mode",
+        "pass": true
+      }
+    ],
+    "minimized_still_recovery_ms": 511,
+    "paused_minimized_guard_recovery_ms": 458,
+    "matching_draws": 2,
+    "mode_preserved": true,
+    "timed_strip_frames": 12,
+    "timed_strip_sample_ms": [
+      256,
+      500,
+      762,
+      1018,
+      1273,
+      1529,
+      1784,
+      2039,
+      2294,
+      2550,
+      2806,
+      3060
+    ],
+    "performance_claim": false
+  },
+  "constrained_refusal": {
+    "assertions": 3,
+    "actual_minimum": [
+      1600,
+      900
+    ],
+    "requested": [
+      1280,
+      720
+    ],
+    "observed_draws": 32,
+    "guard_elapsed_ms": 85,
+    "expected_errors": 1,
+    "mode_preserved": true,
+    "classification": "Expected rejection, not a clean positive capture"
+  },
+  "private_full_tour": {
+    "states": 32,
+    "canonical_order_unchanged": true,
+    "renderer_exit": 0,
+    "clean_logs": true,
+    "actual_injection": {
+      "at_ms": 35448,
+      "case": "before_strip",
+      "completed_states": 14,
+      "context": "strip 15_rail_impact_strip.png",
+      "kind": "actual_resize_injection",
+      "mode": 0,
+      "requested_size": [
+        2256,
+        1363
+      ],
+      "size_before": [
+        1280,
+        720
+      ],
+      "strip_samples_already_captured": 0
+    },
+    "guard_after_injection": {
+      "completed_states": 14,
+      "context": "strip 15_rail_impact_strip.png",
+      "elapsed_ms": 53,
+      "forced_draws": 0,
+      "kind": "actual_guard",
+      "mode_after": 0,
+      "mode_before": 0,
+      "raw_image_size": [
+        1280,
+        720
+      ],
+      "result": true,
+      "size_after": [
+        1280,
+        720
+      ],
+      "size_before": [
+        2256,
+        1363
+      ]
+    },
+    "all_final_stills": [
+      1280,
+      720
+    ],
+    "rail_loaded_before": 4,
+    "rail_loaded_after": 3,
+    "rail_tick_before": 714,
+    "rail_tick_after": 715,
+    "rail_effect_seen": true,
+    "rail_strip_sample_ms": [
+      3,
+      106,
+      130,
+      169,
+      210,
+      254,
+      283,
+      322,
+      358,
+      397,
+      429,
+      470
+    ],
+    "effect_and_expiry_assertions_unchanged": true,
+    "retired": true,
+    "official_final_tour": false
+  },
+  "mid_strip_negative": {
+    "canonical_prefix_states": 15,
+    "injection_after_samples": 2,
+    "renderer_exit": 1,
+    "expected_size_errors": 10,
+    "bad_raw_frames": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "observed_raw_size": [
+      2256,
+      1363
+    ],
+    "rail_loaded_before": 4,
+    "rail_loaded_after": 3,
+    "rail_tick_before": 720,
+    "rail_tick_after": 722,
+    "rail_effect_seen": true,
+    "strip_sample_ms": [
+      3,
+      88,
+      158,
+      193,
+      234,
+      274,
+      308,
+      346,
+      390,
+      425,
+      464,
+      502
+    ],
+    "later_still_recovery_ms": 32,
+    "attempt_remains_failed": true,
+    "retired": true,
+    "retention": "Original timed strip sheet and first full-size shot retained; no standalone full-size PNG for every frame",
+    "classification": "Expected rejection, not a complete 32-state pass"
+  },
+  "controls": [
+    {
+      "name": "focused-positive-first",
+      "receipt": ".agents/tour-capture-size-20261008/focused-positive-first/process.json",
+      "accepted": false,
+      "renderer_exit": 1,
+      "renderer_pid": 11268,
+      "native_pid": null,
+      "retired": true,
+      "expected_error_count": 0,
+      "scope": "Retained rejected preliminary control"
+    },
+    {
+      "name": "focused-positive-second",
+      "receipt": ".agents/tour-capture-size-20261008/focused-positive-second/process.json",
+      "accepted": false,
+      "renderer_exit": 1,
+      "renderer_pid": 12052,
+      "native_pid": null,
+      "retired": true,
+      "expected_error_count": 0,
+      "scope": "Retained rejected preliminary control"
+    },
+    {
+      "name": "texture-diagnosis-first",
+      "receipt": ".agents/tour-capture-size-20261008/texture-diagnosis-first/process.json",
+      "accepted": true,
+      "renderer_exit": 0,
+      "renderer_pid": 19424,
+      "native_pid": null,
+      "retired": true,
+      "expected_error_count": 0,
+      "scope": "Actual raw image versus texture metadata diagnosis"
+    },
+    {
+      "name": "focused-positive-third",
+      "receipt": ".agents/tour-capture-size-20261008/focused-positive-third/process.json",
+      "accepted": true,
+      "renderer_exit": 0,
+      "renderer_pid": 24388,
+      "native_pid": null,
+      "retired": true,
+      "expected_error_count": 0,
+      "scope": "Capture-only actual renderer control; no native combat claim"
+    },
+    {
+      "name": "focused-constrained-first",
+      "receipt": ".agents/tour-capture-size-20261008/focused-constrained-first/process.json",
+      "accepted": true,
+      "renderer_exit": 0,
+      "renderer_pid": 28512,
+      "native_pid": null,
+      "retired": true,
+      "expected_error_count": 1,
+      "scope": "Expected size refusal; not a clean positive"
+    },
+    {
+      "name": "actual-before-strip-first",
+      "receipt": ".agents/tour-capture-size-20261008/actual-before-strip-first/process.json",
+      "accepted": true,
+      "renderer_exit": 0,
+      "renderer_pid": 6332,
+      "native_pid": 20140,
+      "retired": true,
+      "expected_error_count": 0,
+      "scope": "Private complete canonical 32-state injected control, separate from official final tour"
+    },
+    {
+      "name": "actual-during-strip-first",
+      "receipt": ".agents/tour-capture-size-20261008/actual-during-strip-first/process.json",
+      "accepted": true,
+      "renderer_exit": 1,
+      "renderer_pid": 27588,
+      "native_pid": 25236,
+      "retired": true,
+      "expected_error_count": 10,
+      "scope": "Expected mid-strip rejection on exact canonical first 15 states"
+    }
+  ],
+  "preliminary_failures": "The first 32-process-frame proposal was superseded before application. Two actual controls rejected the later metadata-based guard. Adding official launch flags did not remove the raw-image/metadata mismatch. Original failed attempts and candidate bytes remain retained.",
+  "verification": {
+    "private_artifact_bindings_rehashed": 180,
+    "private_png_headers_recorded": 107,
+    "exact_loaded_source_bindings_per_native_control": 724,
+    "native_and_helper_unchanged": true,
+    "processes_launched_for_public_receipt": false
+  },
+  "pending_at_receipt": [
+    "Whole-client composition on the corrected helper",
+    "Separate fresh official final tour and original still review"
+  ],
+  "exclusions": [
+    "Final art or human acceptance",
+    "Frame rates or other hardware/platform behavior",
+    "Behavioral equivalence between separately built native artifacts",
+    "Original resize event attribution",
+    "Package or release acceptance from these controls"
+  ],
+  "bindings": [
+    {
+      "path": "docs/evidence/capture-window-size-20261008.md",
+      "sha256": "af65b0caa982e1d15d8feca82eca2584e7fdf00858991c2b4b8791124731f63f",
+      "bytes": 2843
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/accepted-controls.json",
+      "sha256": "82130ab6a64c944f8c453c1e8a19e874bbe370a352ac5f57e56f805a069918d4",
+      "bytes": 74100
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/accepted-controls.md",
+      "sha256": "44a66f524d91b1947413ae1552299e839b3472260ea6904173c3fc4be0598c2e",
+      "bytes": 4228
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/evidence.json",
+      "sha256": "04bca3704a2e63bccb7218ef88fd6158d396a433dacccd7898a0c55823801115",
+      "bytes": 34280
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/second-candidate.json",
+      "sha256": "c38368dd45d932ea23d08710fc8e105beff6d0c7614366d9ef8910e5fc5973c1",
+      "bytes": 2634
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/third-candidate.json",
+      "sha256": "5bc951ed0ae4ad4506344b5f6c1a0f80731076177f3818c1c420b117bd298694",
+      "bytes": 3038
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/source/client/scripts/qa_tour.gd",
+      "sha256": "467572abf3096baf7533de3737baa1acf243afd20413f91456a650b91f3d9da3",
+      "bytes": 142874
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/candidate-second/client/scripts/qa_tour.gd",
+      "sha256": "1b56eca3b61a359d25c605603f692b37a4b4560147f8f2c1400290f3e42d5146",
+      "bytes": 145150
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/candidate-third/client/scripts/qa_tour.gd",
+      "sha256": "04ac12892bcedf40da51f1d1b9a0f3b6be71dedb142528fab12f214ea5418ad2",
+      "bytes": 145124
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/probe_capture_size.gd",
+      "sha256": "35ed0e362bef05e02ed66b691522cb09f6974001d717cc9ff894e958d394a833",
+      "bytes": 5660
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/probe_texture_dimensions.gd",
+      "sha256": "6e4c4b33e9373cad8a5b8a2674891769cddf302eec46fc2d0094de5828224b0c",
+      "bytes": 2147
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/inject_resize_tour_raw.gd",
+      "sha256": "4ea2fc149c39d55bf951a519642cb6d5f90b246872870fbfbd71ee01e1625918",
+      "bytes": 2981
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/run_focused.ps1",
+      "sha256": "fbdfe94cb16dbcebd275b4b7a17bf8e826e5677c66d64067f414d5ac988a9517",
+      "bytes": 4372
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/run_injected_tour.ps1",
+      "sha256": "ade8a51fea11d79f81b4dbbcc2f15f991bc3cbcdd75b6eb7633f6662f9ce366c",
+      "bytes": 8416
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/texture-diagnosis-first/process.json",
+      "sha256": "87b269de860d872041a146931b1837977366b0aa9a9daa61a09b11a29aa99df3",
+      "bytes": 1710
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/texture-diagnosis-first/probe.json",
+      "sha256": "304e004e2829b1ea9485a46dfb0c8bc87589762e89916449fa65b13159148809",
+      "bytes": 1580
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/texture-diagnosis-first/actual_0.png",
+      "sha256": "c3541f786c56bc66dedfef2b5482b1abb151596e4871ef6d357c08f5deb365bf",
+      "bytes": 5345
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/texture-diagnosis-first/actual_1.png",
+      "sha256": "7301fd47b5ce66704c6c55292625a70bdcfb290e9e27255e36393020d6d39c0b",
+      "bytes": 3296
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/texture-diagnosis-first/actual_2.png",
+      "sha256": "c3541f786c56bc66dedfef2b5482b1abb151596e4871ef6d357c08f5deb365bf",
+      "bytes": 5345
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-positive-first/process.json",
+      "sha256": "fc1f77a847050952c9a6791d60d1e2e68f8fa5d1c4a92481412b487a20c60c5b",
+      "bytes": 1205
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-positive-second/process.json",
+      "sha256": "a0337cd055865d70372364136ef447d21c8fd17995392de61aaa0fc0bd2fb6f7",
+      "bytes": 1262
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-positive-third/process.json",
+      "sha256": "c934e29dff1b99fa7c174c17f8af6cdb583f5e77f0ca3317090b77d8330a11c6",
+      "bytes": 3236
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-positive-third/probe.json",
+      "sha256": "d2c4eff681343a74d6f5b773b85480192c551a3a48d5c66bcfdc2dd96134a4c6",
+      "bytes": 2672
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-positive-third/client.log",
+      "sha256": "e45f5b32557adae3ec08d60af753111b4b05b36cc0ab5cd81671912fd71311b4",
+      "bytes": 786
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-positive-third/client-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-constrained-first/process.json",
+      "sha256": "6b049a620c66df2f72a0335550d81c488e7409e80a8dc2f905b9e5528f4f1aa6",
+      "bytes": 1467
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-constrained-first/probe.json",
+      "sha256": "918ee3a04dbfbdf34f32e04b8fa9d2e3ca96eeae42cc1c2399dafd52bf612353",
+      "bytes": 640
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/focused-constrained-first/client-error.log",
+      "sha256": "1b755e8f22ccfcdc5cc7f48673141e046282bcc7c4b484d6819eb0102fcb7ecb",
+      "bytes": 384
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-before-strip-first/process.json",
+      "sha256": "4f86f1310245a98ddbe1b5f32195d2ac1e61b1f322fa0d2a1d0cb84ea4c6244a",
+      "bytes": 191133
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-before-strip-first/manifest.json",
+      "sha256": "760bcccd398932b6161014f2c96160abea3e6ea65b57f8f993e70a5b6ad247e3",
+      "bytes": 124863
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-before-strip-first/actual-resize-events.json",
+      "sha256": "43b5d718289e74a4b67543eac9055e4df98d6d1fa66e9082e26abe9aa5cd48ae",
+      "bytes": 6865
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-before-strip-first/client.log",
+      "sha256": "b9cecc3c832bec3aa39b9ee14ab3164475ce3ed2878ceeac754a3d56c7d2efa1",
+      "bytes": 4897
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-before-strip-first/client-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-during-strip-first/process.json",
+      "sha256": "497f6a3d72681d64014044ba83d19455133ef86b5678aaaf99037722487dd9b2",
+      "bytes": 188540
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-during-strip-first/manifest.json",
+      "sha256": "456e28fff717164d77aaf518fb1ac628fba9e48961b507ab3697315911ff4425",
+      "bytes": 89461
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-during-strip-first/actual-resize-events.json",
+      "sha256": "3cf09a240910299f976eb78b4630d1567e0f6da20fcd0de0dbfde5b8fc532ddc",
+      "bytes": 712
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-during-strip-first/client-error.log",
+      "sha256": "a351828071309058d13aa58db1a0382161ee0120c46a27ca04a2aa142ba67b07",
+      "bytes": 2912
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-during-strip-first/controlled-prefix15.json",
+      "sha256": "839751603cb01f143a55695c5359d5d526f9c46d5d08a7ed8a328b1ad7160e32",
+      "bytes": 4278
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-second/completion.json",
+      "sha256": "f2b996ab73931b37c4d48efe22e1e4ca5301705b93fe91de56e340b3aed21f6f",
+      "bytes": 762
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-second/manifest.json",
+      "sha256": "4286e09fbd4bd28bd05dc2d5383eedbf6e3638d010bb8069da3b6d34ed4fdf00",
+      "bytes": 124905
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-second/client.log",
+      "sha256": "069dcccecef5b5af965ae6a57b7dc7d9fff49d395c895ac465a9b06edf7d0589",
+      "bytes": 5554
+    },
+    {
+      "path": ".agents/presentation-stairs-composition-20261008/tour-second/engine-7eaab1902f6d422ea60095a35cb0fcb3-error.log",
+      "sha256": "8eae4937cf0e38111a96f53cf33e705abca128e265ded8090401d0079ed72cc8",
+      "bytes": 1080
+    },
+    {
+      "path": ".agents/server-release-build-topology-20261008/evidence.json",
+      "sha256": "217da983df20d3a10146c808a4346169ed4c1574ba5aafe21f7bb8928ec4d270",
+      "bytes": 245126
+    },
+    {
+      "path": ".agents/server-release-build-topology-20261008/bin/fragr-server-package-5c1f7984.exe",
+      "sha256": "5c1f79842eb161ddad59d6b2656357d05d96ae4c75b0b9771540dbeb868a38cc",
+      "bytes": 10209280
+    },
+    {
+      "path": ".agents/tour-capture-size-20261008/actual-before-strip-first/loaded-source/client/qa/tour.json",
+      "sha256": "ac0a76a09596611b43257d58c9317f7f6cce9b5b1d995b055d825f127a7679d7",
+      "bytes": 8787
+    }
+  ]
+}

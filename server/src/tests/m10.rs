@@ -392,6 +392,7 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
     for version in [
         crate::protocol::REPEATER_GAMEPLAY_VERSION,
         crate::protocol::M10_GAMEPLAY_VERSION,
+        crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -404,10 +405,13 @@ async fn m10_real_admission_refuses_all_old_roles_and_delivers_map_before_facts(
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::M10_GAMEPLAY_VERSION {
+                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains("36"));
+                        assert!(value["message"].as_str().unwrap().contains(&format!(
+                            "version {}",
+                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                        )));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

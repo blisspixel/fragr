@@ -28,7 +28,7 @@ fn bounded_weapons<'de, D: serde::Deserializer<'de>>(
     impl<'de> serde::de::Visitor<'de> for Columns {
         type Value = Vec<WeaponCounts>;
         fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            formatter.write_str("at most eight weapon columns")
+            formatter.write_str("at most nine weapon columns")
         }
         fn visit_seq<A: serde::de::SeqAccess<'de>>(
             self,
@@ -54,6 +54,8 @@ impl Counts {
     fn from_counts(counts: CombatCounts, version: u32) -> Self {
         let width = if version == RECORD_VERSION {
             WeaponType::ALL.len()
+        } else if version == EIGHT_COLUMN_RECORD_VERSION {
+            8
         } else {
             counts
                 .weapons
@@ -82,6 +84,7 @@ impl Counts {
         }
         if !match version {
             LEGACY_RECORD_VERSION => (5..=7).contains(&self.weapons.len()),
+            EIGHT_COLUMN_RECORD_VERSION => self.weapons.len() == 8,
             RECORD_VERSION => self.weapons.len() == WeaponType::ALL.len(),
             _ => false,
         } {
@@ -212,12 +215,12 @@ mod tests {
         }
         let current = record();
         let base = serde_json::to_value(&current).unwrap();
-        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 8);
+        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 9);
         assert_eq!(
             serde_json::from_value::<PlayerRecord>(base.clone()).unwrap(),
             current
         );
-        for width in [0, 5, 6, 7, 9, 100] {
+        for width in [0, 5, 6, 7, 8, 10, 100] {
             let mut bad = base.clone();
             bad["attempt"]["weapons"].as_array_mut().unwrap().resize(
                 width,
@@ -225,6 +228,52 @@ mod tests {
             );
             assert!(serde_json::from_value::<PlayerRecord>(bad).is_err());
         }
+    }
+
+    #[test]
+    fn exact_eight_column_history_remains_readable_without_accepting_arc_facts() {
+        let current = record();
+        let historical = current
+            .record_for_version(EIGHT_COLUMN_RECORD_VERSION)
+            .unwrap();
+        let base = serde_json::to_value(&historical).unwrap();
+        assert_eq!(base["version"], 2);
+        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 8);
+        assert_eq!(
+            serde_json::from_value::<PlayerRecord>(base.clone()).unwrap(),
+            historical
+        );
+        historical
+            .validate_for(Some(historical.player_id), None)
+            .unwrap();
+        for width in [0, 5, 6, 7, 9, 10, 100] {
+            let mut forged = base.clone();
+            forged["attempt"]["weapons"].as_array_mut().unwrap().resize(
+                width,
+                serde_json::to_value(WeaponCounts::default()).unwrap(),
+            );
+            assert!(
+                serde_json::from_value::<PlayerRecord>(forged).is_err(),
+                "v2 width {width}"
+            );
+        }
+        let mut actual = current;
+        actual.total.weapons[WeaponType::Arc.index()].attacks = 1;
+        assert!(actual.record_for_version(2).is_err());
+        assert!(actual.record_for_version(1).is_err());
+        assert!(serde_json::to_value(&actual.total).is_err());
+        let mut forged = actual.clone();
+        forged.version = 2;
+        assert!(
+            serde_json::to_value(&forged).is_err(),
+            "serialization may never truncate actual Arc facts"
+        );
+        actual.total = CombatCounts::default();
+        actual.attempt.weapons[WeaponType::Arc.index()].attacks = 1;
+        assert!(
+            actual.record_for_version(2).is_err(),
+            "attempt facts are equally durable"
+        );
     }
 
     #[test]

@@ -444,7 +444,7 @@
   ],
   "equipment": "discovery",
   "ground": "service_steel",
-  "half_extent": 24,
+  "half_extent": 24.0,
   "landmarks": [
     {
       "feet": [
@@ -2408,6 +2408,90 @@
         5.0
       ],
       "surface": "lift_panel"
+    },
+    {
+      "id": "west_pressure_stair_inner_wall",
+      "max": [
+        -3.25,
+        10.1,
+        -2.7
+      ],
+      "min": [
+        -3.55,
+        2.0,
+        -13.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_pressure_stair_turn_end",
+      "max": [
+        -3.25,
+        10.1,
+        -2.7
+      ],
+      "min": [
+        -7.8,
+        2.0,
+        -3.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "west_pressure_stair_hull_join",
+      "max": [
+        -7.45,
+        10.1,
+        -3.0
+      ],
+      "min": [
+        -7.8,
+        2.0,
+        -16.0
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_pressure_stair_inner_wall",
+      "max": [
+        3.65,
+        10.1,
+        13.0
+      ],
+      "min": [
+        3.35,
+        2.0,
+        2.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_pressure_stair_turn_end",
+      "max": [
+        7.8,
+        10.1,
+        3.0
+      ],
+      "min": [
+        3.35,
+        2.0,
+        2.7
+      ],
+      "surface": "enamel"
+    },
+    {
+      "id": "east_pressure_stair_hull_join",
+      "max": [
+        7.8,
+        10.1,
+        16.0
+      ],
+      "min": [
+        7.55,
+        2.0,
+        3.0
+      ],
+      "surface": "enamel"
     }
   ],
   "spawns": [

@@ -192,7 +192,7 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
             None
         } else {
             let s = v.as_str().ok_or_else(|| {
-                "schema error: weapon_swap must be a string (fists|shiv|tack|flechette|rail|scatter|sniper|repeater)"
+                "schema error: weapon_swap must be a string (fists|shiv|tack|flechette|rail|scatter|sniper|repeater|arc)"
                     .to_string()
             })?;
             match s {
@@ -204,9 +204,10 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
                 "scatter" => Some(protocol::WeaponType::Scatter),
                 "sniper" => Some(protocol::WeaponType::Sniper),
                 "repeater" => Some(protocol::WeaponType::Repeater),
+                "arc" => Some(protocol::WeaponType::Arc),
                 other => {
                     return Err(format!(
-                    "schema error: weapon_swap must be fists|shiv|tack|flechette|rail|scatter|sniper|repeater, got '{}'",
+                    "schema error: weapon_swap must be fists|shiv|tack|flechette|rail|scatter|sniper|repeater|arc, got '{}'",
                     other
                 ))
                 }
@@ -718,7 +719,7 @@ fn tools_list_result() -> Value {
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "duck": {"type": "boolean", "default": false, "description": "Hold to crouch. The server shortens the body and slows the walk. Release to stand when the ceiling allows. Omitted means standing."},
-                        "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter", "sniper", "repeater"], "description": "Select an owned weapon. Repeater holds through warmup and uses finite shared Bullets; it is not part of the arcade kit"},
+                        "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter", "sniper", "repeater", "arc"], "description": "Select an owned weapon. Repeater uses finite Bullets after warmup; Arc uses finite Cells at close or medium range and bypasses armor. Neither expands the arcade kit"},
                         "seat": {"type": "string", "enum": ["driver", "gunner"], "description": "Request a free seat in your stopped jeep. Switching locks vehicle controls briefly. Use interact to enter or exit."},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
@@ -1205,6 +1206,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m09,
             m10,
             m11,
+            m12,
             map_name,
             half_extent,
             solids,
@@ -1310,6 +1312,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m11 {
                 map["m11"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m12(
+                m12.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m12 {
+                map["m12"] = serde_json::json!(geometry);
             }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
@@ -1493,7 +1504,7 @@ mod mcp_tests {
         assert_eq!(observed["mission"]["m04"], mission_wire["state"]["m04"]);
         assert_eq!(
             observed["mission"]["rules"],
-            serde_json::json!({"difficulty":"standard","revision":3})
+            serde_json::json!({"difficulty":"standard","revision":fragr_server::protocol::CAMPAIGN_RULES_REVISION})
         );
         let tools = handle_mcp_request(req("tools/list", None), &mut state)
             .response
@@ -2052,7 +2063,7 @@ mod mcp_tests {
         assert_eq!(observed["mission"]["phase"], "briefing");
         assert_eq!(
             observed["mission"]["rules"],
-            serde_json::json!({"difficulty":"assisted","revision":3})
+            serde_json::json!({"difficulty":"assisted","revision":fragr_server::protocol::CAMPAIGN_RULES_REVISION})
         );
         assert_eq!(observed["mission"]["party"][0]["ready"], false);
         assert_eq!(observed["mission"]["party"][0]["id"], id.to_string());
@@ -2301,6 +2312,7 @@ mod mcp_tests {
             "rail",
             "sniper",
             "repeater",
+            "arc",
         ] {
             let action =
                 validate_act_arguments(&serde_json::json!({"weapon_swap":weapon,"fire":true}))

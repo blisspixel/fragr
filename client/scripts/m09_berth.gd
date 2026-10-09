@@ -1,13 +1,12 @@
 class_name M09Berth
 extends Node3D
 
-## The ship's surface details add no collision. Civilian strips remain
-## provisional casting; their presence and feet come only from mission facts.
+## The ship's details add no collision. Current people and feet come only
+## from accepted mission facts; named Tern and Edda share their M10 live skins.
 const TINTS: Dictionary[String, Color] = {"tern": Color("cfc4a5"), "berth_crew_a": Color("a7bbad"), "berth_crew_b": Color("c6a880"), "edda": Color("b8c5c7"), "splice": Color("b6abbe")}
 var _root: Node3D = null
 var _geometry: Dictionary = {}
-var _crew: Dictionary[String, Sprite3D] = {}
-var _clock: float = 0.0
+var _crew: Dictionary[String, CivilianFigure] = {}
 var _hatch_lamp: MeshInstance3D = null
 var _engine_lamps: Array[MeshInstance3D] = []
 var _glazing_views: Array[MeshInstance3D] = []
@@ -20,7 +19,6 @@ func clear_map() -> void:
 	_glazing_views.clear()
 	_hatch_lamp = null
 	state_applied = 0
-	_clock = 0.0
 	if is_instance_valid(_root):
 		remove_child(_root)
 		_root.queue_free()
@@ -97,37 +95,16 @@ func apply_state(state: Dictionary) -> void:
 	for person: Dictionary in facts["crew"]:
 		var id: String = str(person["id"])
 		if not _crew.has(id):
-			var figure: Sprite3D = Sprite3D.new()
+			var figure: CivilianFigure = CivilianFigure.new()
 			figure.name = "Passenger_" + id
-			figure.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if id in ["tern", "splice"] else PlayerBody.HUMAN)) as Texture2D
-			figure.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
-			figure.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
-			figure.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-			figure.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-			figure.layers = ArenaSky.ACTOR_LAYERS
-			figure.modulate = TINTS[id]
-			figure.position = _feet(person["feet"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
-			figure.set_meta("walked", 0.0)
-			figure.set_meta("last_move_ms", -1000)
+			figure.configure(id, TINTS[id])
 			_root.add_child(figure)
 			_crew[id] = figure
-		var view: Sprite3D = _crew[id]
-		var next: Vector3 = _feet(person["feet"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
-		var distance: float = view.position.distance_to(next)
-		if distance > 0.001:
-			view.set_meta("walked", float(view.get_meta("walked")) + distance)
-			view.set_meta("last_move_ms", Time.get_ticks_msec())
-		view.position = next
+		_crew[id].place_feet(_feet(person["feet"]))
 	if is_instance_valid(_hatch_lamp):
 		_hatch_lamp.material_override = MoonBackdrop._material(Color("8eb58b") if facts["hatch_open"] else Color("9a4533"), true)
 	for engine: MeshInstance3D in _engine_lamps:
 		engine.material_override = MoonBackdrop._material(Color("d8a15e") if facts["completed"].size() >= 8 else Color("473c32"), true)
-
-func _process(delta: float) -> void:
-	_clock += delta
-	for view: Sprite3D in _crew.values():
-		var moving: bool = Time.get_ticks_msec() - int(view.get_meta("last_move_ms")) < 150
-		view.frame = PlayerBody.frame(_clock, float(view.get_meta("walked")), 2.0 if moving else 0.0)
 
 static func _feet(raw: Array) -> Vector3:
 	return Vector3(float(raw[0]), float(raw[1]), float(raw[2]))

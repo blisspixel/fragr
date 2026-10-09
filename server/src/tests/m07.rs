@@ -844,6 +844,7 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
         crate::protocol::SNIPER_GAMEPLAY_VERSION,
         crate::protocol::M08_GAMEPLAY_VERSION,
         crate::protocol::M07_GAMEPLAY_VERSION,
+        crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -866,10 +867,13 @@ async fn m07_refuses_pre_town_readers_and_sends_geometry_before_snapshots() {
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::M07_GAMEPLAY_VERSION {
+                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "pre-town reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains("32"));
+                        assert!(value["message"].as_str().unwrap().contains(&format!(
+                            "version {}",
+                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                        )));
                         break;
                     }
                     match value["type"].as_str().unwrap() {

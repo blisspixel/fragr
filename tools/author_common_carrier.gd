@@ -2,6 +2,7 @@ extends SceneTree
 ## Deterministic collision blockout for the Common Carrier's inhabited decks.
 
 var _solids: Array[Dictionary] = []
+const STAIR_ARCHITECTURE: Script = preload("res://../tools/author_campaign_stairs.gd")
 
 func _initialize() -> void:
 	var footprint := Rect2(-7.8, -17.8, 15.6, 35.6)
@@ -52,12 +53,23 @@ func _initialize() -> void:
 		"m10": _mission(), "encounters": _encounters(),
 		"spawns": [{"id": "passenger_entry", "feet": [0.0, 4.8, -15.0], "yaw": 0.0}],
 	}
+	# Preserve the predecessor's established number formatting before adding
+	# new full-precision geometry, so regeneration retains its exact identity.
+	document=JSON.parse_string(JSON.stringify(document,"  "))
+	document.version=int(document.version)
+	document.map_id=int(document.map_id)
+	for supply: Dictionary in document.supplies:
+		if supply.grant.has("amount"):
+			supply.grant.amount=int(supply.grant.amount)
+	if not STAIR_ARCHITECTURE.append_enclosures(document,10):
+		quit(1)
+		return
 	var file: FileAccess = FileAccess.open("res://../server/maps/m10_common_carrier.json", FileAccess.WRITE)
 	if file == null:
 		push_error("Common Carrier source cannot be written")
 		quit(1)
 		return
-	file.store_string(JSON.stringify(document, "  ") + "\n")
+	file.store_string(JSON.stringify(document, "  ",true,true) + "\n")
 	file.close()
 	print("author_common_carrier: PASS (%d solids)" % _solids.size())
 	quit(0)

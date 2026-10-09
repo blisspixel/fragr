@@ -1,6 +1,12 @@
 class_name M05Town
 extends M04Town
 
+var _splice: CivilianFigure
+
+func clear_map() -> void:
+	super.clear_map()
+	_splice = null
+
 ## Surface repair, fixtures and passengers are tied to registered volumes.
 ## Nothing here adds cover, support, a moving body or an outcome.
 func configure_map(info: Dictionary) -> void:
@@ -67,6 +73,13 @@ func configure_map(info: Dictionary) -> void:
 				_box("MarketRepairHem", Vector3(high.x + 0.014, high.y - 0.3, center.z), Vector3(0.025, 0.2, high.z - low.z), Color("af744e"))
 	for index: int in range(info["m05"]["rescue"]["captives"].size()):
 		var captive: Dictionary = info["m05"]["rescue"]["captives"][index]
+		if captive["id"] == "splice":
+			_splice = CivilianFigure.new()
+			_splice.name = "Worker_splice"
+			_splice.configure("splice", Color("b8bda7"))
+			_root.add_child(_splice)
+			_splice.place_feet(_feet(captive["held"]))
+			continue
 		var view: Sprite3D = Sprite3D.new()
 		view.name = "Worker_" + captive["id"]
 		view.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC)) as Texture2D
@@ -79,11 +92,6 @@ func configure_map(info: Dictionary) -> void:
 		view.set_meta("walked", 0.0)
 		view.set_meta("last_move_ms", -1000)
 		_root.add_child(view)
-		if index == 0:
-			var patch: MeshInstance3D = _box("SpliceRepairPatch", view.position + Vector3(0.26, 0.08, 0.025), Vector3(0.10, 0.13, 0.04), Color("966c83"))
-			_root.remove_child(patch)
-			view.add_child(patch)
-			patch.position = Vector3(0.26, 0.08, 0.025)
 		_views[captive["id"]] = view
 	_geometry = MissionState.geometry_for(info)
 
@@ -92,6 +100,12 @@ func apply_state(state: Dictionary) -> void:
 		or not MissionState.validation_error({"tick": EquipmentState.MAX_EXACT_INTEGER, "state": state}, _geometry).is_empty():
 		return
 	for captive: Dictionary in state["m05"]["captives"]:
+		if captive["id"] == "splice":
+			if _splice != null:
+				_splice.place_feet(_feet(captive["feet"]))
+				if _splice.strip != null:
+					_splice.strip.modulate = Color("e8e2d6") if state["m05"]["group_released"] else Color("b8bda7")
+			continue
 		var view: Sprite3D = _views[captive["id"]]
 		var next: Vector3 = _feet(captive["feet"]) + Vector3.UP * EnemyAnimation.CENTRE_HEIGHT
 		var distance: float = view.position.distance_to(next)

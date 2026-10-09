@@ -1,0 +1,1626 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "scope": "Prepared rigid source accepted locally. No live runtime selection, mission appearance, package or final human/art acceptance.",
+  "prepared_artifact": ".agents/splice-mechanical-source-20261008/compact-third/splice-prepared.glb",
+  "prepared_sha256": "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e2461da2f1f48f98",
+  "preparation": {
+    "added_cap_triangles": 908,
+    "bytes": 6115980,
+    "caps": [
+      {
+        "child": 0,
+        "node": "OriginalEdgeClosure_0_1",
+        "owner": 1,
+        "triangles": 33
+      },
+      {
+        "child": 0,
+        "node": "OriginalEdgeClosure_0_0",
+        "owner": 0,
+        "triangles": 31
+      },
+      {
+        "child": 2,
+        "node": "OriginalEdgeClosure_2_3",
+        "owner": 3,
+        "triangles": 36
+      },
+      {
+        "child": 2,
+        "node": "OriginalEdgeClosure_2_2",
+        "owner": 2,
+        "triangles": 36
+      },
+      {
+        "child": 4,
+        "node": "OriginalEdgeClosure_4_2",
+        "owner": 2,
+        "triangles": 28
+      },
+      {
+        "child": 4,
+        "node": "OriginalEdgeClosure_4_4",
+        "owner": 4,
+        "triangles": 28
+      },
+      {
+        "child": 5,
+        "node": "OriginalEdgeClosure_5_4",
+        "owner": 4,
+        "triangles": 23
+      },
+      {
+        "child": 5,
+        "node": "OriginalEdgeClosure_5_5",
+        "owner": 5,
+        "triangles": 23
+      },
+      {
+        "child": 6,
+        "node": "OriginalEdgeClosure_6_5",
+        "owner": 5,
+        "triangles": 23
+      },
+      {
+        "child": 6,
+        "node": "OriginalEdgeClosure_6_6",
+        "owner": 6,
+        "triangles": 23
+      },
+      {
+        "child": 7,
+        "node": "OriginalEdgeClosure_7_2",
+        "owner": 2,
+        "triangles": 37
+      },
+      {
+        "child": 7,
+        "node": "OriginalEdgeClosure_7_7",
+        "owner": 7,
+        "triangles": 37
+      },
+      {
+        "child": 8,
+        "node": "OriginalEdgeClosure_8_7",
+        "owner": 7,
+        "triangles": 32
+      },
+      {
+        "child": 8,
+        "node": "OriginalEdgeClosure_8_8",
+        "owner": 8,
+        "triangles": 32
+      },
+      {
+        "child": 9,
+        "node": "OriginalEdgeClosure_9_8",
+        "owner": 8,
+        "triangles": 23
+      },
+      {
+        "child": 9,
+        "node": "OriginalEdgeClosure_9_9",
+        "owner": 9,
+        "triangles": 23
+      },
+      {
+        "child": 10,
+        "node": "OriginalEdgeClosure_10_3",
+        "owner": 3,
+        "triangles": 41
+      },
+      {
+        "child": 10,
+        "node": "OriginalEdgeClosure_10_10",
+        "owner": 10,
+        "triangles": 41
+      },
+      {
+        "child": 11,
+        "node": "OriginalEdgeClosure_11_10",
+        "owner": 10,
+        "triangles": 30
+      },
+      {
+        "child": 11,
+        "node": "OriginalEdgeClosure_11_11",
+        "owner": 11,
+        "triangles": 30
+      },
+      {
+        "child": 12,
+        "node": "OriginalEdgeClosure_12_11",
+        "owner": 11,
+        "triangles": 31
+      },
+      {
+        "child": 12,
+        "node": "OriginalEdgeClosure_12_12",
+        "owner": 12,
+        "triangles": 31
+      },
+      {
+        "child": 13,
+        "node": "OriginalEdgeClosure_13_3",
+        "owner": 3,
+        "triangles": 65
+      },
+      {
+        "child": 13,
+        "node": "OriginalEdgeClosure_13_13",
+        "owner": 13,
+        "triangles": 65
+      },
+      {
+        "child": 14,
+        "node": "OriginalEdgeClosure_14_13",
+        "owner": 13,
+        "triangles": 29
+      },
+      {
+        "child": 14,
+        "node": "OriginalEdgeClosure_14_14",
+        "owner": 14,
+        "triangles": 29
+      },
+      {
+        "child": 15,
+        "node": "OriginalEdgeClosure_15_14",
+        "owner": 14,
+        "triangles": 24
+      },
+      {
+        "child": 15,
+        "node": "OriginalEdgeClosure_15_15",
+        "owner": 15,
+        "triangles": 24
+      }
+    ],
+    "clips": [
+      {
+        "keys": 129,
+        "name": "calm",
+        "seconds": 4.0
+      },
+      {
+        "keys": 129,
+        "name": "walk",
+        "seconds": 2.0
+      }
+    ],
+    "exact_original_surface_coverage": true,
+    "legal_metadata_preserved": true,
+    "limb_joint_distances": [
+      {
+        "from": "left_upper_arm",
+        "joint_distance_m": 0.255203784077038,
+        "to": "left_forearm"
+      },
+      {
+        "from": "left_forearm",
+        "joint_distance_m": 0.343877492201275,
+        "to": "left_hand"
+      },
+      {
+        "from": "right_upper_arm",
+        "joint_distance_m": 0.270629888331299,
+        "to": "right_forearm"
+      },
+      {
+        "from": "right_forearm",
+        "joint_distance_m": 0.347032641620326,
+        "to": "right_hand"
+      },
+      {
+        "from": "left_upper_leg",
+        "joint_distance_m": 0.419104474659795,
+        "to": "left_lower_leg"
+      },
+      {
+        "from": "left_lower_leg",
+        "joint_distance_m": 0.415885663908857,
+        "to": "left_foot"
+      },
+      {
+        "from": "right_upper_leg",
+        "joint_distance_m": 0.421506905827569,
+        "to": "right_lower_leg"
+      },
+      {
+        "from": "right_lower_leg",
+        "joint_distance_m": 0.41739901216149,
+        "to": "right_foot"
+      }
+    ],
+    "maps": [
+      {
+        "image": 0,
+        "name": "normal",
+        "prepared_size": [
+          1024,
+          1024
+        ],
+        "roughness_floor_applied": false,
+        "sha256": "5673df031609f2cb7da2e58834db0d56019e5695c73f5d0f81e44ff1278deecc",
+        "source_size": [
+          4096,
+          4096
+        ]
+      },
+      {
+        "image": 1,
+        "name": "Image_0",
+        "prepared_size": [
+          1024,
+          1024
+        ],
+        "roughness_floor_applied": false,
+        "sha256": "5e1780d5721019323d1c0a24771c81cba6e4c1e9cca0587c885eb173a1c5c776",
+        "source_size": [
+          4096,
+          4096
+        ]
+      },
+      {
+        "image": 2,
+        "name": "Image_1",
+        "prepared_size": [
+          1024,
+          1024
+        ],
+        "roughness_floor_applied": true,
+        "sha256": "1390990c9f2ad7d7a60a8418f3240dbf22147d143335c55b3cd6e3ae6f9976f5",
+        "source_size": [
+          2048,
+          2048
+        ]
+      }
+    ],
+    "native_reload": true,
+    "new_credits": 0,
+    "non_image_payloads_unchanged": true,
+    "original_triangles": 16602,
+    "prepared_sha256": "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e2461da2f1f48f98",
+    "regions_sha256": "f2191a008a44537b821b80da5bdf181958f69890bf6b9d388a51e1d75ebeb7a8",
+    "runtime_selected": false,
+    "schema": 1,
+    "source_sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1",
+    "stored_attachment": "Complete original rack/tool surfaces share right upper-leg transform; independent tools and grip sockets are not established.",
+    "uniform_scale": 0.948122428681224
+  },
+  "native_actual_motion": {
+    "actual_native_cap_triangles_match_with_measured_tolerance": true,
+    "actual_quarter_reference_error_m": 1.21286660714759E-07,
+    "maximum_actual_floor_error_m": 0.000213563442230225,
+    "maximum_actual_native_cap_center_error_m": 5.68473069506581E-07,
+    "maximum_actual_native_cap_local_position_error_m": 3.50159848494513E-06,
+    "maximum_actual_native_cap_rim_error_m": 3.36307675752323E-06,
+    "maximum_actual_original_surface_difference_m": 0.000311624724417925,
+    "maximum_actual_rack_error": 0.0,
+    "maximum_welded_witness_cap_rim_error_m": 0.0,
+    "maximum_welded_witness_hinge_center_error_m": 1.33332093810168E-07,
+    "native_cap_tolerances_m": {
+      "center": 2E-05,
+      "rim": 1E-05
+    },
+    "negative_controls": {
+      "altered_actual_exported_cap_surface_fails": true,
+      "detached_exported_rack_fails": true,
+      "frozen_actual_clip_fails_reference_motion": true,
+      "missing_exported_cap_fails": true,
+      "raised_exported_root_fails_support": true
+    },
+    "prepared_sha256": "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e2461da2f1f48f98",
+    "rest_height_m": 1.79999995231628,
+    "rest_reconstruction_error_m": 1.1926748300084E-07,
+    "runtime_selected": false,
+    "sample_count": 512,
+    "sample_kind": "actual reloaded AnimationPlayer at off-grid phases",
+    "schema": 1
+  },
+  "native_actual_material": {
+    "actual_native_texture_sizes": {
+      "0": [
+        1024,
+        1024
+      ],
+      "1": [
+        1024,
+        1024
+      ],
+      "2": [
+        1024,
+        1024
+      ],
+      "4": [
+        1024,
+        1024
+      ]
+    },
+    "actual_roughness_green_minimum": 0.878431379795074,
+    "metallic": 0.0799999982118607,
+    "normal_enabled": true,
+    "roughness": 1.0,
+    "schema": 1,
+    "texture_filter": 2,
+    "texture_filter_names": [
+      "TEXTURE_FILTER_NEAREST_WITH_MIPMAPS"
+    ]
+  },
+  "inspected_originals": {
+    "manifest": ".agents/splice-mechanical-source-20261008/compact-preview-first/preview.json",
+    "retained_static_originals": 40,
+    "retained_timed_motion_originals": 96,
+    "compact_static_viewed_full_size": [
+      "compact_rest_0.png",
+      "compact_rest_1.png",
+      "compact_rest_2.png",
+      "compact_rest_3.png",
+      "compact_walk_250_0.png",
+      "compact_walk_250_1.png",
+      "compact_walk_250_2.png",
+      "compact_walk_250_3.png",
+      "compact_walk_750_0.png",
+      "compact_walk_750_1.png",
+      "compact_walk_750_2.png",
+      "compact_walk_750_3.png",
+      "compact_joints_0_neutral.png",
+      "compact_joints_2_neutral.png",
+      "compact_distant_neutral.png",
+      "compact_joints_0_dim.png",
+      "compact_joints_2_dim.png",
+      "compact_distant_dim.png",
+      "compact_turn_0.png",
+      "compact_turn_2.png"
+    ],
+    "source_static_viewed_full_size": [
+      "source_rest_0.png",
+      "source_walk_250_3.png",
+      "source_joints_0_dim.png",
+      "source_walk_750_2.png",
+      "source_joints_2_dim.png",
+      "source_distant_dim.png"
+    ],
+    "moving_viewed_full_size": [
+      "motion_006.png",
+      "motion_018.png",
+      "motion_030.png",
+      "motion_042.png",
+      "motion_054.png",
+      "motion_066.png",
+      "motion_078.png",
+      "motion_090.png"
+    ],
+    "acceptance": "Original silhouette, joints, anatomical paint, supported gait and shared stored attachment remain coherent in inspected compact/source controls, with matte pixel surfaces and no prior sphere bulges.",
+    "independent_selected_frame_review": [
+      {
+        "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_rest_0.png",
+        "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+      },
+      {
+        "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_0_dim.png",
+        "sha256": "2441b994f184864c45f26f27f3c483366842b16ec530c8cdb6c8755542b9ae97"
+      },
+      {
+        "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_250_3.png",
+        "sha256": "7fe05efbaae483ff96c7264a1d8f3cc641d43b83580fc3a17082fd9a10f20ae6"
+      },
+      {
+        "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_250_3.png",
+        "sha256": "b167c224cfc4c8ac3edff5873b6dd5ce8bff8a7704b64b672e0c5b052e7221f4"
+      },
+      {
+        "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_750_2.png",
+        "sha256": "9f741e365ce9b04ca7ba6d0c8dd48c2a72ecac00fefc0436c75a110e834173cc"
+      },
+      {
+        "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_2_dim.png",
+        "sha256": "2ec774d20937fbef5c51e7b4d77fb91ea09bf9c0e1c5a678c6c1393c713b40d8"
+      }
+    ],
+    "independent_review_scope": "Separate review of six selected full-size originals, supporting bounded prepared-source acceptance only.",
+    "renderer": "gl_compatibility",
+    "adapter": "AMD Radeon(TM) 780M",
+    "resolution": [
+      1024,
+      768
+    ],
+    "performance_claim": false
+  },
+  "retained_failures": [
+    {
+      "directory": ".agents/splice-mechanical-source-20261008/compact-first",
+      "reason": "Native class name collision, parser rejected before export"
+    },
+    {
+      "directory": ".agents/splice-mechanical-source-20261008/compact-second",
+      "reason": "Preflight incorrectly assumed all source maps were 4096 square; actual packed map is 2048"
+    },
+    {
+      "directory": ".agents/splice-mechanical-source-20261008/compact-validation-second",
+      "reason": "1e-6 string buckets differ after native cap import. Replaced by actual per-triangle correspondence and measured moving native vertices; unchanged artifact."
+    }
+  ],
+  "native_cap_precision": {
+    "dump": ".agents/splice-mechanical-source-20261008/cap-inspection-first/caps.json",
+    "exported_float_comparison": ".agents/splice-mechanical-source-20261008/cap-inspection-first/exported-floats.json",
+    "scope": "Actual cap triangle counts and point correspondence, with measured native import variation. Welded source-witness zero is a separate narrower measurement."
+  },
+  "loaded_recipe_snapshots": {
+    "preparation": ".agents/splice-mechanical-source-20261008/compact-third/prepare-script-snapshot.gd",
+    "render_script": ".agents/splice-mechanical-source-20261008/compact-preview-first/preview-script-snapshot.gd",
+    "render_reload_helper": ".agents/splice-mechanical-source-20261008/compact-preview-first/reload-helper-snapshot.gd",
+    "final_validator": ".agents/splice-mechanical-source-20261008/compact-validation-third/validate-script-snapshot.gd",
+    "final_reload_helper": ".agents/splice-mechanical-source-20261008/compact-validation-third/reload-helper-snapshot.gd",
+    "core_sources": ".agents/splice-mechanical-source-20261008/source-edge-caps-final",
+    "helpers": ".agents/splice-mechanical-source-20261008/receipt-sources",
+    "current_compact_sources": ".agents/splice-mechanical-source-20261008/compact-receipt-sources"
+  },
+  "public_original_copies": [
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-rest-front.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_rest_0.png",
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/source-rest-front.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_rest_0.png",
+      "sha256": "c4dd8c51748d80f1df375fc34f40afac64e97e6ffb9134c3e8096e38b5037092"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-walk-side.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_250_3.png",
+      "sha256": "7fe05efbaae483ff96c7264a1d8f3cc641d43b83580fc3a17082fd9a10f20ae6"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-walk-back.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_750_2.png",
+      "sha256": "9f741e365ce9b04ca7ba6d0c8dd48c2a72ecac00fefc0436c75a110e834173cc"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-joints-front-dim.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_0_dim.png",
+      "sha256": "2441b994f184864c45f26f27f3c483366842b16ec530c8cdb6c8755542b9ae97"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-joints-back-dim.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_2_dim.png",
+      "sha256": "2ec774d20937fbef5c51e7b4d77fb91ea09bf9c0e1c5a678c6c1393c713b40d8"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-distant-dim.png",
+      "original": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_distant_dim.png",
+      "sha256": "bcdaddfa1e37824d561072ac7e263fefea32d2d984cd70082b786b1a170296dd"
+    }
+  ],
+  "remaining_gates": [
+    "Coordinated rigid named civilian presenter",
+    "Actual live feet, gait, lighting and eligibility",
+    "Ordinary included and omitted routes on current maps",
+    "Composed client and package checks",
+    "Final human/art acceptance",
+    "Independent grips, physical tool use and finger articulation if later required"
+  ],
+  "paid_requests": 0,
+  "model_credits_consumed": 0,
+  "cash_charged_usd": 0,
+  "runtime_selected": false,
+  "bindings": [
+    {
+      "path": ".agents/splice-mechanical-source-20261008/cap-inspection-first/caps.json",
+      "bytes": 628018,
+      "sha256": "f47518bea5bb4c0cc4845fdc9dc61d32fc2f871225cdff025278f89281f33388"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/cap-inspection-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/cap-inspection-first/client.log",
+      "bytes": 36556,
+      "sha256": "e1e63b0f5b6cdec27f5e91a01f7a3824c878debe3d09a5f5f5abc851f9602095"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/cap-inspection-first/exported-floats.json",
+      "bytes": 251,
+      "sha256": "1d810aab5d31faa1285201bebdbb0111b664e03e2cb466afa0c33be2bef4093d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/cap-inspection-first/inspect-script-snapshot.gd",
+      "bytes": 2436,
+      "sha256": "385599156b744969a81081cfaa9a7adf0b690f20dd9b046032763c56014dd8ef"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/cap-inspection-first/process.json",
+      "bytes": 399,
+      "sha256": "3a0b681195639c4dbb6498c0ab65472d7419a2eea7642d2f50f5f6298f9de0fa"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-first/client-error.log",
+      "bytes": 306,
+      "sha256": "4fd5cd8b3daeae4103b1fb15fe45ca1797bfe9608c67d0d3596395958c8ae2a1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-first/client.log",
+      "bytes": 1623,
+      "sha256": "27f63de2d2a8f366d72626386ae063469ed762e1af293014d8a9287fc0967959"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-first/prepare-script-snapshot.gd",
+      "bytes": 13207,
+      "sha256": "673bc80df38c37e83f9d8d96dff1058b132752fc6593e15a2b66788695c95c43"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-first/process.json",
+      "bytes": 557,
+      "sha256": "d3acb06fe97cdae51e1067884d99f19c39c7ac71079265979d9ea9b16c6c6df2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-material-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-material-first/client.log",
+      "bytes": 36581,
+      "sha256": "4648e008d6cf3c90d26802a0295ec3a4a790fc013ef9b8bd3e1566c4f57dd9cf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-material-first/inspect-script-snapshot.gd",
+      "bytes": 1980,
+      "sha256": "d6655e4b28576ff3f1fa0d4a42e301634776fe6196a64501b40e9ed8100f9720"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-material-first/material.json",
+      "bytes": 402,
+      "sha256": "e50b78178614c4b9b4b7e59932c7066d0a3c94fc25a5bfdde2877173e8e9d542"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-material-first/process.json",
+      "bytes": 410,
+      "sha256": "609a68f4ff2dc947f379da1b6f99a4db0511594b1f73eb254f27724c85f15265"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/client.log",
+      "bytes": 315,
+      "sha256": "dbd4409dfe5f11f12e08326913f37c85afa898ad1854eaad39cf8f131a50901d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_distant_dim.png",
+      "bytes": 70901,
+      "sha256": "bcdaddfa1e37824d561072ac7e263fefea32d2d984cd70082b786b1a170296dd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_distant_neutral.png",
+      "bytes": 80346,
+      "sha256": "dc629d00a55cb7b3f7ad83db9fa4e984148caa12c58775d6dc6f9f8b826174df"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_0_dim.png",
+      "bytes": 318991,
+      "sha256": "2441b994f184864c45f26f27f3c483366842b16ec530c8cdb6c8755542b9ae97"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_0_neutral.png",
+      "bytes": 362642,
+      "sha256": "56b761c5b46033e7ddd6b2f99766c3f8c3ce52733cde5337f7999b73a495c441"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_2_dim.png",
+      "bytes": 305488,
+      "sha256": "2ec774d20937fbef5c51e7b4d77fb91ea09bf9c0e1c5a678c6c1393c713b40d8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_joints_2_neutral.png",
+      "bytes": 367241,
+      "sha256": "cd4ad475756f071b2c5016d56c391f3dae1b9a9e25b99c418a7e2c9e7f5e191c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_rest_0.png",
+      "bytes": 207520,
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_rest_1.png",
+      "bytes": 134350,
+      "sha256": "df2d40a57acbf74ff7e40e613ddc28a456fe39949d5a8a4e7dc83794052c62b0"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_rest_2.png",
+      "bytes": 209547,
+      "sha256": "e74df6482d9d150ca932cdfd40474a3b8913fbd17b26b8fbec0b61ba763b2aba"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_rest_3.png",
+      "bytes": 138693,
+      "sha256": "c85c3ff97b9c97ebf12658ff268cbf54221c223964d7bbccfeb443be1deccadf"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_turn_0.png",
+      "bytes": 205737,
+      "sha256": "2c1bd164e887d7bf82265e7ba3e13087c62b44203f420911e4eaa20448f2cc9c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_turn_2.png",
+      "bytes": 207854,
+      "sha256": "95c5c7572e05bb2e6e93d54c238dd7b29350aa07e6596b07d678b7aa1d13cee3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_250_0.png",
+      "bytes": 205737,
+      "sha256": "2c1bd164e887d7bf82265e7ba3e13087c62b44203f420911e4eaa20448f2cc9c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_250_1.png",
+      "bytes": 168868,
+      "sha256": "8511b46e4b663669aa10722a4914ca56ba5906b336aa0df17ee1104947fd3e71"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_250_2.png",
+      "bytes": 207854,
+      "sha256": "95c5c7572e05bb2e6e93d54c238dd7b29350aa07e6596b07d678b7aa1d13cee3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_250_3.png",
+      "bytes": 177471,
+      "sha256": "7fe05efbaae483ff96c7264a1d8f3cc641d43b83580fc3a17082fd9a10f20ae6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_750_0.png",
+      "bytes": 206939,
+      "sha256": "1d87c8aaae172fd4a98500a308623d108d06c1ed4d583870a52aef5b0f359510"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_750_1.png",
+      "bytes": 165179,
+      "sha256": "3d4ba11d10751cd91f8bd6c0a5b8017d4075fc50afd1fcac4045e8039a7aba4b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_750_2.png",
+      "bytes": 209029,
+      "sha256": "9f741e365ce9b04ca7ba6d0c8dd48c2a72ecac00fefc0436c75a110e834173cc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/compact_walk_750_3.png",
+      "bytes": 167855,
+      "sha256": "387c41c065ae268a3395105cf399c09ad3887a72bb4331554289ba535a461e92"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_000.png",
+      "bytes": 207520,
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_001.png",
+      "bytes": 207182,
+      "sha256": "b57d39caecd3418f3d5be6c184bd90a94ce81ba23a1f974f2458b0b4f1f70bf1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_002.png",
+      "bytes": 207557,
+      "sha256": "e9699c22c79e8f29bf8e36d7ded48e0f9cf9bbf19a959bb807a637c1a471456d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_003.png",
+      "bytes": 207561,
+      "sha256": "752e8dd201a18da4ce264cf40429c274b0513c24454f76e1a695934c3c84bef4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_004.png",
+      "bytes": 207160,
+      "sha256": "f69c5c071d9f3bc4e955498edd5efce4c7e8c10d66341657dcd121ecaf50c413"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_005.png",
+      "bytes": 206715,
+      "sha256": "7d0c02564fa4c749afb8eb4beab5f3ad0894af420731ce952a872f3b84ff9346"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_006.png",
+      "bytes": 207099,
+      "sha256": "5e6d537c98fe611d0f722fb5ace44baa2a2ab8c5f7db63a8c01b0273d330d743"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_007.png",
+      "bytes": 206806,
+      "sha256": "1dc24adfe4d89107892bb4349b0a91aba674af09e2b7ab237fa943e0624abd3c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_008.png",
+      "bytes": 206403,
+      "sha256": "27c086b9fadd0ea08bfc7ac6987cd31d7f84f49e3279d36bde5e3b8a82f4aff5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_009.png",
+      "bytes": 206475,
+      "sha256": "0f91639d2e4ca13183e772821928f63d84f81b28a5cc2c0dfcc65a04d3760648"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_010.png",
+      "bytes": 206703,
+      "sha256": "fa13548dd0e83c5d2e13e2c855188a5c205816814d9f5ee21864d953b95ff5e4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_011.png",
+      "bytes": 206010,
+      "sha256": "4bd2568aa77270661d6082ccddf70afafc9f158198e17cfc06b32373df27e9bb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_012.png",
+      "bytes": 205737,
+      "sha256": "2c1bd164e887d7bf82265e7ba3e13087c62b44203f420911e4eaa20448f2cc9c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_013.png",
+      "bytes": 205746,
+      "sha256": "ba2d347ae378c5a3c81749011ad75c32579e8b5e3aa7e48eb00a006c29a4e561"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_014.png",
+      "bytes": 206503,
+      "sha256": "a6133eb9b7107b99cca0bbc3926116ff8d5972c5781e3e84bb38327fb7d07c43"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_015.png",
+      "bytes": 206694,
+      "sha256": "b968c59fd81a43a01f8efaddb7a05f7e41632b042709484547742ffbd2eba280"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_016.png",
+      "bytes": 206671,
+      "sha256": "4faaea0d71267cc65ea251be99e2e0fb03ebf3f22950b56d0e77e2b978676350"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_017.png",
+      "bytes": 206751,
+      "sha256": "c5c428db0058b35ebe95aed31e38b8726ac111e428391f5a31471453a046e20b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_018.png",
+      "bytes": 207266,
+      "sha256": "3ca21dde94ee7b95e3956a542c7b0a649c6ac3c8f77e0df218a6a950b815b270"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_019.png",
+      "bytes": 206798,
+      "sha256": "d01cedafb10678add0602bed744c6ea4c2b5638d9e48f4831f398720ace0edbd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_020.png",
+      "bytes": 207472,
+      "sha256": "12bb905b846d8fc202a0476719639f468e279cf67c65f394fd2641490789ba1a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_021.png",
+      "bytes": 207625,
+      "sha256": "fd376a1b446eeb7e9d80e1fa13ca982bbbf0beb701e2de3b8acae01028349ac9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_022.png",
+      "bytes": 207737,
+      "sha256": "c281d143c0265ed1b347ada89f90bd5f8dc23cfc3a561df4258d1bc5329a6652"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_023.png",
+      "bytes": 207355,
+      "sha256": "b25c118eeb78e31c9a0cc364f50044f53a49888e90db7f5a9b3db1d5e8cc892e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_024.png",
+      "bytes": 207520,
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_025.png",
+      "bytes": 207796,
+      "sha256": "79179b2b98c0d7086f03777d4dc909f60042bc2421c0d9ba089a0b2d4ea9a4e1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_026.png",
+      "bytes": 207413,
+      "sha256": "3788c6f4f64fdcb97ea78432d3f5239370e0afad8fdc5c35e7b0e498ca0e6ac8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_027.png",
+      "bytes": 208366,
+      "sha256": "d4574fb5197bd78f108285df5bdefec54df8b0a61e91ec49e932c591220ce2d3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_028.png",
+      "bytes": 207738,
+      "sha256": "e9e9b6ded9741ee437552fc399fa6bbbf2f73599d098107486b0fb1fa86312f8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_029.png",
+      "bytes": 207481,
+      "sha256": "ca19462c6050fd89d08e75c50a02451cc8ae8b4eaab5eb15920556bf7b32106b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_030.png",
+      "bytes": 207536,
+      "sha256": "221c92f8780ddcf407f6e5f3bb2b2df06208bfe035a1d0e7c47cee5446f40d8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_031.png",
+      "bytes": 207410,
+      "sha256": "9e760bf881700370ee3afc783a9f76fcb8af6a75bb70491269f05309cb23f2d3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_032.png",
+      "bytes": 206915,
+      "sha256": "c5626d9e37ec8ccce7da3bc92293e9b03ebcc746f55fb1fc9c2c742d3f7f1353"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_033.png",
+      "bytes": 207251,
+      "sha256": "5a8fd2fd3388b73323112c42839a2a87a82a4f6e3fa6f44668cc34d5fcda0fcc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_034.png",
+      "bytes": 207296,
+      "sha256": "0a75632f3139fcd84ca5622a3a782699f8a87ff07478e5a63a4a56adcbda18a6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_035.png",
+      "bytes": 207079,
+      "sha256": "bc87888f68c467164aac5c7267212cab945d40e1d4b848c143e0d441a5f999d8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_036.png",
+      "bytes": 206939,
+      "sha256": "1d87c8aaae172fd4a98500a308623d108d06c1ed4d583870a52aef5b0f359510"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_037.png",
+      "bytes": 207029,
+      "sha256": "4e92f30b818b068b8be7b88158174f4cce1684a7bcc8ea1d296214fe13e9c156"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_038.png",
+      "bytes": 207671,
+      "sha256": "4c71a02759565b25907a7c7896537c8af97af7e1db525eace2c8b14ecf38a619"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_039.png",
+      "bytes": 207327,
+      "sha256": "36291959a94330b1b2b0d9a47b39fbeae04fba475053080e049d096f2b951a8f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_040.png",
+      "bytes": 207469,
+      "sha256": "fdee87315b157083cc54dc0df2844006d9bd27035962e68daaabed6025baebd6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_041.png",
+      "bytes": 208123,
+      "sha256": "a8722900fcc285c317e0b5142599d3d4baf299eb9302b688b6f1bca55e87edd7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_042.png",
+      "bytes": 208139,
+      "sha256": "334d1ed7b8e08d43ffc451b830941c64606bdaf9e7123cf54afc4981a4faa45c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_043.png",
+      "bytes": 207842,
+      "sha256": "a4eaccb81a3030b8c4cda12ebabe784880122daca1919744238a353573dcf710"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_044.png",
+      "bytes": 207960,
+      "sha256": "aca1ca3b622017bf28d2ce0fd3f8eb5cc71703f6b8f024ce17f70a3951c9b192"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_045.png",
+      "bytes": 208610,
+      "sha256": "ca823c643f1ad5bba721a77311c628bfe463837396a38f32ac6d0f830cb0fc86"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_046.png",
+      "bytes": 208218,
+      "sha256": "230db32ae4eb1184df274d77e41ea6f0cff925db396bd0b5633a08314139fe68"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_047.png",
+      "bytes": 207794,
+      "sha256": "cc9bc98497dec49ec34500d7389a1e2831c00d0ace6e15b6c82dd205b985e4df"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_048.png",
+      "bytes": 207520,
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_049.png",
+      "bytes": 207182,
+      "sha256": "b57d39caecd3418f3d5be6c184bd90a94ce81ba23a1f974f2458b0b4f1f70bf1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_050.png",
+      "bytes": 207557,
+      "sha256": "e9699c22c79e8f29bf8e36d7ded48e0f9cf9bbf19a959bb807a637c1a471456d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_051.png",
+      "bytes": 207561,
+      "sha256": "752e8dd201a18da4ce264cf40429c274b0513c24454f76e1a695934c3c84bef4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_052.png",
+      "bytes": 207160,
+      "sha256": "f69c5c071d9f3bc4e955498edd5efce4c7e8c10d66341657dcd121ecaf50c413"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_053.png",
+      "bytes": 206715,
+      "sha256": "7d0c02564fa4c749afb8eb4beab5f3ad0894af420731ce952a872f3b84ff9346"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_054.png",
+      "bytes": 207099,
+      "sha256": "5e6d537c98fe611d0f722fb5ace44baa2a2ab8c5f7db63a8c01b0273d330d743"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_055.png",
+      "bytes": 206806,
+      "sha256": "1dc24adfe4d89107892bb4349b0a91aba674af09e2b7ab237fa943e0624abd3c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_056.png",
+      "bytes": 206403,
+      "sha256": "27c086b9fadd0ea08bfc7ac6987cd31d7f84f49e3279d36bde5e3b8a82f4aff5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_057.png",
+      "bytes": 206475,
+      "sha256": "0f91639d2e4ca13183e772821928f63d84f81b28a5cc2c0dfcc65a04d3760648"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_058.png",
+      "bytes": 206703,
+      "sha256": "fa13548dd0e83c5d2e13e2c855188a5c205816814d9f5ee21864d953b95ff5e4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_059.png",
+      "bytes": 206010,
+      "sha256": "4bd2568aa77270661d6082ccddf70afafc9f158198e17cfc06b32373df27e9bb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_060.png",
+      "bytes": 205737,
+      "sha256": "2c1bd164e887d7bf82265e7ba3e13087c62b44203f420911e4eaa20448f2cc9c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_061.png",
+      "bytes": 205746,
+      "sha256": "ba2d347ae378c5a3c81749011ad75c32579e8b5e3aa7e48eb00a006c29a4e561"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_062.png",
+      "bytes": 206503,
+      "sha256": "a6133eb9b7107b99cca0bbc3926116ff8d5972c5781e3e84bb38327fb7d07c43"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_063.png",
+      "bytes": 206694,
+      "sha256": "b968c59fd81a43a01f8efaddb7a05f7e41632b042709484547742ffbd2eba280"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_064.png",
+      "bytes": 206671,
+      "sha256": "4faaea0d71267cc65ea251be99e2e0fb03ebf3f22950b56d0e77e2b978676350"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_065.png",
+      "bytes": 206751,
+      "sha256": "c5c428db0058b35ebe95aed31e38b8726ac111e428391f5a31471453a046e20b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_066.png",
+      "bytes": 207266,
+      "sha256": "3ca21dde94ee7b95e3956a542c7b0a649c6ac3c8f77e0df218a6a950b815b270"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_067.png",
+      "bytes": 206798,
+      "sha256": "d01cedafb10678add0602bed744c6ea4c2b5638d9e48f4831f398720ace0edbd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_068.png",
+      "bytes": 207472,
+      "sha256": "12bb905b846d8fc202a0476719639f468e279cf67c65f394fd2641490789ba1a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_069.png",
+      "bytes": 207625,
+      "sha256": "fd376a1b446eeb7e9d80e1fa13ca982bbbf0beb701e2de3b8acae01028349ac9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_070.png",
+      "bytes": 207737,
+      "sha256": "c281d143c0265ed1b347ada89f90bd5f8dc23cfc3a561df4258d1bc5329a6652"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_071.png",
+      "bytes": 207355,
+      "sha256": "b25c118eeb78e31c9a0cc364f50044f53a49888e90db7f5a9b3db1d5e8cc892e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_072.png",
+      "bytes": 207520,
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_073.png",
+      "bytes": 207796,
+      "sha256": "79179b2b98c0d7086f03777d4dc909f60042bc2421c0d9ba089a0b2d4ea9a4e1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_074.png",
+      "bytes": 207413,
+      "sha256": "3788c6f4f64fdcb97ea78432d3f5239370e0afad8fdc5c35e7b0e498ca0e6ac8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_075.png",
+      "bytes": 208366,
+      "sha256": "d4574fb5197bd78f108285df5bdefec54df8b0a61e91ec49e932c591220ce2d3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_076.png",
+      "bytes": 207738,
+      "sha256": "e9e9b6ded9741ee437552fc399fa6bbbf2f73599d098107486b0fb1fa86312f8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_077.png",
+      "bytes": 207481,
+      "sha256": "ca19462c6050fd89d08e75c50a02451cc8ae8b4eaab5eb15920556bf7b32106b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_078.png",
+      "bytes": 207536,
+      "sha256": "221c92f8780ddcf407f6e5f3bb2b2df06208bfe035a1d0e7c47cee5446f40d8d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_079.png",
+      "bytes": 207410,
+      "sha256": "9e760bf881700370ee3afc783a9f76fcb8af6a75bb70491269f05309cb23f2d3"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_080.png",
+      "bytes": 206915,
+      "sha256": "c5626d9e37ec8ccce7da3bc92293e9b03ebcc746f55fb1fc9c2c742d3f7f1353"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_081.png",
+      "bytes": 207251,
+      "sha256": "5a8fd2fd3388b73323112c42839a2a87a82a4f6e3fa6f44668cc34d5fcda0fcc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_082.png",
+      "bytes": 207296,
+      "sha256": "0a75632f3139fcd84ca5622a3a782699f8a87ff07478e5a63a4a56adcbda18a6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_083.png",
+      "bytes": 207079,
+      "sha256": "bc87888f68c467164aac5c7267212cab945d40e1d4b848c143e0d441a5f999d8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_084.png",
+      "bytes": 206939,
+      "sha256": "1d87c8aaae172fd4a98500a308623d108d06c1ed4d583870a52aef5b0f359510"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_085.png",
+      "bytes": 207029,
+      "sha256": "4e92f30b818b068b8be7b88158174f4cce1684a7bcc8ea1d296214fe13e9c156"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_086.png",
+      "bytes": 207671,
+      "sha256": "4c71a02759565b25907a7c7896537c8af97af7e1db525eace2c8b14ecf38a619"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_087.png",
+      "bytes": 207327,
+      "sha256": "36291959a94330b1b2b0d9a47b39fbeae04fba475053080e049d096f2b951a8f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_088.png",
+      "bytes": 207469,
+      "sha256": "fdee87315b157083cc54dc0df2844006d9bd27035962e68daaabed6025baebd6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_089.png",
+      "bytes": 208123,
+      "sha256": "a8722900fcc285c317e0b5142599d3d4baf299eb9302b688b6f1bca55e87edd7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_090.png",
+      "bytes": 208139,
+      "sha256": "334d1ed7b8e08d43ffc451b830941c64606bdaf9e7123cf54afc4981a4faa45c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_091.png",
+      "bytes": 207842,
+      "sha256": "a4eaccb81a3030b8c4cda12ebabe784880122daca1919744238a353573dcf710"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_092.png",
+      "bytes": 207960,
+      "sha256": "aca1ca3b622017bf28d2ce0fd3f8eb5cc71703f6b8f024ce17f70a3951c9b192"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_093.png",
+      "bytes": 208610,
+      "sha256": "ca823c643f1ad5bba721a77311c628bfe463837396a38f32ac6d0f830cb0fc86"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_094.png",
+      "bytes": 208218,
+      "sha256": "230db32ae4eb1184df274d77e41ea6f0cff925db396bd0b5633a08314139fe68"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/motion_095.png",
+      "bytes": 207794,
+      "sha256": "cc9bc98497dec49ec34500d7389a1e2831c00d0ace6e15b6c82dd205b985e4df"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/preview-script-snapshot.gd",
+      "bytes": 6891,
+      "sha256": "44ed6576b860a9da98b90684750c49ef12ff46a3d7d665d6d2ac1ad6781f4798"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/preview.json",
+      "bytes": 102151,
+      "sha256": "6c94d49a1bf29eed510aece7e606741722c3027b578fe811fd58fde45bd6632f"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/process.json",
+      "bytes": 612,
+      "sha256": "3b1c214d5c1b31b15673ba72c6c5a14cc72fcc63b5420b29bccbc9f7c4729689"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/reload-helper-snapshot.gd",
+      "bytes": 4901,
+      "sha256": "973ead253b2733efca736be27864470a3314cadea20b3ab855ddd65433453bb8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_distant_dim.png",
+      "bytes": 74247,
+      "sha256": "0af7c151312b20536446e2f2bf8d9d2fae5a484a209767d5e11ebc39a5d3e4f7"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_distant_neutral.png",
+      "bytes": 83052,
+      "sha256": "c92aec581baf55353e68a432c55a73902a1a01e918a80e4c0fac064bf5c7f89b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_joints_0_dim.png",
+      "bytes": 383817,
+      "sha256": "e719b11684f4dee3af59bc3ef06781fe6e5b44c75b46fa2a71587dc13ad0ac89"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_joints_0_neutral.png",
+      "bytes": 440220,
+      "sha256": "906b72a39edcb56f36f094ccf418a5e6659178a43738b9df0d217ae85d1c4363"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_joints_2_dim.png",
+      "bytes": 375306,
+      "sha256": "b8afc635097150ea5e5b279412d46effeb85759aafc6495d6d22d82041c2dc36"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_joints_2_neutral.png",
+      "bytes": 447807,
+      "sha256": "629837db785130a21136dca97dd052fa227c842a54b8d8874a07afaa4a951811"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_rest_0.png",
+      "bytes": 226330,
+      "sha256": "c4dd8c51748d80f1df375fc34f40afac64e97e6ffb9134c3e8096e38b5037092"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_rest_1.png",
+      "bytes": 144059,
+      "sha256": "2f20dca914b23f64d456aff14429a26508baf0c1504a7c09de8df23d2f411423"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_rest_2.png",
+      "bytes": 225945,
+      "sha256": "1a1327c39a2cb58f2a06c33c14093193b36a4f305de7033fe9746cb54d3360d1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_rest_3.png",
+      "bytes": 149117,
+      "sha256": "104a05c42c618ad16b1faf6192d8e5ff040d864beac0a4166af39a89fdc167b9"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_turn_0.png",
+      "bytes": 226723,
+      "sha256": "17bfd2d729630f0edfc23746a10c9441a76b91181879fd846a00e0e5e16af699"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_turn_2.png",
+      "bytes": 225991,
+      "sha256": "9d72ad529a09f45329392fb84772331691fa3750a6481e1f51dcd94390e5e25b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_250_0.png",
+      "bytes": 223686,
+      "sha256": "ebda43b643dd15eefc825748186660b702e24db79712fbbb3dc620eb29f0b17a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_250_1.png",
+      "bytes": 183118,
+      "sha256": "58d9c04fd2321ccd018e1fc6f69485da28582f3ebba12016aafeafd17a392c5b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_250_2.png",
+      "bytes": 223650,
+      "sha256": "41c308648f1f77b3a1ecaa11b5018189fb70eca67b52818da0dad9841cf08576"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_250_3.png",
+      "bytes": 191202,
+      "sha256": "b167c224cfc4c8ac3edff5873b6dd5ce8bff8a7704b64b672e0c5b052e7221f4"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_750_0.png",
+      "bytes": 225417,
+      "sha256": "21ae0a8cd37ca6913d2c3a0b5038317af5baeb2147edee86d7df1dc64a35c463"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_750_1.png",
+      "bytes": 177153,
+      "sha256": "e713e2763c7a3706a23bfe5b9d8987099eb924343c7f439f45bc5354aff5a911"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_750_2.png",
+      "bytes": 226197,
+      "sha256": "1cafa859f56afead0450c99a5d0b909999eb41dcba2a91f534b4ecc8fdc984dd"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-preview-first/source_walk_750_3.png",
+      "bytes": 181417,
+      "sha256": "debcd74781f3c9176f0de2b0887b716f14cf32a7e83a35066a3f4d9b8d451ed1"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/edda_skin_repair.gd",
+      "bytes": 12676,
+      "sha256": "8ef49b692b1e2774709c9970df8dd96e62e1721606db14aeb7fac4092d9be872"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/prepare_splice_source.gd",
+      "bytes": 13342,
+      "sha256": "29ae4cc99dbd99410b8425d7a9ccd24270fb486825440608c6e2a5e1777fc345"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/preview_splice_prepared.gd",
+      "bytes": 6891,
+      "sha256": "44ed6576b860a9da98b90684750c49ef12ff46a3d7d665d6d2ac1ad6781f4798"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/splice_prepared_source.gd",
+      "bytes": 8033,
+      "sha256": "da848e327a86fde815be06462b126ea24aeb1212d535fcef999ecf29ebe8c978"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/splice-mechanical-source-20261008.md",
+      "bytes": 17416,
+      "sha256": "c14c739a71d4e048433a86130ce44f01c7ecf4ecc448de8fcca181de4464fb52"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/tern_glb.gd",
+      "bytes": 3694,
+      "sha256": "c0c7f42449058be0460141a2964f9e328f98ee25859de56434cb2d05d5d4d90e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-receipt-sources/validate_splice_prepared.gd",
+      "bytes": 6272,
+      "sha256": "d290fff0c845c48a4ba22378caa533210bc8aae6c7daecbea6ccb8fa03d28b32"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-second/client-error.log",
+      "bytes": 294,
+      "sha256": "f392e4c467ce1dbd85be8ec20022596f2882392990e29f3f7486de5b8efa80ed"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-second/client.log",
+      "bytes": 12457,
+      "sha256": "65f5bddd2f4f0556265d61663d779fc82f55ca4f969f75af2f5d9d25dd18df7a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-second/map_0.png",
+      "bytes": 1890208,
+      "sha256": "5673df031609f2cb7da2e58834db0d56019e5695c73f5d0f81e44ff1278deecc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-second/map_1.png",
+      "bytes": 2036235,
+      "sha256": "5e1780d5721019323d1c0a24771c81cba6e4c1e9cca0587c885eb173a1c5c776"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-second/prepare-script-snapshot.gd",
+      "bytes": 13222,
+      "sha256": "cb6e60a434cb10f24edd89339b6d9e78ac57d32653382f3a32d2fe6557d20f5e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-second/process.json",
+      "bytes": 558,
+      "sha256": "fca175c13084c054576b424ac82b31c6d4892982dea0d2ab9ab3175c7f99e196"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/client.log",
+      "bytes": 36512,
+      "sha256": "42370284ea554f5f41e87440fe6fbe433dc26b5439e955fd20472e582bd5e336"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/map_0.png",
+      "bytes": 1890208,
+      "sha256": "5673df031609f2cb7da2e58834db0d56019e5695c73f5d0f81e44ff1278deecc"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/map_1.png",
+      "bytes": 2036235,
+      "sha256": "5e1780d5721019323d1c0a24771c81cba6e4c1e9cca0587c885eb173a1c5c776"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/map_2.png",
+      "bytes": 940403,
+      "sha256": "1390990c9f2ad7d7a60a8418f3240dbf22147d143335c55b3cd6e3ae6f9976f5"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/preparation.json",
+      "bytes": 40629,
+      "sha256": "1639edd9aac8fc4908843310a638770eb508c568e283b8429222584fd9b8c952"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/prepare-script-snapshot.gd",
+      "bytes": 13342,
+      "sha256": "29ae4cc99dbd99410b8425d7a9ccd24270fb486825440608c6e2a5e1777fc345"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/process.json",
+      "bytes": 502,
+      "sha256": "8ef7de0c167eb5495eaac47f8008362ee4675f42ce26fd5e92cac5e74dd1cb14"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-third/splice-prepared.glb",
+      "bytes": 6115980,
+      "sha256": "002749ba040d15703605693563b6e1b1f1ceebe554ebb2a5e2461da2f1f48f98"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-first/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-first/client.log",
+      "bytes": 36532,
+      "sha256": "817fe66615382b285937bf1101fbca0a54fdb4a354c82dac116d303b4ea2a142"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-first/native-motion.json",
+      "bytes": 267318,
+      "sha256": "e7c77a5c83c29ca78b9f5c586e8aca9b4049f41a2dfdd16b96366c7cef1a8de2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-first/process.json",
+      "bytes": 635,
+      "sha256": "d768222c5c6adb3203899cd5196daaf172eb4e49306de117720889395d97a32e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-first/reload-helper-snapshot.gd",
+      "bytes": 3461,
+      "sha256": "830b946e9bc1c3019aa37a7fc6daa5b988fa01683ee8eb0ddb8c9457901ab88b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-first/validate-script-snapshot.gd",
+      "bytes": 4654,
+      "sha256": "538e1b72b2239ffcbaa630d83e94c5c0b1f1456db26b4eea49d19f51053b73e6"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-second/client-error.log",
+      "bytes": 340,
+      "sha256": "284b26151acae96b51b2866b761b6443c5aa50dd6e1cbdefb3464c5ef46c44ba"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-second/client.log",
+      "bytes": 36405,
+      "sha256": "00d324833c6bc48a9a13660dda8a25e95912e61ce0114e3d4272e0b3ea09dd45"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-second/native-motion.json",
+      "bytes": 267397,
+      "sha256": "60a48c0c88e989beff069105dabc55a31273c260e24613169a915f9366fa60fb"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-second/process.json",
+      "bytes": 691,
+      "sha256": "69d4dc00aa293781d4a245b59baab3537dc626f6b0c842d16a4330f301f8ff26"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-second/reload-helper-snapshot.gd",
+      "bytes": 4901,
+      "sha256": "973ead253b2733efca736be27864470a3314cadea20b3ab855ddd65433453bb8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-second/validate-script-snapshot.gd",
+      "bytes": 5430,
+      "sha256": "e623d5e0a0a4841ddc43c347b7943a88f24f0528fa6cf80a9d463bfd24b06321"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-third/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-third/client.log",
+      "bytes": 36532,
+      "sha256": "025373fb0ebbf7d33bfcd79db448a3503ab3e0be160337342226c2928d5c6d04"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-third/native-motion.json",
+      "bytes": 267740,
+      "sha256": "17461cfc0ad63c77c7947603311aa6bdbc9226159b465f204796bd52187b7cbe"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-third/process.json",
+      "bytes": 635,
+      "sha256": "fc6bd577e789357c46db6b3b1e858292bdcacffe1bb9f7746e6aa630f91134db"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-third/reload-helper-snapshot.gd",
+      "bytes": 8033,
+      "sha256": "da848e327a86fde815be06462b126ea24aeb1212d535fcef999ecf29ebe8c978"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/compact-validation-third/validate-script-snapshot.gd",
+      "bytes": 6272,
+      "sha256": "d290fff0c845c48a4ba22378caa533210bc8aae6c7daecbea6ccb8fa03d28b32"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/receipt-sources/edda_skin_repair.gd",
+      "bytes": 12676,
+      "sha256": "8ef49b692b1e2774709c9970df8dd96e62e1721606db14aeb7fac4092d9be872"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/receipt-sources/splice-mechanical-source-20261008.md",
+      "bytes": 13056,
+      "sha256": "eb6eeb9bdb5171512f2361d1825ce080e6ab73d626f2160855742cc4448ca00a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/receipt-sources/tern_glb.gd",
+      "bytes": 3694,
+      "sha256": "c0c7f42449058be0460141a2964f9e328f98ee25859de56434cb2d05d5d4d90e"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/client-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/client.log",
+      "bytes": 1814,
+      "sha256": "17df7eea577995a626ba5891c2f2c2f85e13256039343227e599f97e6aa4d18b"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/labels.glb",
+      "bytes": 37887164,
+      "sha256": "f2191a008a44537b821b80da5bdf181958f69890bf6b9d388a51e1d75ebeb7a8"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/partition.json",
+      "bytes": 189293,
+      "sha256": "3f50ee027f5835c9c05f34a919f8418930a7e908645e937871fdfbd9b7100be2"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/refined-fourth/process.json",
+      "bytes": 351,
+      "sha256": "5efb62693c24db288a44955dedc5a81993549890c70d0ef9c18df7ead86ca77d"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/audit_splice_source.gd",
+      "bytes": 8937,
+      "sha256": "ae9f52ac0d5b62217b3aaf67f632d40f0bb7809a55e9b77558c3f5c639097922"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/partition_splice_diagnostic.gd",
+      "bytes": 13978,
+      "sha256": "b43b9f682a9edf9f38d196ca807237d0dea791c7032958899cc53de9a82e2c7c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/preview_splice_mechanical.gd",
+      "bytes": 6315,
+      "sha256": "0ebce400d68e110829d15903b0cc24e3ec7eef4992df1b6c65aca6c961853c45"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/preview_splice_partition.gd",
+      "bytes": 5621,
+      "sha256": "65a4fde80eaa47fb166f4fb81491cfb489db838416285d86c9dfeb5127c63582"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/refine_splice_partition.gd",
+      "bytes": 21717,
+      "sha256": "a6b97f5c83679f63adacbf654691fe8931508b16e02d457827f21970851df31a"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/snapshot.json",
+      "bytes": 140,
+      "sha256": "75eb5e4c025dc0b22b84c4414f322b06286d91993df90e4bb9a2a71723c67bfa"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/splice_joint_closure.gd",
+      "bytes": 5169,
+      "sha256": "a6132fc62c905ce2352bf0be3fdb9a327f7c75c059bc6444dcde56c57256d14c"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/splice_mechanical_rig.gd",
+      "bytes": 10613,
+      "sha256": "0709d69ff7dd7f371a267423a89491ba739a082082cca4fcaeccdf2798898644"
+    },
+    {
+      "path": ".agents/splice-mechanical-source-20261008/source-edge-caps-final/test_splice_mechanical_rig.gd",
+      "bytes": 5483,
+      "sha256": "f141755691b8458147e9965495c928f8bc1a20b8489e7c076760849b2a696680"
+    },
+    {
+      "path": "art/raw/meshy-pilot-20261003/splice-named-v1-ultra-0.glb",
+      "bytes": 37778976,
+      "sha256": "4560940190c9877b78885e3138c5e3628e9bfe906474ca14f54986931bbe19f1"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-distant-dim.png",
+      "bytes": 70901,
+      "sha256": "bcdaddfa1e37824d561072ac7e263fefea32d2d984cd70082b786b1a170296dd"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-joints-back-dim.png",
+      "bytes": 305488,
+      "sha256": "2ec774d20937fbef5c51e7b4d77fb91ea09bf9c0e1c5a678c6c1393c713b40d8"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-joints-front-dim.png",
+      "bytes": 318991,
+      "sha256": "2441b994f184864c45f26f27f3c483366842b16ec530c8cdb6c8755542b9ae97"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-rest-front.png",
+      "bytes": 207520,
+      "sha256": "81fd17c7a660c30253ccadf0e01fa2df79e621f5dfae1a5f68adf46f6e178047"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-walk-back.png",
+      "bytes": 209029,
+      "sha256": "9f741e365ce9b04ca7ba6d0c8dd48c2a72ecac00fefc0436c75a110e834173cc"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/compact-walk-side.png",
+      "bytes": 177471,
+      "sha256": "7fe05efbaae483ff96c7264a1d8f3cc641d43b83580fc3a17082fd9a10f20ae6"
+    },
+    {
+      "path": "docs/evidence/splice-compact-source-20261008/source-rest-front.png",
+      "bytes": 226330,
+      "sha256": "c4dd8c51748d80f1df375fc34f40afac64e97e6ffb9134c3e8096e38b5037092"
+    },
+    {
+      "path": "docs/evidence/splice-mechanical-candidate-20261008.json",
+      "bytes": 96771,
+      "sha256": "e0139d7a38d80fe99407042b031a495d77440967bcc720fb88e14ac42eefe2fd"
+    }
+  ]
+}

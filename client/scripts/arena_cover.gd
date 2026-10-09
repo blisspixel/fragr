@@ -48,7 +48,7 @@ func apply_map_info(info: Dictionary) -> void:
 	for kind: int in range(4):
 		_materials.append(ArenaMaterials.make(map_id, kind))
 	var presentation: Dictionary = info.get("presentation") if info.get("presentation") is Dictionary else {}
-	var venue: String = "right_of_search" if info.get("m11") is Dictionary else "common_carrier" if info.get("m10") is Dictionary else ("moon_port" if (info.get("m06") is Dictionary or info.get("m08") is Dictionary) else "moon_town" if info.get("m07") is Dictionary else ("low_water" if (info.get("m04") is Dictionary or info.get("m05") is Dictionary) else ""))
+	var venue: String = venue_for(info)
 	if venue.is_empty() and map_id in [1001, 1002, 1003]:
 		venue = "earth_yard" if map_id == 1003 else "earth_union"
 	var authored_materials: Dictionary[String, Material] = {}
@@ -64,7 +64,7 @@ func apply_map_info(info: Dictionary) -> void:
 	_build_shell(_half_extent, 3.2 if venue == "holdfast_atoll" else BOUNDARY_HEIGHT)
 	# The lunar map supplies its own opaque pressure perimeter and glass views.
 	# The generic decorative arena wall would hide those registered windows.
-	if venue in ["moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll"]:
+	if venue in ["moon_port", "moon_town", "common_carrier", "right_of_search", "holdfast_atoll", "launch_works", "mars_habitat", "mars_foundry"]:
 		for side: int in range(4):
 			var boundary: Node3D = get_node_or_null("MapBoundary%d" % side) as Node3D
 			if boundary != null:
@@ -108,6 +108,25 @@ func apply_map_info(info: Dictionary) -> void:
 		add_child(water)
 	ArenaSky.mark_world(self)
 	_hide_scene_props()
+
+static func venue_for(info: Dictionary) -> String:
+	match str(info.get("map_name", "")).strip_edges().to_lower():
+		"low water": return "low_water"
+		"launch authority (development)": return "launch_works"
+		"terms of cooperation (development)": return "mars_habitat"
+		"terms of cooperation": return "mars_habitat"
+		"the weight of permission (development)": return "mars_foundry"
+	if info.get("m11") is Dictionary:
+		return "right_of_search"
+	if info.get("m10") is Dictionary:
+		return "common_carrier"
+	if info.get("m06") is Dictionary or info.get("m08") is Dictionary:
+		return "moon_port"
+	if info.get("m07") is Dictionary:
+		return "moon_town"
+	if info.get("m04") is Dictionary or info.get("m05") is Dictionary:
+		return "low_water"
+	return ""
 
 ## Half width of the playable square the server last described, so the camera
 ## and the far-plane work can size themselves to the map rather than to a

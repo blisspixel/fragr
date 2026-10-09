@@ -56,7 +56,11 @@ impl GameState {
                     from,
                     proposed: from,
                     height: crate::combat::body_height(p.campaign, p.ducking),
-                    radius: RADIUS,
+                    radius: if crate::combat::is_assessor(p.campaign) {
+                        crate::combat::ASSESSOR_HALF_WIDTH
+                    } else {
+                        RADIUS
+                    },
                     jump: false,
                 }
             })

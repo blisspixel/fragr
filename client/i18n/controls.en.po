@@ -89,7 +89,7 @@ msgid "ACTION_JUMP"
 msgstr "JUMP"
 
 msgid "ACTION_DUCK"
-msgstr "DUCK"
+msgstr "CROUCH (HOLD)"
 
 msgid "ACTION_TURN_LEFT"
 msgstr "TURN LEFT"
@@ -240,7 +240,7 @@ msgstr "Mouse: raw counts, never smoothed or assisted. {cm} cm per turn at 800 C
 # Prompts. Braced names become the key or pad glyph for the device in use.
 
 msgid "HUD_CONTROLS_PLAY"
-msgstr "{fire} fire   {interact} opens   {jump} jump   {weapon_next} weapon   {pause} menu"
+msgstr "{fire} fire   {interact} opens   {jump} jump   hold {duck} crouch   {weapon_next} weapon   {pause} menu"
 
 msgid "HUD_CONTROLS_WATCH"
 msgstr "{join} join   {cycle} fighter   {view} view   {pause} menu"
@@ -255,7 +255,7 @@ msgid "MENU_NAV_PAD"
 msgstr "D-PAD + {accept}   /   {back} BACK"
 
 msgid "LOADING_CONTROLS_KEYS"
-msgstr "{move_forward} {move_left} {move_back} {move_right} or arrows to move        {turn_left} {turn_right} or mouse to turn\n{fire} or mouse to fire        {interact} opens the panel you are looking at        {jump} to jump        {strafe} + arrows to strafe\n{look_up} {look_down} to look        Wheel or 1-5 for weapons        {pause} for the menu        Tilde for the console\n{scope} or Z holds the scope        {reload} reloads        C station        N skip track        M play/pause"
+msgstr "{move_forward} {move_left} {move_back} {move_right} / arrows: move        Mouse / {turn_left} {turn_right}: turn\n{fire}: fire        {interact}: use panel        {jump}: jump        Hold {duck}: crouch\n{strafe} + arrows: strafe        {look_up} {look_down}: look        Wheel / 1-6: weapons\n{scope} / Z: scope        {reload}: reload        {pause}: menu        Tilde: console\nC: station        N: skip track        M: play/pause"
 
 msgid "LOADING_CONTROLS_PAD"
 msgstr "Left stick moves        Right stick looks        {fire} fires        {interact} opens the panel you are looking at        {jump} jumps\n{weapon_prev} {weapon_next} change weapon        {speak} taunts        {pause} for the menu"

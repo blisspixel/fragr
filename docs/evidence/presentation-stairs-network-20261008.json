@@ -1,0 +1,2732 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "passed locally",
+  "scope": "Eight exact CI cases, seven exact roster rows and 120-second native soak on local Windows loopback. No final-art, human, capacity, LAN/WAN or release claim.",
+  "manifest": {
+    "schema": 1,
+    "recorded_utc": "2026-10-08T20:20:34.8057078Z",
+    "head": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+    "branch": "feat/host-rotation-campaign-bests",
+    "binaries": [
+      {
+        "name": "fragr-server.exe",
+        "original_path": "C:\\GitHub\\fragr\\target\\release\\fragr-server.exe",
+        "sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+        "copy": {
+          "path": ".agents/presentation-stairs-composition-20261008/network/bin/fragr-server.exe",
+          "sha256": "3dabae6ba53355fa349b11d253c83fd45ae631b8091f8ce6226ae1b79617c7d4",
+          "bytes": 10207232
+        }
+      },
+      {
+        "name": "fragr-playtest.exe",
+        "original_path": "C:\\GitHub\\fragr\\target\\release\\fragr-playtest.exe",
+        "sha256": "1384279d527c1e6098cfebb9e6739c5bbda788db809278b08963c513d50f9524",
+        "copy": {
+          "path": ".agents/presentation-stairs-composition-20261008/network/bin/fragr-playtest.exe",
+          "sha256": "1384279d527c1e6098cfebb9e6739c5bbda788db809278b08963c513d50f9524",
+          "bytes": 11201536
+        }
+      }
+    ],
+    "source_files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "62526244b3b5c92a4761b328fc23060ca94c8a1cfe0c153e197ce29be9e5d1a1",
+        "bytes": 9457
+      },
+      {
+        "path": "agent-adapter/src/main.rs",
+        "sha256": "67ef2befdd6c06acacdc78e35b83cd0cc2cbab1350763d55d06dc14e59244e00",
+        "bytes": 96603
+      },
+      {
+        "path": "agent-adapter/src/mcp.rs",
+        "sha256": "03ff2e3ce8481be59c57ac81dbf8f9b913bf15c5c3b25ff6cdb2743554300f89",
+        "bytes": 135882
+      },
+      {
+        "path": "agents/brain/src/bot.rs",
+        "sha256": "c9c54274557974a7422c539191edb995fd412294706e50b81a8b581006877d50",
+        "bytes": 129080
+      },
+      {
+        "path": "agents/brain/src/budget.rs",
+        "sha256": "48f35fe55e02b16b5e60377ebb3f54bc47bf5d9fc530fed6d42a502c70e3b0c9",
+        "bytes": 35426
+      },
+      {
+        "path": "agents/brain/src/decision.rs",
+        "sha256": "cd37929991b3dfce3c85f6d3c173a315f11b5f1bb76002de386851e2c8018c70",
+        "bytes": 32028
+      },
+      {
+        "path": "agents/brain/src/dotenv.rs",
+        "sha256": "fedc519aabd034b015b9a6669398370aa7f95b00c12abac4145b3dc59fe962bd",
+        "bytes": 4825
+      },
+      {
+        "path": "agents/brain/src/lib.rs",
+        "sha256": "ff8d8d9a9693920e4412c0cff8233e73b108c961a0275fe534d3137a528c977b",
+        "bytes": 4327
+      },
+      {
+        "path": "agents/brain/src/local_model.rs",
+        "sha256": "20c48b5ffc62b1d10a7b39089e50e44529ef0403be398c977b5ceaa7528204ab",
+        "bytes": 48983
+      },
+      {
+        "path": "agents/brain/src/main.rs",
+        "sha256": "c7dc457bfb689b8e469f9a4e5e8314c18cdce6259fdd7827346ed1c6ac2455fd",
+        "bytes": 41312
+      },
+      {
+        "path": "agents/brain/src/plan.rs",
+        "sha256": "54dbca624890dced1ae8fc4b51c22e9cc4f4c374ffcae5a00c4d2a33824a4c8d",
+        "bytes": 69079
+      },
+      {
+        "path": "agents/brain/src/provider.rs",
+        "sha256": "45bc88925df27dbec0ace121981d634fb0d20e4fb568a610f1ada713ca4f692e",
+        "bytes": 40065
+      },
+      {
+        "path": "agents/brain/src/telemetry.rs",
+        "sha256": "aca32fe3f2887e5b738130792d283142ede97198e382fc6f2a1bd1e8217cbebc",
+        "bytes": 24410
+      },
+      {
+        "path": "agents/brain/src/timeline.rs",
+        "sha256": "fba826541d5fac8a5498c56487e9b30659647f804d9373739a9647604a769db6",
+        "bytes": 11746
+      },
+      {
+        "path": "Cargo.lock",
+        "sha256": "9222c1f108e902cb3e0feffae11f1baa2a90bb37ad4d1eeb2fae6c6607fbefed",
+        "bytes": 64966
+      },
+      {
+        "path": "Cargo.toml",
+        "sha256": "4ac4897bf243dfaa6c1ce3c225e862fc82f13050567baa38444e0ccbbb6fc760",
+        "bytes": 629
+      },
+      {
+        "path": "server/Cargo.toml",
+        "sha256": "ec13e21eb1f43df84e4622c764770fd2491fcd8c890d393913055315c7550728",
+        "bytes": 779
+      },
+      {
+        "path": "server/examples/holdfast_map.rs",
+        "sha256": "dc73c9e91f0269badd0ed8fe477dfa9900b611f144fc7819faf572456df2673a",
+        "bytes": 396
+      },
+      {
+        "path": "server/examples/vehicle_vectors.rs",
+        "sha256": "f81e7219ac64286dc8fc6588ea2de56463dadd31e4ddbfe5609a6548847b78b1",
+        "bytes": 2840
+      },
+      {
+        "path": "server/examples/water_air_vectors.rs",
+        "sha256": "2fb9d3b5b5b6cb628d22585739c1c8ae046ca01d852249e1e928266bc3ea7780",
+        "bytes": 4844
+      },
+      {
+        "path": "server/examples/water_vectors.rs",
+        "sha256": "6800820d74fa5f8c288806aa4060b28ee3db97f00a046323254c622321377738",
+        "bytes": 2580
+      },
+      {
+        "path": "server/maps/m01-recall-notice.json",
+        "sha256": "25e605c67cf4e97c8bfb2a980ffa9bee6b39140a431ae99f86f61ff5fec9f30e",
+        "bytes": 21027
+      },
+      {
+        "path": "server/maps/m02-persons-unknown.json",
+        "sha256": "313441acf6fe2026b9809872e79464c3f6bad0a7b04fc897de4507d68b2e3549",
+        "bytes": 15929
+      },
+      {
+        "path": "server/maps/m03-scheduled-service.json",
+        "sha256": "7848569bc10f15d6367d7536e50cd16ea2b85832e932f1a0b41270f0821fbc66",
+        "bytes": 14213
+      },
+      {
+        "path": "server/maps/m04_notice_to_vacate.json",
+        "sha256": "3a44041640f5fbb9fb79b9e0eec077c21a84a72f1899c800e9ca0bae257c662b",
+        "bytes": 43276
+      },
+      {
+        "path": "server/maps/m05_no_forwarding_address.json",
+        "sha256": "e9bda4f3e903ce4fbc9eb6ab819da5c44e096101866a50436a678b6d0c24f4c6",
+        "bytes": 31883
+      },
+      {
+        "path": "server/maps/m06_port_of_entry.json",
+        "sha256": "a36172af57d72e8c42b9a93abb3e132bf02da3f35550df72c0beff39690ea662",
+        "bytes": 38578
+      },
+      {
+        "path": "server/maps/m07_declared_goods.json",
+        "sha256": "1235400735b3140cfc0049480261b6115d18b48b66cb6da62a96d9e02a3c48b2",
+        "bytes": 24871
+      },
+      {
+        "path": "server/maps/m08_custodian_of_record.json",
+        "sha256": "00ec523f6f9ced8cd426023247370d0f478f004570e82c9d756f52ff61829864",
+        "bytes": 55933
+      },
+      {
+        "path": "server/maps/m09_passenger_manifest.json",
+        "sha256": "3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85",
+        "bytes": 57525
+      },
+      {
+        "path": "server/maps/m10_common_carrier.json",
+        "sha256": "dcc8e4c1039feec32ef956bba05b94271ad7350658358880df097cafc9407557",
+        "bytes": 41073
+      },
+      {
+        "path": "server/maps/m11_right_of_search.json",
+        "sha256": "3a6158dea520d38e6ba7e8a705ec9738f7c2f9a4bd8d261c33e12436e7076ee0",
+        "bytes": 34488
+      },
+      {
+        "path": "server/maps/m12-terms-of-cooperation.json",
+        "sha256": "c30871c5e11f9792eb8353158b94e27335b4d14a7c65ee5ac28b1c0f99a91431",
+        "bytes": 47378
+      },
+      {
+        "path": "server/maps/README.md",
+        "sha256": "0da7bf0d8617421cc374e38d915f32ccddac84af794ae8bcd60afdf393062361",
+        "bytes": 26322
+      },
+      {
+        "path": "server/maps/test/arc_foundation_development.json",
+        "sha256": "693ae206262d1be3b908cf752c46278e9482c515da79ee327e1880b71d70f4e3",
+        "bytes": 7251
+      },
+      {
+        "path": "server/maps/test/assessor_foundation_development.json",
+        "sha256": "696472f3ba081274e4a74de2dcef0f9f946b431a0dbc91a205465fe58cfe6929",
+        "bytes": 5453
+      },
+      {
+        "path": "server/maps/test/custody-range.json",
+        "sha256": "28933c25610880a606107f382d546d28d856f219cd8b459b94e58fb2549be620",
+        "bytes": 2686
+      },
+      {
+        "path": "server/maps/test/heavy-turret-range.json",
+        "sha256": "a1519eb63248743cca8dda19e04cf56a28c1084dc4e69ee5e1fe06e4ea8296c7",
+        "bytes": 2291
+      },
+      {
+        "path": "server/maps/test/jammer-range.json",
+        "sha256": "065e87f6ad051a2c1eebd1e99bae88a48245a53fe4cce628700ccfc0e06fa502",
+        "bytes": 1701
+      },
+      {
+        "path": "server/maps/test/launch_authority_development.json",
+        "sha256": "ebf6e9c1629419aa7b9dc32bfaaa7d365812c33225f42de298f27af0d1628492",
+        "bytes": 38568
+      },
+      {
+        "path": "server/maps/test/m02-wire-fixture.json",
+        "sha256": "21455ffcec06d0e257dce5675dd1eba7511770b5b9cda4b84fde4317848f2048",
+        "bytes": 1389
+      },
+      {
+        "path": "server/maps/test/m11_tender_structure.json",
+        "sha256": "4db8026c36073b2e1316c12d5041601c52572f3570d077d69c12cf155db68eb0",
+        "bytes": 23760
+      },
+      {
+        "path": "server/maps/test/m12_habitat_development.json",
+        "sha256": "7b87fce4739f8d3c7ded9f8228837a736d2b7c0b0ab7286a05f3f07bab4ba630",
+        "bytes": 35435
+      },
+      {
+        "path": "server/maps/test/m13_foundry_development.json",
+        "sha256": "4995b14d93670ff3b5e3711f3b0977205a3c28700d93662c4515047511d31943",
+        "bytes": 39708
+      },
+      {
+        "path": "server/maps/test/pistol-source-range.json",
+        "sha256": "d164c2be1da81346f8a73a7b0f16e56a911b54df4db011b1984abd2ac4bb3a53",
+        "bytes": 877
+      },
+      {
+        "path": "server/maps/test/rifle-source-range.json",
+        "sha256": "5eb01c1bb793bdf37fae4b838ffd3420e7730f29e8bac21089f8cbd0bea896a7",
+        "bytes": 884
+      },
+      {
+        "path": "server/maps/test/sniper-range.json",
+        "sha256": "da95f61b385159e206814db5055d4446b2b84962c69f47c6ab9755c23aaafd3f",
+        "bytes": 2525
+      },
+      {
+        "path": "server/maps/test/sniper-source-range.json",
+        "sha256": "96c5d9a1082b1b06deaa517dd1a24959666d3f29da2139ff186423cccb292e20",
+        "bytes": 887
+      },
+      {
+        "path": "server/src/access.rs",
+        "sha256": "d06b0bc6ad8fa5abcd18fff2e5133c53d527e312d2abcb19fc28e52d7eab0fde",
+        "bytes": 31197
+      },
+      {
+        "path": "server/src/announce.rs",
+        "sha256": "5f9784840a00292bca76be054767684875e3a8bf1a68d65329b29d1c69e6a192",
+        "bytes": 4444
+      },
+      {
+        "path": "server/src/bench.rs",
+        "sha256": "d1ac3b99871d7a531a1fe158d8d900dd35e401e1327cacd02cbd4451a1132cab",
+        "bytes": 27830
+      },
+      {
+        "path": "server/src/bin/wire.rs",
+        "sha256": "7f5f7f7e502fd3a6dc4acb4f340474093cdd271ceb185f157682727fc8f287d6",
+        "bytes": 9115
+      },
+      {
+        "path": "server/src/board.rs",
+        "sha256": "33ab7a5d45b06cac65a51729c6aa5873a9bb02b7a33534ef2bef3570d0b58132",
+        "bytes": 5286
+      },
+      {
+        "path": "server/src/bot_fill.rs",
+        "sha256": "69d152a90e27d0fb479ac51eb7512ed7450b603d92573c380637e6e56a01870a",
+        "bytes": 7405
+      },
+      {
+        "path": "server/src/combat.rs",
+        "sha256": "d78bbc2936aafa0862cbdbb6bebdce8bd5c84132d7f25fe085216d6681a999cd",
+        "bytes": 30704
+      },
+      {
+        "path": "server/src/desk.rs",
+        "sha256": "124e170093344984fc1beedb323a2fd8a50f6f8a21e2a90197c2367557dcecd5",
+        "bytes": 18865
+      },
+      {
+        "path": "server/src/enclosed_fixture.rs",
+        "sha256": "a78ced8120bd865692b4efb0f5db5fe771253756b98a798a001c5d27862c25ba",
+        "bytes": 887
+      },
+      {
+        "path": "server/src/encounters.rs",
+        "sha256": "b8ac2152c40e5fcda35dc76102b33c56f31f6acd3db6c8298551a96e20885b73",
+        "bytes": 21972
+      },
+      {
+        "path": "server/src/encounters/enemy.rs",
+        "sha256": "30932fe3caa0656698766476010c039d3d5965ab5fa43afde6b4ffd37b0650de",
+        "bytes": 64299
+      },
+      {
+        "path": "server/src/encounters/enemy/assessor.rs",
+        "sha256": "5a980358d22a93fbfa66736a188704f6e5f2bfb1dc80a70c383c95f5ce7444d3",
+        "bytes": 5489
+      },
+      {
+        "path": "server/src/encounters/enemy/enforcer.rs",
+        "sha256": "c4e735e31c3460e287037eda9bd8a2ed8a6a0bfc1876d0f406162b5200e8a066",
+        "bytes": 7331
+      },
+      {
+        "path": "server/src/encounters/enemy/redactor.rs",
+        "sha256": "d5f0d31dd583a97277a5edf4e64ef211a9804e0e5591560127f408c00f3432bd",
+        "bytes": 9285
+      },
+      {
+        "path": "server/src/encounters/enemy/spine_patrol.rs",
+        "sha256": "494e6644f6c680dc48d0ab4e4a0e23a9fe21f9f08752857883cb643f6edaf071",
+        "bytes": 9994
+      },
+      {
+        "path": "server/src/inventory.rs",
+        "sha256": "23af6cef2b4afe4971d976c84f7210caca9fdab4c9e9f7f6207c2f90e547b913",
+        "bytes": 24459
+      },
+      {
+        "path": "server/src/inventory/controller.rs",
+        "sha256": "f749da6530d16134b445e49cadc8b81b35f3a222963f2c37de47b40b2d69e396",
+        "bytes": 9065
+      },
+      {
+        "path": "server/src/inventory/tests.rs",
+        "sha256": "0965aea82cf19dbd523e6eecc41a476f436c473c528f51d7900e446e9c0f0244",
+        "bytes": 36458
+      },
+      {
+        "path": "server/src/join_ticket.rs",
+        "sha256": "695abc417d3fb56a4932a4c877792e6d4d2f45f486102cff3b9a7da084ac3ba6",
+        "bytes": 8883
+      },
+      {
+        "path": "server/src/lib.rs",
+        "sha256": "fafd988b169c5e211226a75c6e9a9c3c3ce50cc12bf561038c4ab4ecdc9066ae",
+        "bytes": 505
+      },
+      {
+        "path": "server/src/local.rs",
+        "sha256": "c834991f8cb7e79a816430a1392e79d04b3007db71083f2f29522e8e067e6478",
+        "bytes": 29613
+      },
+      {
+        "path": "server/src/main.rs",
+        "sha256": "14e06dff7730c491b14077e3dce1cda2b273466c9fe84d642b6aadd40573ea93",
+        "bytes": 50735
+      },
+      {
+        "path": "server/src/maps.rs",
+        "sha256": "addfc56664ebd0a587d45bcf7e5893233a9f3527c4a002fc48b89f4e5a472a36",
+        "bytes": 56818
+      },
+      {
+        "path": "server/src/maps/authored.rs",
+        "sha256": "dfa510d7bea8920d9562c15438765c27d16d38f08e389149a34c78007ae7d2c2",
+        "bytes": 35095
+      },
+      {
+        "path": "server/src/maps/authored/encounters_tests.rs",
+        "sha256": "5670076aba2fc8ffc5c6d2e9567cb39af4d592646004f730e5a0c2680c9b4925",
+        "bytes": 3692
+      },
+      {
+        "path": "server/src/maps/authored/encounters.rs",
+        "sha256": "68625c827cc8f339f6d37e22ac6a77881630f806d8704b37b2aa43fc5d2d1b22",
+        "bytes": 7886
+      },
+      {
+        "path": "server/src/maps/authored/m02_tests.rs",
+        "sha256": "e0d22cfb24d3abf9dffb390ab9555f579a9f9df6583d43e9af0f00a559bdf4cb",
+        "bytes": 34613
+      },
+      {
+        "path": "server/src/maps/authored/m02.rs",
+        "sha256": "17d450ed2bf549ae81d68e0bf89f4bd16b39e40bbfdd5be072ade1c418127540",
+        "bytes": 15895
+      },
+      {
+        "path": "server/src/maps/authored/m03.rs",
+        "sha256": "b5d9f185cf7957244e1cf814b489e022616b63f10c8861f57fe2bec6a5f7a73c",
+        "bytes": 9382
+      },
+      {
+        "path": "server/src/maps/authored/m04.rs",
+        "sha256": "d963770b82652b92b5657ab25ae4db4807d8b3f47858a25ccb033cb56d4b1215",
+        "bytes": 10841
+      },
+      {
+        "path": "server/src/maps/authored/m05.rs",
+        "sha256": "8e74fc4bcbf4e1cbe3f1bd8c3e4856173c23a22b81dc1df6d31eb4228bb04fc0",
+        "bytes": 12015
+      },
+      {
+        "path": "server/src/maps/authored/m06.rs",
+        "sha256": "1ea9af41784e98fa68931551a3c753a5504de86c91a907b61e400c516f318867",
+        "bytes": 6814
+      },
+      {
+        "path": "server/src/maps/authored/m07.rs",
+        "sha256": "9e63ad155b599617f94c8b06a59947c7fc5fe284a45e48ab1c50583a4c491114",
+        "bytes": 6473
+      },
+      {
+        "path": "server/src/maps/authored/m08.rs",
+        "sha256": "338f5121b8495eef4d83e14dc0d218cfa3fc647a22e996fdcdca3e033da018ab",
+        "bytes": 13527
+      },
+      {
+        "path": "server/src/maps/authored/m09_tests.rs",
+        "sha256": "d3b4ffca7a90a022bc2eb29645b0f8426aa49332c96c505834e2feafe77bfc2c",
+        "bytes": 9551
+      },
+      {
+        "path": "server/src/maps/authored/m09.rs",
+        "sha256": "63d3c3cef2d3a61992226c7844de44ec9045cfdb98306d602a3bef38a0a1596a",
+        "bytes": 11123
+      },
+      {
+        "path": "server/src/maps/authored/m10_geometry_tests.rs",
+        "sha256": "8e280f8b9597f899be301e3cb9150441b9fa001d2bf6865744ee507390b59317",
+        "bytes": 16402
+      },
+      {
+        "path": "server/src/maps/authored/m10.rs",
+        "sha256": "8b711721c8484cf04168f0785d4afde5b078a07f65fff34fee9a9c2a35224f9a",
+        "bytes": 6755
+      },
+      {
+        "path": "server/src/maps/authored/m11_geometry_tests.rs",
+        "sha256": "a18d021336f45f22159db4d5a2bdee5f688e01edafeeeb464617d2441e4f6bff",
+        "bytes": 14461
+      },
+      {
+        "path": "server/src/maps/authored/m11.rs",
+        "sha256": "f5a741b8edd425eaf319e2543674eed929e19e65e898f8ed520dfd7b9d023ef7",
+        "bytes": 9445
+      },
+      {
+        "path": "server/src/maps/authored/m12.rs",
+        "sha256": "88385ddac24fce9f622afc68b2e6e65c6fd0fee93cdeaf7b8ff9d7cb49a660a1",
+        "bytes": 11798
+      },
+      {
+        "path": "server/src/maps/authored/mission.rs",
+        "sha256": "32effbf08a801070cdee91b8e42f71c53c7a9662f425f49fb57c8a422a386c7a",
+        "bytes": 5363
+      },
+      {
+        "path": "server/src/maps/authored/supplies.rs",
+        "sha256": "be469fa1fb41cb8a82e797fd9cefa249e8439a6d2fb39f3dbf5d47f6e4743548",
+        "bytes": 3998
+      },
+      {
+        "path": "server/src/maps/authored/tests.rs",
+        "sha256": "cf2d63eb5802e93add9885238b16523f45a4826a7df2521ea7f386b58676f262",
+        "bytes": 14829
+      },
+      {
+        "path": "server/src/maps/authored/vehicle_placements.rs",
+        "sha256": "1dd57c6dc71cf644928c6dd7e6219763e48239f863f285d3fd1096bd99e62cc6",
+        "bytes": 13155
+      },
+      {
+        "path": "server/src/maps/holdfast.rs",
+        "sha256": "2c97bc9273d96e3d5acf72a86163e9874cfa1a8e01794a7da6bd2c29382da505",
+        "bytes": 7708
+      },
+      {
+        "path": "server/src/maps/low_water.rs",
+        "sha256": "c7186e8240301f27bfb2edf07fab0cfb01d7fac9939655548fa824fa536753af",
+        "bytes": 10191
+      },
+      {
+        "path": "server/src/maps/low_water/tests.rs",
+        "sha256": "dd87b5b6459690dc7e32423ddee3edab9d3b951479434f6e6c4ce6af69786c11",
+        "bytes": 17027
+      },
+      {
+        "path": "server/src/maps/runtime.rs",
+        "sha256": "54dca9f6cf03e7ecabca3013dbf171c731b66faf80bf87c7a62318d9a597652b",
+        "bytes": 21084
+      },
+      {
+        "path": "server/src/metrics.rs",
+        "sha256": "a15ba03ed4097418ae38015b16edea98d9b8c97f112a6eba3a830fa8d0220b38",
+        "bytes": 20280
+      },
+      {
+        "path": "server/src/metrics/tests.rs",
+        "sha256": "100805c662eeb0ffed3a97808beee4a2982127defa885d41bca7eb45ac12a23b",
+        "bytes": 24861
+      },
+      {
+        "path": "server/src/mission.rs",
+        "sha256": "8d91964a7f682584dcb72fc8bcbf12474f86b5721ad6c2f446b3a442f75dbb1d",
+        "bytes": 20307
+      },
+      {
+        "path": "server/src/mission/contact.rs",
+        "sha256": "53d41822a1f3ad2f4e792cf5765fbac6ae31571faa694353d2566fa453e7f120",
+        "bytes": 11984
+      },
+      {
+        "path": "server/src/mission/controller.rs",
+        "sha256": "7880ce39c4df251de1c72cf6de0cbeb53893741d84c956c3ba835d1409ce627c",
+        "bytes": 37405
+      },
+      {
+        "path": "server/src/mission/controller/m04.rs",
+        "sha256": "584b71d076e5a0785d499212cdac631b9a2dbac0acd4ec5839075d3de92e3d4b",
+        "bytes": 8164
+      },
+      {
+        "path": "server/src/mission/controller/m05.rs",
+        "sha256": "0482c6592749901c1020fa8ce7fcb09406da6dc9f1c3c9c52663086d7cb30dc8",
+        "bytes": 8062
+      },
+      {
+        "path": "server/src/mission/controller/m06.rs",
+        "sha256": "89297bd15a15f6e6909067e4d7dab4d3576f1801984777e982619151634fb271",
+        "bytes": 5077
+      },
+      {
+        "path": "server/src/mission/controller/m07.rs",
+        "sha256": "ec06b6de4a2f0e1cad34cabbc1db881e9bc5d6767e0f28eca1b726a605e738a8",
+        "bytes": 5225
+      },
+      {
+        "path": "server/src/mission/controller/m08.rs",
+        "sha256": "d69d860bcd6d99f48ff29d7bb6f2750260092e9b81a80deab2e7b8cd8f0e7f82",
+        "bytes": 7457
+      },
+      {
+        "path": "server/src/mission/controller/m09.rs",
+        "sha256": "fb2d8af440fd2ebad1d94459d4ee5d9c79a283985bdd8cd42da5f19729b90e4b",
+        "bytes": 6790
+      },
+      {
+        "path": "server/src/mission/controller/m10.rs",
+        "sha256": "46c163cc1a81a9c7692e5035edb046b561b0ef03c65b29a07c092e702f721a71",
+        "bytes": 5325
+      },
+      {
+        "path": "server/src/mission/controller/m11.rs",
+        "sha256": "6939f10f0d9933343d1364c74a92ba75e1337126dfad978ca007c1361bc21820",
+        "bytes": 5472
+      },
+      {
+        "path": "server/src/mission/controller/m12.rs",
+        "sha256": "9ec7126ca6e31ea52d702a5abb28aa44fe2293438852f0092337abe522e60e82",
+        "bytes": 5737
+      },
+      {
+        "path": "server/src/mission/difficulty_tests.rs",
+        "sha256": "b776b36bfbbb6ecea961fa4c7b44490459469221311f5788ff6902f603f52bd5",
+        "bytes": 10527
+      },
+      {
+        "path": "server/src/mission/m02.rs",
+        "sha256": "1389e6078fd5a28059767f080cd7fdf6e5a1b5a38591acfa1316610399d3649e",
+        "bytes": 13101
+      },
+      {
+        "path": "server/src/mission/m02/companion.rs",
+        "sha256": "b515d7029877fa055b44dfd4784990eaa2bd78d29ab5f9849dc0f0c5e567a707",
+        "bytes": 9776
+      },
+      {
+        "path": "server/src/mission/m02/companion/formation.rs",
+        "sha256": "b67c7b0c227e28a9483e1a5055112eae155af74fe044fec523fbb440ff6d96cd",
+        "bytes": 7242
+      },
+      {
+        "path": "server/src/mission/m02/companion/tests.rs",
+        "sha256": "89632d4b594a67c5674dcde832d8a63e12d8d61bf353bc07eb1aa24ac7b97711",
+        "bytes": 14460
+      },
+      {
+        "path": "server/src/mission/m02/evacuation.rs",
+        "sha256": "50f3efdfc240d141369c3b8d8ff2635b1bd7c5e890be7172e67a5045173c92e7",
+        "bytes": 11054
+      },
+      {
+        "path": "server/src/mission/m02/route_tests.rs",
+        "sha256": "c50beb731fb1f51aa13c7d4dea4d2f94a6c7ce7a2f0a1295b3a4c232151c29dd",
+        "bytes": 102638
+      },
+      {
+        "path": "server/src/mission/m02/tableau.rs",
+        "sha256": "592ca4bbbd017405d9979032668f9e70eea7314053fa3b6c67521fcee45c4e9b",
+        "bytes": 11786
+      },
+      {
+        "path": "server/src/mission/m02/tests.rs",
+        "sha256": "7f403d8680ba9983128864329da3c49a436bf5290af3e01fb0ac536f94ecaff2",
+        "bytes": 13561
+      },
+      {
+        "path": "server/src/mission/m03.rs",
+        "sha256": "30ea1dd9ae02fb248d74d3920f57a71696b839e434e1fc65f1ae328cbdece632",
+        "bytes": 11982
+      },
+      {
+        "path": "server/src/mission/m04.rs",
+        "sha256": "c6bdd7b01e1f1b47a324b004b5fc5c3bc55fe58918a681c3a1036cb95d7230ec",
+        "bytes": 13105
+      },
+      {
+        "path": "server/src/mission/m05.rs",
+        "sha256": "2c326efbd01242725e6513bae8f7ee71e132e97ec272e3b6b6320eb68e27b2d3",
+        "bytes": 21049
+      },
+      {
+        "path": "server/src/mission/m05/platform.rs",
+        "sha256": "9a191c07aa39fcacecaaa1fe9f19a3eb816c70ad31938f65c49f0a839ac79069",
+        "bytes": 3991
+      },
+      {
+        "path": "server/src/mission/m06.rs",
+        "sha256": "c5fafd61ea1ef20d5f0bfcf65a025c949150fdbcf2dc8289c738e0636bf17406",
+        "bytes": 9203
+      },
+      {
+        "path": "server/src/mission/m07.rs",
+        "sha256": "5c0bc2f9ba73ea2e2f66c42f1d89a3e1bd30c7c0a23fe06ee0b3af5a78ecda1a",
+        "bytes": 8590
+      },
+      {
+        "path": "server/src/mission/m08.rs",
+        "sha256": "2ab8cc85a1fb64b0daeb4708aaa0ac3ec4ff19aa3ccb8e097123dab800acc57d",
+        "bytes": 12880
+      },
+      {
+        "path": "server/src/mission/m09.rs",
+        "sha256": "ee6056301d4f1831a43eabe5944d2b637945028fc6247a7ff03966ed75ec64de",
+        "bytes": 13014
+      },
+      {
+        "path": "server/src/mission/m10.rs",
+        "sha256": "19c5292016be605e42111853a1b0f168fc1a53363d8a7027e13f4de980512fce",
+        "bytes": 8138
+      },
+      {
+        "path": "server/src/mission/m11.rs",
+        "sha256": "688605caebdecc8150d812a819432ddbefe1c5d29483737353b225c9c4199ca3",
+        "bytes": 11426
+      },
+      {
+        "path": "server/src/mission/m11/tests.rs",
+        "sha256": "b9c55e1d439baf6227f7fd1a2ba3caf794ebc4705bb8d0dece553db1b40d59ed",
+        "bytes": 18394
+      },
+      {
+        "path": "server/src/mission/m12.rs",
+        "sha256": "bf83c0c3ca2990cfc03af53052f76da4294facef91228c5d4fd29336ff28915a",
+        "bytes": 17925
+      },
+      {
+        "path": "server/src/mission/m12/tests.rs",
+        "sha256": "f602c83aafa6b576ab174d75ebfd9de899252c60995ad27a5014227d44c52300",
+        "bytes": 30466
+      },
+      {
+        "path": "server/src/mission/readiness_tests.rs",
+        "sha256": "dbde2f87430bb6ad03873f203dc6d837fb08be713b6851ef96bd6bdab2e31c23",
+        "bytes": 11396
+      },
+      {
+        "path": "server/src/mission/recovery.rs",
+        "sha256": "56bd2e22c40c107bc2c739758b678a2a732daffdabe86b14c5f0513354c6ea25",
+        "bytes": 14397
+      },
+      {
+        "path": "server/src/mission/recovery/tests.rs",
+        "sha256": "3d3675921a4af0638d8a95b3170916b6b193bbcaee36a3c3cc95d5e62404ac31",
+        "bytes": 10949
+      },
+      {
+        "path": "server/src/mission/run_file.rs",
+        "sha256": "3df42f0085849a5a0983c09b3028c0cb528837a594b54c99c7a42e1af7c2189e",
+        "bytes": 89305
+      },
+      {
+        "path": "server/src/mission/run_file/geometry.rs",
+        "sha256": "56b1625e47edd1c339f9e83f98600e8b4194b2796986bebdefdb1789eb372bd6",
+        "bytes": 5270
+      },
+      {
+        "path": "server/src/mission/run_file/legacy_v14.rs",
+        "sha256": "beef9e7d1daaf9ff002c4525040e8d916c6243621a0c7a9bc4097b6274048171",
+        "bytes": 3261
+      },
+      {
+        "path": "server/src/mission/run_file/legacy.rs",
+        "sha256": "0ad3e93854a63512b601a28091c4d84a993a90cede8df732ec6aefa1db99574a",
+        "bytes": 36722
+      },
+      {
+        "path": "server/src/mission/run_file/m09_outcome.rs",
+        "sha256": "90714aaf2c6f6480098614cf247787420ea441d354c7817818749c441667042c",
+        "bytes": 2149
+      },
+      {
+        "path": "server/src/mission/run_file/m11_outcome.rs",
+        "sha256": "6ece567658f099c3e45d2cdd629b800435dfaa45d2c908fe93169fec8a2b5945",
+        "bytes": 1647
+      },
+      {
+        "path": "server/src/mission/run_file/m12_outcome.rs",
+        "sha256": "4be32318a15372108418fc4699bb8dd1973941ef2cb493e854e611ce178fc708",
+        "bytes": 1699
+      },
+      {
+        "path": "server/src/mission/run_file/store.rs",
+        "sha256": "a21ecf65ed36627ce2c17538a12e794bda0af8deb3055cf80f509d27681230be",
+        "bytes": 44908
+      },
+      {
+        "path": "server/src/mission/run_file/store/arc_tests.rs",
+        "sha256": "1825147b389200a6434a4f36e64036aef5c303d0ab8f7ec3696ae16a4d597849",
+        "bytes": 7912
+      },
+      {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m08_custodian_of_record.json",
+        "sha256": "b9964704b9bf51e837118f25fbec9d93574d16634b1d281caf694181f44de666",
+        "bytes": 23846
+      },
+      {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest_enclosed.json",
+        "sha256": "01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397",
+        "bytes": 57307
+      },
+      {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m09_passenger_manifest.json",
+        "sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381",
+        "bytes": 50529
+      },
+      {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m10_common_carrier.json",
+        "sha256": "d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d",
+        "bytes": 39793
+      },
+      {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/m12-terms-of-cooperation.json",
+        "sha256": "8f84cca779909790d23c8af2fa59db38bb25c9b94f4422a969e79180a137c78d",
+        "bytes": 43246
+      },
+      {
+        "path": "server/src/mission/run_file/store/fixtures/stair-predecessors-20261008/README.md",
+        "sha256": "13c23dc296695a1aae4271906c046aa470d274d59eedf86db75a9bb1e8e6b3bb",
+        "bytes": 961
+      },
+      {
+        "path": "server/src/mission/run_file/store/geometry_tests.rs",
+        "sha256": "6185eb7f694d634b1b0d72e892f69150cf4438d930ae40bd26d002198d2f9bd9",
+        "bytes": 39037
+      },
+      {
+        "path": "server/src/mission/run_file/store/m06_tests.rs",
+        "sha256": "e7fd5e3b3e7bc03380ef566737ea88eefd63c2c2001601e163dfeda7ee8985a4",
+        "bytes": 8627
+      },
+      {
+        "path": "server/src/mission/run_file/store/m07_tests.rs",
+        "sha256": "69b8ab6a0981fdd9dfd434e099d659811a8bab50b15856abc47a4338721ac008",
+        "bytes": 8017
+      },
+      {
+        "path": "server/src/mission/run_file/store/m08_tests.rs",
+        "sha256": "03907726b7afdf85a3573c1a15ee6a8f107d9a07b85e8adb58cd532ef43c12ef",
+        "bytes": 14208
+      },
+      {
+        "path": "server/src/mission/run_file/store/m09_receipt_tests.rs",
+        "sha256": "ddb76f4e77524be946dc4dd8ce0c09acf167198a8ba2459d41a515fcd512de6c",
+        "bytes": 8053
+      },
+      {
+        "path": "server/src/mission/run_file/store/m09_tests.rs",
+        "sha256": "28ef7d964af26372e5e7fc8c0e95eb4a7b696cb619d55c7b097c69aa0f828637",
+        "bytes": 34647
+      },
+      {
+        "path": "server/src/mission/run_file/store/m10_tests.rs",
+        "sha256": "fccaba3f2cabf5cc410acca56e5ec3d9ee6a04f862495037f8ed064575778b82",
+        "bytes": 30674
+      },
+      {
+        "path": "server/src/mission/run_file/store/m11_tests.rs",
+        "sha256": "4f038fd433757447f0f7013a5d0feec4f3c674705125a7da9275815cb24b2087",
+        "bytes": 18366
+      },
+      {
+        "path": "server/src/mission/run_file/store/m12_tests.rs",
+        "sha256": "c531f778b98e1baf341f5b151decb9562569ed37c5ed12ead83b0991621c85b8",
+        "bytes": 16295
+      },
+      {
+        "path": "server/src/mission/run_file/store/remote_tests.rs",
+        "sha256": "bbb014da6b7ce24ee4dc5f9c69abf4a4465f90b610bffb2e9bb358e98ff9af4b",
+        "bytes": 4367
+      },
+      {
+        "path": "server/src/mission/tests.rs",
+        "sha256": "ee87f4e9aba6a9d25d2c11bf8a8342d515745fa3e08713a548a0b66a96d38a16",
+        "bytes": 34978
+      },
+      {
+        "path": "server/src/mission/wire_tests.rs",
+        "sha256": "bcaece79dfe3db3f50a7af30495c4bf4caf23a7f0fd39c5d4ce9162226864f92",
+        "bytes": 21806
+      },
+      {
+        "path": "server/src/movement.rs",
+        "sha256": "c4923d312597be608c7f31f8d29d3dfcdabd5a3b8c21a722f8c4838eac36df9a",
+        "bytes": 56755
+      },
+      {
+        "path": "server/src/movement/contact.rs",
+        "sha256": "7f590b156c9f597d63cce9a32cbf94d51cdedfe72fb6ab470eaa1ba6ba975a99",
+        "bytes": 14870
+      },
+      {
+        "path": "server/src/movement/enclosed_tests.rs",
+        "sha256": "60553095b8d7a52948b932e31f3f3f08853e44aefca042991cadd1d890ce7f99",
+        "bytes": 4770
+      },
+      {
+        "path": "server/src/movement/water.rs",
+        "sha256": "d6bd57b80f6567a9f36663527bd54bb94d60f6f9c99ae60f406310df2b3ae237",
+        "bytes": 6155
+      },
+      {
+        "path": "server/src/navigation.rs",
+        "sha256": "216db4a87b54f3aa755959278c188a9ce4b8589587be425e2ed6206f904e85b1",
+        "bytes": 37554
+      },
+      {
+        "path": "server/src/navigation/controller.rs",
+        "sha256": "466cdd025b54de8c472a7832ebeeae84a0eaaddf66e00b55230c7771e489b85c",
+        "bytes": 51393
+      },
+      {
+        "path": "server/src/navigation/controller/stalled_observations.rs",
+        "sha256": "309006c9f254faa9a46946193fcab18971ee6999a62e8d01c2296e8c5fcb5909",
+        "bytes": 5886
+      },
+      {
+        "path": "server/src/navigation/tests/enclosed.rs",
+        "sha256": "a60fefd47b9df35042b785d005b7571bec87e35df92bcb1098f473bb809e1051",
+        "bytes": 4027
+      },
+      {
+        "path": "server/src/net.rs",
+        "sha256": "e1efdf582975ca6340796dfd1f456fa781b12829f4e87c91a434656673a42ad8",
+        "bytes": 71108
+      },
+      {
+        "path": "server/src/net/outbound.rs",
+        "sha256": "010c50b200c6123467710d1ebf30b73ad6c4702c3bb5ac14c8dd45ce42ceafd6",
+        "bytes": 10266
+      },
+      {
+        "path": "server/src/net/outbound/tests.rs",
+        "sha256": "c3d5780c5330ed110d867c2c63e4bd6ada464019b286b040d0da734ab7d6d0ef",
+        "bytes": 13859
+      },
+      {
+        "path": "server/src/net/tests.rs",
+        "sha256": "28cea12b64c0597737b60fdb32be79bf01c55f54ddb425f7fd3cf9e5013f6e5a",
+        "bytes": 77385
+      },
+      {
+        "path": "server/src/preflight.rs",
+        "sha256": "fea7c71d08e1fe21ff9f2ad602fa91d20ea8cb1fb43873f954707bf33e4d895b",
+        "bytes": 24264
+      },
+      {
+        "path": "server/src/protocol.rs",
+        "sha256": "7c562be3f79d8cab813445a39fa0aef8b8c2b3c117037089b32700a7eb126b34",
+        "bytes": 91895
+      },
+      {
+        "path": "server/src/protocol/actors.rs",
+        "sha256": "8e77bcf1d19e6d7ab2ccfe35c89f3898a23efb55789316268a9ccb9ed4826d19",
+        "bytes": 7120
+      },
+      {
+        "path": "server/src/protocol/body.rs",
+        "sha256": "03367b2af2d098efea4a664bd5afcbde67ce74300bfe245e7955da4b2d38b492",
+        "bytes": 2935
+      },
+      {
+        "path": "server/src/protocol/conquest.rs",
+        "sha256": "5fe501b3019f71d72c9eba5ae81b96a8e9658d714702bdb3bbfdef8d12bd6786",
+        "bytes": 682
+      },
+      {
+        "path": "server/src/protocol/decoration.rs",
+        "sha256": "762c61e0e254265eca6fc47ba5511d373e8f3525254b2af7d066ba49ac9486cc",
+        "bytes": 7142
+      },
+      {
+        "path": "server/src/protocol/decoration/tests.rs",
+        "sha256": "4aa7ee94eacb50133322f1dd9e562dfb15782f43df79ab6b148677b8e3215aaa",
+        "bytes": 4328
+      },
+      {
+        "path": "server/src/protocol/explosive.rs",
+        "sha256": "ee5c77a02845cae7d14c54d13b59239628ab622a54a99c9135c4a92b211a5994",
+        "bytes": 3672
+      },
+      {
+        "path": "server/src/protocol/loadout.rs",
+        "sha256": "1a83ab9d763daa7308e75bdb193743500a28b787aed8d871111cbf734042ddf9",
+        "bytes": 14349
+      },
+      {
+        "path": "server/src/protocol/m04.rs",
+        "sha256": "99e798be008e5c812926fab7366e7ef74ec8343ff3e8f7417f0df102e42f8bc7",
+        "bytes": 9566
+      },
+      {
+        "path": "server/src/protocol/m05.rs",
+        "sha256": "ca23165476509e0cd2a79b2405798a86e982176b5f48f715abe0e66a5bb80316",
+        "bytes": 10015
+      },
+      {
+        "path": "server/src/protocol/m06.rs",
+        "sha256": "b91068983c51aee1672c5e19f430b0e134ef50f1b305cc9f409407d708b63c3f",
+        "bytes": 6801
+      },
+      {
+        "path": "server/src/protocol/m07.rs",
+        "sha256": "8e31be14a0b1e79938d139e22eb0416023ed7c8d311143b6a022355a892eca3f",
+        "bytes": 6549
+      },
+      {
+        "path": "server/src/protocol/m08.rs",
+        "sha256": "903da3a0168850fdefee4976e9bdd624b2f054e8a6354bdbd908a447c374d989",
+        "bytes": 10155
+      },
+      {
+        "path": "server/src/protocol/m08/neutral.rs",
+        "sha256": "306f04e8377b656004c4f99915f7dc998e04c3a12c58cef62d92202ecff33718",
+        "bytes": 3958
+      },
+      {
+        "path": "server/src/protocol/m08/neutral/tests.rs",
+        "sha256": "c57ad6b1090f08cb0f38ce72290360ec869370621ebee3c42bfe6dc58e2670e9",
+        "bytes": 4850
+      },
+      {
+        "path": "server/src/protocol/m09.rs",
+        "sha256": "b3c0bc78ef0b8206ffb6426542bc4360d781b8911caa4e5bd9457171d6673ebd",
+        "bytes": 9993
+      },
+      {
+        "path": "server/src/protocol/m10.rs",
+        "sha256": "9a05e7c7511026a896356d11437f23249c47ae34e75d5718b59eead3ab7b1985",
+        "bytes": 7050
+      },
+      {
+        "path": "server/src/protocol/m11.rs",
+        "sha256": "30b67a29014a8e0d299bef0e673e040d0b5609f351d8a85ceb9114841b5c5f68",
+        "bytes": 9036
+      },
+      {
+        "path": "server/src/protocol/m11/tests.rs",
+        "sha256": "9e12eee5d12003a0e4637d591928197d51b7dcbf9559bd2830d5f6877f6db187",
+        "bytes": 8578
+      },
+      {
+        "path": "server/src/protocol/m12.rs",
+        "sha256": "536fd645b50fe286f4799f448355d908b81c9922c11af1f086b7d7ce7d3ff779",
+        "bytes": 10180
+      },
+      {
+        "path": "server/src/protocol/mission.rs",
+        "sha256": "7a094303601d04540310ceab2a5983d3ac5192639a414384366c1929a5c239c9",
+        "bytes": 43262
+      },
+      {
+        "path": "server/src/protocol/moon_residents.rs",
+        "sha256": "2752c6f9d2359d418c485653c3a6c71658938bb90d94ff8446e928076d2c6c34",
+        "bytes": 5999
+      },
+      {
+        "path": "server/src/protocol/remote_mine.rs",
+        "sha256": "b23ca6f9e3f684f2385d8b0651c1e7df10a5ebc9b6b6ec90441b4eaf9f67b32b",
+        "bytes": 8645
+      },
+      {
+        "path": "server/src/protocol/rules.rs",
+        "sha256": "815c5114e2151a4205f05d3d1f3e13bafa550ee5e061c6e2196db96811ee4461",
+        "bytes": 10867
+      },
+      {
+        "path": "server/src/protocol/sabotage.rs",
+        "sha256": "82a716b6305cc055d979a45df0d30ff302d419ab9b6e9fed065ade7275b6f1bb",
+        "bytes": 15454
+      },
+      {
+        "path": "server/src/protocol/statistics.rs",
+        "sha256": "3796bf27f1e677e00086f1dd3001af357e92e94da4191ee49eb42cf587e51c33",
+        "bytes": 23871
+      },
+      {
+        "path": "server/src/protocol/statistics/record_wire.rs",
+        "sha256": "90fa64cfe6a76ab2cc214f1a458e1ffe3f335b1d2e562477e8a0b1256b25791e",
+        "bytes": 13097
+      },
+      {
+        "path": "server/src/protocol/status.rs",
+        "sha256": "1fa0e9e86da69b9da00e061a9eb219c41aad6e7d7ab1fc83bd56a239fbbdef96",
+        "bytes": 5345
+      },
+      {
+        "path": "server/src/protocol/vehicle.rs",
+        "sha256": "ab9fc90db23d60b560f6e997e9e171f3a09b1a4d54681672fc693103b3a49de4",
+        "bytes": 2226
+      },
+      {
+        "path": "server/src/protocol/water.rs",
+        "sha256": "bbdbcadde2a7cf9f67390a618c33a501949be9dcf64fda72c0708b8eefe8923a",
+        "bytes": 4336
+      },
+      {
+        "path": "server/src/resume.rs",
+        "sha256": "1fa76b3581ee013aa6e70fa28c653b5e6366c3b3e0404f104d156659bb470144",
+        "bytes": 16074
+      },
+      {
+        "path": "server/src/rules.rs",
+        "sha256": "fc32c7942080cbf75171edbb414bf65019112a2793ae0713e37ef3d2b279bd6a",
+        "bytes": 9045
+      },
+      {
+        "path": "server/src/rules/sabotage.rs",
+        "sha256": "9619f6c58670370d125990741f0427352b08e1a542fe43c8ddb702bf5be546ad",
+        "bytes": 8226
+      },
+      {
+        "path": "server/src/run.rs",
+        "sha256": "5f322680d87dc5dd83da7b952ade7e868661d584f34081035aa265c2565a4a56",
+        "bytes": 32297
+      },
+      {
+        "path": "server/src/session.rs",
+        "sha256": "5558692310f56bde0908a4e53f2836c55626dca94abc8e6d1b216fb944c39f42",
+        "bytes": 78777
+      },
+      {
+        "path": "server/src/session/desk.rs",
+        "sha256": "13441dd6fe64830e54fefdd04193cbdee43500f39713afd9ccc01fb70daa9f2c",
+        "bytes": 22124
+      },
+      {
+        "path": "server/src/session/fill.rs",
+        "sha256": "62f166ca9e305eefa452fb49f75b12e2e86fa5308c2c7059bc78bbcabcb3c56e",
+        "bytes": 23698
+      },
+      {
+        "path": "server/src/session/five_seats_tests.rs",
+        "sha256": "eeadb8cd97fc416a6247e25faf57fa5e03e00932547c08b8aa89bf69ad5ee1a7",
+        "bytes": 14365
+      },
+      {
+        "path": "server/src/sheet.rs",
+        "sha256": "a11fd8b73f164c070e850f0747e990678767385f2ee4284f5b8561e53e375994",
+        "bytes": 6376
+      },
+      {
+        "path": "server/src/sim.rs",
+        "sha256": "27ec78a5efe46a3d455fc4f51b9bb8ba4b68645eb43aa331a9a789da0509b30e",
+        "bytes": 190081
+      },
+      {
+        "path": "server/src/sim/arc.rs",
+        "sha256": "8b57292dbfee3ba258a49c1e95801674042a5f5b1f4066072d2eb0da7cdc0cc9",
+        "bytes": 11365
+      },
+      {
+        "path": "server/src/sim/assessor.rs",
+        "sha256": "4cb4bd06b0a75bed04eb7d19e7955cb3af49fcb16688629d832bc35c64242afc",
+        "bytes": 10524
+      },
+      {
+        "path": "server/src/sim/assessor/tests.rs",
+        "sha256": "32e7fc5aec8bb0d53b860d546f7a8b4bae0ef4b8dec7c0ed458078b020a66df4",
+        "bytes": 25465
+      },
+      {
+        "path": "server/src/sim/bot_senses.rs",
+        "sha256": "82c28e64bba25350e8ce56e842aa4a348ef171ff74247d65c8d12fc25910f409",
+        "bytes": 15557
+      },
+      {
+        "path": "server/src/sim/bot_senses/tests.rs",
+        "sha256": "d57ec18912b3a9d2746f4b47d1d03025700573647614f989cd07fcd0c89e969d",
+        "bytes": 15471
+      },
+      {
+        "path": "server/src/sim/conquest.rs",
+        "sha256": "3eaa30b3ec28aa94bd629dea7376e4617a7e532692131a78a15cf84076d2131b",
+        "bytes": 13454
+      },
+      {
+        "path": "server/src/sim/conquest/coordination_tests.rs",
+        "sha256": "9067e47a853e196295e47c93f39388da20aa81d8c08416709759dd14979fb601",
+        "bytes": 20382
+      },
+      {
+        "path": "server/src/sim/conquest/coordination.rs",
+        "sha256": "8b37563c6392bfc3b65ae348dc1b4c9f64bc768d5eeafb8d9fc2e24730258621",
+        "bytes": 7122
+      },
+      {
+        "path": "server/src/sim/contact.rs",
+        "sha256": "c7fa460ba5cc8a49a3f8f562b2becb8848f87f12b2cd4177edadb7116c46044d",
+        "bytes": 7883
+      },
+      {
+        "path": "server/src/sim/contact/vehicle_water_tests.rs",
+        "sha256": "e2619ac8c329754ddf3664667e4c9bb345e54a252c1f62efed87527e0645a167",
+        "bytes": 2206
+      },
+      {
+        "path": "server/src/sim/ctf.rs",
+        "sha256": "f9cf19e0251c70a28623d74fc4a41da645d6166cbbd691bd12012e9152372e78",
+        "bytes": 7842
+      },
+      {
+        "path": "server/src/sim/enclosed_tests.rs",
+        "sha256": "ba052844131bc64c6ebaead273901c2ee6606d69a4018aac1aebba6cee6c84de",
+        "bytes": 7720
+      },
+      {
+        "path": "server/src/sim/grenade.rs",
+        "sha256": "5e4dd74820cb54ed704f8ede9bf82592b100ce3770e03e9e1164bc2ee5601104",
+        "bytes": 16348
+      },
+      {
+        "path": "server/src/sim/grenade/tests.rs",
+        "sha256": "e158668827b84be9ce629c7f27e42fc39582e4535ec9cc2b5c139f3ac2e95330",
+        "bytes": 18007
+      },
+      {
+        "path": "server/src/sim/mine.rs",
+        "sha256": "2a5251b7198c47f5af5fc6532caf4cfd107cab90614902bda7efcea3df42525e",
+        "bytes": 10555
+      },
+      {
+        "path": "server/src/sim/mine/tests.rs",
+        "sha256": "7d94ac03bd3849d6ed27d6ea69e64a6736a09ffbfd10c55cbd9e8fcdb11ec6c2",
+        "bytes": 15810
+      },
+      {
+        "path": "server/src/sim/modes.rs",
+        "sha256": "3a6aef54b00fc9606a9269b6b409f7272819b58d66cbdc1efed3c45fac867cbb",
+        "bytes": 10642
+      },
+      {
+        "path": "server/src/sim/playlist.rs",
+        "sha256": "8ac45b7bb146c035e4a8942019bbd39de2f588449f82542f532de53232e0d361",
+        "bytes": 21918
+      },
+      {
+        "path": "server/src/sim/playlist/desk_tests.rs",
+        "sha256": "d6fe14407c55a5d8938507e32e1986c0ae20b2d826043a07ffd1ab0a33527b10",
+        "bytes": 7319
+      },
+      {
+        "path": "server/src/sim/remote_mine.rs",
+        "sha256": "3d02c8811b49a8a4268845cd835c92b7ab5b14a815f33c2cda148b4ef35a8295",
+        "bytes": 12699
+      },
+      {
+        "path": "server/src/sim/remote_mine/live_tests.rs",
+        "sha256": "9d44eaad182634dff3e8122fd104b5b9fc6d133ba99a7e49b72b6384a2821b0a",
+        "bytes": 13878
+      },
+      {
+        "path": "server/src/sim/remote_mine/tests.rs",
+        "sha256": "c420d81fca539cfa05fb6d9166d817178de3d78083456b1a475f872ee099914b",
+        "bytes": 9130
+      },
+      {
+        "path": "server/src/sim/repeater.rs",
+        "sha256": "49b26e7b62abca0980b490c48045360c2fdfc533cd03de47e450878ce4d904db",
+        "bytes": 17912
+      },
+      {
+        "path": "server/src/sim/sabotage.rs",
+        "sha256": "76deca3b8780f237d0bd8a9e5a87a5d0bf3357906cda7c23a478c980558359cb",
+        "bytes": 38481
+      },
+      {
+        "path": "server/src/sim/sabotage/bots.rs",
+        "sha256": "631c053040214b69a35db3a0099f05677b9638c908f267b7f82c8b045607d102",
+        "bytes": 19193
+      },
+      {
+        "path": "server/src/sim/sabotage/controller.rs",
+        "sha256": "27d959ce6a98be394b4f345bce3c725c6cdb71d12dc42adb10a6924cd67c5aa5",
+        "bytes": 5980
+      },
+      {
+        "path": "server/src/sim/spawn.rs",
+        "sha256": "a6e696df4756aeb67d8dcb27f55553f9e49daedf2345f523fac4f2c57a5d1ff9",
+        "bytes": 10502
+      },
+      {
+        "path": "server/src/sim/spawn/tests.rs",
+        "sha256": "7a25225a06896851aad84e7e37247dce431798f6d3295d950ab154213f66c627",
+        "bytes": 11917
+      },
+      {
+        "path": "server/src/sim/traveling_shot.rs",
+        "sha256": "fe3c75115818239d522fa00686c17d2555b69601d6e3d5a479414001fc094860",
+        "bytes": 7855
+      },
+      {
+        "path": "server/src/sim/vehicle.rs",
+        "sha256": "27fc856e698f6db547b870dc67b6ddb8929ce64f962cc351e8f72d2e6e62d585",
+        "bytes": 23617
+      },
+      {
+        "path": "server/src/sim/vehicle/boarding_tests.rs",
+        "sha256": "e338e312c9d45188ca7f737e01a06386b3609a11d3caf7a635c9a541a12ae95a",
+        "bytes": 6484
+      },
+      {
+        "path": "server/src/sim/vehicle/tests.rs",
+        "sha256": "6d308e48199ba408cbec557c9eed2632e8e013f0c305bf6c5550265f6e4da274",
+        "bytes": 16907
+      },
+      {
+        "path": "server/src/statistics.rs",
+        "sha256": "3cae0805900e587a31564fddb96c8a0f91bd6f6c0cf8ec34de60eea94e7f2f31",
+        "bytes": 7495
+      },
+      {
+        "path": "server/src/statistics/tests.rs",
+        "sha256": "758362b90b32000a43cdb368953744d0c67fb2c9604a444cfecbbd8da135e03d",
+        "bytes": 36454
+      },
+      {
+        "path": "server/src/tests.rs",
+        "sha256": "a41419fc60c2808eb504beff01c241f6933a5622c794483d5a5a164b53d7c918",
+        "bytes": 229702
+      },
+      {
+        "path": "server/src/tests/auditor.rs",
+        "sha256": "91a66af6e61faf7dbfc882de692674be027bd13499794ea517c762d46f84009c",
+        "bytes": 18391
+      },
+      {
+        "path": "server/src/tests/authored_vehicles.rs",
+        "sha256": "f396719a9ed7532dc0cff78670f6d55c04294e2cadf6dcf4a718d3c129ae1ed8",
+        "bytes": 9707
+      },
+      {
+        "path": "server/src/tests/body.rs",
+        "sha256": "22c79458bb566eb2dd20a306d5cc4a25c4a715bb52f34b2145bb94d33068a3f0",
+        "bytes": 11685
+      },
+      {
+        "path": "server/src/tests/discovery.rs",
+        "sha256": "bb9e80e4cb66e37536d3867ba187e001dfe07558a6ce8c28823bec18f7469ddf",
+        "bytes": 17834
+      },
+      {
+        "path": "server/src/tests/duck.rs",
+        "sha256": "181367d5beddcee69eeb91a30defb517127bcf90bdffd107f0b270461545a316",
+        "bytes": 7617
+      },
+      {
+        "path": "server/src/tests/encounters.rs",
+        "sha256": "65075d4c50e79657507f9f586443d851ed73932a2874ec4a916c6ef67a6de05c",
+        "bytes": 28583
+      },
+      {
+        "path": "server/src/tests/enforcer.rs",
+        "sha256": "d681a4ea0981525308d04f52707df3d508e492f48b052cfb36dbe63e0e309ae8",
+        "bytes": 11739
+      },
+      {
+        "path": "server/src/tests/heavy_turret.rs",
+        "sha256": "aabefed6b1b9945c8c1afdeedb7ac952cb62fbe5b47dbb0e791123a5f8a96e4d",
+        "bytes": 12457
+      },
+      {
+        "path": "server/src/tests/jammer.rs",
+        "sha256": "d642ae96e06a31872610950bb7e186a7f0cf219ebbb7db53a3412c9a3a1cb577",
+        "bytes": 18015
+      },
+      {
+        "path": "server/src/tests/launch_authority.rs",
+        "sha256": "caa43378fc31bd5da61d9be39e0fa7acb8ad0dc9653393c73ec3c310ff11bb48",
+        "bytes": 19999
+      },
+      {
+        "path": "server/src/tests/m01_acceptance.rs",
+        "sha256": "ee1e1a78b738f3baf69dbc65f4513d941eda40c34e0cbed778f14563ccd0b27d",
+        "bytes": 12255
+      },
+      {
+        "path": "server/src/tests/m01.rs",
+        "sha256": "fc165060ea2cd1977c2253babfc5cafec9c399a8cceb07daa0a435ea21dd8f17",
+        "bytes": 53279
+      },
+      {
+        "path": "server/src/tests/m03_qa.rs",
+        "sha256": "d96d88cf5bd8e202ac8be22d1a88e9c2d475fed6480bf22fa37651b37374dbb4",
+        "bytes": 2772
+      },
+      {
+        "path": "server/src/tests/m03.rs",
+        "sha256": "3d1b704d68f1622a1f8e8a85420073c2bba5f395753669fcf60466b642f5999e",
+        "bytes": 24016
+      },
+      {
+        "path": "server/src/tests/m04_qa.rs",
+        "sha256": "f1c0fed5291b543fa74e665c030b0be38ca410ccd903a64271680ffa8f44aa04",
+        "bytes": 13841
+      },
+      {
+        "path": "server/src/tests/m04.rs",
+        "sha256": "c71eb55d6c95d897e5925d388be4976ea2d7b5d65d0730e2fedd2ce41cc893b2",
+        "bytes": 31290
+      },
+      {
+        "path": "server/src/tests/m05_qa.rs",
+        "sha256": "5c0b5cfe0f4a4d96d9821f8804103695791e475f24728f44b26d075e5e032ac2",
+        "bytes": 4544
+      },
+      {
+        "path": "server/src/tests/m05.rs",
+        "sha256": "a6f78cf1b0b892e3ff29607757e56bcff6f405575418588989051947cd1a5d3c",
+        "bytes": 30455
+      },
+      {
+        "path": "server/src/tests/m06_qa.rs",
+        "sha256": "f46ff08aef58ed8143dfecc88be0395e971bd5cb43c2d46f2fc38df2f1cefa48",
+        "bytes": 11843
+      },
+      {
+        "path": "server/src/tests/m06.rs",
+        "sha256": "bfb77bb997d7cc631fe05340794052a6cfcfc5376695e55057ccb3e4701ad1ef",
+        "bytes": 29631
+      },
+      {
+        "path": "server/src/tests/m07.rs",
+        "sha256": "81ffa3f2c10e0c235b364463c4f9c53f0dae4768d78d9e25e67cf940b193e008",
+        "bytes": 32087
+      },
+      {
+        "path": "server/src/tests/m08_qa.rs",
+        "sha256": "8a248570e93b8f1f946588e1669dfc930a57e5524fe1546b8af82a8f09bbb7f2",
+        "bytes": 10079
+      },
+      {
+        "path": "server/src/tests/m08.rs",
+        "sha256": "f704db74b52e3bb3098f56de83d162179487617d4070029df30bca41c91e3ead",
+        "bytes": 23524
+      },
+      {
+        "path": "server/src/tests/m09.rs",
+        "sha256": "f89f210c47f246b73a85bd291ce9a53a6d398e1ae8a801a643677b2ca61d1ef4",
+        "bytes": 19902
+      },
+      {
+        "path": "server/src/tests/m10.rs",
+        "sha256": "3b775e4f1ddb398c715af874ce50c9695d8302ca700481e9ceb6b4f066925e42",
+        "bytes": 19064
+      },
+      {
+        "path": "server/src/tests/modes.rs",
+        "sha256": "1921ba0740d68455110b84002c184c54974c8d2446f2fe39d7d628ea5a103eaf",
+        "bytes": 57572
+      },
+      {
+        "path": "server/src/tests/pellets.rs",
+        "sha256": "f49d699dc235a6238583552ff5e5101055da379b9299a97e8cd79c746fd2a9ab",
+        "bytes": 11830
+      },
+      {
+        "path": "server/src/tests/redactor.rs",
+        "sha256": "7c378d227a23f7f9dfe0e73fa8b96ad01cbd14b4209b65e14d4ac3719a5a0e04",
+        "bytes": 11858
+      },
+      {
+        "path": "server/src/tests/remote_mine_supply.rs",
+        "sha256": "9ff391d42e8094fa504f6c85c88dd95eedb2c809e455176c4911a4a7dcdd2207",
+        "bytes": 5832
+      },
+      {
+        "path": "server/src/tests/roster.rs",
+        "sha256": "e0568a466bf127d3a6c5aa321d9b50b46c770750afd4323eec926656568ebe0c",
+        "bytes": 14847
+      },
+      {
+        "path": "server/src/tests/sabotage.rs",
+        "sha256": "5329de6439dc718f03bc914d3fda09666ec573deb918037b6a16afff0f517c30",
+        "bytes": 46197
+      },
+      {
+        "path": "server/src/tests/shiv.rs",
+        "sha256": "4215da9d694d7d46a584c06fb107ad07d035afeddb9c8120901770eb25830c5c",
+        "bytes": 7809
+      },
+      {
+        "path": "server/src/tests/shot_occlusion.rs",
+        "sha256": "b7b9ebe3e39da754ef93dc2a88ba60995c2fc6f999b786b51b3c71dbb97a9d76",
+        "bytes": 23440
+      },
+      {
+        "path": "server/src/tests/sniper.rs",
+        "sha256": "8c37dc63b6dd2a9d127904da0805446836293b554bebbe764ffba9faa1c72158",
+        "bytes": 30561
+      },
+      {
+        "path": "server/src/tests/spawns.rs",
+        "sha256": "c9c2cd69294db06b568f7d2161d517462d5ff42c6f90f5fc5c1d8835eb23df3c",
+        "bytes": 19205
+      },
+      {
+        "path": "server/src/tests/traveling_shot.rs",
+        "sha256": "610465afd5c39d29bed9f7ef85a4704ef3f5328839b498a80e8733aff574f73d",
+        "bytes": 9945
+      },
+      {
+        "path": "server/src/trace.rs",
+        "sha256": "0f0bdd051e3e7be231b0a8ff855b64745bd6e967f71e071b916bcfef44553d48",
+        "bytes": 15031
+      },
+      {
+        "path": "server/src/vehicles.rs",
+        "sha256": "c1087e8355344c9b15b23bb7fb57ca9f3c957573582133d00305dee7ee3b483c",
+        "bytes": 13537
+      },
+      {
+        "path": "server/src/vehicles/tests.rs",
+        "sha256": "f953d75a9d26968e409d6db5866395a8b2b916bc3abc7c2ec5d661c435589e7e",
+        "bytes": 5245
+      },
+      {
+        "path": "server/src/vehicles/water_air.rs",
+        "sha256": "403c7d3ab9135e59fc18c85e1e633b78638f4644ea15aa370d31f1a624368158",
+        "bytes": 6068
+      },
+      {
+        "path": "server/src/vehicles/water_air/tests.rs",
+        "sha256": "9344dd249e6c0673dfda1f76dafc9b1b558c4331c49567d6806fbf7cddc2f815",
+        "bytes": 6692
+      },
+      {
+        "path": "server/tests/arc_foundation.rs",
+        "sha256": "0e80f9659b621f9fdd1efe602d884706ab28da8289781127318c97e34b6209c3",
+        "bytes": 14943
+      },
+      {
+        "path": "server/tests/assessor_foundation.rs",
+        "sha256": "f503da9aa3e9d5703e6022b8c3187fef78c2d41a6452dd8f87a9ad294ab6f5a0",
+        "bytes": 8985
+      },
+      {
+        "path": "server/tests/authored_maps.rs",
+        "sha256": "53866f68d1ea021c1ce14439400cf51a75968feb0abd3e0bdd77d6b25cf16fa5",
+        "bytes": 12961
+      },
+      {
+        "path": "server/tests/benchmark_cli.rs",
+        "sha256": "fb45eaea1ed4bca5c39d2b900dc6411692239f874983f59d929fc98d08ae59a1",
+        "bytes": 2101
+      },
+      {
+        "path": "server/tests/body_identity.rs",
+        "sha256": "b5404899899b2dc00c06d4bf4d8cd04dd3e677f7a85eaac1c225bf874cef7f04",
+        "bytes": 6177
+      },
+      {
+        "path": "server/tests/campaign_encounters.rs",
+        "sha256": "76f0731f9c0184b5f4cfc0fdf67f99bc2118eaf0dabe9f66362b3800e10c6858",
+        "bytes": 6648
+      },
+      {
+        "path": "server/tests/campaign_stairs.rs",
+        "sha256": "8bd2370cc684d99c2b4370ee91e261dc031bdfec78360e8a9d84867e0fd0df73",
+        "bytes": 15922
+      },
+      {
+        "path": "server/tests/desktop_host.rs",
+        "sha256": "bfafe4cd2654973c25504532386be62479499d8460edf99264bae171bcf846af",
+        "bytes": 19909
+      },
+      {
+        "path": "server/tests/foundry_development.rs",
+        "sha256": "c7e8caa5c01dc73e5c507f55de1b3244871af6737755ab408157bdf170b4bdf9",
+        "bytes": 18630
+      },
+      {
+        "path": "server/tests/habitat_development.rs",
+        "sha256": "e1f002503c505eac0384a3c5a4a72b12b550c3a1b740be3e8b562a5549ce77b4",
+        "bytes": 17374
+      },
+      {
+        "path": "server/tests/local_child.rs",
+        "sha256": "6d456c0e3eaf78e91e4dab767ed9a17444eeac2a08a6289a6d2092c722d8154e",
+        "bytes": 64018
+      },
+      {
+        "path": "server/tests/low_water_sabotage.rs",
+        "sha256": "70869da6afe6519ff4fd9adf3759aceb5b5db02dfdbf38d13d5f7c8ceb98ea3a",
+        "bytes": 16106
+      },
+      {
+        "path": "server/tests/m12_campaign.rs",
+        "sha256": "4ac3b808bcd3127a511c5a0913e53d1bde4d66b33d88a8e33c7db0ffe13f1eb2",
+        "bytes": 15450
+      },
+      {
+        "path": "server/tests/resume_pawn.rs",
+        "sha256": "e0e9c93b3701e77302420361f25372f6e308244ec4c3dadc93322137ffdf45a8",
+        "bytes": 4654
+      },
+      {
+        "path": "server/tests/sabotage_five_seats.rs",
+        "sha256": "afc0499be878eec9297ab627da1dedeeff4f6163e64341789db370dd5b0cf153",
+        "bytes": 18747
+      },
+      {
+        "path": "tools/playtest_roster.sh",
+        "sha256": "9110528594e11e4eb795feb5f95fdf00bf691621f0d08660a5338049355314c8",
+        "bytes": 764
+      },
+      {
+        "path": "tools/playtest/Cargo.toml",
+        "sha256": "3b9400bafba0e1901e24ddd4ad884c7530e27650d3248a69638499d86b6d3030",
+        "bytes": 850
+      },
+      {
+        "path": "tools/playtest/examples/hitscan_alignment.rs",
+        "sha256": "9cdf2b4cf5421becdfbf1c10093a50bf9d1db941e7d263e1b191a3debdf03f82",
+        "bytes": 7032
+      },
+      {
+        "path": "tools/playtest/README.md",
+        "sha256": "0b7e3b9d764b2a3e1b16d61e9bf95ee641a855372e08d0eef28a3c567d89c065",
+        "bytes": 7900
+      },
+      {
+        "path": "tools/playtest/src/fanout.rs",
+        "sha256": "0932923acff1d571be78d42c56da51d98988de0ba4d348889189d7225dc20583",
+        "bytes": 16109
+      },
+      {
+        "path": "tools/playtest/src/lib.rs",
+        "sha256": "5a856375ded2c14e6b61c2d04ca456e19b573ebe909bbf05b24964181f311c7c",
+        "bytes": 192195
+      },
+      {
+        "path": "tools/playtest/src/main.rs",
+        "sha256": "1cc77bb197b14060f005773215c62b4a1806fcb41828ec99015fb807b7f298c6",
+        "bytes": 34503
+      },
+      {
+        "path": "tools/playtest/src/sabotage.rs",
+        "sha256": "fcc81e7519990755cc2dfc09e57e7e919691a41f899b8aa6a687960bc9d3b7ae",
+        "bytes": 13085
+      },
+      {
+        "path": "tools/playtest/src/soak.rs",
+        "sha256": "619c9caca4c4c0c032c1b92f3fd43612a0a692871fea662bad5e5af18afb5140",
+        "bytes": 29908
+      },
+      {
+        "path": "tools/playtest/src/soak/tests.rs",
+        "sha256": "f68f8a0fce6c91d7e60b9a2a79d1bb9d3d1762e2e937e81330eb4c18ddc5608f",
+        "bytes": 12870
+      },
+      {
+        "path": "tools/playtest/src/traffic.rs",
+        "sha256": "a7bbf7572cc382619e91c51a3f42e27ad403f4cf67dca507ab04ccaf298150dc",
+        "bytes": 20006
+      }
+    ],
+    "orchestration": {
+      "path": ".agents/presentation-stairs-composition-20261008/network/run-gates.ps1",
+      "sha256": "4e9145f4c3ff909ad15b3e1df20bf6d53a4cac95f619b2dd8571a97e7022a3c8",
+      "bytes": 9609
+    },
+    "ci_cases": [
+      {
+        "arguments": [
+          "--agents",
+          "4",
+          "--rounds",
+          "1",
+          "--frag-limit",
+          "3",
+          "--time-limit-seconds",
+          "45",
+          "--assert"
+        ],
+        "name": "ci"
+      },
+      {
+        "arguments": [
+          "--agents",
+          "4",
+          "--rounds",
+          "1",
+          "--mode",
+          "tdm",
+          "--frag-limit",
+          "6",
+          "--time-limit-seconds",
+          "60",
+          "--assert"
+        ],
+        "name": "ci-tdm"
+      },
+      {
+        "arguments": [
+          "--agents",
+          "4",
+          "--rounds",
+          "1",
+          "--mutator",
+          "rail-only",
+          "--frag-limit",
+          "3",
+          "--time-limit-seconds",
+          "45",
+          "--assert"
+        ],
+        "name": "ci-rail-only"
+      },
+      {
+        "arguments": [
+          "--agents",
+          "4",
+          "--rounds",
+          "1",
+          "--mode",
+          "tdm",
+          "--mutator",
+          "licence-to-kill",
+          "--frag-limit",
+          "6",
+          "--time-limit-seconds",
+          "60",
+          "--assert"
+        ],
+        "name": "ci-tdm-licence"
+      },
+      {
+        "arguments": [
+          "--ctf-route-smoke"
+        ],
+        "name": "ci-ctf-route"
+      },
+      {
+        "arguments": [
+          "--agents",
+          "4",
+          "--rounds",
+          "1",
+          "--mode",
+          "ctf",
+          "--map",
+          "4",
+          "--tiers",
+          "reflex,planner",
+          "--capture-limit",
+          "1",
+          "--time-limit-seconds",
+          "180",
+          "--max-seconds",
+          "240",
+          "--assert",
+          "--ctf-contested"
+        ],
+        "name": "ci-ctf"
+      },
+      {
+        "arguments": [
+          "--sabotage-route-smoke"
+        ],
+        "name": "ci-sabotage-route"
+      },
+      {
+        "arguments": [
+          "--agents",
+          "4",
+          "--rounds",
+          "1",
+          "--mode",
+          "sabotage",
+          "--map",
+          "4",
+          "--tiers",
+          "reflex,planner",
+          "--time-limit-seconds",
+          "105",
+          "--max-seconds",
+          "160",
+          "--assert",
+          "--sabotage-contested"
+        ],
+        "name": "ci-sabotage"
+      }
+    ],
+    "roster_cases": [
+      {
+        "map": 1,
+        "agents": 2,
+        "seed": 67
+      },
+      {
+        "map": 2,
+        "agents": 6,
+        "seed": 42
+      },
+      {
+        "map": 3,
+        "agents": 6,
+        "seed": 19
+      },
+      {
+        "map": 4,
+        "agents": 8,
+        "seed": 42
+      },
+      {
+        "map": 5,
+        "agents": 12,
+        "seed": 42
+      },
+      {
+        "map": 6,
+        "agents": 16,
+        "seed": 42
+      },
+      {
+        "map": 7,
+        "agents": 16,
+        "seed": 42
+      }
+    ],
+    "scope": "Eight exact CI playtests plus all seven exact roster rows and a 120-second native-server soak. Only output destinations and explicit copied soak-server path differ. No cargo invocation."
+  },
+  "completion": {
+    "schema": 1,
+    "finished_utc": "2026-10-08T20:36:07.5285331Z",
+    "cases": 16,
+    "failed_cases": [],
+    "source_changes": [],
+    "binary_changes": [],
+    "passed": true,
+    "builds_during_checks": 0,
+    "paid_calls": 0,
+    "new_cash_usd": 0
+  },
+  "cases": [
+    {
+      "category": "ci",
+      "name": "ci",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "3",
+        "--time-limit-seconds",
+        "45",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci.json"
+      ],
+      "started_utc": "2026-10-08T20:20:35.2735934Z",
+      "finished_utc": "2026-10-08T20:21:07.0937543Z",
+      "elapsed_s": 31.8201609,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci.log",
+        "sha256": "c415784920ebc88ac9f67563a810e916a7ac76bcb4644a1dfaf72ce71ccbc8fb",
+        "bytes": 330
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci.json",
+        "sha256": "d6e2a9f68fd67b4c4a9e3de910031ebab65b2ed14ac6ae399d94dc19524b0a9b",
+        "bytes": 5705
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-tdm",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "tdm",
+        "--frag-limit",
+        "6",
+        "--time-limit-seconds",
+        "60",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-tdm.json"
+      ],
+      "started_utc": "2026-10-08T20:21:07.1294236Z",
+      "finished_utc": "2026-10-08T20:21:45.4386825Z",
+      "elapsed_s": 38.3092589,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-tdm.log",
+        "sha256": "802aaf9b9e7da57e4ad16854ed01e1df96813ad7082af820eeddd4ef44a6ecc7",
+        "bytes": 355
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-tdm.json",
+        "sha256": "2dd08aeaaf820d529370c18e3ae07d2c9443559a6bc15ffee1a4ca51251a6c95",
+        "bytes": 5778
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-rail-only",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mutator",
+        "rail-only",
+        "--frag-limit",
+        "3",
+        "--time-limit-seconds",
+        "45",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-rail-only.json"
+      ],
+      "started_utc": "2026-10-08T20:21:45.4543501Z",
+      "finished_utc": "2026-10-08T20:22:13.2642025Z",
+      "elapsed_s": 27.8098524,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-rail-only.log",
+        "sha256": "64f7c8d4f31969e589a847e814c0867274fa3dbe06994e13c0efb0b84799ea9a",
+        "bytes": 351
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-rail-only.json",
+        "sha256": "13c5c5692265a1d3ec8c1704206a1a793660b7b6eef71e7a9a9deae8148e7bec",
+        "bytes": 3947
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-tdm-licence",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "tdm",
+        "--mutator",
+        "licence-to-kill",
+        "--frag-limit",
+        "6",
+        "--time-limit-seconds",
+        "60",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-tdm-licence.json"
+      ],
+      "started_utc": "2026-10-08T20:22:13.2777829Z",
+      "finished_utc": "2026-10-08T20:22:36.8415181Z",
+      "elapsed_s": 23.5637352,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-tdm-licence.log",
+        "sha256": "dfa8d1560ff22fb9e16b52233b6cbeef4a59ff2511dfb77f8ea468b2161b2da7",
+        "bytes": 379
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-tdm-licence.json",
+        "sha256": "2a0f45252245fa71229c67a33ff9c2d8a2468e6ed790fc324dcbff0ac12aea35",
+        "bytes": 4795
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-ctf-route",
+      "arguments": [
+        "--ctf-route-smoke",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-ctf-route.json"
+      ],
+      "started_utc": "2026-10-08T20:22:36.8579055Z",
+      "finished_utc": "2026-10-08T20:23:37.9707944Z",
+      "elapsed_s": 61.1128889,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-ctf-route.log",
+        "sha256": "c72b6de8f1e9686d501115f6460642269e77828bebcba3b25faf048612d93b6d",
+        "bytes": 505
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-ctf-route.json",
+        "sha256": "bbba2c6f905586b79283d20019768ed0bcf09bb32b2382fd2ec3e99434f7193c",
+        "bytes": 2066
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-ctf",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "ctf",
+        "--map",
+        "4",
+        "--tiers",
+        "reflex,planner",
+        "--capture-limit",
+        "1",
+        "--time-limit-seconds",
+        "180",
+        "--max-seconds",
+        "240",
+        "--assert",
+        "--ctf-contested",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-ctf.json"
+      ],
+      "started_utc": "2026-10-08T20:23:37.987142Z",
+      "finished_utc": "2026-10-08T20:26:39.9990732Z",
+      "elapsed_s": 182.0119312,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-ctf.log",
+        "sha256": "d4b454180ebdb532503ce718c61cb68503679f7298b9db94175df5fa5c82cfb2",
+        "bytes": 511
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-ctf.json",
+        "sha256": "1dac2dd03b77313a8794fd51bc11c13f03cbb0a01b11574f6e036d07bc3a596c",
+        "bytes": 5859
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-sabotage-route",
+      "arguments": [
+        "--sabotage-route-smoke",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-sabotage-route.json"
+      ],
+      "started_utc": "2026-10-08T20:26:40.0128135Z",
+      "finished_utc": "2026-10-08T20:27:12.471747Z",
+      "elapsed_s": 32.4589335,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-sabotage-route.log",
+        "sha256": "16b4096a5707200f1e8f3bc4d49fc390cdc7c52064df39ebdf804bb84febbf36",
+        "bytes": 481
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-sabotage-route.json",
+        "sha256": "fe768b10b269e02281a623f5ead2a1e06a5b7fe696540256fa6e7316ab78cafd",
+        "bytes": 2362
+      }
+    },
+    {
+      "category": "ci",
+      "name": "ci-sabotage",
+      "arguments": [
+        "--agents",
+        "4",
+        "--rounds",
+        "1",
+        "--mode",
+        "sabotage",
+        "--map",
+        "4",
+        "--tiers",
+        "reflex,planner",
+        "--time-limit-seconds",
+        "105",
+        "--max-seconds",
+        "160",
+        "--assert",
+        "--sabotage-contested",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\ci\\ci-sabotage.json"
+      ],
+      "started_utc": "2026-10-08T20:27:12.4895332Z",
+      "finished_utc": "2026-10-08T20:27:39.1223471Z",
+      "elapsed_s": 26.6328139,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-sabotage.log",
+        "sha256": "c048b10de1b7f20df4d75776b6562f75ab9382abc54ed2332c4d1bbe070c2ebb",
+        "bytes": 449
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/ci/ci-sabotage.json",
+        "sha256": "d98161c7826d1f6fe89847139a51ea2740cb5333cc00a47052fa0531b8bb80e2",
+        "bytes": 4190
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map1-seed67",
+      "arguments": [
+        "--map",
+        "1",
+        "--agents",
+        "2",
+        "--seed",
+        "67",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map1-seed67.json"
+      ],
+      "started_utc": "2026-10-08T20:27:39.1450241Z",
+      "finished_utc": "2026-10-08T20:28:43.7761313Z",
+      "elapsed_s": 64.6311072,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map1-seed67.log",
+        "sha256": "14011123e3b3d1346228c2e66450eb30c6af2e2bbae00687fa67be7db7941ad9",
+        "bytes": 344
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map1-seed67.json",
+        "sha256": "749ab32ca404fb0725a8876ceb5bf74db321f59426772bae8c21d4d83c94e6bd",
+        "bytes": 4820
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map2-seed42",
+      "arguments": [
+        "--map",
+        "2",
+        "--agents",
+        "6",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map2-seed42.json"
+      ],
+      "started_utc": "2026-10-08T20:28:43.9372312Z",
+      "finished_utc": "2026-10-08T20:29:46.9124514Z",
+      "elapsed_s": 62.9752202,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map2-seed42.log",
+        "sha256": "974fc047e3e7410c958eb01e3f220d3b768a2a20801922ac678d19a5b0a80cad",
+        "bytes": 344
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map2-seed42.json",
+        "sha256": "7c195c529ef634783952b60815a55a54451ba81cb8c17ab6a3e33820e52912b4",
+        "bytes": 6869
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map3-seed19",
+      "arguments": [
+        "--map",
+        "3",
+        "--agents",
+        "6",
+        "--seed",
+        "19",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map3-seed19.json"
+      ],
+      "started_utc": "2026-10-08T20:29:46.9286883Z",
+      "finished_utc": "2026-10-08T20:30:37.1012369Z",
+      "elapsed_s": 50.1725486,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map3-seed19.log",
+        "sha256": "3dec5466c2b11bd7c04fa0a17ee4273db89821d29dc752b50c3a3143becd3330",
+        "bytes": 344
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map3-seed19.json",
+        "sha256": "75a4fb77abc4b06b779070a0b3b96e44d11ae353509b1f22d66ce6a159f6e06f",
+        "bytes": 5750
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map4-seed42",
+      "arguments": [
+        "--map",
+        "4",
+        "--agents",
+        "8",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map4-seed42.json"
+      ],
+      "started_utc": "2026-10-08T20:30:37.1124859Z",
+      "finished_utc": "2026-10-08T20:31:39.1339458Z",
+      "elapsed_s": 62.0214599,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map4-seed42.log",
+        "sha256": "a4e7af744da55104158deed8d9b9d3c434b05e7ddddd09f17c0cee7bef8198d0",
+        "bytes": 893
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map4-seed42.json",
+        "sha256": "3db658ababa74ba045a0eeb2d8f22be513e9f1ebf57fdfcaedebe0ba07dbcf74",
+        "bytes": 7828
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map5-seed42",
+      "arguments": [
+        "--map",
+        "5",
+        "--agents",
+        "12",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map5-seed42.json"
+      ],
+      "started_utc": "2026-10-08T20:31:39.1460198Z",
+      "finished_utc": "2026-10-08T20:32:29.8919002Z",
+      "elapsed_s": 50.7458804,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map5-seed42.log",
+        "sha256": "74f77edb03fd4673b4b191254c90cb1edc388ddc9813092288cf3e678b9ecddf",
+        "bytes": 610
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map5-seed42.json",
+        "sha256": "07db2172566f660d19988a48b941e1e842cd6901ba4bc9571b845c847dae442d",
+        "bytes": 9605
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map6-seed42",
+      "arguments": [
+        "--map",
+        "6",
+        "--agents",
+        "16",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map6-seed42.json"
+      ],
+      "started_utc": "2026-10-08T20:32:29.904836Z",
+      "finished_utc": "2026-10-08T20:33:28.9114003Z",
+      "elapsed_s": 59.0065643,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map6-seed42.log",
+        "sha256": "ec60015b9f5fb44df06e83ad725da25fb60186375cdfe8dfd0729f561b77611c",
+        "bytes": 878
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map6-seed42.json",
+        "sha256": "4c0b5d39739f5cf453bc985ae4893e12cd1e872d10ce1f1783094190e338b13a",
+        "bytes": 11642
+      }
+    },
+    {
+      "category": "roster",
+      "name": "map7-seed42",
+      "arguments": [
+        "--map",
+        "7",
+        "--agents",
+        "16",
+        "--seed",
+        "42",
+        "--tiers",
+        "reflex,planner",
+        "--rounds",
+        "1",
+        "--frag-limit",
+        "8",
+        "--time-limit-seconds",
+        "60",
+        "--max-seconds",
+        "75",
+        "--assert",
+        "--report",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\roster\\map7-seed42.json"
+      ],
+      "started_utc": "2026-10-08T20:33:28.9245786Z",
+      "finished_utc": "2026-10-08T20:34:04.4042494Z",
+      "elapsed_s": 35.4796708,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map7-seed42.log",
+        "sha256": "bd535ee4cd00a79e02c81ffa01d58c86680e290e087e70694dd0b01836b0069c",
+        "bytes": 346
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/roster/map7-seed42.json",
+        "sha256": "d88c0a53b02d2a6f42b1595251e6f24e6014682306d0dc97da71b547fa011e4e",
+        "bytes": 11451
+      }
+    },
+    {
+      "category": "soak",
+      "name": "ci-soak",
+      "arguments": [
+        "--soak",
+        "--soak-seconds",
+        "120",
+        "--soak-sample-seconds",
+        "15",
+        "--soak-bots",
+        "4",
+        "--agents",
+        "4",
+        "--soak-spectators",
+        "2",
+        "--soak-map-rotate",
+        "--assert",
+        "--soak-log",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\soak\\ci.ndjson",
+        "--soak-server",
+        "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\bin\\fragr-server.exe"
+      ],
+      "started_utc": "2026-10-08T20:34:04.4199284Z",
+      "finished_utc": "2026-10-08T20:36:07.2557835Z",
+      "elapsed_s": 122.8358551,
+      "exit_code": 0,
+      "launch_error": null,
+      "passed": true,
+      "log": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/soak/ci-soak.log",
+        "sha256": "2afb11b3cb213cddd7086b156cf7e198ca6c25a035943ab920472e2ace1becb1",
+        "bytes": 480
+      },
+      "report": {
+        "path": ".agents/presentation-stairs-composition-20261008/network/soak/ci.ndjson",
+        "sha256": "cf656611ae7630abfb92aa92c2d6daf7ccbf4f69814d195ac6830cee34aa1b41",
+        "bytes": 27354
+      }
+    }
+  ],
+  "summaries": [
+    {
+      "category": "ci",
+      "name": "ci",
+      "exit": 0,
+      "elapsed_s": 31.8201609,
+      "agents": 4,
+      "frags": 8,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 8.95
+    },
+    {
+      "category": "ci",
+      "name": "ci-tdm",
+      "exit": 0,
+      "elapsed_s": 38.3092589,
+      "agents": 4,
+      "frags": 10,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 9.2
+    },
+    {
+      "category": "ci",
+      "name": "ci-rail-only",
+      "exit": 0,
+      "elapsed_s": 27.8098524,
+      "agents": 4,
+      "frags": 8,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 9.55
+    },
+    {
+      "category": "ci",
+      "name": "ci-tdm-licence",
+      "exit": 0,
+      "elapsed_s": 23.5637352,
+      "agents": 4,
+      "frags": 8,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 8.2
+    },
+    {
+      "category": "ci",
+      "name": "ci-ctf-route",
+      "exit": 0,
+      "elapsed_s": 61.1128889,
+      "agents": 1,
+      "frags": 0,
+      "flag_takes": 1,
+      "captures": 1,
+      "last_round_reason": "Capture limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 61.0
+    },
+    {
+      "category": "ci",
+      "name": "ci-ctf",
+      "exit": 0,
+      "elapsed_s": 182.0119312,
+      "agents": 4,
+      "frags": 17,
+      "flag_takes": 2,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 27.9
+    },
+    {
+      "category": "ci",
+      "name": "ci-sabotage-route",
+      "exit": 0,
+      "elapsed_s": 32.4589335,
+      "agents": 2,
+      "frags": 0,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Charge defused",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 32.35
+    },
+    {
+      "category": "ci",
+      "name": "ci-sabotage",
+      "exit": 0,
+      "elapsed_s": 26.6328139,
+      "agents": 4,
+      "frags": 2,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Side eliminated",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 18.8
+    },
+    {
+      "category": "roster",
+      "name": "map1-seed67",
+      "exit": 0,
+      "elapsed_s": 64.6311072,
+      "agents": 2,
+      "frags": 5,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 13.5
+    },
+    {
+      "category": "roster",
+      "name": "map2-seed42",
+      "exit": 0,
+      "elapsed_s": 62.9752202,
+      "agents": 6,
+      "frags": 33,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 6.35
+    },
+    {
+      "category": "roster",
+      "name": "map3-seed19",
+      "exit": 0,
+      "elapsed_s": 50.1725486,
+      "agents": 6,
+      "frags": 23,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 8.0
+    },
+    {
+      "category": "roster",
+      "name": "map4-seed42",
+      "exit": 0,
+      "elapsed_s": 62.0214599,
+      "agents": 8,
+      "frags": 38,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Time limit reached",
+      "spawn_deaths": 2,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 6.35
+    },
+    {
+      "category": "roster",
+      "name": "map5-seed42",
+      "exit": 0,
+      "elapsed_s": 50.7458804,
+      "agents": 12,
+      "frags": 39,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 1,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 6.55
+    },
+    {
+      "category": "roster",
+      "name": "map6-seed42",
+      "exit": 0,
+      "elapsed_s": 59.0065643,
+      "agents": 16,
+      "frags": 72,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 2,
+      "opening_spawn_deaths": 1,
+      "longest_gap_without_frag_s": 4.1
+    },
+    {
+      "category": "roster",
+      "name": "map7-seed42",
+      "exit": 0,
+      "elapsed_s": 35.4796708,
+      "agents": 16,
+      "frags": 42,
+      "flag_takes": 0,
+      "captures": 0,
+      "last_round_reason": "Frag limit reached",
+      "spawn_deaths": 0,
+      "opening_spawn_deaths": 0,
+      "longest_gap_without_frag_s": 7.3
+    }
+  ],
+  "soak_start": {
+    "kind": "start",
+    "schema": 1,
+    "started_unix_ms": 1791491645476,
+    "seconds": 120,
+    "sample_seconds": 15,
+    "bots": 4,
+    "agents": 4,
+    "spectators": 2,
+    "map": "Arena Duel",
+    "map_rotate": true,
+    "seed": 1,
+    "launch": "C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\bin\\fragr-server.exe",
+    "server_pid": 29936,
+    "source_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+    "os": "windows",
+    "arch": "x86_64",
+    "available_parallelism": 16
+  },
+  "soak_verdict": {
+    "kind": "verdict",
+    "schema": 1,
+    "passed": true,
+    "problems": [],
+    "notes": [
+      "wall time 122 s; server log C:\\GitHub\\fragr\\.agents\\presentation-stairs-composition-20261008\\network\\soak\\ci.server.log"
+    ],
+    "summary": {
+      "samples": 9,
+      "measured_s": 120.0123523,
+      "ticks_start": 43,
+      "ticks_end": 2443,
+      "tick_rate_hz": 19.997941495227238,
+      "window_start": {
+        "p50_ms": 0.221183,
+        "p95_ms": 0.524287,
+        "p99_ms": 1.1827,
+        "max_ms": 1.1827,
+        "count": 41,
+        "over_budget": 0
+      },
+      "window_end": {
+        "p50_ms": 0.27852699999999997,
+        "p95_ms": 0.589823,
+        "p99_ms": 0.8519669999999999,
+        "max_ms": 3.0366,
+        "count": 1034,
+        "over_budget": 0
+      },
+      "lifetime_end": {
+        "p50_ms": 0.27852699999999997,
+        "p95_ms": 0.655359,
+        "p99_ms": 1.114111,
+        "max_ms": 3.0366,
+        "count": 2434,
+        "over_budget": 0
+      },
+      "out_bytes_per_client_per_s": 56562.68878360559,
+      "in_bytes_per_client_per_s": 2333.276488906884,
+      "queue_overflows": 0,
+      "degraded_samples": 0,
+      "rss_start": 63819776,
+      "rss_end": 64544768,
+      "rss_max": 64544768,
+      "rss_source": "tasklist_working_set",
+      "build_commit": "unknown"
+    }
+  },
+  "observed_maps": [
+    "Arena Duel",
+    "Compliance Yard"
+  ],
+  "owned_native_alive_at_validation": false,
+  "soak_server_log": {
+    "path": ".agents/presentation-stairs-composition-20261008/network/soak/ci.server.log",
+    "bytes": 18982,
+    "sha256": "3bf8cbc96c5ceddcee1d9580bb60618fe66ed827786530dbce0d53672d7b68c5"
+  },
+  "source_manifest": {
+    "path": ".agents/presentation-stairs-composition-20261008/network/source-binaries.json",
+    "bytes": 59258,
+    "sha256": "64a54d1af77e26a48f18b869484f38187e1451d5d677e5afb255ecdaf6f493b0"
+  },
+  "completion_receipt": {
+    "path": ".agents/presentation-stairs-composition-20261008/network/completion.json",
+    "bytes": 252,
+    "sha256": "63ea34b49dc61c90349906d4f022561fbc1fc22622def6fbb78b704bb2cce89b"
+  },
+  "case_receipt": {
+    "path": ".agents/presentation-stairs-composition-20261008/network/cases.json",
+    "bytes": 17924,
+    "sha256": "f456690037d4b9e0085f371bb9d28832d423981ce643067887a720aee26da89e"
+  },
+  "orchestration": {
+    "path": ".agents/presentation-stairs-composition-20261008/network/run-gates.ps1",
+    "bytes": 9609,
+    "sha256": "4e9145f4c3ff909ad15b3e1df20bf6d53a4cac95f619b2dd8571a97e7022a3c8"
+  },
+  "receipt_builder": {
+    "path": ".agents/presentation-stairs-composition-20261008/write-network-receipt.ps1",
+    "bytes": 6159,
+    "sha256": "2320e32a3490f5ea44bce2478b54c3387b3e246d228882d4fd97d4f654eafbdf"
+  },
+  "note": {
+    "path": "docs/evidence/presentation-stairs-network-20261008.md",
+    "bytes": 2823,
+    "sha256": "83b6b15b09b2b06831323dcfb002a7a932281898f6e46a38ec0d070766f61477"
+  },
+  "new_cash_usd": 0,
+  "paid_calls": 0,
+  "builds_during_checks": 0,
+  "retained_source_manifest": {
+    "path": ".agents/presentation-stairs-composition-20261008/frozen-native-source/receipt.json",
+    "bytes": 99733,
+    "sha256": "c92327388ac0d582f4d30fd55415761f5d9d5850d91846bbd127ef64100a4c59",
+    "count": 318
+  }
+}

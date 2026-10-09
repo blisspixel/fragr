@@ -1,5 +1,10 @@
 # Campaign completion results
 
+The October 7 [local best-time continuation](host-rotation-campaign-bests-20261007.md)
+extends this shipped tally using compatible retained human records. It adds no
+authored par, campaign save field or network record field. The original scope
+and verification below remain the receipt for the first tally increment.
+
 **Status:** implemented, 2026-10-04. Based on main `a8611d04`.
 
 ## Goal and scope

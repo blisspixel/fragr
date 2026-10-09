@@ -70,6 +70,9 @@ fn visible(state: &GameState, bot: &Player, target: &Player) -> bool {
             &state.current_arena().solids,
         )
         && state.vehicles.iter().all(|vehicle| {
+            if vehicle.state.seat(bot.id).is_some() || vehicle.state.seat(target.id).is_some() {
+                return true;
+            }
             crate::combat::line_of_sight(
                 fighter_eye(bot),
                 fighter_chest(target),

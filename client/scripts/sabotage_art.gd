@@ -89,12 +89,30 @@ static func site_plate(site: String) -> Texture2D:
 
 
 ## The objective a site guards: A is a correction frame, B a registry server.
-static func site_prop(site: String) -> Texture2D:
-	var key: String = "prop_" + site
+static func site_prop(site: String, callout: String = "") -> Texture2D:
+	var registered: String = callout if callout in ["clinic_steps", "tram_stop"] else ""
+	var key: String = "prop_" + site + ("_" + registered if not registered.is_empty() else "")
 	if _cached(key):
 		return _cache[key]
 	var image: Image = _blank(24, 32)
-	if site == "a":
+	if not registered.is_empty():
+		# Existing civic service controls, distinct from Sector 9's custody props.
+		_rect(image, 3, 8, 18, 23, PLATE)
+		_rect(image, 4, 9, 16, 20, STEEL)
+		_rect(image, 6, 11, 12, 8, STEEL_DARK)
+		_rect(image, 7, 12, 10, 6, SCREEN)
+		if registered == "clinic_steps":
+			_rect(image, 10, 12, 3, 6, BONE)
+			_rect(image, 8, 14, 7, 2, BONE)
+		else:
+			_rect(image, 8, 12, 2, 6, BONE)
+			_rect(image, 14, 12, 2, 6, BONE)
+			_rect(image, 9, 13, 6, 1, BONE)
+			_rect(image, 9, 16, 6, 1, BONE)
+		_rect(image, 6, 22, 12, 2, STEEL_DARK)
+		_rect(image, 6, 26, 4, 1, LIT)
+		_rect(image, 3, 30, 18, 2, SHADOW)
+	elif site == "a":
 		# A correction frame: an upright gantry with a lit restraint screen.
 		_rect(image, 2, 2, 3, 30, STEEL)
 		_rect(image, 19, 2, 3, 30, STEEL)

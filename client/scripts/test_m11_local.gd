@@ -155,7 +155,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved["version"] == 14 and saved["step"]["mission"] == MissionState.M11_ID and saved["remaining_continues"] == 1, "actual locked writer stores M11 entry without refill")
+	_check(saved["version"] == 15 and saved["step"]["mission"] == MissionState.M11_ID and saved["remaining_continues"] == 1, "actual locked writer stores M11 entry without refill")
 	_check(saved["step"]["entry"]["equipment"].get("remote_mines", 0) == 0 and saved["step"]["entry"]["hp"] == 43, "durable entry retains original finite counts")
 	var archives: Array[String] = []
 	for filename: String in DirAccess.get_files_at(run_directory):

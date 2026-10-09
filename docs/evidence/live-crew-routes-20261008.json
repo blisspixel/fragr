@@ -1,0 +1,3324 @@
+{
+  "schema": 1,
+  "date": "2026-10-08",
+  "status": "implemented locally",
+  "source_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "workspace_has_uncommitted_changes": true,
+  "scope": "Two independent owned ordinary-input Standard routes with live Tern; M09 development start and M10 labelled historical carry promotion. No final-art, fresh-player or continuous cross-mission carry acceptance.",
+  "new_credits": 0,
+  "new_cash_usd": 0,
+  "paid_requests": 0,
+  "native": {
+    "verification": "Exact SHA before and after both final owned routes; native frozen while children ran",
+    "path": "target/release/fragr-server.exe",
+    "sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61"
+  },
+  "engine": {
+    "version": "4.7.2-stable",
+    "sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+    "executable": "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe"
+  },
+  "routes": [
+    {
+      "mission": "m09",
+      "directory": ".agents/live-buildout-20261008/crew/m09",
+      "entry_scope": "M09 development child",
+      "exit_code": 0,
+      "clean_logs": true,
+      "states_passed": 27,
+      "states": [
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/01_m09_berth_reveal.png",
+            "bytes": 765171,
+            "sha256": "2812a24fc3f59bc5a84d7b0d41c8525c5cc78ac477c42992698db90e01951aa7"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/01_m09_berth_reveal_world.png",
+            "bytes": 758886,
+            "sha256": "88ef04815a1aedf8f7b4be7dfcbd41acf610d9024c207b8423175184f42d0692"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_berth_reveal",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/02_m09_loading_equipment.png",
+            "bytes": 387527,
+            "sha256": "4bf48799fbcfc3db19e67fc7472eb23b2ceed4809951479a9754a3a87f1d3283"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/02_m09_loading_equipment_world.png",
+            "bytes": 354678,
+            "sha256": "bebe0da717ba103cba832ffa0e33e16991e26df7d894611d32e011dc62cccd03"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_loading_equipment",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/03_m09_loading_clear.png",
+            "bytes": 274655,
+            "sha256": "cefa8a74842720b620de200fc88a2b05535a315066c5864e3eb130976871b645"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/03_m09_loading_clear_world.png",
+            "bytes": 260234,
+            "sha256": "6e5fadd673c62272fe648f955ebe4b27065e37082c829d41f78db2dbd5c98d1a"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_loading_clear",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/04_m09_loading_arrival.png",
+            "bytes": 342414,
+            "sha256": "7930c11751b8702b20715c84cc46e077a2be70e0ad73166f97c85d9e1e74f56d"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/04_m09_loading_arrival_world.png",
+            "bytes": 325857,
+            "sha256": "74c5eab8639d026f24eac587719bf6c3290a830be0862dcf4f8091adeb30ee9a"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_loading_arrival",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/05_m09_office_stair.png",
+            "bytes": 393720,
+            "sha256": "0bc0e80cf38e89adc80339c46899dce518225a6ed1078b726c3f7c8435ce4025"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/05_m09_office_stair_world.png",
+            "bytes": 374278,
+            "sha256": "6e406899fb4ff3071eed89e14018a6bb073b3d6e9674982c6597a1443bc7d7dd"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_office_stair",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/06_m09_enforcer_lesson.png",
+            "bytes": 424636,
+            "sha256": "779dd21a98c79e72da644c99d96e7d343eff1b85d95e843e4d0794997faa728a"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/06_m09_enforcer_lesson_world.png",
+            "bytes": 412278,
+            "sha256": "666613fe136a727050785a7385a6e19c621718a31f98cd7fa9990c61f34db7c4"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_enforcer_lesson",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/07_m09_lesson_arrival.png",
+            "bytes": 477624,
+            "sha256": "befadcfbc5d3afcd18d2151f5a1298839e24815d5d04c0b3fa55dfff90269986"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/07_m09_lesson_arrival_world.png",
+            "bytes": 461118,
+            "sha256": "598f1e53c4b25b0993d13f3b90f32e87e393b964ebcfe9ceaba8842dff8accda"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_lesson_arrival",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/08_m09_landing_rail.png",
+            "bytes": 465114,
+            "sha256": "7d1541e4c42c91096733668371d5c70322aef95a6992cb067097ebae04ed44a6"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/08_m09_landing_rail_world.png",
+            "bytes": 453424,
+            "sha256": "8be16c42d18e396a0363f76ccacaecfa36d22d9f9d6d4de48adbdce16cf6f017"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_landing_rail",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/09_m09_office_clear.png",
+            "bytes": 351404,
+            "sha256": "229655c0690159fe7823218df1b0b6e505d960d916974e499b100cea497ff8b4"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/09_m09_office_clear_world.png",
+            "bytes": 339383,
+            "sha256": "d3a73ab5ceae7198fcd4c5f8da60007a4a784df2ad32b5621fdadeb7380d967c"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "state": "m09_office_clear",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 2.7795410062481096E-07,
+          "walked": 1.5000057220459,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/10_m09_crew_release.png",
+            "bytes": 187054,
+            "sha256": "9890daa836c04f920d71ba31c3c113c0cea1922d11803b20295c9b8c7566b46f"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/10_m09_crew_release_world.png",
+            "bytes": 166857,
+            "sha256": "79dcf2f9242346388c5ca5b5d595124c1af7933a4531df70c5c81b8990544468"
+          },
+          "presented_feet": [
+            -33.0,
+            4.0,
+            -22.5000057220459
+          ],
+          "state": "m09_crew_release",
+          "accepted_feet": [
+            -33.0,
+            4.0,
+            -22.500006
+          ]
+        },
+        {
+          "facing": 1.57079637050629,
+          "feet_error_m": 3.2971189867225803E-07,
+          "walked": 11.2999973297119,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/11_m09_office_supplies.png",
+            "bytes": 200775,
+            "sha256": "6a5ce4286026ff2798c495018073c6e194f997a164b0e0313135d34ebcfb013c"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/11_m09_office_supplies_world.png",
+            "bytes": 178775,
+            "sha256": "3ca42d57d13a8eef9bf5aea32ac87454cac63e6a45754ff07849f882510f3c8c"
+          },
+          "presented_feet": [
+            -28.7000026702881,
+            4.0,
+            -28.0
+          ],
+          "state": "m09_office_supplies",
+          "accepted_feet": [
+            -28.700003,
+            4.0,
+            -28.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 32.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/12_m09_west_gantry_entry.png",
+            "bytes": 532990,
+            "sha256": "d37d669af8f1d088842c8c0f406a690d660ca32aca99336f529f7b9fddef06ef"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/12_m09_west_gantry_entry_world.png",
+            "bytes": 516572,
+            "sha256": "7ee58efc48cfbeee30b8d35146586d4f601df691af702419adf099d9c9d0c753"
+          },
+          "presented_feet": [
+            -21.0,
+            6.0,
+            -15.0
+          ],
+          "state": "m09_west_gantry_entry",
+          "accepted_feet": [
+            -21.0,
+            6.0,
+            -15.0
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 0.0,
+          "walked": 32.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/13_m09_gantry_one_clear.png",
+            "bytes": 570797,
+            "sha256": "4302bf726b159e01a7a633ad49c9b33494034edc1d12ed015a73ccd3e1b50af0"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/13_m09_gantry_one_clear_world.png",
+            "bytes": 561658,
+            "sha256": "8e2e554eb38cb0269c4bb287f569d01cf7b175d256ba63e7d272e18ef780638a"
+          },
+          "presented_feet": [
+            -21.0,
+            6.0,
+            -15.0
+          ],
+          "state": "m09_gantry_one_clear",
+          "accepted_feet": [
+            -21.0,
+            6.0,
+            -15.0
+          ]
+        },
+        {
+          "facing": 0.0378508307039738,
+          "feet_error_m": 1.8895356764315604E-07,
+          "walked": 43.3996366262436,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/14_m09_gantry_one_arrival.png",
+            "bytes": 511893,
+            "sha256": "8ef258168436f63d43caa96a714d5ada847bacd9632f6b1246e9e98ff728c04f"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/14_m09_gantry_one_arrival_world.png",
+            "bytes": 491901,
+            "sha256": "dcee2e8d91a4da01fdba576a3c1fb2598cd9c7c895b5a2d4a3cfe67736658a15"
+          },
+          "presented_feet": [
+            -20.6442031860352,
+            6.0,
+            -3.60709953308105
+          ],
+          "state": "m09_gantry_one_arrival",
+          "accepted_feet": [
+            -20.644203,
+            6.0,
+            -3.6070995
+          ]
+        },
+        {
+          "facing": 0.0378510132431984,
+          "feet_error_m": 1.899110321534709E-07,
+          "walked": 56.3996341899037,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/15_m09_north_gantry_entry.png",
+            "bytes": 556967,
+            "sha256": "8cb1b71702d472be7de6a7fc0bbd23f7bfdc76912b6d8836292d37ff7235191c"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/15_m09_north_gantry_entry_world.png",
+            "bytes": 545608,
+            "sha256": "9924247b5fb2f4ff04ec3581a2b5c0ba01d8ff0a873e00cd015eaeabb1390853"
+          },
+          "presented_feet": [
+            -20.152135848999,
+            6.0,
+            9.38358211517334
+          ],
+          "state": "m09_north_gantry_entry",
+          "accepted_feet": [
+            -20.152136,
+            6.0,
+            9.383582
+          ]
+        },
+        {
+          "facing": 0.0,
+          "feet_error_m": 1.149902004726755E-07,
+          "walked": 72.0186309441924,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/16_m09_gantry_two_clear.png",
+            "bytes": 562792,
+            "sha256": "330b81f51c864dc7e813da32fc79a20428eca148587ea3a4b38185b04caba285"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/16_m09_gantry_two_clear_world.png",
+            "bytes": 544084,
+            "sha256": "46eee7b4f389138598b4c0c5caba622153b90ec70c9be082f4bd8a9e8d53e36a"
+          },
+          "presented_feet": [
+            -20.0,
+            8.0,
+            24.9998741149902
+          ],
+          "state": "m09_gantry_two_clear",
+          "accepted_feet": [
+            -20.0,
+            8.0,
+            24.999874
+          ]
+        },
+        {
+          "facing": 1.57079637050629,
+          "feet_error_m": 2.7866960727484985E-07,
+          "walked": 79.118658028543,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/17_m09_gantry_two_arrival.png",
+            "bytes": 515334,
+            "sha256": "02fc447b862399825238a708b86513969d811bb234d7ecbb4bba3d536562fb69"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/17_m09_gantry_two_arrival_world.png",
+            "bytes": 495773,
+            "sha256": "490097c77bfebcafb4c53a632f4e2fa792166467eda754a65393c904fa8b5973"
+          },
+          "presented_feet": [
+            -13.8999767303467,
+            8.0,
+            25.9998779296875
+          ],
+          "state": "m09_gantry_two_arrival",
+          "accepted_feet": [
+            -13.899977,
+            8.0,
+            25.999878
+          ]
+        },
+        {
+          "facing": 1.57079637050629,
+          "feet_error_m": 1.1643205104902225E-07,
+          "walked": 98.8186716660857,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/18_m09_east_gantry_entry.png",
+            "bytes": 644814,
+            "sha256": "ec66cc3a71edc99cdc0dea28a011f7f638f2d070ca3dbb4513e059083f22200e"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/18_m09_east_gantry_entry_world.png",
+            "bytes": 628168,
+            "sha256": "0248bb1af755a2a6db53bef518c99e691a3d825ee206588c78ea384617958022"
+          },
+          "presented_feet": [
+            5.80003690719604,
+            8.0,
+            25.9998779296875
+          ],
+          "state": "m09_east_gantry_entry",
+          "accepted_feet": [
+            5.800037,
+            8.0,
+            25.999878
+          ]
+        },
+        {
+          "facing": 1.57079637050629,
+          "feet_error_m": 1.0864301458468617E-08,
+          "walked": 116.618642769754,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/19_m09_gantry_three_clear.png",
+            "bytes": 570034,
+            "sha256": "4c05311d750379fb293ce861cdaa45065c025c9e151da186ae9827af143c03b0"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/19_m09_gantry_three_clear_world.png",
+            "bytes": 551538,
+            "sha256": "67be21810f8155403702dbf220c50fe4bc25e445733f1fe1566fb21f0a06de3a"
+          },
+          "presented_feet": [
+            23.6000080108643,
+            9.0,
+            26.0
+          ],
+          "state": "m09_gantry_three_clear",
+          "accepted_feet": [
+            23.600008,
+            9.0,
+            26.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 3.2971189867225803E-07,
+          "walked": 123.718637429178,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/20_m09_gantry_three_arrival.png",
+            "bytes": 558605,
+            "sha256": "4609fb906acdf97daa2786545e748d7366531c2a5677bac0798041d0b0275042"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/20_m09_gantry_three_arrival_world.png",
+            "bytes": 545477,
+            "sha256": "89931a5a191ffd16b922322cb9f3c2d7a302ee66b784bf7b039b6ec52f9ca721"
+          },
+          "presented_feet": [
+            30.0,
+            10.0,
+            25.2999973297119
+          ],
+          "state": "m09_gantry_three_arrival",
+          "accepted_feet": [
+            30.0,
+            10.0,
+            25.299997
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 2.7249150047481407E-08,
+          "walked": 4.09999942779541,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/21_m09_gallery_counter.png",
+            "bytes": 520957,
+            "sha256": "641ab9e7b29b78adebbedc88d33eab4d5395c92fa738a1d8b41d9541ea85dea9"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/21_m09_gallery_counter_world.png",
+            "bytes": 504429,
+            "sha256": "ce1100b822028f44298c9cb13458668132cc564b00367f12b590f74f3edc14dc"
+          },
+          "presented_feet": [
+            30.0,
+            10.0,
+            -3.00006222724915
+          ],
+          "state": "m09_gallery_counter",
+          "accepted_feet": [
+            30.0,
+            10.0,
+            -3.0000622
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 1.5829468047456885E-07,
+          "walked": 7.89999604225159,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/22_m09_clamps_release.png",
+            "bytes": 455737,
+            "sha256": "9eb9b93d9ca0e6595f1a2ec7dd3f9bca4ee17ed88d3169ffd61797683cba54ee"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/22_m09_clamps_release_world.png",
+            "bytes": 433445,
+            "sha256": "8fce245f56c58bf66832ea38a85497136a24f1e93d27f412228ac3a79a15caf5"
+          },
+          "presented_feet": [
+            30.0,
+            10.0,
+            -6.80005884170532
+          ],
+          "state": "m09_clamps_release",
+          "accepted_feet": [
+            30.0,
+            10.0,
+            -6.800059
+          ]
+        },
+        {
+          "facing": -1.57079637050629,
+          "feet_error_m": 4.7412110149025466E-07,
+          "walked": 19.4999387338758,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/23_m09_gallery_supplies.png",
+            "bytes": 511262,
+            "sha256": "0877089d30409a15644427471bcf41c3150d608a1632038ea21c14af4dafb458"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/23_m09_gallery_supplies_world.png",
+            "bytes": 489057,
+            "sha256": "2a87d68f362f9a3805abf21c03512bc9ddc88ecb8b89695751f49a2469cf4463"
+          },
+          "presented_feet": [
+            29.5999984741211,
+            10.0,
+            -18.0
+          ],
+          "state": "m09_gallery_supplies",
+          "accepted_feet": [
+            29.599998,
+            10.0,
+            -18.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 2.153319975661816E-07,
+          "walked": 33.4999539926648,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/24_m09_boarding_entry.png",
+            "bytes": 511811,
+            "sha256": "b34441eb519d7429aa9ef915f039cc0486f0fbb1e6982ae56e4190359303f707"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/24_m09_boarding_entry_world.png",
+            "bytes": 501261,
+            "sha256": "1dc7c2cb98db6a00edf0cdb0a582084abb858ab06fdec3da78f1baf0f184fa4f"
+          },
+          "presented_feet": [
+            20.0,
+            10.0,
+            -22.400016784668
+          ],
+          "state": "m09_boarding_entry",
+          "accepted_feet": [
+            20.0,
+            10.0,
+            -22.400017
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 2.153319975661816E-07,
+          "walked": 38.9999539926648,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/25_m09_hatch_clear.png",
+            "bytes": 536221,
+            "sha256": "43b73222bfa710d916609509208e6680fcd7a5b512232842da35abc9c7f81ead"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/25_m09_hatch_clear_world.png",
+            "bytes": 523144,
+            "sha256": "96408fe30eb758a4a54e9fdc615f7eb3740f72aa14dfcc2416396895878f6dd8"
+          },
+          "presented_feet": [
+            20.0,
+            12.0,
+            -27.900016784668
+          ],
+          "state": "m09_hatch_clear",
+          "accepted_feet": [
+            20.0,
+            12.0,
+            -27.900017
+          ]
+        },
+        {
+          "facing": -1.57079637050629,
+          "feet_error_m": 7.851202263238902E-07,
+          "walked": 44.299934156239,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/26_m09_hatch_arrival.png",
+            "bytes": 515270,
+            "sha256": "90c7d6c8ae167eedc34f820cd8cb53fff866fb6ff1e7d330315d71fe1f555fc3"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/26_m09_hatch_arrival_world.png",
+            "bytes": 501633,
+            "sha256": "fd5c7a8ccf08c14513272e2bbcccfc5b353c8a2099bc220e864c585006c0fc5b"
+          },
+          "presented_feet": [
+            19.7999992370605,
+            12.0,
+            -32.9999961853027
+          ],
+          "state": "m09_hatch_arrival",
+          "accepted_feet": [
+            19.8,
+            12.0,
+            -32.999996
+          ]
+        },
+        {
+          "facing": -1.57079637050629,
+          "feet_error_m": 3.616302895384755E-07,
+          "walked": 48.8999517038465,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/27_m09_departure.png",
+            "bytes": 33622,
+            "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m09/27_m09_departure_world.png",
+            "bytes": 33622,
+            "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+          },
+          "presented_feet": [
+            15.1999816894531,
+            12.0,
+            -32.9999961853027
+          ],
+          "state": "m09_departure",
+          "accepted_feet": [
+            15.199982,
+            12.0,
+            -32.999996
+          ]
+        }
+      ],
+      "native_sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61",
+      "tern_sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f",
+      "engine_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+      "renderer": "gl_compatibility",
+      "device": "AMD Radeon(TM) 780M",
+      "width": 1280,
+      "height": 720,
+      "start_utc": "2026-10-08T16:31:12.3014904Z",
+      "finish_utc": "2026-10-08T16:33:55.3201532Z",
+      "command": [
+        "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+        "--path",
+        "C:/GitHub/fragr/client",
+        "--rendering-driver",
+        "opengl3",
+        "--windowed",
+        "--resolution",
+        "1280x720",
+        "--script",
+        "res://qa/live_crew_tour.gd"
+      ],
+      "environment": {
+        "FRAGR_QA_DIR": "C:/GitHub/fragr/.agents/live-buildout-20261008/crew/m09",
+        "FRAGR_LIVE_CREW_MISSION": "m09"
+      },
+      "removed_environment": [
+        "FRAGR_SERVER"
+      ],
+      "derived_run_directory": ".agents/live-buildout-20261008/crew/m09/run",
+      "launch_route_sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a",
+      "launch_driver_sha256": "7772227d2d19f2a388c1f37b6d50524b00fff4db244869566d692d40f0b718fd",
+      "retirement": {
+        "independent_native_pid_enumeration_available": false,
+        "empty_raw_child_list_is_independent_proof": false,
+        "source_owned_local_match_idle_assertion": true,
+        "renderer_exited": true
+      },
+      "cast": {
+        "distinct_feet": 1730,
+        "moving_samples": 1770,
+        "last": {
+          "feet": [
+            15.1999816894531,
+            12.0,
+            -32.9999961853027
+          ],
+          "leg_rotation": [
+            0.177436873316765,
+            -0.0318431630730629,
+            0.0543094091117382,
+            0.982116401195526
+          ],
+          "moving_age": 0.729886952380951,
+          "tick": 3166.0,
+          "walked": 48.8999517038465
+        },
+        "first": {
+          "feet": [
+            -33.0,
+            4.0,
+            -21.0
+          ],
+          "leg_rotation": [
+            0.177436873316765,
+            -0.0318431630730629,
+            0.0543094091117382,
+            0.982116401195526
+          ],
+          "moving_age": 1.15,
+          "tick": 35.0,
+          "walked": 0.0
+        },
+        "sampled_horizontal_position_changes": 1729,
+        "idle_samples": 980,
+        "distinct_left_leg_quaternions": 1606,
+        "samples": 2750,
+        "sampled_leg_pose_changes": 1733,
+        "maximum_captured_feet_error_m": 7.851202263238902E-07,
+        "minimum_sample_interval_ms": 50,
+        "distinct_idle_left_leg_quaternions": 1,
+        "maximum_samples": 10000
+      },
+      "accepted_body": "human",
+      "difficulty": {
+        "difficulty": "standard",
+        "revision": 3.0
+      },
+      "last_equipment": {
+        "selected": "rail",
+        "mines": 1.0,
+        "grenades": 3.0,
+        "claims": [
+          "berth_rail",
+          "berth_scatter",
+          "berth_tack",
+          "gallery_grenades",
+          "gallery_mine"
+        ],
+        "loaded": [
+          {
+            "rounds": 9.0,
+            "weapon": "tack"
+          },
+          {
+            "rounds": 6.0,
+            "weapon": "scatter"
+          },
+          {
+            "rounds": 0.0,
+            "weapon": "rail"
+          }
+        ],
+        "pools": [
+          {
+            "pool": "bullets",
+            "rounds": 200.0
+          },
+          {
+            "pool": "shells",
+            "rounds": 50.0
+          },
+          {
+            "pool": "cells",
+            "rounds": 22.0
+          }
+        ]
+      }
+    },
+    {
+      "mission": "m10",
+      "directory": ".agents/live-buildout-20261008/crew/m10-final",
+      "entry_scope": "M10 canonical promotion of labelled v12 finite-carry fixture",
+      "exit_code": 0,
+      "clean_logs": true,
+      "states_passed": 28,
+      "states": [
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/01_m10_passenger_entry.png",
+            "bytes": 388926,
+            "sha256": "a98cd1598c6efe528ee7488e9abe325207314b9274249f98326112ec15c53ced"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/01_m10_passenger_entry_world.png",
+            "bytes": 346364,
+            "sha256": "be5c2a5de7b78f70cdf6dc81eaa8d88c6c680582fe5d54771dc3d0e66ff031c5"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_passenger_entry",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/02_m10_cabin_stock.png",
+            "bytes": 439963,
+            "sha256": "85e42299290bd66d29bb8887126ae7b36ab28cb753ab1411845e358a11c693ce"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/02_m10_cabin_stock_world.png",
+            "bytes": 410006,
+            "sha256": "35177db39f362d70faaaaa16f6411df8be119c33e5dcc955d23f154336de1f54"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_cabin_stock",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/03_m10_passenger_hall.png",
+            "bytes": 359363,
+            "sha256": "a72ad28811c2d891619036f1800da9950d60fdb34ca87692dfe58b2c8c162e97"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/03_m10_passenger_hall_world.png",
+            "bytes": 338378,
+            "sha256": "460311d8d96c8ba19c4f1eb682916477dd355a1cecc1ee6448e75881626312cd"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_passenger_hall",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/04_m10_west_stair_down.png",
+            "bytes": 364014,
+            "sha256": "62053be02bbd24486c57b0ed18cf53c148863072414a367cbcf7e798a854b651"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/04_m10_west_stair_down_world.png",
+            "bytes": 350764,
+            "sha256": "edddd29327262f6435c9403ea119dcac88c08a83a2fc4be9d1c90849a600912a"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_west_stair_down",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/05_m10_cargo_stock.png",
+            "bytes": 253038,
+            "sha256": "cc0f6b3d3ea41b4e5492e14b411f9c9bc100c335872b743ad9c448424456826c"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/05_m10_cargo_stock_world.png",
+            "bytes": 233872,
+            "sha256": "61951fb16812950cd96f28d034a9f0098330493ad0b06c2e2459c03860c1b4eb"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_cargo_stock",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/06_m10_forward_lower.png",
+            "bytes": 353873,
+            "sha256": "92fd017d670b695a1de55f7d42648bc70c1c4c65f2ee75878b3c9be35bedd0d5"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/06_m10_forward_lower_world.png",
+            "bytes": 341064,
+            "sha256": "693872a6fd6511edc26013031162b64cba12634d5659cc1634e2274d79ed05b1"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_forward_lower",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/07_m10_west_stair_return.png",
+            "bytes": 372738,
+            "sha256": "e3e0365e3d6c64da5d729300dc5e8679dad2980f0d5de73b2e0980440737e4bb"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/07_m10_west_stair_return_world.png",
+            "bytes": 354320,
+            "sha256": "c6d07b38b918341f4ae7a0cae9faeeead9fcb577125ab214795ce92f9724ea1c"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_west_stair_return",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/08_m10_forward_gallery.png",
+            "bytes": 372436,
+            "sha256": "2d5edea047b516bcf924a986e3896f353f7c26e63db005da37053bc8add53b25"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/08_m10_forward_gallery_world.png",
+            "bytes": 353829,
+            "sha256": "899bf6d7ffe1967c6259ad329078f015caafef5e233a984acd99712ca3f2acae"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_forward_gallery",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/09_m10_forward_arrival.png",
+            "bytes": 321875,
+            "sha256": "3535bbe56adcc9a0319629bf39883433dfb85e41df507d1bb390c3cc00f3073d"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/09_m10_forward_arrival_world.png",
+            "bytes": 304966,
+            "sha256": "29f41749b36b51ba3b614d705053ea8068be57832cac72587e80dff4b4c186b9"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_forward_arrival",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/10_m10_service_defense.png",
+            "bytes": 295258,
+            "sha256": "e791ec59c1c67a4f7b8e328b1eb54de9b61f246a863f8823c09ca61beda41f4b"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/10_m10_service_defense_world.png",
+            "bytes": 275989,
+            "sha256": "08765df8e66ed8581b39a4ada534eae095cf1c930581bbdc2a360c9f80db928a"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_service_defense",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/11_m10_repair_stock.png",
+            "bytes": 414591,
+            "sha256": "681dfc635b983e956faab3d7da04ba2ec70a628782cfaeeea25f98d82e994936"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/11_m10_repair_stock_world.png",
+            "bytes": 407388,
+            "sha256": "bbf31fb53670ce76d175783537b3bb17bee98f2ad067e8557e869b30627c2906"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_repair_stock",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/12_m10_service_arrival.png",
+            "bytes": 272594,
+            "sha256": "a4884f451217feb2744195df468106033cf36c1eaa013fb64a7ea24290a983d8"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/12_m10_service_arrival_world.png",
+            "bytes": 256426,
+            "sha256": "76c8950bab8da797b90f7757d1d6a7304af33a3cf8e921ac63055048297f469c"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_service_arrival",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/13_m10_aft_stock.png",
+            "bytes": 292325,
+            "sha256": "7f034784541b9c7f2647dbc444f165d4596eae0d3bc7578ca9bfd1d71e095cb3"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/13_m10_aft_stock_world.png",
+            "bytes": 266775,
+            "sha256": "09b51d188e914906125f7df40f2ffdfbf19dd6b3bda60c47e93a0e5c42e4a995"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_aft_stock",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/14_m10_east_middle.png",
+            "bytes": 381303,
+            "sha256": "49ff9ddb3c7e77a2a1d94015464f524a57d6c40bffe88673f9f4684f30c44c14"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/14_m10_east_middle_world.png",
+            "bytes": 369937,
+            "sha256": "0d922886664314ce3db49b608cacf08ca5c10cdadbb258f9247538e54b473f0d"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_east_middle",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/15_m10_east_upper.png",
+            "bytes": 331887,
+            "sha256": "5262988fe86a8c11f0dd381dd18fd700f18d827d6ab4741abec601ebb0093162"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/15_m10_east_upper_world.png",
+            "bytes": 316239,
+            "sha256": "eede578b7675e656625eb7a74e3a590397669986074e3b0b3833ae46a4d168fe"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_east_upper",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/16_m10_aft_upper.png",
+            "bytes": 412461,
+            "sha256": "9eaceb45be567ae10958d7bb82f4d76127a84c6231935066f33c877dab1f5655"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/16_m10_aft_upper_world.png",
+            "bytes": 396421,
+            "sha256": "0d178f8f58d91aeccc37cbcff4da044f49dbf766cfa0985e092c3092d4e5238d"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_aft_upper",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/17_m10_freight_overlook.png",
+            "bytes": 199353,
+            "sha256": "c3539d4c97d8361aea2179c1d8abd35efbb382cf6e258f61abf756458ad9c7f0"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/17_m10_freight_overlook_world.png",
+            "bytes": 183739,
+            "sha256": "21ff707d7ed8d655e534e743a6f348fe41587b8ef7ac3283aca3ce286ba8be3e"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_freight_overlook",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/18_m10_command_stock.png",
+            "bytes": 353334,
+            "sha256": "60855bd54eed1841a5237e1162958fb518cc0f659dbbcc43be596a6f4c87685e"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/18_m10_command_stock_world.png",
+            "bytes": 327397,
+            "sha256": "96e663464d0a511e32ca26b4295a46318bfe410488d49435269b13e6c255ed9a"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_command_stock",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/19_m10_lower_return.png",
+            "bytes": 367779,
+            "sha256": "c45f91ab372cbce8e27df84ede8a59b01c6cf852e39d08034897a7e5275d311e"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/19_m10_lower_return_world.png",
+            "bytes": 355929,
+            "sha256": "c254e5aaa26ebe835642eb43e8902e5dc86e9f64ddcdbeab015c4f414d7d71fe"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_lower_return",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/20_m10_aft_notary.png",
+            "bytes": 397887,
+            "sha256": "ef5685925c930e3a12f1788ffa2971ceaf39c7e9bee54529c38bbf07d9c0b353"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/20_m10_aft_notary_world.png",
+            "bytes": 386254,
+            "sha256": "3d42c8254cd6187356e586ee17cf673fb8d3c0b8c7e2d863bf19dad9f969dcfd"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_aft_notary",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/21_m10_aft_heavy.png",
+            "bytes": 227319,
+            "sha256": "93d4c05f8317b214e5495b1766422f5bfd5ac144bc7a2b80414e23c34274d3fb"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/21_m10_aft_heavy_world.png",
+            "bytes": 200881,
+            "sha256": "84b975985a63f4c1e68f00ea1f7d991fd4dc315d820cd8cbc703ffd6dea35793"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_aft_heavy",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/22_m10_aft_middle.png",
+            "bytes": 404217,
+            "sha256": "488415a4995feac57cb6db85403160bc9f48f020203acefaac3344efde9cc7d0"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/22_m10_aft_middle_world.png",
+            "bytes": 393535,
+            "sha256": "b2f7b13d1e1e7820c693b9228b22893d54d0b135e89de87aa5eb0025f2a4f372"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_aft_middle",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/23_m10_aft_arrival.png",
+            "bytes": 370953,
+            "sha256": "9337615282d1fe50b1f16e3e500355272d7cacbb87e76daf9a664327c4e9a9e2"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/23_m10_aft_arrival_world.png",
+            "bytes": 347900,
+            "sha256": "c9c26dcddafad7e06a5edba7879072a3cc7f2875d8f1e6b9737f7b8c92898f05"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_aft_arrival",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/24_m10_passenger_return.png",
+            "bytes": 424036,
+            "sha256": "a2bddd2a5ec1036bf69ef86eeb9e4c95a630e4c24a088e2aac4aeeacbd6a06e0"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/24_m10_passenger_return_world.png",
+            "bytes": 411615,
+            "sha256": "27029f79679b7316c2fa38aabc2b33c1701fb893ecfd8e03c51945ceda4a8261"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_passenger_return",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/25_m10_surplus_stock.png",
+            "bytes": 419587,
+            "sha256": "05635a28770934e1671f7858bd3755681a9af63f2231f085286b0b34c94bb47c"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/25_m10_surplus_stock_world.png",
+            "bytes": 401315,
+            "sha256": "1391bbd5f162db6a10b0c1775e8dccf6b37ab0691998b8717a5c264d71321a4e"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_surplus_stock",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/26_m10_passenger_defense.png",
+            "bytes": 248241,
+            "sha256": "d033c70280c745963b8a83581b3aa2e0abb43ad4ff2797cd948250555cdc63a7"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/26_m10_passenger_defense_world.png",
+            "bytes": 234309,
+            "sha256": "af2e62028a37d1e4485408ed4bdb5f86bcdfc5f603ac75b8d977c942eb5d5053"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_passenger_defense",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/27_m10_passenger_arrival.png",
+            "bytes": 246939,
+            "sha256": "36228f67f39b826c5b7ace955bb46718e35e5c85a990aae39e37da93f855fb62"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/27_m10_passenger_arrival_world.png",
+            "bytes": 233666,
+            "sha256": "baeb5501d7b0acb876c4096c78ea4d92521c2bc728ced336b9a936ba73f6acac"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_passenger_arrival",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        },
+        {
+          "facing": 3.14159274101257,
+          "feet_error_m": 9.536742950899679E-08,
+          "walked": 0.0,
+          "image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/28_m10_shared_departure.png",
+            "bytes": 48604,
+            "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+          },
+          "world_image": {
+            "path": ".agents/live-buildout-20261008/crew/m10-final/28_m10_shared_departure_world.png",
+            "bytes": 48604,
+            "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+          },
+          "presented_feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "state": "m10_shared_departure",
+          "accepted_feet": [
+            2.0,
+            7.6,
+            -15.0
+          ]
+        }
+      ],
+      "native_sha256": "149b6711eb120fea228c6b4bd39f2d19657cae00095dd9fa60a310b6b2ddaf61",
+      "tern_sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f",
+      "engine_sha256": "c8f0a6bc45a19b33541501e57f6f7cd972ab18453743266339d495cbbe846643",
+      "renderer": "gl_compatibility",
+      "device": "AMD Radeon(TM) 780M",
+      "width": 1280,
+      "height": 720,
+      "start_utc": "2026-10-08T16:42:17.4584477Z",
+      "finish_utc": "2026-10-08T16:45:20.1210084Z",
+      "command": [
+        "C:/GitHub/_toolchains/godot/Godot_v4.7.2-stable_win64_console.exe",
+        "--path",
+        "C:/GitHub/fragr/client",
+        "--rendering-driver",
+        "opengl3",
+        "--windowed",
+        "--resolution",
+        "1280x720",
+        "--script",
+        "res://qa/live_crew_tour.gd"
+      ],
+      "environment": {
+        "FRAGR_LIVE_CREW_MISSION": "m10",
+        "FRAGR_QA_DIR": "C:/GitHub/fragr/.agents/live-buildout-20261008/crew/m10-final"
+      },
+      "removed_environment": [
+        "FRAGR_SERVER"
+      ],
+      "derived_run_directory": ".agents/live-buildout-20261008/crew/m10-final/run",
+      "launch_route_sha256": "1507dca7378f803406bf7000d8ded3cb5a1571dd3053f1459495d19764ae0071",
+      "launch_driver_sha256": "7772227d2d19f2a388c1f37b6d50524b00fff4db244869566d692d40f0b718fd",
+      "retirement": {
+        "independent_native_pid_enumeration_available": false,
+        "empty_raw_child_list_is_independent_proof": false,
+        "source_owned_local_match_idle_assertion": true,
+        "renderer_exited": true
+      },
+      "cast": {
+        "distinct_feet": 1,
+        "moving_samples": 0,
+        "last": {
+          "feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "leg_rotation": [
+            0.177436873316765,
+            -0.0318431630730629,
+            0.0543094091117382,
+            0.982116401195526
+          ],
+          "moving_age": 176.809127032175,
+          "tick": 3577.0,
+          "walked": 0.0
+        },
+        "first": {
+          "feet": [
+            2.0,
+            7.59999990463257,
+            -15.0
+          ],
+          "leg_rotation": [
+            0.177436873316765,
+            -0.0318431630730629,
+            0.0543094091117382,
+            0.982116401195526
+          ],
+          "moving_age": 1.14770333333333,
+          "tick": 27.0,
+          "walked": 0.0
+        },
+        "sampled_horizontal_position_changes": 0,
+        "idle_samples": 3314,
+        "distinct_left_leg_quaternions": 1,
+        "samples": 3314,
+        "sampled_leg_pose_changes": 0,
+        "maximum_captured_feet_error_m": 9.536742950899679E-08,
+        "minimum_sample_interval_ms": 50,
+        "distinct_idle_left_leg_quaternions": 1,
+        "maximum_samples": 10000
+      },
+      "accepted_body": "synthetic",
+      "difficulty": {
+        "difficulty": "standard",
+        "revision": 3.0
+      },
+      "last_equipment": {
+        "selected": "flechette",
+        "mines": 3.0,
+        "grenades": 2.0,
+        "claims": [],
+        "loaded": [
+          {
+            "rounds": 14.0,
+            "weapon": "flechette"
+          },
+          {
+            "rounds": 6.0,
+            "weapon": "scatter"
+          },
+          {
+            "rounds": 1.0,
+            "weapon": "sniper"
+          }
+        ],
+        "pools": [
+          {
+            "pool": "bullets",
+            "rounds": 110.0
+          },
+          {
+            "pool": "shells",
+            "rounds": 50.0
+          },
+          {
+            "pool": "cells",
+            "rounds": 1.0
+          }
+        ]
+      }
+    }
+  ],
+  "final_states_passed": 55,
+  "failures_retained": [
+    {
+      "pre_correction_route_sha256": "a00ca22273d86952b66f3b2f2754c71484c57829f339d59ea289bdaf2409106d",
+      "stage": "state02 cabin stock",
+      "scope": "Original full route stops at strict legacy assertion; no final manifest or lost private wire invented",
+      "error": "expected ammo76, observed20",
+      "exit_code": 1,
+      "directory": ".agents/live-buildout-20261008/crew/m10"
+    },
+    {
+      "grenades": 2.0,
+      "states": 2,
+      "pools": [
+        {
+          "pool": "bullets",
+          "rounds": 76.0
+        },
+        {
+          "pool": "shells",
+          "rounds": 32.0
+        },
+        {
+          "pool": "cells",
+          "rounds": 1.0
+        }
+      ],
+      "selected": "flechette",
+      "expected_failure": true,
+      "directory": ".agents/live-buildout-20261008/crew/m10-diagnostic",
+      "loaded": [
+        {
+          "rounds": 20.0,
+          "weapon": "flechette"
+        },
+        {
+          "rounds": 6.0,
+          "weapon": "scatter"
+        },
+        {
+          "rounds": 1.0,
+          "weapon": "sniper"
+        }
+      ],
+      "mines": 3.0,
+      "scope": "Same exact first two ordinary states and unchanged legacy assertion with private equipment logging",
+      "exit_code": 1,
+      "personal_claims": []
+    }
+  ],
+  "qa_correction": {
+    "focused_regression": "PASS in hashed parent-owned qa-pool-rounds-final-manifest.log",
+    "pre_correction_inherited_qa_checker_sha256": null,
+    "cargo": {
+      "bullets": 136
+    },
+    "stocks_route_order_combat_deadlines_unchanged": true,
+    "cabin": {
+      "bullets": 76,
+      "shells": 32,
+      "cells": 1
+    },
+    "new_key": "pool_rounds",
+    "legacy_ammo_ready_magazine_semantics_preserved": true,
+    "cause": "Legacy ammo expectation compares selected ready magazine; intended historical values were total carried pools"
+  },
+  "m09_optional_boarding": {
+    "aboard_at_final_capture": [],
+    "claimed": false
+  },
+  "m10_fixture": {
+    "grenades": 2,
+    "completed_run_file": {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/run/run.json",
+      "bytes": 1334,
+      "sha256": "1aff1e48b7c94077d033d1cea2df19a7dd862dbdb68bfc53e7d1a3fe3a5f11d0"
+    },
+    "pools": {
+      "bullets": 76,
+      "shells": 32,
+      "cells": 1
+    },
+    "version": 12,
+    "entry_hp": 39,
+    "mines": 3,
+    "promoted_version": 14,
+    "entry_armor": 17,
+    "body": "synthetic",
+    "remaining_continues_after_episode_refill": 3,
+    "label": "Historical finite-carry fixture, not the output of the separate M09 development run",
+    "no_mid_run_grants": true
+  },
+  "visibility": {
+    "scope": "Selected originals inspected full-size. Cast samples outside these cameras establish rig observation, not visible-screen motion.",
+    "contact_sheets_inspected": [
+      "m09/contact.png",
+      "m10-final/contact.png"
+    ],
+    "m09_inspected_without_tern": [
+      "m09_berth_reveal",
+      "m09_crew_release",
+      "m09_office_supplies"
+    ],
+    "m10_actual_tern_states": [
+      "m10_command_stock"
+    ],
+    "m10_inspected_without_tern": [
+      "m10_passenger_entry",
+      "m10_passenger_return"
+    ],
+    "m09_actual_tern_states": [
+      "m09_office_clear",
+      "m09_gallery_supplies",
+      "m09_hatch_clear"
+    ]
+  },
+  "limits": [
+    "One Standard route per mission and one recorded adapter. No fresh-player, multi-seed, platform or hardware-performance acceptance.",
+    "M09 development start does not prove optional crew aboard acceptance. M10 uses the labelled historical fixture, not continuous carry from this M09 run.",
+    "Tern remains dark in ordinary lighting; small warm optics and anatomical-left shoulder design remain open. Other civilian strips are unchanged.",
+    "No verified console, wheel, weapon finger-contact or individual finger animation.",
+    "Successful final source-owned retirement requires LocalMatch.IDLE; no independent native PID proof is inferred from empty CIM executable paths.",
+    "Inherited QA checker changed between first attempts and final retry. Only route and crew driver hashes were captured at each launch; final current source hashes are listed separately."
+  ],
+  "prior_receipts": [
+    {
+      "path": "docs/evidence/live-character-fixtures-20261008.json",
+      "bytes": 75073,
+      "sha256": "4bdc405c36e992ff938260fb72bef3cbf1bbe089c429555ed0ba4a1135a8c33b"
+    },
+    {
+      "path": "docs/evidence/tern-source-preparation-20261008.json",
+      "bytes": 38335,
+      "sha256": "9de86dc7536f7494a0912bf7957605c3a8527fe153500276e54887b6c74a1129"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "client/qa/live_crew_tour.gd",
+      "bytes": 6973,
+      "sha256": "7772227d2d19f2a388c1f37b6d50524b00fff4db244869566d692d40f0b718fd"
+    },
+    {
+      "path": "client/qa/live_crew_tour.gd.uid",
+      "bytes": 20,
+      "sha256": "83722761948edaa31465b3ad5692b5424496de9c00e445d3ecb1d48197cf22f2"
+    },
+    {
+      "path": "client/qa/m09_passenger_manifest.json",
+      "bytes": 16438,
+      "sha256": "8fccd88ed83644d972a4d3f003cd878360195287cae6dab6e96452ac92585f8a"
+    },
+    {
+      "path": "client/qa/m10_common_carrier.json",
+      "bytes": 22191,
+      "sha256": "1507dca7378f803406bf7000d8ded3cb5a1571dd3053f1459495d19764ae0071"
+    },
+    {
+      "path": "client/scripts/civilian_figure.gd",
+      "bytes": 1912,
+      "sha256": "36f656e43b984afd81ed6ae80e65f8eaed4f71cb4a2428b3b9d6e81dafbdd946"
+    },
+    {
+      "path": "client/scripts/civilian_figure.gd.uid",
+      "bytes": 20,
+      "sha256": "dc45d7e2a6f15f04b84b9a230dae7d50e4d0a29d9157c2cc4b00fdea1cd8b5cf"
+    },
+    {
+      "path": "client/scripts/m09_berth.gd",
+      "bytes": 5693,
+      "sha256": "9a92dd695b3b220563d203f75d8d6641dfada9f87bcd83d104623f7989b4178a"
+    },
+    {
+      "path": "client/scripts/m10_ship.gd",
+      "bytes": 2098,
+      "sha256": "612ccca71255dbac60baa5c08ff7b294639d2e14f1213d3a60c023f73285cfc0"
+    },
+    {
+      "path": "client/scripts/skinned_character.gd",
+      "bytes": 7180,
+      "sha256": "777b1992de3e390e21ab5b4ecc109b3f122a4f9b52f8cba074236b84738b2498"
+    },
+    {
+      "path": "client/scripts/player_pawn.gd",
+      "bytes": 37727,
+      "sha256": "a9ea838c6cd3b4a057e42ed103fb75b43cc91638b1515750755816f4ab59a840"
+    },
+    {
+      "path": "client/scripts/game_manager.gd",
+      "bytes": 124397,
+      "sha256": "29e19bdacb4bc9a3de71065e39c73ce5471041d37a908e1a96a177cd72d94f4c"
+    },
+    {
+      "path": "client/scripts/qa_tour.gd",
+      "bytes": 138718,
+      "sha256": "c7703ff0ba1000bc4731ebc8d55e691b03175a23da0c986007054b5964353c17"
+    },
+    {
+      "path": "client/scripts/equipment_state.gd",
+      "bytes": 10891,
+      "sha256": "4a7668faa3287c6586a7a5de9f53ec3f4de17d49832b4a292db56436a7b3d6fb"
+    },
+    {
+      "path": "client/scripts/test_qa_combat.gd",
+      "bytes": 62752,
+      "sha256": "0a18de4a0ed7406c8806c49cc36d5164842782295134b05f8c005be74c287662"
+    },
+    {
+      "path": "client/scripts/local_match.gd",
+      "bytes": 12092,
+      "sha256": "0ced482b4c9f62bd2b1ac205e6b796f175ae85988b1dd071915a2d39f6113978"
+    },
+    {
+      "path": "client/scripts/local_process.gd",
+      "bytes": 2075,
+      "sha256": "58fb2b9a8899b98861b3f21d92270db2fe835da7f81b5e166bcfe3f7f76dd015"
+    },
+    {
+      "path": "client/assets/models/tern_live.glb",
+      "bytes": 5796592,
+      "sha256": "0f8bfd1c99b1d7c1172eaaa76203d28234a1d3f3db793f6f81bc6b5740fa993f"
+    },
+    {
+      "path": "client/assets/models/tern_live.glb.import",
+      "bytes": 1156,
+      "sha256": "f7384d141845836e8dab5776eabd52e776741a33894d2b5e286a745b0df6247f"
+    },
+    {
+      "path": "client/assets/models/character_support.json",
+      "bytes": 30688,
+      "sha256": "17284ae17e739e78877e00859ac55be31eb88fe64c7784917b0ddf3bd5469ed3"
+    },
+    {
+      "path": "client/assets/models/free_human_live.glb",
+      "bytes": 6143304,
+      "sha256": "94f09896185df36697307e990ebce85fa7871c356be96394cac0a3dd83cd5dff"
+    },
+    {
+      "path": "client/assets/models/free_synthetic_live.glb",
+      "bytes": 2080632,
+      "sha256": "82107fdc3b0cc17eef6237e3776ae4dfcae59be2b082f66040396175f4eea3f7"
+    },
+    {
+      "path": "server/maps/m09_passenger_manifest.json",
+      "bytes": 50529,
+      "sha256": "4f45d0c5132dbc741537f83e541a97c8a4f8dd130ed0d74bde45f73eecff7381"
+    },
+    {
+      "path": "server/maps/m10_common_carrier.json",
+      "bytes": 39793,
+      "sha256": "d767c07691a88d810d945db952b7cda6c67ab968b2e1b6161a1f00790eeda49d"
+    },
+    {
+      "path": "server/src/mission/m09.rs",
+      "bytes": 12991,
+      "sha256": "f0eca12720c8113feaa4e5e3fb37165d213adf4b4510f7074dfd8467f600ff55"
+    },
+    {
+      "path": "server/src/mission/m10.rs",
+      "bytes": 8115,
+      "sha256": "a2a081f837329e885e417c8a3f16ea3c9aef3397f7add08c6b38b031b07891e0"
+    },
+    {
+      "path": "server/src/mission/run_file.rs",
+      "bytes": 85392,
+      "sha256": "e79bdd149754ee95d931d6cae0b15edaabbd23b09548b1fbfe1a8a5ebfba3b8d"
+    },
+    {
+      "path": "server/src/mission/run_file/store.rs",
+      "bytes": 43086,
+      "sha256": "ed4c86bbadc4456e6ecb9a623a64f3d87cd8f1e8fd1180f0cbfd02b829271136"
+    }
+  ],
+  "source_hash_scope": "Current frozen production and final corrected QA; launch-time route/driver hashes retained per attempt. No missing pre-correction inherited checker hash is invented.",
+  "public_images": [
+    {
+      "inspection": "original size",
+      "file": {
+        "path": "docs/screenshots/live-crew-routes-20261008/m09_office.png",
+        "bytes": 351404,
+        "sha256": "229655c0690159fe7823218df1b0b6e505d960d916974e499b100cea497ff8b4"
+      },
+      "finding": "Actual Tern side-on, behind two provisional strips, before release",
+      "source": ".agents/live-buildout-20261008/crew/m09/09_m09_office_clear.png"
+    },
+    {
+      "inspection": "original size",
+      "file": {
+        "path": "docs/screenshots/live-crew-routes-20261008/m09_gallery.png",
+        "bytes": 511262,
+        "sha256": "0877089d30409a15644427471bcf41c3150d608a1632038ea21c14af4dafb458"
+      },
+      "finding": "Actual Tern walking stance behind provisional strips",
+      "source": ".agents/live-buildout-20261008/crew/m09/23_m09_gallery_supplies.png"
+    },
+    {
+      "inspection": "original size",
+      "file": {
+        "path": "docs/screenshots/live-crew-routes-20261008/m09_hatch.png",
+        "bytes": 536221,
+        "sha256": "43b73222bfa710d916609509208e6680fcd7a5b512232842da35abc9c7f81ead"
+      },
+      "finding": "Actual Tern distant at hatch approach",
+      "source": ".agents/live-buildout-20261008/crew/m09/25_m09_hatch_clear.png"
+    },
+    {
+      "inspection": "original size",
+      "file": {
+        "path": "docs/screenshots/live-crew-routes-20261008/m10_command.png",
+        "bytes": 353334,
+        "sha256": "60855bd54eed1841a5237e1162958fb518cc0f659dbbcc43be596a6f4c87685e"
+      },
+      "finding": "Actual stationary Tern at command console; no verified hand contact",
+      "source": ".agents/live-buildout-20261008/crew/m10-final/18_m10_command_stock.png"
+    },
+    {
+      "inspection": "original size",
+      "file": {
+        "path": "docs/screenshots/live-crew-routes-20261008/m10_passengers.png",
+        "bytes": 388926,
+        "sha256": "a98cd1598c6efe528ee7488e9abe325207314b9274249f98326112ec15c53ced"
+      },
+      "finding": "Latch and provisional passengers; Tern is off-camera on upper deck",
+      "source": ".agents/live-buildout-20261008/crew/m10-final/01_m10_passenger_entry.png"
+    },
+    {
+      "inspection": "original size",
+      "file": {
+        "path": "docs/screenshots/live-crew-routes-20261008/m10_initial_ammo_failure.png",
+        "bytes": 401628,
+        "sha256": "0b890b6df779dfbe204c88955c1c96fbaa0fce0d04eb6c42699510b1f0f57bd6"
+      },
+      "finding": "Original strict failure HUD shows20loaded and56reserve",
+      "source": ".agents/live-buildout-20261008/crew/m10/02_m10_cabin_stock.png"
+    }
+  ],
+  "retained_artifacts": [
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/01_m09_berth_reveal_world.png",
+      "bytes": 758886,
+      "sha256": "88ef04815a1aedf8f7b4be7dfcbd41acf610d9024c207b8423175184f42d0692"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/01_m09_berth_reveal.png",
+      "bytes": 765171,
+      "sha256": "2812a24fc3f59bc5a84d7b0d41c8525c5cc78ac477c42992698db90e01951aa7"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/02_m09_loading_equipment_world.png",
+      "bytes": 354678,
+      "sha256": "bebe0da717ba103cba832ffa0e33e16991e26df7d894611d32e011dc62cccd03"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/02_m09_loading_equipment.png",
+      "bytes": 387527,
+      "sha256": "4bf48799fbcfc3db19e67fc7472eb23b2ceed4809951479a9754a3a87f1d3283"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/03_m09_loading_clear_world.png",
+      "bytes": 260234,
+      "sha256": "6e5fadd673c62272fe648f955ebe4b27065e37082c829d41f78db2dbd5c98d1a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/03_m09_loading_clear.png",
+      "bytes": 274655,
+      "sha256": "cefa8a74842720b620de200fc88a2b05535a315066c5864e3eb130976871b645"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/04_m09_loading_arrival_world.png",
+      "bytes": 325857,
+      "sha256": "74c5eab8639d026f24eac587719bf6c3290a830be0862dcf4f8091adeb30ee9a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/04_m09_loading_arrival.png",
+      "bytes": 342414,
+      "sha256": "7930c11751b8702b20715c84cc46e077a2be70e0ad73166f97c85d9e1e74f56d"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/05_m09_office_stair_world.png",
+      "bytes": 374278,
+      "sha256": "6e406899fb4ff3071eed89e14018a6bb073b3d6e9674982c6597a1443bc7d7dd"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/05_m09_office_stair.png",
+      "bytes": 393720,
+      "sha256": "0bc0e80cf38e89adc80339c46899dce518225a6ed1078b726c3f7c8435ce4025"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/06_m09_enforcer_lesson_world.png",
+      "bytes": 412278,
+      "sha256": "666613fe136a727050785a7385a6e19c621718a31f98cd7fa9990c61f34db7c4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/06_m09_enforcer_lesson.png",
+      "bytes": 424636,
+      "sha256": "779dd21a98c79e72da644c99d96e7d343eff1b85d95e843e4d0794997faa728a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/07_m09_lesson_arrival_world.png",
+      "bytes": 461118,
+      "sha256": "598f1e53c4b25b0993d13f3b90f32e87e393b964ebcfe9ceaba8842dff8accda"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/07_m09_lesson_arrival.png",
+      "bytes": 477624,
+      "sha256": "befadcfbc5d3afcd18d2151f5a1298839e24815d5d04c0b3fa55dfff90269986"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/08_m09_landing_rail_world.png",
+      "bytes": 453424,
+      "sha256": "8be16c42d18e396a0363f76ccacaecfa36d22d9f9d6d4de48adbdce16cf6f017"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/08_m09_landing_rail.png",
+      "bytes": 465114,
+      "sha256": "7d1541e4c42c91096733668371d5c70322aef95a6992cb067097ebae04ed44a6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/09_m09_office_clear_world.png",
+      "bytes": 339383,
+      "sha256": "d3a73ab5ceae7198fcd4c5f8da60007a4a784df2ad32b5621fdadeb7380d967c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/09_m09_office_clear.png",
+      "bytes": 351404,
+      "sha256": "229655c0690159fe7823218df1b0b6e505d960d916974e499b100cea497ff8b4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/10_m09_crew_release_world.png",
+      "bytes": 166857,
+      "sha256": "79dcf2f9242346388c5ca5b5d595124c1af7933a4531df70c5c81b8990544468"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/10_m09_crew_release.png",
+      "bytes": 187054,
+      "sha256": "9890daa836c04f920d71ba31c3c113c0cea1922d11803b20295c9b8c7566b46f"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/11_m09_office_supplies_world.png",
+      "bytes": 178775,
+      "sha256": "3ca42d57d13a8eef9bf5aea32ac87454cac63e6a45754ff07849f882510f3c8c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/11_m09_office_supplies.png",
+      "bytes": 200775,
+      "sha256": "6a5ce4286026ff2798c495018073c6e194f997a164b0e0313135d34ebcfb013c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/12_m09_west_gantry_entry_world.png",
+      "bytes": 516572,
+      "sha256": "7ee58efc48cfbeee30b8d35146586d4f601df691af702419adf099d9c9d0c753"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/12_m09_west_gantry_entry.png",
+      "bytes": 532990,
+      "sha256": "d37d669af8f1d088842c8c0f406a690d660ca32aca99336f529f7b9fddef06ef"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/13_m09_gantry_one_clear_world.png",
+      "bytes": 561658,
+      "sha256": "8e2e554eb38cb0269c4bb287f569d01cf7b175d256ba63e7d272e18ef780638a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/13_m09_gantry_one_clear.png",
+      "bytes": 570797,
+      "sha256": "4302bf726b159e01a7a633ad49c9b33494034edc1d12ed015a73ccd3e1b50af0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/14_m09_gantry_one_arrival_world.png",
+      "bytes": 491901,
+      "sha256": "dcee2e8d91a4da01fdba576a3c1fb2598cd9c7c895b5a2d4a3cfe67736658a15"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/14_m09_gantry_one_arrival.png",
+      "bytes": 511893,
+      "sha256": "8ef258168436f63d43caa96a714d5ada847bacd9632f6b1246e9e98ff728c04f"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/15_m09_north_gantry_entry_world.png",
+      "bytes": 545608,
+      "sha256": "9924247b5fb2f4ff04ec3581a2b5c0ba01d8ff0a873e00cd015eaeabb1390853"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/15_m09_north_gantry_entry.png",
+      "bytes": 556967,
+      "sha256": "8cb1b71702d472be7de6a7fc0bbd23f7bfdc76912b6d8836292d37ff7235191c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/16_m09_gantry_two_clear_world.png",
+      "bytes": 544084,
+      "sha256": "46eee7b4f389138598b4c0c5caba622153b90ec70c9be082f4bd8a9e8d53e36a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/16_m09_gantry_two_clear.png",
+      "bytes": 562792,
+      "sha256": "330b81f51c864dc7e813da32fc79a20428eca148587ea3a4b38185b04caba285"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/17_m09_gantry_two_arrival_world.png",
+      "bytes": 495773,
+      "sha256": "490097c77bfebcafb4c53a632f4e2fa792166467eda754a65393c904fa8b5973"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/17_m09_gantry_two_arrival.png",
+      "bytes": 515334,
+      "sha256": "02fc447b862399825238a708b86513969d811bb234d7ecbb4bba3d536562fb69"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/18_m09_east_gantry_entry_world.png",
+      "bytes": 628168,
+      "sha256": "0248bb1af755a2a6db53bef518c99e691a3d825ee206588c78ea384617958022"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/18_m09_east_gantry_entry.png",
+      "bytes": 644814,
+      "sha256": "ec66cc3a71edc99cdc0dea28a011f7f638f2d070ca3dbb4513e059083f22200e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/19_m09_gantry_three_clear_world.png",
+      "bytes": 551538,
+      "sha256": "67be21810f8155403702dbf220c50fe4bc25e445733f1fe1566fb21f0a06de3a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/19_m09_gantry_three_clear.png",
+      "bytes": 570034,
+      "sha256": "4c05311d750379fb293ce861cdaa45065c025c9e151da186ae9827af143c03b0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/20_m09_gantry_three_arrival_world.png",
+      "bytes": 545477,
+      "sha256": "89931a5a191ffd16b922322cb9f3c2d7a302ee66b784bf7b039b6ec52f9ca721"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/20_m09_gantry_three_arrival.png",
+      "bytes": 558605,
+      "sha256": "4609fb906acdf97daa2786545e748d7366531c2a5677bac0798041d0b0275042"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/21_m09_gallery_counter_world.png",
+      "bytes": 504429,
+      "sha256": "ce1100b822028f44298c9cb13458668132cc564b00367f12b590f74f3edc14dc"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/21_m09_gallery_counter.png",
+      "bytes": 520957,
+      "sha256": "641ab9e7b29b78adebbedc88d33eab4d5395c92fa738a1d8b41d9541ea85dea9"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/22_m09_clamps_release_world.png",
+      "bytes": 433445,
+      "sha256": "8fce245f56c58bf66832ea38a85497136a24f1e93d27f412228ac3a79a15caf5"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/22_m09_clamps_release.png",
+      "bytes": 455737,
+      "sha256": "9eb9b93d9ca0e6595f1a2ec7dd3f9bca4ee17ed88d3169ffd61797683cba54ee"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/23_m09_gallery_supplies_world.png",
+      "bytes": 489057,
+      "sha256": "2a87d68f362f9a3805abf21c03512bc9ddc88ecb8b89695751f49a2469cf4463"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/23_m09_gallery_supplies.png",
+      "bytes": 511262,
+      "sha256": "0877089d30409a15644427471bcf41c3150d608a1632038ea21c14af4dafb458"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/24_m09_boarding_entry_world.png",
+      "bytes": 501261,
+      "sha256": "1dc7c2cb98db6a00edf0cdb0a582084abb858ab06fdec3da78f1baf0f184fa4f"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/24_m09_boarding_entry.png",
+      "bytes": 511811,
+      "sha256": "b34441eb519d7429aa9ef915f039cc0486f0fbb1e6982ae56e4190359303f707"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/25_m09_hatch_clear_world.png",
+      "bytes": 523144,
+      "sha256": "96408fe30eb758a4a54e9fdc615f7eb3740f72aa14dfcc2416396895878f6dd8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/25_m09_hatch_clear.png",
+      "bytes": 536221,
+      "sha256": "43b73222bfa710d916609509208e6680fcd7a5b512232842da35abc9c7f81ead"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/26_m09_hatch_arrival_world.png",
+      "bytes": 501633,
+      "sha256": "fd5c7a8ccf08c14513272e2bbcccfc5b353c8a2099bc220e864c585006c0fc5b"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/26_m09_hatch_arrival.png",
+      "bytes": 515270,
+      "sha256": "90c7d6c8ae167eedc34f820cd8cb53fff866fb6ff1e7d330315d71fe1f555fc3"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/27_m09_departure_world.png",
+      "bytes": 33622,
+      "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/27_m09_departure.png",
+      "bytes": 33622,
+      "sha256": "3297d753d09e298c2501cd50c05a8ccd2d092d86164ba895d20d1da4235909a4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/contact.png",
+      "bytes": 1851170,
+      "sha256": "2b2fd9468cc883a65d302646ea957bc2e8d8fcdb62ed0b2263797c6a57f1af1c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/live-cast.json",
+      "bytes": 740988,
+      "sha256": "fa5a6796565cdf14518f25f2b01beeb93e5e52d35e332537f73e7a91f1aac507"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_enforcer_lesson_combat.png",
+      "bytes": 941926,
+      "sha256": "83fdc4d2adeb1688f8a72c20da00949febd4bedad26019f9e2efcce9d2d62f91"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_enforcer_lesson_enforcer_dead.png",
+      "bytes": 423768,
+      "sha256": "4c5cb163b1e520a93c570928a5cbd8ea18d7330cf33c4bc27cb58b8d2a2fb755"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_enforcer_lesson_enforcer_recovery.png",
+      "bytes": 426372,
+      "sha256": "2b213cc09a7d471859132648b263494810b3c38058a472494375bec59d1185b0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_enforcer_lesson_enforcer_windup.png",
+      "bytes": 426658,
+      "sha256": "91f78f602f126df252f7f4750b94856095607d559bc90e94c4ad547cc39c9156"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_clerk_dead.png",
+      "bytes": 534056,
+      "sha256": "70f4038b2fd4f3af891e2c011bcd00136d16088e40fc8e8407aff602e8c9ef03"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_clerk_firing.png",
+      "bytes": 525216,
+      "sha256": "a552e777d6fb22e26c54c4d79b8682e9ecb127e5e588ffd58a85b3934c395070"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_clerk_recovery.png",
+      "bytes": 485618,
+      "sha256": "135960c7f1382f613be67ce29b2076546835381d7785613c26a63bcebcb69da0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_clerk_windup.png",
+      "bytes": 486081,
+      "sha256": "bdd9179cf825cadee6d11e7d1fc865b9524b262d5ac12bb49a328d87d702c1b6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_combat.png",
+      "bytes": 3601187,
+      "sha256": "d56d3721d6972d027bb9d9d4668af3281eeb397fe6906fd06fc9765c9358ce77"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_enforcer_charging.png",
+      "bytes": 480134,
+      "sha256": "386051154d152d8ce3f215666f090d92f56bff7fd3dc5ef4e21036b102078754"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_enforcer_hit.png",
+      "bytes": 441379,
+      "sha256": "57e8bd378d0fb369da29a1f49c31c846976c0073c77c00ea7559dc694fc667aa"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_enforcer_recovery.png",
+      "bytes": 449575,
+      "sha256": "5fd238701b6864e55e0787f666e275c06be3e5a130044ab1dcd275994b4100c3"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gallery_counter_enforcer_windup.png",
+      "bytes": 429848,
+      "sha256": "53d4475fbae5ebc05888e3cf64762376b92c6fd56e4691f1a52238494c2d6b11"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_combat.png",
+      "bytes": 1833120,
+      "sha256": "24c832f8fc225dcbe3ca336768fff17fa3c35ada1a5ee4d0794837157dcfe9c0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_enforcer_hit.png",
+      "bytes": 554648,
+      "sha256": "e60317a6cc5af0123c4c11842e16492c4f920200e33cf8ab0f0466b96766012c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_enforcer_idle.png",
+      "bytes": 558701,
+      "sha256": "c197680a7934d16606f50347f0965fa443b2c0af53da46c655d46c75db1cd5a3"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_enforcer_windup.png",
+      "bytes": 594090,
+      "sha256": "1c46c2739eee7ab77691e345931f29a4d0d3f0181e96910c5d1eb946af60c233"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_sweeper_dead.png",
+      "bytes": 565400,
+      "sha256": "cb258ef85db749f9afc8d19dc51eff43a0f08528081c1d9a7d1059183ff36e82"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_sweeper_recovery.png",
+      "bytes": 496369,
+      "sha256": "3cca5cdd08b2003aca97bcf1629911a87f3c0526a9e3a3472d536e61efb5e99e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_one_clear_sweeper_windup.png",
+      "bytes": 547758,
+      "sha256": "885671365f9f802a32e7746df7e312485f2f10d6c86121fcdec5b45d938ba0e8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_combat.png",
+      "bytes": 3719766,
+      "sha256": "c2b05bd6c2f61bdedf3b5e9250017e8e91f8cbe60ecbb2c78fe6e4709342a3fa"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_enforcer_hit.png",
+      "bytes": 627912,
+      "sha256": "60449ae025b4818739246f32183409f1cd98b95154592146d3817c35ed62a022"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_enforcer_recovery.png",
+      "bytes": 631907,
+      "sha256": "a885a0f4f2384987bbfab40b4915e26bb079379e3b9c3e487bdcb959cd18754a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_enforcer_windup.png",
+      "bytes": 610720,
+      "sha256": "007b4c043b75e35b878f569ed04ef621f35608a8c68a026cd06aa9fd532a5c74"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_notary_moving.png",
+      "bytes": 598446,
+      "sha256": "79289175c59be977279cfb1ecc56bb0619235516262b1e55af15a9f6d874e6fb"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_notary_windup.png",
+      "bytes": 645905,
+      "sha256": "f1524b9bf3321d94491df3cf83a82910b2c76bdc464f85b916b74dd7de598498"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_sweeper_dead.png",
+      "bytes": 568340,
+      "sha256": "02e3d54d4f8ac204ca0a7159fd100e8aed6a71becb7ed794060ca11ac60bf142"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_sweeper_firing.png",
+      "bytes": 591148,
+      "sha256": "7ec52c850689222d0045707982fb68c00301edebadf5111855f2cae30f92e975"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_sweeper_recovery.png",
+      "bytes": 573414,
+      "sha256": "43516e31290f8865c9ed5394357f88ba68a91b848afbed44e089833f1952a0a9"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_three_clear_sweeper_windup.png",
+      "bytes": 565696,
+      "sha256": "eef2b9ccabf6d39e66ed6df04fd0d3a03789027d7014a0bde990619aeffe0b23"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_combat.png",
+      "bytes": 3418898,
+      "sha256": "4505ed3992b1f90bd19743791c11e10dfe3e11876484589108df7ede3e07194e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_enforcer_charging.png",
+      "bytes": 614486,
+      "sha256": "e0d8bcdc64b28dd809982634d04fb5c5dfd5124f8b2d1c840f06cd16e8ecb71e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_enforcer_hit.png",
+      "bytes": 622436,
+      "sha256": "735f1a9ea5c28237ee8a743296def4bf701c4294f88279c607b922bdda1d56c4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_enforcer_recovery.png",
+      "bytes": 627152,
+      "sha256": "d770b0969d94271c0ccd0f0f079cde8af22cf4c28e0f6210cbb97e53cc20160c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_enforcer_windup.png",
+      "bytes": 616045,
+      "sha256": "1b19f314e7ee7a235d7dab03023110b6beac5d4057e4105cd71579dd2c3620b5"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_notary_firing.png",
+      "bytes": 627698,
+      "sha256": "1e26db37da5892e59443b6c1985cf60581297d8c95352154991d97b7a7bf1691"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_notary_windup.png",
+      "bytes": 616781,
+      "sha256": "77120ee6882193e9de60bd679e31ab33f8c94ced286ba98b99663e0edafbd8db"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_sweeper_dead.png",
+      "bytes": 559188,
+      "sha256": "03b30cc4f3a16e6e859be99570f13820e56e077a877a0b9e78dc46ac5c8208fa"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_sweeper_firing.png",
+      "bytes": 547669,
+      "sha256": "31100c13d2c554ac26642eb8331932cb3b2d7de7dd4f49e36efc779695efd876"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_sweeper_recovery.png",
+      "bytes": 541642,
+      "sha256": "7ec71814e2a65ce9cdca555da4c42591d920749b60b98c3d7fa290452e4302b8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_gantry_two_clear_sweeper_windup.png",
+      "bytes": 544969,
+      "sha256": "188cc5c649f39dedc5b9833f8ea2c600d5459f7f4ff650e56fc9dd9cf567f353"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_hatch_clear_combat.png",
+      "bytes": 397492,
+      "sha256": "afbf701e757813d03db72e4167754204f4d05d1f93be543fae5c741c08093fb1"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_hatch_clear_enforcer_dead.png",
+      "bytes": 528376,
+      "sha256": "90d3dbd9bee12b2f53aba23cd14b9c32b9a886559ab0b29419966e4e89f18953"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_hatch_clear_enforcer_hit.png",
+      "bytes": 496395,
+      "sha256": "708ca61e710d26d917295c93013bdaa710b88bd16921645c7abb45b3024d48a6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_hatch_clear_enforcer_recovery.png",
+      "bytes": 497358,
+      "sha256": "d6fa322ebc71b08d3bc118534985fe4d7629581326e87179277c86af6acf73a0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_hatch_clear_enforcer_windup.png",
+      "bytes": 505110,
+      "sha256": "81ced5560a3164ce327293c3bf76ec25275762c901c8030b46da580f3e217008"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_clerk_dead.png",
+      "bytes": 110755,
+      "sha256": "cd874691369600e342ace25696b2a04eddc557c81f8e1e68b2c3786e1ffbfdfd"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_clerk_hit.png",
+      "bytes": 285053,
+      "sha256": "f0433006d9e2a59becccc123639f3ad90ad69e229fccc3658e4f1f901cd244f6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_clerk_moving.png",
+      "bytes": 315174,
+      "sha256": "71fcd84f9f528c143d3606f40cc83a0f7c9bfe003fcb02c9fd65d590616f6360"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_clerk_recovery.png",
+      "bytes": 248357,
+      "sha256": "3b49087502e7c9d4e9912e990c06355145c557e897c4b3650f116928c958e46c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_clerk_windup.png",
+      "bytes": 313233,
+      "sha256": "8bed6c972d18aa446c2d2ff19b4c1391cc14321271f049867d45c72507ec3ff2"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_combat.png",
+      "bytes": 2691673,
+      "sha256": "e7c166963e33023c3e84400b722fa817ca11d5e1f7ed1688bf5b32c499af24a6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_sweeper_dead.png",
+      "bytes": 98116,
+      "sha256": "8f38c99b3f71fcfd0376cb3ca18eac731fb75f4b6449b29a49f98f019b7e062f"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_sweeper_firing.png",
+      "bytes": 392685,
+      "sha256": "fb4e1ba135aeee47b53abf8b35c15c7acce77cd43d70070eb124ee7bcedf3e81"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_sweeper_hit.png",
+      "bytes": 357255,
+      "sha256": "d828d299cbcf1429e370b02fb52666d40590cd7086c84c1cff50328501f21392"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_sweeper_moving.png",
+      "bytes": 314208,
+      "sha256": "540c305ec8091e8d59a14b2f0dadb6288054c8a5b2855c4dafd5d6ddb4761feb"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_sweeper_recovery.png",
+      "bytes": 361526,
+      "sha256": "76ffb83729975923f1888328c145b1f280a6bb538da282639e3b01dc31e8a42c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_sweeper_windup.png",
+      "bytes": 306883,
+      "sha256": "3bae6a41a333d1b48edbb0215906825b98b4eebbea9230f5c790ac8df2d3d29a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_loading_clear_turret_idle.png",
+      "bytes": 359712,
+      "sha256": "d81bf679c4529ce4fa8a00ec81fe4b7a7294ea81a71b8989b2071730effd0f45"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_office_clear_clerk_dead.png",
+      "bytes": 362330,
+      "sha256": "57cbe76e946b746235a67ea5cd6413878ffa6269cabbdf80f0908eabf8a58694"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_office_clear_clerk_firing.png",
+      "bytes": 389249,
+      "sha256": "b2b55f1cf1716875831513fafddd6ca417850ad00f4484071a0df961325d93be"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_office_clear_clerk_hit.png",
+      "bytes": 434465,
+      "sha256": "941874c6a6c50978ba2b5c47a09c39113f4742094a85cdb35fcb06a034e8dcb2"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_office_clear_clerk_recovery.png",
+      "bytes": 387145,
+      "sha256": "8633545ef72aa622c98ce2158ada531d387f10e6d30682868fa26b7c7610d3b8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_office_clear_clerk_windup.png",
+      "bytes": 392300,
+      "sha256": "0df65b532a1d2df4ba91b95fdea787da72508209322d52c3d1e1611084ce3084"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/m09_office_clear_combat.png",
+      "bytes": 1843777,
+      "sha256": "aa6a9ff1582d268cf50dd588a4321e7a76f20c74de0f112f5742586fdb06a816"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/manifest.json",
+      "bytes": 2826842,
+      "sha256": "0724c7c6be496ab5268e06e279d839f787c8f7b274692ae2dabdbe3fb36f1ba2"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/process.json",
+      "bytes": 9221,
+      "sha256": "e11b1a1e391b6667382141d31bbe585087a230796ff469b95b43b503dc1fbf88"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/renderer-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/renderer.log",
+      "bytes": 2941,
+      "sha256": "7d978409981a821404fbdb6a5978ea2fdc1d75885d70c6aa8fb162823967749e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/service-record.0.json",
+      "bytes": 2437,
+      "sha256": "e0631d4b7243eda03059f0db22ff249dd5f73325a18ed3a0171883c3999e23cc"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/service-record.1.json",
+      "bytes": 2470,
+      "sha256": "3414d1ff44e466eb27840035330df7df9b0a5360222ee83401dafc8841703b3d"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m09/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/01_m10_passenger_entry_world.png",
+      "bytes": 346416,
+      "sha256": "6c77017436b877927e5a56999d8b1d3989c281c0209d2e64ad0679911d895f01"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/01_m10_passenger_entry.png",
+      "bytes": 385598,
+      "sha256": "92ea9662ad2ce238b531b4e17b6ca67ec40f985f891f4414205c68d5c282d32a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/02_m10_cabin_stock_world.png",
+      "bytes": 378509,
+      "sha256": "b1dc3e9ece53ad35ec765b44a781cab95c4685e18d527e0b21b724d1242bfa66"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/02_m10_cabin_stock.png",
+      "bytes": 401628,
+      "sha256": "0b890b6df779dfbe204c88955c1c96fbaa0fce0d04eb6c42699510b1f0f57bd6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/process.json",
+      "bytes": 1109,
+      "sha256": "6d1b1168ed8dc84b1288060bb677b7fd7b2ba1ca12e1b04d66caa0a3829e7687"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/renderer-error.log",
+      "bytes": 266,
+      "sha256": "67f04aa5152b281f80543f76ab20c257da37a47ec904fd2d361b46b43b6181cb"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/renderer.log",
+      "bytes": 610,
+      "sha256": "418faee500cfadb366260501796c47193f835e28d85664da9350af550cdffc3e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/run/run.json",
+      "bytes": 1286,
+      "sha256": "16e225ed2350b6eb979a1cdb8287ca75aa7c77e358b4c1a0eab109ed2c5d3362"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/run/run.prior-cc98c32feef3261e963ffa1b2b34a15f05a3bfd9fc78b016eeb58f10a59fe3e6.json",
+      "bytes": 1243,
+      "sha256": "cc98c32feef3261e963ffa1b2b34a15f05a3bfd9fc78b016eeb58f10a59fe3e6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/service-record.0.json",
+      "bytes": 2385,
+      "sha256": "3591b070ba2f6193cb986dc5cbb9b92188c4f744b7ff851e3335943b31717c40"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/service-record.1.json",
+      "bytes": 2382,
+      "sha256": "97634fde53c293d513d151bd323a3c4cce4ffe9426b6ac9d118673dbd30f5043"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/01_m10_passenger_entry_world.png",
+      "bytes": 346446,
+      "sha256": "5d2a39f0c363afa0c70526bf5d1fe1a8ce060352d30aabe18615f2b135abd025"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/01_m10_passenger_entry.png",
+      "bytes": 385639,
+      "sha256": "1d71eddc2b2d4ba7f44f2ec935b865a7998a5d1c71b7b916f97a39604ab370f7"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/02_m10_cabin_stock_world.png",
+      "bytes": 416710,
+      "sha256": "bfa72caeac3eda8a493d1f1d67f2b9962121bea46027b4ee856ca1b3c36969c3"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/02_m10_cabin_stock.png",
+      "bytes": 440298,
+      "sha256": "55488d6312c3b31f141b634208d0c2389c049627959f345a449e5f8c90eb4c39"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/contact.png",
+      "bytes": 149668,
+      "sha256": "2ac40ef498ba687490354a76428b905819a156a348100b01177bbd9f94409cfc"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/equipment-before-assertion.json",
+      "bytes": 602,
+      "sha256": "979c7cd643a352f526b31b19172e74242f71e32b323a05457608468f7f810412"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/live-cast.json",
+      "bytes": 28256,
+      "sha256": "2f8c2e2b7d8f618e86efd3ac34cebe17295efe565ba65df0acc54df098ae4283"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/manifest.json",
+      "bytes": 33525,
+      "sha256": "e8661c98347fe46092e571f5e310168f4510d8722017e00dc3cefd903616d6b5"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/process.json",
+      "bytes": 838,
+      "sha256": "6771abeedc90ed72332de6e2e32c44e4ad07ec0af27371eb812c920de949a388"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/renderer-error.log",
+      "bytes": 376,
+      "sha256": "7602bdc52f2d554a24ab407583154f7137d676838c1d08df0f70e5266afeb295"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/renderer.log",
+      "bytes": 1184,
+      "sha256": "4340b07af47c83173ecae1c5f8b6b4696c7b3b94c9b8e64040cac9ac5947a0f2"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/run/run.json",
+      "bytes": 1286,
+      "sha256": "16e225ed2350b6eb979a1cdb8287ca75aa7c77e358b4c1a0eab109ed2c5d3362"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/run/run.prior-cc98c32feef3261e963ffa1b2b34a15f05a3bfd9fc78b016eeb58f10a59fe3e6.json",
+      "bytes": 1243,
+      "sha256": "cc98c32feef3261e963ffa1b2b34a15f05a3bfd9fc78b016eeb58f10a59fe3e6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/service-record.0.json",
+      "bytes": 2385,
+      "sha256": "1fd9cb75bf59587cb6421e829e29a879c77ca1fb02a0fa629a2afa6c3d6ca9a7"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/service-record.1.json",
+      "bytes": 2382,
+      "sha256": "8b48fc124ea76ab2ed8fd817627f193273a97b8840756415b3287044cb1e0002"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-diagnostic/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/01_m10_passenger_entry_world.png",
+      "bytes": 346364,
+      "sha256": "be5c2a5de7b78f70cdf6dc81eaa8d88c6c680582fe5d54771dc3d0e66ff031c5"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/01_m10_passenger_entry.png",
+      "bytes": 388926,
+      "sha256": "a98cd1598c6efe528ee7488e9abe325207314b9274249f98326112ec15c53ced"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/02_m10_cabin_stock_world.png",
+      "bytes": 410006,
+      "sha256": "35177db39f362d70faaaaa16f6411df8be119c33e5dcc955d23f154336de1f54"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/02_m10_cabin_stock.png",
+      "bytes": 439963,
+      "sha256": "85e42299290bd66d29bb8887126ae7b36ab28cb753ab1411845e358a11c693ce"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/03_m10_passenger_hall_world.png",
+      "bytes": 338378,
+      "sha256": "460311d8d96c8ba19c4f1eb682916477dd355a1cecc1ee6448e75881626312cd"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/03_m10_passenger_hall.png",
+      "bytes": 359363,
+      "sha256": "a72ad28811c2d891619036f1800da9950d60fdb34ca87692dfe58b2c8c162e97"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/04_m10_west_stair_down_world.png",
+      "bytes": 350764,
+      "sha256": "edddd29327262f6435c9403ea119dcac88c08a83a2fc4be9d1c90849a600912a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/04_m10_west_stair_down.png",
+      "bytes": 364014,
+      "sha256": "62053be02bbd24486c57b0ed18cf53c148863072414a367cbcf7e798a854b651"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/05_m10_cargo_stock_world.png",
+      "bytes": 233872,
+      "sha256": "61951fb16812950cd96f28d034a9f0098330493ad0b06c2e2459c03860c1b4eb"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/05_m10_cargo_stock.png",
+      "bytes": 253038,
+      "sha256": "cc0f6b3d3ea41b4e5492e14b411f9c9bc100c335872b743ad9c448424456826c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/06_m10_forward_lower_world.png",
+      "bytes": 341064,
+      "sha256": "693872a6fd6511edc26013031162b64cba12634d5659cc1634e2274d79ed05b1"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/06_m10_forward_lower.png",
+      "bytes": 353873,
+      "sha256": "92fd017d670b695a1de55f7d42648bc70c1c4c65f2ee75878b3c9be35bedd0d5"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/07_m10_west_stair_return_world.png",
+      "bytes": 354320,
+      "sha256": "c6d07b38b918341f4ae7a0cae9faeeead9fcb577125ab214795ce92f9724ea1c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/07_m10_west_stair_return.png",
+      "bytes": 372738,
+      "sha256": "e3e0365e3d6c64da5d729300dc5e8679dad2980f0d5de73b2e0980440737e4bb"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/08_m10_forward_gallery_world.png",
+      "bytes": 353829,
+      "sha256": "899bf6d7ffe1967c6259ad329078f015caafef5e233a984acd99712ca3f2acae"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/08_m10_forward_gallery.png",
+      "bytes": 372436,
+      "sha256": "2d5edea047b516bcf924a986e3896f353f7c26e63db005da37053bc8add53b25"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/09_m10_forward_arrival_world.png",
+      "bytes": 304966,
+      "sha256": "29f41749b36b51ba3b614d705053ea8068be57832cac72587e80dff4b4c186b9"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/09_m10_forward_arrival.png",
+      "bytes": 321875,
+      "sha256": "3535bbe56adcc9a0319629bf39883433dfb85e41df507d1bb390c3cc00f3073d"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/10_m10_service_defense_world.png",
+      "bytes": 275989,
+      "sha256": "08765df8e66ed8581b39a4ada534eae095cf1c930581bbdc2a360c9f80db928a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/10_m10_service_defense.png",
+      "bytes": 295258,
+      "sha256": "e791ec59c1c67a4f7b8e328b1eb54de9b61f246a863f8823c09ca61beda41f4b"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/11_m10_repair_stock_world.png",
+      "bytes": 407388,
+      "sha256": "bbf31fb53670ce76d175783537b3bb17bee98f2ad067e8557e869b30627c2906"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/11_m10_repair_stock.png",
+      "bytes": 414591,
+      "sha256": "681dfc635b983e956faab3d7da04ba2ec70a628782cfaeeea25f98d82e994936"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/12_m10_service_arrival_world.png",
+      "bytes": 256426,
+      "sha256": "76c8950bab8da797b90f7757d1d6a7304af33a3cf8e921ac63055048297f469c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/12_m10_service_arrival.png",
+      "bytes": 272594,
+      "sha256": "a4884f451217feb2744195df468106033cf36c1eaa013fb64a7ea24290a983d8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/13_m10_aft_stock_world.png",
+      "bytes": 266775,
+      "sha256": "09b51d188e914906125f7df40f2ffdfbf19dd6b3bda60c47e93a0e5c42e4a995"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/13_m10_aft_stock.png",
+      "bytes": 292325,
+      "sha256": "7f034784541b9c7f2647dbc444f165d4596eae0d3bc7578ca9bfd1d71e095cb3"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/14_m10_east_middle_world.png",
+      "bytes": 369937,
+      "sha256": "0d922886664314ce3db49b608cacf08ca5c10cdadbb258f9247538e54b473f0d"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/14_m10_east_middle.png",
+      "bytes": 381303,
+      "sha256": "49ff9ddb3c7e77a2a1d94015464f524a57d6c40bffe88673f9f4684f30c44c14"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/15_m10_east_upper_world.png",
+      "bytes": 316239,
+      "sha256": "eede578b7675e656625eb7a74e3a590397669986074e3b0b3833ae46a4d168fe"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/15_m10_east_upper.png",
+      "bytes": 331887,
+      "sha256": "5262988fe86a8c11f0dd381dd18fd700f18d827d6ab4741abec601ebb0093162"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/16_m10_aft_upper_world.png",
+      "bytes": 396421,
+      "sha256": "0d178f8f58d91aeccc37cbcff4da044f49dbf766cfa0985e092c3092d4e5238d"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/16_m10_aft_upper.png",
+      "bytes": 412461,
+      "sha256": "9eaceb45be567ae10958d7bb82f4d76127a84c6231935066f33c877dab1f5655"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/17_m10_freight_overlook_world.png",
+      "bytes": 183739,
+      "sha256": "21ff707d7ed8d655e534e743a6f348fe41587b8ef7ac3283aca3ce286ba8be3e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/17_m10_freight_overlook.png",
+      "bytes": 199353,
+      "sha256": "c3539d4c97d8361aea2179c1d8abd35efbb382cf6e258f61abf756458ad9c7f0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/18_m10_command_stock_world.png",
+      "bytes": 327397,
+      "sha256": "96e663464d0a511e32ca26b4295a46318bfe410488d49435269b13e6c255ed9a"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/18_m10_command_stock.png",
+      "bytes": 353334,
+      "sha256": "60855bd54eed1841a5237e1162958fb518cc0f659dbbcc43be596a6f4c87685e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/19_m10_lower_return_world.png",
+      "bytes": 355929,
+      "sha256": "c254e5aaa26ebe835642eb43e8902e5dc86e9f64ddcdbeab015c4f414d7d71fe"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/19_m10_lower_return.png",
+      "bytes": 367779,
+      "sha256": "c45f91ab372cbce8e27df84ede8a59b01c6cf852e39d08034897a7e5275d311e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/20_m10_aft_notary_world.png",
+      "bytes": 386254,
+      "sha256": "3d42c8254cd6187356e586ee17cf673fb8d3c0b8c7e2d863bf19dad9f969dcfd"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/20_m10_aft_notary.png",
+      "bytes": 397887,
+      "sha256": "ef5685925c930e3a12f1788ffa2971ceaf39c7e9bee54529c38bbf07d9c0b353"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/21_m10_aft_heavy_world.png",
+      "bytes": 200881,
+      "sha256": "84b975985a63f4c1e68f00ea1f7d991fd4dc315d820cd8cbc703ffd6dea35793"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/21_m10_aft_heavy.png",
+      "bytes": 227319,
+      "sha256": "93d4c05f8317b214e5495b1766422f5bfd5ac144bc7a2b80414e23c34274d3fb"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/22_m10_aft_middle_world.png",
+      "bytes": 393535,
+      "sha256": "b2f7b13d1e1e7820c693b9228b22893d54d0b135e89de87aa5eb0025f2a4f372"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/22_m10_aft_middle.png",
+      "bytes": 404217,
+      "sha256": "488415a4995feac57cb6db85403160bc9f48f020203acefaac3344efde9cc7d0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/23_m10_aft_arrival_world.png",
+      "bytes": 347900,
+      "sha256": "c9c26dcddafad7e06a5edba7879072a3cc7f2875d8f1e6b9737f7b8c92898f05"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/23_m10_aft_arrival.png",
+      "bytes": 370953,
+      "sha256": "9337615282d1fe50b1f16e3e500355272d7cacbb87e76daf9a664327c4e9a9e2"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/24_m10_passenger_return_world.png",
+      "bytes": 411615,
+      "sha256": "27029f79679b7316c2fa38aabc2b33c1701fb893ecfd8e03c51945ceda4a8261"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/24_m10_passenger_return.png",
+      "bytes": 424036,
+      "sha256": "a2bddd2a5ec1036bf69ef86eeb9e4c95a630e4c24a088e2aac4aeeacbd6a06e0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/25_m10_surplus_stock_world.png",
+      "bytes": 401315,
+      "sha256": "1391bbd5f162db6a10b0c1775e8dccf6b37ab0691998b8717a5c264d71321a4e"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/25_m10_surplus_stock.png",
+      "bytes": 419587,
+      "sha256": "05635a28770934e1671f7858bd3755681a9af63f2231f085286b0b34c94bb47c"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/26_m10_passenger_defense_world.png",
+      "bytes": 234309,
+      "sha256": "af2e62028a37d1e4485408ed4bdb5f86bcdfc5f603ac75b8d977c942eb5d5053"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/26_m10_passenger_defense.png",
+      "bytes": 248241,
+      "sha256": "d033c70280c745963b8a83581b3aa2e0abb43ad4ff2797cd948250555cdc63a7"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/27_m10_passenger_arrival_world.png",
+      "bytes": 233666,
+      "sha256": "baeb5501d7b0acb876c4096c78ea4d92521c2bc728ced336b9a936ba73f6acac"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/27_m10_passenger_arrival.png",
+      "bytes": 246939,
+      "sha256": "36228f67f39b826c5b7ace955bb46718e35e5c85a990aae39e37da93f855fb62"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/28_m10_shared_departure_world.png",
+      "bytes": 48604,
+      "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/28_m10_shared_departure.png",
+      "bytes": 48604,
+      "sha256": "2fc7484e6e5c7dbb0b670a48ac952336acf78a0e19b4e9cf92062f8db03195cd"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/contact.png",
+      "bytes": 1811686,
+      "sha256": "5370d0e48eb7c2d085d57450634041d0fef4cab501670b729f8911e0ebb8a628"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/live-cast.json",
+      "bytes": 863829,
+      "sha256": "5af0b66508719d13a504c4533affbb277915a13d9f1636626ea406d32316c8d8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_heavy_combat.png",
+      "bytes": 118567,
+      "sha256": "b64b4ad01f8c10588c39da3cc68312d6fc95876bd72f9eca18f17dfc4a788713"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_middle_combat.png",
+      "bytes": 127518,
+      "sha256": "cb394ea9136aeebfea5d1b908df470c3615eed54d1309799d0a419d1c09714d1"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_notary_combat.png",
+      "bytes": 145861,
+      "sha256": "b2460765855e005ae199fc7bcc53acb298bbe8ee98be176bd619648bc3eeaa5b"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_upper_clerk_dead.png",
+      "bytes": 416145,
+      "sha256": "9a1b36a0f0567f9e1517ccf465948699357261246a518eaa1c7c85f8034adb30"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_upper_clerk_hit.png",
+      "bytes": 409315,
+      "sha256": "45195e406ab7202fb28432bc69b4baa128db31d2a50a16014a67c969c128b973"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_upper_clerk_windup.png",
+      "bytes": 381169,
+      "sha256": "b264ca2046b6ae2a9a2725e6f1a44b3c090ffd25fb8dec189b1b27596bc1dcc1"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_aft_upper_combat.png",
+      "bytes": 442245,
+      "sha256": "45c4b2b74b1cbfc05c034367a848b23873f23fb0ab2540006efe17e83bf1ceba"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_gallery_combat.png",
+      "bytes": 141634,
+      "sha256": "942619b7c3fba7a7116d4eb2afc5923bf396f69dc9fef91c83be4dce9c886a62"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_clerk_firing.png",
+      "bytes": 414800,
+      "sha256": "c878ddf29c6c72e492e855f3f0b6765bdbb0d102d4faa8d01102b363a380438b"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_clerk_hit.png",
+      "bytes": 380815,
+      "sha256": "d98cc077ed99812ab9f2a4d41434594b7423ea27a9fd3baddf66f28503d05bc7"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_clerk_idle.png",
+      "bytes": 380075,
+      "sha256": "376f5892e1c702dcfe2f4b7d1b5ed493f4cfd2626dbb882fe67e0b3045941d25"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_clerk_recovery.png",
+      "bytes": 398512,
+      "sha256": "6e72e2843aee888676073f3673b0fd233b09c53cfec65620885e91d7a2be369f"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_clerk_windup.png",
+      "bytes": 354660,
+      "sha256": "846c8faab8fe93194d0711e402ad064fe39819e0b974a49bbfcf202f60d76df1"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_combat.png",
+      "bytes": 1374839,
+      "sha256": "0d3fcadd9461d1fbf766096c5624f46a631208a379325a9719dde3b4d5308710"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_sweeper_dead.png",
+      "bytes": 371722,
+      "sha256": "256045a633369c0fac7b91d1df1f4b46ea12bbcef5c82d370bcb2b0605547993"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_sweeper_hit.png",
+      "bytes": 374181,
+      "sha256": "8fd916ae1fa74c0690cf1a4e84c1d001402987c597e92f0f8a026f33be36f768"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_forward_lower_sweeper_windup.png",
+      "bytes": 370643,
+      "sha256": "ef9b79de16fd603145050ccd2448faece17fd7cd03e18f21400c5fb45d167524"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_passenger_defense_combat.png",
+      "bytes": 152509,
+      "sha256": "2cfbd756bbac138aa8a3adad52960f725c291c7fdd9aed04317cf34faa48eded"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/m10_service_defense_combat.png",
+      "bytes": 121435,
+      "sha256": "f605a3dbbfce1b665709d7c6e90be36b1fe17c05786f8618d0ae0e5d5889b8a4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/manifest.json",
+      "bytes": 1321873,
+      "sha256": "634d35eb0b7bdbbd1664ceba09c199f90ff060904dcee25694e62638516b11e1"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/process.json",
+      "bytes": 9646,
+      "sha256": "79a97d9438072a86f5519ee0fc65cfd559b2a30f7125754d91acce24766bcc92"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/renderer-error.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/renderer.log",
+      "bytes": 2903,
+      "sha256": "74094c5a9bb0bc95f743859194a6ffa23df5d970d7843afda13cfb50e9ca7df4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/run/run.json",
+      "bytes": 1334,
+      "sha256": "1aff1e48b7c94077d033d1cea2df19a7dd862dbdb68bfc53e7d1a3fe3a5f11d0"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/run/run.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/run/run.prior-cc98c32feef3261e963ffa1b2b34a15f05a3bfd9fc78b016eeb58f10a59fe3e6.json",
+      "bytes": 1243,
+      "sha256": "cc98c32feef3261e963ffa1b2b34a15f05a3bfd9fc78b016eeb58f10a59fe3e6"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/service-record.0.json",
+      "bytes": 4852,
+      "sha256": "234c49eb1587c8d48b3febe94c988fc8e01ba7beddb81545b4bdc93e9fcbdde4"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/service-record.1.json",
+      "bytes": 4818,
+      "sha256": "d2c034b0d9666090cb7a1b34f10674a12783d776271132802fd2645885285776"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew/m10-final/settings.cfg",
+      "bytes": 1100,
+      "sha256": "2156b7bf1f371e18b07b1c94dd38768c3369b3bbf9b8dbc7d1283cc45d5281e8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/run-live-crew.ps1",
+      "bytes": 6719,
+      "sha256": "7f935cefb41b35c6a9245d09004deb85d392e45003096998594d5dba14a14b9f"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/run-live-crew-final.ps1",
+      "bytes": 7021,
+      "sha256": "b508d448a277cd7189165587ef5a81b011880fd276ac9b7abb35803b2a607674"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/run-crew-equipment-diagnostic.ps1",
+      "bytes": 3439,
+      "sha256": "ba0b49d7924710448bc037b87373b4197950d1ad5a55a3cdea284368852c98e9"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/crew-equipment-diagnostic.gd",
+      "bytes": 627,
+      "sha256": "ee39cbdc6537f1d12de4851a679bd969284b37b108556c3bd32036f13ae29f81"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/write-crew-receipt.ps1",
+      "bytes": 13205,
+      "sha256": "37b1b205847c4658c9f8f39189f49f90dd4996b55975f7e453cfbdfa2bca8108"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/qa-pool-rounds.log",
+      "bytes": 97,
+      "sha256": "1cd66982a79fbd61cea1de7708a8ba35532f923fa1ceea41167b41c8daffdbf8"
+    },
+    {
+      "path": ".agents/live-buildout-20261008/qa-pool-rounds-final-manifest.log",
+      "bytes": 97,
+      "sha256": "1cd66982a79fbd61cea1de7708a8ba35532f923fa1ceea41167b41c8daffdbf8"
+    }
+  ],
+  "narrative": {
+    "path": "docs/evidence/live-crew-routes-20261008.md",
+    "bytes": 6879,
+    "sha256": "ee05f745a01d3345fdef85c3bb911e87ca0bb02c5efd7305bdc13efa38607a56"
+  }
+}

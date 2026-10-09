@@ -1,5 +1,17 @@
 # Player records, statistics and commentary
 
+The October 7 [compatible local bests](host-rotation-campaign-bests-20261007.md)
+extend the existing history and results. Local history version 2 retains version
+1 entries, adding optional owned-server SHA-256 provenance for new local
+observations. Human mission bests compare the same exact server build, mission,
+map id, difficulty and rules, with durable and development runs separate.
+Legacy or external records remain readable without invented provenance.
+The October 8 [local award increment](difficulty-and-rewards.md) advances the
+same document to version 3, retaining v1/v2 history and adding independent
+bounded award proofs and appearance selections.
+Successful-attempt time comes from the existing server completion clock;
+authored pars, permanent best retention and public rankings remain unbuilt.
+
 Status: local service-record slice shipped in
 [#201](https://github.com/blisspixel/fragr/pull/201), v0.32.0, with all five CI jobs
 green, updated 2026-09-20. CPU benchmark and
@@ -262,3 +274,60 @@ CPU gate, Windows release, Ryzen 7 7840U, map 1, seed 42, 16 bots, 1200 ticks:
 This is one local budget-gate observation. The shell verifier was also running.
 The offline roster has no socket clients, so this is not a private-record delivery
 throughput measurement, a speedup claim or a public-server capacity result.
+
+## Remote Mine aggregate correction, 2026-10-08
+
+Status: **planned** follow-up under the current shared composition. Read-only
+review found that `CombatCounts::damage_dealt` sums guns, grenades and proximity
+mines but omits `remote_mines`. Actual blast resolution already records effective
+Remote Mine HP and armor loss correctly. The private records panel includes that
+column, while `CombatLedger::board`, the live snapshot and HUD's `dealt` row use
+the incomplete aggregate.
+
+After frozen native/network checks retire, add the missing saturating column.
+Prove an actual resolved remote blast produces matching live snapshot damage and
+private record totals, including HP and armor. Retain zero/default and historical
+shapes and verify saturation. A separate baseline control must expose the old
+omission. No save, record, protocol, rules or projectile behavior changes are
+needed. Preserve the preceding composed native identity and verification scope;
+run focused statistics and ordinary Remote Mine regression checks before the
+next full native composition. Spend is $0.
+
+An isolated control now links the exact retained current release library without
+editing production or rebuilding the frozen native. The historical empty column
+and existing damage sum pass; Remote Mine HP/armor and saturation controls fail
+as expected (one pass, two failures, numeric exit 101). This is a synthetic
+aggregate baseline, not a resolved live blast or a repaired game. Exact library,
+source, executable and original results are retained under
+`.agents/remote-mine-damage-aggregate-20261008/`. Production correction remains
+pending main consolidation.
+
+An ignored three-file candidate now adds the missing saturating column, retains
+zero and existing totals, and extends the actual covered-blast regression to
+compare HP plus armor against private attempt/total counts and the live snapshot.
+Its patch applies to the frozen sources, which remain unchanged. A separate
+worktree now compiles the candidate and passes the exact resolved covered-blast
+test, including private attempt/total damage, the live snapshot and no repeated
+count on the following tick. The first compile command selected zero tests;
+the retained corrected command selects and passes the actual one test. The
+first unfiltered owning-package run then passes 1,353 library tests, with three
+existing ignored cases, but fails one existing closed-run geometry startup at
+its 30-second readiness deadline. That failure remains retained and under
+investigation; it is not a passing package gate. The candidate is not selected
+for the current integration, and these isolated results do not replace its
+frozen native gates.
+
+The exact closed-run replay subsequently passes all ten original cases and
+unchanged per-case deadlines in 26.19 seconds. Static tracing places the first
+failure before save-store opening, while awaiting map/session preparation;
+it is not evidence that historical save compatibility was rejected incorrectly.
+The relevant startup sources remain identical to the frozen composition.
+Contention is plausible but unproven. The complete unfiltered owning-package
+replay with explicit two-test concurrency passes 1,446 tests across 22 targets,
+with four existing ignored cases and no failures or filters. Workspace format
+and warnings-denied owning-package all-target clippy also pass. The first
+failure remains retained separately. The bound isolated receipt is
+`.agents/remote-mine-damage-aggregate-20261008/isolated-verification-first/receipt.json`.
+This candidate is unselected and has no full-workspace coverage or played
+presentation acceptance; the current integration's source and native are
+unchanged.

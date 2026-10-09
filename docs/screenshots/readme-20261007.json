@@ -9,7 +9,7 @@
     1280,
     720
   ],
-  "base_commit": "0fbcd6cc",
+  "base_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
   "working_tree_capture": true,
   "images": [
     {
@@ -22,24 +22,25 @@
     },
     {
       "file": "tour_multiplayer_16x9.png",
-      "sha256": "79b803126020f06c44cb42a62944d2efff30704cf0c3c19bd0df372db5d6fd81"
+      "sha256": "0bb5fe44310b0f65c60664c95169ce627f70ad763a40dbd5adda331da2b318ef"
     },
     {
       "file": "tour_combat_follow_16x9.png",
-      "sha256": "b357454d9f6a4c0dee745adb3debd9f82b4d107166666a36aa79e5dff737a0e6"
+      "sha256": "93619f43951aa39271111a2be97ae2f26b3d162dbade6d85f991501d1daa61fd"
     }
   ],
   "full_tour": {
-    "captured_utc": "2026-10-07T07:59:09",
+    "captured_utc": "2026-10-08T06:39:54",
     "states": 32,
     "published_stills": 14,
-    "native_sha256": "989d84c1b389d407ee5a6cfed0e4e6fd65fdde46015c740761d25f1701d63089",
+    "native_sha256": "10e5fb3b825aec6172586c995ab6203af8ee7b3fb1257a17e82119155306529c",
     "qa_source_sha256": "261b811237043f2efa03c7447b58f6a244ed340415e2f7906f581e7125d49445",
     "route": "client/qa/tour.json",
     "route_sha256": "ac0a76a09596611b43257d58c9317f7f6cce9b5b1d995b055d825f127a7679d7",
-    "command": "tools/qa_tour.sh --publish; isolated prebuilt server, unchanged capture and publication checks",
+    "command": "tools/qa_tour.sh --publish .agents/host-rotation-campaign-bests/tour; unchanged route and wrapper",
     "actual_watched_state": "Active",
-    "private_manifest_sha256": "0a915f6ef732b2e04308c5a87932ab9520212bbd569c32de79f2793e11a09cdd"
+    "private_manifest_sha256": "f9211d86baba63ccc6033f8996caa4201ca259b6aca121f984361aea5ea8043f",
+    "inspection_note": "All 32 states inspected. The multiplayer title clips in this combined route; the selected multiplayer image uses the separate normal-menu live-host refresh below. No general layout fix is claimed."
   },
   "intake": {
     "captured_utc": "2026-10-07T07:32:58",
@@ -49,14 +50,15 @@
     "prefix_sha256": "d3f5852a917f3ea3c5c59c8a6f9939447af0489f355db1f378046ca83e327200",
     "native_sha256": "d54b07905e1ad5dedc18e37c3a11e7c79545b7438f4d789f4eddbce141414e2e",
     "qa_source_note": "Exact working-tree QA script hash was not recorded for this earlier capture",
-    "private_manifest_sha256": "543c5666855472bf66508e2dfcf295054220ec44205bbbe414c51106e6189290"
+    "private_manifest_sha256": "543c5666855472bf66508e2dfcf295054220ec44205bbbe414c51106e6189290",
+    "base_commit": "0fbcd6cc"
   },
   "multiplayer_refresh": {
-    "captured_utc": "2026-10-07T08:08:18",
-    "states": 1,
-    "scope": "Normal Multiplayer page, real owned loopback status probe and one recent host; title and Back stay within the card",
-    "native_sha256": "989d84c1b389d407ee5a6cfed0e4e6fd65fdde46015c740761d25f1701d63089",
+    "captured_utc": "2026-10-08T06:45:04",
+    "states": 10,
+    "scope": "Unchanged ten menu states selected from the standard route, real owned loopback status probe and one recent host. Title and Back fit within the card. No runtime or layout override.",
+    "native_sha256": "10e5fb3b825aec6172586c995ab6203af8ee7b3fb1257a17e82119155306529c",
     "boot_source_sha256": "7ace35b64ae07c7a480aa9ac2c3c377331e046b5cad9fed979ce3cbaa118dc1d",
-    "private_manifest_sha256": "84fc8c8cdbe79a249e9efaaff198cf7300e81c33aa89adbb45bc5c2f681b6c6c"
+    "private_manifest_sha256": "c9c5f029126d396f3fa77ed2eca6d11714f74f3c82063ebb3e358f59f9f42497"
   }
 }

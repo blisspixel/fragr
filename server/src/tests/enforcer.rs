@@ -207,7 +207,7 @@ fn ordinary_resolved_gunfire_does_not_cancel_the_armored_charge() {
 }
 
 #[tokio::test]
-async fn enforcer_requires_capability_34_for_every_role_and_orders_geometry_first() {
+async fn enforcer_campaign_requires_current_rules_for_every_role_and_orders_geometry_first() {
     use futures_util::{SinkExt, StreamExt};
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
@@ -238,6 +238,7 @@ async fn enforcer_requires_capability_34_for_every_role_and_orders_geometry_firs
     for version in [
         crate::protocol::MISSION_RESULTS_GAMEPLAY_VERSION,
         crate::protocol::M09_GAMEPLAY_VERSION,
+        crate::protocol::ASSESSOR_GAMEPLAY_VERSION,
     ] {
         for role in ["human", "agent", "spectator"] {
             let (mut socket, _) = connect_async(format!("ws://{address}")).await.unwrap();
@@ -254,10 +255,13 @@ async fn enforcer_requires_capability_34_for_every_role_and_orders_geometry_firs
                         continue;
                     };
                     let value: serde_json::Value = serde_json::from_str(&text).unwrap();
-                    if version < crate::protocol::M09_GAMEPLAY_VERSION {
+                    if version < crate::protocol::ASSESSOR_GAMEPLAY_VERSION {
                         assert_eq!(value["type"], "error", "old reader admitted");
                         assert_eq!(value["code"], "unsupported_gameplay");
-                        assert!(value["message"].as_str().unwrap().contains("34"));
+                        assert!(value["message"].as_str().unwrap().contains(&format!(
+                            "version {}",
+                            crate::protocol::ASSESSOR_GAMEPLAY_VERSION
+                        )));
                         break;
                     }
                     match value["type"].as_str().unwrap() {
@@ -287,7 +291,7 @@ async fn enforcer_requires_capability_34_for_every_role_and_orders_geometry_firs
             })
             .await
             .unwrap_or_else(|error| panic!("bounded Enforcer admission {version}/{role}: {error}"));
-            if version == crate::protocol::M09_GAMEPLAY_VERSION && role != "spectator" {
+            if version >= crate::protocol::ASSESSOR_GAMEPLAY_VERSION && role != "spectator" {
                 // Keep an actual participant while inspecting the spectator
                 // roster. An empty party may reset authored encounter bodies.
                 participants.push(socket);

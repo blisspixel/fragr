@@ -1,0 +1,1307 @@
+[
+  {
+    "id": "ready",
+    "state": {
+      "completed": [],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "market_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "briefing",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_0",
+    "state": {
+      "completed": [],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "market_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_1",
+    "state": {
+      "completed": [
+        "market_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "arc_found",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_2",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "greenhouse_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_3",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_4",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "aid_force_arrived",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_5",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ],
+      "current": {
+        "id": "coalition_commitment",
+        "action": {
+          "kind": "use",
+          "target": {
+            "decoration": 0,
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_6",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ],
+      "current": {
+        "id": "party_departed",
+        "action": {
+          "kind": "use",
+          "target": {
+            "decoration": 0,
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "stage_7",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ]
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "standard_actual_wreck",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 1,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ]
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": true,
+    "briefs": {
+      "assisted": true,
+      "standard": true,
+      "severe": true
+    }
+  },
+  {
+    "id": "same_tick_pump_damage",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          75,
+          100
+        ],
+        "assessor_wreck_union_kills": 1,
+        "shelter_route_secured_at": 100,
+        "first_pump_damage_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ]
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": true,
+    "briefs": {
+      "assisted": true,
+      "standard": true,
+      "severe": false
+    }
+  },
+  {
+    "id": "damage_after_secure",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          75,
+          100
+        ],
+        "assessor_wreck_union_kills": 1,
+        "shelter_route_secured_at": 100,
+        "first_pump_damage_at": 101
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ]
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": true,
+    "briefs": {
+      "assisted": true,
+      "standard": true,
+      "severe": true
+    }
+  },
+  {
+    "id": "departure_without_optional",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ]
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": true,
+    "briefs": {
+      "assisted": true,
+      "standard": false,
+      "severe": false
+    }
+  },
+  {
+    "id": "optional_release",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": true,
+        "workers_released": true,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ]
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": true
+  },
+  {
+    "id": "out_of_order",
+    "state": {
+      "completed": [
+        "market_secured",
+        "greenhouse_secured",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "missing_current",
+    "state": {
+      "completed": [],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": []
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "fake_commit_arrival",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ],
+      "current": {
+        "id": "coalition_commitment",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "missing_route_receipt",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "aid_force_arrived",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "early_shelter",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found"
+      ],
+      "challenges": {
+        "shelter_opened": true,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "greenhouse_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "early_workers",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": true,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "greenhouse_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "too_many_wreck_victims",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 4
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "overfilled_pump",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          101,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "damage_without_receipt",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          99,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "null_damage",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "first_pump_damage_at": null
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "future_damage",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          99,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "first_pump_damage_at": 111
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "missing_aid",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "coalition_commitment",
+        "action": {
+          "kind": "use",
+          "target": {
+            "decoration": 0,
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "duplicate_aid",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        1
+      ],
+      "current": {
+        "id": "coalition_commitment",
+        "action": {
+          "kind": "use",
+          "target": {
+            "decoration": 0,
+            "approach": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "early_aid",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ],
+      "current": {
+        "id": "aid_force_arrived",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "null_current_departed",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured",
+        "shelter_route_secured",
+        "aid_force_arrived",
+        "coalition_commitment",
+        "party_departed"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0,
+        "shelter_route_secured_at": 100
+      },
+      "aid_vehicle_ids": [
+        1,
+        2
+      ],
+      "current": null
+    },
+    "phase": "departed",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "unknown_fact",
+    "state": {
+      "completed": [
+        "market_secured",
+        "arc_found",
+        "greenhouse_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 0
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "shelter_route_secured",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "invented": true
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": false
+  },
+  {
+    "id": "actual_wreck_before_arc_find",
+    "state": {
+      "completed": [
+        "market_secured"
+      ],
+      "challenges": {
+        "shelter_opened": false,
+        "workers_released": false,
+        "pump_health": [
+          100,
+          100
+        ],
+        "assessor_wreck_union_kills": 2
+      },
+      "aid_vehicle_ids": [],
+      "current": {
+        "id": "arc_found",
+        "action": {
+          "kind": "arrival",
+          "region": {
+            "min": [
+              -1,
+              0,
+              -1
+            ],
+            "max": [
+              1,
+              1,
+              1
+            ]
+          },
+          "feet": [
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "phase": "in_progress",
+    "tick": 110,
+    "valid": true
+  }
+]

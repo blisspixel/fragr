@@ -3,6 +3,36 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct AssessorCanisterState {
+    pub id: u32,
+    pub owner_id: Uuid,
+    pub position: [f32; 3],
+    pub velocity: [f32; 3],
+    pub age_ticks: u32,
+}
+
+impl AssessorCanisterState {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.id == 0
+            || self.owner_id.is_nil()
+            || self.age_ticks >= 80
+            || !self
+                .position
+                .iter()
+                .all(|v| v.is_finite() && v.abs() <= 1024.0)
+            || !self
+                .velocity
+                .iter()
+                .all(|v| v.is_finite() && v.abs() <= 32.0)
+        {
+            return Err("invalid Assessor canister state");
+        }
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GrenadeState {
     pub id: u32,
     pub owner_id: Uuid,

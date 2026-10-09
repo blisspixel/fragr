@@ -247,7 +247,7 @@ impl Definition {
             for g in definitions {
                 for e in &g.enemies {
                     if let Some(hover) = &e.hover {
-                        hover.validate(world, e.feet)?;
+                        hover.validate_for(world, e.feet, e.kind)?;
                     } else if !standing(world, e.feet)
                         || nav.route(start, e.feet, SEARCH_LIMIT).status != RouteStatus::Complete
                     {

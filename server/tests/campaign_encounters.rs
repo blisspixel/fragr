@@ -63,6 +63,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
         for version in [
             fragr_server::protocol::CAMPAIGN_GAMEPLAY_VERSION,
             fragr_server::protocol::M05_GAMEPLAY_VERSION - 1,
+            fragr_server::protocol::M05_GAMEPLAY_VERSION,
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION - 1,
         ] {
             let (mut old, _) = connect_async(&url).await.unwrap();
             old.send(Message::Text(
@@ -71,8 +73,8 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
                     role,
                     name: "Old client".into(),
                     geometry_version: 2,
-                    // Historical encounter readers and the previous mission reader
-                    // lack the mandatory counted Discovery inventory contract.
+                    // Historical readers lack the current campaign rules and
+                    // widened finite Discovery inventory contract.
                     gameplay_version: version,
 
                     ticket: None,
@@ -83,14 +85,14 @@ async fn encounter_capability_and_identity_reach_every_role_over_the_wire() {
             .await
             .unwrap();
             assert!(
-                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", fragr_server::protocol::M05_GAMEPLAY_VERSION)))
+                matches!(message(&mut old).await, ServerMessage::Error { code, message } if code == "unsupported_gameplay" && message.contains(&format!("version {}", fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION)))
             );
         }
     }
     let mut sockets = Vec::new();
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         for gameplay_version in [
-            fragr_server::protocol::M05_GAMEPLAY_VERSION,
+            fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION,
             fragr_server::protocol::GAMEPLAY_VERSION,
         ] {
             let (mut socket, _) = connect_async(&url).await.unwrap();

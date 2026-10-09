@@ -52,10 +52,46 @@ hatch. **Common Carrier** is level 10 aboard the ship, with ordered encounters,
 bridge controls and a finite remote armory. All ten have independent practice entries and connected saved-run
 progression. The current development build adds **Right of Search**, level 11
 on the custody tender, with deliberate Remote Mines, optional transfers and
-records, bridge controls and a separate stern exit. These remain development
-prototypes, with final art and fresh-player acceptance open. Levels 12 through
-20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
+records, bridge controls and a separate stern exit. **Terms of Cooperation**,
+level 12, continues into the Martian habitat. Find the Arc, fight the airborne
+Assessor, secure the shelter route and reach the mutual-aid depot before
+confirming commitment and departure. Shelter and worker rescues are optional;
+resolved shots can damage the pumps. All twelve have practice entries and
+connected saved progression. These remain development prototypes, with final
+art and fresh-player acceptance open. Connected levels 13
+through 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
+
+## Standalone development maps
+
+Three current source maps explore the next campaign environments without changing
+your campaign save. Build and start one server from the repository root:
+
+```bash
+cargo run -p fragr-server --release --locked -- --bind 127.0.0.1:6767 --bots 0 --map-file server/maps/test/m12_habitat_development.json
+```
+
+For The Weight of Permission, replace the final path with
+`server/maps/test/m13_foundry_development.json`. For Launch Authority, use
+`server/maps/test/launch_authority_development.json`. In another terminal, run
+`godot --path client res://scenes/main.tscn -- --solo`.
+
+Terms of Cooperation develops the habitat's market, greenhouse flanks,
+maintenance bay and pumping court using the earlier weapons and enemies. It
+remains the separate historical slice; the connected level 12 above adds the
+Arc, Assessor, shelter controls and civilian outcomes. The Weight of
+Permission develops the machine hall, supplied maintenance ring, two stairs,
+upper ladle galleries and static freight landing. Its Rocket Launcher, authored Assessor encounter,
+worker rescues and lift transfer remain unfinished. Launch
+Authority develops the freight arrival, depot, captured jeep, broad driving
+circuit and gantry defense. Supplies support independent infantry routes.
+Its actual mounted-fight acceptance, Walker, coalition departure and campaign unlock remain
+unfinished. These maps have no mission tally, save promotion or connected
+departure. Their [M12](plans/m12-habitat-development-20261008.md),
+[M13](plans/m12-m14-foundry-slice-20261008.md) and
+[M14](plans/m14-vehicle-development-20261006.md) plans track acceptance.
+
+## Other games
 
 **Calibration** is a separate Episode 0 arena challenge. Run
 `./tools/solo_scrap.sh` from the repository root. It starts the Host-led
@@ -69,7 +105,8 @@ godot --path client res://scenes/main.tscn -- --solo
 ```
 
 **Multiplayer** connects to a shared server. **Run a server** starts Team
-Deathmatch or 5v5 Sector 9 Sabotage with the bundled server. **Join a server**
+Deathmatch, 5v5 Sector 9 Sabotage or Holdfast Atoll Conquest with the bundled
+server. **Join a server**
 is a separate address. Check host reads the address you typed and leaves it
 there. Choose Watch or Join after the match line comes back. A host you check,
 watch, join, or save stays on this computer. Scan this network asks which
@@ -126,7 +163,7 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Look vertically | Page Up and Page Down | Mouse | Right stick |
 | Center view | End | End | Right stick click |
 | Fire | Right Ctrl | Left mouse | RT |
-| Duck | Left Ctrl, hold | Left Ctrl, hold | not bound |
+| Crouch | Left Ctrl, hold | Left Ctrl, hold | not bound |
 | Reload | R | R | not bound |
 | Scope | Z, hold | Right mouse or Z, hold | Left stick click |
 | Throw grenade | G | G or middle mouse | LT |
@@ -143,7 +180,7 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 
 Hold Tab to list every fighter. The corner keeps the first four while you are watching, and it stays hidden in first person until you hold that key. In a team match, someone on your side is marked OURS and stays bright. The other side is marked THEIRS and warms toward red. A spectator still reads UNION and FREE on the full plate.
 
-Hold Left Ctrl to duck. You get shorter and slower, and a low ceiling keeps you short until there is room to stand. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
+Hold Left Ctrl to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
 
 Keyboard turning ramps over a quarter second. Mouse look uses raw counts,
 without smoothing or aim assist. Gamepad and keyboard look can use Off, Light
@@ -154,9 +191,9 @@ The [input plan](plans/input-all-devices.md) records
 the behavior and verification.
 
 The numbered weapon order is fists or found Shiv, pistol, shotgun, rifle,
-railgun and sniper. Key 4 cycles owned automatic-family weapons when both are
-available; the Repeater foundation is not granted in current campaign maps.
-The wheel and bracket keys skip guns you do not own. Campaign ammo
+railgun and sniper. Key 4 cycles owned Rifle and Repeater; key 5 cycles owned
+Railgun and Arc. The Repeater foundation is not granted in current campaign
+maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
 the other guns on the same type. R reloads the gun in hand. The pad is not
@@ -205,19 +242,30 @@ present even when old transit facts are unknown; optional Edda and Splice requir
 recorded arrival. Orrin remains a secured backup, without an inferred restoration.
 The ship has three inhabited development decks and four ordered fights. Its art,
 Repeater discovery, story and fresh-player pacing remain in progress. Level 11
-is the saved next destination but is not playable yet. The
-[ship prototype plan](plans/m10-common-carrier-prototype.md) explains the boundary.
+is Right of Search, a connected playable tender prototype with the Redactor
+and Remote Mines. Its stern departure saves Terms of Cooperation, the connected
+level 12 habitat prototype. Its shelter, pump, release and coalition facts
+persist through retries and deliberate departure, which saves pending M13.
+Connected M13 through M20 remain unplayable; the standalone development maps
+above do not advance that save. The
+[tender receipt](evidence/m11-quality-composition-20261006.md) records the route
+and remaining acceptance.
 
 The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-Current source writes version 13 saves; desktop v0.75.0 writes version 12.
+Current source writes version 15 saves; desktop v0.75.0 writes version 12.
 Supported historical saves upgrade
 strictly, retaining exact original bytes in a content-addressed
 `run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1
 saves remain incompatible. A changed mission content hash or rules revision can
 also prevent resuming; the old file stays until you choose to archive it.
+The current stair correction registers exact old and replacement map identities
+for levels 8, 9, 10 and 12. An existing entry or pending continue can upgrade
+to its exact installed replacement without changing health, equipment,
+rescues or continues. Its exact original file is archived first. Completed and
+closed history keeps the original map identity.
 
 To recover an archive, close the game, keep a copy of `run.json`, and copy the
 archive back as `run.json`. It must still match the installed mission and rules.
@@ -230,6 +278,31 @@ The **Service Record** stores the latest 256 campaign, arena and practice
 records on this device. It shows kills, deaths, effective damage, time alive,
 per-weapon hit counts and mission effort across attempts. You can export
 JSON. It is local history, not a public ranking or campaign save.
+
+In current development, a completed local mission also shows a best-time
+comparison, including ties and the exact improvement or gap. The successful
+attempt runs from party readiness to departure, including time dead within
+that attempt. Bests compare the same mission, difficulty and exact server
+build, with campaign and practice kept separate. They cover retained human
+completions on this device. Changing server builds starts a new comparison
+group; older or external records remain readable without claiming a best.
+No par or global ranking is inferred. Service Record JSON version 3 retains
+version 1/2 history and adds independent local award proofs and appearance.
+
+In current development, **Your callsign > Awards and Appearance** shows two
+awards. Complete Recall Notice in your saved solo run for ON FILE and a transfer
+stamp. Find an authored secret in a saved mission for MARGIN READER and margin
+teal paint. All ordinary tiers, bodies and controls qualify. The secret award
+survives later failure. Practice, remote play and story replay do not earn these
+local solo awards; historical records are not retroactively awarded.
+
+Standard steel and oxide finishes need no unlock. Locked choices can be previewed
+before earning them. **Save and back** commits appearance; **Cancel** discards
+the preview. Gun paint affects your first-person firearm only. World pickups,
+other fighters, ammunition, damage, handling and muzzle effects retain their
+normal behavior. The benchmark uses standard paint. Unlocks survive failed
+runs and history eviction; they are editable local progress, not authenticated
+platform achievements. Campaign-completion and gold awards remain planned.
 
 ## Settings and current limits
 

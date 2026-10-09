@@ -1,0 +1,128 @@
+{
+  "date": "2026-10-08",
+  "status": "implemented_locally",
+  "baseline_commit": "e4df1a0b349aacda926d9c178f6aef10bd3f136c",
+  "baseline_conquest_git_blob": "e520be821071eeb8b20dc11037a4de7bdebe1e95",
+  "source": [
+    {
+      "path": "server/src/sim/conquest.rs",
+      "sha256": "3eaa30b3ec28aa94bd629dea7376e4617a7e532692131a78a15cf84076d2131b"
+    },
+    {
+      "path": "server/src/sim/conquest/coordination.rs",
+      "sha256": "8b37563c6392bfc3b65ae348dc1b4c9f64bc768d5eeafb8d9fc2e24730258621"
+    },
+    {
+      "path": "server/src/sim/conquest/coordination_tests.rs",
+      "sha256": "9067e47a853e196295e47c93f39388da20aa81d8c08416709759dd14979fb601"
+    },
+    {
+      "path": "server/src/sim.rs",
+      "sha256": "1b1dc2a9370110f4c1aefa0145acb1cf3a13986674456d8f79a5dcd6430a62c2"
+    },
+    {
+      "path": "server/src/session.rs",
+      "sha256": "efb0c42e5301f7303c492f104f937447ed79ad6ba8f241dd22e4d45d42a27b7a"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".agents/conquest-coordination-20261008/baseline-lib-regressions.log",
+      "sha256": "f644b46a469c1373c99d407a348e7f27699cdde73ff8435231e640fdaa38d60a"
+    },
+    {
+      "path": ".agents/conquest-coordination-20261008/focused-conquest-expanded.log",
+      "sha256": "3912c03f880c0aefb3ccf7079382aafaa38b7294e24cf113f8683f1faec03ce8"
+    },
+    {
+      "path": ".agents/conquest-coordination-20261008/clippy.log",
+      "sha256": "e15152ec9069ffbec184bbae35b9c68cb035d06a08d5dc4558e20707dad37530"
+    }
+  ],
+  "baseline_regressions": {
+    "failed": 2,
+    "cases": [
+      "capture abandoned due to waiting teammate ordinal",
+      "neutral site chosen before threatened owned site"
+    ]
+  },
+  "focused_tests": {
+    "command": "cargo test -p fragr-server --lib --locked sim::conquest -- --nocapture",
+    "passed": 20,
+    "new": 14,
+    "retained": 6,
+    "failed": 0,
+    "elapsed_seconds": 2.71
+  },
+  "clippy": {
+    "command": "cargo clippy -p fragr-server --lib --tests --locked -- -D warnings",
+    "passed": true
+  },
+  "actual_session": {
+    "majority_win": {
+      "tick": 2179,
+      "union_tickets": 200,
+      "coalition_tickets": 0,
+      "held_sites": 5,
+      "winner": "union",
+      "deaths": 0
+    },
+    "sensed_defender_clear": {
+      "resolved_hits": 2,
+      "neutral_tick": 214,
+      "captured_tick": 374,
+      "opposing_deaths": 1,
+      "coalition_tickets": 199
+    },
+    "contested_withdrawal": {
+      "frozen_ticks": 30,
+      "neutral_tick": 225,
+      "captured_tick": 385,
+      "opposing_deaths": 0
+    },
+    "roster_churn": {
+      "capture_progress_before": 40,
+      "capture_progress_after": 102,
+      "respawn_ticks": 60,
+      "fresh_bot_admitted": true,
+      "direct_resolved_damage_fixture": true
+    },
+    "parked_hull_refusal": {
+      "blocked_ticks": 200,
+      "false_capture": false,
+      "recovery_after_fixture_hull_removed": true
+    }
+  },
+  "offline_planning": {
+    "controllers": 64,
+    "fixed_sites": 5,
+    "counted_steps": [
+      2131,
+      2121,
+      2121
+    ],
+    "counted_bound": 2432,
+    "per_site_bots": [
+      13,
+      13,
+      13,
+      13,
+      12
+    ],
+    "stable_under_controller_reversal": true,
+    "additional_navigation_searches": 0,
+    "overlapping_fixture_bodies": true,
+    "network_population_acceptance": false
+  },
+  "new_cash_usd": 0,
+  "new_external_calls": 0,
+  "rendered_acceptance": false,
+  "limits": [
+    "controlled initial approach positions and sides",
+    "roster death uses direct shared resolved damage, no traced shot claim",
+    "parked cage opens by removing one fixture vehicle",
+    "64-controller fixture covers planning only, not physical or network population",
+    "human play, final art, balance, population and composed repository gates remain open",
+    "no bot vehicle driving"
+  ]
+}

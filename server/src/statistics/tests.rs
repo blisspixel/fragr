@@ -619,7 +619,80 @@ async fn repeater_record_delivery_keeps_strict_legacy_shape_and_refuses_real_new
         "unsupported recipient must be closed rather than silently lose actual facts"
     );
     assert!(!clients.lock().await[1].is_closing());
-    assert!(matches!(new_rx.try_recv(), Ok(ServerMessage::Record(new)) if new == actual));
+    assert!(
+        matches!(new_rx.try_recv(), Ok(ServerMessage::Record(new)) if new == actual.record_for_version(2).unwrap())
+    );
+}
+
+#[tokio::test]
+async fn arc_record_and_equipment_delivery_never_truncates_unsupported_actual_facts() {
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+    let (mut state, a, b) = arena();
+    state.tick(0.05);
+    let record = state.player_record(a).unwrap();
+    let (old_tx, mut old_rx) = crate::net::outbound_channel(4);
+    let (current_tx, mut current_rx) = crate::net::outbound_channel(4);
+    let clients = Arc::new(Mutex::new(vec![
+        crate::net::ClientSession::new(a, old_tx, crate::protocol::WATER_GAMEPLAY_VERSION),
+        crate::net::ClientSession::new(b, current_tx, crate::protocol::ARC_GAMEPLAY_VERSION),
+    ]));
+    let send = |record: PlayerRecord| {
+        vec![
+            (Recipient::Client(a), ServerMessage::Record(record.clone())),
+            (Recipient::Client(b), ServerMessage::Record(record)),
+        ]
+    };
+    crate::session::send_unicasts(&clients, &Default::default(), &send(record.clone())).await;
+    let ServerMessage::Record(old) = old_rx.try_recv().unwrap() else {
+        panic!("v2 recipient")
+    };
+    let ServerMessage::Record(current) = current_rx.try_recv().unwrap() else {
+        panic!("v3 recipient")
+    };
+    assert_eq!(old, record.record_for_version(2).unwrap());
+    assert_eq!(
+        serde_json::to_value(old).unwrap()["total"]["weapons"]
+            .as_array()
+            .unwrap()
+            .len(),
+        8
+    );
+    assert_eq!(current, record);
+    let mut actual = current;
+    actual.total.weapons[WeaponType::Arc.index()].attacks = 1;
+    crate::session::send_unicasts(&clients, &Default::default(), &send(actual.clone())).await;
+    assert!(old_rx.try_recv().is_err());
+    assert!(clients.lock().await[0].is_closing());
+    assert!(matches!(current_rx.try_recv(), Ok(ServerMessage::Record(r)) if r == actual));
+
+    let mut inventory =
+        crate::inventory::Inventory::new(crate::protocol::EquipmentPolicy::Discovery);
+    inventory.grant_weapon(WeaponType::Arc);
+    inventory.arm_magazines();
+    let loadout = inventory.state(a, WeaponType::Arc, 1).unwrap();
+    loadout.validate().unwrap();
+    let (old_tx, mut old_rx) = crate::net::outbound_channel(4);
+    let (current_tx, mut current_rx) = crate::net::outbound_channel(4);
+    let clients = Arc::new(Mutex::new(vec![
+        crate::net::ClientSession::new(a, old_tx, crate::protocol::WATER_GAMEPLAY_VERSION),
+        crate::net::ClientSession::new(b, current_tx, crate::protocol::ARC_GAMEPLAY_VERSION),
+    ]));
+    let messages = vec![
+        (
+            Recipient::Client(a),
+            ServerMessage::Loadout(loadout.clone()),
+        ),
+        (
+            Recipient::Client(b),
+            ServerMessage::Loadout(loadout.clone()),
+        ),
+    ];
+    crate::session::send_unicasts(&clients, &Default::default(), &messages).await;
+    assert!(old_rx.try_recv().is_err());
+    assert!(clients.lock().await[0].is_closing());
+    assert!(!clients.lock().await[1].is_closing());
+    assert!(matches!(current_rx.try_recv(), Ok(ServerMessage::Loadout(l)) if l == loadout));
 }
 
 #[test]

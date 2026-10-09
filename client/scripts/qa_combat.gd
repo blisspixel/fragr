@@ -304,7 +304,7 @@ func engage(manager: Node, me: Dictionary, target: Dictionary, solids: Array, an
 	if not tell.is_empty():
 		var half: float = float(manager.get("current_map_info").get("half_extent", 25.0))
 		var yaw: float = atan2(aim.z, aim.x)
-		var contacts: Dictionary = strafe_contacts(snapshot, network.get("mission").get("state", {}), _player_id)
+		var contacts: Dictionary = strafe_contacts(snapshot, network.get("mission").get("state", {}), _player_id, manager.get("current_map_info"))
 		var peers: Array[Dictionary] = contacts["peers"]
 		var started: int = int(tell["campaign"]["phase_started"])
 		if started != _evade_started:
@@ -371,8 +371,11 @@ static func safe_strafe(me: Dictionary, solids: Array, half: float, yaw: float, 
 
 ## Reuse the live prediction boundary, including optional grounded civilians.
 ## A detached/dead local body or malformed wire history cannot choose a dodge.
-static func strafe_contacts(snapshot: Dictionary, mission: Dictionary, player_id: String) -> Dictionary:
-	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission)
+static func strafe_contacts(snapshot: Dictionary, mission: Dictionary, player_id: String, map_info: Dictionary = {}) -> Dictionary:
+	var archive_neutrals: Dictionary = {}
+	if map_info.get("m08") is Dictionary and M08MissionState.map_error(map_info).is_empty():
+		archive_neutrals = M08NeutralBodies.layout(map_info)
+	var parsed: Dictionary = ActorContact.read_snapshot(snapshot, mission, archive_neutrals)
 	var peers: Array[Dictionary] = []
 	if not parsed["error"].is_empty():
 		return {"error": parsed["error"], "peers": peers}
@@ -490,6 +493,23 @@ func search_step(manager: Node, me: Dictionary, snapshot: Dictionary, spec: Dict
 	var next_index: int = follow_route(me, camera, route, index)
 	return {"index": next_index, "anchor": Vector2(me.x, me.z) if next_index != index else anchor}
 
+static func valid_finish_search_route(spec: Dictionary) -> bool:
+	if not spec.has("finish_search_route"):
+		return true
+	var selected: Variant = spec["finish_search_route"]
+	return selected is bool and (not selected or \
+		(valid_waypoints(spec.get("search_route")) and not spec["search_route"].is_empty()))
+
+static func finish_search_pending(spec: Dictionary, route: Array, index: int) -> bool:
+	return spec.get("finish_search_route", false) and index > 0 and index < route.size()
+
+## A completed fight can finish an already-started ordinary search loop.
+## No firing, new route or extra deadline is introduced by this return.
+func finish_search_step(manager: Node, me: Dictionary, spec: Dictionary, route: Array, index: int) -> int:
+	if not finish_search_pending(spec, route, index):
+		return index
+	return follow_route(me, manager.get_node("SpectatorCamera"), route, index)
+
 static func valid_approach_focus(spec: Dictionary) -> bool:
 	if not spec.has("approach_focus"):
 		return true
@@ -563,6 +583,9 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		return {"passed": false}
 	if not valid_evade_tells(spec):
 		push_error("qa_combat: evade_tells must be a boolean")
+		return {"passed": false}
+	if not valid_finish_search_route(spec):
+		push_error("qa_combat: finish_search_route must be boolean with a nonempty bounded search route when enabled")
 		return {"passed": false}
 	begin(manager)
 	var fire_cadence: Dictionary = {}
@@ -673,8 +696,11 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		var snapshot: Dictionary = manager.get("latest_snapshot")
 		_observe(snapshot)
 		var complete: bool = confirmed(required).size() == expected if not required.is_empty() else defeated.size() >= expected
+		var returning: bool = complete and finish_search_pending(spec, search_route, search_index)
 		if complete:
-			if finish_at < 0:
+			if returning:
+				finish_at = -1
+			elif finish_at < 0:
 				release_inputs()
 				finish_at = Time.get_ticks_msec() + (1500 if phase_kind == "notary" else 800)
 			elif Time.get_ticks_msec() >= finish_at:
@@ -685,7 +711,9 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		if not target.is_empty():
 			last_target_id = str(target["id"])
 		release_inputs()
-		if alive and not complete and approach_index < approach_route.size():
+		if returning and alive:
+			search_index = finish_search_step(manager, me, spec, search_route, search_index)
+		elif alive and not complete and approach_index < approach_route.size():
 			var progress: Dictionary = approach_step(manager, me, snapshot, spec, solids, anchor, approach_route, approach_index)
 			approach_index = progress["index"]
 			anchor = progress["anchor"]
@@ -769,6 +797,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var no_damage_proven: bool = not bool(spec.get("expect_first_crawler_no_damage", false)) or \
 		first_crawler_encounter_no_damage_proven()
 	var approach_complete: bool = approach_index == approach_route.size()
+	var search_complete: bool = not finish_search_pending(spec, search_route, search_index)
 	var stage_companion_shots: Array[Dictionary] = companion_shots.slice(companion_shots_before)
 	var companion_damage: bool = false
 	for shot: Dictionary in stage_companion_shots:
@@ -778,7 +807,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var turret_cancel: Dictionary = _turret_observer.report() if _turret_observer != null else {}
 	_turret_observer = null
 	var passed: bool = alive and not participant_died and completed and saved and \
-		phases_proven and no_damage_proven and approach_complete and \
+		phases_proven and no_damage_proven and approach_complete and search_complete and \
 		(turret_cancel.is_empty() or turret_cancel.get("passed") == true) and \
 		(not spec.get("require_companion_damage", false) or companion_damage)
 	if not turret_cancel.is_empty():
@@ -808,6 +837,9 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		])
 	return {
 		"passed": passed,
+		"search_complete": search_complete,
+		"search_index": search_index,
+		"search_waypoints": search_route.size(),
 		"turret_cover_cancel": turret_cancel,
 		"kind": _kind,
 		"defeated": defeated.size(),

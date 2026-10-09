@@ -40,6 +40,7 @@ const BODY_RADIUS: float = 0.5
 const BODY_HEIGHT: float = 1.8
 const CRAWLER_HEIGHT: float = 0.8
 const NOTARY_HEIGHT: float = 0.7
+const ASSESSOR_HEIGHT: float = 1.2
 ## Breastplate on the character rig. Matches combat::TORSO_HEIGHT.
 ## Half of BODY_HEIGHT is the hips, so aim help must not lock there.
 const TORSO_HEIGHT: float = 1.22
@@ -56,9 +57,9 @@ static func enabled_for(level: Level, look_source: String) -> bool:
 	return level != Level.OFF and look_source in ["keyboard", "gamepad"]
 
 ## Where a shot meets a body at a server position: the chest of a fighter,
-## or the middle of a short Crawler or Notary volume.
+## or the middle of a short Crawler, Notary or Assessor volume.
 static func aim_height(campaign: Dictionary = {}) -> float:
-	if str(campaign.get("side", "")) == "union" and str(campaign.get("kind", "")) in ["crawler", "notary"]:
+	if str(campaign.get("side", "")) == "union" and str(campaign.get("kind", "")) in ["crawler", "notary", "assessor"]:
 		return target_height(campaign) * 0.5
 	return TORSO_HEIGHT
 
@@ -71,6 +72,8 @@ static func target_height(campaign: Dictionary) -> float:
 			return CRAWLER_HEIGHT
 		if campaign.get("kind") == "notary":
 			return NOTARY_HEIGHT
+		if campaign.get("kind") == "assessor":
+			return ASSESSOR_HEIGHT
 	return BODY_HEIGHT
 
 ## Server yaw and pitch from one point to another. Matches combat::aim_at.

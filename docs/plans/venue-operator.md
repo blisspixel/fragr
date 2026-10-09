@@ -1,7 +1,10 @@
 # Venue operator
 
-**Status:** planned, 2026-10-06. Nothing in this file is built. The running
-night process was started without a desk, and this plan does not replace it.
+**Status:** in flight, updated 2026-10-07. The attached desk's bounded
+`shows`, `next` and `map` increment is implemented locally under
+[host rotation](host-rotation-campaign-bests-20261007.md). Detached access,
+venue identity, private doors, host files, votes and the other slices remain
+planned. This plan does not replace any running process.
 
 This is the operator rung of [server excellence](server-excellence.md). It
 does not add a roadmap queue, and it does not move that plan's next scale
@@ -142,6 +145,12 @@ Bans keep the access-list parser and the five-second reload. Slice 3 does
 not invent a second ban store.
 
 ### 4. The next show, and a stop that finishes the one that is live
+
+The October 7 local increment supports a validated next map/mode through the
+existing attached desk. It waits for the whole show and then repeats the
+manual choice; `next` on a night playlist returns to its automatic order.
+The file-backed playlist, mutator selection, bot target changes, reload and
+graceful stop described below remain planned.
 
 A playlist file is one show per line: a map token the `--map` flag already
 accepts, a mode token, and only the mutators that flag already accepts.

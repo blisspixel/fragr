@@ -53,8 +53,9 @@ pub struct MissionContinue {
 /// Revision changes whenever campaign difficulty semantics change. Revision 2
 /// removed magazines and reloading: guards no longer pause to reload and a
 /// scatter blast is seven pellets. Revision 3 adds Notary photograph timing;
-/// earlier enemy timings remain unchanged.
-pub const CAMPAIGN_RULES_REVISION: u32 = 3;
+/// earlier enemy timings remain unchanged. Revision 4 adds the Assessor's
+/// counted canister attack and Arc bypass for registered armor plates.
+pub const CAMPAIGN_RULES_REVISION: u32 = 4;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, clap::ValueEnum)]
 #[serde(rename_all = "snake_case")]
@@ -101,6 +102,7 @@ pub enum MissionId {
     PassengerManifest,
     CommonCarrier,
     RightOfSearch,
+    TermsOfCooperation,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -506,10 +508,19 @@ pub struct MissionState {
         skip_serializing_if = "Option::is_none"
     )]
     pub m11: Option<super::M11ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m12: Option<super::M12ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if (self.id == MissionId::TermsOfCooperation) != self.m12.is_some() {
+            return Err("M12 facts require exactly M12 mission");
+        }
         if (self.id == MissionId::RightOfSearch) != self.m11.is_some() {
             return Err("M11 facts require exactly M11 mission");
         }
@@ -566,6 +577,25 @@ impl MissionState {
                     .ok_or("M11 facts missing")?
                     .validate(self.phase, tick)?;
             }
+            MissionId::TermsOfCooperation => {
+                if self.m02.is_some()
+                    || self.m03.is_some()
+                    || self.m04.is_some()
+                    || self.m05.is_some()
+                    || self.m06.is_some()
+                    || self.m07.is_some()
+                    || self.m08.is_some()
+                    || self.m09.is_some()
+                    || self.m10.is_some()
+                    || self.m11.is_some()
+                {
+                    return Err("M12 cannot carry other mission facts");
+                }
+                self.m12
+                    .as_ref()
+                    .ok_or("M12 facts missing")?
+                    .validate(self.phase, tick)?;
+            }
         }
         if let Some(run) = self.run {
             run.validate_attempt(self.attempt)?;
@@ -610,16 +640,27 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::RightOfSearch
+                    (self.id == MissionId::TermsOfCooperation
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self.m11.as_ref().is_some_and(|f| {
-                            let count = f.completed.len();
-                            (count >= 3 && !f.challenges.transfer_released)
-                                || (count >= 4 && !f.challenges.records_read)
-                                || count == super::M11_OBJECTIVE_IDS.len()
+                        && self.m12.as_ref().is_some_and(|f| {
+                            let n = f.completed.len();
+                            n >= 3 && !f.challenges.workers_released
+                                || n >= 4 && !f.challenges.shelter_opened
+                                || n == 5
+                                || n == 6
                                     && !self.party.is_empty()
-                                    && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                                    && self.party.iter().all(|m| m.ready && m.alive && m.aboard)
                         }))
+                        || (self.id == MissionId::RightOfSearch
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m11.as_ref().is_some_and(|f| {
+                                let count = f.completed.len();
+                                (count >= 3 && !f.challenges.transfer_released)
+                                    || (count >= 4 && !f.challenges.records_read)
+                                    || count == super::M11_OBJECTIVE_IDS.len()
+                                        && !self.party.is_empty()
+                                        && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                            }))
                         || (self.id == MissionId::CommonCarrier
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m10.as_ref().is_some_and(|f| {
@@ -895,6 +936,7 @@ mod m02_wire_tests {
             m09: None,
             m10: None,
             m11: None,
+            m12: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

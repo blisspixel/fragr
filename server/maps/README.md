@@ -1,5 +1,27 @@
 # Authored development maps
 
+Current authoring and admission, 2026-10-08: matching readers advertise gameplay
+45. All live campaign maps require at least capability 43 and rules revision 4;
+connected Terms of Cooperation requires 44. The mission-specific allocations
+in the older descriptions below are historical feature boundaries. They do not
+lower the current live floor. Dated receipts retain their exact original source
+and contract. Connected M12 acceptance remains in flight; the M12-M14 test maps
+are separate standalone development slices.
+
+`test/arc_foundation_development.json` is the separate finite Arc practice map,
+1042, with its source recipe in `tools/author_arc_development.gd`. It places one forty-Cell
+Arc find, ordinary entry Rifle and armor, two bounded medical stocks and three
+ordered Heavy Sweepers carrying 100 armor each. It has no mission identity,
+outcome or campaign unlock. Its static walking routes and actual finite human
+combat are checked by `server/tests/arc_foundation.rs`. The rendered lesson and
+connected M12 introduction remain acceptance work in the Arc plan.
+
+An enemy placement may optionally specify integer `armor` from zero through
+100 only for `heavy_sweeper`. Omission retains zero. Null, fractional,
+out-of-range or other-kind armor is rejected. Earlier maps do not silently gain
+armor. Weapon grants may be personal; armor and health stocks use `contested`
+claims through the existing ordinary pickup path.
+
 `m01-recall-notice.json` contains the opening mission's connected blockout and
 weapon discovery and a draft twenty-guard population. Intake and maintenance
 stairs converge at records reception; file stacks and a service bypass lead to

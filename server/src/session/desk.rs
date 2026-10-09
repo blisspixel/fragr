@@ -37,6 +37,15 @@ impl GameSession {
             DeskVerb::FinishBan(ready) => self.desk_finish_ban(ready),
             DeskVerb::Say { text } => DeskOutcome::Text(self.desk_say(&text)),
             DeskVerb::Stats => DeskOutcome::Text(self.sheet.desk_text()),
+            DeskVerb::Shows => DeskOutcome::Text(self.state.desk_shows()),
+            DeskVerb::Next => {
+                DeskOutcome::Text(self.state.queue_next_show().unwrap_or_else(str::to_string))
+            }
+            DeskVerb::Map { map, mode } => DeskOutcome::Text(
+                self.state
+                    .queue_show(map, mode)
+                    .unwrap_or_else(str::to_string),
+            ),
         }
     }
 

@@ -3,7 +3,8 @@ use super::{CampaignRules, CampaignRunState, MissionId, Role, WeaponType};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub const RECORD_VERSION: u32 = 2;
+pub const RECORD_VERSION: u32 = 3;
+pub const EIGHT_COLUMN_RECORD_VERSION: u32 = 2;
 pub const LEGACY_RECORD_VERSION: u32 = 1;
 mod record_wire;
 pub const RECORD_TICKS_PER_SECOND: u32 = 20;
@@ -161,9 +162,11 @@ mod weapon_counts {
         counts: &[WeaponCounts; SLOTS],
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
-        if counts[WeaponType::Repeater.index()] != WeaponCounts::default() {
+        if counts[WeaponType::Repeater.index()] != WeaponCounts::default()
+            || counts[WeaponType::Arc.index()] != WeaponCounts::default()
+        {
             return Err(serde::ser::Error::custom(
-                "Repeater counters require participant record revision 2",
+                "new weapon counters require a versioned participant record",
             ));
         }
         // The shortest prefix that still holds every non-zero column.
@@ -416,8 +419,8 @@ impl RecordStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(try_from = "record_wire::Wire", into = "record_wire::Wire")]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(try_from = "record_wire::Wire")]
 pub struct PlayerRecord {
     pub version: u32,
     pub session_id: Uuid,
@@ -458,7 +461,12 @@ impl PlayerRecord {
         owner: Option<Uuid>,
         previous: Option<&Self>,
     ) -> Result<(), &'static str> {
-        if !matches!(self.version, LEGACY_RECORD_VERSION | RECORD_VERSION)
+        if !matches!(
+            self.version,
+            LEGACY_RECORD_VERSION | EIGHT_COLUMN_RECORD_VERSION | RECORD_VERSION
+        ) || (self.version < RECORD_VERSION
+            && (self.total.weapon(WeaponType::Arc) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::Arc) != &WeaponCounts::default()))
             || (self.version == LEGACY_RECORD_VERSION
                 && (self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
                     || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()))
@@ -502,7 +510,8 @@ impl PlayerRecord {
                 run,
                 ..
             } => {
-                if *attempt == 0 || rules.revision != super::CAMPAIGN_RULES_REVISION {
+                if *attempt == 0 || !(1..=super::CAMPAIGN_RULES_REVISION).contains(&rules.revision)
+                {
                     return Err("unsupported mission record");
                 }
                 if let Some(run) = run {
@@ -548,21 +557,48 @@ impl PlayerRecord {
         Ok(())
     }
 
-    /// Only a genuinely unused new column may use the historical wire shape.
-    pub fn legacy_record(&self) -> Result<Self, &'static str> {
-        if self.total.remote_mines != WeaponCounts::default()
-            || self.attempt.remote_mines != WeaponCounts::default()
-        {
-            return Err("Remote Mine counts cannot be delivered to a historical reader");
+    /// Select an exact historical shape only when no unsupported facts exist.
+    pub fn record_for_version(&self, version: u32) -> Result<Self, &'static str> {
+        if !matches!(
+            version,
+            LEGACY_RECORD_VERSION | EIGHT_COLUMN_RECORD_VERSION | RECORD_VERSION
+        ) {
+            return Err("unsupported participant record version");
         }
-        if self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
-            || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()
+        if version < RECORD_VERSION
+            && (self.total.weapon(WeaponType::Arc) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::Arc) != &WeaponCounts::default())
         {
-            return Err("Repeater counts cannot be delivered to a historical reader");
+            return Err("Arc counts cannot be delivered to an older reader");
+        }
+        if version == LEGACY_RECORD_VERSION {
+            if self.total.remote_mines != WeaponCounts::default()
+                || self.attempt.remote_mines != WeaponCounts::default()
+            {
+                return Err("Remote Mine counts cannot be delivered to a historical reader");
+            }
+            if self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()
+            {
+                return Err("Repeater counts cannot be delivered to a historical reader");
+            }
         }
         let mut record = self.clone();
-        record.version = LEGACY_RECORD_VERSION;
+        record.version = version;
         Ok(record)
+    }
+
+    pub fn legacy_record(&self) -> Result<Self, &'static str> {
+        self.record_for_version(LEGACY_RECORD_VERSION)
+    }
+}
+
+impl Serialize for PlayerRecord {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let record = self
+            .record_for_version(self.version)
+            .map_err(serde::ser::Error::custom)?;
+        record_wire::Wire::from(record).serialize(serializer)
     }
 }
 

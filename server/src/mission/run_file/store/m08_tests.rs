@@ -6,7 +6,7 @@ use crate::sim::GameState;
 
 const HASHES: ContentHashes = [
     [1; 32], [2; 32], [3; 32], [4; 32], [5; 32], [6; 32], [7; 32], [8; 32], [101; 32], [102; 32],
-    [103; 32],
+    [103; 32], [104; 32],
 ];
 
 fn completed_town() -> RunDocument {
@@ -25,6 +25,7 @@ fn completed_town() -> RunDocument {
 fn v8_bytes(document: &RunDocument) -> Vec<u8> {
     let mut value = serde_json::to_value(document).unwrap();
     value["version"] = 8.into();
+    value["rules"]["revision"] = (3).into();
     super::super::remove_historical_mines(&mut value);
     // Preserve noncanonical formatting to prove the archive is the source.
     let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
@@ -127,6 +128,14 @@ fn historical_equipment_refuses_forged_mines_and_preserves_exact_counts() {
     for version in 2..=8 {
         let mut value = serde_json::to_value(&source).unwrap();
         value["version"] = version.into();
+        value["rules"]["revision"] = (if version <= 4 {
+            2
+        } else if version < super::super::RUN_FILE_VERSION {
+            3
+        } else {
+            crate::protocol::CAMPAIGN_RULES_REVISION
+        })
+        .into();
         if version <= 5 {
             super::super::remove_historical_grenades(&mut value);
         } else {
