@@ -49,7 +49,10 @@ Native, network and ordinary-route receipts retain their workspace release
 artifact; the final client, tour, intake and package use the separately bound
 server-only build. Preserve both scopes and every failed attempt. These local
 gates do not establish final art, human acceptance, other-platform execution or
-a completed campaign. Reviewed PR, CI and `main` integration remain pending.
+a completed campaign. [PR #375](https://github.com/blisspixel/fragr/pull/375)
+contains the audited integration. Applicable CI and `main` integration remain
+pending. Its initial commit is `a311505f`; the twenty excluded infrastructure
+drafts remain byte-identical outside the commit.
 
 Audit the complete resulting diff, attribution, legal assets, ignored paths,
 manifests, documentation and content claims. Reconcile existing hosting drafts
