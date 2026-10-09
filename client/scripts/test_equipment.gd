@@ -19,7 +19,7 @@ func _check(condition: bool, message: String) -> void:
 func _state() -> Dictionary:
 	return {"type": "loadout", "player_id": "self", "tick": 20, "selected": "tack",
 		"weapons": ["fists", "tack"],
-		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}],
+		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}],
 		"personal_claims": ["bay_tack"], "dry_fire_count": 1, "grenades": 0}
 
 func _run() -> void:
@@ -70,6 +70,17 @@ func _run() -> void:
 	arc_family.erase("rail")
 	_check(EquipmentState.slot_if_owned(arc_family, 5, "tack") == "arc" and EquipmentState.slot_if_owned(arc_family, 5, "arc") == "arc", "Arc alone keeps key five usable")
 	_check("arc" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("arc") == 8 and EquipmentState.SLOTS.size() == 6, "Arc appends an identity without expanding the arcade kit or physical keys")
+	var launcher: Dictionary = state.duplicate(true)
+	launcher["weapons"] = ["fists", "rocket"]
+	launcher["selected"] = "rocket"
+	launcher["ammo"][3]["rounds"] = 4
+	launcher["loaded"] = [{"weapon": "rocket", "rounds": 1}]
+	_check(EquipmentState.validation_error(launcher, "self").is_empty(), "a found Rocket Launcher is carried equipment")
+	_check(EquipmentState.shots(launcher, "rocket") == 1 and EquipmentState.count_text(launcher, "rocket") == "1|3", "the human tube holds one rocket and the reserve stays in the bag")
+	_check(EquipmentState.display_name("rocket") == "Rocket Launcher" and EquipmentState.pool_name("rockets") == "Rockets", "the launcher and its pool use their names")
+	_check(EquipmentState.cycle(launcher, "fists", 1) == "rocket" and EquipmentState.cycle(launcher, "rocket", 1) == "fists", "the wheel appends a carried launcher")
+	_check("rocket" not in EquipmentState.ARCADE and EquipmentState.WEAPONS.find("rocket") == 9 and int(EquipmentState.MAGAZINE_SIZES["rocket"]) == 1 and int(EquipmentState.CAPACITIES["rockets"]) == 20 and EquipmentState.SLOTS.size() == 6, "the launcher appends without a new physical key or an arcade grant")
+	_check(EquipmentState.slot_if_owned(EquipmentState.carried_names(launcher), 5) == "", "key five stays the Cells guns")
 	var found: Dictionary = state.duplicate(true)
 	found["weapons"] = ["fists", "tack", "shiv"]
 	found["selected"] = "shiv"
@@ -82,7 +93,7 @@ func _run() -> void:
 	var marksman: Dictionary = state.duplicate(true)
 	marksman["weapons"] = ["fists", "tack", "flechette", "scatter", "rail", "sniper"]
 	marksman["selected"] = "sniper"
-	marksman["ammo"] = [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 9}]
+	marksman["ammo"] = [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 9}, {"pool": "rockets", "rounds": 0}]
 	_check(EquipmentState.validation_error(marksman, "self").is_empty(), "a found Sniper Rifle is carried equipment")
 	_check(EquipmentState.shots(marksman, "sniper") == 9 and EquipmentState.shots(marksman, "rail") == 9, "the Sniper Rifle and Railgun share Cells")
 	_check(EquipmentState.display_name("sniper") == "Sniper Rifle" and "sniper" not in EquipmentState.ARCADE, "the Sniper Rifle reads by name and stays out of the arcade arsenal")
@@ -113,7 +124,7 @@ func _run() -> void:
 	_check(not EquipmentState.validation_error(missing, "self").is_empty(), "a loadout without counts is refused")
 	var armed: Dictionary = state.duplicate(true)
 	armed["weapons"] = ["fists", "tack", "flechette", "scatter"]
-	armed["ammo"] = [{"pool": "bullets", "rounds": 108}, {"pool": "shells", "rounds": 11}, {"pool": "cells", "rounds": 0}]
+	armed["ammo"] = [{"pool": "bullets", "rounds": 108}, {"pool": "shells", "rounds": 11}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}]
 	_check(EquipmentState.validation_error(armed, "self", state).is_empty(), "one count per type is accepted")
 	_check(EquipmentState.shots(armed, "tack") == 108 and EquipmentState.shots(armed, "flechette") == 108, "pistol and rifle share bullets")
 	_check(EquipmentState.shots(armed, "scatter") == 11 and EquipmentState.shots(armed, "rail") == 0 and EquipmentState.shots(armed, "fists") == -1, "shells and cells stay separate and fists need nothing")
@@ -211,7 +222,7 @@ func _run() -> void:
 	_check(not network.sent.back().has("weapon_swap"), "the discrete fists choice is transmitted once")
 	var magazine: Dictionary = state.duplicate(true)
 	magazine["tick"] = 21
-	magazine["ammo"] = [{"pool": "bullets", "rounds": 50}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}]
+	magazine["ammo"] = [{"pool": "bullets", "rounds": 50}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": 0}, {"pool": "rockets", "rounds": 0}]
 	magazine["loaded"] = [{"weapon": "tack", "rounds": 12}]
 	_check(EquipmentState.validation_error(magazine, "self").is_empty(), "a pistol magazine inside the bullet pool is accepted")
 	_check(EquipmentState.shots(magazine, "tack") == 12 and EquipmentState.count_text(magazine, "tack") == "12|38", "the pistol shows rounds in the gun and the reserve")
@@ -238,7 +249,7 @@ func _run() -> void:
 	_check(EquipmentState.validation_error(arcade, "self").is_empty() and EquipmentState.count_text(arcade, "flechette") == "20", "a zero-pool arcade loadout shows only the rounds in the gun")
 	var finite: Dictionary = arcade.duplicate(true)
 	finite["tick"] = 23
-	finite["ammo"] = [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]
+	finite["ammo"] = [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}, {"pool": "rockets", "rounds": 0}]
 	_check(EquipmentState.validation_error(finite, "self").is_empty() and EquipmentState.count_text(finite, "flechette") == "20|60" and EquipmentState.count_text(finite, "scatter") == "6|18" and EquipmentState.count_text(finite, "rail") == "4|12", "a finite arcade bag shows rounds in the gun and what is left to load")
 	var short_bag: Dictionary = finite.duplicate(true)
 	short_bag["ammo"] = [{"pool": "bullets", "rounds": 10}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]

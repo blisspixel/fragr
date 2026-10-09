@@ -44,7 +44,8 @@ static func validation_error(snapshot: Dictionary) -> String:
 			return INVALID
 		seen.append(int(result["id"]))
 		# A mine blast peaks higher than a grenade's; its radius names it.
-		var peak: int = CustodyFacts.MINE_PEAK if float(result["radius"]) == CustodyFacts.MINE_RADIUS else 100
+		# A four-metre blast also carries a rocket's 65 direct plus 45 splash.
+		var peak: int = CustodyFacts.MINE_PEAK if float(result["radius"]) == CustodyFacts.MINE_RADIUS else 110
 		if float(result["radius"]) in [3.0, 1.5]:
 			peak = 45
 		var targets: Array[String] = []

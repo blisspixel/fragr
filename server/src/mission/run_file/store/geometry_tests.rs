@@ -62,6 +62,7 @@ fn entry(mission: MissionId, hash: [u8; 32]) -> RunDocument {
             AmmoPool::Bullets => 23,
             AmmoPool::Shells => 7,
             AmmoPool::Cells => 5,
+            AmmoPool::Rockets => 0,
         };
     }
     document.validate(hash).unwrap();
@@ -215,6 +216,7 @@ fn geometry_each_reachable_historical_shape_validates_before_identity_normalizat
                         assert_eq!(remote_mines, 0);
                     }
                 }
+                super::super::omit_historical_rockets(&mut value);
                 let mut predecessor_hashes = hashes();
                 predecessor_hashes[stage_index(mission)] = predecessor;
                 let bytes = serde_json::to_vec(&value).unwrap();
@@ -347,6 +349,7 @@ fn geometry_m09_intermediate_cannot_claim_a_historical_document_revision() {
         let mut value = serde_json::to_value(&document).unwrap();
         value["version"] = 14.into();
         value["rules"]["revision"] = 3.into();
+        super::super::omit_historical_rockets(&mut value);
         let bytes = serde_json::to_vec(&value).unwrap();
         let mut predecessor_hashes = hashes();
         predecessor_hashes[stage_index(mission)] = predecessor;
@@ -395,6 +398,7 @@ fn geometry_historical_completion_and_closed_runs_preserve_bytes_until_promotion
                         assert_eq!(count, 0);
                     }
                 }
+                super::super::omit_historical_rockets(&mut value);
                 if version == 9 {
                     value.as_object_mut().unwrap().remove("m08_outcome");
                 }
@@ -750,6 +754,7 @@ async fn geometry_owned_local_refuses_historical_closed_runs_before_any_version_
                     .unwrap()
                     .remove("remote_mines");
             }
+            super::super::omit_historical_rockets(&mut value);
             let bytes = serde_json::to_vec_pretty(&value).unwrap();
             let directory = std::env::temp_dir()
                 .join(format!("fragr-geometry-owned-closed-{}", Uuid::new_v4()));

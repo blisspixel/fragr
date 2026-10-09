@@ -117,6 +117,7 @@ impl GameState {
     pub(crate) fn clear_grenades(&mut self) {
         self.grenades.clear();
         self.assessor_canisters.clear();
+        self.rockets.clear();
         self.explosion_results.clear();
         for player in &mut self.players {
             player.throw_requested = false;

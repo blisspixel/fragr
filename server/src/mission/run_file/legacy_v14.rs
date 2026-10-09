@@ -43,6 +43,9 @@ pub(super) fn pre_arc_step(step: SavedStep) -> Result<SavedStep, &'static str> {
     if equipment.selected == WeaponType::Arc || equipment.weapons.contains(&WeaponType::Arc) {
         return Err("historical saves cannot carry Arc");
     }
+    if equipment.selected == WeaponType::Rocket || equipment.weapons.contains(&WeaponType::Rocket) {
+        return Err("historical saves cannot carry the Rocket Launcher");
+    }
     Ok(step)
 }
 
@@ -57,7 +60,7 @@ impl RunDocumentV14 {
         if self.version != 14 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -80,6 +83,7 @@ impl RunDocumentV14 {
         if store::stage_index(document.stage_mission()) >= 11 {
             return Err("mission was not supported by version 14");
         }
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes
                 .get(store::stage_index(document.stage_mission()))

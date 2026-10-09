@@ -6,13 +6,13 @@ extends RefCounted
 ## A shot still spends one unit. Agents keep the single count and omit `loaded`.
 ## Wire and record order. Shiv, Sniper, Repeater and Arc append so old record
 ## slots keep their meaning.
-const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater", "arc"]
-const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "repeater": "bullets", "scatter": "shells", "rail": "cells", "sniper": "cells", "arc": "cells"}
-const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 100}
+const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater", "arc", "rocket"]
+const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "repeater": "bullets", "scatter": "shells", "rail": "cells", "sniper": "cells", "arc": "cells", "rocket": "rockets"}
+const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 100, "rockets": 20}
 ## Pool order on the wire, matching the server.
-const POOL_ORDER: Array[String] = ["bullets", "shells", "cells"]
-const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "repeater": "Repeater", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle", "arc": "Arc"}
-const POOL_NAMES: Dictionary = {"bullets": "Bullets", "shells": "Shells", "cells": "Cells"}
+const POOL_ORDER: Array[String] = ["bullets", "shells", "cells", "rockets"]
+const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "repeater": "Repeater", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle", "arc": "Arc", "rocket": "Rocket Launcher"}
+const POOL_NAMES: Dictionary = {"bullets": "Bullets", "shells": "Shells", "cells": "Cells", "rockets": "Rockets"}
 ## Rays in one shot. The shotgun's seven pellets still spend one shell.
 const PELLETS: Dictionary = {"scatter": 7}
 ## Doom's ladder for the guns that exist: fists, pistol, shotgun, rifle, railgun,
@@ -20,7 +20,7 @@ const PELLETS: Dictionary = {"scatter": 7}
 ## holds the Shiv, as Doom's holds the chainsaw.
 const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail", "sniper"]
 ## The wheel order: the Shiv sits beside the fists it shares a key with.
-const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "arc", "sniper"]
+const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "arc", "sniper", "rocket"]
 ## Weapons that offer a scope. The view is presentation only: aim and hits stay
 ## with the server.
 const SCOPED: Array[String] = ["sniper"]
@@ -28,7 +28,7 @@ const MELEE: Array[String] = ["fists", "shiv"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 ## Rounds one human magazine holds. Melee has none.
 const MAGAZINE_SIZES: Dictionary = {
-	"tack": 12, "flechette": 20, "repeater": 30, "scatter": 6, "rail": 4, "sniper": 5, "arc": 12,
+	"tack": 12, "flechette": 20, "repeater": 30, "scatter": 6, "rail": 4, "sniper": 5, "arc": 12, "rocket": 1,
 }
 const MAX_EXACT_INTEGER: int = 9007199254740991
 const MAX_GRENADES: int = 6
@@ -120,7 +120,7 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 static func _magazine_error(loaded: Array, owned: Dictionary, pools: Dictionary, exact: bool) -> String:
 	const INVALID: String = "The server sent invalid equipment. Connection closed."
 	var seen: Dictionary = {}
-	var used: Dictionary = {"bullets": 0, "shells": 0, "cells": 0}
+	var used: Dictionary = {"bullets": 0, "shells": 0, "cells": 0, "rockets": 0}
 	var reloading: bool = false
 	for entry: Variant in loaded:
 		if not entry is Dictionary:

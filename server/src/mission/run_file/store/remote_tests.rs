@@ -12,6 +12,7 @@ fn remote_v13_upgrade_preserves_actual_crew_and_archives_exact_original_bytes() 
     let mut old = serde_json::to_value(&source).unwrap();
     old["version"] = 13.into();
     old["rules"]["revision"] = (3).into();
+    super::super::omit_historical_rockets(&mut old);
     let mut bytes = serde_json::to_vec_pretty(&old).unwrap();
     bytes.extend_from_slice(b"\n \n");
     let directory = std::env::temp_dir().join(format!("fragr-remote-v13-{}", Uuid::new_v4()));

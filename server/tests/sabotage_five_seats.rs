@@ -51,7 +51,7 @@ fn assert_pistol_equipment(state: &Value) {
     assert_eq!(
         state["ammo"],
         json!([
-            {"pool":"bullets", "rounds":50}, {"pool":"shells", "rounds":0}, {"pool":"cells", "rounds":0}
+            {"pool":"bullets", "rounds":50}, {"pool":"shells", "rounds":0}, {"pool":"cells", "rounds":0}, {"pool":"rockets", "rounds":0}
         ])
     );
 }

@@ -1,8 +1,8 @@
 //! Versioned solo-run document. Disk transport is local-only and separate.
 use crate::inventory::{Inventory, SavedEquipment};
 use crate::protocol::{
-    BodyKind, CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId, WeaponType,
-    CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
+    AmmoCount, AmmoPool, BodyKind, CampaignRules, CampaignRunStatus, EquipmentPolicy, MissionId,
+    WeaponType, CAMPAIGN_CONTINUES, CAMPAIGN_RULES_REVISION,
 };
 use crate::sim::{GameState, Player, PLAYER_MAX_ARMOR, PLAYER_MAX_HP};
 use serde::{Deserialize, Serialize};
@@ -24,9 +24,10 @@ pub(crate) use m09_outcome::M09Outcome;
 pub(crate) use m11_outcome::M11Outcome;
 pub(crate) use m12_outcome::M12Outcome;
 
-/// Version 15 adds the Arc boundary and current Assessor rules. Historical
-/// documents retain exact original-byte archives before their live upgrade.
-pub(super) const RUN_FILE_VERSION: u32 = 15;
+/// Version 16 adds the Rocket Launcher boundary. Historical documents retain
+/// exact original-byte archives before their live upgrade. No mission grants
+/// the launcher yet, so every carried count stays zero.
+pub(super) const RUN_FILE_VERSION: u32 = 16;
 const PRE_ASSESSOR_RULES_REVISION: u32 = 3;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
@@ -359,6 +360,33 @@ impl RunDocument {
         }
     }
 
+    /// Historical equipment gains a zero Rockets count exactly once. A forged
+    /// launcher or a Rockets pool, including zero, is refused. Current
+    /// documents do not call this: a missing pool still fails validation.
+    pub(super) fn migrate_historical_rockets(&mut self) -> Result<(), &'static str> {
+        let equipment = match &mut self.step {
+            SavedStep::MissionEntry { entry, .. }
+            | SavedStep::PendingContinue { entry, .. }
+            | SavedStep::Failed { entry, .. }
+            | SavedStep::Abandoned { entry, .. } => &mut entry.equipment,
+            SavedStep::AwaitingMission { exit, .. } => &mut exit.equipment,
+        };
+        if equipment.selected == WeaponType::Rocket
+            || equipment.weapons.contains(&WeaponType::Rocket)
+            || equipment
+                .ammo
+                .iter()
+                .any(|count| count.pool == AmmoPool::Rockets)
+        {
+            return Err("historical saves cannot carry the Rocket Launcher");
+        }
+        equipment.ammo.push(AmmoCount {
+            pool: AmmoPool::Rockets,
+            rounds: 0,
+        });
+        Ok(())
+    }
+
     pub fn validate(&self, content_sha256: [u8; 32]) -> Result<(), &'static str> {
         let completed_m03 = matches!(
             self.stage_mission(),
@@ -635,6 +663,18 @@ impl RunDocument {
         remotes_found: bool,
         arc_found: bool,
     ) -> Result<(), &'static str> {
+        // No connected mission grants the launcher yet. Zero Rockets are the
+        // migrated pool. Ownership or a nonzero count is a forged find.
+        if entry.equipment.selected == WeaponType::Rocket
+            || entry.equipment.weapons.contains(&WeaponType::Rocket)
+            || entry
+                .equipment
+                .ammo
+                .iter()
+                .any(|count| count.pool == AmmoPool::Rockets && count.rounds != 0)
+        {
+            return Err("Rocket Launcher ownership requires its mission");
+        }
         // M12's entry and retry predate discovery. Only its completed exit
         // can carry the actually found Arc onward.
         if !arc_found
@@ -927,8 +967,36 @@ pub(super) fn remove_historical_grenades(value: &mut serde_json::Value) {
     }
 }
 
+/// Historical bytes predate the Rockets pool. A zero count is the current
+/// serializer's empty pool, so fixture downgrades omit it and the upgrade
+/// assigns zero once. A nonzero count stays, and migration still refuses it.
+#[cfg(test)]
+pub(super) fn omit_historical_rockets(value: &mut serde_json::Value) {
+    for entry_key in ["entry", "exit"] {
+        let Some(ammo) = value
+            .get_mut("step")
+            .and_then(|step| step.get_mut(entry_key))
+            .and_then(|entry| entry.get_mut("equipment"))
+            .and_then(|equipment| equipment.get_mut("ammo"))
+            .and_then(serde_json::Value::as_array_mut)
+        else {
+            continue;
+        };
+        let forged = ammo.iter().any(|count| {
+            count.get("pool").and_then(serde_json::Value::as_str) == Some("rockets")
+                && count.get("rounds").and_then(serde_json::Value::as_u64) != Some(0)
+        });
+        if !forged {
+            ammo.retain(|count| {
+                count.get("pool").and_then(serde_json::Value::as_str) != Some("rockets")
+            });
+        }
+    }
+}
+
 #[cfg(test)]
 pub(super) fn remove_historical_mines(value: &mut serde_json::Value) {
+    omit_historical_rockets(value);
     for entry_key in ["entry", "exit"] {
         if let Some(equipment) = value
             .get_mut("step")
@@ -1638,7 +1706,7 @@ mod tests {
                 .iter()
                 .map(|a| a.rounds)
                 .collect::<Vec<_>>(),
-            [29, 8, 0]
+            [29, 8, 0, 0]
         );
         assert_eq!(carried.m03_outcome, upgraded.m03_outcome);
         assert_eq!(carried.m04_outcome, upgraded.m04_outcome);

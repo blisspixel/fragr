@@ -58,14 +58,14 @@ func _check(condition: bool, label: String) -> void:
 
 func _equipment(weapon: String = "flechette", rounds: int = -1, tick: int = 100) -> Dictionary:
 	var equipment: Dictionary = {"tick": tick, "selected": weapon, "weapons": EquipmentState.WEAPONS.duplicate(),
-		"ammo": [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}]}
+		"ammo": [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}, {"pool": "rockets", "rounds": 4}]}
 	if EquipmentState.MAGAZINE_SIZES.has(weapon):
 		equipment["loaded"] = [{"weapon": weapon, "rounds": int(EquipmentState.MAGAZINE_SIZES[weapon]) if rounds < 0 else rounds}]
 	return equipment
 
 func _arc_equipment(arc_rounds: int = 12, rail_rounds: int = 4, cells: int = 16, tick: int = 100) -> Dictionary:
 	return {"type": "loadout", "player_id": "self", "tick": tick, "selected": "arc", "weapons": ["fists", "rail", "arc"],
-		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": cells}],
+		"ammo": [{"pool": "bullets", "rounds": 0}, {"pool": "shells", "rounds": 0}, {"pool": "cells", "rounds": cells}, {"pool": "rockets", "rounds": 0}],
 		"loaded": [{"weapon": "rail", "rounds": rail_rounds}, {"weapon": "arc", "rounds": arc_rounds}],
 		"personal_claims": [], "dry_fire_count": 0, "grenades": 0}
 

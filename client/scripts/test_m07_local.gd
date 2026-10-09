@@ -194,7 +194,7 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "durable owned M07 child stops cleanly before inspecting disk"):
 		return false
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 15 and saved["id"] == RUN_ID, "actual child atomically persists the current run")
+	_check(saved is Dictionary and saved["version"] == 16 and saved["id"] == RUN_ID, "actual child atomically persists the current run")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M07_ID \
 			and saved["m06_outcome"] == fixture["m06_outcome"] and saved["m05_outcome"] == fixture["m05_outcome"] \

@@ -122,7 +122,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 15 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
+	_check(saved is Dictionary and saved["version"] == 16 and saved["step"]["mission"] == MissionState.M09_ID, "locked writer stores current M09 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
 	_check(saved is Dictionary and saved["m08_outcome"] == {"kind": "historical_unrecorded"}, "unknown history persists on disk")
 	var archives: Array[String] = []
@@ -132,14 +132,16 @@ func _run() -> void:
 	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "migration archive is exact historical source")
 	# Reopen a strict v11 M09 entry through the actual saved-run process path.
 	# Its absent crew outcome is an unfinished mission, never a guessed rescue.
+	# Version 16 carries an empty Rockets pool. Strict v11 bytes do not, and
+	# migration inserts that pool once.
 	if not saved is Dictionary:
 		quit(1)
 		return
 	# Preserve native integer literals: parsing and stringifying them here
 	# would turn strict integer fields into floating-point JSON numbers.
 	var native_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
-	_check(native_source.count('"version":15,') == 1 and native_source.count('"revision":4}') == 1, "native current version and rules markers are unique")
-	var retry_source: String = native_source.replace('"version":15,', '"version":11,').replace('"revision":4}', '"revision":3}') + "\n \n"
+	_check(native_source.count('"version":16,') == 1 and native_source.count('"revision":4}') == 1 and native_source.count(',{"pool":"rockets","rounds":0}') == 1, "native current version and rules markers are unique")
+	var retry_source: String = native_source.replace('"version":16,', '"version":11,').replace('"revision":4}', '"revision":3}').replace(',{"pool":"rockets","rounds":0}', "") + "\n \n"
 	file = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
 	_check(file != null, "owned historical M09 retry fixture is writable after child exit")
 	if file == null:
@@ -179,7 +181,7 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var retry_saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(retry_saved is Dictionary and retry_saved["version"] == 15 and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
+	_check(retry_saved is Dictionary and retry_saved["version"] == 16 and not retry_saved.has("m09_outcome"), "native current unfinished retry never records departure crew")
 	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "strict v11 real-process retry preserves every entry count")
 	archives.clear()
 	for filename: String in DirAccess.get_files_at(run_directory):

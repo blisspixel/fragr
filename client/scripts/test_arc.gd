@@ -15,7 +15,7 @@ func _run() -> void:
 	_check(EquipmentState.WEAPONS.find("arc") == 8 and "arc" not in EquipmentState.ARCADE, "Arc retains an appended identity and discovery ownership")
 	_check(ArenaSky.preset_for("Arc Maintenance (development)").sky_top == ArenaSky.mars_habitat().sky_top, "maintenance practice has an explicit protected Mars work venue")
 	var loadout: Dictionary = {"type":"loadout", "player_id":"self", "tick":20, "selected":"arc", "weapons":["fists", "rail", "arc"],
-		"ammo":[{"pool":"bullets", "rounds":0}, {"pool":"shells", "rounds":0}, {"pool":"cells", "rounds":40}],
+		"ammo":[{"pool":"bullets", "rounds":0}, {"pool":"shells", "rounds":0}, {"pool":"cells", "rounds":40}, {"pool":"rockets", "rounds":0}],
 		"loaded":[{"weapon":"rail", "rounds":4}, {"weapon":"arc", "rounds":12}], "personal_claims":["maintenance_arc"], "dry_fire_count":0, "grenades":0}
 	_check(EquipmentState.validation_error(loadout, "self").is_empty(), "finite Arc and Rail share a valid human bag")
 	_check(EquipmentState.shots(loadout, "arc") == 12 and EquipmentState.count_text(loadout, "arc") == "12|24", "Arc HUD excludes both loaded magazines from shared reserve")

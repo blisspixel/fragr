@@ -1083,6 +1083,25 @@ fn queue_for_client(
     }
 }
 
+fn rocket_snapshot_unrepresentable(snapshot: &protocol::Snapshot) -> bool {
+    !snapshot.rockets.is_empty()
+        || snapshot.explosions.iter().any(|explosion| {
+            (explosion.radius - 4.0).abs() < 0.05
+                && explosion
+                    .hits
+                    .iter()
+                    .any(|hit| hit.hp_damage.saturating_add(hit.armor_damage) > 100)
+        })
+}
+
+fn strip_empty_rockets(loadout: &protocol::LoadoutState) -> protocol::LoadoutState {
+    let mut compatible = loadout.clone();
+    compatible
+        .ammo
+        .retain(|count| count.pool != protocol::AmmoPool::Rockets);
+    compatible
+}
+
 pub async fn broadcast_to_clients(
     clients: &Arc<Mutex<Vec<ClientSession>>>,
     messages: &[ServerMessage],
@@ -1091,6 +1110,14 @@ pub async fn broadcast_to_clients(
     let mut clients_lock = clients.lock().await;
     for msg in messages {
         for client in clients_lock.iter_mut().filter(|client| client.initialized) {
+            if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
+                if let ServerMessage::Snapshot(snapshot) = msg {
+                    if rocket_snapshot_unrepresentable(snapshot) {
+                        client.request_close();
+                        continue;
+                    }
+                }
+            }
             queue_for_client(client, msg, &mut stats);
         }
     }
@@ -1120,6 +1147,26 @@ pub async fn send_unicasts(
             continue;
         };
         if let Some(client) = clients_lock.iter_mut().find(|c| c.id == client_id) {
+            if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
+                match msg {
+                    ServerMessage::Loadout(loadout)
+                        if loadout.owns(protocol::WeaponType::Rocket)
+                            || loadout.ammo.iter().any(|count| {
+                                count.pool == protocol::AmmoPool::Rockets && count.rounds > 0
+                            }) =>
+                    {
+                        client.request_close();
+                        continue;
+                    }
+                    ServerMessage::Snapshot(snapshot)
+                        if rocket_snapshot_unrepresentable(snapshot) =>
+                    {
+                        client.request_close();
+                        continue;
+                    }
+                    _ => {}
+                }
+            }
             if client.gameplay_version < protocol::ARC_GAMEPLAY_VERSION
                 && matches!(msg, ServerMessage::Loadout(loadout) if loadout.owns(protocol::WeaponType::Arc))
             {
@@ -1137,12 +1184,20 @@ pub async fn send_unicasts(
             {
                 continue;
             }
-            let delivered = if let ServerMessage::Record(record) = msg {
+            let delivered = if let ServerMessage::Loadout(loadout) = msg {
+                if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
+                    Some(ServerMessage::Loadout(strip_empty_rockets(loadout)))
+                } else {
+                    None
+                }
+            } else if let ServerMessage::Record(record) = msg {
                 let target_version =
                     if client.gameplay_version < protocol::REPEATER_GAMEPLAY_VERSION {
                         protocol::LEGACY_RECORD_VERSION
                     } else if client.gameplay_version < protocol::ARC_GAMEPLAY_VERSION {
                         protocol::EIGHT_COLUMN_RECORD_VERSION
+                    } else if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
+                        protocol::NINE_COLUMN_RECORD_VERSION
                     } else {
                         protocol::RECORD_VERSION
                     };

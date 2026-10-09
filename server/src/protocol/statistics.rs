@@ -3,7 +3,8 @@ use super::{CampaignRules, CampaignRunState, MissionId, Role, WeaponType};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub const RECORD_VERSION: u32 = 3;
+pub const RECORD_VERSION: u32 = 4;
+pub const NINE_COLUMN_RECORD_VERSION: u32 = 3;
 pub const EIGHT_COLUMN_RECORD_VERSION: u32 = 2;
 pub const LEGACY_RECORD_VERSION: u32 = 1;
 mod record_wire;
@@ -164,6 +165,7 @@ mod weapon_counts {
     ) -> Result<S::Ok, S::Error> {
         if counts[WeaponType::Repeater.index()] != WeaponCounts::default()
             || counts[WeaponType::Arc.index()] != WeaponCounts::default()
+            || counts[WeaponType::Rocket.index()] != WeaponCounts::default()
         {
             return Err(serde::ser::Error::custom(
                 "new weapon counters require a versioned participant record",
@@ -297,12 +299,17 @@ impl CombatCounts {
             .iter()
             .zip(super::WeaponType::ALL)
             .any(|(counts, weapon)| {
-                counts.kills
-                    > counts
-                        .damaging_attacks
-                        .saturating_mul(weapon.pellets() as u64)
+                let kill_limit = if weapon == super::WeaponType::Rocket {
+                    256
+                } else {
+                    weapon.pellets() as u64
+                };
+                counts.kills > counts.damaging_attacks.saturating_mul(kill_limit)
                     || counts.damaging_attacks > counts.attacks
-                    || !geometry_holds(counts, weapon != super::WeaponType::Fists)
+                    || !geometry_holds(
+                        counts,
+                        !matches!(weapon, super::WeaponType::Fists | super::WeaponType::Rocket),
+                    )
             })
             || !explosive_holds(&self.grenades)
             || !explosive_holds(&self.mines)
@@ -463,10 +470,16 @@ impl PlayerRecord {
     ) -> Result<(), &'static str> {
         if !matches!(
             self.version,
-            LEGACY_RECORD_VERSION | EIGHT_COLUMN_RECORD_VERSION | RECORD_VERSION
+            LEGACY_RECORD_VERSION
+                | EIGHT_COLUMN_RECORD_VERSION
+                | NINE_COLUMN_RECORD_VERSION
+                | RECORD_VERSION
         ) || (self.version < RECORD_VERSION
-            && (self.total.weapon(WeaponType::Arc) != &WeaponCounts::default()
-                || self.attempt.weapon(WeaponType::Arc) != &WeaponCounts::default()))
+            && (self.total.weapon(WeaponType::Rocket) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::Rocket) != &WeaponCounts::default()))
+            || (self.version < NINE_COLUMN_RECORD_VERSION
+                && (self.total.weapon(WeaponType::Arc) != &WeaponCounts::default()
+                    || self.attempt.weapon(WeaponType::Arc) != &WeaponCounts::default()))
             || (self.version == LEGACY_RECORD_VERSION
                 && (self.total.weapon(WeaponType::Repeater) != &WeaponCounts::default()
                     || self.attempt.weapon(WeaponType::Repeater) != &WeaponCounts::default()))
@@ -561,11 +574,20 @@ impl PlayerRecord {
     pub fn record_for_version(&self, version: u32) -> Result<Self, &'static str> {
         if !matches!(
             version,
-            LEGACY_RECORD_VERSION | EIGHT_COLUMN_RECORD_VERSION | RECORD_VERSION
+            LEGACY_RECORD_VERSION
+                | EIGHT_COLUMN_RECORD_VERSION
+                | NINE_COLUMN_RECORD_VERSION
+                | RECORD_VERSION
         ) {
             return Err("unsupported participant record version");
         }
         if version < RECORD_VERSION
+            && (self.total.weapon(WeaponType::Rocket) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::Rocket) != &WeaponCounts::default())
+        {
+            return Err("Rocket counts cannot be delivered to an older reader");
+        }
+        if version < NINE_COLUMN_RECORD_VERSION
             && (self.total.weapon(WeaponType::Arc) != &WeaponCounts::default()
                 || self.attempt.weapon(WeaponType::Arc) != &WeaponCounts::default())
         {

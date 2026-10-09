@@ -21,7 +21,8 @@ The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
 released as v0.80.0. Human acceptance, final art and the unbuilt campaign
 remain open. The next dependency is the
-[Rocket Launcher foundation](rocket-foundation-20261008.md).
+[Rocket Launcher foundation](rocket-foundation-20261008.md), which is not part
+of v0.80.0.
 
 On 2026-10-08 Nick reported $4.65 remaining in the image account and offered a
 further top-up if needed. This is a reported balance, not a live reconciliation
@@ -74,7 +75,7 @@ remain open.
 | [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **in flight** | Prepare the accepted on-foot foundry contract and ignored supported architecture candidate, with explicit Rocket, voluntary workers, relay, hazards, lift and strict save dependencies. Production mission work waits for the Rocket Launcher foundation. Composition is on main. |
 | [`assessor-foundation-20261008.md`](./assessor-foundation-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Real heavy flying drone, visible ballistic volley, armored faces and Union-only falling wreck in connected M12. Fresh-player and final-art acceptance remain open. |
 | [`arc-foundation-20261008.md`](./arc-foundation-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Finite Cells-fed armor-bypass gun with its own resolved shots, controls, records and presentation. Fresh-player and final-art acceptance remain open. |
-| [`rocket-foundation-20261008.md`](./rocket-foundation-20261008.md) | **planned** | Finite traveling Rocket Launcher for M13 and an optional M12 secret, with four-pool inventory, single combined damage commits and strict historical compatibility. |
+| [`rocket-foundation-20261008.md`](./rocket-foundation-20261008.md) | **in flight** | Finite traveling Rocket Launcher for M13 and an optional M12 secret, with four-pool inventory, single combined damage commits and strict historical compatibility. No mission grants it, and it is not part of v0.80.0. |
 | [`low-water-sabotage-20261008.md`](./low-water-sabotage-20261008.md) | **implemented locally** | Original town, 69 walking routes, two finite bot matches and a full ordinary-socket 5v5 match with five plants, four defuses and a detonation; human and two-machine acceptance remain open. |
 | [`custody-archive-venue-20261008.md`](./custody-archive-venue-20261008.md) | **implemented** | Isolated next-increment geometry preparation: two-level curved rotunda, four workshops, enclosed stairs, eighteen supported respawn candidates and ten nominated 5v5 points. Deterministic candidate, ordinary routes, strict native navigation and obstruction control pass. Runtime venue, Control, Sabotage integration and played acceptance remain separate. |
 | [`edda-live-repair-20261008.md`](./edda-live-repair-20261008.md) | **implemented locally** | Repaired weighted source and eligible M09/M10 live routes pass, with separate omitted/Unknown controls and composed client/package checks. Final art and human acceptance remain open. |

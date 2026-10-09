@@ -144,6 +144,7 @@ fn weapon_from_wire(name: &str) -> Option<WeaponType> {
         "sniper" => Some(WeaponType::Sniper),
         "repeater" => Some(WeaponType::Repeater),
         "arc" => Some(WeaponType::Arc),
+        "rocket" => Some(WeaponType::Rocket),
         _ => None,
     }
 }
@@ -1781,6 +1782,7 @@ fn preferred_band(weapon: WeaponType) -> (f32, f32) {
         WeaponType::Sniper => (40.0, 70.0),
         WeaponType::Repeater => (7.0, 12.0),
         WeaponType::Arc => (6.0, 16.0),
+        WeaponType::Rocket => (8.0, 40.0),
     }
 }
 
@@ -2621,6 +2623,7 @@ mod tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -3553,6 +3556,7 @@ mod combat_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -4138,6 +4142,7 @@ mod planner_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),
@@ -4655,6 +4660,7 @@ mod line_of_sight_tests {
             projectiles: Vec::new(),
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
             auditors: Vec::new(),

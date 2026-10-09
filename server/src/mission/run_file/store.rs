@@ -272,6 +272,17 @@ impl RunStore {
                     Err(_) => return RunProbe::Incompatible,
                 }
             }
+            Some(15) => {
+                let mut document: RunDocument = match serde_json::from_value(value) {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Corrupt,
+                };
+                if document.version != 15 || document.migrate_historical_rockets().is_err() {
+                    return RunProbe::Incompatible;
+                }
+                document.version = super::RUN_FILE_VERSION;
+                document
+            }
             Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
                 match serde_json::from_value::<RunDocument>(value) {
                     Ok(document) => document,
@@ -575,6 +586,66 @@ mod tests {
                 },
             },
         }
+    }
+
+    #[test]
+    fn version_15_upgrades_to_zero_rockets_and_archives_the_original_bytes() {
+        let directory = temp_dir();
+        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let mut historical = serde_json::to_value(document()).unwrap();
+        historical["version"] = 15.into();
+        historical["step"]["entry"]["equipment"]["ammo"]
+            .as_array_mut()
+            .unwrap()
+            .retain(|count| count["pool"] != "rockets");
+        let bytes = serde_json::to_vec(&historical).unwrap();
+        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+        let loaded = store.load().unwrap().unwrap();
+        assert_eq!(loaded.version, RUN_FILE_VERSION);
+        let SavedStep::MissionEntry { entry, .. } = &loaded.step else {
+            panic!("entry");
+        };
+        assert_eq!(
+            entry
+                .equipment
+                .ammo
+                .iter()
+                .find(|count| count.pool == crate::protocol::AmmoPool::Rockets)
+                .unwrap()
+                .rounds,
+            0
+        );
+        assert!(store.needs_upgrade().unwrap());
+        let archive = store.archive_and_save(&loaded, &loaded).unwrap();
+        assert_eq!(fs::read(archive).unwrap(), bytes);
+        assert!(!store.needs_upgrade().unwrap());
+
+        let mut forged = historical.clone();
+        forged["step"]["entry"]["equipment"]["weapons"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!("rocket"));
+        assert!(matches!(
+            RunStore::inspect_bytes(
+                &serde_json::to_vec(&forged).unwrap(),
+                [[7; 32]; CAMPAIGN_STAGES]
+            ),
+            RunProbe::Incompatible
+        ));
+        let mut pooled = historical;
+        pooled["step"]["entry"]["equipment"]["ammo"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({"pool": "rockets", "rounds": 0}));
+        assert!(matches!(
+            RunStore::inspect_bytes(
+                &serde_json::to_vec(&pooled).unwrap(),
+                [[7; 32]; CAMPAIGN_STAGES]
+            ),
+            RunProbe::Incompatible
+        ));
+        drop(store);
+        fs::remove_dir_all(directory).unwrap();
     }
 
     #[test]

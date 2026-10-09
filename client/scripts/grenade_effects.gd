@@ -32,6 +32,7 @@ var stick_cues: int = 0
 var lamps_lit: int = 0
 var remote_effects: RemoteMineEffects
 var canisters: Dictionary[int, Node3D] = {}
+var rockets: Dictionary[int, MeshInstance3D] = {}
 
 ## A grenade newly in flight on a live snapshot, by the participant who threw
 ## it. Bodies already present when a snapshot stream starts are not throws.
@@ -40,6 +41,9 @@ signal thrown(owner_id: String)
 signal placed(owner_id: String)
 
 func reset() -> void:
+	for rocket: MeshInstance3D in rockets.values():
+		rocket.queue_free()
+	rockets.clear()
 	for canister: Node3D in canisters.values():
 		canister.queue_free()
 	canisters.clear()
@@ -69,6 +73,7 @@ func reset() -> void:
 func apply(snapshot: Dictionary, listener: Vector3) -> void:
 	if not GrenadeFacts.validation_error(snapshot).is_empty() or not CustodyFacts.validation_error(snapshot).is_empty() \
 		or not AssessorFacts.validation_error(snapshot).is_empty() \
+		or not RocketFacts.validation_error(snapshot).is_empty() \
 		or int(snapshot["tick"]) <= last_tick:
 		return
 	var initial: bool = last_tick < 0
@@ -80,6 +85,7 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 	remote_effects.apply(snapshot)
 	_apply_mines(snapshot, listener, initial)
 	_apply_canisters(snapshot)
+	_apply_rockets(snapshot)
 	var current: Dictionary[int, bool] = {}
 	for fact: Dictionary in snapshot.get("grenades", []):
 		var id: int = int(fact["id"])
@@ -153,6 +159,30 @@ func _apply_canisters(snapshot: Dictionary) -> void:
 		if not current.has(id):
 			canisters[id].queue_free()
 			canisters.erase(id)
+
+## A traveling rocket is a long body aligned with the server velocity. The
+## same radius-four burst already plays when it resolves.
+func _apply_rockets(snapshot: Dictionary) -> void:
+	var current: Dictionary[int, bool] = {}
+	for fact: Dictionary in snapshot.get("rockets", []):
+		var id: int = int(fact["id"])
+		current[id] = true
+		if not rockets.has(id):
+			var body: MeshInstance3D = _mesh(Vector3(0.12, 0.12, 0.48), Color("c45a20"))
+			body.name = "Rocket_%d" % id
+			rockets[id] = body
+			add_child(body)
+		var node: MeshInstance3D = rockets[id]
+		node.position = GrenadeFacts.vector(fact["position"])
+		var velocity: Vector3 = GrenadeFacts.vector(fact["velocity"])
+		if velocity.length_squared() > 0.01:
+			var forward: Vector3 = velocity.normalized()
+			var up: Vector3 = Vector3.UP if absf(forward.dot(Vector3.UP)) < 0.98 else Vector3.RIGHT
+			node.basis = Basis.looking_at(forward, up)
+	for id: int in rockets.keys():
+		if not current.has(id):
+			rockets[id].queue_free()
+			rockets.erase(id)
 
 ## Placed mines: the face-on device laid on its surface over a dark body, its
 ## lamp steady amber while arming, blinking red once live and flickering fast

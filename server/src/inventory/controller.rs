@@ -160,6 +160,7 @@ pub fn control_action_with_target_filter(
                 WeaponType::Rail,
                 WeaponType::Sniper,
                 WeaponType::Arc,
+                WeaponType::Rocket,
             ]
             .into_iter()
             .find(|weapon| usable(loadout, *weapon))
@@ -183,6 +184,33 @@ pub fn control_action_with_target_filter(
         })
     {
         selected = WeaponType::Arc;
+    }
+    if requested.is_none()
+        && selected != WeaponType::Arc
+        && usable(loadout, WeaponType::Rocket)
+        && nearest.is_some_and(|target| {
+            let distance = (target.x - me.x).hypot(target.z - me.z);
+            (6.0..=48.0).contains(&distance)
+        })
+    {
+        selected = WeaponType::Rocket;
+    }
+    if requested.is_none()
+        && selected == WeaponType::Rocket
+        && nearest.is_some_and(|target| (target.x - me.x).hypot(target.z - me.z) < 6.0)
+    {
+        selected = [
+            WeaponType::Repeater,
+            WeaponType::Flechette,
+            WeaponType::Tack,
+            WeaponType::Scatter,
+            WeaponType::Rail,
+            WeaponType::Sniper,
+            WeaponType::Arc,
+        ]
+        .into_iter()
+        .find(|weapon| usable(loadout, *weapon))
+        .unwrap_or_else(|| melee(loadout));
     }
     if requested.is_none()
         && usable(loadout, WeaponType::Sniper)

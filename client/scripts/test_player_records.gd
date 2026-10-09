@@ -48,11 +48,19 @@ func _run() -> void:
 	for field: String in ["total", "attempt"]:
 		eight_column[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
 	_check(PlayerRecord.validation_error(eight_column, eight_column["player_id"]).is_empty(), "retained version two has exactly eight columns")
-	var current: Dictionary = eight_column.duplicate(true)
+	var nine_column: Dictionary = eight_column.duplicate(true)
+	nine_column["version"] = PlayerRecord.NINE_COLUMN_VERSION
+	for field: String in ["total", "attempt"]:
+		nine_column[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(PlayerRecord.validation_error(nine_column, nine_column["player_id"]).is_empty(), "retained version three has exactly nine columns")
+	var current: Dictionary = nine_column.duplicate(true)
 	current["version"] = PlayerRecord.VERSION
 	for field: String in ["total", "attempt"]:
 		current[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
-	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has a distinct ninth Arc column")
+	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has a distinct tenth Rocket column")
+	var forged_nine: Dictionary = nine_column.duplicate(true)
+	forged_nine["attempt"]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(not PlayerRecord.validation_error(forged_nine, forged_nine["player_id"]).is_empty(), "version three refuses a tenth column")
 	for width: int in [5, 6, 7, 9, 10]:
 		var forged_eight: Dictionary = eight_column.duplicate(true)
 		forged_eight["attempt"]["weapons"].resize(width)
@@ -79,10 +87,27 @@ func _run() -> void:
 	var forged_legacy: Dictionary = current.duplicate(true)
 	forged_legacy["version"] = PlayerRecord.LEGACY_VERSION
 	_check(not PlayerRecord.validation_error(forged_legacy, forged_legacy["player_id"]).is_empty(), "legacy record refuses zero eighth column")
-	for size: int in [5, 6, 7, 8, 10]:
+	for size: int in [5, 6, 7, 8, 9, 11]:
 		var wrong_current: Dictionary = current.duplicate(true)
 		wrong_current["attempt"]["weapons"].resize(size)
-		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact nine columns")
+		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact ten columns")
+	var rocket_head: Dictionary = current.duplicate(true)
+	for field: String in ["total", "attempt"]:
+		rocket_head[field]["weapons"][9]["attacks"] = 1
+		rocket_head[field]["weapons"][9]["damaging_attacks"] = 1
+		rocket_head[field]["weapons"][9]["connects"] = 1
+		rocket_head[field]["weapons"][9]["heads"] = 1
+	_check(not PlayerRecord.validation_error(rocket_head, rocket_head["player_id"]).is_empty(), "a rocket has no head band")
+	var rocket_kills: Dictionary = current.duplicate(true)
+	for field: String in ["total", "attempt"]:
+		rocket_kills[field]["weapons"][9]["attacks"] = 1
+		rocket_kills[field]["weapons"][9]["damaging_attacks"] = 1
+		rocket_kills[field]["weapons"][9]["kills"] = 256
+		rocket_kills[field]["weapons"][9]["connects"] = 1
+	_check(PlayerRecord.validation_error(rocket_kills, rocket_kills["player_id"]).is_empty(), "one rocket can record every body it reaches")
+	rocket_kills["total"]["weapons"][9]["kills"] = 257
+	rocket_kills["attempt"]["weapons"][9]["kills"] = 257
+	_check(not PlayerRecord.validation_error(rocket_kills, rocket_kills["player_id"]).is_empty(), "a rocket cannot record more than 256 kills")
 	_check(PlayerRecord.weapon_count(scoped["total"], 6, "kills") == 1 and PlayerRecord.weapon_count(found["total"], 6, "attacks") == 0, "a six-slot record reads as no Sniper use")
 	var overkill: Dictionary = scoped.duplicate(true)
 	overkill["total"]["weapons"][6]["kills"] = 3
@@ -138,7 +163,7 @@ func _run() -> void:
 	habitat["map_name"] = "Terms of Cooperation"
 	habitat["status"] = "active"
 	habitat["scope"] = {"kind": "mission", "mission": MissionState.M12_ID, "attempt": 2, "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "run": {"id": mission["scope"]["run"]["id"], "status": "playing", "continues": 1, "level_start_continues": 2}}
-	_check(PlayerRecord.validation_error(habitat, habitat["player_id"]).is_empty(), "current nine-column M12 record accepts its retained second-attempt allowance")
+	_check(PlayerRecord.validation_error(habitat, habitat["player_id"]).is_empty(), "current ten-column M12 record accepts its retained second-attempt allowance")
 	var habitat_bad: Dictionary = habitat.duplicate(true)
 	habitat_bad["scope"]["run"]["continues"] = 2
 	_check(not PlayerRecord.validation_error(habitat_bad, habitat["player_id"]).is_empty(), "M12 record still rejects an allowance that contradicts its actual attempt")

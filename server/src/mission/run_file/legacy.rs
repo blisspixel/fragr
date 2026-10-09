@@ -51,7 +51,7 @@ impl RunDocumentV10 {
         let completed_m09 = matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PassengerManifest, next_mission, ..
         } if next_mission == M10_MISSION);
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -71,6 +71,7 @@ impl RunDocumentV10 {
             m11_outcome: None,
             m12_outcome: None,
         };
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes[..9]
                 .get(store::stage_index(document.stage_mission()))
@@ -180,7 +181,7 @@ impl RunDocumentV9 {
         let completed_m08 = matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -200,6 +201,7 @@ impl RunDocumentV9 {
             m11_outcome: None,
             m12_outcome: None,
         };
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes[..8]
                 .get(store::stage_index(document.stage_mission()))
@@ -238,7 +240,7 @@ impl RunDocumentV8 {
         if self.version != 8 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -265,6 +267,7 @@ impl RunDocumentV8 {
         ) {
             return Err("M08 was not supported by version 8");
         }
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes[..7]
                 .get(store::stage_index(mission))
@@ -305,7 +308,7 @@ impl RunDocumentV7 {
         if self.version != 7 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -332,6 +335,7 @@ impl RunDocumentV7 {
         ) {
             return Err("mission was not supported by version 7");
         }
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes[..6]
                 .get(store::stage_index(mission))
@@ -370,7 +374,7 @@ impl RunDocumentV6 {
         if self.version != 6 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -404,6 +408,7 @@ impl RunDocumentV6 {
             | MissionId::RightOfSearch
             | MissionId::TermsOfCooperation => return Err("M08 was not supported by version 6"),
         };
+        document.migrate_historical_rockets()?;
         document.validate(hash)?;
         Ok(document)
     }
@@ -548,7 +553,7 @@ impl RunDocumentV13 {
         {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -568,6 +573,7 @@ impl RunDocumentV13 {
             m11_outcome: None,
             m12_outcome: None,
         };
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes[..10]
                 .get(store::stage_index(document.stage_mission()))
@@ -693,7 +699,7 @@ impl RunDocumentV5 {
         if self.version != 5 || self.rules.revision != 3 {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -727,6 +733,7 @@ impl RunDocumentV5 {
             | MissionId::RightOfSearch
             | MissionId::TermsOfCooperation => return Err("M05 was not supported by version 5"),
         };
+        document.migrate_historical_rockets()?;
         document.validate(hash)?;
         Ok(document)
     }
@@ -794,7 +801,7 @@ impl RunDocumentV4 {
                 }
             },
         };
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -814,6 +821,7 @@ impl RunDocumentV4 {
             m11_outcome: None,
             m12_outcome: None,
         };
+        document.migrate_historical_rockets()?;
         document.validate(expected)?;
         Ok(document)
     }
@@ -841,7 +849,7 @@ impl RunDocumentV3 {
         m01_hash: [u8; 32],
         m02_hash: [u8; 32],
     ) -> Result<RunDocument, &'static str> {
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -878,6 +886,7 @@ impl RunDocumentV3 {
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");
         }
+        document.migrate_historical_rockets()?;
         document.validate(expected)?;
         Ok(document)
     }
@@ -914,7 +923,7 @@ impl RunDocumentV2 {
         if self.version != 2 || self.rules.revision != 2 || !supported {
             return Err("unsupported legacy campaign run");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -934,6 +943,7 @@ impl RunDocumentV2 {
             m11_outcome: None,
             m12_outcome: None,
         };
+        document.migrate_historical_rockets()?;
         document.validate(m01_hash)?;
         Ok(document)
     }
@@ -971,7 +981,7 @@ impl RunDocumentV12 {
         if self.version != 12 || self.rules.revision != PRE_ASSESSOR_RULES_REVISION {
             return Err("unsupported historical campaign rules");
         }
-        let document = RunDocument {
+        let mut document = RunDocument {
             version: RUN_FILE_VERSION,
             id: self.id,
             starting_continues: self.starting_continues,
@@ -991,6 +1001,7 @@ impl RunDocumentV12 {
             m11_outcome: None,
             m12_outcome: None,
         };
+        document.migrate_historical_rockets()?;
         document.validate(
             *hashes[..9]
                 .get(store::stage_index(document.stage_mission()))
@@ -1012,12 +1023,20 @@ mod remote_boundary_tests {
             "grenades":3,"proximity_mines":2,"personal_claims":["real_stock"]
         });
         let old = serde_json::from_value::<PreRemoteEquipment>(equipment.clone()).unwrap();
-        let saved = SavedEquipment::from(old);
+        let mut saved = SavedEquipment::from(old);
         assert_eq!(
             (saved.grenades, saved.proximity_mines, saved.remote_mines),
             (3, 2, 0)
         );
         assert_eq!(saved.selected, WeaponType::Tack);
+        assert!(saved
+            .ammo
+            .iter()
+            .all(|count| count.pool != AmmoPool::Rockets));
+        saved.ammo.push(AmmoCount {
+            pool: AmmoPool::Rockets,
+            rounds: 0,
+        });
         saved.validate().unwrap();
         for bad in [
             serde_json::json!(0),

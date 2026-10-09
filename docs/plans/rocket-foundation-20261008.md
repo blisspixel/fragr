@@ -1,8 +1,11 @@
 # Rocket Launcher foundation
 
-Status: **planned**, 2026-10-08. This is a bounded design before implementation.
-Production changes wait for the composed Arc, Assessor, connected M12 and live
-Edda gates. The [weapon brief](../WEAPONS.md),
+Status: **in flight**, 2026-10-09. The composed Arc, Assessor, connected M12
+and live Edda gates are on `main` through
+[PR #375](https://github.com/blisspixel/fragr/pull/375) and are recorded as
+v0.80.0. This change adds server flight, inventory, records, save migration
+and client presentation. No mission grants the launcher. The optional M12
+secret and connected M13 stay out of this increment. The [weapon brief](../WEAPONS.md),
 [readable arsenal](readable-arsenal.md),
 [M12 secret](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
 and [M13 introduction](../campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion)
@@ -144,8 +147,16 @@ player comprehension, final art, a completed M13 or all-platform support.
 
 Root owns shared sequencing and composition documents. This weapon lane owns the
 Rocket foundation with the approved constants and compatibility seams above.
-No production code, asset service, native build or renderer is launched by this
-plan-only step.
+The implementation is in this change. Campaign placement, the optional M12
+secret, final art and a played human lesson remain ahead. No paid calls.
+
+Local evidence before integration, 2026-10-09: `cargo test --workspace --locked`
+passed. Formatting and warnings-denied clippy passed before the final M09
+harness edit. The full Godot check passed every harness except `test_m09_local`,
+whose historical retry still looked for save version 15, and `test_desktop_host`,
+whose Conquest resume timed out while that full run was loading. Both passed
+when run alone after the version-16 marker fix. Coverage, the bench and the
+playtest roster were not re-run for this change.
 
 ## Existing seam review, 2026-10-08
 

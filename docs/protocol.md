@@ -6,10 +6,11 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-08: matching readers advertise gameplay 45 and geometry
+Current contract, 2026-10-08: matching readers advertise gameplay 46 and geometry
 2. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
-Terms of Cooperation requires 44 and Low Water Sabotage requires 45. Numbered
+Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
+Rocket Launcher contract is 46. No current mission grants the launcher. Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
 campaign admission. Dated evidence retains the exact contract it exercised.
@@ -98,7 +99,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `45`; omission means `1`. Discovery-only maps first
+  and the Godot client send `46`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -122,7 +123,7 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. A shared arcade room speaks gameplay 45. That floor
+  without teams misleads. A shared arcade room speaks gameplay 46. That floor
   is above capability 4, and the arcade roster stays open. The four-seat
   mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
@@ -2661,7 +2662,7 @@ or status change sends immediately. The record's tick can precede the latest
 snapshot. No record is delivered during initial arena warmup or to someone who
 joins after a round has already ended without participating.
 
-The current version-3 record includes `session_id`, `player_id`, `round`, `tick`,
+The current version-4 record includes `session_id`, `player_id`, `round`, `tick`,
 `entered_at`, `round_started_at`, `ticks_per_second` (20), `map_id`, `map_name`,
 `role`, `scope`, `status`, `total` and `attempt`. Its identity is the session UUID,
 player UUID and round number, never a callsign. `entered_at` is the admission tick
@@ -2671,19 +2672,22 @@ The [shared format fixture](../client/golden/player_record.json) is read by Rust
 MCP and client tests; the [Shiv fixture](../client/golden/player_record_shiv.json)
 covers the sixth slot and a found secret on both sides, and the
 [Sniper fixture](../client/golden/player_record_sniper.json) the seventh.
-Those fixtures retain historical revision 1. Current revision 3 requires exactly
-nine weapon entries, with Repeater after Sniper and Arc appended after Repeater.
-Historical revision 2 requires exactly eight entries. Revision 1 accepts
-only its strict five/six/seven-column shapes and refuses an eighth even when
-zero. Unknown revisions and a revision change within one record are refused.
-The private per-recipient sender uses revision 3 for capability 42 or later,
-revision 2 for capabilities 35 through 41, and revision 1 below 35. A compatible
-older shape is delivered only when total and attempt counts for every omitted
-weapon are genuinely empty. Nonzero new counts close incompatible delivery
-instead of being truncated or assigned to another gun. The unversioned
-standalone CombatCounts format stays historical five/six/seven columns and
-refuses serialization with nonzero Repeater or Arc counts; eight and nine
-columns belong to their explicit revision 2 and 3 record envelopes. Retained
+Those fixtures retain historical revision 1. Current revision 4 requires exactly
+ten weapon entries, with Repeater after Sniper, Arc after Repeater and the
+Rocket Launcher appended after Arc. Historical revision 3 requires exactly nine
+entries and refuses a tenth even when zero. Historical revision 2 requires
+exactly eight entries. Revision 1 accepts only its strict five/six/seven-column
+shapes and refuses an eighth even when zero. Unknown revisions and a revision
+change within one record are refused.
+The private per-recipient sender uses revision 4 for capability 46 or later,
+revision 3 for capabilities 42 through 45, revision 2 for capabilities 35
+through 41, and revision 1 below 35. A compatible older shape is delivered only
+when total and attempt counts for every omitted weapon are genuinely empty.
+Nonzero new counts close incompatible delivery instead of being truncated or
+assigned to another gun. The unversioned standalone CombatCounts format stays
+historical five/six/seven columns and refuses serialization with nonzero
+Repeater, Arc or Rocket counts; eight, nine and ten columns belong to their
+explicit revision 2, 3 and 4 record envelopes. Retained
 mission records accept original rules revisions 1 through 4 without relabeling
 old facts. Current live mission state accepts only rules revision 4.
 
@@ -2710,8 +2714,8 @@ not zero. No runtime par is currently authored. The completion tally uses the
 existing attempt and total resolved counts, and never counts client-side kills.
 
 Each count set contains `alive_ticks`, `deaths`, `hp_lost`, `armor_lost`,
-`dry_triggers` and nine `weapons` entries in fists, Tack, flechette, scatter,
-rail, Shiv, Sniper, Repeater and Arc order. A historical revision 1 writer sends
+`dry_triggers` and ten `weapons` entries in fists, Tack, flechette, scatter,
+rail, Shiv, Sniper, Repeater, Arc and Rocket order. A historical revision 1 writer sends
 the shortest five/six/seven-entry prefix holding every nonzero old entry.
 Revision 1 readers treat missing later old entries as zero, so retained history
 keeps its shape and no slot changes meaning. `secrets`, present only when nonzero,
@@ -2724,8 +2728,10 @@ scatter's attack is seven pellets and counts once, as one connect when any
 pellet found a body and one damaging attack when any pellet hurt anyone. One
 shot is one connect and one head however many bodies it struck. A head is a
 pellet in the head band, including a shield that stopped the damage. Fists
-have no band test, so a fist head is refused. The scatter's kills are bounded by seven per damaging attack; every
-other weapon's kills are bounded by its damaging attacks.
+have no band test, so a fist head is refused. A rocket has no head band either.
+The scatter's kills are bounded by seven per damaging attack. A rocket's kills
+are bounded by 256 per damaging attack, the blast recipient cap. Every other
+weapon's kills are bounded by its damaging attacks.
 Fists and Shiv cuts count as attacks. A damaging attack removes positive HP or armor from a
 hostile living target. Protected/friendly bodies, scenery, range misses and a
 body killed by an earlier committed ray do not count as damaging attacks. A
@@ -2918,8 +2924,8 @@ episode refill. Retry restores that exact entry and clears live devices without
 rewinding tick, sequence or inventory revisions. Only actual completed M11
 equipment may carry remote charges onward. Completion stores `m11_outcome`
 with release, records, single-blast count and elapsed `bridge_response_ticks`,
-then retained pending `terms_of_cooperation`. The current version-15 boundary
-and connected M12 work are described below.
+then retained pending `terms_of_cooperation`. The version-15 boundary
+and connected M12 work are described below. Version 16 is the current document.
 
 ### Arc, current records and strict saves (capability 42)
 
@@ -2947,7 +2953,7 @@ or out-of-range values refuse authoring. This is actual spawned armor, consumed
 by ordinary guns and bypassed by Arc. Earlier omitted placements retain their
 existing combat balance.
 
-Current local run-file version 15 uses campaign rules revision 4. Exact v2-v4
+Run-file version 15 uses campaign rules revision 4. Exact v2-v4
 readers require their original rules revision 2 and exact v5-v14 readers require
 revision 3, then explicitly upgrade the live run to revision 4 under the
 existing writer lock. The content-addressed archive retains the original bytes.
@@ -3036,3 +3042,76 @@ receipts consume the actual killed targets of that supported wreck, rather
 than inferring success from animation, phase, generic frags or a timer.
 The client presents motion, folding, countdown, vents and bounded sound
 from accepted facts; it never decides contact, damage or wreck kills.
+
+### Rocket Launcher (capability 46)
+
+The appended weapon identity is `rocket`, at stable gun index 9. Earlier gun
+indices and the six physical selection keys stay put. The wheel appends a
+carried launcher. It is not in the arcade kit. The server display name is
+`Rocket`; the player-facing name is Rocket Launcher. Ammunition is a fourth
+pool, `rockets`, index 3, capacity 20. Arcade spawn stock is zero and arcade
+ownership does not include the launcher. A human tube holds one rocket and
+reloads in sixteen ticks on the ordinary rising-edge reload. One discharge
+spends one rocket and does not load another. Agents, rule bots and campaign
+enemies keep the single count. First discovery grants four rockets, one of
+which sits in a human tube. A duplicate grant adds bag stock and does not
+change a partial magazine. A dry trigger creates no projectile.
+
+Flight is straight at 18 m/s, with the grenade's 0.12 m radius, no gravity and
+no homing. Aim is committed at launch. Lifetime is 80 movement ticks, which is
+at most 72 m. Each movement tick uses four swept substeps. A distant target
+cannot be damaged on the launch tick. An origin that is already inside a solid
+resolves immediately. Expiry retires the rocket with no blast. At most 64
+rockets are live, and at most eight belong to one owner. A full cap or a serial
+that would overflow refuses the launch before ammunition or statistics change.
+Explicit leave removes that owner's rockets. Death retains a committed rocket.
+Round, map and mission reset clear them without rewinding ticks, input sequence
+or inventory revisions.
+
+`Snapshot.rockets`, omitted while empty, contains exact objects:
+
+```json
+{"id":44,"owner_id":"00000000-0000-0000-0000-000000000001","position":[2,1.6,0],"velocity":[18,0,0],"age_ticks":0}
+```
+
+The serial shares the existing projectile namespace. Position components are
+finite and at most 1024 in absolute value. Velocity components are finite and
+at most 20. Age is below 80 and cannot exceed the snapshot tick. The owner is
+a participant still in the snapshot. Unknown fields and duplicate serials are
+refused.
+
+Impact deals 65 direct damage plus covered splash. Splash is 4 m, linear from
+a peak of 45, and stops at ordinary solids. The blast point sits just before
+the struck surface. Direct damage and splash are summed once per body, then
+one armor debit and one damage commit follow. There is no head multiplier.
+An actual-face plate applies only to the 65-point direct component. Splash
+bypasses plates and can hurt the owner. A protected body can stop the rocket
+and take no damage. Friendly fire, immunity and companion immunity use the
+existing damage path. Several bodies can lose HP. No body is committed twice.
+The recipient cap is 256. There is no hitscan `ShotResult` or `ShotTrace`.
+A struck vehicle takes one hull commit of the direct damage plus its covered
+splash. Other vehicles take splash only. Vehicle destruction is not a weapon
+kill. Rockets do not destroy M12 pumps.
+
+The resolved blast reuses `ExplosionResult` at radius 4. A four-metre hit may
+carry up to 110 combined HP and armor damage, the 65 direct plus 45 splash.
+Grenades still resolve at or below 100. A hit with zero HP and zero armor
+damage is not sent on the explosion wire. A connect is recorded when the
+rocket struck a body or dealt HP or armor damage, including a plate or shield
+that stopped the damage. Heads stay zero. One attack is counted at launch.
+One hit record aggregates every body at resolution, including the owner.
+A dead owner still owns that record while the owner remains in the match.
+
+Readers below capability 46 are closed when a loadout owns the launcher or
+carries nonzero rockets, when a snapshot contains a live rocket, or when a
+radius-4 explosion hit exceeds 100 combined damage. An empty rockets pool is
+removed before delivery to those readers. Record revision 4 is current.
+Revision 3 remains the nine-column Arc record and refuses rocket facts.
+
+Current local run-file version is 16. It is an exact version-15 reader plus a
+zero `rockets` count, and it archives the original bytes under the existing
+writer lock. A historical document that already selects the launcher, owns it,
+or names the rockets pool is incompatible. No mission grants the launcher, so
+a current save that owns it or carries a nonzero rockets count is refused.
+Campaign rules stay at revision 4. Pending `weight_of_permission` remains
+unplayable. The optional M12 secret and connected M13 stay separate work.
