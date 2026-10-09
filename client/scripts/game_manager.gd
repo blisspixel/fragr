@@ -748,6 +748,10 @@ func _on_leave_requested() -> void:
 	if _leaving:
 		return
 	_leaving = true
+	# Stop match voices before the scene exits. A playing WAV otherwise keeps
+	# its playback after the player node is gone, and Windows reports that
+	# resource at process exit.
+	_release_match_audio()
 	if _benchmark:
 		_stop_benchmark_host()
 	if local_match != null:
@@ -773,6 +777,7 @@ func _on_local_failure(key: String) -> void:
 	_on_leave_requested.call_deferred()
 
 func _exit_tree() -> void:
+	_release_match_audio()
 	if _benchmark:
 		_stop_benchmark_host()
 	# A scene may leave before its first draw. Its replacement skies must outlive
@@ -817,6 +822,17 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause") or (pause_menu.is_open() and event.is_action_pressed("ui_cancel")):
 		pause_menu.toggle()
 		get_viewport().set_input_as_handled()
+
+## Drop match voices before the scene is freed. The radio clears its own stream.
+func _release_match_audio() -> void:
+	var audio_parent: Node = get_node_or_null("AudioPlayers")
+	if audio_parent == null:
+		return
+	for node: Node in audio_parent.get_children():
+		if node is AudioStreamPlayer:
+			var voice: AudioStreamPlayer = node as AudioStreamPlayer
+			voice.stop()
+			voice.stream = null
 
 ## Contested Frequency radio lives under AudioPlayers and reads the audiogen manifest.
 func _setup_radio() -> void:
