@@ -19,10 +19,12 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
-released as v0.80.0. Human acceptance, final art and the unbuilt campaign
-remain open. The next dependency is the
-[Rocket Launcher foundation](rocket-foundation-20261008.md), which is not part
-of v0.80.0.
+released as v0.80.0. The
+[Rocket Launcher foundation](rocket-foundation-20261008.md) shipped in
+[PR #376](https://github.com/blisspixel/fragr/pull/376) at `711dfb4` and is
+released as v0.81.0. It is not part of v0.80.0. No mission grants it. The next
+campaign dependency is connected M13. Human acceptance, final art and the
+unbuilt campaign remain open.
 
 On 2026-10-08 Nick reported $4.65 remaining in the image account and offered a
 further top-up if needed. This is a reported balance, not a live reconciliation
@@ -72,10 +74,10 @@ remain open.
 | [`enemy-ground-registration-20261008.md`](./enemy-ground-registration-20261008.md) | **in flight** | Reproduce and fix the 0.45 m enemy origin overwrite, then correct three collapsed source poses and verify actual floor contact. |
 | [`arc-visual-consistency-20261008.md`](./arc-visual-consistency-20261008.md) | **implemented locally** | Corrected industrial Arc, registered poses and pickup profile pass focused checks, ordinary finite combat and local composition; human art review remains open. |
 | [`m12-connected-habitat-20261008.md`](./m12-connected-habitat-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Connected habitat with actual Arc discovery, Assessor wreck and pump receipts, one shelter door, aid vehicles, coalition commitment and strict M11 carry/retry. Fresh-player and final-art acceptance remain open. |
-| [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **in flight** | The Rocket Launcher foundation is on main and is not part of v0.80.0. The foundry successor opens the ladle shaft and places the office rocket and freight Assessor. Workers, hazards, the relay, the moving lift and mission facts remain unbuilt. |
+| [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **in flight** | The Rocket Launcher foundation shipped in PR #376. The foundry successor opens the ladle shaft and places the office rocket and freight Assessor. Workers, hazards, the relay, the moving lift and mission facts remain unbuilt. |
 | [`assessor-foundation-20261008.md`](./assessor-foundation-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Real heavy flying drone, visible ballistic volley, armored faces and Union-only falling wreck in connected M12. Fresh-player and final-art acceptance remain open. |
 | [`arc-foundation-20261008.md`](./arc-foundation-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Finite Cells-fed armor-bypass gun with its own resolved shots, controls, records and presentation. Fresh-player and final-art acceptance remain open. |
-| [`rocket-foundation-20261008.md`](./rocket-foundation-20261008.md) | **in flight** | Finite traveling Rocket Launcher for M13 and an optional M12 secret, with four-pool inventory, single combined damage commits and strict historical compatibility. No mission grants it, and it is not part of v0.80.0. |
+| [`rocket-foundation-20261008.md`](./rocket-foundation-20261008.md) | **shipped** with [PR #376](https://github.com/blisspixel/fragr/pull/376), v0.81.0 | Finite traveling Rocket Launcher, one-round tube, covered splash and save version 16. No mission grants it. Viewmodel art, the optional M12 secret and connected M13 remain ahead. |
 | [`low-water-sabotage-20261008.md`](./low-water-sabotage-20261008.md) | **implemented locally** | Original town, 69 walking routes, two finite bot matches and a full ordinary-socket 5v5 match with five plants, four defuses and a detonation; human and two-machine acceptance remain open. |
 | [`custody-archive-venue-20261008.md`](./custody-archive-venue-20261008.md) | **implemented** | Isolated next-increment geometry preparation: two-level curved rotunda, four workshops, enclosed stairs, eighteen supported respawn candidates and ten nominated 5v5 points. Deterministic candidate, ordinary routes, strict native navigation and obstruction control pass. Runtime venue, Control, Sabotage integration and played acceptance remain separate. |
 | [`edda-live-repair-20261008.md`](./edda-live-repair-20261008.md) | **implemented locally** | Repaired weighted source and eligible M09/M10 live routes pass, with separate omitted/Unknown controls and composed client/package checks. Final art and human acceptance remain open. |

@@ -1,7 +1,7 @@
 # Connected Weight of Permission foundry
 
 Status: **in flight**, 2026-10-09. Spend: $0. The Rocket Launcher foundation is
-on main at `711dfb4` and is not part of v0.80.0. This change adds
+on main at `711dfb4`, recorded for v0.81.0, and is not part of v0.80.0. This change adds
 `server/maps/m13-weight-of-permission.json`: the roof-split successor, the
 office Rocket Launcher, four extra rockets and the freight Assessor.
 `foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geometry`

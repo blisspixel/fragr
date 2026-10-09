@@ -4,6 +4,20 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.81.0 (2026-10-09)
+
+- Add the Rocket Launcher as a server weapon with straight flight, covered
+  splash, a one-round tube and a separate Rockets pool. Shared arcade rooms
+  use gameplay 46. Version 16 saves add an empty Rockets pool during migration
+  and reject a forged launcher or pool. Arcade stock stays at zero.
+- Show a traveling rocket and a rocket count. No mission grants the launcher.
+  Its viewmodel art, the optional habitat secret, connected foundry progression
+  and Walker remain unfinished.
+
+These are development prototypes. Full campaign completion, final art,
+fresh-player acceptance, physical LAN evidence and a networked 64-player
+capacity claim remain open.
+
 ## v0.80.0 (2026-10-09)
 
 - Add Terms of Cooperation as the twelfth connected campaign prototype, with

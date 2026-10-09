@@ -1,16 +1,15 @@
 # Rocket Launcher foundation
 
-Status: **in flight**, 2026-10-09. The composed Arc, Assessor, connected M12
-and live Edda gates are on `main` through
-[PR #375](https://github.com/blisspixel/fragr/pull/375) and are recorded as
-v0.80.0. This change adds server flight, inventory, records, save migration
-and client presentation. No mission grants the launcher. The optional M12
-secret and connected M13 stay out of this increment. The [weapon brief](../WEAPONS.md),
+Status: **shipped**, 2026-10-09, in
+[PR #376](https://github.com/blisspixel/fragr/pull/376) at `711dfb4`, released
+as v0.81.0. Main CI run 37904819101 passed, including the coverage floor, the
+bench and the playtest roster. The composed Arc, Assessor, connected M12 and
+live Edda gates remain v0.80.0. No mission grants the launcher. Viewmodel art,
+the optional M12 secret and connected M13 remain ahead. The [weapon brief](../WEAPONS.md),
 [readable arsenal](readable-arsenal.md),
 [M12 secret](../campaign/m07-terms-of-cooperation.md#level-12-design-twenty-level-expansion)
 and [M13 introduction](../campaign/m08-weight-of-permission.md#level-13-design-twenty-level-expansion)
-own the purpose. No paid calls, dependency changes or release claim are part of
-this plan.
+own the purpose. No paid calls or dependency changes.
 
 ## Proposed bounded behavior
 
@@ -156,7 +155,8 @@ harness edit. The full Godot check passed every harness except `test_m09_local`,
 whose historical retry still looked for save version 15, and `test_desktop_host`,
 whose Conquest resume timed out while that full run was loading. Both passed
 when run alone after the version-16 marker fix. Coverage, the bench and the
-playtest roster were not re-run for this change.
+playtest roster were not re-run locally. Main CI run 37904819101 on `711dfb4`
+passed those gates.
 
 ## Existing seam review, 2026-10-08
 
