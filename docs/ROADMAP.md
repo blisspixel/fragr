@@ -381,7 +381,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-08)
+## Full build order (updated 2026-10-10)
 
 **Active goal:** build the agreed game through a proven 1.0. On October 6 Nick
 explicitly advanced parallel campaign, vehicle and island work alongside the
@@ -430,9 +430,11 @@ feedback and necessary fixes continue during authorized development. Cloud
 apply, cash charges, top-ups and matchmaking have no new authorization. Source,
 geometry, rendered evidence and played acceptance remain separate gates. The
 story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follows
-its brief. `main` at `711dfb4` has twelve connected development prototypes
-through Terms of Cooperation, released as v0.80.0, and the Rocket Launcher
-foundation, released as v0.81.0. Connected M13 through M20 and the conditional
+its brief. `main` through `2c991430`, released as v0.82.0, has twelve connected
+development prototypes through Terms of Cooperation. The Rocket Launcher
+foundation shipped in v0.81.0. Ordinary campaign supply and visual pursuit
+scale by Assisted, Standard, and Severe. Connection admission and pinned
+release inputs are in this release. Connected M13 through M20 and the conditional
 epilogue remain unbuilt. The launcher is not part of v0.80.0, and no mission
 grants it. The foundry successor opens the shaft, places the rocket lesson, and carries
 the optional foundry gate key. It is still not a mission. Connected M13 is the

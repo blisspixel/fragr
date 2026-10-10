@@ -1,6 +1,6 @@
 # Admission, ticket, and supply bounds
 
-Status: **in flight**. Branch `fix/admission-bounds`. Not merged.
+Status: **shipped** with [PR #382](https://github.com/blisspixel/fragr/pull/382), v0.82.0. Spend: $0.
 
 ## Goal
 

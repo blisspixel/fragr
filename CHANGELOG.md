@@ -4,6 +4,33 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.82.0 (2026-10-10)
+
+- Scale ordinary campaign ammunition, health, and armor by the existing
+  Assisted, Standard, and Severe tiers. Assisted holds between bursts and
+  receives half again as much of that stock. Severe remembers a sighting
+  longer, steps in sooner between bursts, and receives two thirds. Standard
+  tell timing and Standard amounts stay exact. Secrets, grenades, mines, and
+  arcade pads stay authored. Rules revision stays 4. This is not fresh-player
+  balance.
+- Add development grayboxes for levels 15 through 20, and a sheltered trench
+  on the level 14 battlefield. They are not missions. The foundry successor
+  now carries the optional gate key and is still not a mission. Walker, save
+  promotion, and the menu remain unbuilt.
+- Bound connection admission, spectators, status answers, and live plus parked
+  pawns, leaving loopback room for the desktop client and playtests. A join
+  ticket can be one-time and audience-bound. Local tickets stay reusable when
+  no audience is configured. The client does not attach a ticket on a public
+  cleartext ws host. A saved server keeps its wss scheme. Present Origin
+  values must match an allow-list. Snapshot rows, board posts, adapter events,
+  brain traces, and developer receipts are bounded. Release workflows pin
+  third-party actions and check Godot archives against a committed digest.
+  Gameplay version, campaign rules revision, and the save format stay unchanged.
+
+These are development prototypes. Full campaign completion, final art,
+fresh-player acceptance, physical LAN evidence and a networked 64-player
+capacity claim remain open.
+
 ## v0.81.0 (2026-10-09)
 
 - Add the Rocket Launcher as a server weapon with straight flight, covered

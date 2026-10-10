@@ -1,6 +1,6 @@
 # Difficulty pressure
 
-Status: **in flight**, 2026-10-09. Spend: $0. This pass makes the existing
+Status: **shipped** with [PR #381](https://github.com/blisspixel/fragr/pull/381), v0.82.0, 2026-10-10. Spend: $0. This pass makes the existing
 Assisted, Standard, and Severe tiers smarter and tighter on campaign supply.
 It is not final balance and not a fresh-player acceptance.
 

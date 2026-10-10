@@ -73,8 +73,12 @@ shelter controls, vulnerable pumps and deliberate coalition departure.
 Three retained [standalone development maps](docs/PLAYING.md#standalone-development-maps)
 explore the habitat, foundry and launch works. The Rocket Launcher, released as v0.81.0, is a server weapon with a traveling
 rocket, a one-round tube and covered splash. No mission places it yet, and its
-viewmodel art is still ahead. Connected foundry progression, Walker and the
-later campaign remain unfinished.
+viewmodel art is still ahead. Assisted, Standard, and Severe scale ordinary
+campaign supply and how long an enemy remembers a sighting. Standard tell
+timing stays exact. Development grayboxes for levels 15 through 20, and a
+sheltered trench on the level 14 battlefield, are not missions. The foundry
+successor carries the optional gate key and is still not a mission. Connected
+foundry progression, Walker and the later campaign remain unfinished.
 
 Current source work also moves the selectable human and synthetic bodies and
 Tern to live animated meshes, reusing retained models. Splice uses an articulated

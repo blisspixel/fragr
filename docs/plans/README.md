@@ -22,7 +22,10 @@ The [main consolidation](main-consolidation-20261008.md) shipped in
 released as v0.80.0. The
 [Rocket Launcher foundation](rocket-foundation-20261008.md) shipped in
 [PR #376](https://github.com/blisspixel/fragr/pull/376) at `711dfb4` and is
-released as v0.81.0. It is not part of v0.80.0. No mission grants it. The next
+released as v0.81.0. It is not part of v0.80.0. No mission grants it.
+[Difficulty pressure](difficulty-pressure-20261009.md) and
+[admission bounds](admission-bounds-20261009.md) shipped in v0.82.0.
+Levels 15 through 20 are development grayboxes, not missions. The next
 campaign dependency is connected M13. Human acceptance, final art and the
 unbuilt campaign remain open.
 
@@ -66,8 +69,8 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`difficulty-pressure-20261009.md`](./difficulty-pressure-20261009.md) | **in flight** | Assisted, Standard, and Severe: pursuit memory 40/100/160, recovery hold or closer step-in, and campaign supply margins. Not fresh-player balance. |
-| [`admission-bounds-20261009.md`](./admission-bounds-20261009.md) | **in flight** | Bound connection admission, audience-bound join tickets, snapshot nodes, developer-tool writes, and pinned CI supply so one remote input cannot exhaust a match or change a release artifact. |
+| [`difficulty-pressure-20261009.md`](./difficulty-pressure-20261009.md) | **shipped** with [PR #381](https://github.com/blisspixel/fragr/pull/381), v0.82.0 | Assisted, Standard, and Severe: pursuit memory 40/100/160, recovery hold or closer step-in, and campaign supply margins. Not fresh-player balance. |
+| [`admission-bounds-20261009.md`](./admission-bounds-20261009.md) | **shipped** with [PR #382](https://github.com/blisspixel/fragr/pull/382), v0.82.0 | Bound connection admission, audience-bound join tickets, snapshot nodes, developer-tool writes, and pinned CI supply so one remote input cannot exhaust a match or change a release artifact. |
 | [`latch-screen-expressions-20261008.md`](./latch-screen-expressions-20261008.md) | **implemented locally** | Distinct personal screen shapes, accepted-state transitions, blink and retained head/near-clip behavior pass six focused checks and a 61-frame renderer preview. Local composition passes; final human art review remains open. |
 | [`splice-contact-gait-20261008.md`](./splice-contact-gait-20261008.md) | **in flight** | Ignored straight-walk contact candidate passes actual planted-foot, reach and continuity controls. Selected runtime gait remains unchanged; export, visual, start/stop and turn acceptance remain open. |
 | [`presentation-stairs-composition-20261008.md`](./presentation-stairs-composition-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375) | Bound native, sixth whole-client, ordinary routes, multiplayer, separately reassessed and inspected third tour, intake prefix and matching Windows package pass. Final art and human acceptance remain separate. |
