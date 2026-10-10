@@ -190,14 +190,14 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, full campaign progression and rewards, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, levels 12 to 20, the M14 vehicle mission, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, full campaign progression and rewards, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, connected levels 13 through 20, the M14 vehicle mission, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
 
 The current development build includes Holdfast Conquest with jeeps, boats,
 an aircraft and swimming. This establishes a playable combined-arms prototype;
 finished island art, human balance and networked 64-player acceptance remain
 open. `GET /status` on the game port is a host probe. The app keeps a local
 server list and hears LAN announcements; there is no public directory.
-Episode 0 remains separate from the eleven connected campaign prototypes.
+Episode 0 remains separate from the twelve connected campaign prototypes.
 The main menu Benchmark compares three graphics presets against the same
 recorded Arena Duel fight and exports frame statistics. It does not establish
 public-server readiness or replace the planned nine-scene showcase. Frame caps,
@@ -333,7 +333,7 @@ the reproduced exposed-ring layout, 16 new cover pockets, walking regressions,
 network comparisons and inspected captures. These checks establish safer
 openings, not a finished map or a universal respawn guarantee.
 
-The [M01 completion work](plans/m01-completion.md), tracked in #195, expands the
+The [M01 completion work](plans/m01-completion.md) expands the
 records wing into reception, stacks, bypass, sorting and dispatch with twenty
 preplaced guards and finite campaign stock. The records-wing increment in #196
 passes full rendered OpenGL/Vulkan routes with twenty named defeats and departure,
@@ -356,7 +356,7 @@ level with its starting equipment; three continues, refilled at the start of
 each episode, is the decided allowance. No mandatory duo, companion controls,
 revival or all-mission co-op. Autonomous allies and level-specific viewpoints
 are design options.
-Cross-mission recovery and disk saves remain unbuilt under #195. The local service
+Durable version 16 run files carry the connected development campaign through Terms of Cooperation, including mission-entry retries and completed choices. Final Recall Notice art, pacing and fresh-player acceptance stay in the [M01 completion plan](plans/m01-completion.md). The local service
 record now retains 256 campaign, arena and practice observations, with authoritative
 counters, separate attempt effort, JSON export and optional localized quips.
 Local verification passes under [#199](plans/benchmark-and-stats.md): authoritative
@@ -375,7 +375,7 @@ released as v0.81.0. It is not part of v0.80.0. No mission grants it. Its
 campaign placement remains ahead in
 [the readable arsenal](plans/readable-arsenal.md). Gold
 finishes and curated weapon colors are cosmetic-only achievement directions
-under #197.
+in [difficulty and rewards](plans/difficulty-and-rewards.md).
 
 The phases below are the long shape. The sequence that follows is the build order. Each rung is there because the rung before it is what makes the next one true. A green harness is not a finished mission. A scripted clear is not a fresh player.
 

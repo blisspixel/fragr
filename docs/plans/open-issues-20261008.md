@@ -1,6 +1,16 @@
 # Open issue reconciliation
 
-Status: in flight, 2026-10-08. Nick requested research, plans and implementation
+Status: reconciled 2026-10-10. The public repository has no open issues.
+#180, #195 and #197 are closed. Their shipped work is on main in v0.82.0.
+Final Recall Notice art and pacing, Clerk and Sweeper production review,
+fresh-player difficulty, encounter-count variation, gold finishes and the
+campaign-completion award stay in the owning plans. Closing the tickets does
+not record those gates as passed. The private security tracker also has no
+open fragr issues.
+
+The notes below are the October 8 mapping and remain historical.
+
+Status on 2026-10-08: Nick requested research, plans and implementation
 for the complete open GitHub backlog alongside the current parallel buildout.
 Nick confirmed that this includes unfinished roadmap work, not only GitHub
 issues. The existing full build order continues to own those dependencies.

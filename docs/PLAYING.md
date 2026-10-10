@@ -255,7 +255,7 @@ The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-Current source writes version 15 saves; desktop v0.75.0 writes version 12.
+Current source writes version 16 saves; desktop v0.75.0 writes version 12.
 Supported historical saves upgrade
 strictly, retaining exact original bytes in a content-addressed
 `run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1

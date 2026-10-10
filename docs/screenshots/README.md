@@ -11,18 +11,16 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## Current README gallery, October 8, 2026
+## Current README gallery, October 10, 2026
 
-The current working-tree composition on main `e4df1a0b` passed the full
-32-state visual tour and copied fourteen stills again after live character
-integration. They were inspected at full size, including all three original
-effects strips. Human and synthetic participants now use weighted live meshes;
-the menu retains its small strip preview. The selected Multiplayer still comes from the final clean full tour,
-including a real owned loopback probe and bounded scrolling content.
-Its title and Back fit within the card. Independent original-size review
-corrected a previous mistaken clipping observation; no layout repair was needed.
-The earlier title anomaly remains in its dated receipt. Earlier body-camera and Rail setup corrections remain in
-the owning release receipts.
+The boot menu matches the October 8 capture byte for byte. The multiplayer
+page and the watched Arena Duel match were captured again on the current build
+and inspected at full size. The multiplayer page shows a real loopback host
+check, and its title and Back fit within the card. The watched match shows a
+live fighter, the score, and the kill feed. Recall Notice intake remains the
+October 8 three-room capture. That mission surface did not change. The other
+tour files stay at the October 8 publish. The stills below were copied without
+retouching, cropping, or resizing.
 
 | README image | Actual state |
 |---|---|
@@ -31,12 +29,12 @@ the owning release receipts.
 | `tour_multiplayer_16x9.png` | Populated join page after a real loopback status probe, with the saved host and bounded scrolling content |
 | `tour_combat_follow_16x9.png` | Spectator chase view of an Active Arena Duel round with rule bots |
 
-The [receipt](readme-20261008.json) records image, route, QA-source and native
-hashes. All selected images are copied without retouching, cropping or resizing.
-The [October 7 receipt](readme-20261007.json) retains its historical hashes.
+The [October 8 receipt](readme-20261008.json) remains the hash record for the
+unchanged boot menu, the intake still, and the other tour files. The
+multiplayer page and watched match above replace that receipt's copies. The
+[October 7 receipt](readme-20261007.json) retains its historical hashes.
 The intake retains its earlier three-state prefix, not a full campaign
-completion. The earlier focused Multiplayer capture remains historical in the
-receipt; the current selection is the full-tour original.
+completion.
 The tour uses isolated settings and history, Godot 4.7.2-stable, Windows,
 OpenGL Compatibility, an AMD Radeon 780M and 1280x720 output. These screenshots
 do not establish final art, human enjoyment, LAN behavior or hardware performance.

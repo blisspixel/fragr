@@ -57,9 +57,9 @@ offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
 through the connected authored development missions, including the M12 prototype.
-Save version 15 preserves actual counts through the existing locked writer;
-strict historical version 14 and earlier upgrades archive exact original bytes
-and refuse forged Arc ownership. Earlier formats retain their original weapon
+Save version 16 is current. It preserves those counts and adds an empty Rockets
+pool when an older file migrates. Strict historical upgrades archive exact
+original bytes and refuse forged Arc ownership and a forged Rockets pool. Earlier formats retain their original weapon
 and stage boundaries, including Repeater and Remote Mine restrictions.
 The current M10 prototype grants no
 Repeater; its actual source, cue and discovery lesson remain open.
@@ -103,7 +103,7 @@ There is one number per ammunition type and it is everything you carry, includin
 | 6b | **Sniper** (implemented) | Far precision, scoped, 90 m reach | 70 | 1.60 s | 8 | Cells | Level 7 rack, campaign only |
 | 7 | **Repeater** (CPU foundation, feel candidate) | Held full auto after 0.30 s warmup | 14 | 0.10 s | 60 | Bullets | M10 lesson planned; no production find |
 | 8 | **Lobber** | Splash, projectile | 65 direct, 45 splash | 0.80 s | 4 | Rockets | Pad, outer ring |
-| 9 | **Arc** (implemented foundation) | 24 m energy, bypasses carried armour and registered plates | 18 | 0.15 s | 40 | Cells | Separate finite practice lesson; connected M12 in flight |
+| 9 | **Arc** (implemented foundation) | 24 m energy, bypasses carried armour and registered plates | 18 | 0.15 s | 40 | Cells | Connected M12 prototype; fresh-player acceptance remains open |
 | 10 | **Proximity Mine** (implemented) | Thrown, sticks | Up to 130, covered 4.5 m falloff | 2 s to arm, 0.2 s triggered fuse | 4 carried maximum | none | M08 |
 | 11 | **Article Blade** | Melee upgrade | 70 | 0.45 s | 12 swings | none | Plinth, near centre |
 | 12 | **Denial** | Signature | 250 | 1.25 s | 5, no refill | none | Plinth, centre |
@@ -180,9 +180,11 @@ Later encounters can use an obvious demolition target with a nearby usable charg
 never a hidden bomb hunt or a finicky wiring puzzle. Multiplayer needs visible
 counterplay, bounded active devices and explicit owner/death/round cleanup rules.
 Server authority covers placement, arming, detonation, cover-blocked splash and
-damage. Cosmetics cannot hide the device or its tell. Rockets remain unbuilt.
-Reuse the counted grenade's server-owned projectile, covered blast and cleanup
-seams when their bounded plan reaches implementation.
+damage. Cosmetics cannot hide the device or its tell. The Rocket Launcher is
+implemented: straight flight, covered splash, a one-round tube and a separate
+Rockets pool. No mission grants it, and its viewmodel art remains ahead. It
+reuses the counted grenade's server-owned projectile, covered blast and cleanup
+seams.
 
 ## Ammunition economy
 

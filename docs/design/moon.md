@@ -2,9 +2,10 @@
 
 Production direction, updated 2026-10-01. The [bible](../ART_STORY_BIBLE.md) owns palette
 and faction manufacture; [levels 6-9](../campaign/README.md) own encounters.
-The [M06 prototype](../plans/m06-port-of-entry-prototype.md) is in flight;
-later lunar missions remain unbuilt. These are linked authoring targets,
-with implementation evidence and remaining acceptance recorded in that plan.
+The M06 through M09 prototypes are playable development missions on main.
+Fresh-player acceptance remains open, and no later lunar mission is built.
+These are linked authoring targets, with implementation evidence and remaining
+acceptance recorded in the [M06 plan](../plans/m06-port-of-entry-prototype.md).
 
 An established settlement under pressure controls, not an empty landing pad.
 The port, habitation ring, custody archive and launch berth belong to the same

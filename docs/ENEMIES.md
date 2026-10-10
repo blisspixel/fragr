@@ -158,7 +158,7 @@ can mix these established roles. During the level 18 wipe, the Inheritance can
 seize surviving Notaries as infrastructure; their issued shape remains, while
 their targets and timing change. These placements follow the accepted
 [campaign order](CAMPAIGN.md#structure). M04/M05 implement bounded Notary combat;
-connected Assessor introduction is in flight, and takeover behavior remains unbuilt.
+the connected M12 prototype introduces the Assessor, and takeover behavior remains unbuilt.
 
 **What the existing Compliance Drone gives.** Less than its name suggests. It is
 an arena prototype: an ordinary player body with an `is_boss` flag, spawned once

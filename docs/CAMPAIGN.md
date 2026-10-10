@@ -4,7 +4,7 @@ The [art bible](ART_STORY_BIBLE.md) and [design continuity guides](design/README
 keep worlds, characters, voices and future scenes consistent. The
 [level plans](campaign/README.md) apply those rules to individual places.
 
-**Status, 2026-10-08:** twenty levels in five episodes, plus a survival-gated
+**Status, 2026-10-10:** twenty levels in five episodes, plus a survival-gated
 playable epilogue, accepted as the contract. This replaces the ten-mission
 structure agreed 2026-09-20, which itself replaced the earlier twelve-mission
 structure. The [campaign expansion plan](plans/campaign-expansion.md) records
@@ -26,12 +26,15 @@ grenades, optional workshop rescue, a bounded authoritative tram and deliberate
 freight departure. M04-to-M05 carry retains earlier car, patient and photograph
 outcomes. The connected development run continues through M06 Port of Entry,
 M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
-Carrier, M11 Right of Search and M12 Terms of Cooperation. Version 15 saves retain mission-entry retries,
+Carrier, M11 Right of Search and M12 Terms of Cooperation. Version 16 saves retain mission-entry retries,
 equipment, remaining continues and completed choices, distinguishing released
 people from those actually evacuated or aboard. Historical saves upgrade
 explicitly and retain exact-byte archives. M12 adds the Arc, Assessor, shelter,
 pump conditions and coalition departure; completed M12 records pending M13.
-Connected M13 through M20 and the epilogue remain unbuilt. Local standalone
+Connected M13 through M20 and the epilogue remain unbuilt. Development grayboxes
+for levels 15 through 20, and a sheltered trench on the level 14 battlefield,
+are not connected missions. Ordinary campaign supply and visual pursuit scale
+by Assisted, Standard, and Severe. Standard tell timing stays exact. Local standalone
 [M12 habitat](plans/m12-habitat-development-20261008.md),
 [M13 foundry](plans/m12-m14-foundry-slice-20261008.md) and
 [M14 launch-works](plans/m14-vehicle-development-20261006.md) maps have supplied
@@ -430,7 +433,7 @@ retains completed recall-car choices throughout M04 and its retries. M04 saves
 patient rescue and photograph outcomes through M05 entry and retries. M05's
 development prototype adds counted grenades, workshop rescue, a real translating
 tram and freight departure, preserving released/physically aboard outcomes at
-Port of Entry. The version 15 run continues through M12, retaining actual
+Port of Entry. The version 16 run continues through M12, retaining actual
 completed outcomes, entry resources and the M06/M10 episode refills. Completed
 M12 retains pending M13. Connected M13-M20, the epilogue and any cloud-save policy
 remain unbuilt. Complete pacing and fresh-player acceptance stay open.

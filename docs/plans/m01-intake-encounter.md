@@ -1,9 +1,9 @@
 # M01 intake encounter
 
-Status: foundation **shipped** in #182 and v0.25.0; final character, motion and
-fresh-player acceptance remain **in flight** in
-[task #180](https://github.com/blisspixel/fragr/issues/180). Current audit:
-2026-10-08. Safe Pistol discovery, the initial Clerk and two Sweepers, attack
+Status: foundation **shipped** in #182 and v0.25.0. Final character, motion and
+fresh-player acceptance remain **in flight** in this plan. GitHub #180 is
+closed and does not record that review. Current audit: 2026-10-10. Safe Pistol
+discovery, the initial Clerk and two Sweepers, attack
 phases, resolved recoil, collapse and exhausted melee are implemented. The
 expanded rooms, record, lift, local launch, opening, secret and durable run
 followed in separate increments tracked by [M01 completion](m01-completion.md).

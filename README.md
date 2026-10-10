@@ -20,7 +20,7 @@ Local play and self-hosting need no account or paid service.
 
 ## Play now
 
-Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
+Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest), v0.82.0.
 The current source build has twelve connected development levels through Terms
 of Cooperation, mission-entry saves, finite ammunition and three continues per episode.
 Check the release notes for the contents of a downloaded package. The finished target

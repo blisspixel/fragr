@@ -1,6 +1,6 @@
 # Recall Notice: complete mission
 
-Status: **in flight**, audited 2026-10-08. [Task #195](https://github.com/blisspixel/fragr/issues/195) owns finished-mission acceptance. The authoritative mission and durable solo-run foundation are implemented; final art, final difficulty/pacing and unsteered fresh-player acceptance remain open. The [full build order](../ROADMAP.md#full-build-order-updated-2026-10-08) remains the sole active sequence.
+Status: **in flight**, audited 2026-10-10. Finished-mission acceptance stays in this plan. GitHub #195 is closed and does not record fresh-player acceptance or final art. The authoritative mission and durable solo-run foundation are implemented; final art, final difficulty/pacing and unsteered fresh-player acceptance remain open. The [full build order](../ROADMAP.md#full-build-order) remains the sole active sequence.
 
 Current source contains the inhabited records/transfer rooms, both ordinary
 approaches, a separate east-bypass fight, a balcony view of the lift, physical
@@ -14,9 +14,10 @@ secret is not a remaining requirement.
 
 [Mission-start continues](campaign-continues.md) and
 [durable local run files](campaign-run-file.md) are implemented. Current
-version-14 files carry the connected development campaign through M11, with
-explicit episode refills, locked replacement and strict historical migration;
-M06 and its Episode II refill are implemented. The connected prototypes do not
+version 16 files carry the connected development campaign through Terms of
+Cooperation, with explicit episode refills, locked replacement and strict
+historical migration. M06 and its Episode II refill are implemented. Completed
+M12 records pending M13. The connected prototypes do not
 establish a finished campaign. Entry restoration, exhaustion, duplicate/stale
 refusal and save/quit without replenishing continues remain authoritative
 contracts, not open disk-save implementation tasks.

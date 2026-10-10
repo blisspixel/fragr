@@ -1,6 +1,6 @@
 # Difficulty and earned customization
 
-Status: in flight, updated 2026-10-09. [Task #197](https://github.com/blisspixel/fragr/issues/197).
+Status: in flight, updated 2026-10-10. GitHub #197 is closed. Fresh-player balance and the remaining rewards stay in this plan.
 Explicit difficulty and shared enemy rules are implemented. Current main has
 twelve connected development missions through Terms of Cooperation, version 16
 durable run files and three mission-start continues refilled at implemented
@@ -238,11 +238,13 @@ documents this early-exit interaction (checked 2026-09-20). All ten verifier fau
 scenarios and 27 local Godot harnesses pass. CI run 35536139881 at code head
 `55405ac` passes all five jobs, including Linux Godot and Windows/macOS portability.
 Subsequent final CI run 35537266801 passed all five jobs at `f9dee29`.
-PR #198 merged as `b572396` and released in v0.30.0. The remaining achievement
-and earned-cosmetic scope keeps #197 open.
+PR #198 merged as `b572396` and released in v0.30.0. The two local awards and
+the v0.82.0 supply and pursuit scaling are on main. GitHub #197 is closed.
+Fresh-player balance, encounter-count variation, gold finishes and the
+campaign-completion award stay in this plan. They are not accepted.
 
 These checks establish the implementation and reachable mission, not final human
 balance. Missed shots, unfamiliar players, scarce supply margins and the new
 limited-continue run need dedicated acceptance. Any future co-op variant requires
 its own evidence. No achievement, persistence, reward, run-recovery or final-art
-claim follows from this increment. Integration and remaining work stay on #197.
+claim follows from this increment.
