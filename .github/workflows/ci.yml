@@ -20,8 +20,8 @@ jobs:
       run:
         working-directory: infra/terraform
     steps:
-      - uses: actions/checkout@v7
-      - uses: hashicorp/setup-terraform@v4.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
           terraform_version: 1.16.4
       - name: Check plan-only container host
@@ -35,18 +35,20 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
+          # 1.97.1 was the current stable toolchain on 2026-10-09.
+          toolchain: 1.97.1
           components: rustfmt, clippy, llvm-tools-preview
 
       - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
 
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
+        uses: taiki-e/install-action@27cdd3237bf9a6a2b668f3bcbfaa06949ae17deb # cargo-llvm-cov
 
       - name: Check formatting
         run: cargo fmt --all -- --check
@@ -86,7 +88,7 @@ jobs:
 
       - name: Preserve playtest evidence
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playtest-reports
           path: |
@@ -108,7 +110,7 @@ jobs:
   container:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Build dedicated server image
         run: docker compose build server
       - name: Check runtime identity and legal notices
@@ -163,9 +165,11 @@ jobs:
             binary: Godot.app/Contents/MacOS/Godot
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          toolchain: 1.97.1
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
       - name: Workspace tests
         run: cargo test --workspace --locked
       - name: Build owned local server for client lifecycle checks
@@ -176,7 +180,14 @@ jobs:
           GODOT_ASSET: ${{ matrix.asset }}
         run: |
           Invoke-WebRequest "https://github.com/godotengine/godot/releases/download/4.7.2-stable/$env:GODOT_ASSET" -OutFile godot.zip
-          Expand-Archive godot.zip -DestinationPath godot-bin
+      - name: Verify the Godot archive against the committed pin
+        shell: bash
+        env:
+          GODOT_ASSET: ${{ matrix.asset }}
+        run: bash tools/check_godot_archive.sh godot.zip "$GODOT_ASSET"
+      - name: Unpack Godot
+        shell: pwsh
+        run: Expand-Archive godot.zip -DestinationPath godot-bin
       - name: Headless client checks
         shell: bash
         env:
@@ -191,9 +202,11 @@ jobs:
     # Runs beside the test job, off its critical path. The long soak is local.
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          toolchain: 1.97.1
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
       - name: Build the server and the harness
         env:
           FRAGR_BUILD_COMMIT: ${{ github.sha }}
@@ -202,7 +215,7 @@ jobs:
         run: target/release/fragr-playtest --soak --soak-seconds 120 --soak-sample-seconds 15 --soak-bots 4 --agents 4 --soak-spectators 2 --soak-map-rotate --assert --soak-log .agents/soak/ci.ndjson
       - name: Preserve soak evidence
         if: always()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: soak
           path: .agents/soak/
@@ -214,10 +227,16 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install cargo-deny
-        uses: taiki-e/install-action@cargo-deny
+        uses: taiki-e/install-action@5d880190e41a7608c29a5c91c6b5d24561d53850 # cargo-deny
+
+      - name: Check action pins and the Godot archive helper
+        run: |
+          bash tools/check_action_pins.sh
+          bash tools/test_action_pins.sh
+          bash tools/test_check_godot_archive.sh
 
       - name: Check licenses, bans, and sources
         run: cargo deny check licenses bans sources
@@ -231,16 +250,19 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          toolchain: 1.97.1
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
       - name: Build owned local server for client lifecycle checks
         run: cargo build -p fragr-server --release --locked
 
       - name: Install Godot 4.7.2-stable
         run: |
-          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          curl -fsSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          bash tools/check_godot_archive.sh godot.zip Godot_v4.7.2-stable_linux.x86_64.zip
           unzip -q godot.zip
           chmod +x Godot_v4.7.2-stable_linux.x86_64
           echo "GODOT_BIN=$PWD/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"

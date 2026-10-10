@@ -13,8 +13,8 @@ func _initialize() -> void:
 	vehicle.position = [2.5, 0.0, 0.0]
 	vehicle.driver = Fixture.PEER_ID
 	var snapshot: Dictionary = {"tick": 100, "players": [
-		{"id": Fixture.LOCAL_ID, "x": 0.0, "y": 1.5, "z": 0.0, "hp": 100},
-		{"id": Fixture.PEER_ID, "x": 8.0, "y": 1.5, "z": 0.0, "hp": 100, "collidable": true}], "vehicles": [vehicle]}
+		{"id": Fixture.LOCAL_ID, "name": "Meat", "x": 0.0, "y": 1.5, "z": 0.0, "hp": 100},
+		{"id": Fixture.PEER_ID, "name": "Probe", "x": 8.0, "y": 1.5, "z": 0.0, "hp": 100, "collidable": true}], "vehicles": [vehicle]}
 	var contacts: Dictionary = ActorContact.read_snapshot(snapshot)
 	_check(contacts.error.is_empty() and contacts.bodies.size() == 1, "occupied actor is excluded even from an older collidable=true snapshot")
 	var malformed: Dictionary = snapshot.duplicate(true)

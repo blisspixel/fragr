@@ -96,6 +96,12 @@ pub struct ServerOptions {
     pub solo_broadcast: bool,
     /// Opt-in local venue desk. Closing its input does not stop the match.
     pub console: bool,
+    /// Exact ticket audience. Empty keeps replayable local v1 tickets.
+    pub join_audience: Option<String>,
+    /// Exact browser Origin values. Empty rejects every present Origin.
+    pub origin_allow: Vec<String>,
+    /// Spectators present a ticket only when a join secret is also set.
+    pub spectator_tickets: bool,
 }
 
 impl Default for ServerOptions {
@@ -118,6 +124,9 @@ impl Default for ServerOptions {
             join_secret: None,
             access: crate::access::AccessConfig::default(),
             console: false,
+            join_audience: None,
+            origin_allow: Vec::new(),
+            spectator_tickets: false,
         }
     }
 }
@@ -353,7 +362,7 @@ async fn run_server_impl(
     if session.state.map.mission().is_some() {
         tracing::info!(rules = ?session.state.campaign_rules(), "Campaign rules selected");
     }
-    let (game_tx, mut game_rx) = mpsc::unbounded_channel();
+    let (game_tx, mut game_rx) = crate::net::game_channel();
 
     // Rotation advertises the maximum requirement before a client joins, so
     // switching maps cannot strand a legacy client inside a misrendered slab.
@@ -503,6 +512,14 @@ async fn run_server_impl(
     if let Some(secret) = options.join_secret.clone() {
         net_server.set_join_secret(secret);
     }
+    let population = crate::admission_bounds::Population::default();
+    session.share_population(population.clone());
+    net_server.share_population(population);
+    net_server.set_admission_policy(
+        options.join_audience.clone(),
+        options.origin_allow.clone(),
+        options.spectator_tickets,
+    );
     if options.campaign_run {
         net_server.reserve_solo_run()?;
         net_server.set_solo_bound_body(session.state.campaign_run_body());
@@ -701,6 +718,9 @@ async fn run_server_impl(
                     clients.lock().await.retain(|client| client.id != *client_id);
                 }
                 session.apply_command(cmd);
+                for (player_id, action) in game_tx.take_pending_actions() {
+                    session.apply_command(crate::net::GameCommand::Action { player_id, action });
+                }
                 persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
                 let unicasts = session.take_unicasts();
                 let delivery = send_unicasts(&clients, &session.client_to_player, &unicasts).await;

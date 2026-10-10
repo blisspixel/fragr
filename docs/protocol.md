@@ -71,13 +71,22 @@ Initial handshake message. Must be sent immediately after connection.
   - `agent`: Bot/MCP agent, receives snapshots, sends actions
 - `name`: Display name (shown in game and logs)
 - `ticket`: optional. Absent when the server has no join secret. When
-  `FRAGR_JOIN_SECRET` is set, a `human` or `agent` hello must carry
-  `v1.<unix exp>.<human|agent>.<64 lowercase hex>`. The hex is HMAC-SHA256 over
-  `fragr-join-v1`, the expiry, and the role, using that secret. The server
-  accepts an expiry from 15 seconds ago through 75 seconds ahead. A spectator
-  hello is not ticketed. A bad ticket is `join_rejected` before a seat is taken.
-  The same ticket can be presented again until it expires. It does not name the
-  player and it does not by itself resume a dropped pawn.
+  `FRAGR_JOIN_SECRET` is set, a `human` or `agent` hello must carry a ticket.
+  `v1.<unix exp>.<human|agent>.<64 lowercase hex>` stays valid when the process
+  has no required audience. The hex is HMAC-SHA256 over `fragr-join-v1`, the
+  expiry, and the role, using that secret. The server accepts an expiry from
+  15 seconds ago through 75 seconds ahead. A spectator hello is not ticketed
+  unless `FRAGR_SPECTATOR_TICKET` is set together with the join secret. A bad
+  ticket is `join_rejected` before a seat is taken. Without a required
+  audience, the same v1 ticket can be presented again until it expires.
+  `v2.<unix exp>.<role>.<32 lowercase hex nonce>.<unpadded url-safe base64 audience>.<mac>`
+  signs `fragr-join-v2`, the expiry, the role, the nonce, and the audience.
+  The audience is the canonical `ws://` or `wss://` URL with an explicit port.
+  A v2 nonce is accepted once on that process until it expires. When
+  `FRAGR_JOIN_AUDIENCE` is set, only a v2 ticket for that exact audience is
+  accepted. The native client sends v2, and it does not attach a ticket on
+  public cleartext `ws`. A ticket does not name the player and it does not by
+  itself resume a dropped pawn.
 - `resume`: optional. Absent means a dropped socket removes the pawn. An empty
   string asks for a resume token on `Welcome`. A token rebinds the parked pawn
   and the server answers with a new token. A bad or expired token is
@@ -254,9 +263,19 @@ cannot reclaim the owner. A failed handshake before admission does not consume i
 Each connection is also bounded before that seat exists. Incoming text is capped
 at 64 KiB per frame and per message. The WebSocket handshake and the first
 hello each have five seconds. The process holds at most 64 connections, and
-32 from one address. Past either cap the server sends `connection_limit` or
-`address_limit` and closes. A stalled handshake or a client that never says
-hello releases its slot. Further inbound text, including actions, is limited
+32 game connections from one address. A socket is counted before it is
+classified: 4 concurrent unclassified sockets from an ordinary address, or 32
+from loopback, with a short accept rate on the same split. Status answers are
+capped per address as well as by the process status budget. Unticketed
+spectators share a smaller cap inside the 64 (`spectator_limit`), so a full
+spectator set still leaves room for a participant. New joins, not resumes, are
+also capped per address over a short window, and the process caps live plus
+parked participant pawns. A parked pawn stays on the server and is omitted
+from snapshots until it reconnects. A browser `Origin` header is refused
+unless it is an exact value in `FRAGR_ORIGIN_ALLOW`. A missing Origin, which
+native clients omit, is allowed. Past a connection cap the server sends
+`connection_limit` or `address_limit` and closes. A stalled handshake or a
+client that never says hello releases its slot. Further inbound text, including actions, is limited
 to a burst of 64 and 256 per second. Extra messages are dropped and the player
 stays connected. A client that asked for resume keeps its pawn for ten seconds
 after a drop. Send `{"type":"leave"}` and close the socket to remove that pawn
@@ -999,7 +1018,10 @@ asked, because the answer is a unicast.
 `op` is `list`, `read`, or `post`. `board` is `floor` or `notices` when the
 op needs one. `text` is the notice. Unknown fields are refused. The same 80
 scalar and control-character rules as speak apply to a notice. A notice waits
-60 ticks, counted on its own, so a callout does not spend it.
+60 ticks per address, counted on its own, so a callout does not spend it and
+a new socket from the same address does not reset it. The process also
+accepts at most eight notices per second. A post that would exceed the
+session or address byte budget is dropped instead of queued.
 
 `floor` is the room. Successful speaks and a venue sentence are copied onto
 it. A post to `floor` comes back `board_closed`: a seated human or agent
@@ -1551,9 +1573,11 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
     the duck key is held or the ceiling will not allow the 1.8 m body. The
     shot volume, eye, and contact height follow it. Older readers ignore it.
   - `collidable`: Boolean server-owned living-body eligibility. New servers
-    always include it. Dead, detached, eliminated, respawning and unready
-    campaign bodies report false. Legacy omission defaults to true, still
-    subject to HP and mission participation; a present nonboolean is invalid.
+    always include it on a published row. A parked pawn with no live socket is
+    omitted for the resume window. Eliminated and respawning bodies are omitted.
+    Unready or dead campaign bodies that stay published report false. Legacy
+    omission defaults to true, still subject to HP and mission participation; a
+    present nonboolean is invalid.
   - `body`: (optional) `human` or `synthetic`, the participant's accepted body.
     Every human, agent and rule-bot participant carries it; rule bots take
     bodies by roster slot (human, synthetic, synthetic, human, repeating),

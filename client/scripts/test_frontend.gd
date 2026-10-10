@@ -272,24 +272,24 @@ func _run() -> void:
 	menu._host_edit.text_changed.emit("192.0.2.10")
 	var save_host: Button = column.get_node("SaveHost") as Button
 	save_host.pressed.emit()
-	_check(menu._book.favorites == ["192.0.2.10:6767"], "save stores the typed host")
+	_check(menu._book.favorites == ["ws://192.0.2.10:6767"], "save stores the typed host")
 	var saved_list: VBoxContainer = column.get_node("SavedList") as VBoxContainer
-	var use_saved: Button = saved_list.find_child("Use_192_0_2_10_6767", true, false) as Button
-	_check(use_saved != null and use_saved.text.contains("192.0.2.10:6767") \
+	var use_saved: Button = saved_list.find_child("Use_ws___192_0_2_10_6767", true, false) as Button
+	_check(use_saved != null and use_saved.text.contains("WS://192.0.2.10:6767") \
 		and use_saved.text.contains(tr("JOIN_NOT_CHECKED").to_upper()), "a saved host is a row until it is checked")
 	var line_before: String = menu._match_line.text
-	menu._apply_summary("192.0.2.10:6767", "Arena Duel. 4 fighters.")
+	menu._apply_summary("ws://192.0.2.10:6767", "Arena Duel. 4 fighters.")
 	_check(use_saved.text.contains("ARENA DUEL") and menu._match_line.text == line_before,
 		"a list check updates the row and leaves the join line alone")
 	menu._host_edit.text = "192.0.2.11:6767"
 	menu._host_edit.text_changed.emit("192.0.2.11:6767")
 	use_saved.pressed.emit()
-	_check(menu._host_edit.text == "192.0.2.10:6767", "choosing a saved host fills the address")
-	var drop_saved: Button = saved_list.find_child("Drop_192_0_2_10_6767", true, false) as Button
+	_check(menu._host_edit.text == "ws://192.0.2.10:6767", "choosing a saved host fills the address")
+	var drop_saved: Button = saved_list.find_child("Drop_ws___192_0_2_10_6767", true, false) as Button
 	_check(drop_saved != null, "a saved host can be dropped")
 	if drop_saved != null:
 		drop_saved.pressed.emit()
-	_check(menu._book.favorites.is_empty() and saved_list.find_child("Use_192_0_2_10_6767", true, false) == null,
+	_check(menu._book.favorites.is_empty() and saved_list.find_child("Use_ws___192_0_2_10_6767", true, false) == null,
 		"drop removes that host and its row")
 	menu._lan.append("192.0.2.20:6767")
 	menu._fill_server_lists()
@@ -318,9 +318,9 @@ func _run() -> void:
 	menu._page = page_was
 	_check(column.get_node_or_null("ScanNetwork") != null, "join page can scan this network")
 	menu._remember_played("198.51.100.8")
-	_check(not menu._book.recent.is_empty() and menu._book.recent[0] == "198.51.100.8:6767",
+	_check(not menu._book.recent.is_empty() and menu._book.recent[0] == "ws://198.51.100.8:6767",
 		"watch or join remembers that host")
-	var played: Button = saved_list.find_child("Use_198_51_100_8_6767", true, false) as Button
+	var played: Button = saved_list.find_child("Use_ws___198_51_100_8_6767", true, false) as Button
 	_check(played != null, "a played host is listed on this computer")
 	menu._drop_address("198.51.100.8:6767")
 	menu._host_edit.text = "not a host"

@@ -1,11 +1,14 @@
 //! Process-local wire. The floor is the room's speak. Notices stay until this
 //! process ends. Nothing here is a combat fact, and nothing is written to disk.
 
-use std::collections::HashMap;
-
-use uuid::Uuid;
+use std::collections::{HashMap, VecDeque};
+use std::net::IpAddr;
 
 use crate::sim::{SPEAK_COOLDOWN_TICKS, SPEAK_MAX_CHARS};
+
+const NOTICE_ADDRESSES: usize = 256;
+const NOTICES_PER_SECOND: usize = 8;
+const NOTICE_WINDOW_TICKS: u64 = 20;
 
 pub const BOARD_FLOOR: &str = "floor";
 pub const BOARD_NOTICES: &str = "notices";
@@ -41,7 +44,8 @@ impl Fault {
 pub struct Board {
     floor: Vec<Line>,
     notices: Vec<Line>,
-    last_notice: HashMap<Uuid, u64>,
+    last_notice: HashMap<IpAddr, u64>,
+    notice_ticks: VecDeque<u64>,
 }
 
 impl Board {
@@ -76,7 +80,7 @@ impl Board {
 
     pub fn post(
         &mut self,
-        client: Uuid,
+        peer: IpAddr,
         name: &str,
         board: &str,
         raw: &str,
@@ -93,10 +97,15 @@ impl Board {
             return Err(Fault::Rejected);
         }
         let text = accept_line(raw)?;
-        if let Some(last) = self.last_notice.get(&client) {
+        if let Some(last) = self.last_notice.get(&peer) {
             if tick.saturating_sub(*last) < SPEAK_COOLDOWN_TICKS {
                 return Err(Fault::RateLimited);
             }
+        }
+        self.notice_ticks
+            .retain(|posted| tick.saturating_sub(*posted) < NOTICE_WINDOW_TICKS);
+        if self.notice_ticks.len() >= NOTICES_PER_SECOND {
+            return Err(Fault::RateLimited);
         }
         let line = Line {
             tick,
@@ -104,7 +113,18 @@ impl Board {
             text,
         };
         push(&mut self.notices, line.clone());
-        self.last_notice.insert(client, tick);
+        if self.last_notice.len() >= NOTICE_ADDRESSES && !self.last_notice.contains_key(&peer) {
+            if let Some(oldest) = self
+                .last_notice
+                .iter()
+                .min_by_key(|(_, posted)| *posted)
+                .map(|(ip, _)| *ip)
+            {
+                self.last_notice.remove(&oldest);
+            }
+        }
+        self.last_notice.insert(peer, tick);
+        self.notice_ticks.push_back(tick);
         Ok(line)
     }
 }
@@ -134,7 +154,7 @@ mod tests {
     #[test]
     fn notices_keep_a_trimmed_line_and_the_floor_does_not_take_posts() {
         let mut board = Board::default();
-        let who = Uuid::new_v4();
+        let who: IpAddr = "203.0.113.10".parse().unwrap();
         let line = board
             .post(who, "Meat Proxy", BOARD_NOTICES, "  still here  ", 10)
             .unwrap();
@@ -153,7 +173,8 @@ mod tests {
     #[test]
     fn a_notice_waits_out_the_same_gap_as_a_callout() {
         let mut board = Board::default();
-        let who = Uuid::new_v4();
+        let who: IpAddr = "203.0.113.10".parse().unwrap();
+        let other: IpAddr = "203.0.113.11".parse().unwrap();
         board.post(who, "Probe", BOARD_NOTICES, "one", 0).unwrap();
         assert_eq!(
             board
@@ -161,13 +182,35 @@ mod tests {
                 .unwrap_err(),
             Fault::RateLimited
         );
+        assert!(board
+            .post(other, "Probe", BOARD_NOTICES, "side", 19)
+            .is_ok());
         assert!(board.post(who, "Probe", BOARD_NOTICES, "two", 60).is_ok());
+        let mut crowded = Board::default();
+        for index in 0..NOTICES_PER_SECOND {
+            let ip = IpAddr::from([203, 0, 113, index as u8 + 1]);
+            crowded
+                .post(ip, "Probe", BOARD_NOTICES, "burst", 100)
+                .unwrap();
+        }
+        assert_eq!(
+            crowded
+                .post(
+                    IpAddr::from([203, 0, 113, 200]),
+                    "Probe",
+                    BOARD_NOTICES,
+                    "burst",
+                    100
+                )
+                .unwrap_err(),
+            Fault::RateLimited
+        );
     }
 
     #[test]
     fn empty_control_and_long_lines_stay_off_the_board() {
         let mut board = Board::default();
-        let who = Uuid::new_v4();
+        let who: IpAddr = "203.0.113.10".parse().unwrap();
         for raw in ["", "   ", "line\nbreak", &"x".repeat(SPEAK_MAX_CHARS + 1)] {
             assert_eq!(
                 board.post(who, "Probe", BOARD_NOTICES, raw, 0).unwrap_err(),

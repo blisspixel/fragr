@@ -24,8 +24,8 @@ static func _jeep() -> Dictionary:
 
 static func _snapshot(tick: int = 100) -> Dictionary:
 	return {"type": "snapshot", "tick": tick, "round_state": "Active", "players": [
-		{"id": SELF, "hp": 100, "x": 0.0, "y": 1.5, "z": 0.0},
-		{"id": OTHER, "hp": 100, "x": 2.0, "y": 1.5, "z": 0.0}], "vehicles": [_jeep()]}
+		{"id": SELF, "name": "Meat", "hp": 100, "x": 0.0, "y": 1.5, "z": 0.0},
+		{"id": OTHER, "name": "Probe", "hp": 100, "x": 2.0, "y": 1.5, "z": 0.0}], "vehicles": [_jeep()]}
 
 func _boundaries() -> void:
 	var wire: WireProbe = WireProbe.new()

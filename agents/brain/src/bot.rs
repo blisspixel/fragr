@@ -1617,6 +1617,9 @@ mod tests {
             join_secret: None,
             access: Default::default(),
             console: false,
+            join_audience: None,
+            origin_allow: Vec::new(),
+            spectator_tickets: false,
         };
         tokio::spawn(async move {
             let _ = run_server(

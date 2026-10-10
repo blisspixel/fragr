@@ -2479,7 +2479,7 @@ async fn test_net_ws_agent_hello_welcome_and_connected_command() {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-    let (game_tx, mut game_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (game_tx, mut game_rx) = crate::net::game_channel();
     let net = NetServer::bind("127.0.0.1:0", game_tx).await.expect("bind");
     let addr = net.local_addr().expect("local_addr");
     tokio::spawn(async move {
@@ -2585,7 +2585,7 @@ async fn test_net_ws_spectator_hello_no_player_id() {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-    let (game_tx, mut game_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (game_tx, mut game_rx) = crate::net::game_channel();
     let net = NetServer::bind("127.0.0.1:0", game_tx).await.expect("bind");
     let addr = net.local_addr().expect("local_addr");
     tokio::spawn(async move {
@@ -2673,7 +2673,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-    let (game_tx, mut game_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (game_tx, mut game_rx) = crate::net::game_channel();
     let net = NetServer::bind("127.0.0.1:0", game_tx).await.expect("bind");
     let addr = net.local_addr().expect("local_addr");
     let clients = net.clients.clone();
@@ -2812,7 +2812,7 @@ async fn test_net_ws_invalid_hello_closes_without_connected() {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-    let (game_tx, mut game_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (game_tx, mut game_rx) = crate::net::game_channel();
     let net = NetServer::bind("127.0.0.1:0", game_tx).await.expect("bind");
     let addr = net.local_addr().expect("local_addr");
     tokio::spawn(async move {
@@ -2847,7 +2847,7 @@ async fn test_session_plus_net_join_leave_round_broadcast_path() {
     use futures_util::{SinkExt, StreamExt};
     use tokio_tungstenite::{connect_async, tungstenite::Message};
 
-    let (game_tx, mut game_rx) = tokio::sync::mpsc::unbounded_channel();
+    let (game_tx, mut game_rx) = crate::net::game_channel();
     let net = NetServer::bind("127.0.0.1:0", game_tx).await.expect("bind");
     let addr = net.local_addr().expect("local_addr");
     let clients = net.clients.clone();

@@ -380,6 +380,10 @@ pub async fn serve_with_mode(
         })?;
     let (ready_tx, mut ready_rx) = oneshot::channel();
     let (stop_tx, stop_rx) = oneshot::channel();
+    let join_secret = crate::join_ticket::JoinSecret::from_process_env()
+        .map_err(std::io::Error::other)?
+        .map(std::sync::Arc::new);
+    let admission = crate::admission_bounds::process_policy(join_secret.is_some());
     let options = ServerOptions {
         bind: "127.0.0.1:0".into(),
         bots: 0,
@@ -388,9 +392,10 @@ pub async fn serve_with_mode(
         campaign_run,
         seed,
         status_every_s: 0,
-        join_secret: crate::join_ticket::JoinSecret::from_process_env()
-            .map_err(std::io::Error::other)?
-            .map(std::sync::Arc::new),
+        join_secret,
+        join_audience: admission.audience,
+        origin_allow: admission.origins,
+        spectator_tickets: admission.spectator_tickets,
         ..Default::default()
     };
     let (difficulty_tx, difficulty_rx) = oneshot::channel();

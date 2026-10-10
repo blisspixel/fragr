@@ -17,9 +17,21 @@ func _actor() -> Dictionary:
 func _run() -> void:
 	var actor: Dictionary = _actor()
 	var snapshot: Dictionary = {"type": "snapshot", "tick": 12, "players": [
-		{"id": "human", "campaign": {"side": "participant"}},
-		{"id": "agent", "campaign": {"side": "participant"}}, actor.duplicate(true)]}
+		{"id": "human", "name": "Meat", "campaign": {"side": "participant"}},
+		{"id": "agent", "name": "Probe", "campaign": {"side": "participant"}}, actor.duplicate(true)]}
 	_check(ActorState.validation_error(snapshot).is_empty(), "valid campaign identity accepted")
+	_check(not ActorState.validation_error({"tick": 12, "players": [
+		{"id": "human", "campaign": {"side": "participant"}}]}).is_empty(),
+		"a participant row needs a name")
+	var crowd: Array = []
+	for index: int in 65:
+		crowd.append({"id": "p%d" % index, "name": "Row"})
+	_check(not ActorState.validation_error({"tick": 12, "players": crowd}).is_empty(),
+		"more than 64 players is refused")
+	var long_name: Dictionary = _actor()
+	long_name["name"] = "n".repeat(65)
+	_check(not ActorState.validation_error({"tick": 12, "players": [long_name]}).is_empty(),
+		"a long display name is refused")
 	var charge: Dictionary = _actor()
 	charge["hp"] = 140
 	charge["campaign"]["kind"] = "enforcer"

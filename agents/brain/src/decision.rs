@@ -288,14 +288,18 @@ pub struct DecisionResponse {
 }
 
 impl DecisionResponse {
-    /// Dollars this call cost: the provider's figure when given, else tokens times price.
+    /// A positive provider cost, or a positive price for non-zero tokens.
+    /// A reported zero does not prove a reserved call was free.
     pub fn cost_usd(&self, pricing: &Pricing) -> Option<f64> {
         let usage = self.usage.as_ref()?;
-        Some(
-            usage
-                .cost
-                .unwrap_or_else(|| pricing.cost(usage.input_tokens, usage.output_tokens)),
-        )
+        if let Some(cost) = usage.cost {
+            return (cost.is_finite() && cost > 0.0).then_some(cost);
+        }
+        if usage.input_tokens == 0 && usage.output_tokens == 0 {
+            return None;
+        }
+        let priced = pricing.cost(usage.input_tokens, usage.output_tokens);
+        (priced.is_finite() && priced > 0.0).then_some(priced)
     }
 }
 
@@ -583,6 +587,18 @@ mod tests {
         assert_eq!(parsed.id.as_deref(), Some("gen-123"));
         assert_eq!(parsed.provider.as_deref(), Some("TypeSafe"));
         assert_eq!(parsed.cost_usd(&Pricing::default()), Some(0.00002));
+        let zero_cost: DecisionResponse = serde_json::from_value(serde_json::json!({
+            "answers": {},
+            "usage": {"input_tokens": 300, "output_tokens": 0, "cost": 0}
+        }))
+        .unwrap();
+        assert_eq!(zero_cost.cost_usd(&Pricing::default()), None);
+        let empty_usage: DecisionResponse = serde_json::from_value(serde_json::json!({
+            "answers": {},
+            "usage": {}
+        }))
+        .unwrap();
+        assert_eq!(empty_usage.cost_usd(&Pricing::default()), None);
 
         let no_usage: DecisionResponse =
             serde_json::from_value(serde_json::json!({"answers": {}})).unwrap();

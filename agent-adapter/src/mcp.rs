@@ -1126,17 +1126,42 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
     }
 }
 
-/// Buffer a parsed or soft-prison raw event into recent_events (cap 50).
+const RECENT_EVENT_CAP: usize = 50;
+const RECENT_EVENT_BYTES: usize = 32 * 1024;
+const RECENT_EVENT_TEXT: usize = 2 * 1024;
+
+fn event_bytes(events: &[Value]) -> usize {
+    events
+        .iter()
+        .map(|event| {
+            serde_json::to_string(event)
+                .map(|text| text.len())
+                .unwrap_or(0)
+        })
+        .sum()
+}
+
+/// Buffer a parsed or soft-prison raw event. Count and total bytes are both capped.
 pub fn push_recent_event(state: &mut ToolState, event_value: Value) {
-    state.recent_events.push(event_value);
-    if state.recent_events.len() > 50 {
+    let encoded = serde_json::to_string(&event_value).unwrap_or_default();
+    let stored = if encoded.len() > RECENT_EVENT_TEXT {
+        Value::String(encoded.chars().take(RECENT_EVENT_TEXT).collect())
+    } else {
+        event_value
+    };
+    state.recent_events.push(stored);
+    while state.recent_events.len() > RECENT_EVENT_CAP {
+        state.recent_events.remove(0);
+    }
+    while event_bytes(&state.recent_events) > RECENT_EVENT_BYTES && !state.recent_events.is_empty()
+    {
         state.recent_events.remove(0);
     }
 }
 
 /// Apply an inbound server JSON text frame into tool state (snapshot / event / soft prison).
 pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'static str> {
-    if text.len() > 1_000_000 {
+    if text.len() > 64 * 1024 {
         return Err("server message exceeds size limit");
     }
 

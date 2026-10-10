@@ -797,7 +797,7 @@ func _check_m06_contact_dodge() -> void:
 		solids.append({"min_x": solid["min"][0], "max_x": solid["max"][0], "min_z": solid["min"][2],
 			"max_z": solid["max"][2], "bottom": solid["min"][1], "top": solid["max"][1]})
 	var arena: Dictionary = {"half": authored["half_extent"], "solids": solids}
-	var me: Dictionary = {"id": "human", "x": -8.0, "y": 4.5, "z": 30.05, "hp": 100}
+	var me: Dictionary = {"id": "human", "name": "Meat", "x": -8.0, "y": 4.5, "z": 30.05, "hp": 100}
 	var peer: Dictionary = ActorContact.stationary("peer", Vector3(-8.9, 3.0, 30.65))
 	_check(QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, false),
 		"without a peer the same ordinary sideways path stays on the real crossing")
@@ -814,7 +814,7 @@ func _check_m06_contact_dodge() -> void:
 		"contact-aware dodge refuses the real gallery fall instead of granting world-only safety")
 	_check(QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, true, [peer]),
 		"opposite safe gallery direction remains available with the same living peer")
-	var snapshot: Dictionary = {"tick": 1, "players": [me, {"id": "peer", "x": -8.9, "y": 4.5, "z": 30.65, "hp": 100}]}
+	var snapshot: Dictionary = {"tick": 1, "players": [me, {"id": "peer", "name": "Probe", "x": -8.9, "y": 4.5, "z": 30.65, "hp": 100}]}
 	var contacts: Dictionary = QaCombat.strafe_contacts(snapshot, {}, "human")
 	_check(contacts["error"].is_empty() and contacts["peers"].size() == 1
 		and not QaCombat.safe_strafe(me, solids, 48.0, PI * 0.5, false, contacts["peers"]),
@@ -839,7 +839,7 @@ func _check_m08_contact_context() -> void:
 	if layout.is_empty():
 		return
 	var feet: Vector3 = layout["held"][0]
-	var me: Dictionary = {"id":"human", "x":feet.x, "y":feet.y + 1.5, "z":feet.z - 1.05,
+	var me: Dictionary = {"id":"human", "name":"Meat", "x":feet.x, "y":feet.y + 1.5, "z":feet.z - 1.05,
 		"hp":100, "campaign":{"side":"participant"}}
 	var snapshot: Dictionary = {"tick":12, "players":[me]}
 	var mission: Dictionary = {"phase":"in_progress", "party":[{"id":"human", "ready":true}],

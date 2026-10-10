@@ -479,7 +479,7 @@ pub fn decide(
         charge.ok = true;
         charge.actual_usd = response
             .cost_usd(&pricing)
-            .filter(|cost| cost.is_finite() && *cost >= 0.0);
+            .filter(|cost| cost.is_finite() && *cost > 0.0);
         charge.input_tokens = response.usage.as_ref().map(|u| u.input_tokens);
         charge.output_tokens = response.usage.as_ref().map(|u| u.output_tokens);
         charge.request_id = response.id.clone();
@@ -491,7 +491,7 @@ pub fn decide(
             provider != Provider::OpenRouter
                 || usage
                     .cost
-                    .is_some_and(|cost| cost.is_finite() && cost >= 0.0)
+                    .is_some_and(|cost| cost.is_finite() && cost > 0.0)
         }),
         Err(_) => false,
     };
@@ -883,11 +883,13 @@ mod tests {
         assert_eq!(decision.charge.provider, "typesafe");
         let actual = decision.charge.actual_usd.unwrap();
         assert!((actual - 240.0 * 0.042 / 1e6).abs() < 1e-15);
+        let billed = decision.charge.billed_usd();
+        assert!(billed + 1e-15 >= actual);
         assert_eq!(transport.calls(), 1);
         {
             let guard = budget.lock().unwrap();
             assert_eq!(guard.run_calls(), 1);
-            assert!((guard.run_usd() - actual).abs() < 1e-15);
+            assert!((guard.run_usd() - billed).abs() < 1e-12);
         }
         let sent = transport.last_request.lock().unwrap().clone().unwrap();
         assert_eq!(sent.url, TYPESAFE_ENDPOINT);
@@ -968,6 +970,14 @@ mod tests {
             Ok(HttpResponse {
                 status: 200,
                 body: push_answers().to_string().into_bytes(),
+            }),
+            Ok(HttpResponse {
+                status: 200,
+                body: {
+                    let mut priced = push_answers();
+                    priced["usage"]["cost"] = json!(0.0);
+                    priced.to_string().into_bytes()
+                },
             }),
         ];
         let caps = Caps {

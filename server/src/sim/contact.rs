@@ -206,13 +206,8 @@ mod tests {
         assert!(game.snapshot().players.iter().all(|p| p.collidable));
         game.players[1].detached = true;
         assert!(
-            !game
-                .snapshot()
-                .players
-                .iter()
-                .find(|p| p.id == b)
-                .unwrap()
-                .collidable
+            game.snapshot().players.iter().all(|player| player.id != b),
+            "a parked pawn stays off the wire"
         );
         for tick in 9..=18 {
             game.tick = tick;

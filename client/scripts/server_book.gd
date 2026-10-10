@@ -53,16 +53,12 @@ func _init(path: String = PATH) -> void:
 	storage_path = path
 	load_from_disk()
 
-## `host:port` as Check host would request it. Empty when the text is not a host.
+## Full game URL, including scheme. An old host:port line loads as cleartext ws.
 static func canonical(value: String) -> String:
 	var endpoint: Dictionary = ServerEndpoint.parse(value)
 	if endpoint.is_empty():
 		return ""
-	var host: String = str(endpoint["host"])
-	var port: int = int(endpoint["port"])
-	if host.contains(":"):
-		return "[%s]:%d" % [host, port]
-	return "%s:%d" % [host, port]
+	return str(endpoint["game_url"])
 
 ## Game port inside a LAN presence packet, or 0 when the packet is not one.
 static func beacon_port(packet: PackedByteArray) -> int:
@@ -250,10 +246,10 @@ func drop_address(value: String) -> void:
 func rows() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for address: String in favorites:
-		out.append({"address": address, "kept": true})
+		out.append({"address": address, "kept": true, "secure": address.begins_with("wss://")})
 	for address: String in recent:
 		if address not in favorites:
-			out.append({"address": address, "kept": false})
+			out.append({"address": address, "kept": false, "secure": address.begins_with("wss://")})
 	return out
 
 func load_from_disk() -> void:
@@ -286,8 +282,10 @@ func save_to_disk() -> void:
 func _clean(text: String, limit: int) -> Array[String]:
 	var out: Array[String] = []
 	for line: String in text.split("\n", false):
-		var address: String = canonical(line)
-		if address.is_empty() or address != line.strip_edges() or address in out:
+		var raw: String = line.strip_edges()
+		var address: String = canonical(raw)
+		var legacy: String = address.substr(5) if address.begins_with("ws://") else ""
+		if address.is_empty() or address in out or (raw != address and raw != legacy):
 			continue
 		out.append(address)
 		if out.size() == limit:

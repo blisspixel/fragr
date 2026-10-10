@@ -303,6 +303,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             std::process::exit(1);
         }
     };
+    let admission = fragr_server::admission_bounds::process_policy(join_secret.is_some());
     let access = fragr_server::access::AccessConfig {
         ban_list: args.ban_list,
         allow_list: args.allow_list,
@@ -369,6 +370,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         join_secret,
         access,
         console: args.console,
+        join_audience: admission.audience,
+        origin_allow: admission.origins,
+        spectator_tickets: admission.spectator_tickets,
     };
     if args.desktop_host {
         fragr_server::local::serve_arena(options, std::io::stdin(), std::io::stdout()).await
@@ -1070,6 +1074,9 @@ mod tests {
                     join_secret: None,
                     access: Default::default(),
                     console: false,
+                    join_audience: None,
+                    origin_allow: Vec::new(),
+                    spectator_tickets: false,
                 },
                 async move {
                     let _ = shutdown_rx.await;
