@@ -275,3 +275,296 @@ fn heavy_and_turret_tells_precede_damage_by_the_documented_time_on_every_tier() 
             .all(|pair| pair[0].0 > pair[1].0 && pair[0].1 > pair[1].1));
     }
 }
+
+#[test]
+fn difficulty_supply_grant_scales_recovery_and_keeps_secrets_explosives_and_standard() {
+    use crate::protocol::{CampaignSupply, WeaponType};
+
+    let tiers = [
+        CampaignDifficulty::Assisted,
+        CampaignDifficulty::Standard,
+        CampaignDifficulty::Severe,
+    ];
+    for difficulty in tiers {
+        assert_eq!(
+            difficulty.supply_grant(CampaignSupply::Ammunition, 10, true),
+            10,
+            "a secret stays authored"
+        );
+        assert_eq!(difficulty.supply_grant(CampaignSupply::Health, 0, false), 0);
+        assert_eq!(
+            difficulty.supply_grant(CampaignSupply::Armor, -4, false),
+            -4
+        );
+        assert_eq!(
+            difficulty.supply_grant(CampaignSupply::Explosive, 2, false),
+            2
+        );
+        assert_eq!(
+            difficulty.supply_grant(CampaignSupply::Ammunition, 3, false),
+            match difficulty {
+                CampaignDifficulty::Assisted => 5,
+                CampaignDifficulty::Standard => 3,
+                CampaignDifficulty::Severe => 2,
+            }
+        );
+    }
+    assert_eq!(
+        CampaignDifficulty::Assisted.supply_grant(CampaignSupply::Ammunition, 10, false),
+        15
+    );
+    assert_eq!(
+        CampaignDifficulty::Standard.supply_grant(CampaignSupply::Ammunition, 10, false),
+        10
+    );
+    assert_eq!(
+        CampaignDifficulty::Severe.supply_grant(CampaignSupply::Ammunition, 10, false),
+        6
+    );
+    assert_eq!(
+        CampaignDifficulty::Assisted.supply_grant(CampaignSupply::Health, 10, false),
+        15
+    );
+    assert_eq!(
+        CampaignDifficulty::Severe.supply_grant(CampaignSupply::Health, 10, false),
+        6
+    );
+    assert_eq!(
+        CampaignDifficulty::Assisted.supply_grant(CampaignSupply::Armor, 25, false),
+        38
+    );
+    assert_eq!(
+        CampaignDifficulty::Severe.supply_grant(CampaignSupply::Armor, 25, false),
+        16
+    );
+    assert_eq!(
+        CampaignDifficulty::Severe.supply_grant(CampaignSupply::Ammunition, 1, false),
+        1
+    );
+    assert_eq!(
+        CampaignDifficulty::Assisted.supply_grant(CampaignSupply::Health, 1, false),
+        2
+    );
+    assert_eq!(
+        CampaignDifficulty::Severe.supply_grant(CampaignSupply::Health, 1, false),
+        1
+    );
+    let tack = i32::from(WeaponType::Tack.pickup_rounds());
+    assert_eq!(tack, 50);
+    assert_eq!(
+        CampaignDifficulty::Assisted.supply_grant(CampaignSupply::Ammunition, tack, false),
+        75
+    );
+    assert_eq!(
+        CampaignDifficulty::Standard.supply_grant(CampaignSupply::Ammunition, tack, false),
+        50
+    );
+    assert_eq!(
+        CampaignDifficulty::Severe.supply_grant(CampaignSupply::Ammunition, tack, false),
+        33
+    );
+}
+
+fn supply_state(difficulty: CampaignDifficulty) -> (GameState, Uuid) {
+    let mut definition = super::tests::definition();
+    definition["supplies"] = json!([
+        {"id":"rounds","feet":[0,0,-6],"claim":"contested","grant":{"kind":"ammo","pool":"bullets","amount":10}},
+        {"id":"secret_rounds","feet":[4,0,-6],"claim":"contested","secret":true,"grant":{"kind":"ammo","pool":"bullets","amount":10}},
+        {"id":"charges","feet":[-4,0,-6],"claim":"contested","grant":{"kind":"grenade","amount":2}},
+        {"id":"sidearm","feet":[0,0,-2],"claim":"personal","grant":{"kind":"weapon","weapon":"tack"}},
+        {"id":"medkit","feet":[4,0,-2],"claim":"contested","grant":{"kind":"health","amount":10}},
+        {"id":"plate","feet":[-6,0,-2],"claim":"contested","grant":{"kind":"armor","amount":25}}
+    ]);
+    let map = AuthoredMap::read(serde_json::to_vec(&definition).unwrap().as_slice()).unwrap();
+    let mut state = GameState::with_authored_map(map);
+    state.set_campaign_difficulty(difficulty).unwrap();
+    let id = Uuid::from_u128(91);
+    state.add_player(id, "Visitor".into(), Role::Human);
+    assert!(state.acknowledge_mission(
+        id,
+        MissionReady {
+            id: crate::protocol::MissionId::RecallNotice,
+            attempt: 1,
+        },
+    ));
+    (state, id)
+}
+
+fn bullets(state: &GameState, id: Uuid) -> u16 {
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    player
+        .inventory
+        .state(id, player.weapon, state.tick)
+        .unwrap()
+        .ammo(crate::protocol::AmmoPool::Bullets)
+}
+
+fn claim(state: &mut GameState, id: Uuid, feet: [f32; 3]) -> crate::protocol::GameEvent {
+    let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    player.x = feet[0];
+    player.z = feet[2];
+    player.y = crate::sim::PLAYER_FLOOR_Y + feet[1];
+    state.tick(0.05);
+    state
+        .take_events()
+        .into_iter()
+        .find(|event| {
+            matches!(
+                event,
+                crate::protocol::GameEvent::Pickup { pickup_id, .. }
+                    if pickup_id == "rounds"
+                        || pickup_id == "secret_rounds"
+                        || pickup_id == "charges"
+                        || pickup_id == "sidearm"
+                        || pickup_id == "medkit"
+                        || pickup_id == "plate"
+            )
+        })
+        .expect("pickup event")
+}
+
+#[test]
+fn difficulty_campaign_claim_scales_ordinary_ammo_and_not_secrets() {
+    use crate::protocol::GameEvent;
+
+    for (difficulty, ammo, health, armor) in [
+        (CampaignDifficulty::Assisted, 15, 15, 38),
+        (CampaignDifficulty::Standard, 10, 10, 25),
+        (CampaignDifficulty::Severe, 6, 6, 16),
+    ] {
+        let (mut state, id) = supply_state(difficulty);
+        let before = bullets(&state, id);
+        let event = claim(&mut state, id, [0.0, 0.0, -6.0]);
+        assert_eq!(bullets(&state, id) - before, ammo);
+        assert!(matches!(
+            event,
+            GameEvent::Pickup {
+                amount: Some(gained),
+                secret: false,
+                ..
+            } if gained == i32::from(ammo)
+        ));
+
+        let before = bullets(&state, id);
+        let event = claim(&mut state, id, [4.0, 0.0, -6.0]);
+        assert_eq!(
+            bullets(&state, id) - before,
+            10,
+            "secret ammo stays authored"
+        );
+        assert!(matches!(
+            event,
+            GameEvent::Pickup {
+                amount: Some(10),
+                secret: true,
+                ..
+            }
+        ));
+
+        let event = claim(&mut state, id, [-4.0, 0.0, -6.0]);
+        assert_eq!(
+            state
+                .players
+                .iter()
+                .find(|p| p.id == id)
+                .unwrap()
+                .inventory
+                .grenades(),
+            2
+        );
+        assert!(matches!(
+            event,
+            GameEvent::Pickup {
+                amount: Some(2),
+                ..
+            }
+        ));
+
+        let before = bullets(&state, id);
+        let rounds = state.campaign_supply_amount(
+            crate::protocol::CampaignSupply::Ammunition,
+            i32::from(crate::protocol::WeaponType::Tack.pickup_rounds()),
+            false,
+        );
+        claim(&mut state, id, [0.0, 0.0, -2.0]);
+        assert_eq!(i32::from(bullets(&state, id) - before), rounds);
+        assert!(state
+            .players
+            .iter()
+            .find(|p| p.id == id)
+            .unwrap()
+            .inventory
+            .owns(crate::protocol::WeaponType::Tack));
+
+        let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+        player.hp = 50;
+        let event = claim(&mut state, id, [4.0, 0.0, -2.0]);
+        let hp = state.players.iter().find(|p| p.id == id).unwrap().hp;
+        let gained = match event {
+            GameEvent::Pickup {
+                amount: Some(gained),
+                ..
+            } => gained,
+            other => panic!("expected health pickup, got {other:?}"),
+        };
+        assert_eq!(gained, health);
+        assert_eq!(hp, 50 + health);
+        assert!(hp <= 100);
+
+        let before = state.players.iter().find(|p| p.id == id).unwrap().armor;
+        let event = claim(&mut state, id, [-6.0, 0.0, -2.0]);
+        let armor_now = state.players.iter().find(|p| p.id == id).unwrap().armor;
+        assert_eq!(armor_now - before, armor);
+        assert!(matches!(
+            event,
+            GameEvent::Pickup { amount: Some(gained), .. } if gained == armor
+        ));
+    }
+
+    let (mut state, id) = supply_state(CampaignDifficulty::Assisted);
+    let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    player.hp = 95;
+    let event = claim(&mut state, id, [4.0, 0.0, -2.0]);
+    let hp = state.players.iter().find(|p| p.id == id).unwrap().hp;
+    assert_eq!(hp, 100);
+    assert!(matches!(
+        event,
+        GameEvent::Pickup {
+            amount: Some(5),
+            ..
+        }
+    ));
+}
+
+#[test]
+fn difficulty_arcade_claim_keeps_the_authored_amount() {
+    use crate::protocol::{GameEvent, Role};
+
+    let mut state = GameState::new();
+    assert!(state.campaign_difficulty().is_none());
+    state.start_round();
+    let id = Uuid::new_v4();
+    state.add_player(id, "Rusher".into(), Role::Human);
+    let (x, z, floor) = state
+        .pickups
+        .iter()
+        .find(|pad| pad.id == "pad_health_n")
+        .map(|pad| (pad.x, pad.z, pad.floor))
+        .unwrap();
+    let player = state.players.iter_mut().find(|p| p.id == id).unwrap();
+    player.x = x;
+    player.z = z;
+    player.y = crate::sim::PLAYER_FLOOR_Y + floor;
+    player.hp = 40;
+    state.tick(0.05);
+    let player = state.players.iter().find(|p| p.id == id).unwrap();
+    assert_eq!(player.hp, 80);
+    assert!(state.take_events().into_iter().any(|event| matches!(
+        event,
+        GameEvent::Pickup {
+            amount: Some(40),
+            pickup_id,
+            ..
+        } if pickup_id == "pad_health_n"
+    )));
+}

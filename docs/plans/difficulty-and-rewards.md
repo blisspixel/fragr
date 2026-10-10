@@ -1,13 +1,22 @@
 # Difficulty and earned customization
 
-Status: in flight, updated 2026-10-08. [Task #197](https://github.com/blisspixel/fragr/issues/197).
+Status: in flight, updated 2026-10-09. [Task #197](https://github.com/blisspixel/fragr/issues/197).
 Explicit difficulty and shared enemy rules are implemented. Current main has
-eleven connected development missions, version 14 durable run files and three
-mission-start continues refilled at implemented episode boundaries. Final tier
+twelve connected development missions through Terms of Cooperation, version 16
+durable run files and three mission-start continues refilled at implemented
+episode boundaries. Final tier
 balance and broader reward acceptance remain in flight. The two local awards
 and appearance selectors below are implemented locally; final composed checks
 are recorded separately. Historical
 increments below retain their original version and evidence.
+
+The first increment kept authored ammunition on every tier. Current campaign
+claims scale ammunition, weapon-discovery rounds, health, and armor, and
+visual pursuit memory and recovery steps follow the same three tiers. Those
+rules are [difficulty pressure](difficulty-pressure-20261009.md). Standard
+tell timing and Standard amounts stay exact. The historical tell table in
+the first increment below stays the original record, including its note that
+the first pass preserved ammo.
 
 ## October 8 local reward increment, planned before implementation
 

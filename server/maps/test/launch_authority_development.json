@@ -632,6 +632,46 @@
         -24
       ],
       "id": "circuit_12"
+    },
+    {
+      "feet": [
+        0.5,
+        0,
+        5.5
+      ],
+      "id": "trench_south_mouth"
+    },
+    {
+      "feet": [
+        0.5,
+        0,
+        12.5
+      ],
+      "id": "trench_lane"
+    },
+    {
+      "feet": [
+        -2.5,
+        0,
+        16.5
+      ],
+      "id": "trench_bunker_west"
+    },
+    {
+      "feet": [
+        3.5,
+        0,
+        9.5
+      ],
+      "id": "trench_bunker_east"
+    },
+    {
+      "feet": [
+        0.5,
+        0,
+        23.5
+      ],
+      "id": "trench_north_mouth"
     }
   ],
   "map_id": 1014,
@@ -2302,6 +2342,146 @@
         41
       ],
       "surface": "service_steel"
+    },
+    {
+      "id": "trench_west_00",
+      "max": [
+        -0.25,
+        1.75,
+        15.0
+      ],
+      "min": [
+        -0.75,
+        0,
+        6.25
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_west_01",
+      "max": [
+        -0.25,
+        1.75,
+        22.25
+      ],
+      "min": [
+        -0.75,
+        0,
+        17.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_east_00",
+      "max": [
+        1.75,
+        1.75,
+        8.0
+      ],
+      "min": [
+        1.25,
+        0,
+        6.25
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_east_01",
+      "max": [
+        1.75,
+        1.75,
+        22.25
+      ],
+      "min": [
+        1.25,
+        0,
+        10.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_bunker_west_south",
+      "max": [
+        -0.75,
+        1.75,
+        15.0
+      ],
+      "min": [
+        -4.25,
+        0,
+        14.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_bunker_west_north",
+      "max": [
+        -0.75,
+        1.75,
+        18.0
+      ],
+      "min": [
+        -4.25,
+        0,
+        17.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_bunker_west_back",
+      "max": [
+        -3.75,
+        1.75,
+        18.0
+      ],
+      "min": [
+        -4.25,
+        0,
+        14.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_bunker_east_south",
+      "max": [
+        5.0,
+        1.75,
+        8.0
+      ],
+      "min": [
+        1.75,
+        0,
+        7.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_bunker_east_north",
+      "max": [
+        5.0,
+        1.75,
+        11.0
+      ],
+      "min": [
+        1.75,
+        0,
+        10.5
+      ],
+      "surface": "concrete"
+    },
+    {
+      "id": "trench_bunker_east_back",
+      "max": [
+        5.0,
+        1.75,
+        11.0
+      ],
+      "min": [
+        4.5,
+        0,
+        7.5
+      ],
+      "surface": "concrete"
     }
   ],
   "spawns": [
@@ -2585,6 +2765,33 @@
       },
       "id": "gantry_armor",
       "secret": true
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        -2.5,
+        0,
+        16.5
+      ],
+      "grant": {
+        "amount": 80,
+        "kind": "ammo",
+        "pool": "bullets"
+      },
+      "id": "trench_west_bullets"
+    },
+    {
+      "claim": "contested",
+      "feet": [
+        3.5,
+        0,
+        9.5
+      ],
+      "grant": {
+        "amount": 50,
+        "kind": "health"
+      },
+      "id": "trench_east_medkit"
     }
   ],
   "vehicles": [

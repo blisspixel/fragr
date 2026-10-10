@@ -1736,7 +1736,11 @@ its head toward a target (the actor yaw is the head). Its `windup` is the
 charge before one Rail shot, and broken sight during `windup` or `firing` ends
 the attack in `recovery` without a shot. Its `hit` follows the same heavy-hit
 rule for 10 ticks. Windup and recovery durations per difficulty are in
-[the difficulty plan](plans/difficulty-and-rewards.md).
+[the difficulty plan](plans/difficulty-and-rewards.md). Ordinary campaign
+claims of ammunition, weapon-discovery rounds, health, and armor follow that
+tier. Secrets and explosive counts stay authored. The pickup event still
+carries the gained amount. The quantities are in
+[difficulty pressure](plans/difficulty-pressure-20261009.md).
 
 An `enforcer` has 140 HP and uses Fists for its actual contact attack. It
 approaches at 0.45 times ordinary player speed. With supported feet, clear

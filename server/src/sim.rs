@@ -27,10 +27,10 @@ use crate::protocol::{
     episode0_host_line_jammer, episode0_host_line_nods_tick, episode0_host_line_win,
     episode0_objective_chip, episode0_unlock_teaser, killstreak_host_line, mvp_host_line,
     roster_host_line, round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action,
-    BotTauntKind, CampaignActor, EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore,
-    PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType,
-    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
-    PLAYLIST_NAME,
+    BotTauntKind, CampaignActor, CampaignSupply, EnemyPhase, GameEvent, PelletTrace, PickupState,
+    PlayerScore, PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot,
+    WeaponType, AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0,
+    MODE_NAME, PLAYLIST_NAME,
 };
 use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
@@ -3931,6 +3931,7 @@ impl GameState {
             let kind = pad.kind;
             let amount = pad.amount;
             let secret = pad.secret;
+            let claim = pad.claim;
             let pickup_id = pad.id.clone();
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
@@ -3938,15 +3939,29 @@ impl GameState {
                 PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
                 _ => pad.respawn_ticks(),
             });
-            if pad.claim == crate::protocol::SupplyClaim::Contested {
+            if claim == crate::protocol::SupplyClaim::Contested {
                 pad.available = false;
                 pad.respawn_timer = respawn;
             }
+            let scaled_rounds = match kind {
+                PickupKind::Ammo { rounds, .. } => self.supply_rounds(rounds, secret),
+                PickupKind::Weapon(weapon) => self.supply_rounds(weapon.pickup_rounds(), secret),
+                _ => 0,
+            };
+            let scaled_amount = match kind {
+                PickupKind::Health => {
+                    self.campaign_supply_amount(CampaignSupply::Health, amount, secret)
+                }
+                PickupKind::Armor => {
+                    self.campaign_supply_amount(CampaignSupply::Armor, amount, secret)
+                }
+                _ => amount,
+            };
 
             let Some(player) = self.players.iter_mut().find(|p| p.id == player_id) else {
                 continue;
             };
-            if pad.claim == crate::protocol::SupplyClaim::Personal {
+            if claim == crate::protocol::SupplyClaim::Personal {
                 player.inventory.record_claim(pickup_id.clone());
             }
             if secret {
@@ -3979,7 +3994,7 @@ impl GameState {
                 }
                 PickupKind::Weapon(w) => {
                     let discovered = !player.inventory.owns(w);
-                    player.inventory.grant_weapon(w);
+                    player.inventory.grant_weapon_rounds(w, scaled_rounds);
                     // An armed arcade human already chose a gun. The pad fills
                     // the bag. An unarmed arsenal has no other switch, and a
                     // newly found discovery weapon still becomes current.
@@ -3993,8 +4008,8 @@ impl GameState {
                     }
                     (w.name().to_string(), None, w.name().to_string())
                 }
-                PickupKind::Ammo { pool, rounds } => {
-                    let gained = player.inventory.grant_ammo(pool, rounds);
+                PickupKind::Ammo { pool, .. } => {
+                    let gained = player.inventory.grant_ammo(pool, scaled_rounds);
                     (
                         String::new(),
                         Some(i32::from(gained)),
@@ -4003,13 +4018,13 @@ impl GameState {
                 }
                 PickupKind::Health => {
                     let before = player.hp;
-                    player.hp = (player.hp + amount).min(PLAYER_MAX_HP);
+                    player.hp = (player.hp + scaled_amount).min(PLAYER_MAX_HP);
                     let gained = player.hp - before;
                     (String::new(), Some(gained), format!("+{} HP", gained))
                 }
                 PickupKind::Armor => {
                     let before = player.armor;
-                    player.armor = (player.armor + amount).min(PLAYER_MAX_ARMOR);
+                    player.armor = (player.armor + scaled_amount).min(PLAYER_MAX_ARMOR);
                     let gained = player.armor - before;
                     (String::new(), Some(gained), format!("+{} armor", gained))
                 }

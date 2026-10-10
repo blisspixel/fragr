@@ -434,11 +434,14 @@ its brief. `main` at `711dfb4` has twelve connected development prototypes
 through Terms of Cooperation, released as v0.80.0, and the Rocket Launcher
 foundation, released as v0.81.0. Connected M13 through M20 and the conditional
 epilogue remain unbuilt. The launcher is not part of v0.80.0, and no mission
-grants it. The foundry successor opens the shaft and places the rocket lesson,
-and it is not a mission. Connected M13 is the next campaign dependency and keeps
-its own mission gates. Relay, hazard, worker and lift rules are implemented on a
-fixture map and remain short of a connected mission. The optional M12 secret
-stays separate because it changes canonical map bytes.
+grants it. The foundry successor opens the shaft, places the rocket lesson, and carries
+the optional foundry gate key. It is still not a mission. Connected M13 is the
+next campaign dependency and keeps its own mission gates. Relay, hazard, worker
+and lift rules load from a fixture and from that successor key, and remain short
+of a connected mission. Development grayboxes for levels 15 through 20, and a
+sheltered trench on the level 14 battlefield, are not missions. The epilogue
+remains a plan. The optional M12 secret stays separate because it changes
+canonical map bytes.
 
 **Current composition, 2026-10-08.** The numbered rungs below remain the single
 build order. Rungs 1 and 2 now run together for the bounded work explicitly
@@ -767,7 +770,9 @@ current work.
      remain unimplemented.
    - The [difficulty and rewards](plans/difficulty-and-rewards.md) continuation
      adds two supported local awards, recoverable unlock proofs and cosmetic
-     profile choices. The [M01 supply matrix](plans/m01-finite-supply-validation-20261008.md)
+     profile choices. The [difficulty pressure](plans/difficulty-pressure-20261009.md)
+     increment scales ordinary campaign ammunition, health and armor, and
+     gives Severe a longer visual pursuit. The [M01 supply matrix](plans/m01-finite-supply-validation-20261008.md)
      tests both routes, all tiers, finite human/agent ammunition, resolved misses
      and actual death/continue exhaustion. Fresh-player balance and actual
      full-campaign awards retain their own gates.
@@ -1023,7 +1028,7 @@ Status: **planned**. Only after Phase 2 is proven, so that new content lands on 
 - **Bigger modes.** Team deathmatch with COD-sized squads first, then objective control on larger maps with vehicles in the spirit of Battlefield 1942 conquest, without borrowing its art. Vehicles are server-authoritative entities on the same action path; the first vehicle map uses the campaign's jeep, motorcycle and jetpack for conquest-lite ([vehicle](plans/vehicles.md) rung 5). Mode twists as mutators before any of that: one-shot rail only, scatter only, one golden rail on the map, the couch-multiplayer feeling GoldenEye had, cheap to build on the existing rules.
 - **Replayability.** Mutators, reactive Host lines, demos, duel rematches, then the flagship's two round-based modes, Rescue and Sabotage, after team deathmatch; the order is in [replayability.md](plans/replayability.md) (proposed) and adds no rung to the build order.
 - **Massive agent arenas.** Hundreds of fighters where most are agents. Depends on the scale ladder: interest management, sharded arenas, and a measured tick budget. Not a marketing claim until measured.
-- **Difficulty and earned cosmetics.** The [first difficulty increment](plans/difficulty-and-rewards.md) adds three explicit new-run tiers and shared enemy timing, preserving the released Standard baseline. Supply and encounter variants still need balance evidence. Persistent achievements, titles, emblems and cosmetic variants follow the save/retry contract, with no combat advantages. Accounts and competitive verification remain later work.
+- **Difficulty and earned cosmetics.** The [first difficulty increment](plans/difficulty-and-rewards.md) adds three explicit new-run tiers and shared enemy timing, preserving the released Standard baseline. The [pressure increment](plans/difficulty-pressure-20261009.md) scales ordinary campaign ammunition, health and armor and lengthens Severe visual pursuit. Encounter-count variants and fresh-player balance still need evidence. Persistent achievements, titles, emblems and cosmetic variants follow the save/retry contract, with no combat advantages. Accounts and competitive verification remain later work.
 - **Let's-play tooling.** Director camera that follows the story of a round, highlight reels, a stream overlay, and match replays from recorded snapshots.
 - **Community servers.** A public server directory, mod hooks for maps and rosters, and a documented content pipeline. The local favorites list is a separate door and is not that directory.
 - **Broader localization.** Basic keyed text, captions, reader-paced scenes and missing-voice fallback belong in M01. Later expand supported locales, fonts and layout with language review and a visual tour per locale. Alternate or joke locales cannot obscure essential objectives. Voice coverage follows explicit production budgets. Plan: [localization.md](plans/localization.md).

@@ -16,7 +16,7 @@ pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 /// a close Scatter blast or several pellets landing together qualify; a single
 /// pistol, rifle or fist hit does not.
 pub(crate) const STAGGER_DAMAGE: i32 = 40;
-/// Visual pursuit memory and the engagement bound shared by walking enemies.
+/// Sight distance shared by walking enemies. Tick memory is `pursuit_memory`.
 const SIGHT_RANGE: f32 = 32.0;
 const ENGAGE_RANGE: f32 = 24.0;
 /// A walking guard further than this from its authored post walks back once
@@ -40,7 +40,8 @@ const TURRET_LOCK: f32 = 0.06;
 /// Sideways steps a Heavy Sweeper takes after each recovery before its next
 /// burst. Slow gait makes this a short shuffle, not a dodge.
 const HEAVY_REPOSITION_TICKS: u64 = 24;
-/// A walking guard steps in between bursts when the fight is farther than this.
+/// Standard steps in between bursts when the fight is farther than this.
+/// Severe uses two thirds of this distance. Assisted does not step in.
 const PRESSURE_RANGE: f32 = 8.0;
 /// Require enough of a low body to be visible for its leap tell to read.
 const CRAWLER_EXPOSED_HALF_WIDTH: f32 = 0.6;
@@ -232,8 +233,8 @@ pub(super) struct EnemyController {
     spine_march: Option<spine_patrol::SpineMarch>,
 }
 
-/// (windup, recovery) ticks. Tiers change tells and openings only; health,
-/// damage, burst length, locked aim and hit stun are identical.
+/// (windup, recovery) ticks. Health, damage, burst length, locked aim and
+/// hit stun stay identical. Pursuit memory and recovery steps are separate.
 pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> (u64, u64) {
     match (kind, difficulty) {
         (EnemyKind::Clerk, CampaignDifficulty::Assisted) => (20, 30),
@@ -281,6 +282,16 @@ pub(crate) fn channel_ticks(difficulty: CampaignDifficulty) -> u64 {
         CampaignDifficulty::Assisted => 60,
         CampaignDifficulty::Standard => 44,
         CampaignDifficulty::Severe => 36,
+    }
+}
+
+/// Visual pursuit memory from the last seen feet. Alarm dispatch stays 600.
+/// Every kind uses the tier, including Crawler and Jammer.
+pub(crate) fn pursuit_memory(difficulty: CampaignDifficulty) -> u64 {
+    match difficulty {
+        CampaignDifficulty::Assisted => 40,
+        CampaignDifficulty::Standard => 100,
+        CampaignDifficulty::Severe => 160,
     }
 }
 
@@ -618,7 +629,8 @@ impl EnemyController {
             self.end_spine_march();
             self.target = Some(target.id);
             self.last_known = [target.x, target.y - PLAYER_FLOOR_Y, target.z];
-            self.search_until = tick.saturating_add(100);
+            self.search_until =
+                tick.saturating_add(pursuit_memory(state.campaign_rules().difficulty));
             self.chased = true;
         }
 
@@ -658,9 +670,10 @@ impl EnemyController {
         }
         if matches!(self.phase, EnemyPhase::Hit | EnemyPhase::Recovery) && tick < self.until {
             // Hit stun stays planted. Between bursts a Clerk, Sweeper or Heavy
-            // sidesteps, and steps in when the fight is still far. The raise
-            // and the burst stay planted so the committed shot can be dodged.
-            // A seated clerk does not shuffle the chair. Anyone else holds.
+            // sidesteps. Standard steps in past PRESSURE_RANGE. Severe steps
+            // in past two thirds of that range. Assisted holds still. The
+            // raise and the burst stay planted. A seated clerk does not
+            // shuffle the chair.
             if self.phase == EnemyPhase::Recovery
                 && !self.seated
                 && matches!(
@@ -669,18 +682,25 @@ impl EnemyController {
                 )
             {
                 if let Some(target) = target {
-                    if tick == self.started.saturating_add(1) {
-                        self.strafe_left = !self.strafe_left;
+                    let difficulty = state.campaign_rules().difficulty;
+                    if difficulty != CampaignDifficulty::Assisted {
+                        if tick == self.started.saturating_add(1) {
+                            self.strafe_left = !self.strafe_left;
+                        }
+                        let distance = (target.x - me.x).hypot(target.z - me.z);
+                        let step_in = match difficulty {
+                            CampaignDifficulty::Severe => PRESSURE_RANGE * 2.0 / 3.0,
+                            _ => PRESSURE_RANGE,
+                        };
+                        let action = Action {
+                            yaw: Some((target.z - me.z).atan2(target.x - me.x)),
+                            left: self.strafe_left,
+                            right: !self.strafe_left,
+                            forward: distance > step_in,
+                            ..Default::default()
+                        };
+                        return BotIntent { action, goal: None };
                     }
-                    let distance = (target.x - me.x).hypot(target.z - me.z);
-                    let action = Action {
-                        yaw: Some((target.z - me.z).atan2(target.x - me.x)),
-                        left: self.strafe_left,
-                        right: !self.strafe_left,
-                        forward: distance > PRESSURE_RANGE,
-                        ..Default::default()
-                    };
-                    return BotIntent { action, goal: None };
                 }
             }
             return BotIntent::default();
@@ -724,6 +744,7 @@ impl EnemyController {
         if self.kind == EnemyKind::HeavySweeper
             && self.phase == EnemyPhase::Recovery
             && target.is_some()
+            && state.campaign_rules().difficulty != CampaignDifficulty::Assisted
         {
             // A slow sideways shuffle before the next burst: a flank opening,
             // and the heavy gait on screen.
@@ -1625,5 +1646,235 @@ mod tests {
             struck.identity(),
             CampaignActor::Union { seated: false, .. }
         ));
+    }
+
+    fn open_mission(difficulty: CampaignDifficulty) -> GameState {
+        use crate::maps::AuthoredMap;
+
+        let json = serde_json::json!({
+            "version":1,"map_id":1001,"name":"Difficulty fixture","half_extent":8,"ground":"concrete",
+            "equipment":"discovery",
+            "solids":[
+                {"id":"ceiling","min":[-8,3,-8],"max":[8,4,8],"surface":"enamel"},
+                {"id":"west","min":[-8,0,0],"max":[-2,3,1],"surface":"enamel"},
+                {"id":"east","min":[2,0,0],"max":[8,3,1],"surface":"enamel"},
+                {"id":"gate","min":[-2,0,0],"max":[2,3,1],"surface":"lift_panel"},
+                {"id":"desk","min":[-4,0,-3],"max":[-2,1.2,-2],"surface":"service_steel"},
+                {"id":"exit","min":[2,0,4],"max":[4,1.2,5],"surface":"service_steel"}
+            ],
+            "spawns":[{"id":"entry","feet":[0,0,-6],"yaw":0}],
+            "landmarks":[{"id":"destination","feet":[0,0,3]}],
+            "mission":{
+                "id":"recall_notice",
+                "gate":{"solid":"gate","lift":3},
+                "boarding":{"min":[-6,0,1.5],"max":[6,0.5,7]},
+                "record":{"panel":{"solid":"desk","face":"up","center":[0,0],"size":[1.8,0.8],"kind":"terminal"},"approach":[-3,0,-4]},
+                "departure":{"panel":{"solid":"exit","face":"up","center":[0,0],"size":[1.8,0.8],"kind":"lift_control"},"approach":[3,0,3]}
+            }
+        });
+        let map = AuthoredMap::read(serde_json::to_vec(&json).unwrap().as_slice()).unwrap();
+        let mut state = GameState::with_authored_map(map);
+        state.set_campaign_difficulty(difficulty).unwrap();
+        state
+    }
+
+    fn place(
+        state: &mut GameState,
+        kind: EnemyKind,
+        enemy_x: f32,
+        player_x: f32,
+        player_z: f32,
+    ) -> (EnemyController, Uuid) {
+        use crate::protocol::{MissionId, MissionReady, Role};
+
+        let enemy_id = Uuid::from_u128(0x0d01);
+        let player_id = Uuid::from_u128(0x0d02);
+        state.add_player(player_id, "Visitor".into(), Role::Human);
+        assert!(state.acknowledge_mission(
+            player_id,
+            MissionReady {
+                id: MissionId::RecallNotice,
+                attempt: 1,
+            },
+        ));
+        state.add_player(enemy_id, "Guard".into(), Role::Agent);
+        let campaign = CampaignActor::Union {
+            kind,
+            phase: EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        };
+        for (id, x, z, actor) in [
+            (player_id, player_x, player_z, CampaignActor::Participant {}),
+            (enemy_id, enemy_x, -6.0, campaign),
+        ] {
+            let body = state.players.iter_mut().find(|p| p.id == id).unwrap();
+            body.x = x;
+            body.z = z;
+            body.y = PLAYER_FLOOR_Y;
+            body.hp = 100;
+            body.campaign = Some(actor);
+        }
+        let mut guard = EnemyController::new(enemy_id, kind, [enemy_x, 0.0, -6.0], 0.0, 0, false);
+        guard.last_hp = 100;
+        (guard, player_id)
+    }
+
+    #[test]
+    fn difficulty_pursuit_memory_is_40_100_160_from_the_last_seen_feet() {
+        use crate::protocol::Role;
+
+        for (difficulty, memory) in [
+            (CampaignDifficulty::Assisted, 40),
+            (CampaignDifficulty::Standard, 100),
+            (CampaignDifficulty::Severe, 160),
+        ] {
+            assert_eq!(pursuit_memory(difficulty), memory);
+            let mut alarm =
+                EnemyController::new(Uuid::nil(), EnemyKind::Sweeper, [0.0; 3], 0.0, 0, false);
+            alarm.alarm([8.0, 1.0, 2.0], 15);
+            assert_eq!(alarm.search_until, 615, "alarm dispatch stays 600 ticks");
+            assert_eq!(alarm.last_known, [8.0, 1.0, 2.0]);
+
+            for kind in [EnemyKind::Clerk, EnemyKind::Crawler, EnemyKind::Jammer] {
+                let mut state = open_mission(difficulty);
+                let (mut guard, _) = place(&mut state, kind, 0.0, 4.0, -6.0);
+                state.tick = 0;
+                guard.intent(&state, &state.snapshot());
+                assert_eq!(guard.search_until, 1 + memory, "{difficulty:?} {kind:?}");
+                assert_eq!(guard.last_known, [4.0, 0.0, -6.0]);
+            }
+
+            let mut state = open_mission(difficulty);
+            let (mut guard, player_id) = place(&mut state, EnemyKind::Clerk, 0.0, 0.0, -4.0);
+            state.tick = 0;
+            guard.intent(&state, &state.snapshot());
+            let seen = guard.last_known;
+            let until = guard.search_until;
+            assert_eq!(seen, [0.0, 0.0, -4.0]);
+            let hidden = state
+                .players
+                .iter_mut()
+                .find(|p| p.id == player_id)
+                .unwrap();
+            hidden.z = 2.0;
+            state.tick = 30;
+            guard.intent(&state, &state.snapshot());
+            assert_eq!(
+                guard.last_known, seen,
+                "pursuit keeps the last seen feet, not the body behind the gate"
+            );
+            assert_eq!(guard.search_until, until);
+        }
+
+        let mut arcade = GameState::new();
+        let enemy_id = Uuid::from_u128(0x0d11);
+        let player_id = Uuid::from_u128(0x0d12);
+        arcade.add_player(enemy_id, "Clerk".into(), Role::Agent);
+        arcade.add_player(player_id, "Runner".into(), Role::Human);
+        let floor = arcade.players.iter().find(|p| p.id == enemy_id).unwrap().y;
+        for (id, x, actor) in [
+            (
+                enemy_id,
+                0.0,
+                CampaignActor::Union {
+                    kind: EnemyKind::Clerk,
+                    phase: EnemyPhase::Idle,
+                    phase_started: 0,
+                    phase_ends: 0,
+                    seated: false,
+                },
+            ),
+            (player_id, 4.0, CampaignActor::Participant {}),
+        ] {
+            let body = arcade.players.iter_mut().find(|p| p.id == id).unwrap();
+            body.x = x;
+            body.z = 0.0;
+            body.y = floor;
+            body.campaign = Some(actor);
+        }
+        arcade.tick = 7;
+        let mut guard = EnemyController::new(enemy_id, EnemyKind::Clerk, [0.0; 3], 0.0, 0, false);
+        guard.last_hp = 100;
+        guard.intent(&arcade, &arcade.snapshot());
+        assert_eq!(
+            guard.search_until, 108,
+            "a session without campaign difficulty keeps the Standard 100"
+        );
+    }
+
+    #[test]
+    fn difficulty_assisted_recovery_holds_still_and_standard_still_sidesteps() {
+        for (difficulty, distance, sidestep, step_in) in [
+            (CampaignDifficulty::Assisted, 4.0, false, false),
+            (CampaignDifficulty::Assisted, 6.0, false, false),
+            (CampaignDifficulty::Assisted, 12.0, false, false),
+            (CampaignDifficulty::Standard, 4.0, true, false),
+            (CampaignDifficulty::Standard, 6.0, true, false),
+            (CampaignDifficulty::Standard, 12.0, true, true),
+            (CampaignDifficulty::Severe, 4.0, true, false),
+            (CampaignDifficulty::Severe, 6.0, true, true),
+            (CampaignDifficulty::Severe, 12.0, true, true),
+        ] {
+            let enemy_x = if distance > 8.0 { -6.0 } else { 0.0 };
+            let mut state = open_mission(difficulty);
+            let (mut guard, player_id) = place(
+                &mut state,
+                EnemyKind::Clerk,
+                enemy_x,
+                enemy_x + distance,
+                -6.0,
+            );
+            guard.enter(EnemyPhase::Recovery, 10, 20);
+            state.tick = 10;
+            let intent = guard.intent(&state, &state.snapshot());
+            assert_eq!(
+                intent.action.left ^ intent.action.right,
+                sidestep,
+                "{difficulty:?} at {distance} m"
+            );
+            assert_eq!(
+                intent.action.forward, step_in,
+                "{difficulty:?} at {distance} m"
+            );
+            assert!(!intent.action.fire);
+            if !sidestep {
+                assert!(!intent.action.left && !intent.action.right && !intent.action.forward);
+            }
+
+            let mut planted = EnemyController::new(
+                guard.id,
+                EnemyKind::Clerk,
+                [enemy_x, 0.0, -6.0],
+                0.0,
+                0,
+                false,
+            );
+            planted.last_hp = 100;
+            planted.target = Some(player_id);
+            planted.enter(EnemyPhase::Windup, 10, 12);
+            let tell = planted.intent(&state, &state.snapshot());
+            assert!(
+                !tell.action.left && !tell.action.right && !tell.action.forward,
+                "{difficulty:?} windup stays planted"
+            );
+            assert_eq!(planted.phase, EnemyPhase::Windup);
+        }
+
+        let mut state = open_mission(CampaignDifficulty::Assisted);
+        let (mut heavy, _) = place(&mut state, EnemyKind::HeavySweeper, 0.0, 6.0, -6.0);
+        heavy.enter(EnemyPhase::Recovery, 10, 34);
+        state.tick = 10;
+        let held = heavy.intent(&state, &state.snapshot());
+        assert!(!held.action.left && !held.action.right && !held.action.forward);
+
+        let mut state = open_mission(CampaignDifficulty::Standard);
+        let (mut heavy, _) = place(&mut state, EnemyKind::HeavySweeper, 0.0, 6.0, -6.0);
+        heavy.enter(EnemyPhase::Recovery, 10, 34);
+        state.tick = 10;
+        let shuffle = heavy.intent(&state, &state.snapshot());
+        assert!(shuffle.action.left ^ shuffle.action.right);
+        assert!(!shuffle.action.forward);
     }
 }

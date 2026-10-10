@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "map_id": 1018,
+  "name": "All Systems Normal (development)",
+  "half_extent": 36,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "tram_car", "min": [-14, 0, -26], "max": [-9, 2.6, -16], "surface": "service_steel"},
+    {"id": "market_stall_east", "min": [8, 0, -25], "max": [13, 1.5, -20], "surface": "enamel"},
+    {"id": "market_stall_south", "min": [-2, 0, -30], "max": [5, 1.3, -27.2], "surface": "enamel"},
+    {"id": "aid_van", "min": [6, 0, -17], "max": [11, 1.8, -13], "surface": "service_steel"},
+    {"id": "repair_post", "min": [-8, 0, -24], "max": [-5, 2.2, -21], "surface": "concrete"},
+    {"id": "passage_west_wall", "min": [-18, 0, -8], "max": [-16, 3.4, 25], "surface": "service_steel"},
+    {"id": "passage_east_wall", "min": [-8, 0, -6], "max": [-6, 3.4, 16], "surface": "service_steel"},
+    {"id": "passage_post_west", "min": [-16, 0, -8.4], "max": [-14.6, 3, -7.6], "surface": "service_steel"},
+    {"id": "passage_post_east", "min": [-9.4, 0, -8.4], "max": [-8, 3, -7.6], "surface": "service_steel"},
+    {"id": "passage_lintel", "min": [-16, 2.5, -8.4], "max": [-8, 3.3, -7.6], "surface": "service_steel"},
+    {"id": "street_west_wall", "min": [-6, 0, -6], "max": [-2, 3.2, 6], "surface": "concrete"},
+    {"id": "clinic_block", "min": [6, 0, -6], "max": [18, 4.2, 16], "surface": "enamel"},
+    {"id": "clinic_sign", "min": [5.5, 2.5, -1.2], "max": [6.15, 4.6, 1.4], "surface": "enamel"},
+    {"id": "clinic_barricade", "min": [-2, 0, 4], "max": [6, 2.6, 6.5], "surface": "concrete"},
+    {"id": "service_stair_00", "min": [-15, 0, 14], "max": [-9, 0.25, 15], "surface": "service_steel"},
+    {"id": "service_stair_01", "min": [-15, 0, 15], "max": [-9, 0.5, 16], "surface": "service_steel"},
+    {"id": "service_stair_02", "min": [-15, 0, 16], "max": [-9, 0.75, 17], "surface": "service_steel"},
+    {"id": "service_stair_03", "min": [-15, 0, 17], "max": [-9, 1, 18], "surface": "service_steel"},
+    {"id": "service_stair_04", "min": [-15, 0, 18], "max": [-9, 1.25, 19], "surface": "service_steel"},
+    {"id": "service_stair_05", "min": [-15, 0, 19], "max": [-9, 1.5, 20], "surface": "service_steel"},
+    {"id": "service_stair_06", "min": [-15, 0, 20], "max": [-9, 1.75, 21], "surface": "service_steel"},
+    {"id": "service_stair_07", "min": [-15, 0, 21], "max": [-9, 2, 22], "surface": "service_steel"},
+    {"id": "service_stair_08", "min": [-15, 0, 22], "max": [-9, 2.25, 23], "surface": "service_steel"},
+    {"id": "service_stair_09", "min": [-15, 0, 23], "max": [-9, 2.5, 24], "surface": "service_steel"},
+    {"id": "service_stair_10", "min": [-15, 0, 24], "max": [-9, 2.75, 25], "surface": "service_steel"},
+    {"id": "service_stair_11", "min": [-15, 0, 25], "max": [-9, 3, 26], "surface": "service_steel"},
+    {"id": "stair_cheek_west", "min": [-16.4, 0, 14], "max": [-15.6, 4.8, 26], "surface": "service_steel"},
+    {"id": "stair_cheek_east", "min": [-8.4, 0, 14], "max": [-7.6, 4.8, 26], "surface": "service_steel"},
+    {"id": "overlook_deck", "min": [-16, 0, 26], "max": [1, 3, 33], "surface": "concrete"},
+    {"id": "overlook_pump", "min": [-15.2, 3, 28], "max": [-12.4, 5.6, 31.4], "surface": "service_steel"},
+    {"id": "overlook_parapet", "min": [-16, 3, 32.2], "max": [1, 4.4, 33], "surface": "concrete"},
+    {"id": "overlook_tower", "min": [3.2, 0, 22], "max": [8, 9.5, 31], "surface": "concrete"},
+    {"id": "district_block_east", "min": [16, 0, 18], "max": [28, 3.2, 30], "surface": "concrete"},
+    {"id": "district_block_south", "min": [20, 0, 4], "max": [32, 2.2, 14], "surface": "enamel"}
+  ],
+  "spawns": [
+    {"id": "arrival", "feet": [0, 0, -20], "yaw": 0}
+  ],
+  "landmarks": [
+    {"id": "transit_square", "feet": [0, 0, -16]},
+    {"id": "clinic_route", "feet": [2, 0, -0.5]},
+    {"id": "maintenance_escape", "feet": [-12, 0, 10]},
+    {"id": "district_overlook", "feet": [-6, 3, 29]}
+  ],
+  "supplies": [
+    {"id": "van_armor", "feet": [7, 0, -11.2], "grant": {"kind": "armor", "amount": 25}, "claim": "contested", "secret": true},
+    {"id": "van_medkit", "feet": [10, 0, -11.2], "grant": {"kind": "health", "amount": 25}, "claim": "contested", "secret": true},
+    {"id": "tram_shells", "feet": [-11.5, 0, -27.8], "grant": {"kind": "ammo", "pool": "shells", "amount": 8}, "claim": "contested", "secret": true},
+    {"id": "overlook_cells", "feet": [-9.5, 3, 29], "grant": {"kind": "ammo", "pool": "cells", "amount": 4}, "claim": "contested", "secret": true}
+  ],
+  "encounters": [
+    {
+      "id": "clinic_disruption",
+      "regions": [{"min": [-2, 0, -5], "max": [6, 2.2, 4]}],
+      "enemies": [
+        {"id": "clinic_sweeper", "kind": "sweeper", "feet": [3, 0, -3.5], "yaw": 3.14159265},
+        {"id": "clinic_heavy", "kind": "heavy_sweeper", "feet": [0.5, 0, 2], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "maintenance_hold",
+      "regions": [{"min": [-16, 0, -4], "max": [-8, 2.2, 6]}],
+      "enemies": [
+        {"id": "passage_sweeper", "kind": "sweeper", "feet": [-12, 0, 0], "yaw": 0}
+      ]
+    }
+  ]
+}

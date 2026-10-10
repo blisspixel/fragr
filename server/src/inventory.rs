@@ -278,6 +278,12 @@ impl Inventory {
     }
 
     pub fn grant_weapon(&mut self, weapon: WeaponType) -> bool {
+        self.grant_weapon_rounds(weapon, weapon.pickup_rounds())
+    }
+
+    /// `rounds` is the discovery or pad grant. Callers that are not a campaign
+    /// claim pass `weapon.pickup_rounds()` unchanged.
+    pub(crate) fn grant_weapon_rounds(&mut self, weapon: WeaponType, rounds: u16) -> bool {
         if self.policy == EquipmentPolicy::FullArsenal {
             if !self.owns(weapon) {
                 return false;
@@ -290,7 +296,7 @@ impl Inventory {
             let Some(pool) = weapon.ammo_pool() else {
                 return true;
             };
-            return self.grant_carried(pool, weapon.pickup_rounds()) > 0;
+            return self.grant_carried(pool, rounds) > 0;
         }
         let Some(pool) = weapon.ammo_pool() else {
             // Pool-less melee is ownership alone. Fists are always carried.
@@ -306,7 +312,7 @@ impl Inventory {
             self.owned[weapon.index()] = true;
             self.revision += 1;
         }
-        let gained = self.grant_ammo(pool, weapon.pickup_rounds()) > 0;
+        let gained = self.grant_ammo(pool, rounds) > 0;
         if acquired {
             self.load_new_magazine(weapon);
         }
