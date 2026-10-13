@@ -52,6 +52,7 @@ pub(crate) struct MissionRun {
     m10: Option<m10::M10Progress>,
     m11: Option<m11::M11Progress>,
     m12: Option<m12::M12Progress>,
+    m13: Option<m13::M13Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -80,6 +81,7 @@ impl MissionRun {
             m10: map.m10_geometry().map(|_| m10::M10Progress::default()),
             m11: map.m11_geometry().map(|_| m11::M11Progress::default()),
             m12: map.m12_geometry().map(|_| m12::M12Progress::default()),
+            m13: map.m13_geometry().map(m13::M13Progress::new),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -262,6 +264,7 @@ impl GameState {
                 || run.m10.is_some()
                 || run.m11.is_some()
                 || run.m12.is_some()
+                || run.m13.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -326,6 +329,7 @@ impl GameState {
             blast_floor: projectile_serial,
             ..m12::M12Progress::default()
         });
+        run.m13 = run.initial_map.m13_geometry().map(m13::M13Progress::new);
         run.m09 = run.initial_map.m09_geometry().map(|g| {
             m09::M09Progress::new(
                 &g,
@@ -351,6 +355,7 @@ impl GameState {
                 || run.m10.is_some()
                 || run.m11.is_some()
                 || run.m12.is_some()
+                || run.m13.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -383,6 +388,9 @@ impl GameState {
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m13.is_some() {
+            return self.m13_mission_state();
+        }
         if run.m12.is_some() {
             return self.m12_mission_state();
         }
@@ -476,6 +484,7 @@ impl GameState {
             m10: None,
             m11: None,
             m12: None,
+            m13: None,
         })
     }
 
@@ -502,6 +511,10 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m13.is_some()) {
+            self.advance_m13();
+            return;
+        }
         if self.foundry.is_some() && self.mission.is_none() {
             self.advance_foundry();
             return;

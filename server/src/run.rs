@@ -401,6 +401,8 @@ async fn run_server_impl(
     });
     let required_gameplay = if map == MapKind::LowWater || rotate {
         crate::protocol::LOW_WATER_SABOTAGE_GAMEPLAY_VERSION
+    } else if session.state.map.m13_geometry().is_some() {
+        crate::protocol::M13_GAMEPLAY_VERSION
     } else if session.state.map.m12_geometry().is_some() {
         crate::protocol::M12_GAMEPLAY_VERSION
     } else if session.state.map.is_campaign() || session.state.map.requires_assessor_contract() {

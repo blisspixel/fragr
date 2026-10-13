@@ -11,9 +11,11 @@ use uuid::Uuid;
 mod geometry;
 mod legacy;
 mod legacy_v14;
+mod legacy_v16;
 mod m09_outcome;
 mod m11_outcome;
 mod m12_outcome;
+mod m13_outcome;
 pub(crate) mod store;
 use legacy::{
     RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2, RunDocumentV3,
@@ -23,11 +25,11 @@ use legacy_v14::RunDocumentV14;
 pub(crate) use m09_outcome::M09Outcome;
 pub(crate) use m11_outcome::M11Outcome;
 pub(crate) use m12_outcome::M12Outcome;
+pub(crate) use m13_outcome::M13Outcome;
 
-/// Version 16 adds the Rocket Launcher boundary. Historical documents retain
-/// exact original-byte archives before their live upgrade. No mission grants
-/// the launcher yet, so every carried count stays zero.
-pub(super) const RUN_FILE_VERSION: u32 = 16;
+/// Version 17 connects the foundry and retains its actual completion facts.
+/// Historical documents retain exact original-byte archives before upgrade.
+pub(super) const RUN_FILE_VERSION: u32 = 17;
 const PRE_ASSESSOR_RULES_REVISION: u32 = 3;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
@@ -40,6 +42,7 @@ const M10_MISSION: &str = "common_carrier";
 const M11_MISSION: &str = "right_of_search";
 const M12_MISSION: &str = "terms_of_cooperation";
 const M13_MISSION: &str = "weight_of_permission";
+const M14_MISSION: &str = "launch_authority";
 const M08_MISSION: &str = "custodian_of_record";
 
 pub(crate) use crate::protocol::M08Outcome;
@@ -234,6 +237,12 @@ pub(crate) struct RunDocument {
         skip_serializing_if = "Option::is_none"
     )]
     pub m12_outcome: Option<M12Outcome>,
+    #[serde(
+        default,
+        deserialize_with = "m13_outcome::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m13_outcome: Option<M13Outcome>,
 }
 
 impl RunDocument {
@@ -270,6 +279,7 @@ impl RunDocument {
             MissionId::CommonCarrier => (MissionId::PassengerManifest, M10_MISSION),
             MissionId::RightOfSearch => (MissionId::CommonCarrier, M11_MISSION),
             MissionId::TermsOfCooperation => (MissionId::RightOfSearch, M12_MISSION),
+            MissionId::WeightOfPermission => (MissionId::TermsOfCooperation, M13_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -294,6 +304,7 @@ impl RunDocument {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -357,6 +368,7 @@ impl RunDocument {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         }
     }
 
@@ -399,6 +411,7 @@ impl RunDocument {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -418,6 +431,7 @@ impl RunDocument {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -436,6 +450,7 @@ impl RunDocument {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
@@ -453,6 +468,7 @@ impl RunDocument {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) || matches!(&self.step, SavedStep::AwaitingMission {
                 completed_mission: MissionId::PortOfEntry, next_mission, ..
             } if next_mission == M07_MISSION);
@@ -465,6 +481,7 @@ impl RunDocument {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
@@ -476,7 +493,10 @@ impl RunDocument {
         }
         let completed_m09 = matches!(
             self.stage_mission(),
-            MissionId::CommonCarrier | MissionId::RightOfSearch | MissionId::TermsOfCooperation
+            MissionId::CommonCarrier
+                | MissionId::RightOfSearch
+                | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PassengerManifest, next_mission, ..
         } if next_mission == M10_MISSION);
@@ -488,7 +508,10 @@ impl RunDocument {
         }
         if matches!(
             self.stage_mission(),
-            MissionId::CommonCarrier | MissionId::RightOfSearch | MissionId::TermsOfCooperation
+            MissionId::CommonCarrier
+                | MissionId::RightOfSearch
+                | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission
         ) != self.m10_transit.is_some()
         {
             return Err("saved transit does not match M10");
@@ -507,8 +530,10 @@ impl RunDocument {
                 return Err("saved M10 arrivals disagree with the immutable berth release");
             }
         }
-        let completed_m11 = self.stage_mission() == MissionId::TermsOfCooperation
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m11 = matches!(
+            self.stage_mission(),
+            MissionId::TermsOfCooperation | MissionId::WeightOfPermission
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::RightOfSearch, next_mission, ..
         } if next_mission == M12_MISSION);
         if completed_m11 != self.m11_outcome.is_some() {
@@ -517,13 +542,23 @@ impl RunDocument {
         if let Some(outcome) = &self.m11_outcome {
             outcome.validate()?;
         }
-        let completed_m12 = matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m12 = self.stage_mission() == MissionId::WeightOfPermission
+            || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::TermsOfCooperation, next_mission, ..
         } if next_mission == M13_MISSION);
         if completed_m12 != self.m12_outcome.is_some() {
             return Err("saved habitat outcome does not match completed M12");
         }
         if let Some(outcome) = &self.m12_outcome {
+            outcome.validate()?;
+        }
+        let completed_m13 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::WeightOfPermission, next_mission, ..
+        } if next_mission == M14_MISSION);
+        if completed_m13 != self.m13_outcome.is_some() {
+            return Err("saved foundry outcome does not match completed M13");
+        }
+        if let Some(outcome) = &self.m13_outcome {
             outcome.validate()?;
         }
         if self.version != RUN_FILE_VERSION
@@ -571,6 +606,7 @@ impl RunDocument {
                         | (MissionId::CommonCarrier, M11_MISSION)
                         | (MissionId::RightOfSearch, M12_MISSION)
                         | (MissionId::TermsOfCooperation, M13_MISSION)
+                        | (MissionId::WeightOfPermission, M14_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -579,10 +615,17 @@ impl RunDocument {
                 {
                     return Err("M01 run has the wrong continue baseline");
                 }
-                if *completed_mission == MissionId::TermsOfCooperation
-                    && !exit.equipment.weapons.contains(&WeaponType::Arc)
+                if matches!(
+                    *completed_mission,
+                    MissionId::TermsOfCooperation | MissionId::WeightOfPermission
+                ) && !exit.equipment.weapons.contains(&WeaponType::Arc)
                 {
                     return Err("completed M12 lacks its required actual Arc find");
+                }
+                if *completed_mission == MissionId::WeightOfPermission
+                    && !exit.equipment.weapons.contains(&WeaponType::Rocket)
+                {
+                    return Err("completed M13 lacks its required actual Rocket find");
                 }
                 Self::validate_carried_finds(
                     exit,
@@ -594,6 +637,7 @@ impl RunDocument {
                             | MissionId::CommonCarrier
                             | MissionId::RightOfSearch
                             | MissionId::TermsOfCooperation
+                            | MissionId::WeightOfPermission
                     ),
                     matches!(
                         *completed_mission,
@@ -602,18 +646,26 @@ impl RunDocument {
                             | MissionId::CommonCarrier
                             | MissionId::RightOfSearch
                             | MissionId::TermsOfCooperation
+                            | MissionId::WeightOfPermission
                     ),
                     matches!(
                         *completed_mission,
                         MissionId::CommonCarrier
                             | MissionId::RightOfSearch
                             | MissionId::TermsOfCooperation
+                            | MissionId::WeightOfPermission
                     ),
                     matches!(
                         *completed_mission,
-                        MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                        MissionId::RightOfSearch
+                            | MissionId::TermsOfCooperation
+                            | MissionId::WeightOfPermission
                     ),
-                    *completed_mission == MissionId::TermsOfCooperation,
+                    matches!(
+                        *completed_mission,
+                        MissionId::TermsOfCooperation | MissionId::WeightOfPermission
+                    ),
+                    *completed_mission == MissionId::WeightOfPermission,
                 )?;
                 exit.validate()
             }
@@ -624,6 +676,11 @@ impl RunDocument {
         if mission == MissionId::RecallNotice && self.level_start_continues != CAMPAIGN_CONTINUES {
             return Err("M01 run has the wrong continue baseline");
         }
+        if mission == MissionId::WeightOfPermission
+            && !entry.equipment.weapons.contains(&WeaponType::Arc)
+        {
+            return Err("M13 entry lacks its completed habitat Arc find");
+        }
         Self::validate_carried_finds(
             entry,
             matches!(
@@ -633,6 +690,7 @@ impl RunDocument {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ),
             matches!(
                 mission,
@@ -641,12 +699,19 @@ impl RunDocument {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ),
             matches!(
                 mission,
-                MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                MissionId::RightOfSearch
+                    | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ),
-            mission == MissionId::TermsOfCooperation,
+            matches!(
+                mission,
+                MissionId::TermsOfCooperation | MissionId::WeightOfPermission
+            ),
+            mission == MissionId::WeightOfPermission,
             false,
         )?;
         entry.validate()
@@ -662,16 +727,18 @@ impl RunDocument {
         repeater_found: bool,
         remotes_found: bool,
         arc_found: bool,
+        rocket_found: bool,
     ) -> Result<(), &'static str> {
-        // No connected mission grants the launcher yet. Zero Rockets are the
-        // migrated pool. Ownership or a nonzero count is a forged find.
-        if entry.equipment.selected == WeaponType::Rocket
-            || entry.equipment.weapons.contains(&WeaponType::Rocket)
-            || entry
-                .equipment
-                .ammo
-                .iter()
-                .any(|count| count.pool == AmmoPool::Rockets && count.rounds != 0)
+        // Only a completed foundry exit may carry the actual launcher find.
+        // A mission-entry retry restores the stock carried into the foundry.
+        if !rocket_found
+            && (entry.equipment.selected == WeaponType::Rocket
+                || entry.equipment.weapons.contains(&WeaponType::Rocket)
+                || entry
+                    .equipment
+                    .ammo
+                    .iter()
+                    .any(|count| count.pool == AmmoPool::Rockets && count.rounds != 0))
         {
             return Err("Rocket Launcher ownership requires its mission");
         }
@@ -746,6 +813,7 @@ impl GameState {
                     MissionId::CommonCarrier => M11_MISSION,
                     MissionId::RightOfSearch => M12_MISSION,
                     MissionId::TermsOfCooperation => M13_MISSION,
+                    MissionId::WeightOfPermission => M14_MISSION,
                     MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
@@ -783,6 +851,7 @@ impl GameState {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -807,6 +876,7 @@ impl GameState {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -831,6 +901,7 @@ impl GameState {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
@@ -853,6 +924,7 @@ impl GameState {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 Some(M06Outcome {
                     prisoner_route_marked: solo.carried_prisoner_route_marked,
@@ -875,6 +947,7 @@ impl GameState {
                     | MissionId::CommonCarrier
                     | MissionId::RightOfSearch
                     | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 solo.carried_archive.clone()
             } else {
@@ -892,7 +965,10 @@ impl GameState {
                 )
             } else if matches!(
                 mission,
-                MissionId::CommonCarrier | MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
+                    | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 solo.carried_berth.clone()
             } else {
@@ -900,7 +976,10 @@ impl GameState {
             },
             m10_transit: if matches!(
                 mission,
-                MissionId::CommonCarrier | MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                MissionId::CommonCarrier
+                    | MissionId::RightOfSearch
+                    | MissionId::TermsOfCooperation
+                    | MissionId::WeightOfPermission
             ) {
                 solo.carried_transit.clone()
             } else {
@@ -915,7 +994,10 @@ impl GameState {
                         .ok_or("completed M11 lacks progress")?
                         .challenges,
                 )?)
-            } else if mission == MissionId::TermsOfCooperation {
+            } else if matches!(
+                mission,
+                MissionId::TermsOfCooperation | MissionId::WeightOfPermission
+            ) {
                 solo.carried_tender.clone()
             } else {
                 None
@@ -929,6 +1011,21 @@ impl GameState {
                         .ok_or("completed M12 lacks progress")?
                         .challenges,
                     self.tick,
+                )?)
+            } else if mission == MissionId::WeightOfPermission {
+                solo.carried_habitat.clone()
+            } else {
+                None
+            },
+            m13_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::WeightOfPermission
+            {
+                Some(M13Outcome::capture(
+                    &self
+                        .mission_state()
+                        .ok_or("completed M13 lacks mission state")?
+                        .m13
+                        .ok_or("completed M13 lacks progress")?,
                 )?)
             } else {
                 None
@@ -1055,6 +1152,7 @@ mod tests {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

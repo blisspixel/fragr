@@ -62,6 +62,14 @@ impl GameState {
                 bodies.push(civilian(format!("m02/captive/{i}"), feet));
             }
         }
+        if let Some(p) = &run.m13 {
+            for (i, feet) in p.worker_feet.iter().enumerate() {
+                bodies.push(civilian(format!("m13/worker/{i}"), *feet));
+            }
+            if let Some(g) = run.initial_map.m13_geometry() {
+                bodies.push(civilian("m13/overseer".into(), g.overseer));
+            }
+        }
         if let Some(p) = &run.m03 {
             for car in &p.cars {
                 for (i, &feet) in car.captives.iter().enumerate() {

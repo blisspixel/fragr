@@ -141,6 +141,7 @@ impl Encounters {
                 || map.m10_objectives().is_some()
                 || map.m11_objectives().is_some()
                 || map.m12_objectives().is_some()
+                || map.m13_geometry().is_some()
                 || map.has_authored_vehicles())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions

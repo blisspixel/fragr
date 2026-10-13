@@ -5,7 +5,9 @@ Shared [world direction](../design/mars.md) and
 [character, voice and scene continuity](../design/characters.md) govern assets
 and staging. This anchor is a production target, not finished-appearance evidence.
 
-**Status:** proposed, unbuilt. Mars before the wipe. Target 12-16 minutes.
+**Historical eight-mission brief:** superseded by the level 13 design below and
+the separate level 14 brief. The original combined mission was not built.
+Mars before the wipe. Original target 12-16 minutes.
 [Treatment](../CAMPAIGN-MISSIONS.md#level-13-the-weight-of-permission).
 
 ## Story and cast
@@ -109,7 +111,10 @@ fight on named hardware; a quiet static view is not the performance evidence.
 
 ## Level 13 design (twenty-level expansion)
 
-**Status:** planned, accepted 2026-09-25. In the
+**Status:** implemented as a connected development mission, 2026-10-13.
+[The round plan](../plans/m13-connected-round-20261013.md) records verified
+behavior and the remaining final-art, first-player pacing and difficulty gates.
+The design was accepted 2026-09-25. In the
 [twenty-level expansion](../plans/campaign-expansion.md) this mission splits:
 the foundry on foot is level 13, and the exterior launch works with the jeep
 and the Walker become [level 14](l14-launch-authority.md). The Article Blade

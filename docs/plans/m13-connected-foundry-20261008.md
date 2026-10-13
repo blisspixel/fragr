@@ -1,6 +1,10 @@
 # Connected Weight of Permission foundry
 
-Status: **in flight**, 2026-10-09. Spend: $0. The Rocket Launcher foundation is
+Status: **superseded**, 2026-10-13, by the
+[connected foundry round](m13-connected-round-20261013.md). The preparation
+record below retains its original scope and results.
+
+Historical status, 2026-10-09. Spend: $0. The Rocket Launcher foundation is
 on main at `711dfb4`, recorded for v0.81.0, and is not part of v0.80.0. The
 successor `server/maps/m13-weight-of-permission.json` opens the ladle shaft and
 places the office Rocket Launcher, four extra rockets and the freight Assessor.

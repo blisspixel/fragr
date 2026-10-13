@@ -6,11 +6,12 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-08: matching readers advertise gameplay 46 and geometry
+Current contract, 2026-10-13: matching readers advertise gameplay 47 and geometry
 2. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
 Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
-Rocket Launcher contract is 46. No current mission grants the launcher. Numbered
+Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
+the first campaign launcher. Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
 campaign admission. Dated evidence retains the exact contract it exercised.
@@ -108,7 +109,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `46`; omission means `1`. Discovery-only maps first
+  and the Godot client send `47`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -132,7 +133,7 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. A shared arcade room speaks gameplay 46. That floor
+  without teams misleads. A shared arcade room speaks gameplay 47. That floor
   is above capability 4, and the arcade roster stays open. The four-seat
   mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
@@ -2956,7 +2957,7 @@ rewinding tick, sequence or inventory revisions. Only actual completed M11
 equipment may carry remote charges onward. Completion stores `m11_outcome`
 with release, records, single-blast count and elapsed `bridge_response_ticks`,
 then retained pending `terms_of_cooperation`. The version-15 boundary
-and connected M12 work are described below. Version 16 is the current document.
+and connected M12 work are described below. Version 17 is the current document.
 
 ### Arc, current records and strict saves (capability 42)
 
@@ -3022,9 +3023,9 @@ the exact portable `m12_outcome`: `shelter_opened`, `workers_released`, two
 `pumps_intact_at_route_secure`. The last fact derives from the authoritative
 chronology; same-tick pump damage fails the intact condition, while later damage
 does not rewrite the earlier result. Process-local timestamps are not saved.
-M12 completion retains pending `weight_of_permission`; that pending name does
-not make connected M13 playable. The connected M12 plan remains in flight until
-its own native, socket and inspected rendered acceptance completes.
+M12 completion retains pending `weight_of_permission`. Version 17 promotes that
+completed document into M13 under the same writer lock, retaining the actual
+habitat receipt and entry resources with no Episode III continue refill.
 
 ### Assessor and traveling canisters (capability 43)
 
@@ -3139,10 +3140,54 @@ radius-4 explosion hit exceeds 100 combined damage. An empty rockets pool is
 removed before delivery to those readers. Record revision 4 is current.
 Revision 3 remains the nine-column Arc record and refuses rocket facts.
 
-Current local run-file version is 16. It is an exact version-15 reader plus a
+Historical local run-file version 16 is an exact version-15 reader plus a
 zero `rockets` count, and it archives the original bytes under the existing
-writer lock. A historical document that already selects the launcher, owns it,
-or names the rockets pool is incompatible. No mission grants the launcher, so
-a current save that owns it or carries a nonzero rockets count is refused.
-Campaign rules stay at revision 4. Pending `weight_of_permission` remains
-unplayable. The optional M12 secret and connected M13 stay separate work.
+writer lock. A version-15 document that already selects the launcher, owns it,
+or names the rockets pool is incompatible. Version 16 has no campaign launcher,
+so a version-16 save that owns it or carries nonzero rockets is refused.
+Version 17 permits it only in completed M13 equipment after actual discovery.
+Campaign rules stay at revision 4. The optional M12 secret remains separate.
+
+### The Weight of Permission (capability 47)
+
+Map 1013 uses mission id `weight_of_permission`. All human, agent and spectator
+readers require capability 47. `MapInfo.m13` carries strict registered objective
+definitions, the physical worker release and deck departure controls, relay and
+protected solid indices, machinery hazard and permanent bypass regions, cycle
+durations, lift solid and height limits, boarding inset, worker start/destination
+positions and the overseer's position. A static map contract cannot drift between
+observations. MapInfo precedes mission facts, including initial admission.
+
+`MissionState.m13` carries ordered `completed` and `current` objectives,
+`relay_disabled`, `overseer_surrendered`, three actual `worker_feet`,
+`hazard_phase`, `lift` and `challenges`. The order is `foundry_entered`,
+`machine_hall_cleared`, `rocket_found`, `freight_loop_secured`, `relay_disabled`,
+`upper_gallery_secured`, `lift_boarded`, then `party_departed`. The launcher
+objective requires the actual resolved office supply claim. The relay responds
+only to a registered resolved face hit after the freight fight; protected town
+utilities remain unchanged.
+
+The optional worker responses are `volunteered`, `departed_independently` and
+`declined_and_kept_working`. `challenges.workers` records those choices;
+`workers_arrived` records actual grounded arrival separately. The third worker
+stays at work and never acquires an arrival claim. `hazard_hurt` counts actual
+effective HP and armor loss from active machinery, and `supports_cleared` records
+the defeat of registered gallery support-position guards. Workers never gate
+required departure.
+
+Lift facts contain `phase`, `top`, `tick` and `returning`. The phases are
+`parked`, `moving`, `returning`, `blocked` and `arrived`. A blocked lift retains
+its direction in `returning`. Fresh physical Use by a living ready party wholly
+supported on the deck starts ascent. Losing the supported party returns the deck
+physically; a fresh supported all-party Use can restart it at the floor without
+erasing the earlier boarding receipt. Supported riders move with the deck and
+any obstruction refuses the whole step. Clients render its accepted position;
+an elapsed animation does not establish arrival or departure.
+
+Run-file version 17 retains strict historical v2-v16 decoding and exact original
+byte archives. Future mission identities, invented launcher ownership and extra
+fields do not become valid through migration. M13 retries restore its actual
+entry resources and initial foundry state through the existing reset owner.
+The portable `m13_outcome` contains worker choices, actual arrival flags,
+effective hazard loss and the support-position receipt. Completed M13 retains
+pending `launch_authority`; unimplemented M14 remains refused.

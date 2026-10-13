@@ -116,6 +116,19 @@
         0.8
       ],
       "solid": "quarters_back"
+    },
+    {
+      "solid": "freight_deck",
+      "face": "up",
+      "kind": "lift_control",
+      "center": [
+        1.2,
+        0
+      ],
+      "size": [
+        0.8,
+        0.6
+      ]
     }
   ],
   "encounters": [
@@ -359,13 +372,28 @@
       ]
     },
     {
+      "id": "freight_lesson",
       "after": "quarters_approach",
+      "regions": [
+        {
+          "max": [
+            39.0,
+            9.0,
+            27.0
+          ],
+          "min": [
+            -39.0,
+            0.0,
+            12.0
+          ]
+        }
+      ],
       "enemies": [
         {
           "feet": [
-            -10.0,
+            -5,
             0.3,
-            18.0
+            23
           ],
           "id": "freight_sweeper_west",
           "kind": "sweeper",
@@ -383,14 +411,19 @@
         },
         {
           "feet": [
-            10.0,
+            5,
             0.3,
-            18.0
+            23
           ],
           "id": "freight_sweeper_east",
           "kind": "sweeper",
           "yaw": 4.71238898038469
-        },
+        }
+      ]
+    },
+    {
+      "after": "freight_lesson",
+      "enemies": [
         {
           "feet": [
             -17.0,
@@ -465,6 +498,26 @@
               ]
             }
           }
+        },
+        {
+          "id": "counter_sweeper_west",
+          "kind": "sweeper",
+          "feet": [
+            -10,
+            0.3,
+            18
+          ],
+          "yaw": 4.71238898038469
+        },
+        {
+          "id": "counter_sweeper_east",
+          "kind": "sweeper",
+          "feet": [
+            10,
+            0.3,
+            18
+          ],
+          "yaw": 4.71238898038469
         }
       ],
       "id": "freight_counterattack",
@@ -3280,9 +3333,9 @@
         ]
       },
       "approach": [
-        -22.0,
+        -22,
         0.3,
-        7.7
+        8.1
       ]
     },
     "quarters_encounter": "quarters_approach",
@@ -3297,7 +3350,175 @@
         49.6
       ]
     },
-    "lift_top": 14.6
+    "lift_top": 14.6,
+    "connected": {
+      "arrivals": [
+        {
+          "region": {
+            "min": [
+              -39,
+              0,
+              -39
+            ],
+            "max": [
+              39,
+              9,
+              -21
+            ]
+          },
+          "feet": [
+            -23,
+            0.3,
+            -29
+          ]
+        },
+        {
+          "region": {
+            "min": [
+              -39,
+              0,
+              -21
+            ],
+            "max": [
+              39,
+              9,
+              2
+            ]
+          },
+          "feet": [
+            -20,
+            0.3,
+            -8
+          ]
+        },
+        {
+          "region": {
+            "min": [
+              13.5,
+              0,
+              2.5
+            ],
+            "max": [
+              26.5,
+              3.5,
+              9.5
+            ]
+          },
+          "feet": [
+            21,
+            0.3,
+            6
+          ]
+        },
+        {
+          "region": {
+            "min": [
+              -39,
+              0,
+              12
+            ],
+            "max": [
+              39,
+              9,
+              27
+            ]
+          },
+          "feet": [
+            -11,
+            0.3,
+            20
+          ]
+        },
+        {
+          "region": {
+            "min": [
+              -27,
+              3,
+              28
+            ],
+            "max": [
+              27,
+              10,
+              53
+            ]
+          },
+          "feet": [
+            12,
+            3.3,
+            49
+          ]
+        }
+      ],
+      "relay_approach": [
+        -34,
+        0.3,
+        10
+      ],
+      "relay_aim": [
+        -35.7,
+        1.4,
+        10
+      ],
+      "departure": {
+        "panel": {
+          "solid": "freight_deck",
+          "face": "up",
+          "kind": "lift_control",
+          "center": [
+            1.2,
+            0
+          ],
+          "size": [
+            0.8,
+            0.6
+          ]
+        },
+        "approach": [
+          0,
+          3.6,
+          49
+        ]
+      },
+      "workers": [
+        [
+          -23,
+          0.3,
+          5.2
+        ],
+        [
+          -23,
+          0.3,
+          6.8
+        ],
+        [
+          -25,
+          0.3,
+          8.5
+        ]
+      ],
+      "worker_destinations": [
+        [
+          -10,
+          0.3,
+          5.2
+        ],
+        [
+          -9,
+          0.3,
+          6.8
+        ],
+        [
+          -25,
+          0.3,
+          8.5
+        ]
+      ],
+      "overseer": [
+        -15,
+        0.3,
+        8.5
+      ]
+    }
   },
   "version": 1
 }

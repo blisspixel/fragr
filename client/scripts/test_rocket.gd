@@ -6,6 +6,19 @@ var _failures: int = 0
 class NetworkProbe extends Node:
 	var player_id: String = OWNER
 
+class HudProbe extends Node:
+	var launches: int = 0
+	func show_fire_juice(weapon: String) -> void:
+		if weapon == "Rocket": launches += 1
+
+class CameraProbe extends Node:
+	var target: Node
+	var first_person: bool = true
+	func get_followed_target() -> Node:
+		return target
+	func is_observing_first_person() -> bool:
+		return first_person
+
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	_run.call_deferred()
@@ -22,7 +35,7 @@ func _snapshot(rockets: Array, tick: int = 4) -> Dictionary:
 	return {"tick": tick, "players": [{"id": OWNER}], "rockets": rockets}
 
 func _run() -> void:
-	_check(preload("res://scripts/net_client.gd").GAMEPLAY_VERSION == 46, "the client speaks the rocket gameplay contract")
+	_check(preload("res://scripts/net_client.gd").GAMEPLAY_VERSION == 47, "the client speaks the rocket gameplay contract")
 	var flying: Dictionary = _snapshot([_flight(7, 0, [18.0, 0.0, 0.0])])
 	_check(RocketFacts.validation_error(flying).is_empty(), "a fresh rocket in flight is accepted")
 	for patch: Dictionary in [{"id": 0}, {"owner_id": "00000000-0000-0000-0000-000000000000"}, {"age_ticks": 80}, {"velocity": [21.0, 0.0, 0.0]}, {"position": [1025.0, 0.0, 0.0]}, {"extra": true}]:
@@ -62,6 +75,8 @@ func _run() -> void:
 func _check_launch_audio() -> void:
 	var game: Node = load("res://scripts/game_manager.gd").new()
 	var network: NetworkProbe = NetworkProbe.new()
+	var hud_probe := HudProbe.new()
+	var camera_probe := CameraProbe.new()
 	var effects: GrenadeEffects = GrenadeEffects.new()
 	var pawn: Node3D = (load("res://scenes/player.tscn") as PackedScene).instantiate()
 	root.add_child(pawn)
@@ -69,6 +84,7 @@ func _check_launch_audio() -> void:
 	await process_frame
 	var fire: AudioStreamPlayer3D = pawn.get_node("FireSound")
 	game.net_client = network
+	game.hud = hud_probe
 	game.grenade_effects = effects
 	game.players[OWNER] = pawn
 	effects.apply(_snapshot([_flight(1, 0, [18.0, 0.0, 0.0])], 1), Vector3.INF)
@@ -95,6 +111,7 @@ func _check_launch_audio() -> void:
 	effects.apply(_snapshot([_flight(4, 0, [18.0, 0.0, 0.0])], 4), Vector3.INF)
 	game._present_rocket_launches()
 	_check(not fire.playing and game.local_fire.confirmed_count == 1, "accepted local projectile confirms without doubling its predicted cue")
+	_check(hud_probe.launches == 0, "the accepted local launch never doubles the predicted first-person cue")
 	_check(not game.local_fire.reconcile(8), "confirmed Rocket is not cancelled as a denied ray shot")
 	var invalid: Dictionary = _snapshot([_flight(5, 0, [21.0, 0.0, 0.0])], 5)
 	effects.apply(invalid, Vector3.INF)
@@ -104,9 +121,25 @@ func _check_launch_audio() -> void:
 	effects.apply(_snapshot([_flight(6, 0, [18.0, 0.0, 0.0])], 6), Vector3.INF)
 	game._present_rocket_launches()
 	_check(not fire.playing, "map reset restores silent initial synchronization")
+	effects.apply(_snapshot([_flight(7, 0, [18.0, 0.0, 0.0])], 7), Vector3.INF)
+	game._present_rocket_launches()
+	_check(hud_probe.launches == 1, "an unpredicted accepted local launch presents its first-person cue")
+	game.is_human_player = false
+	pawn.player_id = OWNER
+	camera_probe.target = pawn
+	game.camera = camera_probe
+	effects.apply(_snapshot([_flight(8, 0, [18.0, 0.0, 0.0])], 8), Vector3.INF)
+	game._present_rocket_launches()
+	_check(hud_probe.launches == 2, "a followed first-person launch presents its own launcher cue")
+	camera_probe.first_person = false
+	effects.apply(_snapshot([_flight(9, 0, [18.0, 0.0, 0.0])], 9), Vector3.INF)
+	game._present_rocket_launches()
+	_check(hud_probe.launches == 2, "third-person observation does not flash a held launcher")
 	effects.reset()
 	effects.free()
 	network.free()
+	hud_probe.free()
+	camera_probe.free()
 	game.free()
 	pawn.queue_free()
 	await process_frame

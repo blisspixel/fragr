@@ -144,6 +144,7 @@ impl GameState {
             m10: None,
             m11: None,
             m12: None,
+            m13: None,
         })
     }
     pub(super) fn advance_m06(&mut self) {

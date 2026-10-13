@@ -11,7 +11,38 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## October 13, 2026 first-use menu review
+## October 13, 2026 connected foundry round
+
+The complete 32-state arena tour passes on the connected-foundry source build.
+`tools/qa_tour.sh --publish` refreshed 14 retained stills, including the README's
+boot, multiplayer and watched-match surfaces. The unchanged Recall Notice intake
+retains its earlier capture. The contact sheet, menus, watched world and all three
+effect strips were inspected. The strips show the actual muzzle flash, Rail
+impact and Scatter effect samples; small tiles do not prove every pellet.
+
+The [capture receipt](tour-20261013-foundry-round.json) retains observed state,
+renderer and device. These are Godot 4.7.2-stable, Linux Xvfb, OpenGL Compatibility
+and Mesa llvmpipe captures at 1280x720. They establish software-rendered
+presentation, not hardware performance or human enjoyment. M13's ordinary
+mission route has its own evidence in the
+[connected round](../plans/m13-connected-round-20261013.md).
+
+The [M13 route receipt](m13-connected-20261013.json) records all 23 ordinary-input
+states through departure, with actual weapon records, worker arrivals and lift
+facts. `m13-rocket-20261013.png` is the first firing frame, and
+`m13-worker-choice-20261013.png` shows the accepted optional release.
+`m13-lift-motion-20261013.png` contains eight live ascent frames;
+`m13-lift-arrival-20261013.png` is the supported upper arrival looking down at
+the deck. These images are copied from the actual route without retouching.
+
+The relay's top-mounted indicator was hard to see during that route. Its final
+approach-face active/offline signs were subsequently inspected in the separately
+arranged `m13-relay-active-fixture-20261013.png` and
+`m13-relay-offline-fixture-20261013.png`. Those two images establish presentation
+only. The ordinary route separately proves the relay's resolved-shot transition.
+The repeated foundry surfaces and coarse tube remain development art.
+
+## Historical October 13 first-use menu review
 
 The current multiplayer still shows the Run a match action and a real loopback
 status reply from a five-bot server. It was extracted without retouching from
@@ -27,7 +58,7 @@ native process qualification. The ordinary host-menu harness separately checks
 menu replacement and retained settings. All three new frames were inspected at
 full size. Older gameplay and boot stills retain the dates and limits below.
 
-## Current README gallery, October 10, 2026
+## Historical README gallery, October 10, 2026
 
 The boot menu matches the October 8 capture byte for byte. The multiplayer
 page and the watched Arena Duel match were captured again on the current build

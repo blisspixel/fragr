@@ -43,7 +43,7 @@ func _run() -> void:
 	await process_frame
 	await menu._show("practice")
 	var selector: OptionButton = menu._root.get_node("DevelopmentMission")
-	_check(selector.item_count == 11 and selector.selected == 5 \
+	_check(selector.item_count == 12 and selector.selected == 5 \
 		and selector.get_item_text(8) == tr("M10_PROTOTYPE_TITLE") \
 		and selector.get_item_text(9) == tr("M11_PROTOTYPE_TITLE") \
 		and selector.get_item_text(10) == tr("M12_PROTOTYPE_TITLE"),

@@ -4,6 +4,23 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.83.0 (2026-10-13)
+
+- Connect The Weight of Permission as campaign level 13, with practice entry,
+  localized arrival framing and saved progression from Terms of Cooperation.
+- Find the first finite Rocket Launcher, secure the foundry and upper gallery,
+  disable the machine relay while preserving the town feed, and ride the freight
+  lift to departure. The lift returns if the party leaves during ascent.
+- Release three workers with separate voluntary responses and grounded travel
+  receipts. Worker choices stay optional. Machinery warnings and the overseer's
+  surrender follow authoritative mission facts.
+- Give the Rocket Launcher a distinct development tube viewmodel and visible
+  local or followed first-person launch feedback, without doubling predicted
+  cues. Preserve its generic muzzle flash through the first rendered frame.
+- Upgrade saves to version 17 with exact historical archives, retained M12
+  outcomes and mission-entry retries. Level 14 remains unavailable. Foundry final
+  art, difficulty balance and fresh-player acceptance remain open.
+
 ## v0.82.1 (2026-10-13)
 
 - Restore Rocket launch feedback from accepted projectile facts without doubling

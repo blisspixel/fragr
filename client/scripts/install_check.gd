@@ -149,13 +149,13 @@ static func _current_composition_error() -> String:
 	splice.free()
 	if not available:
 		return "the live Splice mesh or rigid clips are missing from this build"
-	for id: String in ["l11_l12", "m12_arrival"]:
+	for id: String in ["l11_l12", "m12_arrival", "m13_arrival"]:
 		var scene: Dictionary = StoryScene.load_scene(id)
 		if scene.is_empty():
-			return "the M12 story manifests are missing or invalid"
+			return "the latest campaign story manifests are missing or invalid"
 		for key: String in StoryScene.catalog_keys(scene):
 			if TranslationServer.translate(key) == key:
-				return "the M12 story copy is missing"
+				return "the latest campaign story copy is missing"
 	var arc_poses: Array[Texture2D] = [WeaponArt.IDLE.get("Arc"), WeaponArt.FIRE.get("Arc"),
 		WeaponArt.CYCLE.get("Arc"), WeaponArt.ARC_RELOAD, WeaponArt.PROFILE.get("Arc")]
 	for texture: Texture2D in arc_poses:

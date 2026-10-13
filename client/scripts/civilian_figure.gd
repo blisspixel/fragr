@@ -31,7 +31,7 @@ func configure(person: String, color: Color) -> void:
 		return
 	strip = Sprite3D.new()
 	strip.name = "CivilianStrip"
-	strip.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if person in ["tern", "splice"] else PlayerBody.HUMAN)) as Texture2D
+	strip.texture = load(PlayerBody.strip_path(PlayerBody.SYNTHETIC if person in ["tern", "splice", "anonymous_synthetic"] else PlayerBody.HUMAN)) as Texture2D
 	strip.hframes = PlayerBody.IDLE_FRAMES + PlayerBody.WALK_FRAMES
 	strip.pixel_size = EnemyAnimation.VIEW_SIZE / EnemyAnimation.TILE
 	strip.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y

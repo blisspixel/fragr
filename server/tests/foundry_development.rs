@@ -256,7 +256,10 @@ fn foundry_successor_keeps_the_practice_bytes_and_loads_the_rocket_lesson_geomet
     assert_eq!(world.name(), "The Weight of Permission");
     assert_eq!(world.solids().len(), 158);
     let state = GameState::with_authored_map(map.clone());
-    assert!(state.mission_state().is_none());
+    assert_eq!(
+        state.mission_state().unwrap().id,
+        fragr_server::protocol::MissionId::WeightOfPermission
+    );
     assert!(matches!(
         state.map_info(),
         ServerMessage::MapInfo { mission: None, .. }

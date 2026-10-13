@@ -729,7 +729,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -746,6 +746,7 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m10(m10.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m11(m11.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m12(m12.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -802,7 +803,7 @@ async fn run_scripted_bot(
                         .and_then(|map| fragr_server::sim::sabotage::controller::objective_action(bot_id, snapshot, map))
                         .unwrap_or(wanted);
                     let wanted = fragr_server::inventory::control_action_with_target_filter(bot_id, snapshot, loadout.as_ref(), wanted, mission_client.state.is_some(), |mine, other| live_solids.as_deref().is_none_or(|solids| fighter_visible_in_solids(mine, other, solids)));
-                    let action = mission_client.steer(&mut navigator, world, bot_id, snapshot, wanted);
+                    let action = mission_client.steer_with_equipment(&mut navigator, world, bot_id, snapshot, wanted, loadout.as_ref());
                     let action_msg = ClientMessage::Action(action);
 
                     if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?)).await.is_err() {
@@ -3073,6 +3074,7 @@ fn main() -> ExitCode {
                 m10: None,
                 m11: None,
                 m12: None,
+                m13: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),
@@ -3258,6 +3260,7 @@ fn main() -> ExitCode {
                 m10: None,
                 m11: None,
                 m12: None,
+                m13: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Ping fixture".into(),

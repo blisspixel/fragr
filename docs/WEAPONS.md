@@ -1,8 +1,8 @@
 # The weapons
 
-Player-facing names, as of 2026-10-08: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
-Sniper Rifle, Repeater and Arc. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
-`flechette`, `scatter`, `rail`, `shiv`, `sniper`, `repeater` and `arc`. Ammunition is still one
+Player-facing names, as of 2026-10-13: Fists, Shiv, Pistol, Rifle, Shotgun, Railgun,
+Sniper Rifle, Repeater, Arc and Rocket Launcher. The corner and the pickup read those words. Wire ids stay `fists`, `tack`,
+`flechette`, `scatter`, `rail`, `shiv`, `sniper`, `repeater`, `arc` and `rocket`. Ammunition is still one
 count per type. That count is everything carried, including rounds in each gun.
 A joined human has a magazine in each gun and presses R to move rounds into
 the gun in hand. Agents, rule bots and campaign enemies keep the single count.
@@ -13,7 +13,8 @@ missions. Level 5's prototype implements counted grenades through a separate
 throw control, capped at six; they leave gun selection unchanged. The Sniper
 Rifle is implemented in level 7. Level 8 implements counted Proximity Mines,
 capped at four, through a separate place control. M11 implements separately
-counted Remote Mines, capped at six. Rocket Launcher remains unbuilt.
+counted Remote Mines, capped at six. M13 introduces the finite Rocket Launcher
+through the [connected foundry round](plans/m13-connected-round-20261013.md).
 Repeater has a locally implemented CPU-only combat and
 compatibility foundation, with its M10 find, actual art/audio and played feel
 still open. Arc has an implemented finite combat, inventory, compatibility and
@@ -56,9 +57,9 @@ enemies fire, is live again as soon as that pool has a round. M01 death
 offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
-through the connected authored development missions, including the M12 prototype.
-Save version 16 is current. It preserves those counts and adds an empty Rockets
-pool when an older file migrates. Strict historical upgrades archive exact
+through the connected authored development missions, including the M13 prototype.
+Save version 17 is current. It preserves those counts and M13 outcomes, adding
+an empty Rockets pool when a pre-16 file migrates. Strict historical upgrades archive exact
 original bytes and refuse forged Arc ownership and a forged Rockets pool. Earlier formats retain their original weapon
 and stage boundaries, including Repeater and Remote Mine restrictions.
 The current M10 prototype grants no
@@ -137,10 +138,11 @@ the owned Rifle/Repeater family, while the existing wheel includes Repeater
 beside Rifle, and repeated key 5 cycles owned Railgun/Arc. The wheel places Arc
 beside Railgun. Shiv retains its existing melee-family selection. Repeater is
 appended at wire/record index 7 and Arc at index 8; no earlier index changes.
-Current participant record revision 3 uses exactly nine columns. Strict
-historical revision 2 keeps exactly eight and revision 1 keeps five/six/seven.
+Rocket is appended at index 9 and is reachable through the owned-weapon wheel.
+Current participant record revision 4 uses exactly ten columns. Strict
+historical revision 3 keeps nine, revision 2 keeps eight and revision 1 keeps five/six/seven.
 Older readers receive a compatible shape only when every unsupported column is
-actually empty. Actual Arc facts are never assigned to Railgun or discarded.
+actually empty. Actual Arc or Rocket facts are never assigned to another gun or discarded.
 
 Arc resolves one ordinary ray every three ticks, with 0.02-radian spread and
 24 m reach. A body hit deals 18; the existing geometric head band doubles that
@@ -182,7 +184,8 @@ counterplay, bounded active devices and explicit owner/death/round cleanup rules
 Server authority covers placement, arming, detonation, cover-blocked splash and
 damage. Cosmetics cannot hide the device or its tell. The Rocket Launcher is
 implemented: straight flight, covered splash, a one-round tube and a separate
-Rockets pool. No mission grants it, and its viewmodel art remains ahead. It
+Rockets pool. M13 grants it in the freight office and teaches its splash against
+the freight-loop guards. Final weapon art and human feel remain open. It
 reuses the counted grenade's server-owned projectile, covered blast and cleanup
 seams.
 

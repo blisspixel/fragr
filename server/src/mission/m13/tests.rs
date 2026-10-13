@@ -270,7 +270,7 @@ fn overlapping_hazard_and_shared_relay_fail_closed() {
 }
 
 #[test]
-fn successor_carries_foundry_gates_without_becoming_a_mission() {
+fn successor_carries_foundry_gates_and_connected_mission_identity() {
     let map = RuntimeMap::Authored(
         AuthoredMap::read(Cursor::new(include_bytes!(
             "../../../maps/m13-weight-of-permission.json"
@@ -291,7 +291,10 @@ fn successor_carries_foundry_gates_without_becoming_a_mission() {
         .find(|solid| (solid.top - solid.bottom - 3.0).abs() < 0.001 && solid.covers(0.0, 52.0))
         .expect("three metre landing");
     assert_ne!(landing.top, deck.top);
-    assert!(map.campaign_mission_id().is_none());
+    assert_eq!(
+        map.campaign_mission_id(),
+        Some(crate::protocol::MissionId::WeightOfPermission)
+    );
 }
 
 #[test]
@@ -369,10 +372,14 @@ fn departing_last_participant_resets_foundry_with_the_encounters() {
 
 #[test]
 fn successor_lift_accepts_an_ordinary_step_on_and_carries_a_rider_to_daylight() {
-    let map = AuthoredMap::read(Cursor::new(include_bytes!(
+    let mut source: serde_json::Value = serde_json::from_slice(include_bytes!(
         "../../../maps/m13-weight-of-permission.json"
-    )))
+    ))
     .unwrap();
+    // Isolate the preserved standalone gate contract; connected admission is
+    // exercised separately through real ready-party controls.
+    source["m13"].as_object_mut().unwrap().remove("connected");
+    let map = AuthoredMap::read(Cursor::new(serde_json::to_vec(&source).unwrap())).unwrap();
     let mut state = GameState::with_authored_map(map);
     let id = Uuid::from_u128(13);
     state.add_player(id, "Foundry lift rider".into(), Role::Human);

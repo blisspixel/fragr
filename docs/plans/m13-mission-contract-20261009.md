@@ -1,6 +1,10 @@
 # Weight of Permission mission contract
 
-Status: **in flight**, 2026-10-09. Spend: $0. This pass connects the existing
+Status: **superseded**, 2026-10-13, by the
+[connected foundry round](m13-connected-round-20261013.md). The gate preparation
+below is retained as historical evidence.
+
+Historical scope, 2026-10-09. Spend: $0. This pass connects the existing
 foundry gate rules to the successor geometry. It does not make The Weight of
 Permission a mission.
 

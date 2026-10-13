@@ -1,12 +1,7 @@
 //! One release, three authored answers. None of them gates the freight lift.
 use crate::protocol::USE_DISTANCE;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Response {
-    Volunteered,
-    DepartedIndependently,
-    DeclinedAndKeptWorking,
-}
+pub use crate::protocol::M13WorkerResponse as Response;
 
 pub const RESPONSES: [Response; 3] = [
     Response::Volunteered,

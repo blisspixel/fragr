@@ -9,6 +9,7 @@ mod controller;
 mod tests;
 pub use controller::{
     control_action, control_action_with_objective, control_action_with_target_filter,
+    control_ray_objective,
 };
 
 /// Mission-entry equipment without participant identity or tick.

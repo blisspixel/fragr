@@ -198,6 +198,16 @@ func _run() -> void:
 	hud.set_process(false)
 	hud.call("set_fp_juice", true)
 	var weapon: TextureRect = hud.get_node("FpWeapon")
+	hud.set_fp_weapon("Rocket")
+	_check(weapon.visible and weapon.texture == hud.rocket_viewmodel.get_texture(), "Rocket selects its original tube viewport")
+	hud.show_fire_juice("Rocket")
+	hud._process(0.4)
+	_check(hud.fp_muzzle.visible, "a generic Rocket flash survives the preceding slow frame for its first draw")
+	hud._process(0.4)
+	_check(not hud.fp_muzzle.visible, "the Rocket flash expires after that draw")
+	hud.show_fire_juice("Rocket")
+	hud.cancel_fire_juice()
+	_check(not hud.fp_muzzle.visible and not hud.fp_muzzle_pending_update, "a rejected predicted launch clears its pending flash")
 	_check_missing_art(hud, weapon)
 	# A network shot arrives before the HUD's update. A slow preceding render
 	# must not erase its fire frame before this update can present it.

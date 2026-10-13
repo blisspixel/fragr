@@ -356,7 +356,7 @@ level with its starting equipment; three continues, refilled at the start of
 each episode, is the decided allowance. No mandatory duo, companion controls,
 revival or all-mission co-op. Autonomous allies and level-specific viewpoints
 are design options.
-Durable version 16 run files carry the connected development campaign through Terms of Cooperation, including mission-entry retries and completed choices. Final Recall Notice art, pacing and fresh-player acceptance stay in the [M01 completion plan](plans/m01-completion.md). The local service
+Durable version 17 run files carry the connected development campaign through The Weight of Permission, including mission-entry retries and completed choices. Final Recall Notice art, pacing and fresh-player acceptance stay in the [M01 completion plan](plans/m01-completion.md). The local service
 record now retains 256 campaign, arena and practice observations, with authoritative
 counters, separate attempt effort, JSON export and optional localized quips.
 Local verification passes under [#199](plans/benchmark-and-stats.md): authoritative
@@ -371,8 +371,8 @@ lifts and vehicles remain unbuilt. The Sniper Rifle, Grenade and Proximity Mine
 have implemented development roles. The Remote Mine has a development role.
 The [Rocket Launcher foundation](plans/rocket-foundation-20261008.md) is on
 `main` at `711dfb4` through [PR #376](https://github.com/blisspixel/fragr/pull/376),
-released as v0.81.0. It is not part of v0.80.0. No mission grants it. Its
-campaign placement remains ahead in
+released as v0.81.0. It is not part of v0.80.0. The connected foundry now places
+its first finite campaign pickup. Final weapon presentation remains in
 [the readable arsenal](plans/readable-arsenal.md). Gold
 finishes and curated weapon colors are cosmetic-only achievement directions
 in [difficulty and rewards](plans/difficulty-and-rewards.md).
@@ -381,14 +381,14 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-10)
+## Full build order (updated 2026-10-13)
 
-The [October 13 development round](plans/build-round-20261013.md) implements
-Nick's requested parallel campaign, audio, art and core-game work within these
-rungs. Each bounded round returns to one reviewed main with passing CI before
-the next. The first round targets the next M13 increment, retained-asset quality
-and production, and Linux visual/release readiness. Its plan records current
-funded limits and preserves independent human and final-art acceptance.
+The [October 13 development round](plans/build-round-20261013.md) shipped in
+v0.82.1 with passing main CI and all three desktop packages. The next
+[connected foundry round](plans/m13-connected-round-20261013.md) connects M13
+objectives, saves and presentation through the existing campaign seams, using
+retained assets at $0. Each bounded parallel round returns to one reviewed main
+with passing CI before the next. Human and final-art acceptance stay separate.
 
 ### Fun-compound lens (not a second build order)
 
@@ -415,7 +415,7 @@ current multiplayer quality pass. The preceding main at `e4df1a0b`, tagged v0.79
 the [quality composition](plans/multiplayer-quality-20261006.md): bounded bot
 perception, immediate local gun feedback, the shot-alignment diagnostic and
 bounded snapshot delivery, eleven connected campaign prototypes and shared
-vehicles on Holdfast Atoll. The current bounded continuation is
+vehicles on Holdfast Atoll. The October 7 continuation was
 [host rotation and campaign bests](plans/host-rotation-campaign-bests-20261007.md)
 under rungs 1, 2 and 5. The first October 8 continuation ran
 [vehicle-aware multiplayer spawns](plans/vehicle-aware-spawns-20261008.md),
@@ -456,17 +456,16 @@ feedback and necessary fixes continue during authorized development. Cloud
 apply, cash charges, top-ups and matchmaking have no new authorization. Source,
 geometry, rendered evidence and played acceptance remain separate gates. The
 story spine in [CAMPAIGN.md](CAMPAIGN.md) owns canon, and mission geometry follows
-its brief. `main` through `2c991430`, released as v0.82.0, has twelve connected
-development prototypes through Terms of Cooperation. The Rocket Launcher
-foundation shipped in v0.81.0. Ordinary campaign supply and visual pursuit
-scale by Assisted, Standard, and Severe. Connection admission and pinned
-release inputs are in this release. Connected M13 through M20 and the conditional
-epilogue remain unbuilt. The launcher is not part of v0.80.0, and no mission
-grants it. The foundry successor opens the shaft, places the rocket lesson, and carries
-the optional foundry gate key. It is still not a mission. Connected M13 is the
-next campaign dependency and keeps its own mission gates. Relay, hazard, worker
-and lift rules load from a fixture and from that successor key, and remain short
-of a connected mission. Development grayboxes for levels 15 through 20, and a
+its brief. The October 13 connected foundry increment brings the source campaign
+to thirteen development prototypes through The Weight of Permission. It places
+the first finite Rocket Launcher and connects relay, hazard, voluntary worker
+choices, guarded gallery and physical lift departure to version 17 saves.
+The [active round](plans/m13-connected-round-20261013.md) records verification
+and integration status. Ordinary campaign supply and visual pursuit scale by
+Assisted, Standard, and Severe. Connected M14 through M20 and the conditional
+epilogue remain unbuilt. M14 and its Walker are the next campaign dependency
+after this round returns to passing main. Foundry art, balance and fresh-player
+acceptance retain their own gates. Development grayboxes for levels 15 through 20, and a
 sheltered trench on the level 14 battlefield, are not missions. The epilogue
 remains a plan. The optional M12 secret stays separate because it changes
 canonical map bytes.
@@ -592,8 +591,9 @@ current work.
    package, choose **Multiplayer > Run a match**, and try fixed bots, no bots and
    automatic fill. Watch, Join, return to menu, rejoin and Stop. Then test another
    human or agent, preferably on a second LAN computer. Record the build, venue,
-   bot policy and confusing or unfun moments. The campaign baseline
-   includes eleven campaign prototypes through Right of Search, the drawn
+   bot policy and confusing or unfun moments. The released v0.82.1 baseline
+   includes twelve campaign prototypes through Terms of Cooperation. Current
+   source adds the connected foundry as the thirteenth. Presentation includes the drawn
    Pistol and Sniper, restored Rifle, corrected Shiv scale, Latch's HOME image,
    loading-first and optional
    ten-seat Sabotage. Prioritize the team-match trial and its host/join clarity;
@@ -844,8 +844,8 @@ current work.
    before any UDP decision ([TRANSPORT.md](TRANSPORT.md)). Snapshot cost and
    the measurement ladder in [server excellence](plans/server-excellence.md)
    belong to this rung. A 64-player claim waits on those numbers.
-9. **Complete the campaign.** Refine the twelve locally built prototypes and build levels
-   13 to 20 one mission at a time,
+9. **Complete the campaign.** Refine the thirteen locally built prototypes and build levels
+   14 to 20 one mission at a time,
    following [the mission treatment](CAMPAIGN-MISSIONS.md) and its
    [dependency plan](plans/campaign-build-order.md), through the wipe and
    conditional epilogue. Carry the accepted art, combat and results approach

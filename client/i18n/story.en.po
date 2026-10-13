@@ -671,3 +671,78 @@ msgstr "The greenhouse is broken. Frost marks the paths where people tried to ca
 
 msgid "STORY_M12_ARRIVAL_AID"
 msgstr "The mutual-aid crews are still outside. Secure the shelter route, then reach their depot. Their supplies and vehicles are needed here."
+
+msgid "MISSION_M13_TITLE"
+msgstr "THE WEIGHT OF PERMISSION"
+
+msgid "M13_PROTOTYPE_TITLE"
+msgstr "The Weight of Permission: development mission"
+
+msgid "M13_LOCAL_STARTING"
+msgstr "Opening the foundry..."
+
+msgid "M13_RUN_DESCRIPTION"
+msgstr "Take the foundry. Keep the town's lifelines working."
+
+msgid "M13_NEXT_TITLE"
+msgstr "LAUNCH AUTHORITY"
+
+msgid "M13_NEXT_PENDING"
+msgstr "Launch Authority is still being built. Your completed foundry run is kept."
+
+msgid "M13_WAITING"
+msgstr "The foundry is ready."
+
+msgid "M13_DEPARTED"
+msgstr "The lift reaches daylight. The launch works lie ahead."
+
+msgid "M13_OBJECTIVE_FOUNDRY_ENTERED"
+msgstr "Enter through the service approach."
+
+msgid "M13_OBJECTIVE_MACHINE_HALL_CLEARED"
+msgstr "Clear the foundry edge and machine hall."
+
+msgid "M13_OBJECTIVE_ROCKET_FOUND"
+msgstr "Clear the quarters approach. Find the office supplies."
+
+msgid "M13_OBJECTIVE_FREIGHT_LOOP_SECURED"
+msgstr "Secure the freight loop. Rockets stop at cover."
+
+msgid "M13_OBJECTIVE_RELAY_DISABLED"
+msgstr "Shoot the relay beside the armored town feed."
+
+msgid "M13_OBJECTIVE_UPPER_GALLERY_SECURED"
+msgstr "Clear the upper gallery and its support positions."
+
+msgid "M13_OBJECTIVE_LIFT_BOARDED"
+msgstr "Board the freight lift together. Use its control."
+
+msgid "M13_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Stay on the freight lift until it reaches daylight."
+
+msgid "M13_USE_PANEL"
+msgstr "{use} Use control"
+
+msgid "M13_WORKERS_CHOSE"
+msgstr "One volunteers. One leaves. One chooses to stay."
+
+msgid "M13_HAZARD_IDLE"
+msgstr "MACHINE CYCLE"
+
+msgid "M13_HAZARD_WARNING"
+msgstr "STAND CLEAR"
+
+msgid "M13_HAZARD_ACTIVE"
+msgstr "MACHINE ACTIVE"
+
+msgid "STORY_M13_ARRIVAL"
+msgstr "The Martian foundry, three days later. The habitats voted, and this time the vote came with trucks. The works that can arm free communities are still Union property. Take the works."
+
+msgid "STORY_M13_WORKERS"
+msgstr "Latch: Ask them. Don't free them like freight."
+
+msgid "M13_RELAY_ACTIVE"
+msgstr "RELAY\nACTIVE"
+
+msgid "M13_RELAY_OFFLINE"
+msgstr "RELAY\nOFFLINE"

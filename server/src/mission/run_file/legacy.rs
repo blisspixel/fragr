@@ -70,6 +70,7 @@ impl RunDocumentV10 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(
@@ -200,6 +201,7 @@ impl RunDocumentV9 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(
@@ -259,6 +261,7 @@ impl RunDocumentV8 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -327,6 +330,7 @@ impl RunDocumentV7 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -393,6 +397,7 @@ impl RunDocumentV6 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -406,7 +411,8 @@ impl RunDocumentV6 {
             | MissionId::PassengerManifest
             | MissionId::CommonCarrier
             | MissionId::RightOfSearch
-            | MissionId::TermsOfCooperation => return Err("M08 was not supported by version 6"),
+            | MissionId::TermsOfCooperation
+            | MissionId::WeightOfPermission => return Err("M08 was not supported by version 6"),
         };
         document.migrate_historical_rockets()?;
         document.validate(hash)?;
@@ -541,13 +547,17 @@ impl RunDocumentV13 {
                 | SavedStep::Failed { mission, .. }
                 | SavedStep::Abandoned { mission, .. } => matches!(
                     *mission,
-                    MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                    MissionId::RightOfSearch
+                        | MissionId::TermsOfCooperation
+                        | MissionId::WeightOfPermission
                 ),
                 SavedStep::AwaitingMission {
                     completed_mission, ..
                 } => matches!(
                     *completed_mission,
-                    MissionId::RightOfSearch | MissionId::TermsOfCooperation
+                    MissionId::RightOfSearch
+                        | MissionId::TermsOfCooperation
+                        | MissionId::WeightOfPermission
                 ),
             }
         {
@@ -572,6 +582,7 @@ impl RunDocumentV13 {
             m10_transit: self.m10_transit,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(
@@ -718,6 +729,7 @@ impl RunDocumentV5 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -731,7 +743,8 @@ impl RunDocumentV5 {
             | MissionId::PassengerManifest
             | MissionId::CommonCarrier
             | MissionId::RightOfSearch
-            | MissionId::TermsOfCooperation => return Err("M05 was not supported by version 5"),
+            | MissionId::TermsOfCooperation
+            | MissionId::WeightOfPermission => return Err("M05 was not supported by version 5"),
         };
         document.migrate_historical_rockets()?;
         document.validate(hash)?;
@@ -778,7 +791,8 @@ impl RunDocumentV4 {
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
-                | MissionId::TermsOfCooperation => {
+                | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission => {
                     return Err("mission was not supported by version 4")
                 }
             },
@@ -796,7 +810,8 @@ impl RunDocumentV4 {
                 | MissionId::PassengerManifest
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
-                | MissionId::TermsOfCooperation => {
+                | MissionId::TermsOfCooperation
+                | MissionId::WeightOfPermission => {
                     return Err("mission was not supported by version 4")
                 }
             },
@@ -820,6 +835,7 @@ impl RunDocumentV4 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(expected)?;
@@ -868,6 +884,7 @@ impl RunDocumentV3 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
@@ -881,7 +898,8 @@ impl RunDocumentV3 {
             | MissionId::PassengerManifest
             | MissionId::CommonCarrier
             | MissionId::RightOfSearch
-            | MissionId::TermsOfCooperation => return Err("M05 was not supported by version 3"),
+            | MissionId::TermsOfCooperation
+            | MissionId::WeightOfPermission => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");
@@ -942,6 +960,7 @@ impl RunDocumentV2 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(m01_hash)?;
@@ -1000,6 +1019,7 @@ impl RunDocumentV12 {
             m10_transit: None,
             m11_outcome: None,
             m12_outcome: None,
+            m13_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(

@@ -21,8 +21,8 @@ Local play and self-hosting need no account or paid service.
 ## Play now
 
 Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
-The current source build has twelve connected development levels through Terms
-of Cooperation, mission-entry saves, finite ammunition and three continues per episode.
+The current source build has thirteen connected development levels through The
+Weight of Permission, mission-entry saves, finite ammunition and three continues per episode.
 Check the release notes for the contents of a downloaded package. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
@@ -34,7 +34,7 @@ missions are a playable foundation for that work.
 
 | Choose | What you can play | Start here |
 |---|---|---|
-| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior, custody tender and Martian habitat | **Single Player > Recall Notice**, then **Continue Run** |
+| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior, custody tender, Martian habitat and foundry | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
 | Multiplayer | Host team deathmatch, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Run a match**, or enter a running server's address |
 | Calibration | A separate arena challenge against named bots, an announcer called the Host, and objectives | `./tools/solo_scrap.sh` |
@@ -71,14 +71,16 @@ runs; full-campaign rewards await the finished campaign.
 The connected Terms of Cooperation prototype adds the Arc, flying Assessor,
 shelter controls, vulnerable pumps and deliberate coalition departure.
 Three retained [standalone development maps](docs/PLAYING.md#standalone-development-maps)
-explore the habitat, foundry and launch works. The Rocket Launcher, released as v0.81.0, is a server weapon with a traveling
-rocket, a one-round tube and covered splash. No mission places it yet, and its
+explore the habitat, foundry and launch works. The connected foundry adds the
+first finite Rocket Launcher, voluntary worker releases, a protected town feed,
+machinery hazards and a freight lift that carries the departing party. The
+launcher has a traveling rocket, a one-round tube and covered splash; final
 viewmodel art is still ahead. Assisted, Standard, and Severe scale ordinary
 campaign supply and how long an enemy remembers a sighting. Standard tell
 timing stays exact. Development grayboxes for levels 15 through 20, and a
-sheltered trench on the level 14 battlefield, are not missions. The foundry
-successor carries the optional gate key and is still not a mission. Connected
-foundry progression, Walker and the later campaign remain unfinished.
+sheltered trench on the level 14 battlefield, are not missions. The Walker,
+connected level 14 and the later campaign remain unfinished. Foundry pacing,
+final art and fresh-player acceptance remain open.
 
 Current source work also moves the selectable human and synthetic bodies and
 Tern to live animated meshes, reusing retained models. Splice uses an articulated
