@@ -71,6 +71,15 @@ The 16-bot, 1,200-tick release benchmark passed determinism and budget checks wi
 0.557 ms p99 and no ticks over budget. It ran alongside coverage, has no connected
 clients, and establishes neither renderer performance nor network capacity.
 
+Measurements used Linux x86-64 on an AMD Ryzen 7 7840U with 16 logical CPUs,
+Rust 1.97.1 release builds and the existing seed 42 benchmark. These are bounded
+local CPU and socket measurements, not isolated hardware baselines.
+
+| Check | Workload | Result | Evidence |
+| --- | --- | --- | --- |
+| Deterministic CPU gate | 16 rule bots, 1,200 ticks, no clients; coverage running concurrently | p99 0.557 ms, max 0.935 ms, zero over-budget ticks, deterministic | `.agents/round-20261013/benchmark.log` |
+| Local socket soak | 4 agents, 4 bots, 2 spectators, map rotation, 120 seconds; other checks running concurrently | 20.00 Hz, p99 1.11 ms, max 4.35 ms, RSS 60.2 to 61.7 MiB, nine samples, no disconnects | `.agents/round-20261013/playtests/soak.ndjson` |
+
 One unbounded-concurrency workspace run hit an existing 30-second owned-server
 startup deadline on a historical closed M08 save. No compatibility assertion
 failed. The same test passed in the full coverage run and in a focused rerun
@@ -82,3 +91,9 @@ This round prepares v0.82.1. Applicable reviewed-head PR checks, manual desktop
 package checks and main CI must pass before tagging. Issue 391 stays open until
 the tagged packages actually contain the adapter. No further production round
 starts before that clean-main checkpoint.
+
+[PR 401](https://github.com/blisspixel/fragr/pull/401) owns this composition;
+its [checks](https://github.com/blisspixel/fragr/pull/401/checks) and the
+[release workflow](https://github.com/blisspixel/fragr/actions/workflows/release.yml)
+retain the delivery verdicts. Earlier local failures remain distinct from those
+reviewed-head results.
