@@ -4,6 +4,18 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+- Bundle the MCP adapter with desktop packages and include license notices for
+  both Rust executables. Saved MCP configurations use absolute paths.
+- Explain initial connection snapshots, persistent action inputs and HUD weapon
+  names. Reject `act` when disconnected, connecting or absent from the latest
+  snapshot; queued input is not a confirmed game outcome.
+- Keep a running hosted match visible on the main menu, preserve session host
+  settings through menu replacement, and default 5v5 automatic fill to ten.
+  An unrelated Join address is checked only when explicitly requested while
+  the owned match runs. The menu action is now Run a match.
+
 ## v0.82.0 (2026-10-10)
 
 - Scale ordinary campaign ammunition, health, and armor by the existing

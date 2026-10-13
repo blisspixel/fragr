@@ -85,6 +85,17 @@ func _run() -> void:
 	_check(menu._host_map.item_count == 2 and menu._host_map.get_item_id(0) == 4
 		and menu._host_map.get_item_id(1) == 8 and menu._host_map.get_selected_id() == 4,
 		"Sabotage offers exactly Sector 9 and Low Water, defaulting to Sector 9")
+	menu._host_bot_policy.select(2)
+	menu._host_bot_policy.item_selected.emit(2)
+	_check(menu._host_bots.value == 10, "5v5 Sabotage defaults automatic fill to ten fighters")
+	menu._host_bots.value = 8
+	menu._host_mode.select(0)
+	menu._host_mode.item_selected.emit(0)
+	menu._host_mode.select(1)
+	menu._host_mode.item_selected.emit(1)
+	_check(menu._host_bots.value == 8, "deliberate per-mode automatic count survives mode switching")
+	menu._host_bot_policy.select(1)
+	menu._host_bot_policy.item_selected.emit(1)
 	menu._host_map.select(1)
 	_check(menu._host_map.get_selected_id() == 8, "Low Water is selectable through the ordinary Sabotage form")
 	menu._host_map.select(0)
@@ -107,7 +118,10 @@ func _run() -> void:
 	await process_frame
 	_check(menu._root.get_node_or_null("JoinHosted") != null and menu._root.get_node_or_null("StopServer") != null,
 		"accepted actual-shaped readiness exposes Watch Join and Stop separately")
+	await menu._show("main")
+	_check(menu._root.get_node_or_null("RejoinHosted") != null, "main menu exposes the still-running match")
 	await menu._show("multi")
+	_check(menu._match_line.text == "Check this address to join a different server.", "an owned match does not automatically probe an unrelated join address")
 	_check(child.alive and owner.state == LocalHost.State.RUNNING, "returning to Multiplayer keeps hosting")
 	_check(menu._root.get_node_or_null("UseRunningServer") == null, "join page has no control that replaces the typed address")
 	_check(menu._host_edit.text != owner.url, "the join address is not the owned server")
@@ -156,6 +170,31 @@ func _run() -> void:
 	owner.stop()
 	owner._process(0)
 	_check(owner.state == LocalHost.State.IDLE and not child.alive and child.stops == 1, "only explicit owner stop closes the native lease")
+	var returned: Control = load("res://scenes/boot_menu.tscn").instantiate()
+	returned.set("_settings", FragrSettings.new("user://test-host-return-%d.cfg" % OS.get_process_id()))
+	root.add_child(returned)
+	await process_frame
+	await returned._show("host")
+	_check(returned._host_mode.selected == 1 and returned._host_bot_policy.selected == 1
+		and returned._host_lan.button_pressed and returned._host_port.value == 16867,
+		"returning from a match restores its last host profile after stop")
+	returned._host_bot_policy.select(2)
+	returned._host_bot_policy.item_selected.emit(2)
+	returned._host_bots.value = 8
+	returned._start_host()
+	returned.queue_free()
+	await process_frame
+	owner.stop()
+	owner._process(0)
+	var reopened: Control = load("res://scenes/boot_menu.tscn").instantiate()
+	reopened.set("_settings", FragrSettings.new("user://test-host-reopen-%d.cfg" % OS.get_process_id()))
+	root.add_child(reopened)
+	await process_frame
+	await reopened._show("host")
+	_check(reopened._host_bot_policy.selected == 2 and reopened._host_bots.value == 8,
+		"automatic fill and deliberate count survive menu replacement and server stop")
+	reopened.queue_free()
+	await process_frame
 	owner.queue_free()
 	await process_frame
 	var campaign_owner: LocalMatch = root.get_node_or_null("LocalMatch") as LocalMatch

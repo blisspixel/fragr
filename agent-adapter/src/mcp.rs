@@ -1339,12 +1339,23 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                         .unwrap_or(Value::Null);
 
                     match validate_act_arguments(&arguments) {
+                        Ok(_) if !state.connected || state.player_id.is_none() => {
+                            tool_error_result("act rejected: not connected; join and observe first")
+                        }
+                        Ok(_) if state.last_snapshot.is_none() => {
+                            tool_error_result("act rejected: connecting; wait for a snapshot and observe again")
+                        }
+                        Ok(_) if !state.last_snapshot.as_ref().and_then(|snapshot| snapshot["players"].as_array()).is_some_and(|players| {
+                            players.iter().any(|player| player["id"].as_str().and_then(|id| Uuid::parse_str(id).ok()) == state.player_id)
+                        }) => {
+                            tool_error_result("act rejected: not seated in this match; your body is absent from the latest snapshot")
+                        }
                         Ok(action) => {
                             pending_action = Some(action);
                             serde_json::json!({
                                 "content": [{
                                     "type": "text",
-                                    "text": "Action sent successfully"
+                                    "text": "Action queued; observe to confirm the server outcome"
                                 }]
                             })
                         }
@@ -2791,7 +2802,12 @@ mod mcp_tests {
 
     #[test]
     fn act_valid_sets_pending_action() {
-        let mut state = ToolState::default();
+        let mut state = ToolState {
+            connected: true,
+            player_id: Some(Uuid::nil()),
+            last_snapshot: Some(serde_json::json!({"players": [{"id": Uuid::nil(), "hp": 0}]})),
+            ..Default::default()
+        };
         let out = handle_mcp_request(
             req(
                 "tools/call",
@@ -2809,7 +2825,48 @@ mod mcp_tests {
             .as_str()
             .unwrap()
             .to_string();
-        assert!(text.contains("Action sent successfully"));
+        assert!(text.contains("Action queued"));
+    }
+
+    #[test]
+    fn act_rejects_disconnected_connecting_and_unseated_participants() {
+        for (connected, player_id, snapshot, expected) in [
+            (false, None, None, "not connected"),
+            (true, Some(Uuid::nil()), None, "connecting"),
+            (
+                true,
+                Some(Uuid::nil()),
+                Some(serde_json::json!({"players": []})),
+                "not seated",
+            ),
+            (
+                true,
+                Some(Uuid::nil()),
+                Some(serde_json::json!({"players": [{"id": Uuid::new_v4()}]})),
+                "not seated",
+            ),
+        ] {
+            let mut state = ToolState {
+                connected,
+                player_id,
+                last_snapshot: snapshot,
+                ..Default::default()
+            };
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name":"act", "arguments":{"fire":true}})),
+                ),
+                &mut state,
+            );
+            assert!(out.pending_action.is_none());
+            let result = out.response.result.unwrap();
+            assert_eq!(result["isError"], true);
+            assert!(result["content"][0]["text"]
+                .as_str()
+                .unwrap()
+                .contains(expected));
+        }
     }
 
     #[test]

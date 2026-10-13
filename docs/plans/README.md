@@ -445,3 +445,5 @@ remain open.
 | [`honest-coverage-lock.md`](./honest-coverage-lock.md) | **shipped** | Unfiltered llvm-cov fail-under 80; no carve-outs. |
 | [`SPRINT-24H.md`](./SPRINT-24H.md) | **superseded** | 24 hour sprint framing. |
 | [`elevenlabs-later.md`](./elevenlabs-later.md) | **superseded** by `tools/audiogen` | Spend approved 2026-09-18 for developer-side generation only; see `tools/audiogen/README.md`. |
+
+- [First-use and hosted-match reliability](issue-first-use-reliability.md), issues #391 through #399.

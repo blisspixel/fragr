@@ -11,7 +11,7 @@ keeps cloud deployment at plan-only status.
 
 ## Start a match
 
-In a build containing the desktop Host controls, choose **Multiplayer > Host**.
+In a build containing the desktop Host controls, choose **Multiplayer > Run a match**.
 Select **Team Deathmatch** and an arena, or **5v5 Sabotage** on Sector 9.
 The current development build also offers **Conquest** on Holdfast Atoll, with
 five capture sites, tickets, swimming and shared land, water and air vehicles.

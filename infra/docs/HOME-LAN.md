@@ -44,7 +44,7 @@ dedicated container.
 ## Optional 5v5 Sabotage
 
 The opt-in profile is implemented and shipped in the existing game. In a
-build containing the desktop Host controls, choose **Multiplayer > Host**,
+build containing the desktop Host controls, choose **Multiplayer > Run a match**,
 select **5v5 Sabotage**, enable **Allow LAN players** and choose a port.
 After Start server reports readiness, peers use the host's LAN address and
 that port. Keep the app open to retain this owned match. Stop server ends it;

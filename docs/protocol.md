@@ -856,7 +856,7 @@ World-point aim:
 - Server enforces rate limits and cooldowns (weapon-specific)
 - Spectators that send actions are ignored
 - Unknown fields are rejected (schema error). Sticky state is not overwritten by junk.
-- MCP `act` returns `isError` on unknown keys, bad `weapon_swap`, or bad `look_at` (unknown nested keys, incomplete x/z, bad UUID). Empty/missing arguments are OK (all defaults).
+- MCP `act` returns `isError` on unknown keys, bad `weapon_swap`, or bad `look_at` (unknown nested keys, incomplete x/z, bad UUID). It also refuses a disconnected session, a missing initial snapshot or a participant whose body is absent from the latest snapshot. A successful result queues intent, not a confirmed server outcome. Empty/missing arguments are valid defaults only for a seated participant.
 
 #### Jeep control and facts (capability 39)
 

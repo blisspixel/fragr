@@ -582,7 +582,7 @@ acceptance limits are retained there. The numbered rungs below describe the
 current work.
 
 0. **Nick tests desktop Host, TDM and 5v5 Sabotage.** Download the latest desktop
-   package, choose **Multiplayer > Host**, and try fixed bots, no bots and
+   package, choose **Multiplayer > Run a match**, and try fixed bots, no bots and
    automatic fill. Watch, Join, return to menu, rejoin and Stop. Then test another
    human or agent, preferably on a second LAN computer. Record the build, venue,
    bot policy and confusing or unfun moments. The campaign baseline
@@ -1136,3 +1136,9 @@ Version 1.0 is a promise, not a milestone count. Until every line below is prove
 - **Validated everywhere it claims to run.** A two-machine LAN session, a public server that stays up for a week with strangers on it, agents playing as rule bots, through the adapter, and as the decision-brain client, the single-player campaign complete through the wipe finale and its conditional epilogue, and desktop exports for Windows, macOS, and Linux that boot to Solo Scrap on a clean machine.
 - **Extremely polished.** No placeholder art anywhere: every weapon, fighter, map surface, and HUD element final; the radio, effects, and Host voice complete; onboarding to a fight in under a minute with no docs; a twenty-four hour soak with no crash, proven by the status JSON at start and end in the release notes; the fun bar passing on a recorded session; boot to first snapshot under ten seconds as measured by the playtest report; docs and hosting guides current. Cutscene film waits for this same bar: every level, gun and character finished first, the narrated slideshow standing in until then, staged and capped per [`plans/cutscene-film.md`](plans/cutscene-film.md).
 - **Hardened and honest.** The exposed-server phase complete (join tokens, rate and size caps, protocol versioning, reconnect resume, status endpoint, fair-play lanes and the profiler), the playtest harness thresholds tightened to the shipped feel, no known bugs that lose a round, and a changelog that matches the releases.
+
+## First-use reliability followup
+
+[Issues #391 through #399](plans/issue-first-use-reliability.md) repair desktop
+adapter packaging, MCP onboarding and hosted-match menus. Verification remains
+in progress; this does not establish campaign, release or platform acceptance.
