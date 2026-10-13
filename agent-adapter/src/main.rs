@@ -24,6 +24,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug, PartialEq, Eq)]
 #[command(name = "fragr-agent-adapter")]
 #[command(about = "fragr agent adapter - MCP server and bot client")]
+#[command(version = env!("FRAGR_CLI_VERSION"))]
 struct Args {
     #[command(subcommand)]
     command: Commands,
@@ -32,8 +33,25 @@ struct Args {
 #[derive(Subcommand, Debug, PartialEq, Eq)]
 enum Commands {
     Mcp {
-        #[arg(long, default_value = "ws://127.0.0.1:6767")]
-        server: String,
+        /// Existing game server. Omit to use ws://127.0.0.1:6767. Conflicts with --local.
+        #[arg(long, conflicts_with = "local")]
+        server: Option<String>,
+
+        /// Use 127.0.0.1:6767 if it already answers schema 2, otherwise spawn fragr-server and stop it when stdin ends.
+        #[arg(long)]
+        local: bool,
+
+        /// Rule bots for the spawned server. Only with --local.
+        #[arg(long, default_value_t = 4, requires = "local")]
+        bots: usize,
+
+        /// Map for the spawned server. Only with --local.
+        #[arg(long, default_value = "1", requires = "local")]
+        map: String,
+
+        /// Mode for the spawned server. Only with --local.
+        #[arg(long, default_value = "ffa", requires = "local")]
+        mode: String,
 
         /// Display name sent in Hello. Falls back to FRAGR_AGENT_NAME, then "MCP Agent".
         #[arg(long)]
@@ -77,11 +95,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
     match args.command {
-        Commands::Mcp { server, name, body } => {
+        Commands::Mcp {
+            server,
+            local,
+            bots,
+            map,
+            mode,
+            name,
+            body,
+        } => {
+            let (server, child) = prepare_mcp_server(local, server, bots, &map, &mode).await?;
             run_mcp_server(
                 server,
                 resolve_agent_name(name.as_deref(), "MCP Agent"),
                 body,
+                child,
             )
             .await?
         }
@@ -346,16 +374,259 @@ async fn apply_mcp_line(
         }
     }
 
-    let response_json = serde_json::to_string(&outcome.response)?;
-    writeln!(stdout, "{}", response_json)?;
-    stdout.flush()?;
+    if outcome.respond {
+        let response_json = serde_json::to_string(&outcome.response)?;
+        writeln!(stdout, "{}", response_json)?;
+        stdout.flush()?;
+    }
     Ok(())
+}
+
+const DEFAULT_SERVER: &str = "ws://127.0.0.1:6767";
+const LOCAL_BIND: &str = "127.0.0.1:6767";
+
+/// Args for `fragr-server --ready-line`. Any arcade mode the dedicated server already accepts.
+fn local_server_args(bots: usize, map: &str, mode: &str, bind: &str) -> Vec<String> {
+    vec![
+        "--ready-line".to_string(),
+        "--bind".to_string(),
+        bind.to_string(),
+        "--bots".to_string(),
+        bots.to_string(),
+        "--map".to_string(),
+        map.to_string(),
+        "--mode".to_string(),
+        mode.to_string(),
+    ]
+}
+
+/// `ws://127.0.0.1:<nonzero>`.
+fn loopback_ws_url(url: &str) -> bool {
+    let Some(port) = url.strip_prefix("ws://127.0.0.1:") else {
+        return false;
+    };
+    matches!(port.parse::<u16>(), Ok(port) if port != 0)
+}
+
+fn status_body_is_schema_two(bytes: &[u8]) -> bool {
+    let text = String::from_utf8_lossy(bytes);
+    let ok = text.starts_with("HTTP/1.1 200") || text.starts_with("HTTP/1.0 200");
+    if !ok {
+        return false;
+    }
+    let Some((_, body)) = text.split_once("\r\n\r\n") else {
+        return false;
+    };
+    serde_json::from_str::<Value>(body.trim())
+        .ok()
+        .and_then(|value| value.get("schema_version").and_then(Value::as_u64))
+        == Some(2)
+}
+
+async fn loopback_status_schema_two(addr: std::net::SocketAddr) -> bool {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let connect = tokio::time::timeout(
+        std::time::Duration::from_millis(400),
+        tokio::net::TcpStream::connect(addr),
+    )
+    .await;
+    let Ok(Ok(mut stream)) = connect else {
+        return false;
+    };
+    let read = tokio::time::timeout(std::time::Duration::from_millis(800), async {
+        stream
+            .write_all(b"GET /status HTTP/1.0\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n")
+            .await?;
+        let mut buf = Vec::new();
+        stream.read_to_end(&mut buf).await?;
+        std::io::Result::Ok(buf)
+    })
+    .await;
+    match read {
+        Ok(Ok(buf)) => status_body_is_schema_two(&buf),
+        _ => false,
+    }
+}
+
+fn fragr_server_bin() -> std::io::Result<std::path::PathBuf> {
+    if let Some(explicit) = std::env::var_os("FRAGR_SERVER_BIN") {
+        let path = std::path::PathBuf::from(explicit);
+        if path.is_file() {
+            return Ok(path);
+        }
+        return Err(std::io::Error::other(format!(
+            "FRAGR_SERVER_BIN is not a file ({})",
+            path.display()
+        )));
+    }
+    if let Some(path) = std::env::current_exe().ok().and_then(|exe| {
+        let name = if cfg!(windows) {
+            "fragr-server.exe"
+        } else {
+            "fragr-server"
+        };
+        let path = exe.parent()?.join(name);
+        path.is_file().then_some(path)
+    }) {
+        return Ok(path);
+    }
+    if let Some(path_var) = std::env::var_os("PATH") {
+        let name = if cfg!(windows) {
+            "fragr-server.exe"
+        } else {
+            "fragr-server"
+        };
+        for dir in std::env::split_paths(&path_var) {
+            let path = dir.join(name);
+            if path.is_file() {
+                return Ok(path);
+            }
+        }
+    }
+    Err(std::io::Error::other(
+        "fragr-server was not found beside fragr-agent-adapter or on PATH. Build both: cargo build -p fragr-server -p fragr-agent-adapter --release --locked. Or set FRAGR_SERVER_BIN.",
+    ))
+}
+
+struct LocalChild {
+    child: tokio::process::Child,
+}
+
+impl LocalChild {
+    async fn stop(mut self) {
+        drop(self.child.stdin.take());
+        match tokio::time::timeout(std::time::Duration::from_secs(3), self.child.wait()).await {
+            Ok(Ok(status)) => tracing::info!("local fragr-server exited: {status}"),
+            _ => {
+                let _ = self.child.start_kill();
+                let _ = self.child.wait().await;
+            }
+        }
+    }
+}
+
+async fn spawn_local_server(
+    bots: usize,
+    map: &str,
+    mode: &str,
+) -> Result<(String, LocalChild), Box<dyn std::error::Error>> {
+    spawn_local_server_bin(&fragr_server_bin()?, bots, map, mode).await
+}
+
+async fn spawn_local_server_bin(
+    bin: &std::path::Path,
+    bots: usize,
+    map: &str,
+    mode: &str,
+) -> Result<(String, LocalChild), Box<dyn std::error::Error>> {
+    use tokio::io::{AsyncBufReadExt, AsyncReadExt};
+    let mut command = tokio::process::Command::new(bin);
+    command
+        .args(local_server_args(bots, map, mode, LOCAL_BIND))
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::inherit())
+        .kill_on_drop(true);
+    let mut child = command.spawn().map_err(|error| {
+        std::io::Error::other(format!(
+            "could not spawn {} ({error}). Build both packages with cargo build -p fragr-server -p fragr-agent-adapter --release --locked",
+            bin.display()
+        ))
+    })?;
+    let stdout = child.stdout.take().ok_or_else(|| {
+        std::io::Error::other("local fragr-server has no stdout for its ready line")
+    })?;
+    let mut reader = tokio::io::BufReader::new(stdout);
+    let read_line = async {
+        let mut line = String::new();
+        let n = reader.read_line(&mut line).await?;
+        if n == 0 {
+            return Err(std::io::Error::other(
+                "local fragr-server closed stdout before a ready line",
+            ));
+        }
+        std::io::Result::Ok(line)
+    };
+    // `Child::wait` drops stdin. That pipe is the server's lease, so waiting
+    // here would shut the child down before it can print the ready line.
+    let line = {
+        tokio::pin!(read_line);
+        let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(60);
+        loop {
+            let now = tokio::time::Instant::now();
+            if now >= deadline {
+                return Err(std::io::Error::other(
+                    "local fragr-server did not print a ready line within 60s",
+                )
+                .into());
+            }
+            let slice = (deadline - now).min(std::time::Duration::from_millis(200));
+            tokio::select! {
+                line = &mut read_line => break line?,
+                _ = tokio::time::sleep(slice) => {
+                    if let Some(status) = child.try_wait()? {
+                        return Err(std::io::Error::other(format!(
+                            "local fragr-server exited before a ready line ({status})"
+                        ))
+                        .into());
+                    }
+                }
+            }
+        }
+    };
+    tokio::spawn(async move {
+        let mut rest = reader;
+        let mut buf = [0u8; 1024];
+        loop {
+            match rest.read(&mut buf).await {
+                Ok(0) | Err(_) => break,
+                Ok(_) => {}
+            }
+        }
+    });
+    let ready: fragr_server::local::ArenaReady =
+        serde_json::from_str(line.trim()).map_err(|error| {
+            std::io::Error::other(format!(
+                "local fragr-server ready line was not an arena record: {error}"
+            ))
+        })?;
+    if ready.kind != "arena" || !loopback_ws_url(&ready.url) {
+        return Err(std::io::Error::other(format!(
+            "local fragr-server ready line was not a loopback arena ({})",
+            ready.url
+        ))
+        .into());
+    }
+    tracing::info!("local fragr-server ready at {}", ready.url);
+    Ok((ready.url, LocalChild { child }))
+}
+
+/// `--local` reuses a schema 2 listener on 127.0.0.1:6767 or spawns one.
+/// Without `--local`, an omitted server stays the loopback default and nothing is spawned.
+async fn prepare_mcp_server(
+    local: bool,
+    server: Option<String>,
+    bots: usize,
+    map: &str,
+    mode: &str,
+) -> Result<(String, Option<LocalChild>), Box<dyn std::error::Error>> {
+    if !local {
+        return Ok((server.unwrap_or_else(|| DEFAULT_SERVER.to_string()), None));
+    }
+    let probe: std::net::SocketAddr = LOCAL_BIND.parse().expect("loopback bind");
+    if loopback_status_schema_two(probe).await {
+        tracing::info!("{LOCAL_BIND} already serves schema 2; not spawning");
+        return Ok((DEFAULT_SERVER.to_string(), None));
+    }
+    let (url, child) = spawn_local_server(bots, map, mode).await?;
+    Ok((url, Some(child)))
 }
 
 async fn run_mcp_server(
     server_url: String,
     name: String,
     body: protocol::BodyKind,
+    local: Option<LocalChild>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(
         "Starting MCP server mode as '{}', connecting to {}",
@@ -381,6 +652,9 @@ async fn run_mcp_server(
         apply_mcp_line(&line, &server_url, &mut session, &tool_state, &mut stdout).await?;
     }
 
+    if let Some(child) = local {
+        child.stop().await;
+    }
     Ok(())
 }
 
@@ -437,8 +711,8 @@ async fn run_scripted_bot(
     loop {
         tokio::select! {
             msg = ws_stream.next() => {
-                if let Some(Ok(Message::Text(text))) = msg {
-                    match serde_json::from_str::<ServerMessage>(&text)? {
+                match msg {
+                    Some(Ok(Message::Text(text))) => match serde_json::from_str::<ServerMessage>(&text)? {
                         ServerMessage::Mission { tick, state } => {
                             mission_client.observe(tick, state).map_err(io::Error::other)?;
                             if let Some(request) = mission_client.continuation(Some(bot_id)) {
@@ -485,9 +759,23 @@ async fn run_scripted_bot(
                             return Err(io::Error::other(message).into());
                         }
                         _ => {}
+                    },
+                    Some(Ok(Message::Ping(_)))
+                    | Some(Ok(Message::Pong(_)))
+                    | Some(Ok(Message::Binary(_)))
+                    | Some(Ok(Message::Frame(_))) => {}
+                    Some(Ok(Message::Close(frame))) => {
+                        tracing::info!("Bot disconnected: close {frame:?}");
+                        break;
                     }
-                } else {
-                    break;
+                    Some(Err(error)) => {
+                        tracing::info!("Bot disconnected: {error}");
+                        break;
+                    }
+                    None => {
+                        tracing::info!("Bot disconnected: stream ended");
+                        break;
+                    }
                 }
             }
 
@@ -499,6 +787,7 @@ async fn run_scripted_bot(
                     let sabotage = sabotage_map.as_ref().filter(|_| snapshot.sabotage.is_some());
                     if let Some(hold) = sabotage.and_then(|map| sabotage_hold(bot_id, snapshot, map)) {
                         if ws_sink.send(Message::Text(serde_json::to_string(&ClientMessage::Action(hold))?)).await.is_err() {
+                            tracing::info!("Bot disconnected: action send failed");
                             break;
                         }
                         continue;
@@ -517,6 +806,7 @@ async fn run_scripted_bot(
                     let action_msg = ClientMessage::Action(action);
 
                     if ws_sink.send(Message::Text(serde_json::to_string(&action_msg)?)).await.is_err() {
+                        tracing::info!("Bot disconnected: action send failed");
                         break;
                     }
 
@@ -527,6 +817,7 @@ async fn run_scripted_bot(
                             .await
                             .is_err()
                         {
+                            tracing::info!("Bot disconnected: speak send failed");
                             break;
                         }
                     }
@@ -535,7 +826,6 @@ async fn run_scripted_bot(
         }
     }
 
-    tracing::info!("Bot disconnected");
     Ok(())
 }
 
@@ -1910,16 +2200,290 @@ mod tests {
     }
 
     #[test]
+    fn observe_brief_names_the_target_compute_bot_action_would_shoot() {
+        use fragr_server::sim::GameState;
+        let mut sim = GameState::new();
+        let me = uuid::Uuid::from_u128(1);
+        let near = uuid::Uuid::from_u128(2);
+        let auditor = uuid::Uuid::from_u128(3);
+        let far = uuid::Uuid::from_u128(4);
+        let farther = uuid::Uuid::from_u128(5);
+        sim.add_player(me, "Self".into(), Role::Agent);
+        sim.add_player(near, "Near".into(), Role::Agent);
+        sim.add_player(auditor, "Chan".into(), Role::Agent);
+        sim.add_player(far, "Far".into(), Role::Agent);
+        sim.add_player(farther, "Yard".into(), Role::Agent);
+        let mut snapshot = sim.snapshot();
+        let auditor_id = protocol::CampaignActor::Union {
+            kind: protocol::EnemyKind::Auditor,
+            phase: protocol::EnemyPhase::Channeling,
+            phase_started: 0,
+            phase_ends: 40,
+            seated: false,
+        };
+        let clerk = protocol::CampaignActor::Union {
+            kind: protocol::EnemyKind::Clerk,
+            phase: protocol::EnemyPhase::Idle,
+            phase_started: 0,
+            phase_ends: 0,
+            seated: false,
+        };
+        for player in &mut snapshot.players {
+            player.campaign = Some(if player.id == me {
+                protocol::CampaignActor::Participant {}
+            } else if player.id == auditor {
+                auditor_id
+            } else {
+                clerk
+            });
+            player.y = 1.0;
+            player.z = 0.0;
+            player.hp = 100;
+            if player.id == me {
+                player.x = 0.0;
+                player.hp = 88;
+                player.weapon = "Flechette".into();
+            } else if player.id == near {
+                player.x = 8.0;
+                player.hp = 40;
+                player.score = 2;
+                player.weapon = "Scatter".into();
+            } else if player.id == auditor {
+                player.x = 16.0;
+                player.hp = 90;
+                player.score = 4;
+                player.weapon = "Rail".into();
+            } else if player.id == far {
+                player.x = 30.0;
+            } else {
+                player.x = 40.0;
+            }
+        }
+        snapshot.pickups = vec![
+            serde_json::from_value(serde_json::json!({
+                "id": "pad-health",
+                "kind": "health",
+                "x": 5.0,
+                "y": 0.0,
+                "z": 0.0,
+                "available": true
+            }))
+            .unwrap(),
+            serde_json::from_value(serde_json::json!({
+                "id": "pad-armor",
+                "kind": "armor",
+                "x": 0.0,
+                "y": 0.0,
+                "z": 9.0,
+                "available": true
+            }))
+            .unwrap(),
+            serde_json::from_value(serde_json::json!({
+                "id": "pad-rail",
+                "kind": "weapon",
+                "weapon": "Rail",
+                "x": 7.0,
+                "y": 0.0,
+                "z": 0.0,
+                "available": true
+            }))
+            .unwrap(),
+        ];
+        let chosen = compute_bot_action(me, &snapshot)
+            .look_at
+            .and_then(|aim| aim.player_id);
+        assert_eq!(chosen, Some(auditor));
+        let state = mcp::ToolState {
+            player_id: Some(me),
+            last_snapshot: Some(serde_json::to_value(&snapshot).unwrap()),
+            recent_events: vec![serde_json::json!({
+                "event": "hit",
+                "shooter": "Near",
+                "shooter_id": near.to_string(),
+                "target": "Self",
+                "target_id": me.to_string(),
+                "damage": 12,
+                "target_hp_after": 88
+            })],
+            ..Default::default()
+        };
+        let (text, structured) = mcp::observe_brief(&state);
+        assert!(text.len() < 1024, "four-bot brief is {} bytes", text.len());
+        assert!(text.contains(&auditor.to_string()), "{text}");
+        assert!(text.contains("dist=16.0"), "{text}");
+        assert!(text.contains("bearing=0"), "{text}");
+        assert!(text.contains("hp=high"), "{text}");
+        assert!(text.contains("weapon=Rail"), "{text}");
+        assert!(text.contains("campaign=union/auditor/channeling"), "{text}");
+        assert!(text.contains("under_fire=yes"), "{text}");
+        assert!(text.contains("recent_damage=12"), "{text}");
+        assert!(text.contains("top_rival=4"), "{text}");
+        assert!(text.contains("health=5.0"), "{text}");
+        assert!(text.contains("weapon.rail=7.0"), "{text}");
+        assert!(text.contains("ROUND"), "{text}");
+        assert_eq!(structured["threats"][0]["id"], auditor.to_string());
+        assert_eq!(structured["threats"][0]["id"], chosen.unwrap().to_string());
+        assert!(structured["threats"][0]["dist"].is_number());
+        assert!(structured["threats"][0]["bearing"].is_number());
+        assert!(structured["threats"][0]["hp"].is_number());
+        assert!(structured["threats"][0]["weapon"].is_string());
+        assert_eq!(
+            structured["threats"][0]["campaign"],
+            "union/auditor/channeling"
+        );
+        assert_eq!(structured["self"]["id"], me.to_string());
+        let (connecting, _) = mcp::observe_brief(&mcp::ToolState::default());
+        assert!(connecting.contains("connecting"));
+    }
+
+    #[test]
     fn args_parse_mcp_defaults() {
         let args = Args::try_parse_from(["fragr-agent-adapter", "mcp"]).expect("mcp");
         match args.command {
-            Commands::Mcp { server, name, body } => {
-                assert_eq!(server, "ws://127.0.0.1:6767");
+            Commands::Mcp {
+                server,
+                local,
+                bots,
+                map,
+                mode,
+                name,
+                body,
+            } => {
+                assert!(server.is_none());
+                assert!(!local);
+                assert_eq!(bots, 4);
+                assert_eq!(map, "1");
+                assert_eq!(mode, "ffa");
                 assert!(name.is_none());
                 assert_eq!(body, protocol::BodyKind::Human);
             }
             other => panic!("expected Mcp, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn args_parse_mcp_local_and_rejects_an_explicit_server() {
+        let args = Args::try_parse_from([
+            "fragr-agent-adapter",
+            "mcp",
+            "--local",
+            "--name",
+            "MyAgent",
+            "--bots",
+            "4",
+            "--map",
+            "1",
+            "--mode",
+            "ffa",
+        ])
+        .expect("local");
+        match args.command {
+            Commands::Mcp {
+                server,
+                local,
+                bots,
+                map,
+                mode,
+                name,
+                ..
+            } => {
+                assert!(server.is_none());
+                assert!(local);
+                assert_eq!(bots, 4);
+                assert_eq!(map, "1");
+                assert_eq!(mode, "ffa");
+                assert_eq!(name.as_deref(), Some("MyAgent"));
+            }
+            other => panic!("expected Mcp, got {other:?}"),
+        }
+        assert!(Args::try_parse_from([
+            "fragr-agent-adapter",
+            "mcp",
+            "--local",
+            "--server",
+            "ws://127.0.0.1:6767"
+        ])
+        .is_err());
+        assert!(Args::try_parse_from(["fragr-agent-adapter", "mcp", "--map", "2"]).is_err());
+    }
+
+    #[test]
+    fn local_ready_line_args_and_loopback_url() {
+        assert_eq!(
+            local_server_args(4, "1", "ffa", "127.0.0.1:6767")
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            [
+                "--ready-line",
+                "--bind",
+                "127.0.0.1:6767",
+                "--bots",
+                "4",
+                "--map",
+                "1",
+                "--mode",
+                "ffa",
+            ]
+        );
+        assert!(loopback_ws_url("ws://127.0.0.1:6767"));
+        assert!(!loopback_ws_url("ws://127.0.0.1:0"));
+        assert!(!loopback_ws_url("ws://0.0.0.0:6767"));
+        assert!(status_body_is_schema_two(
+            b"HTTP/1.1 200 OK\r\nContent-Length: 20\r\n\r\n{\"schema_version\":2}\n"
+        ));
+        assert!(!status_body_is_schema_two(
+            b"HTTP/1.1 200 OK\r\n\r\n{\"schema_version\":1}"
+        ));
+        assert!(!status_body_is_schema_two(
+            b"HTTP/1.1 503 Service Unavailable\r\n\r\n{}"
+        ));
+    }
+
+    #[tokio::test]
+    async fn status_probe_is_false_when_nothing_listens() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        drop(listener);
+        assert!(!loopback_status_schema_two(addr).await);
+    }
+
+    /// A fake server exits if stdin is already closed. `Child::wait` would close
+    /// it, so the ready line must arrive while the lease pipe is still open.
+    #[tokio::test]
+    async fn local_spawn_keeps_the_stdin_lease_until_the_ready_line() {
+        let id = std::process::id();
+        let script = std::env::temp_dir().join(format!("fragr-ready-lease-{id}.sh"));
+        let marker = std::env::temp_dir().join(format!("fragr-ready-lease-{id}.marker"));
+        let _ = std::fs::remove_file(&marker);
+        std::fs::write(
+            &script,
+            format!(
+                "#!/bin/bash\nmarker={}\nif read -t 0.4 -n 1 -r _; then\n  :\nelse\n  status=$?\n  if [ \"$status\" -eq 1 ]; then\n    printf '%s\\n' early-eof > \"$marker\"\n    exit 2\n  fi\nfi\nprintf '%s\\n' '{{\"version\":1,\"kind\":\"arena\",\"url\":\"ws://127.0.0.1:6767\",\"listen\":\"127.0.0.1:6767\",\"map_id\":1,\"mode\":\"ffa\",\"five_vs_five\":false,\"bots\":0,\"bot_policy\":\"fixed\",\"fill_target\":0,\"gameplay_version\":46}}'\ncat >/dev/null\nprintf '%s\\n' lease-eof > \"$marker\"\n",
+                marker.display()
+            ),
+        )
+        .unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&script).unwrap().permissions();
+            perms.set_mode(0o755);
+            std::fs::set_permissions(&script, perms).unwrap();
+        }
+        let (url, child) = spawn_local_server_bin(&script, 0, "1", "ffa")
+            .await
+            .expect("ready line while stdin stays open");
+        assert_eq!(url, "ws://127.0.0.1:6767");
+        assert!(
+            !marker.exists(),
+            "lease must still be open after the ready line"
+        );
+        child.stop().await;
+        let wrote = std::fs::read_to_string(&marker).unwrap_or_default();
+        assert_eq!(wrote.trim(), "lease-eof");
+        let _ = std::fs::remove_file(&script);
+        let _ = std::fs::remove_file(&marker);
     }
 
     #[test]
@@ -2103,7 +2667,7 @@ mod tests {
         .expect("MCP snapshot must contain the welcomed player");
         let mut output = Vec::new();
         for (name, arguments) in [
-            ("observe", serde_json::json!({})),
+            ("observe", serde_json::json!({"detail": "full"})),
             (
                 "mission_ready",
                 serde_json::json!({"id":"recall_notice","attempt":1}),
@@ -2182,6 +2746,30 @@ mod tests {
         .await
         .expect("oversized ok");
         assert!(out.is_empty(), "oversized must not write a response");
+
+        apply_mcp_line(
+            r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#,
+            "ws://127.0.0.1:9",
+            &mut session,
+            &tool_state,
+            &mut out,
+        )
+        .await
+        .expect("notification");
+        assert!(out.is_empty(), "a notification must not be answered");
+
+        apply_mcp_line(
+            r#"{"jsonrpc":"2.0","id":7,"method":"ping"}"#,
+            "ws://127.0.0.1:9",
+            &mut session,
+            &tool_state,
+            &mut out,
+        )
+        .await
+        .expect("ping");
+        let ping = String::from_utf8(out).expect("utf8");
+        assert!(ping.contains("\"id\":7"), "{ping}");
+        assert!(ping.contains("\"result\":{}"), "{ping}");
     }
 
     #[tokio::test]
@@ -2500,5 +3088,103 @@ mod tests {
         .expect("scripted bot timeout");
         assert!(result.is_ok(), "{result:?}");
         let _ = tokio::time::timeout(std::time::Duration::from_secs(2), peer).await;
+    }
+
+    #[tokio::test]
+    async fn scripted_bot_keeps_acting_after_a_server_ping() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("ws://{}", listener.local_addr().unwrap());
+        let peer = tokio::spawn(async move {
+            let (stream, _) = listener.accept().await.unwrap();
+            let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
+            ws.next().await.unwrap().unwrap();
+            let mut state = fragr_server::sim::GameState::new();
+            let bot = uuid::Uuid::from_u128(71);
+            let target = uuid::Uuid::from_u128(72);
+            state.add_player(bot, "Probe".into(), Role::Agent);
+            state.add_player(target, "Target".into(), Role::Human);
+            for (index, player) in state.players.iter_mut().enumerate() {
+                player.x = if index == 0 { 0.0 } else { 4.0 };
+                player.y = fragr_server::sim::PLAYER_FLOOR_Y;
+                player.z = 0.0;
+            }
+            let welcome = ServerMessage::Welcome {
+                body: None,
+                player_id: Some(bot),
+                role: Role::Agent,
+                mode_name: protocol::default_mode_name(),
+                playlist: protocol::default_playlist(),
+                resume: None,
+                duck: false,
+            };
+            ws.send(Message::Text(serde_json::to_string(&welcome).unwrap()))
+                .await
+                .unwrap();
+            let map = ServerMessage::MapInfo {
+                water_regions: Vec::new(),
+                rules: None,
+                sabotage: None,
+                mission: None,
+                m02_objectives: None,
+                m02_side_ward: false,
+                m03: None,
+                m04: None,
+                m05: None,
+                m06: None,
+                m08: None,
+                m07: None,
+                m09: None,
+                m10: None,
+                m11: None,
+                m12: None,
+                presentation: None,
+                map_id: 1,
+                map_name: "Ping fixture".into(),
+                half_extent: 12.0,
+                geometry_version: 2,
+                solids: vec![fragr_server::movement::Solid::from_center_volume(
+                    2.0, 0.0, 3.0, 3.0, 2.4, 3.0,
+                )],
+            };
+            ws.send(Message::Text(serde_json::to_string(&map).unwrap()))
+                .await
+                .unwrap();
+            ws.send(Message::Text(
+                serde_json::to_string(&ServerMessage::Snapshot(state.snapshot())).unwrap(),
+            ))
+            .await
+            .unwrap();
+            ws.send(Message::Ping(b"fragr".to_vec())).await.unwrap();
+            ws.send(Message::Pong(Vec::new())).await.unwrap();
+            ws.send(Message::Binary(Vec::new())).await.unwrap();
+            let deadline = tokio::time::sleep(std::time::Duration::from_secs(4));
+            tokio::pin!(deadline);
+            loop {
+                tokio::select! {
+                    _ = &mut deadline => panic!("bot stopped sending actions after a server ping"),
+                    message = ws.next() => {
+                        match message {
+                            Some(Ok(Message::Text(text))) => {
+                                if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
+                                    assert!(action.fire, "the target is still the one to shoot");
+                                    break;
+                                }
+                            }
+                            Some(Ok(Message::Pong(_))) | Some(Ok(Message::Ping(_))) => {}
+                            other => panic!("bot disconnected after ping: {other:?}"),
+                        }
+                    }
+                }
+            }
+            let _ = ws.close(None).await;
+        });
+        let result = tokio::time::timeout(
+            std::time::Duration::from_secs(5),
+            run_scripted_bot(url, "Probe".into(), protocol::BodyKind::Human),
+        )
+        .await
+        .expect("scripted bot timeout");
+        assert!(result.is_ok(), "{result:?}");
+        peer.await.unwrap();
     }
 }

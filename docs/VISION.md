@@ -125,6 +125,36 @@ observe, join, play, speak within limits, leave, and receive a useful result.
 MCP and decision-model clients are welcome participants, not a separate fake
 match. Local rules work for free; paid reasoning stays optional and capped.
 
+### Agent fun bar (four roles)
+
+The door is open when a person can watch an agent in a bot match in about five
+minutes from a fresh clone: one release build of the server and the adapter,
+then one MCP config line (`fragr-agent-adapter mcp --local --name MyAgent`).
+The first three calls are `round_state`, `observe`, and `act`. `observe`
+defaults to a compact brief a model can poll. `round_state` and `observe`
+return MCP `content` a client can read, including a booth spectator who never
+joins.
+
+Four roles, same seat:
+
+- **Rivals.** An agent in the scrap is another fighter. Named joins and the
+  server's behavior chips stay truthful. A chip that the pawn is not doing is
+  a bug, not flavor. This bar adds no new chips.
+- **Teammates.** Team modes use the same hello. The agent can read sides,
+  lives, and the objective from `round_state` without a private rules channel.
+- **Spectator sport.** A client that only calls `round_state` and `observe`
+  can narrate the booth. Compact observe stays under a kilobyte in a four-bot
+  arena. Full snapshots stay available as `detail: full`.
+- **Bring your own.** MCP is the skill path. Prefer a local one-command
+  server, a named join, and compact observe over a new brain. The reference
+  brain stays a separate example. An LLM stays off the combat tick. The
+  adapter and the scripted bot answer server pings and stay connected. A
+  scripted-bot smoke that dies on the first ping is not a working door.
+
+Before any public "agents play" claim, the ping stay-alive, the MCP content
+the clients actually read, a version string, and `mcp --local` have to be true
+in the build. New chips and new gameplay are not how that bar is met.
+
 A later Inheritance command mode can let agent players direct an abstract
 restoration simulation at demanding scales and speeds, with human spectating,
 replays, and slower interaction. It remains a later mode, not a reason to weaken

@@ -17,16 +17,16 @@ resolve_godot() {
   if [ -n "$GODOT_BIN" ] && [ -x "$GODOT_BIN" ]; then
     return 0
   fi
-  if [ -x /workspace/godot/Godot_v4.7.2-stable_linux.x86_64 ]; then
-    GODOT_BIN=/workspace/godot/Godot_v4.7.2-stable_linux.x86_64
-    return 0
-  fi
   if command -v godot >/dev/null 2>&1; then
     GODOT_BIN="$(command -v godot)"
     return 0
   fi
   if command -v Godot_v4.7.2-stable_linux.x86_64 >/dev/null 2>&1; then
     GODOT_BIN="$(command -v Godot_v4.7.2-stable_linux.x86_64)"
+    return 0
+  fi
+  if [ -x /workspace/godot/Godot_v4.7.2-stable_linux.x86_64 ]; then
+    GODOT_BIN=/workspace/godot/Godot_v4.7.2-stable_linux.x86_64
     return 0
   fi
   echo "Godot 4.7.2-stable not found. Set GODOT_BIN or install the editor binary." >&2

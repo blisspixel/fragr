@@ -45,6 +45,27 @@ fn an_older_client_is_sent_to_the_release_and_its_checksum() {
 }
 
 #[tokio::test]
+async fn a_taken_port_names_the_address_and_the_next_bind() {
+    let hold = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = hold.local_addr().unwrap();
+    let (tx, _rx) = game_channel();
+    let error = match NetServer::bind(&addr.to_string(), tx).await {
+        Err(error) => error,
+        Ok(_) => panic!("bind on a held port must fail"),
+    };
+    assert_eq!(error.kind(), std::io::ErrorKind::AddrInUse);
+    let message = error.to_string();
+    assert!(message.contains(&addr.to_string()), "{message}");
+    assert!(message.contains("--bind 127.0.0.1:"), "{message}");
+    assert!(
+        message.contains(&format!("ss -ltnp 'sport = :{}'", addr.port())),
+        "{message}"
+    );
+    let line = address_in_use_line(&error).expect("taken bind");
+    assert_eq!(line, message);
+}
+
+#[tokio::test]
 async fn accepted_socket_disables_nagle() {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let port = listener.local_addr().unwrap().port();

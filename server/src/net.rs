@@ -847,6 +847,39 @@ pub(crate) async fn skip_seat_notes(
     }
 }
 
+/// One line for a taken bind: the address, the next loopback port, and how to find the listener.
+pub fn address_in_use_message(addr: &str) -> String {
+    let port = addr.rsplit(':').next().unwrap_or("6767");
+    let next = port
+        .parse::<u16>()
+        .ok()
+        .filter(|port| (1..65535).contains(port))
+        .map(|port| port + 1)
+        .unwrap_or(6768);
+    format!(
+        "{addr} is already in use. Stop the other server or pass --bind 127.0.0.1:{next}. Find the listener with: ss -ltnp 'sport = :{port}'"
+    )
+}
+
+/// `Some` when `error` is a taken bind, so the process can print the advice as its whole line.
+pub fn address_in_use_line(error: &(dyn std::error::Error + 'static)) -> Option<String> {
+    fn find<'a>(error: &'a (dyn std::error::Error + 'static)) -> Option<&'a std::io::Error> {
+        if let Some(io_error) = error.downcast_ref::<std::io::Error>() {
+            return Some(io_error);
+        }
+        let mut source = error.source();
+        while let Some(next) = source {
+            if let Some(io_error) = next.downcast_ref::<std::io::Error>() {
+                return Some(io_error);
+            }
+            source = next.source();
+        }
+        None
+    }
+    let io_error = find(error)?;
+    (io_error.kind() == std::io::ErrorKind::AddrInUse).then(|| io_error.to_string())
+}
+
 impl NetServer {
     pub async fn bind(addr: &str, game_tx: GameSender) -> std::io::Result<Self> {
         Self::bind_with_geometry(addr, game_tx, crate::protocol::legacy_geometry_version()).await
@@ -878,7 +911,16 @@ impl NetServer {
                 "unsupported server geometry version",
             ));
         }
-        let listener = TcpListener::bind(addr).await?;
+        let listener = match TcpListener::bind(addr).await {
+            Ok(listener) => listener,
+            Err(error) if error.kind() == std::io::ErrorKind::AddrInUse => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::AddrInUse,
+                    address_in_use_message(addr),
+                ));
+            }
+            Err(error) => return Err(error),
+        };
         tracing::info!("WebSocket server listening on {}", addr);
 
         Ok(Self {

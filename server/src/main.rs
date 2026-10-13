@@ -7,6 +7,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug, PartialEq)]
 #[command(name = "fragr-server")]
 #[command(about = "fragr authoritative game server")]
+#[command(version = env!("FRAGR_CLI_VERSION"))]
 struct Args {
     #[arg(long, default_value = "0.0.0.0:6767")]
     bind: String,
@@ -40,8 +41,14 @@ struct Args {
 
     /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
     /// on stdout; stdin shutdown or EOF ends only this explicit child.
-    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format"])]
+    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
     desktop_host: bool,
+
+    /// Loopback child for `fragr-agent-adapter mcp --local`. One ArenaReady
+    /// JSON line on stdout after bind; stdin shutdown or EOF stops only this child.
+    /// Any arcade mode the dedicated server already accepts, including free-for-all.
+    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "console", "map_file", "campaign_run"])]
+    ready_line: bool,
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
     #[arg(long, value_enum, requires = "local_mission")]
@@ -171,6 +178,7 @@ struct Args {
         default_value_t = false,
         conflicts_with_all = [
             "desktop_host",
+            "ready_line",
             "local_mission",
             "local_run_preview",
             "bench",
@@ -374,12 +382,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         origin_allow: admission.origins,
         spectator_tickets: admission.spectator_tickets,
     };
-    if args.desktop_host {
+    let started = if args.ready_line {
+        fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
+    } else if args.desktop_host {
         fragr_server::local::serve_arena(options, std::io::stdin(), std::io::stdout()).await
     } else {
         run_server(options, std::future::pending::<()>(), None).await
+    };
+    started.map_err(|error| -> Box<dyn std::error::Error + Send + Sync> {
+        if let Some(line) = fragr_server::net::address_in_use_line(error.as_ref()) {
+            Box::new(PlainError(line))
+        } else {
+            error
+        }
+    })
+}
+
+/// `Termination` prints `Debug`. A taken port should be one readable line.
+struct PlainError(String);
+
+impl std::fmt::Debug for PlainError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
     }
 }
+
+impl std::fmt::Display for PlainError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for PlainError {}
 
 /// Arcade rules from the host's flags. None keeps the plain defaults, which
 /// is also what an authored campaign map requires.

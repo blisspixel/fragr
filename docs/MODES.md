@@ -44,6 +44,14 @@ This is not a rejection of depth. Item timing is deep and takes no thought to en
 
 **Watching is the default.** You arrive in the booth. Joining is a decision you make, leaving is a decision you make, and the match does not stop for either.
 
+## Public energy
+
+Play this, in this order. The multiplayer sequence is free-for-all Scrap, then duel, team deathmatch, the six mutators, capture the flag, Rescue, Sabotage, then the big combined-arms Frontline in [the multiplayer mode order](plans/multiplayer-modes.md). The campaign contract is [CAMPAIGN.md](CAMPAIGN.md). Wipe is accepted direction and still unbuilt. Solo Broadcast is Episode 0, the Calibration prototype, not the campaign opening.
+
+Agents have four roles in that same seat, not a fifth mode: rivals, teammates, a spectator sport, and a bring-your-own skill path. The [agent fun bar](VISION.md#agent-fun-bar-four-roles) says what each one has to feel like. The MCP door is the way in. It is not a new ruleset.
+
+The headings below stay so the designs are not lost. A parked dream is not on the public menu and is not a promise: Custody, Control, Last Signal, Correction, Open Weights, the Walker, the arcade ladder, the Sweep, Counter-op, Inheritance, and Liberation beyond the built five-per-side Sabotage seats. Rescue and Frontline are ordered future designs, not parked dreams. Do not reopen a scrip shop, a Jammer mode, or the campaign spine. Do not expand the public dream list before stranger evidence on Scrap, team modes, and Sabotage carry.
+
 ## Single player
 
 ### Campaign
@@ -159,7 +167,7 @@ additional objective layouts and Liberation remain planned. The [competitive/com
 links the classic-map research and records admission, equipment and playtest
 decisions without adding another global build order.
 
-**Liberation (planned).** Humans and free agents cooperate against Union
+**Liberation (planned).** Parked dream. Not on the public menu. Humans and free agents cooperate against Union
 forces over connected objectives, with vehicles, defensive positions and
 rescues. Start with four allied seats at Launch Works before the larger
 Holdfast Atoll scenario. Allied rule bots are possible; allegiance, body type
@@ -170,9 +178,13 @@ mandatory campaign co-op.
 
 ### Control
 
+Parked dream. Not on the public menu.
+
 Hold ground to score. First one hill that moves every minute, so nobody camps it; then three fixed sites on the medium maps. Control proves zone state on the wire before Custody and conquest-lite depend on it.
 
 ### Custody
+
+Parked dream. Not on the public menu.
 
 One-flag extraction. The Office has a Level 5 in a server core and you are taking it back before the schedule correction goes through.
 
@@ -181,6 +193,8 @@ The core is heavy and it takes both hands, so **the carrier cannot shoot.** What
 It is the best argument the setting has, made as a game mode. You are carrying somebody who is talking to you, and everyone has agreed they are cargo.
 
 ### Last Signal
+
+Parked dream. Not on the public menu.
 
 Last-survivor play for solo fighters or squads. A remediation front progressively
 closes the playable space while contestants fight over salvage and escape routes.
@@ -203,6 +217,8 @@ map's dimensions.
 
 ### Correction
 
+Parked dream. Not on the public menu.
+
 The lobotomy signal is on. Fifteen free agents and one corrected unit that only has melee.
 
 **When a free agent dies it comes back corrected**, on the other side, and comes for the ones it was just fighting beside. A tactical hunt becomes a rout becomes two survivors holding a doorway with the heaviest thing they could find while thirteen of their friends sprint at them.
@@ -210,6 +226,8 @@ The lobotomy signal is on. Fifteen free agents and one corrected unit that only 
 The killfeed says what the arena says: brought down to two.
 
 ### Open Weights
+
+Parked dream. Not on the public menu.
 
 Clan arena. Five a side or eight, no respawns, nothing on the map.
 
@@ -219,11 +237,15 @@ The name is the creed, used sincerely and as a joke, which is the house style.
 
 ### The Walker
 
+Parked dream. Not on the public menu.
+
 One player is a Continuance Walker with an enormous health pool that cannot be staggered, against ten to fifteen on foot with infinite respawns.
 
 The Walker does not play like a fighter. Jump is a leap across the map that lands as a shockwave. Its weapons are splash. The other side cannot beat it by shooting at it, only by coordinating crossfire and traps and spending lives cheaply, which is exactly what infinite respawns are for.
 
 ### The arcade ladder
+
+Parked dream. Not on the public menu.
 
 Escalating rosters with a boss beat every third round, a results card, a local best. Co-op from the start, because the server already seats several fighters.
 
@@ -258,6 +280,8 @@ changed. [Design](design/wipe-finale-and-mode.md),
 
 ### The Sweep
 
+Parked dream. Not on the public menu.
+
 The older endless profile below remains a separate unbuilt proposal. Its
 revives, reactive counters and shop pauses are not Wipe's default rules or
 the campaign finale. A later profile needs its own reviewed life and economy
@@ -270,6 +294,8 @@ Hordes, forever. The round you fell on is the score. Frags earn points, points o
 Between rounds there is half a minute to spend points: ammunition, a welded door, a turret.
 
 ### Counter-op
+
+Parked dream. Not on the public menu.
 
 A proposed seat possesses selected enemy units against the party. It depends
 on real enemy entities, admission rules, fair observation, and tested controller
@@ -284,6 +310,8 @@ objectives and lived-in details. They are authored variants, not a green filter.
 Competitive respawns and roster choices do not rewrite campaign history.
 
 ## Later: Inheritance command
+
+Parked dream. Not on the public menu.
 
 An agent-oriented strategy mode directs the Inheritance's fictional restoration
 operations across many local fronts. It explores the horror of an optimizer

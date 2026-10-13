@@ -13,7 +13,7 @@ Operating rules for coding agents and human contributors. Humans: start with `RE
 - `tools/` - `solo_scrap.sh`, screenshot capture with its `tip-gate/` orange check (Rust), `godot_check.sh` (headless client checks), `audiogen/` (developer-only ElevenLabs sound and music generation, Rust), `licenses/` (third-party notices for packaged `fragr-server`, Rust), and `playtest/` (the agent playtest harness that runs in CI).
 - `docs/` - vision, roadmap, architecture, protocol, art bible, plans. `infra/` - home and cheap-VPS guides, plus plan-only Terraform. The GCP container host is the only cloud root drafted. A popular small-VM network and AWS and Azure roots are planned in `docs/plans/server-excellence.md` and are not written. No apply without written spend approval.
 
-**Product spine:** meet your vibe. Watch by default, join anytime, leave anytime. Fun and funny outside, serious engineering underneath. Full intent: `docs/VISION.md`. The only active sequence is the "Full build order" section of `docs/ROADMAP.md`. Older next-PR cells and retired art queues in that file are history. When the next rung changes, edit that section. Do not add a second list.
+**Product spine:** meet your vibe. Watch by default, join anytime, leave anytime. Fun and funny outside, serious engineering underneath. Full intent: `docs/VISION.md`. The only active sequence is the "Full build order" section of `docs/ROADMAP.md`. The fun-compound lens under that heading is a reading order over those same rungs, not a second list. Older next-PR cells and retired art queues in that file are history. When the next rung changes, edit that section. Do not add a second list.
 
 **Lane:** personal `blisspixel` / Nick only. No work accounts.
 
@@ -105,7 +105,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | Wire board | `server/src/board.rs` keeps two process-local rings, `floor` and `notices`, 40 lines each. A successful speak and a venue sentence fill the floor. `GameSession` unicasts `board` answers to the connection that asked. Spectators may list, read, and post a notice. They still cannot speak. Posting to the floor is closed. `server/src/bin/wire.rs` is the `fragr-wire` line client. The package `default-run` stays `fragr-server`. Do not add a second port, a broadcast event, or a disk archive. Gameplay stays 37. |
 | Join tickets | `server/src/join_ticket.rs`. The dedicated and local processes read `FRAGR_JOIN_SECRET`. Tests, the playtest harness, and `run_server` do not. Pass a secret in as an argument, or leave hello open. Spectators are not ticketed unless `FRAGR_SPECTATOR_TICKET` is also set. `FRAGR_JOIN_AUDIENCE` requires a one-time v2 ticket for that exact URL. `FRAGR_ORIGIN_ALLOW` lists browser Origin values; a missing Origin stays allowed. A bad ticket must not take a seat. |
 | Pawn resume | `server/src/resume.rs`. A hello that asks receives a process-local token. A drop parks the pawn for 200 ticks and clears input. `leave` marks the subsequent socket close for immediate removal; the normal client and adapter send both. Do not rewind ticks, input sequence, or inventory. Do not evict by callsign. |
-| Server CLI, tracing, tick loop | `server/src/main.rs` (`--bind`, `--bots`, `--map`, `--map-rotate`, `--playlist`, `--mode`, `--mutator`, `--friendly-fire`, `--frag-limit`, `--ban-list`, `--allow-list`, `--console`) |
+| Server CLI, tracing, tick loop | `server/src/main.rs` (`--bind`, `--bots`, `--map`, `--map-rotate`, `--playlist`, `--mode`, `--mutator`, `--friendly-fire`, `--frag-limit`, `--ban-list`, `--allow-list`, `--console`, `--ready-line`, `--version`) |
 | MCP request handling and tool schemas | `agent-adapter/src/mcp.rs` |
 | Adapter CLI and WebSocket session | `agent-adapter/src/main.rs` |
 | Client networking (`FRAGR_SERVER`) | `client/scripts/net_client.gd` |
@@ -130,7 +130,7 @@ If prose and code disagree, code wins; fix the prose in the same change. Keep pl
 | World and story | `docs/lore/README.md` indexes canon; `docs/CAMPAIGN.md` owns agreed story and open decisions; `docs/CAMPAIGN-MISSIONS.md` owns proposed mission briefs. Derive maps from story. `docs/lore/voice.md` owns current registers. Check source, manifests and migration records before replacing assets. Old audio does not override current intent. |
 | Hosting and cloud | `infra/README.md`, `infra/docs/`, `infra/terraform/` |
 
-Before adding a second way to log, configure, serialize, retry, or talk to the server, search the tree and reuse the seam above. Env vars in use: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_JOIN_SECRET`, `FRAGR_JOIN_AUDIENCE`, `FRAGR_ORIGIN_ALLOW`, `FRAGR_SPECTATOR_TICKET`, `FRAGR_RUN_DIR` (absolute local-run storage override for isolated tests), `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus the `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE`, and `GODOT_BIN` knobs read by `tools/solo_scrap.sh`.
+Before adding a second way to log, configure, serialize, retry, or talk to the server, search the tree and reuse the seam above. Env vars in use: `FRAGR_SERVER`, `FRAGR_SOLO`, `FRAGR_MAP`, `FRAGR_AGENT_NAME`, `FRAGR_SERVER_BIN` (adapter `--local` server binary), `FRAGR_JOIN_SECRET`, `FRAGR_JOIN_AUDIENCE`, `FRAGR_ORIGIN_ALLOW`, `FRAGR_SPECTATOR_TICKET`, `FRAGR_RUN_DIR` (absolute local-run storage override for isolated tests), `FRAGR_TIP_CAPTURE_DIR`, `RUST_LOG`, `ELEVENLABS_API_KEY`, plus the `FRAGR_BIND`, `FRAGR_BOTS`, `FRAGR_MAP_ROTATE`, and `GODOT_BIN` knobs read by `tools/solo_scrap.sh`.
 
 ## Tests and lints
 
@@ -196,7 +196,7 @@ Playable smoke:
 1. `cargo run -p fragr-server -- --bind 127.0.0.1:6767 --bots 4` starts with no cloud config.
 2. Bots fight; a frag appears in server logs within about 30 seconds.
 3. Godot spectator shows the match; J joins, L leaves; bots persist.
-4. `cd agent-adapter && cargo run -- scripted-bot --name Probe` drives a pawn through the same server.
+4. `cd agent-adapter && cargo run -- scripted-bot --name Probe` drives a pawn through the same server. It answers server pings and stays connected.
 5. `cargo run -p fragr-brain -- play --name Brain --max-seconds 30` plays on local rules at zero cost and prints a JSON summary. Paid-provider refusal and cap behavior belong in fake-transport tests; a local smoke must not accidentally use an available paid key.
 
 Evidence beats assertion. Regenerate current `docs/screenshots/tour_*.png` through the tour below when UI, weapons, sprites, HUD, or arenas change. The older `tools/capture_tip_screenshots.sh` is for explicitly requested historical capture scenarios; keep its stills marked historical until rerun and inspected.

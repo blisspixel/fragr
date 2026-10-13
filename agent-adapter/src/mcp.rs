@@ -85,6 +85,8 @@ impl Default for ToolState {
 #[derive(Debug)]
 pub struct HandleOutcome {
     pub response: McpResponse,
+    /// False for a JSON-RPC notification (no `id`). The caller writes nothing.
+    pub respond: bool,
     pub pending_action: Option<Action>,
     pub pending_mission_ready: Option<protocol::MissionReady>,
     pub pending_mission_continue: Option<protocol::MissionContinue>,
@@ -96,12 +98,30 @@ pub struct HandleOutcome {
 fn empty_outcome(response: McpResponse) -> HandleOutcome {
     HandleOutcome {
         response,
+        respond: true,
         pending_action: None,
         pending_mission_ready: None,
         pending_mission_continue: None,
         pending_speak: None,
         pending_join: None,
         pending_leave: false,
+    }
+}
+
+fn silent_outcome() -> HandleOutcome {
+    empty_outcome(McpResponse {
+        jsonrpc: "2.0".to_string(),
+        id: Value::Null,
+        result: None,
+        error: None,
+    })
+    .silence()
+}
+
+impl HandleOutcome {
+    fn silence(mut self) -> Self {
+        self.respond = false;
+        self
     }
 }
 
@@ -697,11 +717,14 @@ fn tools_list_result() -> Value {
         "tools": [
             {
                 "name": "observe",
-                "description": "Get current game state observation including self_player_id, recent events, shot_results (hit-confirm), and pickups (mid-map weapon / health / armor pads; pickup events carry kind). Returns connecting state until first snapshot arrives.",
+                "description": "Get the current game state. detail=brief (default) is a compact text a model can poll: self, nearest threats with distance, bearing, and ids for act.look_at, pads, and the round. detail=full is the snapshot object (players, pickups, recent events, shot_results). detail=map resends retained geometry. Every tools/call returns content; full and map also set structuredContent. Returns a connecting line until the first snapshot arrives.",
                 "inputSchema": {
                     "type": "object",
-                    "properties": {},
-                    "required": []
+                    "properties": {
+                        "detail": {"type": "string", "enum": ["brief", "full", "map"], "description": "brief (default), full snapshot, or retained map"}
+                    },
+                    "required": [],
+                    "additionalProperties": false
                 }
             },
             {
@@ -863,8 +886,333 @@ fn tool_ok_text(message: &str) -> Value {
     })
 }
 
+fn tool_json_result(value: Value) -> Value {
+    let text = serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string());
+    tool_text_result(text, value)
+}
+
+fn tool_text_result(text: String, structured: Value) -> Value {
+    serde_json::json!({
+        "content": [{
+            "type": "text",
+            "text": text
+        }],
+        "structuredContent": structured
+    })
+}
+
+fn observe_detail(arguments: &Value) -> Result<&str, String> {
+    if arguments.is_null() {
+        return Ok("brief");
+    }
+    let Some(obj) = arguments.as_object() else {
+        return Err("schema error: observe arguments must be an object".into());
+    };
+    if obj.is_empty() {
+        return Ok("brief");
+    }
+    if obj.len() != 1 || !obj.contains_key("detail") {
+        return Err("schema error: observe only accepts detail (brief, full, or map)".into());
+    }
+    match obj.get("detail").and_then(Value::as_str) {
+        Some(detail @ ("brief" | "full" | "map")) => Ok(detail),
+        _ => Err("schema error: observe detail must be brief, full, or map".into()),
+    }
+}
+
+fn hp_tier(hp: i32) -> &'static str {
+    if hp < 35 {
+        "low"
+    } else if hp < 70 {
+        "mid"
+    } else {
+        "high"
+    }
+}
+
+fn campaign_token(actor: Option<protocol::CampaignActor>) -> String {
+    let Some(actor) = actor else {
+        return "none".to_string();
+    };
+    let Ok(value) = serde_json::to_value(actor) else {
+        return "unknown".to_string();
+    };
+    match value.get("side").and_then(Value::as_str) {
+        Some("participant") => "participant".to_string(),
+        Some(side @ ("union" | "companion")) => format!(
+            "{side}/{}/{}",
+            value
+                .get("kind")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown"),
+            value
+                .get("phase")
+                .and_then(Value::as_str)
+                .unwrap_or("unknown")
+        ),
+        _ => "unknown".to_string(),
+    }
+}
+
+fn dist_text(dist: Option<f32>) -> String {
+    match dist {
+        Some(dist) if dist.is_finite() => format!("{dist:.1}"),
+        _ => "none".to_string(),
+    }
+}
+
+/// Damage from buffered hit events aimed at `id`.
+fn recent_damage_on(state: &ToolState, id: Uuid) -> i32 {
+    state.recent_events.iter().fold(0, |total, event| {
+        if event.get("event").and_then(Value::as_str) != Some("hit") {
+            return total;
+        }
+        let aimed = event
+            .get("target_id")
+            .and_then(Value::as_str)
+            .and_then(|text| Uuid::parse_str(text).ok())
+            == Some(id);
+        if !aimed {
+            return total;
+        }
+        let damage = event
+            .get("damage")
+            .and_then(Value::as_i64)
+            .unwrap_or(0)
+            .clamp(0, i32::MAX as i64) as i32;
+        total.saturating_add(damage)
+    })
+}
+
+struct BriefThreat {
+    id: Uuid,
+    name: String,
+    dist: f32,
+    bearing: i32,
+    hp: i32,
+    weapon: String,
+    campaign: String,
+    key: (bool, f32),
+}
+
+/// Compact observation the brain already prints, plus the ids `act.look_at` needs.
+/// Threats are in the same engagement order as the scripted bot. At most eight.
+pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
+    let Some(raw) = state.last_snapshot.as_ref() else {
+        let text = "SELF connecting\nENEMY none\nPADS none\nROUND connecting\n".to_string();
+        let structured = serde_json::json!({
+            "detail": "brief",
+            "status": "connecting",
+            "self_player_id": state.player_id.map(|id| id.to_string()),
+        });
+        return (text, structured);
+    };
+    let Ok(snapshot) = serde_json::from_value::<protocol::Snapshot>(raw.clone()) else {
+        let text = "SELF unreadable\nENEMY none\nPADS none\nROUND unreadable\n".to_string();
+        return (
+            text,
+            serde_json::json!({"detail": "brief", "status": "unreadable"}),
+        );
+    };
+    let me = state
+        .player_id
+        .and_then(|id| snapshot.players.iter().find(|player| player.id == id));
+    let mut threats = Vec::new();
+    if let Some(me) = me {
+        for other in &snapshot.players {
+            if !me.is_hostile_to(other) {
+                continue;
+            }
+            let dx = other.x - me.x;
+            let dz = other.z - me.z;
+            let dist = dx.hypot(dz);
+            if !dist.is_finite() {
+                continue;
+            }
+            threats.push(BriefThreat {
+                id: other.id,
+                name: other.name.clone(),
+                dist,
+                bearing: dz.atan2(dx).to_degrees().round() as i32,
+                hp: other.hp,
+                weapon: other.weapon.clone(),
+                campaign: campaign_token(other.campaign),
+                key: fragr_server::combat::engagement_key(other.campaign, dist),
+            });
+        }
+        threats.sort_by(|a, b| {
+            if fragr_server::combat::engagement_before(a.key, b.key) {
+                std::cmp::Ordering::Less
+            } else if fragr_server::combat::engagement_before(b.key, a.key) {
+                std::cmp::Ordering::Greater
+            } else {
+                a.id.cmp(&b.id)
+            }
+        });
+        threats.truncate(8);
+    }
+    let recent_damage = me
+        .map(|player| recent_damage_on(state, player.id))
+        .unwrap_or(0);
+    let top_rival = {
+        let mut best = 0u32;
+        if let Some(me) = me {
+            for other in &snapshot.players {
+                if me.is_hostile_to(other) {
+                    best = best.max(other.score);
+                }
+            }
+        }
+        best
+    };
+    let fighters = snapshot
+        .players
+        .iter()
+        .filter(|player| player.hp > 0)
+        .count();
+    let origin = me.map(|player| (player.x, player.z)).unwrap_or((0.0, 0.0));
+    let nearest = |kind: &str| -> Option<f32> {
+        snapshot
+            .pickups
+            .iter()
+            .filter(|pad| pad.available && pad.kind.eq_ignore_ascii_case(kind))
+            .map(|pad| (pad.x - origin.0).hypot(pad.z - origin.1))
+            .filter(|dist| dist.is_finite())
+            .min_by(|a, b| a.total_cmp(b))
+    };
+    let mut weapon_pads: Vec<(String, f32)> = Vec::new();
+    for pad in snapshot
+        .pickups
+        .iter()
+        .filter(|pad| pad.available && pad.kind.eq_ignore_ascii_case("weapon"))
+    {
+        let name = if pad.weapon.is_empty() {
+            "weapon".to_string()
+        } else {
+            pad.weapon.to_ascii_lowercase()
+        };
+        let dist = (pad.x - origin.0).hypot(pad.z - origin.1);
+        if !dist.is_finite() {
+            continue;
+        }
+        match weapon_pads
+            .iter_mut()
+            .find(|(existing, _)| existing == &name)
+        {
+            Some((_, best)) if dist < *best => *best = dist,
+            Some(_) => {}
+            None => weapon_pads.push((name, dist)),
+        }
+    }
+    weapon_pads.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let mut text = String::new();
+    match me {
+        Some(player) => text.push_str(&format!(
+            "SELF id={} hp={} armor={} weapon={} under_fire={} recent_damage={} score={} top_rival={}\n",
+            player.id,
+            player.hp,
+            player.armor,
+            player.weapon,
+            if recent_damage > 0 { "yes" } else { "no" },
+            recent_damage,
+            player.score,
+            top_rival
+        )),
+        None => text.push_str(&format!(
+            "SELF id={} missing\n",
+            state
+                .player_id
+                .map(|id| id.to_string())
+                .unwrap_or_else(|| "none".to_string())
+        )),
+    }
+    if threats.is_empty() {
+        text.push_str("ENEMY none\n");
+    } else {
+        for threat in &threats {
+            text.push_str(&format!(
+                "ENEMY id={} name={} dist={:.1} bearing={} hp={} weapon={} campaign={}\n",
+                threat.id,
+                threat.name,
+                threat.dist,
+                threat.bearing,
+                hp_tier(threat.hp),
+                threat.weapon,
+                threat.campaign
+            ));
+        }
+    }
+    text.push_str(&format!(
+        "PADS health={} armor={}",
+        dist_text(nearest("health")),
+        dist_text(nearest("armor"))
+    ));
+    for (name, dist) in &weapon_pads {
+        text.push_str(&format!(" weapon.{name}={dist:.1}"));
+    }
+    text.push('\n');
+    let round_state = snapshot.round_state.as_deref().unwrap_or("none");
+    let time_left = snapshot
+        .round_time_left
+        .map(|ticks| ticks.to_string())
+        .unwrap_or_else(|| "none".to_string());
+    text.push_str(&format!(
+        "ROUND state={round_state} time_left={time_left} fighters={fighters}\n"
+    ));
+
+    let threat_json: Vec<Value> = threats
+        .iter()
+        .map(|threat| {
+            serde_json::json!({
+                "id": threat.id.to_string(),
+                "name": threat.name,
+                "dist": threat.dist,
+                "bearing": threat.bearing,
+                "hp": threat.hp,
+                "hp_tier": hp_tier(threat.hp),
+                "weapon": threat.weapon,
+                "campaign": threat.campaign,
+            })
+        })
+        .collect();
+    let self_json = match me {
+        Some(player) => serde_json::json!({
+            "id": player.id.to_string(),
+            "hp": player.hp,
+            "armor": player.armor,
+            "weapon": player.weapon,
+            "under_fire": recent_damage > 0,
+            "recent_damage": recent_damage,
+            "score": player.score,
+            "top_rival": top_rival,
+        }),
+        None => Value::Null,
+    };
+    let structured = serde_json::json!({
+        "detail": "brief",
+        "self": self_json,
+        "threats": threat_json,
+        "pads": {
+            "health": nearest("health"),
+            "armor": nearest("armor"),
+            "weapons": weapon_pads.iter().map(|(name, dist)| serde_json::json!({"name": name, "dist": dist})).collect::<Vec<_>>(),
+        },
+        "round": {
+            "state": snapshot.round_state,
+            "time_left": snapshot.round_time_left,
+            "fighters": fighters,
+        }
+    });
+    (text, structured)
+}
+
 /// Dispatch one JSON-RPC MCP request against tool state.
 pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleOutcome {
+    // A notification has no id. Do not answer it, and do not run a tool for it.
+    if request.id.is_none() {
+        return silent_outcome();
+    }
     let id = request.id.clone().unwrap_or(Value::Null);
 
     match request.method.as_str() {
@@ -878,9 +1226,23 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                 },
                 "serverInfo": {
                     "name": "fragr-agent-adapter",
-                    "version": "0.1.0"
+                    "version": env!("FRAGR_CLI_VERSION")
                 }
             })),
+            error: None,
+        }),
+
+        "ping" => empty_outcome(McpResponse {
+            jsonrpc: "2.0".to_string(),
+            id,
+            result: Some(serde_json::json!({})),
+            error: None,
+        }),
+
+        method if method.starts_with("notifications/") => empty_outcome(McpResponse {
+            jsonrpc: "2.0".to_string(),
+            id,
+            result: Some(serde_json::json!({})),
             error: None,
         }),
 
@@ -906,7 +1268,32 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
             let mut pending_join = None;
             let mut pending_leave = false;
             let result = match tool_name {
-                "observe" => build_observe_result(state),
+                "observe" => {
+                    let arguments = request
+                        .params
+                        .as_ref()
+                        .and_then(|params| params.get("arguments"))
+                        .cloned()
+                        .unwrap_or(Value::Null);
+                    match observe_detail(&arguments) {
+                        Ok("full") => tool_json_result(build_observe_result(state)),
+                        Ok("map") => {
+                            let map = state.map.clone().unwrap_or(Value::Null);
+                            let text = if map.is_null() {
+                                "MAP none".to_string()
+                            } else {
+                                serde_json::to_string(&map)
+                                    .unwrap_or_else(|_| "MAP unreadable".to_string())
+                            };
+                            tool_text_result(text, map)
+                        }
+                        Ok(_) => {
+                            let (text, structured) = observe_brief(state);
+                            tool_text_result(text, structured)
+                        }
+                        Err(message) => tool_error_result(&message),
+                    }
+                }
 
                 "mission_continue" => {
                     let arguments = request
@@ -1069,7 +1456,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                         .unwrap_or(Value::Null);
 
                     match validate_no_arg_tool("round_state", &arguments) {
-                        Ok(()) => build_round_state_result(state),
+                        Ok(()) => tool_json_result(build_round_state_result(state)),
                         Err(msg) => tool_error_result(&msg),
                     }
                 }
@@ -1090,12 +1477,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                     build_get_events_result(state, should_clear)
                 }
 
-                _ => serde_json::json!({
-                    "content": [{
-                        "type": "text",
-                        "text": format!("Unknown tool: {}", tool_name)
-                    }]
-                }),
+                _ => tool_error_result(&format!("Unknown tool: {tool_name}")),
             };
 
             HandleOutcome {
@@ -1105,6 +1487,7 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                     result: Some(result),
                     error: None,
                 },
+                respond: true,
                 pending_action,
                 pending_mission_ready,
                 pending_mission_continue,
@@ -1520,10 +1903,15 @@ mod mcp_tests {
                 Some(serde_json::json!({"name":name,"arguments":arguments})),
             )
         };
-        let observed = handle_mcp_request(call("observe", serde_json::json!({})), &mut state)
+        let observed = tool_structured(
+            handle_mcp_request(
+                call("observe", serde_json::json!({"detail": "full"})),
+                &mut state,
+            )
             .response
             .result
-            .unwrap();
+            .unwrap(),
+        );
         assert_eq!(observed["map"]["map_id"], 1004);
         assert_eq!(observed["map"]["m04"], map_wire["m04"]);
         assert_eq!(observed["mission"]["m04"], mission_wire["state"]["m04"]);
@@ -2279,6 +2667,11 @@ mod mcp_tests {
         }
     }
 
+    /// tools/call puts the old object in `structuredContent` and a text copy in `content`.
+    fn tool_structured(result: Value) -> Value {
+        result.get("structuredContent").cloned().unwrap_or(result)
+    }
+
     #[test]
     fn private_equipment_reaches_observation_and_invalid_updates_preserve_it() {
         use fragr_server::inventory::Inventory;
@@ -2363,10 +2756,13 @@ mod mcp_tests {
             ..Default::default()
         };
         let out = handle_mcp_request(
-            req("tools/call", Some(serde_json::json!({"name":"observe"}))),
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"observe","arguments":{"detail":"full"}})),
+            ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["status"], "connecting");
         assert!(result["self_player_id"].is_string());
     }
@@ -2381,10 +2777,13 @@ mod mcp_tests {
             ..Default::default()
         };
         let out = handle_mcp_request(
-            req("tools/call", Some(serde_json::json!({"name":"observe"}))),
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"observe","arguments":{"detail":"full"}})),
+            ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["tick"], 3);
         assert_eq!(result["recent_events"].as_array().unwrap().len(), 1);
         assert!(result["self_player_id"].is_string());
@@ -3123,7 +3522,7 @@ mod mcp_tests {
             ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["rules"]["mode"], "tdm");
         assert_eq!(
             result["rules"]["mutators"],
@@ -3201,7 +3600,7 @@ mod mcp_tests {
             ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["round_state"], "Active");
         assert_eq!(result["round_number"], 3);
         assert_eq!(result["round_time_left"], 90);
@@ -3238,7 +3637,7 @@ mod mcp_tests {
             ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["round_state"], "Warmup");
         assert_eq!(result["map_id"], 2);
         assert_eq!(result["map_name"], "Compliance Yard");
@@ -3266,7 +3665,7 @@ mod mcp_tests {
             ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["round_state"], "Warmup");
         assert_eq!(result["round_time_left"], 2);
         assert!(result["host_line"]
@@ -3308,7 +3707,7 @@ mod mcp_tests {
             ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["round_state"], "Ended");
         assert_eq!(result["mvp"], "Rusher");
         assert_eq!(result["mvp_frags"], 10);
@@ -3340,7 +3739,7 @@ mod mcp_tests {
             ),
             &mut state,
         );
-        let result = out.response.result.unwrap();
+        let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["round_state"], "Ended");
         assert_eq!(result["mvp"], "Anchor");
         assert_eq!(result["mvp_frags"], 7);
@@ -3456,5 +3855,94 @@ mod mcp_tests {
         let mut fresh = ToolState::default();
         assert!(ingest_server_text(&mut fresh, &bad.to_string()).is_err());
         assert!(fresh.map.is_none());
+    }
+
+    #[test]
+    fn every_tool_call_returns_content_and_ping_and_notifications() {
+        let mut state = ToolState::default();
+        let list = handle_mcp_request(req("tools/list", None), &mut state);
+        let tools = list.response.result.unwrap()["tools"]
+            .as_array()
+            .unwrap()
+            .clone();
+        assert!(!tools.is_empty());
+        for tool in tools {
+            let name = tool["name"].as_str().unwrap();
+            let arguments = match name {
+                "speak" => serde_json::json!({"text": "hi"}),
+                "mission_ready" => serde_json::json!({"id": "recall_notice", "attempt": 1}),
+                "mission_continue" => serde_json::json!({
+                    "id": "recall_notice",
+                    "run_id": "00000000-0000-0000-0000-000000000000",
+                    "attempt": 1
+                }),
+                _ => serde_json::json!({}),
+            };
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name": name, "arguments": arguments})),
+                ),
+                &mut state,
+            );
+            assert!(out.respond, "{name}");
+            let result = out.response.result.expect(name);
+            let content = result["content"]
+                .as_array()
+                .unwrap_or_else(|| panic!("{name} result has no content array: {result}"));
+            assert!(!content.is_empty(), "{name}");
+            assert_eq!(content[0]["type"], "text", "{name}");
+            assert!(content[0]["text"].is_string(), "{name}");
+        }
+
+        let unknown = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name": "not_a_tool", "arguments": {}})),
+            ),
+            &mut state,
+        );
+        let unknown = unknown.response.result.unwrap();
+        assert_eq!(unknown["isError"], true);
+        assert!(unknown["content"][0]["text"]
+            .as_str()
+            .unwrap()
+            .contains("Unknown tool"));
+
+        let ping = handle_mcp_request(req("ping", None), &mut state);
+        assert!(ping.respond);
+        assert_eq!(ping.response.result, Some(serde_json::json!({})));
+        assert!(ping.response.error.is_none());
+
+        let mut noted = req("notifications/initialized", None);
+        noted.id = None;
+        let silent = handle_mcp_request(noted, &mut state);
+        assert!(!silent.respond);
+        assert!(silent.pending_action.is_none());
+        assert!(!silent.pending_leave);
+
+        let answered = handle_mcp_request(req("notifications/initialized", None), &mut state);
+        assert!(answered.respond);
+        assert_eq!(answered.response.result, Some(serde_json::json!({})));
+        assert!(answered.response.error.is_none());
+
+        let mut leave = req(
+            "tools/call",
+            Some(serde_json::json!({"name": "leave", "arguments": {}})),
+        );
+        leave.id = None;
+        state.connected = true;
+        let ignored = handle_mcp_request(leave, &mut state);
+        assert!(!ignored.respond);
+        assert!(state.connected, "a notification must not run the tool");
+
+        let bad_detail = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name": "observe", "arguments": {"detail": "nope"}})),
+            ),
+            &mut state,
+        );
+        assert_eq!(bad_detail.response.result.unwrap()["isError"], true);
     }
 }

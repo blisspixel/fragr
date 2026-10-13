@@ -383,6 +383,25 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 ## Full build order (updated 2026-10-10)
 
+### Fun-compound lens (not a second build order)
+
+Read the numbered rungs below through this lens. It does not replace them, and
+it does not add a list to execute. The Full build order owns the rungs. The
+[multiplayer order](plans/multiplayer-modes.md) owns mode sequence.
+
+| Lens | What it asks | Owner |
+|---|---|---|
+| S0 Door | A scripted bot survives the first server ping. MCP `observe` and `round_state` return `content`. `--version` matches `/status`. `mcp --local` can spawn the loopback server. | Adapter and server, not a new rung |
+| S1 Stranger Scrap | A stranger plays free-for-all on a friend host. | Full build order, multiplayer order's first seat |
+| S2 Same seat | Duel, team deathmatch, and the mutators on that same host. | Those rungs |
+| S3 Carry | Sabotage carry tuning only. No shop, no scrip, no credits. | Sabotage rung, tune only |
+| S4 Four roles | Rivals, teammates, spectator sport, and a bring-your-own skill path. Compact observe and local MCP. Not a new brain. The LLM stays off the tick. | Agent door on the existing adapter |
+| S5 Campaign | Episode I and the campaign spine as [CAMPAIGN.md](CAMPAIGN.md) already states. Do not reopen the spine. | Campaign rungs |
+| S6 Friend host | Prove a friend host before UDP or cloud. | Hosting rungs |
+| S7 After evidence | Wipe and big combined-arms only after S1 through S3 have stranger evidence. | Those later rungs |
+
+Do not expand public dream modes before S1 through S3 have stranger evidence on Scrap, team modes, and Sabotage carry.
+
 **Active goal:** build the agreed game through a proven 1.0. On October 6 Nick
 explicitly advanced parallel campaign, vehicle and island work alongside the
 current multiplayer quality pass. The preceding main at `e4df1a0b`, tagged v0.79.0, includes

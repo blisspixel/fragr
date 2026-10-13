@@ -12,7 +12,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 use fragr_server::protocol::{BoardPage, ServerMessage, GAMEPLAY_VERSION, GEOMETRY_VERSION};
 
 #[derive(Parser, Debug)]
-#[command(name = "fragr-wire", about = "Dial the fragr wire")]
+#[command(name = "fragr-wire", about = "Dial the fragr wire", version = env!("FRAGR_CLI_VERSION"))]
 struct Args {
     /// Host that is already serving. The board is that process.
     #[arg(long, default_value = "127.0.0.1:6767")]

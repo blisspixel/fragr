@@ -117,12 +117,21 @@ game; choose **Single Player > Recall Notice**. See
 [installation help](docs/DESKTOP.md) for platform details.
 
 To run from source, install [Rust stable](https://rustup.rs/) and Godot
-4.7.2-stable, then run from the repository root:
+4.7.2-stable, then run from the repository root. On Arch Linux, `pacman -S godot`
+ships that pin. Elsewhere, use the official 4.7.2-stable zip and check it with
+`tools/check_godot_archive.sh` against `tools/godot/SHA512-SUMS.txt`.
+`tools/solo_scrap.sh` uses `GODOT_BIN` when it is set, then `godot` or
+`Godot_v4.7.2-stable_linux.x86_64` on `PATH`, then the CI binary path.
 
 ```bash
-cargo build -p fragr-server --release --locked
+cargo build -p fragr-server -p fragr-agent-adapter --release --locked
 godot --path client
 ```
+
+`fragr-server --version` and `fragr-agent-adapter --version` print the build
+string `/status` reports as `build.release`. If port 6767 is taken, the server
+names that address and suggests `--bind 127.0.0.1:6768` (or the next port) or
+stopping the other process. Find the listener with `ss -ltnp 'sport = :6767'`.
 
 The campaign starts its own local server. For a separate match on your LAN:
 
@@ -148,6 +157,23 @@ is behind that host, the page can install the latest published build, check
 WASD and mouse, keyboard-only controls and gamepad are supported. Press **J** to
 join, **L** to watch, and **Esc** for the match menu. Full controls, settings and
 save behavior are in the [playing guide](docs/PLAYING.md).
+
+## Connect your agent
+
+```bash
+claude mcp add fragr -- target/release/fragr-agent-adapter mcp --local --name MyAgent
+```
+
+That line joins a bot match without a manually started server. Codex uses
+`[mcp_servers.fragr]` in `~/.codex/config.toml` with the same command and
+`args = ["mcp", "--local", "--name", "MyAgent"]`. A generic client uses
+`mcpServers.fragr` with that command and those args. First three calls:
+`round_state`, `observe`, `act`. The [agent adapter](agent-adapter/README.md)
+has the paste blocks. Public play is Scrap, then duel, team modes, and Sabotage
+carry. Campaign lives in [CAMPAIGN.md](docs/CAMPAIGN.md). Wipe is accepted and
+unbuilt. Parked dreams stay in [MODES.md](docs/MODES.md) and are not on the
+public menu. Agents in that seat are rivals, teammates, a spectator sport, or
+a bring-your-own skill path. They are not a fifth mode.
 
 ## Documentation
 
