@@ -65,6 +65,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::CommonCarrier => "common_carrier",
                         MissionId::RightOfSearch => "right_of_search",
                         MissionId::TermsOfCooperation => "terms_of_cooperation",
+                        MissionId::WeightOfPermission => "weight_of_permission",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -144,8 +145,10 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // Current owned campaigns use rules4; M12 also carries habitat facts.
-            gameplay_version: if mission == MissionId::TermsOfCooperation {
+            // Mission-specific capabilities add the habitat and foundry facts.
+            gameplay_version: if mission == MissionId::WeightOfPermission {
+                crate::protocol::M13_GAMEPLAY_VERSION
+            } else if mission == MissionId::TermsOfCooperation {
                 crate::protocol::M12_GAMEPLAY_VERSION
             } else {
                 crate::protocol::ASSESSOR_GAMEPLAY_VERSION
@@ -962,5 +965,14 @@ mod tests {
             m11.gameplay_version <= crate::protocol::GAMEPLAY_VERSION,
             "the current protocol supports the tender readiness capability"
         );
+        let m13 = Ready::new(
+            MissionId::WeightOfPermission,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m13.gameplay_version, crate::protocol::M13_GAMEPLAY_VERSION);
+        assert!(m13.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
     }
 }

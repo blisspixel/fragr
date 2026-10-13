@@ -36,7 +36,7 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search", "terms_of_cooperation"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search", "terms_of_cooperation", "weight_of_permission"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<String>,
 
     /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
@@ -231,6 +231,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "common_carrier" => fragr_server::protocol::MissionId::CommonCarrier,
             "right_of_search" => fragr_server::protocol::MissionId::RightOfSearch,
             "terms_of_cooperation" => fragr_server::protocol::MissionId::TermsOfCooperation,
+            "weight_of_permission" => fragr_server::protocol::MissionId::WeightOfPermission,
             "declared_goods" => fragr_server::protocol::MissionId::DeclaredGoods,
             _ => fragr_server::protocol::MissionId::RecallNotice,
         };
@@ -540,11 +541,15 @@ mod tests {
             "common_carrier",
             "right_of_search",
             "terms_of_cooperation",
+            "weight_of_permission",
         ] {
             let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
             assert_eq!(args.local_mission.as_deref(), Some(mission));
         }
         assert!(Args::try_parse_from(["fragr-server", "--local-mission", "m03"]).is_err());
+        assert!(
+            Args::try_parse_from(["fragr-server", "--local-mission", "launch_authority"]).is_err()
+        );
     }
 
     #[test]

@@ -177,7 +177,7 @@ func _run() -> void:
 	_check(not hud._evac_badge.visible, "Standard does not inherit the Severe optional badge")
 	hud.queue_free()
 	_check(StoryScene.exists("m09_arrival") and StoryScene.exists("l09_l10") and StoryScene.BEFORE_MISSION.get(MissionState.M09_ID) == "m09_arrival", "arrival and departure reuse the story boundary")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == LocalMatch.M09_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == LocalMatch.M10_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M11_ID) == LocalMatch.M11_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M12_ID) == 44 and LocalMatch.NEXT_MISSION == "weight_of_permission", "registered mission floors and honest pending M13")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M09_ID) == LocalMatch.M09_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == LocalMatch.M10_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M11_ID) == LocalMatch.M11_GAMEPLAY and LocalMatch.MISSION_GAMEPLAY.get(MissionState.M12_ID) == 44 and LocalMatch.NEXT_MISSION == "launch_authority", "registered mission floors and honest pending M14")
 	await process_frame
 	await process_frame
 	if failures == 0:

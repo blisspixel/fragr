@@ -788,7 +788,39 @@ impl AuthoredMap {
             })
             .transpose()?
             .map(Arc::new);
+        if m13.as_ref().is_some_and(|p| p.geometry.is_some())
+            && (doc.map_id != 1013
+                || doc.name != "The Weight of Permission"
+                || doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                || mission.is_some()
+                || m02.is_some()
+                || m03.is_some()
+                || m04.is_some()
+                || m05.is_some()
+                || m06.is_some()
+                || m07.is_some()
+                || m08.is_some()
+                || m09.is_some()
+                || m10.is_some()
+                || m11.is_some()
+                || m12.is_some()
+                || !doc.vehicles.is_empty())
+        {
+            return Err(invalid(
+                "M13 requires canonical foundry and no other mission",
+            ));
+        }
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
+        if m13.as_ref().is_some_and(|p| p.geometry.is_some())
+            && !supplies.iter().any(|s| {
+                s.id == "office_rocket"
+                    && s.kind == crate::sim::PickupKind::Weapon(crate::protocol::WeaponType::Rocket)
+                    && s.claim == crate::protocol::SupplyClaim::Personal
+                    && !s.secret
+            })
+        {
+            return Err(invalid("M13 requires the finite office Rocket pickup"));
+        }
         if m12.is_some() {
             m12::validate_supplies(&supplies)?;
         }

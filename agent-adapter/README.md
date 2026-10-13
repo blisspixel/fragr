@@ -542,12 +542,20 @@ mission requests return `isError: true`. Repeating a confirmed acknowledgment is
 idempotent. Server state changes only after the ordinary WebSocket message is
 processed. Use `observe` to confirm readiness and the shared phase before acting.
 
+Connected M13 uses `weight_of_permission` through these same tools. Matching
+adapters advertise gameplay 47 and validate its registered objectives, worker
+choices, actual arrivals and moving freight lift. After a fresh all-party lift
+Use, the controller holds position while the authoritative deck moves. If it
+returns after losing a rider, the party reboards and uses the same control.
+Optional worker release never gates departure. No additional campaign tool or
+per-tick MCP call is required.
+
 ### `mission_continue`
 
 In a solo run, `observe.mission.run` reports its UUID, status, remaining
 continues and `level_start_continues`. Only its dead owner in `continue`
 status can request a mission-start retry using the observed mission ID, run ID
-and attempt. This applies to M01 and to a saved M02 run:
+and attempt. This applies to all built saved campaign missions through M13:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}

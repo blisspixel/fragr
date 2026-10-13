@@ -4,6 +4,9 @@ impl MissionClient {
     /// Reconstruct physical cover from the validated map and latest M05 pose.
     /// Other missions retain their existing immutable navigation geometry.
     pub fn live_visibility_solids(&self) -> Option<Vec<Solid>> {
+        if self.m13_map.is_some() {
+            return self.m13_visibility_solids();
+        }
         if self.m05_pending {
             return None;
         }

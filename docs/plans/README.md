@@ -17,21 +17,24 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [October 13 development round](build-round-20261013.md) is **implemented**:
-parallel campaign, audio and art work, Linux visual verification, then one
-reviewed integration and CI-passing main. Its bounded funded allowance and live
-authentication readings supersede the earlier account readings for this round.
+The [October 13 development round](build-round-20261013.md) **shipped** in
+[PR 401](https://github.com/blisspixel/fragr/pull/401) and v0.82.1, with passing
+main CI and three desktop packages. Its account readings retain their date.
+The [connected foundry round](m13-connected-round-20261013.md) is **implemented**:
+authoritative mission, strict saves and client presentation pass the ordinary
+native and rendered routes. GitHub CI and integration complete its delivery.
 
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
 released as v0.80.0. The
 [Rocket Launcher foundation](rocket-foundation-20261008.md) shipped in
 [PR #376](https://github.com/blisspixel/fragr/pull/376) at `711dfb4` and is
-released as v0.81.0. It is not part of v0.80.0. No mission grants it.
+released as v0.81.0. It is not part of v0.80.0. That foundation did not grant it
+in a mission; the connected foundry adds the first finite campaign pickup.
 [Difficulty pressure](difficulty-pressure-20261009.md) and
 [admission bounds](admission-bounds-20261009.md) shipped in v0.82.0.
 Levels 15 through 20 are development grayboxes, not missions. The next
-campaign dependency is connected M13. Human acceptance, final art and the
+campaign dependency after M13 integration is connected M14. Human acceptance, final art and the
 unbuilt campaign remain open.
 
 On 2026-10-08 Nick reported $4.65 remaining in the image account and offered a
@@ -84,8 +87,9 @@ remain open.
 | [`enemy-ground-registration-20261008.md`](./enemy-ground-registration-20261008.md) | **in flight** | Reproduce and fix the 0.45 m enemy origin overwrite, then correct three collapsed source poses and verify actual floor contact. |
 | [`arc-visual-consistency-20261008.md`](./arc-visual-consistency-20261008.md) | **implemented locally** | Corrected industrial Arc, registered poses and pickup profile pass focused checks, ordinary finite combat and local composition; human art review remains open. |
 | [`m12-connected-habitat-20261008.md`](./m12-connected-habitat-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Connected habitat with actual Arc discovery, Assessor wreck and pump receipts, one shelter door, aid vehicles, coalition commitment and strict M11 carry/retry. Fresh-player and final-art acceptance remain open. |
-| [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **in flight** | The Rocket Launcher foundation shipped in PR #376. The foundry successor opens the ladle shaft and places the office rocket and freight Assessor. The later contract attaches the optional gate key. Mission identity, save promotion and the menu remain unbuilt. |
-| [`m13-mission-contract-20261009.md`](./m13-mission-contract-20261009.md) | **in flight** | The successor file carries the optional foundry key: relay, protected feed, hazard bypass, worker release and a thin freight deck. `campaign_mission_id` stays empty. Objectives, a ridden departure, save promotion and the menu remain unbuilt. |
+| [`m13-connected-round-20261013.md`](./m13-connected-round-20261013.md) | **implemented** | Connected M13, finite Rocket lesson, voluntary workers, physical lift and strict version 17 saves pass native and rendered routes; GitHub delivery remains tracked by the round. |
+| [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **superseded** | Historical foundry geometry and launcher preparation; the October 13 connected round owns composition and acceptance. |
+| [`m13-mission-contract-20261009.md`](./m13-mission-contract-20261009.md) | **superseded** | Historical optional gate-key implementation; the October 13 connected round owns mission identity, progression and acceptance. |
 | [`m14-connected-first-pass-20261009.md`](./m14-connected-first-pass-20261009.md) | **in flight** | The launch-works development battlefield gains a sheltered infantry trench through the berm field. Walker, mission identity, save promotion and the menu remain unbuilt. |
 | [`m15-civic-pressure-valve-20261009.md`](./m15-civic-pressure-valve-20261009.md) | **in flight** | Stadium graybox, map 1015. Pen, tunnel, bowl, waves, podium and sealed gates. Not a mission. The Article Blade remains unbuilt. |
 | [`m16-freedom-of-movement-20261009.md`](./m16-freedom-of-movement-20261009.md) | **in flight** | On-foot avenue graybox, map 1016, with side pockets and a two-sided forecourt. Not a mission. The motorcycle remains unbuilt. |

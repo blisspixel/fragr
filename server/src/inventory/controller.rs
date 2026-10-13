@@ -55,6 +55,96 @@ fn useful_supply(loadout: &LoadoutState, pickup: &PickupState, seek_upgrade: boo
     }
 }
 
+/// Equip a real finite ray weapon for a registered shootable world control.
+/// Combat targeting stays with the caller. This neither creates ammunition nor
+/// substitutes projectile splash for the control's resolved ray impact.
+pub fn control_ray_objective(
+    id: Uuid,
+    snapshot: &Snapshot,
+    loadout: &LoadoutState,
+    mut action: Action,
+) -> Option<Action> {
+    let me = snapshot.players.iter().find(|p| p.id == id && p.hp > 0)?;
+    let ray = |w: WeaponType| w != WeaponType::Rocket && w.ammo_pool().is_some();
+    // Count carried reserve as usable: a human must reload its actual magazine.
+    let supplied = |w: WeaponType| {
+        ray(w)
+            && loadout.owns(w)
+            && w.ammo_pool().is_some_and(|pool| {
+                loadout.shots(w).is_some_and(|n| n > 0)
+                    || loadout.ammo(pool)
+                        > loadout
+                            .loaded
+                            .iter()
+                            .filter(|m| m.weapon.ammo_pool() == Some(pool))
+                            .map(|m| m.rounds)
+                            .sum::<u16>()
+            })
+    };
+    let selected = action
+        .weapon_swap
+        .filter(|w| supplied(*w))
+        .or_else(|| supplied(loadout.selected).then_some(loadout.selected))
+        .or_else(|| {
+            [
+                WeaponType::Tack,
+                WeaponType::Flechette,
+                WeaponType::Repeater,
+                WeaponType::Rail,
+                WeaponType::Sniper,
+                WeaponType::Scatter,
+                WeaponType::Arc,
+            ]
+            .into_iter()
+            .find(|w| supplied(*w))
+        });
+    action.fire = false;
+    action.throw_grenade = false;
+    action.place_mine = false;
+    action.place_remote_mine = false;
+    action.trigger_remote_mines = false;
+    if let Some(weapon) = selected {
+        action.weapon_swap = (weapon != loadout.selected).then_some(weapon);
+        action.reload = loadout
+            .loaded
+            .iter()
+            .any(|m| m.weapon == weapon && m.rounds == 0 && m.ready_at.is_none());
+        return Some(action);
+    }
+    let supply = snapshot
+        .pickups
+        .iter()
+        .filter(|p| {
+            useful_supply(loadout, p, true)
+                && match p.kind.as_str() {
+                    "weapon" => weapon_from_name(&p.weapon).is_some_and(ray),
+                    "ammo" => p.pool.is_some_and(|pool| {
+                        pool != crate::protocol::AmmoPool::Rockets
+                            && loadout
+                                .weapons
+                                .iter()
+                                .any(|w| ray(*w) && w.ammo_pool() == Some(pool))
+                    }),
+                    _ => false,
+                }
+        })
+        .min_by(|a, b| {
+            (a.x - me.x)
+                .hypot(a.z - me.z)
+                .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
+        })?;
+    Some(Action {
+        forward: true,
+        look_at: Some(LookAt {
+            x: Some(supply.x),
+            y: Some(supply.y),
+            z: Some(supply.z),
+            player_id: None,
+        }),
+        ..Action::default()
+    })
+}
+
 /// Keep ordinary combat intent when supplied, otherwise switch or route to supply.
 /// None is the explicit legacy full-arsenal path and returns identical actions.
 pub fn control_action(

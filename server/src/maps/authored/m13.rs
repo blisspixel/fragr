@@ -12,6 +12,7 @@ use std::io;
 #[derive(Debug, Clone)]
 pub(crate) struct Prepared {
     pub(crate) gates: Gates,
+    pub(crate) geometry: Option<crate::protocol::M13MapGeometry>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -27,6 +28,26 @@ pub(super) struct Definition {
     deck: String,
     inset: Inset,
     lift_top: f32,
+    #[serde(default)]
+    connected: Option<Connected>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Connected {
+    arrivals: [Arrival; 5],
+    relay_approach: [f32; 3],
+    relay_aim: [f32; 3],
+    departure: PanelTarget,
+    workers: [[f32; 3]; 3],
+    worker_destinations: [[f32; 3]; 3],
+    overseer: [f32; 3],
+}
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Arrival {
+    region: Region3,
+    feet: [f32; 3],
 }
 
 #[derive(Debug, Deserialize)]
@@ -127,25 +148,239 @@ impl Definition {
         {
             return Err(invalid("foundry lift target is below the deck"));
         }
-        Ok(Prepared {
-            gates: Gates {
-                relay,
-                protected,
-                hazard: self.hazard,
-                bypass: self.bypass,
-                cycle,
-                release: UseTarget {
-                    decoration,
-                    approach: self.release.approach,
-                },
-                quarters_group,
-                deck_index,
-                deck,
-                inset_min: self.inset.min,
-                inset_max: self.inset.max,
-                lift_top: self.lift_top,
+        let gates = Gates {
+            relay,
+            protected,
+            hazard: self.hazard,
+            bypass: self.bypass,
+            cycle,
+            release: UseTarget {
+                decoration,
+                approach: self.release.approach,
             },
-        })
+            quarters_group,
+            deck_index,
+            deck,
+            inset_min: self.inset.min,
+            inset_max: self.inset.max,
+            lift_top: self.lift_top,
+        };
+        let geometry = self
+            .connected
+            .map(|c| {
+                use crate::protocol::{
+                    M13HazardCycle, M13MapGeometry, MissionObjective, MissionObjectiveAction,
+                    M13_OBJECTIVE_IDS,
+                };
+                let expected = [
+                    "foundry_edge",
+                    "machine_hall",
+                    "quarters_approach",
+                    "freight_lesson",
+                    "freight_counterattack",
+                    "ladle_galleries",
+                ];
+                if encounters.len() != expected.len()
+                    || encounters
+                        .iter()
+                        .zip(expected)
+                        .enumerate()
+                        .any(|(i, (e, id))| {
+                            e.id != id
+                                || e.after.as_deref() != i.checked_sub(1).map(|j| expected[j])
+                        })
+                {
+                    return Err(invalid("M13 requires ordered foundry encounters"));
+                }
+                use crate::protocol::EnemyKind::{
+                    Assessor, Clerk, Enforcer, HeavySweeper, Notary, RangedSweeper, Sweeper,
+                };
+                let roles: [&[(&str, crate::protocol::EnemyKind)]; 6] = [
+                    &[
+                        ("edge_clerk_west", Clerk),
+                        ("edge_clerk_east", Clerk),
+                        ("edge_sweeper_west", Sweeper),
+                        ("edge_sweeper_east", Sweeper),
+                    ],
+                    &[
+                        ("machine_heavy", HeavySweeper),
+                        ("machine_clerk", Clerk),
+                        ("machine_sweeper", Sweeper),
+                        ("machine_notary_west", Notary),
+                        ("machine_notary_east", Notary),
+                    ],
+                    &[("quarters_clerk", Clerk), ("office_clerk", Clerk)],
+                    &[
+                        ("freight_sweeper_west", Sweeper),
+                        ("freight_sweeper_center", Sweeper),
+                        ("freight_sweeper_east", Sweeper),
+                    ],
+                    &[
+                        ("freight_clerk_west", Clerk),
+                        ("freight_clerk_east", Clerk),
+                        ("freight_enforcer", Enforcer),
+                        ("freight_assessor", Assessor),
+                        ("counter_sweeper_west", Sweeper),
+                        ("counter_sweeper_east", Sweeper),
+                    ],
+                    &[
+                        ("gallery_clerk_west", Clerk),
+                        ("gallery_clerk_east", Clerk),
+                        ("gallery_clerk_back", Clerk),
+                        ("gallery_heavy", HeavySweeper),
+                        ("gallery_marksman", RangedSweeper),
+                    ],
+                ];
+                if encounters.iter().zip(roles).any(|(e, roles)| {
+                    e.enemies.len() != roles.len()
+                        || roles.iter().any(|(id, kind)| {
+                            !e.enemies.iter().any(|a| a.id == *id && a.kind == *kind)
+                        })
+                }) {
+                    return Err(invalid(
+                        "M13 requires its registered Rocket lesson and gallery support defenders",
+                    ));
+                }
+                if encounters[5]
+                    .enemies
+                    .iter()
+                    .any(|a| a.feet[1] < 3.0 || a.feet[2] < 27.0)
+                {
+                    return Err(invalid(
+                        "M13 support defenders require actual upper galleries",
+                    ));
+                }
+                let host = *ids
+                    .get(&c.departure.panel.solid)
+                    .ok_or_else(|| invalid("M13 lift control host missing"))?;
+                let decoration = presentation
+                    .decorations
+                    .iter()
+                    .position(|d| {
+                        d.solid == host
+                            && d.face == c.departure.panel.face
+                            && d.kind == MapDecorationKind::LiftControl
+                            && d.center == c.departure.panel.center
+                            && d.size == c.departure.panel.size
+                    })
+                    .ok_or_else(|| invalid("M13 lift control missing"))?;
+                let departure = UseTarget {
+                    decoration,
+                    approach: c.departure.approach,
+                };
+                let mut objectives = Vec::new();
+                let mut arrivals = c.arrivals.into_iter();
+                for (i, id) in M13_OBJECTIVE_IDS.into_iter().enumerate() {
+                    let action = match i {
+                        4 => MissionObjectiveAction::Shoot {
+                            solid: relay,
+                            approach: c.relay_approach,
+                            aim: c.relay_aim,
+                        },
+                        6 => MissionObjectiveAction::Use {
+                            target: departure.clone(),
+                        },
+                        _ => {
+                            let a = arrivals.next().unwrap();
+                            if !standing(arena, a.feet) {
+                                return Err(invalid("M13 objective lacks standing support"));
+                            }
+                            MissionObjectiveAction::Arrival {
+                                region: a.region,
+                                feet: a.feet,
+                            }
+                        }
+                    };
+                    objectives.push(MissionObjective {
+                        id: id.into(),
+                        action,
+                    });
+                }
+                let g = M13MapGeometry {
+                    objectives,
+                    release: gates.release.clone(),
+                    departure,
+                    relay,
+                    protected: gates.protected.clone(),
+                    hazard: gates.hazard.clone(),
+                    bypass: gates.bypass.clone(),
+                    cycle: M13HazardCycle {
+                        period: cycle.period,
+                        warning: cycle.warning,
+                        active: cycle.active,
+                    },
+                    deck: deck_index,
+                    parked_top: deck.top,
+                    lift_top: gates.lift_top,
+                    inset_min: gates.inset_min,
+                    inset_max: gates.inset_max,
+                    workers: c.workers,
+                    worker_destinations: c.worker_destinations,
+                    overseer: c.overseer,
+                };
+                g.validate(arena.half, &arena.solids, Some(presentation))
+                    .map_err(invalid)?;
+                for target in [&g.release, &g.departure] {
+                    let point = target
+                        .point(presentation, &arena.solids)
+                        .ok_or_else(|| invalid("M13 control has no physical face"))?;
+                    let eye = [
+                        target.approach[0],
+                        target.approach[1] + crate::movement::EYE_HEIGHT,
+                        target.approach[2],
+                    ];
+                    if workers_distance(eye, point) > USE_DISTANCE
+                        || !crate::combat::line_of_sight(eye, point, &arena.solids)
+                    {
+                        return Err(invalid("M13 control approach is not physically reachable"));
+                    }
+                }
+                if !standing(arena, g.departure.approach)
+                    || !standing(arena, c.relay_approach)
+                    || g.workers
+                        .iter()
+                        .chain(&g.worker_destinations)
+                        .chain(std::iter::once(&g.overseer))
+                        .any(|p| !standing(arena, *p))
+                {
+                    return Err(invalid("M13 people or controls lack support"));
+                }
+                for i in 0..2 {
+                    let mut state = crate::movement::MoveState {
+                        x: g.workers[i][0],
+                        y: g.workers[i][1],
+                        z: g.workers[i][2],
+                        vx: 0.0,
+                        vz: 0.0,
+                        vy: 0.0,
+                        yaw: 0.0,
+                    };
+                    let to = g.worker_destinations[i];
+                    for _ in 0..800 {
+                        let dx = to[0] - state.x;
+                        let dz = to[2] - state.z;
+                        let distance = dx.hypot(dz);
+                        if distance < 0.01 {
+                            break;
+                        }
+                        let speed = (distance / 0.05).min(1.2);
+                        state.vx = dx / distance * speed;
+                        state.vz = dz / distance * speed;
+                        state = crate::movement::integrate(state, false, 0.05, arena);
+                    }
+                    if (state.x - to[0]).hypot(state.z - to[2]) > 0.01
+                        || (state.y - to[1]).abs() > 0.05
+                    {
+                        return Err(invalid(&format!(
+                            "M13 worker route {i} is not grounded and clear: {:?} to {to:?}",
+                            [state.x, state.y, state.z]
+                        )));
+                    }
+                }
+                Ok(g)
+            })
+            .transpose()?;
+        Ok(Prepared { gates, geometry })
     }
 }
 

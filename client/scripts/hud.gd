@@ -114,7 +114,9 @@ const HOST_BUMPERS = [
 ]
 
 var weapon_textures = {}
-var viewmodel_textures: Dictionary[String, Texture2D] = WeaponArt.IDLE
+var viewmodel_textures: Dictionary[String, Texture2D] = WeaponArt.IDLE.duplicate()
+var rocket_viewmodel: RocketViewmodel
+var fp_muzzle_pending_update: bool = false
 ## Seconds since the held gun last fired; selects its fire and cycle frames.
 var fp_shot_age: float = INF
 ## A shot received before this HUD's update must not inherit the time spent
@@ -199,6 +201,10 @@ var warmup_tv_secs = 0
 var warmup_tv_host_line = ""
 
 func _ready():
+	rocket_viewmodel = RocketViewmodel.new()
+	rocket_viewmodel.name = "RocketViewmodel"
+	add_child(rocket_viewmodel)
+	viewmodel_textures["Rocket"] = rocket_viewmodel.get_texture()
 	equipment_hud = EquipmentHud.new()
 	equipment_hud.name = "Equipment"
 	add_child(equipment_hud)
@@ -1439,7 +1445,10 @@ func _process(delta):
 		fp_kick_timer -= delta
 	fp_stab_timer = maxf(0.0, fp_stab_timer - delta)
 	if fp_muzzle_timer > 0:
-		fp_muzzle_timer -= delta
+		if fp_muzzle_pending_update:
+			fp_muzzle_pending_update = false
+		else:
+			fp_muzzle_timer -= delta
 		if fp_muzzle:
 			# Fades and shrinks over its short life rather than blinking off.
 			var m: float = clampf(fp_muzzle_timer / FP_MUZZLE_SECONDS, 0.0, 1.0)
@@ -1488,6 +1497,8 @@ func _layout_fp_weapon() -> void:
 			barrel_y = 8.0
 		var barrel_x: float = fp_weapon.size.x * 0.5 if current_fp_weapon == "Tack" else 224.0
 		fp_muzzle.position = fp_weapon.position + Vector2(barrel_x, barrel_y * 2.0) - fp_muzzle.size * 0.5
+		if current_fp_weapon == "Rocket" and rocket_viewmodel != null:
+			fp_muzzle.position = fp_weapon.position + rocket_viewmodel.muzzle_pixel()*fp_weapon.size/Vector2(RocketViewmodel.SIZE) - fp_muzzle.size*0.5
 	_layout_fp_pennant()
 
 ## The thrust grows the sprite from the gauntlet at the bottom edge and slides
@@ -1939,6 +1950,7 @@ func cancel_fire_juice() -> void:
 	fp_stab_timer = 0.0
 	fp_shot_age = INF
 	fp_muzzle_timer = 0.0
+	fp_muzzle_pending_update = false
 	if fp_muzzle != null:
 		fp_muzzle.visible = false
 	if melee_view != null:
@@ -1968,6 +1980,7 @@ func _fp_muzzle_flash(weapon_name: String) -> void:
 	fp_muzzle.scale = Vector2.ONE * (0.5 if weapon_name == "Tack" else 1.1)
 	fp_muzzle.visible = true
 	fp_muzzle_timer = FP_MUZZLE_SECONDS
+	fp_muzzle_pending_update = true
 
 func _fp_fire_kick(weapon_name: String) -> void:
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):

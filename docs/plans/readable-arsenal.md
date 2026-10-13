@@ -1,7 +1,7 @@
 # Readable arsenal and explosives
 
 Status: original names and cycling shipped, 2026-09-22; implementation status
-reconciled 2026-10-08. v0.41.0 reads Pistol, Rifle,
+reconciled 2026-10-13. v0.41.0 reads Pistol, Rifle,
 Shotgun, and Railgun, and ammo pads read Bullets, Shells, and Cells. v0.42.0
 walks those guns with the wheel, the bracket keys, and 1 through 5. Wire ids
 for the original guns are unchanged. The found Shiv is the sixth existing gun
@@ -14,10 +14,14 @@ a counted device with its own `place_mine` action, implemented on the
 [level 8 custody range](l08-custodian-of-record-prototype.md). The separately
 counted Remote Mine is implemented in M11. Repeater has a finite CPU combat
 foundation, with its M10 find and presentation still open. Arc has a finite
-combat and presentation foundation with a native development lesson; its
-rendered acceptance and connected M12 introduction are in flight in the
-[Arc plan](arc-foundation-20261008.md). Rocket Launcher (M13), Article Blade
-(M15) and Denial (M17) remain accepted introductions awaiting implementation
+combat and presentation foundation with a native development lesson. Its
+connected M12 introduction shipped in v0.80.0 with an
+[owned rendered route](../evidence/m12-connected-habitat-final-20261008.md);
+final human feel remains in the [Arc plan](arc-foundation-20261008.md).
+The Rocket Launcher has a finite
+projectile foundation and its M13 introduction is implemented in the
+[connected foundry round](m13-connected-round-20261013.md), with final art and
+human feel still open. Article Blade (M15) and Denial (M17) remain accepted introductions awaiting implementation
 in [CAMPAIGN-MISSIONS.md](../CAMPAIGN-MISSIONS.md).
 The table below follows the accepted twenty-level
 treatment, replacing this plan's historical ten-mission numbering.
@@ -43,7 +47,7 @@ menu and not present in the arcade full arsenal:
 | Grenade | `throw_grenade` Action and `grenades` count | Level 5, No Forwarding Address, on the ordinary route | Thrown arc, bounce, forty-tick fuse, then covered falloff blast. |
 | Proximity Mine | `place_mine` Action and `proximity_mines` count, development prototype | Level 8, Custodian of Record | Sticks, arms after a visible delay, blinks, then triggers on a body. |
 | Remote Mine | `place_remote_mine` and `trigger_remote_mines` Actions, separately counted, implemented | Level 11, Right of Search | Sticks and waits for its separate owner detonator. |
-| Rocket Launcher | `rocket`, planned | Level 13, The Weight of Permission | Flying rocket, impact blast, falloff and solid occlusion. |
+| Rocket Launcher | `rocket`, implemented development mission | Level 13, The Weight of Permission | Flying rocket, impact blast, falloff and solid occlusion. |
 
 GoldenEye is the reference for the grenade and the two mines: place them,
 read the tell, and choose when the blast happens. Doom II is the reference

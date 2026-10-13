@@ -20,6 +20,11 @@ mod m09;
 mod m10;
 mod m11;
 mod m12;
+mod m13;
+pub use m13::{
+    M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
+    M13ObjectiveState, M13WorkerResponse, M13_LIFT_SPEED, M13_OBJECTIVE_IDS, M13_WORKER_RESPONSES,
+};
 mod mission;
 mod rules;
 mod sabotage;
@@ -765,11 +770,12 @@ pub const M12_GAMEPLAY_VERSION: u32 = 44;
 pub const LOW_WATER_SABOTAGE_GAMEPLAY_VERSION: u32 = 45;
 /// Rocket Launcher flight, the `rockets` pool, ten-column records and save 16.
 /// Required wherever a rocket can exist, for every role. Arcade rooms use the
-/// highest contract. No current mission grants the launcher.
+/// highest contract. The foundry places the first campaign launcher.
 pub const ROCKET_GAMEPLAY_VERSION: u32 = 46;
+pub const M13_GAMEPLAY_VERSION: u32 = 47;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = ROCKET_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M13_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -898,6 +904,7 @@ mod geometry_tests {
             m10: None,
             m11: None,
             m12: None,
+            m13: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -1036,6 +1043,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m12: Option<M12MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m13: Option<M13MapGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,

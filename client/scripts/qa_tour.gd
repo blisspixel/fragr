@@ -384,6 +384,15 @@ func _run() -> void:
 				_failed = true
 		if state.has("interact"):
 			await _use_mission_control(str(state["interact"]))
+		if state.has("wait_ticks"):
+			await create_timer(float(state["wait_ticks"])*MoveStep.DT_LIVE).timeout
+		if state.has("expect_phase"):
+			var phase_deadline: int = Time.get_ticks_msec()+20000
+			while _game_manager().net_client.mission.get("state",{}).get("phase") != state["expect_phase"] and Time.get_ticks_msec() < phase_deadline:
+				await create_timer(0.05).timeout
+			if _game_manager().net_client.mission.get("state",{}).get("phase") != state["expect_phase"]:
+				push_error("qa_tour: expected mission phase was not reached: "+state_name)
+				_failed = true
 		if state.has("hold_use") and _game_manager() != null:
 			# A Sabotage plant or defuse: Use stays held into the next states.
 			_game_manager().set("interact_held", bool(state["hold_use"]))
@@ -696,6 +705,17 @@ func _run() -> void:
 				if actual != state["expect_m12_" + key]:
 					push_error("qa_tour: M12 " + key + " disagrees with " + state_name)
 					_failed = true
+		for key: String in ["completed", "relay_disabled", "overseer_surrendered", "hazard_phase"]:
+			if state.has("expect_m13_"+key) and observed.get("m13",{}).get(key) != state["expect_m13_"+key]:
+				push_error("qa_tour: M13 "+key+" disagrees with "+state_name)
+				_failed = true
+		if state.has("expect_m13_lift_phase") and observed.get("m13",{}).get("lift",{}).get("phase") != state["expect_m13_lift_phase"]:
+			push_error("qa_tour: foundry lift phase disagrees with "+state_name)
+			_failed = true
+		for key: String in ["workers", "workers_arrived", "hazard_hurt", "supports_cleared"]:
+			if state.has("expect_m13_"+key) and observed.get("m13",{}).get("challenges",{}).get(key) != state["expect_m13_"+key]:
+				push_error("qa_tour: M13 "+key+" disagrees with "+state_name)
+				_failed = true
 		if state.has("expect_m12_aid_count") and observed.get("m12", {}).get("aid_vehicle_ids", []).size() != int(state["expect_m12_aid_count"]):
 			push_error("qa_tour: M12 actual aid identity count disagrees with " + state_name)
 			_failed = true
@@ -937,7 +957,7 @@ static func valid_walks(states: Variant) -> bool:
 	var live_audio_open: bool = false
 	var scene_path: String = ""
 	for state: Variant in states:
-		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state) or not valid_m12_expectations(state):
+		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state) or not valid_m12_expectations(state) or not valid_m13_expectations(state):
 			return false
 		if state.has("combat_travel_targets"):
 			var targets: Variant = state["combat_travel_targets"]
@@ -1719,6 +1739,7 @@ func _observed_state() -> Dictionary:
 		"m09": gm.get("net_client").get("mission").get("state", {}).get("m09", {}),
 		"m10": gm.get("net_client").get("mission").get("state", {}).get("m10", {}),
 		"m11": gm.get("net_client").get("mission").get("state", {}).get("m11", {}),
+		"m13": gm.get("net_client").get("mission").get("state", {}).get("m13", {}),
 		"m12": gm.get("net_client").get("mission").get("state", {}).get("m12", {}),
 		"m07": gm.get("net_client").get("mission").get("state", {}).get("m07", {}),
 		"m07_lamps_lit": gm.get("m07_town").lamps_lit_count if gm.get("m07_town") != null else -1,
@@ -2103,7 +2124,8 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
-			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") == MissionState.M13_ID and (expected_phase in mission_state.get("m13",{}).get("completed",[]) or (expected_phase == "workers_released" and mission_state.get("m13",{}).get("challenges",{}).has("workers")))) \
 			or (mission_state.get("id") == MissionState.M09_ID and expected_phase in mission_state.get("m09", {}).get("completed", [])) \
 			or (mission_state.get("id") == MissionState.M11_ID and expected_phase in ["transfer_released", "records_read"] and mission_state.get("m11", {}).get("challenges", {}).get(expected_phase) == true) \
 			or (mission_state.get("id") == MissionState.M12_ID and (expected_phase in mission_state.get("m12", {}).get("completed", []) or (expected_phase in ["shelter_opened", "workers_released"] and mission_state.get("m12", {}).get("challenges", {}).get(expected_phase) == true))) \
@@ -3051,3 +3073,35 @@ func _ride_m05_tram(seconds: float, required_metres: float) -> void:
 		push_error("qa_tour: actual tram/rider displacement disagreed: " + JSON.stringify(_m05_ride_report))
 		_failed = true
 	print("qa_tour: actual tram ride ", JSON.stringify(_m05_ride_report))
+
+static func valid_m13_expectations(state: Dictionary) -> bool:
+	if state.has("wait_ticks") and not EquipmentState.integer(state["wait_ticks"],400):
+		return false
+	if state.has("expect_phase") and state["expect_phase"] not in M13MissionState.PHASES:
+		return false
+	if state.has("expect_m13_completed"):
+		var completed: Variant = state["expect_m13_completed"]
+		var order: Array[String] = M13MissionState.OBJECTIVES.duplicate()
+		order.append("party_departed")
+		if not completed is Array or completed.size() > order.size():
+			return false
+		for index: int in range(completed.size()):
+			if completed[index] != order[index]:
+				return false
+	for key: String in ["relay_disabled", "overseer_surrendered", "supports_cleared"]:
+		if state.has("expect_m13_"+key) and not state["expect_m13_"+key] is bool:
+			return false
+	if state.has("expect_m13_workers") and state["expect_m13_workers"] != M13MissionState.RESPONSES:
+		return false
+	if state.has("expect_m13_workers_arrived"):
+		var arrivals: Variant = state["expect_m13_workers_arrived"]
+		if not arrivals is Array or arrivals.size() != 3 or arrivals[2] != false:
+			return false
+		for value: Variant in arrivals:
+			if not value is bool:
+				return false
+	if state.has("expect_m13_hazard_phase") and state["expect_m13_hazard_phase"] not in ["idle", "warning", "active"]:
+		return false
+	if state.has("expect_m13_lift_phase") and state["expect_m13_lift_phase"] not in ["parked", "moving", "blocked", "returning", "arrived"]:
+		return false
+	return not state.has("expect_m13_hazard_hurt") or EquipmentState.integer(state["expect_m13_hazard_hurt"],EquipmentState.MAX_EXACT_INTEGER)

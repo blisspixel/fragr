@@ -1,0 +1,1056 @@
+{
+  "comment": "Connected foundry development route. Ordinary finite human actions, optional physical worker release, actual Rocket shot, protected utility relay, supported stairs and a ridden freight lift. Native and rendered route acceptance recorded in docs/screenshots/m13-connected-20261013.json; final art and fresh-player balance remain open.",
+  "width": 1280.0,
+  "height": 720.0,
+  "combat_travel": false,
+  "states": [
+    {
+      "name": "m13_service_arrival",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "camera": "first_person",
+      "radio_off": true,
+      "combat_travel": false,
+      "walk_to": [
+        [
+          2.0,
+          0.3,
+          -46.0
+        ],
+        [
+          -2.0,
+          0.3,
+          -46.0
+        ],
+        [
+          0.0,
+          0.3,
+          -44.0
+        ]
+      ],
+      "look_at": [
+        0.0,
+        2.0,
+        -30.0
+      ]
+    },
+    {
+      "name": "m13_foundry_edge",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat_travel_targets": [
+        "edge_clerk_west",
+        "edge_clerk_east",
+        "edge_sweeper_west",
+        "edge_sweeper_east"
+      ],
+      "walk_to": [
+        [
+          0.0,
+          0.3,
+          -37.0
+        ],
+        [
+          -6.0,
+          0.3,
+          -37.0
+        ],
+        [
+          -6.0,
+          0.3,
+          -23.0
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "edge_clerk_west",
+          "edge_clerk_east",
+          "edge_sweeper_west",
+          "edge_sweeper_east"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35.0,
+        "search_route": [
+          [
+            -6.0,
+            0.3,
+            -37.0
+          ],
+          [
+            -23.0,
+            0.3,
+            -27.0
+          ],
+          [
+            -23.0,
+            0.3,
+            -24.0
+          ],
+          [
+            5.0,
+            0.3,
+            -24.0
+          ],
+          [
+            29.0,
+            0.3,
+            -24.0
+          ]
+        ]
+      },
+      "look_at": [
+        20.0,
+        3.0,
+        -31.0
+      ],
+      "combat_travel": true
+    },
+    {
+      "name": "m13_edge_supply",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          0.0,
+          0.3,
+          -23.0
+        ],
+        [
+          -23.0,
+          0.3,
+          -27.0
+        ],
+        [
+          -24.0,
+          0.3,
+          -24.0
+        ],
+        [
+          -20.0,
+          0.3,
+          -23.0
+        ],
+        [
+          -18.0,
+          0.3,
+          -23.0
+        ]
+      ],
+      "look_at": [
+        -20.0,
+        3.0,
+        -12.0
+      ]
+    },
+    {
+      "name": "m13_machine_hall",
+      "camera": "first_person",
+      "weapon": "Rail",
+      "settle_seconds": 0.0,
+      "combat_travel_targets": [
+        "machine_heavy",
+        "machine_clerk",
+        "machine_sweeper",
+        "machine_notary_west",
+        "machine_notary_east"
+      ],
+      "walk_to": [
+        [
+          -20.0,
+          0.3,
+          -19.0
+        ],
+        [
+          -20.0,
+          0.3,
+          -8.0
+        ],
+        [
+          -20.0,
+          0.3,
+          1.0
+        ],
+        [
+          20.0,
+          0.3,
+          1.0
+        ],
+        [
+          20.0,
+          0.3,
+          -8.0
+        ],
+        [
+          20.0,
+          0.3,
+          1.0
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "machine_heavy",
+          "machine_clerk",
+          "machine_sweeper",
+          "machine_notary_west",
+          "machine_notary_east"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 40.0,
+        "search_route": [
+          [
+            -20.0,
+            0.3,
+            -8.0
+          ],
+          [
+            -20.0,
+            0.3,
+            1.0
+          ],
+          [
+            0.0,
+            0.3,
+            1.0
+          ],
+          [
+            20.0,
+            0.3,
+            1.0
+          ],
+          [
+            20.0,
+            0.3,
+            -8.0
+          ]
+        ]
+      },
+      "look_at": [
+        0.0,
+        3.0,
+        -3.0
+      ],
+      "combat_travel": true
+    },
+    {
+      "name": "m13_machine_west_flank",
+      "camera": "first_person",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "quarters_clerk",
+        "office_clerk"
+      ],
+      "walk_to": [
+        [
+          0.0,
+          0.3,
+          1.0
+        ],
+        [
+          -20.0,
+          0.3,
+          1.0
+        ],
+        [
+          -20.0,
+          0.3,
+          -5.0
+        ]
+      ],
+      "look_at": [
+        7.0,
+        2.0,
+        -12.0
+      ]
+    },
+    {
+      "name": "m13_quarters_approach",
+      "camera": "first_person",
+      "weapon": "Rail",
+      "combat_travel_targets": [
+        "quarters_clerk",
+        "office_clerk"
+      ],
+      "walk_to": [
+        [
+          -10.0,
+          0.3,
+          1.0
+        ],
+        [
+          -10.0,
+          0.3,
+          6.0
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "quarters_clerk",
+          "office_clerk"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35.0,
+        "search_route": [
+          [
+            -18.0,
+            0.3,
+            6.0
+          ],
+          [
+            -10.0,
+            0.3,
+            6.0
+          ],
+          [
+            10.0,
+            0.3,
+            6.0
+          ],
+          [
+            18.0,
+            0.3,
+            6.0
+          ]
+        ]
+      },
+      "look_at": [
+        -21.0,
+        1.6,
+        8.5
+      ],
+      "combat_travel": true
+    },
+    {
+      "name": "m13_worker_release",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -10.0,
+          0.3,
+          6.0
+        ],
+        [
+          -18.0,
+          0.3,
+          6.0
+        ],
+        [
+          -20.0,
+          0.3,
+          6.0
+        ],
+        [
+          -20.0,
+          0.3,
+          7.6
+        ],
+        [
+          -22.0,
+          0.3,
+          7.6
+        ],
+        [
+          -22.0,
+          0.3,
+          8.1
+        ]
+      ],
+      "look_at": [
+        -22.0,
+        1.15,
+        9.988
+      ],
+      "expect_prompt": true,
+      "interact": "workers_released",
+      "expect_m13_overseer_surrendered": true,
+      "expect_m13_workers": [
+        "volunteered",
+        "departed_independently",
+        "declined_and_kept_working"
+      ]
+    },
+    {
+      "name": "m13_freight_office",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -10.0,
+          0.3,
+          6.0
+        ],
+        [
+          10.0,
+          0.3,
+          6.0
+        ],
+        [
+          21.0,
+          0.3,
+          6.0
+        ],
+        [
+          23.0,
+          0.3,
+          6.0
+        ],
+        [
+          25.0,
+          0.3,
+          6.0
+        ],
+        [
+          10.0,
+          0.3,
+          6.0
+        ]
+      ],
+      "look_at": [
+        23.0,
+        1.4,
+        8.8
+      ]
+    },
+    {
+      "name": "m13_first_rocket",
+      "camera": "first_person",
+      "weapon": "Rocket",
+      "probe": "FpMuzzle",
+      "settle_seconds": 0.0,
+      "combat_travel": false,
+      "walk_to": [
+        [
+          10,
+          0.3,
+          11.2
+        ],
+        [
+          25,
+          0.3,
+          11.2
+        ],
+        [
+          25,
+          0.3,
+          12.5
+        ]
+      ],
+      "look_at": [
+        5.0,
+        0.5,
+        23.0
+      ],
+      "trigger": "fire",
+      "single_shot": true,
+      "strip_frames": 8.0,
+      "strip_interval_seconds": 0.04,
+      "expect_m13_completed": [
+        "foundry_entered",
+        "machine_hall_cleared",
+        "rocket_found"
+      ]
+    },
+    {
+      "name": "m13_freight_lesson",
+      "camera": "first_person",
+      "weapon": "Rail",
+      "combat_travel_targets": [
+        "freight_sweeper_west",
+        "freight_sweeper_center",
+        "freight_sweeper_east"
+      ],
+      "walk_to": [
+        [
+          25,
+          0.3,
+          12.5
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "freight_sweeper_west",
+          "freight_sweeper_center",
+          "freight_sweeper_east"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35.0,
+        "search_route": [
+          [
+            25,
+            0.3,
+            12.5
+          ],
+          [
+            25,
+            0.3,
+            16
+          ]
+        ]
+      },
+      "look_at": [
+        0.0,
+        2.0,
+        19.0
+      ],
+      "combat_travel": true,
+      "settle_seconds": 0.0
+    },
+    {
+      "name": "m13_freight_assessor",
+      "camera": "first_person",
+      "weapon": "Rocket",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "freight_assessor"
+      ],
+      "settle_seconds": 0.0,
+      "combat": {
+        "kind": "union",
+        "required": [
+          "freight_assessor"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35.0,
+        "search_route": [
+          [
+            25,
+            0.3,
+            12.5
+          ],
+          [
+            25,
+            0.3,
+            16
+          ]
+        ]
+      }
+    },
+    {
+      "name": "m13_freight_counterattack",
+      "camera": "first_person",
+      "weapon": "Rail",
+      "combat_travel_targets": [
+        "freight_clerk_west",
+        "freight_clerk_east",
+        "freight_enforcer",
+        "counter_sweeper_west",
+        "counter_sweeper_east"
+      ],
+      "walk_to": [
+        [
+          25,
+          0.3,
+          13
+        ],
+        [
+          10,
+          0.3,
+          13
+        ],
+        [
+          10.0,
+          0.3,
+          25.5
+        ],
+        [
+          -5.75,
+          0.3,
+          25.5
+        ],
+        [
+          -5.75,
+          0.3,
+          12.0
+        ],
+        [
+          10.0,
+          0.3,
+          12.0
+        ],
+        [
+          10.0,
+          0.3,
+          23.0
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "freight_clerk_west",
+          "freight_clerk_east",
+          "freight_enforcer",
+          "counter_sweeper_west",
+          "counter_sweeper_east"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 35.0,
+        "search_route": [
+          [
+            10.0,
+            0.3,
+            23.0
+          ],
+          [
+            7.0,
+            0.3,
+            25.5
+          ],
+          [
+            -11.0,
+            0.3,
+            25.5
+          ],
+          [
+            -11.0,
+            0.3,
+            22.0
+          ],
+          [
+            -11.0,
+            0.3,
+            13.0
+          ],
+          [
+            10.0,
+            0.3,
+            13.0
+          ]
+        ]
+      },
+      "look_at": [
+        0.0,
+        2.0,
+        19.0
+      ],
+      "combat_travel": true,
+      "settle_seconds": 0.0
+    },
+    {
+      "name": "m13_pre_gallery_stock",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          7.0,
+          0.3,
+          25.5
+        ],
+        [
+          -5.75,
+          0.3,
+          25.5
+        ],
+        [
+          -5.75,
+          0.3,
+          22.0
+        ],
+        [
+          -11.0,
+          0.3,
+          22.0
+        ],
+        [
+          -11.0,
+          0.3,
+          23.0
+        ],
+        [
+          -9.0,
+          0.3,
+          23.0
+        ],
+        [
+          -7.0,
+          0.3,
+          23.0
+        ]
+      ],
+      "look_at": [
+        0.0,
+        8.0,
+        37.0
+      ]
+    },
+    {
+      "name": "m13_maintenance_ring",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -11.0,
+          0.3,
+          23.0
+        ],
+        [
+          -11.0,
+          0.3,
+          11.75
+        ],
+        [
+          -28.0,
+          0.3,
+          11.75
+        ],
+        [
+          -28.0,
+          0.3,
+          23.5
+        ],
+        [
+          -34.0,
+          0.3,
+          23.5
+        ],
+        [
+          -34.0,
+          0.3,
+          15.0
+        ],
+        [
+          -34.0,
+          0.3,
+          4.0
+        ]
+      ],
+      "look_at": [
+        -36.0,
+        1.5,
+        10.0
+      ]
+    },
+    {
+      "name": "m13_relay_disabled",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "walk_to": [
+        [
+          -34.0,
+          0.3,
+          10.0
+        ]
+      ],
+      "look_at": [
+        -35.7,
+        1.4,
+        10.0
+      ],
+      "trigger": "fire",
+      "single_shot": true,
+      "strip_frames": 8.0,
+      "strip_interval_seconds": 0.1,
+      "expect_m13_relay_disabled": true
+    },
+    {
+      "name": "m13_west_stair_approach",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -34.0,
+          0.3,
+          25.5
+        ],
+        [
+          -28.0,
+          0.3,
+          25.5
+        ],
+        [
+          -28.0,
+          0.3,
+          15.0
+        ],
+        [
+          -23.5,
+          0.3,
+          15.0
+        ]
+      ],
+      "look_at": [
+        -23.5,
+        4.0,
+        30.0
+      ]
+    },
+    {
+      "name": "m13_ladle_galleries",
+      "camera": "first_person",
+      "weapon": "Rail",
+      "combat_travel_targets": [
+        "gallery_clerk_west",
+        "gallery_clerk_east",
+        "gallery_clerk_back",
+        "gallery_heavy",
+        "gallery_marksman"
+      ],
+      "walk_to": [
+        [
+          -23.5,
+          3.3,
+          29.5
+        ],
+        [
+          -23.5,
+          3.3,
+          35.0
+        ],
+        [
+          -23.5,
+          3.3,
+          49.0
+        ],
+        [
+          23.5,
+          3.3,
+          49.0
+        ],
+        [
+          23.5,
+          3.3,
+          29.5
+        ],
+        [
+          -23.5,
+          3.3,
+          29.5
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "gallery_clerk_west",
+          "gallery_clerk_east",
+          "gallery_clerk_back",
+          "gallery_heavy",
+          "gallery_marksman"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 45.0,
+        "search_route": [
+          [
+            -23.5,
+            3.3,
+            35.0
+          ],
+          [
+            -23.5,
+            3.3,
+            49.0
+          ],
+          [
+            12.0,
+            3.3,
+            49.0
+          ],
+          [
+            23.5,
+            3.3,
+            49.0
+          ],
+          [
+            23.5,
+            3.3,
+            35.0
+          ],
+          [
+            23.5,
+            3.3,
+            29.5
+          ],
+          [
+            12.0,
+            3.3,
+            29.5
+          ]
+        ]
+      },
+      "look_at": [
+        0.0,
+        8.0,
+        37.0
+      ],
+      "combat_travel": true
+    },
+    {
+      "name": "m13_upper_gallery_ladle",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -23.5,
+          3.3,
+          29.5
+        ]
+      ],
+      "look_at": [
+        0.0,
+        7.5,
+        37.0
+      ]
+    },
+    {
+      "name": "m13_upper_freight_overlook",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          0.0,
+          3.3,
+          29.5
+        ],
+        [
+          23.5,
+          3.3,
+          29.5
+        ]
+      ],
+      "look_at": [
+        0.0,
+        1.0,
+        19.0
+      ]
+    },
+    {
+      "name": "m13_second_supported_stair",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          23.5,
+          0.3,
+          15.0
+        ],
+        [
+          28.0,
+          0.3,
+          15.0
+        ],
+        [
+          28.0,
+          0.3,
+          25.5
+        ],
+        [
+          28.0,
+          0.3,
+          46.0
+        ],
+        [
+          23.5,
+          0.3,
+          46.0
+        ]
+      ],
+      "look_at": [
+        0.0,
+        7.5,
+        37.0
+      ]
+    },
+    {
+      "name": "m13_gallery_return",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          28.0,
+          0.3,
+          46.0
+        ],
+        [
+          28.0,
+          0.3,
+          15.0
+        ],
+        [
+          23.5,
+          0.3,
+          15.0
+        ],
+        [
+          23.5,
+          3.3,
+          29.5
+        ],
+        [
+          23.5,
+          3.3,
+          49.0
+        ],
+        [
+          12.0,
+          3.3,
+          49.0
+        ]
+      ],
+      "look_at": [
+        0.0,
+        10.0,
+        52.0
+      ]
+    },
+    {
+      "name": "m13_lift_boarded",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          12.0,
+          3.3,
+          49.0
+        ],
+        [
+          3.0,
+          3.3,
+          49.0
+        ],
+        [
+          0.0,
+          3.6,
+          49.0
+        ]
+      ],
+      "look_at": [
+        1.2,
+        3.6,
+        49.0
+      ],
+      "expect_prompt": true,
+      "interact": "lift_boarded",
+      "settle_seconds": 0.0,
+      "strip_frames": 8.0,
+      "strip_interval_seconds": 0.25,
+      "expect_m13_lift_phase": "moving"
+    },
+    {
+      "name": "m13_lift_daylight",
+      "camera": "first_person",
+      "wait_ticks": 180.0,
+      "expect_phase": "departed",
+      "expect_m13_lift_phase": "arrived",
+      "expect_m13_completed": [
+        "foundry_entered",
+        "machine_hall_cleared",
+        "rocket_found",
+        "freight_loop_secured",
+        "relay_disabled",
+        "upper_gallery_secured",
+        "lift_boarded",
+        "party_departed"
+      ],
+      "expect_m13_workers_arrived": [
+        true,
+        true,
+        false
+      ],
+      "expect_m13_hazard_hurt": 0.0
+    }
+  ]
+}

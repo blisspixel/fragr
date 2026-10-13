@@ -139,7 +139,7 @@ func _run() -> void:
 	awaiting["mission"] = MissionState.M04_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M04_ID, "M03 completion previews the available M04 destination")
 	awaiting["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M12 completion previews the pending M13 destination")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M13 completion previews the pending M14 destination")
 	awaiting["mission"] = MissionState.M09_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M09_ID, "M08 completion previews the playable berth")
 	awaiting["mission"] = MissionState.M08_ID

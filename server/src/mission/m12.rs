@@ -302,6 +302,7 @@ impl GameState {
                 challenges: p.challenges.clone(),
                 aid_vehicle_ids: p.aid_vehicle_ids.clone(),
             }),
+            m13: None,
         })
     }
     /// Materialize prepared aid jeeps atomically, only when their parked footprints are currently empty.

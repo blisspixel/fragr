@@ -1,0 +1,3389 @@
+{
+  "invalid": [
+    {
+      "name": "early_relay",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "invented_arrival",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              true,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "invented_choice",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers": [
+              "volunteered",
+              "volunteered",
+              "volunteered"
+            ],
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "stale_lift_tick",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 1,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "illegal_return",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": true,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "unknown_field",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "made_up": true,
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    }
+  ],
+  "map_info": {
+    "geometry_version": 2,
+    "half_extent": 58.0,
+    "m13": {
+      "bypass": {
+        "max": [
+          31.399999618530273,
+          2.200000047683716,
+          -30.0
+        ],
+        "min": [
+          27.799999237060547,
+          0.30000001192092896,
+          -32.20000076293945
+        ]
+      },
+      "cycle": {
+        "active": 40,
+        "period": 160,
+        "warning": 40
+      },
+      "deck": 157,
+      "departure": {
+        "approach": [
+          0.0,
+          3.5999999046325684,
+          49.0
+        ],
+        "decoration": 9
+      },
+      "hazard": {
+        "max": [
+          31.399999618530273,
+          2.200000047683716,
+          -33.20000076293945
+        ],
+        "min": [
+          27.799999237060547,
+          0.30000001192092896,
+          -35.400001525878906
+        ]
+      },
+      "inset_max": [
+        1.600000023841858,
+        49.599998474121094
+      ],
+      "inset_min": [
+        -1.600000023841858,
+        48.400001525878906
+      ],
+      "lift_top": 14.600000381469727,
+      "objectives": [
+        {
+          "action": {
+            "feet": [
+              -23.0,
+              0.30000001192092896,
+              -29.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                39.0,
+                9.0,
+                -21.0
+              ],
+              "min": [
+                -39.0,
+                0.0,
+                -39.0
+              ]
+            }
+          },
+          "id": "foundry_entered"
+        },
+        {
+          "action": {
+            "feet": [
+              -20.0,
+              0.30000001192092896,
+              -8.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                39.0,
+                9.0,
+                2.0
+              ],
+              "min": [
+                -39.0,
+                0.0,
+                -21.0
+              ]
+            }
+          },
+          "id": "machine_hall_cleared"
+        },
+        {
+          "action": {
+            "feet": [
+              21.0,
+              0.30000001192092896,
+              6.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                26.5,
+                3.5,
+                9.5
+              ],
+              "min": [
+                13.5,
+                0.0,
+                2.5
+              ]
+            }
+          },
+          "id": "rocket_found"
+        },
+        {
+          "action": {
+            "feet": [
+              -11.0,
+              0.30000001192092896,
+              20.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                39.0,
+                9.0,
+                27.0
+              ],
+              "min": [
+                -39.0,
+                0.0,
+                12.0
+              ]
+            }
+          },
+          "id": "freight_loop_secured"
+        },
+        {
+          "action": {
+            "aim": [
+              -35.70000076293945,
+              1.399999976158142,
+              10.0
+            ],
+            "approach": [
+              -34.0,
+              0.30000001192092896,
+              10.0
+            ],
+            "kind": "shoot",
+            "solid": 17
+          },
+          "id": "relay_disabled"
+        },
+        {
+          "action": {
+            "feet": [
+              12.0,
+              3.299999952316284,
+              49.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                27.0,
+                10.0,
+                53.0
+              ],
+              "min": [
+                -27.0,
+                3.0,
+                28.0
+              ]
+            }
+          },
+          "id": "upper_gallery_secured"
+        },
+        {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                0.0,
+                3.5999999046325684,
+                49.0
+              ],
+              "decoration": 9
+            }
+          },
+          "id": "lift_boarded"
+        }
+      ],
+      "overseer": [
+        -15.0,
+        0.30000001192092896,
+        8.5
+      ],
+      "parked_top": 3.5999999046325684,
+      "protected": [
+        16
+      ],
+      "relay": 17,
+      "release": {
+        "approach": [
+          -22.0,
+          0.30000001192092896,
+          8.100000381469727
+        ],
+        "decoration": 8
+      },
+      "worker_destinations": [
+        [
+          -10.0,
+          0.30000001192092896,
+          5.199999809265137
+        ],
+        [
+          -9.0,
+          0.30000001192092896,
+          6.800000190734863
+        ],
+        [
+          -25.0,
+          0.30000001192092896,
+          8.5
+        ]
+      ],
+      "workers": [
+        [
+          -23.0,
+          0.30000001192092896,
+          5.199999809265137
+        ],
+        [
+          -23.0,
+          0.30000001192092896,
+          6.800000190734863
+        ],
+        [
+          -25.0,
+          0.30000001192092896,
+          8.5
+        ]
+      ]
+    },
+    "map_id": 1013,
+    "map_name": "The Weight of Permission",
+    "presentation": {
+      "decorations": [
+        {
+          "center": [
+            0.0,
+            0.6000000238418579
+          ],
+          "face": "west",
+          "kind": "strip_light",
+          "size": [
+            3.0,
+            0.30000001192092896
+          ],
+          "solid": 9
+        },
+        {
+          "center": [
+            0.0,
+            0.5
+          ],
+          "face": "west",
+          "kind": "strip_light",
+          "size": [
+            3.0,
+            0.30000001192092896
+          ],
+          "solid": 14
+        },
+        {
+          "center": [
+            0.0,
+            0.05000000074505806
+          ],
+          "face": "south",
+          "kind": "terminal",
+          "size": [
+            1.100000023841858,
+            0.699999988079071
+          ],
+          "solid": 31
+        },
+        {
+          "center": [
+            0.0,
+            0.5
+          ],
+          "face": "south",
+          "kind": "maintenance_sign",
+          "size": [
+            2.4000000953674316,
+            0.800000011920929
+          ],
+          "solid": 41
+        },
+        {
+          "center": [
+            0.0,
+            0.5
+          ],
+          "face": "south",
+          "kind": "property_sign",
+          "size": [
+            2.4000000953674316,
+            0.800000011920929
+          ],
+          "solid": 48
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "down",
+          "kind": "strip_light",
+          "size": [
+            3.0,
+            0.30000001192092896
+          ],
+          "solid": 50
+        },
+        {
+          "center": [
+            0.0,
+            1.0
+          ],
+          "face": "south",
+          "kind": "lift_sign",
+          "size": [
+            3.0,
+            1.2999999523162842
+          ],
+          "solid": 118
+        },
+        {
+          "center": [
+            0.0,
+            3.5
+          ],
+          "face": "south",
+          "kind": "strip_light",
+          "size": [
+            4.0,
+            0.4000000059604645
+          ],
+          "solid": 118
+        },
+        {
+          "center": [
+            2.0,
+            -0.8999999761581421
+          ],
+          "face": "north",
+          "kind": "terminal",
+          "size": [
+            0.800000011920929,
+            0.800000011920929
+          ],
+          "solid": 41
+        },
+        {
+          "center": [
+            1.2000000476837158,
+            0.0
+          ],
+          "face": "up",
+          "kind": "lift_control",
+          "size": [
+            0.800000011920929,
+            0.6000000238418579
+          ],
+          "solid": 157
+        }
+      ],
+      "ground": "concrete",
+      "solids": [
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "lift_panel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "lift_panel",
+        "enamel",
+        "records_tile",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "lift_panel",
+        "enamel",
+        "lift_panel",
+        "service_steel",
+        "lift_panel",
+        "service_steel",
+        "enamel",
+        "lift_panel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "lift_panel",
+        "lift_panel",
+        "lift_panel",
+        "enamel",
+        "lift_panel",
+        "enamel",
+        "lift_panel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "lift_panel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "records_tile",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "records_tile",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "lift_panel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "lift_panel"
+      ]
+    },
+    "solids": [
+      {
+        "max_x": 40.0,
+        "max_z": 54.0,
+        "min_x": -40.0,
+        "min_z": -54.0,
+        "top": 0.30000001192092896
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -39.5,
+        "max_z": 54.0,
+        "min_x": -40.0,
+        "min_z": -54.0,
+        "top": 10.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 40.0,
+        "max_z": 54.0,
+        "min_x": 39.5,
+        "min_z": -54.0,
+        "top": 10.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 39.5,
+        "max_z": -53.5,
+        "min_x": -39.5,
+        "min_z": -54.0,
+        "top": 10.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 39.5,
+        "max_z": 54.0,
+        "min_x": -39.5,
+        "min_z": 53.5,
+        "top": 14.0
+      },
+      {
+        "bottom": 9.800000190734863,
+        "max_x": 39.5,
+        "max_z": 27.0,
+        "min_x": -29.0,
+        "min_z": -39.0,
+        "top": 10.100000381469727
+      },
+      {
+        "bottom": 14.0,
+        "max_x": 39.5,
+        "max_z": 46.75,
+        "min_x": -39.5,
+        "min_z": 27.0,
+        "top": 14.300000190734863
+      },
+      {
+        "bottom": 4.5,
+        "max_x": 8.0,
+        "max_z": -39.0,
+        "min_x": -8.0,
+        "min_z": -53.5,
+        "top": 4.800000190734863
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -7.599999904632568,
+        "max_z": -39.0,
+        "min_x": -8.0,
+        "min_z": -53.5,
+        "top": 4.5
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 8.0,
+        "max_z": -39.0,
+        "min_x": 7.599999904632568,
+        "min_z": -53.5,
+        "top": 4.5
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -4.800000190734863,
+        "max_z": -46.0,
+        "min_x": -6.699999809265137,
+        "min_z": -51.0,
+        "top": 1.2000000476837158
+      },
+      {
+        "bottom": 3.5,
+        "max_x": 7.599999904632568,
+        "max_z": -39.0,
+        "min_x": -7.599999904632568,
+        "min_z": -39.400001525878906,
+        "top": 4.5
+      },
+      {
+        "bottom": 4.199999809265137,
+        "max_x": -29.0,
+        "max_z": 27.0,
+        "min_x": -39.5,
+        "min_z": -39.0,
+        "top": 4.5
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -29.0,
+        "max_z": -25.0,
+        "min_x": -29.399999618530273,
+        "min_z": -39.0,
+        "top": 4.199999809265137
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -29.0,
+        "max_z": 0.0,
+        "min_x": -29.399999618530273,
+        "min_z": -21.0,
+        "top": 4.199999809265137
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -29.0,
+        "max_z": 22.0,
+        "min_x": -29.399999618530273,
+        "min_z": 4.0,
+        "top": 4.199999809265137
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -37.20000076293945,
+        "max_z": 20.0,
+        "min_x": -38.70000076293945,
+        "min_z": -31.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -35.70000076293945,
+        "max_z": 11.0,
+        "min_x": -36.79999923706055,
+        "min_z": 9.0,
+        "top": 2.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": -27.0,
+        "min_x": 13.0,
+        "min_z": -36.0,
+        "top": 1.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 13.0,
+        "max_z": -26.5,
+        "min_x": 12.5,
+        "min_z": -36.5,
+        "top": 2.4000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.5,
+        "max_z": -26.5,
+        "min_x": 13.0,
+        "min_z": -27.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.5,
+        "max_z": -27.0,
+        "min_x": 26.0,
+        "min_z": -36.5,
+        "top": 2.4000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": -36.0,
+        "min_x": 13.0,
+        "min_z": -36.5,
+        "top": 4.0
+      },
+      {
+        "bottom": 5.400000095367432,
+        "max_x": 26.5,
+        "max_z": -26.5,
+        "min_x": 13.0,
+        "min_z": -36.5,
+        "top": 6.199999809265137
+      },
+      {
+        "bottom": 6.199999809265137,
+        "max_x": 21.0,
+        "max_z": -30.0,
+        "min_x": 18.0,
+        "min_z": -33.0,
+        "top": 9.800000190734863
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -17.0,
+        "max_z": -31.0,
+        "min_x": -23.0,
+        "min_z": -35.0,
+        "top": 2.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -9.0,
+        "max_z": -27.200000762939453,
+        "min_x": -15.0,
+        "min_z": -28.0,
+        "top": 1.350000023841858
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 3.0,
+        "max_z": -29.0,
+        "min_x": -3.0,
+        "min_z": -32.0,
+        "top": 1.2000000476837158
+      },
+      {
+        "bottom": 8.699999809265137,
+        "max_x": 39.0,
+        "max_z": -22.0,
+        "min_x": -28.5,
+        "min_z": -23.0,
+        "top": 9.300000190734863
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -6.0,
+        "max_z": -10.0,
+        "min_x": -12.0,
+        "min_z": -17.0,
+        "top": 2.299999952316284
+      },
+      {
+        "bottom": 2.299999952316284,
+        "max_x": -7.0,
+        "max_z": -11.5,
+        "min_x": -11.0,
+        "min_z": -15.5,
+        "top": 3.200000047683716
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -9.5,
+        "max_z": -7.0,
+        "min_x": -11.5,
+        "min_z": -8.5,
+        "top": 1.2999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 12.0,
+        "max_z": -10.0,
+        "min_x": 6.0,
+        "min_z": -17.0,
+        "top": 2.299999952316284
+      },
+      {
+        "bottom": 2.299999952316284,
+        "max_x": 11.0,
+        "max_z": -11.5,
+        "min_x": 7.0,
+        "min_z": -15.5,
+        "top": 3.200000047683716
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 8.5,
+        "max_z": -7.0,
+        "min_x": 6.5,
+        "min_z": -8.5,
+        "top": 1.2999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 2.5,
+        "max_z": -1.0,
+        "min_x": -2.5,
+        "min_z": -4.5,
+        "top": 3.0
+      },
+      {
+        "bottom": 5.0,
+        "max_x": 4.0,
+        "max_z": 0.0,
+        "min_x": -4.0,
+        "min_z": -5.5,
+        "top": 5.599999904632568
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -3.299999952316284,
+        "max_z": 0.0,
+        "min_x": -4.0,
+        "min_z": -5.5,
+        "top": 5.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 4.0,
+        "max_z": 0.0,
+        "min_x": 3.299999952316284,
+        "min_z": -5.5,
+        "top": 5.0
+      },
+      {
+        "bottom": 8.699999809265137,
+        "max_x": 38.0,
+        "max_z": -1.0,
+        "min_x": -28.0,
+        "min_z": -2.0,
+        "top": 9.199999809265137
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 28.0,
+        "max_z": -5.0,
+        "min_x": 27.0,
+        "min_z": -18.0,
+        "top": 2.200000047683716
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -13.0,
+        "max_z": 10.399999618530273,
+        "min_x": -27.0,
+        "min_z": 10.0,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -13.0,
+        "max_z": 2.4000000953674316,
+        "min_x": -27.0,
+        "min_z": 2.0,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 3.799999952316284,
+        "max_x": -13.0,
+        "max_z": 10.399999618530273,
+        "min_x": -27.0,
+        "min_z": 2.0,
+        "top": 4.099999904632568
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -26.600000381469727,
+        "max_z": 10.0,
+        "min_x": -27.0,
+        "min_z": 2.4000000953674316,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -13.0,
+        "max_z": 4.5,
+        "min_x": -13.399999618530273,
+        "min_z": 2.4000000953674316,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -13.0,
+        "max_z": 10.0,
+        "min_x": -13.399999618530273,
+        "min_z": 7.5,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 3.0,
+        "max_x": -13.0,
+        "max_z": 7.5,
+        "min_x": -13.399999618530273,
+        "min_z": 4.5,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 27.0,
+        "max_z": 10.399999618530273,
+        "min_x": 13.0,
+        "min_z": 10.0,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 27.0,
+        "max_z": 2.4000000953674316,
+        "min_x": 13.0,
+        "min_z": 2.0,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 3.799999952316284,
+        "max_x": 27.0,
+        "max_z": 10.399999618530273,
+        "min_x": 13.0,
+        "min_z": 2.0,
+        "top": 4.099999904632568
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 27.0,
+        "max_z": 10.0,
+        "min_x": 26.600000381469727,
+        "min_z": 2.4000000953674316,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 13.399999618530273,
+        "max_z": 4.5,
+        "min_x": 13.0,
+        "min_z": 2.4000000953674316,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 13.399999618530273,
+        "max_z": 10.0,
+        "min_x": 13.0,
+        "min_z": 7.5,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 3.0,
+        "max_x": 13.399999618530273,
+        "max_z": 7.5,
+        "min_x": 13.0,
+        "min_z": 4.5,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -23.0,
+        "max_z": 9.0,
+        "min_x": -24.0,
+        "min_z": 8.300000190734863,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -19.700000762939453,
+        "max_z": 9.0,
+        "min_x": -20.700000762939453,
+        "min_z": 8.300000190734863,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -16.399999618530273,
+        "max_z": 9.0,
+        "min_x": -17.399999618530273,
+        "min_z": 8.300000190734863,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -19.0,
+        "max_z": 4.0,
+        "min_x": -25.5,
+        "min_z": 3.0999999046325684,
+        "top": 0.800000011920929
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 25.5,
+        "max_z": 9.399999618530273,
+        "min_x": 19.0,
+        "min_z": 8.300000190734863,
+        "top": 1.2000000476837158
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 4.199999809265137,
+        "min_x": 23.5,
+        "min_z": 3.200000047683716,
+        "top": 0.699999988079071
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 4.5,
+        "max_z": 21.0,
+        "min_x": -4.5,
+        "min_z": 17.0,
+        "top": 1.25
+      },
+      {
+        "bottom": 1.25,
+        "max_x": 1.5,
+        "max_z": 20.200000762939453,
+        "min_x": -3.799999952316284,
+        "min_z": 17.700000762939453,
+        "top": 2.200000047683716
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -14.0,
+        "max_z": 17.0,
+        "min_x": -19.0,
+        "min_z": 13.0,
+        "top": 1.7999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 18.0,
+        "max_z": 25.0,
+        "min_x": 13.0,
+        "min_z": 21.0,
+        "top": 2.0999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -2.9000000953674316,
+        "max_z": 27.0,
+        "min_x": -3.0999999046325684,
+        "min_z": 11.0,
+        "top": 0.36000001430511475
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 3.0999999046325684,
+        "max_z": 27.0,
+        "min_x": 2.9000000953674316,
+        "min_z": 11.0,
+        "top": 0.36000001430511475
+      },
+      {
+        "bottom": 8.100000381469727,
+        "max_x": 28.0,
+        "max_z": 19.0,
+        "min_x": -27.0,
+        "min_z": 18.0,
+        "top": 8.699999809265137
+      },
+      {
+        "bottom": 5.699999809265137,
+        "max_x": 0.4000000059604645,
+        "max_z": 18.799999237060547,
+        "min_x": -0.4000000059604645,
+        "min_z": 18.200000762939453,
+        "top": 8.100000381469727
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -7.0,
+        "max_z": 24.600000381469727,
+        "min_x": -13.0,
+        "min_z": 24.0,
+        "top": 1.2000000476837158
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 17.0,
+        "min_x": -26.0,
+        "min_z": 16.0,
+        "top": 0.550000011920929
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 18.0,
+        "min_x": -26.0,
+        "min_z": 17.0,
+        "top": 0.800000011920929
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 19.0,
+        "min_x": -26.0,
+        "min_z": 18.0,
+        "top": 1.0499999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 20.0,
+        "min_x": -26.0,
+        "min_z": 19.0,
+        "top": 1.2999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 21.0,
+        "min_x": -26.0,
+        "min_z": 20.0,
+        "top": 1.5499999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 22.0,
+        "min_x": -26.0,
+        "min_z": 21.0,
+        "top": 1.7999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 23.0,
+        "min_x": -26.0,
+        "min_z": 22.0,
+        "top": 2.049999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 24.0,
+        "min_x": -26.0,
+        "min_z": 23.0,
+        "top": 2.299999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 25.0,
+        "min_x": -26.0,
+        "min_z": 24.0,
+        "top": 2.549999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 26.0,
+        "min_x": -26.0,
+        "min_z": 25.0,
+        "top": 2.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 27.0,
+        "min_x": -26.0,
+        "min_z": 26.0,
+        "top": 3.049999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -21.0,
+        "max_z": 28.0,
+        "min_x": -26.0,
+        "min_z": 27.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.0,
+        "max_x": -21.0,
+        "max_z": 47.0,
+        "min_x": -26.0,
+        "min_z": 28.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": -25.700000762939453,
+        "max_z": 50.0,
+        "min_x": -26.0,
+        "min_z": 28.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 17.0,
+        "min_x": 21.0,
+        "min_z": 16.0,
+        "top": 0.550000011920929
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 18.0,
+        "min_x": 21.0,
+        "min_z": 17.0,
+        "top": 0.800000011920929
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 19.0,
+        "min_x": 21.0,
+        "min_z": 18.0,
+        "top": 1.0499999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 20.0,
+        "min_x": 21.0,
+        "min_z": 19.0,
+        "top": 1.2999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 21.0,
+        "min_x": 21.0,
+        "min_z": 20.0,
+        "top": 1.5499999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 22.0,
+        "min_x": 21.0,
+        "min_z": 21.0,
+        "top": 1.7999999523162842
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 23.0,
+        "min_x": 21.0,
+        "min_z": 22.0,
+        "top": 2.049999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 24.0,
+        "min_x": 21.0,
+        "min_z": 23.0,
+        "top": 2.299999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 25.0,
+        "min_x": 21.0,
+        "min_z": 24.0,
+        "top": 2.549999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 26.0,
+        "min_x": 21.0,
+        "min_z": 25.0,
+        "top": 2.799999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 27.0,
+        "min_x": 21.0,
+        "min_z": 26.0,
+        "top": 3.049999952316284
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 28.0,
+        "min_x": 21.0,
+        "min_z": 27.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.0,
+        "max_x": 26.0,
+        "max_z": 47.0,
+        "min_x": 21.0,
+        "min_z": 28.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 26.0,
+        "max_z": 50.0,
+        "min_x": 25.700000762939453,
+        "min_z": 28.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.0,
+        "max_x": 26.0,
+        "max_z": 31.0,
+        "min_x": -26.0,
+        "min_z": 28.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.0,
+        "max_x": 26.0,
+        "max_z": 51.0,
+        "min_x": -26.0,
+        "min_z": 47.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": -5.0,
+        "max_z": 51.0,
+        "min_x": -26.0,
+        "min_z": 50.70000076293945,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 26.0,
+        "max_z": 51.0,
+        "min_x": 5.0,
+        "min_z": 50.70000076293945,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": -6.0,
+        "max_z": 47.70000076293945,
+        "min_x": -12.0,
+        "min_z": 47.0,
+        "top": 4.199999809265137
+      },
+      {
+        "bottom": 6.599999904632568,
+        "max_x": 8.0,
+        "max_z": 43.0,
+        "min_x": -8.0,
+        "min_z": 33.0,
+        "top": 7.0
+      },
+      {
+        "bottom": 6.099999904632568,
+        "max_x": -8.0,
+        "max_z": 43.5,
+        "min_x": -8.800000190734863,
+        "min_z": 32.5,
+        "top": 9.100000381469727
+      },
+      {
+        "bottom": 6.099999904632568,
+        "max_x": 8.800000190734863,
+        "max_z": 43.5,
+        "min_x": 8.0,
+        "min_z": 32.5,
+        "top": 9.100000381469727
+      },
+      {
+        "bottom": 6.099999904632568,
+        "max_x": 8.0,
+        "max_z": 43.79999923706055,
+        "min_x": -8.0,
+        "min_z": 43.0,
+        "top": 9.100000381469727
+      },
+      {
+        "bottom": 6.099999904632568,
+        "max_x": -1.0,
+        "max_z": 33.0,
+        "min_x": -8.0,
+        "min_z": 32.5,
+        "top": 9.100000381469727
+      },
+      {
+        "bottom": 6.099999904632568,
+        "max_x": 8.0,
+        "max_z": 33.0,
+        "min_x": 1.0,
+        "min_z": 32.5,
+        "top": 9.100000381469727
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 0.6000000238418579,
+        "max_z": 33.29999923706055,
+        "min_x": -0.6000000238418579,
+        "min_z": 32.70000076293945,
+        "top": 7.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 9.5,
+        "max_z": 32.29999923706055,
+        "min_x": -9.5,
+        "min_z": 31.799999237060547,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -9.0,
+        "max_z": 44.0,
+        "min_x": -9.5,
+        "min_z": 32.29999923706055,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 9.5,
+        "max_z": 44.0,
+        "min_x": 9.0,
+        "min_z": 32.29999923706055,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 9.5,
+        "max_z": 44.5,
+        "min_x": -9.5,
+        "min_z": 44.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "bottom": 11.300000190734863,
+        "max_x": 28.0,
+        "max_z": 39.0,
+        "min_x": -28.0,
+        "min_z": 36.0,
+        "top": 12.100000381469727
+      },
+      {
+        "bottom": 9.100000381469727,
+        "max_x": -5.699999809265137,
+        "max_z": 38.5,
+        "min_x": -6.5,
+        "min_z": 36.5,
+        "top": 11.300000190734863
+      },
+      {
+        "bottom": 9.100000381469727,
+        "max_x": 6.5,
+        "max_z": 38.5,
+        "min_x": 5.699999809265137,
+        "min_z": 36.5,
+        "top": 11.300000190734863
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 5.0,
+        "max_z": 53.5,
+        "min_x": -5.0,
+        "min_z": 47.0,
+        "top": 3.299999952316284
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 5.0,
+        "max_z": 53.5,
+        "min_x": -5.0,
+        "min_z": 53.0,
+        "top": 13.5
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": -4.599999904632568,
+        "max_z": 53.0,
+        "min_x": -5.0,
+        "min_z": 51.0,
+        "top": 13.5
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 5.0,
+        "max_z": 53.0,
+        "min_x": 4.599999904632568,
+        "min_z": 51.0,
+        "top": 13.5
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -26.0,
+        "max_z": 19.0,
+        "min_x": -26.350000381469727,
+        "min_z": 16.0,
+        "top": 2.1500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -26.0,
+        "max_z": 22.0,
+        "min_x": -26.350000381469727,
+        "min_z": 19.0,
+        "top": 2.9000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -26.0,
+        "max_z": 25.0,
+        "min_x": -26.350000381469727,
+        "min_z": 22.0,
+        "top": 3.6500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -26.0,
+        "max_z": 28.0,
+        "min_x": -26.350000381469727,
+        "min_z": 25.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -20.649999618530273,
+        "max_z": 19.0,
+        "min_x": -21.0,
+        "min_z": 16.0,
+        "top": 2.1500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -20.649999618530273,
+        "max_z": 22.0,
+        "min_x": -21.0,
+        "min_z": 19.0,
+        "top": 2.9000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -20.649999618530273,
+        "max_z": 25.0,
+        "min_x": -21.0,
+        "min_z": 22.0,
+        "top": 3.6500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -20.649999618530273,
+        "max_z": 28.0,
+        "min_x": -21.0,
+        "min_z": 25.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": -20.649999618530273,
+        "max_z": 47.0,
+        "min_x": -21.0,
+        "min_z": 31.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -25.700000762939453,
+        "max_z": 32.45000076293945,
+        "min_x": -26.0,
+        "min_z": 32.0,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -25.700000762939453,
+        "max_z": 45.0,
+        "min_x": -26.0,
+        "min_z": 44.54999923706055,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -20.700000762939453,
+        "max_z": 32.45000076293945,
+        "min_x": -21.0,
+        "min_z": 32.0,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -20.700000762939453,
+        "max_z": 45.0,
+        "min_x": -21.0,
+        "min_z": 44.54999923706055,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.350000381469727,
+        "max_z": 19.0,
+        "min_x": 26.0,
+        "min_z": 16.0,
+        "top": 2.1500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.350000381469727,
+        "max_z": 22.0,
+        "min_x": 26.0,
+        "min_z": 19.0,
+        "top": 2.9000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.350000381469727,
+        "max_z": 25.0,
+        "min_x": 26.0,
+        "min_z": 22.0,
+        "top": 3.6500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.350000381469727,
+        "max_z": 28.0,
+        "min_x": 26.0,
+        "min_z": 25.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 21.0,
+        "max_z": 19.0,
+        "min_x": 20.649999618530273,
+        "min_z": 16.0,
+        "top": 2.1500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 21.0,
+        "max_z": 22.0,
+        "min_x": 20.649999618530273,
+        "min_z": 19.0,
+        "top": 2.9000000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 21.0,
+        "max_z": 25.0,
+        "min_x": 20.649999618530273,
+        "min_z": 22.0,
+        "top": 3.6500000953674316
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 21.0,
+        "max_z": 28.0,
+        "min_x": 20.649999618530273,
+        "min_z": 25.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 21.0,
+        "max_z": 47.0,
+        "min_x": 20.649999618530273,
+        "min_z": 31.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 20.950000762939453,
+        "max_z": 32.45000076293945,
+        "min_x": 20.649999618530273,
+        "min_z": 32.0,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 20.950000762939453,
+        "max_z": 45.0,
+        "min_x": 20.649999618530273,
+        "min_z": 44.54999923706055,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 32.45000076293945,
+        "min_x": 25.700000762939453,
+        "min_z": 32.0,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 26.0,
+        "max_z": 45.0,
+        "min_x": 25.700000762939453,
+        "min_z": 44.54999923706055,
+        "top": 3.0
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 20.649999618530273,
+        "max_z": 28.0,
+        "min_x": -20.649999618530273,
+        "min_z": 27.649999618530273,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 20.649999618530273,
+        "max_z": 31.350000381469727,
+        "min_x": -20.649999618530273,
+        "min_z": 31.0,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 20.649999618530273,
+        "max_z": 47.0,
+        "min_x": -20.649999618530273,
+        "min_z": 46.650001525878906,
+        "top": 4.400000095367432
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -12.600000381469727,
+        "max_z": 30.600000381469727,
+        "min_x": -13.0,
+        "min_z": 28.399999618530273,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": -12.600000381469727,
+        "max_z": 50.5,
+        "min_x": -13.0,
+        "min_z": 47.5,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 13.0,
+        "max_z": 30.600000381469727,
+        "min_x": 12.600000381469727,
+        "min_z": 28.399999618530273,
+        "top": 3.0
+      },
+      {
+        "bottom": 0.30000001192092896,
+        "max_x": 13.0,
+        "max_z": 50.5,
+        "min_x": 12.600000381469727,
+        "min_z": 47.5,
+        "top": 3.0
+      },
+      {
+        "bottom": 14.0,
+        "max_x": -5.25,
+        "max_z": 54.0,
+        "min_x": -39.5,
+        "min_z": 46.75,
+        "top": 14.300000190734863
+      },
+      {
+        "bottom": 14.0,
+        "max_x": 39.5,
+        "max_z": 54.0,
+        "min_x": 5.25,
+        "min_z": 46.75,
+        "top": 14.300000190734863
+      },
+      {
+        "bottom": 14.0,
+        "max_x": 5.25,
+        "max_z": 54.0,
+        "min_x": -5.25,
+        "min_z": 53.5,
+        "top": 14.300000190734863
+      },
+      {
+        "bottom": 3.299999952316284,
+        "max_x": 2.200000047683716,
+        "max_z": 50.0,
+        "min_x": -2.200000047683716,
+        "min_z": 48.0,
+        "top": 3.5999999046325684
+      }
+    ],
+    "type": "map_info"
+  },
+  "participant": "00000000-0000-0000-0000-000000000521",
+  "valid": [
+    {
+      "name": "ordered_0",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -23.0,
+                0.30000001192092896,
+                -29.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  -21.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -39.0
+                ]
+              }
+            },
+            "id": "foundry_entered"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_1",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -20.0,
+                0.30000001192092896,
+                -8.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  2.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  -21.0
+                ]
+              }
+            },
+            "id": "machine_hall_cleared"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_2",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                21.0,
+                0.30000001192092896,
+                6.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  26.5,
+                  3.5,
+                  9.5
+                ],
+                "min": [
+                  13.5,
+                  0.0,
+                  2.5
+                ]
+              }
+            },
+            "id": "rocket_found"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": false,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_3",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -11.0,
+                0.30000001192092896,
+                20.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  39.0,
+                  9.0,
+                  27.0
+                ],
+                "min": [
+                  -39.0,
+                  0.0,
+                  12.0
+                ]
+              }
+            },
+            "id": "freight_loop_secured"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_4",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured"
+          ],
+          "current": {
+            "action": {
+              "aim": [
+                -35.70000076293945,
+                1.399999976158142,
+                10.0
+              ],
+              "approach": [
+                -34.0,
+                0.30000001192092896,
+                10.0
+              ],
+              "kind": "shoot",
+              "solid": 17
+            },
+            "id": "relay_disabled"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": false,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_5",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": false,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                12.0,
+                3.299999952316284,
+                49.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  27.0,
+                  10.0,
+                  53.0
+                ],
+                "min": [
+                  -27.0,
+                  3.0,
+                  28.0
+                ]
+              }
+            },
+            "id": "upper_gallery_secured"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_6",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": true,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled",
+            "upper_gallery_secured"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  0.0,
+                  3.5999999046325684,
+                  49.0
+                ],
+                "decoration": 9
+              }
+            },
+            "id": "lift_boarded"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_7",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": true,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled",
+            "upper_gallery_secured",
+            "lift_boarded"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                14.600000381469727,
+                49.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  1.600000023841858,
+                  14.660000801086426,
+                  49.599998474121094
+                ],
+                "min": [
+                  -1.600000023841858,
+                  14.539999961853027,
+                  48.400001525878906
+                ]
+              }
+            },
+            "id": "party_departed"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "moving",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "ordered_8",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": true,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled",
+            "upper_gallery_secured",
+            "lift_boarded",
+            "party_departed"
+          ],
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "arrived",
+            "returning": false,
+            "tick": 0,
+            "top": 14.600000381469727
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "departed",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "returning",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": true,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled",
+            "upper_gallery_secured",
+            "lift_boarded"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                14.600000381469727,
+                49.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  1.600000023841858,
+                  14.660000801086426,
+                  49.599998474121094
+                ],
+                "min": [
+                  -1.600000023841858,
+                  14.539999961853027,
+                  48.400001525878906
+                ]
+              }
+            },
+            "id": "party_departed"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "returning",
+            "returning": true,
+            "tick": 0,
+            "top": 4.599999904632568
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "blocked_return",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": true,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled",
+            "upper_gallery_secured",
+            "lift_boarded"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                14.600000381469727,
+                49.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  1.600000023841858,
+                  14.660000801086426,
+                  49.599998474121094
+                ],
+                "min": [
+                  -1.600000023841858,
+                  14.539999961853027,
+                  48.400001525878906
+                ]
+              }
+            },
+            "id": "party_departed"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "blocked",
+            "returning": true,
+            "tick": 0,
+            "top": 4.599999904632568
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "parked_again",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "weight_of_permission",
+        "m13": {
+          "challenges": {
+            "hazard_hurt": 0,
+            "supports_cleared": true,
+            "workers_arrived": [
+              false,
+              false,
+              false
+            ]
+          },
+          "completed": [
+            "foundry_entered",
+            "machine_hall_cleared",
+            "rocket_found",
+            "freight_loop_secured",
+            "relay_disabled",
+            "upper_gallery_secured",
+            "lift_boarded"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                0.0,
+                14.600000381469727,
+                49.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  1.600000023841858,
+                  14.660000801086426,
+                  49.599998474121094
+                ],
+                "min": [
+                  -1.600000023841858,
+                  14.539999961853027,
+                  48.400001525878906
+                ]
+              }
+            },
+            "id": "party_departed"
+          },
+          "hazard_phase": "idle",
+          "lift": {
+            "phase": "parked",
+            "returning": false,
+            "tick": 0,
+            "top": 3.5999999046325684
+          },
+          "overseer_surrendered": true,
+          "relay_disabled": true,
+          "worker_feet": [
+            [
+              -23.0,
+              0.30000001192092896,
+              5.199999809265137
+            ],
+            [
+              -23.0,
+              0.30000001192092896,
+              6.800000190734863
+            ],
+            [
+              -25.0,
+              0.30000001192092896,
+              8.5
+            ]
+          ]
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-000000000521",
+            "name": "Foundry controls",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    }
+  ]
+}

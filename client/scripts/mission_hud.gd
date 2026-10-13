@@ -8,7 +8,7 @@ extends Control
 const STAGE_SECONDS: float = 8.0
 ## Horizontal metres from an approach. Farther than this, the panel stays quiet.
 const NOTICE_RANGE: float = 4.0
-const PROGRESS_KEYS: Array[String] = ["m02", "m03", "m04", "m05", "m06", "m07", "m08", "m09", "m10", "m11", "m12"]
+const PROGRESS_KEYS: Array[String] = ["m02", "m03", "m04", "m05", "m06", "m07", "m08", "m09", "m10", "m11", "m12", "m13"]
 const M02_KNOWN: Array[String] = ["ward_reached", "companion_released", "party_departed"]
 const M02_USES: Array[String] = ["companion_released"]
 signal notice_requested(text: String)
@@ -75,6 +75,7 @@ func _ready() -> void:
 	add_child(_run_badge)
 	_evac_badge = _label(15)
 	_evac_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_evac_badge.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_evac_badge.add_theme_color_override("font_color", MenuTheme.EMBER)
 	add_child(_evac_badge)
 	_prompt_plate = PanelContainer.new()
@@ -464,6 +465,9 @@ func _refresh_content() -> void:
 	if state.get("id") == MissionState.M11_ID:
 		_refresh_m11()
 		return
+	if state.get("id") == MissionState.M13_ID:
+		_refresh_m13()
+		return
 	if state.get("id") == MissionState.M12_ID:
 		_refresh_m12()
 		return
@@ -517,7 +521,7 @@ func _refresh_content() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID]:
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -541,8 +545,8 @@ static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
-	var progress_key: String = "m12" if value.get("id") == MissionState.M12_ID else "m11" if value.get("id") == MissionState.M11_ID else "m10" if value.get("id") == MissionState.M10_ID else "m09" if value.get("id") == MissionState.M09_ID else "m07" if value.get("id") == MissionState.M07_ID else "m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))
-	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID] and value.get(progress_key) is Dictionary:
+	var progress_key: String = "m13" if value.get("id") == MissionState.M13_ID else "m12" if value.get("id") == MissionState.M12_ID else "m11" if value.get("id") == MissionState.M11_ID else "m10" if value.get("id") == MissionState.M10_ID else "m09" if value.get("id") == MissionState.M09_ID else "m07" if value.get("id") == MissionState.M07_ID else "m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID] and value.get(progress_key) is Dictionary:
 		var current: Variant = value[progress_key].get("current")
 		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
 		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
@@ -867,5 +871,26 @@ func _refresh_m12() -> void:
 	for prompt: Dictionary in state["prompts"]:
 		if prompt["player_id"] == player_id:
 			use = _catalog("M12_USE_PANEL")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+
+func _refresh_m13() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt":int(state["attempt"]),"continues":int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m13"]
+	_evac_badge.visible = progress["challenges"].has("workers")
+	_evac_badge.text = _catalog("M13_WORKERS_CHOSE") if _evac_badge.visible else ""
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("M13_WAITING")
+		"departed": _copy.text = InputGlyphs.plain(_catalog("M13_DEPARTED"))
+		_: _copy.text = InputGlyphs.plain(_catalog("M13_OBJECTIVE_"+str(progress["current"]["id"]).to_upper()))
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			use = _catalog("M13_USE_PANEL")
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()

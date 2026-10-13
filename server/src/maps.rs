@@ -82,6 +82,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::TermsOfCooperation => {
                 include_bytes!("../maps/m12-terms-of-cooperation.json")
             }
+            crate::protocol::MissionId::WeightOfPermission => {
+                include_bytes!("../maps/m13-weight-of-permission.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -121,6 +124,9 @@ impl AuthoredSource {
             }
             Self::Mission(crate::protocol::MissionId::TermsOfCooperation) => AuthoredMap::read(
                 include_bytes!("../maps/m12-terms-of-cooperation.json").as_slice(),
+            ),
+            Self::Mission(crate::protocol::MissionId::WeightOfPermission) => AuthoredMap::read(
+                include_bytes!("../maps/m13-weight-of-permission.json").as_slice(),
             ),
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())

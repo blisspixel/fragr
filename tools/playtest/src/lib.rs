@@ -2158,6 +2158,7 @@ async fn agent_task(
                 m10,
                 m11,
                 m12,
+                m13,
                 solids,
                 half_extent,
                 geometry_version,
@@ -2215,6 +2216,9 @@ async fn agent_task(
                 mission_client
                     .replace_map_with_m12(m12.as_ref(), half_extent, &solids, presentation.as_ref())
                     .map_err(|error| Error::Server(format!("invalid M12 mission map: {error}")))?;
+                mission_client
+                    .replace_map_with_m13(m13.as_ref(), half_extent, &solids, presentation.as_ref())
+                    .map_err(|error| Error::Server(format!("invalid M13 mission map: {error}")))?;
                 fragr_server::protocol::validate_map_geometry(
                     half_extent,
                     &solids,
@@ -2300,7 +2304,14 @@ async fn agent_task(
                     },
                 );
                 let driven = navigation.as_ref().map_or_else(Action::default, |world| {
-                    mission_client.steer(&mut navigator, world, id, &snapshot, wanted)
+                    mission_client.steer_with_equipment(
+                        &mut navigator,
+                        world,
+                        id,
+                        &snapshot,
+                        wanted,
+                        loadout.as_ref(),
+                    )
                 });
                 let action = ClientMessage::Action(driven);
                 if sink

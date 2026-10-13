@@ -944,3 +944,142 @@ fn useful_supply_recognizes_grenades_and_mines() {
     assert!(!action_full.forward);
     assert!(action_full.look_at.is_none());
 }
+
+#[test]
+fn ray_objective_uses_owned_ammunition_or_routes_to_ray_supply_without_firing_rockets() {
+    let id = Uuid::from_u128(13);
+    let mut game = crate::sim::GameState::new();
+    game.add_player(id, "Relay equipment".into(), crate::protocol::Role::Agent);
+    let mut snapshot = game.snapshot();
+    snapshot.pickups.clear();
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    inventory.grant_weapon(WeaponType::Rocket);
+    inventory.grant_weapon(WeaponType::Tack);
+    let held = view(&inventory, WeaponType::Rocket, 0);
+    let action = control_ray_objective(
+        id,
+        &snapshot,
+        &held,
+        Action {
+            fire: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(action.weapon_swap, Some(WeaponType::Tack));
+    assert!(!action.fire);
+    assert!(action.look_at.is_none());
+    assert_eq!(held, view(&inventory, WeaponType::Rocket, 0));
+    let action = control_ray_objective(
+        id,
+        &snapshot,
+        &held,
+        Action {
+            weapon_swap: Some(WeaponType::Tack),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(action.weapon_swap, Some(WeaponType::Tack));
+    while inventory.try_fire(WeaponType::Tack) {}
+    let dry = view(&inventory, WeaponType::Rocket, 0);
+    assert!(control_ray_objective(id, &snapshot, &dry, Action::default()).is_none());
+    let pickup = |name: &str, x: f32, pool: AmmoPool| PickupState {
+        id: name.into(),
+        kind: "ammo".into(),
+        weapon: String::new(),
+        amount: Some(10),
+        pool: Some(pool),
+        x,
+        y: 0.0,
+        z: 0.0,
+        available: true,
+        respawn_in: None,
+        claim: SupplyClaim::Contested,
+    };
+    snapshot.pickups = vec![
+        pickup("rockets", 1.0, AmmoPool::Rockets),
+        pickup("bullets", 5.0, AmmoPool::Bullets),
+    ];
+    let action = control_ray_objective(
+        id,
+        &snapshot,
+        &dry,
+        Action {
+            fire: true,
+            throw_grenade: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert!(action.forward);
+    assert!(!action.fire);
+    assert!(!action.throw_grenade);
+    assert_eq!(action.look_at.unwrap().x, Some(5.0));
+    snapshot.pickups[1].available = false;
+    assert!(control_ray_objective(id, &snapshot, &dry, Action::default()).is_none());
+    snapshot.pickups[1].kind = "weapon".into();
+    snapshot.pickups[1].weapon = WeaponType::Rail.name().into();
+    snapshot.pickups[1].available = true;
+    snapshot.pickups[1].pool = None;
+    assert!(
+        control_ray_objective(id, &snapshot, &dry, Action::default())
+            .unwrap()
+            .forward
+    );
+    snapshot.players.clear();
+    assert!(control_ray_objective(id, &snapshot, &held, Action::default()).is_none());
+}
+
+#[test]
+fn ray_objective_requests_real_empty_human_magazine_reload_and_preserves_loaded_gun() {
+    let id = Uuid::from_u128(13);
+    let mut game = crate::sim::GameState::new();
+    game.add_player(id, "Human control".into(), crate::protocol::Role::Human);
+    let snapshot = game.snapshot();
+    let mut inventory = Inventory::new(EquipmentPolicy::Discovery);
+    inventory.grant_weapon(WeaponType::Flechette);
+    inventory.arm_magazines();
+    for _ in 0..20 {
+        assert!(inventory.try_fire(WeaponType::Flechette));
+    }
+    let held = view(&inventory, WeaponType::Flechette, 0);
+    assert!(held.ammo(AmmoPool::Bullets) > 0);
+    let action = control_ray_objective(id, &snapshot, &held, Action::default()).unwrap();
+    assert!(action.reload);
+    assert!(!action.fire);
+    assert_eq!(action.weapon_swap, None);
+    assert!(inventory.request_reload(WeaponType::Flechette, 1));
+    let reloading = view(&inventory, WeaponType::Flechette, 1);
+    assert!(
+        !control_ray_objective(id, &snapshot, &reloading, Action::default())
+            .unwrap()
+            .reload
+    );
+    inventory.finish_reload(100);
+    let loaded = view(&inventory, WeaponType::Flechette, 100);
+    let action = control_ray_objective(id, &snapshot, &loaded, Action::default()).unwrap();
+    assert!(!action.reload);
+    assert!(action.weapon_swap.is_none());
+    let mut bound = loaded.clone();
+    bound.selected = WeaponType::Tack;
+    bound.weapons.push(WeaponType::Tack);
+    bound.loaded.push(crate::protocol::MagazineCount {
+        weapon: WeaponType::Tack,
+        rounds: 0,
+        ready_at: None,
+    });
+    bound
+        .ammo
+        .iter_mut()
+        .find(|a| a.pool == AmmoPool::Bullets)
+        .unwrap()
+        .rounds = 20;
+    let action = control_ray_objective(id, &snapshot, &bound, Action::default()).unwrap();
+    assert_eq!(
+        action.weapon_swap,
+        Some(WeaponType::Flechette),
+        "rounds in another magazine cannot reload the empty held gun"
+    );
+    assert!(!action.reload);
+}

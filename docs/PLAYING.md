@@ -56,9 +56,14 @@ records, bridge controls and a separate stern exit. **Terms of Cooperation**,
 level 12, continues into the Martian habitat. Find the Arc, fight the airborne
 Assessor, secure the shelter route and reach the mutual-aid depot before
 confirming commitment and departure. Shelter and worker rescues are optional;
-resolved shots can damage the pumps. All twelve have practice entries and
+resolved shots can damage the pumps. **The Weight of Permission**, level 13,
+continues into the foundry with a finite Rocket Launcher, optional worker
+releases, machinery hazards and a freight lift. Shoot the machine relay while
+leaving the town feed intact, secure the upper gallery, then use the lift with
+the whole ready party aboard. If somebody leaves during ascent, the lift returns
+for another boarding attempt. All thirteen have practice entries and
 connected saved progression. These remain development prototypes, with final
-art and fresh-player acceptance open. Connected levels 13
+art and fresh-player acceptance open. Connected levels 14
 through 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
 
@@ -245,8 +250,10 @@ Repeater discovery, story and fresh-player pacing remain in progress. Level 11
 is Right of Search, a connected playable tender prototype with the Redactor
 and Remote Mines. Its stern departure saves Terms of Cooperation, the connected
 level 12 habitat prototype. Its shelter, pump, release and coalition facts
-persist through retries and deliberate departure, which saves pending M13.
-Connected M13 through M20 remain unplayable; the standalone development maps
+persist through retries and deliberate departure into level 13, The Weight of
+Permission. The foundry retains worker choices and actual arrivals separately,
+plus machinery harm, relay, surrender and gallery outcomes. Its departure saves
+pending M14. Connected M14 through M20 remain unplayable; the standalone development maps
 above do not advance that save. The
 [tender receipt](evidence/m11-quality-composition-20261006.md) records the route
 and remaining acceptance.
@@ -255,7 +262,7 @@ The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-Current source writes version 16 saves; desktop v0.75.0 writes version 12.
+Current source writes version 17 saves; desktop v0.75.0 writes version 12.
 Supported historical saves upgrade
 strictly, retaining exact original bytes in a content-addressed
 `run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1

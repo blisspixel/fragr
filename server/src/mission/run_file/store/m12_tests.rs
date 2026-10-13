@@ -9,7 +9,7 @@ fn habitat_entry() -> RunDocument {
         .unwrap()
 }
 
-fn completed_habitat() -> RunDocument {
+pub(super) fn completed_habitat() -> RunDocument {
     let mut document = habitat_entry();
     let SavedStep::MissionEntry { entry, .. } = &document.step else {
         panic!("habitat entry")
@@ -170,7 +170,10 @@ fn m12_current_save_requires_exact_completed_outcome_and_retains_real_arc_counts
         panic!("completed habitat")
     };
     assert_eq!(*read, completed);
-    assert!(serde_json::from_str::<MissionId>("\"weight_of_permission\"").is_err());
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"weight_of_permission\"").unwrap(),
+        MissionId::WeightOfPermission
+    );
     for malformed in [
         serde_json::Value::Null,
         serde_json::json!({}),

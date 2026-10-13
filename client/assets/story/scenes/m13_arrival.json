@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m13_arrival",
+  "title_key": "MISSION_M13_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "FOUNDRY", "caption_key": "STORY_M13_ARRIVAL", "timing": "reader", "hold": 1},
+    {"id": "WORKERS", "caption_key": "STORY_M13_WORKERS", "timing": "reader", "hold": 1}
+  ]
+}

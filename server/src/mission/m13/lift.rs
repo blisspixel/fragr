@@ -3,13 +3,14 @@
 use crate::movement::{MoveState, Solid, RADIUS};
 
 pub const MAX_STEP: f32 = 0.075;
-pub const SPEED: f32 = 1.5;
+pub const SPEED: f32 = crate::protocol::M13_LIFT_SPEED;
 const SUPPORT_EPSILON: f32 = 0.05;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Phase {
     Parked,
     Moving,
+    Returning,
     Blocked,
     Arrived,
 }

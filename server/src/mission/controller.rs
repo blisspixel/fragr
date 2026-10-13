@@ -16,6 +16,7 @@ mod m09;
 mod m10;
 mod m11;
 mod m12;
+mod m13;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -46,6 +47,10 @@ pub struct MissionClient {
     m12_map: Option<crate::protocol::M12MapGeometry>,
     m12_points: Option<[[f32; 3]; 2]>,
     m12_pending: bool,
+    m13_map: Option<crate::protocol::M13MapGeometry>,
+    m13_solids: Vec<Solid>,
+    m13_points: Option<[[f32; 3]; 2]>,
+    m13_pending: bool,
     m10_map: Option<crate::protocol::M10MapGeometry>,
     m10_point: Option<[f32; 3]>,
     m10_pending: bool,
@@ -388,6 +393,18 @@ impl MissionClient {
                 self.observed = old.observed;
             }
         }
+        if old.m13_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1013
+        {
+            self.m13_map = old.m13_map.clone();
+            self.m13_solids = old.m13_solids.clone();
+            self.m13_points = old.m13_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m13_pending = true;
+        }
         if old.m12_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1012
         {
             self.m12_map = old.m12_map.clone();
@@ -479,7 +496,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::TermsOfCooperation {
+        let map_matches = if state.id == MissionId::WeightOfPermission {
+            self.validate_m13_target(&state)?;
+            true
+        } else if state.id == MissionId::TermsOfCooperation {
             self.validate_m12_target(&state)?;
             true
         } else if state.id == MissionId::RightOfSearch {
@@ -547,6 +567,7 @@ impl MissionClient {
         self.m10_pending = false;
         self.m11_pending = false;
         self.m12_pending = false;
+        self.m13_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -647,7 +668,8 @@ impl MissionClient {
             && self.m09_map.is_none()
             && self.m10_map.is_none()
             && self.m11_map.is_none()
-            && self.m12_map.is_none())
+            && self.m12_map.is_none()
+            && self.m13_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -683,6 +705,40 @@ impl MissionClient {
 
     /// Equipment and combat intent retain priority. With no target, walk to the
     /// mission approach, aim at the actual panel and use only a server prompt.
+    pub fn steer_with_equipment(
+        &mut self,
+        navigator: &mut Navigator,
+        world: &Navigation,
+        id: Uuid,
+        snapshot: &Snapshot,
+        action: Action,
+        loadout: Option<&crate::protocol::LoadoutState>,
+    ) -> Action {
+        let action = if action.look_at.is_none()
+            && self
+                .state
+                .as_ref()
+                .and_then(|s| s.m13.as_ref())
+                .and_then(|f| f.current.as_ref())
+                .is_some_and(|o| matches!(o.action, MissionObjectiveAction::Shoot { .. }))
+        {
+            let Some(loadout) = loadout else {
+                navigator.clear();
+                return Action::default();
+            };
+            let Some(action) =
+                crate::inventory::control_ray_objective(id, snapshot, loadout, action)
+            else {
+                navigator.clear();
+                return Action::default();
+            };
+            action
+        } else {
+            action
+        };
+        self.steer(navigator, world, id, snapshot, action)
+    }
+
     pub fn steer(
         &mut self,
         navigator: &mut Navigator,
@@ -749,6 +805,14 @@ impl MissionClient {
                     append(format!("m09/{}", crew.id), crew.feet);
                 }
             }
+            if let Some(f) = &state.m13 {
+                for (index, feet) in f.worker_feet.iter().enumerate() {
+                    append(format!("m13/worker/{index}"), *feet);
+                }
+                if let Some(g) = &self.m13_map {
+                    append("m13/overseer".into(), g.overseer);
+                }
+            }
         }
         let solids = self.live_visibility_solids();
         let arena = crate::movement::Arena {
@@ -778,9 +842,17 @@ impl MissionClient {
             || self.m10_pending
             || self.m11_pending
             || self.m12_pending
+            || self.m13_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::WeightOfPermission)
+        {
+            return self.steer_m13(navigator, world, id, snapshot, action);
         }
         if self
             .state

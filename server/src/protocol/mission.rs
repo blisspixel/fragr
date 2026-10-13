@@ -140,6 +140,7 @@ pub enum MissionId {
     CommonCarrier,
     RightOfSearch,
     TermsOfCooperation,
+    WeightOfPermission,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -551,10 +552,19 @@ pub struct MissionState {
         skip_serializing_if = "Option::is_none"
     )]
     pub m12: Option<super::M12ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m13: Option<super::M13ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if (self.id == MissionId::WeightOfPermission) != self.m13.is_some() {
+            return Err("M13 facts require exactly M13 mission");
+        }
         if (self.id == MissionId::TermsOfCooperation) != self.m12.is_some() {
             return Err("M12 facts require exactly M12 mission");
         }
@@ -583,6 +593,15 @@ impl MissionState {
             return Err("M04 facts require M04 mission");
         }
         match self.id {
+            MissionId::WeightOfPermission => {
+                if self.m02.is_some() || self.m03.is_some() {
+                    return Err("M13 cannot carry earlier mission facts");
+                }
+                self.m13
+                    .as_ref()
+                    .ok_or("M13 facts missing")?
+                    .validate(self.phase, tick)?;
+            }
             MissionId::RecallNotice => {
                 if self.m02.is_some()
                     || self.m03.is_some()
@@ -677,17 +696,25 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::TermsOfCooperation
+                    (self.id == MissionId::WeightOfPermission
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self.m12.as_ref().is_some_and(|f| {
-                            let n = f.completed.len();
-                            n >= 3 && !f.challenges.workers_released
-                                || n >= 4 && !f.challenges.shelter_opened
-                                || n == 5
-                                || n == 6
+                        && self.m13.as_ref().is_some_and(|f| {
+                            f.overseer_surrendered && f.challenges.workers.is_none()
+                                || f.completed.len() >= 6
                                     && !self.party.is_empty()
                                     && self.party.iter().all(|m| m.ready && m.alive && m.aboard)
                         }))
+                        || (self.id == MissionId::TermsOfCooperation
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m12.as_ref().is_some_and(|f| {
+                                let n = f.completed.len();
+                                n >= 3 && !f.challenges.workers_released
+                                    || n >= 4 && !f.challenges.shelter_opened
+                                    || n == 5
+                                    || n == 6
+                                        && !self.party.is_empty()
+                                        && self.party.iter().all(|m| m.ready && m.alive && m.aboard)
+                            }))
                         || (self.id == MissionId::RightOfSearch
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m11.as_ref().is_some_and(|f| {
@@ -974,6 +1001,7 @@ mod m02_wire_tests {
             m10: None,
             m11: None,
             m12: None,
+            m13: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

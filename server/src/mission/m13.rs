@@ -1,14 +1,17 @@
-//! Foundry gate rules for the Weight of Permission. These are not a mission
-//! identity, a save stage, or a menu entry. The connected foundry calls them
-//! once its successor geometry owns the same facts.
+//! Foundry gates shared by standalone fixtures and the connected mission.
+//! The connected owner adds ordered progress, worker movement and party exit.
 use crate::movement::{MoveState, DUCK_HEIGHT};
 use crate::sim::{GameState, PLAYER_FLOOR_Y};
 use uuid::Uuid;
 
+mod connected;
+#[cfg(test)]
+mod connected_tests;
 mod hazard;
 mod lift;
 mod relay;
 mod workers;
+pub(super) use connected::M13Progress;
 
 #[cfg(test)]
 mod tests;
@@ -47,6 +50,7 @@ pub(crate) struct Progress {
     pub(crate) hazard_hurt: u64,
     pub(crate) lift_top: f32,
     pub(crate) lift_phase: lift::Phase,
+    pub(crate) returning: bool,
 }
 
 impl Progress {
@@ -57,6 +61,7 @@ impl Progress {
             hazard_hurt: 0,
             lift_top: gates.deck.top,
             lift_phase: lift::Phase::Parked,
+            returning: false,
         }
     }
 }
@@ -85,6 +90,14 @@ impl GameState {
         if damage <= 0 || self.campaign_run_frozen() {
             return;
         }
+        if self
+            .mission
+            .as_ref()
+            .and_then(|r| r.m13.as_ref())
+            .is_some_and(|p| p.index != 4)
+        {
+            return;
+        }
         let Some(gates) = self.map.m13_gates() else {
             return;
         };
@@ -111,7 +124,12 @@ impl GameState {
     }
 
     pub(crate) fn tick_foundry_hazards(&mut self) {
-        if self.campaign_run_frozen() {
+        if self.campaign_run_frozen()
+            || self
+                .mission
+                .as_ref()
+                .is_some_and(|r| r.phase != crate::protocol::MissionPhase::InProgress)
+        {
             return;
         }
         let Some(gates) = self.map.m13_gates().cloned() else {
@@ -140,6 +158,11 @@ impl GameState {
             .collect();
         for (index, amount) in hits {
             let (hp, armor) = self.environmental_self_damage(index, amount);
+            if hp.saturating_add(armor) > 0 {
+                if let Some(run) = self.mission.as_mut() {
+                    run.changed_at = self.tick;
+                }
+            }
             if let Some(progress) = &mut self.foundry {
                 progress.hazard_hurt = progress
                     .hazard_hurt
@@ -149,24 +172,52 @@ impl GameState {
     }
 
     pub(crate) fn advance_foundry_lift(&mut self, dt: f32) {
+        if self.campaign_run_frozen()
+            || self
+                .mission
+                .as_ref()
+                .is_some_and(|r| r.phase != crate::protocol::MissionPhase::InProgress)
+        {
+            return;
+        }
         let Some(gates) = self.map.m13_gates().cloned() else {
             return;
         };
         let Some(progress) = self.foundry.as_ref() else {
             return;
         };
+        let connected = self.map.m13_geometry();
+        if connected.as_ref().is_some_and(|g| {
+            progress.lift_phase != lift::Phase::Parked && !self.m13_party_supported(g)
+        }) {
+            let progress = self.foundry.as_mut().unwrap();
+            progress.returning = true;
+            progress.lift_phase = lift::Phase::Returning;
+        }
+        let progress = self.foundry.as_ref().unwrap();
         if !matches!(
             progress.lift_phase,
-            lift::Phase::Moving | lift::Phase::Blocked
+            lift::Phase::Moving | lift::Phase::Blocked | lift::Phase::Returning
         ) {
             return;
         }
-        let Some(delta) = lift::delta_y(progress.lift_top, gates.lift_top, dt) else {
+        let returning = progress.returning;
+        let step = if returning {
+            lift::delta_y(gates.deck.top, progress.lift_top, dt).map(|d| -d)
+        } else {
+            lift::delta_y(progress.lift_top, gates.lift_top, dt)
+        };
+        let Some(delta) = step else {
             return;
         };
         if delta == 0.0 {
             if let Some(progress) = &mut self.foundry {
-                progress.lift_phase = lift::Phase::Arrived;
+                progress.lift_phase = if returning {
+                    lift::Phase::Parked
+                } else {
+                    lift::Phase::Arrived
+                };
+                progress.returning = false;
             }
             return;
         }
@@ -226,6 +277,9 @@ impl GameState {
             if let Some(progress) = &mut self.foundry {
                 progress.lift_phase = lift::Phase::Blocked;
             }
+            if let Some(run) = self.mission.as_mut() {
+                run.changed_at = self.tick;
+            }
             return;
         }
         for (id, body) in &bodies {
@@ -239,11 +293,20 @@ impl GameState {
         }
         if let Some(progress) = &mut self.foundry {
             progress.lift_top += delta;
-            progress.lift_phase = if gates.lift_top - progress.lift_top <= 0.001 {
+            progress.lift_phase = if returning && progress.lift_top - gates.deck.top <= 0.001 {
+                progress.returning = false;
+                progress.lift_top = gates.deck.top;
+                lift::Phase::Parked
+            } else if returning {
+                lift::Phase::Returning
+            } else if gates.lift_top - progress.lift_top <= 0.001 {
                 lift::Phase::Arrived
             } else {
                 lift::Phase::Moving
             };
+        }
+        if let Some(run) = self.mission.as_mut() {
+            run.changed_at = self.tick;
         }
     }
 

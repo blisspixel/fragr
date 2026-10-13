@@ -29,6 +29,12 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub fn m13_geometry(&self) -> Option<crate::protocol::M13MapGeometry> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m13.as_ref()?.geometry.clone(),
+        }
+    }
     pub(crate) fn m13_gates(&self) -> Option<&crate::mission::m13::Gates> {
         match self {
             Self::BuiltIn(_) => None,
@@ -285,8 +291,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m12_objectives()
-            .map(|_| crate::protocol::MissionId::TermsOfCooperation)
+        self.m13_geometry()
+            .map(|_| crate::protocol::MissionId::WeightOfPermission)
+            .or_else(|| {
+                self.m12_objectives()
+                    .map(|_| crate::protocol::MissionId::TermsOfCooperation)
+            })
             .or_else(|| {
                 self.m11_objectives()
                     .map(|_| crate::protocol::MissionId::RightOfSearch)

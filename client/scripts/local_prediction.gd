@@ -14,6 +14,8 @@ const MAX_CORRECTION_SAMPLES: int = 4096
 
 var arena: Dictionary = {}
 var _tram_geometry: Dictionary = {}
+var _foundry_geometry: Dictionary = {}
+var _foundry_moving: bool = false
 var _archive_neutrals: Dictionary = {}
 var _moon_residents: Array[Dictionary] = []
 var _tram_samples: Array[Dictionary] = []
@@ -66,6 +68,10 @@ func configure_map(info: Dictionary) -> void:
 			for index: int in range(info["m12"][group].size()):
 				_moon_residents.append({"key":"m12/%s/%d" % [group,index],"feet":GrenadeFacts.vector(info["m12"][group][index])})
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
+	_foundry_geometry = MissionState.geometry_for(info) if info.get("m13") is Dictionary else {}
+	_foundry_moving = false
+	if not _foundry_geometry.is_empty():
+		_moon_residents.append({"key":"m13/overseer","feet":GrenadeFacts.vector(info["m13"]["overseer"])})
 	_tram_samples.clear()
 	if MapGeometry.validation_error(info) == "":
 		arena = {"half": float(info["half_extent"]), "solids": info["solids"].duplicate(true), "water_regions": info.get("water_regions", []).duplicate(true)}
@@ -141,6 +147,9 @@ static func world_position(pose: Dictionary) -> Vector3:
 
 
 func accept_ack(ack: Dictionary, now_usec: int) -> void:
+	if _foundry_moving:
+		reset("foundry_lift")
+		return
 	if not MovementAck.has_replay_body(ack):
 		reset("unsupported_ack")
 		return
@@ -575,3 +584,18 @@ func correction_percentile(percentile: float) -> float:
 	ordered.sort()
 	var index: int = mini(int(ceilf(clampf(percentile, 0.0, 1.0) * ordered.size())) - 1, ordered.size() - 1)
 	return ordered[maxi(index, 0)]
+
+func apply_m13(value: Dictionary) -> void:
+	if _foundry_geometry.is_empty():
+		return
+	if value.get("id") != MissionState.M13_ID or not value.get("m13") is Dictionary:
+		_foundry_moving = false
+		reset("foundry_handoff")
+		return
+	var p: Dictionary = value["m13"]
+	if not M13MissionState.validation_error({"tick":p.get("lift",{}).get("tick"),"state":value},_foundry_geometry).is_empty():
+		return
+	arena["solids"][int(_foundry_geometry["m13"]["deck"])] = M13MissionState.deck_at(_foundry_geometry,float(p["lift"]["top"]))
+	_foundry_moving = p["lift"]["phase"] not in ["parked", "arrived"]
+	if _foundry_moving:
+		reset("foundry_lift")

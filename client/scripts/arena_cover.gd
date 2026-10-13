@@ -116,6 +116,7 @@ static func venue_for(info: Dictionary) -> String:
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"
 		"the weight of permission (development)": return "mars_foundry"
+		"the weight of permission": return "mars_foundry"
 	if info.get("m11") is Dictionary:
 		return "right_of_search"
 	if info.get("m10") is Dictionary:
@@ -243,3 +244,20 @@ func apply_m05(state: Dictionary) -> void:
 		if child.has_meta("host_solid") and int(child.get_meta("host_solid")) == index:
 			(child as Node3D).visible = valid
 			(child as Node3D).position = child.get_meta("baseline_position") + Vector3(0.0, 0.0, delta)
+
+func apply_m13(state: Dictionary) -> void:
+	var geometry: Dictionary = MissionState.geometry_for(_built_info)
+	if geometry.get("id") != MissionState.M13_ID or state.get("id") != MissionState.M13_ID or not state.get("m13") is Dictionary:
+		return
+	var facts: Dictionary = state["m13"]
+	if not M13MissionState.validation_error({"tick":facts.get("lift",{}).get("tick"),"state":state},geometry).is_empty():
+		return
+	var index: int = int(geometry["m13"]["deck"])
+	if index >= _solid_views.size():
+		return
+	var delta: float = float(facts["lift"]["top"])-float(geometry["m13"]["parked_top"])
+	var solid: Dictionary = geometry["solids"][index]
+	_solid_views[index].position.y = (float(solid["bottom"])+float(solid["top"]))*0.5+delta
+	for child: Node in get_children():
+		if child.has_meta("host_solid") and int(child.get_meta("host_solid")) == index:
+			(child as Node3D).position = child.get_meta("baseline_position")+Vector3(0.0,delta,0.0)

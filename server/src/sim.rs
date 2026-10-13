@@ -553,7 +553,7 @@ pub struct GameState {
     pub(crate) statistics_round_started: u64,
     pub(crate) encounters: crate::encounters::Encounters,
     pub(crate) mission: Option<crate::mission::MissionRun>,
-    /// Present only on a map that authored the foundry gates. Not a campaign id.
+    /// Shared foundry gates; connected mission progress remains in MissionRun.
     pub(crate) foundry: Option<crate::mission::m13::Progress>,
     /// Offline recordings opt into stable entity identities. Live sessions keep
     /// UUIDv4; identity allocation must not consume the gameplay random stream.
@@ -1639,6 +1639,7 @@ impl GameState {
             m10: self.map.m10_geometry(),
             m11: self.map.m11_geometry(),
             m12: self.map.m12_geometry(),
+            m13: self.map.m13_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
