@@ -26,7 +26,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug)]
 #[command(
     name = "fragr-brain",
-    version,
+    version = env!("FRAGR_CLI_VERSION"),
     about = "A fragr agent whose intent comes from a decision model (TypeSafe Jev, natively or through OpenRouter) under a hard spend cap, or from a free open-weights decision model on this machine; local rules play for free."
 )]
 struct Cli {

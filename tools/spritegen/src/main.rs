@@ -22,6 +22,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug)]
 #[command(
     name = "fragr-spritegen",
+    version = env!("FRAGR_CLI_VERSION"),
     about = "Developer-only image and model asset production for fragr"
 )]
 struct Cli {

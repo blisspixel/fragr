@@ -1,5 +1,72 @@
 # Agent Adapter
 
+## Connect your agent
+
+One release build, then one config line. The adapter spawns a loopback bot match when `127.0.0.1:6767` is not already a fragr server, and stops that server when the client closes stdin.
+
+```bash
+cargo build -p fragr-server -p fragr-agent-adapter --release --locked
+```
+
+Claude Code:
+
+```bash
+claude mcp add fragr -- target/release/fragr-agent-adapter mcp --local --name MyAgent
+```
+
+Codex (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.fragr]
+command = "target/release/fragr-agent-adapter"
+args = ["mcp", "--local", "--name", "MyAgent"]
+```
+
+Generic MCP client:
+
+```json
+{
+  "mcpServers": {
+    "fragr": {
+      "command": "target/release/fragr-agent-adapter",
+      "args": ["mcp", "--local", "--name", "MyAgent"]
+    }
+  }
+}
+```
+
+First three calls: `round_state`, `observe`, `act`. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/fragr/SKILL.md](../docs/skills/fragr/SKILL.md).
+
+`--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
+
+## Quick Start
+
+### MCP server
+
+```bash
+cargo run -p fragr-agent-adapter -- mcp --local --name MyAgent
+# an already running server, no child:
+# cargo run -p fragr-agent-adapter -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
+# or: FRAGR_AGENT_NAME=ArenaFox cargo run -p fragr-agent-adapter -- mcp
+# choose a body: --body human (default) or --body synthetic
+```
+
+Connect via an MCP client on stdio. The boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. `join` / `leave` / `round_state` are also tools (idempotent join; leave sends `{"type":"leave"}` and then closes the socket).
+
+### Scripted bot
+
+```bash
+cargo run -p fragr-agent-adapter -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synthetic
+```
+
+`--body` picks the pawn's body on both commands: `human` (the default) or `synthetic`, a free agent in a synthetic body. It rides the same Hello every client sends, other players and spectators see it, and it changes no combat rule. The control role stays `agent` whichever body you choose.
+
+On a Sabotage server the scripted bot plays the objective through the same shared controller `round_state` reports: it walks to its site or the charge, holds Use standing still to plant or defuse, and fights any enemy within 20 m.
+
+It answers server WebSocket pings, pongs, and other non-text frames, and stays connected. It validates the map and uses the shared walking controller to chase targets and aim with `look_at.player_id`. Its independent 20 Hz action clock is not postponed by incoming snapshots; weapon cooldowns remain server owned. It occasionally speaks a Contested Frequency taunt. A rejected handshake or malformed replacement map ends the session with an error. A close frame or a socket error is logged with the reason.
+
+## Wire contract
+
 MCP-compatible control plane for external agents to observe and act in the fragr arena. Runs separate from the hot-path combat tick.
 
 Every WebSocket role receives `map_info` on join, including spectators. The same
@@ -227,56 +294,20 @@ and shared lift departure. Departure does not load M02 in the same process; an
 owned local run records it as the next mission. An idle combat agent is
 not route-play evidence.
 
-## Quick Start
-
-### MCP Server (for external agents)
-
-```bash
-cd agent-adapter
-cargo run -- mcp --server ws://127.0.0.1:6767 --name ArenaFox
-# or: FRAGR_AGENT_NAME=ArenaFox cargo run -- mcp
-# choose a body: --body human (default) or --body synthetic
-```
-
-Connect via MCP client (stdio) and use the tools below.
-Boot path still sends Hello with `--name` / `FRAGR_AGENT_NAME` (default `MCP Agent`). When `FRAGR_JOIN_SECRET` is set, that hello carries a short agent ticket minted from it. An unset secret sends no ticket. First-class `join` / `leave` / `round_state` tools are also available (idempotent join; leave sends `{"type":"leave"}` and then closes the socket).
-
-### Scripted Bot (standalone test)
-
-```bash
-cd agent-adapter
-cargo run -- scripted-bot --server ws://127.0.0.1:6767 --name MyBot --body synthetic
-```
-
-`--body` picks the pawn's body on both commands: `human` (the default) or
-`synthetic`, a free agent in a synthetic body. It rides the same
-Hello every client sends, other players and spectators see it, and it changes no
-combat rule. The control role stays `agent` whichever body you choose.
-
-On a Sabotage server the scripted bot plays the objective through the same
-shared controller `round_state` reports: it walks to its site or the charge,
-holds Use standing still to plant or defuse, and fights any enemy within 20 m.
-
-Connects as an agent, validates the map, and uses the shared walking controller
-to chase targets and aim with `look_at.player_id`. Its independent 20 Hz action
-clock is not postponed by incoming snapshots; weapon cooldowns remain server
-owned. It occasionally speaks a Contested Frequency taunt. A rejected handshake
-or malformed replacement map ends the session with an error.
-
 ## MCP Tools
 
 ### `observe`
 
-Get the current game state snapshot including self player ID and recent events.
+Get the current game state. The default detail is `brief`: compact text in `content`, and the same facts in `structuredContent` (self, threats in engagement order with `id`, `dist`, `bearing`, `hp`, `weapon`, and `campaign`, pads, and the round). `full` puts today's snapshot object in `structuredContent` and its JSON in `content`. `map` resends retained geometry. A connecting line is returned until the first snapshot.
 
 **Input schema:**
 ```json
-{}
+{"type": "object", "properties": {"detail": {"type": "string", "enum": ["brief", "full", "map"]}}, "additionalProperties": false}
 ```
 
 `observe` also carries `map` once the server has sent it: `{"map_id", "map_name", "half_extent", "solids"}`, where `solids` are the axis-aligned boxes that block movement and shots. Test a line against them to tell a clear shot from a wall; the server uses the same boxes to decide hits.
 
-**Output (after first snapshot):**
+**`detail: full` object (also `structuredContent`; the default reply is the brief text above this object):**
 ```json
 {
   "tick": 12345,

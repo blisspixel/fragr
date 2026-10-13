@@ -572,3 +572,25 @@ async fn ordinary_dedicated_server_does_not_treat_stdin_eof_as_shutdown() {
     assert!(child.0.try_wait().unwrap().is_none());
     // Drop retires only this test's owned process.
 }
+
+#[test]
+fn ready_line_prints_ffa_and_stops_on_stdin_eof() {
+    let (mut child, ready, mut reader) = start(&[
+        "--ready-line",
+        "--bind",
+        "127.0.0.1:0",
+        "--bots",
+        "0",
+        "--map",
+        "1",
+        "--mode",
+        "ffa",
+    ]);
+    assert_eq!(ready.mode, GameMode::Ffa);
+    assert_eq!(ready.bots, 0);
+    assert_eq!(ready.map_id, 1);
+    assert!(ready.url.starts_with("ws://127.0.0.1:"), "{}", ready.url);
+    assert!(!ready.five_vs_five);
+    drop(child.0.stdin.take());
+    finish(&mut child, &mut reader, true);
+}

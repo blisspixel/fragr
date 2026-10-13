@@ -209,9 +209,41 @@ impl ArenaReady {
     }
 
     fn write(&self, mut output: impl Write) -> io::Result<()> {
-        serde_json::to_writer(&mut output, self)?;
-        output.write_all(b"\n")?;
+        // One write, then flush, so a pipe reader observes the line while this
+        // child is still blocked on the stdin lease. A later newline, or a
+        // buffer that only flushes on exit, deadlocks that parent.
+        let mut line = serde_json::to_vec(self).map_err(io::Error::other)?;
+        line.push(b'\n');
+        output.write_all(&line)?;
         output.flush()
+    }
+
+    /// Same record as a desktop arena, for any arcade mode the dedicated server
+    /// already runs. The listener still has to be loopback or a wildcard port.
+    fn for_loopback(options: &ServerOptions, address: SocketAddr) -> io::Result<Self> {
+        let expected = validate_ready_address(options)?;
+        if address.ip() != expected.ip()
+            || address.port() == 0
+            || (expected.port() != 0 && address.port() != expected.port())
+        {
+            return Err(io::Error::other("ready line does not match its listener"));
+        }
+        let config = options.match_config.as_ref();
+        Ok(Self {
+            version: 1,
+            kind: "arena".into(),
+            url: format!("ws://127.0.0.1:{}", address.port()),
+            listen: address.to_string(),
+            map_id: options.map.id(),
+            mode: config
+                .map(|config| config.rules.mode())
+                .unwrap_or(GameMode::Ffa),
+            five_vs_five: config.is_some_and(|config| config.sabotage.five_vs_five),
+            bots: options.bots,
+            bot_policy: options.bot_policy,
+            fill_target: options.fill_target,
+            gameplay_version: crate::protocol::GAMEPLAY_VERSION,
+        })
     }
 }
 
@@ -289,6 +321,53 @@ pub async fn serve_arena(
     output: impl Write,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     validate_arena_options(&options)?;
+    serve_leased(options, input, output, ArenaReady::new).await
+}
+
+/// Loopback child for an MCP client. Same readiness record and stdin lease as
+/// `--desktop-host`, without that flag's mode restriction, so a free-for-all
+/// bot match can flush one ready line and stop when the parent closes stdin.
+pub async fn serve_ready_line(
+    options: ServerOptions,
+    input: impl Read + Send + 'static,
+    output: impl Write,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    validate_ready_address(&options)?;
+    serve_leased(options, input, output, ArenaReady::for_loopback).await
+}
+
+fn validate_ready_address(options: &ServerOptions) -> io::Result<SocketAddr> {
+    options.validate_bot_policy().map_err(io::Error::other)?;
+    let address: SocketAddr = options.bind.parse().map_err(|_| {
+        io::Error::other("ready line requires an IPv4 loopback or wildcard address")
+    })?;
+    if address.ip() != Ipv4Addr::LOCALHOST
+        && (address.ip() != Ipv4Addr::UNSPECIFIED || address.port() == 0)
+    {
+        return Err(io::Error::other(
+            "ready line requires IPv4 loopback or a wildcard with a chosen nonzero port",
+        ));
+    }
+    if options.authored.is_some()
+        || options.difficulty.is_some()
+        || options.campaign_run
+        || options.solo_broadcast
+        || options.playlist
+        || options.console
+    {
+        return Err(io::Error::other(
+            "ready line is an arcade loopback child, not a campaign, playlist, or venue desk",
+        ));
+    }
+    Ok(address)
+}
+
+async fn serve_leased(
+    options: ServerOptions,
+    input: impl Read + Send + 'static,
+    output: impl Write,
+    describe: impl FnOnce(&ServerOptions, SocketAddr) -> io::Result<ArenaReady> + Send,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let ready_options = options.clone();
     let (owner_tx, mut owner_rx) = oneshot::channel();
     std::thread::Builder::new()
@@ -328,7 +407,7 @@ pub async fn serve_arena(
         }
         Err(oneshot::error::TryRecvError::Empty) => {}
     }
-    if let Err(error) = ArenaReady::new(&ready_options, address).and_then(|r| r.write(output)) {
+    if let Err(error) = describe(&ready_options, address).and_then(|ready| ready.write(output)) {
         let _ = stop_tx.send(());
         server.await?;
         return Err(error.into());
@@ -472,8 +551,13 @@ mod tests {
         assert_eq!(ready.mode, GameMode::Tdm);
         assert!(!ready.five_vs_five);
         assert_eq!(ready.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
-        let mut bytes = Vec::new();
-        ready.write(&mut bytes).unwrap();
+        let mut output = RecordingWriter::default();
+        ready.write(&mut output).unwrap();
+        assert!(
+            output.flushed,
+            "ready line must be flushed before the parent waits on it"
+        );
+        let bytes = output.bytes;
         assert_eq!(bytes.iter().filter(|c| **c == b'\n').count(), 1);
         assert_eq!(serde_json::from_slice::<ArenaReady>(&bytes).unwrap(), ready);
         let mut value = serde_json::to_value(&ready).unwrap();
@@ -642,6 +726,27 @@ mod tests {
             config.rules = crate::rules::RuleSet::new(mode, &mutators, friendly_fire).unwrap();
             config.sabotage.five_vs_five = five;
             assert_eq!(validate_arena_options(&options).is_ok(), accepted);
+        }
+    }
+
+    #[derive(Default)]
+    struct RecordingWriter {
+        bytes: Vec<u8>,
+        flushed: bool,
+    }
+
+    impl Write for RecordingWriter {
+        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+            self.bytes.extend_from_slice(buf);
+            Ok(buf.len())
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            if !self.bytes.ends_with(b"\n") {
+                return Err(io::Error::other("flush before a complete ready line"));
+            }
+            self.flushed = true;
+            Ok(())
         }
     }
 

@@ -18,7 +18,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug)]
 #[command(
     name = "fragr-audiogen",
-    version,
+    version = env!("FRAGR_CLI_VERSION"),
     about = "Developer-only sound effect and music generation for fragr through the ElevenLabs API. Never runs in CI or in the game."
 )]
 struct Cli {

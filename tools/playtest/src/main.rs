@@ -11,7 +11,7 @@ use tracing_subscriber::EnvFilter;
 #[derive(Parser, Debug)]
 #[command(
     name = "fragr-playtest",
-    version,
+    version = env!("FRAGR_CLI_VERSION"),
     about = "Scripted agents play fragr rounds in-process and file a metrics report."
 )]
 struct Cli {

@@ -10,7 +10,10 @@ use clap::Parser;
 use fragr_licenses::{distributed_crates, parse_allowlist, render, Crate};
 
 #[derive(Parser)]
-#[command(about = "Write third-party license notices for a packaged fragr-server")]
+#[command(
+    about = "Write third-party license notices for a packaged fragr-server",
+    version = env!("FRAGR_CLI_VERSION")
+)]
 struct Args {
     /// Workspace package whose linked dependencies are listed.
     #[arg(long, default_value = "fragr-server")]

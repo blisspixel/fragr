@@ -80,9 +80,10 @@ pub struct NightTotals {
 pub struct BuildInfo {
     /// The server crate version, not the release tag.
     pub crate_version: String,
-    /// Release name baked in at build time (`FRAGR_BUILD_VERSION`), if any.
+    /// Release name baked in at build time (`FRAGR_BUILD_VERSION`, or `git describe`), if any.
+    /// This is the same string as `--version`.
     pub release: Option<String>,
-    /// Commit baked in at build time (`FRAGR_BUILD_COMMIT`), or `unknown`.
+    /// Commit baked in at build time (`FRAGR_BUILD_COMMIT`, or `git rev-parse`), or `unknown`.
     pub commit: String,
 }
 

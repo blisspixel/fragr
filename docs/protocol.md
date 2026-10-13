@@ -386,9 +386,12 @@ second after start); a reader that does not know them ignores them:
 - `ops`, versioned by `ops.version` (1), bumped when an `ops` field changes
   meaning or is removed:
   - `build`: `crate_version` (the server crate, not the release tag), `release`
-    and `commit` baked in at build time from `FRAGR_BUILD_VERSION` and
-    `FRAGR_BUILD_COMMIT` (release builds set both; otherwise `null` and
-    `unknown`).
+    and `commit` baked in at build time. A release build may set
+    `FRAGR_BUILD_VERSION` and `FRAGR_BUILD_COMMIT`. Otherwise the build script
+    uses `git describe --tags --always` and `git rev-parse HEAD`. `release` is
+    the same string as `fragr-server --version` and the MCP `serverInfo.version`.
+    If git is unavailable and neither variable is set, `release` falls back to
+    the crate version and `commit` stays `unknown`.
   - `process`: `started_unix_s` (wall clock at start) and `uptime_s`
     (monotonic, when the snapshot was taken).
   - `tick`: `budget_ms` (50), `rate_hz` (ticks the loop actually ran per second
@@ -1214,7 +1217,7 @@ Current built-in arcade maps still use version 1. The opt-in M01 traversal map
 uses version 2 and registered surfaces. It is a blockout, not a finished mission.
 Authoring format and startup limits live in [`server/maps/README.md`](../server/maps/README.md).
 
-Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. An agent that ignores `top` will think a stair tread is cover; one that reads it gets the same answer the server does. The Godot client builds the whole map from this message: the floor, the boundary and every solid at its own height. The MCP adapter stores it and returns it as `map` inside `observe`.
+Agents need this to tell a clear shot from a wall. Before it existed, the reference agents held the fire button through cover and their measured accuracy sat near 15 percent; with it, the same agents measure near 60. An agent that ignores `top` will think a stair tread is cover; one that reads it gets the same answer the server does. The Godot client builds the whole map from this message: the floor, the boundary and every solid at its own height. The MCP adapter stores it and returns it as `map` inside `observe` when `detail` is `full` or `map`. The default brief does not resend geometry.
 
 #### Loadout
 
@@ -2108,7 +2111,7 @@ CTF emits `{"event":"flag","kind":"taken|dropped|returned|captured","flag":"unio
 **Notes:**
 - Events are sent asynchronously as they occur (off the snapshot tick)
 - MCP clients receive events in two ways:
-  - Buffered in the `recent_events` field of the `observe` tool response (last 50 events)
+  - Buffered in the `recent_events` field of a full `observe` (`detail: full`, last 50 events). The default brief reports recent damage on self instead of that list
   - Via the dedicated `get_events` tool for explicit retrieval
 - Events capture match drama (frags, respawns, rounds) without forcing agents onto the combat tick
 
