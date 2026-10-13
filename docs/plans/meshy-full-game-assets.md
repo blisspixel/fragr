@@ -39,7 +39,22 @@ Each linked brief freezes use, lore owner, reference basis, silhouette, material
 
 ## Credits and allowance
 
-The latest free reconciliation on 2026-10-05 reports **2,125 available**, the
+The [October 13 asset round](art-round-20261013.md) records the current funded
+authorization and live account checks after the Linux migration. Nick authorized
+the existing 1,900 credits; one new ladle source consumed 30. The account then
+reported **1,870 monthly credits**, **zero permanent credits**, and the next
+reset at **2026-11-03 12:34:13 Pacific**. The historical 15-credit uncertainty
+remains held, leaving **1,855 usable**. These are dated account observations,
+not a standing balance for future runs. Verify again before each paid stage.
+The complete historical raw production ledger could not be restored. New task
+receipts and a separately identified durable carry hold preserve that distinction;
+no old provider IDs, refunds or completed rows were invented.
+
+The following October 4-5 readings and original 900-credit allocation are
+historical production evidence, superseded for current allowance by the October
+13 authorization and round receipt. They must not be summed into a new balance.
+
+The free reconciliation on 2026-10-05 reported **2,125 available**, the
 unchanged **15-credit uncertain hold**, and **2,110 usable**. The shared glove,
 distinct Edda and Splice sources and Edda's first rig consumed 110 included
 credits. Tracked consumption is 945; the first 900-credit allocation has used
@@ -118,9 +133,27 @@ conservative core plus revisions or the extended future fleet. Relative to
 the original 2,730 usable baseline, those scenarios were 466 and 2,585 short.
 Reconcile real source results and remaining work before recommending a pack.
 
-[Monthly credit reset](https://help.meshy.ai/en/articles/9991991-when-will-my-credits-reset) says Premium resets its monthly allowance to 3,000 on the subscription date, without rollover. The [API price page](https://docs.meshy.ai/en/api/pricing) describes prepaid API credits; the current balance endpoint does not report the account's monthly/permanent split or renewal date. Confirm the account's actual API replenishment before scheduling future paid work. Purchased permanent credits and any pack price must be verified in the account. This plan enables no renewal, cash purchase, automatic top-up or overage.
+The [balance API](https://docs.meshy.ai/en/api/balance), checked 2026-10-13,
+now documents `monthly_credits`, `permanent_credits` and `monthly_resets_at`
+(Unix milliseconds, null when no refresh is scheduled). The native checker
+reports these optional fields while retaining total-only response compatibility.
+Missing detail stays unknown. Use the returned total `balance` as the spending
+ceiling: a member or workspace limit can make it lower than the component sum.
+The observed reset is not authorization to renew the subscription. Earlier
+plan-name and monthly-allocation assumptions are historical; recheck the actual
+account instead of assuming a tier's allowance. The
+[API price page](https://docs.meshy.ai/en/api/pricing) documents per-operation
+credits. No renewal, cash purchase, automatic top-up or overage is enabled here.
 
 Use only the existing native tools/spritegen path and one account ledger under art/raw/meshy-pilot-20261003. Serialize paid stages; parallel agents can prepare refs, levels and local assets but cannot maintain independent account ledgers. Run a free balance/hold preflight immediately before each stage. Keep both credit and dollar ceilings, the existing 5-dollar per-run ceiling, durable task IDs and uncertain reservations. The tool's conservative dollar equivalent is accounting, not an extra cash charge or a pack quote. Report actual consumed_credits and inspect the source before rigging or extra paid processing.
+
+After migration, `art/raw/meshy-account-hold.json` separately retains the
+15-credit uncertainty. Its location is anchored to the canonical credential
+file's parent, so changing the process directory, omitting `--out` or choosing a
+new model output path cannot bypass it. Keep the missing historical task ledger
+explicit until recovered and reconciled. The [October 13 round](art-round-20261013.md)
+records implementation, negative tests and an authenticated alternate-directory
+check without generation.
 
 ## First bounded production allocation
 

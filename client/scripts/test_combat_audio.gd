@@ -172,6 +172,12 @@ func _check_shotgun(pawn: Node3D) -> void:
 
 func _check_melee_and_impact(pawn: Node3D) -> void:
 	var fire: AudioStreamPlayer3D = pawn.get_node("FireSound")
+	pawn.show_muzzle_flash("Rocket")
+	_check(fire.playing and fire.stream != null and fire.stream.get_length() > 0.0
+		and fire.stream == pawn.fire_streams.get("Rocket") and fire.bus == &"Effects",
+		"the Rocket presenter has a nonempty spatial Effects cue")
+	pawn.cancel_fire_feedback()
+	_check(not fire.playing, "Rocket launch feedback stops through the shared cancellation seam")
 	for weapon: String in ["Repeater", "UnsupportedGun"]:
 		pawn.show_muzzle_flash("Flechette")
 		_check(fire.playing and fire.stream == pawn.fire_streams["Flechette"], "known gun establishes actual prior voice")

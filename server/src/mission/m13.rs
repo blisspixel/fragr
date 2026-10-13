@@ -31,7 +31,7 @@ pub(crate) struct Gates {
     pub(crate) hazard: crate::protocol::Region3,
     pub(crate) bypass: crate::protocol::Region3,
     pub(crate) cycle: Cycle,
-    pub(crate) release_approach: [f32; 3],
+    pub(crate) release: crate::protocol::UseTarget,
     pub(crate) quarters_group: usize,
     pub(crate) deck_index: usize,
     pub(crate) deck: crate::movement::Solid,
@@ -93,10 +93,9 @@ impl GameState {
         let Some(host) = self.map.arena().solids.get(solid).copied() else {
             return;
         };
-        let allowed = self
-            .players
-            .iter()
-            .any(|player| player.id == shooter && player.is_participant() && player.hp > 0);
+        let allowed = self.players.iter().any(|player| {
+            player.id == shooter && player.is_participant() && self.contact_eligible(player)
+        });
         if !allowed {
             return;
         }
@@ -124,7 +123,7 @@ impl GameState {
             .iter()
             .enumerate()
             .filter_map(|(index, player)| {
-                if !player.is_participant() || player.hp <= 0 || player.respawn_timer.is_some() {
+                if !player.is_participant() || !self.contact_eligible(player) {
                     return None;
                 }
                 let height = if player.ducking {
@@ -275,9 +274,11 @@ impl GameState {
                 continue;
             };
             let feet = [player.x, player.y - PLAYER_FLOOR_Y, player.z];
-            let active = player.hp > 0 && player.is_participant() && !frozen;
-            if released.is_none() {
-                let distance = workers::distance(feet, gates.release_approach);
+            let active = player.is_participant() && self.contact_eligible(player) && !frozen;
+            if released.is_none()
+                && super::can_use_in_arena(player, &gates.release, &self.map, &self.current_arena())
+            {
+                let distance = workers::distance(feet, gates.release.approach);
                 if let Ok(responses) =
                     workers::try_release(active, clear, threats, already, distance)
                 {

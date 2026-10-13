@@ -36,6 +36,13 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
+    /// Retain a historical model credit hold locally, without inventing a task.
+    MeshyHold {
+        #[arg(long)]
+        credits: u64,
+        #[arg(long)]
+        reason: String,
+    },
     /// Check live model API credits without generating or uploading.
     MeshyCheck {
         #[arg(long, default_value_t = 0)]
@@ -299,6 +306,18 @@ fn run(cli: Cli) -> Result<(), Error> {
     let out_stream = &mut std::io::stdout();
 
     match &cli.command {
+        Cmd::MeshyHold { credits, reason } => {
+            fragr_spritegen::meshy::retain_external_hold(
+                &fragr_spritegen::meshy::account_hold_for_credentials(&cli.env_file)?,
+                *credits,
+                reason,
+            )?;
+            writeln!(
+                out_stream,
+                "retained {credits} external model credits; no API request"
+            )
+            .map_err(|e| Error::Io(e.to_string()))
+        }
         Cmd::MeshyCheck {
             required_credits,
             out,
@@ -326,6 +345,7 @@ fn run(cli: Cli) -> Result<(), Error> {
                 &key,
                 *required_credits,
                 ledger.as_ref(),
+                &fragr_spritegen::meshy::account_hold_for_credentials(&cli.env_file)?,
             )?;
             let json = serde_json::to_string_pretty(&result)
                 .map_err(|_| Error::Io("model report serialization failed".into()))?;
@@ -355,7 +375,8 @@ fn run(cli: Cli) -> Result<(), Error> {
             )?;
             let text = String::from_utf8(bytes)
                 .map_err(|_| Error::Spec("model spec must be UTF-8".into()))?;
-            let spec = fragr_spritegen::meshy::parse_spec(&text)?;
+            let mut spec = fragr_spritegen::meshy::parse_spec(&text)?;
+            spec.bind_account(&cli.env_file)?;
             let key = fragr_spritegen::meshy::read_credential(&cli.env_file)?;
             let mut transport = HttpTransport::new()?;
             transport.meshy = true;

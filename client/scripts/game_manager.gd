@@ -2178,6 +2178,7 @@ func _on_snapshot_received(data):
 		_apply_local_prediction(Time.get_ticks_usec())
 	if hud and hud.has_method("set_fp_carried_flag"):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
+	_present_rocket_launches()
 	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
 	if entered_vehicle:
 		# The entry snapshot can still carry a resolved handheld shot. Consume
@@ -2834,6 +2835,19 @@ func _watch_own_killer() -> void:
 	var killer := _death_watch_killer
 	_death_watch_killer = ""
 	camera.lock_on_frag(killer, 2.0)
+
+## Rockets launch as accepted projectile facts, not ray ShotResults. Reuse the
+## same local prediction receipt so a confirmed launch never doubles its cue.
+func _present_rocket_launches() -> void:
+	if grenade_effects == null:
+		return
+	for launch: Dictionary in grenade_effects.take_rocket_launches():
+		var owner: String = str(launch["owner_id"])
+		var is_local: bool = is_human_player and net_client != null and owner == str(net_client.player_id)
+		var predicted: bool = is_local and local_fire.confirm("rocket", int(launch["tick"]), Time.get_ticks_usec())
+		var pawn: Node = players.get(owner)
+		if not predicted and is_instance_valid(pawn):
+			pawn.show_muzzle_flash("Rocket")
 
 func _process_shot_results(results, tick: int) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:

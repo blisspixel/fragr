@@ -524,20 +524,10 @@ func _run() -> void:
 			_companion_strip_samples.clear()
 		if state.has("expect_equipment"):
 			_check_equipment(state["expect_equipment"])
-		# A live bot can kill the idle tour pawn during the framing delay. Wait
-		# for its next authoritative spawn and resend the authored aim before
-		# sampling the frame, including after a first-person camera handoff.
-		if state.has("weapon"):
-			await _select_weapon(str(state["weapon"]))
-		if state.has("aim_pitch"):
-			await _set_aim_pitch(float(state["aim_pitch"]))
-
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
-		if state.has("aim_pitch"):
-			await _restore_static_aim_after_respawn(state)
 
-		var measured: Dictionary = await _measure()
+		var measured: Dictionary = await _measure(state)
 		if scoped_still:
 			var scope_hud: Node = _find_hud()
 			var scope_view: Variant = scope_hud.get("sniper_scope") if scope_hud != null else null
@@ -567,7 +557,8 @@ func _run() -> void:
 		# the tree, and a capture result only lasts the round's end delay.
 		var framed: Variant = measured.get("observed")
 		if framed is Dictionary:
-			for key: String in ["flags", "capture_scores", "round_state", "sabotage", "self_alive"]:
+			for key: String in ["flags", "capture_scores", "round_state", "sabotage", "self_alive",
+					"human", "local_weapon", "camera_pitch", "server_pitch", "camera_yaw", "server_yaw"]:
 				if (framed as Dictionary).has(key):
 					observed[key] = (framed as Dictionary)[key]
 		if state.get("expect_crawler_scrabble", false) and _game_manager() != null:
@@ -663,7 +654,7 @@ func _run() -> void:
 			push_error("qa_tour: no live match for " + state_name)
 			_failed = true
 		if _joined and (state.has("weapon") or state.has("aim_pitch")):
-			if not _local_human_alive(_game_manager()):
+			if not bool(observed.get("self_alive", false)):
 				push_error("qa_tour: no live joined fighter in " + state_name)
 				_failed = true
 			if state.has("weapon") and str(observed.get("local_weapon", "")) != str(state["weapon"]):
@@ -672,7 +663,7 @@ func _run() -> void:
 		if state.has("aim_pitch") or state.has("expect_pitch"):
 			var expected_pitch: float = float(state["expect_pitch"] if state.has("expect_pitch") else state["aim_pitch"])
 			var camera_pitch: float = float(observed.get("camera_pitch", 99.0))
-			var server_pitch: float = _local_server_pitch(_game_manager())
+			var server_pitch: float = float(observed["server_pitch"]) if observed.get("server_pitch") != null else 99.0
 			if absf(camera_pitch - expected_pitch) > 0.001 or absf(server_pitch - expected_pitch) > 0.001:
 				push_error("qa_tour: captured pitch disagrees with the server for %s (expected %.3f, camera %.3f, server %.3f)" % [state_name, expected_pitch, camera_pitch, server_pitch])
 				_failed = true
@@ -1347,8 +1338,12 @@ func _grab() -> Image:
 ## Hide the HUD for one frame and compare. Gives two numbers at once: the share
 ## of the screen the HUD paints over, measured rather than argued about, and
 ## whether there is a game behind it at all.
-func _measure() -> Dictionary:
+func _measure(state: Dictionary) -> Dictionary:
 	if not await _ensure_capture_window_size("still"):
+		return {}
+	# Size settling can yield long enough for a live bot to kill the subject.
+	# Reacquire its requested pose here, with no further live wait before pause.
+	if not await _prepare_static_capture(state):
 		return {}
 	var out: Dictionary = {"hud_coverage": 0.0, "world_blank": false}
 	# Freeze first. Without this the two frames are a fight two frames apart,
@@ -1358,7 +1353,7 @@ func _measure() -> Dictionary:
 	await RenderingServer.frame_post_draw
 	var with_hud: Image = _grab()
 	out["shot"] = with_hud
-	out["observed"] = _observed_state()
+	out["observed"] = _observed_state().duplicate(true)
 	var hud: Node = _find_hud()
 	if hud == null or with_hud == null:
 		paused = false
@@ -1437,14 +1432,20 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		var release: InputEventKey = press.duplicate()
 		release.pressed = false
 		Input.parse_input_event(release)
-	for _i in range(STRIP_LEAD_FRAMES):
-		await RenderingServer.frame_post_draw
+	# The fire waiter already returned on the rendered frame that contains the
+	# effect. Preserve that actual frame: extra lead draws can outlive a flash
+	# or impact on a slow renderer. Other strips retain their settling frames.
+	var first_fire_frame: bool = trigger == "fire" and probe != null and _probe_active(probe, state)
+	if trigger != "fire":
+		for _i in range(STRIP_LEAD_FRAMES):
+			await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
 	var start_ms: int = Time.get_ticks_msec()
 	for i in range(frames):
 		if i > 0 and interval > 0.0:
 			await create_timer(interval).timeout
-		await RenderingServer.frame_post_draw
+		if i > 0 or not first_fire_frame:
+			await RenderingServer.frame_post_draw
 		_strip_times_ms.append(Time.get_ticks_msec() - start_ms)
 		if state.get("expect_companion_transition", false):
 			_companion_strip_samples.append(_companion_observation())
@@ -1588,6 +1589,9 @@ func _await_fire_strip(state: Dictionary, probe: Node) -> void:
 		# The named effect must really appear. The timeout and the strip's
 		# visible-frame assertion are unchanged by respawn handling.
 		var deadline: int = Time.get_ticks_msec() + 2500
+		# Even an already-active probe needs a draw after the new input. The
+		# caller may immediately save this rendered frame when the waiter returns.
+		await RenderingServer.frame_post_draw
 		while probe != null and not _probe_active(probe, state) and Time.get_ticks_msec() < deadline:
 			if not _local_human_alive(manager):
 				break
@@ -1858,17 +1862,34 @@ func _wait_live_joined_fighter(state_name: String) -> bool:
 		return false
 	return true
 
-func _restore_static_aim_after_respawn(state: Dictionary) -> void:
+func _prepare_static_capture(state: Dictionary) -> bool:
 	var gm: Node = _game_manager()
-	if gm == null or not _joined or _local_human_alive(gm):
-		return
-	if not await _wait_live_joined_fighter(str(state.get("name", "static aim"))):
-		return
-	if state.has("weapon"):
-		await _select_weapon(str(state["weapon"]))
-	await _set_aim_pitch(float(state["aim_pitch"]))
-	await RenderingServer.frame_post_draw
-	await RenderingServer.frame_post_draw
+	if not _joined or not (state.has("weapon") or state.has("aim_pitch")):
+		return true
+	var state_name: String = str(state.get("name", "static pose"))
+	for _attempt: int in range(2):
+		if not await _wait_live_joined_fighter(state_name):
+			return false
+		if state.has("weapon"):
+			await _select_weapon(str(state["weapon"]))
+		if state.has("aim_pitch"):
+			await _set_aim_pitch(float(state["aim_pitch"]))
+		# Camera reconciliation must render the accepted aim, not just receive it.
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		if not _local_human_alive(gm):
+			continue
+		if state.has("weapon") and str(gm.call("_local_weapon_name")) != str(state["weapon"]):
+			continue
+		if state.has("aim_pitch"):
+			var pitch: float = float(state["aim_pitch"])
+			var camera: Node3D = _spectator_camera()
+			if absf(_local_server_pitch(gm) - pitch) > 0.001 or absf(camera.rotation.x - pitch) > 0.001:
+				continue
+		return true
+	push_error("qa_tour: could not retain a living requested pose before freezing " + state_name)
+	_failed = true
+	return false
 
 func _snapshot_round_state() -> String:
 	var gm: Node = _game_manager()

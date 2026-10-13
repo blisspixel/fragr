@@ -117,6 +117,9 @@ var weapon_textures = {}
 var viewmodel_textures: Dictionary[String, Texture2D] = WeaponArt.IDLE
 ## Seconds since the held gun last fired; selects its fire and cycle frames.
 var fp_shot_age: float = INF
+## A shot received before this HUD's update must not inherit the time spent
+## rendering the previous frame, which can exceed the whole flash lifetime.
+var fp_shot_pending_update: bool = false
 ## The off hand that throws a grenade, and how far into the throw it is.
 var fp_throw_hand: TextureRect
 var fp_throw_time: float = INF
@@ -1445,7 +1448,10 @@ func _process(delta):
 		if fp_muzzle_timer <= 0 and fp_muzzle:
 			fp_muzzle.visible = false
 	_update_floating_damage(delta)
-	fp_shot_age += delta
+	if fp_shot_pending_update:
+		fp_shot_pending_update = false
+	else:
+		fp_shot_age += delta
 	fp_throw_time += delta
 	if fp_juice_enabled and fp_weapon and (fp_weapon.visible or melee_view.visible):
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
@@ -1977,6 +1983,7 @@ func _fp_fire_kick(weapon_name: String) -> void:
 	# would sit over it.
 	if WeaponArt.FIRE.has(weapon_name):
 		fp_shot_age = 0.0
+		fp_shot_pending_update = true
 		_update_fp_frame()
 	else:
 		_fp_muzzle_flash(weapon_name)

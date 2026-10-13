@@ -1,0 +1,41 @@
+{
+	"models": [
+		{
+			"bounds": {
+				"position": [
+					-0.95188707113266,
+					-0.532759130001068,
+					-0.777896046638489
+				],
+				"size": [
+					1.90275907516479,
+					1.0675733089447,
+					1.55871200561523
+				]
+			},
+			"bytes": 10233256,
+			"name": "ladle-v1",
+			"sha256": "c82e228a3a9998ab9d475b684e42b259da468c533a9a1eaad87a67e11adba15d",
+			"stats": {
+				"animations": [],
+				"bones": 0,
+				"materials": [
+					{
+						"albedo_size": [
+							2048,
+							2048
+						],
+						"metallic_map": true,
+						"normal_enabled": true,
+						"roughness_map": true
+					}
+				],
+				"meshes": 1,
+				"triangles": 10605,
+				"vertices": 12114
+			}
+		}
+	],
+	"renderer": "gl_compatibility",
+	"schema": 1
+}

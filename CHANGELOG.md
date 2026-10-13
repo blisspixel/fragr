@@ -4,8 +4,19 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.82.1 (2026-10-13)
 
+- Restore Rocket launch feedback from accepted projectile facts without doubling
+  local predicted shots. Preserve a first-person muzzle flash for its first draw
+  on a slow renderer, and capture weapon/effect evidence from the actual frame.
+- Require real terminal reach, facing and line of sight to release foundry
+  workers. Reset standalone foundry gates with the encounter party, and let the
+  freight lift move when unrelated bystanders overlap elsewhere. Connected M13
+  and its campaign saves remain unbuilt.
+- Retain an inspected foundry ladle source and small surface comparisons offline.
+  Developer tools report audio allowance details and preserve historical model
+  credit holds across output directories and working-directory changes. New
+  audio candidates remain private pending listening and distribution acceptance.
 - Bundle the MCP adapter with desktop packages and include license notices for
   both Rust executables. Saved MCP configurations use absolute paths.
 - Explain initial connection snapshots, persistent action inputs and HUD weapon

@@ -5,6 +5,16 @@ use super::*;
 use crate::test_support::TestDir;
 use crate::Response;
 
+fn check(
+    transport: &dyn Transport,
+    key: &str,
+    required: u64,
+    ledger: Option<&Ledger>,
+) -> Result<CreditCheck, Error> {
+    let dir = TestDir::new();
+    check_with_hold(transport, key, required, ledger, &dir.0.join("hold.json"))
+}
+
 struct Fake {
     replies: RefCell<VecDeque<Result<Response, Error>>>,
     sent: RefCell<Vec<Request>>,
@@ -85,6 +95,7 @@ fn glb(value: Value) -> Vec<u8> {
 fn spec(dir: &TestDir, ids: &[&str]) -> Spec {
     Spec {
         out_dir: dir.0.clone(),
+        external_hold: dir.0.join("hold.json"),
         jobs: ids
             .iter()
             .map(|id| JobSpec {
@@ -115,6 +126,147 @@ fn run(fake: &Fake, spec: &Spec, credits: u64, cap: Option<f64>) -> Result<(), E
         &mut Vec::new(),
         &mut |_| {},
     )
+}
+
+#[test]
+fn balance_details_preserve_legacy_unknown_and_explicit_no_reset() {
+    let legacy = check(&Fake::new(vec![json!({"balance":1900})]), "key", 0, None).unwrap();
+    assert_eq!(legacy.monthly_credits, None);
+    assert_eq!(legacy.permanent_credits, None);
+    assert!(!legacy.monthly_reset_reported);
+    let fake = Fake::new(vec![json!({"balance":50, "monthly_credits":1800,
+        "permanent_credits":100, "monthly_resets_at":1793491200000_u64})]);
+    let limited = check(&fake, "key", 51, None).unwrap();
+    assert!(
+        !limited.sufficient,
+        "member balance, not pool sum, gates spending"
+    );
+    assert_eq!(limited.monthly_credits, Some(1800));
+    assert_eq!(limited.permanent_credits, Some(100));
+    assert_eq!(limited.monthly_resets_at, Some(1793491200000));
+    assert!(limited.monthly_reset_reported);
+    assert_eq!(fake.posts(), 0);
+    let no_reset = check(
+        &Fake::new(vec![json!({"balance":0,"monthly_resets_at":null})]),
+        "key",
+        0,
+        None,
+    )
+    .unwrap();
+    assert!(no_reset.monthly_reset_reported);
+    assert_eq!(no_reset.monthly_resets_at, None);
+}
+
+#[test]
+fn balance_rejects_malformed_detail_without_echoing_provider_data() {
+    for field in ["monthly_credits", "permanent_credits", "monthly_resets_at"] {
+        for bad in [json!(-1), json!(1.5), json!("private-key"), json!({})] {
+            let mut value = json!({"balance":1900});
+            value[field] = bad;
+            let error = balance(&Fake::new(vec![value]), "key").unwrap_err();
+            assert!(!error.to_string().contains("private-key"));
+        }
+    }
+    assert!(balance(
+        &Fake::new(vec![json!({"balance":1,"monthly_credits":null})]),
+        "key"
+    )
+    .is_err());
+}
+
+#[test]
+fn model_spec_cannot_override_the_account_carry_path() {
+    let value = json!({"out_dir":"some/new/directory","jobs":[{"id":"new","kind":"rig","input_task_id":"task-a","height_meters":1.8}]});
+    let parsed = parse_spec(&value.to_string()).unwrap();
+    assert_eq!(parsed.external_hold, PathBuf::from(ACCOUNT_HOLD));
+    let mut bypass = value;
+    bypass["external_hold"] = json!("missing-hold.json");
+    assert!(parse_spec(&bypass.to_string()).is_err());
+}
+
+#[test]
+fn external_hold_is_durable_and_gates_check_and_generation() {
+    let dir = TestDir::new();
+    retain_external_hold(
+        &dir.0.join("hold.json"),
+        15,
+        "Historical uncertain hold; original raw ledger missing after migration",
+    )
+    .unwrap();
+    assert!(retain_external_hold(&dir.0.join("hold.json"), 1, "replacement").is_err());
+    let ledger = Ledger::open(&dir.0).unwrap();
+    assert_eq!(
+        ledger.jobs().count(),
+        0,
+        "carry hold never invents provider tasks"
+    );
+    let result = check_with_hold(
+        &Fake::new(vec![json!({"balance":40})]),
+        "key",
+        35,
+        Some(&ledger),
+        &dir.0.join("hold.json"),
+    )
+    .unwrap();
+    assert_eq!(result.pending_local_credits, 0);
+    assert_eq!(result.external_held_credits, 15);
+    assert!(!result.sufficient);
+    drop(ledger);
+    let fake = Fake::new(vec![json!({"balance":40})]);
+    assert!(run(&fake, &spec(&dir, &["new-stage"]), 35, Some(0.70)).is_err());
+    assert_eq!(fake.posts(), 0);
+    let other = TestDir::new();
+    let mut changed_output = spec(&other, &["fresh-output"]);
+    changed_output.external_hold = dir.0.join("hold.json");
+    let fake = Fake::new(vec![json!({"balance":40})]);
+    assert!(run(&fake, &changed_output, 35, Some(0.70)).is_err());
+    assert_eq!(
+        fake.posts(),
+        0,
+        "new output directory cannot bypass account carry"
+    );
+    let fake = Fake::new(vec![]);
+    assert!(run(&fake, &changed_output, 35, Some(5.01)).is_err());
+    assert!(
+        fake.sent.borrow().is_empty(),
+        "hard dollar ceiling precedes API"
+    );
+    let no_ledger = check_with_hold(
+        &Fake::new(vec![json!({"balance":40})]),
+        "key",
+        35,
+        None,
+        &dir.0.join("hold.json"),
+    )
+    .unwrap();
+    assert!(
+        !no_ledger.sufficient,
+        "no --out still retains account carry"
+    );
+}
+
+#[test]
+fn external_hold_corruption_refuses_new_paid_stage() {
+    let dir = TestDir::new();
+    for (credits, reason) in [
+        (0, "why"),
+        (1_000_001, "why"),
+        (15, ""),
+        (15, "line\nbreak"),
+    ] {
+        assert!(retain_external_hold(&dir.0.join("hold.json"), credits, reason).is_err());
+    }
+    for bytes in [
+        "broken".into(),
+        "x".repeat(4097),
+        json!({"schema":2,"credits":15,"reason":"history"}).to_string(),
+        json!({"schema":1,"credits":0,"reason":"history"}).to_string(),
+    ] {
+        std::fs::write(dir.0.join("hold.json"), bytes).unwrap();
+        let fake = Fake::new(vec![json!({"balance":1900})]);
+        assert!(run(&fake, &spec(&dir, &["new-stage"]), 35, Some(0.70)).is_err());
+        assert_eq!(fake.posts(), 0);
+    }
 }
 
 #[test]
@@ -477,6 +629,7 @@ fn rig_downloads_only_documented_outputs_and_rejects_foreign_urls() {
     let dir = TestDir::new();
     let spec = Spec {
         out_dir: dir.0.clone(),
+        external_hold: dir.0.join("hold.json"),
         jobs: vec![JobSpec {
             id: "rig".into(),
             stage: JobStage::Rig {
