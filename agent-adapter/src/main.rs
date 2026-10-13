@@ -2450,28 +2450,19 @@ mod tests {
 
     /// A fake server exits if stdin is already closed. `Child::wait` would close
     /// it, so the ready line must arrive while the lease pipe is still open.
+    ///
+    /// The stand-in is a tiny executable, not a shell script. macOS `/bin/bash`
+    /// rejects a fractional `read -t`, and Windows cannot spawn a shebang file.
+    /// It flushes one ready line and writes the marker only after stdin hits EOF.
     #[tokio::test]
     async fn local_spawn_keeps_the_stdin_lease_until_the_ready_line() {
-        let id = std::process::id();
-        let script = std::env::temp_dir().join(format!("fragr-ready-lease-{id}.sh"));
-        let marker = std::env::temp_dir().join(format!("fragr-ready-lease-{id}.marker"));
-        let _ = std::fs::remove_file(&marker);
-        std::fs::write(
-            &script,
-            format!(
-                "#!/bin/bash\nmarker={}\nif read -t 0.4 -n 1 -r _; then\n  :\nelse\n  status=$?\n  if [ \"$status\" -eq 1 ]; then\n    printf '%s\\n' early-eof > \"$marker\"\n    exit 2\n  fi\nfi\nprintf '%s\\n' '{{\"version\":1,\"kind\":\"arena\",\"url\":\"ws://127.0.0.1:6767\",\"listen\":\"127.0.0.1:6767\",\"map_id\":1,\"mode\":\"ffa\",\"five_vs_five\":false,\"bots\":0,\"bot_policy\":\"fixed\",\"fill_target\":0,\"gameplay_version\":46}}'\ncat >/dev/null\nprintf '%s\\n' lease-eof > \"$marker\"\n",
-                marker.display()
-            ),
-        )
-        .unwrap();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = std::fs::metadata(&script).unwrap().permissions();
-            perms.set_mode(0o755);
-            std::fs::set_permissions(&script, perms).unwrap();
-        }
-        let (url, child) = spawn_local_server_bin(&script, 0, "1", "ffa")
+        let dir = std::env::temp_dir().join(format!("fragr-ready-lease-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let _cleanup = RemoveDir(dir.clone());
+        let exe = compile_ready_lease_stub(&dir);
+        let marker = dir.join("marker");
+        let (url, child) = spawn_local_server_bin(&exe, 0, "1", "ffa")
             .await
             .expect("ready line while stdin stays open");
         assert_eq!(url, "ws://127.0.0.1:6767");
@@ -2482,9 +2473,139 @@ mod tests {
         child.stop().await;
         let wrote = std::fs::read_to_string(&marker).unwrap_or_default();
         assert_eq!(wrote.trim(), "lease-eof");
-        let _ = std::fs::remove_file(&script);
-        let _ = std::fs::remove_file(&marker);
     }
+
+    struct RemoveDir(std::path::PathBuf);
+
+    impl Drop for RemoveDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn compile_ready_lease_stub(dir: &std::path::Path) -> std::path::PathBuf {
+        let source = dir.join("stub.rs");
+        let exe_name = if cfg!(windows) { "stub.exe" } else { "stub" };
+        let exe = dir.join(exe_name);
+        std::fs::write(&source, READY_LEASE_STUB).unwrap();
+        let output = std::process::Command::new("rustc")
+            .current_dir(dir)
+            .args(["--edition=2021", "-o"])
+            .arg(&exe)
+            .arg(&source)
+            .output()
+            .unwrap_or_else(|error| panic!("rustc failed to start: {error}"));
+        assert!(
+            output.status.success(),
+            "rustc failed to build the ready-line stub: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        exe
+    }
+
+    /// Prints one flushed arena line, then stays up until stdin closes.
+    /// An already-closed lease records `early-eof` and exits without a line,
+    /// which is what `Child::wait` would do by dropping the pipe.
+    const READY_LEASE_STUB: &str = r#"
+use std::env;
+use std::fs;
+use std::io::{self, Read, Write};
+use std::process::ExitCode;
+use std::sync::mpsc;
+use std::thread;
+use std::time::Duration;
+
+enum Pipe {
+    Started,
+    Eof,
+    Byte,
+    Err(String),
+}
+
+fn main() -> ExitCode {
+    let marker = match env::current_exe() {
+        Ok(path) => path.parent().map(|dir| dir.join("marker")),
+        Err(error) => {
+            eprintln!("ready lease exe: {error}");
+            return ExitCode::from(3);
+        }
+    };
+    let Some(marker) = marker else {
+        eprintln!("ready lease exe has no directory");
+        return ExitCode::from(3);
+    };
+    let (tx, rx) = mpsc::channel();
+    thread::spawn(move || {
+        let _ = tx.send(Pipe::Started);
+        let mut stdin = io::stdin();
+        let mut buf = [0u8; 1];
+        match stdin.read(&mut buf) {
+            Ok(0) => {
+                let _ = tx.send(Pipe::Eof);
+            }
+            Ok(_) => {
+                let _ = tx.send(Pipe::Byte);
+                let mut rest = Vec::new();
+                match stdin.read_to_end(&mut rest) {
+                    Ok(_) => {
+                        let _ = tx.send(Pipe::Eof);
+                    }
+                    Err(error) => {
+                        let _ = tx.send(Pipe::Err(error.to_string()));
+                    }
+                }
+            }
+            Err(error) => {
+                let _ = tx.send(Pipe::Err(error.to_string()));
+            }
+        }
+    });
+    match rx.recv_timeout(Duration::from_secs(5)) {
+        Ok(Pipe::Started) => {}
+        Ok(Pipe::Err(error)) => {
+            eprintln!("ready lease stdin: {error}");
+            return ExitCode::from(3);
+        }
+        Ok(_) | Err(_) => return ExitCode::from(3),
+    }
+    match rx.recv_timeout(Duration::from_millis(400)) {
+        Ok(Pipe::Eof) => {
+            let _ = fs::write(&marker, b"early-eof\n");
+            return ExitCode::from(2);
+        }
+        Ok(Pipe::Err(error)) => {
+            eprintln!("ready lease stdin: {error}");
+            return ExitCode::from(3);
+        }
+        Ok(Pipe::Byte) | Err(mpsc::RecvTimeoutError::Timeout) => {}
+        Ok(Pipe::Started) | Err(mpsc::RecvTimeoutError::Disconnected) => {
+            return ExitCode::from(3);
+        }
+    }
+    {
+        let mut out = io::stdout().lock();
+        out.write_all(b"{\"version\":1,\"kind\":\"arena\",\"url\":\"ws://127.0.0.1:6767\",\"listen\":\"127.0.0.1:6767\",\"map_id\":1,\"mode\":\"ffa\",\"five_vs_five\":false,\"bots\":0,\"bot_policy\":\"fixed\",\"fill_target\":0,\"gameplay_version\":46}\n")
+            .expect("ready line");
+        out.flush().expect("flush ready line");
+    }
+    loop {
+        match rx.recv() {
+            Ok(Pipe::Eof) => break,
+            Ok(Pipe::Byte) => {}
+            Ok(Pipe::Err(error)) => {
+                eprintln!("ready lease stdin: {error}");
+                return ExitCode::from(3);
+            }
+            Ok(Pipe::Started) | Err(_) => return ExitCode::from(3),
+        }
+    }
+    if let Err(error) = fs::write(&marker, b"lease-eof\n") {
+        eprintln!("ready lease marker: {error}");
+        return ExitCode::from(3);
+    }
+    ExitCode::SUCCESS
+}
+"#;
 
     #[test]
     fn args_parse_scripted_bot_with_name() {

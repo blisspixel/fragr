@@ -44,7 +44,7 @@ struct Args {
     #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
     desktop_host: bool,
 
-    /// Loopback child for `fragr-agent-adapter mcp --local`. One ArenaReady
+    /// Loopback child for `fragr-agent-adapter mcp --local`. One flushed ArenaReady
     /// JSON line on stdout after bind; stdin shutdown or EOF stops only this child.
     /// Any arcade mode the dedicated server already accepts, including free-for-all.
     #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "console", "map_file", "campaign_run"])]
