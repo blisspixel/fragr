@@ -17,7 +17,7 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [October 13 development round](build-round-20261013.md) is **in flight**:
+The [October 13 development round](build-round-20261013.md) is **implemented**:
 parallel campaign, audio and art work, Linux visual verification, then one
 reviewed integration and CI-passing main. Its bounded funded allowance and live
 authentication readings supersede the earlier account readings for this round.

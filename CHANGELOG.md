@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.82.1 (2026-10-13)
 
 - Restore Rocket launch feedback from accepted projectile facts without doubling
   local predicted shots. Preserve a first-person muzzle flash for its first draw

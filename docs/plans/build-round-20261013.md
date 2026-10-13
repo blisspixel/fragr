@@ -1,6 +1,6 @@
 # October 13 development round
 
-Status: **in flight**. This is a bounded composition under the existing Full build order, not a second campaign or feature queue.
+Status: **implemented**. This is a bounded composition under the existing Full build order, not a second campaign or feature queue. Local and GitHub verification own delivery; generated candidates retain their separate acceptance gates.
 
 ## Goal and ownership
 
@@ -54,12 +54,31 @@ The final capture path reacquires the living requested pose before freezing and
 checks the saved frame's facts. Failed evidence remains under
 `.agents/round-20261013/`; assertions and timeouts remain enforced.
 
-Combined verification is in flight. The complete Godot 4.7.2 headless checker
+The complete Godot 4.7.2 headless checker
 (361 scripts, 172 harnesses) and its ten verifier self-test scenarios passed on
 Linux. The final 32-state tour passed, published 14 stills and passed contact-sheet
 and effect-strip inspection. Flechette muzzle frames, the blue Rail impact and
 clustered Scatter impacts are visible; menus and bodies retain the existing
 pixel direction. Software-rendered evidence uses Mesa llvmpipe and does not
 establish hardware performance. Workspace lint, the locked release build and
-dependency licenses, bans and sources passed. Longer native checks, CI, main
-integration and release results remain in flight.
+dependency licenses, bans and sources passed. Unfiltered workspace line coverage
+passed at 92.91 percent, above the unchanged 90 percent floor, including the new
+Rocket and account-hold regressions. All eight required network scenarios and
+route checks, the seven-map mixed roster and the 120-second soak passed. The
+existing roster limits still admit the recorded map 4, 5 and 6 spawn-death
+warnings; those are retained, not treated as proof that spawn quality is finished.
+The 16-bot, 1,200-tick release benchmark passed determinism and budget checks with
+0.557 ms p99 and no ticks over budget. It ran alongside coverage, has no connected
+clients, and establishes neither renderer performance nor network capacity.
+
+One unbounded-concurrency workspace run hit an existing 30-second owned-server
+startup deadline on a historical closed M08 save. No compatibility assertion
+failed. The same test passed in the full coverage run and in a focused rerun
+(17.82 seconds for all ten cases). The original failure remains in
+`tests-final.log`; the separate two-thread workspace rerun passed, retaining the
+same deadline and every assertion. No production or test timeout was relaxed.
+
+This round prepares v0.82.1. Applicable reviewed-head PR checks, manual desktop
+package checks and main CI must pass before tagging. Issue 391 stays open until
+the tagged packages actually contain the adapter. No further production round
+starts before that clean-main checkpoint.
