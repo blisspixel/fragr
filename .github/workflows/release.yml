@@ -60,7 +60,7 @@ jobs:
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
         with:
           key: release-${{ matrix.platform }}
-      - name: Build fragr-server
+      - name: Build server and agent adapter
         shell: bash
         env:
           # Baked into GET /status as ops.build; an empty release reads as none.
@@ -71,20 +71,24 @@ jobs:
           mkdir -p out
           case "${{ matrix.platform }}" in
             macos-universal)
-              cargo build -p fragr-server --release --locked --target aarch64-apple-darwin
-              MACOSX_DEPLOYMENT_TARGET=10.13 cargo build -p fragr-server --release --locked --target x86_64-apple-darwin
+              cargo build -p fragr-server -p fragr-agent-adapter --release --locked --target aarch64-apple-darwin
+              MACOSX_DEPLOYMENT_TARGET=10.13 cargo build -p fragr-server -p fragr-agent-adapter --release --locked --target x86_64-apple-darwin
               lipo -create -output out/fragr-server \
                 target/aarch64-apple-darwin/release/fragr-server \
                 target/x86_64-apple-darwin/release/fragr-server
               lipo -info out/fragr-server
+              lipo -create -output out/fragr-agent-adapter \
+                target/aarch64-apple-darwin/release/fragr-agent-adapter \
+                target/x86_64-apple-darwin/release/fragr-agent-adapter
+              lipo -info out/fragr-agent-adapter
               ;;
             windows-x86_64)
-              cargo build -p fragr-server --release --locked
-              cp target/release/fragr-server.exe out/
+              cargo build -p fragr-server -p fragr-agent-adapter --release --locked
+              cp target/release/fragr-server.exe target/release/fragr-agent-adapter.exe out/
               ;;
             *)
-              cargo build -p fragr-server --release --locked
-              cp target/release/fragr-server out/
+              cargo build -p fragr-server -p fragr-agent-adapter --release --locked
+              cp target/release/fragr-server target/release/fragr-agent-adapter out/
               ;;
           esac
       - name: Third-party license notices for the linked crates
@@ -98,7 +102,7 @@ jobs:
           esac
           # Fails when any linked crate lacks a license the deny.toml allowlist accepts,
           # or has neither its own license file nor a standard text for its license.
-          cargo run -p fragr-licenses --locked -- "${targets[@]}" --deny deny.toml --out out/THIRD_PARTY_LICENSES.txt
+          cargo run -p fragr-licenses --locked -- "${targets[@]}" --package fragr-server --package fragr-agent-adapter --deny deny.toml --out out/THIRD_PARTY_LICENSES.txt
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: server-${{ matrix.platform }}
@@ -225,17 +229,17 @@ jobs:
           # local_match.gd looks for fragr-server in the game executable's own directory.
           case "$PLATFORM" in
             linux-x86_64)
-              cp stage/client/fragr.x86_64 stage/server/fragr-server "$root/"
-              chmod +x "$root/fragr.x86_64" "$root/fragr-server"
+              cp stage/client/fragr.x86_64 stage/server/fragr-server stage/server/fragr-agent-adapter "$root/"
+              chmod +x "$root/fragr.x86_64" "$root/fragr-server" "$root/fragr-agent-adapter"
               ;;
             windows-x86_64)
-              cp stage/client/fragr.exe stage/server/fragr-server.exe "$root/"
+              cp stage/client/fragr.exe stage/server/fragr-server.exe stage/server/fragr-agent-adapter.exe "$root/"
               ;;
             macos-universal)
               ditto -x -k stage/client/fragr.zip "$root/"
               app="$root/fragr.app"
               test -f "$app/Contents/MacOS/fragr" || { echo "expected fragr.app from the export"; ls "$root"; exit 1; }
-              cp stage/server/fragr-server "$app/Contents/MacOS/fragr-server"
+              cp stage/server/fragr-server stage/server/fragr-agent-adapter "$app/Contents/MacOS/"
               chmod +x "$app/Contents/MacOS/"*
               # Ad-hoc signature only: Apple Silicon refuses unsigned code. Not notarized.
               codesign --force --deep --sign - "$app"
@@ -283,6 +287,10 @@ jobs:
             test -s "$root/licenses/$notice" || { echo "missing licenses/$notice"; exit 1; }
           done
           grep -c '^License: ' "$root/licenses/THIRD_PARTY_LICENSES.txt"
+          adapter="$(dirname "$server")/fragr-agent-adapter"
+          if [[ "$PLATFORM" == windows-x86_64 ]]; then adapter="$adapter.exe"; fi
+          "$adapter" --version
+          "$adapter" mcp --help > "$RUNNER_TEMP/adapter-help.txt"
           "$server" --help > "$RUNNER_TEMP/server-help.txt"
           head -n 3 "$RUNNER_TEMP/server-help.txt"
           "$server" --bench 4 --bench-ticks 200 --seed 42 > "$RUNNER_TEMP/bench.json"

@@ -6,7 +6,11 @@ Tagged releases attach three archives and `SHA256SUMS.txt` on the
 [releases page](https://github.com/blisspixel/fragr/releases):
 `fragr-<tag>-windows-x86_64.zip`, `fragr-<tag>-linux-x86_64.zip`, and
 `fragr-<tag>-macos-universal.zip`. Keep the extracted game and bundled
-`fragr-server` together. Each package includes licenses for fragr, Godot,
+`fragr-server` together. Packages built from current source also include the
+matching `fragr-agent-adapter` for MCP clients, beside the server (macOS:
+`fragr.app/Contents/MacOS`). Older releases such as v0.82.0 lack the adapter
+and require a source build. Use an absolute executable path in saved MCP
+configurations; see the [adapter setup](../agent-adapter/README.md). Each package includes licenses for fragr, Godot,
 fonts and linked Rust crates. The radio library makes the packages large.
 
 A client that speaks an older gameplay or geometry version than the server
@@ -28,7 +32,7 @@ On macOS you can also remove the downloaded-file quarantine flag from an
 archive you trust with `xattr -dr com.apple.quarantine fragr.app`.
 
 Single Player launches the bundled campaign server. Builds containing the
-desktop Host controls offer **Multiplayer > Host** for Team Deathmatch or
+desktop Host controls offer **Multiplayer > Run a match** for Team Deathmatch or
 5v5 Sabotage using the same bundled executable. The menu keeps the match
 alive while you watch, leave a fighter seat or return to the menu. Use
 **Stop server** to end it; closing the app also ends its owned match.
@@ -60,15 +64,15 @@ Install Godot 4.7.2-stable with matching export templates. From the
 repository root:
 
 ```bash
-cargo build -p fragr-server --release --locked
+cargo build -p fragr-server -p fragr-agent-adapter --release --locked
 mkdir -p builds/windows builds/macos builds/linux
 godot --headless --path client --export-release "Windows Desktop" ../builds/windows/fragr.exe
 godot --headless --path client --export-release "macOS" ../builds/macos/fragr.zip
 godot --headless --path client --export-release "Linux/X11" ../builds/linux/fragr.x86_64
 ```
 
-These presets export the client only. Put the matching `fragr-server`
-executable beside the Windows or Linux game. A macOS app looks for the server
+These presets export the client only. Put the matching `fragr-server` and `fragr-agent-adapter`
+executables beside the Windows or Linux game. A macOS app looks for the server
 inside `Contents/MacOS` and needs signing again after it is changed. A source
 checkout also searches `target/release` and `target/debug`. The tag packaging
 workflow assembles and smokes these parts together.

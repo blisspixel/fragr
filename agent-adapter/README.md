@@ -2,7 +2,11 @@
 
 ## Connect your agent
 
-One release build, then one config line. The adapter spawns a loopback bot match when `127.0.0.1:6767` is not already a fragr server, and stops that server when the client closes stdin.
+Desktop packages built from current source include the adapter next to the server (macOS:
+`fragr.app/Contents/MacOS`). Use the absolute extracted adapter path, with
+`.exe` on Windows. Older packages require the source build below.
+
+From a source checkout, one release build, then one config line. The adapter spawns a loopback bot match when `127.0.0.1:6767` is not already a fragr server, and stops that server when the client closes stdin.
 
 ```bash
 cargo build -p fragr-server -p fragr-agent-adapter --release --locked
@@ -11,14 +15,14 @@ cargo build -p fragr-server -p fragr-agent-adapter --release --locked
 Claude Code:
 
 ```bash
-claude mcp add fragr -- target/release/fragr-agent-adapter mcp --local --name MyAgent
+claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent
 ```
 
 Codex (`~/.codex/config.toml`):
 
 ```toml
 [mcp_servers.fragr]
-command = "target/release/fragr-agent-adapter"
+command = "/absolute/path/to/fragr/target/release/fragr-agent-adapter"
 args = ["mcp", "--local", "--name", "MyAgent"]
 ```
 
@@ -28,14 +32,21 @@ Generic MCP client:
 {
   "mcpServers": {
     "fragr": {
-      "command": "target/release/fragr-agent-adapter",
+      "command": "/absolute/path/to/fragr/target/release/fragr-agent-adapter",
       "args": ["mcp", "--local", "--name", "MyAgent"]
     }
   }
 }
 ```
 
-First three calls: `round_state`, `observe`, `act`. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/fragr/SKILL.md](../docs/skills/fragr/SKILL.md).
+Saved configurations must use an absolute path: MCP clients can start in any
+working directory. Replace `/absolute/path/to/fragr` below with your checkout.
+
+First three calls: `round_state`, `observe`, `act`. If `observe` reports `SELF connecting`, wait about
+one to two seconds and observe again. Only act once your body appears in the
+snapshot; a full room can leave you unseated. `act` returns `isError` while
+disconnected, connecting, or absent from the latest snapshot. A queued action
+is intent, not confirmation of a game outcome. `observe` defaults to `detail: brief` (self, nearest threats with distance, bearing, and ids for `act.look_at`, pads, and the round). `detail: full` is today's snapshot object. `detail: map` resends retained geometry. Every `tools/call` result has a `content` array. `round_state` and full `observe` also set `structuredContent`. The short card is [docs/skills/fragr/SKILL.md](../docs/skills/fragr/SKILL.md).
 
 `--local` passes `--bots` (default 4), `--map` (default `1`), and `--mode` (default `ffa`) to the child. An explicit `--server` conflicts with `--local`. `fragr-agent-adapter --version` prints the same build string as `fragr-server --version` and `/status` `build.release`. JSON-RPC `ping` returns an empty result. A notification with no `id`, including `notifications/initialized`, gets no response and runs no tool. The protocol version stays `2024-11-05`.
 
@@ -125,7 +136,7 @@ controls stay on the same Action channel. MCP remains a slow decision tool;
 a local tick controller should hold and adjust movement between decisions.
 
 `act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter`, `rail` and
-`sniper` for `weapon_swap`; the server rejects unowned choices. The Sniper
+`sniper`, `repeater` and `arc` for `weapon_swap`; the server rejects unowned choices. The Sniper
 Rifle is a found Cells weapon (70 damage, 32 tick cooldown, 90 unit reach);
 the shared helper takes a carried, loaded Sniper for a hostile beyond the held
 gun's reach and inside the Sniper's. Its scope is human presentation only; an
@@ -381,7 +392,23 @@ Send an action to control your agent's pawn.
 ```
 
 All fields are optional. Movement and fire are booleans (default `false`).
-`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, `"scatter"`, or `"sniper"`.
+`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, `"scatter"`, `"sniper"`, `"repeater"`, or `"arc"`.
+
+| In-game name | `weapon_swap` wire ID |
+|---|---|
+| Fists | `fists` |
+| Shiv | `shiv` |
+| Pistol | `tack` |
+| Rifle | `flechette` |
+| Railgun | `rail` |
+| Shotgun | `scatter` |
+| Sniper Rifle | `sniper` |
+| Repeater | `repeater` |
+| Arc | `arc` |
+
+`pistol` is a display name, not a wire alias. Rocket Launcher exists in the
+server protocol but is not selectable through this MCP schema yet; no current
+mission grants it.
 There is no `reload`. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
 at a player's chest, 1.22 units above the feet, when the belt is clearly open.
@@ -400,15 +427,16 @@ Older recordings can omit this evidence. See `../docs/protocol.md`.
 {
   "content": [{
     "type": "text",
-    "text": "Action sent successfully"
+    "text": "Action queued; observe to confirm the server outcome"
   }]
 }
 ```
 
 **Notes:**
-- Actions are **level-held (sticky)** within each server tick window, not edge-triggered
-- Each `act` call overwrites the previous pending action state
-- All `true` fields are applied together on the next server tick
+- Movement, fire, duck and aim persist across ticks until the next `act` changes them.
+- Each `act` replaces held inputs; omitted boolean fields become `false`.
+- `interact`, grenade and mine presses latch rising edges; release before pressing again.
+- All `true` fields are applied together on subsequent server ticks
 - Movement keys combine (e.g., `forward + left` = diagonal)
 - `weapon_swap` is processed immediately on the next tick
 - `look_at` sets yaw and pitch after movement/turn on the next tick. The target

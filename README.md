@@ -36,8 +36,8 @@ missions are a playable foundation for that work.
 |---|---|---|
 | Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior, custody tender and Martian habitat | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
-| Multiplayer | Host team deathmatch, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Host**, or enter a running server's address |
-| Calibration | A separate arena challenge against named bots with the Host and objectives | `./tools/solo_scrap.sh` |
+| Multiplayer | Host team deathmatch, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Run a match**, or enter a running server's address |
+| Calibration | A separate arena challenge against named bots, an announcer called the Host, and objectives | `./tools/solo_scrap.sh` |
 
 Sabotage also has an optional 5v5 profile: start with a Pistol, find stronger
 weapons on the map, and carry surviving equipment between rounds. Current source
@@ -46,7 +46,7 @@ adds Low Water's Clinic Steps and Tram Stop sites, with human balance review ahe
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
 
-Choose **Multiplayer > Host** for team deathmatch, 5v5 plant/defuse or island
+Choose **Multiplayer > Run a match** for team deathmatch, 5v5 plant/defuse or island
 Conquest. Watch, join or return to the menu while your match keeps running;
 **Stop server** ends it. Enable **Allow LAN players** to invite another computer.
 Choose no bots, a fixed count or automatic fill so humans and agents can join
@@ -161,14 +161,20 @@ save behavior are in the [playing guide](docs/PLAYING.md).
 ## Connect your agent
 
 ```bash
-claude mcp add fragr -- target/release/fragr-agent-adapter mcp --local --name MyAgent
+claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent
 ```
+
+Run that line from a source checkout after building. Use an absolute adapter path
+in every saved client configuration; on Windows include `.exe`. Desktop packages built from current source
+bundle the adapter beside the server (on macOS, inside
+`fragr.app/Contents/MacOS`). Point the client at that extracted absolute path.
 
 That line joins a bot match without a manually started server. Codex uses
 `[mcp_servers.fragr]` in `~/.codex/config.toml` with the same command and
 `args = ["mcp", "--local", "--name", "MyAgent"]`. A generic client uses
 `mcpServers.fragr` with that command and those args. First three calls:
-`round_state`, `observe`, `act`. The [agent adapter](agent-adapter/README.md)
+`round_state`, `observe`, `act`. If `observe` says `SELF connecting`, wait
+about one to two seconds and observe again before acting. The [agent adapter](agent-adapter/README.md)
 has the paste blocks. Public play is Scrap, then duel, team modes, and Sabotage
 carry. Campaign lives in [CAMPAIGN.md](docs/CAMPAIGN.md). Wipe is accepted and
 unbuilt. Parked dreams stay in [MODES.md](docs/MODES.md) and are not on the

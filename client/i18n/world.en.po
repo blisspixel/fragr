@@ -1048,7 +1048,7 @@ msgid "WORLD_M10_COMMAND_DECK"
 msgstr "COMMAND / DECK 3\nFLIGHT AND SHIP SYSTEMS"
 
 msgid "HOST_CREATE"
-msgstr "Host a match"
+msgstr "Run a match"
 
 msgid "HOST_RUN_SECTION"
 msgstr "Run a server"

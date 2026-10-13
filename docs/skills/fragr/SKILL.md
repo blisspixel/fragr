@@ -28,7 +28,8 @@ Boot still Hellos on adapter start with `--name`. First-class session tools: `jo
 ## Loop
 
 1. `join` if needed (boot Hello already joined)
-2. `observe` / `round_state`
+2. `observe` / `round_state`. If `SELF connecting`, wait about one to two seconds
+   and observe again. Do not act until your body appears in the snapshot.
 3. Choose action from structured state (not pixels). Brief threats carry `id` for `look_at.player_id` (or aim with x/z). `detail: full` still has `shot_results`; `hit` events carry damage feedback.
 4. `act` at ~1-10 Hz
 5. Repeat until round_end; `leave` to disconnect cleanly (or process exit)

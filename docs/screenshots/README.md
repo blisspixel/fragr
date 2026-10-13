@@ -11,6 +11,22 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
+## October 13, 2026 first-use menu review
+
+The current multiplayer still shows the Run a match action and a real loopback
+status reply from a five-bot server. It was extracted without retouching from
+the 32-state Linux Xvfb tour, rendered at 1280x720 with Godot 4.7.2 and Mesa
+llvmpipe. That complete tour failed three transient weapon-effect visibility
+checks; the failed receipt is retained locally. These approved menu frames do
+not imply a passing full tour or qualify a release.
+
+`tour_host_running_16x9.png` and `tour_host_auto_16x9.png` are separately rendered
+menu fixtures using a declared synthetic local-host state. They show the running
+match entry and ten-fighter automatic-fill layout, not a real hosted match or
+native process qualification. The ordinary host-menu harness separately checks
+menu replacement and retained settings. All three new frames were inspected at
+full size. Older gameplay and boot stills retain the dates and limits below.
+
 ## Current README gallery, October 10, 2026
 
 The boot menu matches the October 8 capture byte for byte. The multiplayer

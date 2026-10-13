@@ -63,6 +63,8 @@ var _host_bots_label: Label
 var _host_bot_hint: Label
 var _host_bot_counts: Dictionary = {"fixed": 4, "auto": 4}
 var _host_bot_selection: String = "fixed"
+var _host_auto_counts: Dictionary = {"tdm": 4, "sabotage": 10, "conquest": 4}
+var _host_selected_mode: String = "tdm"
 var _host_lan: CheckButton
 var _host_port: SpinBox
 var _launch_pending: bool = false
@@ -87,6 +89,8 @@ func _ready() -> void:
 	_local_match.stop()
 	_local_host = LocalHost.for_tree(get_tree())
 	_local_host.state_changed.connect(_on_host_state_changed)
+	if LocalHost.valid_settings(_local_host.settings):
+		_host_settings = _local_host.settings.duplicate(true)
 	_local_host.server_ready.connect(_on_benchmark_ready)
 	_local_host.failed.connect(_on_benchmark_failed)
 	# The match owner outlives this menu. Connect once so a return from a
@@ -352,7 +356,10 @@ func _process(_delta: float) -> void:
 
 func _page_main() -> void:
 	_button("Single Player", func() -> void: _show("single"))
-	_button("Multiplayer", func() -> void: _show("multi"))
+	if _local_host.state == LocalHost.State.RUNNING:
+		_button("Your match is running - Rejoin", func() -> void: _show("host")).name = "RejoinHosted"
+	else:
+		_button("Multiplayer", func() -> void: _show("multi"))
 	_button("Your callsign", func() -> void: _open_profile("main"))
 	_button(tr("RECORD_TITLE"), func() -> void: _show("records"))
 	_button("Settings", func() -> void: _show("settings"))
@@ -692,7 +699,7 @@ func _page_multi() -> void:
 	_host_edit.custom_minimum_size = Vector2(0.0, 36.0)
 	_root.add_child(_host_edit)
 	_button("Check host", _probe_host).name = "CheckHost"
-	_match_line = _label("Checking the host.")
+	_match_line = _label("Check this address to join a different server." if _local_host.state == LocalHost.State.RUNNING else "Checking the host.")
 	_match_line.name = "MatchLine"
 	_watch_button = _button("Watch", func() -> void: _launch("spectate", _host_address()))
 	_join_button = _button("Join", func() -> void: _launch("join", _host_address()))
@@ -720,13 +727,14 @@ func _page_multi() -> void:
 	_fill_server_lists()
 	_label("The host chooses the arena and rules. You watch in this app, then join.")
 	_ensure_lan_listen()
-	_probe_host()
+	if _local_host.state != LocalHost.State.RUNNING:
+		_probe_host()
 	_enqueue_known()
 
 func _on_host_state_changed() -> void:
 	if _benchmark_pending:
 		return
-	if _page == "host" or _page == "benchmark":
+	if _page in ["host", "benchmark", "main", "multi"]:
 		_show(_page)
 
 func _page_benchmark() -> void:
@@ -830,10 +838,14 @@ func _page_host() -> void:
 	_host_mode.add_item(tr("MODE_TDM"))
 	_host_mode.add_item(tr("HOST_SABOTAGE"))
 	_host_mode.add_item(tr("MODE_CONQUEST"))
-	_host_mode.select(["tdm", "sabotage", "conquest"].find(_host_settings["mode"]))
+	_host_selected_mode = _host_settings["mode"]
+	_host_mode.select(["tdm", "sabotage", "conquest"].find(_host_selected_mode))
+	if _host_settings["bot_policy"] == "auto":
+		_host_auto_counts[_host_selected_mode] = _host_settings["fill_target"]
+	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
 	_host_map = _host_option(tr("HOST_MAP"), "HostMap")
 	_rebuild_host_maps()
-	_host_mode.item_selected.connect(func(_index: int) -> void: _rebuild_host_maps())
+	_host_mode.item_selected.connect(_change_host_mode)
 	_host_bot_policy = _host_option(tr("HOST_BOTS"), "HostBotPolicy")
 	for key: String in ["HOST_BOTS_FIXED", "HOST_BOTS_NONE", "HOST_BOTS_AUTO"]:
 		_host_bot_policy.add_item(tr(key))
@@ -873,9 +885,19 @@ func _page_host() -> void:
 	_button(tr("HOST_START"), _start_host).name = "StartServer"
 	_button("Back", func() -> void: _show("multi"))
 
+func _change_host_mode(_index: int) -> void:
+	if _host_bot_selection == "auto":
+		_host_auto_counts[_host_selected_mode] = int(_host_bots.value)
+	_host_selected_mode = ["tdm", "sabotage", "conquest"][_host_mode.selected]
+	_host_bot_counts["auto"] = _host_auto_counts[_host_selected_mode]
+	_rebuild_host_maps()
+	_rebuild_host_bots(false)
+
 func _rebuild_host_bots(remember: bool) -> void:
 	if remember and _host_bot_selection != "none":
 		_host_bot_counts[_host_bot_selection] = int(_host_bots.value)
+		if _host_bot_selection == "auto":
+			_host_auto_counts[_host_selected_mode] = int(_host_bots.value)
 	_host_bot_selection = ["fixed", "none", "auto"][_host_bot_policy.selected]
 	_host_bots_row.visible = _host_bot_selection != "none"
 	_host_bots_label.text = tr("HOST_TOTAL_FIGHTERS" if _host_bot_selection == "auto" else "HOST_BOT_COUNT")

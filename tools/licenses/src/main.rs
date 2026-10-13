@@ -11,13 +11,13 @@ use fragr_licenses::{distributed_crates, parse_allowlist, render, Crate};
 
 #[derive(Parser)]
 #[command(
-    about = "Write third-party license notices for a packaged fragr-server",
+    about = "Write third-party license notices for packaged workspace binaries",
     version = env!("FRAGR_CLI_VERSION")
 )]
 struct Args {
-    /// Workspace package whose linked dependencies are listed.
+    /// Workspace packages whose linked dependencies are listed; repeat to union them.
     #[arg(long, default_value = "fragr-server")]
-    package: String,
+    package: Vec<String>,
     /// Target triple to resolve for; repeat to union several (a universal macOS build).
     #[arg(long, required = true)]
     target: Vec<String>,
@@ -59,8 +59,10 @@ fn run(args: &Args) -> Result<usize, Vec<String>> {
     let mut crates: BTreeMap<(String, String), Crate> = BTreeMap::new();
     for target in &args.target {
         let metadata = metadata(target).map_err(|error| vec![error])?;
-        for krate in distributed_crates(&metadata, &args.package).map_err(|error| vec![error])? {
-            crates.insert((krate.name.clone(), krate.version.clone()), krate);
+        for package in &args.package {
+            for krate in distributed_crates(&metadata, package).map_err(|error| vec![error])? {
+                crates.insert((krate.name.clone(), krate.version.clone()), krate);
+            }
         }
     }
     let list: Vec<Crate> = crates.into_values().collect();
