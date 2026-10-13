@@ -1,6 +1,8 @@
 # Connected foundry development round
 
-Status: **implemented**, 2026-10-13. GitHub delivery follows the checks below.
+Status: **implemented**, 2026-10-13. Delivery is tracked in
+[PR #402](https://github.com/blisspixel/fragr/pull/402); merge and release require
+the passing checks below.
 This follows shipped v0.82.1 and the existing
 Full build order. Spend: $0, using retained assets and local tools.
 
@@ -166,8 +168,9 @@ The first Godot checker passes 366 scripts and all 175 harnesses. After the
 Rocket viewmodel addition, the checker covers 367 scripts. That run found one
 local-launch harness exiting before the audio mixer released its queued
 resources. Its teardown now uses the same bounded drain as the earlier mission
-harnesses; the focused verbose rerun passes without resource leaks. A clean
-whole-client rerun checks the composed result before integration.
+harnesses; the focused verbose rerun passes without resource leaks. The final
+clean whole-client rerun passes import, all 367 scripts and all 175 harnesses,
+including the actual local M13 launch, with no reported resource leaks.
 Older native and
 client save assertions needed the current version 17 expectation; their original
 historical input bytes remain unchanged. The 32-state arena tour passes, with
