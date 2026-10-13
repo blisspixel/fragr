@@ -82,6 +82,43 @@ fn column(state: &GameState, id: Uuid) -> crate::protocol::WeaponCounts {
 }
 
 #[test]
+fn ordinary_tick_snapshot_age_recovers_the_authoritative_rocket_launch_tick() {
+    let mut state = world(serde_json::json!([]));
+    let shooter = arm(&mut state, 1, 0.0, 0.0);
+    grant(&mut state, shooter, 4);
+    state.round_state = crate::sim::RoundState::Active;
+    let previous = state.snapshot();
+    state.set_action(
+        shooter,
+        crate::protocol::Action {
+            fire: true,
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+    let launched = state.snapshot();
+    assert_eq!(launched.rockets.len(), 1);
+    assert_eq!(launched.rockets[0].age_ticks, 0);
+    let launch_tick = launched.tick - u64::from(launched.rockets[0].age_ticks);
+    assert!(launch_tick > previous.tick);
+    state.set_action(shooter, crate::protocol::Action::default());
+    for age in 1..=3 {
+        state.tick(0.05);
+        let flying = state.snapshot();
+        assert_eq!(flying.rockets.len(), 1);
+        assert_eq!(flying.rockets[0].age_ticks, age);
+        assert_eq!(
+            flying.tick - u64::from(flying.rockets[0].age_ticks),
+            launch_tick
+        );
+        assert!(
+            launch_tick <= launched.tick,
+            "already synchronized flight is not a new launch"
+        );
+    }
+}
+
+#[test]
 fn launch_tick_does_not_hit_a_distant_body_and_later_flight_does() {
     let mut state = world(serde_json::json!([]));
     let shooter = arm(&mut state, 1, 0.0, 0.0);

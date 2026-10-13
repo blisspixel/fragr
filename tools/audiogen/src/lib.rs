@@ -484,6 +484,55 @@ pub struct Subscription {
     pub character_count: Option<u64>,
     pub character_limit: Option<u64>,
     pub next_character_count_reset_unix: Option<u64>,
+    pub can_extend_character_limit: Option<bool>,
+    pub allowed_to_extend_character_limit: Option<bool>,
+    pub max_credit_limit_extension: Option<CreditExtension>,
+    pub current_overage: Option<SubscriptionOverage>,
+}
+
+/// The API accepts a nonnegative credit count or exactly `"unlimited"`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CreditExtension {
+    Limited(u64),
+    Unlimited,
+}
+
+impl<'de> Deserialize<'de> for CreditExtension {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Visitor;
+        impl serde::de::Visitor<'_> for Visitor {
+            type Value = CreditExtension;
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                formatter.write_str("a nonnegative integer or the string unlimited")
+            }
+            fn visit_u64<E: serde::de::Error>(self, value: u64) -> Result<Self::Value, E> {
+                Ok(CreditExtension::Limited(value))
+            }
+            fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
+                if value == "unlimited" {
+                    Ok(CreditExtension::Unlimited)
+                } else {
+                    Err(E::invalid_value(serde::de::Unexpected::Str(value), &self))
+                }
+            }
+        }
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
+impl std::fmt::Display for CreditExtension {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Limited(value) => write!(formatter, "{value}"),
+            Self::Unlimited => formatter.write_str("unlimited"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Deserialize)]
+pub struct SubscriptionOverage {
+    pub amount: Option<String>,
+    pub currency: Option<String>,
 }
 
 pub fn parse_subscription(body: &[u8]) -> Result<Subscription, Error> {
@@ -496,14 +545,38 @@ pub fn parse_subscription(body: &[u8]) -> Result<Subscription, Error> {
 pub fn describe_subscription(sub: &Subscription) -> String {
     let tier = sub.tier.as_deref().unwrap_or("unknown");
     let status = sub.status.as_deref().unwrap_or("unknown");
-    let used = sub.character_count.unwrap_or(0);
-    let limit = sub.character_limit.unwrap_or(0);
-    let remaining = limit.saturating_sub(used);
+    let credits = match (sub.character_count, sub.character_limit) {
+        (Some(used), Some(limit)) => format!(
+            "{used} of {limit} (remaining {})",
+            limit.saturating_sub(used)
+        ),
+        _ => "unknown".to_string(),
+    };
     let reset = sub
         .next_character_count_reset_unix
         .map(|unix| format!("{unix} (unix)"))
         .unwrap_or_else(|| "unknown".to_string());
-    format!("tier: {tier}\nstatus: {status}\ncredits used: {used} of {limit} (remaining {remaining})\nresets at: {reset}")
+    let flag = |value: Option<bool>| match value {
+        Some(true) => "yes",
+        Some(false) => "no",
+        None => "unknown",
+    };
+    let extension = sub
+        .max_credit_limit_extension
+        .map(|value| value.to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+    let overage = sub
+        .current_overage
+        .as_ref()
+        .map(|value| {
+            format!(
+                "{} {}",
+                value.amount.as_deref().unwrap_or("unknown"),
+                value.currency.as_deref().unwrap_or("unknown")
+            )
+        })
+        .unwrap_or_else(|| "unknown".to_string());
+    format!("tier: {tier}\nstatus: {status}\ncredits used: {credits}\nresets at: {reset}\ncan extend credits: {}\nallowed to extend credits: {}\nmaximum credit extension: {extension}\ncurrent overage: {overage}", flag(sub.can_extend_character_limit), flag(sub.allowed_to_extend_character_limit))
 }
 
 /// Turn an error body into one readable line. Handles the structured
@@ -1916,6 +1989,70 @@ mod tests {
         assert!(empty.contains("tier: unknown"));
         assert!(empty.contains("resets at: unknown"));
         assert!(parse_subscription(b"nope").is_err());
+    }
+
+    #[test]
+    fn subscription_reports_extension_and_overage_without_assuming_absence_is_safe() {
+        let sub = parse_subscription(br#"{"can_extend_character_limit":true,"allowed_to_extend_character_limit":false,"max_credit_limit_extension":0,"current_overage":{"amount":"0","currency":"usd"}}"#).unwrap();
+        let text = describe_subscription(&sub);
+        assert!(text.contains("can extend credits: yes"));
+        assert!(text.contains("allowed to extend credits: no"));
+        assert!(text.contains("maximum credit extension: 0"));
+        assert!(text.contains("current overage: 0 usd"));
+        assert!(text.contains("credits used: unknown"));
+
+        let sub = parse_subscription(br#"{"can_extend_character_limit":false,"allowed_to_extend_character_limit":true,"max_credit_limit_extension":500,"current_overage":{"amount":"1.25","currency":"usd"},"character_count":120,"character_limit":100}"#).unwrap();
+        let text = describe_subscription(&sub);
+        assert!(text.contains("can extend credits: no"));
+        assert!(text.contains("allowed to extend credits: yes"));
+        assert!(text.contains("maximum credit extension: 500"));
+        assert!(text.contains("current overage: 1.25 usd"));
+        assert!(text.contains("remaining 0"));
+
+        for body in [
+            b"{}".as_slice(),
+            br#"{"allowed_to_extend_character_limit":null,"current_overage":null}"#,
+        ] {
+            let text = describe_subscription(&parse_subscription(body).unwrap());
+            assert!(text.contains("allowed to extend credits: unknown"));
+            assert!(text.contains("current overage: unknown"));
+            assert!(text.contains("maximum credit extension: unknown"));
+        }
+    }
+
+    #[test]
+    fn subscription_accepts_only_the_documented_credit_extension_variants() {
+        let unlimited =
+            parse_subscription(br#"{"max_credit_limit_extension":"unlimited"}"#).unwrap();
+        assert_eq!(
+            unlimited.max_credit_limit_extension,
+            Some(CreditExtension::Unlimited)
+        );
+        assert!(describe_subscription(&unlimited).contains("maximum credit extension: unlimited"));
+        for value in ["0", "123", "18446744073709551615"] {
+            let body = format!("{{\"max_credit_limit_extension\":{value}}}");
+            let sub = parse_subscription(body.as_bytes()).unwrap();
+            assert_eq!(
+                sub.max_credit_limit_extension,
+                Some(CreditExtension::Limited(value.parse().unwrap()))
+            );
+        }
+        for value in [
+            "-1",
+            "1.5",
+            "true",
+            "\"Unlimited\"",
+            "\"123\"",
+            "\"anything\"",
+            "{}",
+            "[]",
+        ] {
+            let body = format!("{{\"max_credit_limit_extension\":{value}}}");
+            assert!(
+                parse_subscription(body.as_bytes()).is_err(),
+                "{value} must be rejected"
+            );
+        }
     }
 
     #[test]

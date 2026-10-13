@@ -1,6 +1,6 @@
 # First-use and hosted-match reliability
 
-Status: implemented and locally tested; hosted packaging and coverage pending. Issues #391 through #399.
+Status: **shipped on main** in [PR #400](https://github.com/blisspixel/fragr/pull/400), with hosted checks passed. Updated 2026-10-13. The next published desktop release and complete visual tour remain pending. Issues #392 through #399 are closed; #391 still tracks the adapter missing from the published v0.82.0 archives.
 
 ## Goal and scope
 
@@ -31,9 +31,13 @@ stop and automatic-fill persistence. Linux adapter `--version` and `mcp --help`
 run, and combined server/adapter notices cover 95 linked crates. Actual Xvfb
 1280x720 Mesa llvmpipe renders of the running-match and ten-fighter forms were
 inspected. The local default Rust 1.99 emits an untouched large-error Clippy
-warning; the CI pin passes. Local cargo-llvm-cov is unavailable; the hosted
-90-percent coverage gate must pass before integration. Windows and macOS
-archive qualification remains hosted evidence.
+warning; the CI pin passes. The original local pass did not have cargo-llvm-cov.
+The subsequent [PR CI](https://github.com/blisspixel/fragr/actions/runs/38353035253)
+passed the required test/coverage gate and portability checks; the
+[PR package workflow](https://github.com/blisspixel/fragr/actions/runs/38353035301)
+passed Linux, Windows and macOS packages without publishing. The
+[merged main CI](https://github.com/blisspixel/fragr/actions/runs/38379828754)
+also passed. These results do not turn the unpublished packages into a release.
 
 The complete 32-state Linux Xvfb llvmpipe tour failed the FpMuzzle and two
 ShotEffects visibility assertions. Rail and Scatter receipts observed an effect

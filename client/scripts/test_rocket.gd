@@ -3,6 +3,9 @@ extends SceneTree
 const OWNER: String = "00000000-0000-4000-8000-0000000000aa"
 var _failures: int = 0
 
+class NetworkProbe extends Node:
+	var player_id: String = OWNER
+
 func _initialize() -> void:
 	set_meta("fragr_automated", true)
 	_run.call_deferred()
@@ -52,5 +55,58 @@ func _run() -> void:
 	hud.apply({"tick": 1, "selected": "rocket", "weapons": ["fists", "rocket"], "ammo": [{"pool": "rockets", "rounds": 4}], "loaded": [{"weapon": "rocket", "rounds": 1}], "grenades": 0, "dry_fire_count": 0})
 	_check(hud.glyph_pool == "rockets" and hud.counts.text == "1|3", "the held launcher draws its rocket count")
 	hud.free()
+	await _check_launch_audio()
 	print("test_rocket: %s" % ("PASS" if _failures == 0 else "FAIL %d" % _failures))
 	quit(0 if _failures == 0 else 1)
+
+func _check_launch_audio() -> void:
+	var game: Node = load("res://scripts/game_manager.gd").new()
+	var network: NetworkProbe = NetworkProbe.new()
+	var effects: GrenadeEffects = GrenadeEffects.new()
+	var pawn: Node3D = (load("res://scenes/player.tscn") as PackedScene).instantiate()
+	root.add_child(pawn)
+	root.add_child(effects)
+	await process_frame
+	var fire: AudioStreamPlayer3D = pawn.get_node("FireSound")
+	game.net_client = network
+	game.grenade_effects = effects
+	game.players[OWNER] = pawn
+	effects.apply(_snapshot([_flight(1, 0, [18.0, 0.0, 0.0])], 1), Vector3.INF)
+	game._present_rocket_launches()
+	_check(not fire.playing, "initial synchronization does not replay a Rocket launch")
+	effects.apply(_snapshot([_flight(1, 1, [18.0, 0.0, 0.0]), _flight(2, 0, [18.0, 0.0, 0.0])], 2), Vector3.INF)
+	game._present_rocket_launches()
+	_check(fire.playing and fire.stream == pawn.fire_streams["Rocket"], "an accepted new projectile gives a spectator spatial launch sound")
+	fire.stop()
+	game._present_rocket_launches()
+	effects.apply(_snapshot([_flight(2, 0, [18.0, 0.0, 0.0])], 2), Vector3.INF)
+	game._present_rocket_launches()
+	_check(not fire.playing, "draining and duplicate snapshots cannot replay the launch")
+	effects.apply(_snapshot([_flight(2, 1, [18.0, 0.0, 0.0]), _flight(3, 2, [18.0, 0.0, 0.0])], 3), Vector3.INF)
+	game._present_rocket_launches()
+	_check(not fire.playing, "an older first-seen projectile is not a new launch")
+	game.is_human_player = true
+	var equipment: Dictionary = {"tick": 3, "selected": "rocket", "weapons": ["fists", "rocket"],
+		"ammo": [{"pool": "rockets", "rounds": 2}], "loaded": [{"weapon": "rocket", "rounds": 1}]}
+	_check(game.local_fire.sent({"seq": 1, "fire": true}, equipment, "rocket", 3, 1000000, true), "local Rocket cue obtains a prediction receipt")
+	pawn.show_muzzle_flash("Rocket")
+	fire.stop()
+	game.local_fire.acknowledge(1, 4)
+	effects.apply(_snapshot([_flight(4, 0, [18.0, 0.0, 0.0])], 4), Vector3.INF)
+	game._present_rocket_launches()
+	_check(not fire.playing and game.local_fire.confirmed_count == 1, "accepted local projectile confirms without doubling its predicted cue")
+	_check(not game.local_fire.reconcile(8), "confirmed Rocket is not cancelled as a denied ray shot")
+	var invalid: Dictionary = _snapshot([_flight(5, 0, [21.0, 0.0, 0.0])], 5)
+	effects.apply(invalid, Vector3.INF)
+	game._present_rocket_launches()
+	_check(not fire.playing, "invalid projectile facts cannot start a launch cue")
+	effects.reset()
+	effects.apply(_snapshot([_flight(6, 0, [18.0, 0.0, 0.0])], 6), Vector3.INF)
+	game._present_rocket_launches()
+	_check(not fire.playing, "map reset restores silent initial synchronization")
+	effects.reset()
+	effects.free()
+	network.free()
+	game.free()
+	pawn.queue_free()
+	await process_frame

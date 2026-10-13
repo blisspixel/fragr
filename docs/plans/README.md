@@ -17,6 +17,11 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
+The [October 13 development round](build-round-20261013.md) is **in flight**:
+parallel campaign, audio and art work, Linux visual verification, then one
+reviewed integration and CI-passing main. Its bounded funded allowance and live
+authentication readings supersede the earlier account readings for this round.
+
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
 released as v0.80.0. The

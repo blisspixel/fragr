@@ -1,0 +1,15 @@
+{
+  "out_dir": ".agents/audio-round-20261013/music",
+  "items": [
+    {
+      "kind": "music",
+      "name": "workshop_groove",
+      "title": "Workshop groove candidate",
+      "length_ms": 60000,
+      "model": "music_v2_5",
+      "instrumental": true,
+      "format": "mp3_44100_128",
+      "prompt": "Original sixty-second instrumental garage funk and gritty analog synth-rock groove, 112 BPM. Warm syncopated bass, dry compact live drums, lightly fuzzy palm-muted guitar, a small memorable analog synth motif. Practical confident energy of friends fixing machines after a long shift, easy warmth and mischievous independence. Establish the groove immediately, add a restrained second layer halfway through, give a clean natural ending. Leave space in the upper midrange and keep cymbals restrained so nearby game effects remain readable. No singing, no speech, no chanting, no cinematic orchestra, no trailer risers, no military march, no alarm sounds. A lived-in workshop tune, not an anthem."
+    }
+  ]
+}

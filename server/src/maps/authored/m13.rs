@@ -4,7 +4,7 @@ use crate::mission::m13::{
     deck_at, hazard_overlap, step_blocked, workers_distance, Cycle, Gates, LiftBody,
 };
 use crate::movement::{Solid, BODY_HEIGHT};
-use crate::protocol::{MapDecoration, MapDecorationKind, Region3, USE_DISTANCE};
+use crate::protocol::{MapDecoration, MapDecorationKind, Region3, UseTarget, USE_DISTANCE};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::io;
@@ -94,10 +94,11 @@ impl Definition {
         let panel_solid = *ids
             .get(&self.release.panel.solid)
             .ok_or_else(|| invalid("foundry release panel is not on the map"))?;
-        let panel = presentation
+        let (decoration, panel) = presentation
             .decorations
             .iter()
-            .find(|decoration| {
+            .enumerate()
+            .find(|(_, decoration)| {
                 decoration.solid == panel_solid
                     && decoration.face == self.release.panel.face
                     && decoration.kind == MapDecorationKind::Terminal
@@ -133,7 +134,10 @@ impl Definition {
                 hazard: self.hazard,
                 bypass: self.bypass,
                 cycle,
-                release_approach: self.release.approach,
+                release: UseTarget {
+                    decoration,
+                    approach: self.release.approach,
+                },
                 quarters_group,
                 deck_index,
                 deck,

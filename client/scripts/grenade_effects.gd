@@ -33,6 +33,7 @@ var lamps_lit: int = 0
 var remote_effects: RemoteMineEffects
 var canisters: Dictionary[int, Node3D] = {}
 var rockets: Dictionary[int, MeshInstance3D] = {}
+var _rocket_launches: Array[Dictionary] = []
 
 ## A grenade newly in flight on a live snapshot, by the participant who threw
 ## it. Bodies already present when a snapshot stream starts are not throws.
@@ -44,6 +45,7 @@ func reset() -> void:
 	for rocket: MeshInstance3D in rockets.values():
 		rocket.queue_free()
 	rockets.clear()
+	_rocket_launches.clear()
 	for canister: Node3D in canisters.values():
 		canister.queue_free()
 	canisters.clear()
@@ -77,6 +79,7 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 		or int(snapshot["tick"]) <= last_tick:
 		return
 	var initial: bool = last_tick < 0
+	var previous_tick: int = last_tick
 	last_tick = int(snapshot["tick"])
 	if remote_effects == null:
 		remote_effects = RemoteMineEffects.new()
@@ -85,7 +88,7 @@ func apply(snapshot: Dictionary, listener: Vector3) -> void:
 	remote_effects.apply(snapshot)
 	_apply_mines(snapshot, listener, initial)
 	_apply_canisters(snapshot)
-	_apply_rockets(snapshot)
+	_apply_rockets(snapshot, previous_tick)
 	var current: Dictionary[int, bool] = {}
 	for fact: Dictionary in snapshot.get("grenades", []):
 		var id: int = int(fact["id"])
@@ -162,12 +165,16 @@ func _apply_canisters(snapshot: Dictionary) -> void:
 
 ## A traveling rocket is a long body aligned with the server velocity. The
 ## same radius-four burst already plays when it resolves.
-func _apply_rockets(snapshot: Dictionary) -> void:
+func _apply_rockets(snapshot: Dictionary, previous_tick: int) -> void:
+	_rocket_launches.clear()
 	var current: Dictionary[int, bool] = {}
 	for fact: Dictionary in snapshot.get("rockets", []):
 		var id: int = int(fact["id"])
 		current[id] = true
 		if not rockets.has(id):
+			# Do not announce synchronized or old reappearing bodies as launches.
+			if previous_tick >= 0 and int(snapshot["tick"]) - int(fact["age_ticks"]) > previous_tick:
+				_rocket_launches.append({"owner_id": str(fact["owner_id"]), "tick": int(snapshot["tick"])})
 			var body: MeshInstance3D = _mesh(Vector3(0.12, 0.12, 0.48), Color("c45a20"))
 			body.name = "Rocket_%d" % id
 			rockets[id] = body
@@ -183,6 +190,12 @@ func _apply_rockets(snapshot: Dictionary) -> void:
 		if not current.has(id):
 			rockets[id].queue_free()
 			rockets.erase(id)
+
+## The manager drains after syncing pawns, before it reconciles local fire.
+func take_rocket_launches() -> Array[Dictionary]:
+	var launches: Array[Dictionary] = _rocket_launches
+	_rocket_launches = []
+	return launches
 
 ## Placed mines: the face-on device laid on its surface over a dark body, its
 ## lamp steady amber while arming, blinking red once live and flickering fast

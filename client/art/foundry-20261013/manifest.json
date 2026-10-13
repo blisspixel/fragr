@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "status": "offline candidates; no runtime selection",
+  "date": "2026-10-13",
+  "brief": "docs/plans/meshy-assets/e-foundry-ladle.md",
+  "lore": ["docs/ART_STORY_BIBLE.md", "docs/design/mars.md", "docs/campaign/m08-weight-of-permission.md"],
+  "reference": {
+    "file": "references/ladle-v1.png",
+    "sha256": "81b1a507fe8c07610f5af5fd565581bdbc074490ac139c0aa93dd51891163ff7",
+    "format": "PNG",
+    "model": "marketing-studio/image",
+    "prompt_spec": "tools/spritegen/specs/m13-ladle-reference-20261013.json",
+    "request_id": "506697b9-587d-4557-af2e-043975864355",
+    "estimated_usd": 0.127,
+    "billing_confirmed": false
+  },
+  "model_source": {
+    "file": "candidates/ladle-v1.glb",
+    "format": "GLB 2.0",
+    "model": "meshy-7.1",
+    "spec": "tools/spritegen/specs/m13-foundry-ladle-meshy-20261013.json",
+    "task_id": "01a1360c-2efc-73dd-8390-3769f9ef47e2",
+    "consumed_credits": 30,
+    "conservative_usd_equivalent": 0.60,
+    "raw_sha256": "eb86d37171e803fca42507fc3eb1347c62c0ca8055ea49e12e37904da7d88519",
+    "retained_sha256": "c82e228a3a9998ab9d475b684e42b259da468c533a9a1eaad87a67e11adba15d",
+    "preparation": "tools/prepare_foundry_ladle.gd; optional software metadata removed, geometry and required legal metadata retained",
+    "rigged": false,
+    "runtime_selected": false,
+    "inspection": "review/model/inspection.json",
+    "actual_triangles": 10605,
+    "actual_vertices": 12114,
+    "actual_meshes": 1,
+    "renderer": "Godot 4.7.2-stable, Compatibility, Wayland, Mesa llvmpipe software",
+    "review": "Four-sided source inspection retains readable rim, pour lip and opposed trunnions; local material, normal seam, attachment, underside/support and metre fitting work remains before venue or played acceptance"
+  },
+  "surface_sources": [
+    {
+      "id": "m13_refractory_shield_v1",
+      "raw_file": "art/raw/m13-foundry-surfaces-20261013/m13_refractory_shield_v1_0.png",
+      "sha256": "9d94932ecf0c25f686ea2574f3488566b75db988811b2dfa2009dde3caa1fbb8",
+      "format": "PNG",
+      "model": "marketing-studio/image",
+      "prompt_spec": "tools/spritegen/specs/m13-foundry-surfaces-20261013.json",
+      "request_id": "13bcf132-f936-4fd8-84bd-c95559092875",
+      "estimated_usd": 0.029,
+      "billing_confirmed": false,
+      "status": "offline candidate; repeated panel rhythm needs venue comparison"
+    },
+    {
+      "id": "m13_traction_plate_v1",
+      "raw_file": "art/raw/m13-foundry-surfaces-20261013/m13_traction_plate_v1_0.png",
+      "sha256": "ca6b7ad09d9bc4b84820b22ea6625cbe656b96a4fbfbdc098d902c9bcc41f32b",
+      "format": "PNG",
+      "model": "marketing-studio/image",
+      "prompt_spec": "tools/spritegen/specs/m13-foundry-surfaces-20261013.json",
+      "request_id": "0c9e6a0b-7386-4ddd-8924-77d6d4277450",
+      "estimated_usd": 0.029,
+      "billing_confirmed": false,
+      "status": "parked; baked tread light and reduced noise need correction"
+    }
+  ],
+  "surface_preparation": "Native area reduction to 128px without palette; tools/prepare_surface_tiles.gd material-ramps, 24-step venue ramps and opposite-edge proof; surfaces/manifest.json retains exact hashes",
+  "historical_account_hold": {"credits": 15, "reason": "Original complete raw production backup and ledger unavailable after Linux migration; uncertain hold retained independently of new task receipts"}
+}

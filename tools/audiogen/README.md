@@ -42,6 +42,12 @@ Check remaining credits:
 cargo run -p fragr-audiogen -- quota
 ```
 
+The summary includes credit-extension eligibility, permission, maximum extension
+and current overage when the API supplies them. Missing or null fields print
+`unknown`, not `no` or zero. Inspect this alongside remaining quota before each
+funded batch; the command does not change billing settings. The generator's
+credit cap bounds estimates, not the provider's billing system.
+
 One sound effect (24 kHz mono WAV by default, which Godot imports as a sample):
 
 ```bash

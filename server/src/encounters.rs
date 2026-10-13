@@ -83,6 +83,12 @@ impl Encounters {
             .for_each(|group| *group = Group::Unplaced);
         state.pickups = state.map.pickups();
         state.reset_vehicles();
+        // Standalone foundry maps have no MissionRun to reset their moving
+        // deck or resolved gate facts when the last participant dies or leaves.
+        state.foundry = state
+            .map
+            .m13_gates()
+            .map(crate::mission::m13::Progress::new);
         self.waiting_for_party = true;
     }
     /// Called once per simulation tick, and on participant departure. Crossing

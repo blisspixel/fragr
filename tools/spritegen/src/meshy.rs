@@ -14,6 +14,19 @@ use crate::{check_budget, Error, Method, Request, Transport};
 pub const API_BASE: &str = "https://api.meshy.ai/openapi/v1";
 pub const USD_PER_CREDIT: f64 = 0.02;
 pub const PRICING_DATE: &str = "2026-10-03";
+pub const ACCOUNT_HOLD: &str = "art/raw/meshy-account-hold.json";
+
+/// Keep the account carry beside the canonical credential root, independent of
+/// the process working directory and per-batch output paths.
+pub fn account_hold_for_credentials(path: &Path) -> Result<PathBuf, Error> {
+    let credential = path
+        .canonicalize()
+        .map_err(|_| Error::Io("cannot resolve model account credential location".into()))?;
+    let root = credential
+        .parent()
+        .ok_or_else(|| Error::Io("model account credential location has no parent".into()))?;
+    Ok(root.join(ACCOUNT_HOLD))
+}
 
 pub fn read_credential(path: &Path) -> Result<String, Error> {
     crate::read_dotenv_value(path, &["meshy", "MESHY_API_KEY"])
@@ -77,6 +90,20 @@ fn send(transport: &dyn Transport, key: &str, request: &Request) -> Result<Value
 }
 
 pub fn balance(transport: &dyn Transport, key: &str) -> Result<u64, Error> {
+    Ok(balance_details(transport, key)?.balance)
+}
+
+#[derive(Debug, Deserialize)]
+struct Balance {
+    balance: u64,
+    monthly_credits: Option<u64>,
+    permanent_credits: Option<u64>,
+    monthly_resets_at: Option<u64>,
+    #[serde(skip)]
+    monthly_reset_reported: bool,
+}
+
+fn balance_details(transport: &dyn Transport, key: &str) -> Result<Balance, Error> {
     let value = send(
         transport,
         key,
@@ -86,10 +113,80 @@ pub fn balance(transport: &dyn Transport, key: &str) -> Result<u64, Error> {
             body: None,
         },
     )?;
-    value
-        .get("balance")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| Error::Transport("API balance must be a nonnegative integer".into()))
+    // Only the documented reset may explicitly be null. Missing detail remains
+    // compatible with the historical balance-only response.
+    if ["monthly_credits", "permanent_credits"]
+        .iter()
+        .any(|field| value.get(field).is_some_and(|v| v.as_u64().is_none()))
+    {
+        return Err(Error::Transport(
+            "invalid model balance credit details".into(),
+        ));
+    }
+    let mut result: Balance = serde_json::from_value(value.clone())
+        .map_err(|_| Error::Transport("invalid model balance details".into()))?;
+    result.monthly_reset_reported = value.get("monthly_resets_at").is_some();
+    Ok(result)
+}
+
+/// A migration carry hold is not a fabricated provider task or refund.
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct ExternalHold {
+    schema: u32,
+    credits: u64,
+    reason: String,
+}
+
+fn validate_hold(hold: &ExternalHold) -> Result<(), Error> {
+    if hold.schema != 1
+        || hold.credits == 0
+        || hold.credits > 1_000_000
+        || hold.reason.trim().is_empty()
+        || hold.reason.len() > 1024
+        || hold.reason.chars().any(char::is_control)
+    {
+        return Err(Error::Io("invalid external model hold".into()));
+    }
+    Ok(())
+}
+
+pub fn retain_external_hold(path: &Path, credits: u64, reason: &str) -> Result<(), Error> {
+    let hold = ExternalHold {
+        schema: 1,
+        credits,
+        reason: reason.into(),
+    };
+    validate_hold(&hold)?;
+    if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent).map_err(io_error)?;
+    }
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .map_err(|_| Error::Io("external model hold already exists or cannot be created".into()))?;
+    serde_json::to_writer(&mut file, &hold)
+        .map_err(|_| Error::Io("could not write external model hold".into()))?;
+    file.sync_all().map_err(io_error)
+}
+
+pub fn external_held_credits(path: &Path) -> Result<u64, Error> {
+    use std::io::Read;
+    let file = match std::fs::File::open(path) {
+        Ok(file) => file,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(_) => return Err(Error::Io("could not read external model hold".into())),
+    };
+    let mut bytes = Vec::new();
+    file.take(4097).read_to_end(&mut bytes).map_err(io_error)?;
+    if bytes.len() > 4096 {
+        return Err(Error::Io("external model hold exceeds 4 KiB".into()));
+    }
+    let hold: ExternalHold = serde_json::from_slice(&bytes)
+        .map_err(|_| Error::Io("invalid external model hold document".into()))?;
+    validate_hold(&hold)?;
+    Ok(hold.credits)
 }
 
 pub fn pending_credits(ledger: &Ledger) -> Result<u64, Error> {
@@ -140,7 +237,12 @@ pub struct CreditCheck {
     pub schema: u32,
     pub pricing_checked: &'static str,
     pub available_api_credits: u64,
+    pub monthly_credits: Option<u64>,
+    pub permanent_credits: Option<u64>,
+    pub monthly_resets_at: Option<u64>,
+    pub monthly_reset_reported: bool,
     pub pending_local_credits: u64,
+    pub external_held_credits: u64,
     pub required_credits: u64,
     pub sufficient: bool,
     pub generation_submissions: u32,
@@ -151,17 +253,36 @@ pub fn check(
     key: &str,
     required: u64,
     ledger: Option<&Ledger>,
+    hold_path: &Path,
 ) -> Result<CreditCheck, Error> {
-    let available = balance(transport, key)?;
+    check_with_hold(transport, key, required, ledger, hold_path)
+}
+
+fn check_with_hold(
+    transport: &dyn Transport,
+    key: &str,
+    required: u64,
+    ledger: Option<&Ledger>,
+    hold_path: &Path,
+) -> Result<CreditCheck, Error> {
     let held = ledger.map(pending_credits).transpose()?.unwrap_or(0);
+    let external = external_held_credits(hold_path)?;
+    let details = balance_details(transport, key)?;
+    let available = details.balance;
     Ok(CreditCheck {
         schema: 1,
         pricing_checked: PRICING_DATE,
         available_api_credits: available,
+        monthly_credits: details.monthly_credits,
+        permanent_credits: details.permanent_credits,
+        monthly_resets_at: details.monthly_resets_at,
+        monthly_reset_reported: details.monthly_reset_reported,
         pending_local_credits: held,
+        external_held_credits: external,
         required_credits: required,
         sufficient: held
-            .checked_add(required)
+            .checked_add(external)
+            .and_then(|reserved| reserved.checked_add(required))
             .is_some_and(|needed| available >= needed),
         generation_submissions: 0,
     })
@@ -172,6 +293,20 @@ pub fn check(
 pub struct Spec {
     pub out_dir: PathBuf,
     pub jobs: Vec<JobSpec>,
+    #[serde(skip, default = "account_hold_path")]
+    external_hold: PathBuf,
+}
+
+fn account_hold_path() -> PathBuf {
+    ACCOUNT_HOLD.into()
+}
+
+impl Spec {
+    pub fn bind_account(&mut self, credential_file: &Path) -> Result<(), Error> {
+        self.external_hold = account_hold_for_credentials(credential_file)?;
+        external_held_credits(&self.external_hold)?;
+        Ok(())
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -386,12 +521,19 @@ pub fn generate(
         ));
     }
     if fresh > 0 {
-        require_balance(transport, key, fresh, &ledger, output)?;
+        require_balance(transport, key, fresh, &ledger, &spec.external_hold, output)?;
     }
     for job in &spec.jobs {
         let (identity, credits) = job.priced()?;
         if ledger.job(&job.id).is_none() {
-            require_balance(transport, key, credits, &ledger, output)?;
+            require_balance(
+                transport,
+                key,
+                credits,
+                &ledger,
+                &spec.external_hold,
+                output,
+            )?;
             ledger.record(
                 &job.id,
                 Event::Reserved {
@@ -546,13 +688,17 @@ fn require_balance(
     key: &str,
     required: u64,
     ledger: &Ledger,
+    hold_path: &Path,
     output: &mut dyn Write,
 ) -> Result<(), Error> {
-    let result = check(transport, key, required, Some(ledger))?;
+    let result = check_with_hold(transport, key, required, Some(ledger), hold_path)?;
     writeln!(
         output,
-        "balance {}, pending {}, required {} credits",
-        result.available_api_credits, result.pending_local_credits, required
+        "balance {}, pending {}, external hold {}, required {} credits",
+        result.available_api_credits,
+        result.pending_local_credits,
+        result.external_held_credits,
+        required
     )
     .map_err(io_error)?;
     if !result.sufficient {

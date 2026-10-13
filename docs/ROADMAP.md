@@ -383,6 +383,13 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 ## Full build order (updated 2026-10-10)
 
+The [October 13 development round](plans/build-round-20261013.md) implements
+Nick's requested parallel campaign, audio, art and core-game work within these
+rungs. Each bounded round returns to one reviewed main with passing CI before
+the next. The first round targets the next M13 increment, retained-asset quality
+and production, and Linux visual/release readiness. Its plan records current
+funded limits and preserves independent human and final-art acceptance.
+
 ### Fun-compound lens (not a second build order)
 
 Read the numbered rungs below through this lens. It does not replace them, and

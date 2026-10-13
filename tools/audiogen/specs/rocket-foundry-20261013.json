@@ -1,0 +1,41 @@
+{
+  "out_dir": ".agents/audio-round-20261013/sfx",
+  "items": [
+    {
+      "kind": "sfx",
+      "name": "rocket/launch",
+      "title": "Rocket Launcher: launch candidate",
+      "prompt": "One shoulder-fired rocket launcher discharge: a compact dry ignition thump immediately followed by a short coarse exhaust rush moving away. Strong physical low-mid punch, distinct mechanical launch, tail quickly clears for other nearby shots. Close clean isolated recording, no voices, no music, no long echo, no laser tone.",
+      "seconds": 1.0,
+      "influence": 0.7,
+      "format": "pcm_48000"
+    },
+    {
+      "kind": "sfx",
+      "name": "rocket/blast",
+      "title": "Rocket Launcher: blast candidate",
+      "prompt": "One compact rocket impact explosion against heavy industrial masonry: instant hard crack over a deep short pressure thud, then a brief sprinkle of loose grit and small steel fragments. Dry and close, grounded physical weight, no cinematic rising swell, no voice, no music, no repeated explosions.",
+      "seconds": 2.0,
+      "influence": 0.7,
+      "format": "pcm_48000"
+    },
+    {
+      "kind": "sfx",
+      "name": "foundry/machine_warning",
+      "title": "Foundry: machine warning candidate",
+      "prompt": "Two short separated blunt electromechanical warning buzzer pulses from an old factory machine, low-mid gritty industrial tone, immediate starts and clean stops, useful danger cue above machinery without a piercing high pitch. Dry isolated recording. No speech, no music, no siren sweep, no room ambience.",
+      "seconds": 1.5,
+      "influence": 0.7,
+      "format": "pcm_48000"
+    },
+    {
+      "kind": "sfx",
+      "name": "foundry/release_latch",
+      "title": "Foundry: mechanical release candidate",
+      "prompt": "A heavy steel safety latch being manually released once: a firm handle clack, restrained spring snap and one short sliding bolt scrape ending in a solid stop. Worn but functional machinery, close dry tactile recording, no door slam, no voices, no music, no echo.",
+      "seconds": 1.5,
+      "influence": 0.7,
+      "format": "pcm_48000"
+    }
+  ]
+}

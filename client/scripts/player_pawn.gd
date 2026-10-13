@@ -201,7 +201,7 @@ func _load_audio_streams():
 	var fallback_fire = audio_dir + "fire.wav"
 	var fallback_hit = audio_dir + "hit.wav"
 	
-	for w in ["Tack", "Flechette", "Rail", "Scatter"]:
+	for w in ["Tack", "Flechette", "Rail", "Scatter", "Rocket"]:
 		var key = w.to_lower()
 		var fire_path = audio_dir + "fire_" + key + ".wav"
 		var hit_path = audio_dir + "hit_" + key + ".wav"

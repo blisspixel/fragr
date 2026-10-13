@@ -199,6 +199,14 @@ func _run() -> void:
 	hud.call("set_fp_juice", true)
 	var weapon: TextureRect = hud.get_node("FpWeapon")
 	_check_missing_art(hud, weapon)
+	# A network shot arrives before the HUD's update. A slow preceding render
+	# must not erase its fire frame before this update can present it.
+	hud.set_fp_weapon("Flechette")
+	hud.show_fire_juice("Flechette")
+	hud._process(0.4)
+	_check(weapon.texture == WeaponArt.FIRE["Flechette"], "a new Rifle flash survives the previous slow frame's delta")
+	hud._process(0.4)
+	_check(weapon.texture == WeaponArt.IDLE["Flechette"], "the Rifle flash expires on the following slow update")
 	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080)]:
 		root.size = viewport_size
 		await process_frame

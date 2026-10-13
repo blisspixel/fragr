@@ -1,0 +1,15 @@
+{
+  "out_dir": "art/raw/meshy-pilot-20261003",
+  "jobs": [
+    {
+      "id": "m13-foundry-ladle-20261013-v1",
+      "kind": "image",
+      "ai_model": "meshy-7.1",
+      "image_url": "https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e2b8ee8c-b6e0-43eb-a2a4-36b67839d6fe.png",
+      "geometry_resolution": "standard",
+      "texture_resolution": "2k",
+      "target_polycount": 12000,
+      "pose_mode": ""
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+	"color_model": "24-step venue material ramps",
+	"entries": [
+		{
+			"edge_mismatches": 0,
+			"id": "m13_refractory_shield_v1",
+			"palette_colors": 28,
+			"raw_sha256": "9d94932ecf0c25f686ea2574f3488566b75db988811b2dfa2009dde3caa1fbb8",
+			"reduced_sha256": "a34d4713741a27765994643f5f4d2b37fa6c3414fd39d02aa1187ca4d6e12436",
+			"runtime_sha256": "d5973ae8b6651d70bd7e2ec72c76bcefa0f6e0db1fcd75df37d25b58a422b29f"
+		},
+		{
+			"edge_mismatches": 0,
+			"id": "m13_traction_plate_v1",
+			"palette_colors": 15,
+			"raw_sha256": "ca6b7ad09d9bc4b84820b22ea6625cbe656b96a4fbfbdc098d902c9bcc41f32b",
+			"reduced_sha256": "f05e38571f8efda3caac08d07d8ec3337fefd642272041c49ab5cc524b634d27",
+			"runtime_sha256": "3f8f650a057ae253bbfa5f67cea3b4f997e20e5677ebf31e2733b10a17b96152"
+		}
+	],
+	"filter": "nearest",
+	"mipmaps": false,
+	"palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+	"preparation_sha256": "862020f2d921fb00acb2900febf2d196ef472e6b880aec4f31a02f4582de156a",
+	"schema": 1,
+	"size": [
+		128,
+		128
+	]
+}

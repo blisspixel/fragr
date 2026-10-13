@@ -75,7 +75,12 @@ pub fn step_blocked(
     }
     let delta = new_deck.top - old_deck.top;
     for body in bodies {
-        if !body.x.is_finite() || !body.y.is_finite() || !body.z.is_finite() || body.height <= 0.0 {
+        if !body.x.is_finite()
+            || !body.y.is_finite()
+            || !body.z.is_finite()
+            || !body.height.is_finite()
+            || body.height <= 0.0
+        {
             return true;
         }
         let next_y = if body.supported {
@@ -107,6 +112,11 @@ pub fn step_blocked(
             body.y
         };
         bodies.iter().skip(index + 1).any(|other| {
+            // Only a carried body can create a new contact during this step.
+            // Unrelated bodies elsewhere belong to ordinary contact resolution.
+            if !body.supported && !other.supported {
+                return false;
+            }
             let by = if other.supported {
                 other.y + delta
             } else {
@@ -272,6 +282,50 @@ mod tests {
             inset.0,
             inset.1,
             false
+        ));
+    }
+
+    #[test]
+    fn unrelated_overlapping_bystanders_do_not_block_a_clear_lift_step() {
+        let start = deck();
+        let next = deck_at(start, 0.375).unwrap();
+        let bystander = Body {
+            x: 10.0,
+            y: 0.0,
+            z: 10.0,
+            height: BODY_HEIGHT,
+            supported: false,
+        };
+        assert!(!step_blocked(
+            start,
+            next,
+            &[rider(0.3), bystander, bystander],
+            &[start],
+            0
+        ));
+        let obstruction = Body {
+            x: 0.0,
+            y: 2.1,
+            z: 0.0,
+            ..bystander
+        };
+        assert!(step_blocked(
+            start,
+            next,
+            &[rider(0.3), obstruction],
+            &[start],
+            0
+        ));
+        let invalid = Body {
+            height: f32::NAN,
+            ..bystander
+        };
+        assert!(step_blocked(
+            start,
+            next,
+            &[rider(0.3), invalid],
+            &[start],
+            0
         ));
     }
 }

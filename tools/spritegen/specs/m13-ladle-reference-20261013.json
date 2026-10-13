@@ -1,0 +1,15 @@
+{
+  "out_dir": "art/raw/m13-ladle-reference-20261013",
+  "technical": "One clean opaque reference for conversion into a game model. Coherent connected geometry, evenly lit exposed underside and inside rim, no text or markings.",
+  "style": "Original modern retro first-person shooter asset. Practical circa-2070 Martian foundry hardware, angular sculpted planes, broad painted material values, restrained charcoal gunmetal, pale refractory ceramic and sparse rust repairs. Pixel-friendly construction detail, quiet surfaces, no photographic material noise.",
+  "view": "One isolated complete object in front three-quarter view from slightly above its rim, entire silhouette with generous margins, flat medium-gray background. One object, one view, no collage.",
+  "model": "marketing-studio/image",
+  "negative": "words, letters, logos, watermark, signatures, molten liquid, orange glow, fire, sparks, smoke, people, gantry, crane, hoist cable, floor, environment, toy, fantasy spikes, dense scratches, glossy plastic, floating parts, cropped silhouette, multiple objects, alternate views",
+  "params": { "aspect_ratio": "1:1", "resolution": "2k", "quality": "medium", "enhance_prompt": false },
+  "frames": [
+    {
+      "id": "m13_foundry_ladle_reference_v1",
+      "subject": "One substantial empty industrial foundry pouring ladle, a squat deep cylindrical steel vessel approximately three metres across and two metres tall. Wide thick pale refractory-lined open rim with one unmistakable short pouring lip. Dark faceted protective outer shell with four broad reinforcing ribs and a closed flat supported underside. Exactly two stout opposed cylindrical lifting trunnions welded to reinforced rectangular side plates on the same horizontal axis, one near side and one far side visibly attached. One narrow replaced rust-brown access plate below the near trunnion. Empty matte pale interior clearly visible, no hot metal, no decorative controls. Mechanically believable heavy industrial construction with clean broad silhouette and distinct shell, rim and attachment parts."
+    }
+  ]
+}

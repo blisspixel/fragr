@@ -6,6 +6,104 @@ use crate::sim::GameState;
 use std::io::Cursor;
 use uuid::Uuid;
 
+fn use_panel(state: &mut GameState, target: [f32; 3]) {
+    let id = state.players[0].id;
+    state.set_action(id, crate::protocol::Action::default());
+    state.set_action(
+        id,
+        crate::protocol::Action {
+            interact: true,
+            look_at: Some(crate::protocol::LookAt {
+                x: Some(target[0]),
+                y: Some(target[1]),
+                z: Some(target[2]),
+                player_id: None,
+            }),
+            ..Default::default()
+        },
+    );
+    state.tick(0.05);
+}
+
+fn clear_quarters(state: &mut GameState) {
+    // Explicit initial placements isolate interaction authority. Combat still
+    // uses the actual finite pickup and ordinary human actions.
+    place(state, [-4.0, 0.0, 0.0]);
+    state.tick(0.05);
+    let ammunition = state.players[0]
+        .inventory
+        .state(state.players[0].id, state.players[0].weapon, state.tick)
+        .unwrap()
+        .ammo(crate::protocol::AmmoPool::Bullets);
+    place(state, [8.0, 0.0, 0.0]);
+    state.tick(0.05);
+    let id = state.players[0].id;
+    let group = state.map.m13_gates().unwrap().quarters_group;
+    let mut resolved = 0;
+    for _ in 0..100 {
+        if state.encounters.is_complete(group) {
+            break;
+        }
+        let Some(target) = state
+            .players
+            .iter()
+            .find(|p| !p.is_participant() && p.hp > 0)
+        else {
+            state.tick(0.05);
+            continue;
+        };
+        let look_at = crate::protocol::LookAt {
+            x: Some(target.x),
+            y: Some(target.y - PLAYER_FLOOR_Y + 0.9),
+            z: Some(target.z),
+            player_id: None,
+        };
+        state.set_action(
+            id,
+            crate::protocol::Action {
+                weapon_swap: Some(crate::protocol::WeaponType::Flechette),
+                fire: true,
+                look_at: Some(look_at),
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+        resolved += state
+            .shot_results
+            .iter()
+            .filter(|s| s.shooter_id == id)
+            .count();
+    }
+    assert!(
+        state.encounters.is_complete(group),
+        "finite quarters fight did not clear"
+    );
+    assert!(resolved > 0);
+    assert!(state.players[0].hp > 0);
+    assert!(
+        state.players[0]
+            .inventory
+            .state(id, state.players[0].weapon, state.tick)
+            .unwrap()
+            .ammo(crate::protocol::AmmoPool::Bullets)
+            < ammunition
+    );
+    state.set_action(id, crate::protocol::Action::default());
+}
+
+fn release_point(state: &GameState) -> [f32; 3] {
+    state
+        .map
+        .m13_gates()
+        .unwrap()
+        .release
+        .point(
+            state.map.presentation_ref().unwrap(),
+            &state.current_arena().solids,
+        )
+        .unwrap()
+}
+
 fn gates() -> std::sync::Arc<AuthoredMap> {
     AuthoredMap::read(Cursor::new(include_bytes!(
         "../../../maps/test/m13_gates.json"
@@ -194,4 +292,219 @@ fn successor_carries_foundry_gates_without_becoming_a_mission() {
         .expect("three metre landing");
     assert_ne!(landing.top, deck.top);
     assert!(map.campaign_mission_id().is_none());
+}
+
+#[test]
+fn release_requires_the_visible_terminal_and_preserves_each_workers_choice() {
+    let mut state = session();
+    clear_quarters(&mut state);
+    place(&mut state, [8.0, 0.0, 5.0]);
+    use_panel(&mut state, [12.0, 1.1, 5.0]);
+    assert!(
+        state.foundry.as_ref().unwrap().workers.is_none(),
+        "facing away cannot release"
+    );
+    let target = release_point(&state);
+    // The reverse side is still close to the approach marker but the post
+    // blocks line of sight to its east-face terminal.
+    place(&mut state, [5.5, 0.0, 5.0]);
+    use_panel(&mut state, target);
+    assert!(
+        state.foundry.as_ref().unwrap().workers.is_none(),
+        "terminal cannot be used through its host"
+    );
+    place(&mut state, [8.0, 0.0, 5.0]);
+    use_panel(&mut state, target);
+    assert_eq!(
+        state.foundry.as_ref().unwrap().workers,
+        Some(workers::RESPONSES)
+    );
+    use_panel(&mut state, target);
+    assert_eq!(
+        state.foundry.as_ref().unwrap().workers,
+        Some(workers::RESPONSES)
+    );
+    assert_eq!(
+        state.foundry.as_ref().unwrap().lift_phase,
+        lift::Phase::Parked
+    );
+}
+
+#[test]
+fn departing_last_participant_resets_foundry_with_the_encounters() {
+    let mut state = session();
+    clear_quarters(&mut state);
+    let target = release_point(&state);
+    place(&mut state, [8.0, 0.0, 5.0]);
+    use_panel(&mut state, target);
+    assert!(state.foundry.as_ref().unwrap().workers.is_some());
+    let id = state.players[0].id;
+    place(&mut state, [0.0, 0.3, 0.0]);
+    use_panel(&mut state, [0.0, 1.0, 1.0]);
+    state.tick(0.05);
+    assert!(state.foundry_arena().is_some());
+    let gates = state.map.m13_gates().unwrap().clone();
+    let relay = state.map.arena().solids[gates.relay];
+    state.damage_foundry_relay(
+        id,
+        gates.relay,
+        [relay.max_x, 1.0, -3.0],
+        [1.0, 0.0, 0.0],
+        25,
+    );
+    assert!(state.foundry.as_ref().unwrap().relay_disabled);
+    let tick = state.tick;
+    state.remove_player(id);
+    assert_eq!(state.tick, tick);
+    let progress = state.foundry.as_ref().unwrap();
+    assert!(!progress.relay_disabled);
+    assert!(progress.workers.is_none());
+    assert_eq!(progress.hazard_hurt, 0);
+    assert_eq!(progress.lift_phase, lift::Phase::Parked);
+    assert_eq!(progress.lift_top, gates.deck.top);
+    assert!(state.foundry_arena().is_none());
+    state.add_player(id, "Returning participant".into(), Role::Human);
+    assert!(!state.encounters.is_complete(gates.quarters_group));
+}
+
+#[test]
+fn successor_lift_accepts_an_ordinary_step_on_and_carries_a_rider_to_daylight() {
+    let map = AuthoredMap::read(Cursor::new(include_bytes!(
+        "../../../maps/m13-weight-of-permission.json"
+    )))
+    .unwrap();
+    let mut state = GameState::with_authored_map(map);
+    let id = Uuid::from_u128(13);
+    state.add_player(id, "Foundry lift rider".into(), Role::Human);
+    // This is a lift acceptance fixture, not a campaign or a full foundry clear.
+    // Only the initial landing placement is arranged; entry and the full rise
+    // use ordinary movement and the real successor collision world.
+    place(&mut state, [0.0, 3.3, 52.0]);
+    let gates = state.map.m13_gates().unwrap().clone();
+    for _ in 0..80 {
+        if state.players[0].z <= 49.5 {
+            break;
+        }
+        state.set_action(
+            id,
+            crate::protocol::Action {
+                forward: true,
+                look_at: Some(crate::protocol::LookAt {
+                    x: Some(0.0),
+                    y: Some(5.0),
+                    z: Some(48.0),
+                    player_id: None,
+                }),
+                ..Default::default()
+            },
+        );
+        state.tick(0.05);
+    }
+    assert!(state.players[0].z >= gates.inset_min[1] && state.players[0].z <= gates.inset_max[1]);
+    assert!((state.players[0].y - PLAYER_FLOOR_Y - gates.deck.top).abs() < 0.001);
+    use_panel(&mut state, [0.0, 5.0, 48.0]);
+    assert_eq!(
+        state.foundry.as_ref().unwrap().lift_phase,
+        lift::Phase::Moving
+    );
+    state.set_action(id, crate::protocol::Action::default());
+
+    let blocker = Uuid::from_u128(14);
+    state.add_player(blocker, "Lift obstruction".into(), Role::Human);
+    let rider_feet = state.players[0].y - PLAYER_FLOOR_Y;
+    let rider_z = state.players[0].z;
+    let body = state.players.iter_mut().find(|p| p.id == blocker).unwrap();
+    body.hp = 100;
+    body.respawn_timer = None;
+    body.x = 0.0;
+    body.z = rider_z;
+    body.y = rider_feet + crate::movement::BODY_HEIGHT + PLAYER_FLOOR_Y;
+    body.vy = 0.0;
+    state.advance_foundry_lift(0.05);
+    assert_eq!(
+        state.foundry.as_ref().unwrap().lift_phase,
+        lift::Phase::Blocked
+    );
+    assert_eq!(state.foundry.as_ref().unwrap().lift_top, gates.deck.top);
+    assert_eq!(state.players[0].y - PLAYER_FLOOR_Y, rider_feet);
+    state.remove_player(blocker);
+
+    let started = state.tick;
+    for _ in 0..200 {
+        let previous = state.foundry.as_ref().unwrap().lift_top;
+        state.tick(0.05);
+        let progress = state.foundry.as_ref().unwrap();
+        assert!(progress.lift_top >= previous);
+        assert!(progress.lift_top - previous <= lift::MAX_STEP + 0.0001);
+        assert!((state.players[0].y - PLAYER_FLOOR_Y - progress.lift_top).abs() < 0.001);
+        assert_eq!(
+            state.current_arena().solids[gates.deck_index].top,
+            progress.lift_top
+        );
+        if progress.lift_phase == lift::Phase::Arrived {
+            break;
+        }
+    }
+    assert!(state.tick > started + 100);
+    assert_eq!(
+        state.foundry.as_ref().unwrap().lift_phase,
+        lift::Phase::Arrived
+    );
+    assert!((state.players[0].y - PLAYER_FLOOR_Y - gates.lift_top).abs() < 0.001);
+    assert!(state.mission_state().is_none());
+}
+
+#[test]
+fn last_participant_death_clears_actual_hazard_damage_for_the_next_attempt() {
+    let mut state = session();
+    place(&mut state, [13.0, 0.0, 7.0]);
+    state.tick = 69;
+    state.tick(0.05);
+    assert_eq!(state.players[0].hp, 100 - hazard::TICK_DAMAGE);
+    assert_eq!(
+        state.foundry.as_ref().unwrap().hazard_hurt,
+        hazard::TICK_DAMAGE as u64
+    );
+    state.players[0].hp = 0;
+    state.tick(0.05);
+    assert_eq!(state.foundry.as_ref().unwrap().hazard_hurt, 0);
+    assert_eq!(state.tick, 71);
+}
+
+#[test]
+fn detached_eliminated_dead_or_waiting_bodies_cannot_operate_foundry_gates() {
+    for invalid in 0..4 {
+        let mut state = session();
+        place(&mut state, [0.0, 0.3, 0.0]);
+        match invalid {
+            0 => state.players[0].detached = true,
+            1 => state.players[0].eliminated = true,
+            2 => state.players[0].respawn_timer = Some(1),
+            _ => state.players[0].hp = 0,
+        }
+        state.players[0].interaction_requested = true;
+        state.advance_foundry();
+        assert_eq!(
+            state.foundry.as_ref().unwrap().lift_phase,
+            lift::Phase::Parked
+        );
+        let gates = state.map.m13_gates().unwrap().clone();
+        let relay = state.map.arena().solids[gates.relay];
+        state.damage_foundry_relay(
+            state.players[0].id,
+            gates.relay,
+            [relay.max_x, 1.0, -3.0],
+            [1.0, 0.0, 0.0],
+            25,
+        );
+        assert!(!state.foundry.as_ref().unwrap().relay_disabled);
+        state.players[0].x = 13.0;
+        state.players[0].y = PLAYER_FLOOR_Y;
+        state.players[0].z = 7.0;
+        state.tick = 70;
+        let hp = state.players[0].hp;
+        state.tick_foundry_hazards();
+        assert_eq!(state.players[0].hp, hp);
+        assert_eq!(state.foundry.as_ref().unwrap().hazard_hurt, 0);
+    }
 }

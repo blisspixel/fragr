@@ -1,0 +1,13 @@
+{
+  "out_dir": "art/raw/m13-foundry-surfaces-20261013",
+  "technical": "One seamless square tiling albedo only. Orthographic flat surface filling the entire frame, exactly even diffuse illumination, no cast shadows, no perspective or border. Designed for reduction to a 128 by 128 pixel material tile.",
+  "style": "Original modern retro first-person shooter surface, practical circa-2070 Martian industrial work. Calm broad material values and coherent pixel-friendly clusters. Restrained pale bone, charcoal steel and sparse desaturated rust; no photographic noise. Maintenance and purposeful wear, not ruins.",
+  "view": "Fill the image with one repeating flat material, seamless edges in both directions, no objects, rooms or directional lighting.",
+  "model": "marketing-studio/image",
+  "negative": "text, numbers, logos, watermark, signatures, glowing cracks, molten metal, orange glow, fire, hazard stripes, arrows, panels with controls, pipes, perspective, room, dramatic lighting, hard shadows, glossy plastic, dense grunge, decorative borders, large holes",
+  "params": { "aspect_ratio": "1:1", "resolution": "2k", "quality": "low", "enhance_prompt": false },
+  "frames": [
+    { "id": "m13_refractory_shield_v1", "subject": "Pale desaturated bone refractory heat shielding, broad quiet ceramic faces with fine shallow irregular thermal checking and sparse muted gray soot along a few hairline joins. Industrial heat-resistant ceramic, not ordinary brick or stone wall. Mostly intact calm light values, no deep black cracks, no emissive heat, no directional shadow. Seamless repeat without a prominent central motif." },
+    { "id": "m13_traction_plate_v1", "subject": "Dark cool charcoal steel walking traction plate with short low-relief staggered tread bars and broad worn smooth stepping areas. Restrained quiet middle-dark values, no deep black recesses. Sparse desaturated gray polishing on tread tops and a few small dull rust flecks. Broad readable material construction without busy high-contrast checkerboarding, no warning paint or directional lighting. Seamless repeat." }
+  ]
+}
