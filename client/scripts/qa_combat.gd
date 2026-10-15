@@ -164,6 +164,13 @@ static func valid_engagement_distance(spec: Dictionary) -> bool:
 	return (typeof(distance) == TYPE_FLOAT or typeof(distance) == TYPE_INT) \
 		and is_finite(float(distance)) and float(distance) > 0.0 and float(distance) <= 90.0
 
+static func valid_capture_interval(spec: Dictionary) -> bool:
+	if not spec.has("capture_interval_ms"):
+		return true
+	var interval: Variant = spec["capture_interval_ms"]
+	return (interval is int or interval is float) and is_finite(float(interval)) \
+		and float(interval)==floorf(float(interval)) and float(interval)>=150.0 and float(interval)<=2000.0
+
 static func engagement_evidence(snapshot: Dictionary, player_id: String, loadout: Dictionary,
 		solids: Array, required: Array, max_distance: float) -> Dictionary:
 	var me: Dictionary = actor_by_id(snapshot, player_id)
@@ -569,6 +576,9 @@ func turret_peek_allows(spec: Dictionary, index: int, tick: int) -> bool:
 		and observer.clear_windup_ready(tick))
 
 func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Dictionary:
+	if not valid_capture_interval(spec):
+		push_error("qa_combat: capture interval must be an integer from 150 to 2000 ms")
+		return {"passed":false}
 	if not valid_engagement_distance(spec):
 		push_error("qa_combat: engagement_distance must be finite, positive and at most 90 metres")
 		return {"passed": false}
@@ -669,6 +679,12 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 	var captured_ticks: Dictionary[String, int] = {}
 	var deadline: int = Time.get_ticks_msec() + 25000
 	var next_frame: int = 0
+	var capture_interval: int = int(spec.get("capture_interval_ms",150))
+	var control_last_ms: int = -1
+	var control_intervals: Array[int] = []
+	var control_count: int = 0
+	var control_total_ms: int = 0
+	var control_max_ms: int = 0
 	var finish_at: int = -1
 	var last_target_id: String = ""
 	var alive: bool = true
@@ -693,6 +709,15 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		if ActorState.is_union(actor) and int(actor["hp"]) <= 0:
 			_initial_dead[str(actor["id"])] = true
 	while Time.get_ticks_msec() < deadline and alive and not participant_died:
+		var control_now: int = Time.get_ticks_msec()
+		if control_last_ms>=0:
+			var interval: int = control_now-control_last_ms
+			control_count += 1
+			control_total_ms += interval
+			control_max_ms = maxi(control_max_ms,interval)
+			if control_intervals.size()<2048:
+				control_intervals.append(interval)
+		control_last_ms = control_now
 		var snapshot: Dictionary = manager.get("latest_snapshot")
 		_observe(snapshot)
 		var complete: bool = confirmed(required).size() == expected if not required.is_empty() else defeated.size() >= expected
@@ -746,7 +771,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 					break
 		if new_companion_hit or (frames.size() < 128 and (Time.get_ticks_msec() >= next_frame or \
 			(not capture_key.is_empty() and not captured.has(capture_key)))):
-			next_frame = Time.get_ticks_msec() + 150
+			next_frame = Time.get_ticks_msec() + capture_interval
 			await RenderingServer.frame_post_draw
 			var frame: Image = tree.root.get_texture().get_image()
 			if new_companion_hit:
@@ -810,6 +835,7 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		phases_proven and no_damage_proven and approach_complete and search_complete and \
 		(turret_cancel.is_empty() or turret_cancel.get("passed") == true) and \
 		(not spec.get("require_companion_damage", false) or companion_damage)
+	var control_cadence: Dictionary = {"interval_count":control_count,"mean_ms":float(control_total_ms)/maxi(1,control_count),"max_ms":control_max_ms,"retained_intervals_ms":control_intervals,"omitted":control_count-control_intervals.size()}
 	if not turret_cancel.is_empty():
 		print("qa_combat: real Turret cover cancellation ", JSON.stringify(turret_cancel))
 	if spec.get("require_companion_damage", false):
@@ -825,6 +851,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		evidence["spec"] = spec.duplicate(true)
 		evidence["resolved_shots"] = resolved_shots.duplicate(true)
 		evidence["samples"] = samples.duplicate(true)
+		evidence["capture_interval_ms"] = capture_interval
+		evidence["control_cadence"] = control_cadence
 		var diagnostic: FileAccess = FileAccess.open(output + "_failure.json", FileAccess.WRITE)
 		if diagnostic != null:
 			diagnostic.store_string(JSON.stringify(evidence, "  "))
@@ -837,6 +865,8 @@ func run(tree: SceneTree, manager: Node, spec: Dictionary, output: String) -> Di
 		])
 	return {
 		"passed": passed,
+		"capture_interval_ms":capture_interval,
+		"control_cadence":control_cadence,
 		"search_complete": search_complete,
 		"search_index": search_index,
 		"search_waypoints": search_route.size(),

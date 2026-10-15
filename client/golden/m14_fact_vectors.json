@@ -1,0 +1,7433 @@
+{
+  "fallen_map_info": {
+    "geometry_version": 2,
+    "half_extent": 70.0,
+    "m14": {
+      "boarding": {
+        "max": [
+          11.0,
+          4.0,
+          46.0
+        ],
+        "min": [
+          -1.0,
+          0.0,
+          41.0
+        ]
+      },
+      "departure": {
+        "approach": [
+          5.0,
+          0.0,
+          44.5
+        ],
+        "decoration": 2
+      },
+      "fallen": true,
+      "jeep": {
+        "feet": [
+          -24.0,
+          0.0,
+          -24.0
+        ],
+        "yaw": 1.5707963705062866
+      },
+      "objectives": [
+        {
+          "action": {
+            "feet": [
+              -46.0,
+              2.0,
+              -52.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -43.0,
+                3.0,
+                -50.0
+              ],
+              "min": [
+                -49.0,
+                1.7999999523162842,
+                -56.0
+              ]
+            }
+          },
+          "id": "arrival"
+        },
+        {
+          "action": {
+            "feet": [
+              -25.0,
+              0.0,
+              -36.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -6.0,
+                5.0,
+                -14.0
+              ],
+              "min": [
+                -54.0,
+                0.0,
+                -43.0
+              ]
+            }
+          },
+          "id": "depot_secured"
+        },
+        {
+          "action": {
+            "feet": [
+              -24.0,
+              0.0,
+              -13.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -6.0,
+                5.0,
+                -7.0
+              ],
+              "min": [
+                -31.0,
+                0.0,
+                -29.0
+              ]
+            }
+          },
+          "id": "road_secured"
+        },
+        {
+          "action": {
+            "feet": [
+              -22.0,
+              0.0,
+              16.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                57.0,
+                5.0,
+                26.0
+              ],
+              "min": [
+                -57.0,
+                0.0,
+                -10.0
+              ]
+            }
+          },
+          "id": "approach_secured"
+        },
+        {
+          "action": {
+            "feet": [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                56.0,
+                5.0,
+                41.0
+              ],
+              "min": [
+                -56.0,
+                0.0,
+                15.0
+              ]
+            }
+          },
+          "id": "walker_disabled"
+        },
+        {
+          "action": {
+            "feet": [
+              5.0,
+              0.0,
+              44.5
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                24.0,
+                5.0,
+                54.0
+              ],
+              "min": [
+                -22.0,
+                0.0,
+                33.0
+              ]
+            }
+          },
+          "id": "gantry_secured"
+        }
+      ],
+      "walker_solids": [
+        129,
+        130,
+        131,
+        132,
+        133
+      ]
+    },
+    "map_id": 1014,
+    "map_name": "Launch Authority",
+    "presentation": {
+      "decorations": [
+        {
+          "center": [
+            0.0,
+            0.5
+          ],
+          "face": "south",
+          "kind": "lift_sign",
+          "size": [
+            2.4000000953674316,
+            1.0
+          ],
+          "solid": 5
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "south",
+          "kind": "maintenance_sign",
+          "size": [
+            2.4000000953674316,
+            1.0
+          ],
+          "solid": 45
+        },
+        {
+          "center": [
+            0.0,
+            -0.20000000298023224
+          ],
+          "face": "north",
+          "kind": "terminal",
+          "size": [
+            1.399999976158142,
+            1.100000023841858
+          ],
+          "solid": 108
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "down",
+          "kind": "strip_light",
+          "size": [
+            2.0,
+            0.30000001192092896
+          ],
+          "solid": 23
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "down",
+          "kind": "strip_light",
+          "size": [
+            2.0,
+            0.30000001192092896
+          ],
+          "solid": 44
+        }
+      ],
+      "ground": "concrete",
+      "solids": [
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "records_tile",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "concrete",
+        "concrete",
+        "enamel",
+        "lift_panel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "lift_panel",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "concrete",
+        "enamel",
+        "enamel",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "concrete",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel"
+      ]
+    },
+    "solids": [
+      {
+        "max_x": 70.0,
+        "max_z": -68.5,
+        "min_x": -70.0,
+        "min_z": -70.0,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": 70.0,
+        "max_z": 70.0,
+        "min_x": -70.0,
+        "min_z": 68.5,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": -68.5,
+        "max_z": 68.5,
+        "min_x": -70.0,
+        "min_z": -68.5,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": 70.0,
+        "max_z": 68.5,
+        "min_x": 68.5,
+        "min_z": -68.5,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": -42.0,
+        "max_z": -50.0,
+        "min_x": -50.0,
+        "min_z": -58.0,
+        "top": 2.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": -42.0,
+        "max_z": -57.599998474121094,
+        "min_x": -50.0,
+        "min_z": -58.0,
+        "top": 7.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": -49.599998474121094,
+        "max_z": -50.0,
+        "min_x": -50.0,
+        "min_z": -58.0,
+        "top": 5.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": -42.0,
+        "max_z": -50.0,
+        "min_x": -42.400001525878906,
+        "min_z": -58.0,
+        "top": 5.0
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -49.0,
+        "min_x": -48.0,
+        "min_z": -50.0,
+        "top": 1.75
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -48.0,
+        "min_x": -48.0,
+        "min_z": -49.0,
+        "top": 1.5
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -47.0,
+        "min_x": -48.0,
+        "min_z": -48.0,
+        "top": 1.25
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -46.0,
+        "min_x": -48.0,
+        "min_z": -47.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -45.0,
+        "min_x": -48.0,
+        "min_z": -46.0,
+        "top": 0.75
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -44.0,
+        "min_x": -48.0,
+        "min_z": -45.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -43.0,
+        "min_x": -48.0,
+        "min_z": -44.0,
+        "top": 0.25
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -42.0,
+        "min_x": -37.0,
+        "min_z": -47.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "max_x": -10.0,
+        "max_z": -41.0,
+        "min_x": -17.0,
+        "min_z": -46.0,
+        "top": 2.0999999046325684
+      },
+      {
+        "bottom": 2.0999999046325684,
+        "max_x": -11.0,
+        "max_z": -42.0,
+        "min_x": -15.0,
+        "min_z": -45.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": -39.599998474121094,
+        "max_z": -16.0,
+        "min_x": -40.0,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -16.0,
+        "min_x": -40.0,
+        "min_z": -16.399999618530273,
+        "top": 3.5
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -16.0,
+        "min_x": -31.399999618530273,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -37.0,
+        "max_z": -26.600000381469727,
+        "min_x": -40.0,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -26.600000381469727,
+        "min_x": -34.0,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "bottom": 3.200000047683716,
+        "max_x": -30.700000762939453,
+        "max_z": -15.699999809265137,
+        "min_x": -40.29999923706055,
+        "min_z": -27.299999237060547,
+        "top": 3.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -30.0,
+        "min_x": -43.0,
+        "min_z": -31.0,
+        "top": 0.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -29.0,
+        "min_x": -43.0,
+        "min_z": -30.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -28.0,
+        "min_x": -43.0,
+        "min_z": -29.0,
+        "top": 0.75
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -27.0,
+        "min_x": -43.0,
+        "min_z": -28.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -26.0,
+        "min_x": -43.0,
+        "min_z": -27.0,
+        "top": 1.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -25.0,
+        "min_x": -43.0,
+        "min_z": -26.0,
+        "top": 1.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -24.0,
+        "min_x": -43.0,
+        "min_z": -25.0,
+        "top": 1.75
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -23.0,
+        "min_x": -43.0,
+        "min_z": -24.0,
+        "top": 2.0
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -22.0,
+        "min_x": -43.0,
+        "min_z": -23.0,
+        "top": 2.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -21.0,
+        "min_x": -43.0,
+        "min_z": -22.0,
+        "top": 2.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -20.0,
+        "min_x": -43.0,
+        "min_z": -21.0,
+        "top": 2.75
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -19.0,
+        "min_x": -43.0,
+        "min_z": -20.0,
+        "top": 3.0
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -18.0,
+        "min_x": -43.0,
+        "min_z": -19.0,
+        "top": 3.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -17.0,
+        "min_x": -43.0,
+        "min_z": -18.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -39.599998474121094,
+        "max_z": -15.699999809265137,
+        "min_x": -43.0,
+        "min_z": -17.0,
+        "top": 3.5
+      },
+      {
+        "bottom": 3.5,
+        "max_x": -32.0,
+        "max_z": -17.700000762939453,
+        "min_x": -38.0,
+        "min_z": -18.299999237060547,
+        "top": 4.5
+      },
+      {
+        "max_x": -27.0,
+        "max_z": -33.099998474121094,
+        "min_x": -33.0,
+        "min_z": -34.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -16.0,
+        "max_z": -32.099998474121094,
+        "min_x": -21.0,
+        "min_z": -33.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -34.0,
+        "max_z": -37.20000076293945,
+        "min_x": -41.0,
+        "min_z": -38.0,
+        "top": 2.799999952316284
+      },
+      {
+        "max_x": -36.5,
+        "max_z": -18.100000381469727,
+        "min_x": -38.5,
+        "min_z": -19.0,
+        "top": 1.0
+      },
+      {
+        "bottom": 4.099999904632568,
+        "max_x": -17.5,
+        "max_z": -19.5,
+        "min_x": -30.5,
+        "min_z": -28.5,
+        "top": 4.300000190734863
+      },
+      {
+        "max_x": -18.0,
+        "max_z": -28.0,
+        "min_x": -30.0,
+        "min_z": -28.399999618530273,
+        "top": 3.4000000953674316
+      },
+      {
+        "max_x": -29.850000381469727,
+        "max_z": -27.850000381469727,
+        "min_x": -30.149999618530273,
+        "min_z": -28.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -29.850000381469727,
+        "max_z": -19.850000381469727,
+        "min_x": -30.149999618530273,
+        "min_z": -20.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -17.850000381469727,
+        "max_z": -27.850000381469727,
+        "min_x": -18.149999618530273,
+        "min_z": -28.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -17.850000381469727,
+        "max_z": -19.850000381469727,
+        "min_x": -18.149999618530273,
+        "min_z": -20.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -4.0,
+        "max_z": -26.600000381469727,
+        "min_x": -13.0,
+        "min_z": -27.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": -4.0,
+        "max_z": -19.0,
+        "min_x": -4.400000095367432,
+        "min_z": -27.0,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 3.799999952316284,
+        "max_x": -4.0,
+        "max_z": -19.0,
+        "min_x": -13.0,
+        "min_z": -27.0,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -5.199999809265137,
+        "max_z": -24.5,
+        "min_x": -6.5,
+        "min_z": -25.399999618530273,
+        "top": 1.0
+      },
+      {
+        "max_x": -28.0,
+        "max_z": 12.0,
+        "min_x": -35.0,
+        "min_z": -6.0,
+        "top": 3.200000047683716
+      },
+      {
+        "max_x": -28.0,
+        "max_z": 38.0,
+        "min_x": -35.0,
+        "min_z": 20.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": 35.0,
+        "max_z": 8.0,
+        "min_x": 28.0,
+        "min_z": -10.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": 35.0,
+        "max_z": 38.0,
+        "min_x": 28.0,
+        "min_z": 17.0,
+        "top": 3.200000047683716
+      },
+      {
+        "max_x": -5.0,
+        "max_z": 14.0,
+        "min_x": -16.0,
+        "min_z": 10.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "max_x": 17.0,
+        "max_z": 23.0,
+        "min_x": 5.0,
+        "min_z": 20.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "max_x": -17.0,
+        "max_z": 10.399999618530273,
+        "min_x": -23.5,
+        "min_z": 10.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "max_x": -23.100000381469727,
+        "max_z": 10.399999618530273,
+        "min_x": -23.5,
+        "min_z": 4.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "bottom": 3.4000000953674316,
+        "max_x": -17.0,
+        "max_z": 10.399999618530273,
+        "min_x": -23.5,
+        "min_z": 4.0,
+        "top": 3.700000047683716
+      },
+      {
+        "max_x": 23.5,
+        "max_z": 12.399999618530273,
+        "min_x": 17.0,
+        "min_z": 12.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "max_x": 23.5,
+        "max_z": 12.399999618530273,
+        "min_x": 23.100000381469727,
+        "min_z": 6.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "bottom": 3.4000000953674316,
+        "max_x": 23.5,
+        "max_z": 12.399999618530273,
+        "min_x": 17.0,
+        "min_z": 6.0,
+        "top": 3.700000047683716
+      },
+      {
+        "max_x": 3.0,
+        "max_z": 4.800000190734863,
+        "min_x": -5.0,
+        "min_z": 4.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": 14.0,
+        "max_z": 3.0,
+        "min_x": 8.0,
+        "min_z": -2.0,
+        "top": 2.0
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -9.0,
+        "min_x": 8.0,
+        "min_z": -10.0,
+        "top": 0.25
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -8.0,
+        "min_x": 8.0,
+        "min_z": -9.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -7.0,
+        "min_x": 8.0,
+        "min_z": -8.0,
+        "top": 0.75
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -6.0,
+        "min_x": 8.0,
+        "min_z": -7.0,
+        "top": 1.0
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -5.0,
+        "min_x": 8.0,
+        "min_z": -6.0,
+        "top": 1.25
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -4.0,
+        "min_x": 8.0,
+        "min_z": -5.0,
+        "top": 1.5
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -3.0,
+        "min_x": 8.0,
+        "min_z": -4.0,
+        "top": 1.75
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -2.0,
+        "min_x": 8.0,
+        "min_z": -3.0,
+        "top": 2.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": 14.0,
+        "max_z": -1.7999999523162842,
+        "min_x": 12.199999809265137,
+        "min_z": -2.200000047683716,
+        "top": 2.9000000953674316
+      },
+      {
+        "max_x": 38.0,
+        "max_z": 23.0,
+        "min_x": 37.0,
+        "min_z": 18.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": -6.0,
+        "max_z": 33.0,
+        "min_x": -12.0,
+        "min_z": 29.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "max_x": 24.0,
+        "max_z": 33.0,
+        "min_x": 17.0,
+        "min_z": 29.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "max_x": -6.0,
+        "max_z": 30.799999237060547,
+        "min_x": -11.0,
+        "min_z": 30.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": -10.800000190734863,
+        "min_x": -58.0,
+        "min_z": -12.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": -10.800000190734863,
+        "min_x": 57.29999923706055,
+        "min_z": -12.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": -0.800000011920929,
+        "min_x": -58.0,
+        "min_z": -2.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": -0.800000011920929,
+        "min_x": 57.29999923706055,
+        "min_z": -2.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 9.199999809265137,
+        "min_x": -58.0,
+        "min_z": 8.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 9.199999809265137,
+        "min_x": 57.29999923706055,
+        "min_z": 8.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 19.200000762939453,
+        "min_x": -58.0,
+        "min_z": 18.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 19.200000762939453,
+        "min_x": 57.29999923706055,
+        "min_z": 18.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 29.200000762939453,
+        "min_x": -58.0,
+        "min_z": 28.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 29.200000762939453,
+        "min_x": 57.29999923706055,
+        "min_z": 28.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 39.20000076293945,
+        "min_x": -58.0,
+        "min_z": 38.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 39.20000076293945,
+        "min_x": 57.29999923706055,
+        "min_z": 38.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 1.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 28.0
+      },
+      {
+        "max_x": 1.0,
+        "max_z": 48.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 28.0
+      },
+      {
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 10.0,
+        "min_z": 41.0,
+        "top": 28.0
+      },
+      {
+        "max_x": 11.0,
+        "max_z": 48.0,
+        "min_x": 10.0,
+        "min_z": 47.0,
+        "top": 28.0
+      },
+      {
+        "bottom": 6.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 6.650000095367432
+      },
+      {
+        "bottom": 6.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 6.400000095367432
+      },
+      {
+        "bottom": 11.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 11.649999618530273
+      },
+      {
+        "bottom": 11.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 11.399999618530273
+      },
+      {
+        "bottom": 16.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 16.649999618530273
+      },
+      {
+        "bottom": 16.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 16.399999618530273
+      },
+      {
+        "bottom": 21.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 21.649999618530273
+      },
+      {
+        "bottom": 21.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 21.399999618530273
+      },
+      {
+        "bottom": 26.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 26.649999618530273
+      },
+      {
+        "bottom": 26.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 26.399999618530273
+      },
+      {
+        "bottom": 28.0,
+        "max_x": 12.0,
+        "max_z": 49.0,
+        "min_x": -1.0,
+        "min_z": 40.0,
+        "top": 29.0
+      },
+      {
+        "max_x": 8.0,
+        "max_z": 47.0,
+        "min_x": 2.0,
+        "min_z": 46.5,
+        "top": 3.200000047683716
+      },
+      {
+        "max_x": 2.0,
+        "max_z": 47.0,
+        "min_x": 1.600000023841858,
+        "min_z": 42.5,
+        "top": 3.200000047683716
+      },
+      {
+        "bottom": 3.200000047683716,
+        "max_x": 8.0,
+        "max_z": 47.0,
+        "min_x": 1.600000023841858,
+        "min_z": 42.5,
+        "top": 3.5
+      },
+      {
+        "max_x": -3.0,
+        "max_z": 39.79999923706055,
+        "min_x": -7.0,
+        "min_z": 39.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": 16.0,
+        "max_z": 39.79999923706055,
+        "min_x": 12.0,
+        "min_z": 39.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": 37.0,
+        "max_z": 49.0,
+        "min_x": 22.0,
+        "min_z": 38.0,
+        "top": 0.20000000298023224
+      },
+      {
+        "bottom": 0.20000000298023224,
+        "max_x": 32.0,
+        "max_z": 45.0,
+        "min_x": 27.0,
+        "min_z": 40.0,
+        "top": 18.0
+      },
+      {
+        "bottom": 18.0,
+        "max_x": 31.0,
+        "max_z": 44.0,
+        "min_x": 28.0,
+        "min_z": 41.0,
+        "top": 24.0
+      },
+      {
+        "bottom": 5.0,
+        "max_x": 32.5,
+        "max_z": 45.29999923706055,
+        "min_x": 26.5,
+        "min_z": 39.70000076293945,
+        "top": 12.0
+      },
+      {
+        "bottom": 0.20000000298023224,
+        "max_x": 27.0,
+        "max_z": 43.0,
+        "min_x": 24.0,
+        "min_z": 41.0,
+        "top": 1.0
+      },
+      {
+        "bottom": 0.20000000298023224,
+        "max_x": 35.0,
+        "max_z": 43.0,
+        "min_x": 32.0,
+        "min_z": 41.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -0.25,
+        "max_z": 15.0,
+        "min_x": -0.75,
+        "min_z": 6.25,
+        "top": 1.75
+      },
+      {
+        "max_x": -0.25,
+        "max_z": 22.25,
+        "min_x": -0.75,
+        "min_z": 17.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 1.75,
+        "max_z": 8.0,
+        "min_x": 1.25,
+        "min_z": 6.25,
+        "top": 1.75
+      },
+      {
+        "max_x": 1.75,
+        "max_z": 22.25,
+        "min_x": 1.25,
+        "min_z": 10.5,
+        "top": 1.75
+      },
+      {
+        "max_x": -0.75,
+        "max_z": 15.0,
+        "min_x": -4.25,
+        "min_z": 14.5,
+        "top": 1.75
+      },
+      {
+        "max_x": -0.75,
+        "max_z": 18.0,
+        "min_x": -4.25,
+        "min_z": 17.5,
+        "top": 1.75
+      },
+      {
+        "max_x": -3.75,
+        "max_z": 18.0,
+        "min_x": -4.25,
+        "min_z": 14.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 8.0,
+        "min_x": 1.75,
+        "min_z": 7.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 11.0,
+        "min_x": 1.75,
+        "min_z": 10.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 11.0,
+        "min_x": 4.5,
+        "min_z": 7.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 12.0,
+        "max_z": 33.0,
+        "min_x": 6.0,
+        "min_z": 29.0,
+        "top": 1.600000023841858
+      },
+      {
+        "max_x": 7.199999809265137,
+        "max_z": 29.600000381469727,
+        "min_x": 5.400000095367432,
+        "min_z": 28.399999618530273,
+        "top": 0.550000011920929
+      },
+      {
+        "max_x": 7.199999809265137,
+        "max_z": 33.599998474121094,
+        "min_x": 5.400000095367432,
+        "min_z": 32.400001525878906,
+        "top": 0.550000011920929
+      },
+      {
+        "max_x": 12.600000381469727,
+        "max_z": 29.600000381469727,
+        "min_x": 10.800000190734863,
+        "min_z": 28.399999618530273,
+        "top": 0.550000011920929
+      },
+      {
+        "max_x": 12.600000381469727,
+        "max_z": 33.599998474121094,
+        "min_x": 10.800000190734863,
+        "min_z": 32.400001525878906,
+        "top": 0.550000011920929
+      }
+    ],
+    "type": "map_info"
+  },
+  "invalid": [
+    {
+      "name": "early_disable",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": true
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": false
+          }
+        ],
+        "phase": "briefing",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "invented_fall",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": true,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": false
+          }
+        ],
+        "phase": "briefing",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "early_support",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 1
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": false
+          }
+        ],
+        "phase": "briefing",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "wrong_jeep",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 2,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": false
+          }
+        ],
+        "phase": "briefing",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "unknown_field",
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "invented": true,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": false
+          }
+        ],
+        "phase": "briefing",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0
+    },
+    {
+      "name": "early_cycle",
+      "state": {
+        "attempt": 1,
+        "changed_at": 1,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [
+            "arrival"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -25.0,
+                0.0,
+                -36.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -6.0,
+                  5.0,
+                  -14.0
+                ],
+                "min": [
+                  -54.0,
+                  0.0,
+                  -43.0
+                ]
+              }
+            },
+            "id": "depot_secured"
+          },
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 1
+    },
+    {
+      "name": "early_support_after_cycle",
+      "state": {
+        "attempt": 1,
+        "changed_at": 1,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [
+            "arrival"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -25.0,
+                0.0,
+                -36.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -6.0,
+                  5.0,
+                  -14.0
+                ],
+                "min": [
+                  -54.0,
+                  0.0,
+                  -43.0
+                ]
+              }
+            },
+            "id": "depot_secured"
+          },
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 1
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 1
+    },
+    {
+      "name": "early_on_foot",
+      "state": {
+        "attempt": 1,
+        "changed_at": 1,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": false,
+            "walker_disabled": false
+          },
+          "completed": [
+            "arrival"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -25.0,
+                0.0,
+                -36.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -6.0,
+                  5.0,
+                  -14.0
+                ],
+                "min": [
+                  -54.0,
+                  0.0,
+                  -43.0
+                ]
+              }
+            },
+            "id": "depot_secured"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 1
+    }
+  ],
+  "map_info": {
+    "geometry_version": 2,
+    "half_extent": 70.0,
+    "m14": {
+      "boarding": {
+        "max": [
+          11.0,
+          4.0,
+          46.0
+        ],
+        "min": [
+          -1.0,
+          0.0,
+          41.0
+        ]
+      },
+      "departure": {
+        "approach": [
+          5.0,
+          0.0,
+          44.5
+        ],
+        "decoration": 2
+      },
+      "fallen": false,
+      "jeep": {
+        "feet": [
+          -24.0,
+          0.0,
+          -24.0
+        ],
+        "yaw": 1.5707963705062866
+      },
+      "objectives": [
+        {
+          "action": {
+            "feet": [
+              -46.0,
+              2.0,
+              -52.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -43.0,
+                3.0,
+                -50.0
+              ],
+              "min": [
+                -49.0,
+                1.7999999523162842,
+                -56.0
+              ]
+            }
+          },
+          "id": "arrival"
+        },
+        {
+          "action": {
+            "feet": [
+              -25.0,
+              0.0,
+              -36.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -6.0,
+                5.0,
+                -14.0
+              ],
+              "min": [
+                -54.0,
+                0.0,
+                -43.0
+              ]
+            }
+          },
+          "id": "depot_secured"
+        },
+        {
+          "action": {
+            "feet": [
+              -24.0,
+              0.0,
+              -13.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -6.0,
+                5.0,
+                -7.0
+              ],
+              "min": [
+                -31.0,
+                0.0,
+                -29.0
+              ]
+            }
+          },
+          "id": "road_secured"
+        },
+        {
+          "action": {
+            "feet": [
+              -22.0,
+              0.0,
+              16.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                57.0,
+                5.0,
+                26.0
+              ],
+              "min": [
+                -57.0,
+                0.0,
+                -10.0
+              ]
+            }
+          },
+          "id": "approach_secured"
+        },
+        {
+          "action": {
+            "feet": [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                56.0,
+                5.0,
+                41.0
+              ],
+              "min": [
+                -56.0,
+                0.0,
+                15.0
+              ]
+            }
+          },
+          "id": "walker_disabled"
+        },
+        {
+          "action": {
+            "feet": [
+              5.0,
+              0.0,
+              44.5
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                24.0,
+                5.0,
+                54.0
+              ],
+              "min": [
+                -22.0,
+                0.0,
+                33.0
+              ]
+            }
+          },
+          "id": "gantry_secured"
+        }
+      ],
+      "walker_solids": [
+        129,
+        130,
+        131,
+        132,
+        133
+      ]
+    },
+    "map_id": 1014,
+    "map_name": "Launch Authority",
+    "presentation": {
+      "decorations": [
+        {
+          "center": [
+            0.0,
+            0.5
+          ],
+          "face": "south",
+          "kind": "lift_sign",
+          "size": [
+            2.4000000953674316,
+            1.0
+          ],
+          "solid": 5
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "south",
+          "kind": "maintenance_sign",
+          "size": [
+            2.4000000953674316,
+            1.0
+          ],
+          "solid": 45
+        },
+        {
+          "center": [
+            0.0,
+            -0.20000000298023224
+          ],
+          "face": "north",
+          "kind": "terminal",
+          "size": [
+            1.399999976158142,
+            1.100000023841858
+          ],
+          "solid": 108
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "down",
+          "kind": "strip_light",
+          "size": [
+            2.0,
+            0.30000001192092896
+          ],
+          "solid": 23
+        },
+        {
+          "center": [
+            0.0,
+            0.0
+          ],
+          "face": "down",
+          "kind": "strip_light",
+          "size": [
+            2.0,
+            0.30000001192092896
+          ],
+          "solid": 44
+        }
+      ],
+      "ground": "concrete",
+      "solids": [
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "records_tile",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "concrete",
+        "concrete",
+        "enamel",
+        "lift_panel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "lift_panel",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "concrete",
+        "enamel",
+        "enamel",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "service_steel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "enamel",
+        "concrete",
+        "concrete",
+        "enamel",
+        "enamel",
+        "enamel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "concrete",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel"
+      ]
+    },
+    "solids": [
+      {
+        "max_x": 70.0,
+        "max_z": -68.5,
+        "min_x": -70.0,
+        "min_z": -70.0,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": 70.0,
+        "max_z": 70.0,
+        "min_x": -70.0,
+        "min_z": 68.5,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": -68.5,
+        "max_z": 68.5,
+        "min_x": -70.0,
+        "min_z": -68.5,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": 70.0,
+        "max_z": 68.5,
+        "min_x": 68.5,
+        "min_z": -68.5,
+        "top": 3.5999999046325684
+      },
+      {
+        "max_x": -42.0,
+        "max_z": -50.0,
+        "min_x": -50.0,
+        "min_z": -58.0,
+        "top": 2.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": -42.0,
+        "max_z": -57.599998474121094,
+        "min_x": -50.0,
+        "min_z": -58.0,
+        "top": 7.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": -49.599998474121094,
+        "max_z": -50.0,
+        "min_x": -50.0,
+        "min_z": -58.0,
+        "top": 5.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": -42.0,
+        "max_z": -50.0,
+        "min_x": -42.400001525878906,
+        "min_z": -58.0,
+        "top": 5.0
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -49.0,
+        "min_x": -48.0,
+        "min_z": -50.0,
+        "top": 1.75
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -48.0,
+        "min_x": -48.0,
+        "min_z": -49.0,
+        "top": 1.5
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -47.0,
+        "min_x": -48.0,
+        "min_z": -48.0,
+        "top": 1.25
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -46.0,
+        "min_x": -48.0,
+        "min_z": -47.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -45.0,
+        "min_x": -48.0,
+        "min_z": -46.0,
+        "top": 0.75
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -44.0,
+        "min_x": -48.0,
+        "min_z": -45.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -44.0,
+        "max_z": -43.0,
+        "min_x": -48.0,
+        "min_z": -44.0,
+        "top": 0.25
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -42.0,
+        "min_x": -37.0,
+        "min_z": -47.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "max_x": -10.0,
+        "max_z": -41.0,
+        "min_x": -17.0,
+        "min_z": -46.0,
+        "top": 2.0999999046325684
+      },
+      {
+        "bottom": 2.0999999046325684,
+        "max_x": -11.0,
+        "max_z": -42.0,
+        "min_x": -15.0,
+        "min_z": -45.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": -39.599998474121094,
+        "max_z": -16.0,
+        "min_x": -40.0,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -16.0,
+        "min_x": -40.0,
+        "min_z": -16.399999618530273,
+        "top": 3.5
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -16.0,
+        "min_x": -31.399999618530273,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -37.0,
+        "max_z": -26.600000381469727,
+        "min_x": -40.0,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -31.0,
+        "max_z": -26.600000381469727,
+        "min_x": -34.0,
+        "min_z": -27.0,
+        "top": 3.5
+      },
+      {
+        "bottom": 3.200000047683716,
+        "max_x": -30.700000762939453,
+        "max_z": -15.699999809265137,
+        "min_x": -40.29999923706055,
+        "min_z": -27.299999237060547,
+        "top": 3.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -30.0,
+        "min_x": -43.0,
+        "min_z": -31.0,
+        "top": 0.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -29.0,
+        "min_x": -43.0,
+        "min_z": -30.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -28.0,
+        "min_x": -43.0,
+        "min_z": -29.0,
+        "top": 0.75
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -27.0,
+        "min_x": -43.0,
+        "min_z": -28.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -26.0,
+        "min_x": -43.0,
+        "min_z": -27.0,
+        "top": 1.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -25.0,
+        "min_x": -43.0,
+        "min_z": -26.0,
+        "top": 1.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -24.0,
+        "min_x": -43.0,
+        "min_z": -25.0,
+        "top": 1.75
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -23.0,
+        "min_x": -43.0,
+        "min_z": -24.0,
+        "top": 2.0
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -22.0,
+        "min_x": -43.0,
+        "min_z": -23.0,
+        "top": 2.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -21.0,
+        "min_x": -43.0,
+        "min_z": -22.0,
+        "top": 2.5
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -20.0,
+        "min_x": -43.0,
+        "min_z": -21.0,
+        "top": 2.75
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -19.0,
+        "min_x": -43.0,
+        "min_z": -20.0,
+        "top": 3.0
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -18.0,
+        "min_x": -43.0,
+        "min_z": -19.0,
+        "top": 3.25
+      },
+      {
+        "max_x": -40.0,
+        "max_z": -17.0,
+        "min_x": -43.0,
+        "min_z": -18.0,
+        "top": 3.5
+      },
+      {
+        "max_x": -39.599998474121094,
+        "max_z": -15.699999809265137,
+        "min_x": -43.0,
+        "min_z": -17.0,
+        "top": 3.5
+      },
+      {
+        "bottom": 3.5,
+        "max_x": -32.0,
+        "max_z": -17.700000762939453,
+        "min_x": -38.0,
+        "min_z": -18.299999237060547,
+        "top": 4.5
+      },
+      {
+        "max_x": -27.0,
+        "max_z": -33.099998474121094,
+        "min_x": -33.0,
+        "min_z": -34.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -16.0,
+        "max_z": -32.099998474121094,
+        "min_x": -21.0,
+        "min_z": -33.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -34.0,
+        "max_z": -37.20000076293945,
+        "min_x": -41.0,
+        "min_z": -38.0,
+        "top": 2.799999952316284
+      },
+      {
+        "max_x": -36.5,
+        "max_z": -18.100000381469727,
+        "min_x": -38.5,
+        "min_z": -19.0,
+        "top": 1.0
+      },
+      {
+        "bottom": 4.099999904632568,
+        "max_x": -17.5,
+        "max_z": -19.5,
+        "min_x": -30.5,
+        "min_z": -28.5,
+        "top": 4.300000190734863
+      },
+      {
+        "max_x": -18.0,
+        "max_z": -28.0,
+        "min_x": -30.0,
+        "min_z": -28.399999618530273,
+        "top": 3.4000000953674316
+      },
+      {
+        "max_x": -29.850000381469727,
+        "max_z": -27.850000381469727,
+        "min_x": -30.149999618530273,
+        "min_z": -28.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -29.850000381469727,
+        "max_z": -19.850000381469727,
+        "min_x": -30.149999618530273,
+        "min_z": -20.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -17.850000381469727,
+        "max_z": -27.850000381469727,
+        "min_x": -18.149999618530273,
+        "min_z": -28.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -17.850000381469727,
+        "max_z": -19.850000381469727,
+        "min_x": -18.149999618530273,
+        "min_z": -20.149999618530273,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -4.0,
+        "max_z": -26.600000381469727,
+        "min_x": -13.0,
+        "min_z": -27.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": -4.0,
+        "max_z": -19.0,
+        "min_x": -4.400000095367432,
+        "min_z": -27.0,
+        "top": 3.799999952316284
+      },
+      {
+        "bottom": 3.799999952316284,
+        "max_x": -4.0,
+        "max_z": -19.0,
+        "min_x": -13.0,
+        "min_z": -27.0,
+        "top": 4.099999904632568
+      },
+      {
+        "max_x": -5.199999809265137,
+        "max_z": -24.5,
+        "min_x": -6.5,
+        "min_z": -25.399999618530273,
+        "top": 1.0
+      },
+      {
+        "max_x": -28.0,
+        "max_z": 12.0,
+        "min_x": -35.0,
+        "min_z": -6.0,
+        "top": 3.200000047683716
+      },
+      {
+        "max_x": -28.0,
+        "max_z": 38.0,
+        "min_x": -35.0,
+        "min_z": 20.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": 35.0,
+        "max_z": 8.0,
+        "min_x": 28.0,
+        "min_z": -10.0,
+        "top": 3.799999952316284
+      },
+      {
+        "max_x": 35.0,
+        "max_z": 38.0,
+        "min_x": 28.0,
+        "min_z": 17.0,
+        "top": 3.200000047683716
+      },
+      {
+        "max_x": -5.0,
+        "max_z": 14.0,
+        "min_x": -16.0,
+        "min_z": 10.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "max_x": 17.0,
+        "max_z": 23.0,
+        "min_x": 5.0,
+        "min_z": 20.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "max_x": -17.0,
+        "max_z": 10.399999618530273,
+        "min_x": -23.5,
+        "min_z": 10.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "max_x": -23.100000381469727,
+        "max_z": 10.399999618530273,
+        "min_x": -23.5,
+        "min_z": 4.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "bottom": 3.4000000953674316,
+        "max_x": -17.0,
+        "max_z": 10.399999618530273,
+        "min_x": -23.5,
+        "min_z": 4.0,
+        "top": 3.700000047683716
+      },
+      {
+        "max_x": 23.5,
+        "max_z": 12.399999618530273,
+        "min_x": 17.0,
+        "min_z": 12.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "max_x": 23.5,
+        "max_z": 12.399999618530273,
+        "min_x": 23.100000381469727,
+        "min_z": 6.0,
+        "top": 3.4000000953674316
+      },
+      {
+        "bottom": 3.4000000953674316,
+        "max_x": 23.5,
+        "max_z": 12.399999618530273,
+        "min_x": 17.0,
+        "min_z": 6.0,
+        "top": 3.700000047683716
+      },
+      {
+        "max_x": 3.0,
+        "max_z": 4.800000190734863,
+        "min_x": -5.0,
+        "min_z": 4.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": 14.0,
+        "max_z": 3.0,
+        "min_x": 8.0,
+        "min_z": -2.0,
+        "top": 2.0
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -9.0,
+        "min_x": 8.0,
+        "min_z": -10.0,
+        "top": 0.25
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -8.0,
+        "min_x": 8.0,
+        "min_z": -9.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -7.0,
+        "min_x": 8.0,
+        "min_z": -8.0,
+        "top": 0.75
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -6.0,
+        "min_x": 8.0,
+        "min_z": -7.0,
+        "top": 1.0
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -5.0,
+        "min_x": 8.0,
+        "min_z": -6.0,
+        "top": 1.25
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -4.0,
+        "min_x": 8.0,
+        "min_z": -5.0,
+        "top": 1.5
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -3.0,
+        "min_x": 8.0,
+        "min_z": -4.0,
+        "top": 1.75
+      },
+      {
+        "max_x": 12.0,
+        "max_z": -2.0,
+        "min_x": 8.0,
+        "min_z": -3.0,
+        "top": 2.0
+      },
+      {
+        "bottom": 2.0,
+        "max_x": 14.0,
+        "max_z": -1.7999999523162842,
+        "min_x": 12.199999809265137,
+        "min_z": -2.200000047683716,
+        "top": 2.9000000953674316
+      },
+      {
+        "max_x": 38.0,
+        "max_z": 23.0,
+        "min_x": 37.0,
+        "min_z": 18.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": -6.0,
+        "max_z": 33.0,
+        "min_x": -12.0,
+        "min_z": 29.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "max_x": 24.0,
+        "max_z": 33.0,
+        "min_x": 17.0,
+        "min_z": 29.0,
+        "top": 2.5999999046325684
+      },
+      {
+        "max_x": -6.0,
+        "max_z": 30.799999237060547,
+        "min_x": -11.0,
+        "min_z": 30.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": -10.800000190734863,
+        "min_x": -58.0,
+        "min_z": -12.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": -10.800000190734863,
+        "min_x": 57.29999923706055,
+        "min_z": -12.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": -0.800000011920929,
+        "min_x": -58.0,
+        "min_z": -2.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": -0.800000011920929,
+        "min_x": 57.29999923706055,
+        "min_z": -2.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 9.199999809265137,
+        "min_x": -58.0,
+        "min_z": 8.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 9.199999809265137,
+        "min_x": 57.29999923706055,
+        "min_z": 8.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 19.200000762939453,
+        "min_x": -58.0,
+        "min_z": 18.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 19.200000762939453,
+        "min_x": 57.29999923706055,
+        "min_z": 18.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 29.200000762939453,
+        "min_x": -58.0,
+        "min_z": 28.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 29.200000762939453,
+        "min_x": 57.29999923706055,
+        "min_z": 28.0,
+        "top": 0.5
+      },
+      {
+        "max_x": -57.29999923706055,
+        "max_z": 39.20000076293945,
+        "min_x": -58.0,
+        "min_z": 38.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 58.0,
+        "max_z": 39.20000076293945,
+        "min_x": 57.29999923706055,
+        "min_z": 38.0,
+        "top": 0.5
+      },
+      {
+        "max_x": 1.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 28.0
+      },
+      {
+        "max_x": 1.0,
+        "max_z": 48.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 28.0
+      },
+      {
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 10.0,
+        "min_z": 41.0,
+        "top": 28.0
+      },
+      {
+        "max_x": 11.0,
+        "max_z": 48.0,
+        "min_x": 10.0,
+        "min_z": 47.0,
+        "top": 28.0
+      },
+      {
+        "bottom": 6.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 6.650000095367432
+      },
+      {
+        "bottom": 6.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 6.400000095367432
+      },
+      {
+        "bottom": 11.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 11.649999618530273
+      },
+      {
+        "bottom": 11.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 11.399999618530273
+      },
+      {
+        "bottom": 16.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 16.649999618530273
+      },
+      {
+        "bottom": 16.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 16.399999618530273
+      },
+      {
+        "bottom": 21.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 21.649999618530273
+      },
+      {
+        "bottom": 21.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 21.399999618530273
+      },
+      {
+        "bottom": 26.0,
+        "max_x": 11.0,
+        "max_z": 42.0,
+        "min_x": 0.0,
+        "min_z": 41.0,
+        "top": 26.649999618530273
+      },
+      {
+        "bottom": 26.0,
+        "max_x": 11.0,
+        "max_z": 49.0,
+        "min_x": 0.0,
+        "min_z": 47.0,
+        "top": 26.399999618530273
+      },
+      {
+        "bottom": 28.0,
+        "max_x": 12.0,
+        "max_z": 49.0,
+        "min_x": -1.0,
+        "min_z": 40.0,
+        "top": 29.0
+      },
+      {
+        "max_x": 8.0,
+        "max_z": 47.0,
+        "min_x": 2.0,
+        "min_z": 46.5,
+        "top": 3.200000047683716
+      },
+      {
+        "max_x": 2.0,
+        "max_z": 47.0,
+        "min_x": 1.600000023841858,
+        "min_z": 42.5,
+        "top": 3.200000047683716
+      },
+      {
+        "bottom": 3.200000047683716,
+        "max_x": 8.0,
+        "max_z": 47.0,
+        "min_x": 1.600000023841858,
+        "min_z": 42.5,
+        "top": 3.5
+      },
+      {
+        "max_x": -3.0,
+        "max_z": 39.79999923706055,
+        "min_x": -7.0,
+        "min_z": 39.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": 16.0,
+        "max_z": 39.79999923706055,
+        "min_x": 12.0,
+        "min_z": 39.0,
+        "top": 1.100000023841858
+      },
+      {
+        "max_x": 37.0,
+        "max_z": 49.0,
+        "min_x": 22.0,
+        "min_z": 38.0,
+        "top": 0.20000000298023224
+      },
+      {
+        "bottom": 0.20000000298023224,
+        "max_x": 32.0,
+        "max_z": 45.0,
+        "min_x": 27.0,
+        "min_z": 40.0,
+        "top": 18.0
+      },
+      {
+        "bottom": 18.0,
+        "max_x": 31.0,
+        "max_z": 44.0,
+        "min_x": 28.0,
+        "min_z": 41.0,
+        "top": 24.0
+      },
+      {
+        "bottom": 5.0,
+        "max_x": 32.5,
+        "max_z": 45.29999923706055,
+        "min_x": 26.5,
+        "min_z": 39.70000076293945,
+        "top": 12.0
+      },
+      {
+        "bottom": 0.20000000298023224,
+        "max_x": 27.0,
+        "max_z": 43.0,
+        "min_x": 24.0,
+        "min_z": 41.0,
+        "top": 1.0
+      },
+      {
+        "bottom": 0.20000000298023224,
+        "max_x": 35.0,
+        "max_z": 43.0,
+        "min_x": 32.0,
+        "min_z": 41.0,
+        "top": 1.0
+      },
+      {
+        "max_x": -0.25,
+        "max_z": 15.0,
+        "min_x": -0.75,
+        "min_z": 6.25,
+        "top": 1.75
+      },
+      {
+        "max_x": -0.25,
+        "max_z": 22.25,
+        "min_x": -0.75,
+        "min_z": 17.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 1.75,
+        "max_z": 8.0,
+        "min_x": 1.25,
+        "min_z": 6.25,
+        "top": 1.75
+      },
+      {
+        "max_x": 1.75,
+        "max_z": 22.25,
+        "min_x": 1.25,
+        "min_z": 10.5,
+        "top": 1.75
+      },
+      {
+        "max_x": -0.75,
+        "max_z": 15.0,
+        "min_x": -4.25,
+        "min_z": 14.5,
+        "top": 1.75
+      },
+      {
+        "max_x": -0.75,
+        "max_z": 18.0,
+        "min_x": -4.25,
+        "min_z": 17.5,
+        "top": 1.75
+      },
+      {
+        "max_x": -3.75,
+        "max_z": 18.0,
+        "min_x": -4.25,
+        "min_z": 14.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 8.0,
+        "min_x": 1.75,
+        "min_z": 7.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 11.0,
+        "min_x": 1.75,
+        "min_z": 10.5,
+        "top": 1.75
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 11.0,
+        "min_x": 4.5,
+        "min_z": 7.5,
+        "top": 1.75
+      },
+      {
+        "bottom": 3.0,
+        "max_x": 11.0,
+        "max_z": 28.0,
+        "min_x": 5.0,
+        "min_z": 24.0,
+        "top": 6.0
+      },
+      {
+        "max_x": 6.199999809265137,
+        "max_z": 25.200000762939453,
+        "min_x": 5.0,
+        "min_z": 24.0,
+        "top": 3.0
+      },
+      {
+        "max_x": 6.199999809265137,
+        "max_z": 28.0,
+        "min_x": 5.0,
+        "min_z": 26.799999237060547,
+        "top": 3.0
+      },
+      {
+        "max_x": 11.0,
+        "max_z": 25.200000762939453,
+        "min_x": 9.800000190734863,
+        "min_z": 24.0,
+        "top": 3.0
+      },
+      {
+        "max_x": 11.0,
+        "max_z": 28.0,
+        "min_x": 9.800000190734863,
+        "min_z": 26.799999237060547,
+        "top": 3.0
+      }
+    ],
+    "type": "map_info",
+    "walker": {
+      "activation": {
+        "max": [
+          45.0,
+          5.0,
+          40.0
+        ],
+        "min": [
+          -45.0,
+          0.0,
+          18.0
+        ]
+      },
+      "approach": [
+        -14.0,
+        0.0,
+        28.0
+      ],
+      "arena": {
+        "max": [
+          56.0,
+          20.0,
+          50.0
+        ],
+        "min": [
+          -56.0,
+          0.0,
+          -2.0
+        ]
+      },
+      "solids": [
+        129,
+        130,
+        131,
+        132,
+        133
+      ],
+      "stations": [
+        [
+          8.0,
+          0.0,
+          26.0
+        ],
+        [
+          9.0,
+          0.0,
+          31.0
+        ],
+        [
+          7.0,
+          0.0,
+          36.0
+        ]
+      ]
+    }
+  },
+  "participant": "00000000-0000-0000-0000-0000000003f6",
+  "valid": [
+    {
+      "name": "briefing",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": false,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Fists",
+            "x": -46.0,
+            "y": 3.5,
+            "yaw": 1.5707963705062866,
+            "z": -52.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 0,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ],
+        "walker": {
+          "artillery_targets": [
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ]
+          ],
+          "feet": [
+            8.0,
+            0.0,
+            26.0
+          ],
+          "hp": 900,
+          "phase": "dormant",
+          "phase_ends": 0,
+          "phase_started": 0,
+          "shells": [],
+          "shells_left": 36,
+          "stage": 1,
+          "target": [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        }
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 0,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": false
+          }
+        ],
+        "phase": "briefing",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          26.0
+        ],
+        "hp": 900,
+        "phase": "dormant",
+        "phase_ends": 0,
+        "phase_started": 0,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -14.0,
+          0.0,
+          28.0
+        ]
+      }
+    },
+    {
+      "name": "solo_stomp_warning",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -14.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 28.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 42,
+              "phase_started": 2,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000001",
+            "just_fired": false,
+            "name": "depot_clerk_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -30.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": -31.5
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 42,
+              "phase_started": 2,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000002",
+            "just_fired": false,
+            "name": "depot_clerk_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -18.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": -30.5
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 42,
+              "phase_started": 2,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000003",
+            "just_fired": false,
+            "name": "depot_sweeper_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -35.5,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": -23.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 42,
+              "phase_started": 2,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000004",
+            "just_fired": false,
+            "name": "depot_sweeper_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -13.5,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": -23.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "turret",
+              "phase": "dead",
+              "phase_ends": 42,
+              "phase_started": 2,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000005",
+            "just_fired": false,
+            "name": "depot_roof_turret",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Rail",
+            "x": -35.0,
+            "y": 5.0,
+            "yaw": 4.71238899230957,
+            "z": -20.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "dead",
+              "phase_ends": 45,
+              "phase_started": 5,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000006",
+            "just_fired": false,
+            "name": "road_notary_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -24.080001831054688,
+            "y": 3.945000171661377,
+            "yaw": 5.4323883056640625,
+            "z": -4.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "dead",
+              "phase_ends": 45,
+              "phase_started": 5,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000007",
+            "just_fired": false,
+            "name": "road_notary_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -11.079999923706055,
+            "y": 4.544999599456787,
+            "yaw": 5.4323883056640625,
+            "z": 2.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 48,
+              "phase_started": 8,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000008",
+            "just_fired": false,
+            "name": "berm_clerk_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -14.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 6.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 48,
+              "phase_started": 8,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000009",
+            "just_fired": false,
+            "name": "berm_clerk_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": 16.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 16.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "ranged_sweeper",
+              "phase": "dead",
+              "phase_ends": 48,
+              "phase_started": 8,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000a",
+            "just_fired": false,
+            "name": "berm_marksman",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Sniper",
+            "x": 11.0,
+            "y": 3.5,
+            "yaw": 4.71238899230957,
+            "z": 1.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "turret",
+              "phase": "dead",
+              "phase_ends": 48,
+              "phase_started": 8,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000b",
+            "just_fired": false,
+            "name": "bend_turret",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Rail",
+            "x": 40.0,
+            "y": 1.5,
+            "yaw": 3.1415927410125732,
+            "z": 20.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 11,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ],
+        "walker": {
+          "artillery_targets": [
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ]
+          ],
+          "feet": [
+            8.0,
+            0.0,
+            26.0
+          ],
+          "hp": 900,
+          "phase": "stomp_warning",
+          "phase_ends": 43,
+          "phase_started": 11,
+          "shells": [],
+          "shells_left": 36,
+          "stage": 1,
+          "target": [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        }
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 9,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": true,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [
+            "arrival",
+            "depot_secured",
+            "road_secured",
+            "approach_secured"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                0.0,
+                28.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  56.0,
+                  5.0,
+                  41.0
+                ],
+                "min": [
+                  -56.0,
+                  0.0,
+                  15.0
+                ]
+              }
+            },
+            "id": "walker_disabled"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 11,
+      "walker": {
+        "artillery_targets": [
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          26.0
+        ],
+        "hp": 900,
+        "phase": "stomp_warning",
+        "phase_ends": 43,
+        "phase_started": 11,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -14.0,
+          0.0,
+          28.0
+        ]
+      }
+    },
+    {
+      "name": "first_solo_cycle_complete",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -14.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 40.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 231,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ],
+        "walker": {
+          "artillery_targets": [
+            [
+              -10.016427040100098,
+              0.0,
+              27.63785743713379
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -17.98357391357422,
+              0.0,
+              28.36214256286621
+            ]
+          ],
+          "feet": [
+            9.0,
+            0.0,
+            31.0
+          ],
+          "hp": 900,
+          "phase": "stomp_warning",
+          "phase_ends": 263,
+          "phase_started": 231,
+          "shells": [],
+          "shells_left": 33,
+          "stage": 1,
+          "target": [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        }
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 231,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": true,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [
+            "arrival",
+            "depot_secured",
+            "road_secured",
+            "approach_secured"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                0.0,
+                28.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  56.0,
+                  5.0,
+                  41.0
+                ],
+                "min": [
+                  -56.0,
+                  0.0,
+                  15.0
+                ]
+              }
+            },
+            "id": "walker_disabled"
+          },
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 231,
+      "walker": {
+        "artillery_targets": [
+          [
+            -10.016427040100098,
+            0.0,
+            27.63785743713379
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -17.98357391357422,
+            0.0,
+            28.36214256286621
+          ]
+        ],
+        "feet": [
+          9.0,
+          0.0,
+          31.0
+        ],
+        "hp": 900,
+        "phase": "stomp_warning",
+        "phase_ends": 263,
+        "phase_started": 231,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -14.0,
+          0.0,
+          28.0
+        ]
+      }
+    },
+    {
+      "name": "disabled_shells_draining",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -14.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 40.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 308,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ],
+        "walker": {
+          "artillery_targets": [
+            [
+              -10.275028228759766,
+              0.0,
+              38.54240417480469
+            ],
+            [
+              -14.0,
+              0.0,
+              40.0
+            ],
+            [
+              -17.724971771240234,
+              0.0,
+              41.45759582519531
+            ]
+          ],
+          "feet": [
+            9.0,
+            0.0,
+            31.0
+          ],
+          "hp": 0,
+          "phase": "disabled",
+          "phase_ends": 308,
+          "phase_started": 308,
+          "shells": [
+            {
+              "age_ticks": 0,
+              "id": 6,
+              "position": [
+                9.0,
+                6.300000190734863,
+                31.0
+              ],
+              "velocity": [
+                -12.850018501281738,
+                4.799999713897705,
+                5.028269290924072
+              ]
+            }
+          ],
+          "shells_left": 32,
+          "stage": 3,
+          "target": [
+            -14.0,
+            0.0,
+            40.0
+          ]
+        }
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 308,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": true,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": true
+          },
+          "completed": [
+            "arrival",
+            "depot_secured",
+            "road_secured",
+            "approach_secured"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                0.0,
+                28.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  56.0,
+                  5.0,
+                  41.0
+                ],
+                "min": [
+                  -56.0,
+                  0.0,
+                  15.0
+                ]
+              }
+            },
+            "id": "walker_disabled"
+          },
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 1
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 308,
+      "walker": {
+        "artillery_targets": [
+          [
+            -10.275028228759766,
+            0.0,
+            38.54240417480469
+          ],
+          [
+            -14.0,
+            0.0,
+            40.0
+          ],
+          [
+            -17.724971771240234,
+            0.0,
+            41.45759582519531
+          ]
+        ],
+        "feet": [
+          9.0,
+          0.0,
+          31.0
+        ],
+        "hp": 0,
+        "phase": "disabled",
+        "phase_ends": 308,
+        "phase_started": 308,
+        "shells": [
+          {
+            "age_ticks": 0,
+            "id": 6,
+            "position": [
+              9.0,
+              6.300000190734863,
+              31.0
+            ],
+            "velocity": [
+              -12.850018501281738,
+              4.799999713897705,
+              5.028269290924072
+            ]
+          }
+        ],
+        "shells_left": 32,
+        "stage": 3,
+        "target": [
+          -14.0,
+          0.0,
+          40.0
+        ]
+      }
+    },
+    {
+      "name": "fallen_pad_support",
+      "snapshot": {
+        "explosions": [
+          {
+            "hits": [],
+            "id": 6,
+            "owner_id": "00000000-0000-0000-0000-000000000000",
+            "position": [
+              -10.157421112060547,
+              0.12013784050941467,
+              38.49651336669922
+            ],
+            "radius": 3.0
+          }
+        ],
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -40.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 20.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "moving",
+              "phase_ends": 310,
+              "phase_started": 310,
+              "side": "union"
+            },
+            "collidable": true,
+            "hp": 80,
+            "id": "00000000-0000-0000-0000-00000000000c",
+            "just_fired": false,
+            "name": "pad_sweeper_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -16.498640060424805,
+            "y": 1.5,
+            "yaw": 4.711066722869873,
+            "z": 34.52892303466797
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "moving",
+              "phase_ends": 310,
+              "phase_started": 310,
+              "side": "union"
+            },
+            "collidable": true,
+            "hp": 80,
+            "id": "00000000-0000-0000-0000-00000000000d",
+            "just_fired": false,
+            "name": "pad_sweeper_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 17.495771408081055,
+            "y": 1.5,
+            "yaw": 1.5620311498641968,
+            "z": 40.01767349243164
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "moving",
+              "phase_ends": 310,
+              "phase_started": 310,
+              "side": "union"
+            },
+            "collidable": true,
+            "hp": 50,
+            "id": "00000000-0000-0000-0000-00000000000e",
+            "just_fired": false,
+            "name": "pad_notary_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -14.19999885559082,
+            "y": 5.099999904632568,
+            "yaw": 4.71238899230957,
+            "z": 33.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "moving",
+              "phase_ends": 310,
+              "phase_started": 310,
+              "side": "union"
+            },
+            "collidable": true,
+            "hp": 50,
+            "id": "00000000-0000-0000-0000-00000000000f",
+            "just_fired": false,
+            "name": "pad_notary_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": 18.799972534179688,
+            "y": 5.099999904632568,
+            "yaw": 4.71238899230957,
+            "z": 33.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 338,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ]
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 338,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": true,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": true
+          },
+          "completed": [
+            "arrival",
+            "depot_secured",
+            "road_secured",
+            "approach_secured"
+          ],
+          "current": {
+            "action": {
+              "feet": [
+                -14.0,
+                0.0,
+                28.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  56.0,
+                  5.0,
+                  41.0
+                ],
+                "min": [
+                  -56.0,
+                  0.0,
+                  15.0
+                ]
+              }
+            },
+            "id": "walker_disabled"
+          },
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": true,
+          "support_stage": 1
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 338,
+      "walker": null
+    },
+    {
+      "name": "gantry_secured",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 5.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 44.5
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 378,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000c",
+            "just_fired": false,
+            "name": "pad_sweeper_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -16.498640060424805,
+            "y": 1.5,
+            "yaw": 4.711066722869873,
+            "z": 34.52892303466797
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 378,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000d",
+            "just_fired": false,
+            "name": "pad_sweeper_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 17.495771408081055,
+            "y": 1.5,
+            "yaw": 1.5620311498641968,
+            "z": 40.01767349243164
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "dead",
+              "phase_ends": 369,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000e",
+            "just_fired": false,
+            "name": "pad_notary_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -14.19999885559082,
+            "y": 1.5,
+            "yaw": 6.032387733459473,
+            "z": 33.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "dead",
+              "phase_ends": 364,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000f",
+            "just_fired": false,
+            "name": "pad_notary_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": 18.799972534179688,
+            "y": 4.099999904632568,
+            "yaw": 5.4323883056640625,
+            "z": 33.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "enforcer",
+              "phase": "dead",
+              "phase_ends": 380,
+              "phase_started": 340,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000010",
+            "just_fired": false,
+            "name": "gantry_enforcer_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Fists",
+            "x": -12.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 40.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "enforcer",
+              "phase": "dead",
+              "phase_ends": 380,
+              "phase_started": 340,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000011",
+            "just_fired": false,
+            "name": "gantry_enforcer_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Fists",
+            "x": 19.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 40.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000012",
+            "just_fired": false,
+            "name": "gantry_clerk_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -5.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 42.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000013",
+            "just_fired": false,
+            "name": "gantry_clerk_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": 14.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 42.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "heavy_sweeper",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000014",
+            "just_fired": false,
+            "name": "gantry_heavy",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 5.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 43.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000015",
+            "just_fired": false,
+            "name": "gantry_sweeper_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -10.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 46.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000016",
+            "just_fired": false,
+            "name": "gantry_sweeper_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 18.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 46.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 349,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ]
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 343,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": true,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": true
+          },
+          "completed": [
+            "arrival",
+            "depot_secured",
+            "road_secured",
+            "approach_secured",
+            "walker_disabled",
+            "gantry_secured"
+          ],
+          "current": {
+            "action": {
+              "kind": "use",
+              "target": {
+                "approach": [
+                  5.0,
+                  0.0,
+                  44.5
+                ],
+                "decoration": 2
+              }
+            },
+            "id": "party_departed"
+          },
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": true,
+          "support_stage": 2
+        },
+        "party": [
+          {
+            "aboard": true,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [
+          {
+            "kind": "objective_use",
+            "player_id": "00000000-0000-0000-0000-0000000003f6"
+          }
+        ],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 349,
+      "walker": null
+    },
+    {
+      "name": "departed",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 100,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": -0.10026633739471436,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 5.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 44.5
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 378,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000c",
+            "just_fired": false,
+            "name": "pad_sweeper_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -16.498640060424805,
+            "y": 1.5,
+            "yaw": 4.711066722869873,
+            "z": 34.52892303466797
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 378,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000d",
+            "just_fired": false,
+            "name": "pad_sweeper_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 17.495771408081055,
+            "y": 1.5,
+            "yaw": 1.5620311498641968,
+            "z": 40.01767349243164
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "dead",
+              "phase_ends": 369,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000e",
+            "just_fired": false,
+            "name": "pad_notary_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -14.19999885559082,
+            "y": 1.5,
+            "yaw": 6.032387733459473,
+            "z": 33.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "notary",
+              "phase": "dead",
+              "phase_ends": 364,
+              "phase_started": 338,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-00000000000f",
+            "just_fired": false,
+            "name": "pad_notary_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": 18.799972534179688,
+            "y": 4.099999904632568,
+            "yaw": 5.4323883056640625,
+            "z": 33.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "enforcer",
+              "phase": "dead",
+              "phase_ends": 380,
+              "phase_started": 340,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000010",
+            "just_fired": false,
+            "name": "gantry_enforcer_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Fists",
+            "x": -12.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 40.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "enforcer",
+              "phase": "dead",
+              "phase_ends": 380,
+              "phase_started": 340,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000011",
+            "just_fired": false,
+            "name": "gantry_enforcer_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Fists",
+            "x": 19.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 40.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000012",
+            "just_fired": false,
+            "name": "gantry_clerk_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": -5.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 42.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "clerk",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000013",
+            "just_fired": false,
+            "name": "gantry_clerk_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Tack",
+            "x": 14.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 42.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "heavy_sweeper",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000014",
+            "just_fired": false,
+            "name": "gantry_heavy",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 5.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 43.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000015",
+            "just_fired": false,
+            "name": "gantry_sweeper_west",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -10.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 46.0
+          },
+          {
+            "armor": 0,
+            "campaign": {
+              "kind": "sweeper",
+              "phase": "dead",
+              "phase_ends": 382,
+              "phase_started": 342,
+              "side": "union"
+            },
+            "collidable": false,
+            "deaths": 1,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-000000000016",
+            "just_fired": false,
+            "name": "gantry_sweeper_east",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": 18.0,
+            "y": 1.5,
+            "yaw": 4.71238899230957,
+            "z": 46.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 350,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ]
+      },
+      "state": {
+        "attempt": 1,
+        "changed_at": 350,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": true,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": true
+          },
+          "completed": [
+            "arrival",
+            "depot_secured",
+            "road_secured",
+            "approach_secured",
+            "walker_disabled",
+            "gantry_secured",
+            "party_departed"
+          ],
+          "first_cycle_complete": true,
+          "jeep_id": 1,
+          "machine_fallen": true,
+          "support_stage": 2
+        },
+        "party": [
+          {
+            "aboard": true,
+            "alive": true,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "departed",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 350,
+      "walker": null
+    },
+    {
+      "name": "retry_briefing",
+      "snapshot": {
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1014,
+        "map_name": "Launch Authority",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "arrival_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -52.0
+          },
+          {
+            "amount": 60,
+            "available": true,
+            "id": "arrival_armor",
+            "kind": "armor",
+            "x": -46.0,
+            "y": 2.4000000953674316,
+            "z": -54.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_shotgun",
+            "kind": "weapon",
+            "weapon": "Scatter",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -23.5
+          },
+          {
+            "amount": 90,
+            "available": true,
+            "id": "depot_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -38.0,
+            "y": 0.4000000059604645,
+            "z": -40.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "depot_first_aid",
+            "kind": "health",
+            "x": -36.0,
+            "y": 0.4000000059604645,
+            "z": -21.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "motorpool_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -26.0,
+            "y": 0.4000000059604645,
+            "z": -25.5
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "repair_bay_medkit",
+            "kind": "health",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -24.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "repair_bay_armor",
+            "kind": "armor",
+            "x": -9.0,
+            "y": 0.4000000059604645,
+            "z": -22.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "west_flank_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "west_flank_medkit",
+            "kind": "health",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 2,
+            "available": true,
+            "claim": "personal",
+            "id": "west_flank_grenades",
+            "kind": "grenade",
+            "x": -18.5,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "east_flank_railgun",
+            "kind": "weapon",
+            "weapon": "Rail",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_flank_cells",
+            "kind": "ammo",
+            "pool": "cells",
+            "x": 20.0,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "east_flank_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 10.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "east_flank_medkit",
+            "kind": "health",
+            "x": 18.5,
+            "y": 0.4000000059604645,
+            "z": 8.0
+          },
+          {
+            "amount": 100,
+            "available": true,
+            "id": "apron_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          },
+          {
+            "amount": 24,
+            "available": true,
+            "id": "apron_shells",
+            "kind": "ammo",
+            "pool": "shells",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 33.0
+          },
+          {
+            "amount": 70,
+            "available": true,
+            "id": "apron_medkit",
+            "kind": "health",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 35.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "gantry_armor",
+            "kind": "armor",
+            "x": 14.0,
+            "y": 0.4000000059604645,
+            "z": 45.0
+          },
+          {
+            "amount": 80,
+            "available": true,
+            "id": "trench_west_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -2.5,
+            "y": 0.4000000059604645,
+            "z": 16.5
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "trench_east_medkit",
+            "kind": "health",
+            "x": 3.5,
+            "y": 0.4000000059604645,
+            "z": 9.5
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "depot_rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -37.0,
+            "y": 0.4000000059604645,
+            "z": -39.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -24.0,
+            "y": 0.4000000059604645,
+            "z": 29.0
+          },
+          {
+            "amount": 8,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 23.0,
+            "y": 0.4000000059604645,
+            "z": 28.0
+          },
+          {
+            "amount": 160,
+            "available": true,
+            "id": "east_bullets",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 25.5,
+            "y": 0.4000000059604645,
+            "z": 31.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": false,
+            "hp": 0,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "just_fired": false,
+            "name": "Launch infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -14.0,
+            "y": 1.5,
+            "yaw": 1.5707963705062866,
+            "z": 28.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 13,
+        "vehicles": [
+          {
+            "burning_ticks": 0,
+            "control_ready_tick": 0,
+            "driver": null,
+            "gun_heat": 0.0,
+            "gunner": null,
+            "hp": 400,
+            "id": 1,
+            "kind": "jeep",
+            "position": [
+              -24.0,
+              0.0,
+              -24.0
+            ],
+            "speed": 0.0,
+            "vy": 0.0,
+            "yaw": 1.5707963705062866
+          }
+        ],
+        "walker": {
+          "artillery_targets": [
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ],
+            [
+              -14.0,
+              0.0,
+              28.0
+            ]
+          ],
+          "feet": [
+            8.0,
+            0.0,
+            26.0
+          ],
+          "hp": 900,
+          "phase": "dormant",
+          "phase_ends": 0,
+          "phase_started": 0,
+          "shells": [],
+          "shells_left": 36,
+          "stage": 1,
+          "target": [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        }
+      },
+      "state": {
+        "attempt": 2,
+        "changed_at": 13,
+        "id": "launch_authority",
+        "m14": {
+          "challenges": {
+            "depot_secured": false,
+            "jeep_preserved": true,
+            "on_foot": true,
+            "walker_disabled": false
+          },
+          "completed": [],
+          "current": {
+            "action": {
+              "feet": [
+                -46.0,
+                2.0,
+                -52.0
+              ],
+              "kind": "arrival",
+              "region": {
+                "max": [
+                  -43.0,
+                  3.0,
+                  -50.0
+                ],
+                "min": [
+                  -49.0,
+                  1.7999999523162842,
+                  -56.0
+                ]
+              }
+            },
+            "id": "arrival"
+          },
+          "first_cycle_complete": false,
+          "jeep_id": 1,
+          "machine_fallen": false,
+          "support_stage": 0
+        },
+        "party": [
+          {
+            "aboard": false,
+            "alive": false,
+            "id": "00000000-0000-0000-0000-0000000003f6",
+            "name": "Launch infantry",
+            "ready": true
+          }
+        ],
+        "phase": "in_progress",
+        "prompts": [],
+        "rules": {
+          "difficulty": "standard",
+          "revision": 4
+        }
+      },
+      "tick": 13,
+      "walker": {
+        "artillery_targets": [
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ],
+          [
+            -14.0,
+            0.0,
+            28.0
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          26.0
+        ],
+        "hp": 900,
+        "phase": "dormant",
+        "phase_ends": 0,
+        "phase_started": 0,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -14.0,
+          0.0,
+          28.0
+        ]
+      }
+    }
+  ]
+}

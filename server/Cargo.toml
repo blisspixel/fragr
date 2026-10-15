@@ -36,3 +36,6 @@ if-addrs = "0.15"
 
 [lints]
 workspace = true
+
+[build-dependencies]
+fragr-build-metadata = { version = "0.1.0", path = "../tools/build-metadata" }

@@ -4,6 +4,28 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.85.0 (2026-10-15)
+
+- Connect Launch Authority as campaign level 14, with practice entry, arrival
+  framing and saved progression from The Weight of Permission. Secure the depot
+  and road, fight the Continuance Walker through staged support waves, then
+  reach the gantry for shared departure. The jeep remains optional.
+- Preserve finite equipment and prior outcomes through version-18 saves,
+  exact historical archives and mission-entry retries. Record the original
+  jeep's survival and an on-foot boss fight at disable. Level 15 remains pending.
+- Present grounded Walker mechanics, its registered fallen hull, launch cargo
+  and readable fleet-departure scenes using retained assets. Final art,
+  fresh-player acceptance and difficulty balance remain open.
+- Add freight shoulders and hall staging cover to Sector 9's spawn exits,
+  retaining ordinary walking access and the shared authoritative spawn rules.
+- Advertise all fourteen built missions in the agent readiness and continue
+  tool schemas, using the same typed stage list as saved progression. Accept
+  Rocket in agent weapon selection, deriving the selector from the native arsenal.
+- Refresh host version and commit labels after incremental branch and tag
+  changes, including linked worktrees, while preserving explicit release labels.
+- Prepare map geometry with its final render layers before scene attachment,
+  preventing Vulkan light-retirement errors during map replacement and cleanup.
+
 ## v0.84.0 (2026-10-15)
 
 - Add a standalone Continuance Walker development encounter with warned stomps,

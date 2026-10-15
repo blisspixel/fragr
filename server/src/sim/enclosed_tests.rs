@@ -231,6 +231,7 @@ fn export_enclosed_capture() {
             m10: None,
             m11: None,
             m12: None,
+            m14: None,
             m13: None,
             walker: None,
             map_id: 1,

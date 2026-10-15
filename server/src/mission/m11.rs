@@ -185,6 +185,7 @@ impl GameState {
                 challenges: p.challenges.clone(),
             }),
             m12: None,
+            m14: None,
             m13: None,
         })
     }

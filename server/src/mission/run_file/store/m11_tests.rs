@@ -466,7 +466,7 @@ fn m11_actual_exit_saves_choices_elapsed_clock_and_finite_charge_count() {
         serde_json::from_str::<MissionId>("\"terms_of_cooperation\"").unwrap(),
         MissionId::TermsOfCooperation
     );
-    assert!(serde_json::from_str::<MissionId>("\"launch_authority\"").is_err());
+    assert!(serde_json::from_str::<MissionId>("\"civic_pressure_valve\"").is_err());
 }
 
 #[test]

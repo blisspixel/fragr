@@ -149,7 +149,7 @@ static func _current_composition_error() -> String:
 	splice.free()
 	if not available:
 		return "the live Splice mesh or rigid clips are missing from this build"
-	for id: String in ["l11_l12", "m12_arrival", "m13_arrival"]:
+	for id: String in ["l11_l12", "m12_arrival", "m13_arrival", "m14_arrival", "l14_l15"]:
 		var scene: Dictionary = StoryScene.load_scene(id)
 		if scene.is_empty():
 			return "the latest campaign story manifests are missing or invalid"

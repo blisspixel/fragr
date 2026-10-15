@@ -41,6 +41,29 @@ func apply_map_info(info: Dictionary) -> void:
 	_hide_scene_props()
 	if info == _built_info:
 		return
+	if is_inside_tree():
+		# Finish render layers before any new geometry can pair with the
+		# actor-only camera light. Changing a paired mesh's layer leaves stale
+		# light membership in the pinned renderer, exposed on map retirement.
+		var prepared := ArenaCover.new()
+		prepared.apply_map_info(info)
+		if prepared._built_info != info:
+			prepared.free()
+			push_error("arena_cover: detached map preparation failed")
+			return
+		for child: Node in get_children():
+			remove_child(child)
+			child.queue_free()
+		_built_info = prepared._built_info
+		_half_extent = prepared._half_extent
+		_materials = prepared._materials
+		_solid_views = prepared._solid_views
+		for child: Node in prepared.get_children():
+			prepared.remove_child(child)
+			add_child(child)
+		prepared.free()
+		_hide_scene_props()
+		return
 	_built_info = info.duplicate(true)
 	_half_extent = float(info.get("half_extent", 50.0))
 	_materials.clear()
@@ -78,6 +101,9 @@ func apply_map_info(info: Dictionary) -> void:
 	if info.get("walker") is Dictionary:
 		for index: Variant in info["walker"]["solids"]:
 			walker_solids.append(int(index))
+	elif info.get("m14") is Dictionary and info["m14"].get("fallen") == true:
+		for index: Variant in info["m14"]["walker_solids"]:
+			walker_solids.append(int(index))
 	for index: int in range(solids.size()):
 		var material: Material = null
 		if not presentation.is_empty():
@@ -97,12 +123,16 @@ func apply_map_info(info: Dictionary) -> void:
 	if venue == "common_carrier":
 		ShipFurnishings.build(self, info, _solid_views)
 	var marked_terminal: int = -1
+	var terminal_key: String = "WORLD_LATCH_RECORD"
 	var mission: Variant = info.get("mission")
 	if mission is Dictionary and mission.get("record") is Dictionary:
 		var decoration: Variant = mission["record"].get("decoration")
 		if decoration is int or decoration is float:
 			marked_terminal = int(decoration)
-	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))), marked_terminal)
+	if info.get("m14") is Dictionary and M14MissionState.map_error(info).is_empty():
+		marked_terminal = int(info["m14"]["departure"]["decoration"])
+		terminal_key = "WORLD_M14_DEPARTURE_CONSOLE"
+	ArenaDecoration.build(self, solids, presentation.get("decorations", []), ArenaSky.preset_for(str(info.get("map_name", ""))), marked_terminal, terminal_key)
 	var backdrop: ArenaBackdrop = ArenaBackdrop.new()
 	backdrop.build(map_id, _half_extent, venue)
 	add_child(backdrop)
@@ -118,7 +148,7 @@ func apply_map_info(info: Dictionary) -> void:
 static func venue_for(info: Dictionary) -> String:
 	match str(info.get("map_name", "")).strip_edges().to_lower():
 		"low water": return "low_water"
-		"launch authority (development)", "continuance walker (development)": return "launch_works"
+		"launch authority", "launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"
 		"the weight of permission (development)": return "mars_foundry"

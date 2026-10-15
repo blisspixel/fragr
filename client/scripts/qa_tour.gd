@@ -16,6 +16,7 @@ extends SceneTree
 
 const MANIFEST_PATH: String = "res://qa/tour.json"
 const CameraScript = preload("res://scripts/spectator_cam.gd")
+const LaunchProbe = preload("res://scripts/qa_m14.gd")
 const THUMB_WIDTH: int = 320
 const CONTACT_COLUMNS: int = 4
 const STRIP_TILE_WIDTH: int = 320
@@ -350,6 +351,15 @@ func _run() -> void:
 				_failed = true
 		var combat: Dictionary = {}
 		var walker_combat: Dictionary = {}
+		var m14_combat: Dictionary = {}
+		if state.get("m14_combat",false):
+			m14_combat = await LaunchProbe.new().run(self,_game_manager(),_out_dir.path_join(state_name))
+			if not m14_combat.get("passed",false):
+				_failed = true
+				_write_manifest(tour)
+				await _retire_scene()
+				quit(1)
+				return
 		if state.get("walker_combat",false):
 			walker_combat = await QaWalker.new().run(self,_game_manager(),_out_dir.path_join(state_name))
 			if not walker_combat.get("passed",false):
@@ -725,6 +735,14 @@ func _run() -> void:
 			if state.has("expect_m13_"+key) and observed.get("m13",{}).get("challenges",{}).get(key) != state["expect_m13_"+key]:
 				push_error("qa_tour: M13 "+key+" disagrees with "+state_name)
 				_failed = true
+		for key: String in ["completed", "support_stage", "first_cycle_complete", "machine_fallen", "jeep_id"]:
+			if state.has("expect_m14_"+key) and observed.get("m14",{}).get(key) != state["expect_m14_"+key]:
+				push_error("qa_tour: M14 "+key+" disagrees with "+state_name)
+				_failed = true
+		for key: String in ["depot_secured", "walker_disabled", "jeep_preserved", "on_foot"]:
+			if state.has("expect_m14_"+key) and observed.get("m14",{}).get("challenges",{}).get(key) != state["expect_m14_"+key]:
+				push_error("qa_tour: M14 "+key+" disagrees with "+state_name)
+				_failed = true
 		if state.has("expect_m12_aid_count") and observed.get("m12", {}).get("aid_vehicle_ids", []).size() != int(state["expect_m12_aid_count"]):
 			push_error("qa_tour: M12 actual aid identity count disagrees with " + state_name)
 			_failed = true
@@ -798,6 +816,7 @@ func _run() -> void:
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
 			"walker_combat": walker_combat,
+			"m14_combat": m14_combat,
 			"audio": audio_capture,
 			"moving_combat": moving_combat,
 			"ack_probe": ack_report,
@@ -967,7 +986,9 @@ static func valid_walks(states: Variant) -> bool:
 	var live_audio_open: bool = false
 	var scene_path: String = ""
 	for state: Variant in states:
-		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state) or not valid_m12_expectations(state) or not valid_m13_expectations(state):
+		if not state is Dictionary or not QaCombat.valid_waypoints(state.get("walk_to", [])) or not valid_m06_expectations(state) or not valid_m07_expectations(state) or not valid_m09_expectations(state) or not valid_m10_expectations(state) or not valid_m11_expectations(state) or not valid_m12_expectations(state) or not valid_m13_expectations(state) or not valid_m14_expectations(state):
+			return false
+		if state.has("combat") and (not state["combat"] is Dictionary or not QaCombat.valid_capture_interval(state["combat"])):
 			return false
 		if state.has("combat_travel_targets"):
 			var targets: Variant = state["combat_travel_targets"]
@@ -982,7 +1003,7 @@ static func valid_walks(states: Variant) -> bool:
 			if live_audio_open and str(state["scene"]) != scene_path:
 				return false
 			scene_path = str(state["scene"])
-		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel", "grenade_follow", "walker_combat"]:
+		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel", "grenade_follow", "walker_combat", "m14_combat"]:
 			if state.has(key) and not state[key] is bool:
 				return false
 		if state.get("grenade_follow", false) and state.get("trigger") != "throw_grenade":
@@ -1750,6 +1771,7 @@ func _observed_state() -> Dictionary:
 		"m10": gm.get("net_client").get("mission").get("state", {}).get("m10", {}),
 		"m11": gm.get("net_client").get("mission").get("state", {}).get("m11", {}),
 		"m13": gm.get("net_client").get("mission").get("state", {}).get("m13", {}),
+		"m14": gm.get("net_client").get("mission").get("state", {}).get("m14", {}),
 		"m12": gm.get("net_client").get("mission").get("state", {}).get("m12", {}),
 		"m07": gm.get("net_client").get("mission").get("state", {}).get("m07", {}),
 		"m07_lamps_lit": gm.get("m07_town").lamps_lit_count if gm.get("m07_town") != null else -1,
@@ -2134,7 +2156,8 @@ func _use_mission_control(expected_phase: String) -> void:
 		# M02 stays in_progress; its expectation names the completed objective.
 		var progress: Variant = mission_state.get("m02")
 		if mission_state.get("phase") == expected_phase \
-			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") in [MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID] and expected_phase == "party_departed" and mission_state.get("phase") == "departed") \
+			or (mission_state.get("id") == MissionState.M14_ID and expected_phase in mission_state.get("m14",{}).get("completed",[])) \
 			or (mission_state.get("id") == MissionState.M13_ID and (expected_phase in mission_state.get("m13",{}).get("completed",[]) or (expected_phase == "workers_released" and mission_state.get("m13",{}).get("challenges",{}).has("workers")))) \
 			or (mission_state.get("id") == MissionState.M09_ID and expected_phase in mission_state.get("m09", {}).get("completed", [])) \
 			or (mission_state.get("id") == MissionState.M11_ID and expected_phase in ["transfer_released", "records_read"] and mission_state.get("m11", {}).get("challenges", {}).get(expected_phase) == true) \
@@ -3115,3 +3138,24 @@ static func valid_m13_expectations(state: Dictionary) -> bool:
 	if state.has("expect_m13_lift_phase") and state["expect_m13_lift_phase"] not in ["parked", "moving", "blocked", "returning", "arrived"]:
 		return false
 	return not state.has("expect_m13_hazard_hurt") or EquipmentState.integer(state["expect_m13_hazard_hurt"],EquipmentState.MAX_EXACT_INTEGER)
+
+static func valid_m14_expectations(state: Dictionary) -> bool:
+	var names: Array[String] = ["completed", "support_stage", "first_cycle_complete", "machine_fallen", "jeep_id", "depot_secured", "walker_disabled", "jeep_preserved", "on_foot"]
+	for key: String in state:
+		if key.begins_with("expect_m14_") and key.trim_prefix("expect_m14_") not in names:
+			return false
+	if state.has("expect_m14_completed"):
+		var completed: Variant = state["expect_m14_completed"]
+		var order: Array[String] = M14MissionState.OBJECTIVES.duplicate()
+		order.append("party_departed")
+		if not completed is Array or completed.size() > order.size():
+			return false
+		for index: int in range(completed.size()):
+			if completed[index] != order[index]:
+				return false
+	for key: String in ["first_cycle_complete", "machine_fallen", "depot_secured", "walker_disabled", "jeep_preserved", "on_foot"]:
+		if state.has("expect_m14_"+key) and not state["expect_m14_"+key] is bool:
+			return false
+	if state.has("expect_m14_jeep_id") and (not EquipmentState.integer(state["expect_m14_jeep_id"],1) or state["expect_m14_jeep_id"] != 1):
+		return false
+	return not state.has("expect_m14_support_stage") or EquipmentState.integer(state["expect_m14_support_stage"],2)

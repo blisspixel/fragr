@@ -192,7 +192,7 @@ static func facility() -> Preset:
 ## interiors, so they do not inherit the outdoor scrap fill.
 static func preset_for(map_name: String) -> Preset:
 	var key: String = map_name.strip_edges().to_lower()
-	if key in ["launch authority (development)", "continuance walker (development)"]:
+	if key in ["launch authority", "launch authority (development)", "continuance walker (development)"]:
 		return mars_launch()
 	if key in ["terms of cooperation", "terms of cooperation (development)", "arc maintenance (development)"]:
 		return mars_habitat()

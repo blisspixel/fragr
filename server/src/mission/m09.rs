@@ -138,6 +138,7 @@ impl GameState {
             m10: None,
             m11: None,
             m12: None,
+            m14: None,
             m13: None,
             id: MissionId::PassengerManifest,
             run: run.solo.as_ref().map(|s| s.state),

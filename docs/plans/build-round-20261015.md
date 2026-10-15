@@ -1,6 +1,6 @@
 # Campaign, multiplayer and art development round
 
-Status: **implemented**, 2026-10-15. Integration:
+Status: **shipped**, 2026-10-15. Integration:
 [PR #403](https://github.com/blisspixel/fragr/pull/403), release v0.84.0.
 This is a bounded composition under the
 existing Full build order. Nick requested continued parallel level, multiplayer

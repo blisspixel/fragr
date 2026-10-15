@@ -21,6 +21,10 @@ mod m10;
 mod m11;
 mod m12;
 mod m13;
+mod m14;
+pub use m14::{
+    M14ChallengeState, M14MapGeometry, M14ObjectiveState, M14_FALLEN_PARTS, M14_OBJECTIVE_IDS,
+};
 mod walker;
 pub use m13::{
     M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
@@ -775,10 +779,11 @@ pub const LOW_WATER_SABOTAGE_GAMEPLAY_VERSION: u32 = 45;
 /// highest contract. The foundry places the first campaign launcher.
 pub const ROCKET_GAMEPLAY_VERSION: u32 = 46;
 pub const M13_GAMEPLAY_VERSION: u32 = 47;
+pub const M14_GAMEPLAY_VERSION: u32 = 49;
 pub const WALKER_GAMEPLAY_VERSION: u32 = 48;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = WALKER_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M14_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -908,6 +913,7 @@ mod geometry_tests {
             m11: None,
             m12: None,
             m13: None,
+            m14: None,
             walker: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
@@ -1053,6 +1059,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m13: Option<M13MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m14: Option<M14MapGeometry>,
         #[serde(
             default,
             deserialize_with = "m11::present",

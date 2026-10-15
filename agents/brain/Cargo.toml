@@ -30,3 +30,6 @@ uuid = { version = "1.26", features = ["v4", "serde"] }
 
 [lints]
 workspace = true
+
+[build-dependencies]
+fragr-build-metadata = { version = "0.1.0", path = "../../tools/build-metadata" }

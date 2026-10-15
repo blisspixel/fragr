@@ -1,5 +1,5 @@
 [workspace]
-members = ["server", "agent-adapter", "agents/brain", "tools/audiogen", "tools/licenses", "tools/playtest", "tools/spritegen", "tools/tip-gate"]
+members = ["server", "agent-adapter", "agents/brain", "tools/audiogen", "tools/build-metadata", "tools/licenses", "tools/playtest", "tools/spritegen", "tools/tip-gate"]
 resolver = "2"
 
 [workspace.package]

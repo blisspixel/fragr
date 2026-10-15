@@ -23,6 +23,7 @@ pub(crate) mod m10;
 pub(crate) mod m11;
 pub(crate) mod m12;
 pub(crate) mod m13;
+pub(crate) mod m14;
 mod mission;
 mod supplies;
 mod vehicle_placements;
@@ -60,6 +61,8 @@ pub struct AuthoredMap {
     pub(super) m11: Option<Arc<m11::Prepared>>,
     pub(super) m12: Option<Arc<m12::Prepared>>,
     pub(super) m13: Option<Arc<m13::Prepared>>,
+    pub(super) m14: Option<Arc<m14::Prepared>>,
+    pub(super) m14_fallen: bool,
     pub(super) walker: Option<Arc<walker::Prepared>>,
     pub(super) shelter_open: bool,
     pub(super) hatch_open: bool,
@@ -110,6 +113,8 @@ struct Document {
     m12: Option<m12::Definition>,
     #[serde(default)]
     m13: Option<m13::Definition>,
+    #[serde(default)]
+    m14: Option<m14::Definition>,
     #[serde(default)]
     walker: Option<walker::Definition>,
     #[serde(default)]
@@ -253,6 +258,7 @@ impl AuthoredMap {
                 doc.m10.is_some(),
                 doc.m11.is_some(),
                 doc.m12.is_some(),
+                doc.m14.is_some(),
             ]
             .into_iter()
             .any(|v| v)
@@ -849,6 +855,31 @@ impl AuthoredMap {
                 "Walker foundation requires a standalone discovery map",
             ));
         }
+        let m14 = doc
+            .m14
+            .map(|d| {
+                if doc.map_id != 1014
+                    || doc.name != "Launch Authority"
+                    || doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                    || !doc.vehicles.is_empty()
+                {
+                    return Err(invalid(
+                        "M14 requires canonical launch works and mission-owned jeep",
+                    ));
+                }
+                d.prepare(
+                    &arena,
+                    walker
+                        .as_deref()
+                        .ok_or_else(|| invalid("M14 requires registered Walker"))?,
+                    &doc.encounters,
+                    &presentation,
+                    start,
+                    &mut seen,
+                )
+            })
+            .transpose()?
+            .map(Arc::new);
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         if m13.as_ref().is_some_and(|p| p.geometry.is_some())
             && !supplies.iter().any(|s| {
@@ -864,7 +895,9 @@ impl AuthoredMap {
             m12::validate_supplies(&supplies)?;
         }
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &walker {
+        let navigation = if let Some(prepared) = &m14 {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &walker {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m12 {
             prepared.navigation.clone()
@@ -972,6 +1005,18 @@ impl AuthoredMap {
                 })
             }))
         {
+            if let Some(prepared) = &m14 {
+                if prepared
+                    .fallen_navigation
+                    .route(start, destination, crate::navigation::SEARCH_LIMIT)
+                    .status
+                    != crate::navigation::RouteStatus::Complete
+                {
+                    return Err(invalid(&format!(
+                        "M14 fallen placement {id} is unreachable"
+                    )));
+                }
+            }
             vehicle_placements::reachable(parked_navigation.as_deref(), start, destination)
                 .map_err(|error| invalid(&format!("map placement {id}: {error}")))?;
             if navigation
@@ -1012,6 +1057,8 @@ impl AuthoredMap {
             m11,
             m12,
             m13,
+            m14,
+            m14_fallen: false,
             walker,
             shelter_open: false,
             hatch_open: false,

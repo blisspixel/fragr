@@ -6,12 +6,13 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-15: matching readers advertise gameplay 48 and geometry
+Current contract, 2026-10-15: matching readers advertise gameplay 49 and geometry
 2. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
 Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
 Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
-the first campaign launcher. The standalone Walker foundation requires 48. Numbered
+the first campaign launcher. The standalone Walker foundation requires 48 and
+connected Launch Authority requires 49. Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
 campaign admission. Dated evidence retains the exact contract it exercised.
@@ -109,7 +110,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `48`; omission means `1`. Discovery-only maps first
+  and the Godot client send `49`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -133,7 +134,7 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. A shared arcade room speaks gameplay 48. That floor
+  without teams misleads. A shared arcade room speaks gameplay 49. That floor
   is above capability 4, and the arcade roster stays open. The four-seat
   mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
@@ -819,7 +820,7 @@ World-point aim:
   Releasing it stands back up unless the ceiling will not allow 1.8 m. The
   snapshot field is the resolved stance, not the raw key. Campaign enemies,
   Notaries, Crawlers, and bosses ignore it. Jump is unchanged.
-- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"` | `"repeater"`.
+- `weapon_swap`: (optional) `"fists"` | `"shiv"` | `"tack"` | `"flechette"` | `"rail"` | `"scatter"` | `"sniper"` | `"repeater"` | `"arc"` | `"rocket"`. MCP advertises and validates these native weapon IDs from the same typed arsenal. Selection requires ownership and grants no ammunition.
   The newest explicit choice survives later packets until one tick consumes it.
   Discovery rejects unowned choices; full-arsenal maps permit their three guns.
   Switching releases a latched dry trigger. A dry weapon creates no shot result,
@@ -2957,7 +2958,7 @@ rewinding tick, sequence or inventory revisions. Only actual completed M11
 equipment may carry remote charges onward. Completion stores `m11_outcome`
 with release, records, single-blast count and elapsed `bridge_response_ticks`,
 then retained pending `terms_of_cooperation`. The version-15 boundary
-and connected M12 work are described below. Version 17 is the current document.
+and connected M12 work are described below. Version 18 is the current document.
 
 ### Arc, current records and strict saves (capability 42)
 
@@ -3190,7 +3191,8 @@ fields do not become valid through migration. M13 retries restore its actual
 entry resources and initial foundry state through the existing reset owner.
 The portable `m13_outcome` contains worker choices, actual arrival flags,
 effective hazard loss and the support-position receipt. Completed M13 retains
-pending `launch_authority`; unimplemented M14 remains refused.
+pending `launch_authority`; version 18 promotes it into the connected M14 entry
+without refilling continues.
 
 ### Continuance Walker foundation (capability 48)
 
@@ -3207,8 +3209,8 @@ zero. Current collision and presentation translate their X/Z bounds by
 uses conservative swept bounds prepared before readiness. Static cover cannot
 intersect those sweeps. Every ordinary authored supply and landmark must retain
 a walking route. Registered moving machine solids cannot host static map
-decorations. These machine solids remain physical after disable; a fallen
-wreck world belongs to the subsequent mission integration.
+decorations. These machine solids remain physical after disable in the standalone
+range. Connected M14 performs the separate fallen-world handoff described below.
 
 `Snapshot.walker` contains `hp`, `stage`, `phase`, `phase_started`, `phase_ends`,
 `feet`, the committed `target`, three committed `artillery_targets`,
@@ -3261,3 +3263,59 @@ airborne machine feet and translated bodies outside the accepted arena.
 checked on both sides. MCP `observe.map.walker` and `observe.snapshot.walker`
 carry these same facts; ordinary `act` movement, aim and fire remain the control
 path. The stock scripted fighter does not yet plan a Walker counter automatically.
+
+### Launch Authority (capability 49)
+
+Map 1014 uses mission id `launch_authority`. Human, agent and spectator admission
+requires capability 49. The standalone Walker range retains capability 48.
+Campaign rules remain revision 4. The same readiness, continue and action messages
+serve this mission; no separate boss or vehicle control channel is added.
+
+`MapInfo.m14` registers six arrival objective definitions, a physical `departure`
+Use target, `boarding` region, original `jeep` placement (`feet`, `yaw`), five
+`walker_solids` indices and a `fallen` flag. The ordered objectives are `arrival`,
+`depot_secured`, `road_secured`, `approach_secured`, `walker_disabled` and
+`gantry_secured`, followed by `party_departed` through fresh shared Use. The
+intact map also carries the existing `walker` geometry. Conservative navigation
+and the fallen world are prepared before readiness.
+
+`MissionState.m14` contains `completed`, optional `current`, `challenges`,
+`jeep_id` (1), `support_stage` (0 through 2), `first_cycle_complete` and
+`machine_fallen`. `Snapshot.walker` remains the sole owner of boss health, pose,
+attack deadlines and shells. The machine stays dormant until the approach fight
+is complete. The first complete attack/recovery cycle precedes support unless
+the participant disables the machine early. Accepted damage is never discarded.
+The pad-road support enters at the 600 HP threshold after that teaching cycle;
+the second support group waits for the first group to clear and the 300 HP
+threshold. Early disable still introduces the groups in order.
+
+`challenges` contains four booleans: `depot_secured`, `walker_disabled`,
+`jeep_preserved` and `on_foot`. The latter two begin true, can only become false
+within an attempt and freeze at actual disable. The jeep receipt records survival
+of the original registered vehicle. The on-foot receipt records no participant
+occupying a vehicle during the active fight. Neither optional receipt gates
+required progress. The Assisted brief requires the depot; Standard additionally
+requires disable and jeep preservation; Severe additionally requires on-foot
+combat. A retry restores fresh facts through the existing mission reset.
+
+After disable, committed shells finish before the server selects the actual
+fallen geometry at the disabled machine's feet. Living bodies and occupied live
+vehicles can delay that handoff. The server sends the new MapInfo before changed
+mission facts. Only the five registered body solids change: a low torso and four
+folded leg boxes share one horizontal translation. The fallen map omits `walker`,
+and subsequent snapshots omit the live Walker. Clients retire its moving
+presentation, require fresh matching mission facts and reject unrelated geometry
+drift or stale intact facts. A retry can restore the registered intact world.
+Final departure requires every ready living participant physically aboard and a
+fresh valid Use at the gantry control.
+
+Run-file version 18 strictly upgrades historical v2-v17 documents and archives
+the exact original bytes before replacement under the existing writer lock.
+M13 completion promotes to M14 with actual equipment, all earlier outcomes and
+remaining continues. The M14 entry retains the found Arc and Rocket Launcher,
+including finite stock. Continue restores that entry and the intact encounter,
+jeep and Walker without rewinding process ticks or inventory revisions. Completed
+M14 adds `m14_outcome` with the four portable challenge booleans and retains
+pending `civic_pressure_valve`. M15 remains unplayable; its Episode IV refill has
+not been implemented. Historical version 17 refuses M14 entries and even a null
+`m14_outcome` field rather than silently accepting future facts.

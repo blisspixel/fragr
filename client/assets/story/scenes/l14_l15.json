@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "id": "l14_l15",
+  "title_key": "MISSION_M14_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "CARGO", "caption_key": "STORY_M14_DEPARTURE_CARGO", "timing": "reader", "hold": 1},
+    {"id": "INVOICE", "caption_key": "STORY_M14_DEPARTURE_TERN", "timing": "reader", "hold": 1},
+    {"id": "EARTH", "caption_key": "STORY_M14_DEPARTURE_EARTH", "timing": "reader", "hold": 1}
+  ]
+}

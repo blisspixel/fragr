@@ -24,6 +24,8 @@ var vents: Array[MeshInstance3D] = []
 var shutters: Array[MeshInstance3D] = []
 var _shutter_raises: Array[float] = []
 var pistons: Array[MeshInstance3D] = []
+var _piston_rest: Array[Vector3] = []
+var _drive_cranks: Array[MeshInstance3D] = []
 var shells: Dictionary[int, Node3D] = {}
 var voices: Array[AudioStreamPlayer3D] = []
 var _voice_index: int = 0
@@ -43,6 +45,8 @@ func clear_map() -> void:
 	shutters.clear()
 	_shutter_raises.clear()
 	pistons.clear()
+	_piston_rest.clear()
+	_drive_cranks.clear()
 	optics.clear()
 	markers.clear()
 	shells.clear()
@@ -131,8 +135,8 @@ func _build_torso(at: Vector3, size_at: Vector3) -> void:
 	for side: float in [-1.0,1.0]:
 		_block("RoofShoulder",Vector3(size_at.x*0.12,0.66,size_at.z*0.66),at+Vector3(side*size_at.x*0.40,size_at.y*0.34,0),Color("656c68"))
 		# Side drive housings stay below the sloped upper shoulders.
-		_block("DriveHousing",Vector3(0.16,size_at.y*0.51,size_at.z*0.70),at+Vector3(side*(size_at.x*0.5-0.08),-0.15,0),Color("777c78"))
-		_block("DriveRecess",Vector3(0.17,0.72,size_at.z*0.44),at+Vector3(side*(size_at.x*0.5-0.09),-0.10,0),Color("22292b"))
+		_block("DriveHousing",Vector3(0.16,size_at.y*0.51,size_at.z*0.70),at+Vector3(side*(size_at.x*0.5-0.12),-0.15,0),Color("777c78"))
+		_block("DriveRecess",Vector3(0.17,0.72,size_at.z*0.44),at+Vector3(side*(size_at.x*0.5-0.105),-0.10,0),Color("22292b"))
 		for row: int in range(5):
 			_block("CoolingRib",Vector3(0.18,0.065,size_at.z*0.40),at+Vector3(side*(size_at.x*0.5-0.09),-0.36+row*0.13,0),Color("94978a"))
 		for z: float in [-0.30,0.30]:
@@ -160,8 +164,18 @@ func _build_leg(index: int, at: Vector3, size_at: Vector3) -> void:
 	_block("UpperStrut%d" % index,Vector3(size_at.x*0.72,size_at.y*0.37,size_at.z*0.80),at+Vector3(0,0.91,-0.04),Color("626965"))
 	var knee: MeshInstance3D = _cylinder("Joint%d" % index,size_at.z*0.45,size_at.x*0.98,at+Vector3(0,0.27,0),Color("929385"))
 	knee.rotation.z = PI*0.5
-	var piston: MeshInstance3D = _cylinder("Piston%d" % index,size_at.x*0.11,size_at.y*0.54,at+Vector3(size_at.x*0.33,0.08,-size_at.z*0.28),Color("bbc0af"))
+	# A rigid rod slides through its fixed cylinder. Stretching one mesh made
+	# the steel look elastic; the separate sleeve also gives the joint weight.
+	var shaft_at := at+Vector3(size_at.x*0.39,0.20,-size_at.z*0.40)
+	_cylinder("ActuatorSleeve%d" % index,size_at.x*0.10,size_at.y*0.21,at+Vector3(size_at.x*0.39,-0.30,-size_at.z*0.40),STEEL)
+	_cylinder("ActuatorCollar%d" % index,size_at.x*0.10,0.12,at+Vector3(size_at.x*0.39,0.015,-size_at.z*0.40),EDGE)
+	var piston: MeshInstance3D = _cylinder("Piston%d" % index,size_at.x*0.065,size_at.y*0.42,shaft_at,Color("bbc0af"))
 	pistons.append(piston)
+	_piston_rest.append(shaft_at)
+	var outside: float = -1.0 if at.x < 0.0 else 1.0
+	var crank: MeshInstance3D = _box("DriveCrank%d" % index,Vector3(0.08,0.40,0.10),at+Vector3(outside*size_at.x*0.44,0.27,0),STEEL)
+	machine.add_child(crank)
+	_drive_cranks.append(crank)
 	for side: float in [-1.0,1.0]:
 		_block("AnkleToe",Vector3(size_at.x*0.68,0.12,0.12),Vector3(at.x,0.27,at.z+side*size_at.z*0.40),Color("343b3e"))
 		var vent: MeshInstance3D = _box("RecoveryVent%d" % index,Vector3(size_at.x*0.65,size_at.y*0.22,0.035),at+Vector3(0,size_at.y*0.17,side*(size_at.z*0.5-0.05)),WARM,true)
@@ -306,8 +320,9 @@ func _present() -> void:
 		vents[index].visible = phase == "recovery"
 		shutters[index].position.y = vents[index].position.y+(_shutter_raises[index] if phase == "recovery" else 0.0)
 	for index: int in range(pistons.size()):
-		var stroke: float = sin(_travel*4.0+float(index%2)*PI)*0.10 if phase == "relocating" else 0.0
-		pistons[index].scale.y = 1.0+stroke
+		var drive: float = sin(_travel*4.0+float(index%2)*PI) if phase == "relocating" else 0.0
+		pistons[index].position = _piston_rest[index]+Vector3(0,drive*0.12,0)
+		_drive_cranks[index].rotation.x = drive*0.35
 	if stomp_ring.visible:
 		(stomp_ring.material_override as StandardMaterial3D).albedo_color = RED.lerp(WARM,progress*0.75) if phase == "stomp_warning" else WARM
 	# No speculative machine displacement, target movement or damage is animated.

@@ -1,0 +1,619 @@
+{
+  "comment": "Connected launch-work development route. Ordinary human infantry inputs, finite pickups and magazines, staged support waves and registered fallen geometry. Candidate route requires rendered execution; this manifest alone is not acceptance evidence.",
+  "width": 1280,
+  "height": 720,
+  "combat_travel": false,
+  "states": [
+    {
+      "name": "m14_freight_arrival",
+      "scene": "res://scenes/main.tscn",
+      "join": "human",
+      "camera": "first_person",
+      "radio_off": true,
+      "walk_to": [
+        [
+          -46,
+          2,
+          -54
+        ],
+        [
+          -46,
+          2,
+          -52
+        ]
+      ],
+      "look_at": [
+        5,
+        20,
+        43
+      ],
+      "expect_m14_completed": [
+        "arrival"
+      ],
+      "expect_m14_machine_fallen": false,
+      "expect_m14_on_foot": true,
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_depot_defense",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -46,
+          0,
+          -42
+        ],
+        [
+          -46,
+          0,
+          -36
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "depot_clerk_west",
+          "depot_clerk_east",
+          "depot_sweeper_west",
+          "depot_sweeper_east",
+          "depot_roof_turret"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 28,
+        "search_route": [
+          [
+            -44,
+            0,
+            -36
+          ],
+          [
+            -41.5,
+            0,
+            -32
+          ],
+          [
+            -34.5,
+            0,
+            -32
+          ],
+          [
+            -41.5,
+            0,
+            -32
+          ],
+          [
+            -41.5,
+            3.5,
+            -16.2
+          ],
+          [
+            -35,
+            3.5,
+            -20
+          ]
+        ],
+        "capture_interval_ms": 1000
+      },
+      "expect_m14_depot_secured": true,
+      "look_at": [
+        -35,
+        5,
+        -20
+      ],
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_depot_weapon_claim",
+      "camera": "first_person",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -41.5,
+          3.5,
+          -16.2
+        ],
+        [
+          -41.5,
+          0,
+          -32
+        ],
+        [
+          -43,
+          0,
+          -35
+        ],
+        [
+          -43,
+          0,
+          -40
+        ],
+        [
+          -38,
+          0,
+          -40
+        ],
+        [
+          -37,
+          0,
+          -39
+        ],
+        [
+          -38,
+          0,
+          -40
+        ]
+      ],
+      "look_at": [
+        -25,
+        1.5,
+        -36
+      ],
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_depot_supplies",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -43,
+          0,
+          -40
+        ],
+        [
+          -43,
+          0,
+          -33
+        ],
+        [
+          -41.5,
+          0,
+          -32
+        ],
+        [
+          -35.5,
+          0,
+          -30
+        ],
+        [
+          -35.5,
+          0,
+          -23.5
+        ],
+        [
+          -36,
+          0,
+          -21
+        ],
+        [
+          -35.5,
+          0,
+          -30
+        ]
+      ],
+      "look_at": [
+        -24,
+        4,
+        -4
+      ],
+      "expect_m14_jeep_preserved": true,
+      "expect_m14_on_foot": true,
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_road_notaries",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat": {
+        "kind": "union",
+        "required": [
+          "road_notary_west",
+          "road_notary_east"
+        ],
+        "target_required_only": true,
+        "evade_tells": false,
+        "engagement_distance": 28,
+        "search_route": [
+          [
+            -15,
+            0,
+            -17
+          ],
+          [
+            -24,
+            0,
+            -13
+          ],
+          [
+            -15,
+            0,
+            -13
+          ],
+          [
+            -15,
+            0,
+            -8
+          ],
+          [
+            -24,
+            0,
+            -8
+          ]
+        ],
+        "capture_interval_ms": 1000
+      },
+      "look_at": [
+        -11,
+        5,
+        2
+      ],
+      "expect_m14_completed": [
+        "arrival",
+        "depot_secured",
+        "road_secured"
+      ],
+      "settle_seconds": 0.05,
+      "walk_to": [
+        [
+          -15,
+          0,
+          -30
+        ],
+        [
+          -15,
+          0,
+          -17
+        ]
+      ],
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "road_notary_west",
+        "road_notary_east"
+      ]
+    },
+    {
+      "name": "m14_repair_bay_supplies",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "settle_seconds": 0.05,
+      "walk_to": [
+        [
+          -15,
+          0,
+          -17
+        ],
+        [
+          -9,
+          0,
+          -24
+        ],
+        [
+          -9,
+          0,
+          -22
+        ],
+        [
+          -15,
+          0,
+          -17
+        ],
+        [
+          -24,
+          0,
+          -13
+        ]
+      ],
+      "look_at": [
+        8,
+        4,
+        26
+      ],
+      "expect_m14_on_foot": true
+    },
+    {
+      "name": "m14_berm_watch",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "berm_clerk_west",
+        "berm_clerk_east",
+        "berm_marksman"
+      ],
+      "walk_to": [
+        [
+          -24,
+          0,
+          -9
+        ],
+        [
+          -16,
+          0,
+          -9
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "berm_clerk_west",
+          "berm_clerk_east",
+          "berm_marksman"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 28,
+        "search_route": [
+          [
+            -16,
+            0,
+            -9
+          ],
+          [
+            -8,
+            0,
+            -9
+          ]
+        ],
+        "capture_interval_ms": 1000
+      },
+      "look_at": [
+        8,
+        5,
+        26
+      ],
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_west_apron_supplies",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "walk_to": [
+        [
+          -16,
+          0,
+          -9
+        ],
+        [
+          -25,
+          0,
+          -9
+        ],
+        [
+          -25,
+          0,
+          16
+        ],
+        [
+          -24,
+          0,
+          24
+        ],
+        [
+          -24,
+          0,
+          29
+        ],
+        [
+          -24,
+          0,
+          31
+        ],
+        [
+          -24,
+          0,
+          33
+        ],
+        [
+          -24,
+          0,
+          35
+        ],
+        [
+          -24,
+          0,
+          24
+        ],
+        [
+          -25,
+          0,
+          16
+        ],
+        [
+          -25,
+          0,
+          -11
+        ]
+      ],
+      "look_at": [
+        8,
+        4,
+        26
+      ],
+      "expect_m14_on_foot": true,
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_bend_turret",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat_travel": true,
+      "combat_travel_targets": [
+        "bend_turret"
+      ],
+      "walk_to": [
+        [
+          25.5,
+          0,
+          -11
+        ],
+        [
+          25.5,
+          0,
+          16
+        ],
+        [
+          40,
+          0,
+          16
+        ]
+      ],
+      "combat": {
+        "kind": "union",
+        "required": [
+          "bend_turret"
+        ],
+        "target_required_only": true,
+        "evade_tells": true,
+        "engagement_distance": 28,
+        "search_route": [
+          [
+            40,
+            0,
+            16
+          ]
+        ],
+        "capture_interval_ms": 1000
+      },
+      "expect_m14_completed": [
+        "arrival",
+        "depot_secured",
+        "road_secured",
+        "approach_secured"
+      ],
+      "look_at": [
+        8,
+        4,
+        26
+      ],
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_inner_apron_flank",
+      "camera": "first_person",
+      "weapon": "Rocket",
+      "walk_to": [
+        [
+          40,
+          0,
+          50
+        ],
+        [
+          20,
+          0,
+          50
+        ],
+        [
+          -1,
+          0,
+          50
+        ],
+        [
+          -1,
+          0,
+          40.5
+        ]
+      ],
+      "look_at": [
+        8,
+        4,
+        26
+      ],
+      "expect_m14_on_foot": true,
+      "settle_seconds": 0.05
+    },
+    {
+      "name": "m14_walker_and_supports",
+      "camera": "first_person",
+      "m14_combat": true,
+      "expect_m14_machine_fallen": true,
+      "expect_m14_support_stage": 2,
+      "expect_m14_first_cycle_complete": true,
+      "expect_m14_walker_disabled": true,
+      "expect_m14_on_foot": true,
+      "look_at": [
+        7,
+        0.8,
+        36
+      ],
+      "settle_seconds": 0.05,
+      "expect_m14_completed": [
+        "arrival",
+        "depot_secured",
+        "road_secured",
+        "approach_secured",
+        "walker_disabled",
+        "gantry_secured"
+      ]
+    },
+    {
+      "name": "m14_gantry_defense",
+      "camera": "first_person",
+      "weapon": "Flechette",
+      "combat_travel": false,
+      "walk_to": [
+        [
+          -1,
+          0,
+          43
+        ]
+      ],
+      "look_at": [
+        5,
+        2.5,
+        46.5
+      ],
+      "settle_seconds": 0.05,
+      "expect_m14_completed": [
+        "arrival",
+        "depot_secured",
+        "road_secured",
+        "approach_secured",
+        "walker_disabled",
+        "gantry_secured"
+      ]
+    },
+    {
+      "name": "m14_pad_control",
+      "camera": "first_person",
+      "walk_to": [
+        [
+          -1,
+          0,
+          40.2
+        ],
+        [
+          5,
+          0,
+          40.2
+        ],
+        [
+          5,
+          0,
+          44.5
+        ]
+      ],
+      "look_at": [
+        5,
+        1.4,
+        46.5
+      ],
+      "expect_prompt": true,
+      "interact": "party_departed",
+      "expect_phase": "departed",
+      "expect_m14_completed": [
+        "arrival",
+        "depot_secured",
+        "road_secured",
+        "approach_secured",
+        "walker_disabled",
+        "gantry_secured",
+        "party_departed"
+      ],
+      "expect_m14_jeep_preserved": true,
+      "expect_m14_on_foot": true,
+      "settle_seconds": 0.05
+    }
+  ]
+}

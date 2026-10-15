@@ -94,7 +94,7 @@ func _run() -> void:
 		var arrival: Dictionary = StoryScene.load_scene(StoryScene.BEFORE_MISSION[mission])
 		_expect(not arrival.is_empty(), "arrival scene exists for " + mission)
 		for shot: Dictionary in arrival.get("shots", []):
-			if mission in [MissionState.M03_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID]:
+			if mission in [MissionState.M03_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID]:
 				# These arrivals use keyed pages with reader pacing.
 				_expect(shot.get("timing") == "reader" and not shot.has("narration"), "reader-paced arrival keeps its keyed scene: " + mission)
 			else:
@@ -102,6 +102,10 @@ func _run() -> void:
 	var departure: Dictionary = StoryScene.load_scene(StoryScene.AFTER_MISSION[MissionState.M03_ID])
 	for shot: Dictionary in departure.get("shots", []):
 		_expect(shot.get("timing") == "narration" and not StoryScene.narration_path(shot).is_empty(), "M03 departure has its committed narration with text fallback")
+	var mars_departure: Dictionary = StoryScene.load_scene(StoryScene.AFTER_MISSION[MissionState.M14_ID])
+	_expect(mars_departure.get("shots", []).size() == 3,"M14 departure retains cargo, Tern and elapsed travel beats")
+	for shot: Dictionary in mars_departure.get("shots", []):
+		_expect(shot.get("timing") == "reader" and not shot.has("narration"),"M14 departure remains playable without new media")
 
 	# The migrated opening keeps its five keyed beats in order.
 	var opening: Dictionary = StoryScene.load_scene(CampaignOpening.SCENE_ID)

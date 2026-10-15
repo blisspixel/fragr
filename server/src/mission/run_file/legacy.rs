@@ -71,6 +71,7 @@ impl RunDocumentV10 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(
@@ -202,6 +203,7 @@ impl RunDocumentV9 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(
@@ -262,6 +264,7 @@ impl RunDocumentV8 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -331,6 +334,7 @@ impl RunDocumentV7 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         let mission = document.stage_mission();
         if matches!(
@@ -398,6 +402,7 @@ impl RunDocumentV6 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -412,7 +417,8 @@ impl RunDocumentV6 {
             | MissionId::CommonCarrier
             | MissionId::RightOfSearch
             | MissionId::TermsOfCooperation
-            | MissionId::WeightOfPermission => return Err("M08 was not supported by version 6"),
+            | MissionId::WeightOfPermission
+            | MissionId::LaunchAuthority => return Err("M08 was not supported by version 6"),
         };
         document.migrate_historical_rockets()?;
         document.validate(hash)?;
@@ -550,6 +556,7 @@ impl RunDocumentV13 {
                     MissionId::RightOfSearch
                         | MissionId::TermsOfCooperation
                         | MissionId::WeightOfPermission
+                        | MissionId::LaunchAuthority
                 ),
                 SavedStep::AwaitingMission {
                     completed_mission, ..
@@ -558,6 +565,7 @@ impl RunDocumentV13 {
                     MissionId::RightOfSearch
                         | MissionId::TermsOfCooperation
                         | MissionId::WeightOfPermission
+                        | MissionId::LaunchAuthority
                 ),
             }
         {
@@ -583,6 +591,7 @@ impl RunDocumentV13 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(
@@ -730,6 +739,7 @@ impl RunDocumentV5 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         let hash = match document.stage_mission() {
             MissionId::RecallNotice => hashes[0],
@@ -744,7 +754,8 @@ impl RunDocumentV5 {
             | MissionId::CommonCarrier
             | MissionId::RightOfSearch
             | MissionId::TermsOfCooperation
-            | MissionId::WeightOfPermission => return Err("M05 was not supported by version 5"),
+            | MissionId::WeightOfPermission
+            | MissionId::LaunchAuthority => return Err("M05 was not supported by version 5"),
         };
         document.migrate_historical_rockets()?;
         document.validate(hash)?;
@@ -792,7 +803,8 @@ impl RunDocumentV4 {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
-                | MissionId::WeightOfPermission => {
+                | MissionId::WeightOfPermission
+                | MissionId::LaunchAuthority => {
                     return Err("mission was not supported by version 4")
                 }
             },
@@ -811,7 +823,8 @@ impl RunDocumentV4 {
                 | MissionId::CommonCarrier
                 | MissionId::RightOfSearch
                 | MissionId::TermsOfCooperation
-                | MissionId::WeightOfPermission => {
+                | MissionId::WeightOfPermission
+                | MissionId::LaunchAuthority => {
                     return Err("mission was not supported by version 4")
                 }
             },
@@ -836,6 +849,7 @@ impl RunDocumentV4 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(expected)?;
@@ -885,6 +899,7 @@ impl RunDocumentV3 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         let expected = match document.stage_mission() {
             MissionId::RecallNotice => m01_hash,
@@ -899,7 +914,8 @@ impl RunDocumentV3 {
             | MissionId::CommonCarrier
             | MissionId::RightOfSearch
             | MissionId::TermsOfCooperation
-            | MissionId::WeightOfPermission => return Err("M05 was not supported by version 3"),
+            | MissionId::WeightOfPermission
+            | MissionId::LaunchAuthority => return Err("M05 was not supported by version 3"),
         };
         if self.version != 3 || self.rules.revision != 2 {
             return Err("unsupported legacy campaign run");
@@ -961,6 +977,7 @@ impl RunDocumentV2 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(m01_hash)?;
@@ -1020,6 +1037,7 @@ impl RunDocumentV12 {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
         };
         document.migrate_historical_rockets()?;
         document.validate(

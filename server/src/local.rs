@@ -66,6 +66,7 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::RightOfSearch => "right_of_search",
                         MissionId::TermsOfCooperation => "terms_of_cooperation",
                         MissionId::WeightOfPermission => "weight_of_permission",
+                        MissionId::LaunchAuthority => "launch_authority",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -146,7 +147,9 @@ impl Ready {
             difficulty,
             url: format!("ws://{address}"),
             // Mission-specific capabilities add the habitat and foundry facts.
-            gameplay_version: if mission == MissionId::WeightOfPermission {
+            gameplay_version: if mission == MissionId::LaunchAuthority {
+                crate::protocol::M14_GAMEPLAY_VERSION
+            } else if mission == MissionId::WeightOfPermission {
                 crate::protocol::M13_GAMEPLAY_VERSION
             } else if mission == MissionId::TermsOfCooperation {
                 crate::protocol::M12_GAMEPLAY_VERSION
@@ -974,5 +977,14 @@ mod tests {
         .unwrap();
         assert_eq!(m13.gameplay_version, crate::protocol::M13_GAMEPLAY_VERSION);
         assert!(m13.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
+        let m14 = Ready::new(
+            MissionId::LaunchAuthority,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m14.gameplay_version, crate::protocol::M14_GAMEPLAY_VERSION);
+        assert!(m14.gameplay_version <= crate::protocol::GAMEPLAY_VERSION);
     }
 }

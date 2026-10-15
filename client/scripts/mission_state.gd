@@ -13,6 +13,7 @@ const M09_ID: String = "passenger_manifest"
 const M10_ID: String = "common_carrier"
 const M11_ID: String = "right_of_search"
 const M13_ID: String = "weight_of_permission"
+const M14_ID: String = "launch_authority"
 const M12_ID: String = "terms_of_cooperation"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
@@ -23,6 +24,8 @@ const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete"
 const INVALID: String = "The server sent invalid mission state. Connection closed."
 
 static func map_error(info: Dictionary) -> String:
+	if info.has("m14"):
+		return M14MissionState.map_error(info)
 	if info.has("m13"):
 		return M13MissionState.map_error(info)
 	if info.has("m12"):
@@ -87,6 +90,8 @@ static func map_error(info: Dictionary) -> String:
 
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var claimed: Variant = message.get("state")
+	if geometry.get("id") == M14_ID or (claimed is Dictionary and claimed.get("id") == M14_ID):
+		return M14MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M13_ID or (claimed is Dictionary and claimed.get("id") == M13_ID):
 		return M13MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M12_ID or (claimed is Dictionary and claimed.get("id") == M12_ID):
@@ -241,6 +246,8 @@ static func m02_map_error(info: Dictionary) -> String:
 
 ## The validated contract a later mission message must match, or empty.
 static func geometry_for(info: Dictionary) -> Dictionary:
+	if info.has("m14"):
+		return M14MissionState.geometry_for(info)
 	if info.has("m13"):
 		return M13MissionState.geometry_for(info)
 	if info.has("m12"):

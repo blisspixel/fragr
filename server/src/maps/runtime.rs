@@ -29,6 +29,40 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m14_objectives(&self) -> Option<&super::authored::m14::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m14.as_deref(),
+        }
+    }
+    pub fn m14_geometry(&self) -> Option<crate::protocol::M14MapGeometry> {
+        let mut g = self.m14_objectives()?.geometry.clone();
+        g.fallen = matches!(self,Self::Authored(map) if map.m14_fallen);
+        Some(g)
+    }
+    pub fn prepared_m14_world(&self, feet: [f32; 3]) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let p = map.m14.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        for (slot, &index) in p.geometry.walker_solids.iter().enumerate() {
+            let s = p.fallen[slot];
+            let dx = feet[0] - p.origin[0];
+            let dz = feet[2] - p.origin[2];
+            selected.arena.solids[index] = Solid {
+                min_x: s.min_x + dx,
+                max_x: s.max_x + dx,
+                min_z: s.min_z + dz,
+                max_z: s.max_z + dz,
+                ..s
+            };
+        }
+        selected.navigation = p.fallen_navigation.clone();
+        selected.walker = None;
+        selected.m14_fallen = true;
+        Some(Self::Authored(Arc::new(selected)))
+    }
     pub fn walker_geometry(&self) -> Option<crate::protocol::WalkerGeometry> {
         match self {
             Self::BuiltIn(_) => None,
@@ -297,8 +331,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m13_geometry()
-            .map(|_| crate::protocol::MissionId::WeightOfPermission)
+        self.m14_geometry()
+            .map(|_| crate::protocol::MissionId::LaunchAuthority)
+            .or_else(|| {
+                self.m13_geometry()
+                    .map(|_| crate::protocol::MissionId::WeightOfPermission)
+            })
             .or_else(|| {
                 self.m12_objectives()
                     .map(|_| crate::protocol::MissionId::TermsOfCooperation)
@@ -479,6 +517,9 @@ impl RuntimeMap {
     }
 
     pub(crate) fn vehicle_spawns(&self) -> Vec<(crate::protocol::VehicleKind, [f32; 3], f32)> {
+        if let Some(g) = self.m14_geometry() {
+            return vec![(crate::protocol::VehicleKind::Jeep, g.jeep.feet, g.jeep.yaw)];
+        }
         match self {
             Self::BuiltIn(kind) => crate::vehicles::spawns(kind.id()),
             Self::Authored(map) => map

@@ -1,5 +1,6 @@
 extends Node
 
+# Version 49 connects Launch Authority and its fallen battlefield.
 # Version 48 understands registered Walker machinery and its locked attacks.
 # Version 47 connects M13 and its finite Rocket Launcher lesson.
 # Version 33 understands completed mission elapsed time on private records.
@@ -21,7 +22,7 @@ extends Node
 # objective and gate state; 8 private participant records. A shared arena
 # speaks this exact gameplay version and geometry 2. A campaign host still
 # accepts this client when its mission floor is at or below it.
-const GAMEPLAY_VERSION: int = 48
+const GAMEPLAY_VERSION: int = 49
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -41,6 +42,7 @@ signal record_received(data: Dictionary)
 var equipment: Dictionary = {}
 var record: Dictionary = {}
 var mission_geometry: Dictionary = {}
+var _m14_intact_geometry: Dictionary = {}
 var walker_geometry: Dictionary = {}
 var mission: Dictionary = {}
 var _mission_previous: Dictionary = {}
@@ -107,6 +109,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
+	_m14_intact_geometry.clear()
 	walker_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
@@ -150,6 +153,7 @@ func disconnect_from_server():
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
+	_m14_intact_geometry.clear()
 	walker_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
@@ -496,6 +500,7 @@ func _handle_message(text: String):
 			equipment.clear()
 			mission.clear()
 			mission_geometry.clear()
+			_m14_intact_geometry.clear()
 			walker_geometry.clear()
 			_mission_previous.clear()
 			player_id = data.get("player_id")
@@ -520,6 +525,14 @@ func _handle_message(text: String):
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
 			remote_supported = data.get("m11") is Dictionary
+			if geometry.get("id") == MissionState.M14_ID and mission_geometry.get("id") == MissionState.M14_ID and not M14MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.get("id") == MissionState.M14_ID and not geometry["m14"]["fallen"] and not _m14_intact_geometry.is_empty() and not M14MissionState.same_contract(_m14_intact_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M13_ID and mission_geometry.get("id") == MissionState.M13_ID and not M13MissionState.same_contract(mission_geometry, geometry):
 				disconnect_from_server()
 				server_error.emit(MissionState.INVALID)
@@ -586,9 +599,13 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
+			if geometry.get("id") != MissionState.M14_ID:
+				_m14_intact_geometry.clear()
+			elif not geometry["m14"]["fallen"]:
+				_m14_intact_geometry = geometry.duplicate(true)
 			mission_geometry = geometry
 			walker_geometry = data.duplicate(true) if data.get("walker") is Dictionary else {}
 			_movement_ack_previous.clear()

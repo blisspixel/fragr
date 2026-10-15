@@ -684,6 +684,57 @@ msgstr "Opening the foundry..."
 msgid "M13_RUN_DESCRIPTION"
 msgstr "Take the foundry. Keep the town's lifelines working."
 
+msgid "MISSION_M14_TITLE"
+msgstr "LAUNCH AUTHORITY"
+
+msgid "M14_PROTOTYPE_TITLE"
+msgstr "Launch Authority: development mission"
+
+msgid "M14_LOCAL_STARTING"
+msgstr "Opening the launch works..."
+
+msgid "M14_RUN_DESCRIPTION"
+msgstr "Take the launch works. Bring the coalition to Earth."
+
+msgid "M14_NEXT_TITLE"
+msgstr "CIVIC PRESSURE VALVE"
+
+msgid "M14_NEXT_PENDING"
+msgstr "Civic Pressure Valve is still being built. Your completed launch run is kept."
+
+msgid "M14_WAITING"
+msgstr "The coalition is ready. The launch works are still held."
+
+msgid "M14_DEPARTED"
+msgstr "The cargo is aboard. Earth is next."
+
+msgid "M14_OBJECTIVE_ARRIVAL"
+msgstr "Reach the launch-work approach."
+
+msgid "M14_OBJECTIVE_DEPOT_SECURED"
+msgstr "Secure the supply depot."
+
+msgid "M14_OBJECTIVE_ROAD_SECURED"
+msgstr "Clear the road to the launch apron."
+
+msgid "M14_OBJECTIVE_APPROACH_SECURED"
+msgstr "Secure the apron approach. Keep solid cover nearby."
+
+msgid "M14_OBJECTIVE_WALKER_DISABLED"
+msgstr "Disable the Walker and clear its support crews."
+
+msgid "M14_OBJECTIVE_GANTRY_SECURED"
+msgstr "Clear the gantry and reach its departure control."
+
+msgid "M14_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Gather at the gantry control. Use it to depart."
+
+msgid "M14_USE_PANEL"
+msgstr "{use} Use departure control"
+
+msgid "M14_MACHINE_FALLEN"
+msgstr "WALKER DOWN"
+
 msgid "M13_NEXT_TITLE"
 msgstr "LAUNCH AUTHORITY"
 
@@ -746,3 +797,18 @@ msgstr "RELAY\nACTIVE"
 
 msgid "M13_RELAY_OFFLINE"
 msgstr "RELAY\nOFFLINE"
+
+msgid "STORY_M14_ARRIVAL_WORKS"
+msgstr "The launch works, the same afternoon. Allies are hitting four other sites across the plain. The ships on these pads are the coalition's way back to Earth."
+
+msgid "STORY_M14_ARRIVAL_DEPOT"
+msgstr "Take the depot first. A Union jeep waits under cover; the trenches offer another route. Beyond them, the Continuance Walker guards the gantry. Break the Walker."
+
+msgid "STORY_M14_DEPARTURE_CARGO"
+msgstr "The pad lamps turn white. The settlements' cargo can finally move: filters, tools, repair stock. Across the plain, the other launch sites answer."
+
+msgid "STORY_M14_DEPARTURE_TERN"
+msgstr "Tern arrives with a repair invoice before the smoke clears. \"Liberation. Lovely. Who's paying for the pad?\""
+
+msgid "STORY_M14_DEPARTURE_EARTH"
+msgstr "The coalition fleet lifts for Earth. Repairs, shared meals and arguments over the cargo lists fill the journey. Nine days after Mars, the capital waits below."

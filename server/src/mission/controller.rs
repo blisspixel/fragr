@@ -17,6 +17,7 @@ mod m10;
 mod m11;
 mod m12;
 mod m13;
+mod m14;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -51,6 +52,13 @@ pub struct MissionClient {
     m13_solids: Vec<Solid>,
     m13_points: Option<[[f32; 3]; 2]>,
     m13_pending: bool,
+    m14_map: Option<crate::protocol::M14MapGeometry>,
+    m14_point: Option<[f32; 3]>,
+    m14_solids: Vec<Solid>,
+    m14_half: Option<f32>,
+    m14_presentation: Option<MapPresentation>,
+    m14_intact_solids: Vec<Solid>,
+    m14_pending: bool,
     m10_map: Option<crate::protocol::M10MapGeometry>,
     m10_point: Option<[f32; 3]>,
     m10_pending: bool,
@@ -393,6 +401,21 @@ impl MissionClient {
                 self.observed = old.observed;
             }
         }
+        if old.m14_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1014
+        {
+            self.m14_map = old.m14_map.clone();
+            self.m14_point = old.m14_point;
+            self.m14_solids = old.m14_solids.clone();
+            self.m14_half = old.m14_half;
+            self.m14_presentation = old.m14_presentation.clone();
+            self.m14_intact_solids = old.m14_intact_solids.clone();
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m14_pending = true;
+        }
         if old.m13_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1013
         {
             self.m13_map = old.m13_map.clone();
@@ -496,7 +519,10 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::WeightOfPermission {
+        let map_matches = if state.id == MissionId::LaunchAuthority {
+            self.validate_m14_target(&state)?;
+            true
+        } else if state.id == MissionId::WeightOfPermission {
             self.validate_m13_target(&state)?;
             true
         } else if state.id == MissionId::TermsOfCooperation {
@@ -568,6 +594,7 @@ impl MissionClient {
         self.m11_pending = false;
         self.m12_pending = false;
         self.m13_pending = false;
+        self.m14_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -669,7 +696,8 @@ impl MissionClient {
             && self.m10_map.is_none()
             && self.m11_map.is_none()
             && self.m12_map.is_none()
-            && self.m13_map.is_none())
+            && self.m13_map.is_none()
+            && self.m14_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -714,6 +742,13 @@ impl MissionClient {
         action: Action,
         loadout: Option<&crate::protocol::LoadoutState>,
     ) -> Action {
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::LaunchAuthority)
+        {
+            return self.steer_m14_equipped(navigator, world, id, snapshot, action, loadout);
+        }
         let action = if action.look_at.is_none()
             && self
                 .state
@@ -814,7 +849,9 @@ impl MissionClient {
                 }
             }
         }
-        let solids = self.live_visibility_solids();
+        let solids = self
+            .m14_visibility_solids(snapshot)
+            .or_else(|| self.live_visibility_solids());
         let arena = crate::movement::Arena {
             half: world.planning_arena().half,
             solids: solids.unwrap_or_else(|| world.planning_arena().solids.clone()),
@@ -843,9 +880,17 @@ impl MissionClient {
             || self.m11_pending
             || self.m12_pending
             || self.m13_pending
+            || self.m14_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::LaunchAuthority)
+        {
+            return self.steer_m14(navigator, world, id, snapshot, action);
         }
         if self
             .state
