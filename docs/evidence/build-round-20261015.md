@@ -81,6 +81,11 @@ no failed image or failed effect probe was silently accepted.
   subsequent successful human join. A before/after regression now proves that
   changing role starts a fresh world gate, rejects stale snapshots and releases
   controls only after the new map, snapshot and ordinary controls-card timeout.
+- The first final GitHub client run exposed an older custody fixture that used
+  the real five-metre vehicle radius as its supposedly unknown radius. The
+  fixture now rejects an actual unknown radius and checks the vehicle's exact
+  120-damage limit and the first value beyond it. Native vehicle facts remain
+  covered by the shared Walker golden; no runtime validation was loosened.
 
 ## Remaining gates and limits
 
