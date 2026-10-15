@@ -69,7 +69,7 @@ through 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
 
 ## Standalone development maps
 
-Three current source maps explore the next campaign environments without changing
+Standalone source maps explore campaign environments without changing
 your campaign save. Build and start one server from the repository root:
 
 ```bash
@@ -95,6 +95,15 @@ unfinished. These maps have no mission tally, save promotion or connected
 departure. Their [M12](plans/m12-habitat-development-20261008.md),
 [M13](plans/m12-m14-foundry-slice-20261008.md) and
 [M14](plans/m14-vehicle-development-20261006.md) plans track acceptance.
+
+For the isolated Continuance Walker encounter, use
+`server/maps/test/walker_foundation_development.json`. Collect the Rifle and
+Rocket at entry, then use either supplied flank. Clear the stomp ring and move
+off the three artillery markers after they lock. Open joint vents mark the
+recovery window. The machine's integrity readout follows server damage; shots
+against its closed plating are less effective. This range has no campaign save
+or level 14 departure. Its [foundation plan](plans/walker-foundation-20261015.md)
+separates development checks from the combined battlefield still to come.
 
 ## Other games
 

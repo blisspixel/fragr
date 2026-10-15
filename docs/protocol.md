@@ -6,12 +6,12 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-13: matching readers advertise gameplay 47 and geometry
+Current contract, 2026-10-15: matching readers advertise gameplay 48 and geometry
 2. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
 Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
 Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
-the first campaign launcher. Numbered
+the first campaign launcher. The standalone Walker foundation requires 48. Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
 campaign admission. Dated evidence retains the exact contract it exercised.
@@ -109,7 +109,7 @@ Initial handshake message. Must be sent immediately after connection.
   resume keeps the parked pawn's body even if this hello names another.
   Changing the body means leaving and joining again.
 - `gameplay_version`: maximum understood gameplay contract. Updated Rust readers
-  and the Godot client send `47`; omission means `1`. Discovery-only maps first
+  and the Godot client send `48`; omission means `1`. Discovery-only maps first
   required 2, authored encounters 3, and mission sequences 6 for shared difficulty.
   Current admission follows the contract above. The allocations below preserve
   the feature's original boundary and do not lower a current room's floor.
@@ -133,7 +133,7 @@ Initial handshake message. Must be sent immediately after connection.
   the Cells cap from 50 to 100. Every discovery map requires 12, because a
   version 11 reader would refuse a loadout above 50 cells, and so does any
   arena running rules other than plain free-for-all, because a team match shown
-  without teams misleads. A shared arcade room speaks gameplay 47. That floor
+  without teams misleads. A shared arcade room speaks gameplay 48. That floor
   is above capability 4, and the arcade roster stays open. The four-seat
   mission party stays on campaign doors. Sabotage keeps its own seat pool.
   Version 13 adds the chosen participant `body` on Hello, Welcome and snapshot
@@ -3191,3 +3191,73 @@ entry resources and initial foundry state through the existing reset owner.
 The portable `m13_outcome` contains worker choices, actual arrival flags,
 effective hazard loss and the support-position receipt. Completed M13 retains
 pending `launch_authority`; unimplemented M14 remains refused.
+
+### Continuance Walker foundation (capability 48)
+
+Standalone authored Walker worlds require capability 48 for humans, agents and
+spectators. The foundation range is map 1048; the presence of the strict
+`walker` document, never a numeric map id, enables its behavior. It adds no
+mission id, readiness operation, save version or connected M14 unlock.
+
+`MapInfo.walker` contains `solids` (five indices: torso, then four leg/joint
+solids), three grounded `stations`, `activation` and `arena` regions, and a
+supported infantry `approach`. The registered solids are authored at station
+zero. Current collision and presentation translate their X/Z bounds by
+`Snapshot.walker.feet - stations[0]`; Y and orientation remain fixed. Navigation
+uses conservative swept bounds prepared before readiness. Static cover cannot
+intersect those sweeps. Every ordinary authored supply and landmark must retain
+a walking route. Registered moving machine solids cannot host static map
+decorations. These machine solids remain physical after disable; a fallen
+wreck world belongs to the subsequent mission integration.
+
+`Snapshot.walker` contains `hp`, `stage`, `phase`, `phase_started`, `phase_ends`,
+`feet`, the committed `target`, three committed `artillery_targets`,
+`shells_left` and live `shells`. Health starts at 900. Stage 1 is above 600 HP,
+stage 2 above 300, and stage 3 at or below 300. Stage is a truthful health band;
+the isolated foundation does not yet add M14's support squads. Timings are
+fixed across this standalone range and do not revise campaign difficulty rules.
+
+| Phase | Duration at 20 Hz | Authoritative behavior |
+|---|---|---|
+| `dormant` | No deadline | Any active participant entering activation wakes the machine |
+| `stomp_warning` | 32 ticks (1.6 s) | The grounded 7 m ring warns before harm |
+| `stomp` | 4 ticks (0.2 s) | One covered, falling-off blast at entry, peak 55 |
+| `artillery_warning` | 40 ticks (2 s) | Three ground marks lock a lane through the chosen participant |
+| `artillery` | 16 ticks (0.8 s) | Up to three finite shells launch six ticks apart |
+| `relocating` | At most 400 ticks (20 s) | Move toward the next station at 1.5 m/s |
+| `recovery` | 60 ticks (3 s) | Joint vents take full ordinary traced damage |
+| `disabled` | No deadline | No new attacks or movement; committed shells finish |
+
+A refused relocation step moves no part of the machine and immediately enters
+recovery, preserving counterplay when a participant or vehicle blocks it.
+No riders are carried and bodies are never crushed by moving collision.
+The machine starts with 36 shells. Exhaustion replaces the artillery and move
+with recovery; subsequent warned stomps continue. The first activation and
+all attack deadlines are snapshot facts, including for late spectators.
+
+Each shell has unique `id`, `position`, `velocity` and `age_ticks`. Launches use
+1.5 s nominal ballistic flight to the committed mark under 12 m/s squared
+gravity, four swept contact substeps per server tick, a 100-tick lifetime and a
+maximum of six concurrent shells. Actual cover, ground, bounds, vehicles and
+eligible bodies determine earlier contact. Contact resolves the shared covered
+3 m blast with peak damage 60. Resolved explosions use the existing
+`ExplosionResult` shape and a nil `owner_id` for this registered environmental
+machine. Only active participants and vehicles take its damage, never unrelated
+Union actors or civilians. The renderer never applies damage.
+
+Registered resolved ordinary ray impacts deal one quarter damage to closed
+plates and full damage to a leg/joint during recovery. Covered splash bypasses
+plates but can damage the machine only once per blast. Rocket direct damage
+requires the actual swept registered-solid contact; touching nearby ground or
+cover grants only eligible splash. Already committed participant shots survive
+the shooter's death in the same tick. Sleeping or disabled machinery takes no
+further damage. The shared encounter reset restores health, pose, stock and
+clears shells without rewinding the process tick or projectile serial.
+
+Client and adapter boundaries reject mismatched Walker map/snapshot presence,
+malformed facts, health-stage disagreements, noncanonical phase windows,
+airborne machine feet and translated bodies outside the accepted arena.
+`client/golden/walker_vectors.json` is generated from native phase snapshots and
+checked on both sides. MCP `observe.map.walker` and `observe.snapshot.walker`
+carry these same facts; ordinary `act` movement, aim and fire remain the control
+path. The stock scripted fighter does not yet plan a Walker counter automatically.

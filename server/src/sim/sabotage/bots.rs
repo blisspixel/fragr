@@ -10,6 +10,9 @@ use crate::protocol::{Action, ProgressKind, SabotagePhase, SiteId, SupplyClaim, 
 use crate::sim::{BotController, BotIntent, GameState, PickupKind, Player, PLAYER_FLOOR_Y};
 use std::f32::consts::PI;
 
+#[cfg(test)]
+mod tests;
+
 /// A carrier inside this much of the plant radius stops and plants.
 const PLANT_MARGIN: f32 = 0.7;
 /// A loose charge or a pickup this close counts as reached.
@@ -239,16 +242,10 @@ impl BotController {
             return Some(walk(bot, if pushing { site.center } else { stage }));
         }
         if charge.carrier.is_none() {
-            // The nearest standing attacker recovers a loose charge.
-            let nearest = state
-                .players
-                .iter()
-                .filter(|p| p.standing() && !p.detached && p.team == Some(Team::Coalition))
-                .min_by(|a, b| {
-                    horizontal(feet(a), charge.position)
-                        .total_cmp(&horizontal(feet(b), charge.position))
-                })
-                .map(|p| p.id);
+            // Nearby humans and external agents have not promised to recover
+            // it. Assign a controller we actually drive; ordinary touch still
+            // lets any attacker take the charge first.
+            let nearest = objective_bot(state, Team::Coalition, charge.position);
             if nearest == Some(bot.id) && !threatened {
                 return Some(walk(bot, charge.position));
             }
@@ -285,13 +282,17 @@ impl BotController {
             .as_ref()
             .and_then(|c| c.planted.map(|p| (p.0, c.position)));
         if let Some((site, at)) = planted {
-            // Retake: the defender nearest the charge defuses; the rest hold the site.
-            let defuser = state
-                .players
-                .iter()
-                .filter(|p| p.standing() && !p.detached && p.team == Some(Team::Union))
-                .min_by(|a, b| horizontal(feet(a), at).total_cmp(&horizontal(feet(b), at)))
-                .map(|p| p.id);
+            // Keep actual work, including human/agent Use, until the sim ends
+            // the hold. Proximity alone must neither volunteer a guest nor
+            // make a working bot abandon progress when a teammate passes it.
+            let defuser = sab
+                .hold
+                .as_ref()
+                .filter(|hold| hold.kind == ProgressKind::Defuse)
+                .and_then(|hold| state.players.iter().find(|p| p.id == hold.player))
+                .filter(|p| objective_eligible(state, p, Team::Union))
+                .map(|p| p.id)
+                .or_else(|| objective_bot(state, Team::Union, at));
             let defusing = sab
                 .hold
                 .as_ref()
@@ -383,6 +384,28 @@ impl BotController {
         }
         intent
     }
+}
+
+fn objective_eligible(state: &GameState, player: &Player, team: Team) -> bool {
+    state.contact_eligible(player)
+        && player.contestant()
+        && player.role != crate::protocol::Role::Spectator
+        && player.team == Some(team)
+}
+
+/// Exactly one registered controller takes unclaimed work. Stable identity
+/// breaks equal-distance ties independently of player storage order.
+fn objective_bot(state: &GameState, team: Team, at: [f32; 3]) -> Option<uuid::Uuid> {
+    state
+        .players
+        .iter()
+        .filter(|p| objective_eligible(state, p, team) && state.is_rule_bot(p.id))
+        .min_by(|a, b| {
+            horizontal(feet(a), at)
+                .total_cmp(&horizontal(feet(b), at))
+                .then(a.id.cmp(&b.id))
+        })
+        .map(|p| p.id)
 }
 
 /// The site the defence should rotate to: a plant under way, or the site

@@ -28,6 +28,7 @@ pub(super) struct Rocket {
 
 #[derive(Clone, Copy)]
 enum Direct {
+    Solid { index: usize },
     Player { index: usize, normal: [f32; 3] },
     Vehicle { index: usize },
 }
@@ -260,6 +261,13 @@ impl GameState {
                 consider(&mut best, hit.distance, None);
             }
         }
+        if let Some(walker) = self.map.walker_geometry() {
+            for index in walker.solids {
+                if let Some(hit) = ray.solid(&expanded(&arena.solids[index]), length) {
+                    consider(&mut best, hit.distance, Some(Direct::Solid { index }));
+                }
+            }
+        }
         if let Some(hit) = grenade::first_contact(ray, length, arena) {
             consider(&mut best, hit.distance, None);
         }
@@ -282,6 +290,18 @@ impl GameState {
             return;
         };
         let mut planned = Vec::new();
+        self.damage_walker_blast(
+            rocket.owner_id,
+            position,
+            SPLASH_RADIUS,
+            SPLASH_PEAK,
+            if let Some(Direct::Solid { index }) = direct {
+                Some((index, DIRECT))
+            } else {
+                None
+            },
+            arena,
+        );
         for target in 0..self.players.len() {
             if planned.len() == 256 {
                 break;

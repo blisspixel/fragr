@@ -80,7 +80,9 @@ func _run() -> void:
 	_check(not GrenadeFacts.validation_error(_blast(4.5, 131)).is_empty(), "a mine blast never exceeds its own peak")
 	_check(GrenadeFacts.validation_error(_blast(4.0, 110)).is_empty(), "a four-metre blast accepts a rocket direct hit plus splash")
 	_check(not GrenadeFacts.validation_error(_blast(4.0, 111)).is_empty(), "a four-metre blast refuses damage past that envelope")
-	_check(not GrenadeFacts.validation_error(_blast(5.0, 10)).is_empty(), "an unknown device radius is refused")
+	_check(GrenadeFacts.validation_error(_blast(5.0, 120)).is_empty(), "a vehicle blast accepts its actual five-metre radius and peak")
+	_check(not GrenadeFacts.validation_error(_blast(5.0, 121)).is_empty(), "a vehicle blast refuses damage beyond its peak")
+	_check(not GrenadeFacts.validation_error(_blast(6.0, 10)).is_empty(), "an unknown device radius is refused")
 	# Lamp reads: steady while arming, a slow blink live, a fast flicker tripped.
 	var arming: Dictionary = _mine(20, "arming", 10)["mines"][0]
 	_check(CustodyFacts.lamp_lit(arming, 20) and CustodyFacts.lamp_lit(arming, 45), "arming lamp holds steady")

@@ -1,7 +1,7 @@
 extends Node
 
-# Version 46 understands the Rocket Launcher, its traveling rockets and
-# ten-column records. No current mission grants the launcher.
+# Version 48 understands registered Walker machinery and its locked attacks.
+# Version 47 connects M13 and its finite Rocket Launcher lesson.
 # Version 33 understands completed mission elapsed time on private records.
 # Version 32 understands M07 Declared Goods; 31 M08 Custodian of Record.
 # Version 30 understands the found Sniper Rifle and the Ranged Sweeper; 29 the
@@ -21,7 +21,7 @@ extends Node
 # objective and gate state; 8 private participant records. A shared arena
 # speaks this exact gameplay version and geometry 2. A campaign host still
 # accepts this client when its mission floor is at or below it.
-const GAMEPLAY_VERSION: int = 47
+const GAMEPLAY_VERSION: int = 48
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -41,6 +41,7 @@ signal record_received(data: Dictionary)
 var equipment: Dictionary = {}
 var record: Dictionary = {}
 var mission_geometry: Dictionary = {}
+var walker_geometry: Dictionary = {}
 var mission: Dictionary = {}
 var _mission_previous: Dictionary = {}
 var _movement_ack_previous: Dictionary = {}
@@ -106,6 +107,7 @@ func connect_to_server(p_role: String = "spectator", p_name: String = "Player"):
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
+	walker_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
 	_requires_conquest = false
@@ -148,6 +150,7 @@ func disconnect_from_server():
 	equipment.clear()
 	mission.clear()
 	mission_geometry.clear()
+	walker_geometry.clear()
 	_mission_previous.clear()
 	_requires_flags = false
 	_requires_conquest = false
@@ -493,6 +496,7 @@ func _handle_message(text: String):
 			equipment.clear()
 			mission.clear()
 			mission_geometry.clear()
+			walker_geometry.clear()
 			_mission_previous.clear()
 			player_id = data.get("player_id")
 			duck_supported = data.get("duck") == true
@@ -586,6 +590,7 @@ func _handle_message(text: String):
 				_mission_previous.clear()
 			mission.clear()
 			mission_geometry = geometry
+			walker_geometry = data.duplicate(true) if data.get("walker") is Dictionary else {}
 			_movement_ack_previous.clear()
 			map_info_received.emit(data)
 			mission_received.emit({})
@@ -628,6 +633,10 @@ func _handle_message(text: String):
 
 		"snapshot":
 			var problem: String = ActorState.validation_error(data)
+			if problem.is_empty():
+				problem = WalkerFacts.validation_error(data, walker_geometry)
+				if data.get("walker") != null and walker_geometry.is_empty():
+					problem = WalkerFacts.INVALID
 			if problem.is_empty():
 				problem = AssessorFacts.validation_error(data)
 			if problem.is_empty():

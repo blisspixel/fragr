@@ -21,10 +21,12 @@ mod m10;
 mod m11;
 mod m12;
 mod m13;
+mod walker;
 pub use m13::{
     M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
     M13ObjectiveState, M13WorkerResponse, M13_LIFT_SPEED, M13_OBJECTIVE_IDS, M13_WORKER_RESPONSES,
 };
+pub use walker::*;
 mod mission;
 mod rules;
 mod sabotage;
@@ -773,9 +775,10 @@ pub const LOW_WATER_SABOTAGE_GAMEPLAY_VERSION: u32 = 45;
 /// highest contract. The foundry places the first campaign launcher.
 pub const ROCKET_GAMEPLAY_VERSION: u32 = 46;
 pub const M13_GAMEPLAY_VERSION: u32 = 47;
+pub const WALKER_GAMEPLAY_VERSION: u32 = 48;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M13_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = WALKER_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -905,6 +908,7 @@ mod geometry_tests {
             m11: None,
             m12: None,
             m13: None,
+            walker: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -1049,6 +1053,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m13: Option<M13MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        walker: Option<WalkerGeometry>,
         /// The arena's rule set. Omitted on authored campaign maps.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         rules: Option<MatchRules>,
@@ -1371,6 +1381,12 @@ pub struct JammerDishState {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
+    #[serde(
+        default,
+        deserialize_with = "m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub walker: Option<WalkerState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub vehicles: Vec<VehicleState>,
     pub tick: u64,
@@ -1874,6 +1890,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            walker: None,
             rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),
@@ -2110,6 +2127,7 @@ mod protocol_tests {
             projectiles: vec![],
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            walker: None,
             rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),

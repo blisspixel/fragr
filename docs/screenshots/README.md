@@ -11,7 +11,31 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## October 13, 2026 connected foundry round
+## October 15, 2026 parallel build round
+
+The complete 32-state arena capture passed its presentation checks after the
+Walker foundation, Rocket reload and Sabotage controller changes. Fourteen
+retained stills now come from this run, including the README's boot, multiplayer
+and watched-match surfaces. Recall Notice intake retains its unchanged earlier
+capture. The contact sheet, selected full-size menus, watched and first-person
+worlds, and all three effect strips were inspected. The strips show muzzle,
+Rail-impact and Scatter-effect samples; small tiles do not prove every pellet.
+
+The [capture receipt](tour-20261015-build-round.json) records all states and the
+publication recovery. The wrapper was edited while its renderer was running,
+which interrupted the shell before publication. The completed artifacts had no
+blank worlds or client/import errors, and all effect probes were present. The
+unchanged publication footer then completed after those checks were repeated.
+This is a completed capture and recovered publication, not an uninterrupted
+wrapper run.
+
+These are 1280x720 Godot 4.7.2-stable captures on an owned Linux Xvfb display,
+with the X11 display server, OpenGL Compatibility and Mesa llvmpipe. They prove
+software-rendered presentation only. The separate [Rocket and Walker art
+pass](../plans/rocket-art-20261015.md) records ordinary reload evidence and
+controlled machine views; neither establishes final art or human enjoyment.
+
+## Historical October 13, 2026 connected foundry round
 
 The complete 32-state arena tour passes on the connected-foundry source build.
 `tools/qa_tour.sh --publish` refreshed 14 retained stills, including the README's
@@ -44,7 +68,7 @@ The repeated foundry surfaces and coarse tube remain development art.
 
 ## Historical October 13 first-use menu review
 
-The current multiplayer still shows the Run a match action and a real loopback
+The October 13 multiplayer still shows the Run a match action and a real loopback
 status reply from a five-bot server. It was extracted without retouching from
 the 32-state Linux Xvfb tour, rendered at 1280x720 with Godot 4.7.2 and Mesa
 llvmpipe. That complete tour failed three transient weapon-effect visibility

@@ -1,0 +1,1529 @@
+{
+  "blasts": [
+    {
+      "name": "stomp",
+      "snapshot": {
+        "explosions": [
+          {
+            "hits": [
+              {
+                "armor_damage": 0,
+                "hp_damage": 19,
+                "killed": false,
+                "target_hp_after": 81,
+                "target_id": "00000000-0000-0000-0000-000000000418"
+              }
+            ],
+            "id": 1,
+            "owner_id": "00000000-0000-0000-0000-000000000000",
+            "position": [
+              0.0,
+              0.15000000596046448,
+              0.0
+            ],
+            "radius": 7.0
+          }
+        ],
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1048,
+        "map_name": "Continuance Walker (development)",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -21.0,
+            "y": 0.4000000059604645,
+            "z": -18.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": -18.0
+          },
+          {
+            "amount": 200,
+            "available": true,
+            "id": "west_rounds",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 4.0
+          },
+          {
+            "amount": 200,
+            "available": true,
+            "id": "east_rounds",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 28.0,
+            "y": 0.4000000059604645,
+            "z": 4.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 28.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "west_health",
+            "kind": "health",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 2.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "east_health",
+            "kind": "health",
+            "x": 28.0,
+            "y": 0.4000000059604645,
+            "z": 2.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 81,
+            "id": "00000000-0000-0000-0000-000000000418",
+            "just_fired": false,
+            "name": "Infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -5.0,
+            "y": 1.5,
+            "yaw": 0.6000000238418579,
+            "z": 0.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 34,
+        "walker": {
+          "artillery_targets": [
+            [
+              -12.0,
+              0.0,
+              -8.0
+            ],
+            [
+              -12.0,
+              0.0,
+              -8.0
+            ],
+            [
+              -12.0,
+              0.0,
+              -8.0
+            ]
+          ],
+          "feet": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "hp": 900,
+          "phase": "stomp",
+          "phase_ends": 38,
+          "phase_started": 34,
+          "shells": [],
+          "shells_left": 36,
+          "stage": 1,
+          "target": [
+            -12.0,
+            0.0,
+            -8.0
+          ]
+        }
+      }
+    },
+    {
+      "name": "shell",
+      "snapshot": {
+        "explosions": [
+          {
+            "hits": [
+              {
+                "armor_damage": 0,
+                "hp_damage": 59,
+                "killed": false,
+                "target_hp_after": 41,
+                "target_id": "00000000-0000-0000-0000-000000000418"
+              }
+            ],
+            "id": 3,
+            "owner_id": "00000000-0000-0000-0000-000000000000",
+            "position": [
+              -11.583877563476562,
+              0.670250654220581,
+              -7.722575664520264
+            ],
+            "radius": 3.0
+          }
+        ],
+        "host_line": "Campaign development: this mission slice is still being built.",
+        "map_id": 1048,
+        "map_name": "Continuance Walker (development)",
+        "mode_name": "Campaign development",
+        "pickups": [
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "rifle",
+            "kind": "weapon",
+            "weapon": "Flechette",
+            "x": -21.0,
+            "y": 0.4000000059604645,
+            "z": -18.0
+          },
+          {
+            "available": true,
+            "claim": "personal",
+            "id": "rocket",
+            "kind": "weapon",
+            "weapon": "Rocket",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": -18.0
+          },
+          {
+            "amount": 200,
+            "available": true,
+            "id": "west_rounds",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 4.0
+          },
+          {
+            "amount": 200,
+            "available": true,
+            "id": "east_rounds",
+            "kind": "ammo",
+            "pool": "bullets",
+            "x": 28.0,
+            "y": 0.4000000059604645,
+            "z": 4.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "west_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 12,
+            "available": true,
+            "id": "east_rockets",
+            "kind": "ammo",
+            "pool": "rockets",
+            "x": 28.0,
+            "y": 0.4000000059604645,
+            "z": 6.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "west_health",
+            "kind": "health",
+            "x": -20.0,
+            "y": 0.4000000059604645,
+            "z": 2.0
+          },
+          {
+            "amount": 50,
+            "available": true,
+            "id": "east_health",
+            "kind": "health",
+            "x": 28.0,
+            "y": 0.4000000059604645,
+            "z": 2.0
+          }
+        ],
+        "players": [
+          {
+            "armor": 0,
+            "body": "human",
+            "campaign": {
+              "side": "participant"
+            },
+            "collidable": true,
+            "hp": 41,
+            "id": "00000000-0000-0000-0000-000000000418",
+            "just_fired": false,
+            "name": "Infantry",
+            "pitch": 0.0,
+            "score": 0,
+            "weapon": "Flechette",
+            "x": -12.0,
+            "y": 1.5,
+            "yaw": 0.6000000238418579,
+            "z": -8.0
+          }
+        ],
+        "playlist": "Campaign development",
+        "round_state": "Active",
+        "tick": 113,
+        "walker": {
+          "artillery_targets": [
+            [
+              -8.671798706054688,
+              0.0,
+              -5.7811994552612305
+            ],
+            [
+              -12.0,
+              0.0,
+              -8.0
+            ],
+            [
+              -15.328201293945312,
+              0.0,
+              -10.21880054473877
+            ]
+          ],
+          "feet": [
+            1.4250001907348633,
+            0.0,
+            0.0
+          ],
+          "hp": 900,
+          "phase": "relocating",
+          "phase_ends": 494,
+          "phase_started": 94,
+          "shells": [
+            {
+              "age_ticks": 23,
+              "id": 4,
+              "position": [
+                -11.751626968383789,
+                3.884997844696045,
+                -7.834403991699219
+              ],
+              "velocity": [
+                -10.21880054473877,
+                -9.00000286102295,
+                -6.812533855438232
+              ]
+            }
+          ],
+          "shells_left": 33,
+          "stage": 1,
+          "target": [
+            -12.0,
+            0.0,
+            -8.0
+          ]
+        }
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "map_id": 1048,
+      "name": "health_overflow",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 901,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "wrong_stage",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 3,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "airborne_body",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.1,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "negative_stock",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": -1,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "wrong_duration",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "recovery",
+        "phase_ends": 1,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "future_start",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 999999,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "unknown_phase",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "firing",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "dead_recovery",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 0,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    }
+  ],
+  "map": {
+    "geometry_version": 2,
+    "half_extent": 40.0,
+    "map_id": 1048,
+    "map_name": "Continuance Walker (development)",
+    "presentation": {
+      "ground": "concrete",
+      "solids": [
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "service_steel",
+        "concrete",
+        "concrete",
+        "service_steel",
+        "concrete"
+      ]
+    },
+    "solids": [
+      {
+        "bottom": 3.0,
+        "max_x": 3.0,
+        "max_z": 2.0,
+        "min_x": -3.0,
+        "min_z": -2.0,
+        "top": 6.0
+      },
+      {
+        "max_x": -1.7999999523162842,
+        "max_z": -0.800000011920929,
+        "min_x": -3.0,
+        "min_z": -2.0,
+        "top": 3.0
+      },
+      {
+        "max_x": 3.0,
+        "max_z": -0.800000011920929,
+        "min_x": 1.7999999523162842,
+        "min_z": -2.0,
+        "top": 3.0
+      },
+      {
+        "max_x": -1.7999999523162842,
+        "max_z": 2.0,
+        "min_x": -3.0,
+        "min_z": 0.800000011920929,
+        "top": 3.0
+      },
+      {
+        "max_x": 3.0,
+        "max_z": 2.0,
+        "min_x": 1.7999999523162842,
+        "min_z": 0.800000011920929,
+        "top": 3.0
+      },
+      {
+        "max_x": -16.0,
+        "max_z": 8.0,
+        "min_x": -18.0,
+        "min_z": 0.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "max_x": 26.0,
+        "max_z": 8.0,
+        "min_x": 24.0,
+        "min_z": 0.0,
+        "top": 2.4000000953674316
+      },
+      {
+        "max_x": 5.0,
+        "max_z": 32.0,
+        "min_x": -5.0,
+        "min_z": 30.0,
+        "top": 14.0
+      },
+      {
+        "max_x": -12.0,
+        "max_z": -13.0,
+        "min_x": -17.0,
+        "min_z": -15.0,
+        "top": 1.2999999523162842
+      }
+    ],
+    "type": "map_info",
+    "walker": {
+      "activation": {
+        "max": [
+          30.0,
+          4.0,
+          28.0
+        ],
+        "min": [
+          -30.0,
+          0.0,
+          -14.0
+        ]
+      },
+      "approach": [
+        -12.0,
+        0.0,
+        -8.0
+      ],
+      "arena": {
+        "max": [
+          32.0,
+          20.0,
+          28.0
+        ],
+        "min": [
+          -32.0,
+          0.0,
+          -28.0
+        ]
+      },
+      "solids": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "stations": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          8.0,
+          0.0,
+          0.0
+        ],
+        [
+          8.0,
+          0.0,
+          10.0
+        ]
+      ]
+    }
+  },
+  "valid": [
+    {
+      "map_id": 1048,
+      "name": "dormant",
+      "tick": 1,
+      "walker": {
+        "artillery_targets": [
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "dormant",
+        "phase_ends": 0,
+        "phase_started": 0,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "stomp_warning",
+      "tick": 2,
+      "walker": {
+        "artillery_targets": [
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "stomp_warning",
+        "phase_ends": 34,
+        "phase_started": 2,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "stomp",
+      "tick": 34,
+      "walker": {
+        "artillery_targets": [
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "stomp",
+        "phase_ends": 38,
+        "phase_started": 34,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "artillery_warning",
+      "tick": 38,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "artillery_warning",
+        "phase_ends": 78,
+        "phase_started": 38,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "artillery",
+      "tick": 78,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "artillery",
+        "phase_ends": 94,
+        "phase_started": 78,
+        "shells": [],
+        "shells_left": 36,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "traveling_shell",
+      "tick": 79,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "artillery",
+        "phase_ends": 94,
+        "phase_started": 78,
+        "shells": [
+          {
+            "age_ticks": 0,
+            "id": 2,
+            "position": [
+              0.0,
+              6.300000190734863,
+              0.0
+            ],
+            "velocity": [
+              -5.781198978424072,
+              4.799999713897705,
+              -3.854132890701294
+            ]
+          }
+        ],
+        "shells_left": 35,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "relocating",
+      "tick": 94,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "relocating",
+        "phase_ends": 494,
+        "phase_started": 94,
+        "shells": [
+          {
+            "age_ticks": 15,
+            "id": 2,
+            "position": [
+              -4.335898399353027,
+              6.524999618530273,
+              -2.89060115814209
+            ],
+            "velocity": [
+              -5.781198978424072,
+              -4.200002670288086,
+              -3.854132890701294
+            ]
+          },
+          {
+            "age_ticks": 10,
+            "id": 3,
+            "position": [
+              -3.9999983310699463,
+              7.199999809265137,
+              -2.6666667461395264
+            ],
+            "velocity": [
+              -8.0,
+              -1.2000017166137695,
+              -5.333333492279053
+            ]
+          },
+          {
+            "age_ticks": 4,
+            "id": 4,
+            "position": [
+              -2.043760061264038,
+              7.020000457763672,
+              -1.3625067472457886
+            ],
+            "velocity": [
+              -10.21880054473877,
+              2.399998188018799,
+              -6.812533855438232
+            ]
+          }
+        ],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "recovery",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 1,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "stage_two",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 550,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 2,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "stage_three",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 250,
+        "phase": "recovery",
+        "phase_ends": 261,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 3,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    },
+    {
+      "map_id": 1048,
+      "name": "disabled",
+      "tick": 201,
+      "walker": {
+        "artillery_targets": [
+          [
+            -8.671798706054688,
+            0.0,
+            -5.7811994552612305
+          ],
+          [
+            -12.0,
+            0.0,
+            -8.0
+          ],
+          [
+            -15.328201293945312,
+            0.0,
+            -10.21880054473877
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 0,
+        "phase": "disabled",
+        "phase_ends": 201,
+        "phase_started": 201,
+        "shells": [],
+        "shells_left": 33,
+        "stage": 3,
+        "target": [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      }
+    }
+  ],
+  "vehicle_blast": {
+    "explosions": [
+      {
+        "hits": [
+          {
+            "armor_damage": 0,
+            "hp_damage": 60,
+            "killed": false,
+            "target_hp_after": 40,
+            "target_id": "00000000-0000-0000-0000-000000000418"
+          }
+        ],
+        "id": 1,
+        "owner_id": "00000000-0000-0000-0000-000000000000",
+        "position": [
+          -20.0,
+          0.699999988079071,
+          -18.0
+        ],
+        "radius": 5.0
+      }
+    ],
+    "host_line": "Campaign development: this mission slice is still being built.",
+    "map_id": 1048,
+    "map_name": "Continuance Walker (development)",
+    "mode_name": "Campaign development",
+    "pickups": [
+      {
+        "available": true,
+        "claim": "personal",
+        "id": "rifle",
+        "kind": "weapon",
+        "weapon": "Flechette",
+        "x": -21.0,
+        "y": 0.4000000059604645,
+        "z": -18.0
+      },
+      {
+        "available": true,
+        "claim": "personal",
+        "id": "rocket",
+        "kind": "weapon",
+        "weapon": "Rocket",
+        "x": -20.0,
+        "y": 0.4000000059604645,
+        "z": -18.0
+      },
+      {
+        "amount": 200,
+        "available": true,
+        "id": "west_rounds",
+        "kind": "ammo",
+        "pool": "bullets",
+        "x": -20.0,
+        "y": 0.4000000059604645,
+        "z": 4.0
+      },
+      {
+        "amount": 200,
+        "available": true,
+        "id": "east_rounds",
+        "kind": "ammo",
+        "pool": "bullets",
+        "x": 28.0,
+        "y": 0.4000000059604645,
+        "z": 4.0
+      },
+      {
+        "amount": 12,
+        "available": true,
+        "id": "west_rockets",
+        "kind": "ammo",
+        "pool": "rockets",
+        "x": -20.0,
+        "y": 0.4000000059604645,
+        "z": 6.0
+      },
+      {
+        "amount": 12,
+        "available": true,
+        "id": "east_rockets",
+        "kind": "ammo",
+        "pool": "rockets",
+        "x": 28.0,
+        "y": 0.4000000059604645,
+        "z": 6.0
+      },
+      {
+        "amount": 50,
+        "available": true,
+        "id": "west_health",
+        "kind": "health",
+        "x": -20.0,
+        "y": 0.4000000059604645,
+        "z": 2.0
+      },
+      {
+        "amount": 50,
+        "available": true,
+        "id": "east_health",
+        "kind": "health",
+        "x": 28.0,
+        "y": 0.4000000059604645,
+        "z": 2.0
+      }
+    ],
+    "players": [
+      {
+        "armor": 0,
+        "body": "human",
+        "campaign": {
+          "side": "participant"
+        },
+        "collidable": true,
+        "hp": 40,
+        "id": "00000000-0000-0000-0000-000000000418",
+        "just_fired": false,
+        "name": "Infantry",
+        "pitch": 0.0,
+        "score": 0,
+        "weapon": "Flechette",
+        "x": -17.0,
+        "y": 1.5,
+        "yaw": 0.6000000238418579,
+        "z": -18.0
+      }
+    ],
+    "playlist": "Campaign development",
+    "round_state": "Active",
+    "tick": 41,
+    "vehicles": [
+      {
+        "burning_ticks": 0,
+        "control_ready_tick": 0,
+        "driver": null,
+        "gun_heat": 0.0,
+        "gunner": null,
+        "hp": 0,
+        "id": 1,
+        "kind": "jeep",
+        "position": [
+          -20.0,
+          0.0,
+          -18.0
+        ],
+        "speed": 0.0,
+        "vy": 0.0,
+        "yaw": 0.0
+      }
+    ],
+    "walker": {
+      "artillery_targets": [
+        [
+          -12.0,
+          0.0,
+          -8.0
+        ],
+        [
+          -12.0,
+          0.0,
+          -8.0
+        ],
+        [
+          -12.0,
+          0.0,
+          -8.0
+        ]
+      ],
+      "feet": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "hp": 900,
+      "phase": "dormant",
+      "phase_ends": 0,
+      "phase_started": 0,
+      "shells": [],
+      "shells_left": 36,
+      "stage": 1,
+      "target": [
+        -12.0,
+        0.0,
+        -8.0
+      ]
+    }
+  }
+}

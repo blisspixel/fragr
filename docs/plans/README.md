@@ -20,9 +20,10 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 The [October 13 development round](build-round-20261013.md) **shipped** in
 [PR 401](https://github.com/blisspixel/fragr/pull/401) and v0.82.1, with passing
 main CI and three desktop packages. Its account readings retain their date.
-The [connected foundry round](m13-connected-round-20261013.md) is **implemented**:
-authoritative mission, strict saves and client presentation pass the ordinary
-native and rendered routes. GitHub CI and integration complete its delivery.
+The [connected foundry round](m13-connected-round-20261013.md) **shipped** through
+[PR #402](https://github.com/blisspixel/fragr/pull/402) in v0.83.0 with passing
+main CI and desktop packages. The [October 15 round](build-round-20261015.md)
+advances Walker combat, multiplayer objective play and integrated art together.
 
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
@@ -77,6 +78,11 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`build-round-20261015.md`](./build-round-20261015.md) | **implemented**, integration [#403](https://github.com/blisspixel/fragr/pull/403) | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
+| [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **implemented**, integration [#403](https://github.com/blisspixel/fragr/pull/403) | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
+| [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **planned** | Combine the original launch battlefield, staged Walker support, optional jeep and infantry routes, fleet departure and durable M13 carry after foundation consolidation. |
+| [`sabotage-objective-ownership-20261015.md`](./sabotage-objective-ownership-20261015.md) | **implemented** | Rule bots recover and defuse around idle participants while preserving active defuse ownership. Shared integration checks underway. |
+| [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |
 | [`difficulty-pressure-20261009.md`](./difficulty-pressure-20261009.md) | **shipped** with [PR #381](https://github.com/blisspixel/fragr/pull/381), v0.82.0 | Assisted, Standard, and Severe: pursuit memory 40/100/160, recovery hold or closer step-in, and campaign supply margins. Not fresh-player balance. |
 | [`admission-bounds-20261009.md`](./admission-bounds-20261009.md) | **shipped** with [PR #382](https://github.com/blisspixel/fragr/pull/382), v0.82.0 | Bound connection admission, audience-bound join tickets, snapshot nodes, developer-tool writes, and pinned CI supply so one remote input cannot exhaust a match or change a release artifact. |
 | [`latch-screen-expressions-20261008.md`](./latch-screen-expressions-20261008.md) | **implemented locally** | Distinct personal screen shapes, accepted-state transitions, blink and retained head/near-clip behavior pass six focused checks and a 61-frame renderer preview. Local composition passes; final human art review remains open. |
@@ -87,7 +93,7 @@ remain open.
 | [`enemy-ground-registration-20261008.md`](./enemy-ground-registration-20261008.md) | **in flight** | Reproduce and fix the 0.45 m enemy origin overwrite, then correct three collapsed source poses and verify actual floor contact. |
 | [`arc-visual-consistency-20261008.md`](./arc-visual-consistency-20261008.md) | **implemented locally** | Corrected industrial Arc, registered poses and pickup profile pass focused checks, ordinary finite combat and local composition; human art review remains open. |
 | [`m12-connected-habitat-20261008.md`](./m12-connected-habitat-20261008.md) | **shipped** with [PR #375](https://github.com/blisspixel/fragr/pull/375), v0.80.0 | Connected habitat with actual Arc discovery, Assessor wreck and pump receipts, one shelter door, aid vehicles, coalition commitment and strict M11 carry/retry. Fresh-player and final-art acceptance remain open. |
-| [`m13-connected-round-20261013.md`](./m13-connected-round-20261013.md) | **implemented** | Connected M13, finite Rocket lesson, voluntary workers, physical lift and strict version 17 saves pass native and rendered routes; GitHub delivery remains tracked by the round. |
+| [`m13-connected-round-20261013.md`](./m13-connected-round-20261013.md) | **shipped** with [PR #402](https://github.com/blisspixel/fragr/pull/402), v0.83.0 | Connected M13, finite Rocket lesson, voluntary workers, physical lift and strict version 17 saves, with passing native, rendered and package checks. |
 | [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **superseded** | Historical foundry geometry and launcher preparation; the October 13 connected round owns composition and acceptance. |
 | [`m13-mission-contract-20261009.md`](./m13-mission-contract-20261009.md) | **superseded** | Historical optional gate-key implementation; the October 13 connected round owns mission identity, progression and acceptance. |
 | [`m14-connected-first-pass-20261009.md`](./m14-connected-first-pass-20261009.md) | **in flight** | The launch-works development battlefield gains a sheltered infantry trench through the berm field. Walker, mission identity, save promotion and the menu remain unbuilt. |

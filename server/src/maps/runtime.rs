@@ -29,6 +29,12 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub fn walker_geometry(&self) -> Option<crate::protocol::WalkerGeometry> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.walker.as_ref().map(|p| p.geometry.clone()),
+        }
+    }
     pub fn m13_geometry(&self) -> Option<crate::protocol::M13MapGeometry> {
         match self {
             Self::BuiltIn(_) => None,
@@ -369,6 +375,7 @@ impl RuntimeMap {
 
     pub fn is_campaign(&self) -> bool {
         self.has_encounters()
+            || self.walker_geometry().is_some()
             || self.mission().is_some()
             || matches!(self, Self::Authored(map) if map.m02.is_some() || map.m03.is_some() || map.m04.is_some() || map.m05.is_some() || map.m06.is_some() || map.m07.is_some() || map.m08.is_some())
     }

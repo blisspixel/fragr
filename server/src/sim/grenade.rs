@@ -29,6 +29,7 @@ pub(super) enum BlastSource {
     RemoteMine,
     AssessorCanister,
     AssessorWreck,
+    Walker,
 }
 
 pub(super) struct Grenade {
@@ -118,6 +119,9 @@ impl GameState {
         self.grenades.clear();
         self.assessor_canisters.clear();
         self.rockets.clear();
+        if let Some(walker) = &mut self.walker {
+            walker.state.shells.clear();
+        }
         self.explosion_results.clear();
         for player in &mut self.players {
             player.throw_requested = false;
@@ -223,6 +227,16 @@ impl GameState {
     }
 
     pub(super) fn resolve_blast(&mut self, blast: &Blast, arena: &Arena) {
+        if blast.source != BlastSource::Walker {
+            self.damage_walker_blast(
+                blast.owner_id,
+                blast.position,
+                blast.radius,
+                blast.peak,
+                None,
+                arena,
+            );
+        }
         if blast.source != BlastSource::AssessorWreck {
             self.note_m12_blast(
                 blast.id,
@@ -238,7 +252,7 @@ impl GameState {
             .players
             .iter()
             .position(|player| player.id == blast.owner_id);
-        if owner.is_none() && blast.source != BlastSource::Vehicle {
+        if owner.is_none() && !matches!(blast.source, BlastSource::Vehicle | BlastSource::Walker) {
             return;
         }
         let mut hits = Vec::new();
@@ -259,6 +273,8 @@ impl GameState {
             }
             let player = &self.players[target];
             if player.hp <= 0
+                || blast.source == BlastSource::Walker
+                    && (!player.is_participant() || !self.contact_eligible(player))
                 || !crate::mission::actor_active(self.mission.as_ref(), player.id, player.campaign)
                 || (blast.source == BlastSource::AssessorWreck
                     && !player.campaign.is_some_and(|actor| actor.is_enemy()))
@@ -311,7 +327,8 @@ impl GameState {
                 BlastSource::RemoteMine => statistics.remote_mine_hit(hp_total, armor_total, kills),
                 BlastSource::Vehicle
                 | BlastSource::AssessorCanister
-                | BlastSource::AssessorWreck => {}
+                | BlastSource::AssessorWreck
+                | BlastSource::Walker => {}
             }
         }
         self.explosion_results.push(ExplosionResult {

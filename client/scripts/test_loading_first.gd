@@ -83,6 +83,26 @@ func _run() -> void:
 	_check(not scene.controls_blocked() and scene.place_armed and scene.throw_armed,
 		"dismissal cannot block and disarm the next action while deferred deletion is pending")
 	_check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "automation never captures the pointer")
+	await process_frame
+	scene.show_loading_card(true)
+	scene.net_client.disconnect_from_server()
+	card = scene.get_node("LoadingCard") as LoadingCard
+	_check(card.failed and scene.controls_blocked(), "disconnect keeps an unfinished world covered")
+	await scene.change_role(true)
+	scene.net_client.set_process(false)
+	_check(not card.failed and card.waiting_for_world and scene.controls_blocked(),
+		"a fresh human join resets a failed loading card while retaining the world gate")
+	scene._queue_world_reveal({"map_id": 1})
+	await process_frame
+	_check(card.waiting_for_world, "reconnect cannot reveal a stale snapshot before new geometry")
+	scene._on_map_info(info)
+	scene._queue_world_reveal({"map_id": 1})
+	for index: int in range(4):
+		await process_frame
+	_check(not card.waiting_for_world and not card.failed and card.visible,
+		"fresh matching geometry and snapshot reach the ordinary human controls card")
+	card._process(LoadingCard.HOLD_SECONDS)
+	_check(not scene.controls_blocked(), "the ordinary controls-card timeout releases recovered input")
 	var retiring: Array[WeakRef] = []
 	for node: Node in scene.find_children("*", "AudioStreamPlayer", true, false):
 		var voice: AudioStreamPlayer = node as AudioStreamPlayer

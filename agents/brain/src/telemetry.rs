@@ -422,6 +422,7 @@ pub(crate) mod fixtures {
             projectiles: vec![],
             grenades: Vec::new(),
             assessor_canisters: Vec::new(),
+            walker: None,
             rockets: Vec::new(),
             mines: Vec::new(),
             remote_mines: Vec::new(),

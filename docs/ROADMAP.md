@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-08)
+## Where we are (2026-10-15)
 
 [Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
 matching client/server packages and immutable build checks. Bounded development branches use pull requests with
@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 12 are playable development prototypes in this source, with
+**Campaign.** Levels 1 to 13 are playable development prototypes in this source, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -53,7 +53,12 @@ released as v0.80.0. It
 adds the Arc, Assessor, shelter and pump facts, coalition departure and version
 15 carry. Its [final owned route](evidence/m12-connected-habitat-final-20261008.md)
 passed before that merge. Fresh-player, difficulty and final-art acceptance
-remain open. M13 through M20 remain unbuilt as connected missions.
+remain open. M13's connected foundry shipped in v0.83.0 through PR #402,
+with finite Rockets, voluntary worker choices, the protected town feed and a
+physical freight lift. Version 17 retains entry resources and outcomes.
+M14 through M20 remain unbuilt as connected missions. The October 15
+[Walker foundation](plans/walker-foundation-20261015.md) is an isolated
+development encounter, with combined battlefield and campaign integration ahead.
 The local M12 habitat, M13 foundry and M14 launch works development maps are described in
 the full build order below. Fresh-player, difficulty
 and final art acceptance remain open for every level. The full build order
@@ -190,7 +195,7 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, full campaign progression and rewards, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, connected levels 13 through 20, the M14 vehicle mission, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, full campaign progression and rewards, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, connected levels 14 through 20, the M14 vehicle mission, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
 
 The current development build includes Holdfast Conquest with jeeps, boats,
 an aircraft and swimming. This establishes a playable combined-arms prototype;
@@ -381,14 +386,19 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-13)
+## Full build order (updated 2026-10-15)
 
-The [October 13 development round](plans/build-round-20261013.md) shipped in
-v0.82.1 with passing main CI and all three desktop packages. The next
-[connected foundry round](plans/m13-connected-round-20261013.md) connects M13
-objectives, saves and presentation through the existing campaign seams, using
-retained assets at $0. Each bounded parallel round returns to one reviewed main
-with passing CI before the next. Human and final-art acceptance stay separate.
+The [connected foundry round](plans/m13-connected-round-20261013.md) shipped in
+v0.83.0 through PR #402 with passing main CI and all three desktop packages.
+The [October 15 round](plans/build-round-20261015.md) implements the isolated
+Walker encounter, Sabotage objective ownership and Rocket reload presentation
+together, with integration tracked in [PR #403](https://github.com/blisspixel/fragr/pull/403).
+The next campaign increment is the [M14 integration](plans/m14-launch-authority-integration-20261015.md):
+combine that boss with the existing battlefield, staged support, optional jeep,
+infantry routes and saved coalition departure.
+Nick explicitly requested parallel level, multiplayer and asset work. Each
+bounded round returns to one reviewed main with passing CI before the next.
+Human and final-art acceptance stay separate.
 
 ### Fun-compound lens (not a second build order)
 
@@ -422,8 +432,9 @@ under rungs 1, 2 and 5. The first October 8 continuation ran
 [M12's habitat development map](plans/m12-habitat-development-20261008.md) and
 [M14's launch-works development battlefield](plans/m14-vehicle-development-20261006.md)
 in parallel. Those two standalone maps do not unlock campaign missions. Arc,
-Assessor and connected M12 were implemented in the later batch below; Walker
-and connected M14 remain unbuilt. The
+Assessor and connected M12 were implemented in the later batch below. The
+October 15 Walker range now supplies isolated combat and geometry evidence;
+connected M14 remains unbuilt. The
 [composed verification](evidence/development-composition-20261008.md) records
 their shared checks and retained corrections. The original island uses
 five capture points, registered swimming water, boats and a flyable courier
@@ -460,11 +471,12 @@ its brief. The October 13 connected foundry increment brings the source campaign
 to thirteen development prototypes through The Weight of Permission. It places
 the first finite Rocket Launcher and connects relay, hazard, voluntary worker
 choices, guarded gallery and physical lift departure to version 17 saves.
-The [active round](plans/m13-connected-round-20261013.md) records verification
+The [foundry round](plans/m13-connected-round-20261013.md) records verification
 and integration status. Ordinary campaign supply and visual pursuit scale by
 Assisted, Standard, and Severe. Connected M14 through M20 and the conditional
-epilogue remain unbuilt. M14 and its Walker are the next campaign dependency
-after this round returns to passing main. Foundry art, balance and fresh-player
+epilogue remain unbuilt. The Walker foundation now has native and ordinary
+rendered clears. Connected M14 is the next campaign dependency after the
+October 15 round returns to passing main. Foundry art, balance and fresh-player
 acceptance retain their own gates. Development grayboxes for levels 15 through 20, and a
 sheltered trench on the level 14 battlefield, are not missions. The epilogue
 remains a plan. The optional M12 secret stays separate because it changes

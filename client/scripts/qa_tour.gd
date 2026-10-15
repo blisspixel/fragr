@@ -349,6 +349,15 @@ func _run() -> void:
 				push_error("qa_tour: Ack probe lacked a stable live human sample: " + JSON.stringify(ack_report))
 				_failed = true
 		var combat: Dictionary = {}
+		var walker_combat: Dictionary = {}
+		if state.get("walker_combat",false):
+			walker_combat = await QaWalker.new().run(self,_game_manager(),_out_dir.path_join(state_name))
+			if not walker_combat.get("passed",false):
+				_failed = true
+				_write_manifest(tour)
+				await _retire_scene()
+				quit(1)
+				return
 		if state.has("combat"):
 			if state.get("camera", "") == "first_person":
 				_pose_camera("first_person", state)
@@ -788,6 +797,7 @@ func _run() -> void:
 			"movement_samples": _movement_samples.duplicate(true),
 			"walks": _walk_results.duplicate(true),
 			"combat": combat,
+			"walker_combat": walker_combat,
 			"audio": audio_capture,
 			"moving_combat": moving_combat,
 			"ack_probe": ack_report,
@@ -972,7 +982,7 @@ static func valid_walks(states: Variant) -> bool:
 			if live_audio_open and str(state["scene"]) != scene_path:
 				return false
 			scene_path = str(state["scene"])
-		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel", "grenade_follow"]:
+		for key: String in ["record_audio_start", "record_audio_stop", "combat_travel", "grenade_follow", "walker_combat"]:
 			if state.has(key) and not state[key] is bool:
 				return false
 		if state.get("grenade_follow", false) and state.get("trigger") != "throw_grenade":
@@ -1455,8 +1465,8 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	# The fire waiter already returned on the rendered frame that contains the
 	# effect. Preserve that actual frame: extra lead draws can outlive a flash
 	# or impact on a slow renderer. Other strips retain their settling frames.
-	var first_fire_frame: bool = trigger == "fire" and probe != null and _probe_active(probe, state)
-	if trigger != "fire":
+	var first_event_frame: bool = trigger in ["fire","reload"] and probe != null and _probe_active(probe, state)
+	if trigger not in ["fire","reload"]:
 		for _i in range(STRIP_LEAD_FRAMES):
 			await RenderingServer.frame_post_draw
 	var shots: Array[Image] = []
@@ -1464,7 +1474,7 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	for i in range(frames):
 		if i > 0 and interval > 0.0:
 			await create_timer(interval).timeout
-		if i > 0 or not first_fire_frame:
+		if i > 0 or not first_event_frame:
 			await RenderingServer.frame_post_draw
 		_strip_times_ms.append(Time.get_ticks_msec() - start_ms)
 		if state.get("expect_companion_transition", false):

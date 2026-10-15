@@ -159,7 +159,7 @@ else
   Xvfb ":$DISPLAY_NUM" -screen 0 1280x720x24 >/dev/null 2>&1 &
   XVFB_PID=$!
   sleep 1
-  DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1
+  env -u WAYLAND_DISPLAY DISPLAY=":$DISPLAY_NUM" LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "${RUN[@]}" >"$OUT_DIR/client.log" 2>&1
   STATUS=$?
 fi
 

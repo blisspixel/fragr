@@ -16,6 +16,9 @@ var arena: Dictionary = {}
 var _tram_geometry: Dictionary = {}
 var _foundry_geometry: Dictionary = {}
 var _foundry_moving: bool = false
+var _walker_geometry: Dictionary = {}
+var _walker_moving: bool = false
+var _walker_tick: int = -1
 var _archive_neutrals: Dictionary = {}
 var _moon_residents: Array[Dictionary] = []
 var _tram_samples: Array[Dictionary] = []
@@ -70,6 +73,9 @@ func configure_map(info: Dictionary) -> void:
 	_tram_geometry = MissionState.geometry_for(info) if info.get("m05") is Dictionary else {}
 	_foundry_geometry = MissionState.geometry_for(info) if info.get("m13") is Dictionary else {}
 	_foundry_moving = false
+	_walker_geometry = info.duplicate(true) if info.get("walker") is Dictionary and WalkerFacts.map_error(info).is_empty() else {}
+	_walker_moving = not _walker_geometry.is_empty()
+	_walker_tick = -1
 	if not _foundry_geometry.is_empty():
 		_moon_residents.append({"key":"m13/overseer","feet":GrenadeFacts.vector(info["m13"]["overseer"])})
 	_tram_samples.clear()
@@ -147,6 +153,9 @@ static func world_position(pose: Dictionary) -> Vector3:
 
 
 func accept_ack(ack: Dictionary, now_usec: int) -> void:
+	if _walker_moving:
+		reset("walker_motion")
+		return
 	if _foundry_moving:
 		reset("foundry_lift")
 		return
@@ -599,3 +608,15 @@ func apply_m13(value: Dictionary) -> void:
 	_foundry_moving = p["lift"]["phase"] not in ["parked", "arrived"]
 	if _foundry_moving:
 		reset("foundry_lift")
+
+func apply_walker(snapshot: Dictionary) -> void:
+	if _walker_geometry.is_empty() or not WalkerFacts.validation_error(snapshot,_walker_geometry).is_empty() \
+		or int(snapshot["tick"]) <= _walker_tick:
+		return
+	_walker_tick = int(snapshot["tick"])
+	var value: Dictionary = snapshot["walker"]
+	for index: Variant in _walker_geometry["walker"]["solids"]:
+		arena["solids"][int(index)] = WalkerFacts.translated_solid(_walker_geometry,int(index),value["feet"])
+	_walker_moving = value["phase"] == "relocating"
+	if _walker_moving:
+		reset("walker_motion")
