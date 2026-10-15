@@ -27,14 +27,14 @@ shipped Walker combat, multiplayer objective play and integrated art together
 through PR #403 in v0.84.0.
 
 The [connected launch-work integration](m14-launch-authority-integration-20261015.md)
-is **implemented**, with delivery tracked in
-[PR #404](https://github.com/blisspixel/fragr/pull/404), alongside
-[M14 presentation](m14-art-integration-20261015.md) and
-[Sector 9 spawn exits](sector9-spawn-exits-20261015.md) in parallel. This follows
+**shipped** through [PR #404](https://github.com/blisspixel/fragr/pull/404) in
+v0.85.0, alongside [M14 presentation](m14-art-integration-20261015.md),
+[Sector 9 spawn exits](sector9-spawn-exits-20261015.md) and
+[host build metadata](host-build-metadata-20261015.md) in parallel. This follows
 the Walker foundation shipped through PR #403 and v0.84.0. The connected mission,
-save migration and measured multiplayer candidate have local native, client and
-rendered evidence. The final MCP Rocket selector correction passes repeated
-native gates. The PR and v0.85.0 tag workflow record final CI and packaging.
+save migration and measured multiplayer candidate have local native, client,
+rendered and release packaging evidence. The PR and v0.85.0 tag workflow
+record completed CI and desktop packaging.
 
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
@@ -91,12 +91,12 @@ remain open.
 |---|---|---|
 | [`build-round-20261015.md`](./build-round-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
 | [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
-| [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **in flight** | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. Composed verification underway. |
-| [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **planned**, after M14 returns to passing main | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, two prepared door systems and Episode IV carry. Bounded mechanic choices remain to be settled in the foundation. |
-| [`m14-art-integration-20261015.md`](./m14-art-integration-20261015.md) | **in flight** | Grounded Walker mechanics, registered wreck, launch cargo and readable arrival/departure scenes using retained assets. |
-| [`sector9-spawn-exits-20261015.md`](./sector9-spawn-exits-20261015.md) | **in flight** | Measured freight shoulders and hall staging cover, with cardinal exits inspected through ordinary movement. |
-| [`host-build-metadata-20261015.md`](./host-build-metadata-20261015.md) | **implemented**, integration pending | Refresh cached CLI, status and adapter build identity after branch/tag changes while preserving release overrides and unchanged-build caching. |
-| [`ctf-carrier-contact-20261015.md`](./ctf-carrier-contact-20261015.md) | **planned**, after this integration | Test bounded carrier self-defense and immediate objective resumption; a recorded combat drop is evidence to investigate, not proof of a routing or scoring defect. |
+| [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. |
+| [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **planned**, following v0.85.0 | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, two prepared door systems and Episode IV carry. Bounded mechanic choices remain to be settled in the foundation. |
+| [`m14-art-integration-20261015.md`](./m14-art-integration-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Grounded Walker mechanics, registered wreck, launch cargo and readable arrival/departure scenes using retained assets. |
+| [`sector9-spawn-exits-20261015.md`](./sector9-spawn-exits-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Measured freight shoulders and hall staging cover, with cardinal exits inspected through ordinary movement. |
+| [`host-build-metadata-20261015.md`](./host-build-metadata-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Refresh cached CLI, status and adapter build identity after branch/tag changes while preserving release overrides and unchanged-build caching. |
+| [`ctf-carrier-contact-20261015.md`](./ctf-carrier-contact-20261015.md) | **planned**, following v0.85.0 | Test bounded carrier self-defense and immediate objective resumption; a recorded combat drop is evidence to investigate, not proof of a routing or scoring defect. |
 | [`sabotage-objective-ownership-20261015.md`](./sabotage-objective-ownership-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Rule bots recover and defuse around idle participants while preserving active defuse ownership. |
 | [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |
 | [`difficulty-pressure-20261009.md`](./difficulty-pressure-20261009.md) | **shipped** with [PR #381](https://github.com/blisspixel/fragr/pull/381), v0.82.0 | Assisted, Standard, and Severe: pursuit memory 40/100/160, recovery hold or closer step-in, and campaign supply margins. Not fresh-player balance. |

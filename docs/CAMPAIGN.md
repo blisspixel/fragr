@@ -35,7 +35,7 @@ pump conditions and coalition departure. M13 adds the first finite Rocket
 Launcher, voluntary worker choices, guarded gallery, protected town feed,
 machinery hazards and physical freight-lift departure. M12 carries into M13
 without another episode refill; M13 carries into M14 on the same allowance.
-Connected M14 is in flight under the [launch-work integration](plans/m14-launch-authority-integration-20261015.md).
+Connected M14 shipped in v0.85.0 under the [launch-work integration](plans/m14-launch-authority-integration-20261015.md).
 M15 through M20 and the epilogue remain unbuilt. Development grayboxes
 for levels 15 through 20 are not connected missions. Ordinary campaign supply and visual pursuit scale
 by Assisted, Standard, and Severe. Standard tell timing stays exact. Local standalone

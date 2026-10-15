@@ -1,7 +1,8 @@
 # Fresh local host build identity
 
-Status: **implemented**, 2026-10-15. Delivery is tracked by [PR #404](https://github.com/blisspixel/fragr/pull/404). The composed release check exposed an additional
-shared-target worktree cache defect; its correction passes final verification. Developed on
+Status: **shipped**, 2026-10-15. Shipped through [PR #404](https://github.com/blisspixel/fragr/pull/404)
+in v0.85.0. The composed release check exposed an additional shared-target worktree
+cache defect; its correction passes final verification. Developed on
 `fix/host-build-metadata-20261015`, based on main `fd8c527`, then integrated into
 `feat/launch-authority-20261015`.
 

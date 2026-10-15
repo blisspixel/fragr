@@ -1,6 +1,6 @@
 # Sector 9 freight-bay exits
 
-Status: **implemented**, 2026-10-15. Delivery is tracked by [PR #404](https://github.com/blisspixel/fragr/pull/404). Broad integration exposed a Sabotage plant-area
+Status: **shipped**, 2026-10-15. Shipped through [PR #404](https://github.com/blisspixel/fragr/pull/404) in v0.85.0. Broad integration exposed a Sabotage plant-area
 and holding-spot overlap in the second candidate. Its native, network and
 independently inspected traversal evidence remains in
 [the receipt](../evidence/sector9-spawn-exits-20261015.md). A corrected third

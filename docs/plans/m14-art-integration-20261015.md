@@ -1,8 +1,8 @@
 # Launch Authority presentation integration
 
-Status: **implemented**, 2026-10-15. Local evidence below; the linked integration
-plan and [PR #404](https://github.com/blisspixel/fragr/pull/404) own composed
-checks and delivery. Follows the existing campaign rung and the
+Status: **shipped**, 2026-10-15. Shipped through
+[PR #404](https://github.com/blisspixel/fragr/pull/404) in v0.85.0. Local evidence
+below; the linked integration plan owns composed checks. Follows the existing campaign rung and the
 [M14 integration](m14-launch-authority-integration-20261015.md), using retained
 assets and local geometry at $0. No generation, cash charge or quota consumption.
 

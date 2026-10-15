@@ -1,8 +1,8 @@
 # Launch Authority combined-arms integration
 
-Status: **implemented**, 2026-10-15. Delivery and exact-head checks are tracked
-in [PR #404](https://github.com/blisspixel/fragr/pull/404), with v0.85.0 release
-notes in the changelog. Final mission acceptance remains open below.
+Status: **shipped**, 2026-10-15. Shipped through
+[PR #404](https://github.com/blisspixel/fragr/pull/404) in v0.85.0. Final mission
+acceptance remains open below.
 The [Walker foundation](walker-foundation-20261015.md) shipped in v0.84.0
 through PR #403 with passing main and three tested desktop packages.
 The Roadmap's existing campaign rung owns sequencing. This is its next bounded

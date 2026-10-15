@@ -60,7 +60,7 @@ M15 through M20 remain unbuilt as connected missions. The October 15
 [Walker foundation](plans/walker-foundation-20261015.md) shipped in v0.84.0;
 the [connected M14 integration](plans/m14-launch-authority-integration-20261015.md)
 adds staged support, optional jeep combat, actual fallen geometry and version 18
-carry. Its composed acceptance and main integration remain in flight.
+carry, shipped in v0.85.0 through PR #404.
 The local M12 habitat, M13 foundry and M14 launch works development maps are described in
 the full build order below. Fresh-player, difficulty
 and final art acceptance remain open for every level. The full build order
@@ -401,10 +401,11 @@ infantry routes and saved coalition departure. The
 [Sector 9 spawn exits](plans/sector9-spawn-exits-20261015.md) and
 [launch-work presentation](plans/m14-art-integration-20261015.md) advance in
 parallel. Composed local native, client and rendered checks pass.
-[PR #404](https://github.com/blisspixel/fragr/pull/404) tracks main delivery and
-final CI; the v0.85.0 tag workflow owns desktop packaging. The next planned
-work is the [Article Blade foundation](plans/m15-connected-stadium-20261015.md)
-and [CTF carrier contact](plans/ctf-carrier-contact-20261015.md), with matching
+[PR #404](https://github.com/blisspixel/fragr/pull/404) shipped M14, Sector 9
+exit cover, version 18 saves and build metadata to main in v0.85.0 with passing
+CI and desktop packages. The next planned work is the
+[Article Blade foundation](plans/m15-connected-stadium-20261015.md) and
+[CTF carrier contact](plans/ctf-carrier-contact-20261015.md), with matching
 local weapon art. These remain planned at the end-of-day checkpoint.
 Nick explicitly requested parallel level, multiplayer and asset work. Each
 bounded round returns to one reviewed main with passing CI before the next.
