@@ -22,6 +22,7 @@ func reset_vehicle(reason: String) -> void:
 	world_samples.clear()
 
 func accept_vehicles(snapshot: Dictionary, player_id: String) -> void:
+	apply_walker(snapshot)
 	var occupied: Dictionary = VehicleState.occupied(snapshot, player_id)
 	if occupied.is_empty() or occupied["seat"] != "driver" or int(occupied["vehicle"]["hp"]) <= 0:
 		reset_vehicle("not_driver")

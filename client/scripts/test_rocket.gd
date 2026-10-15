@@ -35,7 +35,7 @@ func _snapshot(rockets: Array, tick: int = 4) -> Dictionary:
 	return {"tick": tick, "players": [{"id": OWNER}], "rockets": rockets}
 
 func _run() -> void:
-	_check(preload("res://scripts/net_client.gd").GAMEPLAY_VERSION == 47, "the client speaks the rocket gameplay contract")
+	_check(preload("res://scripts/net_client.gd").GAMEPLAY_VERSION == 48, "the client speaks the current gameplay contract including Rocket")
 	var flying: Dictionary = _snapshot([_flight(7, 0, [18.0, 0.0, 0.0])])
 	_check(RocketFacts.validation_error(flying).is_empty(), "a fresh rocket in flight is accepted")
 	for patch: Dictionary in [{"id": 0}, {"owner_id": "00000000-0000-0000-0000-000000000000"}, {"age_ticks": 80}, {"velocity": [21.0, 0.0, 0.0]}, {"position": [1025.0, 0.0, 0.0]}, {"extra": true}]:
@@ -68,9 +68,39 @@ func _run() -> void:
 	hud.apply({"tick": 1, "selected": "rocket", "weapons": ["fists", "rocket"], "ammo": [{"pool": "rockets", "rounds": 4}], "loaded": [{"weapon": "rocket", "rounds": 1}], "grenades": 0, "dry_fire_count": 0})
 	_check(hud.glyph_pool == "rockets" and hud.counts.text == "1|3", "the held launcher draws its rocket count")
 	hud.free()
+	_check_reload_motion()
 	await _check_launch_audio()
 	print("test_rocket: %s" % ("PASS" if _failures == 0 else "FAIL %d" % _failures))
 	quit(0 if _failures == 0 else 1)
+
+func _check_reload_motion() -> void:
+	var motion := WeaponArt.ReloadMotion.new()
+	var loadout: Dictionary = {"selected":"rocket", "loaded":[{"weapon":"rocket", "rounds":0, "ready_at":116}]}
+	motion.update("Rocket", loadout, 100, 0.1, true)
+	motion.update("Rocket", loadout, 106, 0.1, true)
+	_check(motion.depth > 0.9, "an accepted pending reload lowers the actual held tube")
+	motion.update("Rocket", loadout, 115, 0.1, true)
+	_check(motion.depth < 0.1, "the tube returns toward aim as the received deadline approaches")
+	motion.update("Rocket", loadout, 116, 0.1, true)
+	_check(motion.depth == 0.0, "an expired reload cannot retain the lowered pose")
+	for reason: String in ["cancelled", "swapped", "motion_off", "disconnected"]:
+		motion.update("Rocket", loadout, 100, 0.1, true)
+		motion.update("Rocket", loadout, 106, 0.1, true)
+		var state: Dictionary = loadout.duplicate(true)
+		if reason == "cancelled":
+			state["loaded"][0].erase("ready_at")
+		if reason == "disconnected":
+			state = {}
+		motion.update("Rail" if reason == "swapped" else "Rocket", state, 107, 0.1, reason != "motion_off")
+		_check(motion.depth == 0.0, reason + " clears the reload pose immediately")
+	# A late first observation uses the remaining received interval; a longer
+	# future rule does not inherit today's sixteen-tick duration in this client.
+	loadout["loaded"][0]["ready_at"] = 240
+	motion.update("Rocket", loadout, 200, 0.1, true)
+	motion.update("Rocket", loadout, 220, 0.1, true)
+	_check(motion.depth > 0.9, "motion follows a received deadline without a fixed local reload duration")
+	motion.clear()
+	_check(motion.depth == 0.0, "hiding the held weapon clears retained motion")
 
 func _check_launch_audio() -> void:
 	var game: Node = load("res://scripts/game_manager.gd").new()

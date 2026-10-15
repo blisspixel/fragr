@@ -543,7 +543,7 @@ idempotent. Server state changes only after the ordinary WebSocket message is
 processed. Use `observe` to confirm readiness and the shared phase before acting.
 
 Connected M13 uses `weight_of_permission` through these same tools. Matching
-adapters advertise gameplay 47 and validate its registered objectives, worker
+adapters advertise gameplay 48 and validate its registered objectives, worker
 choices, actual arrivals and moving freight lift. After a fresh all-party lift
 Use, the controller holds position while the authoritative deck moves. If it
 returns after losing a rider, the party reboards and uses the same control.
@@ -790,3 +790,15 @@ body appearance or connection role. The scripted controller uses the shared
 hostility predicate and excludes dead actors. MCP clients should follow the same
 rule; dead enemies remain briefly for presentation. Zero-damage friendly
 interceptions are not wounds. See [the wire contract](../docs/protocol.md#campaign-actor-identity).
+
+The standalone Continuance Walker range requires gameplay 48. `observe.map.walker`
+registers five physical body solids, three stations and bounded activation and
+combat regions. `observe.snapshot.walker` carries actual health, phase deadlines,
+accepted machine feet, the locked three-mark artillery lane, remaining shell
+stock and traveling shell facts. The adapter accepts those samples only against
+the current matching map and bounds, preserving the last valid observation on a
+malformed sample. Existing `act` movement, aim, fire and finite equipment operate
+the fight; there is no separate boss action or campaign door. The stock scripted
+fighter does not yet plan this machinery counter automatically. This development
+range does not unlock M14 or change saved campaign progression. See the
+[Walker contract](../docs/protocol.md#continuance-walker-foundation-capability-48).

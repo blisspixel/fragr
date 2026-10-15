@@ -164,6 +164,7 @@ impl Drop for WsRx {
 /// enqueue path. Transient combat is retained even if a later shot looks equal.
 fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
     let Snapshot {
+        walker,
         vehicles,
         tick,
         players,
@@ -201,7 +202,8 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         sabotage,
         conquest,
     } = old;
-    vehicles.len() == new.vehicles.len()
+    walker == &new.walker
+        && vehicles.len() == new.vehicles.len()
         && vehicles
             .iter()
             .zip(&new.vehicles)

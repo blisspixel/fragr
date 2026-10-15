@@ -74,6 +74,10 @@ func apply_map_info(info: Dictionary) -> void:
 		# outside arena plane would turn the command window into a courtyard.
 		get_node("MapFloor").visible = false
 	var solids: Array = info.get("solids", [])
+	var walker_solids: Array[int] = []
+	if info.get("walker") is Dictionary:
+		for index: Variant in info["walker"]["solids"]:
+			walker_solids.append(int(index))
 	for index: int in range(solids.size()):
 		var material: Material = null
 		if not presentation.is_empty():
@@ -81,6 +85,8 @@ func apply_map_info(info: Dictionary) -> void:
 		if venue == "holdfast_atoll":
 			material = HoldfastScenery.material_for(solids[index], index)
 		_add_solid(solids[index], material)
+		if index in walker_solids:
+			_solid_views.back().visible = false
 	if venue == "holdfast_atoll":
 		var coast: HoldfastScenery = HoldfastScenery.new()
 		add_child(coast)
@@ -112,7 +118,7 @@ func apply_map_info(info: Dictionary) -> void:
 static func venue_for(info: Dictionary) -> String:
 	match str(info.get("map_name", "")).strip_edges().to_lower():
 		"low water": return "low_water"
-		"launch authority (development)": return "launch_works"
+		"launch authority (development)", "continuance walker (development)": return "launch_works"
 		"terms of cooperation (development)": return "mars_habitat"
 		"terms of cooperation": return "mars_habitat"
 		"the weight of permission (development)": return "mars_foundry"

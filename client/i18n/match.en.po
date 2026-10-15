@@ -464,3 +464,21 @@ msgstr "All fighter seats are committed to this round. Choose Watch, or try join
 
 msgid "BOT_FILL_CANCELLED"
 msgstr "Your join reservation expired or was cancelled. Return to the menu to join again, or choose Watch."
+
+msgid "WALKER_STOMP_WARNING"
+msgstr "STOMP INCOMING. CLEAR THE RING."
+
+msgid "WALKER_ARTILLERY_WARNING"
+msgstr "ARTILLERY LOCKED. MOVE OFF THE MARKERS."
+
+msgid "WALKER_RECOVERY"
+msgstr "JOINT VENTS OPEN."
+
+msgid "WALKER_DISABLED"
+msgstr "WALKER DISABLED."
+
+msgid "WALKER_INTEGRITY"
+msgstr "CONTINUANCE WALKER\n{hp}/{maximum}  STAGE {stage}/3"
+
+msgid "WALKER_INTEGRITY_OFFLINE"
+msgstr "CONTINUANCE WALKER\nDISABLED"

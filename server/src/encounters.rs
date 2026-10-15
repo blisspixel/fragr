@@ -83,6 +83,11 @@ impl Encounters {
             .for_each(|group| *group = Group::Unplaced);
         state.pickups = state.map.pickups();
         state.reset_vehicles();
+        state.walker = state
+            .map
+            .walker_geometry()
+            .as_ref()
+            .map(crate::sim::walker::Walker::new);
         // Standalone foundry maps have no MissionRun to reset their moving
         // deck or resolved gate facts when the last participant dies or leaves.
         state.foundry = state

@@ -27,8 +27,9 @@ Check the release notes for the contents of a downloaded package. The finished t
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
 
-The remaining campaign levels, the Walker encounter and the ending are still
-to be built. Multiplayer needs further map refinement, human balance review,
+The remaining campaign levels and the ending are still to be built. The
+Continuance Walker now has a standalone development encounter; its level 14
+battlefield and campaign connection remain ahead. Multiplayer needs further map refinement, human balance review,
 two-machine LAN evidence and measured network capacity. The current modes and
 missions are a playable foundation for that work.
 
@@ -74,12 +75,14 @@ Three retained [standalone development maps](docs/PLAYING.md#standalone-developm
 explore the habitat, foundry and launch works. The connected foundry adds the
 first finite Rocket Launcher, voluntary worker releases, a protected town feed,
 machinery hazards and a freight lift that carries the departing party. The
-launcher has a traveling rocket, a one-round tube and covered splash; final
+launcher has a traveling rocket, a one-round tube, visible timed reload and covered splash; final
 viewmodel art is still ahead. Assisted, Standard, and Severe scale ordinary
 campaign supply and how long an enemy remembers a sighting. Standard tell
 timing stays exact. Development grayboxes for levels 15 through 20, and a
-sheltered trench on the level 14 battlefield, are not missions. The Walker,
-connected level 14 and the later campaign remain unfinished. Foundry pacing,
+sheltered trench on the level 14 battlefield, are not missions. The standalone
+[Walker range](docs/plans/walker-foundation-20261015.md) adds warned stomps,
+locked artillery lanes, moving collision and exposed recovery joints. Connected
+level 14 and the later campaign remain unfinished. Foundry pacing,
 final art and fresh-player acceptance remain open.
 
 Current source work also moves the selectable human and synthetic bodies and

@@ -26,6 +26,7 @@ pub(crate) mod m13;
 mod mission;
 mod supplies;
 mod vehicle_placements;
+pub(crate) mod walker;
 
 const MAX_BYTES: u64 = 1_048_576;
 const MAX_PLACEMENTS: usize = 128;
@@ -59,6 +60,7 @@ pub struct AuthoredMap {
     pub(super) m11: Option<Arc<m11::Prepared>>,
     pub(super) m12: Option<Arc<m12::Prepared>>,
     pub(super) m13: Option<Arc<m13::Prepared>>,
+    pub(super) walker: Option<Arc<walker::Prepared>>,
     pub(super) shelter_open: bool,
     pub(super) hatch_open: bool,
     /// M08 runtime stage: 0 sealed, 1 seal lifted, 2 machine fallen.
@@ -108,6 +110,8 @@ struct Document {
     m12: Option<m12::Definition>,
     #[serde(default)]
     m13: Option<m13::Definition>,
+    #[serde(default)]
+    walker: Option<walker::Definition>,
     #[serde(default)]
     decorations: Vec<MapDecoration<String>>,
     #[serde(default)]
@@ -810,6 +814,41 @@ impl AuthoredMap {
                 "M13 requires canonical foundry and no other mission",
             ));
         }
+        let walker = doc
+            .walker
+            .map(|d| d.prepare(&arena, &solid_ids))
+            .transpose()?
+            .map(Arc::new);
+        if walker.as_ref().is_some_and(|w| {
+            presentation
+                .decorations
+                .iter()
+                .any(|decoration| w.geometry.solids.contains(&decoration.solid))
+        }) {
+            return Err(invalid(
+                "moving Walker parts cannot host static map decorations",
+            ));
+        }
+        if walker.is_some()
+            && (doc.equipment != crate::protocol::EquipmentPolicy::Discovery
+                || mission.is_some()
+                || m02.is_some()
+                || m03.is_some()
+                || m04.is_some()
+                || m05.is_some()
+                || m06.is_some()
+                || m07.is_some()
+                || m08.is_some()
+                || m09.is_some()
+                || m10.is_some()
+                || m11.is_some()
+                || m12.is_some()
+                || m13.is_some())
+        {
+            return Err(invalid(
+                "Walker foundation requires a standalone discovery map",
+            ));
+        }
         let supplies = supplies::build(doc.supplies, doc.equipment, &arena, &mut seen)?;
         if m13.as_ref().is_some_and(|p| p.geometry.is_some())
             && !supplies.iter().any(|s| {
@@ -825,7 +864,9 @@ impl AuthoredMap {
             m12::validate_supplies(&supplies)?;
         }
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
-        let navigation = if let Some(prepared) = &m12 {
+        let navigation = if let Some(prepared) = &walker {
+            prepared.navigation.clone()
+        } else if let Some(prepared) = &m12 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &m11 {
             prepared.navigation.clone()
@@ -971,6 +1012,7 @@ impl AuthoredMap {
             m11,
             m12,
             m13,
+            walker,
             shelter_open: false,
             hatch_open: false,
             m08_stage: 0,

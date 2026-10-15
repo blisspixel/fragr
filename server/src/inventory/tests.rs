@@ -858,6 +858,7 @@ fn useful_supply_recognizes_grenades_and_mines() {
     let id = Uuid::new_v4();
     let loadout = view(&inventory, WeaponType::Fists, 0);
     let snapshot = Snapshot {
+        walker: None,
         tick: 0,
         players: vec![crate::protocol::PlayerState {
             id,

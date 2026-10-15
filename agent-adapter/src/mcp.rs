@@ -1553,6 +1553,47 @@ pub fn push_recent_event(state: &mut ToolState, event_value: Value) {
     }
 }
 
+/// Bind accepted machinery to the current authored world without a second map cache.
+fn walker_observation_matches_map(snapshot: &protocol::Snapshot, map: Option<&Value>) -> bool {
+    let registered = map.and_then(|map| map.get("walker"));
+    let (Some(walker), Some(registered)) = (&snapshot.walker, registered) else {
+        return snapshot.walker.is_none() && registered.is_none();
+    };
+    if walker.validate(snapshot.tick).is_err()
+        || map
+            .and_then(|map| map.get("map_id"))
+            .and_then(Value::as_u64)
+            != Some(u64::from(snapshot.map_id))
+    {
+        return false;
+    }
+    let Ok(geometry) = protocol::WalkerGeometry::deserialize(registered) else {
+        return false;
+    };
+    let Some(solids) = map
+        .and_then(|map| map.get("solids"))
+        .and_then(Value::as_array)
+    else {
+        return false;
+    };
+    geometry.arena.contains(walker.feet)
+        && geometry.solids.iter().all(|&index| {
+            let Some(solid) = solids.get(index) else {
+                return false;
+            };
+            let Ok(solid) = fragr_server::movement::Solid::deserialize(solid) else {
+                return false;
+            };
+            let moved = geometry.translated(solid, walker.feet);
+            geometry
+                .arena
+                .contains([moved.min_x, moved.bottom, moved.min_z])
+                && geometry
+                    .arena
+                    .contains([moved.max_x, moved.top, moved.max_z])
+        })
+}
+
 /// Apply an inbound server JSON text frame into tool state (snapshot / event / soft prison).
 pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'static str> {
     if text.len() > 64 * 1024 {
@@ -1575,6 +1616,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             state.record = Some(record);
         }
         Ok(protocol::ServerMessage::Snapshot(snapshot)) => {
+            if !walker_observation_matches_map(&snapshot, state.map.as_ref()) {
+                return Ok(());
+            }
             let mut vehicle_ids = std::collections::HashSet::new();
             let mut occupants = std::collections::HashSet::new();
             if snapshot.vehicles.len() > protocol::MAX_VEHICLES
@@ -1627,6 +1671,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m11,
             m12,
             m13,
+            walker,
             map_name,
             half_extent,
             solids,
@@ -1643,6 +1688,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 layout.validate()?;
             }
             protocol::validate_map_presentation(presentation.as_ref(), &solids)?;
+            if let Some(geometry) = &walker {
+                geometry.validate(half_extent, &solids)?;
+            }
             state.mission.replace_map_with_id(
                 map_id,
                 m02_objectives,
@@ -1673,6 +1721,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
                 "presentation": presentation,
                 "mission": mission,
             });
+            if let Some(geometry) = walker {
+                map["walker"] = serde_json::json!(geometry);
+            }
             state.mission.replace_map_with_m05(
                 m05.as_ref(),
                 half_extent,
@@ -1775,6 +1826,17 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if !water_regions.is_empty() {
                 map["water_regions"] = serde_json::json!(water_regions);
             }
+            // A newly registered machine cannot be paired with observations
+            // from the previous world. An identical repeat keeps fresh facts.
+            if state.map.as_ref() != Some(&map)
+                && (map.get("walker").is_some()
+                    || state
+                        .map
+                        .as_ref()
+                        .is_some_and(|map| map.get("walker").is_some()))
+            {
+                state.last_snapshot = None;
+            }
             state.map = Some(map);
         }
         Ok(protocol::ServerMessage::Event(event)) => {
@@ -1830,6 +1892,105 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
 #[cfg(test)]
 mod mcp_tests {
     use super::*;
+
+    #[test]
+    fn walker_observation_requires_its_current_registered_world() {
+        let map = fragr_server::maps::AuthoredMap::read(
+            include_bytes!("../../server/maps/test/walker_foundation_development.json").as_slice(),
+        )
+        .unwrap();
+        let sim = fragr_server::sim::GameState::with_authored_map(map);
+        let map_text = serde_json::to_string(&sim.map_info()).unwrap();
+        let mut snapshot = sim.snapshot();
+        let wire = |snapshot: &protocol::Snapshot| {
+            serde_json::to_string(&protocol::ServerMessage::Snapshot(snapshot.clone())).unwrap()
+        };
+        let mut state = ToolState::default();
+        ingest_server_text(&mut state, &wire(&snapshot)).unwrap();
+        assert!(
+            state.last_snapshot.is_none(),
+            "machine facts require their map first"
+        );
+        ingest_server_text(&mut state, &map_text).unwrap();
+        ingest_server_text(&mut state, &wire(&snapshot)).unwrap();
+        let dormant = state.last_snapshot.clone();
+        assert!(dormant.is_some());
+        let mut missing = snapshot.clone();
+        missing.walker = None;
+        ingest_server_text(&mut state, &wire(&missing)).unwrap();
+        assert_eq!(
+            state.last_snapshot, dormant,
+            "registered machine cannot disappear"
+        );
+
+        snapshot.tick = 10;
+        let walker = snapshot.walker.as_mut().unwrap();
+        walker.phase = protocol::WalkerPhase::Recovery;
+        walker.phase_started = 10;
+        walker.phase_ends = 10 + protocol::WALKER_RECOVERY;
+        walker.feet = [8.0, 0.0, 0.0];
+        ingest_server_text(&mut state, &wire(&snapshot)).unwrap();
+        let accepted = state.last_snapshot.clone();
+        assert_eq!(accepted.as_ref().unwrap()["walker"]["feet"][0], 8.0);
+        for feet in [[31.0, 0.0, 0.0], [40.0, 0.0, 0.0]] {
+            let mut invalid = snapshot.clone();
+            invalid.walker.as_mut().unwrap().feet = feet;
+            // Both shapes pass the independent state validator. The first
+            // center is inside the arena but its translated body crosses it.
+            invalid
+                .walker
+                .as_ref()
+                .unwrap()
+                .validate(invalid.tick)
+                .unwrap();
+            ingest_server_text(&mut state, &wire(&invalid)).unwrap();
+            assert_eq!(
+                state.last_snapshot, accepted,
+                "reject translated body at {feet:?}"
+            );
+        }
+        let mut malformed = snapshot.clone();
+        malformed.walker.as_mut().unwrap().stage = 2;
+        ingest_server_text(&mut state, &wire(&malformed)).unwrap();
+        assert_eq!(state.last_snapshot, accepted);
+        let mut other_world = snapshot.clone();
+        other_world.map_id += 1;
+        ingest_server_text(&mut state, &wire(&other_world)).unwrap();
+        assert_eq!(
+            state.last_snapshot, accepted,
+            "a different map cannot reuse these solids"
+        );
+
+        let ordinary = fragr_server::sim::GameState::new();
+        ingest_server_text(
+            &mut state,
+            &serde_json::to_string(&ordinary.map_info()).unwrap(),
+        )
+        .unwrap();
+        assert!(
+            state.last_snapshot.is_none(),
+            "map rotation retires old machine observations"
+        );
+        ingest_server_text(&mut state, &wire(&snapshot)).unwrap();
+        assert!(
+            state.last_snapshot.is_none(),
+            "ordinary map cannot publish an unregistered machine"
+        );
+        ingest_server_text(&mut state, &wire(&ordinary.snapshot())).unwrap();
+        assert!(state.last_snapshot.is_some());
+        ingest_server_text(&mut state, &map_text).unwrap();
+        assert!(
+            state.last_snapshot.is_none(),
+            "entering the range waits for matching facts"
+        );
+        ingest_server_text(&mut state, &wire(&sim.snapshot())).unwrap();
+        let matching = state.last_snapshot.clone();
+        ingest_server_text(&mut state, &map_text).unwrap();
+        assert_eq!(
+            state.last_snapshot, matching,
+            "identical map delivery retains accepted facts"
+        );
+    }
 
     #[test]
     fn vehicle_seat_requests_use_the_existing_strict_action_schema() {

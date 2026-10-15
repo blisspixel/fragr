@@ -132,6 +132,7 @@ var role_transition: bool = false
 var shot_effects: ShotEffects = null
 var incoming_feedback: IncomingCombatFeedback = null
 var grenade_effects: GrenadeEffects
+var walker_view: WalkerView
 var auditor_channels: AuditorChannels
 var last_shot_tick: int = -1
 var local_fire: LocalFireFeedback = LocalFireFeedback.new()
@@ -230,6 +231,12 @@ func _ready():
 		if is_human_player and owner_id == str(net_client.player_id):
 			hud.show_mine_place())
 	add_child(grenade_effects)
+	walker_view = WalkerView.new()
+	walker_view.name = "WalkerPresentation"
+	walker_view.notice_requested.connect(func(text: String) -> void:
+		if hud != null:
+			hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(walker_view)
 	auditor_channels = AuditorChannels.new()
 	auditor_channels.name = "AuditorChannels"
 	auditor_channels.pawns = players
@@ -404,6 +411,8 @@ func _release_retired_environments() -> void:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	if walker_view != null:
+		walker_view.configure_map(info)
 	_reset_local_fire()
 	vehicle_prediction.reset_vehicle("map")
 	vehicle_prediction.configure_map(info)
@@ -1223,13 +1232,15 @@ func change_role(play: bool) -> void:
 	_clear_fp_state()
 	pending_weapon_swap = null
 	await get_tree().create_timer(0.1).timeout
+	# The previous connection may have failed while its loading card was still
+	# visible. A new role needs a fresh world gate, including clearing that error.
+	_begin_world_load()
 	net_client.requested_body = settings.player_body()
 	net_client.connect_to_server("human" if play else "spectator", settings.player_name())
 	hud.set_mode(("CAMPAIGN" if local_match != null else "PLAYING") if play else "SPECTATING")
 	hud.set_ghost_rival("")
 	if radio:
 		radio.set_human_mode(play)
-	_awaiting_map = true
 	role_transition = false
 
 ## Input sequence. The server echoes the newest accepted one in an Ack.
@@ -1886,6 +1897,8 @@ func _on_server_error(message: String) -> void:
 		card.show_error(message)
 
 func _clear_world() -> void:
+	if walker_view != null:
+		walker_view.clear_map()
 	_reset_local_fire()
 	vehicle_prediction.reset_vehicle("disconnect")
 	pending_seat = ""
@@ -2014,6 +2027,11 @@ func _refresh_equipment_visibility() -> void:
 
 func _on_snapshot_received(data):
 	_receiving_snapshot = true
+	local_prediction.apply_walker(data)
+	if camera != null and not local_prediction.arena.is_empty():
+		camera.assist_solids = local_prediction.arena["solids"]
+	if walker_view != null:
+		walker_view.apply(data)
 	if grenade_effects != null:
 		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
 	if auditor_channels != null:

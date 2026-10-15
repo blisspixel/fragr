@@ -1,8 +1,9 @@
 # Connected foundry development round
 
-Status: **implemented**, 2026-10-13. Delivery is tracked in
-[PR #402](https://github.com/blisspixel/fragr/pull/402); merge and release require
-the passing checks below.
+Status: **shipped**, 2026-10-13, through
+[PR #402](https://github.com/blisspixel/fragr/pull/402) at `902ec8f`, released as
+v0.83.0 with passing main CI and three desktop packages. Final art, first-player
+pacing and difficulty acceptance remain open.
 This follows shipped v0.82.1 and the existing
 Full build order. Spend: $0, using retained assets and local tools.
 

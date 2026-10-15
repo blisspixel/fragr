@@ -1,0 +1,17 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/rocket-20261015/idle",
+  "params": {
+    "quality": "high",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false,
+    "image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ad2d9f71-69c3-44d0-bb57-bcfeac24be29.png"]
+  },
+  "style": "Use case: stylized-concept. Asset: production first-person weapon sprite for an original retro 3D FPS. Match the reference's deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, perspective and worn full-finger brown leather work gloves with dark rust jacket cuffs. Preserve modern detailed craft, not a primitive polygon render and not photographic textures.",
+  "technical": "One weapon only. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge. Weapon muzzle ends comfortably inside upper half of canvas with room for a compact launch flash. Keep foreground mostly in central lower half of canvas, with clear empty corners.",
+  "frames": [{
+    "id": "rocket_idle",
+    "subject": "Create a different weapon, a substantial practical reusable shoulder-fired ROCKET LAUNCHER circa 2070, not the shotgun. Seen from the wielder's eyes behind and slightly above the right shoulder, tube runs from broad lower right foreground toward upper middle left, clearly pointing away from viewer toward the central aiming direction. Long sage-green painted launch tube with charcoal heat shield, protective worn steel muzzle collar at far end, simple raised iron sight, a few substantial bolts and restrained enamel wear. Far muzzle collar reads in profile at the distant tip, not a huge dark rear bore facing the viewer. A small boxy firing unit and right trigger glove below near end; left glove supports underside forward, fingers wrap convincingly around the tube. Both brown leather gloves have practical seams and dark rust cuffs matching reference. Shoulder rest is partly cropped at lower right. One plain scraped steel registration plate without readable writing. Calm ready pose, no flash, no smoke, no rocket emerging. Clear layered steel highlights, dark recesses and recognizable cylindrical construction, warm glove material distinct from metal. Keep barrel in coherent perspective, no duplicated tubes or rifle magazine, no scope or sci-fi glowing coils. The reference determines art style and gloves only, never copy its shotgun barrel or receiver."
+  }]
+}

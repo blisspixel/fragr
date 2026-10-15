@@ -22,8 +22,11 @@ Its separate ordinary-input lesson and complete connected M12 route pass.
 Final visual, human combat and integration acceptance remain in flight.
 These twelve roles exist in current source. Stylized
 Clerk, Sweeper and Auditor presentation ships through PR #346 and #348; full
-M02 art-route and Auditor-range acceptance remain open. Continuance Walker
-and the three restoration roles remain unbuilt.
+M02 art-route and Auditor-range acceptance remain open. The
+[Continuance Walker foundation](plans/walker-foundation-20261015.md) now has
+a distinct shootable moving machine, committed warnings and finite traveling
+artillery in a standalone range. Connected M14, its later support phases and
+final art remain unbuilt. The three restoration roles remain unbuilt.
 Calibration's NODS
 and arcade "AUDITOR" label are separate arcade prototypes, not implementations
 of the proposed roster.
@@ -73,9 +76,16 @@ destroyed, and recoverable states explicitly. Infinite resurrection chains and
 ordinary corpse farming are not implied by the fiction.
 
 The existing Compliance Drone prototype may become an elite after a deliberate
-migration. The proposed Continuance Walker is a larger authored boss with distinct
-attack phases, recoveries and traversable cover. It is not another label for an
-already-complete enemy. Level 8's custody-defense encounter and level 17's command defense
+migration. The Continuance Walker is larger authored machinery with distinct
+attack phases, recoveries and traversable cover. Its foundation uses five actual
+moving collision parts, a warned covered stomp, three committed artillery
+marks, real ballistic shells and a three-second joint-vent recovery. Ordinary
+closed-plate hits deal one quarter damage; recovery joints take full damage and
+covered splash bypasses plates. Blocking a relocation refuses the whole step
+and still grants recovery. The first 36 shells are finite; warned stomps and
+recovery continue after exhaustion. The isolated range's three health bands do
+not yet establish M14's supporting squads or fallen apron world. It is not
+another label for an already-complete enemy. Level 8's custody-defense encounter and level 17's command defense
 can combine ordinary units and machinery instead of demanding a unique boss
 species for every milestone.
 

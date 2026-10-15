@@ -32,6 +32,7 @@ pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
 mod low_water;
 pub(crate) use authored::m11::SpinePatrol;
+pub(crate) use authored::walker::overlaps as walker_solids_overlap;
 mod runtime;
 pub use authored::AuthoredMap;
 pub use runtime::RuntimeMap;

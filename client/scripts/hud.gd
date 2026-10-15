@@ -146,6 +146,7 @@ var fp_bob_weight: float = 0.0
 # viewport, including the largest upward bob (5.4 pixels) and pixel rounding.
 const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
+var fp_reload_motion := WeaponArt.ReloadMotion.new()
 var reticle_colour: Color = Color("e8e2d6")
 var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
@@ -1463,6 +1464,7 @@ func _process(delta):
 		fp_shot_age += delta
 	fp_throw_time += delta
 	if fp_juice_enabled and fp_weapon and (fp_weapon.visible or melee_view.visible):
+		fp_reload_motion.update(current_fp_weapon, equipment_hud.state, equipment_hud.tick, delta, head_bob_enabled)
 		var walking: float = clampf(fp_walk_speed / MoveStep.TOP_SPEED, 0.0, 1.0)
 		fp_bob_weight = move_toward(fp_bob_weight, walking, delta * 8.0)
 		fp_bob_t += delta * 9.0 * walking
@@ -1485,7 +1487,7 @@ func _layout_fp_weapon() -> void:
 	var kick: Vector2 = fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
-	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip()) + bob + kick).round()
+	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * 0.55 * fp_reload_motion.depth) + bob + kick).round()
 	_layout_throw_hand(base + Vector2(0.0, FP_BOTTOM_OVERLAP) + bob)
 	if current_fp_weapon == "Shiv":
 		_pose_stab()
@@ -1627,6 +1629,7 @@ func set_fp_juice(enabled: bool) -> void:
 	if crosshair:
 		crosshair.visible = enabled
 	if not enabled:
+		fp_reload_motion.clear()
 		melee_view.reset()
 		equipment_hud.visible = false
 		if fp_muzzle:
@@ -1759,6 +1762,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 	if not fp_weapon:
 		return
 	if not fp_juice_enabled or not viewmodel_textures.has(weapon_name):
+		fp_reload_motion.clear()
 		fp_weapon.visible = false
 		fp_weapon.texture = null
 		current_fp_weapon = ""
@@ -1776,6 +1780,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 	fp_weapon.material = _weapon_finish_material if PlayerRewards.gun_can_finish(weapon_name) else null
 	# Distinct viewmodel pose per role (bone/gunmetal, not neon).
 	if changed:
+		fp_reload_motion.clear()
 		melee_view.reset()
 		fp_shot_age = INF
 		fp_muzzle_timer = 0.0
@@ -1935,6 +1940,7 @@ func set_vehicle_seat(seat: String) -> void:
 		crosshair.visible = fp_juice_enabled and seat != "driver" and not _scoped()
 
 func _hide_handheld_for_vehicle() -> void:
+	fp_reload_motion.clear()
 	if fp_weapon != null:
 		fp_weapon.visible = false
 	if fp_muzzle != null:

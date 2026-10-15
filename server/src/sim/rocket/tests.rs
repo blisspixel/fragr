@@ -1,4 +1,59 @@
 use super::*;
+
+#[test]
+fn walker_floor_graze_keeps_splash_separate_from_registered_direct_hit() {
+    let map = crate::maps::AuthoredMap::read(
+        include_bytes!("../../../maps/test/walker_foundation_development.json").as_slice(),
+    )
+    .unwrap();
+    let mut state = GameState::with_authored_map(map);
+    let owner = Uuid::from_u128(481);
+    state.add_player(owner, "Rocket contact".into(), crate::protocol::Role::Agent);
+    state.walker.as_mut().unwrap().state.phase = crate::protocol::WalkerPhase::Recovery;
+    let arena = state.current_arena().into_owned();
+    for (ray, expected_direct, expected_damage) in [
+        (
+            Ray {
+                origin: [-3.1205, 0.5, -1.4],
+                direction: [0.0, -1.0, 0.0],
+            },
+            false,
+            43,
+        ),
+        (
+            Ray {
+                origin: [-4.0, 1.0, -1.4],
+                direction: [1.0, 0.0, 0.0],
+            },
+            true,
+            108,
+        ),
+    ] {
+        let (distance, direct) = state
+            .earliest_rocket_contact(&ray, 2.0, &arena, &[], &[], owner)
+            .unwrap();
+        assert_eq!(
+            matches!(direct, Some(Direct::Solid { index: 1 })),
+            expected_direct
+        );
+        let position = ray.point((distance - grenade::CONTACT_EPSILON).max(0.0));
+        let rocket = Rocket {
+            id: 1,
+            owner_id: owner,
+            position: ray.origin,
+            velocity: [0.0; 3],
+            launched_at: 0,
+            age_ticks: 0,
+            blocked_origin: false,
+        };
+        let before = state.walker.as_ref().unwrap().state.hp;
+        state.resolve_rocket(&rocket, ray.origin, position, direct, &arena);
+        assert_eq!(
+            before - state.walker.as_ref().unwrap().state.hp,
+            expected_damage
+        );
+    }
+}
 use crate::inventory::Inventory;
 use crate::protocol::{
     AmmoPool, CampaignActor, EnemyKind, EnemyPhase, EquipmentPolicy, Role, Team, WeaponType,

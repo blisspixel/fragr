@@ -49,6 +49,31 @@ const CYCLE: Dictionary[String, Texture2D] = {
 ## magazine reload. Its receiver and wrists share the held pose canvas.
 const ARC_RELOAD: Texture2D = preload("res://assets/weapons/arc/arc_reload.png")
 
+## A held Rocket leaves the aim line while its accepted tube reload is pending.
+## The received deadline determines the pose, never a key press or a guessed
+## weapon duration. This also fits future drawn held art on the same canvas.
+class ReloadMotion extends RefCounted:
+	var depth: float = 0.0
+	var _deadline: int = -1
+	var _started: int = -1
+
+	func clear() -> void:
+		depth = 0.0
+		_deadline = -1
+		_started = -1
+
+	func update(weapon: String, state: Dictionary, tick: int, delta: float, enabled: bool) -> void:
+		var deadline: int = WeaponArt.reload_deadline(weapon, state, tick) if enabled and weapon == "Rocket" else -1
+		if deadline <= tick:
+			clear()
+			return
+		if deadline != _deadline or tick < _started:
+			_deadline = deadline
+			_started = tick
+		var progress: float = clampf(float(tick - _started) / float(_deadline - _started), 0.0, 1.0)
+		var target: float = smoothstep(0.0, 0.2, progress) * (1.0 - smoothstep(0.65, 1.0, progress))
+		depth = move_toward(depth, target, maxf(delta, 0.0) * 12.0)
+
 ## Seconds the fire frame stays up, then when the cycle frame starts and ends.
 const FIRE_SECONDS: float = 0.08
 const CYCLE_FROM: float = 0.18
@@ -133,15 +158,18 @@ static func frame_after_shot(weapon: String, since: float) -> Texture2D:
 		return CYCLE[weapon]
 	return IDLE.get(weapon)
 
-## Only an authoritative unfinished Arc magazine reload selects this pose.
-## A local R press, another gun's reload, or an expired receipt cannot do so.
-static func reload_frame(weapon: String, state: Dictionary, tick: int) -> Texture2D:
-	if weapon != "Arc" or state.get("selected", "") != "arc":
-		return null
+## Shared accepted private-loadout deadline for held poses and visual captures.
+## A local R press, another gun's reload, or an expired receipt cannot supply it.
+static func reload_deadline(weapon: String, state: Dictionary, tick: int) -> int:
+	if state.get("selected", "") != weapon.to_lower():
+		return -1
 	for magazine: Dictionary in state.get("loaded", []):
-		if magazine.get("weapon", "") == "arc" and int(magazine.get("ready_at", tick)) > tick:
-			return ARC_RELOAD
-	return null
+		if magazine.get("weapon", "") == weapon.to_lower() and int(magazine.get("ready_at", tick)) > tick:
+			return int(magazine["ready_at"])
+	return -1
+
+static func reload_frame(weapon: String, state: Dictionary, tick: int) -> Texture2D:
+	return ARC_RELOAD if weapon == "Arc" and reload_deadline(weapon, state, tick) > tick else null
 
 ## The face-on picture of a placed mine for a wire phase and whether its lamp
 ## is lit on this server tick: a steady amber lamp while arming, red when a

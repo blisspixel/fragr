@@ -4,6 +4,24 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## Unreleased
+
+- Add a standalone Continuance Walker development encounter with warned stomps,
+  locked artillery lanes, finite shells, moving collision and exposed recovery
+  joints. Human and agent routes use ordinary movement and finite pickups.
+  Connected Launch Authority and its staged battlefield remain ahead.
+- Present the Walker with fitted mechanical geometry, persistent warnings for
+  committed shells and authoritative integrity readout. Walking and vehicle
+  prediction follow its accepted body positions and pause during relocation.
+- Keep Sabotage bots working on charge recovery and defusing when a nearby human
+  or external agent is idle. Preserve an active defuse when teammates approach.
+- Accept the server's actual vehicle explosion radius and damage in the client,
+  preventing a destroyed vehicle from disconnecting a match viewer or player.
+- Reset a failed loading card when rejoining as a player or spectator. Fresh
+  matching world facts still gate input, and a recovered join can release it.
+- Animate the Rocket reload from its server deadline, respecting weapon changes,
+  seating, visibility and motion settings. Final held-weapon art remains open.
+
 ## v0.83.0 (2026-10-13)
 
 - Connect The Weight of Permission as campaign level 13, with practice entry,

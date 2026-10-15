@@ -12,6 +12,7 @@ pub mod mine;
 mod modes;
 mod playlist;
 mod spawn;
+pub(crate) mod walker;
 pub(crate) use playlist::slot_playable as validate_show;
 pub mod remote_mine;
 pub(crate) mod repeater;
@@ -555,6 +556,7 @@ pub struct GameState {
     pub(crate) mission: Option<crate::mission::MissionRun>,
     /// Shared foundry gates; connected mission progress remains in MissionRun.
     pub(crate) foundry: Option<crate::mission::m13::Progress>,
+    pub(crate) walker: Option<walker::Walker>,
     /// Offline recordings opt into stable entity identities. Live sessions keep
     /// UUIDv4; identity allocation must not consume the gameplay random stream.
     replay_id_counter: Option<u128>,
@@ -1019,9 +1021,11 @@ impl GameState {
     pub fn with_authored_map(map: std::sync::Arc<crate::maps::AuthoredMap>) -> Self {
         let map = crate::maps::RuntimeMap::Authored(map);
         let foundry = map.m13_gates().map(crate::mission::m13::Progress::new);
+        let walker = map.walker_geometry().as_ref().map(walker::Walker::new);
         let mut state = Self {
             mission: crate::mission::MissionRun::new(&map),
             foundry,
+            walker,
             pickups: map.pickups(),
             map,
             round_state: RoundState::Active,
@@ -1640,6 +1644,7 @@ impl GameState {
             m11: self.map.m11_geometry(),
             m12: self.map.m12_geometry(),
             m13: self.map.m13_geometry(),
+            walker: self.map.walker_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
             presentation: self.map.presentation(),
@@ -1830,8 +1835,9 @@ impl GameState {
         }
         self.advance_m05_tram(dt);
         self.advance_foundry_lift(dt);
+        self.tick_walker(dt);
         let map = self.map.clone();
-        if map.m05_objectives().is_some() || self.foundry.is_some() {
+        if map.m05_objectives().is_some() || self.foundry.is_some() || self.walker.is_some() {
             let arena = self.current_arena().into_owned();
             self.tick_active(dt, &arena);
         } else {
@@ -2435,6 +2441,7 @@ impl GameState {
             self.damage_m08_node(shooter, solid, end, normal, damage);
             self.damage_m12_pump(shooter, solid, end, normal, damage);
             self.damage_foundry_relay(shooter, solid, end, normal, damage);
+            self.damage_walker_shot(shooter, solid, damage);
         }
         for (id, damage, attacker) in vehicle_hits {
             self.damage_vehicle(id, damage, Some(attacker));
@@ -3216,6 +3223,7 @@ impl GameState {
         };
 
         Snapshot {
+            walker: self.walker.as_ref().map(|w| w.state.clone()),
             vehicles: self.vehicle_facts(),
             tick: self.tick,
             players: self
@@ -3294,7 +3302,7 @@ impl GameState {
             host_line: if self.map.mission().is_some() {
                 String::new()
             } else if self.map.is_authored() {
-                if self.map.has_encounters() {
+                if self.map.has_encounters() || self.map.walker_geometry().is_some() {
                     "Campaign development: this mission slice is still being built."
                 } else {
                     "Campaign development: encounters and objectives are not implemented."
@@ -4324,6 +4332,7 @@ impl Default for GameState {
             encounters: crate::encounters::Encounters::default(),
             mission: None,
             foundry: None,
+            walker: None,
             replay_id_counter: None,
             rng_state: 0x2545_F491_4F6C_DD1D,
             tick: 0,
