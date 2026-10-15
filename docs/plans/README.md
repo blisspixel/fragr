@@ -27,12 +27,14 @@ shipped Walker combat, multiplayer objective play and integrated art together
 through PR #403 in v0.84.0.
 
 The [connected launch-work integration](m14-launch-authority-integration-20261015.md)
-is **implemented**, integration pending, with [M14 presentation](m14-art-integration-20261015.md) and
+is **implemented**, with delivery tracked in
+[PR #404](https://github.com/blisspixel/fragr/pull/404), alongside
+[M14 presentation](m14-art-integration-20261015.md) and
 [Sector 9 spawn exits](sector9-spawn-exits-20261015.md) in parallel. This follows
 the Walker foundation shipped through PR #403 and v0.84.0. The connected mission,
 save migration and measured multiplayer candidate have local native, client and
 rendered evidence. The final MCP Rocket selector correction passes repeated
-native gates; reviewed main integration and packaging remain ahead.
+native gates. The PR and v0.85.0 tag workflow record final CI and packaging.
 
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is

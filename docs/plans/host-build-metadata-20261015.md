@@ -1,6 +1,6 @@
 # Fresh local host build identity
 
-Status: **implemented**, integration pending, 2026-10-15. The composed release check exposed an additional
+Status: **implemented**, 2026-10-15. Delivery is tracked by [PR #404](https://github.com/blisspixel/fragr/pull/404). The composed release check exposed an additional
 shared-target worktree cache defect; its correction passes final verification. Developed on
 `fix/host-build-metadata-20261015`, based on main `fd8c527`, then integrated into
 `feat/launch-authority-20261015`.
@@ -121,3 +121,17 @@ the earlier omitted-version policy failure remains retained. The real notice
 generator still emits 95 third-party crate notices. No third-party additions or
 license-policy exceptions are needed. The composed native receipt records the
 final coverage result and the separate earlier gameplay evidence.
+
+## CI fixture output correction
+
+The first PR #404 CI run (`38767699224`, head `7f84761`) forces Cargo color and
+fails both unchanged-cache substring assertions. Running the already compiled
+local tests with `CARGO_TERM_COLOR=always` reproduces both failures in 0.49 s;
+earlier baked-identity assertions pass. Nested fixture Cargo now explicitly uses
+`CARGO_TERM_COLOR=never`, so the same strict `Fresh metadata-fixture` checks
+remain portable without stripping arbitrary output or weakening cache proof.
+Production metadata and runtime code are unchanged. Before/after evidence is
+retained under `metadata-ci-color-*.log` beside `pr404-test-failure.log`.
+Both focused tests pass under forced-color outer environment in 1.55 s;
+formatting and strict target Clippy also pass. The updated PR must pass the
+complete CI workflow.

@@ -1,6 +1,6 @@
 # Sector 9 spawn-exit evidence
 
-Status: implemented, integration pending, October 15. Broad integration rejected the second candidate;
+Status: implemented, October 15. Delivery is tracked by [PR #404](https://github.com/blisspixel/fragr/pull/404). Broad integration rejected the second candidate;
 the corrected third candidate passes scoped native, live and rendered checks,
 with final composed native verification passing. This receipt belongs to
 [the bounded exit-cover plan](../plans/sector9-spawn-exits-20261015.md).

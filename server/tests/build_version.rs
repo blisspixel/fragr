@@ -73,6 +73,8 @@ fn build_in(
     cmd.current_dir(dir)
         .args(["build", "--offline", "--locked", "-vv"])
         .env("CARGO_TARGET_DIR", target)
+        // Cache assertions read Cargo's labels; CI forces ANSI color globally.
+        .env("CARGO_TERM_COLOR", "never")
         .env_remove("FRAGR_BUILD_VERSION")
         .env_remove("FRAGR_BUILD_COMMIT")
         .env_remove("GIT_DIR")

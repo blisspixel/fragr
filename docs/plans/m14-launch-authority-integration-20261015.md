@@ -1,7 +1,8 @@
 # Launch Authority combined-arms integration
 
-Status: **implemented**, integration pending, 2026-10-15, on
-`feat/launch-authority-20261015`. Final mission acceptance remains open below.
+Status: **implemented**, 2026-10-15. Delivery and exact-head checks are tracked
+in [PR #404](https://github.com/blisspixel/fragr/pull/404), with v0.85.0 release
+notes in the changelog. Final mission acceptance remains open below.
 The [Walker foundation](walker-foundation-20261015.md) shipped in v0.84.0
 through PR #403 with passing main and three tested desktop packages.
 The Roadmap's existing campaign rung owns sequencing. This is its next bounded
@@ -236,8 +237,13 @@ The workspace run after the final MCP correction passes 2,100 tests, with five
 intentional skips and no filtered tests. Final unfiltered line coverage passes
 at 93.01%, above the existing 90% floor. Formatting, strict all-target Clippy and
 the complete release workspace build also pass after that correction.
-The seven-map roster and ordinary rendered M14 departures
-pass. Publication remains in progress. Docker is installed but its daemon socket is inaccessible locally;
-Terraform is absent. Their unchanged build/validation jobs still require CI.
+The seven-map roster and ordinary rendered M14 departures pass. Docker's daemon
+socket is inaccessible locally and Terraform is absent; PR #404's container,
+Terraform, dependency audit and soak jobs pass on the initial head. Its Linux
+native suite exposed colored Cargo output splitting the build-cache fixture's
+plain-text freshness assertion. The same failure reproduces locally; the nested
+fixture now requests plain output while preserving the assertion. The native
+receipt retains the failure and correction. The PR records final-head CI;
+the tag workflow records desktop package acceptance and publication.
 No final mission, balance or hardware-performance claim follows from the
 focused checks above.

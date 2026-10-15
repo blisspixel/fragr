@@ -396,12 +396,16 @@ The [October 15 round](plans/build-round-20261015.md) shipped the isolated
 Walker encounter, Sabotage objective ownership and Rocket reload presentation
 together in v0.84.0 through [PR #403](https://github.com/blisspixel/fragr/pull/403).
 The current campaign increment is the [M14 integration](plans/m14-launch-authority-integration-20261015.md):
-combine that boss with the existing battlefield, staged support, optional jeep,
+it combines that boss with the existing battlefield, staged support, optional jeep,
 infantry routes and saved coalition departure. The
 [Sector 9 spawn exits](plans/sector9-spawn-exits-20261015.md) and
 [launch-work presentation](plans/m14-art-integration-20261015.md) advance in
-parallel. Composed local native, client and rendered checks pass; reviewed main
-integration and desktop packaging remain in flight.
+parallel. Composed local native, client and rendered checks pass.
+[PR #404](https://github.com/blisspixel/fragr/pull/404) tracks main delivery and
+final CI; the v0.85.0 tag workflow owns desktop packaging. The next planned
+work is the [Article Blade foundation](plans/m15-connected-stadium-20261015.md)
+and [CTF carrier contact](plans/ctf-carrier-contact-20261015.md), with matching
+local weapon art. These remain planned at the end-of-day checkpoint.
 Nick explicitly requested parallel level, multiplayer and asset work. Each
 bounded round returns to one reviewed main with passing CI before the next.
 Human and final-art acceptance stay separate.

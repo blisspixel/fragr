@@ -1,6 +1,6 @@
 # Launch Authority composition: native verification
 
-Status: implemented, integration pending, 2026-10-15. This receipt records local native verification of
+Status: implemented, 2026-10-15. Delivery is tracked by [PR #404](https://github.com/blisspixel/fragr/pull/404). This receipt records local native verification of
 the composed M14 campaign, strict save version 18, Sector 9 cover and build
 identity changes. It does not establish human enjoyment, physical LAN, rendered
 hardware performance, release packages or deployment. Mission-specific proof is
@@ -137,6 +137,21 @@ Server and playtest hashes stay identical to the corrected metadata build.
 The final adapter SHA-256 is
 `ee4e1f18af7d253ef5569b968006f56cefe2cbf6a28e02db9faad6f0fbbd7641`;
 its actual CLI reports `fragr-agent-adapter v0.84.0`.
+
+PR #404's first CI run (`38767699224`, head `7f84761`) finds a test-fixture
+portability defect after the local gates: both build-identity tests compare
+Cargo's plain `Fresh metadata-fixture` output, while CI sets
+`CARGO_TERM_COLOR=always`. ANSI escapes interrupt that substring. The same
+compiled local tests reproduce both exact failures with forced color in 0.49 s;
+the earlier baked-identity assertions pass. The fixture now forces
+`CARGO_TERM_COLOR=never` only for its nested Cargo command, preserving the cache
+assertions and normal CI color outside the fixture. No production build helper
+or gameplay changes. The failed CI log and local before/after receipts are
+retained as `pr404-test-failure.log` and `metadata-ci-color-*.log`. Both tests
+pass under forced-color outer environment in 1.55 s; formatting and strict
+target Clippy also pass. The updated PR
+reruns complete CI rather than treating the earlier local gates as exact-head
+CI evidence.
 
 ## Live network checks
 
