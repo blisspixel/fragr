@@ -1,6 +1,6 @@
 # Walker, Sabotage and weapon handling composition
 
-Status: local verification in progress, 2026-10-15. Baseline: `902ec8f`,
+Status: local verification passed, 2026-10-15. Baseline: `902ec8f`,
 v0.83.0. The [bounded round](../plans/build-round-20261015.md) owns scope.
 
 ## Actual changes
