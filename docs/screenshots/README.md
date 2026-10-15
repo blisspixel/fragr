@@ -68,7 +68,7 @@ The repeated foundry surfaces and coarse tube remain development art.
 
 ## Historical October 13 first-use menu review
 
-The current multiplayer still shows the Run a match action and a real loopback
+The October 13 multiplayer still shows the Run a match action and a real loopback
 status reply from a five-bot server. It was extracted without retouching from
 the 32-state Linux Xvfb tour, rendered at 1280x720 with Godot 4.7.2 and Mesa
 llvmpipe. That complete tour failed three transient weapon-effect visibility

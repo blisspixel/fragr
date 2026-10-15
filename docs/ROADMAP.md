@@ -390,8 +390,12 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 The [connected foundry round](plans/m13-connected-round-20261013.md) shipped in
 v0.83.0 through PR #402 with passing main CI and all three desktop packages.
-The [October 15 round](plans/build-round-20261015.md) advances the Walker needed
-for M14, existing multiplayer objective play and integrated weapon art together.
+The [October 15 round](plans/build-round-20261015.md) implements the isolated
+Walker encounter, Sabotage objective ownership and Rocket reload presentation
+together, with integration tracked in [PR #403](https://github.com/blisspixel/fragr/pull/403).
+The next campaign increment is the [M14 integration](plans/m14-launch-authority-integration-20261015.md):
+combine that boss with the existing battlefield, staged support, optional jeep,
+infantry routes and saved coalition departure.
 Nick explicitly requested parallel level, multiplayer and asset work. Each
 bounded round returns to one reviewed main with passing CI before the next.
 Human and final-art acceptance stay separate.
@@ -467,11 +471,12 @@ its brief. The October 13 connected foundry increment brings the source campaign
 to thirteen development prototypes through The Weight of Permission. It places
 the first finite Rocket Launcher and connects relay, hazard, voluntary worker
 choices, guarded gallery and physical lift departure to version 17 saves.
-The [active round](plans/m13-connected-round-20261013.md) records verification
+The [foundry round](plans/m13-connected-round-20261013.md) records verification
 and integration status. Ordinary campaign supply and visual pursuit scale by
 Assisted, Standard, and Severe. Connected M14 through M20 and the conditional
-epilogue remain unbuilt. M14 and its Walker are the next campaign dependency
-after this round returns to passing main. Foundry art, balance and fresh-player
+epilogue remain unbuilt. The Walker foundation now has native and ordinary
+rendered clears. Connected M14 is the next campaign dependency after the
+October 15 round returns to passing main. Foundry art, balance and fresh-player
 acceptance retain their own gates. Development grayboxes for levels 15 through 20, and a
 sheltered trench on the level 14 battlefield, are not missions. The epilogue
 remains a plan. The optional M12 secret stays separate because it changes

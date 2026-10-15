@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.84.0 (2026-10-15)
 
 - Add a standalone Continuance Walker development encounter with warned stomps,
   locked artillery lanes, finite shells, moving collision and exposed recovery

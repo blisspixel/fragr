@@ -78,8 +78,8 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
-| [`build-round-20261015.md`](./build-round-20261015.md) | **in flight** | Parallel Walker campaign foundation, Sabotage objective ownership and integrated Rocket art, with shared review and passing-main consolidation. |
-| [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **in flight** | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
+| [`build-round-20261015.md`](./build-round-20261015.md) | **implemented**, integration [#403](https://github.com/blisspixel/fragr/pull/403) | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
+| [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **implemented**, integration [#403](https://github.com/blisspixel/fragr/pull/403) | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
 | [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **planned** | Combine the original launch battlefield, staged Walker support, optional jeep and infantry routes, fleet departure and durable M13 carry after foundation consolidation. |
 | [`sabotage-objective-ownership-20261015.md`](./sabotage-objective-ownership-20261015.md) | **implemented** | Rule bots recover and defuse around idle participants while preserving active defuse ownership. Shared integration checks underway. |
 | [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |

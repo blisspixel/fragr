@@ -1,0 +1,1222 @@
+{
+  "source_commit": "29b849d",
+  "scope": "ordinary finite human inputs on isolated Walker development range",
+  "passed": true,
+  "phase_control": false,
+  "resource_grants": false,
+  "teleports": false,
+  "phases": [
+    "relocating",
+    "recovery",
+    "stomp_warning",
+    "artillery_warning",
+    "artillery",
+    "stomp",
+    "disabled"
+  ],
+  "shell_seen": true,
+  "reload_deadlines": [
+    670,
+    691,
+    711,
+    846,
+    951,
+    971,
+    992,
+    1020
+  ],
+  "initial_hp": 100,
+  "low_hp": 100,
+  "final_hp": 100,
+  "failure": "",
+  "first_tick": 633,
+  "last_tick": 1131,
+  "remaining_ammo": [
+    {
+      "pool": "bullets",
+      "rounds": 141.0
+    },
+    {
+      "pool": "shells",
+      "rounds": 0.0
+    },
+    {
+      "pool": "cells",
+      "rounds": 0.0
+    },
+    {
+      "pool": "rockets",
+      "rounds": 10.0
+    }
+  ],
+  "frames": [
+    {
+      "file": "relocating_633.png",
+      "tick": 633.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -16.11943,
+            0.0,
+            -4.0298576
+          ],
+          [
+            -20.0,
+            0.0,
+            -5.0
+          ],
+          [
+            -23.88057,
+            0.0,
+            -5.9701424
+          ]
+        ],
+        "feet": [
+          7.5749927,
+          0.0,
+          0.0
+        ],
+        "hp": 900.0,
+        "phase": "relocating",
+        "phase_ends": 932.0,
+        "phase_started": 532.0,
+        "shells": [],
+        "shells_left": 33.0,
+        "stage": 1.0,
+        "target": [
+          -20.0,
+          0.0,
+          -5.0
+        ]
+      }
+    },
+    {
+      "file": "recovery_640.png",
+      "tick": 640.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -16.11943,
+            0.0,
+            -4.0298576
+          ],
+          [
+            -20.0,
+            0.0,
+            -5.0
+          ],
+          [
+            -23.88057,
+            0.0,
+            -5.9701424
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 900.0,
+        "phase": "recovery",
+        "phase_ends": 699.0,
+        "phase_started": 639.0,
+        "shells": [],
+        "shells_left": 33.0,
+        "stage": 1.0,
+        "target": [
+          -20.0,
+          0.0,
+          -5.0
+        ]
+      }
+    },
+    {
+      "file": "stomp_warning_699.png",
+      "tick": 699.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -16.11943,
+            0.0,
+            -4.0298576
+          ],
+          [
+            -20.0,
+            0.0,
+            -5.0
+          ],
+          [
+            -23.88057,
+            0.0,
+            -5.9701424
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 684.0,
+        "phase": "stomp_warning",
+        "phase_ends": 731.0,
+        "phase_started": 699.0,
+        "shells": [],
+        "shells_left": 33.0,
+        "stage": 1.0,
+        "target": [
+          -20.0,
+          0.0,
+          -5.0
+        ]
+      }
+    },
+    {
+      "file": "artillery_warning_737.png",
+      "tick": 737.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 589.0,
+        "phase": "artillery_warning",
+        "phase_ends": 775.0,
+        "phase_started": 735.0,
+        "shells": [],
+        "shells_left": 33.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "artillery_776.png",
+      "tick": 776.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 577.0,
+        "phase": "artillery",
+        "phase_ends": 791.0,
+        "phase_started": 775.0,
+        "shells": [
+          {
+            "age_ticks": 0.0,
+            "id": 9.0,
+            "position": [
+              8.0,
+              6.3,
+              0.0
+            ],
+            "velocity": [
+              -9.036649,
+              4.7999997,
+              5.314818
+            ]
+          }
+        ],
+        "shells_left": 32.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "artillery_780.png",
+      "tick": 780.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 571.0,
+        "phase": "artillery",
+        "phase_ends": 791.0,
+        "phase_started": 775.0,
+        "shells": [
+          {
+            "age_ticks": 4.0,
+            "id": 9.0,
+            "position": [
+              6.1926727,
+              7.0200005,
+              1.0629636
+            ],
+            "velocity": [
+              -9.036649,
+              2.3999982,
+              5.314818
+            ]
+          }
+        ],
+        "shells_left": 32.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "artillery_786.png",
+      "tick": 786.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 559.0,
+        "phase": "artillery",
+        "phase_ends": 791.0,
+        "phase_started": 775.0,
+        "shells": [
+          {
+            "age_ticks": 10.0,
+            "id": 9.0,
+            "position": [
+              3.4816806,
+              7.2,
+              2.65741
+            ],
+            "velocity": [
+              -9.036649,
+              -1.2000017,
+              5.314818
+            ]
+          },
+          {
+            "age_ticks": 5.0,
+            "id": 10.0,
+            "position": [
+              5.166195,
+              7.125,
+              1.6666771
+            ],
+            "velocity": [
+              -11.335236,
+              1.799998,
+              6.66671
+            ]
+          }
+        ],
+        "shells_left": 31.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "relocating_791.png",
+      "tick": 791.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "hp": 553.0,
+        "phase": "relocating",
+        "phase_ends": 1191.0,
+        "phase_started": 791.0,
+        "shells": [
+          {
+            "age_ticks": 15.0,
+            "id": 9.0,
+            "position": [
+              1.2225176,
+              6.524999,
+              3.9861164
+            ],
+            "velocity": [
+              -9.036649,
+              -4.2000027,
+              5.314818
+            ]
+          },
+          {
+            "age_ticks": 10.0,
+            "id": 10.0,
+            "position": [
+              2.332387,
+              7.2,
+              3.3333561
+            ],
+            "velocity": [
+              -11.335236,
+              -1.2000017,
+              6.66671
+            ]
+          },
+          {
+            "age_ticks": 4.0,
+            "id": 11.0,
+            "position": [
+              5.273239,
+              7.0200005,
+              1.6037202
+            ],
+            "velocity": [
+              -13.633822,
+              2.3999982,
+              8.018601
+            ]
+          }
+        ],
+        "shells_left": 30.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "relocating_816.png",
+      "tick": 816.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          1.8750005
+        ],
+        "hp": 529.0,
+        "phase": "relocating",
+        "phase_ends": 1191.0,
+        "phase_started": 791.0,
+        "shells": [
+          {
+            "age_ticks": 29.0,
+            "id": 11.0,
+            "position": [
+              -11.769028,
+              0.6449981,
+              11.626963
+            ],
+            "velocity": [
+              -13.633822,
+              -12.599994,
+              8.018601
+            ]
+          }
+        ],
+        "shells_left": 30.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "recovery_925.png",
+      "tick": 925.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 378.0,
+        "phase": "recovery",
+        "phase_ends": 985.0,
+        "phase_started": 925.0,
+        "shells": [],
+        "shells_left": 30.0,
+        "stage": 2.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "stomp_warning_986.png",
+      "tick": 986.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 162.0,
+        "phase": "stomp_warning",
+        "phase_ends": 1017.0,
+        "phase_started": 985.0,
+        "shells": [],
+        "shells_left": 30.0,
+        "stage": 3.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "stomp_1017.png",
+      "tick": 1017.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.5549736,
+            0.0,
+            7.972227
+          ],
+          [
+            -9.002853,
+            0.0,
+            10.000065
+          ],
+          [
+            -12.450733,
+            0.0,
+            12.027903
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 103.0,
+        "phase": "stomp",
+        "phase_ends": 1021.0,
+        "phase_started": 1017.0,
+        "shells": [],
+        "shells_left": 30.0,
+        "stage": 3.0,
+        "target": [
+          -9.002853,
+          0.0,
+          10.000065
+        ]
+      }
+    },
+    {
+      "file": "artillery_warning_1021.png",
+      "tick": 1021.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 103.0,
+        "phase": "artillery_warning",
+        "phase_ends": 1061.0,
+        "phase_started": 1021.0,
+        "shells": [],
+        "shells_left": 30.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "artillery_1061.png",
+      "tick": 1061.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 97.0,
+        "phase": "artillery",
+        "phase_ends": 1077.0,
+        "phase_started": 1061.0,
+        "shells": [],
+        "shells_left": 30.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "artillery_1068.png",
+      "tick": 1068.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 85.0,
+        "phase": "artillery",
+        "phase_ends": 1077.0,
+        "phase_started": 1061.0,
+        "shells": [
+          {
+            "age_ticks": 6.0,
+            "id": 16.0,
+            "position": [
+              5.3238564,
+              7.2,
+              8.740646
+            ],
+            "velocity": [
+              -8.92048,
+              1.1999981,
+              -4.1978393
+            ]
+          },
+          {
+            "age_ticks": 1.0,
+            "id": 17.0,
+            "position": [
+              7.4333324,
+              6.5250006,
+              9.733337
+            ],
+            "velocity": [
+              -11.333333,
+              4.1999993,
+              -5.33329
+            ]
+          }
+        ],
+        "shells_left": 28.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "artillery_1074.png",
+      "tick": 1074.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          8.0,
+          0.0,
+          10.0
+        ],
+        "hp": 79.0,
+        "phase": "artillery",
+        "phase_ends": 1077.0,
+        "phase_started": 1061.0,
+        "shells": [
+          {
+            "age_ticks": 12.0,
+            "id": 16.0,
+            "position": [
+              2.6477127,
+              7.0199995,
+              7.4812927
+            ],
+            "velocity": [
+              -8.92048,
+              -2.4000018,
+              -4.1978393
+            ]
+          },
+          {
+            "age_ticks": 7.0,
+            "id": 17.0,
+            "position": [
+              4.033327,
+              7.245,
+              8.133362
+            ],
+            "velocity": [
+              -11.333333,
+              0.59999824,
+              -5.33329
+            ]
+          },
+          {
+            "age_ticks": 1.0,
+            "id": 18.0,
+            "position": [
+              7.3126907,
+              6.5250006,
+              9.676563
+            ],
+            "velocity": [
+              -13.746186,
+              4.1999993,
+              -6.468741
+            ]
+          }
+        ],
+        "shells_left": 27.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "relocating_1078.png",
+      "tick": 1078.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          7.953148,
+          0.0,
+          9.941435
+        ],
+        "hp": 73.0,
+        "phase": "relocating",
+        "phase_ends": 1477.0,
+        "phase_started": 1077.0,
+        "shells": [
+          {
+            "age_ticks": 16.0,
+            "id": 16.0,
+            "position": [
+              0.86361694,
+              6.299999,
+              6.6417236
+            ],
+            "velocity": [
+              -8.92048,
+              -4.800003,
+              -4.1978393
+            ]
+          },
+          {
+            "age_ticks": 11.0,
+            "id": 17.0,
+            "position": [
+              1.7666607,
+              7.1249995,
+              7.0667048
+            ],
+            "velocity": [
+              -11.333333,
+              -1.8000016,
+              -5.33329
+            ]
+          },
+          {
+            "age_ticks": 5.0,
+            "id": 18.0,
+            "position": [
+              4.5634537,
+              7.125,
+              8.382816
+            ],
+            "velocity": [
+              -13.746186,
+              1.799998,
+              -6.468741
+            ]
+          }
+        ],
+        "shells_left": 27.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "relocating_1086.png",
+      "tick": 1086.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          7.578331,
+          0.0,
+          9.472914
+        ],
+        "hp": 61.0,
+        "phase": "relocating",
+        "phase_ends": 1477.0,
+        "phase_started": 1077.0,
+        "shells": [
+          {
+            "age_ticks": 24.0,
+            "id": 16.0,
+            "position": [
+              -2.7045748,
+              3.4199977,
+              4.9625854
+            ],
+            "velocity": [
+              -8.92048,
+              -9.600001,
+              -4.1978393
+            ]
+          },
+          {
+            "age_ticks": 19.0,
+            "id": 17.0,
+            "position": [
+              -2.7666724,
+              5.4449987,
+              4.9333887
+            ],
+            "velocity": [
+              -11.333333,
+              -6.600004,
+              -5.33329
+            ]
+          },
+          {
+            "age_ticks": 13.0,
+            "id": 18.0,
+            "position": [
+              -0.9350205,
+              6.8849993,
+              5.7953224
+            ],
+            "velocity": [
+              -13.746186,
+              -3.0000021,
+              -6.468741
+            ]
+          }
+        ],
+        "shells_left": 27.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "relocating_1092.png",
+      "tick": 1092.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          7.2972183,
+          0.0,
+          9.121523
+        ],
+        "hp": 49.0,
+        "phase": "relocating",
+        "phase_ends": 1477.0,
+        "phase_started": 1077.0,
+        "shells": [
+          {
+            "age_ticks": 25.0,
+            "id": 17.0,
+            "position": [
+              -6.1666756,
+              2.9249976,
+              3.3334017
+            ],
+            "velocity": [
+              -11.333333,
+              -10.2,
+              -5.33329
+            ]
+          },
+          {
+            "age_ticks": 19.0,
+            "id": 18.0,
+            "position": [
+              -5.0588765,
+              5.4449987,
+              3.854702
+            ],
+            "velocity": [
+              -13.746186,
+              -6.600004,
+              -6.468741
+            ]
+          }
+        ],
+        "shells_left": 27.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "relocating_1098.png",
+      "tick": 1098.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          7.0161057,
+          0.0,
+          8.770132
+        ],
+        "hp": 43.0,
+        "phase": "relocating",
+        "phase_ends": 1477.0,
+        "phase_started": 1077.0,
+        "shells": [
+          {
+            "age_ticks": 25.0,
+            "id": 18.0,
+            "position": [
+              -9.182733,
+              2.9249976,
+              1.9140813
+            ],
+            "velocity": [
+              -13.746186,
+              -10.2,
+              -6.468741
+            ]
+          }
+        ],
+        "shells_left": 27.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    },
+    {
+      "file": "disabled.png",
+      "tick": 1131.0,
+      "walker": {
+        "artillery_targets": [
+          [
+            -5.38072,
+            0.0,
+            3.7032416
+          ],
+          [
+            -9.0,
+            0.0,
+            2.0000648
+          ],
+          [
+            -12.61928,
+            0.0,
+            0.2968881
+          ]
+        ],
+        "feet": [
+          5.469986,
+          0.0,
+          6.8374825
+        ],
+        "hp": 0.0,
+        "phase": "disabled",
+        "phase_ends": 1131.0,
+        "phase_started": 1131.0,
+        "shells": [],
+        "shells_left": 27.0,
+        "stage": 3.0,
+        "target": [
+          -9.0,
+          0.0,
+          2.0000648
+        ]
+      }
+    }
+  ],
+  "renderer": "forward_plus",
+  "device": "llvmpipe (LLVM 22.1.8, 256 bits)",
+  "godot": "4.7.2-stable (official)",
+  "source_sha256": {
+    "server": "6e15433e49e463843a0afb68b55fc581a0fcc26ef713f1f535428afbedaf7064",
+    "walker_view": "8c399d6900636eb362658a7f44b0418d0d85657e9bd1a194124bb82633e1f1bd",
+    "walker_facts": "51d803b91a6c0d36cfcd98d7b453b9247cbf7299fded3f0b6b817c5f49953e68",
+    "map": "0400b603f58a7371a77d4b35321254b759e3bc0e1db4cd03d858582013fb3426"
+  }
+}

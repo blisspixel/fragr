@@ -33,6 +33,17 @@ relocation, recovery and disable. Inspected stills show the real locked marks,
 raised recovery shutters and disabled machinery. Capture uses Godot 4.7.2,
 Xvfb and Mesa llvmpipe, not a hardware performance test.
 
+After the loading recovery fix, the complete isolated Vulkan Forward+ route
+also passes with clean exit and logs. It retains 100 HP, 141 Bullets and ten
+Rockets, and observes eight reload deadlines across 21 captured frames.
+The [bound receipt](walker-rendered-20261015.json) records the actual source and
+binary hashes. Inspected [artillery](../screenshots/walker-foundation-20261015/locked-artillery.png),
+[recovery](../screenshots/walker-foundation-20261015/open-joints.png) and
+[disable](../screenshots/walker-foundation-20261015/disabled.png) stills show the
+final concise integrity readout. This run explicitly uses the software Vulkan
+driver and an owned Xvfb display. Earlier fallback and blocked-input runs remain
+failed evidence, not hardware acceptance.
+
 The [Rocket handling route](../../client/qa/rocket-reload-motion.json) walks M13
 to its actual finite claim, returns to cover, fires and reloads. The inspected
 eight-frame strip in `.agents/rocket-20261015/office-reload/` contains four reload
@@ -73,10 +84,23 @@ no failed image or failed effect probe was silently accepted.
 
 ## Remaining gates and limits
 
-Final native coverage, release build, network roster/soak and GitHub integration
-are recorded after they finish. The separate renderer investigation retains its
-failed startup and input evidence; it does not establish a second passing
-ordinary route yet. No new cash or funded-credit generation was used.
+The complete Godot checker passes 371 scripts and 176 harnesses. Subsequent
+focused Walker, loading recovery and real desktop-host tests pass on the final
+source. The locked workspace release build passes. All required live network
+scenarios, seven-map roster and 120-second soak pass; the
+[network receipt](network-round-20261015.md) retains the contested CTF timeout
+without a capture and observed roster spawn deaths. The soak maintains 20 Hz,
+with no budget overruns or queue overflow. Unfiltered locked workspace tests
+pass with 2,074 tests and five intentional ignores. The final local run bounds
+test threads to two, matching the coverage run, after an earlier high-concurrency
+run exceeded existing readiness deadlines. No timeout or assertion was relaxed.
+Formatting, warning-denying workspace Clippy and dependency license/source
+checks pass. The deterministic 16-bot, 1,200-tick CPU benchmark passes its
+unchanged assertions (p99 0.819 ms, maximum 2.123 ms). Unfiltered workspace
+coverage passes at 92.97% of lines (79,298 of 85,290), above the unchanged
+90% gate. Regions measure 92.50% and functions 91.03%. GitHub integration and
+packages are tracked in [PR #403](https://github.com/blisspixel/fragr/pull/403).
+No new cash or funded-credit generation was used.
 
 This is a boss foundation and handling increment. Staged support, the optional
 jeep fight, fallen-world transition, coalition departure and durable level 14

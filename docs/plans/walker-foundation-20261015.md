@@ -1,6 +1,7 @@
 # Continuance Walker combat foundation
 
-Status: **in flight**, 2026-10-15. This bounded foundation advances the next
+Status: **implemented**, 2026-10-15. Integration:
+[PR #403](https://github.com/blisspixel/fragr/pull/403). This bounded foundation advances the next
 campaign dependency in the Roadmap. It does not complete connected M14.
 
 ## Goal and scope
@@ -114,3 +115,9 @@ Clippy pass in the reviewer's bounded check; logs are under
 ordinary-input evidence and composed workspace checks are recorded by the
 active build round before shipping. Final art, a fresh-player review, later
 support-lane staging, connected M14 objectives and save promotion remain open.
+
+The [composed receipt](../evidence/build-round-20261015.md) records ordinary
+OpenGL and isolated Vulkan clears, each at 100 HP with finite stock remaining,
+actual native explosion goldens, independent boundary and lifecycle review,
+and the full client/network checks. Both renderer runs use software drivers;
+they establish inspected presentation and input paths, not hardware frame rates.

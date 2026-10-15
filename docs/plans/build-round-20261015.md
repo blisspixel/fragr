@@ -1,6 +1,8 @@
 # Campaign, multiplayer and art development round
 
-Status: **in flight**, 2026-10-15. This is a bounded composition under the
+Status: **implemented**, 2026-10-15. Integration:
+[PR #403](https://github.com/blisspixel/fragr/pull/403), release v0.84.0.
+This is a bounded composition under the
 existing Full build order. Nick requested continued parallel level, multiplayer
 and asset work, current research, consistent lore and regular consolidation to
 one passing main. The baseline is `902ec8f`, released as v0.83.0. GitHub had no
@@ -119,5 +121,13 @@ Independent review corrected Rocket ground-graze direct damage, committed
 dead-shooter hits, multi-participant activation, stale map binding, vehicle
 prediction and warnings that must persist while shells are airborne. Sabotage
 objective ownership has reproduced failures and passing human/agent regression
-tests. Full workspace, network, coverage, renderer and published-tour gates are
-still running. Integration and package delivery remain pending.
+tests. Both ordinary OpenGL and isolated Vulkan routes now pass, as do the
+32-state published tour, all 371 client script checks and 176 harnesses,
+locked workspace release build, required network scenarios, seven-map roster
+and 120-second soak. Final unfiltered native workspace tests pass with 2,074
+tests and five intentional ignores; coverage passes at 92.97% of lines against
+the unchanged 90% floor. Formatting, workspace Clippy, dependency checks and
+the deterministic CPU benchmark pass. Integration and package delivery are tracked by
+[PR #403](https://github.com/blisspixel/fragr/pull/403). The
+[composition receipt](../evidence/build-round-20261015.md) retains failures and
+acceptance limits.
