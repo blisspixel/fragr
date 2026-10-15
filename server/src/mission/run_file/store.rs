@@ -16,26 +16,12 @@ const RUN_NAME: &str = "run.json";
 const LOCK_NAME: &str = "run.lock";
 
 /// Internally supported save stages, independent of network capability admission.
-pub(crate) const CAMPAIGN_STAGES: usize = 13;
+pub(crate) const CAMPAIGN_STAGES: usize = MissionId::ALL.len();
 /// Bundled content hashes for every playable campaign stage.
 pub(crate) type ContentHashes = [[u8; 32]; CAMPAIGN_STAGES];
 
 /// Every playable campaign stage, indexed like [`ContentHashes`].
-pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = [
-    MissionId::RecallNotice,
-    MissionId::PersonsUnknown,
-    MissionId::ScheduledService,
-    MissionId::NoticeToVacate,
-    MissionId::NoForwardingAddress,
-    MissionId::PortOfEntry,
-    MissionId::DeclaredGoods,
-    MissionId::CustodianOfRecord,
-    MissionId::PassengerManifest,
-    MissionId::CommonCarrier,
-    MissionId::RightOfSearch,
-    MissionId::TermsOfCooperation,
-    MissionId::WeightOfPermission,
-];
+pub(crate) const CAMPAIGN_MISSIONS: [MissionId; CAMPAIGN_STAGES] = MissionId::ALL;
 
 /// Index of a playable mission in [`ContentHashes`].
 pub(crate) const fn stage_index(mission: MissionId) -> usize {
@@ -53,6 +39,7 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::RightOfSearch => 10,
         MissionId::TermsOfCooperation => 11,
         MissionId::WeightOfPermission => 12,
+        MissionId::LaunchAuthority => 13,
     }
 }
 
@@ -276,6 +263,17 @@ impl RunStore {
             }
             Some(15 | 16) => {
                 let legacy: super::legacy_v16::RunDocumentBeforeFoundry =
+                    match serde_json::from_value(value) {
+                        Ok(document) => document,
+                        Err(_) => return RunProbe::Corrupt,
+                    };
+                match legacy.upgrade() {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(17) => {
+                let legacy: super::legacy_v17::RunDocumentBeforeLaunch =
                     match serde_json::from_value(value) {
                         Ok(document) => document,
                         Err(_) => return RunProbe::Corrupt,
@@ -578,6 +576,7 @@ mod tests {
             m11_outcome: None,
             m12_outcome: None,
             m13_outcome: None,
+            m14_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -721,7 +720,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32],
             ],
         )
         .unwrap();
@@ -744,7 +743,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32]
                 ]
             )
             .unwrap(),
@@ -875,7 +874,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32],
             ],
         )
         .unwrap();
@@ -922,7 +921,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32],
             ],
         )
         .unwrap();
@@ -983,7 +982,7 @@ mod tests {
             &directory,
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32],
             ],
         )
         .unwrap();
@@ -1047,7 +1046,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32],
             ],
         )
         .unwrap();
@@ -1095,7 +1094,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32]
                 ]
             )
             .unwrap(),
@@ -1112,7 +1111,7 @@ mod tests {
             &directory,
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32],
+                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32],
             ],
         )
         .unwrap();
@@ -1164,7 +1163,7 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32]
                 ]
             )
             .unwrap(),
@@ -1231,5 +1230,7 @@ mod m11_tests;
 mod m12_tests;
 #[cfg(test)]
 mod m13_tests;
+#[cfg(test)]
+mod m14_tests;
 #[cfg(test)]
 mod remote_tests;

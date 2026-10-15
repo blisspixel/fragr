@@ -1,1 +1,3 @@
-include!("../tools/fragr_build_version.rs");
+fn main() {
+    fragr_build_metadata::emit();
+}

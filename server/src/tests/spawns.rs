@@ -4,6 +4,8 @@ use crate::protocol::{Action, LookAt, Role, WeaponType};
 use crate::sim::{GameState, MapKind, RoundState, PLAYER_FLOOR_Y, SPAWN_SHIELD_TICKS};
 use uuid::Uuid;
 
+mod sector9_exits;
+
 #[test]
 fn tripoint_opening_places_a_full_roster_behind_cover() {
     let mut state = GameState::with_map(MapKind::TripointWorks, false);

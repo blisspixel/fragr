@@ -1,0 +1,10 @@
+{
+  "format": 1,
+  "id": "m14_arrival",
+  "title_key": "MISSION_M14_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {"id": "WORKS", "caption_key": "STORY_M14_ARRIVAL_WORKS", "timing": "reader", "hold": 1},
+    {"id": "DEPOT", "caption_key": "STORY_M14_ARRIVAL_DEPOT", "timing": "reader", "hold": 1}
+  ]
+}

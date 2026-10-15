@@ -9,7 +9,7 @@ fn foundry_entry() -> RunDocument {
         .unwrap()
 }
 
-fn completed_foundry() -> RunDocument {
+pub(super) fn completed_foundry() -> RunDocument {
     let mut document = foundry_entry();
     let SavedStep::MissionEntry { entry, .. } = &document.step else {
         unreachable!()
@@ -202,7 +202,7 @@ fn m13_historical_shapes_refuse_future_facts_and_actual_launcher_ownership() {
 }
 
 #[test]
-fn m13_current_exit_requires_actual_find_and_waits_for_unbuilt_launch_authority() {
+fn m13_current_exit_requires_actual_find_and_opens_launch_authority() {
     let mut lost_arc = foundry_entry();
     let SavedStep::MissionEntry { entry, .. } = &mut lost_arc.step else {
         unreachable!()
@@ -219,11 +219,17 @@ fn m13_current_exit_requires_actual_find_and_waits_for_unbuilt_launch_authority(
         panic!("foundry exit")
     };
     assert_eq!(*decoded, completed);
-    assert!(serde_json::from_str::<MissionId>("\"launch_authority\"").is_err());
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"launch_authority\"").unwrap(),
+        MissionId::LaunchAuthority
+    );
     for mission in CAMPAIGN_MISSIONS {
-        assert!(completed
-            .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
-            .is_err());
+        assert_eq!(
+            completed
+                .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
+                .is_ok(),
+            mission == MissionId::LaunchAuthority
+        );
     }
     let mut missing = completed.clone();
     missing.m13_outcome = None;

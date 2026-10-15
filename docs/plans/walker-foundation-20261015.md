@@ -1,6 +1,6 @@
 # Continuance Walker combat foundation
 
-Status: **implemented**, 2026-10-15. Integration:
+Status: **shipped**, 2026-10-15. Integration:
 [PR #403](https://github.com/blisspixel/fragr/pull/403). This bounded foundation advances the next
 campaign dependency in the Roadmap. It does not complete connected M14.
 

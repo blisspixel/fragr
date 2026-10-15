@@ -1,6 +1,8 @@
 # Sabotage objective ownership
 
-Status: **implemented**, 2026-10-15. Bounded multiplayer refinement under rung 1
+Status: **shipped**, 2026-10-15, through
+[PR #403](https://github.com/blisspixel/fragr/pull/403) in v0.84.0.
+Bounded multiplayer refinement under rung 1
 of the [full build order](../ROADMAP.md#full-build-order).
 
 ## Goal and observed defect

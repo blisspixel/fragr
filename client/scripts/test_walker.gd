@@ -140,6 +140,25 @@ func _run() -> void:
 	view.apply(disabled)
 	_check(view.phase=="disabled" and view.shells.size()==1 and view.markers[0].visible,"disable keeps committed shell warning until impact")
 	_check(view.status_label.text.contains("DISABLED") and not view.status_label.text.contains("900/900"),"accepted disable retires the live integrity reading")
+	view.configure_map(info)
+	view.apply(fixture())
+	var rest: Vector3 = view.pistons[0].position
+	var foot: Vector3 = view.machine.get_node("Foot1").position
+	var moved: bool = false
+	for step: int in range(1,17):
+		var relocation: Dictionary = fixture("relocating",step)
+		relocation["walker"]["feet"] = [step*0.3,0,0]
+		view.apply(relocation)
+		moved = moved or view.pistons[0].position.distance_to(rest) > 0.05
+		_check(view.pistons[0].scale == Vector3.ONE,"relocation moves rigid steel without stretching it")
+		_check(view.machine.get_node("Foot1").position == foot,"relocation never lifts a still-registered grounded foot")
+		_check_art_bounds(view,info)
+	_check(moved,"accepted travel drives visible actuator movement")
+	var held: Vector3 = view.pistons[0].position
+	view._process(2.0)
+	_check(view.pistons[0].position == held,"missing travel snapshots cannot advance machinery speculatively")
+	view.apply(fixture("recovery",17))
+	_check(view.pistons[0].position == rest,"recovery settles the drive while opening the joint vents")
 	# Exercise the actual compact native encoding, including omitted zero bottom.
 	view.configure_map(golden["map"])
 	_check(view.machine!=null,"native omitted default heights build a live machine")

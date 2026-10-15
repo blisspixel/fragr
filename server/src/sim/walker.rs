@@ -16,6 +16,7 @@ const FLIGHT_SECONDS: f32 = 1.5;
 pub(crate) struct Walker {
     pub(crate) state: WalkerState,
     next_station: usize,
+    requested_station: Option<usize>,
     fired: usize,
 }
 
@@ -35,6 +36,7 @@ impl Walker {
                 shells: Vec::new(),
             },
             next_station: 0,
+            requested_station: None,
             fired: 0,
         }
     }
@@ -66,6 +68,15 @@ impl Walker {
 }
 
 impl GameState {
+    pub(crate) fn request_walker_station(&mut self, index: usize) {
+        if let Some(w) = self.walker.as_mut().filter(|w| w.state.hp > 0 && index < 3) {
+            if w.state.phase == Phase::Relocating {
+                w.next_station = index;
+            } else {
+                w.requested_station = Some(index);
+            }
+        }
+    }
     pub(crate) fn walker_arena(&self) -> Option<Arena> {
         let g = self.map.walker_geometry()?;
         let walker = self.walker.as_ref()?;
@@ -78,6 +89,7 @@ impl GameState {
 
     pub(super) fn damage_walker_shot(&mut self, shooter: Uuid, solid: usize, damage: i32) {
         if self.campaign_run_frozen()
+            || !self.m14_walker_active()
             || !self.players.iter().any(|p| {
                 p.id == shooter
                     && p.is_participant()
@@ -115,6 +127,7 @@ impl GameState {
         arena: &Arena,
     ) {
         if self.campaign_run_frozen()
+            || !self.m14_walker_active()
             || !self.players.iter().any(|p| {
                 p.id == owner
                     && p.is_participant()
@@ -165,7 +178,7 @@ impl GameState {
     }
 
     pub(super) fn tick_walker(&mut self, dt: f32) {
-        if self.campaign_run_frozen() {
+        if self.campaign_run_frozen() || !self.m14_walker_active() {
             return;
         }
         let Some(g) = self.map.walker_geometry() else {
@@ -257,7 +270,10 @@ impl GameState {
                     walker.fired += 1;
                 }
                 if tick >= walker.state.phase_ends {
-                    walker.next_station = (walker.next_station + 1) % 3;
+                    walker.next_station = walker
+                        .requested_station
+                        .take()
+                        .unwrap_or((walker.next_station + 1) % 3);
                     walker.phase(Phase::Relocating, tick, 400);
                 }
             }

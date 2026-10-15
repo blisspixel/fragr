@@ -139,7 +139,9 @@ func _run() -> void:
 	awaiting["mission"] = MissionState.M04_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M04_ID, "M03 completion previews the available M04 destination")
 	awaiting["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M13 completion previews the pending M14 destination")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == LocalMatch.NEXT_MISSION, "M14 completion previews the pending M15 destination")
+	awaiting["mission"] = MissionState.M14_ID
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M14_ID, "M13 completion previews playable M14")
 	awaiting["mission"] = MissionState.M09_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(awaiting).to_ascii_buffer()).get("mission") == MissionState.M09_ID, "M08 completion previews the playable berth")
 	awaiting["mission"] = MissionState.M08_ID
@@ -147,7 +149,9 @@ func _run() -> void:
 	m02_preview["mission"] = MissionState.M08_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M08_ID, "M08 entry is a valid saved resume")
 	m02_preview["mission"] = LocalMatch.NEXT_MISSION
-	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).is_empty(), "M13 cannot claim a playable saved entry")
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).is_empty(), "M15 cannot claim a playable saved entry")
+	m02_preview["mission"] = MissionState.M14_ID
+	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M14_ID, "M14 accepts its supported saved entry")
 	m02_preview["mission"] = MissionState.M09_ID
 	_expect(LocalMatch.parse_run_preview(JSON.stringify(m02_preview).to_ascii_buffer()).get("mission") == MissionState.M09_ID, "M09 accepts its supported saved entry")
 	m02_preview["mission"] = MissionState.M03_ID

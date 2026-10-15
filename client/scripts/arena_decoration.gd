@@ -88,14 +88,14 @@ const SIGN_KEYS: Dictionary[String, String] = {
 ## Faces a mission presenter dresses itself; a plate here would hide them.
 const PRESENTER_ONLY: Array[String] = ["m07_window_figure"]
 
-## The record console shares the terminal kind with ordinary counters.
-## `marked_terminal` is that one decoration index, or -1.
-static func sign_key(kind: String, index: int, marked_terminal: int) -> String:
+## Mission controls share the terminal kind with ordinary counters.
+## `marked_terminal` is that registered decoration index, or -1.
+static func sign_key(kind: String, index: int, marked_terminal: int, terminal_key: String = "WORLD_LATCH_RECORD") -> String:
 	if index == marked_terminal and kind == "terminal":
-		return "WORLD_LATCH_RECORD"
+		return terminal_key
 	return str(SIGN_KEYS.get(kind, ""))
 
-static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky.Preset = null, marked_terminal: int = -1) -> void:
+static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky.Preset = null, marked_terminal: int = -1, terminal_key: String = "WORLD_LATCH_RECORD") -> void:
 	var preset: ArenaSky.Preset = venue if venue != null else ArenaSky.scrapyard()
 	for index: int in range(details.size()):
 		var detail: Dictionary = details[index]
@@ -120,7 +120,7 @@ static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky
 		if kind in ["vent", "lockers", "terminal", "lift_control", "strip_light", "property_sign", "intake_sign", "records_sign", "maintenance_sign", "transfer_sign", "lift_sign", "m04_clinic_control", "m04_roof_departure", "m08_freight_departure", "m08_bay_release"]:
 			var source: RefCounted = FacilitySource.new()
 			panel.add_child(source.build(kind, size))
-		var copy_key: String = sign_key(kind, index, marked_terminal)
+		var copy_key: String = sign_key(kind, index, marked_terminal, terminal_key)
 		if not copy_key.is_empty():
 			var label: WorldSign = WorldSign.new()
 			label.name = "Copy"

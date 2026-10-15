@@ -473,6 +473,7 @@ name = "fragr-agent-adapter"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "fragr-server",
  "futures-util",
  "getrandom 0.2.15",
@@ -490,6 +491,7 @@ name = "fragr-audiogen"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "reqwest",
  "serde",
  "serde_json",
@@ -502,6 +504,7 @@ name = "fragr-brain"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "fragr-server",
  "futures-util",
  "reqwest",
@@ -515,10 +518,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "fragr-build-metadata"
+version = "0.1.0"
+
+[[package]]
 name = "fragr-licenses"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "serde_json",
 ]
 
@@ -527,6 +535,7 @@ name = "fragr-playtest"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "fragr-server",
  "futures-util",
  "serde",
@@ -543,6 +552,7 @@ name = "fragr-server"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "futures-util",
  "getrandom 0.2.15",
  "http",
@@ -563,6 +573,7 @@ name = "fragr-spritegen"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "fragr-build-metadata",
  "image",
  "reqwest",
  "serde",

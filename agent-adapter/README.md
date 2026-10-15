@@ -136,7 +136,7 @@ controls stay on the same Action channel. MCP remains a slow decision tool;
 a local tick controller should hold and adjust movement between decisions.
 
 `act` accepts `fists`, `shiv`, `tack`, `flechette`, `scatter`, `rail` and
-`sniper`, `repeater` and `arc` for `weapon_swap`; the server rejects unowned choices. The Sniper
+`sniper`, `repeater`, `arc` and `rocket` for `weapon_swap`; the server rejects unowned choices. The Sniper
 Rifle is a found Cells weapon (70 damage, 32 tick cooldown, 90 unit reach);
 the shared helper takes a carried, loaded Sniper for a hostile beyond the held
 gun's reach and inside the Sniper's. Its scope is human presentation only; an
@@ -392,7 +392,7 @@ Send an action to control your agent's pawn.
 ```
 
 All fields are optional. Movement and fire are booleans (default `false`).
-`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, `"scatter"`, `"sniper"`, `"repeater"`, or `"arc"`.
+`weapon_swap` accepts `"fists"`, `"shiv"`, `"tack"`, `"flechette"`, `"rail"`, `"scatter"`, `"sniper"`, `"repeater"`, `"arc"`, or `"rocket"`.
 
 | In-game name | `weapon_swap` wire ID |
 |---|---|
@@ -405,10 +405,11 @@ All fields are optional. Movement and fire are booleans (default `false`).
 | Sniper Rifle | `sniper` |
 | Repeater | `repeater` |
 | Arc | `arc` |
+| Rocket Launcher | `rocket` |
 
-`pistol` is a display name, not a wire alias. Rocket Launcher exists in the
-server protocol but is not selectable through this MCP schema yet; no current
-mission grants it.
+`pistol` is a display name, not a wire alias. The schema and validator use the
+native weapon list. M13 grants the Rocket Launcher; selecting it requires
+ownership and firing spends finite Rockets through the ordinary server rules.
 There is no `reload`. For `look_at`, prefer
 `player_id` (UUID), or both `x` and `z` with optional world `y`. The server aims
 at a player's chest, 1.22 units above the feet, when the belt is clearly open.
@@ -541,21 +542,31 @@ Both fields are required. Invalid, stale, disconnected, spectator and completed
 mission requests return `isError: true`. Repeating a confirmed acknowledgment is
 idempotent. Server state changes only after the ordinary WebSocket message is
 processed. Use `observe` to confirm readiness and the shared phase before acting.
+The readiness and continue schemas list every built mission from the same typed
+stage list as saved campaign progression. Pending destinations are not offered.
 
 Connected M13 uses `weight_of_permission` through these same tools. Matching
-adapters advertise gameplay 48 and validate its registered objectives, worker
+adapters advertise gameplay 49 and validate its registered objectives, worker
 choices, actual arrivals and moving freight lift. After a fresh all-party lift
 Use, the controller holds position while the authoritative deck moves. If it
 returns after losing a rider, the party reboards and uses the same control.
 Optional worker release never gates departure. No additional campaign tool or
 per-tick MCP call is required.
 
+Connected M14 uses `launch_authority` through the same tools. `observe.map.m14`
+binds ordered objectives, the original jeep, departure control and registered
+fallen-world geometry. `observe.mission.m14` reports support introduction,
+actual machine fall and challenge receipts, while `observe.snapshot.walker`
+continues to own combat pose, health and deadlines. Map replacement invalidates
+steering until matching fresh mission facts arrive. The shared controller uses
+ordinary infantry movement and finite equipment; driving remains optional.
+
 ### `mission_continue`
 
 In a solo run, `observe.mission.run` reports its UUID, status, remaining
 continues and `level_start_continues`. Only its dead owner in `continue`
 status can request a mission-start retry using the observed mission ID, run ID
-and attempt. This applies to all built saved campaign missions through M13:
+and attempt. This applies to all built saved campaign missions through M14:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}

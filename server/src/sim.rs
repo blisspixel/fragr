@@ -1644,6 +1644,7 @@ impl GameState {
             m11: self.map.m11_geometry(),
             m12: self.map.m12_geometry(),
             m13: self.map.m13_geometry(),
+            m14: self.map.m14_geometry(),
             walker: self.map.walker_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),

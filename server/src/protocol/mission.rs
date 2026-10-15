@@ -141,6 +141,28 @@ pub enum MissionId {
     RightOfSearch,
     TermsOfCooperation,
     WeightOfPermission,
+    LaunchAuthority,
+}
+
+impl MissionId {
+    /// Playable campaign stages in progression order. Pending destinations are
+    /// strings in saved exits until their actual mission is implemented.
+    pub const ALL: [Self; 14] = [
+        Self::RecallNotice,
+        Self::PersonsUnknown,
+        Self::ScheduledService,
+        Self::NoticeToVacate,
+        Self::NoForwardingAddress,
+        Self::PortOfEntry,
+        Self::DeclaredGoods,
+        Self::CustodianOfRecord,
+        Self::PassengerManifest,
+        Self::CommonCarrier,
+        Self::RightOfSearch,
+        Self::TermsOfCooperation,
+        Self::WeightOfPermission,
+        Self::LaunchAuthority,
+    ];
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -558,10 +580,19 @@ pub struct MissionState {
         skip_serializing_if = "Option::is_none"
     )]
     pub m13: Option<super::M13ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m14: Option<super::M14ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if (self.id == MissionId::LaunchAuthority) != self.m14.is_some() {
+            return Err("M14 facts require exactly M14 mission");
+        }
         if (self.id == MissionId::WeightOfPermission) != self.m13.is_some() {
             return Err("M13 facts require exactly M13 mission");
         }
@@ -593,6 +624,15 @@ impl MissionState {
             return Err("M04 facts require M04 mission");
         }
         match self.id {
+            MissionId::LaunchAuthority => {
+                if self.m02.is_some() || self.m03.is_some() {
+                    return Err("M14 cannot carry earlier mission facts");
+                }
+                self.m14
+                    .as_ref()
+                    .ok_or("M14 facts missing")?
+                    .validate(self.phase, tick)?;
+            }
             MissionId::WeightOfPermission => {
                 if self.m02.is_some() || self.m03.is_some() {
                     return Err("M13 cannot carry earlier mission facts");
@@ -696,14 +736,19 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::WeightOfPermission
+                    (self.id == MissionId::LaunchAuthority
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self.m13.as_ref().is_some_and(|f| {
-                            f.overseer_surrendered && f.challenges.workers.is_none()
-                                || f.completed.len() >= 6
-                                    && !self.party.is_empty()
-                                    && self.party.iter().all(|m| m.ready && m.alive && m.aboard)
-                        }))
+                        && self.m14.as_ref().is_some_and(|f| f.completed.len() == 6)
+                        && !self.party.is_empty()
+                        && self.party.iter().all(|m| m.ready && m.alive && m.aboard))
+                        || (self.id == MissionId::WeightOfPermission
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m13.as_ref().is_some_and(|f| {
+                                f.overseer_surrendered && f.challenges.workers.is_none()
+                                    || f.completed.len() >= 6
+                                        && !self.party.is_empty()
+                                        && self.party.iter().all(|m| m.ready && m.alive && m.aboard)
+                            }))
                         || (self.id == MissionId::TermsOfCooperation
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m12.as_ref().is_some_and(|f| {
@@ -1002,6 +1047,7 @@ mod m02_wire_tests {
             m11: None,
             m12: None,
             m13: None,
+            m14: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

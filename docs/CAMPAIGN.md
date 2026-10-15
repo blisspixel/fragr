@@ -26,18 +26,18 @@ grenades, optional workshop rescue, a bounded authoritative tram and deliberate
 freight departure. M04-to-M05 carry retains earlier car, patient and photograph
 outcomes. The connected development run continues through M06 Port of Entry,
 M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
-Carrier, M11 Right of Search, M12 Terms of Cooperation and M13 The Weight of
-Permission. Version 17 saves retain mission-entry retries,
+Carrier, M11 Right of Search, M12 Terms of Cooperation, M13 The Weight of
+Permission and M14 Launch Authority. Version 18 saves retain mission-entry retries,
 equipment, remaining continues and completed choices, distinguishing released
 people from those actually evacuated or aboard. Historical saves upgrade
 explicitly and retain exact-byte archives. M12 adds the Arc, Assessor, shelter,
 pump conditions and coalition departure. M13 adds the first finite Rocket
 Launcher, voluntary worker choices, guarded gallery, protected town feed,
 machinery hazards and physical freight-lift departure. M12 carries into M13
-without another episode refill; completed M13 records pending M14.
-Connected M14 through M20 and the epilogue remain unbuilt. Development grayboxes
-for levels 15 through 20, and a sheltered trench on the level 14 battlefield,
-are not connected missions. Ordinary campaign supply and visual pursuit scale
+without another episode refill; M13 carries into M14 on the same allowance.
+Connected M14 is in flight under the [launch-work integration](plans/m14-launch-authority-integration-20261015.md).
+M15 through M20 and the epilogue remain unbuilt. Development grayboxes
+for levels 15 through 20 are not connected missions. Ordinary campaign supply and visual pursuit scale
 by Assisted, Standard, and Severe. Standard tell timing stays exact. Local standalone
 [M12 habitat](plans/m12-habitat-development-20261008.md),
 [M13 foundry](plans/m12-m14-foundry-slice-20261008.md) and
@@ -437,9 +437,10 @@ retains completed recall-car choices throughout M04 and its retries. M04 saves
 patient rescue and photograph outcomes through M05 entry and retries. M05's
 development prototype adds counted grenades, workshop rescue, a real translating
 tram and freight departure, preserving released/physically aboard outcomes at
-Port of Entry. The version 17 run continues through M13, retaining actual
+Port of Entry. The version 18 run continues through M14, retaining actual
 completed outcomes, entry resources and the M06/M10 episode refills. Completed
-M13 retains pending M14. Connected M14-M20, the epilogue and any cloud-save policy
+M13 promotes into M14 without a refill; completed M14 retains pending M15.
+Connected M15-M20, the epilogue and any cloud-save policy
 remain unbuilt. Complete pacing and fresh-player acceptance stay open.
 
 ## Story presentation and localization

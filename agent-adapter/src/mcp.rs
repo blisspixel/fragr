@@ -211,27 +211,17 @@ pub fn validate_act_arguments(arguments: &Value) -> Result<Action, String> {
         if v.is_null() {
             None
         } else {
-            let s = v.as_str().ok_or_else(|| {
-                "schema error: weapon_swap must be a string (fists|shiv|tack|flechette|rail|scatter|sniper|repeater|arc)"
-                    .to_string()
-            })?;
-            match s {
-                "fists" => Some(protocol::WeaponType::Fists),
-                "shiv" => Some(protocol::WeaponType::Shiv),
-                "tack" => Some(protocol::WeaponType::Tack),
-                "flechette" => Some(protocol::WeaponType::Flechette),
-                "rail" => Some(protocol::WeaponType::Rail),
-                "scatter" => Some(protocol::WeaponType::Scatter),
-                "sniper" => Some(protocol::WeaponType::Sniper),
-                "repeater" => Some(protocol::WeaponType::Repeater),
-                "arc" => Some(protocol::WeaponType::Arc),
-                other => {
-                    return Err(format!(
-                    "schema error: weapon_swap must be fists|shiv|tack|flechette|rail|scatter|sniper|repeater|arc, got '{}'",
-                    other
-                ))
-                }
-            }
+            let s = v
+                .as_str()
+                .ok_or_else(|| "schema error: weapon_swap must be a string".to_string())?;
+            Some(
+                protocol::WeaponType::ALL
+                    .into_iter()
+                    .find(|weapon| serde_json::to_value(weapon).is_ok_and(|wire| wire == *v))
+                    .ok_or_else(|| {
+                        format!("schema error: unsupported weapon_swap wire ID '{s}'")
+                    })?,
+            )
         }
     } else {
         None
@@ -742,7 +732,7 @@ fn tools_list_result() -> Value {
                         "fire": {"type": "boolean", "default": false, "description": "Fire weapon"},
                         "jump": {"type": "boolean", "default": false, "description": "Jump. A grounded fighter leaves the floor; holding it does not fly"},
                         "duck": {"type": "boolean", "default": false, "description": "Hold to crouch. The server shortens the body and slows the walk. Release to stand when the ceiling allows. Omitted means standing."},
-                        "weapon_swap": {"type": "string", "enum": ["fists", "shiv", "tack", "flechette", "rail", "scatter", "sniper", "repeater", "arc"], "description": "Select an owned weapon. Repeater uses finite Bullets after warmup; Arc uses finite Cells at close or medium range and bypasses armor. Neither expands the arcade kit"},
+                        "weapon_swap": {"type": "string", "enum": protocol::WeaponType::ALL, "description": "Select an owned weapon by its native wire ID. Rocket Launcher uses finite Rockets; keep clear of its splash. Selection never grants a weapon or ammunition."},
                         "seat": {"type": "string", "enum": ["driver", "gunner"], "description": "Request a free seat in your stopped jeep. Switching locks vehicle controls briefly. Use interact to enter or exit."},
                         "interact": {"type": "boolean", "description": "Press to use an aimed mission panel when observe supplies your prompt. Release before another press. In sabotage, hold true while standing still: the charge carrier inside a site plants in 3 s, a defender at the planted charge defuses in 6 s. Any movement, release or damage loses the progress."},
                         "throw_grenade": {"type": "boolean", "description": "Press to throw one counted hand grenade along current aim. Release before another press. Independent of selected gun, with a fixed two-second fuse."},
@@ -816,7 +806,7 @@ fn tools_list_result() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "id": {"type": "string", "enum": ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate"]},
+                        "id": {"type": "string", "enum": protocol::MissionId::ALL},
                         "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
                     },
                     "required": ["id", "attempt"],
@@ -829,7 +819,7 @@ fn tools_list_result() -> Value {
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "id": {"type": "string", "enum": ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate"]},
+                        "id": {"type": "string", "enum": protocol::MissionId::ALL},
                         "run_id": {"type": "string", "format": "uuid"},
                         "attempt": {"type": "integer", "minimum": 1, "maximum": u32::MAX}
                     },
@@ -1671,6 +1661,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m11,
             m12,
             m13,
+            m14,
             walker,
             map_name,
             half_extent,
@@ -1801,6 +1792,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m13 {
                 map["m13"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m14(
+                m14.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m14 {
+                map["m14"] = serde_json::json!(geometry);
             }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
@@ -2778,6 +2778,108 @@ mod mcp_tests {
     }
 
     #[test]
+    fn m14_observation_retains_ordered_fall_and_refuses_stale_facts() {
+        let vectors: Value =
+            serde_json::from_str(include_str!("../../client/golden/m14_fact_vectors.json"))
+                .unwrap();
+        let mut state = ToolState {
+            player_id: Some(serde_json::from_value(vectors["participant"].clone()).unwrap()),
+            connected: true,
+            ..Default::default()
+        };
+        ingest_server_text(&mut state, &vectors["map_info"].to_string()).unwrap();
+        let mut fell = false;
+        for sample in vectors["valid"].as_array().unwrap() {
+            if sample["name"] == "retry_briefing" {
+                continue;
+            }
+            if sample["state"]["m14"]["machine_fallen"] == true && !fell {
+                ingest_server_text(&mut state, &vectors["fallen_map_info"].to_string()).unwrap();
+                assert!(
+                    state.last_snapshot.is_none(),
+                    "fall retires stale live Walker observation"
+                );
+                fell = true;
+            }
+            let message = serde_json::json!({"type":"mission", "tick":sample["tick"], "state":sample["state"]});
+            ingest_server_text(&mut state, &message.to_string()).unwrap();
+            let snapshot: protocol::Snapshot =
+                serde_json::from_value(sample["snapshot"].clone()).unwrap();
+            ingest_server_text(
+                &mut state,
+                &serde_json::to_string(&protocol::ServerMessage::Snapshot(snapshot)).unwrap(),
+            )
+            .unwrap();
+            let observation = build_observe_result(&state);
+            assert_eq!(observation["mission"]["id"], "launch_authority");
+            assert_eq!(observation["mission"]["m14"], sample["state"]["m14"]);
+            assert_eq!(observation["map"]["m14"]["fallen"], fell);
+            if sample["name"] == "briefing" {
+                let ready = validate_mission_ready(
+                    serde_json::json!({"id":"launch_authority","attempt":1}),
+                    &state,
+                )
+                .unwrap()
+                .unwrap();
+                assert_eq!(ready.id, protocol::MissionId::LaunchAuthority);
+            }
+        }
+        assert!(fell);
+        assert_eq!(
+            state.mission.state.as_ref().unwrap().phase,
+            protocol::MissionPhase::Departed
+        );
+        let before = build_observe_result(&state);
+        let stale = serde_json::json!({"type":"mission","tick":vectors["valid"][1]["tick"],"state":vectors["valid"][1]["state"]});
+        assert!(ingest_server_text(&mut state, &stale.to_string()).is_err());
+        assert_eq!(build_observe_result(&state), before);
+    }
+
+    #[test]
+    fn campaign_tool_schemas_offer_every_built_mission_and_no_pending_destination() {
+        let tools = tools_list_result();
+        for name in ["mission_ready", "mission_continue"] {
+            let tool = tools["tools"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|tool| tool["name"] == name)
+                .unwrap();
+            let ids = tool["inputSchema"]["properties"]["id"]["enum"]
+                .as_array()
+                .unwrap();
+            assert_eq!(ids.len(), 14);
+            for id in [
+                "recall_notice",
+                "no_forwarding_address",
+                "port_of_entry",
+                "declared_goods",
+                "custodian_of_record",
+                "passenger_manifest",
+                "common_carrier",
+                "right_of_search",
+                "terms_of_cooperation",
+                "weight_of_permission",
+                "launch_authority",
+            ] {
+                assert!(ids.contains(&serde_json::json!(id)), "{name} omits {id}");
+            }
+            assert!(!ids.contains(&serde_json::json!("civic_pressure_valve")));
+            for id in ids {
+                let mission: protocol::MissionId = serde_json::from_value(id.clone()).unwrap();
+                let ready: protocol::MissionReady =
+                    serde_json::from_value(serde_json::json!({"id":id,"attempt":1})).unwrap();
+                assert_eq!(ready.id, mission);
+                let retry: protocol::MissionContinue = serde_json::from_value(
+                    serde_json::json!({"id":id,"attempt":1,"run_id":Uuid::new_v4()}),
+                )
+                .unwrap();
+                assert_eq!(retry.id, mission);
+            }
+        }
+    }
+
+    #[test]
     fn map_versions_are_validated_before_observation_is_replaced() {
         let mut state = ToolState::default();
         let mut map = serde_json::json!({"type":"map_info", "map_id":67, "map_name":"Balcony",
@@ -2969,6 +3071,52 @@ mod mcp_tests {
         assert_eq!(result["tick"], 3);
         assert_eq!(result["recent_events"].as_array().unwrap().len(), 1);
         assert!(result["self_player_id"].is_string());
+    }
+
+    #[test]
+    fn act_weapon_schema_and_pending_selection_cover_native_arsenal() {
+        let listed = tools_list_result();
+        let act = listed["tools"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|tool| tool["name"] == "act")
+            .unwrap();
+        assert_eq!(
+            act["inputSchema"]["properties"]["weapon_swap"]["enum"],
+            serde_json::to_value(protocol::WeaponType::ALL).unwrap()
+        );
+        for weapon in protocol::WeaponType::ALL {
+            let mut state = ToolState {
+                connected: true,
+                player_id: Some(Uuid::nil()),
+                last_snapshot: Some(
+                    serde_json::json!({"players": [{"id": Uuid::nil(), "hp": 100}]}),
+                ),
+                ..Default::default()
+            };
+            let out = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(
+                        serde_json::json!({"name":"act","arguments":{"weapon_swap":weapon,"fire":true}}),
+                    ),
+                ),
+                &mut state,
+            );
+            let action = out
+                .pending_action
+                .expect("owned selection reaches the action channel");
+            assert_eq!(action.weapon_swap, Some(weapon));
+            assert!(action.fire);
+        }
+        for bad in [
+            serde_json::json!("Rocket"),
+            serde_json::json!("article_blade"),
+            serde_json::json!(7),
+        ] {
+            assert!(validate_act_arguments(&serde_json::json!({"weapon_swap":bad})).is_err());
+        }
     }
 
     #[test]

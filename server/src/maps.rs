@@ -86,6 +86,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::WeightOfPermission => {
                 include_bytes!("../maps/m13-weight-of-permission.json")
             }
+            crate::protocol::MissionId::LaunchAuthority => {
+                include_bytes!("../maps/m14-launch-authority.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -129,6 +132,9 @@ impl AuthoredSource {
             Self::Mission(crate::protocol::MissionId::WeightOfPermission) => AuthoredMap::read(
                 include_bytes!("../maps/m13-weight-of-permission.json").as_slice(),
             ),
+            Self::Mission(crate::protocol::MissionId::LaunchAuthority) => {
+                AuthoredMap::read(include_bytes!("../maps/m14-launch-authority.json").as_slice())
+            }
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())
             }
@@ -988,7 +994,13 @@ fn sector_9() -> MapDef {
         (-66.0, 20.0),
         (-44.0, -62.0),
     ] {
-        s.push(Solid::from_center(cx, cz, 4.0, 4.0));
+        if (cx, cz) == (40.0, -40.0) || (cx, cz) == (-40.0, 40.0) {
+            // A longer freight row screens the neighboring bay's approach
+            // while both ends still lead around the load.
+            s.push(Solid::from_center(cx, cz - cz.signum(), 4.0, 5.0));
+        } else {
+            s.push(Solid::from_center(cx, cz, 4.0, 4.0));
+        }
     }
     // Mid, with the hub itself left open.
     for (cx, cz) in [(-12.0, -12.0), (12.0, -12.0), (-12.0, 12.0), (12.0, 12.0)] {
@@ -998,6 +1010,27 @@ fn sector_9() -> MapDef {
     // eight fighters out of each other's rail lanes. The south flechette pad
     // sits behind the south bay rather than inside it.
     spawn_pockets(16, spawn, 0.0, WALL_TOP, &mut s);
+
+    // Freight dividers extend the cardinal bays past their first step into
+    // the hall. The old shoulder blocks screened the spawn but exposed the
+    // next few metres to neighboring bays. Keep the middle loading aisle and
+    // rear service approaches open, with a clear choice at each rack end.
+    for x in [-6.0, 6.0] {
+        for z in [-50.0, 50.0] {
+            s.push(Solid::from_center(x, z, 1.8, 5.0));
+            s.push(Solid::from_center(z, x, 5.0, 1.8));
+        }
+    }
+    // Paired staging stacks break the diagonal hall-to-bay lane without
+    // closing either side of the inspection-deck approach.
+    for (x, z) in [(42.0, 10.0), (-42.0, -10.0)] {
+        s.push(Solid::from_center(x, z, 2.0, 3.0));
+    }
+    // Inspection staging sits beside the decks, not across either stair.
+    // It interrupts the side hall's uninterrupted north/south firing lane.
+    for (x, z) in [(46.0, 34.0), (-46.0, -34.0)] {
+        s.push(Solid::from_center(x, z, 3.0, 3.0));
+    }
 
     MapDef {
         half_extent: half,

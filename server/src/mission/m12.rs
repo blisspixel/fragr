@@ -302,6 +302,7 @@ impl GameState {
                 challenges: p.challenges.clone(),
                 aid_vehicle_ids: p.aid_vehicle_ids.clone(),
             }),
+            m14: None,
             m13: None,
         })
     }

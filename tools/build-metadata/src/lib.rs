@@ -1,22 +1,17 @@
-// Shared build script. Each binary crate includes this so `--version`,
+// Shared build metadata. Each binary crate calls this so `--version`,
 // `/status` `build.release`, and the MCP `serverInfo.version` are one string:
 // `FRAGR_BUILD_VERSION` when a release build sets it, otherwise
 // `git describe --tags --always`.
 
 use std::process::Command;
 
-fn main() {
+pub fn emit() {
     let commit = nonempty("FRAGR_BUILD_COMMIT").or_else(|| git(&["rev-parse", "HEAD"]));
     let release = nonempty("FRAGR_BUILD_VERSION")
         .and_then(|value| release_token(&value))
         .or_else(|| {
-            git(&[
-                "describe",
-                "--tags",
-                "--always",
-                "--abbrev=12",
-            ])
-            .and_then(|value| release_token(&value))
+            git(&["describe", "--tags", "--always", "--abbrev=12"])
+                .and_then(|value| release_token(&value))
         });
     let cli = release
         .clone()
@@ -28,8 +23,21 @@ fn main() {
     println!("cargo:rustc-env=FRAGR_CLI_VERSION={cli}");
     println!("cargo:rerun-if-env-changed=FRAGR_BUILD_COMMIT");
     println!("cargo:rerun-if-env-changed=FRAGR_BUILD_VERSION");
-    if let Some(head) = git(&["rev-parse", "--absolute-git-dir"]) {
-        println!("cargo:rerun-if-changed={head}/HEAD");
+    // HEAD is usually a symbolic ref: advancing a branch leaves HEAD itself
+    // unchanged. Git resolves shared refs correctly for linked worktrees too.
+    // Watching refs also catches new/deleted tags that change `git describe`.
+    // Do not watch the whole git directory: Cargo recursively scans directories,
+    // and object writes unrelated to build identity would invalidate the build.
+    for name in ["HEAD", "refs", "packed-refs"] {
+        if let Some(path) = git(&["rev-parse", "--git-path", name]) {
+            let path = std::path::Path::new(&path);
+            // A nonexistent watched file makes Cargo rerun on every build.
+            // Packing loose refs changes the watched refs directory, at which
+            // point the newly created packed-refs file is registered as well.
+            if path.exists() {
+                println!("cargo:rerun-if-changed={}", path.display());
+            }
+        }
     }
 }
 
@@ -42,7 +50,11 @@ fn nonempty(key: &str) -> Option<String> {
 
 fn git(args: &[&str]) -> Option<String> {
     let dir = std::env::var("CARGO_MANIFEST_DIR").ok()?;
-    let output = Command::new("git").args(args).current_dir(dir).output().ok()?;
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .ok()?;
     if !output.status.success() {
         return None;
     }

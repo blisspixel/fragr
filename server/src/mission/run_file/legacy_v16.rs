@@ -58,8 +58,9 @@ impl RunDocumentBeforeFoundry {
             m11_outcome: self.m11_outcome,
             m12_outcome: self.m12_outcome,
             m13_outcome: None,
+            m14_outcome: None,
         };
-        if document.stage_mission() == MissionId::WeightOfPermission {
+        if store::stage_index(document.stage_mission()) >= 12 {
             return Err("M13 was not supported before version 17");
         }
         if self.version == 15 {

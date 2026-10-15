@@ -99,6 +99,11 @@ func _placement() -> void:
 func _presentation() -> void:
 	var cover: ArenaCover = ArenaCover.new()
 	root.add_child(cover)
+	var entered_layers: Array[int] = []
+	var observe_layer: Callable = func(node: Node) -> void:
+		if node is VisualInstance3D and cover.is_ancestor_of(node):
+			entered_layers.append(node.layers)
+	node_added.connect(observe_layer)
 	var info: Dictionary = {"map_id": 1001, "half_extent": 20.0, "geometry_version": 2,
 		"solids": [HOST], "presentation": {"ground": "concrete", "solids": ["enamel"]}}
 	cover.apply_map_info(info)
@@ -113,6 +118,9 @@ func _presentation() -> void:
 	info["presentation"]["decorations"] = details
 	cover.apply_map_info(info)
 	await process_frame
+	_expect(not entered_layers.is_empty() and entered_layers.all(func(layer: int) -> bool: return layer == ArenaSky.WORLD_LAYERS),
+		"world geometry entered the live tree before its final render layer")
+	node_added.disconnect(observe_layer)
 	_expect(cover.get_child_count() == base_count + details.size(), "details not built from MapInfo")
 	cover.apply_map_info(info)
 	_expect(cover.get_child_count() == base_count + details.size(), "duplicate map rebuilt twice")

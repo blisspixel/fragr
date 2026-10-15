@@ -61,9 +61,14 @@ continues into the foundry with a finite Rocket Launcher, optional worker
 releases, machinery hazards and a freight lift. Shoot the machine relay while
 leaving the town feed intact, secure the upper gallery, then use the lift with
 the whole ready party aboard. If somebody leaves during ascent, the lift returns
-for another boarding attempt. All thirteen have practice entries and
+for another boarding attempt. **Launch Authority**, level 14, takes the fight
+outside to the launch works. Secure the depot and road, use the captured jeep
+if you choose, and learn the Walker's warned attacks before its support crews
+arrive. Clear the gantry after the machine falls, then use its control with
+the whole ready party aboard. The infantry route remains available after jeep
+loss. All fourteen have practice entries and
 connected saved progression. These remain development prototypes, with final
-art and fresh-player acceptance open. Connected levels 14
+art and fresh-player acceptance open. Connected levels 15
 through 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
 
@@ -261,9 +266,11 @@ and Remote Mines. Its stern departure saves Terms of Cooperation, the connected
 level 12 habitat prototype. Its shelter, pump, release and coalition facts
 persist through retries and deliberate departure into level 13, The Weight of
 Permission. The foundry retains worker choices and actual arrivals separately,
-plus machinery harm, relay, surrender and gallery outcomes. Its departure saves
-pending M14. Connected M14 through M20 remain unplayable; the standalone development maps
-above do not advance that save. The
+plus machinery harm, relay, surrender and gallery outcomes. Its departure opens
+Launch Authority without refilling continues. Level 14 retains the original
+jeep's survival and an on-foot Walker fight through its fleet departure, then
+saves pending Civic Pressure Valve. Connected M15 through M20 remain unplayable;
+the standalone development maps above do not advance that save. The
 [tender receipt](evidence/m11-quality-composition-20261006.md) records the route
 and remaining acceptance.
 
@@ -271,7 +278,7 @@ The local file is `run.json` under the platform user-data `runs` directory:
 `%LOCALAPPDATA%/fragr/runs` on Windows,
 `~/Library/Application Support/fragr/runs` on macOS, or
 `$XDG_DATA_HOME/fragr/runs` (usually `~/.local/share/fragr/runs`) on Linux.
-Current source writes version 17 saves; desktop v0.75.0 writes version 12.
+Current source writes version 18 saves; desktop v0.75.0 writes version 12.
 Supported historical saves upgrade
 strictly, retaining exact original bytes in a content-addressed
 `run.prior-<digest>.json` archive. Unknown revisions and magazine-era version 1
