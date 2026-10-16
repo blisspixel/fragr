@@ -5,7 +5,7 @@ pub(crate) mod blade;
 mod bot_senses;
 mod conquest;
 pub(crate) mod contact;
-mod ctf;
+pub mod ctf;
 #[cfg(test)]
 mod enclosed_tests;
 pub mod grenade;
