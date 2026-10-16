@@ -443,6 +443,7 @@ pub(crate) mod fixtures {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            article_blade: None,
         }
     }
 }

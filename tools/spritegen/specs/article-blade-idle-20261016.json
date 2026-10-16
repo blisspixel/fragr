@@ -1,0 +1,17 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/article-blade-20261016/idle",
+  "params": {
+    "quality": "high",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false,
+    "image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/ad2d9f71-69c3-44d0-bb57-bcfeac24be29.png"]
+  },
+  "style": "Use case: stylized-concept. Asset: production first-person weapon sprite for an original retro 3D FPS at rest. Match the reference's deliberately drawn angular pixel art, broad painted values, coherent stepped pixel clusters, perspective and worn full-finger brown leather work glove with dark rust jacket cuff. Limited palette of polished brass, bone white, gunmetal steel, warm brown leather, dark rust and deep shadow with clear value contrast, flat even lighting, no smooth gradients, no photographic textures.",
+  "technical": "One weapon only at rest. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no logo, no border, no watermark. Forearm and sleeve enter and are cut by the bottom or bottom-right edge. The blade stays comfortably inside canvas boundaries with clear empty margins, angled upward across the upper center.",
+  "frames": [{
+    "id": "article_blade_idle",
+    "subject": "The Article Blade, a ceremonial straight sword from Article Seven lore, held at rest ready to strike. Seen from first-person view, the wielder's right hand in a worn brown leather full-finger work glove with dark rust jacket cuff firmly grips the cylindrical brass hilt at lower right. A rectangular brass crossguard bears a riveted certification plate stamped with legal directive markings. The straight blade is held angled up and across the frame toward upper middle left, showing an immaculate razor bone-white cutting edge, polished brass spine fittings and dark steel core. Calm ready pose, no motion blur, no glowing aura, no magic runes. Clear value separation between the razor bone-white edge, warm brass hilt, scarred leather glove and deep shadowed metal. The reference determines art style and gloves only, never copy its shotgun barrel or receiver."
+  }]
+}

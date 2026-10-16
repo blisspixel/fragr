@@ -3,7 +3,8 @@ use super::{CampaignRules, CampaignRunState, MissionId, Role, WeaponType};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-pub const RECORD_VERSION: u32 = 4;
+pub const RECORD_VERSION: u32 = 5;
+pub const TEN_COLUMN_RECORD_VERSION: u32 = 4;
 pub const NINE_COLUMN_RECORD_VERSION: u32 = 3;
 pub const EIGHT_COLUMN_RECORD_VERSION: u32 = 2;
 pub const LEGACY_RECORD_VERSION: u32 = 1;
@@ -166,6 +167,7 @@ mod weapon_counts {
         if counts[WeaponType::Repeater.index()] != WeaponCounts::default()
             || counts[WeaponType::Arc.index()] != WeaponCounts::default()
             || counts[WeaponType::Rocket.index()] != WeaponCounts::default()
+            || counts[WeaponType::ArticleBlade.index()] != WeaponCounts::default()
         {
             return Err(serde::ser::Error::custom(
                 "new weapon counters require a versioned participant record",
@@ -473,10 +475,14 @@ impl PlayerRecord {
             LEGACY_RECORD_VERSION
                 | EIGHT_COLUMN_RECORD_VERSION
                 | NINE_COLUMN_RECORD_VERSION
+                | TEN_COLUMN_RECORD_VERSION
                 | RECORD_VERSION
         ) || (self.version < RECORD_VERSION
-            && (self.total.weapon(WeaponType::Rocket) != &WeaponCounts::default()
-                || self.attempt.weapon(WeaponType::Rocket) != &WeaponCounts::default()))
+            && (self.total.weapon(WeaponType::ArticleBlade) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::ArticleBlade) != &WeaponCounts::default()))
+            || (self.version < TEN_COLUMN_RECORD_VERSION
+                && (self.total.weapon(WeaponType::Rocket) != &WeaponCounts::default()
+                    || self.attempt.weapon(WeaponType::Rocket) != &WeaponCounts::default()))
             || (self.version < NINE_COLUMN_RECORD_VERSION
                 && (self.total.weapon(WeaponType::Arc) != &WeaponCounts::default()
                     || self.attempt.weapon(WeaponType::Arc) != &WeaponCounts::default()))
@@ -577,11 +583,18 @@ impl PlayerRecord {
             LEGACY_RECORD_VERSION
                 | EIGHT_COLUMN_RECORD_VERSION
                 | NINE_COLUMN_RECORD_VERSION
+                | TEN_COLUMN_RECORD_VERSION
                 | RECORD_VERSION
         ) {
             return Err("unsupported participant record version");
         }
         if version < RECORD_VERSION
+            && (self.total.weapon(WeaponType::ArticleBlade) != &WeaponCounts::default()
+                || self.attempt.weapon(WeaponType::ArticleBlade) != &WeaponCounts::default())
+        {
+            return Err("Article Blade counts cannot be delivered to an older reader");
+        }
+        if version < TEN_COLUMN_RECORD_VERSION
             && (self.total.weapon(WeaponType::Rocket) != &WeaponCounts::default()
                 || self.attempt.weapon(WeaponType::Rocket) != &WeaponCounts::default())
         {

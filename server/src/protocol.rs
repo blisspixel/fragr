@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 mod actors;
+mod blade;
 mod body;
 mod conquest;
 mod decoration;
@@ -41,6 +42,7 @@ pub use actors::{
     hostile, AuditorState, CampaignActor, CompanionKind, CompanionPhase, EnemyKind, EnemyPhase,
     AUDITOR_REPAIRS,
 };
+pub use blade::{ArticleBladeInfo, ArticleBladePhase, ArticleBladeState};
 pub use body::BodyKind;
 pub use conquest::{CapturePoint, ConquestState};
 pub use decoration::{
@@ -108,7 +110,7 @@ pub use sabotage::{
 pub use statistics::{
     per_minute_tenths, ratio_scaled, wilson_thousandths, CombatCounts, PlayerRecord, RecordScope,
     RecordStatus, WeaponCounts, EIGHT_COLUMN_RECORD_VERSION, LEGACY_RECORD_VERSION,
-    NINE_COLUMN_RECORD_VERSION, RECORD_TICKS_PER_SECOND, RECORD_VERSION,
+    NINE_COLUMN_RECORD_VERSION, RECORD_TICKS_PER_SECOND, RECORD_VERSION, TEN_COLUMN_RECORD_VERSION,
 };
 pub use status::{
     BuildInfo, ClientRate, Health, HealthReason, HealthState, NightTotals, OpsStatus, ProcessInfo,
@@ -523,6 +525,8 @@ pub enum WeaponType {
     Arc,
     /// Discovery projectile. Direct damage plus covered splash. Not an arcade gun.
     Rocket,
+    /// Borrowed arena blade with finite swings and return to plinth.
+    ArticleBlade,
 }
 
 /// The scatter gun deals full damage inside this distance.
@@ -539,7 +543,7 @@ impl WeaponType {
     /// Four body flechette hits, two point-blank scatter blasts, or two body
     /// rail hits kill an unarmoured fighter, which puts every weapon's body
     /// time to kill inside the 0.6 to 1.2 second band in `docs/plans/gunfeel.md`.
-    /// Fists and the Shiv do not gain the head bonus.
+    /// Fists, the Shiv and the Article Blade do not gain the head bonus.
     pub fn damage(self) -> i32 {
         match self {
             WeaponType::Fists | WeaponType::Tack => 20,
@@ -555,6 +559,7 @@ impl WeaponType {
             WeaponType::Scatter => 10,
             // Direct component only. Covered splash is resolved with the projectile.
             WeaponType::Rocket => 65,
+            WeaponType::ArticleBlade => 70,
         }
     }
 
@@ -602,6 +607,7 @@ impl WeaponType {
             WeaponType::Arc => 3,
             WeaponType::Scatter => 12,
             WeaponType::Rocket => 16,
+            WeaponType::ArticleBlade => 9,
         }
     }
 
@@ -610,7 +616,7 @@ impl WeaponType {
     /// assistance: a shot still has to pass within a fighter's radius to land.
     pub fn spread_radians(self) -> f32 {
         match self {
-            WeaponType::Fists | WeaponType::Shiv => 0.0,
+            WeaponType::Fists | WeaponType::Shiv | WeaponType::ArticleBlade => 0.0,
             WeaponType::Tack => 0.03,
             // Mid workhorse: 2.6 degrees, forgiving in its own band.
             WeaponType::Flechette => 0.045,
@@ -634,6 +640,7 @@ impl WeaponType {
         match self {
             WeaponType::Fists => 1.8,
             WeaponType::Shiv => 2.2,
+            WeaponType::ArticleBlade => 2.0,
             WeaponType::Tack => 30.0,
             WeaponType::Flechette => 40.0,
             WeaponType::Rail => 60.0,
@@ -650,6 +657,7 @@ impl WeaponType {
         match self {
             WeaponType::Fists => (0.0, 1.5),
             WeaponType::Shiv => (0.0, 1.9),
+            WeaponType::ArticleBlade => (0.0, 1.8),
             WeaponType::Tack => (5.0, 18.0),
             WeaponType::Flechette => (8.0, 28.0),
             WeaponType::Rail => (18.0, 45.0),
@@ -673,6 +681,7 @@ impl WeaponType {
             WeaponType::Arc => "Arc",
             WeaponType::Scatter => "Scatter",
             WeaponType::Rocket => "Rocket",
+            WeaponType::ArticleBlade => "Article Blade",
         }
     }
 
@@ -781,9 +790,11 @@ pub const ROCKET_GAMEPLAY_VERSION: u32 = 46;
 pub const M13_GAMEPLAY_VERSION: u32 = 47;
 pub const M14_GAMEPLAY_VERSION: u32 = 49;
 pub const WALKER_GAMEPLAY_VERSION: u32 = 48;
+/// Article Blade melee, plinth lifecycle, eleven-column records and range contract.
+pub const BLADE_GAMEPLAY_VERSION: u32 = 50;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = M14_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = BLADE_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -915,6 +926,7 @@ mod geometry_tests {
             m13: None,
             m14: None,
             walker: None,
+            article_blade: None,
             map_id: 67,
             map_name: "Enclosed fixture".into(),
             half_extent: 12.0,
@@ -1080,6 +1092,9 @@ pub enum ServerMessage {
         /// Bounded water volumes used by swimming, hulls and presentation.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         water_regions: Vec<WaterRegion>,
+        /// Registered Article Blade plinth facts.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        article_blade: Option<ArticleBladeInfo>,
     },
     Mission {
         tick: u64,
@@ -1494,6 +1509,9 @@ pub struct Snapshot {
     /// Capture sites and retained tickets on a Conquest server.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub conquest: Option<ConquestState>,
+    /// Article Blade plinth and possession facts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub article_blade: Option<ArticleBladeState>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -1925,6 +1943,7 @@ mod protocol_tests {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["shot_results"][0]["hit"], true);
@@ -2162,6 +2181,7 @@ mod protocol_tests {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         };
         let v = serde_json::to_value(&snap).unwrap();
         assert_eq!(v["pickups"][0]["id"], "pad_rail");

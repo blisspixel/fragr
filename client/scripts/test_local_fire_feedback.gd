@@ -58,7 +58,8 @@ func _check(condition: bool, label: String) -> void:
 
 func _equipment(weapon: String = "flechette", rounds: int = -1, tick: int = 100) -> Dictionary:
 	var equipment: Dictionary = {"tick": tick, "selected": weapon, "weapons": EquipmentState.WEAPONS.duplicate(),
-		"ammo": [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}, {"pool": "rockets", "rounds": 4}]}
+		"ammo": [{"pool": "bullets", "rounds": 80}, {"pool": "shells", "rounds": 24}, {"pool": "cells", "rounds": 16}, {"pool": "rockets", "rounds": 4}],
+		"article_blade_uses": 12}
 	if EquipmentState.MAGAZINE_SIZES.has(weapon):
 		equipment["loaded"] = [{"weapon": weapon, "rounds": int(EquipmentState.MAGAZINE_SIZES[weapon]) if rounds < 0 else rounds}]
 	return equipment
@@ -83,7 +84,8 @@ func _cadence_and_inventory() -> void:
 	_check(mirror.compile("WeaponType::([A-Za-z]+) => ([0-9]+),") == OK, "cadence regex compiles")
 	var checked: int = 0
 	for entry: RegExMatch in mirror.search_all(cooldown):
-		_check(int(LocalFireFeedback.COOLDOWN_TICKS.get(entry.get_string(1).to_lower(), -1)) == int(entry.get_string(2)), "presentation cadence matches server " + entry.get_string(1))
+		var weapon_key: String = entry.get_string(1).to_snake_case()
+		_check(int(LocalFireFeedback.COOLDOWN_TICKS.get(weapon_key, -1)) == int(entry.get_string(2)), "presentation cadence matches server " + entry.get_string(1))
 		checked += 1
 	_check(checked == EquipmentState.WEAPONS.size(), "every weapon has a verified cadence")
 	for weapon: String in EquipmentState.WEAPONS:

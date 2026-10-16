@@ -234,6 +234,7 @@ fn export_enclosed_capture() {
             m14: None,
             m13: None,
             walker: None,
+            article_blade: None,
             map_id: 1,
             map_name: "Enclosed geometry fixture".into(),
             half_extent: arena.half,

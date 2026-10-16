@@ -53,18 +53,23 @@ func _run() -> void:
 	for field: String in ["total", "attempt"]:
 		nine_column[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
 	_check(PlayerRecord.validation_error(nine_column, nine_column["player_id"]).is_empty(), "retained version three has exactly nine columns")
-	var current: Dictionary = nine_column.duplicate(true)
+	var ten_column: Dictionary = nine_column.duplicate(true)
+	ten_column["version"] = PlayerRecord.TEN_COLUMN_VERSION
+	for field: String in ["total", "attempt"]:
+		ten_column[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(PlayerRecord.validation_error(ten_column, ten_column["player_id"]).is_empty(), "retained version four has exactly ten columns")
+	var current: Dictionary = ten_column.duplicate(true)
 	current["version"] = PlayerRecord.VERSION
 	for field: String in ["total", "attempt"]:
 		current[field]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
-	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has a distinct tenth Rocket column")
-	var forged_nine: Dictionary = nine_column.duplicate(true)
-	forged_nine["attempt"]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
-	_check(not PlayerRecord.validation_error(forged_nine, forged_nine["player_id"]).is_empty(), "version three refuses a tenth column")
-	for width: int in [5, 6, 7, 9, 10]:
-		var forged_eight: Dictionary = eight_column.duplicate(true)
-		forged_eight["attempt"]["weapons"].resize(width)
-		_check(not PlayerRecord.validation_error(forged_eight, forged_eight["player_id"]).is_empty(), "version two refuses width " + str(width))
+	_check(PlayerRecord.validation_error(current, current["player_id"]).is_empty(), "current record has a distinct eleventh Article Blade column")
+	var forged_ten: Dictionary = ten_column.duplicate(true)
+	forged_ten["attempt"]["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
+	_check(not PlayerRecord.validation_error(forged_ten, forged_ten["player_id"]).is_empty(), "version four refuses an eleventh column")
+	for width: int in [5, 6, 7, 8, 9, 11]:
+		var forged_ten_wrong: Dictionary = ten_column.duplicate(true)
+		forged_ten_wrong["attempt"]["weapons"].resize(width)
+		_check(not PlayerRecord.validation_error(forged_ten_wrong, forged_ten_wrong["player_id"]).is_empty(), "version four refuses width " + str(width))
 	var remote_counts: Dictionary = {"alive_ticks": 20, "deaths": 0, "hp_lost": 0, "armor_lost": 0, "dry_triggers": 0, "weapons": [], "remote_mines": {"attacks": 2, "damaging_attacks": 1, "kills": 1, "hp_damage": 35, "armor_damage": 20}}
 	for _index: int in range(EquipmentState.WEAPONS.size()):
 		remote_counts["weapons"].append({"attacks": 0, "damaging_attacks": 0, "kills": 0, "hp_damage": 0, "armor_damage": 0})
@@ -87,10 +92,10 @@ func _run() -> void:
 	var forged_legacy: Dictionary = current.duplicate(true)
 	forged_legacy["version"] = PlayerRecord.LEGACY_VERSION
 	_check(not PlayerRecord.validation_error(forged_legacy, forged_legacy["player_id"]).is_empty(), "legacy record refuses zero eighth column")
-	for size: int in [5, 6, 7, 8, 9, 11]:
+	for size: int in [5, 6, 7, 8, 9, 10, 12]:
 		var wrong_current: Dictionary = current.duplicate(true)
 		wrong_current["attempt"]["weapons"].resize(size)
-		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact ten columns")
+		_check(not PlayerRecord.validation_error(wrong_current, wrong_current["player_id"]).is_empty(), "current record requires exact eleven columns")
 	var rocket_head: Dictionary = current.duplicate(true)
 	for field: String in ["total", "attempt"]:
 		rocket_head[field]["weapons"][9]["attacks"] = 1
@@ -98,6 +103,13 @@ func _run() -> void:
 		rocket_head[field]["weapons"][9]["connects"] = 1
 		rocket_head[field]["weapons"][9]["heads"] = 1
 	_check(not PlayerRecord.validation_error(rocket_head, rocket_head["player_id"]).is_empty(), "a rocket has no head band")
+	var blade_head: Dictionary = current.duplicate(true)
+	for field: String in ["total", "attempt"]:
+		blade_head[field]["weapons"][10]["attacks"] = 1
+		blade_head[field]["weapons"][10]["damaging_attacks"] = 1
+		blade_head[field]["weapons"][10]["connects"] = 1
+		blade_head[field]["weapons"][10]["heads"] = 1
+	_check(not PlayerRecord.validation_error(blade_head, blade_head["player_id"]).is_empty(), "an article blade has no head band")
 	var rocket_kills: Dictionary = current.duplicate(true)
 	for field: String in ["total", "attempt"]:
 		rocket_kills[field]["weapons"][9]["attacks"] = 1

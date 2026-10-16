@@ -205,7 +205,8 @@ func _ready():
 	rocket_viewmodel = RocketViewmodel.new()
 	rocket_viewmodel.name = "RocketViewmodel"
 	add_child(rocket_viewmodel)
-	viewmodel_textures["Rocket"] = rocket_viewmodel.get_texture()
+	if not viewmodel_textures.has("Rocket") or viewmodel_textures["Rocket"] == null:
+		viewmodel_textures["Rocket"] = rocket_viewmodel.get_texture()
 	equipment_hud = EquipmentHud.new()
 	equipment_hud.name = "Equipment"
 	add_child(equipment_hud)
@@ -2023,6 +2024,12 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		"Scatter":
 			fp_kick_amount = Vector2(14, 10)
 			fp_kick_timer = 0.10
+		"Rocket":
+			fp_kick_amount = Vector2(6, 28)
+			fp_kick_timer = 0.22
+		"Article Blade", "ArticleBlade":
+			fp_kick_amount = Vector2(-16, 8)
+			fp_kick_timer = 0.18
 		_:
 			fp_kick_amount = Vector2(6, 8)
 

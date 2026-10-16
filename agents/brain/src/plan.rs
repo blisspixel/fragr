@@ -141,6 +141,7 @@ pub fn parse_weapon(name: &str) -> Option<WeaponType> {
         "repeater" => Some(WeaponType::Repeater),
         "arc" => Some(WeaponType::Arc),
         "rocket" => Some(WeaponType::Rocket),
+        "article_blade" | "article blade" => Some(WeaponType::ArticleBlade),
         _ => None,
     }
 }
@@ -157,6 +158,7 @@ pub fn weapon_name(weapon: WeaponType) -> &'static str {
         WeaponType::Repeater => "repeater",
         WeaponType::Arc => "arc",
         WeaponType::Rocket => "rocket",
+        WeaponType::ArticleBlade => "article_blade",
     }
 }
 
@@ -858,6 +860,7 @@ mod tests {
             proximity_mines: 0,
             loaded: Vec::new(),
             remote_mines: 0,
+            article_blade_uses: None,
         };
         let through_inventory = |snap: &Snapshot| {
             fragr_server::inventory::control_action_with_target_filter(

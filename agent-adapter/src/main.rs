@@ -1632,6 +1632,7 @@ mod tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            article_blade: None,
         };
 
         let json = serde_json::to_value(&snapshot).unwrap();
@@ -1688,6 +1689,7 @@ mod tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            article_blade: None,
         };
         let json = serde_json::to_value(&snap).unwrap();
         assert_eq!(json["host_line"], protocol::default_host_line());
@@ -1804,6 +1806,7 @@ mod tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            article_blade: None,
         };
 
         let json = serde_json::to_value(&snapshot).unwrap();
@@ -2173,6 +2176,7 @@ mod tests {
             episode_progress: None,
             episode_phase: None,
             jammer_dish: None,
+            article_blade: None,
         };
         let action = compute_bot_action(bot_id, &snapshot);
         let look = action.look_at.expect("look_at toward nearest");
@@ -3082,6 +3086,7 @@ fn main() -> ExitCode {
                 m14: None,
                 m13: None,
                 walker: None,
+                article_blade: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Raised fixture".into(),
@@ -3270,6 +3275,7 @@ fn main() -> ExitCode {
                 m14: None,
                 m13: None,
                 walker: None,
+                article_blade: None,
                 presentation: None,
                 map_id: 1,
                 map_name: "Ping fixture".into(),

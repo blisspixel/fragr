@@ -1241,6 +1241,8 @@ pub async fn send_unicasts(
                         protocol::EIGHT_COLUMN_RECORD_VERSION
                     } else if client.gameplay_version < protocol::ROCKET_GAMEPLAY_VERSION {
                         protocol::NINE_COLUMN_RECORD_VERSION
+                    } else if client.gameplay_version < protocol::BLADE_GAMEPLAY_VERSION {
+                        protocol::TEN_COLUMN_RECORD_VERSION
                     } else {
                         protocol::RECORD_VERSION
                     };

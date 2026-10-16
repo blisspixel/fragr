@@ -170,7 +170,7 @@ static func _row_ok(actor: Dictionary) -> bool:
 		return false
 	if actor.has("weapon"):
 		var weapon: Variant = actor["weapon"]
-		if not weapon is String or not str(weapon).to_lower() in EquipmentState.WEAPONS:
+		if not weapon is String or not str(weapon).to_lower().replace(" ", "_") in EquipmentState.WEAPONS:
 			return false
 	if actor.has("team"):
 		var team: Variant = actor["team"]

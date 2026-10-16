@@ -2,7 +2,8 @@ class_name PlayerRecord
 extends RefCounted
 
 ## Mirror of protocol/statistics.rs. Display and persistence share this boundary.
-const VERSION: int = 4
+const VERSION: int = 5
+const TEN_COLUMN_VERSION: int = 4
 const NINE_COLUMN_VERSION: int = 3
 const EIGHT_COLUMN_VERSION: int = 2
 const LEGACY_VERSION: int = 1
@@ -26,7 +27,7 @@ static func key(record: Dictionary) -> String:
 
 static func validation_error(data: Dictionary, owner: Variant, previous: Dictionary = {}) -> String:
 	if data.size() != (16 if data.has("type") else 15) + int(data.has("mission_elapsed_ticks")) or (data.has("type") and data["type"] != "record") \
-		or not EquipmentState.integer(data.get("version"), VERSION) or int(data["version"]) not in [LEGACY_VERSION, EIGHT_COLUMN_VERSION, NINE_COLUMN_VERSION, VERSION] or data.get("ticks_per_second") != 20 \
+		or not EquipmentState.integer(data.get("version"), VERSION) or int(data["version"]) not in [LEGACY_VERSION, EIGHT_COLUMN_VERSION, NINE_COLUMN_VERSION, TEN_COLUMN_VERSION, VERSION] or data.get("ticks_per_second") != 20 \
 		or not MissionState._uuid(data.get("session_id")) or not MissionState._uuid(data.get("player_id")) \
 		or data.get("player_id") != owner or data.get("role") not in ["human", "agent"] \
 		or data.get("status") not in STATUSES:
@@ -76,8 +77,9 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 	if (record_version == LEGACY_VERSION and (width < LEGACY_WEAPONS or width > LEGACY_MAX_WEAPONS)) \
 		or (record_version == EIGHT_COLUMN_VERSION and width != 8) \
 		or (record_version == NINE_COLUMN_VERSION and width != 9) \
+		or (record_version == TEN_COLUMN_VERSION and width != 10) \
 		or (record_version == VERSION and width != EquipmentState.WEAPONS.size()) \
-		or record_version not in [LEGACY_VERSION, EIGHT_COLUMN_VERSION, NINE_COLUMN_VERSION, VERSION]:
+		or record_version not in [LEGACY_VERSION, EIGHT_COLUMN_VERSION, NINE_COLUMN_VERSION, TEN_COLUMN_VERSION, VERSION]:
 		return false
 	# Distinct secrets found; omitted while zero.
 	var secrets: bool = value.has("secrets")
@@ -115,7 +117,7 @@ static func valid_counts(value: Variant, record_version: int = VERSION) -> bool:
 		var kill_limit: int = 256 if weapon_name == "rocket" else EquipmentState.pellets(weapon_name)
 		if int(weapon["kills"]) > int(weapon["damaging_attacks"]) * kill_limit or int(weapon["damaging_attacks"]) > int(weapon["attacks"]):
 			return false
-		if not _geometry_holds(weapon, weapon_name != "fists" and weapon_name != "rocket"):
+		if not _geometry_holds(weapon, weapon_name != "fists" and weapon_name != "rocket" and weapon_name != "article_blade"):
 			return false
 	for field: String in WEAPON_COUNTS:
 		if sum_combat(value, field) > EquipmentState.MAX_EXACT_INTEGER:

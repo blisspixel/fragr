@@ -201,8 +201,10 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         capture_limit,
         sabotage,
         conquest,
+        article_blade,
     } = old;
-    walker == &new.walker
+    article_blade == &new.article_blade
+        && walker == &new.walker
         && vehicles.len() == new.vehicles.len()
         && vehicles
             .iter()

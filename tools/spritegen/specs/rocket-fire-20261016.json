@@ -1,0 +1,17 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/rocket-20261016/fire",
+  "params": {
+    "quality": "high",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false,
+    "image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/dc7dc9b1-6d48-4a83-808b-98f31222abdc.png"]
+  },
+  "style": "Use case: stylized-concept. Asset: production first-person weapon sprite for an original retro 3D FPS at the instant of firing. Match the reference's deliberately drawn angular pixel art, broad painted metal values, coherent stepped pixel clusters, perspective and worn full-finger brown leather work gloves with dark rust jacket cuffs. Preserve modern detailed craft, not a primitive polygon render and not photographic textures.",
+  "technical": "One weapon only at the instant of firing. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no logo, no border, no watermark. Hands and sleeves enter and are cut by the bottom edge. All muzzle exhaust, launch fire and venting smoke stay contained fully inside canvas boundaries with clear empty corners. Keep foreground mostly in central lower half of canvas.",
+  "frames": [{
+    "id": "rocket_fire",
+    "subject": "The same substantial practical reusable shoulder-fired ROCKET LAUNCHER circa 2070 at the instant of firing. Seen from the wielder's eyes behind and slightly above the right shoulder, tube runs from broad lower right foreground toward upper middle left, pointing away from viewer toward the central aiming direction. Long sage-green painted launch tube with charcoal heat shield, protective worn steel muzzle collar at far end, simple raised iron sight, a few substantial bolts and restrained enamel wear. Right gloved hand grips firing unit below near end; left glove supports underside forward, fingers wrap convincingly around the tube. Both brown leather gloves have practical seams and dark rust cuffs matching reference. Tube kicks back firmly into the shoulder from recoil. A sharp, violent rocket launch exhaust erupts from the far muzzle: a dramatic forward plume of hot ember orange with a brilliant pale yellow-white core, jagged stepped pixel fire edges, a departing rocket projectile tip visible emerging through the blast, and a few chunky dark propellant smoke puffs venting near the muzzle collar, staying well inside canvas boundaries. Clear layered steel highlights, hot luminous exhaust contrast, warm glove material distinct from sage-green tube and charcoal heat shield. No sci-fi glowing coils, no laser sights, no photorealism."
+  }]
+}

@@ -171,13 +171,15 @@ pub fn head_hit_for(
     impact_y >= gate && impact_y <= top
 }
 
-/// Body damage, or double when the pellet is in the head band. Fists and the
-/// Shiv stay flat: a punch to the face is still a punch.
+/// Body damage, or double when the pellet is in the head band. Fists, the
+/// Shiv and the Article Blade stay flat: a punch or sword cut has no head bonus.
 pub fn traced_damage(weapon: crate::protocol::WeaponType, body: i32, head: bool) -> i32 {
     if head
         && !matches!(
             weapon,
-            crate::protocol::WeaponType::Fists | crate::protocol::WeaponType::Shiv
+            crate::protocol::WeaponType::Fists
+                | crate::protocol::WeaponType::Shiv
+                | crate::protocol::WeaponType::ArticleBlade
         )
     {
         body.saturating_mul(HEAD_DAMAGE_SCALE)

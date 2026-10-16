@@ -6,12 +6,12 @@ extends RefCounted
 ## A shot still spends one unit. Agents keep the single count and omit `loaded`.
 ## Wire and record order. Shiv, Sniper, Repeater and Arc append so old record
 ## slots keep their meaning.
-const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater", "arc", "rocket"]
+const WEAPONS: Array[String] = ["fists", "tack", "flechette", "scatter", "rail", "shiv", "sniper", "repeater", "arc", "rocket", "article_blade"]
 const POOLS: Dictionary = {"tack": "bullets", "flechette": "bullets", "repeater": "bullets", "scatter": "shells", "rail": "cells", "sniper": "cells", "arc": "cells", "rocket": "rockets"}
 const CAPACITIES: Dictionary = {"bullets": 200, "shells": 50, "cells": 100, "rockets": 20}
 ## Pool order on the wire, matching the server.
 const POOL_ORDER: Array[String] = ["bullets", "shells", "cells", "rockets"]
-const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "repeater": "Repeater", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle", "arc": "Arc", "rocket": "Rocket Launcher"}
+const DISPLAY_NAMES: Dictionary = {"fists": "Fists", "shiv": "Shiv", "tack": "Pistol", "flechette": "Rifle", "repeater": "Repeater", "scatter": "Shotgun", "rail": "Railgun", "sniper": "Sniper Rifle", "arc": "Arc", "rocket": "Rocket Launcher", "article_blade": "Article Blade"}
 const POOL_NAMES: Dictionary = {"bullets": "Bullets", "shells": "Shells", "cells": "Cells", "rockets": "Rockets"}
 ## Rays in one shot. The shotgun's seven pellets still spend one shell.
 const PELLETS: Dictionary = {"scatter": 7}
@@ -20,11 +20,11 @@ const PELLETS: Dictionary = {"scatter": 7}
 ## holds the Shiv, as Doom's holds the chainsaw.
 const SLOTS: Array[String] = ["fists", "tack", "scatter", "flechette", "rail", "sniper"]
 ## The wheel order: the Shiv sits beside the fists it shares a key with.
-const CYCLE: Array[String] = ["fists", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "arc", "sniper", "rocket"]
+const CYCLE: Array[String] = ["fists", "article_blade", "shiv", "tack", "scatter", "flechette", "repeater", "rail", "arc", "sniper", "rocket"]
 ## Weapons that offer a scope. The view is presentation only: aim and hits stay
 ## with the server.
 const SCOPED: Array[String] = ["sniper"]
-const MELEE: Array[String] = ["fists", "shiv"]
+const MELEE: Array[String] = ["fists", "shiv", "article_blade"]
 const ARCADE: Array[String] = ["scatter", "flechette", "rail"]
 ## Rounds one human magazine holds. Melee has none.
 const MAGAZINE_SIZES: Dictionary = {
@@ -85,6 +85,11 @@ static func validation_error(data: Dictionary, owner: Variant, previous: Diction
 		if not weapon is String or weapon not in WEAPONS or owned.has(weapon):
 			return INVALID
 		owned[weapon] = true
+	if owned.has("article_blade"):
+		if not data.has("article_blade_uses") or not integer(data["article_blade_uses"], 12) or int(data["article_blade_uses"]) < 1:
+			return INVALID
+	elif data.has("article_blade_uses"):
+		return INVALID
 	# An arcade human lists only magazine guns. Discovery still carries fists.
 	var arcade: bool = loaded_present and not owned.has("fists")
 	if not owned.has(str(data["selected"])):
@@ -160,6 +165,8 @@ static func _magazine_error(loaded: Array, owned: Dictionary, pools: Dictionary,
 ## A magazine entry replaces the shared pool for that gun.
 static func shots(state: Dictionary, weapon: String) -> int:
 	var name: String = weapon.to_lower()
+	if name == "article_blade":
+		return int(state.get("article_blade_uses", -1))
 	var magazines: Variant = state.get("loaded", [])
 	if magazines is Array:
 		for entry: Variant in magazines:
@@ -175,6 +182,9 @@ static func shots(state: Dictionary, weapon: String) -> int:
 ## An unarmed pawn keeps the pool.
 static func count_text(state: Dictionary, weapon: String) -> String:
 	var name: String = weapon.to_lower()
+	if name == "article_blade":
+		var uses: int = int(state.get("article_blade_uses", -1))
+		return str(uses) if uses >= 0 else ""
 	var ready: int = shots(state, name)
 	if ready < 0:
 		return ""
@@ -237,15 +247,19 @@ static func cycle_owned(carried: Array, current: String, step: int) -> String:
 static func cycle(state: Dictionary, current: String, step: int) -> String:
 	return cycle_owned(carried_names(state), current, step)
 
-## Slot one draws the Shiv when carried, and a second press while holding it
-## goes back to fists. Slot four cycles Rifle/Repeater; slot five cycles Rail/Arc.
+## Slot one draws the Article Blade or Shiv when carried, and a press while holding
+## it cycles to the next melee option or fists. Slot four cycles Rifle/Repeater;
+## slot five cycles Rail/Arc.
 static func slot_if_owned(carried: Array, slot: int, current: String = "") -> String:
 	if slot < 1 or slot > SLOTS.size():
 		return ""
 	var owned: Array[String] = owned_in_order(carried)
 	var weapon: String = SLOTS[slot - 1]
-	if slot == 1 and owned.has("shiv") and current.to_lower() != "shiv":
-		return "shiv"
+	if slot == 1:
+		if owned.has("article_blade") and current.to_lower() != "article_blade":
+			return "article_blade"
+		if owned.has("shiv") and current.to_lower() != "shiv":
+			return "shiv"
 	if slot == 4 and owned.has("repeater"):
 		if current.to_lower() != "repeater" or not owned.has("flechette"):
 			return "repeater"

@@ -81,6 +81,7 @@ pub struct AuthoredMap {
     pub(super) presentation: MapPresentation,
     pub(super) equipment: crate::protocol::EquipmentPolicy,
     pub(super) supplies: Vec<crate::sim::ArenaPickup>,
+    pub(super) article_blade: Option<crate::protocol::ArticleBladeInfo>,
     pub(super) encounters: Vec<encounters::EncounterDefinition>,
     landmarks: Vec<Landmark>,
 }
@@ -123,6 +124,8 @@ struct Document {
     encounters: Vec<encounters::EncounterDefinition>,
     #[serde(default)]
     supplies: Vec<supplies::Definition>,
+    #[serde(default)]
+    article_blade: Option<crate::protocol::ArticleBladeInfo>,
     #[serde(default)]
     equipment: crate::protocol::EquipmentPolicy,
     version: u32,
@@ -895,6 +898,15 @@ impl AuthoredMap {
             m12::validate_supplies(&supplies)?;
         }
         encounters::validate(&doc.encounters, doc.equipment, &arena, &mut seen)?;
+        if let Some(blade) = &doc.article_blade {
+            identity(&blade.pickup_id, &mut seen)?;
+            blade.validate().map_err(invalid)?;
+            if !standing(&arena, blade.feet) {
+                return Err(invalid(
+                    "article blade plinth needs supported feet and clearance",
+                ));
+            }
+        }
         let navigation = if let Some(prepared) = &m14 {
             prepared.navigation.clone()
         } else if let Some(prepared) = &walker {
@@ -996,6 +1008,11 @@ impl AuthoredMap {
                     .iter()
                     .map(|p| (p.id.as_str(), [p.x, p.floor, p.z])),
             )
+            .chain(
+                doc.article_blade
+                    .iter()
+                    .map(|b| (b.pickup_id.as_str(), b.feet)),
+            )
             .chain(doc.encounters.iter().flat_map(|e| {
                 e.enemies.iter().map(|p| {
                     (
@@ -1069,6 +1086,7 @@ impl AuthoredMap {
             mast_shutdown: false,
             encounters: doc.encounters,
             supplies,
+            article_blade: doc.article_blade,
             equipment: doc.equipment,
             id: doc.map_id,
             name: doc.name,
@@ -1086,6 +1104,10 @@ impl AuthoredMap {
             map.opened_route = Some(Arc::new(opened));
         }
         Ok(Arc::new(map))
+    }
+
+    pub fn article_blade(&self) -> Option<crate::protocol::ArticleBladeInfo> {
+        self.article_blade.clone()
     }
 
     pub fn landmark(&self, id: &str) -> Option<[f32; 3]> {
