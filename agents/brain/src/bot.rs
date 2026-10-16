@@ -1494,6 +1494,7 @@ mod tests {
             proximity_mines: 0,
             loaded: Vec::new(),
             remote_mines: 0,
+            article_blade_uses: None,
         };
         loadout.validate_for(Some(id), None).unwrap();
         let mut proposed = Plan {

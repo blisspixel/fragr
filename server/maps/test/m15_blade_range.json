@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "map_id": 1050,
+  "name": "Article Blade range (foundation)",
+  "half_extent": 32,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {
+      "id": "plinth_stand",
+      "min": [-1.5, 0, -1.5],
+      "max": [1.5, 0.4, 1.5],
+      "surface": "service_steel"
+    },
+    {
+      "id": "occlusion_wall",
+      "min": [6, 0, -10],
+      "max": [7, 3, 10],
+      "surface": "concrete"
+    },
+    {
+      "id": "reach_barrier",
+      "min": [-8, 0, -4],
+      "max": [-7, 0.9, 4],
+      "surface": "service_steel"
+    }
+  ],
+  "spawns": [
+    {
+      "id": "entry",
+      "feet": [0, 0, -16],
+      "yaw": 1.5707963267949
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "plinth_mark",
+      "feet": [0, 0.4, 0]
+    },
+    {
+      "id": "behind_occlusion",
+      "feet": [10, 0, 0]
+    },
+    {
+      "id": "behind_reach_barrier",
+      "feet": [-10, 0, 0]
+    },
+    {
+      "id": "outside_retreat",
+      "feet": [0, 0, -10]
+    }
+  ],
+  "supplies": [
+    {
+      "id": "fallback_tack",
+      "claim": "personal",
+      "feet": [2, 0, -16],
+      "grant": {
+        "kind": "weapon",
+        "weapon": "tack"
+      }
+    },
+    {
+      "id": "fallback_bullets",
+      "claim": "contested",
+      "feet": [-2, 0, -16],
+      "grant": {
+        "kind": "ammo",
+        "pool": "bullets",
+        "amount": 24
+      }
+    }
+  ],
+  "encounters": [
+    {
+      "id": "range_sweeper_encounter",
+      "regions": [
+        {
+          "min": [-16, 0, -16],
+          "max": [16, 4, 16]
+        }
+      ],
+      "enemies": [
+        {
+          "id": "range_sweeper",
+          "kind": "sweeper",
+          "feet": [0, 0, 8],
+          "yaw": 4.712389
+        }
+      ]
+    }
+  ],
+  "article_blade": {
+    "pickup_id": "stadium_blade",
+    "feet": [0, 0.4, 0],
+    "return_ticks": 300
+  }
+}

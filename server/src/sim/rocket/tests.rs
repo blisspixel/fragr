@@ -565,8 +565,13 @@ fn one_rocket_records_every_victim_once() {
     assert!(record
         .record_for_version(NINE_COLUMN_RECORD_VERSION)
         .is_err());
+    let v4 = record
+        .record_for_version(crate::protocol::TEN_COLUMN_RECORD_VERSION)
+        .unwrap();
+    let v4_wire = serde_json::to_value(&v4).unwrap();
+    assert_eq!(v4_wire["total"]["weapons"].as_array().unwrap().len(), 10);
     let wire = serde_json::to_value(&record).unwrap();
-    assert_eq!(wire["total"]["weapons"].as_array().unwrap().len(), 10);
+    assert_eq!(wire["total"]["weapons"].as_array().unwrap().len(), 11);
     assert_eq!(
         serde_json::from_value::<crate::protocol::PlayerRecord>(wire).unwrap(),
         record

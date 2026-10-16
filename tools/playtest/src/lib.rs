@@ -145,6 +145,7 @@ fn weapon_from_wire(name: &str) -> Option<WeaponType> {
         "repeater" => Some(WeaponType::Repeater),
         "arc" => Some(WeaponType::Arc),
         "rocket" => Some(WeaponType::Rocket),
+        "article_blade" | "article blade" => Some(WeaponType::ArticleBlade),
         _ => None,
     }
 }
@@ -1783,6 +1784,7 @@ fn preferred_band(weapon: WeaponType) -> (f32, f32) {
         WeaponType::Repeater => (7.0, 12.0),
         WeaponType::Arc => (6.0, 16.0),
         WeaponType::Rocket => (8.0, 40.0),
+        WeaponType::ArticleBlade => (0.0, 1.8),
     }
 }
 
@@ -2664,6 +2666,7 @@ mod tests {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         }
     }
 
@@ -3598,6 +3601,7 @@ mod combat_tests {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         }
     }
 
@@ -4185,6 +4189,7 @@ mod planner_tests {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         }
     }
 
@@ -4704,6 +4709,7 @@ mod line_of_sight_tests {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,

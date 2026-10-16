@@ -74,7 +74,7 @@ impl AmmoPool {
 impl WeaponType {
     /// Wire and record order. Later guns are appended so earlier record slots
     /// keep their meaning.
-    pub const ALL: [Self; 10] = [
+    pub const ALL: [Self; 11] = [
         Self::Fists,
         Self::Tack,
         Self::Flechette,
@@ -85,6 +85,7 @@ impl WeaponType {
         Self::Repeater,
         Self::Arc,
         Self::Rocket,
+        Self::ArticleBlade,
     ];
     pub const ARCADE: [Self; 3] = [Self::Flechette, Self::Rail, Self::Scatter];
 
@@ -100,13 +101,14 @@ impl WeaponType {
             Self::Repeater => 7,
             Self::Arc => 8,
             Self::Rocket => 9,
+            Self::ArticleBlade => 10,
         }
     }
 
     /// The count one shot spends a single unit from. Melee needs nothing.
     pub const fn ammo_pool(self) -> Option<AmmoPool> {
         match self {
-            Self::Fists | Self::Shiv => None,
+            Self::Fists | Self::Shiv | Self::ArticleBlade => None,
             Self::Tack | Self::Flechette | Self::Repeater => Some(AmmoPool::Bullets),
             Self::Scatter => Some(AmmoPool::Shells),
             Self::Rail | Self::Sniper | Self::Arc => Some(AmmoPool::Cells),
@@ -117,7 +119,7 @@ impl WeaponType {
     /// Rounds a human magazine holds. Melee has none. Absent on an unarmed pawn.
     pub const fn magazine_size(self) -> Option<u16> {
         match self {
-            Self::Fists | Self::Shiv => None,
+            Self::Fists | Self::Shiv | Self::ArticleBlade => None,
             Self::Tack => Some(12),
             Self::Flechette => Some(20),
             Self::Repeater => Some(30),
@@ -132,7 +134,7 @@ impl WeaponType {
     /// Ticks to fill one magazine at 20 Hz. One press fills the whole tube.
     pub const fn reload_ticks(self) -> Option<u32> {
         match self {
-            Self::Fists | Self::Shiv => None,
+            Self::Fists | Self::Shiv | Self::ArticleBlade => None,
             Self::Tack => Some(16),
             Self::Flechette | Self::Repeater | Self::Arc => Some(22),
             Self::Scatter => Some(14),
@@ -144,7 +146,7 @@ impl WeaponType {
     /// Units a weapon pickup adds, on discovery and again when already carried.
     pub const fn pickup_rounds(self) -> u16 {
         match self {
-            Self::Fists | Self::Shiv => 0,
+            Self::Fists | Self::Shiv | Self::ArticleBlade => 0,
             Self::Tack => 50,
             Self::Flechette => 60,
             Self::Scatter => 12,
@@ -208,6 +210,10 @@ pub struct LoadoutState {
     /// The retired loadout keys `reserves` and `reload` stay refused.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub loaded: Vec<MagazineCount>,
+    /// Remaining Article Blade swings for an armed carrier. Omitted when unowned.
+    /// Absent on an unowned pawn; 1..=12 while owned; explicit null or 0 are invalid.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub article_blade_uses: Option<u16>,
 }
 
 fn is_zero(count: &u16) -> bool {
@@ -238,6 +244,17 @@ impl LoadoutState {
         {
             return Err("invalid proximity mine count");
         }
+        let blade_owned = self.weapons.contains(&WeaponType::ArticleBlade);
+        if blade_owned {
+            let Some(uses) = self.article_blade_uses else {
+                return Err("owned article blade requires article_blade_uses");
+            };
+            if !(1..=12).contains(&uses) {
+                return Err("invalid article blade uses count");
+            }
+        } else if self.article_blade_uses.is_some() {
+            return Err("unowned article blade cannot specify article_blade_uses");
+        }
         if self.arcade_magazines() {
             self.validate_arcade_magazines()?;
         } else {
@@ -258,6 +275,9 @@ impl LoadoutState {
     }
 
     fn validate_arcade_magazines(&self) -> Result<(), &'static str> {
+        if self.weapons.contains(&WeaponType::ArticleBlade) || self.article_blade_uses.is_some() {
+            return Err("arcade loadout cannot contain article blade");
+        }
         if self.grenades > 6
             || self.weapons.is_empty()
             || self.weapons.len() > WeaponType::ALL.len()
@@ -373,6 +393,9 @@ impl LoadoutState {
     /// Shots the weapon can fire now. A magazine, when this loadout has one,
     /// replaces the pool. None means the weapon needs no ammunition.
     pub fn shots(&self, weapon: WeaponType) -> Option<u16> {
+        if weapon == WeaponType::ArticleBlade {
+            return self.article_blade_uses;
+        }
         if let Some(magazine) = self
             .loaded
             .iter()

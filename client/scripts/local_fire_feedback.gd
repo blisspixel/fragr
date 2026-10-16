@@ -6,6 +6,7 @@ extends RefCounted
 const COOLDOWN_TICKS: Dictionary = {
 	"fists": 8, "shiv": 6, "tack": 5, "flechette": 4,
 	"rail": 20, "sniper": 32, "repeater": 2, "scatter": 12, "arc": 3, "rocket": 16,
+	"article_blade": 9,
 }
 const TICK_USEC: int = 50000
 const WARMUP_USEC: int = 6 * TICK_USEC

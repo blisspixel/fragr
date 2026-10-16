@@ -649,4 +649,15 @@ impl RuntimeMap {
             }
         }
     }
+
+    pub fn article_blade_info(&self) -> Option<crate::protocol::ArticleBladeInfo> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.article_blade(),
+        }
+    }
+
+    pub fn requires_article_blade_contract(&self) -> bool {
+        self.article_blade_info().is_some()
+    }
 }

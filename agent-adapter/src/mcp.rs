@@ -1663,6 +1663,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m13,
             m14,
             walker,
+            article_blade,
             map_name,
             half_extent,
             solids,
@@ -1675,6 +1676,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
         }) => {
             fragr_server::protocol::validate_map_geometry(half_extent, &solids, geometry_version)?;
             protocol::validate_water_regions(&water_regions, half_extent)?;
+            if let Some(blade) = &article_blade {
+                blade.validate()?;
+            }
             if let Some(layout) = sabotage.as_ref() {
                 layout.validate()?;
             }
@@ -3112,7 +3116,7 @@ mod mcp_tests {
         }
         for bad in [
             serde_json::json!("Rocket"),
-            serde_json::json!("article_blade"),
+            serde_json::json!("plasma_cannon"),
             serde_json::json!(7),
         ] {
             assert!(validate_act_arguments(&serde_json::json!({"weapon_swap":bad})).is_err());

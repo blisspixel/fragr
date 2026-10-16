@@ -328,6 +328,7 @@ impl InboundBudget {
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn accept_limited(
     stream: TcpStream,
     origins: &[String],

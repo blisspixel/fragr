@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod arc;
 pub(crate) mod assessor;
+pub(crate) mod blade;
 mod bot_senses;
 mod conquest;
 pub(crate) mod contact;
@@ -630,6 +631,7 @@ pub struct GameState {
     conquest_orders: conquest::coordination::Orders,
     /// The golden Railgun when the Golden Rail mutator is on.
     pub golden_rail: Option<GoldenRail>,
+    pub(crate) article_blade: Option<blade::ArticleBladePlinth>,
     reactions: ReactionState,
     /// Reactions called per kind across the session, so variants rotate.
     reaction_counts: [u32; HostReactionKind::ALL.len()],
@@ -669,6 +671,8 @@ pub struct Player {
     pub just_fired: bool,
     pub role: Role,
     pub weapon: WeaponType,
+    pub(crate) last_non_blade_weapon: WeaponType,
+    pub(crate) fire_latched: bool,
     pub inventory: crate::inventory::Inventory,
     bot_senses: bot_senses::BotSenses,
     /// Tick of last successful speak (rate limit).
@@ -733,6 +737,7 @@ impl Player {
         self.ducking = false;
         self.remote_place_requested = false;
         self.remote_trigger_requested = false;
+        self.fire_latched = false;
         self.reset_movement_baseline();
     }
 
@@ -802,6 +807,12 @@ impl Player {
             } else {
                 WeaponType::default()
             },
+            last_non_blade_weapon: if policy == crate::protocol::EquipmentPolicy::Discovery {
+                WeaponType::Fists
+            } else {
+                WeaponType::default()
+            },
+            fire_latched: false,
             inventory: crate::inventory::Inventory::new(policy),
             bot_senses: bot_senses::BotSenses::default(),
             last_speak_tick: None,
@@ -1022,10 +1033,12 @@ impl GameState {
         let map = crate::maps::RuntimeMap::Authored(map);
         let foundry = map.m13_gates().map(crate::mission::m13::Progress::new);
         let walker = map.walker_geometry().as_ref().map(walker::Walker::new);
+        let article_blade = map.article_blade_info().map(blade::ArticleBladePlinth::new);
         let mut state = Self {
             mission: crate::mission::MissionRun::new(&map),
             foundry,
             walker,
+            article_blade,
             pickups: map.pickups(),
             map,
             round_state: RoundState::Active,
@@ -1533,6 +1546,9 @@ impl GameState {
             }
         }
         self.return_golden_rail_from(id);
+        if let Some(blade) = self.article_blade.as_mut() {
+            blade.on_player_leave(id, self.tick);
+        }
         self.players.retain(|p| p.id != id);
         self.grenades.retain(|grenade| grenade.owner_id != id);
         self.assessor_canisters
@@ -1634,6 +1650,7 @@ impl GameState {
     /// The arena's shape as a message.
     pub fn map_info(&self) -> ServerMessage {
         ServerMessage::MapInfo {
+            article_blade: self.map.article_blade_info(),
             m04: self.map.m04_geometry(),
             m05: self.map.m05_geometry(),
             m06: self.map.m06_geometry(),
@@ -1945,6 +1962,9 @@ impl GameState {
             }
 
             player.statistics.alive_tick();
+            if !player.pending_action.fire {
+                player.fire_latched = false;
+            }
             player.inventory.tick(player.pending_action.fire);
             player.inventory.finish_reload(self.tick);
 
@@ -1953,6 +1973,9 @@ impl GameState {
                     if player.weapon != new_weapon {
                         player.repeater_cycle.reset();
                         player.inventory.cancel_reload();
+                        if player.weapon != WeaponType::ArticleBlade {
+                            player.last_non_blade_weapon = player.weapon;
+                        }
                     }
                     player.weapon = new_weapon;
                 }
@@ -2220,7 +2243,7 @@ impl GameState {
                 player.inventory.usable(player.weapon),
                 self.tick,
             );
-            if fire_permitted && player.fire_cooldown == 0 {
+            if fire_permitted && player.fire_cooldown == 0 && !player.fire_latched {
                 if crate::combat::is_assessor(player.campaign) {
                     assessor_launches.push(player.id);
                     continue;
@@ -2436,6 +2459,30 @@ impl GameState {
                 connected,
                 headed,
             );
+        }
+        let mut blade_exhausted = false;
+        for player in &mut self.players {
+            if player.weapon == WeaponType::ArticleBlade
+                && player.inventory.article_blade_uses() == 0
+            {
+                player.inventory.remove_article_blade();
+                let fallback = if player.inventory.owns(player.last_non_blade_weapon) {
+                    player.last_non_blade_weapon
+                } else if player.inventory.owns(WeaponType::Shiv) {
+                    WeaponType::Shiv
+                } else {
+                    WeaponType::Fists
+                };
+                player.weapon = fallback;
+                player.inventory.release_trigger();
+                player.fire_latched = true;
+                blade_exhausted = true;
+            }
+        }
+        if blade_exhausted {
+            if let Some(blade) = self.article_blade.as_mut() {
+                blade.on_exhausted(self.tick);
+            }
         }
         for (shooter, solid, end, normal, damage) in mast_hits {
             self.damage_m03_mast(shooter, solid, end, normal, damage);
@@ -2947,6 +2994,23 @@ impl GameState {
             self.conquest_death(victim_team);
             self.drop_charge_from(target_id);
             self.drop_primary_from(victim_idx);
+            let victim = &mut self.players[victim_idx];
+            if victim.inventory.article_blade_uses() > 0 {
+                victim.inventory.remove_article_blade();
+                let fallback = if victim.inventory.owns(victim.last_non_blade_weapon) {
+                    victim.last_non_blade_weapon
+                } else if victim.inventory.owns(WeaponType::Shiv) {
+                    WeaponType::Shiv
+                } else {
+                    WeaponType::Fists
+                };
+                victim.weapon = fallback;
+                victim.inventory.release_trigger();
+                victim.fire_latched = true;
+            }
+            if let Some(blade) = self.article_blade.as_mut() {
+                blade.on_holder_death(target_id, self.tick);
+            }
         }
         if self_hit {
             return (hp_damage, armor_damage, died);
@@ -3353,6 +3417,11 @@ impl GameState {
                     available: gold.holder.is_none(),
                     respawn_in: None,
                 }))
+                .chain(
+                    self.article_blade
+                        .as_ref()
+                        .map(|blade| blade.pickup_state()),
+                )
                 .collect(),
             map_id: self.map.id(),
             map_name: self.display_map_name(),
@@ -3394,7 +3463,18 @@ impl GameState {
             ),
             sabotage,
             conquest: self.conquest.clone(),
+            article_blade: self.article_blade_snapshot(),
         }
+    }
+
+    fn article_blade_snapshot(&self) -> Option<crate::protocol::ArticleBladeState> {
+        let blade = self.article_blade.as_ref()?;
+        let uses = blade
+            .holder()
+            .and_then(|id| self.players.iter().find(|p| p.id == id))
+            .map(|p| p.inventory.article_blade_uses())
+            .unwrap_or(0);
+        Some(blade.state(uses))
     }
 
     fn jammer_dish_state(&self) -> Option<crate::protocol::JammerDishState> {
@@ -3717,6 +3797,8 @@ impl GameState {
             just_fired: false,
             role: Role::Agent,
             weapon: WeaponType::Rail,
+            last_non_blade_weapon: WeaponType::Rail,
+            fire_latched: false,
             inventory: crate::inventory::Inventory::new(
                 crate::protocol::EquipmentPolicy::FullArsenal,
             ),
@@ -3809,6 +3891,9 @@ impl GameState {
         self.reset_vehicles();
         self.pickups = self.map.pickups();
         self.golden_rail = None;
+        if let Some(blade) = self.article_blade.as_mut() {
+            blade.reset(self.tick);
+        }
         if self.map.is_campaign() {
             return;
         }
@@ -3851,6 +3936,71 @@ impl GameState {
     /// Decrement pad respawn timers and claim available pads on touch.
     fn tick_pickups(&mut self) {
         self.claim_golden_rail();
+        if self.round_state == RoundState::Active {
+            if let Some(blade) = self.article_blade.as_mut() {
+                blade.tick_active(self.tick);
+            }
+        }
+        let mut blade_outside = Vec::new();
+        let mut blade_claim = None;
+        if let Some(blade) = &self.article_blade {
+            let feet = blade.feet();
+            let arena = self.current_arena();
+            for player in &self.players {
+                if player.respawn_timer.is_some()
+                    || player.hp <= 0
+                    || player.detached
+                    || player.is_boss
+                    || player.eliminated
+                    || player.is_campaign_enemy()
+                    || player.is_campaign_companion()
+                    || !crate::mission::actor_active(
+                        self.mission.as_ref(),
+                        player.id,
+                        player.campaign,
+                    )
+                {
+                    continue;
+                }
+                let dx = player.x - feet[0];
+                let dz = player.z - feet[2];
+                let dy = (player.y - PLAYER_FLOOR_Y - feet[1]).abs();
+                let inside = (dx * dx + dz * dz <= PICKUP_CLAIM_RADIUS * PICKUP_CLAIM_RADIUS)
+                    && (dy <= PICKUP_CLAIM_HEIGHT);
+                if !inside {
+                    blade_outside.push(player.id);
+                } else if blade.is_eligible_outside(player.id) && blade_claim.is_none() {
+                    let eye = [
+                        player.x,
+                        player.y - PLAYER_FLOOR_Y
+                            + crate::combat::stance_eye(player.campaign, player.ducking),
+                        player.z,
+                    ];
+                    let pad_pos = [feet[0], feet[1] + 0.4, feet[2]];
+                    if crate::combat::line_of_sight(eye, pad_pos, &arena.solids) {
+                        blade_claim = Some(player.id);
+                    }
+                }
+            }
+        }
+        if let Some(blade) = self.article_blade.as_mut() {
+            for id in blade_outside {
+                blade.record_outside(id);
+            }
+            if let Some(winner_id) = blade_claim {
+                blade.claim(winner_id, self.tick);
+            }
+        }
+        if let Some(winner_id) = blade_claim {
+            if let Some(player) = self.players.iter_mut().find(|p| p.id == winner_id) {
+                if player.weapon != WeaponType::ArticleBlade {
+                    player.last_non_blade_weapon = player.weapon;
+                }
+                player.inventory.grant_article_blade(12);
+                player.inventory.release_trigger();
+                player.weapon = WeaponType::ArticleBlade;
+            }
+        }
         let team_clock = self.config.rules.teams();
         for pad in &mut self.pickups {
             if let Some(timer) = pad.respawn_timer.as_mut() {
@@ -4105,6 +4255,8 @@ impl GameState {
             just_fired: false,
             role: Role::Agent,
             weapon: WeaponType::Rail,
+            last_non_blade_weapon: WeaponType::Rail,
+            fire_latched: false,
             inventory: crate::inventory::Inventory::new(
                 crate::protocol::EquipmentPolicy::FullArsenal,
             ),
@@ -4379,6 +4531,7 @@ impl Default for GameState {
             conquest: None,
             conquest_orders: conquest::coordination::Orders::default(),
             golden_rail: None,
+            article_blade: None,
             reactions: ReactionState::default(),
             reaction_counts: [0; HostReactionKind::ALL.len()],
         }
@@ -4896,7 +5049,7 @@ impl BotController {
         let (prefer_min, prefer_max) = bot.weapon.preferred_range();
         let fire_range = bot.weapon.range_units() * 0.95;
         let aim_slack = match bot.weapon {
-            WeaponType::Fists | WeaponType::Shiv => 0.55,
+            WeaponType::Fists | WeaponType::Shiv | WeaponType::ArticleBlade => 0.55,
             WeaponType::Tack => 0.40,
             WeaponType::Rail => 0.22,
             WeaponType::Sniper => 0.12,

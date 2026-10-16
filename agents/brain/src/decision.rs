@@ -208,6 +208,9 @@ pub fn campaign_questions(owned: &[WeaponType]) -> BTreeMap<String, Question> {
             WeaponType::Sniper => {
                 "Scoped precision for a far guard beyond the Railgun's reach, slow, with finite cells."
             }
+            WeaponType::ArticleBlade => {
+                "Plinth article. High-damage short-reach swing with finite uses before return."
+            }
         };
         weapons.insert(weapon_name(*weapon).to_string(), description.to_string());
     }

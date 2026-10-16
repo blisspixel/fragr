@@ -30,6 +30,11 @@ pub(crate) struct SavedEquipment {
 
 impl SavedEquipment {
     pub fn validate(&self) -> Result<(), &'static str> {
+        if self.selected == WeaponType::ArticleBlade
+            || self.weapons.contains(&WeaponType::ArticleBlade)
+        {
+            return Err("saved equipment cannot contain article blade");
+        }
         if self.proximity_mines > crate::protocol::MINE_CARRY_CAP
             || self.remote_mines > crate::protocol::REMOTE_MINE_CARRY_CAP
         {
@@ -67,6 +72,7 @@ pub struct Inventory {
     magazines: Option<[u16; WeaponType::ALL.len()]>,
     reload_weapon: Option<WeaponType>,
     reload_ready_at: Option<u64>,
+    article_blade_uses: u16,
 }
 
 impl Inventory {
@@ -105,6 +111,7 @@ impl Inventory {
         self.grenades = saved.grenades;
         self.mines = saved.proximity_mines;
         self.remote_mines = saved.remote_mines;
+        self.article_blade_uses = 0;
         self.dry_latched = false;
         self.reload_weapon = None;
         self.reload_ready_at = None;
@@ -134,12 +141,17 @@ impl Inventory {
             magazines: None,
             reload_weapon: None,
             reload_ready_at: None,
+            article_blade_uses: 0,
         }
     }
 
     /// A weapon-only arsenal: one weapon, unlimited ammunition, nothing to
     /// pick up. It is an arena arsenal, so it sends no private loadout.
     pub fn restricted(weapon: WeaponType) -> Self {
+        assert!(
+            weapon != WeaponType::ArticleBlade,
+            "article blade cannot be an arena restricted mutator"
+        );
         Self {
             only: Some(weapon),
             ..Self::new(EquipmentPolicy::FullArsenal)
@@ -176,10 +188,14 @@ impl Inventory {
         self.reload_weapon = None;
         self.reload_ready_at = None;
         self.dry_latched = false;
+        self.article_blade_uses = entry.article_blade_uses;
         self.revision += 1;
     }
 
     pub fn owns(&self, weapon: WeaponType) -> bool {
+        if weapon == WeaponType::ArticleBlade {
+            return self.article_blade_uses > 0;
+        }
         if let Some(only) = self.only {
             return weapon == only;
         }
@@ -228,6 +244,9 @@ impl Inventory {
     pub fn usable(&self, weapon: WeaponType) -> bool {
         if !self.owns(weapon) {
             return false;
+        }
+        if weapon == WeaponType::ArticleBlade {
+            return self.article_blade_uses > 0;
         }
         if let Some(magazines) = self.magazines {
             if self.reload_weapon == Some(weapon) {
@@ -285,6 +304,9 @@ impl Inventory {
     /// `rounds` is the discovery or pad grant. Callers that are not a campaign
     /// claim pass `weapon.pickup_rounds()` unchanged.
     pub(crate) fn grant_weapon_rounds(&mut self, weapon: WeaponType, rounds: u16) -> bool {
+        if weapon == WeaponType::ArticleBlade {
+            return false;
+        }
         if self.policy == EquipmentPolicy::FullArsenal {
             if !self.owns(weapon) {
                 return false;
@@ -328,6 +350,9 @@ impl Inventory {
     /// teaches a discovery gun, or is the weapon switch for an unarmed arsenal.
     /// An armed arcade human with a full bag leaves the pad for someone else.
     pub fn weapon_pad_useful(&self, weapon: WeaponType) -> bool {
+        if weapon == WeaponType::ArticleBlade {
+            return false;
+        }
         if self.policy == EquipmentPolicy::FullArsenal {
             if self.armed() && self.only.is_none() {
                 return weapon
@@ -449,11 +474,40 @@ impl Inventory {
         true
     }
 
+    pub fn article_blade_uses(&self) -> u16 {
+        self.article_blade_uses
+    }
+
+    pub fn grant_article_blade(&mut self, uses: u16) {
+        let count = uses.min(12);
+        self.article_blade_uses = count;
+        self.owned[WeaponType::ArticleBlade.index()] = count > 0;
+        self.revision = self.revision.saturating_add(1);
+    }
+
+    pub fn remove_article_blade(&mut self) {
+        if self.article_blade_uses > 0 || self.owned[WeaponType::ArticleBlade.index()] {
+            self.article_blade_uses = 0;
+            self.owned[WeaponType::ArticleBlade.index()] = false;
+            self.revision = self.revision.saturating_add(1);
+        }
+    }
+
     /// Called only after alive/cooldown admission, before RNG or ray resolution.
     /// One shot, including one Scatter blast of several pellets, spends one unit.
     /// An armed magazine spends that unit from the gun and from the carried total.
     pub fn try_fire(&mut self, selected: WeaponType) -> bool {
         if !self.owns(selected) {
+            return false;
+        }
+        if selected == WeaponType::ArticleBlade {
+            if self.article_blade_uses > 0 {
+                self.article_blade_uses -= 1;
+                self.revision = self.revision.saturating_add(1);
+                self.dry_latched = false;
+                return true;
+            }
+            self.note_dry_fire();
             return false;
         }
         if self.magazines.is_some() {
@@ -582,7 +636,10 @@ impl Inventory {
             }
             let weapons: Vec<WeaponType> = WeaponType::ALL
                 .into_iter()
-                .filter(|&weapon| self.owns(weapon) && weapon.magazine_size().is_some())
+                .filter(|&weapon| {
+                    self.owns(weapon)
+                        && (weapon.magazine_size().is_some() || weapon == WeaponType::ArticleBlade)
+                })
                 .collect();
             let selected = if weapons.contains(&selected) {
                 selected
@@ -611,6 +668,8 @@ impl Inventory {
                 remote_mines: self.remote_mines,
                 dry_fire_count: self.dry_fire_count,
                 loaded,
+                article_blade_uses: (self.article_blade_uses > 0)
+                    .then_some(self.article_blade_uses),
             });
         }
         Some(LoadoutState {
@@ -634,6 +693,7 @@ impl Inventory {
             remote_mines: self.remote_mines,
             dry_fire_count: self.dry_fire_count,
             loaded,
+            article_blade_uses: (self.article_blade_uses > 0).then_some(self.article_blade_uses),
         })
     }
 

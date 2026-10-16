@@ -447,6 +447,7 @@ fn test_protocol_snapshot_serialization() {
         jammer_dish: None,
         sabotage: None,
         conquest: None,
+        article_blade: None,
     };
     let json = serde_json::to_value(&snapshot).unwrap();
     assert_eq!(json["tick"], 123);
@@ -493,6 +494,7 @@ fn test_protocol_snapshot_empty_players() {
         jammer_dish: None,
         sabotage: None,
         conquest: None,
+        article_blade: None,
     };
     let json = serde_json::to_string(&snapshot).unwrap();
     assert!(json.contains(r#""tick":0"#));
@@ -2792,6 +2794,7 @@ async fn test_net_ws_action_forwarded_for_agent() {
             jammer_dish: None,
             sabotage: None,
             conquest: None,
+            article_blade: None,
         });
         broadcast_to_clients(&clients, &[snap]).await;
         let msg = tokio::time::timeout(std::time::Duration::from_secs(2), stream.next())

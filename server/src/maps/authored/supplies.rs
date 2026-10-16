@@ -50,7 +50,9 @@ pub(super) fn build(
                 )));
             }
             let (kind, amount) = match supply.grant {
-                Grant::Weapon { weapon } if weapon != WeaponType::Fists => {
+                Grant::Weapon { weapon }
+                    if weapon != WeaponType::Fists && weapon != WeaponType::ArticleBlade =>
+                {
                     (PickupKind::Weapon(weapon), 0)
                 }
                 Grant::Ammo { pool, amount } if amount > 0 && amount <= pool.capacity() => (

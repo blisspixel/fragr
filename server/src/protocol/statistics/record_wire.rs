@@ -28,7 +28,7 @@ fn bounded_weapons<'de, D: serde::Deserializer<'de>>(
     impl<'de> serde::de::Visitor<'de> for Columns {
         type Value = Vec<WeaponCounts>;
         fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            formatter.write_str("at most ten weapon columns")
+            formatter.write_str("at most eleven weapon columns")
         }
         fn visit_seq<A: serde::de::SeqAccess<'de>>(
             self,
@@ -54,6 +54,8 @@ impl Counts {
     fn from_counts(counts: CombatCounts, version: u32) -> Self {
         let width = if version == RECORD_VERSION {
             WeaponType::ALL.len()
+        } else if version == TEN_COLUMN_RECORD_VERSION {
+            10
         } else if version == NINE_COLUMN_RECORD_VERSION {
             9
         } else if version == EIGHT_COLUMN_RECORD_VERSION {
@@ -88,6 +90,7 @@ impl Counts {
             LEGACY_RECORD_VERSION => (5..=7).contains(&self.weapons.len()),
             EIGHT_COLUMN_RECORD_VERSION => self.weapons.len() == 8,
             NINE_COLUMN_RECORD_VERSION => self.weapons.len() == 9,
+            TEN_COLUMN_RECORD_VERSION => self.weapons.len() == 10,
             RECORD_VERSION => self.weapons.len() == WeaponType::ALL.len(),
             _ => false,
         } {
@@ -218,13 +221,32 @@ mod tests {
         }
         let current = record();
         let base = serde_json::to_value(&current).unwrap();
-        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 10);
+        assert_eq!(base["version"], 5);
+        assert_eq!(base["total"]["weapons"].as_array().unwrap().len(), 11);
         assert_eq!(
             serde_json::from_value::<PlayerRecord>(base.clone()).unwrap(),
             current
         );
-        for width in [0, 5, 6, 7, 8, 9, 11, 100] {
+        for width in [0, 5, 6, 7, 8, 9, 10, 12, 100] {
             let mut bad = base.clone();
+            bad["attempt"]["weapons"].as_array_mut().unwrap().resize(
+                width,
+                serde_json::to_value(WeaponCounts::default()).unwrap(),
+            );
+            assert!(serde_json::from_value::<PlayerRecord>(bad).is_err());
+        }
+        let v4 = current
+            .record_for_version(TEN_COLUMN_RECORD_VERSION)
+            .unwrap();
+        let v4_base = serde_json::to_value(&v4).unwrap();
+        assert_eq!(v4_base["version"], 4);
+        assert_eq!(v4_base["total"]["weapons"].as_array().unwrap().len(), 10);
+        assert_eq!(
+            serde_json::from_value::<PlayerRecord>(v4_base.clone()).unwrap(),
+            v4
+        );
+        for width in [0, 5, 6, 7, 8, 9, 11, 100] {
+            let mut bad = v4_base.clone();
             bad["attempt"]["weapons"].as_array_mut().unwrap().resize(
                 width,
                 serde_json::to_value(WeaponCounts::default()).unwrap(),
