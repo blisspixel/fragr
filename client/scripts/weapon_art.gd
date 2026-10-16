@@ -26,6 +26,9 @@ const IDLE: Dictionary[String, Texture2D] = {
 	"Sniper": preload("res://assets/weapons/sniper-sprite-20261005/sniper_idle.png"),
 	"Shiv": preload("res://assets/weapons/viewmodels/shiv_idle.png"),
 	"Arc": preload("res://assets/weapons/arc/arc_idle.png"),
+	"Rocket": preload("res://assets/weapons/viewmodels/rocket_idle.png"),
+	"Article Blade": preload("res://assets/weapons/viewmodels/article_blade_idle.png"),
+	"ArticleBlade": preload("res://assets/weapons/viewmodels/article_blade_idle.png"),
 }
 
 ## The frame at the instant of the shot, its muzzle flash painted in. Each was
@@ -37,6 +40,9 @@ const FIRE: Dictionary[String, Texture2D] = {
 	"Rail": preload("res://assets/weapons/viewmodels/railgun_fire.png"),
 	"Sniper": preload("res://assets/weapons/sniper-sprite-20261005/sniper_fire.png"),
 	"Arc": preload("res://assets/weapons/arc/arc_fire.png"),
+	"Rocket": preload("res://assets/weapons/viewmodels/rocket_fire.png"),
+	"Article Blade": preload("res://assets/weapons/viewmodels/article_blade_swing.png"),
+	"ArticleBlade": preload("res://assets/weapons/viewmodels/article_blade_swing.png"),
 }
 
 ## A follow-through after the shot: the Shotgun's pump stroke.
@@ -110,6 +116,8 @@ const PROFILE: Dictionary[String, Texture2D] = {
 	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper.png"),
 	"Shiv": preload("res://assets/weapons/48/shiv.png"),
 	"Arc": preload("res://assets/weapons/arc/arc_profile.png"),
+	"Article Blade": preload("res://assets/weapons/pickups/article_blade.png"),
+	"ArticleBlade": preload("res://assets/weapons/pickups/article_blade.png"),
 }
 
 ## Supplies by pickup kind, and ammunition by pool.
@@ -121,6 +129,7 @@ const SUPPLY: Dictionary[String, Texture2D] = {
 	"shells": preload("res://assets/pickups/shells.png"),
 	"cells": preload("res://assets/pickups/cells.png"),
 	"proximity_mine": preload("res://assets/pickups/proximity_mine.png"),
+	"rockets": preload("res://assets/pickups/rockets.png"),
 }
 
 const HUD_HEALTH: Texture2D = preload("res://assets/hud/health.png")
@@ -152,6 +161,10 @@ static func frame_after_shot(weapon: String, since: float) -> Texture2D:
 		if since >= 0.055 and since < 0.14:
 			return CYCLE[weapon]
 		return IDLE[weapon]
+	if weapon in ["Article Blade", "ArticleBlade"]:
+		if since >= 0.0 and since < 0.18:
+			return FIRE[weapon]
+		return IDLE.get(weapon)
 	if since >= 0.0 and since < FIRE_SECONDS and FIRE.has(weapon):
 		return FIRE[weapon]
 	if since >= CYCLE_FROM and since < CYCLE_UNTIL and CYCLE.has(weapon):

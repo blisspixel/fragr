@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "created": "2026-10-16",
+  "provider": "Higgsfield API through tools/spritegen",
+  "palette": "docs/palette.json",
+  "palette_sha256": "c97f60cb92a212166e1506ab1cb32f0705227e205b6ecb7fcd83701491f19da5",
+  "format": "RGBA8 PNG, palette-locked in CIE Lab, hard alpha, nearest sampling, no mipmaps; image chunks only, no embedded metadata",
+  "specs": [
+    "tools/spritegen/specs/rocket-idle-20261015.json",
+    "tools/spritegen/specs/rocket-fire-20261016.json",
+    "tools/spritegen/specs/article-blade-idle-20261016.json",
+    "tools/spritegen/specs/article-blade-swing-20261016.json",
+    "tools/spritegen/specs/missing-pickups-20261016.json"
+  ],
+  "note": "Reference uploads were temporary provider URLs; raw outputs and ledgers stay outside git under art/raw/.",
+  "assets": [
+    {
+      "output": "res://assets/weapons/viewmodels/rocket_idle.png",
+      "output_size": [241, 180],
+      "output_sha256": "1ed2f609b2ee5806a04090cc9e8dacae3a1e059bc53341c1c532298a79f17a74",
+      "frame_id": "rocket_idle",
+      "request_id": "35b24a5d-c7eb-4400-a747-fd5f406ce391",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "high",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.351,
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/rocket_fire.png",
+      "output_size": [241, 180],
+      "output_sha256": "cbfbab9759be7107716500aefc32660b2712b7cabeb1d451304649948a7f4a5f",
+      "frame_id": "rocket_fire",
+      "request_id": "f271c5e0-5845-4241-9e3c-8f606af64ab3",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "high",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.351,
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/article_blade_idle.png",
+      "output_size": [241, 180],
+      "output_sha256": "9d12f70d35fb6bb6dee7495bebea4741382fb1d4069d3b9b60fe4c5352aea5f6",
+      "frame_id": "article_blade_idle",
+      "request_id": "e641590e-a613-4ea7-b42d-e896aff0defd",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "high",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.349,
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/viewmodels/article_blade_swing.png",
+      "output_size": [241, 180],
+      "output_sha256": "7c725e7a3d89c27f728b7c90fedf19db6007ba66f859fec2e9e4fbf8d9b37886",
+      "frame_id": "article_blade_swing",
+      "request_id": "d29c4c04-e21e-4e2d-a811-4f66e77a21b0",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "4:3",
+        "enhance_prompt": false,
+        "quality": "high",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.350,
+      "reduction": "fragr-spritegen reduce --height 180 --no-trim --palette docs/palette.json --key ff00ff",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/pickups/rockets.png",
+      "output_size": [27, 32],
+      "output_sha256": "2df037742c6f9f9da448077e4fc4d00b5c76e4b4f983c1ac29ac37211d36be0d",
+      "frame_id": "pk_rockets",
+      "request_id": "85333e5a-7412-4b3d-a6c5-b774276f66c7",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.137,
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff",
+      "human_edited": false
+    },
+    {
+      "output": "res://assets/weapons/pickups/article_blade.png",
+      "output_size": [42, 32],
+      "output_sha256": "e95e1ef88a44831ef191b49ce28aeb850afa2ac59d331576c7e0d764d6ed7989",
+      "frame_id": "pk_article_blade",
+      "request_id": "86ce2230-c3d2-4218-ab75-7b86e79e582e",
+      "model": "marketing-studio/image",
+      "params": {
+        "aspect_ratio": "1:1",
+        "enhance_prompt": false,
+        "quality": "medium",
+        "resolution": "2k"
+      },
+      "estimated_usd": 0.137,
+      "reduction": "fragr-spritegen reduce --height 32 --palette docs/palette.json --key ff00ff",
+      "human_edited": false
+    }
+  ]
+}

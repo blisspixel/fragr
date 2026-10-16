@@ -1,0 +1,17 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/article-blade-20261016/swing",
+  "params": {
+    "quality": "high",
+    "resolution": "2k",
+    "aspect_ratio": "4:3",
+    "enhance_prompt": false,
+    "image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/e55fcfb0-7943-4b44-83b8-0b771e3d9fd9.png"]
+  },
+  "style": "Use case: stylized-concept. Asset: production first-person weapon sprite for an original retro 3D FPS during a melee attack swing. Match the reference's deliberately drawn angular pixel art, broad painted values, coherent stepped pixel clusters, perspective and worn full-finger brown leather work glove with dark rust jacket cuff. Limited palette of polished brass, bone white, gunmetal steel, warm brown leather, dark rust and deep shadow with clear value contrast, flat even lighting, no smooth gradients, no photographic textures.",
+  "technical": "One weapon only during mid-swing motion. Entire background perfectly flat pure magenta #FF00FF, no gradient, no shadow, no floor, no environment, no checkerboard, no text or lettering, no logo, no border, no watermark. Forearm and sleeve enter and are cut by the bottom or bottom-right edge. The blade and motion trail stay comfortably inside canvas boundaries with clear empty margins.",
+  "frames": [{
+    "id": "article_blade_swing",
+    "subject": "The Article Blade, a ceremonial straight sword from Article Seven lore, captured in a dynamic horizontal cut swing across the frame. Seen from first-person view, the wielder's right hand in a worn brown leather full-finger work glove with dark rust jacket cuff firmly grips the cylindrical brass hilt at lower right. A rectangular brass crossguard bears a riveted certification plate stamped with legal directive markings. The straight blade slashes horizontally across the center frame from right to left, showing an immaculate razor bone-white cutting edge, polished brass spine fittings and dark steel core. A stylized hard-edged stepped pixel motion slash arc in pale bone white and faint brass sheen sweeps along the blade's cutting path, conveying high speed and deliberate lethal intent without blur or softness. Clear value separation between the glowing bone-white edge, warm brass hilt, scarred leather glove and deep shadowed metal. No fantasy magic runes, no glowing energy aura, no curved katana shape, no photorealism."
+  }]
+}

@@ -25,6 +25,12 @@ func _column(weapon_name: String) -> int:
 		"Arc":
 			# Right leather wrist shared by idle, discharge and capacitor reset.
 			return 184
+		"Rocket":
+			# Heavy launcher shoulder rest and right glove cuff at 180.
+			return 180
+		"Article Blade", "ArticleBlade":
+			# Right wrist and glove enter from bottom right at column 224.
+			return 224
 	return 112
 
 func _check_bottom(weapon: TextureRect, context: String, column: int = 112) -> void:
@@ -109,7 +115,7 @@ func _check_arc_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 ## it, and every gun settles back to its idle pose.
 func _check_fire_frames(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
-	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Arc"]:
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Arc", "Rocket", "Article Blade"]:
 		hud.set_fp_weapon(weapon_name)
 		_check(weapon.texture == WeaponArt.IDLE[weapon_name], weapon_name + " rests on its idle frame")
 		hud.show_fire_juice(weapon_name)
@@ -199,15 +205,13 @@ func _run() -> void:
 	hud.call("set_fp_juice", true)
 	var weapon: TextureRect = hud.get_node("FpWeapon")
 	hud.set_fp_weapon("Rocket")
-	_check(weapon.visible and weapon.texture == hud.rocket_viewmodel.get_texture(), "Rocket selects its original tube viewport")
+	_check(weapon.visible and weapon.texture == WeaponArt.IDLE["Rocket"], "Rocket selects its drawn idle frame")
 	hud.show_fire_juice("Rocket")
 	hud._process(0.4)
-	_check(hud.fp_muzzle.visible, "a generic Rocket flash survives the preceding slow frame for its first draw")
+	_check(weapon.texture == WeaponArt.FIRE["Rocket"], "Rocket shows its drawn fire frame on launch")
+	_check(not hud.fp_muzzle.visible, "drawn Rocket fire frame carries its own exhaust flash")
 	hud._process(0.4)
-	_check(not hud.fp_muzzle.visible, "the Rocket flash expires after that draw")
-	hud.show_fire_juice("Rocket")
-	hud.cancel_fire_juice()
-	_check(not hud.fp_muzzle.visible and not hud.fp_muzzle_pending_update, "a rejected predicted launch clears its pending flash")
+	_check(weapon.texture == WeaponArt.IDLE["Rocket"], "Rocket settles back to idle")
 	_check_missing_art(hud, weapon)
 	# A network shot arrives before the HUD's update. A slow preceding render
 	# must not erase its fire frame before this update can present it.

@@ -1,0 +1,32 @@
+{
+  "model": "marketing-studio/image",
+  "out_dir": "art/raw/missing-pickups-20261016",
+  "params": {
+    "quality": "medium",
+    "resolution": "2k",
+    "aspect_ratio": "1:1",
+    "enhance_prompt": false,
+    "image_urls": ["https://d3snorpfx4xhv8.cloudfront.net/b99bf1c7-2b5c-4391-970d-58676970e688/2e8905cd-ad08-4418-b7bb-18fc7f90c16a.png"]
+  },
+  "style": "retro pixel art item pickup sprite for a 1990s PC shooter in the established chunky pixel style, crisp stepped pixel clusters, dark outlines, limited palette of desaturated bone white, gunmetal grey, olive drab, rust, ember, cyan and deep shadow with clear value contrast, broad flat areas of colour with hard-edged cel shading, flat even lighting, no gradients, no grain",
+  "view": "three-quarter view from slightly above, resting on the floor, centred, the whole object visible with even margins",
+  "technical": "the whole background is one flat solid pure magenta #FF00FF colour with no checkerboard, no pattern, no gradient and no shadow on it, no text, no letters, no numbers, no watermark, no border",
+  "frames": [
+    {
+      "id": "pk_rockets",
+      "subject": "a heavy ammunition box of shoulder-fired rockets, dark olive-drab stamped steel container with dark gunmetal reinforced corner brackets, top latch unhinged with the lid slightly ajar showing two olive rocket tubes packed inside, a faded rust-orange stencilled ammunition marking on the front face, scuffs and chipped paint along the edges, resting on the floor"
+    },
+    {
+      "id": "pk_article_blade",
+      "subject": "the ceremonial Article Blade resting horizontally across a low, heavy hexagonal stone pedestal plinth, the ceremonial straight sword featuring a straight razor bone-white cutting edge, polished brass crossguard and pommel fittings, dark steel core, and a riveted rectangular brass certification plate on the guard, solemn and severe Union ceremonial hardware centered on its plinth"
+    },
+    {
+      "id": "pk_mine",
+      "subject": "a squat round proximity mine resting flat on the floor, heavy dark charcoal steel body with a magnetic base ring, bevelled gunmetal collar, a small dark unlit circular optical sensor lens in the center of the top face, a painted amber-red warning hazard ring around the perimeter, and three short folded steel mounting feet at the base"
+    },
+    {
+      "id": "pk_arc",
+      "subject": "a compact heavy industrial capacitor canister standing upright on the floor, dark stamped gunmetal casing with ribbed ceramic insulator rings and bone-white end caps, a glowing vertical cold-cyan capacitor core window slit in the center of the cylinder, exposed copper wire leads, red tamper warning seals stamped across the upper casing, and a heavy folding steel carry handle on top"
+    }
+  ]
+}

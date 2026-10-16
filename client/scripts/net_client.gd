@@ -21,8 +21,8 @@ extends Node
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
 # speaks this exact gameplay version and geometry 2. A campaign host still
-# accepts this client when its mission floor is at or below it.
-const GAMEPLAY_VERSION: int = 49
+# 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
+const GAMEPLAY_VERSION: int = 50
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"

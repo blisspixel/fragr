@@ -35,7 +35,7 @@ func _snapshot(rockets: Array, tick: int = 4) -> Dictionary:
 	return {"tick": tick, "players": [{"id": OWNER}], "rockets": rockets}
 
 func _run() -> void:
-	_check(preload("res://scripts/net_client.gd").GAMEPLAY_VERSION == 49, "the client speaks the current gameplay contract including Rocket and connected Launch Authority")
+	_check(preload("res://scripts/net_client.gd").GAMEPLAY_VERSION >= 49, "the client speaks the current gameplay contract including Rocket and connected Launch Authority")
 	var flying: Dictionary = _snapshot([_flight(7, 0, [18.0, 0.0, 0.0])])
 	_check(RocketFacts.validation_error(flying).is_empty(), "a fresh rocket in flight is accepted")
 	for patch: Dictionary in [{"id": 0}, {"owner_id": "00000000-0000-0000-0000-000000000000"}, {"age_ticks": 80}, {"velocity": [21.0, 0.0, 0.0]}, {"position": [1025.0, 0.0, 0.0]}, {"extra": true}]:

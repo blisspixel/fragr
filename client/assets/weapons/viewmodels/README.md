@@ -15,6 +15,8 @@ a drawn fire frame with its own muzzle flash. `WeaponArt`
 | Shotgun (`Scatter`) | `shotgun_idle.png` | `shotgun_fire.png` | `shotgun_pump.png`, 0.18 to 0.44 s |
 | Railgun (`Rail`) | `railgun_idle.png` | `railgun_fire.png` | |
 | Sniper Rifle (`Sniper`, Level 7) | `sniper_idle.png` | `sniper_fire.png` | |
+| Rocket Launcher (`Rocket`) | `rocket_idle.png` | `rocket_fire.png` | |
+| Article Blade (`Article Blade`) | `article_blade_idle.png` | `article_blade_swing.png`, 0.0 to 0.18 s | |
 | Grenade throw | `grenade_ready.png`, then `grenade_throw.png` while the gun dips | | |
 
 Each idle is an edit of the 2026-09-19 raw idle for that gun, so the camera and
