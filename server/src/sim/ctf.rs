@@ -1,7 +1,7 @@
 //! Authoritative flag transitions for a staged two-side league match.
 use super::{GameState, RoundState, PLAYER_FLOOR_Y};
 use crate::protocol::{
-    FlagEventKind, FlagState, FlagStatus, GameEvent, GameMode, Team, TeamScores,
+    FlagEventKind, FlagState, FlagStatus, GameEvent, GameMode, PlayerState, Team, TeamScores,
 };
 use uuid::Uuid;
 
@@ -227,5 +227,282 @@ impl GameState {
         self.flags
             .as_ref()
             .map(|flags| [flags[0].wire(self.tick), flags[1].wire(self.tick)])
+    }
+}
+
+/// Maximum distance for close-contact carrier self-defense.
+pub const CARRIER_CONTACT_DISTANCE: f32 = 1.5;
+
+/// Bounded ticks allowed for a single close-contact defensive opportunity.
+pub const CARRIER_DEFENSIVE_OPPORTUNITY_TICKS: u8 = 8;
+
+/// A living enemy physically obstructing the immediate return route of an armed carrier.
+///
+/// Returns true if `other` is a living, collidable hostile, visible to `carrier`,
+/// within the 1.5 m contact scale, and physically obstructing the carrier's forward path to `goal`.
+pub fn carrier_contact_blocker_eligible(
+    carrier: &PlayerState,
+    goal: [f32; 3],
+    other: &PlayerState,
+    visible: bool,
+) -> bool {
+    if carrier.hp <= 0
+        || other.hp <= 0
+        || !other.collidable
+        || !carrier.is_hostile_to(other)
+        || !visible
+    {
+        return false;
+    }
+    let dx = other.x - carrier.x;
+    let dz = other.z - carrier.z;
+    let dist = dx.hypot(dz);
+    if dist > CARRIER_CONTACT_DISTANCE {
+        return false;
+    }
+    let gx = goal[0] - carrier.x;
+    let gz = goal[2] - carrier.z;
+    let goal_dist = gx.hypot(gz);
+    if goal_dist <= CARRIER_CONTACT_DISTANCE {
+        // At the goal / stand; any hostile at contact distance is contesting.
+        return true;
+    }
+    // Check if the enemy is in the forward direction towards the goal and
+    // within the physical corridor (lateral offset where player cylinders would collide).
+    let dir_x = gx / goal_dist;
+    let dir_z = gz / goal_dist;
+    let along = dx * dir_x + dz * dir_z;
+    let perp = (dx * dir_z - dz * dir_x).abs();
+    // Two players collide at 0.8m center-to-center. Allow a 0.85m corridor.
+    along > 0.0 && perp <= 0.85
+}
+
+/// Find the nearest eligible blocking hostile physically obstructing the carrier's immediate return.
+pub fn find_carrier_contact_blocker<'a>(
+    carrier: &PlayerState,
+    goal: [f32; 3],
+    players: &'a [PlayerState],
+    visible: impl Fn(&PlayerState, &PlayerState) -> bool,
+) -> Option<&'a PlayerState> {
+    players
+        .iter()
+        .filter(|other| {
+            carrier_contact_blocker_eligible(carrier, goal, other, visible(carrier, other))
+        })
+        .min_by(|a, b| {
+            let da = (a.x - carrier.x).hypot(a.z - carrier.z);
+            let db = (b.x - carrier.x).hypot(b.z - carrier.z);
+            da.total_cmp(&db)
+        })
+}
+
+/// Small retained state for close-contact carrier defense.
+///
+/// Bounded to prevent unbounded stationary fights while retaining the flag
+/// return as the objective.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct CarrierContactDefense {
+    pub target: Option<Uuid>,
+    pub ticks_remaining: u8,
+}
+
+impl CarrierContactDefense {
+    pub fn clear(&mut self) {
+        self.target = None;
+        self.ticks_remaining = 0;
+    }
+
+    /// Update defense state for one tick. Returns the target to defend against,
+    /// or None if no eligible blocker exists or the opportunity is exhausted.
+    pub fn update(
+        &mut self,
+        carrier: &PlayerState,
+        goal: [f32; 3],
+        players: &[PlayerState],
+        visible: impl Fn(&PlayerState, &PlayerState) -> bool,
+    ) -> Option<Uuid> {
+        if let Some(target_id) = self.target {
+            let active = players
+                .iter()
+                .find(|p| p.id == target_id)
+                .is_some_and(|other| {
+                    carrier_contact_blocker_eligible(carrier, goal, other, visible(carrier, other))
+                });
+            if active {
+                if self.ticks_remaining > 0 {
+                    self.ticks_remaining -= 1;
+                    return Some(target_id);
+                } else {
+                    // Defensive opportunity exhausted for this target: return to flag return.
+                    return None;
+                }
+            } else {
+                // Target died, cleared contact, or broke LOS.
+                self.target = None;
+                self.ticks_remaining = 0;
+            }
+        }
+
+        if let Some(blocker) = find_carrier_contact_blocker(carrier, goal, players, visible) {
+            self.target = Some(blocker.id);
+            self.ticks_remaining = CARRIER_DEFENSIVE_OPPORTUNITY_TICKS.saturating_sub(1);
+            Some(blocker.id)
+        } else {
+            None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_player(id: u128, team: Team, x: f32, z: f32, hp: i32) -> PlayerState {
+        PlayerState {
+            collidable: true,
+            campaign: None,
+            id: Uuid::from_u128(id),
+            name: format!("p-{id}"),
+            x,
+            y: 1.5,
+            z,
+            yaw: 0.0,
+            pitch: 0.0,
+            hp,
+            armor: 0,
+            just_fired: false,
+            behavior: None,
+            score: 0,
+            deaths: 0,
+            attacks: 0,
+            connects: 0,
+            heads: 0,
+            damage: 0,
+            weapon: "flechette".into(),
+            team: Some(team),
+            lives: None,
+            golden: false,
+            ducking: false,
+            body: None,
+        }
+    }
+
+    #[test]
+    fn carrier_contact_blocker_eligible_requires_hostile_living_visible_contact_and_corridor() {
+        let carrier = test_player(1, Team::Coalition, 0.0, 0.0, 100);
+        let goal = [70.0, 0.0, 0.0];
+
+        // Directly in front on homeward path (+X) at 1.25m: eligible.
+        let blocker = test_player(2, Team::Union, 1.25, 0.0, 100);
+        assert!(carrier_contact_blocker_eligible(
+            &carrier, goal, &blocker, true
+        ));
+
+        // Behind carrier (-X) at 1.25m: not obstructing return.
+        let behind = test_player(3, Team::Union, -1.25, 0.0, 100);
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &behind, true
+        ));
+
+        // In front (+X) at 1.25m, but wide lateral offset (> 0.85m): not obstructing.
+        let wide = test_player(4, Team::Union, 0.5, 1.3, 100);
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &wide, true
+        ));
+
+        // Outside 1.5m contact distance: not eligible.
+        let distant = test_player(5, Team::Union, 2.0, 0.0, 100);
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &distant, true
+        ));
+
+        // Dead enemy (hp 0): not eligible.
+        let dead = test_player(6, Team::Union, 1.25, 0.0, 0);
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &dead, true
+        ));
+
+        // Non-collidable: not eligible.
+        let mut ghost = test_player(7, Team::Union, 1.25, 0.0, 100);
+        ghost.collidable = false;
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &ghost, true
+        ));
+
+        // Teammate: not eligible.
+        let ally = test_player(8, Team::Coalition, 1.25, 0.0, 100);
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &ally, true
+        ));
+
+        // Obstructed by cover (visible = false): not eligible.
+        assert!(!carrier_contact_blocker_eligible(
+            &carrier, goal, &blocker, false
+        ));
+
+        // Dead carrier: not eligible.
+        let dead_carrier = test_player(9, Team::Coalition, 0.0, 0.0, 0);
+        assert!(!carrier_contact_blocker_eligible(
+            &dead_carrier,
+            goal,
+            &blocker,
+            true
+        ));
+
+        // At goal (goal_dist <= 1.5): hostile at contact from any angle is contesting stand.
+        let at_goal_carrier = test_player(10, Team::Coalition, 69.5, 0.0, 100);
+        let stand_contest = test_player(11, Team::Union, 69.0, 0.5, 100);
+        assert!(carrier_contact_blocker_eligible(
+            &at_goal_carrier,
+            goal,
+            &stand_contest,
+            true
+        ));
+    }
+
+    #[test]
+    fn carrier_contact_defense_bounds_opportunity_and_resumes_return() {
+        let carrier = test_player(1, Team::Coalition, 0.0, 0.0, 100);
+        let goal = [70.0, 0.0, 0.0];
+        let foe_id = Uuid::from_u128(2);
+        let mut foe = test_player(2, Team::Union, 1.2, 0.0, 100);
+
+        let mut defense = CarrierContactDefense::default();
+
+        // First tick: encounters blocker, starts bounded defense.
+        let target = defense.update(&carrier, goal, &[foe.clone()], |_, _| true);
+        assert_eq!(target, Some(foe_id));
+        assert_eq!(
+            defense.ticks_remaining,
+            CARRIER_DEFENSIVE_OPPORTUNITY_TICKS - 1
+        );
+
+        // Advance through all remaining ticks.
+        for _ in 1..CARRIER_DEFENSIVE_OPPORTUNITY_TICKS {
+            let t = defense.update(&carrier, goal, &[foe.clone()], |_, _| true);
+            assert_eq!(t, Some(foe_id));
+        }
+
+        // Exhausted: returns None while foe is still present so return resumes.
+        assert_eq!(defense.ticks_remaining, 0);
+        let exhausted = defense.update(&carrier, goal, &[foe.clone()], |_, _| true);
+        assert_eq!(exhausted, None, "exhausted defense yields to flag return");
+
+        // Foe steps away: defense clears.
+        foe.x = 2.5;
+        let cleared = defense.update(&carrier, goal, &[foe.clone()], |_, _| true);
+        assert_eq!(cleared, None);
+        assert_eq!(defense.target, None);
+
+        // Foe re-enters contact: new defense opportunity begins.
+        foe.x = 1.2;
+        let fresh = defense.update(&carrier, goal, &[foe.clone()], |_, _| true);
+        assert_eq!(fresh, Some(foe_id));
+
+        // Foe dies: defense clears immediately.
+        foe.hp = 0;
+        let dead = defense.update(&carrier, goal, &[foe.clone()], |_, _| true);
+        assert_eq!(dead, None);
+        assert_eq!(defense.target, None);
     }
 }

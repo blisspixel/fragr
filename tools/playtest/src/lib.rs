@@ -1932,6 +1932,17 @@ pub fn sabotage_policy_action(
 
 /// The action for one agent under its policy.
 pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &Arena) -> Action {
+    policy_action_with_defense(policy, bot_id, snapshot, arena, None)
+}
+
+/// The action for one agent under its policy, with optional retained carrier contact defense.
+pub fn policy_action_with_defense(
+    policy: Policy,
+    bot_id: Uuid,
+    snapshot: &Snapshot,
+    arena: &Arena,
+    defense: Option<&mut fragr_server::sim::ctf::CarrierContactDefense>,
+) -> Action {
     if let Some(flags) = snapshot.flags.as_ref() {
         let Some(me) = snapshot.players.iter().find(|p| p.id == bot_id) else {
             return Action::default();
@@ -1980,6 +1991,25 @@ pub fn policy_action(policy: Policy, bot_id: Uuid, snapshot: &Snapshot, arena: &
         } else {
             enemy.position
         };
+        if carrying && policy != Policy::RouteProbe {
+            let mut fallback = fragr_server::sim::ctf::CarrierContactDefense::default();
+            let contact = defense.unwrap_or(&mut fallback);
+            if let Some(blocker_id) = contact.update(me, goal, &snapshot.players, |m, o| {
+                arena.fighter_visible(m, o)
+            }) {
+                return Action {
+                    look_at: Some(LookAt {
+                        player_id: Some(blocker_id),
+                        x: None,
+                        y: None,
+                        z: None,
+                    }),
+                    forward: (goal[0] - me.x).hypot(goal[2] - me.z) > 1.5,
+                    fire: true,
+                    ..Action::default()
+                };
+            }
+        }
         return Action {
             look_at: Some(LookAt {
                 x: Some(goal[0]),
@@ -2102,6 +2132,7 @@ async fn agent_task(
     let mut arena = Arena::default();
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut carrier_defense = fragr_server::sim::ctf::CarrierContactDefense::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
     let mut sabotage_map: Option<fragr_server::protocol::SabotageMap> = None;
     loop {
@@ -2244,6 +2275,7 @@ async fn agent_task(
                     .map_err(|error| Error::Server(error.to_string()))?,
                 );
                 navigator.clear();
+                carrier_defense.clear();
                 arena = Arena {
                     solids,
                     half_extent,
@@ -2290,12 +2322,26 @@ async fn agent_task(
                         continue;
                     }
                 }
+                let me_living = snapshot.players.iter().any(|p| p.id == id && p.hp > 0);
+                let me_carrying = snapshot
+                    .flags
+                    .as_ref()
+                    .is_some_and(|flags| flags.iter().any(|f| f.carrier == Some(id)));
+                if !me_living || !me_carrying {
+                    carrier_defense.clear();
+                }
                 let wanted = match sabotage_map
                     .as_ref()
                     .filter(|_| snapshot.sabotage.is_some())
                 {
                     Some(map) => sabotage_policy_action(policy, id, &snapshot, physical, map),
-                    None => policy_action(policy, id, &snapshot, physical),
+                    None => policy_action_with_defense(
+                        policy,
+                        id,
+                        &snapshot,
+                        physical,
+                        Some(&mut carrier_defense),
+                    ),
                 };
                 let wanted = fragr_server::inventory::control_action_with_target_filter(
                     id,
@@ -4472,6 +4518,300 @@ mod planner_tests {
             assert_eq!(route.look_at.unwrap().x, Some(-70.0));
             assert!(!route.fire);
         }
+    }
+
+    #[test]
+    fn ctf_carrier_defends_against_close_contact_blocker_on_return_route() {
+        use fragr_server::protocol::{FlagState, FlagStatus, Team};
+        use fragr_server::sim::ctf::{CarrierContactDefense, CARRIER_DEFENSIVE_OPPORTUNITY_TICKS};
+        let me = Uuid::from_u128(1);
+        let foe = Uuid::from_u128(2);
+        let mut mine = player("me", me, 0.0, 0.0, 100, "flechette");
+        mine.team = Some(Team::Coalition);
+        // Blocker at contact (1.2m) directly on the homeward route (+X toward 70.0).
+        let mut blocker = player("foe", foe, 1.2, 0.0, 100, "flechette");
+        blocker.team = Some(Team::Union);
+        let mut snap = scene(1, vec![mine, blocker], vec![]);
+        snap.flags = Some([
+            FlagState {
+                team: Team::Union,
+                stand: [-70.0, 0.0, 0.0],
+                position: [0.0, 0.0, 0.0],
+                status: FlagStatus::Carried,
+                carrier: Some(me),
+                return_ticks: None,
+            },
+            FlagState {
+                team: Team::Coalition,
+                stand: [70.0, 0.0, 0.0],
+                position: [70.0, 0.0, 0.0],
+                status: FlagStatus::Home,
+                carrier: None,
+                return_ticks: None,
+            },
+        ]);
+
+        // RouteProbe never defends or fires.
+        let probe = policy_action(Policy::RouteProbe, me, &snap, &Arena::default());
+        assert_eq!(probe.look_at.unwrap().x, Some(70.0));
+        assert!(!probe.fire);
+
+        // Reflex and Planner defend against close blocker on return path.
+        for policy in [Policy::Reflex, Policy::Planner] {
+            let mut defense = CarrierContactDefense::default();
+            let action = policy_action_with_defense(
+                policy,
+                me,
+                &snap,
+                &Arena::default(),
+                Some(&mut defense),
+            );
+            assert_eq!(action.look_at.unwrap().player_id, Some(foe));
+            assert!(action.fire);
+            assert!(action.forward);
+        }
+
+        // Bounded opportunity: after CARRIER_DEFENSIVE_OPPORTUNITY_TICKS, defense yields to flag return.
+        let mut defense = CarrierContactDefense::default();
+        for _ in 0..CARRIER_DEFENSIVE_OPPORTUNITY_TICKS {
+            let action = policy_action_with_defense(
+                Policy::Reflex,
+                me,
+                &snap,
+                &Arena::default(),
+                Some(&mut defense),
+            );
+            assert_eq!(action.look_at.unwrap().player_id, Some(foe));
+            assert!(action.fire);
+        }
+        let exhausted = policy_action_with_defense(
+            Policy::Reflex,
+            me,
+            &snap,
+            &Arena::default(),
+            Some(&mut defense),
+        );
+        assert_eq!(
+            exhausted.look_at.unwrap().x,
+            Some(70.0),
+            "exhausted defense resumes return to goal"
+        );
+        assert!(!exhausted.fire);
+
+        // Enemy behind carrier (-X) does not trigger defense.
+        snap.players[1].x = -1.2;
+        let mut behind_defense = CarrierContactDefense::default();
+        let behind_action = policy_action_with_defense(
+            Policy::Reflex,
+            me,
+            &snap,
+            &Arena::default(),
+            Some(&mut behind_defense),
+        );
+        assert_eq!(behind_action.look_at.unwrap().x, Some(70.0));
+        assert!(!behind_action.fire);
+
+        // Enemy beyond contact distance (2.0m) does not trigger defense.
+        snap.players[1].x = 2.0;
+        let mut distant_defense = CarrierContactDefense::default();
+        let distant_action = policy_action_with_defense(
+            Policy::Reflex,
+            me,
+            &snap,
+            &Arena::default(),
+            Some(&mut distant_defense),
+        );
+        assert_eq!(distant_action.look_at.unwrap().x, Some(70.0));
+        assert!(!distant_action.fire);
+
+        // Teammate at contact (1.2m) does not trigger defense.
+        snap.players[1].x = 1.2;
+        snap.players[1].team = Some(Team::Coalition);
+        let mut team_defense = CarrierContactDefense::default();
+        let team_action = policy_action_with_defense(
+            Policy::Reflex,
+            me,
+            &snap,
+            &Arena::default(),
+            Some(&mut team_defense),
+        );
+        assert_eq!(team_action.look_at.unwrap().x, Some(70.0));
+        assert!(!team_action.fire);
+    }
+
+    #[test]
+    fn ctf_carrier_full_controller_pipeline_resolves_damage_and_resumes() {
+        use fragr_server::protocol::{GameMode, Role, Team, WeaponType};
+        use fragr_server::rules::RuleSet;
+        use fragr_server::sim::ctf::CarrierContactDefense;
+        use fragr_server::sim::{GameState, MapKind, PLAYER_FLOOR_Y};
+
+        let rules = RuleSet::new(GameMode::Ctf, &[], false).unwrap();
+        let mut state = GameState::with_map(MapKind::Sector9, false);
+        state.apply_config(fragr_server::sim::MatchConfig {
+            rules,
+            ..Default::default()
+        });
+        state.start_round();
+
+        let carrier_id = Uuid::from_u128(10);
+        let foe_id = Uuid::from_u128(20);
+
+        state.add_player_with_body(
+            carrier_id,
+            "carrier".into(),
+            Role::Agent,
+            fragr_server::protocol::BodyKind::for_roster_slot(0),
+        );
+        state.add_player_with_body(
+            foe_id,
+            "foe".into(),
+            Role::Agent,
+            fragr_server::protocol::BodyKind::for_roster_slot(1),
+        );
+        state.spawn_shields.clear();
+
+        // Arm carrier with Flechette.
+        {
+            let carrier = state
+                .players
+                .iter_mut()
+                .find(|p| p.id == carrier_id)
+                .unwrap();
+            carrier.weapon = WeaponType::Flechette;
+            carrier.team = Some(Team::Coalition);
+            carrier.inventory.grant_weapon(WeaponType::Flechette);
+            carrier.inventory.arm_magazines();
+        }
+        {
+            let foe = state.players.iter_mut().find(|p| p.id == foe_id).unwrap();
+            foe.weapon = WeaponType::Flechette;
+            foe.team = Some(Team::Union);
+        }
+
+        // Take the Union flag.
+        let union_stand = state.snapshot().flags.unwrap()[Team::Union.index()].stand;
+        {
+            let p = state
+                .players
+                .iter_mut()
+                .find(|p| p.id == carrier_id)
+                .unwrap();
+            p.x = union_stand[0];
+            p.z = union_stand[2];
+            p.y = PLAYER_FLOOR_Y;
+            p.vy = 0.0;
+        }
+        state.tick(0.05);
+        assert_eq!(
+            state.snapshot().flags.unwrap()[Team::Union.index()].carrier,
+            Some(carrier_id),
+            "carrier has taken enemy flag"
+        );
+
+        // Place carrier at (0.0, 0.0). Home stand is at (70.0, 0.0).
+        // Place foe at contact (1.2m) directly in front on the homeward route (+X).
+        {
+            let p = state
+                .players
+                .iter_mut()
+                .find(|p| p.id == carrier_id)
+                .unwrap();
+            p.x = 0.0;
+            p.z = 0.0;
+            p.y = PLAYER_FLOOR_Y;
+            p.yaw = 0.0;
+        }
+        {
+            let p = state.players.iter_mut().find(|p| p.id == foe_id).unwrap();
+            p.x = 1.2;
+            p.z = 0.0;
+            p.y = PLAYER_FLOOR_Y;
+            p.yaw = std::f32::consts::PI;
+        }
+        state.spawn_shields.clear();
+
+        let initial_foe_hp = state
+            .snapshot()
+            .players
+            .iter()
+            .find(|p| p.id == foe_id)
+            .unwrap()
+            .hp;
+        let snap = state.snapshot();
+        let arena = Arena::default();
+        let mut defense = CarrierContactDefense::default();
+
+        // 1. Policy generates action aiming at foe with fire=true.
+        let raw = policy_action_with_defense(
+            Policy::Reflex,
+            carrier_id,
+            &snap,
+            &arena,
+            Some(&mut defense),
+        );
+        assert_eq!(raw.look_at.as_ref().unwrap().player_id, Some(foe_id));
+        assert!(raw.fire);
+
+        // 2. Control action with target filter verifies equipment usable.
+        let carrier_ref = state.players.iter().find(|p| p.id == carrier_id).unwrap();
+        let loadout = carrier_ref
+            .inventory
+            .state(carrier_id, carrier_ref.weapon, state.tick);
+        let controlled = fragr_server::inventory::control_action_with_target_filter(
+            carrier_id,
+            &snap,
+            loadout.as_ref(),
+            raw,
+            true,
+            |m, o| arena.fighter_visible(m, o),
+        );
+        assert_eq!(controlled.look_at.as_ref().unwrap().player_id, Some(foe_id));
+        assert!(controlled.fire);
+
+        // 3. Drive action ingestion and sim tick.
+        state.set_action(carrier_id, controlled);
+        state.tick(0.05);
+
+        // 4. Verify damage resolution: foe HP decreased, shots resolved, no teleport.
+        let post_snap = state.snapshot();
+        let hp_after = post_snap
+            .players
+            .iter()
+            .find(|p| p.id == foe_id)
+            .unwrap()
+            .hp;
+        assert!(
+            hp_after < initial_foe_hp,
+            "damage resolved: {hp_after} < {initial_foe_hp}"
+        );
+        let carrier_p = post_snap
+            .players
+            .iter()
+            .find(|p| p.id == carrier_id)
+            .unwrap();
+        assert!((carrier_p.x - 0.0).abs() < 1.0, "no teleport occurred");
+
+        // 5. Empty weapon test: if carrier has no usable ammo, fire is suppressed.
+        let mut dry_loadout = loadout.unwrap();
+        dry_loadout.loaded.clear();
+        dry_loadout.ammo.iter_mut().for_each(|a| a.rounds = 0);
+        let dry_raw = policy_action_with_defense(
+            Policy::Reflex,
+            carrier_id,
+            &snap,
+            &arena,
+            Some(&mut defense),
+        );
+        let dry_controlled = fragr_server::inventory::control_action_with_target_filter(
+            carrier_id,
+            &snap,
+            Some(&dry_loadout),
+            dry_raw,
+            true,
+            |m, o| arena.fighter_visible(m, o),
+        );
+        assert!(!dry_controlled.fire, "empty weapon suppresses fire");
     }
 
     fn ctf_six_a_side() -> Snapshot {

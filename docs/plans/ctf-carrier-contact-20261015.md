@@ -1,6 +1,6 @@
 # CTF carrier contact and return
 
-Status: **planned**, 2026-10-15. A bounded follow-on inside the existing
+Status: **implemented**, 2026-10-16. A bounded follow-on inside the existing
 multiplayer-quality rung of the [full build order](../ROADMAP.md#full-build-order).
 This plan does not replace the Sector 9 cover or composed verification gates.
 Parent integration owns the plan index and scheduling.

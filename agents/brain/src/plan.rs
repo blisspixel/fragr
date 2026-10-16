@@ -223,7 +223,7 @@ pub fn micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
 /// Arena CTF uses local route intent at tick rate. A decision model can still
 /// choose equipment and stance, but cannot override objective ownership.
 pub fn ctf_micro_action(plan: &Plan, me: Uuid, snapshot: &Snapshot) -> Action {
-    ctf_micro_action_with_visibility(plan, me, snapshot, |_, _| true)
+    ctf_micro_action_with_visibility_and_defense(plan, me, snapshot, |_, _| true, None)
 }
 
 /// The live brain uses the validated map when deciding whether combat can
@@ -234,16 +234,41 @@ pub fn ctf_micro_action_in_world(
     snapshot: &Snapshot,
     world: &Navigation,
 ) -> Action {
-    ctf_micro_action_with_visibility(plan, me, snapshot, |mine, other| {
-        target_visible(world, mine, other)
-    })
+    ctf_micro_action_in_world_with_defense(plan, me, snapshot, world, None)
 }
 
-fn ctf_micro_action_with_visibility(
+/// CTF action in world with optional retained carrier contact defense.
+pub fn ctf_micro_action_in_world_with_defense(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    world: &Navigation,
+    defense: Option<&mut fragr_server::sim::ctf::CarrierContactDefense>,
+) -> Action {
+    ctf_micro_action_with_visibility_and_defense(
+        plan,
+        me,
+        snapshot,
+        |mine, other| target_visible(world, mine, other),
+        defense,
+    )
+}
+
+pub fn ctf_micro_action_with_visibility(
     plan: &Plan,
     me: Uuid,
     snapshot: &Snapshot,
     visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+) -> Action {
+    ctf_micro_action_with_visibility_and_defense(plan, me, snapshot, visible, None)
+}
+
+fn ctf_micro_action_with_visibility_and_defense(
+    plan: &Plan,
+    me: Uuid,
+    snapshot: &Snapshot,
+    visible: impl Fn(&fragr_server::protocol::PlayerState, &fragr_server::protocol::PlayerState) -> bool,
+    defense: Option<&mut fragr_server::sim::ctf::CarrierContactDefense>,
 ) -> Action {
     let Some(flags) = snapshot.flags.as_ref() else {
         return micro_action(plan, me, snapshot);
@@ -400,6 +425,30 @@ fn ctf_micro_action_with_visibility(
     } else {
         own.stand
     };
+    if carrying {
+        let mut fallback = fragr_server::sim::ctf::CarrierContactDefense::default();
+        let contact = defense.unwrap_or(&mut fallback);
+        if let Some(blocker_id) = contact.update(mine, goal, &snapshot.players, &visible) {
+            let weapon = plan
+                .weapon
+                .or_else(|| parse_weapon(&mine.weapon))
+                .unwrap_or_default();
+            let blocker = snapshot.players.iter().find(|p| p.id == blocker_id);
+            let distance = blocker
+                .map(|b| (b.x - mine.x).hypot(b.z - mine.z))
+                .unwrap_or(0.0);
+            return Action {
+                forward: (goal[0] - mine.x).hypot(goal[2] - mine.z) > 1.5,
+                fire: distance <= weapon.range_units(),
+                look_at: Some(LookAt {
+                    player_id: Some(blocker_id),
+                    ..LookAt::default()
+                }),
+                weapon_swap: plan.weapon,
+                ..Action::default()
+            };
+        }
+    }
     let close = (goal[0] - mine.x).hypot(goal[2] - mine.z) < 1.5;
     Action {
         forward: !close,
@@ -1888,6 +1937,106 @@ mod tests {
             .team = Some(Team::Union);
         let allied = ctf_micro_action_in_world(&plan, Uuid::from_u128(2), &scene, &open);
         assert!(allied.look_at.unwrap().player_id.is_none());
+    }
+
+    #[test]
+    fn ctf_carrier_defends_against_close_contact_blocker_on_return() {
+        use fragr_server::protocol::{FlagStatus, Team};
+        use fragr_server::sim::ctf::{CarrierContactDefense, CARRIER_DEFENSIVE_OPPORTUNITY_TICKS};
+        let mut scene = ctf_team_scene();
+        let mine_id = Uuid::from_u128(2);
+        let foe_id = Uuid::from_u128(5);
+        let mine = scene.players.iter_mut().find(|p| p.id == mine_id).unwrap();
+        mine.x = 0.0;
+        mine.z = 0.0;
+        mine.team = Some(Team::Coalition);
+        // Enemy at contact (1.2m) directly in front toward home stand at +70.0.
+        let foe = scene.players.iter_mut().find(|p| p.id == foe_id).unwrap();
+        foe.x = 1.2;
+        foe.z = 0.0;
+        foe.team = Some(Team::Union);
+
+        // Make mine the carrier of enemy flag.
+        let enemy_flag = &mut scene.flags.as_mut().unwrap()[Team::Union.index()];
+        enemy_flag.status = FlagStatus::Carried;
+        enemy_flag.carrier = Some(mine_id);
+
+        let open = Navigation::new(Arena {
+            half: 100.0,
+            solids: vec![],
+        })
+        .unwrap();
+        let plan = Plan::default();
+
+        // With open LOS, carrier defends against contact blocker on return path.
+        let mut defense = CarrierContactDefense::default();
+        let action = ctf_micro_action_in_world_with_defense(
+            &plan,
+            mine_id,
+            &scene,
+            &open,
+            Some(&mut defense),
+        );
+        assert_eq!(action.look_at.unwrap().player_id, Some(foe_id));
+        assert!(action.fire);
+        assert!(action.forward);
+
+        // After CARRIER_DEFENSIVE_OPPORTUNITY_TICKS, opportunity is exhausted.
+        for _ in 1..CARRIER_DEFENSIVE_OPPORTUNITY_TICKS {
+            let a = ctf_micro_action_in_world_with_defense(
+                &plan,
+                mine_id,
+                &scene,
+                &open,
+                Some(&mut defense),
+            );
+            assert_eq!(a.look_at.unwrap().player_id, Some(foe_id));
+            assert!(a.fire);
+        }
+        let exhausted = ctf_micro_action_in_world_with_defense(
+            &plan,
+            mine_id,
+            &scene,
+            &open,
+            Some(&mut defense),
+        );
+        assert_eq!(
+            exhausted.look_at.unwrap().x,
+            Some(70.0),
+            "exhausted defense resumes home route"
+        );
+        assert!(!exhausted.fire);
+
+        // Wall between carrier and foe: no defense.
+        let wall = Navigation::new(Arena {
+            half: 100.0,
+            solids: vec![Solid::from_center(0.6, 0.0, 0.5, 3.0)],
+        })
+        .unwrap();
+        let mut occluded_defense = CarrierContactDefense::default();
+        let occluded = ctf_micro_action_in_world_with_defense(
+            &plan,
+            mine_id,
+            &scene,
+            &wall,
+            Some(&mut occluded_defense),
+        );
+        assert_eq!(occluded.look_at.unwrap().x, Some(70.0));
+        assert!(!occluded.fire);
+
+        // Foe distant (5.0m): outside contact, no defense.
+        let foe = scene.players.iter_mut().find(|p| p.id == foe_id).unwrap();
+        foe.x = 5.0;
+        let mut distant_defense = CarrierContactDefense::default();
+        let distant = ctf_micro_action_in_world_with_defense(
+            &plan,
+            mine_id,
+            &scene,
+            &open,
+            Some(&mut distant_defense),
+        );
+        assert_eq!(distant.look_at.unwrap().x, Some(70.0));
+        assert!(!distant.fire);
     }
 
     #[test]

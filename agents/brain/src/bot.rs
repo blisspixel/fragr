@@ -726,6 +726,7 @@ pub async fn run_bot(
     let mut record: Option<fragr_server::protocol::PlayerRecord> = None;
     let mut navigation = None;
     let mut navigator = fragr_server::navigation::Navigator::default();
+    let mut carrier_defense = fragr_server::sim::ctf::CarrierContactDefense::default();
     let mut stall = crate::plan::StallWatch::default();
     let mut mission_client = fragr_server::mission::MissionClient::default();
     let mut mission_geometry = None;
@@ -853,6 +854,7 @@ pub async fn run_bot(
                     // per-frame decision. Reject invalid worlds before driving.
                     Ok(ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, map_name, solids, half_extent, geometry_version, presentation, mission, .. }) => {
                         decision_epoch.advance();
+                        carrier_defense.clear();
                         if let Err(error) = fragr_server::protocol::validate_map_presentation(presentation.as_ref(), &solids) {
                             session_error = Some(Error::Transport(format!("invalid map presentation: {error}")));
                             break;
@@ -943,12 +945,19 @@ pub async fn run_bot(
                     constrain_campaign_equipment(&mut plan, mission_client.state.is_some(), loadout.as_ref());
                     let live_solids = mission_client.live_visibility_solids();
                     let alive = snapshot.players.iter().any(|player| player.id == id && player.hp > 0);
+                    let carrying = snapshot
+                        .flags
+                        .as_ref()
+                        .is_some_and(|flags| flags.iter().any(|f| f.carrier == Some(id)));
+                    if !alive || !carrying {
+                        carrier_defense.clear();
+                    }
                     let action = if !alive {
                         navigator.clear();
                         Action::default()
                     } else { match (mission_client.state.as_ref(), navigation.as_ref()) {
                         (Some(_), Some(world)) => campaign_micro_action_with_solids(&plan, id, snapshot, world, live_solids.as_deref()),
-                        (_, Some(world)) if snapshot.flags.is_some() => crate::plan::ctf_micro_action_in_world(&plan, id, snapshot, world),
+                        (_, Some(world)) if snapshot.flags.is_some() => crate::plan::ctf_micro_action_in_world_with_defense(&plan, id, snapshot, world, Some(&mut carrier_defense)),
                         _ => micro_action(&plan, id, snapshot),
                     }};
                     let action = if let (Some(_), Some(world)) = (mission_client.state.as_ref(), navigation.as_ref()) {
