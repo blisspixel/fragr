@@ -24,6 +24,7 @@ pub(super) struct SoloRun {
     pub carried_tender: Option<super::run_file::M11Outcome>,
     pub carried_habitat: Option<super::run_file::M12Outcome>,
     pub carried_foundry: Option<super::run_file::M13Outcome>,
+    pub carried_launch: Option<super::run_file::M14Outcome>,
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
@@ -152,6 +153,7 @@ impl GameState {
             carried_tender: None,
             carried_habitat: None,
             carried_foundry: None,
+            carried_launch: None,
             owner: None,
             carried_recall_cars: Vec::new(),
             carried_patients: Vec::new(),
@@ -233,6 +235,7 @@ impl GameState {
         solo.carried_tender = document.m11_outcome.clone();
         solo.carried_habitat = document.m12_outcome.clone();
         solo.carried_foundry = document.m13_outcome.clone();
+        solo.carried_launch = document.m14_outcome.clone();
         if let Some(progress) = &mut run.m09 {
             let g = run
                 .initial_map

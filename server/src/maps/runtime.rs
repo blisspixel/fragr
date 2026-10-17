@@ -29,6 +29,57 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m15_objectives(&self) -> Option<&super::authored::m15::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m15.as_deref(),
+        }
+    }
+    pub fn m15_geometry(&self) -> Option<crate::protocol::M15MapGeometry> {
+        let mut geometry = self.m15_objectives()?.geometry.clone();
+        let stage = self.m15_stage();
+        geometry.tunnel_closed = stage >= 1;
+        geometry.gates_open = stage >= 2;
+        Some(geometry)
+    }
+    /// 0 initial, 1 sealed, 2 released.
+    pub fn m15_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m15.is_some() => map.m15_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m15_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m15.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        match stage {
+            0 => {
+                selected.arena.solids[prepared.tunnel_gate] = Solid {
+                    min_x: -4.0,
+                    bottom: 2.1,
+                    min_z: -12.4,
+                    max_x: 4.0,
+                    top: 2.2,
+                    max_z: -11.6,
+                };
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.sealed.clone();
+                selected.navigation = prepared.sealed_navigation.clone();
+            }
+            2 => {
+                selected.arena = prepared.released.clone();
+                selected.navigation = prepared.released_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m15_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
     pub(crate) fn m14_objectives(&self) -> Option<&super::authored::m14::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -331,8 +382,12 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m14_geometry()
-            .map(|_| crate::protocol::MissionId::LaunchAuthority)
+        self.m15_geometry()
+            .map(|_| crate::protocol::MissionId::CivicPressureValve)
+            .or_else(|| {
+                self.m14_geometry()
+                    .map(|_| crate::protocol::MissionId::LaunchAuthority)
+            })
             .or_else(|| {
                 self.m13_geometry()
                     .map(|_| crate::protocol::MissionId::WeightOfPermission)

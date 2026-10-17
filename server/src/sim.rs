@@ -766,7 +766,7 @@ impl Player {
             && crate::combat::target_height(self.campaign) + 0.01 >= crate::movement::BODY_HEIGHT
     }
 
-    fn at_spawn(
+    pub(crate) fn at_spawn(
         id: Uuid,
         name: String,
         role: Role,
@@ -1662,6 +1662,7 @@ impl GameState {
             m12: self.map.m12_geometry(),
             m13: self.map.m13_geometry(),
             m14: self.map.m14_geometry(),
+            m15: self.map.m15_geometry(),
             walker: self.map.walker_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
@@ -2961,6 +2962,13 @@ impl GameState {
                 self.encounters.sync_identities(&mut self.players);
             }
         }
+        self.record_m15_damage(
+            shooter_id,
+            target_id,
+            trace.as_ref().map(|t| t.weapon),
+            damage,
+            died,
+        );
 
         if let Some(trace) = trace {
             self.shot_results.push(ShotResult {

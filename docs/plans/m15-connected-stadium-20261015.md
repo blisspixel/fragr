@@ -1,6 +1,6 @@
 # Civic Pressure Valve connected stadium
 
-Status: **planned**, 2026-10-15. Follows the
+Status: **implemented**, 2026-10-16. Follows the
 [M14 integration](m14-launch-authority-integration-20261015.md) shipped in v0.85.0.
 This document refines the existing campaign rung in the
 [Full build order](../ROADMAP.md#full-build-order); it creates no new sequence.

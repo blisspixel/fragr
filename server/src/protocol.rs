@@ -26,6 +26,10 @@ mod m14;
 pub use m14::{
     M14ChallengeState, M14MapGeometry, M14ObjectiveState, M14_FALLEN_PARTS, M14_OBJECTIVE_IDS,
 };
+mod m15;
+pub use m15::{
+    M15ChallengeState, M15MapGeometry, M15ObjectiveState, M15_ENTRANTS, M15_OBJECTIVE_IDS,
+};
 mod walker;
 pub use m13::{
     M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
@@ -792,9 +796,11 @@ pub const M14_GAMEPLAY_VERSION: u32 = 49;
 pub const WALKER_GAMEPLAY_VERSION: u32 = 48;
 /// Article Blade melee, plinth lifecycle, eleven-column records and range contract.
 pub const BLADE_GAMEPLAY_VERSION: u32 = 50;
+/// Civic Pressure Valve connected stadium bout, two door systems, armed entrants and takeover.
+pub const M15_GAMEPLAY_VERSION: u32 = 51;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = BLADE_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M15_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -925,6 +931,7 @@ mod geometry_tests {
             m12: None,
             m13: None,
             m14: None,
+            m15: None,
             walker: None,
             article_blade: None,
             map_id: 67,
@@ -1077,6 +1084,12 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m14: Option<M14MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m15: Option<M15MapGeometry>,
         #[serde(
             default,
             deserialize_with = "m11::present",

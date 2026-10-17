@@ -465,6 +465,9 @@ func _refresh_content() -> void:
 	if state.get("id") == MissionState.M11_ID:
 		_refresh_m11()
 		return
+	if state.get("id") == MissionState.M15_ID:
+		_refresh_m15()
+		return
 	if state.get("id") == MissionState.M14_ID:
 		_refresh_m14()
 		return
@@ -524,7 +527,7 @@ func _refresh_content() -> void:
 
 func _stage_card_visible() -> bool:
 	var phase := str(state.get("phase", ""))
-	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID]:
+	if state.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID]:
 		# One line at most: a legal prompt replaces the objective line.
 		if phase == "in_progress":
 			return _stage_left > 0.0 and prompt_text.is_empty()
@@ -548,8 +551,8 @@ static func _stage_key(value: Dictionary) -> String:
 	if value.is_empty():
 		return ""
 	var phase: String = str(value.get("phase", ""))
-	var progress_key: String = "m14" if value.get("id") == MissionState.M14_ID else "m13" if value.get("id") == MissionState.M13_ID else "m12" if value.get("id") == MissionState.M12_ID else "m11" if value.get("id") == MissionState.M11_ID else "m10" if value.get("id") == MissionState.M10_ID else "m09" if value.get("id") == MissionState.M09_ID else "m07" if value.get("id") == MissionState.M07_ID else "m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))
-	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID] and value.get(progress_key) is Dictionary:
+	var progress_key: String = "m15" if value.get("id") == MissionState.M15_ID else ("m14" if value.get("id") == MissionState.M14_ID else ("m13" if value.get("id") == MissionState.M13_ID else ("m12" if value.get("id") == MissionState.M12_ID else ("m11" if value.get("id") == MissionState.M11_ID else ("m10" if value.get("id") == MissionState.M10_ID else ("m09" if value.get("id") == MissionState.M09_ID else ("m07" if value.get("id") == MissionState.M07_ID else ("m08" if value.get("id") == MissionState.M08_ID else ("m06" if value.get("id") == MissionState.M06_ID else ("m05" if value.get("id") == MissionState.M05_ID else "m04"))))))))))
+	if value.get("id") in [MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID] and value.get(progress_key) is Dictionary:
 		var current: Variant = value[progress_key].get("current")
 		var objective: String = str(current.get("id", "")) if current is Dictionary else ""
 		return "%s:%s:%s" % [phase, objective, str(value.get("attempt", ""))]
@@ -918,3 +921,31 @@ func _refresh_m14() -> void:
 			use = _catalog("M14_USE_PANEL")
 	_show_prompt(use)
 	_card.visible = _stage_card_visible()
+
+func _refresh_m15() -> void:
+	_recovery.visible = false
+	_run_badge.visible = state.get("run") is Dictionary
+	if _run_badge.visible:
+		var run: Dictionary = state["run"]
+		_run_badge.text = tr("RUN_LEVEL_BADGE").format({"attempt": int(state["attempt"]), "continues": int(run["continues"])})
+		_refresh_run_recovery(run)
+	var progress: Dictionary = state["m15"]
+	_evac_badge.visible = progress["broadcast_taken"]
+	_evac_badge.text = _catalog("M15_BROADCAST_TAKEN") if _evac_badge.visible else ""
+	match state["phase"]:
+		"briefing": _copy.text = _catalog("M15_WAITING")
+		"departed": _copy.text = InputGlyphs.plain(_catalog("M15_DEPARTED"))
+		_: _copy.text = InputGlyphs.plain(_catalog("M15_OBJECTIVE_" + str(progress["current"]["id"]).to_upper()))
+	var use: String = ""
+	for prompt: Dictionary in state["prompts"]:
+		if prompt["player_id"] == player_id:
+			var n: int = progress["completed"].size()
+			if n == 0:
+				use = _catalog("M15_USE_ARMING")
+			elif n == 4:
+				use = _catalog("M15_USE_BOOTH")
+			else:
+				use = _catalog("M15_USE_DEPARTURE")
+	_show_prompt(use)
+	_card.visible = _stage_card_visible()
+

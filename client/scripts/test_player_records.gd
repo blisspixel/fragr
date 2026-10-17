@@ -173,7 +173,9 @@ func _run() -> void:
 	berth["scope"]["mission"] = "launch_authority"
 	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M14 records bind the launch-work mission")
 	berth["scope"]["mission"] = "civic_pressure_valve"
-	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M15 cannot forge a playable participant record")
+	_check(PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "M15 records bind the stadium mission")
+	berth["scope"]["mission"] = "freedom_of_movement"
+	_check(not PlayerRecord.validation_error(berth, berth["player_id"]).is_empty(), "pending M16 cannot forge a playable participant record")
 	var habitat: Dictionary = current.duplicate(true)
 	habitat["map_id"] = 1012
 	habitat["map_name"] = "Terms of Cooperation"
@@ -222,7 +224,7 @@ func _run() -> void:
 	habitat_wire["type"] = "record"
 	habitat_network._handle_message(JSON.stringify(habitat_wire))
 	_check(habitat_received.size() == 1 and habitat_errors.is_empty() and habitat_network.record == habitat_wire, "live M12 record reaches presentation without disconnecting the owned mission: received=%d, errors=%s, unchanged=%s" % [habitat_received.size(), str(habitat_errors), str(habitat_network.record == habitat_wire)])
-	habitat_wire["scope"]["mission"] = "civic_pressure_valve"
+	habitat_wire["scope"]["mission"] = "freedom_of_movement"
 	habitat_network._handle_message(JSON.stringify(habitat_wire))
 	_check(habitat_received.size() == 1 and habitat_errors.size() == 1 and habitat_network.record.is_empty(), "live M12 boundary still refuses an unimplemented successor mission")
 	habitat_network.free()

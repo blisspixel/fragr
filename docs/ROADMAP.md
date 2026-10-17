@@ -56,12 +56,16 @@ passed before that merge. Fresh-player, difficulty and final-art acceptance
 remain open. M13's connected foundry shipped in v0.83.0 through PR #402,
 with finite Rockets, voluntary worker choices, the protected town feed and a
 physical freight lift. Version 17 retains entry resources and outcomes.
-M15 through M20 remain unbuilt as connected missions. The October 15
+The October 15
 [Walker foundation](plans/walker-foundation-20261015.md) shipped in v0.84.0;
 the [connected M14 integration](plans/m14-launch-authority-integration-20261015.md)
 adds staged support, optional jeep combat, actual fallen geometry and version 18
 carry, shipped in v0.85.0 through PR #404.
-The local M12 habitat, M13 foundry and M14 launch works development maps are described in
+The [connected M15 stadium](plans/m15-connected-stadium-20261015.md) connects
+Civic Pressure Valve, armed entrants, Article Blade plinth, booth takeover,
+the Episode IV refill to 3 continues, and version 19 carry.
+M16 through M20 remain unbuilt as connected missions.
+The local M12 habitat, M13 foundry, M14 launch works and M15 stadium development maps are described in
 the full build order below. Fresh-player, difficulty
 and final art acceptance remain open for every level. The full build order
 below owns current sequencing.
@@ -484,11 +488,9 @@ the first finite Rocket Launcher and connects relay, hazard, voluntary worker
 choices, guarded gallery and physical lift departure to version 17 saves.
 The [foundry round](plans/m13-connected-round-20261013.md) records verification
 and integration status. Ordinary campaign supply and visual pursuit scale by
-Assisted, Standard, and Severe. Connected M15 through M20 and the conditional
-epilogue remain unbuilt. The Walker foundation now has native and ordinary
-rendered clears. Connected M14 is the current campaign increment following the
-v0.84.0 foundation release. Foundry art, balance and fresh-player
-acceptance retain their own gates. Development grayboxes for levels 15 through 20, and a
+Assisted, Standard, and Severe. Connected M16 through M20 and the conditional
+epilogue remain unbuilt. Connected M15 is built following the Article Blade
+foundation. Development grayboxes for levels 16 through 20, and a
 sheltered trench on the level 14 battlefield, are not missions. The epilogue
 remains a plan. The optional M12 secret stays separate because it changes
 canonical map bytes.

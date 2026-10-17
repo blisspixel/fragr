@@ -142,12 +142,13 @@ pub enum MissionId {
     TermsOfCooperation,
     WeightOfPermission,
     LaunchAuthority,
+    CivicPressureValve,
 }
 
 impl MissionId {
     /// Playable campaign stages in progression order. Pending destinations are
     /// strings in saved exits until their actual mission is implemented.
-    pub const ALL: [Self; 14] = [
+    pub const ALL: [Self; 15] = [
         Self::RecallNotice,
         Self::PersonsUnknown,
         Self::ScheduledService,
@@ -162,6 +163,7 @@ impl MissionId {
         Self::TermsOfCooperation,
         Self::WeightOfPermission,
         Self::LaunchAuthority,
+        Self::CivicPressureValve,
     ];
 }
 
@@ -586,10 +588,19 @@ pub struct MissionState {
         skip_serializing_if = "Option::is_none"
     )]
     pub m14: Option<super::M14ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m15: Option<super::M15ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        if (self.id == MissionId::CivicPressureValve) != self.m15.is_some() {
+            return Err("M15 facts require exactly M15 mission");
+        }
         if (self.id == MissionId::LaunchAuthority) != self.m14.is_some() {
             return Err("M14 facts require exactly M14 mission");
         }
@@ -624,6 +635,15 @@ impl MissionState {
             return Err("M04 facts require M04 mission");
         }
         match self.id {
+            MissionId::CivicPressureValve => {
+                if self.m02.is_some() || self.m03.is_some() {
+                    return Err("M15 cannot carry earlier mission facts");
+                }
+                self.m15
+                    .as_ref()
+                    .ok_or("M15 facts missing")?
+                    .validate(self.phase, tick)?;
+            }
             MissionId::LaunchAuthority => {
                 if self.m02.is_some() || self.m03.is_some() {
                     return Err("M14 cannot carry earlier mission facts");
@@ -1048,6 +1068,7 @@ mod m02_wire_tests {
             m12: None,
             m13: None,
             m14: None,
+            m15: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

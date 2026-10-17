@@ -108,6 +108,7 @@ var m10_ship: M10Ship
 var m11_tender: M11Tender
 var m13_foundry: M13Foundry
 var m14_launch: M14Launch
+var m15_stadium: M15Stadium
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
@@ -344,6 +345,11 @@ func _ready():
 	m14_launch.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m14_launch)
+	m15_stadium = M15Stadium.new()
+	m15_stadium.name = "M15Stadium"
+	m15_stadium.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m15_stadium)
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
@@ -553,6 +559,8 @@ func _on_map_info(info: Dictionary) -> void:
 		m13_foundry.configure_map(info)
 	if m14_launch != null:
 		m14_launch.configure_map(info)
+	if m15_stadium != null:
+		m15_stadium.configure_map(info)
 	if m12_habitat != null:
 		m12_habitat.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
@@ -1630,6 +1638,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		m13_foundry.apply_state(state)
 	if m14_launch != null:
 		m14_launch.apply_state(state)
+	if m15_stadium != null:
+		m15_stadium.apply_state(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
@@ -2002,6 +2012,8 @@ func _clear_world() -> void:
 		m13_foundry.clear_map()
 	if m14_launch != null:
 		m14_launch.clear_map()
+	if m15_stadium != null:
+		m15_stadium.clear_map()
 	if m12_habitat != null:
 		m12_habitat.clear_map()
 	hud.combat_feed.set_campaign(false)

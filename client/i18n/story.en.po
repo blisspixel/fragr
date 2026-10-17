@@ -735,6 +735,63 @@ msgstr "{use} Use departure control"
 msgid "M14_MACHINE_FALLEN"
 msgstr "WALKER DOWN"
 
+msgid "MISSION_M15_TITLE"
+msgstr "CIVIC PRESSURE VALVE"
+
+msgid "M15_PROTOTYPE_TITLE"
+msgstr "Civic Pressure Valve: development mission"
+
+msgid "M15_LOCAL_STARTING"
+msgstr "Opening the stadium..."
+
+msgid "M15_RUN_DESCRIPTION"
+msgstr "Break the Union's bloodsport. Bring the guns."
+
+msgid "M15_NEXT_TITLE"
+msgstr "FREEDOM OF MOVEMENT"
+
+msgid "M15_NEXT_PENDING"
+msgstr "Freedom of Movement is still being built. Your completed bout run is kept."
+
+msgid "M15_WAITING"
+msgstr "The entrants are waiting. The pen is still held."
+
+msgid "M15_DEPARTED"
+msgstr "The bout is won. The uprising begins."
+
+msgid "M15_OBJECTIVE_PEN_ARMED"
+msgstr "Arm the entrants' pen at the supply crate."
+
+msgid "M15_OBJECTIVE_PEN_CLEARED"
+msgstr "Clear the pen gate and enter the tunnel."
+
+msgid "M15_OBJECTIVE_BLADE_LESSON_WON"
+msgstr "Defeat the first wave on the stadium floor."
+
+msgid "M15_OBJECTIVE_WARDENS_CLEARED"
+msgstr "Clear the wardens and camera notaries."
+
+msgid "M15_OBJECTIVE_BROADCAST_SECURED"
+msgstr "Take the broadcast booth on the upper ring."
+
+msgid "M15_OBJECTIVE_BOUT_WON"
+msgstr "Defeat the final bout wave."
+
+msgid "M15_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Gather at the ceremonial gate to depart."
+
+msgid "M15_USE_ARMING"
+msgstr "{use} Arm entrants"
+
+msgid "M15_USE_BOOTH"
+msgstr "{use} Take broadcast booth"
+
+msgid "M15_USE_DEPARTURE"
+msgstr "{use} Depart through ceremonial gate"
+
+msgid "M15_BROADCAST_TAKEN"
+msgstr "THE HOST DOMINATES THE FEED"
+
 msgid "M13_NEXT_TITLE"
 msgstr "LAUNCH AUTHORITY"
 

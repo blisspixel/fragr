@@ -1284,6 +1284,7 @@ mod tests {
             m12: None,
             m14: None,
             m13: None,
+            m15: None,
         };
         state.validate(1).unwrap();
         assert!(!terminal_mission(&state));
@@ -1342,6 +1343,7 @@ mod tests {
             m12: None,
             m14: None,
             m13: None,
+            m15: None,
         };
         state.validate(20).unwrap();
         let mut total = CombatCounts {
@@ -1482,6 +1484,7 @@ mod tests {
             m12: None,
             m14: None,
             m13: None,
+            m15: None,
         };
         state.validate(1).unwrap();
         let loadout = LoadoutState {
@@ -1590,6 +1593,7 @@ mod tests {
             m12: None,
             m14: None,
             m13: None,
+            m15: None,
         };
         let state = decision_state(&telemetry, Some(&mission), None, Some(true));
         assert_eq!(state["enemy"]["weapon"], "flechette");
@@ -1848,6 +1852,7 @@ mod tests {
             m12: None,
             m14: None,
             m13: None,
+            m15: None,
         };
         let mut epoch = DecisionEpoch::default();
         if DecisionEpoch::mission_changed(None, &mission) {

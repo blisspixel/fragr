@@ -805,6 +805,8 @@ impl GameSession {
         if let Some((id, _)) = &companion {
             driven.insert(*id);
         }
+        let entrants = self.state.m15_entrant_intents();
+        driven.extend(entrants.iter().map(|(id, _)| *id));
         self.navigators.retain(|id, _| driven.contains(id));
         // At most four searches per tick, with rotating slots so larger rosters
         // cannot starve their later controllers. Cached paths keep advancing.
@@ -963,6 +965,10 @@ impl GameSession {
                 self.state.tick,
             );
             self.state.set_companion_action(id, action);
+        }
+
+        for (id, intent) in entrants {
+            self.state.set_action(id, intent.action);
         }
 
         self.state.tick(dt);

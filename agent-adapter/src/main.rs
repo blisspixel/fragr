@@ -729,7 +729,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -748,6 +748,7 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m12(m12.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m14(m14.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m15(m15.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -3085,6 +3086,7 @@ fn main() -> ExitCode {
                 m12: None,
                 m14: None,
                 m13: None,
+                m15: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,
@@ -3274,6 +3276,7 @@ fn main() -> ExitCode {
                 m12: None,
                 m14: None,
                 m13: None,
+                m15: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,

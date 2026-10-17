@@ -125,7 +125,7 @@ func _run() -> void:
 	_check(hud.prompt_text == InputGlyphs.plain(tr("M10_USE_DEPARTURE")), "only physical server prompt offers confirmation")
 	hud.queue_free()
 	_check(StoryScene.exists("m10_arrival") and StoryScene.exists("l10_l11") and StoryScene.BEFORE_MISSION.get(MissionState.M10_ID) == "m10_arrival", "story uses established dismissal/readiness seam")
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == LocalMatch.M10_GAMEPLAY and preload("res://scripts/net_client.gd").GAMEPLAY_VERSION >= LocalMatch.MISSION_GAMEPLAY[MissionState.M12_ID] and LocalMatch.NEXT_MISSION == "civic_pressure_valve", "strict capability and honest pending M15")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M10_ID) == LocalMatch.M10_GAMEPLAY and preload("res://scripts/net_client.gd").GAMEPLAY_VERSION >= LocalMatch.MISSION_GAMEPLAY[MissionState.M12_ID] and LocalMatch.NEXT_MISSION == "freedom_of_movement", "strict capability and honest pending M16")
 	await process_frame
 	await process_frame
 	if failures == 0:

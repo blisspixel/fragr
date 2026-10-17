@@ -232,6 +232,7 @@ fn export_enclosed_capture() {
             m11: None,
             m12: None,
             m14: None,
+            m15: None,
             m13: None,
             walker: None,
             article_blade: None,

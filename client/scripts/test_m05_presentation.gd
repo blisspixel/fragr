@@ -43,12 +43,13 @@ func _run() -> void:
 	await process_frame
 	await menu._show("practice")
 	var selector: OptionButton = menu._root.get_node("DevelopmentMission")
-	_check(selector.item_count == 13 and selector.selected == 5 \
+	_check(selector.item_count == 14 and selector.selected == 5 \
 		and selector.get_item_text(8) == tr("M10_PROTOTYPE_TITLE") \
 		and selector.get_item_text(9) == tr("M11_PROTOTYPE_TITLE") \
 		and selector.get_item_text(10) == tr("M12_PROTOTYPE_TITLE") \
-		and selector.get_item_text(12) == tr("M14_PROTOTYPE_TITLE"),
-		"compact selector adds the launch works while retaining the M07 default and earlier indices")
+		and selector.get_item_text(12) == tr("M14_PROTOTYPE_TITLE") \
+		and selector.get_item_text(13) == tr("M15_PROTOTYPE_TITLE"),
+		"compact selector adds the stadium while retaining the M07 default and earlier indices")
 	selector.select(3)
 	_check(selector.get_item_text(selector.selected) == tr("M05_PROTOTYPE_TITLE"), "M05 retains its exact selectable entry index")
 	selector.grab_focus()

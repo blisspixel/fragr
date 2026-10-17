@@ -148,6 +148,7 @@ impl Encounters {
                 || map.m12_objectives().is_some()
                 || map.m13_geometry().is_some()
                 || map.m14_geometry().is_some()
+                || map.m15_geometry().is_some()
                 || map.has_authored_vehicles())
                 && definition.after.as_ref().is_some_and(|id| {
                     definitions
@@ -166,6 +167,11 @@ impl Encounters {
                 continue;
             }
             if !state.m14_encounter_available(index)
+                && matches!(self.groups[index], Group::Unplaced)
+            {
+                continue;
+            }
+            if !state.m15_encounter_available(index)
                 && matches!(self.groups[index], Group::Unplaced)
             {
                 continue;

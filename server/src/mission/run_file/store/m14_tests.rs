@@ -9,7 +9,7 @@ fn launch_entry() -> RunDocument {
         .unwrap()
 }
 
-fn completed_launch() -> RunDocument {
+pub(super) fn completed_launch() -> RunDocument {
     let mut document = launch_entry();
     let SavedStep::MissionEntry { entry, .. } = &document.step else {
         unreachable!()
@@ -148,7 +148,7 @@ fn m14_historical_decoder_refuses_future_mission_and_even_null_outcomes() {
 }
 
 #[test]
-fn m14_completed_run_retains_optional_losses_and_refuses_unbuilt_m15() {
+fn m14_completed_run_retains_optional_losses_and_opens_civic_pressure_valve() {
     let completed = completed_launch();
     let bytes = serde_json::to_vec(&completed).unwrap();
     let RunProbe::Compatible(decoded) = RunStore::inspect_bytes(&bytes, m09_tests::HASHES) else {
@@ -156,11 +156,17 @@ fn m14_completed_run_retains_optional_losses_and_refuses_unbuilt_m15() {
     };
     assert_eq!(*decoded, completed);
     assert!(!decoded.m14_outcome.as_ref().unwrap().jeep_preserved);
-    assert!(serde_json::from_str::<MissionId>("\"civic_pressure_valve\"").is_err());
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"civic_pressure_valve\"").unwrap(),
+        MissionId::CivicPressureValve
+    );
     for mission in CAMPAIGN_MISSIONS {
-        assert!(completed
-            .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
-            .is_err());
+        assert_eq!(
+            completed
+                .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
+                .is_ok(),
+            mission == MissionId::CivicPressureValve
+        );
     }
     let mut missing = completed.clone();
     missing.m14_outcome = None;

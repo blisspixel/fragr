@@ -1662,6 +1662,7 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m12,
             m13,
             m14,
+            m15,
             walker,
             article_blade,
             map_name,
@@ -1805,6 +1806,15 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             )?;
             if let Some(geometry) = m14 {
                 map["m14"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m15(
+                m15.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m15 {
+                map["m15"] = serde_json::json!(geometry);
             }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
@@ -2852,7 +2862,7 @@ mod mcp_tests {
             let ids = tool["inputSchema"]["properties"]["id"]["enum"]
                 .as_array()
                 .unwrap();
-            assert_eq!(ids.len(), 14);
+            assert_eq!(ids.len(), 15);
             for id in [
                 "recall_notice",
                 "no_forwarding_address",
@@ -2865,10 +2875,11 @@ mod mcp_tests {
                 "terms_of_cooperation",
                 "weight_of_permission",
                 "launch_authority",
+                "civic_pressure_valve",
             ] {
                 assert!(ids.contains(&serde_json::json!(id)), "{name} omits {id}");
             }
-            assert!(!ids.contains(&serde_json::json!("civic_pressure_valve")));
+            assert!(!ids.contains(&serde_json::json!("freedom_of_movement")));
             for id in ids {
                 let mission: protocol::MissionId = serde_json::from_value(id.clone()).unwrap();
                 let ready: protocol::MissionReady =

@@ -89,6 +89,9 @@ impl AuthoredSource {
             crate::protocol::MissionId::LaunchAuthority => {
                 include_bytes!("../maps/m14-launch-authority.json")
             }
+            crate::protocol::MissionId::CivicPressureValve => {
+                include_bytes!("../maps/m15-civic-pressure-valve.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -135,6 +138,9 @@ impl AuthoredSource {
             Self::Mission(crate::protocol::MissionId::LaunchAuthority) => {
                 AuthoredMap::read(include_bytes!("../maps/m14-launch-authority.json").as_slice())
             }
+            Self::Mission(crate::protocol::MissionId::CivicPressureValve) => AuthoredMap::read(
+                include_bytes!("../maps/m15-civic-pressure-valve.json").as_slice(),
+            ),
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())
             }

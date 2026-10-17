@@ -175,6 +175,7 @@ impl GameState {
             m12: None,
             m14: None,
             m13: None,
+            m15: None,
             m04: Some(M04ObjectiveState {
                 completed,
                 current,
