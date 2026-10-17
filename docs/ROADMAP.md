@@ -413,7 +413,7 @@ Article Blade foundation, plinth lifecycle, drawn viewmodels and pickups.
 self-defense and route resumption. The
 [connected M15 stadium](plans/m15-connected-stadium-20261015.md) shipped in v0.86.0
 with the armed entrant rescue, broadcast booth takeover, Episode IV continue refill to
-3, and version 19 saves. The next campaign increment is Freedom of Movement (M16)
+3, and version 19 saves. The next campaign increment is [Freedom of Movement (M16)](plans/m16-connected-avenue-20261017.md)
 avenue development, motorcycle mechanics, and the approach to the Forever Office.
 Nick explicitly requested parallel level, multiplayer and asset work. Each
 bounded round returns to one reviewed main with passing CI before the next.
@@ -820,7 +820,16 @@ current work.
    modern boomer shooters this game is measured against.
 5. **The fun loop.**
    - Audit the twenty level briefs against the maximum-fun checks, and
-     simplify what reads complicated.
+     simplify what reads complicated. The [campaign fun and level design audit](plans/campaign-fun-and-level-design-audit-20261017.md)
+     specifies the seven golden rules of `MAP-DESIGN.md`, tight-by-default spatial discipline,
+     and encounter shapes across levels 16 through 20 and the Epilogue.
+   - [Bot and enemy AI excellence](plans/bot-and-enemy-ai-excellence-20261017.md):
+     universal 120-degree perception and reaction delays across CTF, Sabotage and
+     campaign guards; an encounter attack-token manager that prevents simultaneous
+     unreadable volleys and coordinates suppression anchors, flankers and backline
+     repair; pre-fire audio tells and optic glints for infantry; companion
+     peripheral slot following and reload covering fire; and tactical vocoder barks
+     and multiplayer radio callouts.
    - Refine the shipped end-of-level tally: kills, secrets, deaths and measured
      time. The current [local best-time increment](plans/host-rotation-campaign-bests-20261007.md)
      compares retained compatible human completions; reviewed authored pars
