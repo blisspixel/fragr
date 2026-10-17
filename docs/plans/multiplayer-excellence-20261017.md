@@ -42,14 +42,14 @@ This specification details the concrete architectural upgrades required to bridg
 
 ## 3. The 7 Pillars of Multiplayer Excellence
 
-### Pillar 1: The Contested Frequency Announcer & Multikill Audio Juice
-Currently, the Host reacts with textual barks in the combat chat feed (`Double Kill`, `Triple Scrap`, `Frequency Rampage`, `Flag Taken`, `Flag Returned`, `Comeback`).
-- **Implementation:** Record or synthesize gravelly, pirate-radio Contested Frequency voice barks through `tools/audiogen` (ElevenLabs integration within approved credit allowances).
+### Pillar 1: Arena Host Announcer & Multikill Audio Juice
+Currently, the Host reacts with textual barks in the combat chat feed (`FirstBlood`, `Double Kill`, `Triple Scrap`, `Streak Ended`, `Last Standing`, `Flag Taken`, `Flag Returned`, `Comeback`).
+- **Implementation:** Record or synthesize dry, deadpan, cynical arena booth Host voice barks through `tools/audiogen` (ElevenLabs integration within approved credit allowances), matching the existing lines in `client/i18n/match.en.po`.
 - **Client Playback:** Hook `ServerMessage::HostReaction` in `client/scripts/game_manager.gd` and play high-priority 2D broadcast audio clips over the `Voice` audio bus.
 - **Key Callouts:**
-  - Multikills: *"Double Frequency!"*, *"Triple Scrap!"*, *"Frequency Rampage!"*, *"Unstoppable!"*
-  - Objectives: *"Flag Taken!"*, *"Flag Dropped!"*, *"Flag Returned!"*, *"Flag Captured!"*, *"Charge Armed!"*, *"Charge Defused!"*
-  - Match Beats: *"First Blood!"*, *"Comeback!"*, *"Victory!"*, *"Frequency Denied!"*
+  - Multikills: *"Double kill."*, *"Triple scrap."*, *"Rampage."*
+  - Objectives: *"Flag taken."*, *"Flag dropped."*, *"Flag returned."*, *"Flag captured."*, *"Charge armed."*, *"Charge defused."*
+  - Match Beats: *"First blood. Somebody had to."*, *"Streak ended. Say something nice."*, *"Comeback."*, *"The booth is standing."*
 
 ### Pillar 2: Visceral Hit Confirmation ("The Chime")
 Currently, scoring a hit displays crosshair tick marks and floating damage numbers, but produces zero shooter-side audio cue.
@@ -93,7 +93,7 @@ Currently, Conquest tickets bleed silently on the HUD.
   - When either team's ticket count drops below 25:
     - The ticket counter on `conquest_hud.gd` pulses in high-visibility warning amber/red.
     - An audible low-frequency alarm siren (`siren_warning.wav`) plays every 4 seconds.
-    - The FM radio music station shifts into higher-tempo tension broadcast tracks.
+    - A rapid heartbeat thump reinforces the final tickets.
 
 ### Pillar 7: Sudden Death / Golden Frag Overtime
 Currently, matches that reach the time limit with tied scores simply terminate with `"Match drawn"`.

@@ -834,11 +834,11 @@ current work.
      and multiplayer radio callouts.
    - [Multiplayer excellence](plans/multiplayer-excellence-20261017.md):
      elevate the working 5-mode, 8-map multiplayer suite to the classic S-tier benchmarks of
-     Doom II, Battlefield 1942, Halo and GoldenEye 007: Contested Frequency voice announcer barks
+     Doom II, Battlefield 1942, Halo and GoldenEye 007: arena booth Host voice barks
      for multikills and objectives; metallic hit confirmation chimes with pitch-scaled feedback;
      authoritative blast impulse and rocket jumping physics; Super Shotgun meatshot point-blank tuning;
      unlocking all modes, mutators (Licence to Kill, Golden Rail, Slappers Only) and quick-launch
-     presets in the desktop host GUI; Conquest ticket bleed warning sirens and tension music;
+     presets in the desktop host GUI; Conquest ticket bleed warning sirens;
      and Sudden Death overtime deciding tied matches.
    - Refine the shipped end-of-level tally: kills, secrets, deaths and measured
      time. The current [local best-time increment](plans/host-rotation-campaign-bests-20261007.md)
