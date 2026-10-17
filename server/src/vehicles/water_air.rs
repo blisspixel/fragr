@@ -38,8 +38,12 @@ pub fn vehicle_step_kind(
     arena: &Arena,
     water: &[WaterRegion],
 ) -> VehicleMotion {
-    if kind == VehicleKind::Jeep {
-        let next = vehicle_step(state, input, dt, arena);
+    if kind == VehicleKind::Jeep || kind == VehicleKind::Motorcycle {
+        let next = if kind == VehicleKind::Motorcycle {
+            super::motorcycle_step(state, input, dt, arena)
+        } else {
+            vehicle_step(state, input, dt, arena)
+        };
         if surface_at(water, next.position[0], next.position[2])
             .is_some_and(|(level, _)| next.position[1] < level + 0.3)
         {

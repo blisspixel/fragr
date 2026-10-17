@@ -7,7 +7,7 @@ const MAX_HP: int = 400
 const MAX_SPEED: float = 36.0
 const MAX_BURN_TICKS: int = 40
 const SEATS: Array[String] = ["driver", "gunner"]
-const KINDS: Array[String] = ["jeep", "boat", "light_aircraft"]
+const KINDS: Array[String] = ["jeep", "boat", "light_aircraft", "motorcycle"]
 const INVALID: String = "The server sent invalid vehicles. Connection closed."
 const KEYS: Array[String] = ["id", "kind", "position", "yaw", "speed", "vy", "hp", "driver", "gunner", "gun_heat", "burning_ticks", "control_ready_tick"]
 
@@ -43,7 +43,7 @@ static func validation_error(snapshot: Dictionary) -> String:
 			return INVALID
 		if int(row["hp"]) > 0 and int(row["burning_ticks"]) > 0:
 			return INVALID
-		if row["kind"] == "light_aircraft" and (row["gunner"] != null or float(row["gun_heat"]) != 0.0):
+		if (row["kind"] == "light_aircraft" or row["kind"] == "motorcycle") and (row["gunner"] != null or float(row["gun_heat"]) != 0.0):
 			return INVALID
 		if row["kind"] != "light_aircraft" and absf(float(row["speed"])) > 20.0:
 			return INVALID
@@ -113,7 +113,7 @@ static func nearby(snapshot: Dictionary, feet: Vector3) -> Dictionary:
 		if away > reach or away >= distance or absf(point.y - feet.y) > 2.0:
 			continue
 		for seat: String in SEATS:
-			if row["kind"] == "light_aircraft" and seat == "gunner":
+			if (row["kind"] == "light_aircraft" or row["kind"] == "motorcycle") and seat == "gunner":
 				continue
 			if row[seat] == null:
 				best = {"vehicle": row, "seat": seat}

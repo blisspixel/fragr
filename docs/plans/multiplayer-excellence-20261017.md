@@ -1,0 +1,120 @@
+# Multiplayer Excellence: The Golden Era Benchmark
+
+Status: **planned**, 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
+
+---
+
+## 1. Executive Summary and The Core Question
+
+Does fragr have multiplayer working right now?
+**Yes.** The authoritative 20 Hz Rust server, WebSocket networking on port 6767, UDP 6768 LAN presence discovery, 8 built-in multiplayer arenas, 5 competitive game modes (FFA, TDM, CTF, Sabotage, Conquest), multi-seat combined-arms vehicles (Jeeps, Boats, Aircraft, Motorcycles), proximity/remote mines, and humanized rule-bot backfilling are completely functional and tested in the codebase today.
+
+Is it currently as fun as Doom II, Battlefield 1942, Halo, and GoldenEye 007?
+**Almost, but with specific, identifiable tactile gaps.** The underlying engine architecture and movement physics are rock-solid, but the sensory reward loop, explosive physics interplay, and custom party mutators need targeted elevation to achieve the legendary S-tier status of the genre's greatest classics.
+
+This specification details the concrete architectural upgrades required to bridge that gap.
+
+---
+
+## 2. Competitive Deconstruction: What Made the Legends Unforgettable
+
+### 2.1 Doom II: The Meatshot and Kinetic Flow
+- **The Super Shotgun:** The visceral rush of barrel-stuffing an opponent for a 1-hit kill. High risk, high reward.
+- **Rocket Physics:** Leading moving targets, splash damage mindgames, and rocket jumping / vertical propulsion.
+- **Map Circulation:** Controlling weapon respawns, armor pads, and megahealth loops.
+
+### 2.2 Battlefield 1942: Combined-Arms Frontline Drama
+- **Multi-Seat Teamwork:** Driver handles the vehicle while the gunner sweeps the horizon.
+- **Splatter Kills:** High-speed roadkills reward vehicular momentum.
+- **Conquest Bleed Tension:** When tickets bleed under 25, the music and sirens escalate into heart-pounding last-second turnaround drama.
+
+### 2.3 Halo: Combat Evolved & Halo 3: The Party Sandbox
+- **The Golden Triangle:** The seamless, rhythmic combat loop of Guns + Grenades + Melee.
+- **The Booming Announcer:** Deep, electrifying voice callouts (*"Double Kill!"*, *"Triple Scrap!"*, *"Flag Taken!"*, *"Killing Spree!"*).
+- **Tactile Hit Feedback:** The crisp chime / pop confirmation that confirms damage dealt.
+
+### 2.4 GoldenEye 007: Tactical Trolling & Party Mutators
+- **Proximity Mines:** The psychological warfare of booby-trapping doorways, armor pads, and corridor ceilings.
+- **Legendary Mutators:** *Licence to Kill* (1-shot kills), *Golden Gun / Golden Rail* (single golden weapon), *Slappers Only* (fists only), and custom weapon restrictions.
+- **Couch Friction:** Instant rematches, sudden death, and high-energy social banter.
+
+---
+
+## 3. The 7 Pillars of Multiplayer Excellence
+
+### Pillar 1: The Contested Frequency Announcer & Multikill Audio Juice
+Currently, the Host reacts with textual barks in the combat chat feed (`Double Kill`, `Triple Scrap`, `Frequency Rampage`, `Flag Taken`, `Flag Returned`, `Comeback`).
+- **Implementation:** Record or synthesize gravelly, pirate-radio Contested Frequency voice barks through `tools/audiogen` (ElevenLabs integration within approved credit allowances).
+- **Client Playback:** Hook `ServerMessage::HostReaction` in `client/scripts/game_manager.gd` and play high-priority 2D broadcast audio clips over the `Voice` audio bus.
+- **Key Callouts:**
+  - Multikills: *"Double Frequency!"*, *"Triple Scrap!"*, *"Frequency Rampage!"*, *"Unstoppable!"*
+  - Objectives: *"Flag Taken!"*, *"Flag Dropped!"*, *"Flag Returned!"*, *"Flag Captured!"*, *"Charge Armed!"*, *"Charge Defused!"*
+  - Match Beats: *"First Blood!"*, *"Comeback!"*, *"Victory!"*, *"Frequency Denied!"*
+
+### Pillar 2: Visceral Hit Confirmation ("The Chime")
+Currently, scoring a hit displays crosshair tick marks and floating damage numbers, but produces zero shooter-side audio cue.
+- **Implementation:** Add a sharp, punchy metallic hit chime (`hit_confirm.wav`) triggered inside `hud.gd:show_hit_marker()`.
+- **Dynamic Pitch Modulation:** Modulate the audio pitch upwards based on damage magnitude and critical headshot placement (e.g. baseline pitch for Tack 20 dmg, +4 semitones for Railgun 80 dmg or headshot flechettes).
+
+### Pillar 3: Blast Impulse & Rocket Jumping Physics
+Currently, `resolve_blast` in `server/src/sim/grenade.rs` computes line-of-sight damage but applies zero velocity impulse to players.
+- **Server Implementation:** Compute a 3D outward momentum vector from blast epicenter to target feet:
+  ```rust
+  let impulse_dir = [
+      (player.x - blast.position[0]) / distance,
+      ((player.y - blast.position[1]) / distance).max(0.35),
+      (player.z - blast.position[2]) / distance,
+  ];
+  let force = (1.0 - distance / blast.radius) * blast.peak * 0.18;
+  player.vy += impulse_dir[1] * force;
+  ```
+- **Rocket Jumping Self-Damage Scaling:** Reduce self-inflicted explosive damage by 40% while preserving 100% vertical impulse, enabling high-skill rocket jumps to bypass stair routes or scale high gantries (Directive 17, Arena Duel).
+
+### Pillar 4: Super Shotgun "Meatshot" Tuning
+Currently, `WeaponType::Scatter` fires 7 pellets at 10 damage each (70 total), requiring 2 point-blank shots to kill an unarmored fighter.
+- **Tuning:** Increase point-blank pellet concentration so landing all 7 pellets within 2.0 meters inflicts **105 total damage**, rewarding aggressive barrel-stuffing with an immediate one-shot kill.
+- **Sound Feedback:** Thicken the Scattergun fire sound with a deeper sub-bass kick and audible pump mechanical clack.
+
+### Pillar 5: Host UI Unlock: Full Modes & GoldenEye Mutators
+The Rust server already supports `LicenceToKill`, `GoldenRail`, `ShotgunOnly`, `RailOnly`, `FistsOnly`, and `TwoLives`. However, the Godot client host UI (`client/scripts/local_host.gd` and `boot_menu.gd`) restricts mode selection to TDM/Sabotage/Conquest and omits mutator arguments.
+- **Implementation:**
+  - Expand `local_host.gd` to expose all 5 modes (`FFA`, `TDM`, `CTF`, `Sabotage`, `Conquest`).
+  - Add a Mutators dropdown selector and quick-launch presets on the Host menu:
+    - *Standard Match*
+    - *Licence to Kill* (1-hit kill instagib)
+    - *Golden Rail* (one golden gun with instant kill)
+    - *Slappers Only* (fists only, high speed)
+    - *Shotgun Wedding* (Scatterguns only)
+    - *Proximity Party* (Pistols + Proximity Mines only)
+
+### Pillar 6: Conquest Ticket Bleed Siren & Endgame Tension
+Currently, Conquest tickets bleed silently on the HUD.
+- **Implementation:**
+  - When either team's ticket count drops below 25:
+    - The ticket counter on `conquest_hud.gd` pulses in high-visibility warning amber/red.
+    - An audible low-frequency alarm siren (`siren_warning.wav`) plays every 4 seconds.
+    - The FM radio music station shifts into higher-tempo tension broadcast tracks.
+
+### Pillar 7: Sudden Death / Golden Frag Overtime
+Currently, matches that reach the time limit with tied scores simply terminate with `"Match drawn"`.
+- **Implementation:**
+  - When the match clock expires while scores are tied, trigger `HostReactionKind::SuddenDeath`.
+  - The HUD displays *"SUDDEN DEATH: NEXT FRAG DECIDES"*.
+  - Match clock freezes; the next frag, flag capture, or bomb detonation ends the match instantly with a celebratory winner podium.
+
+---
+
+## 4. Verification and Delivery Sequence
+
+1. **Phase 1: Audio Feedback & Sensory Juice:** Announcer voice lines and metallic hit confirmation sound.
+2. **Phase 2: Physics & Weapon Tuning:** Blast impulse, rocket jumping, and Super Shotgun meatshot balance.
+3. **Phase 3: Host UI & Mutator Freedom:** Enabling all modes, mutator flags, and party presets in the desktop host dialog.
+4. **Phase 4: Endgame Drama & Overtime:** Conquest siren bleed cues and Sudden Death tiebreakers.
+
+---
+
+## 5. Spend and Asset Safety
+
+- Zero mandatory cash spend ($0).
+- Voice announcer generation consumes existing included ElevenLabs credits via `tools/audiogen`.
+- All code authorship strictly Nick Seal (`blisspixel`). Zero AI attribution.

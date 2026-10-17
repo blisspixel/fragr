@@ -415,7 +415,9 @@ self-defense and route resumption. The
 with the armed entrant rescue, broadcast booth takeover, Episode IV continue refill to
 3, and version 19 saves. The next campaign increment is [Freedom of Movement (M16)](plans/m16-connected-avenue-20261017.md)
 avenue development, motorcycle mechanics, and the approach to the Forever Office.
-Nick explicitly requested parallel level, multiplayer and asset work. Each
+Nick explicitly requested parallel level, multiplayer and asset work. The [multiplayer excellence plan](plans/multiplayer-excellence-20261017.md)
+specifies sensory juice, announcer barks, rocket jump blast physics, host UI mutators and Conquest tension
+benchmarked against classic multiplayer legends. Each
 bounded round returns to one reviewed main with passing CI before the next.
 Human and final-art acceptance stay separate.
 
@@ -830,6 +832,14 @@ current work.
      repair; pre-fire audio tells and optic glints for infantry; companion
      peripheral slot following and reload covering fire; and tactical vocoder barks
      and multiplayer radio callouts.
+   - [Multiplayer excellence](plans/multiplayer-excellence-20261017.md):
+     elevate the working 5-mode, 8-map multiplayer suite to the classic S-tier benchmarks of
+     Doom II, Battlefield 1942, Halo and GoldenEye 007: Contested Frequency voice announcer barks
+     for multikills and objectives; metallic hit confirmation chimes with pitch-scaled feedback;
+     authoritative blast impulse and rocket jumping physics; Super Shotgun meatshot point-blank tuning;
+     unlocking all modes, mutators (Licence to Kill, Golden Rail, Slappers Only) and quick-launch
+     presets in the desktop host GUI; Conquest ticket bleed warning sirens and tension music;
+     and Sudden Death overtime deciding tied matches.
    - Refine the shipped end-of-level tally: kills, secrets, deaths and measured
      time. The current [local best-time increment](plans/host-rotation-campaign-bests-20261007.md)
      compares retained compatible human completions; reviewed authored pars
