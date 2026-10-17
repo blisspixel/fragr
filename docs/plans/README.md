@@ -36,6 +36,14 @@ save migration and measured multiplayer candidate have local native, client,
 rendered and release packaging evidence. The PR and v0.85.0 tag workflow
 record completed CI and desktop packaging.
 
+The [Article Blade foundation](m15-connected-stadium-20261015.md) shipped through
+[PR #405](https://github.com/blisspixel/fragr/pull/405). The
+[CTF carrier contact](ctf-carrier-contact-20261015.md) increment shipped through
+[PR #406](https://github.com/blisspixel/fragr/pull/406). The
+[connected M15 stadium](m15-connected-stadium-20261015.md) **shipped** in v0.86.0
+with Civic Pressure Valve, armed entrants, broadcast booth takeover, Episode IV continue
+refill to 3, and version 19 saves. Level 16 remains pending.
+
 The [main consolidation](main-consolidation-20261008.md) shipped in
 [PR #375](https://github.com/blisspixel/fragr/pull/375) at `73cd69e8` and is
 released as v0.80.0. The
@@ -92,11 +100,11 @@ remain open.
 | [`build-round-20261015.md`](./build-round-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
 | [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
 | [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. |
-| [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **planned**, following v0.85.0 | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, two prepared door systems and Episode IV carry. Bounded mechanic choices remain to be settled in the foundation. |
+| [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **shipped**, v0.86.0 | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, ceremonial gate departure and Episode IV refill to 3 continues. |
 | [`m14-art-integration-20261015.md`](./m14-art-integration-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Grounded Walker mechanics, registered wreck, launch cargo and readable arrival/departure scenes using retained assets. |
 | [`sector9-spawn-exits-20261015.md`](./sector9-spawn-exits-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Measured freight shoulders and hall staging cover, with cardinal exits inspected through ordinary movement. |
 | [`host-build-metadata-20261015.md`](./host-build-metadata-20261015.md) | **shipped**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 | Refresh cached CLI, status and adapter build identity after branch/tag changes while preserving release overrides and unchanged-build caching. |
-| [`ctf-carrier-contact-20261015.md`](./ctf-carrier-contact-20261015.md) | **planned**, following v0.85.0 | Test bounded carrier self-defense and immediate objective resumption; a recorded combat drop is evidence to investigate, not proof of a routing or scoring defect. |
+| [`ctf-carrier-contact-20261015.md`](./ctf-carrier-contact-20261015.md) | **shipped**, [#406](https://github.com/blisspixel/fragr/pull/406), v0.86.0 | Test and support bounded carrier close-contact self-defense and immediate flag-route resumption. |
 | [`sabotage-objective-ownership-20261015.md`](./sabotage-objective-ownership-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Rule bots recover and defuse around idle participants while preserving active defuse ownership. |
 | [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |
 | [`difficulty-pressure-20261009.md`](./difficulty-pressure-20261009.md) | **shipped** with [PR #381](https://github.com/blisspixel/fragr/pull/381), v0.82.0 | Assisted, Standard, and Severe: pursuit memory 40/100/160, recovery hold or closer step-in, and campaign supply margins. Not fresh-player balance. |
@@ -113,7 +121,7 @@ remain open.
 | [`m13-connected-foundry-20261008.md`](./m13-connected-foundry-20261008.md) | **superseded** | Historical foundry geometry and launcher preparation; the October 13 connected round owns composition and acceptance. |
 | [`m13-mission-contract-20261009.md`](./m13-mission-contract-20261009.md) | **superseded** | Historical optional gate-key implementation; the October 13 connected round owns mission identity, progression and acceptance. |
 | [`m14-connected-first-pass-20261009.md`](./m14-connected-first-pass-20261009.md) | **in flight** | The launch-works development battlefield gains a sheltered infantry trench through the berm field. Walker, mission identity, save promotion and the menu remain unbuilt. |
-| [`m15-civic-pressure-valve-20261009.md`](./m15-civic-pressure-valve-20261009.md) | **in flight** | Stadium graybox, map 1015. Pen, tunnel, bowl, waves, podium and sealed gates. Not a mission. The Article Blade remains unbuilt. |
+| [`m15-civic-pressure-valve-20261009.md`](./m15-civic-pressure-valve-20261009.md) | **superseded** | Historical stadium graybox; the connected M15 stadium plan owns mission progression and acceptance. |
 | [`m16-freedom-of-movement-20261009.md`](./m16-freedom-of-movement-20261009.md) | **in flight** | On-foot avenue graybox, map 1016, with side pockets and a two-sided forecourt. Not a mission. The motorcycle remains unbuilt. |
 | [`m17-peace-without-interruption-20261009.md`](./m17-peace-without-interruption-20261009.md) | **in flight** | Forever Office graybox, map 1017. Approach, hall, ring, galleries, assembly chamber and a flank past the kill lane. Not a mission. Denial and the Voss confrontation remain unbuilt. |
 | [`m18-all-systems-normal-20261009.md`](./m18-all-systems-normal-20261009.md) | **in flight** | Recovery graybox, map 1018. Square, clinic route, maintenance escape and overlook. Not a mission and not Wipe mode. The Collector remains unbuilt. |

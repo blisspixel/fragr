@@ -407,10 +407,14 @@ infantry routes and saved coalition departure. The
 parallel. Composed local native, client and rendered checks pass.
 [PR #404](https://github.com/blisspixel/fragr/pull/404) shipped M14, Sector 9
 exit cover, version 18 saves and build metadata to main in v0.85.0 with passing
-CI and desktop packages. The next planned work is the
-[Article Blade foundation](plans/m15-connected-stadium-20261015.md) and
-[CTF carrier contact](plans/ctf-carrier-contact-20261015.md), with matching
-local weapon art. These remain planned at the end-of-day checkpoint.
+CI and desktop packages. [PR #405](https://github.com/blisspixel/fragr/pull/405) shipped the
+Article Blade foundation, plinth lifecycle, drawn viewmodels and pickups.
+[PR #406](https://github.com/blisspixel/fragr/pull/406) shipped CTF carrier close-contact
+self-defense and route resumption. The
+[connected M15 stadium](plans/m15-connected-stadium-20261015.md) shipped in v0.86.0
+with the armed entrant rescue, broadcast booth takeover, Episode IV continue refill to
+3, and version 19 saves. The next campaign increment is Freedom of Movement (M16)
+avenue development, motorcycle mechanics, and the approach to the Forever Office.
 Nick explicitly requested parallel level, multiplayer and asset work. Each
 bounded round returns to one reviewed main with passing CI before the next.
 Human and final-art acceptance stay separate.

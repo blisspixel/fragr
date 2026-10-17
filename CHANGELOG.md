@@ -4,6 +4,24 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.86.0 (2026-10-16)
+
+- Connect Civic Pressure Valve as campaign level 15, with practice entry, arrival
+  framing and saved progression from Launch Authority. Arm six captive entrants,
+  break the sanctioned bout with the Article Blade, secure the broadcast booth
+  for the Host, and leave through the ceremonial gate. Level 16 remains pending.
+- Add the authoritative Article Blade melee weapon and plinth lifecycle. Settle
+  70 base damage, 9-tick swing cadence, 12 swings, 2.0 m trace reach, drawn
+  viewmodel states, and automatic return to the plinth on exhaustion, death or
+  leave.
+- Refill continues to three upon Episode IV promotion into M15, and upgrade
+  saves to version 19 with exact byte archives of earlier versions, mission-entry
+  retries and persistent challenge outcomes.
+- Enable CTF flag carriers to defend against immediate close-contact blockers
+  when their own home flag is safe, immediately resuming their return route.
+- Validate entrant actor state, stadium HUD objectives, localized story text,
+  and local practice mission launch across native, headless and tour harnesses.
+
 ## v0.85.0 (2026-10-15)
 
 - Connect Launch Authority as campaign level 14, with practice entry, arrival
