@@ -12,6 +12,10 @@ Release history, newest first. Planned work stays in
   titles, health and ammunition. Keep Unicode callsigns and chat supported.
 - Fit larger type into settings, mission objectives, vehicle controls, radio
   cards and results. Retain world materials, reticle preferences and gameplay.
+- Wrap full standings inside a bounded board. While holding the scoreboard,
+  browse large rosters with the existing weapon-cycle keys, wheel or bumpers.
+  Default controller view switching uses Y, leaving Back for the board and
+  preserving customized bindings.
 - Record the verified v0.86.0 desktop shipment and update the active roadmap rung.
 
 ## v0.86.0 (2026-10-17)

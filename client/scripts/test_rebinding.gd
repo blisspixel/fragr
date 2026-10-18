@@ -33,6 +33,7 @@ func _run() -> void:
 	_test_assign_and_conflicts()
 	_test_persistence_and_input_map()
 	_test_new_pad_defaults()
+	_test_spectator_pad_upgrade()
 	await _test_panel()
 	_test_labels_keyed()
 	FragrSettings.new(_path + ".unused").apply_controls()
@@ -57,6 +58,8 @@ func _test_tokens() -> void:
 	_check(InputBindings.default_slots("fire") == (["key:4194326@r", "mouse:1", "pad:a5+"] as Array[String]), "fire defaults to right Ctrl, left mouse and the right trigger")
 	_check(InputBindings.default_slots("duck") == (["key:4194326@l", "", "pad:b13"] as Array[String]), "duck defaults to left Ctrl and D-pad left")
 	_check(InputBindings.default_slots("reload") == (["key:82", "", "pad:b12"] as Array[String]), "reload defaults to R and D-pad down")
+	_check(InputBindings.default_slots("toggle_follow")[2] == "pad:b3", "spectator view defaults to Y, separate from Back's board")
+	_check(InputBindings.contexts_overlap("scoreboard", "toggle_follow"), "the board is available in both play and spectator contexts")
 
 func _test_assign_and_conflicts() -> void:
 	var prefs: FragrSettings = FragrSettings.new(_path)
@@ -192,6 +195,29 @@ func _test_new_pad_defaults() -> void:
 	_check(InputMap.action_has_event("reload", _pad(JOY_BUTTON_DPAD_DOWN)), "Reset defaults restores pad reload")
 	_check(InputMap.action_has_event("duck", _pad(JOY_BUTTON_DPAD_LEFT)), "Reset defaults restores pad crouch")
 	loaded.save_to_disk()
+
+func _test_spectator_pad_upgrade() -> void:
+	var prefs: FragrSettings = FragrSettings.new(_path)
+	# This layout was valid before Y became the default view button.
+	prefs.set_value("bindings", "cycle_cam", "key:70||pad:b3")
+	_check(prefs.save_to_disk() == OK, "custom spectator bindings save")
+	var loaded: FragrSettings = FragrSettings.new(_path)
+	loaded.load_from_disk()
+	loaded.apply_controls()
+	_check(_pad(JOY_BUTTON_Y).is_action_pressed("cycle_cam") and not _pad(JOY_BUTTON_Y).is_action_pressed("toggle_follow"), "new Y default never steals an existing spectator target binding")
+	_check(InputBindings.conflicts(loaded).is_empty(), "spectator default upgrade stays conflict free")
+	loaded.set_value("bindings", "toggle_follow", "key:86||pad:b4")
+	loaded.save_to_disk()
+	loaded.load_from_disk()
+	_check(InputBindings.slots_for(loaded, "toggle_follow")[2] == "pad:b4", "explicit historical Back/view override survives loading")
+	loaded.reset_section("bindings")
+	loaded.save_to_disk()
+	loaded.load_from_disk()
+	loaded.apply_controls()
+	_check(_pad(JOY_BUTTON_Y).is_action_pressed("toggle_follow") and not _pad(JOY_BUTTON_BACK).is_action_pressed("toggle_follow"), "reset installs separate default board and view controls")
+	_check(_pad(JOY_BUTTON_BACK).is_action_pressed("scoreboard"), "Back retains the whole roster")
+	_check(InputBindings.conflicts(loaded).is_empty(), "fresh spectator defaults have no conflicts")
+
 
 func _test_labels_keyed() -> void:
 	for action: String in InputBindings.ACTIONS:

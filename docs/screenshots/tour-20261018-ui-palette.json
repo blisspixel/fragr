@@ -1,5 +1,5 @@
 {
-  "captured_utc": "2026-10-18T10:52:56",
+  "captured_utc": "2026-10-18T11:37:08",
   "companion_shots": [],
   "device": "llvmpipe (LLVM 23.1.3, 256 bits)",
   "godot": "4.7.2-stable (official)",
@@ -17,7 +17,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "01_boot_menu.png",
-      "frame_ms": 25.57,
+      "frame_ms": 11.64,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -58,10 +58,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "02_spectator_eyes.png",
-      "frame_ms": 345.21,
+      "frame_ms": 203.08,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0363,
+      "hud_coverage": 0.0362,
       "input": {
         "kind": "keyboard",
         "look": "",
@@ -74,8 +74,8 @@
       "moving_combat": {},
       "note": "Default spectator view follows the fighter's eyes and weapon.",
       "observed": {
-        "camera_pitch": -0.0150091424584389,
-        "camera_yaw": -2.41650640475834,
+        "camera_pitch": -0.0230775326490402,
+        "camera_yaw": -1.51881136390071,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
@@ -83,7 +83,7 @@
         "fighters": 5,
         "fire_strip": [],
         "flags": null,
-        "following": "8f6327e9-7ff4-4331-84a3-f420f337ff2f",
+        "following": "5d488022-6ad3-48fa-a5a3-6d6db9e57d8c",
         "grenade_strip": {},
         "human": false,
         "jammer_launches": 0,
@@ -144,10 +144,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "03_arena_overview.png",
-      "frame_ms": 229.51,
+      "frame_ms": 246.24,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0215,
+      "hud_coverage": 0.0199,
       "input": {
         "kind": "keyboard",
         "look": "",
@@ -160,13 +160,13 @@
       "moving_combat": {},
       "note": "Server geometry, traversable lanes, steps, cover, and lighting.",
       "observed": {
-        "camera_pitch": -0.430562436580658,
-        "camera_yaw": 3.01761540987735,
+        "camera_pitch": -0.425116270780563,
+        "camera_yaw": -2.71319785561419,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
         "eye_view": false,
-        "fighters": 5,
+        "fighters": 4,
         "fire_strip": [],
         "flags": null,
         "following": "",
@@ -230,10 +230,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "04_combat_follow.png",
-      "frame_ms": 266.96,
+      "frame_ms": 249.01,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0309,
+      "hud_coverage": 0.0341,
       "input": {
         "kind": "keyboard",
         "look": "",
@@ -246,16 +246,16 @@
       "moving_combat": {},
       "note": "Optional chase view and readable fighter silhouettes.",
       "observed": {
-        "camera_pitch": -0.445049822330475,
-        "camera_yaw": 2.21376807979883,
+        "camera_pitch": -0.411263972520828,
+        "camera_yaw": -0.567873405995882,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
         "eye_view": false,
-        "fighters": 4,
+        "fighters": 6,
         "fire_strip": [],
         "flags": null,
-        "following": "8f6327e9-7ff4-4331-84a3-f420f337ff2f",
+        "following": "5d488022-6ad3-48fa-a5a3-6d6db9e57d8c",
         "grenade_strip": {},
         "human": false,
         "jammer_launches": 0,
@@ -316,10 +316,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "05_body_human.png",
-      "frame_ms": 298.9,
+      "frame_ms": 134.7,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0178,
+      "hud_coverage": 0.0165,
       "input": {
         "kind": "keyboard",
         "look": "",
@@ -334,15 +334,15 @@
       "observed": {
         "body": "human",
         "body_frame_clear": true,
-        "body_name": "Aunt Linda",
+        "body_name": "Scout Ant",
         "body_team": "",
-        "camera_pitch": -0.116141632199287,
-        "camera_yaw": 0.562857559983961,
+        "camera_pitch": -0.116141609847546,
+        "camera_yaw": -2.67872972622832,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
         "eye_view": false,
-        "fighters": 5,
+        "fighters": 6,
         "fire_strip": [],
         "flags": null,
         "following": "",
@@ -406,10 +406,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "06_body_synthetic.png",
-      "frame_ms": 236.13,
+      "frame_ms": 108.57,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0175,
+      "hud_coverage": 0.0181,
       "input": {
         "kind": "keyboard",
         "look": "",
@@ -424,15 +424,15 @@
       "observed": {
         "body": "synthetic",
         "body_frame_clear": true,
-        "body_name": "Static Kid",
+        "body_name": "Nightfall",
         "body_team": "",
-        "camera_pitch": -0.116141617298126,
-        "camera_yaw": 0.345697227050347,
+        "camera_pitch": -0.116141632199287,
+        "camera_yaw": 2.38237669655554,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
         "eye_view": false,
-        "fighters": 4,
+        "fighters": 5,
         "fire_strip": [],
         "flags": null,
         "following": "",
@@ -496,10 +496,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "07_hud_first_person.png",
-      "frame_ms": 508.52,
+      "frame_ms": 234.04,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0329,
+      "hud_coverage": 0.0316,
       "input": {
         "kind": "keyboard",
         "look": "",
@@ -514,7 +514,7 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": 0.0,
-        "camera_yaw": -1.96349539940466,
+        "camera_yaw": 0.294524226718884,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -553,9 +553,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "flechette",
-          "tick": 1059.0,
+          "tick": 584.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -564,26 +564,26 @@
           ]
         },
         "eye_view": true,
-        "fighters": 6,
+        "fighters": 5,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          16.0727043151855,
+          -40.1914939880371,
           0.0,
-          38.8029403686523
+          -12.1919555664062
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 16,
+          "fallback_count": 42,
           "fallback_reasons": {
-            "ack_timeout": 16
+            "ack_timeout": 42
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -622,11 +622,11 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 281.0,
+            "alive_ticks": 241.0,
             "armor_lost": 0.0,
-            "deaths": 1.0,
+            "deaths": 0.0,
             "dry_triggers": 0.0,
-            "hp_lost": 100.0,
+            "hp_lost": 25.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -707,10 +707,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -718,16 +718,16 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 1172.0,
+          "tick": 824.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 281.0,
+            "alive_ticks": 241.0,
             "armor_lost": 0.0,
-            "deaths": 1.0,
+            "deaths": 0.0,
             "dry_triggers": 0.0,
-            "hp_lost": 100.0,
+            "hp_lost": 25.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -816,7 +816,7 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": 0.0,
-        "server_yaw": 4.3196898,
+        "server_yaw": 0.2945242,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -839,10 +839,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "08_hud_legend_pad.png",
-      "frame_ms": 328.47,
+      "frame_ms": 177.93,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0329,
+      "hud_coverage": 0.0141,
       "input": {
         "kind": "gamepad",
         "look": "gamepad",
@@ -856,8 +856,8 @@
       "note": "The joined player's legend after a left trigger pull: pad names from live bindings. Letter layout forced, no pad attached.",
       "observed": {
         "accepted_body": "synthetic",
-        "camera_pitch": 0.0,
-        "camera_yaw": -1.96349539940466,
+        "camera_pitch": -0.406683146953583,
+        "camera_yaw": 3.08314249080534,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -896,9 +896,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "flechette",
-          "tick": 1059.0,
+          "tick": 584.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -906,36 +906,29 @@
             "rail"
           ]
         },
-        "eye_view": true,
-        "fighters": 5,
+        "eye_view": false,
+        "fighters": 4,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
-        "local_feet": [
-          16.0727043151855,
-          0.0,
-          38.8029403686523
-        ],
         "local_prediction": {
-          "active": true,
-          "camera_eye_gap_m": 0.0,
+          "active": false,
+          "camera_eye_gap_m": null,
           "corrections": 0,
-          "fallback": "",
-          "fallback_count": 27,
-          "fallback_reasons": {
-            "ack_timeout": 27
-          },
-          "last_fallback": "ack_timeout",
+          "fallback": "inactive",
+          "fallback_count": 0,
+          "fallback_reasons": {},
+          "last_fallback": "",
           "max_correction_m": 0.0,
           "p50_correction_m": 0.0,
           "p95_correction_m": 0.0,
           "p99_correction_m": 0.0,
           "pending_ticks": 0
         },
-        "local_weapon": "Flechette",
+        "local_weapon": "",
         "m02_captive_views": [],
         "m02_evacuation": {},
         "m03": {},
@@ -965,7 +958,7 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 421.0,
+            "alive_ticks": 265.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
             "dry_triggers": 0.0,
@@ -1050,10 +1043,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -1061,12 +1054,12 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 1312.0,
+          "tick": 884.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 421.0,
+            "alive_ticks": 265.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
             "dry_triggers": 0.0,
@@ -1157,9 +1150,9 @@
         "render_scale": 1.0,
         "round_state": "Active",
         "sabotage": null,
-        "self_alive": true,
-        "server_pitch": 0.0,
-        "server_yaw": 4.3196898,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -1182,10 +1175,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "09_hud_legend_keyboard.png",
-      "frame_ms": 393.16,
+      "frame_ms": 274.95,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0327,
+      "hud_coverage": 0.0329,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -1200,7 +1193,7 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": 0.0,
-        "camera_yaw": -1.96349539940466,
+        "camera_yaw": -1.07992186726551,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -1239,9 +1232,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "flechette",
-          "tick": 1059.0,
+          "tick": 908.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -1250,26 +1243,26 @@
           ]
         },
         "eye_view": true,
-        "fighters": 5,
+        "fighters": 6,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          16.0727043151855,
+          -19.7986679077148,
           0.0,
-          38.8029403686523
+          37.0406913757324
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 38,
+          "fallback_count": 10,
           "fallback_reasons": {
-            "ack_timeout": 38
+            "ack_timeout": 10
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -1308,7 +1301,7 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 521.0,
+            "alive_ticks": 301.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
             "dry_triggers": 0.0,
@@ -1393,10 +1386,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -1404,12 +1397,12 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 1412.0,
+          "tick": 944.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 521.0,
+            "alive_ticks": 301.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
             "dry_triggers": 0.0,
@@ -1502,7 +1495,7 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": 0.0,
-        "server_yaw": 4.3196898,
+        "server_yaw": 5.2032633,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -1525,10 +1518,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "10_rail_viewmodel.png",
-      "frame_ms": 354.59,
+      "frame_ms": 244.5,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.03,
+      "hud_coverage": 0.0307,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -1543,7 +1536,7 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": 0.0,
-        "camera_yaw": -1.96349539940466,
+        "camera_yaw": -1.07992186726551,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -1582,9 +1575,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "rail",
-          "tick": 1479.0,
+          "tick": 996.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -1593,26 +1586,26 @@
           ]
         },
         "eye_view": true,
-        "fighters": 4,
+        "fighters": 6,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          16.0727043151855,
+          -19.7986679077148,
           0.0,
-          38.8029403686523
+          37.0406913757324
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 52,
+          "fallback_count": 23,
           "fallback_reasons": {
-            "ack_timeout": 52
+            "ack_timeout": 23
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -1651,7 +1644,7 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 681.0,
+            "alive_ticks": 401.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
             "dry_triggers": 0.0,
@@ -1736,10 +1729,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -1747,12 +1740,12 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 1572.0,
+          "tick": 1044.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 681.0,
+            "alive_ticks": 401.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
             "dry_triggers": 0.0,
@@ -1845,7 +1838,7 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": 0.0,
-        "server_yaw": 4.3196898,
+        "server_yaw": 5.2032633,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -1868,10 +1861,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "11_shot_effects.png",
-      "frame_ms": 448.03,
+      "frame_ms": 242.89,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0323,
+      "hud_coverage": 0.0316,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -1886,14 +1879,14 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": 0.0,
-        "camera_yaw": -1.96349539940466,
+        "camera_yaw": -1.07992186726551,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
           "ammo": [
             {
               "pool": "bullets",
-              "rounds": 60.0
+              "rounds": 65.0
             },
             {
               "pool": "shells",
@@ -1908,11 +1901,11 @@
               "rounds": 0.0
             }
           ],
-          "dry_fire_count": 1.0,
+          "dry_fire_count": 0.0,
           "grenades": 0.0,
           "loaded": [
             {
-              "rounds": 0.0,
+              "rounds": 5.0,
               "weapon": "flechette"
             },
             {
@@ -1925,9 +1918,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "flechette",
-          "tick": 1794.0,
+          "tick": 1195.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -1945,7 +1938,7 @@
               "fire_sent": true,
               "loaded": 20,
               "pitch": 0.0,
-              "tick": 1713.0,
+              "tick": 1138.0,
               "weapon": "Flechette"
             },
             "before": {
@@ -1954,7 +1947,7 @@
               "fire_sent": false,
               "loaded": 20,
               "pitch": 0.0,
-              "tick": 1705.0,
+              "tick": 1130.0,
               "weapon": "Flechette"
             },
             "effect_seen": true,
@@ -1962,23 +1955,23 @@
           }
         ],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          16.0727043151855,
+          -19.7986679077148,
           0.0,
-          38.8029403686523
+          37.0406913757324
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 77,
+          "fallback_count": 48,
           "fallback_reasons": {
-            "ack_timeout": 77
+            "ack_timeout": 48
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -2017,10 +2010,10 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 961.0,
+            "alive_ticks": 561.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
-            "dry_triggers": 1.0,
+            "dry_triggers": 0.0,
             "hp_lost": 100.0,
             "weapons": [
               {
@@ -2039,7 +2032,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -2102,10 +2095,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -2113,15 +2106,15 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 1852.0,
+          "tick": 1204.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 961.0,
+            "alive_ticks": 561.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
-            "dry_triggers": 1.0,
+            "dry_triggers": 0.0,
             "hp_lost": 100.0,
             "weapons": [
               {
@@ -2140,7 +2133,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -2211,25 +2204,25 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": 0.0,
-        "server_yaw": 4.3196898,
+        "server_yaw": 5.2032633,
         "upscaling": 0
       },
-      "probe_visible_frames": 11,
+      "probe_visible_frames": 12,
       "state": "shot_effects",
       "strip_file": "11_shot_effects_strip.png",
       "strip_sample_ms": [
         0,
-        438,
-        788,
-        1092,
-        1435,
-        1787,
-        2193,
-        2584,
-        3114,
-        3635,
-        4167,
-        4783
+        317,
+        539,
+        759,
+        986,
+        1208,
+        1439,
+        1663,
+        1881,
+        2100,
+        2328,
+        2547
       ],
       "walker_combat": {},
       "walks": [],
@@ -2247,10 +2240,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "12_scatter_viewmodel.png",
-      "frame_ms": 710.96,
+      "frame_ms": 222.27,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0371,
+      "hud_coverage": 0.0367,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -2265,14 +2258,14 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": 0.0,
-        "camera_yaw": -1.96349539940466,
+        "camera_yaw": -1.07992186726551,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
           "ammo": [
             {
               "pool": "bullets",
-              "rounds": 60.0
+              "rounds": 65.0
             },
             {
               "pool": "shells",
@@ -2287,11 +2280,11 @@
               "rounds": 0.0
             }
           ],
-          "dry_fire_count": 1.0,
+          "dry_fire_count": 0.0,
           "grenades": 0.0,
           "loaded": [
             {
-              "rounds": 0.0,
+              "rounds": 5.0,
               "weapon": "flechette"
             },
             {
@@ -2304,9 +2297,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "scatter",
-          "tick": 1919.0,
+          "tick": 1243.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -2315,26 +2308,26 @@
           ]
         },
         "eye_view": true,
-        "fighters": 6,
+        "fighters": 4,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          16.0727043151855,
+          -19.7986679077148,
           0.0,
-          38.8029403686523
+          37.0406913757324
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 91,
+          "fallback_count": 61,
           "fallback_reasons": {
-            "ack_timeout": 91
+            "ack_timeout": 61
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -2373,10 +2366,10 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 1161.0,
+            "alive_ticks": 641.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
-            "dry_triggers": 1.0,
+            "dry_triggers": 0.0,
             "hp_lost": 100.0,
             "weapons": [
               {
@@ -2395,7 +2388,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -2458,10 +2451,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -2469,15 +2462,15 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 2052.0,
+          "tick": 1284.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 1161.0,
+            "alive_ticks": 641.0,
             "armor_lost": 0.0,
             "deaths": 1.0,
-            "dry_triggers": 1.0,
+            "dry_triggers": 0.0,
             "hp_lost": 100.0,
             "weapons": [
               {
@@ -2496,7 +2489,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -2567,7 +2560,7 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": 0.0,
-        "server_yaw": 4.3196898,
+        "server_yaw": 5.2032633,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -2590,10 +2583,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "13_vertical_aim_up.png",
-      "frame_ms": 471.73,
+      "frame_ms": 231.64,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0372,
+      "hud_coverage": 0.0367,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -2608,14 +2601,14 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": 0.400000005960464,
-        "camera_yaw": 0.294524212412745,
+        "camera_yaw": -1.07992185123492,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
           "ammo": [
             {
               "pool": "bullets",
-              "rounds": 80.0
+              "rounds": 65.0
             },
             {
               "pool": "shells",
@@ -2630,11 +2623,11 @@
               "rounds": 0.0
             }
           ],
-          "dry_fire_count": 1.0,
+          "dry_fire_count": 0.0,
           "grenades": 0.0,
           "loaded": [
             {
-              "rounds": 20.0,
+              "rounds": 5.0,
               "weapon": "flechette"
             },
             {
@@ -2647,9 +2640,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "scatter",
-          "tick": 2391.0,
+          "tick": 1243.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -2658,26 +2651,26 @@
           ]
         },
         "eye_view": true,
-        "fighters": 5,
+        "fighters": 6,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          -40.1914939880371,
+          -19.7986679077148,
           0.0,
-          -12.1919555664062
+          37.0406913757324
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 2,
+          "fallback_count": 74,
           "fallback_reasons": {
-            "ack_timeout": 2
+            "ack_timeout": 74
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -2716,11 +2709,11 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 1461.0,
+            "alive_ticks": 741.0,
             "armor_lost": 0.0,
-            "deaths": 2.0,
-            "dry_triggers": 1.0,
-            "hp_lost": 200.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 175.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -2738,7 +2731,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -2801,10 +2794,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -2812,16 +2805,16 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 2412.0,
+          "tick": 1384.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 1461.0,
+            "alive_ticks": 741.0,
             "armor_lost": 0.0,
-            "deaths": 2.0,
-            "dry_triggers": 1.0,
-            "hp_lost": 200.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 175.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -2839,7 +2832,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -2910,7 +2903,7 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": 0.4,
-        "server_yaw": 0.2945242,
+        "server_yaw": 5.2032633,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -2933,10 +2926,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "14_vertical_aim_down.png",
-      "frame_ms": 473.37,
+      "frame_ms": 204.23,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.1019,
+      "hud_coverage": 0.0378,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -2951,7 +2944,7 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": -0.400000005960464,
-        "camera_yaw": 0.294524206841817,
+        "camera_yaw": 0.490873699181886,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -2973,7 +2966,7 @@
               "rounds": 0.0
             }
           ],
-          "dry_fire_count": 1.0,
+          "dry_fire_count": 0.0,
           "grenades": 0.0,
           "loaded": [
             {
@@ -2990,9 +2983,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "scatter",
-          "tick": 2391.0,
+          "tick": 1481.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -3001,29 +2994,28 @@
           ]
         },
         "eye_view": true,
-        "fighters": 5,
+        "fighters": 4,
         "fire_strip": [],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          -40.1914939880371,
+          -37.0406913757324,
           0.0,
-          -12.1919555664062
+          -19.7986640930176
         ],
         "local_prediction": {
-          "active": false,
+          "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
-          "fallback": "inactive",
-          "fallback_count": 17,
+          "fallback": "",
+          "fallback_count": 11,
           "fallback_reasons": {
-            "ack_timeout": 16,
-            "inactive": 1
+            "ack_timeout": 11
           },
-          "last_fallback": "inactive",
+          "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
           "p50_correction_m": 0.0,
           "p95_correction_m": 0.0,
@@ -3060,10 +3052,10 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 1727.0,
+            "alive_ticks": 821.0,
             "armor_lost": 0.0,
             "deaths": 2.0,
-            "dry_triggers": 1.0,
+            "dry_triggers": 0.0,
             "hp_lost": 200.0,
             "weapons": [
               {
@@ -3082,7 +3074,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -3145,10 +3137,10 @@
               }
             ]
           },
-          "entered_at": 831.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
           "round": 1.0,
           "round_started_at": 40.0,
@@ -3156,15 +3148,15 @@
             "kind": "arena",
             "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
-          "status": "complete",
-          "tick": 2679.0,
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
+          "status": "active",
+          "tick": 1524.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 1727.0,
+            "alive_ticks": 821.0,
             "armor_lost": 0.0,
             "deaths": 2.0,
-            "dry_triggers": 1.0,
+            "dry_triggers": 0.0,
             "hp_lost": 200.0,
             "weapons": [
               {
@@ -3183,7 +3175,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 20.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -3250,11 +3242,11 @@
           "version": 5.0
         },
         "render_scale": 1.0,
-        "round_state": "Ended",
+        "round_state": "Active",
         "sabotage": null,
         "self_alive": true,
         "server_pitch": -0.4,
-        "server_yaw": 0.2945242,
+        "server_yaw": 0.4908738,
         "upscaling": 0
       },
       "probe_visible_frames": 0,
@@ -3277,10 +3269,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "15_rail_impact.png",
-      "frame_ms": 343.22,
+      "frame_ms": 235.14,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0298,
+      "hud_coverage": 0.0296,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -3295,7 +3287,7 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": -0.400000005960464,
-        "camera_yaw": 0.294524206841817,
+        "camera_yaw": 0.490873699181886,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -3317,7 +3309,7 @@
               "rounds": 0.0
             }
           ],
-          "dry_fire_count": 1.0,
+          "dry_fire_count": 0.0,
           "grenades": 0.0,
           "loaded": [
             {
@@ -3334,9 +3326,9 @@
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "rail",
-          "tick": 2904.0,
+          "tick": 1600.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -3345,7 +3337,7 @@
           ]
         },
         "eye_view": true,
-        "fighters": 6,
+        "fighters": 5,
         "fire_strip": [
           {
             "after": {
@@ -3354,7 +3346,7 @@
               "fire_sent": true,
               "loaded": 3,
               "pitch": -0.4,
-              "tick": 2910.0,
+              "tick": 1604.0,
               "weapon": "Rail"
             },
             "before": {
@@ -3363,7 +3355,7 @@
               "fire_sent": false,
               "loaded": 4,
               "pitch": -0.4,
-              "tick": 2897.0,
+              "tick": 1595.0,
               "weapon": "Rail"
             },
             "effect_seen": true,
@@ -3371,24 +3363,23 @@
           }
         ],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          -40.1914939880371,
+          -37.0406913757324,
           0.0,
-          -12.1919555664062
+          -19.7986640930176
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 41,
+          "fallback_count": 37,
           "fallback_reasons": {
-            "ack_timeout": 40,
-            "inactive": 1
+            "ack_timeout": 37
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -3427,11 +3418,11 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 200.0,
+            "alive_ticks": 981.0,
             "armor_lost": 0.0,
-            "deaths": 0.0,
+            "deaths": 2.0,
             "dry_triggers": 0.0,
-            "hp_lost": 0.0,
+            "hp_lost": 200.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -3449,7 +3440,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 0.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -3512,27 +3503,27 @@
               }
             ]
           },
-          "entered_at": 2839.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
-          "round": 2.0,
-          "round_started_at": 2839.0,
+          "round": 1.0,
+          "round_started_at": 40.0,
           "scope": {
             "kind": "arena",
-            "round": 2.0
+            "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 3039.0,
+          "tick": 1684.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 200.0,
+            "alive_ticks": 981.0,
             "armor_lost": 0.0,
-            "deaths": 0.0,
+            "deaths": 2.0,
             "dry_triggers": 0.0,
-            "hp_lost": 0.0,
+            "hp_lost": 200.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -3550,7 +3541,7 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 0.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -3621,25 +3612,25 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": -0.4,
-        "server_yaw": 0.2945242,
+        "server_yaw": 0.4908738,
         "upscaling": 0
       },
-      "probe_visible_frames": 2,
+      "probe_visible_frames": 1,
       "state": "rail_impact",
       "strip_file": "15_rail_impact_strip.png",
       "strip_sample_ms": [
         0,
-        483,
-        1094,
-        1662,
-        2212,
-        2683,
-        3118,
-        3507,
-        3903,
-        4365,
-        4740,
-        5111
+        414,
+        762,
+        1009,
+        1253,
+        1493,
+        1731,
+        1992,
+        2239,
+        2491,
+        2735,
+        2983
       ],
       "walker_combat": {},
       "walks": [],
@@ -3657,10 +3648,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "16_scatter_pellets.png",
-      "frame_ms": 343.93,
+      "frame_ms": 215.55,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.045,
+      "hud_coverage": 0.0369,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -3675,7 +3666,7 @@
       "observed": {
         "accepted_body": "synthetic",
         "camera_pitch": -0.349999994039536,
-        "camera_yaw": -1.96349542793864,
+        "camera_yaw": 0.49087369739447,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {
@@ -3690,14 +3681,14 @@
             },
             {
               "pool": "cells",
-              "rounds": 16.0
+              "rounds": 15.0
             },
             {
               "pool": "rockets",
               "rounds": 0.0
             }
           ],
-          "dry_fire_count": 1.0,
+          "dry_fire_count": 0.0,
           "grenades": 0.0,
           "loaded": [
             {
@@ -3709,14 +3700,14 @@
               "weapon": "scatter"
             },
             {
-              "rounds": 4.0,
+              "rounds": 3.0,
               "weapon": "rail"
             }
           ],
           "personal_claims": [],
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "selected": "scatter",
-          "tick": 3252.0,
+          "tick": 1766.0,
           "type": "loadout",
           "weapons": [
             "flechette",
@@ -3725,17 +3716,17 @@
           ]
         },
         "eye_view": true,
-        "fighters": 6,
+        "fighters": 5,
         "fire_strip": [
           {
             "after": {
-              "alive": false,
+              "alive": true,
               "blocked": false,
               "fire_sent": true,
-              "loaded": -1,
-              "pitch": 99.0,
-              "tick": 3194.0,
-              "weapon": ""
+              "loaded": 5,
+              "pitch": -0.35,
+              "tick": 1770.0,
+              "weapon": "Scatter"
             },
             "before": {
               "alive": true,
@@ -3743,7 +3734,7 @@
               "fire_sent": false,
               "loaded": 6,
               "pitch": -0.35,
-              "tick": 3182.0,
+              "tick": 1761.0,
               "weapon": "Scatter"
             },
             "effect_seen": true,
@@ -3751,23 +3742,23 @@
           }
         ],
         "flags": null,
-        "following": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+        "following": "89a39b29-28a9-4452-9425-f90708a49341",
         "grenade_strip": {},
         "human": true,
         "jammer_launches": 0,
         "local_feet": [
-          16.0727043151855,
+          -37.0406913757324,
           0.0,
-          38.8029403686523
+          -19.7986640930176
         ],
         "local_prediction": {
           "active": true,
           "camera_eye_gap_m": 0.0,
           "corrections": 0,
           "fallback": "",
-          "fallback_count": 2,
+          "fallback_count": 61,
           "fallback_reasons": {
-            "ack_timeout": 2
+            "ack_timeout": 61
           },
           "last_fallback": "ack_timeout",
           "max_correction_m": 0.0,
@@ -3806,11 +3797,11 @@
         "notary_crashes": 0,
         "participant_record": {
           "attempt": {
-            "alive_ticks": 360.0,
+            "alive_ticks": 1101.0,
             "armor_lost": 0.0,
-            "deaths": 1.0,
+            "deaths": 2.0,
             "dry_triggers": 0.0,
-            "hp_lost": 100.0,
+            "hp_lost": 200.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -3828,14 +3819,14 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 0.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 2.0,
+                "attacks": 1.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -3891,27 +3882,27 @@
               }
             ]
           },
-          "entered_at": 2839.0,
+          "entered_at": 583.0,
           "map_id": 1.0,
           "map_name": "Arena Duel",
-          "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+          "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
           "role": "human",
-          "round": 2.0,
-          "round_started_at": 2839.0,
+          "round": 1.0,
+          "round_started_at": 40.0,
           "scope": {
             "kind": "arena",
-            "round": 2.0
+            "round": 1.0
           },
-          "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
+          "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
           "status": "active",
-          "tick": 3259.0,
+          "tick": 1804.0,
           "ticks_per_second": 20.0,
           "total": {
-            "alive_ticks": 360.0,
+            "alive_ticks": 1101.0,
             "armor_lost": 0.0,
-            "deaths": 1.0,
+            "deaths": 2.0,
             "dry_triggers": 0.0,
-            "hp_lost": 100.0,
+            "hp_lost": 200.0,
             "weapons": [
               {
                 "armor_damage": 0.0,
@@ -3929,14 +3920,14 @@
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 0.0,
+                "attacks": 15.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
               },
               {
                 "armor_damage": 0.0,
-                "attacks": 2.0,
+                "attacks": 1.0,
                 "damaging_attacks": 0.0,
                 "hp_damage": 0.0,
                 "kills": 0.0
@@ -4000,21 +3991,21 @@
         "sabotage": null,
         "self_alive": true,
         "server_pitch": -0.35,
-        "server_yaw": 4.3196898,
+        "server_yaw": 0.4908738,
         "upscaling": 0
       },
-      "probe_visible_frames": 1,
+      "probe_visible_frames": 2,
       "state": "scatter_pellets",
       "strip_file": "16_scatter_pellets_strip.png",
       "strip_sample_ms": [
         0,
-        454,
-        714,
-        995,
-        1223,
-        1522,
-        1783,
-        2061
+        287,
+        490,
+        659,
+        852,
+        1063,
+        1273,
+        1440
       ],
       "walker_combat": {},
       "walks": [],
@@ -4032,10 +4023,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "17_return_to_spectator.png",
-      "frame_ms": 173.17,
+      "frame_ms": 225.76,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0368,
+      "hud_coverage": 0.0322,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -4048,8 +4039,8 @@
       "moving_combat": {},
       "note": "Leave the match and follow a remaining fighter without stale geometry or hidden bodies.",
       "observed": {
-        "camera_pitch": -0.0631947070360184,
-        "camera_yaw": 0.0000000437113885446279,
+        "camera_pitch": -0.011249890550971,
+        "camera_yaw": -0.106698645276062,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
@@ -4057,7 +4048,7 @@
         "fighters": 5,
         "fire_strip": [],
         "flags": null,
-        "following": "3fb43949-d18d-488a-9e5c-371227a18019",
+        "following": "5d488022-6ad3-48fa-a5a3-6d6db9e57d8c",
         "grenade_strip": {},
         "human": false,
         "jammer_launches": 0,
@@ -4118,10 +4109,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "18_spectator_chase.png",
-      "frame_ms": 225.27,
+      "frame_ms": 182.61,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0279,
+      "hud_coverage": 0.0316,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -4134,16 +4125,16 @@
       "moving_combat": {},
       "note": "Return to chase after eye view. The watched body must be visible again.",
       "observed": {
-        "camera_pitch": -0.377149283885956,
-        "camera_yaw": -1.27647614785965,
+        "camera_pitch": -0.570422410964966,
+        "camera_yaw": 2.41051492017048,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
         "eye_view": false,
-        "fighters": 2,
+        "fighters": 4,
         "fire_strip": [],
         "flags": null,
-        "following": "8505c829-9a0b-4b4e-9221-667a15c22d45",
+        "following": "225641bf-8e7c-470c-b913-530c2810ca65",
         "grenade_strip": {},
         "human": false,
         "jammer_launches": 0,
@@ -4204,7 +4195,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "19_profile_menu.png",
-      "frame_ms": 25.65,
+      "frame_ms": 16.39,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4245,7 +4236,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "20_settings_menu.png",
-      "frame_ms": 25.65,
+      "frame_ms": 56.27,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4286,7 +4277,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "21_settings_display.png",
-      "frame_ms": 68.0,
+      "frame_ms": 56.27,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4327,7 +4318,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "22_settings_graphics.png",
-      "frame_ms": 70.13,
+      "frame_ms": 56.94,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4368,7 +4359,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "23_settings_audio.png",
-      "frame_ms": 69.04,
+      "frame_ms": 56.63,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4409,7 +4400,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "24_settings_controls.png",
-      "frame_ms": 65.9,
+      "frame_ms": 55.94,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4450,7 +4441,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "25_settings_controls_pad.png",
-      "frame_ms": 83.33,
+      "frame_ms": 58.53,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4491,7 +4482,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "26_settings_look.png",
-      "frame_ms": 71.46,
+      "frame_ms": 59.23,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4532,7 +4523,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "27_multiplayer_menu.png",
-      "frame_ms": 54.07,
+      "frame_ms": 44.81,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4573,7 +4564,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "28_single_player_menu.png",
-      "frame_ms": 45.62,
+      "frame_ms": 40.31,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4614,7 +4605,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "29_campaign_difficulty.png",
-      "frame_ms": 45.62,
+      "frame_ms": 40.31,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4655,10 +4646,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "30_match_menu.png",
-      "frame_ms": 216.54,
+      "frame_ms": 171.33,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0304,
+      "hud_coverage": 0.0545,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -4671,8 +4662,8 @@
       "moving_combat": {},
       "note": "Pixel match overlay keeps the live server visible and does not pretend to pause it.",
       "observed": {
-        "camera_pitch": -0.0403781272470951,
-        "camera_yaw": 0.000000043711386515966,
+        "camera_pitch": -0.0256855636835098,
+        "camera_yaw": -1.57079710562363,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
@@ -4680,7 +4671,7 @@
         "fighters": 4,
         "fire_strip": [],
         "flags": null,
-        "following": "24e128a2-72d4-46b9-8b4e-f3ee86842571",
+        "following": "2be9ebea-69f6-4be3-b5a3-4f71856e7db6",
         "grenade_strip": {},
         "human": false,
         "jammer_launches": 0,
@@ -4714,7 +4705,7 @@
         "notary_crashes": 0,
         "participant_record": {},
         "render_scale": 1.0,
-        "round_state": "Active",
+        "round_state": "Ended",
         "sabotage": null,
         "self_alive": false,
         "server_pitch": null,
@@ -4741,10 +4732,10 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "31_match_settings.png",
-      "frame_ms": 121.02,
+      "frame_ms": 175.81,
       "frame_timing": {},
       "height": 720,
-      "hud_coverage": 0.0281,
+      "hud_coverage": 0.0297,
       "input": {
         "kind": "keyboard",
         "look": "gamepad",
@@ -4757,16 +4748,16 @@
       "moving_combat": {},
       "note": "The same settings panel over a live match, with camera input blocked.",
       "observed": {
-        "camera_pitch": -0.0403781272470951,
-        "camera_yaw": 0.0000000437113855678807,
+        "camera_pitch": -0.0256855636835098,
+        "camera_yaw": -1.57079710562363,
         "capture_limit": null,
         "capture_scores": null,
         "equipment": {},
         "eye_view": true,
-        "fighters": 5,
+        "fighters": 4,
         "fire_strip": [],
         "flags": null,
-        "following": "24e128a2-72d4-46b9-8b4e-f3ee86842571",
+        "following": "2be9ebea-69f6-4be3-b5a3-4f71856e7db6",
         "grenade_strip": {},
         "human": false,
         "jammer_launches": 0,
@@ -4800,7 +4791,7 @@
         "notary_crashes": 0,
         "participant_record": {},
         "render_scale": 1.0,
-        "round_state": "Active",
+        "round_state": "Ended",
         "sabotage": null,
         "self_alive": false,
         "server_pitch": null,
@@ -4827,7 +4818,7 @@
       "companion_route_strip": "",
       "companion_strip_samples": [],
       "file": "32_service_record.png",
-      "frame_ms": 28.43,
+      "frame_ms": 14.16,
       "frame_timing": {},
       "height": 720,
       "hud_coverage": 0.0,
@@ -4851,203 +4842,10 @@
             "origin": "external",
             "record": {
               "attempt": {
-                "alive_ticks": 360.0,
-                "armor_lost": 0.0,
-                "deaths": 1.0,
-                "dry_triggers": 0.0,
-                "hp_lost": 100.0,
-                "weapons": [
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 2.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 1.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  }
-                ]
-              },
-              "entered_at": 2839.0,
-              "map_id": 1.0,
-              "map_name": "Arena Duel",
-              "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
-              "role": "human",
-              "round": 2.0,
-              "round_started_at": 2839.0,
-              "scope": {
-                "kind": "arena",
-                "round": 2.0
-              },
-              "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
-              "status": "active",
-              "tick": 3259.0,
-              "ticks_per_second": 20.0,
-              "total": {
-                "alive_ticks": 360.0,
-                "armor_lost": 0.0,
-                "deaths": 1.0,
-                "dry_triggers": 0.0,
-                "hp_lost": 100.0,
-                "weapons": [
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 2.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 1.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  },
-                  {
-                    "armor_damage": 0.0,
-                    "attacks": 0.0,
-                    "damaging_attacks": 0.0,
-                    "hp_damage": 0.0,
-                    "kills": 0.0
-                  }
-                ]
-              },
-              "version": 5.0
-            }
-          },
-          {
-            "origin": "external",
-            "record": {
-              "attempt": {
-                "alive_ticks": 1727.0,
+                "alive_ticks": 1101.0,
                 "armor_lost": 0.0,
                 "deaths": 2.0,
-                "dry_triggers": 1.0,
+                "dry_triggers": 0.0,
                 "hp_lost": 200.0,
                 "weapons": [
                   {
@@ -5066,21 +4864,21 @@
                   },
                   {
                     "armor_damage": 0.0,
-                    "attacks": 20.0,
+                    "attacks": 15.0,
                     "damaging_attacks": 0.0,
                     "hp_damage": 0.0,
                     "kills": 0.0
                   },
                   {
                     "armor_damage": 0.0,
-                    "attacks": 0.0,
+                    "attacks": 1.0,
                     "damaging_attacks": 0.0,
                     "hp_damage": 0.0,
                     "kills": 0.0
                   },
                   {
                     "armor_damage": 0.0,
-                    "attacks": 0.0,
+                    "attacks": 1.0,
                     "damaging_attacks": 0.0,
                     "hp_damage": 0.0,
                     "kills": 0.0
@@ -5129,10 +4927,10 @@
                   }
                 ]
               },
-              "entered_at": 831.0,
+              "entered_at": 583.0,
               "map_id": 1.0,
               "map_name": "Arena Duel",
-              "player_id": "c7241f0f-8c9a-4353-8fc5-821b5833aafe",
+              "player_id": "89a39b29-28a9-4452-9425-f90708a49341",
               "role": "human",
               "round": 1.0,
               "round_started_at": 40.0,
@@ -5140,15 +4938,15 @@
                 "kind": "arena",
                 "round": 1.0
               },
-              "session_id": "e5b13ef9-405a-4603-b44d-2ef1a8ce58ae",
-              "status": "complete",
-              "tick": 2679.0,
+              "session_id": "d74a7ae3-ef33-40ad-b2b7-39906403f9f4",
+              "status": "active",
+              "tick": 1804.0,
               "ticks_per_second": 20.0,
               "total": {
-                "alive_ticks": 1727.0,
+                "alive_ticks": 1101.0,
                 "armor_lost": 0.0,
                 "deaths": 2.0,
-                "dry_triggers": 1.0,
+                "dry_triggers": 0.0,
                 "hp_lost": 200.0,
                 "weapons": [
                   {
@@ -5167,21 +4965,21 @@
                   },
                   {
                     "armor_damage": 0.0,
-                    "attacks": 20.0,
+                    "attacks": 15.0,
                     "damaging_attacks": 0.0,
                     "hp_damage": 0.0,
                     "kills": 0.0
                   },
                   {
                     "armor_damage": 0.0,
-                    "attacks": 0.0,
+                    "attacks": 1.0,
                     "damaging_attacks": 0.0,
                     "hp_damage": 0.0,
                     "kills": 0.0
                   },
                   {
                     "armor_damage": 0.0,
-                    "attacks": 0.0,
+                    "attacks": 1.0,
                     "damaging_attacks": 0.0,
                     "hp_damage": 0.0,
                     "kills": 0.0

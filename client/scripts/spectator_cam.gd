@@ -152,13 +152,18 @@ func _process(delta: float) -> void:
 		return
 
 	var can_control: bool = pinned_player_id.is_empty() and (mouse_captured or pad_active)
-	if can_control and Input.is_action_just_pressed("cycle_cam"):
+	# Board browsing reuses play bindings, which may overlap spectator bindings.
+	# Event consumption does not clear the global actions polled here.
+	var browsing_board: bool = Input.is_action_pressed("scoreboard") and (
+		Input.is_action_just_pressed("weapon_next") or Input.is_action_just_pressed("weapon_prev"))
+	var can_switch_view: bool = can_control and not browsing_board
+	if can_switch_view and Input.is_action_just_pressed("cycle_cam"):
 		cycle_next_target()
 		if not follow_mode:
 			follow_mode = true
 			print("Follow cam ON (F / pad cycles targets)")
 
-	if can_control and Input.is_action_just_pressed("toggle_follow"):
+	if can_switch_view and Input.is_action_just_pressed("toggle_follow"):
 		toggle_follow_mode()
 
 	if frag_follow_timer > 0:

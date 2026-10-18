@@ -77,6 +77,8 @@ var behaviors = {}
 var board_name: String = ""
 var _leaderboard: Panel = null
 var _leaderboard_label: Label = null
+var _leaderboard_scroll: ScrollContainer = null
+var _leaderboard_hint: Label = null
 var ghost_rival = ""
 var leader_name = ""
 var host_bumper_index = 0
@@ -856,15 +858,29 @@ func _ensure_leaderboard() -> void:
 	_leaderboard.visible = false
 	_leaderboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_leaderboard.add_theme_stylebox_override("panel", MenuTheme.panel())
+	_leaderboard_scroll = ScrollContainer.new()
+	_leaderboard_scroll.name = "Scroll"
+	_leaderboard_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_leaderboard_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
+	_leaderboard_scroll.get_v_scroll_bar().mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard.add_child(_leaderboard_scroll)
 	_leaderboard_label = Label.new()
 	_leaderboard_label.name = "Rows"
 	_leaderboard_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_leaderboard_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_leaderboard_label.add_theme_font_override("font", MenuTheme.FONT)
 	_leaderboard_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_leaderboard_label.add_theme_color_override("font_color", MenuTheme.BONE)
 	_leaderboard_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	_leaderboard_label.add_theme_constant_override("outline_size", 4)
-	_leaderboard.add_child(_leaderboard_label)
+	_leaderboard_scroll.add_child(_leaderboard_label)
+	_leaderboard_hint = Label.new()
+	_leaderboard_hint.name = "ScrollHint"
+	_leaderboard_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_leaderboard.add_child(_leaderboard_hint)
 	add_child(_leaderboard)
 
 func set_leaderboard_open(open: bool) -> void:
@@ -872,22 +888,53 @@ func set_leaderboard_open(open: bool) -> void:
 	if not open:
 		_leaderboard.visible = false
 		return
+	if not _leaderboard.visible:
+		_leaderboard_scroll.scroll_vertical = 0
 	_leaderboard_label.text = leaderboard_text()
 	_leaderboard.visible = true
 	_place_leaderboard()
 
 func _place_leaderboard() -> void:
 	var view: Vector2 = get_viewport().get_visible_rect().size
-	var width: float = minf(760.0, maxf(160.0, view.x - 32.0))
-	var lines: int = maxi(_leaderboard_label.text.split("\n", false).size(), 1)
-	var height: float = clampf(float(lines) * 26.0 + 28.0, 72.0, maxf(72.0, view.y - 32.0))
+	var width: float = minf(1440.0, maxf(160.0, view.x - 64.0))
+	_leaderboard_hint.text = tr("HUD_BOARD_SCROLL").format({
+		"previous": InputGlyphs.action_name("weapon_prev"),
+		"next": InputGlyphs.action_name("weapon_next"),
+	})
+	_leaderboard_hint.size = Vector2(width - 28.0, 0)
+	var hint_height: float = _leaderboard_hint.get_minimum_size().y
+	var bar_width: float = _leaderboard_scroll.get_v_scroll_bar().get_combined_minimum_size().x
+	_leaderboard_label.size.x = width - 28.0 - bar_width
+	var height: float = clampf(_leaderboard_label.get_minimum_size().y + hint_height + 40.0, 100.0, maxf(100.0, view.y - 64.0))
 	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
 	origin.x = clampf(origin.x, 16.0, maxf(16.0, view.x - width - 16.0))
 	origin.y = clampf(origin.y, 16.0, maxf(16.0, view.y - height - 16.0))
 	_leaderboard.position = origin
 	_leaderboard.size = Vector2(width, height)
-	_leaderboard_label.position = Vector2(14, 10)
-	_leaderboard_label.size = Vector2(width - 28.0, height - 20.0)
+	_leaderboard_scroll.position = Vector2(14, 10)
+	_leaderboard_scroll.size = Vector2(width - 28.0, height - hint_height - 40.0)
+	_leaderboard_hint.position = Vector2(14, height - hint_height - 14.0)
+
+## The existing weapon-cycle bindings browse a held board on keys, wheel or pad.
+## Route this before equipment/seat input so browsing cannot change either.
+func handle_leaderboard_input(event: InputEvent) -> bool:
+	if not Input.is_action_pressed("scoreboard"):
+		return false
+	var direction: int = 0
+	if event.is_action_pressed("weapon_next"):
+		direction = 1
+	elif event.is_action_pressed("weapon_prev"):
+		direction = -1
+	if direction == 0:
+		return false
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			direction = -1
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			direction = 1
+	set_leaderboard_open(true)
+	_leaderboard_scroll.scroll_vertical += direction * int(maxf(48.0, _leaderboard_scroll.size.y * 0.75))
+	return true
 
 func update_scoreboard():
 	if not scoreboard:

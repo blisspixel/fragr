@@ -1212,6 +1212,9 @@ func _input(_event):
 		pending_remote_trigger = false
 		remote_trigger_armed = false
 		return
+	if Input.is_action_pressed("scoreboard") and hud != null and hud.handle_leaderboard_input(_event):
+		get_viewport().set_input_as_handled()
+		return
 	if is_human_player and throw_armed and _event.is_action_pressed("throw_grenade") and not _event.is_echo():
 		pending_throw = true
 	if is_human_player and place_armed and _event.is_action_pressed("place_mine") and not _event.is_echo():

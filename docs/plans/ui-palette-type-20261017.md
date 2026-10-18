@@ -177,8 +177,10 @@ The final complete 32-state tour refreshed fourteen stills. Its contact sheet, m
 world views and three effect strips were inspected; the
 [receipt](../screenshots/tour-20261018-ui-palette.json) retains the observed
 states and renderer.
-The Scatter strip includes a death/camera transition after accepted fire and
-does not establish seven individually visible pellets.
+An earlier Scatter strip included a death/camera transition after accepted
+fire. The latest publication run supersedes it with a living shooter and
+visible feedback; small strip tiles still do not establish seven individually
+visible pellets.
 The rendered story-player harness also passes, including
 Voice/Master mute and caption settings. Story backdrops explicitly inherit the
 gameplay context, checked by the existing story harness.
@@ -203,3 +205,36 @@ Nick's October 18 authorization replaces the historical $5 per-run asset ceiling
 with each service's remaining funded or included credits. The updated rule is
 recorded in AGENTS.md; native limits need adjustment before any larger asset
 batch. No generation or billing change was needed for this UI round.
+
+Final containment audit found the Tab board's old 760-pixel panel allowed a
+1,167-pixel statistics row to escape its backing. The board now wraps full
+counts and Unicode names inside a bounded scrolling area. The existing
+weapon-cycle bindings browse it while the scoreboard action is held, before
+equipment or vehicle-seat input. Release restores normal selection. A short
+roster fits without scrolling; a 64-fighter fixture retains and reaches the last
+row. The expanded match-rules harness verifies clipping, retained counts,
+scroll position across refreshes, wheel direction and the actual manager's
+keyboard/wheel/pad dispatch. A live local board and both ends of the large
+fixture were rendered and inspected at 720p under llvmpipe. Independent review
+also caught shared spectator/play bindings bypassing handled events through
+camera polling. Only scroll-triggered target/view switches are suppressed;
+deliberate view controls and follow movement continue. Fresh controller layouts
+use Back for the board and Y for the view, while saved overrides remain intact.
+The existing unclaimed-default migration keeps a customized Y owned by its
+existing action. Tests exercise overlapping F, default Back/Y, historical Back
+overrides, saved Y ownership, resets and follow movement. Independent review
+has no remaining blockers. The complete checker after the controller adjustment
+passes all 580 checks, including 186 harnesses.
+
+A later publication run exposed a capture prerequisite bug: a living pawn in
+the results phase satisfied the old respawn check, then its weapon swap was
+correctly rejected by the server. The failed run remains private and did not
+publish its stills. Action captures now require a living local pawn in Active,
+with a bounded wait covering the normal eight-second results and two-second
+warmup. Static poses recheck that prerequisite after rendering. The existing
+combat harness verifies Ended, Warmup, unknown phase and dead-pawn rejection,
+then actual resumption when the local pawn becomes living in Active.
+Independent review found no remaining blocker in the harness correction.
+The corrected 32-state tour passed and published fourteen stills. Its complete
+contact sheet and three effect strips were inspected; the linked receipt now
+records this final run at 2026-10-18T11:37:08 UTC.
