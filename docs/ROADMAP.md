@@ -400,7 +400,7 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-17)
+## Full build order (updated 2026-10-18)
 
 The [connected foundry round](plans/m13-connected-round-20261013.md) shipped in
 v0.83.0 through PR #402 with passing main CI and all three desktop packages.
@@ -428,8 +428,11 @@ security core override, dome assault, Chancellor Voss capture alive, and version
 implements All Systems Normal Recovery Square relief depot check-in, bot diagnostic rupture defense, Collector clinic roadblock breach, maintenance flank stair ascent, Upper Overlook planetary wipe survey, Evacuation Concourse defense, Episode V continue refill to 3, and version 22 saves.
 [Development convergence](plans/development-convergence-20261017.md) shipped
 through PR #419 and v0.86.0, with passing main CI and three verified desktop
-packages. Issues #407-#410 are closed. The immediate rung is the
-[UI palette and type round](plans/ui-palette-type-20261017.md), #411.
+packages. Issues #407-#410 are closed. The
+[UI palette and type round](plans/ui-palette-type-20261017.md), #411, shipped through
+PR #420 with passing main CI and published v0.87.0. All three downloaded desktop
+archives passed verification, including the Linux installation smoke check.
+The immediate rung is the [status bar and reduced motion round](plans/ui-status-bar-20261018.md), #412.
 The interface work #411-#418 follows its existing dependencies: palette and type,
 status bar, event tiers, accessibility, terminal polish, signature moments and
 the README front door. Preserve their rendered and human acceptance gates.

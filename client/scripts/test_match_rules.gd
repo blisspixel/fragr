@@ -100,8 +100,9 @@ func _check_hud() -> void:
 	hud.set_process(false)
 	var chip: Label = hud.get("mode_chip_label")
 	_check(chip != null and not chip.visible, "no chip before rules")
+	hud.set_round_info("Active", 0, 0)
 	var round_line: Label = hud.get("round_label")
-	_check(chip.get_parent() == round_line.get_parent() and chip.get_index() == round_line.get_index() + 1, "mode chip follows the round line in the HUD stack")
+	_check(chip.get_parent() == hud and round_line.get_parent() != hud and round_line.max_lines_visible == 1, "center facts are separate from the short corner state")
 	hud.call("set_match_rules", MatchRules.parse({"mode": "tdm", "mutators": ["rail-only"]}))
 	hud.call("set_team_scores", {"union": 3, "coalition": 5})
 	hud.call("sync_scores_from_players", [
@@ -109,7 +110,7 @@ func _check_hud() -> void:
 		{"name": "Nightfall", "score": 4, "team": "coalition", "behavior": "Defensive"},
 		{"name": "Static Kid", "score": 1, "team": "coalition"},
 	])
-	_check(chip.visible and chip.text == "TEAM DEATHMATCH // RAIL ONLY\nUNION 3 : 5 FREE COALITION", "mode chip carries the rules and the side score: " + chip.text)
+	_check(chip.visible and chip.text == "UNION 3 : 5 FREE COALITION\nRAIL ONLY" and hud.mode_label.text == "TEAM DEATHMATCH", "center carries side score and modifiers; corner names the mode: " + chip.text)
 	var board: String = hud.get("scoreboard").text
 	var lines: PackedStringArray = board.strip_edges().split("\n")
 	_check(lines.size() == 4, "side score plus three rows: " + board)
@@ -119,7 +120,7 @@ func _check_hud() -> void:
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ctf", "mutators": []}))
 	hud.call("set_league_identity", "Contested Frequency", "Arena Duel")
 	var league_line: String = hud.get("mode_label").text
-	_check(league_line.begins_with("CONTESTED FREQUENCY") and not league_line.contains("ARENA DUEL"), "ctf does not advertise the older arena playlist: " + league_line)
+	_check(league_line == "CAPTURE THE FLAG", "ctf names its actual mode without the older arena playlist: " + league_line)
 	var flags: Array = [
 		{"team": "union", "status": "carried", "carrier": "a1"},
 		{"team": "coalition", "status": "dropped", "return_ticks": 39, "position": [10.0, 0.0, -10.0]},
@@ -127,12 +128,12 @@ func _check_hud() -> void:
 	hud.call("set_ctf_state", flags, {"union": 1.0, "coalition": 2.0}, 3.0,
 		[{"id": "a1", "name": "Dead Air Dan", "x": 0.0, "y": 0.0, "z": 0.0}], "a1")
 	_check(chip.text.contains("CAPTURES U 1 : 2 FREE / 3 TO WIN"), "ctf score and win target: " + chip.text)
-	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan  //  FREE FLAG DOWN 2S, 14M NE"), "carrier and dropped bearing: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan\nFREE FLAG DOWN 2S, 14M NE"), "carrier and dropped bearing: " + chip.text)
 	_check(hud.get("scoreboard").text.begins_with("FRAGS (CAPTURES WIN)"), "fighter frag rows are secondary to captures")
 	await process_frame
 	var ctf_chip_bounds: Rect2 = chip.get_global_rect()
-	var ctf_panel_bounds: Rect2 = hud.get_node("Panel").get_global_rect()
-	_check(ctf_chip_bounds.end.x <= ctf_panel_bounds.end.x and ctf_chip_bounds.end.y <= ctf_panel_bounds.end.y, "ctf status fits inside the HUD panel")
+	var ctf_panel_bounds: Rect2 = Rect2(510, 16, 900, 344)
+	_check(ctf_panel_bounds.encloses(ctf_chip_bounds), "ctf status fits inside its centered region")
 	var home_flags: Array = [
 		{"team": "union", "status": "carried", "carrier": "a1", "stand": [-70.0, 0.0, 0.0], "position": [0.0, 0.0, 0.0]},
 		{"team": "coalition", "status": "home", "stand": [70.0, 0.0, 0.0], "position": [70.0, 0.0, 0.0]},
@@ -141,15 +142,15 @@ func _check_hud() -> void:
 		{"id": "a1", "name": "Dead Air Dan", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
 		{"id": "b2", "name": "Nightfall", "team": "union", "x": 0.0, "y": 0.0, "z": -14.0},
 	], "a1")
-	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan  //  FREE FLAG HOME 70M E"), "carrier return bearing: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan\nFREE FLAG HOME 70M E"), "carrier return bearing: " + chip.text)
 	hud.call("set_ctf_state", home_flags, {"union": 1.0, "coalition": 2.0}, 3.0, [
 		{"id": "a1", "name": "Dead Air Dan", "team": "coalition", "x": 0.0, "y": 0.0, "z": 0.0},
 		{"id": "b2", "name": "Nightfall", "team": "union", "x": 0.0, "y": 0.0, "z": -14.0},
 	], "b2")
-	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan, 14M S  //  FREE FLAG HOME"), "chase bearing: " + chip.text)
+	_check(chip.text.contains("UNION FLAG CARRIED BY Dead Air Dan, 14M S\nFREE FLAG HOME"), "chase bearing: " + chip.text)
 	await process_frame
 	var compass_bounds: Rect2 = chip.get_global_rect()
-	_check(compass_bounds.end.x <= ctf_panel_bounds.end.x and compass_bounds.end.y <= ctf_panel_bounds.end.y, "a compass line still fits the HUD panel")
+	_check(ctf_panel_bounds.encloses(compass_bounds), "a compass line still fits the centered region")
 	hud.call("set_fp_juice", true)
 	hud.call("set_fp_carried_flag", "union")
 	var pennant: Control = hud.get_node("FpPennant")
@@ -192,12 +193,12 @@ func _check_hud() -> void:
 	hud.call("set_own_lives", 2)
 	await process_frame
 	var chip_bounds: Rect2 = chip.get_global_rect()
-	var panel_bounds: Rect2 = hud.get_node("Panel").get_global_rect()
+	var panel_bounds: Rect2 = Rect2(510, 16, 900, 344)
 	_check(chip.text.contains("RAIL ONLY") and chip.text.contains("TWO LIVES") and chip.text.contains("LIVES 2"), "combined rules and lives stay in the chip")
-	_check(chip_bounds.end.x <= panel_bounds.end.x and chip_bounds.end.y <= panel_bounds.end.y, "combined rule chip fits inside the HUD panel")
+	_check(panel_bounds.encloses(chip_bounds), "combined rule chip fits inside the centered region")
 	hud.call("set_match_rules", MatchRules.parse({"mode": "ffa", "mutators": ["two-lives"], "lives": 2}))
 	hud.call("set_own_lives", 1)
-	_check(chip.text == "FREE FOR ALL // TWO LIVES\nLIVES 1", "lives line under two lives: " + chip.text)
+	_check(chip.text == "TWO LIVES\nLIVES 1" and hud.mode_label.text == "FREE FOR ALL", "lives line under two lives: " + chip.text)
 	hud.call("set_own_lives", 0)
 	_check(chip.text.ends_with("OUT OF LIVES. WATCHING UNTIL THE ROUND ENDS."), "an eliminated player is told why: " + chip.text)
 	hud.call("sync_scores_from_players", [{"name": "Dead Air Dan", "score": 2}])

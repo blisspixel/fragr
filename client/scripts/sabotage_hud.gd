@@ -28,6 +28,13 @@ var _urgent: bool = false
 var progress_shown: float = -1.0
 var timer_shown: float = -1.0
 var carrying: bool = false
+var header_origin: float = 16.0
+
+func set_header_origin(value: float) -> void:
+	if header_origin == value:
+		return
+	header_origin = value
+	_layout()
 
 
 func _ready() -> void:
@@ -97,7 +104,7 @@ func _layout() -> void:
 	var width: float = screen.x if screen.x > 0.0 else 1280.0
 	var height: float = screen.y if screen.y > 0.0 else 720.0
 	var centre: float = width * 0.5
-	var top: float = 14.0
+	var top: float = header_origin
 	for i: int in range(MAX_PIPS):
 		_union_pips[i].position = Vector2(centre - 44.0 - (i + 1) * (PIP_SIZE.x + PIP_GAP), top)
 		_coalition_pips[i].position = Vector2(centre + 44.0 + i * (PIP_SIZE.x + PIP_GAP), top)

@@ -335,8 +335,8 @@ platform achievements. Campaign-completion and gold awards remain planned.
 
 ## Settings and current limits
 
-The boot menu and in-match menu share Controls, Look, Display, Graphics and
-Audio settings. Choose resolution, quality, frame cap, VSync, field of view,
+The boot menu and in-match menu share Controls, Look, Display, Graphics,
+Audio and Accessibility settings. Choose resolution, quality, frame cap, VSync, field of view,
 supported FSR upscaling, an optional frame counter, sensitivity, stick
 response and separate master, radio and effects levels. The tilde key opens a
 console; `help` lists its commands, and `cl_showfps 0|1|2` switches the frame
@@ -344,6 +344,18 @@ counter. Normal radio startup chooses a random populated
 station and a random track. Station and track controls remain available during
 play. Save applies a draft; Cancel discards it. The
 [display plan](plans/display-quality.md) records renderer behavior.
+
+Reduced Motion stops decorative camera kicks, HUD pulses, weapon and pickup
+bob, and story pan/zoom. Enabling it restores resting poses immediately. Aim,
+scope, accepted firing/reloading frames, actors and machinery keep their normal
+behavior. Your separate weapon-bob choice remains saved.
+
+Health is bone above 50, ember at 50 or below and red at 25 or below, with an
+exact number and a filled bar. A fresh critical injury pulses once unless
+Reduced Motion is enabled. Ammunition uses the same numeral size; EMPTY means
+the selected weapon has no usable shot, including an empty magazine with rounds
+still in reserve. The centered strip follows accepted scores and objectives;
+the scoreboard binding opens standings.
 
 The current campaign is a development slice. It still needs complete art,
 encounter and fresh-player review. The full twenty-level story and conditional

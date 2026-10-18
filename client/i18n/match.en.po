@@ -485,3 +485,9 @@ msgstr "CONTINUANCE WALKER\n{hp}/{maximum}  STAGE {stage}/3"
 
 msgid "WALKER_INTEGRITY_OFFLINE"
 msgstr "CONTINUANCE WALKER\nDISABLED"
+
+msgid "HUD_AMMO_EMPTY"
+msgstr "EMPTY"
+
+msgid "FLAG_STATUS_ROWS"
+msgstr "UNION FLAG {union}\nFREE FLAG {coalition}"

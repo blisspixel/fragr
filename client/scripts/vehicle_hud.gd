@@ -1,6 +1,8 @@
 class_name VehicleHud
 extends Control
 
+signal geometry_changed
+
 ## A quiet corner panel, using only server vehicle facts and bound controls.
 var state: Dictionary = {}
 var seat: String = ""
@@ -15,6 +17,10 @@ var _device_revision: int = -1
 var _snapshot_tick: int = -2
 var _viewer_id: String = ""
 var _enabled: bool = false
+var _last_rect: Rect2
+
+func occupied_region() -> Rect2:
+	return _panel.get_global_rect() if visible and _panel != null else Rect2()
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -123,7 +129,12 @@ func _layout() -> void:
 		return
 	var viewport: Vector2 = get_viewport_rect().size
 	_panel.size = Vector2(minf(480.0, viewport.x - 24.0), 0)
-	_panel.position = Vector2(maxf(12.0, viewport.x - _panel.size.x - 18.0), maxf(12.0, viewport.y - _panel.size.y - (22.0 if not seat.is_empty() else 135.0)))
+	# On foot, leave the full ammunition and independent explosive stack clear.
+	_panel.position = Vector2(maxf(12.0, viewport.x - _panel.size.x - 18.0), maxf(12.0, viewport.y - _panel.size.y - (22.0 if not seat.is_empty() else 248.0)))
+	var rect: Rect2 = occupied_region()
+	if rect != _last_rect:
+		_last_rect = rect
+		geometry_changed.emit()
 
 func _process(_delta: float) -> void:
 	if visible:

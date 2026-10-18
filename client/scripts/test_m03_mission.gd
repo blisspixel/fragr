@@ -250,7 +250,7 @@ func _mast_notice(info: Dictionary, fallen: Dictionary) -> void:
 	network._handle_message(JSON.stringify(_state(fallen, 0, true, false, "in_progress", false, 1, 21)))
 	_check(lines == ["Mara: Low Water, this is Mara. Go now."], "real mast-health transition emits the accepted warning immediately")
 	_check(feed._entries.size() == 1 and feed._entries[0].label.text == lines[0]
-		and feed.anchor_left == 0.0 and feed.anchor_top == 1.0,
+		and feed._campaign and feed._entries[0].label.horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT,
 		"warning uses the existing nonblocking campaign corner notice feed")
 	network._handle_message(JSON.stringify(_state(fallen, 0, true, true, "in_progress", false, 1, 22)))
 	network._handle_message(JSON.stringify(fallen))

@@ -8,7 +8,7 @@ signal closed
 
 ## Page ids in tab order. The Controls page rebinds every action; the Look
 ## page holds sensitivity, stick shape and aim assist.
-const PAGES: Array[String] = ["CONTROLS", "LOOK", "DISPLAY", "GRAPHICS", "AUDIO"]
+const PAGES: Array[String] = ["CONTROLS", "LOOK", "DISPLAY", "GRAPHICS", "AUDIO", "ACCESSIBILITY"]
 const SLOT_HEADERS: Array[String] = ["BIND_HEADER_KEY", "BIND_HEADER_ALT", "BIND_HEADER_PAD"]
 
 var preferences: FragrSettings
@@ -124,6 +124,9 @@ func show_page(page: String) -> void:
 				_note.text = tr("SETTINGS_GRAPHICS_NOTE_NO_FSR")
 			else:
 				_note.text = tr("SETTINGS_GRAPHICS_NOTE")
+		"ACCESSIBILITY":
+			_toggle(tr("SETTINGS_REDUCED_MOTION"), "accessibility", "reduced_motion")
+			_note.text = tr("SETTINGS_REDUCED_MOTION_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)

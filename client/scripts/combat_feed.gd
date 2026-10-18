@@ -19,17 +19,14 @@ func _ready() -> void:
 
 func set_campaign(active: bool) -> void:
 	_campaign = active
-	anchor_left = 0.0 if active else 1.0
-	anchor_right = anchor_left
-	anchor_top = 1.0 if active else 0.0
-	anchor_bottom = anchor_top
-	offset_left = 16.0 if active else -496.0
-	offset_right = 496.0 if active else -16.0
-	offset_top = -390.0 if active else 20.0
-	offset_bottom = -160.0 if active else 250.0
 	alignment = BoxContainer.ALIGNMENT_END if active else BoxContainer.ALIGNMENT_BEGIN
 	for entry: Entry in _entries:
 		entry.label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if active else HORIZONTAL_ALIGNMENT_RIGHT
+
+func set_region(rect: Rect2) -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	position = rect.position
+	size = rect.size
 
 func push(text: String, colour: Color = MenuTheme.BONE) -> void:
 	var line: String = text.replace("\n", " ").replace("\r", " ").replace("\t", " ").strip_edges()

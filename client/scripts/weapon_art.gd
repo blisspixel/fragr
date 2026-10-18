@@ -62,20 +62,27 @@ class ReloadMotion extends RefCounted:
 	var depth: float = 0.0
 	var _deadline: int = -1
 	var _started: int = -1
+	var _muted: bool = false
 
 	func clear() -> void:
 		depth = 0.0
 		_deadline = -1
 		_started = -1
+		_muted = false
 
 	func update(weapon: String, state: Dictionary, tick: int, delta: float, enabled: bool) -> void:
-		var deadline: int = WeaponArt.reload_deadline(weapon, state, tick) if enabled and weapon == "Rocket" else -1
+		var deadline: int = WeaponArt.reload_deadline(weapon, state, tick) if weapon == "Rocket" else -1
 		if deadline <= tick:
 			clear()
 			return
 		if deadline != _deadline or tick < _started:
 			_deadline = deadline
 			_started = tick
+			_muted = false
+		_muted = _muted or not enabled
+		if _muted:
+			depth = 0.0
+			return
 		var progress: float = clampf(float(tick - _started) / float(_deadline - _started), 0.0, 1.0)
 		var target: float = smoothstep(0.0, 0.2, progress) * (1.0 - smoothstep(0.65, 1.0, progress))
 		depth = move_toward(depth, target, maxf(delta, 0.0) * 12.0)

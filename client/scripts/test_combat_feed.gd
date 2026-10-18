@@ -96,6 +96,7 @@ func _run() -> void:
 	var legend: String = hud.legend_line("CTRL fire   F use   ] weapon   ESC menu")
 	_check(legend == "CTRL fire   F use   ] weapon   ESC menu",
 		"the legend only wraps between key and word pairs: " + legend)
+	_check(hud.legend_line("HOLD L-CTRL crouch") == "HOLD L‑CTRL crouch", "a hyphenated binding stays inside its prompt pair")
 	game.is_human_player = false
 	_check(game._shows_participant_notice("watched") and not game._shows_participant_notice("self"), "spectator notices follow the actual watched identity")
 	camera.target = null
@@ -117,7 +118,7 @@ func _run() -> void:
 	var mission: MissionHud = MissionHud.new()
 	hud.add_child(mission)
 	mission.apply({"rules": {"difficulty": "standard"}, "phase": "find_transfer", "prompts": [], "party": [], "run": {"continues": 3, "status": "playing"}}, "self")
-	hud.combat_feed.set_campaign(true)
+	hud.set_campaign(true)
 	hud.combat_feed.set_process(false)
 	for index: int in range(3):
 		hud.combat_feed.push("Resistance dispatch %d: the transfer record is in Annex 67. Keep the exit clear." % index)
@@ -132,8 +133,9 @@ func _run() -> void:
 	if not capture_path.is_empty() and DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
 		_check(root.get_texture().get_image().save_png(capture_path) == OK, "save campaign feed layout fixture")
-	hud.combat_feed.set_campaign(false)
-	_check(hud.combat_feed.anchor_right == 1.0 and hud.combat_feed.anchor_top == 0.0, "leaving a mission restores the arena corner")
+	hud.set_campaign(false)
+	hud.regions.layout()
+	_check(hud.combat_feed.position.x == root.get_visible_rect().size.x - 496 and hud.combat_feed.position.y == 20, "leaving a mission restores the arena corner")
 	hud.show_round_start(2, "Round open")
 	_check(hud.round_message.visible, "round starts retain a brief announcement")
 	hud._process(0.8)

@@ -55,6 +55,12 @@ var _body_material: StandardMaterial3D
 var _sprite_rest_y: float = 0.0
 var _bob_phase: float = 0.0
 var _bob_time: float = 0.0
+var reduced_motion: bool = false
+
+func set_reduced_motion(enabled: bool) -> void:
+	reduced_motion = enabled
+	if enabled and is_instance_valid(icon):
+		icon.position.y = _sprite_rest_y
 
 func _ready() -> void:
 	_regular_mesh = body.mesh
@@ -97,7 +103,7 @@ func _process(delta: float) -> void:
 	if not visible or icon == null or not icon.visible:
 		return
 	_bob_time += delta
-	icon.position.y = _sprite_rest_y + BOB_METRES * (0.5 + 0.5 * sin(_bob_time * TAU * BOB_HZ + _bob_phase))
+	icon.position.y = _sprite_rest_y if reduced_motion else _sprite_rest_y + BOB_METRES * (0.5 + 0.5 * sin(_bob_time * TAU * BOB_HZ + _bob_phase))
 
 func _label_text() -> String:
 	if pickup_kind == "ammo":

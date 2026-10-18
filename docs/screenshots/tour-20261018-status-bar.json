@@ -1,0 +1,5098 @@
+{
+  "captured_utc": "2026-10-18T13:41:47",
+  "companion_shots": [],
+  "device": "llvmpipe (LLVM 23.1.3, 256 bits)",
+  "godot": "4.7.2-stable (official)",
+  "height": 720.0,
+  "radio_comparison": {},
+  "renderer": "gl_compatibility",
+  "states": [
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "01_boot_menu.png",
+      "frame_ms": 10.63,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Retro menu, keyboard focus, legibility, and unclipped options.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "boot_menu",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "02_spectator_eyes.png",
+      "frame_ms": 179.23,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0413,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Default spectator view follows the fighter's eyes and weapon.",
+      "observed": {
+        "camera_pitch": -0.0678509622812271,
+        "camera_yaw": 2.92874972901349,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "942185b0-97b3-4ab9-a059-ca0170757413",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "spectator_eyes",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "02_spectator_eyes_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "03_arena_overview.png",
+      "frame_ms": 184.64,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0098,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Server geometry, traversable lanes, steps, cover, and lighting.",
+      "observed": {
+        "camera_pitch": -0.364337384700775,
+        "camera_yaw": -3.09728083773136,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": false,
+        "fighters": 3,
+        "fire_strip": [],
+        "flags": null,
+        "following": "",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "arena_overview",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "03_arena_overview_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "04_combat_follow.png",
+      "frame_ms": 202.16,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0237,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Optional chase view and readable fighter silhouettes.",
+      "observed": {
+        "camera_pitch": -0.36432409286499,
+        "camera_yaw": -3.10988979942825,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": false,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "942185b0-97b3-4ab9-a059-ca0170757413",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "combat_follow",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "04_combat_follow_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "05_body_human.png",
+      "frame_ms": 112.57,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0068,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Close eye-level still of a fighter the server says is human: free bone, leather and rust, face and hair, feet on the floor at hit-volume height.",
+      "observed": {
+        "body": "human",
+        "body_frame_clear": true,
+        "body_name": "Dead Air Dan",
+        "body_team": "",
+        "camera_pitch": -0.116141609847546,
+        "camera_yaw": 0.565811106418683,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": false,
+        "fighters": 6,
+        "fire_strip": [],
+        "flags": null,
+        "following": "",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "body_human",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "05_body_human_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "06_body_synthetic.png",
+      "frame_ms": 182.13,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0068,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "The same framing on a fighter in a synthetic body: bone shell, gunmetal frame, ember scarf, cyan lenses. Never Union black and red.",
+      "observed": {
+        "body": "synthetic",
+        "body_frame_clear": true,
+        "body_name": "Nightfall",
+        "body_team": "",
+        "camera_pitch": -0.116141624748707,
+        "camera_yaw": -3.13272364528494,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": false,
+        "fighters": 6,
+        "fire_strip": [],
+        "flags": null,
+        "following": "",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "body_synthetic",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "06_body_synthetic_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "07_hud_first_person.png",
+      "frame_ms": 226.08,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.038,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Actual human join, saved callsign, gun silhouette, and aim visibility. The profile asks for the synthetic body; first-person hands stay the shared gloved viewmodels.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.0,
+        "camera_yaw": -2.06167046641124,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "flechette",
+          "tick": 539.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 4,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          19.7986602783203,
+          0.0,
+          37.0406951904297
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 42,
+          "fallback_reasons": {
+            "ack_timeout": 42
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Flechette",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 221.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 759.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 221.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 4.221515,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "hud_first_person",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "07_hud_first_person_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "08_hud_legend_pad.png",
+      "frame_ms": 216.8,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0378,
+      "input": {
+        "kind": "gamepad",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "The joined player's legend after a left trigger pull: pad names from live bindings. Letter layout forced, no pad attached.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.0,
+        "camera_yaw": -2.06167046641124,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "flechette",
+          "tick": 539.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          19.7986602783203,
+          0.0,
+          37.0406951904297
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 53,
+          "fallback_reasons": {
+            "ack_timeout": 53
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Flechette",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 301.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 839.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 301.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 4.221515,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "hud_legend_pad",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "08_hud_legend_pad_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "09_hud_legend_keyboard.png",
+      "frame_ms": 368.41,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0358,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "The same legend after a key press: keyboard names from live bindings.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.0,
+        "camera_yaw": -2.06167046641124,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "flechette",
+          "tick": 539.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          19.7986602783203,
+          0.0,
+          37.0406951904297
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 64,
+          "fallback_reasons": {
+            "ack_timeout": 64
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Flechette",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 381.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 919.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 381.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 4.221515,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "hud_legend_keyboard",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "09_hud_legend_keyboard_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "10_rail_viewmodel.png",
+      "frame_ms": 231.24,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0335,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Server-confirmed rail selection and its distinct reticle.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.0,
+        "camera_yaw": -2.06167046641124,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "rail",
+          "tick": 982.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 6,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          19.7986602783203,
+          0.0,
+          37.0406951904297
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 78,
+          "fallback_reasons": {
+            "ack_timeout": 78
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Rail",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 481.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1019.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 481.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 4.221515,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "rail_viewmodel",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "10_rail_viewmodel_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "11_shot_effects.png",
+      "frame_ms": 313.84,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0352,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Twelve frames starting at an acknowledged shot. Inspect flash registration, recoil, and recovery.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.0,
+        "camera_yaw": -2.06167046641124,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 63.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 3.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "flechette",
+          "tick": 1194.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 6,
+        "fire_strip": [
+          {
+            "after": {
+              "alive": true,
+              "blocked": false,
+              "fire_sent": true,
+              "loaded": 20,
+              "pitch": 0.0,
+              "tick": 1129.0,
+              "weapon": "Flechette"
+            },
+            "before": {
+              "alive": true,
+              "blocked": false,
+              "fire_sent": false,
+              "loaded": 20,
+              "pitch": 0.0,
+              "tick": 1123.0,
+              "weapon": "Flechette"
+            },
+            "effect_seen": true,
+            "respawn_retry": 0
+          }
+        ],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          19.7986602783203,
+          0.0,
+          37.0406951904297
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 103,
+          "fallback_reasons": {
+            "ack_timeout": 103
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Flechette",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 661.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1199.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 661.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 4.221515,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 12,
+      "state": "shot_effects",
+      "strip_file": "11_shot_effects_strip.png",
+      "strip_sample_ms": [
+        0,
+        439,
+        795,
+        1174,
+        1396,
+        1637,
+        1897,
+        2149,
+        2395,
+        2629,
+        2858,
+        3086
+      ],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "11_shot_effects_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "12_scatter_viewmodel.png",
+      "frame_ms": 215.78,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0405,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Server-confirmed scatter selection and reticle.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.0,
+        "camera_yaw": -1.27627243908222,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "scatter",
+          "tick": 1356.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 4,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -12.1919584274292,
+          0.0,
+          40.1914939880371
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 2,
+          "fallback_reasons": {
+            "ack_timeout": 2
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Scatter",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 761.0,
+            "armor_lost": 0.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 100.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1359.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 761.0,
+            "armor_lost": 0.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 100.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 5.006913,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "scatter_viewmodel",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "12_scatter_viewmodel_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "13_vertical_aim_up.png",
+      "frame_ms": 324.59,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.04,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Upward aim is confirmed in the authoritative snapshot before capture.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": 0.400000005960464,
+        "camera_yaw": -1.27627244940702,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "scatter",
+          "tick": 1356.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -12.1919584274292,
+          0.0,
+          40.1914939880371
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 15,
+          "fallback_reasons": {
+            "ack_timeout": 15
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Scatter",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 881.0,
+            "armor_lost": 0.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 100.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1479.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 881.0,
+            "armor_lost": 0.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 100.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": 0.4,
+        "server_yaw": 5.006913,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "vertical_aim_up",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "13_vertical_aim_up_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "14_vertical_aim_down.png",
+      "frame_ms": 222.43,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0411,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Downward aim follows the same action, camera, and server pitch contract.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": -0.400000005960464,
+        "camera_yaw": -1.27627244940702,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 16.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 4.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "scatter",
+          "tick": 1356.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -12.1919584274292,
+          0.0,
+          40.1914939880371
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 28,
+          "fallback_reasons": {
+            "ack_timeout": 28
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Scatter",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 981.0,
+            "armor_lost": 0.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 100.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1579.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 981.0,
+            "armor_lost": 0.0,
+            "deaths": 1.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 100.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": -0.4,
+        "server_yaw": 5.006913,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "vertical_aim_down",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "14_vertical_aim_down_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "15_rail_impact.png",
+      "frame_ms": 291.09,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0344,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Single acknowledged local rail shot into the floor, sampled through expiry. Inspect the full-size shot and timed strip for position, sparks, trace, and decay.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": -0.400000005960464,
+        "camera_yaw": 2.74889343892667,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 24.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 15.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 6.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 3.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "rail",
+          "tick": 1713.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [
+          {
+            "after": {
+              "alive": true,
+              "blocked": false,
+              "fire_sent": true,
+              "loaded": 3,
+              "pitch": -0.4,
+              "tick": 1716.0,
+              "weapon": "Rail"
+            },
+            "before": {
+              "alive": true,
+              "blocked": false,
+              "fire_sent": false,
+              "loaded": 4,
+              "pitch": -0.4,
+              "tick": 1707.0,
+              "weapon": "Rail"
+            },
+            "effect_seen": true,
+            "respawn_retry": 0
+          }
+        ],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          38.8029403686523,
+          0.0,
+          -16.0727043151855
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 17,
+          "fallback_reasons": {
+            "ack_timeout": 17
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Rail",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 1121.0,
+            "armor_lost": 0.0,
+            "deaths": 2.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 200.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1779.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 1121.0,
+            "armor_lost": 0.0,
+            "deaths": 2.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 200.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": -0.4,
+        "server_yaw": 2.7488933,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 2,
+      "state": "rail_impact",
+      "strip_file": "15_rail_impact_strip.png",
+      "strip_sample_ms": [
+        0,
+        309,
+        545,
+        781,
+        1046,
+        1292,
+        1529,
+        1768,
+        2008,
+        2249,
+        2550,
+        2857
+      ],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "15_rail_impact_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "16_scatter_pellets.png",
+      "frame_ms": 249.64,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0388,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Single acknowledged shotgun blast into the floor about five units ahead. Seven pellets should land as seven separate impacts inside a tight cone.",
+      "observed": {
+        "accepted_body": "synthetic",
+        "camera_pitch": -0.349999994039536,
+        "camera_yaw": 2.74889341594994,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 80.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 23.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 15.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 20.0,
+              "weapon": "flechette"
+            },
+            {
+              "rounds": 5.0,
+              "weapon": "scatter"
+            },
+            {
+              "rounds": 3.0,
+              "weapon": "rail"
+            }
+          ],
+          "personal_claims": [],
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "selected": "scatter",
+          "tick": 1881.0,
+          "type": "loadout",
+          "weapons": [
+            "flechette",
+            "scatter",
+            "rail"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 6,
+        "fire_strip": [
+          {
+            "after": {
+              "alive": true,
+              "blocked": false,
+              "fire_sent": true,
+              "loaded": 5,
+              "pitch": -0.35,
+              "tick": 1885.0,
+              "weapon": "Scatter"
+            },
+            "before": {
+              "alive": true,
+              "blocked": false,
+              "fire_sent": false,
+              "loaded": 6,
+              "pitch": -0.35,
+              "tick": 1875.0,
+              "weapon": "Scatter"
+            },
+            "effect_seen": true,
+            "respawn_retry": 0
+          }
+        ],
+        "flags": null,
+        "following": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          38.8029403686523,
+          0.0,
+          -16.0727043151855
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 0,
+          "fallback": "",
+          "fallback_count": 41,
+          "fallback_reasons": {
+            "ack_timeout": 41
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Scatter",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 1281.0,
+            "armor_lost": 0.0,
+            "deaths": 2.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 200.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 538.0,
+          "map_id": 1.0,
+          "map_name": "Arena Duel",
+          "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+          "status": "active",
+          "tick": 1939.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 1281.0,
+            "armor_lost": 0.0,
+            "deaths": 2.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 200.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 17.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 1.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": true,
+        "server_pitch": -0.35,
+        "server_yaw": 2.7488933,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 1,
+      "state": "scatter_pellets",
+      "strip_file": "16_scatter_pellets_strip.png",
+      "strip_sample_ms": [
+        0,
+        386,
+        700,
+        964,
+        1193,
+        1422,
+        1645,
+        1865
+      ],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "16_scatter_pellets_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "17_return_to_spectator.png",
+      "frame_ms": 169.37,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.034,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Leave the match and follow a remaining fighter without stale geometry or hidden bodies.",
+      "observed": {
+        "camera_pitch": -0.114524565637112,
+        "camera_yaw": -3.14159264166491,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "ee19a604-013f-4a33-8de9-a5ee4621be68",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "return_to_spectator",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "17_return_to_spectator_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "18_spectator_chase.png",
+      "frame_ms": 212.61,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0175,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Return to chase after eye view. The watched body must be visible again.",
+      "observed": {
+        "camera_pitch": -0.364507466554642,
+        "camera_yaw": 0.0790365395272545,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": false,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "ee19a604-013f-4a33-8de9-a5ee4621be68",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "spectator_chase",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "18_spectator_chase_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "19_profile_menu.png",
+      "frame_ms": 15.56,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Callsign, reticle colour, bob, save, and cancel. This capture does not overwrite the user's settings.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "profile_menu",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "20_settings_menu.png",
+      "frame_ms": 15.56,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Settings share the pixel menu theme and remain fully legible.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_menu",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "21_settings_display.png",
+      "frame_ms": 57.8,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Explicit resolution, vertical FOV, window mode, frame cap, and VSync.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_display",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "22_settings_graphics.png",
+      "frame_ms": 55.99,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Quality and supported upscaling choices, clear renderer fallback, pixel menu styling.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_graphics",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "23_settings_audio.png",
+      "frame_ms": 57.3,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Separate master, radio, and effects controls with Save and Cancel.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_audio",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "24_settings_accessibility.png",
+      "frame_ms": 56.73,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Shared reduced-motion preference with cosmetic scope, Save and Cancel.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_accessibility",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "25_settings_controls.png",
+      "frame_ms": 54.12,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Controls page: every action with two keyboard or mouse slots and a gamepad slot, keyboard focus, reset.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_controls",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "26_settings_controls_pad.png",
+      "frame_ms": 54.12,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "gamepad",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Controls page after a left trigger pull through the real input path. No pad is attached, so the letter layout is forced and recorded as such.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_controls_pad",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "27_settings_look.png",
+      "frame_ms": 59.41,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Mouse sensitivity with cm per turn, key turn speed, stick shape and speeds, aim assist.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "settings_look",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "28_multiplayer_menu.png",
+      "frame_ms": 43.46,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Address entry and focus without clipping or unsupported hosting claims.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "multiplayer_menu",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "29_single_player_menu.png",
+      "frame_ms": 39.89,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Recall Notice starts a local mission; arcade practice requires an existing server.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "single_player_menu",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "30_campaign_difficulty.png",
+      "frame_ms": 39.74,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Three explicit tiers with honest pressure descriptions and keyboard focus.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "campaign_difficulty",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "31_match_menu.png",
+      "frame_ms": 184.16,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0323,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Pixel match overlay keeps the live server visible and does not pretend to pause it.",
+      "observed": {
+        "camera_pitch": 0.229109048843384,
+        "camera_yaw": -1.57076277334852,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": true,
+        "fighters": 5,
+        "fire_strip": [],
+        "flags": null,
+        "following": "942185b0-97b3-4ab9-a059-ca0170757413",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "match_menu",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "31_match_menu_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "32_match_settings.png",
+      "frame_ms": 197.82,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0328,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "The same settings panel over a live match, with camera input blocked.",
+      "observed": {
+        "camera_pitch": -0.0182501915842295,
+        "camera_yaw": 2.56815453016594,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {},
+        "eye_view": true,
+        "fighters": 3,
+        "fire_strip": [],
+        "flags": null,
+        "following": "942185b0-97b3-4ab9-a059-ca0170757413",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 1.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": null,
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "match_settings",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "32_match_settings_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "33_service_record.png",
+      "frame_ms": 14.71,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0,
+      "input": {
+        "kind": "keyboard",
+        "look": "gamepad",
+        "pad_layout": "letters",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Persisted participant observations from this tour, with incomplete sessions labelled and exact attack denominators.",
+      "observed": {
+        "menu": true,
+        "msaa": 1,
+        "record_kind": "arena",
+        "records": [
+          {
+            "origin": "external",
+            "record": {
+              "attempt": {
+                "alive_ticks": 1281.0,
+                "armor_lost": 0.0,
+                "deaths": 2.0,
+                "dry_triggers": 0.0,
+                "hp_lost": 200.0,
+                "weapons": [
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 17.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 1.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 1.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  }
+                ]
+              },
+              "entered_at": 538.0,
+              "map_id": 1.0,
+              "map_name": "Arena Duel",
+              "player_id": "31a90730-c194-43d3-b9cf-abda0d94e90a",
+              "role": "human",
+              "round": 1.0,
+              "round_started_at": 40.0,
+              "scope": {
+                "kind": "arena",
+                "round": 1.0
+              },
+              "session_id": "8fde6791-e76d-4dd5-9612-91eb3115d193",
+              "status": "active",
+              "tick": 1939.0,
+              "ticks_per_second": 20.0,
+              "total": {
+                "alive_ticks": 1281.0,
+                "armor_lost": 0.0,
+                "deaths": 2.0,
+                "dry_triggers": 0.0,
+                "hp_lost": 200.0,
+                "weapons": [
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 17.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 1.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 1.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  },
+                  {
+                    "armor_damage": 0.0,
+                    "attacks": 0.0,
+                    "damaging_attacks": 0.0,
+                    "hp_damage": 0.0,
+                    "kills": 0.0
+                  }
+                ]
+              },
+              "version": 5.0
+            }
+          }
+        ],
+        "render_scale": 1.0,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "service_record",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": ""
+    }
+  ],
+  "width": 1280.0
+}

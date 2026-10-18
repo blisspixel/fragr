@@ -58,6 +58,7 @@ var tip_locked_transform: Transform3D = Transform3D.IDENTITY
 var tip_has_locked_transform = false
 var camera_shake_intensity = 0.0
 var camera_zoom_offset = 0.0
+var reduced_motion: bool = false
 
 var mouse_motion = Vector2.ZERO
 ## Sniper scope magnification from the HUD: 1.0 is the player's own view. Look
@@ -94,6 +95,10 @@ static func eye_lift(target: Object) -> float:
 const TURN_ACCUM_THRESHOLD = 2.5
 
 func apply_preferences(preferences: FragrSettings) -> void:
+	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
+	if reduced_motion:
+		camera_shake_intensity = 0.0
+		camera_zoom_offset = 0.0
 	mouse_sensitivity = float(preferences.get_value("controls", "mouse_sensitivity"))
 	stick_look_sensitivity = float(preferences.get_value("controls", "turn_speed"))
 	invert_y = bool(preferences.get_value("controls", "invert_y"))
@@ -332,8 +337,9 @@ func cycle_next_target():
 	if len(available_targets) > 0:
 		follow_target_index = (follow_target_index + 1) % len(available_targets)
 		auto_cycle_timer = 0.0
-		camera_shake_intensity = 0.12
-		camera_zoom_offset = -0.6
+		if not reduced_motion:
+			camera_shake_intensity = 0.12
+			camera_zoom_offset = -0.6
 
 func pin_player(player_id: String) -> void:
 	pinned_player_id = player_id.strip_edges()
@@ -364,6 +370,8 @@ func set_available_targets(targets: Array):
 		_set_observed_pawn(null)
 
 func camera_punch():
+	if reduced_motion:
+		return
 	camera_shake_intensity = 0.3
 	camera_zoom_offset = -1.5
 

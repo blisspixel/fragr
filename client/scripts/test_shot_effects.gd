@@ -5,6 +5,8 @@ class CaptionProbe extends Node:
 		pass
 
 class HudProbe extends Node:
+	func set_campaign(_enabled: bool) -> void:
+		pass
 	var equipment_hud: EquipmentHud = EquipmentHud.new()
 	var combat_feed: CombatFeed = CombatFeed.new()
 	var crawler_caption: CaptionProbe = CaptionProbe.new()

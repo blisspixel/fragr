@@ -74,15 +74,19 @@ static func _key(prefix: String, id: String) -> String:
 static func chip_text(rules: Dictionary) -> String:
 	if rules.is_empty():
 		return ""
+	var details: String = modifier_text(rules)
+	return mode_text(rules) + (" // " + details if not details.is_empty() else "")
+
+static func mode_text(rules: Dictionary) -> String:
+	return _text(_key("MODE_", str(rules["mode"]))) if not rules.is_empty() else ""
+
+static func modifier_text(rules: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	for mutator: String in rules.get("mutators", []):
 		parts.append(_text(_key("MUTATOR_", mutator)))
 	if rules.get("friendly_fire", false):
 		parts.append(_text("RULES_FRIENDLY_FIRE"))
-	var line: String = _text(_key("MODE_", str(rules["mode"])))
-	if not parts.is_empty():
-		line += " // " + " + ".join(parts)
-	return line
+	return " + ".join(parts)
 
 
 static func valid_team(team: Variant) -> String:

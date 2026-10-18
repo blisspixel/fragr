@@ -1,0 +1,5892 @@
+{
+  "captured_utc": "2026-10-18T13:39:29",
+  "companion_shots": [],
+  "device": "llvmpipe (LLVM 23.1.3, 256 bits)",
+  "godot": "4.7.2-stable (official)",
+  "height": 720.0,
+  "radio_comparison": {},
+  "renderer": "gl_compatibility",
+  "states": [
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "01_sabotage_joined.png",
+      "frame_ms": 100.4,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0308,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Joined on a Sabotage server: the first-person view with the one HUD line. A late joiner waits for the next round.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": 0.0,
+        "camera_yaw": -3.14159264166491,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 0.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "personal_claims": [],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "fists",
+          "tick": 119.0,
+          "type": "loadout",
+          "weapons": [
+            "fists"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          31.0,
+          0.0,
+          -8.0
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 108,
+          "fallback": "",
+          "fallback_count": 0,
+          "fallback_reasons": {},
+          "last_fallback": "",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 1
+        },
+        "local_weapon": "Fists",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 101.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 219.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 101.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "carrier": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+            "position": [
+              31.0,
+              0.0,
+              -8.0
+            ],
+            "status": "carried"
+          },
+          "clock_ticks": 86.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "muster",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 3.1415927,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_joined",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "01_sabotage_joined_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "02_sabotage_muster.png",
+      "frame_ms": 79.72,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0271,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12104,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 31.0,
+          "y": 0.0,
+          "z": -8.0
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12122,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 31.0,
+          "y": 0.0,
+          "z": -8.0
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12192,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 31.3292541503906,
+          "y": 0.0,
+          "z": -7.62371158599854
+        },
+        {
+          "bob_weight": 0.627943999999999,
+          "camera_y": 1.60000002384186,
+          "ms": 12266,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 31.4938812255859,
+          "y": 0.0,
+          "z": -7.4355673789978
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12332,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 31.8231353759766,
+          "y": 0.0,
+          "z": -7.05927896499634
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12392,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 31.9877624511719,
+          "y": 0.0,
+          "z": -6.87113475799561
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12453,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 32.1523895263672,
+          "y": 0.0,
+          "z": -6.68299055099487
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12514,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 32.3170166015625,
+          "y": 0.0,
+          "z": -6.49484634399414
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12576,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 32.6462707519531,
+          "y": 0.0,
+          "z": -6.11855792999268
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12640,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 32.8108978271484,
+          "y": 0.0,
+          "z": -5.93041372299194
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12717,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 32.9755249023438,
+          "y": 0.0,
+          "z": -5.74226951599121
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12794,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 33.3047790527344,
+          "y": 0.0,
+          "z": -5.36598110198975
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12866,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 33.4694061279297,
+          "y": 0.0,
+          "z": -5.17783689498901
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 12943,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 33.7986602783203,
+          "y": 0.0,
+          "z": -4.80154848098755
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13013,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 33.9632873535156,
+          "y": 0.0,
+          "z": -4.61340427398682
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13093,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 34.2925415039062,
+          "y": 0.0,
+          "z": -4.23711490631104
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13167,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 34.4571685791016,
+          "y": 0.0,
+          "z": -4.04897022247314
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13240,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 34.7864227294922,
+          "y": 0.0,
+          "z": -3.67268133163452
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13310,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 34.9510498046875,
+          "y": 0.0,
+          "z": -3.48453664779663
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13378,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 35.2803039550781,
+          "y": 0.0,
+          "z": -3.10824728012085
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13447,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 35.4449310302734,
+          "y": 0.0,
+          "z": -2.92010259628296
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13525,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 35.7741851806641,
+          "y": 0.0,
+          "z": -2.54381322860718
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13596,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 35.9388122558594,
+          "y": 0.0,
+          "z": -2.35566830635071
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13671,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 36.26806640625,
+          "y": 0.0,
+          "z": -1.97937846183777
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13748,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 36.432689666748,
+          "y": 0.0,
+          "z": -1.79123342037201
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13816,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 36.5973129272461,
+          "y": 0.0,
+          "z": -1.60308814048767
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13886,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 36.9265594482422,
+          "y": 0.0,
+          "z": -1.22679781913757
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 13957,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 37.0911827087402,
+          "y": 0.0,
+          "z": -1.03865277767181
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 14032,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 37.4204368591309,
+          "y": 0.0,
+          "z": -0.662363290786743
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 14105,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 37.5850639343262,
+          "y": 0.0,
+          "z": -0.474218785762787
+        }
+      ],
+      "moving_combat": {},
+      "note": "Muster in the attacker yard: the pistol from the spawn pad, the carried charge beside the weapon and the muster clock.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": 0.0,
+        "camera_yaw": 0.851972769770446,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 0.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "personal_claims": [],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "fists",
+          "tick": 119.0,
+          "type": "loadout",
+          "weapons": [
+            "fists"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          38.0789413452148,
+          0.0,
+          0.0902161151170731
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 179,
+          "fallback": "",
+          "fallback_count": 1,
+          "fallback_reasons": {
+            "ack_timeout": 1
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.0,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.0,
+          "pending_ticks": 1
+        },
+        "local_weapon": "Fists",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 181.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 299.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 181.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "carrier": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+            "position": [
+              38.07894,
+              0.0,
+              0.090216115
+            ],
+            "status": "carried"
+          },
+          "clock_ticks": 3.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "muster",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": 0.0,
+        "server_yaw": 0.85197276,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_muster",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [
+        {
+          "arrived": true,
+          "fighting_ms": 0,
+          "goal": [
+            38.0,
+            0.0,
+            0.0
+          ],
+          "walking_ms": 2076
+        }
+      ],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "02_sabotage_muster_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "03_sabotage_at_site.png",
+      "frame_ms": 71.66,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0309,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16324,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 38.0789413452148,
+          "y": 0.0,
+          "z": 0.0902161151170731
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16390,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 38.0789413452148,
+          "y": 0.0,
+          "z": 0.0902161151170731
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16461,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 37.8289566040039,
+          "y": 0.0,
+          "z": 0.0874245688319206
+        },
+        {
+          "bob_weight": 0.538744000000002,
+          "camera_y": 1.60000002384186,
+          "ms": 16535,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 37.328987121582,
+          "y": 0.0,
+          "z": 0.0818414762616158
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16608,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 37.0790023803711,
+          "y": 0.0,
+          "z": 0.0790499299764633
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16681,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 36.5790328979492,
+          "y": 0.0,
+          "z": 0.0734668374061584
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16753,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 36.3290481567383,
+          "y": 0.0,
+          "z": 0.070675291121006
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16835,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 35.8290786743164,
+          "y": 0.0,
+          "z": 0.0650921985507011
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16914,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 35.5790939331055,
+          "y": 0.0,
+          "z": 0.0623006522655487
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 16996,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 35.0791244506836,
+          "y": 0.0,
+          "z": 0.0567175596952438
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17075,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 34.5791549682617,
+          "y": 0.0,
+          "z": 0.051134467124939
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17148,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 34.3291702270508,
+          "y": 0.0,
+          "z": 0.0483429208397865
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17215,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 34.0791854858398,
+          "y": 0.0,
+          "z": 0.0455513745546341
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17294,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 33.579216003418,
+          "y": 0.0,
+          "z": 0.0399682819843292
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17374,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 33.0792465209961,
+          "y": 0.0,
+          "z": 0.0343851894140244
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17450,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 32.8292617797852,
+          "y": 0.0,
+          "z": 0.0315936431288719
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17534,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 32.3292922973633,
+          "y": 0.0,
+          "z": 0.0260106660425663
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17616,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 32.0793075561523,
+          "y": 0.0,
+          "z": 0.0232191774994135
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17699,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 31.5793380737305,
+          "y": 0.0,
+          "z": 0.0176360812038183
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17784,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 31.0793685913086,
+          "y": 0.0,
+          "z": 0.0120529867708683
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17866,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 30.8293838500977,
+          "y": 0.0,
+          "z": 0.00926149915903807
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 17942,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 30.3294143676758,
+          "y": 0.0,
+          "z": 0.00367852370254695
+        },
+        {
+          "bob_weight": 0.355555555555556,
+          "camera_y": 1.60000002384186,
+          "ms": 18176,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 29.579460144043,
+          "y": 0.0,
+          "z": -0.00469605904072523
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18251,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 29.579460144043,
+          "y": 0.0,
+          "z": -0.00469605904072523
+        },
+        {
+          "bob_weight": 0.644444444444444,
+          "camera_y": 1.60000002384186,
+          "ms": 18332,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 29.079460144043,
+          "y": 0.0,
+          "z": -0.00465223379433155
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18416,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 28.829460144043,
+          "y": 0.0,
+          "z": -0.00463032117113471
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18501,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 28.329460144043,
+          "y": 0.0,
+          "z": -0.00458649592474103
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18586,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 27.829460144043,
+          "y": 0.0,
+          "z": -0.00454267067834735
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18671,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 27.329460144043,
+          "y": 0.0,
+          "z": -0.00449884543195367
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18740,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 27.079460144043,
+          "y": 0.0,
+          "z": -0.00447693280875683
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18805,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 26.829460144043,
+          "y": 0.0,
+          "z": -0.00445502018555999
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18873,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 26.329460144043,
+          "y": 0.0,
+          "z": -0.00441119493916631
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 18944,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 26.079460144043,
+          "y": 0.0,
+          "z": -0.00438928231596947
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19013,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 25.829460144043,
+          "y": 0.0,
+          "z": -0.00436736969277263
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19088,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 25.329460144043,
+          "y": 0.0,
+          "z": -0.00432354444637895
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19159,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 25.079460144043,
+          "y": 0.0,
+          "z": -0.00430163182318211
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19233,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 24.579460144043,
+          "y": 0.0,
+          "z": -0.00425780657678843
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19304,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 24.329460144043,
+          "y": 0.0,
+          "z": -0.00423589395359159
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19386,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 23.829460144043,
+          "y": 0.0,
+          "z": -0.0041920687071979
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19461,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 23.579460144043,
+          "y": 0.0,
+          "z": -0.00417015608400106
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19534,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 23.079460144043,
+          "y": 0.0,
+          "z": -0.00412633083760738
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19611,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 22.829460144043,
+          "y": 0.0,
+          "z": -0.00410441821441054
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19677,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 22.329460144043,
+          "y": 0.0,
+          "z": -0.00406059296801686
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19743,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 22.079460144043,
+          "y": 0.0,
+          "z": -0.00403868034482002
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19814,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 21.829460144043,
+          "y": 0.0,
+          "z": -0.00401676772162318
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19886,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 21.329460144043,
+          "y": 0.0,
+          "z": -0.0039729424752295
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 19971,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 20.829460144043,
+          "y": 0.0,
+          "z": -0.00392911722883582
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20050,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 20.579460144043,
+          "y": 0.0,
+          "z": -0.00390720460563898
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20125,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 20.079460144043,
+          "y": 0.0,
+          "z": -0.0038633793592453
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20200,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 19.829460144043,
+          "y": 0.0,
+          "z": -0.00384146673604846
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20274,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 19.329460144043,
+          "y": 0.0,
+          "z": -0.00379764148965478
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20343,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 19.079460144043,
+          "y": 0.0,
+          "z": -0.00377572886645794
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20413,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 18.829460144043,
+          "y": 0.0,
+          "z": -0.0037538162432611
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20476,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 18.329460144043,
+          "y": 0.0,
+          "z": -0.00370999099686742
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20544,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 18.079460144043,
+          "y": 0.0,
+          "z": -0.00368807837367058
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20616,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 17.829460144043,
+          "y": 0.0,
+          "z": -0.00366616575047374
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20693,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 17.329460144043,
+          "y": 0.0,
+          "z": -0.00362234050408006
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20770,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 16.829460144043,
+          "y": 0.0,
+          "z": -0.00357851525768638
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20845,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 16.579460144043,
+          "y": 0.0,
+          "z": -0.00355660263448954
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20914,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 16.329460144043,
+          "y": 0.0,
+          "z": -0.0035346900112927
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 20985,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 15.829460144043,
+          "y": 0.0,
+          "z": -0.00349086476489902
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21053,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 15.579460144043,
+          "y": 0.0,
+          "z": -0.00346895214170218
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21117,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 15.329460144043,
+          "y": 0.0,
+          "z": -0.00344703951850533
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21183,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 14.829460144043,
+          "y": 0.0,
+          "z": -0.00340321427211165
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21249,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 14.579460144043,
+          "y": 0.0,
+          "z": -0.00338130164891481
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21321,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 14.079460144043,
+          "y": 0.0,
+          "z": -0.00333747640252113
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21391,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 13.829460144043,
+          "y": 0.0,
+          "z": -0.00331556377932429
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21455,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 13.579460144043,
+          "y": 0.0,
+          "z": -0.00329365115612745
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21520,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 13.079460144043,
+          "y": 0.0,
+          "z": -0.00324982590973377
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21582,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 12.829460144043,
+          "y": 0.0,
+          "z": -0.00322791328653693
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21647,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 12.579460144043,
+          "y": 0.0,
+          "z": -0.00320600066334009
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21714,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 12.329460144043,
+          "y": 0.0,
+          "z": -0.00318408804014325
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21783,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 11.829460144043,
+          "y": 0.0,
+          "z": -0.00314026279374957
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21855,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 11.579460144043,
+          "y": 0.0,
+          "z": -0.00311835017055273
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21926,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 11.079460144043,
+          "y": 0.0,
+          "z": -0.00307452492415905
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 21999,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 10.829460144043,
+          "y": 0.0,
+          "z": -0.00305261230096221
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22066,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 10.579460144043,
+          "y": 0.0,
+          "z": -0.00303069967776537
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22135,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 10.079460144043,
+          "y": 0.0,
+          "z": -0.00298687443137169
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22201,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 9.82946014404297,
+          "y": 0.0,
+          "z": -0.00296496180817485
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22272,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": 9.32946014404297,
+          "y": 0.0,
+          "z": -0.00292113656178117
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22339,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 9.07946014404297,
+          "y": 0.0,
+          "z": -0.00289922393858433
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22403,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 8.82946014404297,
+          "y": 0.0,
+          "z": -0.00287731131538749
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22473,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 8.32946014404297,
+          "y": 0.0,
+          "z": -0.00283348606899381
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22544,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 8.07946014404297,
+          "y": 0.0,
+          "z": -0.00281157344579697
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22614,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 7.82946014404297,
+          "y": 0.0,
+          "z": -0.00278966082260013
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22691,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 7.32946014404297,
+          "y": 0.0,
+          "z": -0.00274583557620645
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22763,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 7.07946014404297,
+          "y": 0.0,
+          "z": -0.00272392295300961
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22843,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 6.57946014404297,
+          "y": 0.0,
+          "z": -0.00268009770661592
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22912,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": 6.32946014404297,
+          "y": 0.0,
+          "z": -0.00265818508341908
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 22989,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 5.82946014404297,
+          "y": 0.0,
+          "z": -0.0026143598370254
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23062,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 5.57946014404297,
+          "y": 0.0,
+          "z": -0.00259244721382856
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23137,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 5.07946014404297,
+          "y": 0.0,
+          "z": -0.00254862196743488
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23207,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": 4.82946014404297,
+          "y": 0.0,
+          "z": -0.00252670934423804
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23281,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 4.32946014404297,
+          "y": 0.0,
+          "z": -0.00248288409784436
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23349,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 4.07946014404297,
+          "y": 0.0,
+          "z": -0.00246097147464752
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23420,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 3.57946014404297,
+          "y": 0.0,
+          "z": -0.00241714622825384
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23492,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 3.32946014404297,
+          "y": 0.0,
+          "z": -0.002395233605057
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23561,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": 3.07946014404297,
+          "y": 0.0,
+          "z": -0.00237332098186016
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23628,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 2.57946014404297,
+          "y": 0.0,
+          "z": -0.00232949573546648
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23698,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 2.32946014404297,
+          "y": 0.0,
+          "z": -0.00230758311226964
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23767,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 2.07946014404297,
+          "y": 0.0,
+          "z": -0.0022856704890728
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23844,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": 1.57946014404297,
+          "y": 0.0,
+          "z": -0.00224184524267912
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 23920,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": 1.07946014404297,
+          "y": 0.0,
+          "z": -0.00219801999628544
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24000,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": 0.829460144042969,
+          "y": 0.0,
+          "z": -0.0021761073730886
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24078,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": 0.329460144042969,
+          "y": 0.0,
+          "z": -0.00213228212669492
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24148,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": 0.0794601440429688,
+          "y": 0.0,
+          "z": -0.00211036950349808
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24215,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -0.170539855957031,
+          "y": 0.0,
+          "z": -0.00208845688030124
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24292,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -0.670539855957031,
+          "y": 0.0,
+          "z": -0.00204463163390756
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24367,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -0.920539855957031,
+          "y": 0.0,
+          "z": -0.00202271901071072
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24446,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -1.42053985595703,
+          "y": 0.0,
+          "z": -0.00197889376431704
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24527,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -1.92053985595703,
+          "y": 0.0,
+          "z": -0.00193506851792336
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24601,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -2.17053985595703,
+          "y": 0.0,
+          "z": -0.00191315589472651
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24679,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -2.67053985595703,
+          "y": 0.0,
+          "z": -0.00186933064833283
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24749,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -2.92053985595703,
+          "y": 0.0,
+          "z": -0.00184741802513599
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24828,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -3.42053985595703,
+          "y": 0.0,
+          "z": -0.00180359277874231
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24905,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -3.67053985595703,
+          "y": 0.0,
+          "z": -0.00178168015554547
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 24987,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -4.17053985595703,
+          "y": 0.0,
+          "z": -0.00173785490915179
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25058,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -4.42053985595703,
+          "y": 0.0,
+          "z": -0.00171594228595495
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25133,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -4.92053985595703,
+          "y": 0.0,
+          "z": -0.00167211703956127
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25208,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -5.17053985595703,
+          "y": 0.0,
+          "z": -0.00165020441636443
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25279,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -5.67053985595703,
+          "y": 0.0,
+          "z": -0.00160637916997075
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25352,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -5.92053985595703,
+          "y": 0.0,
+          "z": -0.00158446654677391
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25426,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -6.42053985595703,
+          "y": 0.0,
+          "z": -0.00154064130038023
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25500,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -6.67053985595703,
+          "y": 0.0,
+          "z": -0.00151872867718339
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25572,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -7.17053985595703,
+          "y": 0.0,
+          "z": -0.00147490343078971
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25649,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -7.42053985595703,
+          "y": 0.0,
+          "z": -0.00145299080759287
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25727,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -7.92053985595703,
+          "y": 0.0,
+          "z": -0.00140916556119919
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25799,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -8.17053985595703,
+          "y": 0.0,
+          "z": -0.00138725293800235
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25867,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -8.42053985595703,
+          "y": 0.0,
+          "z": -0.00136534031480551
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25931,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -8.92053985595703,
+          "y": 0.0,
+          "z": -0.00132151506841183
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 25998,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -9.17053985595703,
+          "y": 0.0,
+          "z": -0.00129960244521499
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26067,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -9.42053985595703,
+          "y": 0.0,
+          "z": -0.00127768982201815
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26136,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -9.92053985595703,
+          "y": 0.0,
+          "z": -0.00123386457562447
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26202,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -10.170539855957,
+          "y": 0.0,
+          "z": -0.00121195195242763
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26272,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -10.670539855957,
+          "y": 0.0,
+          "z": -0.00116812670603395
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26340,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -10.920539855957,
+          "y": 0.0,
+          "z": -0.0011462140828371
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26405,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -11.170539855957,
+          "y": 0.0,
+          "z": -0.00112430145964026
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26476,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -11.670539855957,
+          "y": 0.0,
+          "z": -0.00108047621324658
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26544,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -11.920539855957,
+          "y": 0.0,
+          "z": -0.00105856359004974
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26609,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -12.170539855957,
+          "y": 0.0,
+          "z": -0.0010366509668529
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26675,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -12.670539855957,
+          "y": 0.0,
+          "z": -0.000992825720459223
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26745,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -12.920539855957,
+          "y": 0.0,
+          "z": -0.000970913039054722
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26810,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -13.170539855957,
+          "y": 0.0,
+          "z": -0.00094900035765022
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26879,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -13.670539855957,
+          "y": 0.0,
+          "z": -0.000905174994841218
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 26950,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -13.920539855957,
+          "y": 0.0,
+          "z": -0.000883262313436717
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27016,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -14.170539855957,
+          "y": 0.0,
+          "z": -0.000861349632032216
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27086,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -14.670539855957,
+          "y": 0.0,
+          "z": -0.000817524269223213
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27161,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -14.920539855957,
+          "y": 0.0,
+          "z": -0.000795611587818712
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27235,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -15.420539855957,
+          "y": 0.0,
+          "z": -0.00075178622500971
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27309,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -15.670539855957,
+          "y": 0.0,
+          "z": -0.000729873543605208
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27379,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -16.170539855957,
+          "y": 0.0,
+          "z": -0.000686048180796206
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27443,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -16.420539855957,
+          "y": 0.0,
+          "z": -0.000664135499391705
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27515,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -16.670539855957,
+          "y": 0.0,
+          "z": -0.000642222817987204
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27583,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -17.170539855957,
+          "y": 0.0,
+          "z": -0.000598397455178201
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27649,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -17.420539855957,
+          "y": 0.0,
+          "z": -0.0005764847737737
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27721,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -17.920539855957,
+          "y": 0.0,
+          "z": -0.000532659410964698
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27790,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -18.170539855957,
+          "y": 0.0,
+          "z": -0.000510746729560196
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27857,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -18.420539855957,
+          "y": 0.0,
+          "z": -0.000488834048155695
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 27934,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -18.920539855957,
+          "y": 0.0,
+          "z": -0.000445008743554354
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28011,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -19.170539855957,
+          "y": 0.0,
+          "z": -0.000423096091253683
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28081,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -19.670539855957,
+          "y": 0.0,
+          "z": -0.000379270786652341
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28146,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -19.920539855957,
+          "y": 0.0,
+          "z": -0.000357358134351671
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28222,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -20.420539855957,
+          "y": 0.0,
+          "z": -0.000313532829750329
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28296,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -20.670539855957,
+          "y": 0.0,
+          "z": -0.000291620177449659
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28363,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -20.920539855957,
+          "y": 0.0,
+          "z": -0.000269707525148988
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28436,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -21.420539855957,
+          "y": 0.0,
+          "z": -0.000225882220547646
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28511,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -21.670539855957,
+          "y": 0.0,
+          "z": -0.000203969568246976
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28582,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -22.170539855957,
+          "y": 0.0,
+          "z": -0.000160144263645634
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28665,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -22.420539855957,
+          "y": 0.0,
+          "z": -0.000138231611344963
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28737,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -22.920539855957,
+          "y": 0.0,
+          "z": -0.0000944063067436218
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28804,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -23.170539855957,
+          "y": 0.0,
+          "z": -0.0000725532590877265
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 28882,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -23.670539855957,
+          "y": 0.0,
+          "z": -0.0000288471619569464
+        },
+        {
+          "bob_weight": 0.422222222222222,
+          "camera_y": 1.60000002384186,
+          "ms": 29158,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -24.420539855957,
+          "y": 0.0,
+          "z": 0.0000368311957572587
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29226,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -24.420539855957,
+          "y": 0.0,
+          "z": 0.0000368311957572587
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29291,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -24.5150890350342,
+          "y": 0.0,
+          "z": -0.231394171714783
+        },
+        {
+          "bob_weight": 0.577777777777778,
+          "camera_y": 1.60000002384186,
+          "ms": 29370,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -24.7041873931885,
+          "y": 0.0,
+          "z": -0.694256186485291
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29446,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -24.7987365722656,
+          "y": 0.0,
+          "z": -0.9256871342659
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29511,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -24.8932857513428,
+          "y": 0.0,
+          "z": -1.15711808204651
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29589,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -25.0823841094971,
+          "y": 0.0,
+          "z": -1.61998009681702
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29673,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -25.2714824676514,
+          "y": 0.0,
+          "z": -2.08284211158752
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 29739,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -25.3660316467285,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.422191999999995,
+          "camera_y": 1.60000002384186,
+          "ms": 29814,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -25.4605808258057,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.378200244903564,
+          "camera_y": 1.60000002384186,
+          "ms": 29892,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -25.64967918396,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.374175453186035,
+          "camera_y": 1.60000002384186,
+          "ms": 29967,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -25.7432231903076,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.366062188148499,
+          "camera_y": 1.60000002384186,
+          "ms": 30051,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -25.9262561798096,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.362017440795898,
+          "camera_y": 1.60000002384186,
+          "ms": 30127,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.1072635650635,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.362017631530762,
+          "camera_y": 1.60000002384186,
+          "ms": 30199,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.1957740783691,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.346082067489624,
+          "camera_y": 1.60000002384186,
+          "ms": 30284,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.3688163757324,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.342161226272583,
+          "camera_y": 1.60000002384186,
+          "ms": 30359,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.4543571472168,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.334444069862366,
+          "camera_y": 1.60000002384186,
+          "ms": 30435,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.6215782165527,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.330604100227356,
+          "camera_y": 1.60000002384186,
+          "ms": 30510,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.7042293548584,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.323049926757813,
+          "camera_y": 1.60000002384186,
+          "ms": 30592,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.8657550811768,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.319293165206909,
+          "camera_y": 1.60000002384186,
+          "ms": 30663,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -26.94557762146,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.311907720565796,
+          "camera_y": 1.60000002384186,
+          "ms": 30744,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -27.1015300750732,
+          "y": 0.0,
+          "z": -2.31427311897278
+        },
+        {
+          "bob_weight": 0.308236885070801,
+          "camera_y": 1.60000002384186,
+          "ms": 30825,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -27.2556476593018,
+          "y": 0.0,
+          "z": -2.55210041999817
+        },
+        {
+          "bob_weight": 0.930459107293023,
+          "camera_y": 1.60000002384186,
+          "ms": 30895,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -27.330904006958,
+          "y": 0.0,
+          "z": -2.79050445556641
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 30968,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -27.4052295684814,
+          "y": 0.0,
+          "z": -3.02920031547546
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31049,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -27.5538578033447,
+          "y": 0.0,
+          "z": -3.50659966468811
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31125,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -27.702486038208,
+          "y": 0.0,
+          "z": -3.98399901390076
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31197,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -27.7768001556396,
+          "y": 0.0,
+          "z": -4.22269868850708
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31276,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -27.9254283905029,
+          "y": 0.0,
+          "z": -4.70009803771973
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31344,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -27.9997425079346,
+          "y": 0.0,
+          "z": -4.93879795074463
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31413,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -28.0740566253662,
+          "y": 0.0,
+          "z": -5.17749786376953
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31490,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -28.2226848602295,
+          "y": 0.0,
+          "z": -5.65489768981934
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31573,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -28.3713130950928,
+          "y": 0.0,
+          "z": -6.13229751586914
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31650,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -28.4456272125244,
+          "y": 0.0,
+          "z": -6.37099742889404
+        },
+        {
+          "bob_weight": 0.999999904632568,
+          "camera_y": 1.60000002384186,
+          "ms": 31723,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -28.5942554473877,
+          "y": 0.0,
+          "z": -6.84839725494385
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31797,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -28.6685695648193,
+          "y": 0.0,
+          "z": -7.08709716796875
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31876,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -28.8171977996826,
+          "y": 0.0,
+          "z": -7.56449699401855
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 31949,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -28.8915100097656,
+          "y": 0.0,
+          "z": -7.80319690704346
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32025,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -29.0401344299316,
+          "y": 0.0,
+          "z": -8.28059673309326
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32100,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -29.1144466400146,
+          "y": 0.0,
+          "z": -8.51929664611816
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32175,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -29.2630748748779,
+          "y": 0.0,
+          "z": -8.99669647216797
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32250,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -29.3373889923096,
+          "y": 0.0,
+          "z": -9.23539638519287
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32326,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -29.4860134124756,
+          "y": 0.0,
+          "z": -9.71279621124268
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32390,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -29.5603256225586,
+          "y": 0.0,
+          "z": -9.95149612426758
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32453,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -29.6346397399902,
+          "y": 0.0,
+          "z": -10.1901960372925
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32523,
+          "weapon_bottom": 1094.0,
+          "weapon_y": 734.0,
+          "x": -29.7832679748535,
+          "y": 0.0,
+          "z": -10.6675958633423
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32595,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -29.8575820922852,
+          "y": 0.0,
+          "z": -10.9062957763672
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32658,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -29.9318943023682,
+          "y": 0.0,
+          "z": -11.1449956893921
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32738,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -30.0805187225342,
+          "y": 0.0,
+          "z": -11.6223955154419
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32812,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -30.1548309326172,
+          "y": 0.0,
+          "z": -11.8610954284668
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 32892,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -30.3034591674805,
+          "y": 0.0,
+          "z": -12.3384952545166
+        },
+        {
+          "bob_weight": 0.999999904632568,
+          "camera_y": 1.60000002384186,
+          "ms": 32970,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -30.4520874023438,
+          "y": 0.0,
+          "z": -12.8158950805664
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33048,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -30.5263996124268,
+          "y": 0.0,
+          "z": -13.0545949935913
+        },
+        {
+          "bob_weight": 0.999999904632568,
+          "camera_y": 1.60000002384186,
+          "ms": 33124,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -30.6750240325928,
+          "y": 0.0,
+          "z": -13.5319948196411
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33188,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -30.7493362426758,
+          "y": 0.0,
+          "z": -13.770694732666
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33253,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -30.8236503601074,
+          "y": 0.0,
+          "z": -14.0093946456909
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33327,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -30.9722785949707,
+          "y": 0.0,
+          "z": -14.4867944717407
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33390,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -31.0465927124023,
+          "y": 0.0,
+          "z": -14.7254943847656
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33457,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -31.1209049224854,
+          "y": 0.0,
+          "z": -14.9641942977905
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33534,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -31.2695293426514,
+          "y": 0.0,
+          "z": -15.4415941238403
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33608,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -31.3438415527344,
+          "y": 0.0,
+          "z": -15.6802940368652
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33672,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -31.4924697875977,
+          "y": 0.0,
+          "z": -16.157693862915
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33740,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -31.5667839050293,
+          "y": 0.0,
+          "z": -16.3963928222656
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33813,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -31.6410980224609,
+          "y": 0.0,
+          "z": -16.6350917816162
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33882,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -31.789722442627,
+          "y": 0.0,
+          "z": -17.1124897003174
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 33952,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -31.86403465271,
+          "y": 0.0,
+          "z": -17.351188659668
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34027,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -32.0126609802246,
+          "y": 0.0,
+          "z": -17.8285865783691
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34089,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -32.0869750976562,
+          "y": 0.0,
+          "z": -18.0672855377197
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34158,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -32.1612892150879,
+          "y": 0.0,
+          "z": -18.3059844970703
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34234,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -32.3099174499512,
+          "y": 0.0,
+          "z": -18.7833824157715
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34298,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -32.3842315673828,
+          "y": 0.0,
+          "z": -19.0220813751221
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34369,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -32.5328598022461,
+          "y": 0.0,
+          "z": -19.4994792938232
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34438,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -32.6071739196777,
+          "y": 0.0,
+          "z": -19.7381801605225
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34508,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -32.6814842224121,
+          "y": 0.0,
+          "z": -19.9768810272217
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34571,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -32.8301048278809,
+          "y": 0.0,
+          "z": -20.4542827606201
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 34641,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -32.9044151306152,
+          "y": 0.0,
+          "z": -20.6929836273193
+        }
+      ],
+      "moving_combat": {},
+      "note": "Through Mid Doors to A Frame: the site plate, the correction frame and the plant ring.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": 0.0538832731544971,
+        "camera_yaw": -2.28765649363795,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 50.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 12.0,
+              "weapon": "tack"
+            }
+          ],
+          "personal_claims": [
+            "sabotage_tack_coalition"
+          ],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "tack",
+          "tick": 340.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "tack"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -33.1273574829102,
+          0.0,
+          -21.4090805053711
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 569,
+          "fallback": "",
+          "fallback_count": 2,
+          "fallback_reasons": {
+            "ack_timeout": 2
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.25,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.25,
+          "pending_ticks": 1
+        },
+        "local_weapon": "Tack",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 581.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 699.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 581.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "carrier": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+            "position": [
+              -33.127357,
+              0.0,
+              -21.40908
+            ],
+            "status": "carried"
+          },
+          "clock_ticks": 1700.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "live",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": 0.053883273,
+        "server_yaw": 3.995529,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_at_site",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [
+        {
+          "arrived": true,
+          "fighting_ms": 0,
+          "goal": [
+            30.0,
+            0.0,
+            0.0
+          ],
+          "walking_ms": 1690
+        },
+        {
+          "arrived": true,
+          "fighting_ms": 0,
+          "goal": [
+            -24.0,
+            0.0,
+            0.0
+          ],
+          "walking_ms": 10780
+        },
+        {
+          "arrived": true,
+          "fighting_ms": 0,
+          "goal": [
+            -33.0,
+            0.0,
+            -21.0
+          ],
+          "walking_ms": 5553
+        }
+      ],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "03_sabotage_at_site_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "04_sabotage_use_prompt.png",
+      "frame_ms": 85.88,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0425,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36406,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -33.1273574829102,
+          "y": 0.0,
+          "z": -21.4090805053711
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36418,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -33.1273574829102,
+          "y": 0.0,
+          "z": -21.4090805053711
+        },
+        {
+          "bob_weight": 0.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36489,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -33.4710922241211,
+          "y": 0.0,
+          "z": -21.7721900939941
+        },
+        {
+          "bob_weight": 0.550208,
+          "camera_y": 1.60000002384186,
+          "ms": 36557,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -33.6429595947266,
+          "y": 0.0,
+          "z": -21.9537448883057
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36622,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -33.9866943359375,
+          "y": 0.0,
+          "z": -22.3168544769287
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36692,
+          "weapon_bottom": 1091.0,
+          "weapon_y": 731.0,
+          "x": -34.158561706543,
+          "y": 0.0,
+          "z": -22.4984092712402
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36764,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -34.3304290771484,
+          "y": 0.0,
+          "z": -22.6799621582031
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36836,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -34.6741638183594,
+          "y": 0.0,
+          "z": -23.0430679321289
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36912,
+          "weapon_bottom": 1096.0,
+          "weapon_y": 736.0,
+          "x": -34.8460311889648,
+          "y": 0.0,
+          "z": -23.2246227264404
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 36986,
+          "weapon_bottom": 1095.0,
+          "weapon_y": 735.0,
+          "x": -35.1897659301758,
+          "y": 0.0,
+          "z": -23.5877323150635
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 37054,
+          "weapon_bottom": 1093.0,
+          "weapon_y": 733.0,
+          "x": -35.3616333007812,
+          "y": 0.0,
+          "z": -23.769287109375
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 37127,
+          "weapon_bottom": 1090.0,
+          "weapon_y": 730.0,
+          "x": -35.7053680419922,
+          "y": 0.0,
+          "z": -24.132396697998
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 37201,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -35.8772354125977,
+          "y": 0.0,
+          "z": -24.3139514923096
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 37279,
+          "weapon_bottom": 1088.0,
+          "weapon_y": 728.0,
+          "x": -36.2209701538086,
+          "y": 0.0,
+          "z": -24.6770610809326
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 37354,
+          "weapon_bottom": 1089.0,
+          "weapon_y": 729.0,
+          "x": -36.3928375244141,
+          "y": 0.0,
+          "z": -24.8586158752441
+        },
+        {
+          "bob_weight": 1.0,
+          "camera_y": 1.60000002384186,
+          "ms": 37432,
+          "weapon_bottom": 1092.0,
+          "weapon_y": 732.0,
+          "x": -36.736572265625,
+          "y": 0.0,
+          "z": -25.2217254638672
+        }
+      ],
+      "moving_combat": {},
+      "note": "The carrier stands in A's plant area: the line's clock gives way to the hold-Use prompt.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": -0.394154787063599,
+        "camera_yaw": -2.1157666779736,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 50.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 12.0,
+              "weapon": "tack"
+            }
+          ],
+          "personal_claims": [
+            "sabotage_tack_coalition"
+          ],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "tack",
+          "tick": 340.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "tack"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -37.2521743774414,
+          0.0,
+          -25.7663841247559
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 613,
+          "fallback": "",
+          "fallback_count": 3,
+          "fallback_reasons": {
+            "ack_timeout": 3
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.25,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.25,
+          "pending_ticks": 1
+        },
+        "local_weapon": "Tack",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 641.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 759.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 641.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "carrier": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+            "position": [
+              -37.252174,
+              0.0,
+              -25.766384
+            ],
+            "status": "carried"
+          },
+          "clock_ticks": 1644.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "live",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": -0.3941548,
+        "server_yaw": 4.1674185,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_use_prompt",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [
+        {
+          "arrived": true,
+          "fighting_ms": 0,
+          "goal": [
+            -37.0,
+            0.0,
+            -25.5
+          ],
+          "walking_ms": 1107
+        }
+      ],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "04_sabotage_use_prompt_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "05_sabotage_planting.png",
+      "frame_ms": 92.79,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0339,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Holding Use inside the ring: the plant bar fills under the crosshair.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": -0.394154787063599,
+        "camera_yaw": -2.1157666779736,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 50.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 12.0,
+              "weapon": "tack"
+            }
+          ],
+          "personal_claims": [
+            "sabotage_tack_coalition"
+          ],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "tack",
+          "tick": 340.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "tack"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -37.2521743774414,
+          0.0,
+          -25.7663841247559
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 649,
+          "fallback": "",
+          "fallback_count": 4,
+          "fallback_reasons": {
+            "ack_timeout": 4
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.25,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.25,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Tack",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 701.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 819.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 701.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "carrier": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+            "position": [
+              -37.252174,
+              0.0,
+              -25.766384
+            ],
+            "status": "carried"
+          },
+          "clock_ticks": 1595.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "live",
+          "progress": {
+            "kind": "plant",
+            "needed": 60.0,
+            "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+            "site": "a",
+            "ticks": 35.0
+          },
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": -0.3941548,
+        "server_yaw": 4.1674185,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_planting",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "05_sabotage_planting_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "06_sabotage_planted.png",
+      "frame_ms": 78.04,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0321,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Planted: the charge's timer replaces the round clock at the top of the screen.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": -0.394154787063599,
+        "camera_yaw": -2.1157666779736,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 50.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 12.0,
+              "weapon": "tack"
+            }
+          ],
+          "personal_claims": [
+            "sabotage_tack_coalition"
+          ],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "tack",
+          "tick": 340.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "tack"
+          ]
+        },
+        "eye_view": true,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -37.2521743774414,
+          0.0,
+          -25.7663841247559
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 0.0,
+          "corrections": 688,
+          "fallback": "",
+          "fallback_count": 5,
+          "fallback_reasons": {
+            "ack_timeout": 5
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.25,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.25,
+          "pending_ticks": 1
+        },
+        "local_weapon": "Tack",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 741.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 859.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 741.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "position": [
+              -37.252174,
+              0.0,
+              -25.766384
+            ],
+            "site": "a",
+            "status": "planted"
+          },
+          "clock_ticks": 674.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "planted",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": -0.3941548,
+        "server_yaw": 4.1674185,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_planted",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "06_sabotage_planted_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "07_sabotage_planted_world.png",
+      "frame_ms": 75.67,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.0321,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "The planted charge on the floor of A Frame, its light blinking with the beeps.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": -0.412410378456116,
+        "camera_yaw": -2.85013576563846,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 50.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 12.0,
+              "weapon": "tack"
+            }
+          ],
+          "personal_claims": [
+            "sabotage_tack_coalition"
+          ],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "tack",
+          "tick": 340.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "tack"
+          ]
+        },
+        "eye_view": false,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -37.2521743774414,
+          0.0,
+          -25.7663841247559
+        ],
+        "local_prediction": {
+          "active": true,
+          "camera_eye_gap_m": 3.2062,
+          "corrections": 688,
+          "fallback": "",
+          "fallback_count": 6,
+          "fallback_reasons": {
+            "ack_timeout": 6
+          },
+          "last_fallback": "ack_timeout",
+          "max_correction_m": 0.25,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.25,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Tack",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 781.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "active",
+          "tick": 899.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 781.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "position": [
+              -37.252174,
+              0.0,
+              -25.766384
+            ],
+            "site": "a",
+            "status": "planted"
+          },
+          "clock_ticks": 648.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "planted",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": -0.3941548,
+        "server_yaw": 4.1674185,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_planted_world",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "07_sabotage_planted_world_world.png"
+    },
+    {
+      "ack_probe": {},
+      "audio": {},
+      "blank": false,
+      "combat": {},
+      "companion": {},
+      "companion_route_samples": [],
+      "companion_route_strip": "",
+      "companion_strip_samples": [],
+      "file": "08_sabotage_detonated.png",
+      "frame_ms": 78.05,
+      "frame_timing": {},
+      "height": 720,
+      "hud_coverage": 0.1663,
+      "input": {
+        "kind": "keyboard",
+        "look": "",
+        "pad_layout": "generic",
+        "prompt": "",
+        "recovery": ""
+      },
+      "m14_combat": {},
+      "movement_samples": [],
+      "moving_combat": {},
+      "note": "Detonation: the burst at A Frame and the round card for the free coalition.",
+      "observed": {
+        "accepted_body": "human",
+        "camera_pitch": -0.321750491857529,
+        "camera_yaw": -2.85013578689697,
+        "capture_limit": null,
+        "capture_scores": null,
+        "equipment": {
+          "ammo": [
+            {
+              "pool": "bullets",
+              "rounds": 50.0
+            },
+            {
+              "pool": "shells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "cells",
+              "rounds": 0.0
+            },
+            {
+              "pool": "rockets",
+              "rounds": 0.0
+            }
+          ],
+          "dry_fire_count": 0.0,
+          "grenades": 0.0,
+          "loaded": [
+            {
+              "rounds": 12.0,
+              "weapon": "tack"
+            }
+          ],
+          "personal_claims": [
+            "sabotage_tack_coalition"
+          ],
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "selected": "tack",
+          "tick": 340.0,
+          "type": "loadout",
+          "weapons": [
+            "fists",
+            "tack"
+          ]
+        },
+        "eye_view": false,
+        "fighters": 1,
+        "fire_strip": [],
+        "flags": null,
+        "following": "",
+        "grenade_strip": {},
+        "human": true,
+        "jammer_launches": 0,
+        "local_feet": [
+          -37.2521743774414,
+          0.0,
+          -25.7663841247559
+        ],
+        "local_prediction": {
+          "active": false,
+          "camera_eye_gap_m": 9.1782,
+          "corrections": 688,
+          "fallback": "inactive",
+          "fallback_count": 7,
+          "fallback_reasons": {
+            "ack_timeout": 6,
+            "inactive": 1
+          },
+          "last_fallback": "inactive",
+          "max_correction_m": 0.25,
+          "p50_correction_m": 0.0,
+          "p95_correction_m": 0.0,
+          "p99_correction_m": 0.25,
+          "pending_ticks": 0
+        },
+        "local_weapon": "Tack",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {
+          "attempt": {
+            "alive_ticks": 1430.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "entered_at": 118.0,
+          "map_id": 4.0,
+          "map_name": "Sector 9 Transit Hall",
+          "player_id": "bcfcb7c7-ba24-4fbe-bda2-00ad7f7a05a3",
+          "role": "human",
+          "round": 1.0,
+          "round_started_at": 40.0,
+          "scope": {
+            "kind": "arena",
+            "round": 1.0
+          },
+          "session_id": "1b848d4e-2e7f-479e-b167-64ccdccccd6a",
+          "status": "complete",
+          "tick": 1548.0,
+          "ticks_per_second": 20.0,
+          "total": {
+            "alive_ticks": 1430.0,
+            "armor_lost": 0.0,
+            "deaths": 0.0,
+            "dry_triggers": 0.0,
+            "hp_lost": 0.0,
+            "weapons": [
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              },
+              {
+                "armor_damage": 0.0,
+                "attacks": 0.0,
+                "damaging_attacks": 0.0,
+                "hp_damage": 0.0,
+                "kills": 0.0
+              }
+            ]
+          },
+          "type": "record",
+          "version": 5.0
+        },
+        "render_scale": 1.0,
+        "round_state": "Ended",
+        "sabotage": {
+          "alive": {
+            "coalition": 1.0,
+            "union": 0.0
+          },
+          "charge": {
+            "position": [
+              -37.252174,
+              0.0,
+              -25.766384
+            ],
+            "site": "a",
+            "status": "detonated"
+          },
+          "clock_ticks": 0.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "over",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 1.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": true,
+        "server_pitch": -0.3941548,
+        "server_yaw": 4.1674185,
+        "upscaling": 0
+      },
+      "probe_visible_frames": 0,
+      "state": "sabotage_detonated",
+      "strip_file": "",
+      "strip_sample_ms": [],
+      "walker_combat": {},
+      "walks": [],
+      "width": 1280,
+      "world_blank": false,
+      "world_file": "08_sabotage_detonated_world.png"
+    }
+  ],
+  "width": 1280.0
+}
