@@ -17,7 +17,9 @@ The complete 32-state arena tour passed and `tools/qa_tour.sh --publish`
 refreshed fourteen retained stills. The contact sheet, menus, first-person and
 watched worlds, and all three effect strips were inspected. Muzzle, Rail-impact
 and Scatter samples retain their expected feedback; the small strip tiles do
-not establish every pellet. The unchanged Recall Notice intake retains its
+not establish every pellet. The Scatter sequence includes the firing player's
+death and a camera transition; its receipt retains the acknowledged effect,
+but that sequence is not a clean seven-pellet close-up. The unchanged Recall Notice intake retains its
 earlier capture.
 
 The [capture receipt](tour-20261018-ui-palette.json) records Godot 4.7.2-stable,

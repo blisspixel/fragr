@@ -18,8 +18,10 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [UI palette and type round](ui-palette-type-20261017.md) is **in flight**
-for #411 within #418, beginning from PR #419's passing main CI. It uses the
+The [UI palette and type round](ui-palette-type-20261017.md) is **implemented**
+for #411 within #418, with integration in [PR #420](https://github.com/blisspixel/fragr/pull/420).
+All 580 local client checks pass, including 186 harnesses; the final published
+tour and three-resolution captures were inspected. It uses the
 retained fonts and canonical palette at $0, preserves world presentation, and
 chooses the existing dark front end with explicit appearance contexts.
 

@@ -149,3 +149,29 @@ archive original bytes through interrupted replacement, and promote completed
 M15 into M16 without a refill. Completed and closed history retains the world
 actually played. Unknown hashes and unsupported shapes still fail. Independent
 review found no blocker; the extended native gates verify this final repair.
+
+## Asset account readiness, October 17 Pacific / October 18 UTC
+
+Free native checks report 1,870 Meshy monthly credits and no permanent credits,
+with reset at November 3, 20:34:13 UTC. Retain the historical 15-credit uncertain
+hold, leaving at most 1,855 usable before new batch reservations. The canonical
+ledger has no pending local tasks. Its recovered October 13 ladle receipt
+accounts for the completed 30-credit production since the prior 1,900 balance;
+the separate older 30-credit discrepancy remains unresolved.
+
+ElevenLabs reports an active Pro plan with 24,985 used out of 1,185,132 included
+credits, leaving 1,160,147 at this reading. Its reset is November 6, 14:51:20 UTC.
+Extension is not enabled and current overage is $0. No billing setting changed.
+
+The Higgsfield credential check accepted a free Soul v2 standard estimate of
+$0.004 for its default probe. That is not a production quote or a live balance
+reading. No documented balance endpoint is configured in the native checker;
+$52.25 remains Nick's reported funded allowance. Verify the account and exact
+operation before production. No generation, uploads or credit consumption were
+needed in this round.
+
+Nick's October 18 instruction replaces the historical $5 per-run asset limit
+with the remaining funded or included service credits. Live allowances, exact
+prices, durable reservations and retained holds bound each batch. Native asset
+limits need adjustment before larger batches; no new purchases, renewals,
+top-ups or overages are authorized. Brain inference retains its separate cap.

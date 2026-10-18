@@ -1,6 +1,7 @@
 # UI palette and typography
 
-Status: **in flight**. Issue #411 within #418 and the canonical Full build order.
+Status: **implemented**. Integration: [PR #420](https://github.com/blisspixel/fragr/pull/420).
+Issue #411 within #418 and the canonical Full build order.
 Base: PR #419, main commit 9081b54945086821f05293cebd3efe74b1aa0dba, with
 [passing CI](https://github.com/blisspixel/fragr/actions/runs/39101263743).
 Spend: $0, retained fonts and
@@ -164,13 +165,21 @@ inventory semantics and add full-size magazine/reserve and right-margin checks.
 The initial complete checker was interrupted after M10; it is not a passing
 full-suite receipt. A subsequent complete run caught CTF and combined-mutator
 labels overflowing the old narrow HUD panel. Expanding that panel for the new
-type passes all three original containment assertions. The final complete
-checker is running again, and the publication tour is being refreshed for the
-panel correction. The preceding complete 32-state tour passed and refreshed
-fourteen stills. Its contact sheet, menus,
+type passes all three original containment assertions, and its 720p fixture was
+inspected. The final complete checker passes all 580 checks, including 186
+harnesses, with successful exit and clean error diagnostics. The checker failure
+contract's ten scenarios and `cargo fmt --all -- --check` also pass. Native,
+coverage, portability and package CI remain integration gates. The publication tour
+passed after the panel correction and the weapon-card backing's corrected draw
+order. The old backing covered its weapon sprite and looked like an empty
+square. The inspected chase capture now shows the retained weapon artwork.
+The final complete 32-state tour refreshed fourteen stills. Its contact sheet, menus,
 world views and three effect strips were inspected; the
 [receipt](../screenshots/tour-20261018-ui-palette.json) retains the observed
-states and renderer. The rendered story-player harness also passes, including
+states and renderer.
+The Scatter strip includes a death/camera transition after accepted fire and
+does not establish seven individually visible pellets.
+The rendered story-player harness also passes, including
 Voice/Master mute and caption settings. Story backdrops explicitly inherit the
 gameplay context, checked by the existing story harness.
 

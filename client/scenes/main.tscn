@@ -237,6 +237,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="WeaponIconBg" type="Panel" parent="HUD"]
+z_index = -1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
