@@ -16,6 +16,7 @@ static func dimensions(kind: String) -> Vector3:
 	match kind:
 		"boat": return Vector3(2.4, 1.1, 1.6)
 		"light_aircraft": return Vector3(4.0, 4.6, 1.8)
+		"motorcycle": return Vector3(1.1, 0.45, 1.1)
 	return Vector3(1.9, 0.95, 1.35)
 
 static func surface_at(water: Array, x: float, z: float) -> Dictionary:
@@ -27,6 +28,8 @@ static func surface_at(water: Array, x: float, z: float) -> Dictionary:
 static func clear_kind(kind: String, position: Vector3, yaw: float, arena: Dictionary) -> bool:
 	if kind == "jeep":
 		return VehicleStep.clear_body(position, yaw, arena)
+	if kind == "motorcycle":
+		return VehicleStep.clear_motorcycle(position, yaw, arena)
 	if not position.is_finite() or not is_finite(yaw):
 		return false
 	var size: Vector3 = dimensions(kind)
@@ -58,8 +61,8 @@ static func _boat_support(position: Vector3, yaw: float, water: Array) -> Dictio
 
 static func step(kind: String, motion: Dictionary, input: Dictionary, dt: float, arena: Dictionary, water: Array) -> Dictionary:
 	var state: Dictionary = motion.duplicate(true)
-	if kind == "jeep":
-		var next: Dictionary = VehicleStep.step(state, input, dt, arena)
+	if kind == "jeep" or kind == "motorcycle":
+		var next: Dictionary = VehicleStep.motorcycle_step(state, input, dt, arena) if kind == "motorcycle" else VehicleStep.step(state, input, dt, arena)
 		var surface: Dictionary = surface_at(water, float(next.position[0]), float(next.position[2]))
 		if not surface.is_empty() and float(next.position[1]) < float(surface.level) + 0.3:
 			state.speed = 0.0

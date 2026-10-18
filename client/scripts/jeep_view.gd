@@ -29,7 +29,7 @@ func _ready() -> void:
 	engine.name = "Engine"
 	add_child(engine)
 	var model_path: String = str(MODELS.get(kind, ""))
-	if ResourceLoader.exists(model_path):
+	if not model_path.is_empty() and ResourceLoader.exists(model_path):
 		var scene: PackedScene = load(model_path) as PackedScene
 		if scene != null:
 			var model: Node = scene.instantiate()
@@ -44,9 +44,11 @@ func _ready() -> void:
 	if not uses_prepared_model:
 		if kind == "jeep":
 			_build_development_chassis()
+		elif kind == "motorcycle":
+			_build_motorcycle()
 		else:
 			_build_development_transport()
-	if kind != "light_aircraft":
+	if kind == "jeep" or kind == "boat":
 		_build_gun()
 	for index: int in range(6):
 		var puff: MeshInstance3D = _box(self, "Smoke%d" % index, Vector3.ZERO,
@@ -129,6 +131,37 @@ func _build_development_chassis() -> void:
 	_box(self, "Rollbar", Vector3(-0.46, 1.97, 0), Vector3(0.09, 0.09, 1.46), steel)
 	for side: float in [-0.7, 0.7]:
 		_box(self, "RollbarFoot", Vector3(-0.46, 1.47, side), Vector3(0.09, 1.0, 0.09), steel)
+
+func _build_motorcycle() -> void:
+	var steel: Material = _material(Color("424a45"))
+	var paint: Material = _material(Color("b5a98a"))
+	var rubber: Material = _material(Color("242625"))
+	_box(self, "Frame", Vector3(0, 0.48, 0), Vector3(1.5, 0.16, 0.28), steel)
+	_box(self, "EngineBlock", Vector3(0, 0.65, 0), Vector3(0.55, 0.44, 0.42), steel)
+	_box(self, "FuelTank", Vector3(0.35, 1.0, 0), Vector3(0.6, 0.30, 0.46), paint)
+	_box(self, "Saddle", Vector3(-0.3, 0.98, 0), Vector3(0.6, 0.12, 0.38), rubber)
+	_box(self, "FrontFork", Vector3(0.76, 0.71, 0), Vector3(0.10, 0.72, 0.32), steel)
+	_box(self, "Handlebar", Vector3(0.65, 1.22, 0), Vector3(0.09, 0.09, 0.70), steel)
+	_box(self, "Headlight", Vector3(0.85, 1.04, 0), Vector3(0.10, 0.20, 0.24), _material(Color("e9d9a8")))
+	_box(self, "TailLamp", Vector3(-0.76, 0.86, 0), Vector3(0.06, 0.10, 0.20), _material(Color("a44837")))
+	for axle: float in [-0.78, 0.78]:
+		var wheel: Node3D = Node3D.new()
+		wheel.name = "Wheel%d" % wheels.size()
+		wheel.position = Vector3(axle, 0.36, 0)
+		add_child(wheel)
+		var tire: MeshInstance3D = MeshInstance3D.new()
+		var cylinder: CylinderMesh = CylinderMesh.new()
+		cylinder.top_radius = 0.36
+		cylinder.bottom_radius = 0.36
+		cylinder.height = 0.19
+		cylinder.radial_segments = 12
+		tire.mesh = cylinder
+		tire.material_override = rubber
+		tire.rotation.x = PI * 0.5
+		wheel.add_child(tire)
+		for side: float in [-1.0, 1.0]:
+			_box(wheel, "Hub", Vector3(0, 0, side * 0.10), Vector3(0.16, 0.16, 0.025), steel)
+		wheels.append(wheel)
 
 func _build_gun() -> void:
 	var steel: Material = _material(Color("414744"))

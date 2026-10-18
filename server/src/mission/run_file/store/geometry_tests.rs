@@ -4,12 +4,13 @@ use crate::maps::{AuthoredMap, RuntimeMap};
 use crate::mission::run_file::{geometry, M12Outcome, SavedEntry, SavedStep};
 use crate::protocol::{AmmoPool, BodyKind, WeaponType};
 
-const PREDECESSORS: [&[u8]; 5] = [
+const PREDECESSORS: [&[u8]; 6] = [
     include_bytes!("fixtures/stair-predecessors-20261008/m08_custodian_of_record.json"),
     include_bytes!("fixtures/stair-predecessors-20261008/m09_passenger_manifest.json"),
     include_bytes!("fixtures/stair-predecessors-20261008/m10_common_carrier.json"),
     include_bytes!("fixtures/stair-predecessors-20261008/m12-terms-of-cooperation.json"),
     include_bytes!("fixtures/stair-predecessors-20261008/m09_passenger_manifest_enclosed.json"),
+    include_bytes!("fixtures/m15-predecessor-20261017/m15-civic-pressure-valve.json"),
 ];
 
 fn hashes() -> ContentHashes {
@@ -43,6 +44,7 @@ fn entry(mission: MissionId, hash: [u8; 32]) -> RunDocument {
         MissionId::TermsOfCooperation => arc_tests::completed_tender()
             .promote_next(mission, hash)
             .unwrap(),
+        MissionId::CivicPressureValve => m15_tests::stadium_entry(),
         _ => panic!("unregistered geometry stage"),
     };
     document.content_sha256 = hash;
@@ -114,6 +116,7 @@ fn completed(mission: MissionId, hash: [u8; 32]) -> RunDocument {
             });
             document
         }
+        MissionId::CivicPressureValve => m15_tests::completed_stadium(),
         _ => panic!("unregistered completion"),
     };
     document.content_sha256 = hash;
@@ -258,6 +261,98 @@ fn geometry_each_reachable_historical_shape_validates_before_identity_normalizat
 }
 
 #[test]
+fn geometry_m15_v19_through_v22_preserves_stock_history_and_exact_archives() {
+    let mission = MissionId::CivicPressureValve;
+    let (_, predecessor, successor) = geometry::pairs().find(|(id, _, _)| *id == mission).unwrap();
+    for version in 19..=22 {
+        for kind in 0..5 {
+            let mut source = if kind == 4 {
+                completed(mission, predecessor)
+            } else {
+                entry(mission, predecessor)
+            };
+            let entry = saved_entry(&source);
+            match kind {
+                1 => source.step = SavedStep::PendingContinue { mission, entry },
+                2 => {
+                    source.remaining_continues = 0;
+                    source.step = SavedStep::Failed { mission, entry };
+                }
+                3 => source.step = SavedStep::Abandoned { mission, entry },
+                _ => {}
+            }
+            let mut value = serde_json::to_value(&source).unwrap();
+            value["version"] = version.into();
+            let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
+            bytes.extend_from_slice(b"\n \t\n");
+            let mut historical = hashes();
+            historical[stage_index(mission)] = predecessor;
+            let RunProbe::Compatible(mut expected) = RunStore::inspect_bytes(&bytes, historical)
+            else {
+                panic!("valid M15 v{version} kind {kind}")
+            };
+            if kind < 2 {
+                expected.content_sha256 = successor;
+            }
+            let directory =
+                std::env::temp_dir().join(format!("fragr-geometry-m15-history-{}", Uuid::new_v4()));
+            let store = RunStore::open_with_hashes(&directory, hashes()).unwrap();
+            fs::write(directory.join(RUN_NAME), &bytes).unwrap();
+            let loaded = store.load().unwrap().unwrap();
+            assert_eq!(loaded, *expected, "only resumable identity normalizes");
+            assert_eq!(saved_entry(&loaded), saved_entry(&source));
+            assert_eq!(loaded.m12_outcome, source.m12_outcome);
+            assert_eq!(loaded.m13_outcome, source.m13_outcome);
+            assert_eq!(loaded.m14_outcome, source.m14_outcome);
+            assert_eq!(loaded.m15_outcome, source.m15_outcome);
+            assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+            if kind < 2 || kind == 4 {
+                let target = if kind == 4 {
+                    let target = loaded
+                        .promote_next(MissionId::FreedomOfMovement, hashes()[15])
+                        .unwrap();
+                    assert_eq!(target.remaining_continues, source.remaining_continues);
+                    assert_eq!(target.m12_outcome, source.m12_outcome);
+                    assert_eq!(target.m13_outcome, source.m13_outcome);
+                    assert_eq!(target.m14_outcome, source.m14_outcome);
+                    assert_eq!(target.m15_outcome, source.m15_outcome);
+                    target
+                } else {
+                    loaded.clone()
+                };
+                assert!(store
+                    .archive_and_save_before_replace(&loaded, &target, |_| Err(io::Error::other(
+                        "interrupted M15 replacement"
+                    )))
+                    .is_err());
+                assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+                let archive = store.archive_and_save(&loaded, &target).unwrap();
+                assert_eq!(fs::read(archive).unwrap(), bytes);
+                assert_eq!(store.load().unwrap(), Some(target));
+            } else {
+                assert!(store.archive_and_save(&loaded, &loaded).is_err());
+                assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+            }
+            drop(store);
+            fs::remove_dir_all(directory).unwrap();
+            for bad_version in [18, 23] {
+                let mut forged = value.clone();
+                forged["version"] = bad_version.into();
+                assert!(!matches!(
+                    RunStore::inspect_bytes(&serde_json::to_vec(&forged).unwrap(), hashes()),
+                    RunProbe::Compatible(_)
+                ));
+            }
+            value["unknown_receipt"] = true.into();
+            assert!(matches!(
+                RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), hashes()),
+                RunProbe::Corrupt
+            ));
+        }
+    }
+}
+
+#[test]
 fn geometry_completion_and_closed_history_keep_the_original_world_identity() {
     for (mission, predecessor, _) in geometry::pairs() {
         let mut documents = vec![completed(mission, predecessor)];
@@ -296,6 +391,7 @@ fn geometry_completion_and_closed_history_keep_the_original_world_identity() {
                     MissionId::PassengerManifest => Some(MissionId::CommonCarrier),
                     MissionId::CommonCarrier => Some(MissionId::RightOfSearch),
                     MissionId::TermsOfCooperation => None,
+                    MissionId::CivicPressureValve => Some(MissionId::FreedomOfMovement),
                     _ => unreachable!(),
                 };
                 if let Some(next) = next {
@@ -695,6 +791,7 @@ async fn geometry_owned_local_promotion_keeps_predecessor_completion_and_archive
             MissionId::PassengerManifest => MissionId::CommonCarrier,
             MissionId::CommonCarrier => MissionId::RightOfSearch,
             MissionId::TermsOfCooperation => continue,
+            MissionId::CivicPressureValve => MissionId::FreedomOfMovement,
             _ => unreachable!(),
         };
         let source = completed(mission, predecessor);
@@ -754,7 +851,9 @@ async fn geometry_owned_local_refuses_historical_closed_runs_before_any_version_
                     .unwrap()
                     .remove("remote_mines");
             }
-            super::super::omit_historical_rockets(&mut value);
+            if old_version < 17 {
+                super::super::omit_historical_rockets(&mut value);
+            }
             let bytes = serde_json::to_vec_pretty(&value).unwrap();
             let directory = std::env::temp_dir()
                 .join(format!("fragr-geometry-owned-closed-{}", Uuid::new_v4()));
@@ -854,6 +953,9 @@ fn geometry_successor_pending_continue_spends_once_and_actual_standing_entry_wal
             assert_eq!(saved.m09_outcome, document.m09_outcome);
             assert_eq!(saved.m10_transit, document.m10_transit);
             assert_eq!(saved.m11_outcome, document.m11_outcome);
+            assert_eq!(saved.m12_outcome, document.m12_outcome);
+            assert_eq!(saved.m13_outcome, document.m13_outcome);
+            assert_eq!(saved.m14_outcome, document.m14_outcome);
             let acknowledged = state.acknowledge_mission(
                 owner,
                 MissionReady {

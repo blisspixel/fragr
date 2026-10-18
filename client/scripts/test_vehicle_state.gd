@@ -109,6 +109,12 @@ func _boundaries() -> void:
 	network.free()
 
 func _presentation() -> void:
+	var bike: JeepView = JeepView.new()
+	bike.kind = "motorcycle"
+	root.add_child(bike)
+	_check(bike.wheels.size() == 2 and bike.gun == null, "motorcycle has two wheels and no mounted weapon")
+	_check(bike.find_child("DevelopmentFuselage", true, false) == null, "motorcycle never falls back to aircraft")
+	bike.queue_free()
 	var world: ArenaVehicles = ArenaVehicles.new()
 	root.add_child(world)
 	var snapshot: Dictionary = _snapshot()

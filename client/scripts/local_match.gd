@@ -18,7 +18,7 @@ const DURABLE_GAMEPLAY: int = 43
 const M02_GAMEPLAY: int = 43
 const M03_GAMEPLAY: int = 43
 const M04_GAMEPLAY: int = 43
-const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "declared_goods": M07_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY, "passenger_manifest": M09_GAMEPLAY, "common_carrier": M10_GAMEPLAY, "right_of_search": M11_GAMEPLAY, "terms_of_cooperation": 44, "weight_of_permission": 47, "launch_authority": 49}
+const MISSION_GAMEPLAY: Dictionary[String, int] = {"recall_notice": DURABLE_GAMEPLAY, "persons_unknown": M02_GAMEPLAY, "scheduled_service": M03_GAMEPLAY, "notice_to_vacate": M04_GAMEPLAY, "no_forwarding_address": M05_GAMEPLAY, "port_of_entry": M06_GAMEPLAY, "declared_goods": M07_GAMEPLAY, "custodian_of_record": M08_GAMEPLAY, "passenger_manifest": M09_GAMEPLAY, "common_carrier": M10_GAMEPLAY, "right_of_search": M11_GAMEPLAY, "terms_of_cooperation": 44, "weight_of_permission": 47, "launch_authority": 49, "civic_pressure_valve": 51, "freedom_of_movement": 52, "peace_without_interruption": 53, "all_systems_normal": 54}
 const M05_GAMEPLAY: int = 43
 const M06_GAMEPLAY: int = 43
 const M07_GAMEPLAY: int = 43
@@ -26,7 +26,7 @@ const M08_GAMEPLAY: int = 43
 const M09_GAMEPLAY: int = 43
 const M10_GAMEPLAY: int = 43
 const M11_GAMEPLAY: int = 43
-const NEXT_MISSION: String = "civic_pressure_valve"
+const NEXT_MISSION: String = "planned_works"
 
 var state: State = State.IDLE
 var url: String = ""
@@ -231,12 +231,12 @@ static func parse_run_preview(bytes: PackedByteArray) -> Dictionary:
 	if status in ["missing", "failed", "abandoned", "incompatible", "corrupt"]:
 		return data if data.size() == 1 else {}
 	if status == "awaiting_mission":
-		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, NEXT_MISSION] \
+		return data if data.size() == 5 and data.has("body") and data.get("mission") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID, NEXT_MISSION] \
 			and data.get("difficulty") in MissionState.DIFFICULTIES \
 			and EquipmentState.integer(data.get("continues"), 3) \
 			and (data.get("body") == null or PlayerBody.valid(data["body"])) else {}
 	if status != "ready" or data.size() != 7 or not data.has("body") \
-		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID] \
+		or data.get("mission") not in [MissionState.ID, MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID] \
 		or not data.get("difficulty") is String or data["difficulty"] not in MissionState.DIFFICULTIES \
 		or not EquipmentState.integer(data.get("continues"), 3) \
 		or not EquipmentState.integer(data.get("attempt"), 4) or int(data["attempt"]) < 1 \

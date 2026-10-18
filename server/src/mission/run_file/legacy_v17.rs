@@ -73,6 +73,10 @@ impl RunDocumentBeforeLaunch {
             m12_outcome: self.m12_outcome,
             m13_outcome: self.m13_outcome,
             m14_outcome: None,
+            m15_outcome: None,
+            m16_outcome: None,
+            m17_outcome: None,
+            m18_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 13 {
             return Err("M14 was not supported before version 18");

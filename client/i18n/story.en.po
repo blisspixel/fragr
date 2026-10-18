@@ -735,6 +735,261 @@ msgstr "{use} Use departure control"
 msgid "M14_MACHINE_FALLEN"
 msgstr "WALKER DOWN"
 
+msgid "MISSION_M15_TITLE"
+msgstr "CIVIC PRESSURE VALVE"
+
+msgid "M15_PROTOTYPE_TITLE"
+msgstr "Civic Pressure Valve: development mission"
+
+msgid "M15_LOCAL_STARTING"
+msgstr "Opening the stadium..."
+
+msgid "M15_RUN_DESCRIPTION"
+msgstr "Break the Union's bloodsport. Bring the guns."
+
+msgid "M15_NEXT_TITLE"
+msgstr "FREEDOM OF MOVEMENT"
+
+msgid "M15_NEXT_PENDING"
+msgstr "Freedom of Movement is still being built. Your completed bout run is kept."
+
+msgid "M15_WAITING"
+msgstr "The entrants are waiting. The pen is still held."
+
+msgid "M15_DEPARTED"
+msgstr "The bout is won. The uprising begins."
+
+msgid "M15_OBJECTIVE_PEN_ARMED"
+msgstr "Arm the entrants' pen at the supply crate."
+
+msgid "M15_OBJECTIVE_PEN_CLEARED"
+msgstr "Clear the pen gate and enter the tunnel."
+
+msgid "M15_OBJECTIVE_BLADE_LESSON_WON"
+msgstr "Defeat the first wave on the stadium floor."
+
+msgid "M15_OBJECTIVE_WARDENS_CLEARED"
+msgstr "Clear the wardens and camera notaries."
+
+msgid "M15_OBJECTIVE_BROADCAST_SECURED"
+msgstr "Take the broadcast booth on the upper ring."
+
+msgid "M15_OBJECTIVE_BOUT_WON"
+msgstr "Defeat the final bout wave."
+
+msgid "M15_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Gather at the ceremonial gate to depart."
+
+msgid "M15_USE_ARMING"
+msgstr "{use} Arm entrants"
+
+msgid "M15_USE_BOOTH"
+msgstr "{use} Take broadcast booth"
+
+msgid "M15_USE_DEPARTURE"
+msgstr "{use} Depart through ceremonial gate"
+
+msgid "M15_BROADCAST_TAKEN"
+msgstr "THE HOST DOMINATES THE FEED"
+
+msgid "MISSION_M16_TITLE"
+msgstr "FREEDOM OF MOVEMENT"
+
+msgid "M16_PROTOTYPE_TITLE"
+msgstr "Freedom of Movement: development mission"
+
+msgid "M16_LOCAL_STARTING"
+msgstr "Entering the ceremonial avenue..."
+
+msgid "M16_RUN_DESCRIPTION"
+msgstr "Ride the ceremonial avenue into the heart of the capital."
+
+msgid "M16_NEXT_TITLE"
+msgstr "PEACE WITHOUT INTERRUPTION"
+
+msgid "M16_NEXT_PENDING"
+msgstr "Peace Without Interruption is still being built. Your completed avenue run is kept."
+
+msgid "M16_WAITING"
+msgstr "The motorcycle is waiting at the avenue gate."
+
+msgid "M16_DEPARTED"
+msgstr "The avenue is taken. The chamber doors open."
+
+msgid "M16_OBJECTIVE_RIDE_STARTED"
+msgstr "Mount the motorcycle and begin the avenue dash."
+
+msgid "M16_OBJECTIVE_BARRICADE_BROKEN"
+msgstr "Break through the first stretch barricade."
+
+msgid "M16_OBJECTIVE_GREEN_WAVE_TRIGGERED"
+msgstr "Trip the green wave checkpoint sensors."
+
+msgid "M16_OBJECTIVE_BUS_FREED"
+msgstr "Release the detainees from the transit prison bus."
+
+msgid "M16_OBJECTIVE_FORECOURT_SECURED"
+msgstr "Clear the office forecourt defenders."
+
+msgid "M16_OBJECTIVE_DOORS_REACHED"
+msgstr "Approach the Forever Office chamber doors."
+
+msgid "M16_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Enter the Forever Office chamber."
+
+msgid "M16_USE_BUS"
+msgstr "{use} Release transit bus"
+
+msgid "M16_USE_DEPARTURE"
+msgstr "{use} Enter chamber doors"
+
+msgid "M16_BUS_FREED"
+msgstr "DETAINEES FREED"
+
+msgid "M16_CHECKPOINT_LIFTED"
+msgstr "CHECKPOINT BARRIER LIFTED"
+
+msgid "M16_BUS_RELEASED"
+msgstr "TRANSIT PRISON BUS RELEASED"
+
+msgid "M16_CHAMBER_DOORS_OPEN"
+msgstr "FOREVER OFFICE CHAMBER OPEN"
+
+msgid "MISSION_M17_TITLE"
+msgstr "PEACE WITHOUT INTERRUPTION"
+
+msgid "M17_PROTOTYPE_TITLE"
+msgstr "Peace Without Interruption: development mission"
+
+msgid "M17_LOCAL_STARTING"
+msgstr "Entering the Forever Office..."
+
+msgid "M17_RUN_DESCRIPTION"
+msgstr "Breach the Forever Office and take Chancellor Voss alive."
+
+msgid "M17_NEXT_TITLE"
+msgstr "ALL SYSTEMS NORMAL"
+
+msgid "M17_NEXT_PENDING"
+msgstr "All Systems Normal is still being built. Your completed Forever Office run is kept."
+
+msgid "M17_WAITING"
+msgstr "Operatives assemble at the chamber approach."
+
+msgid "M17_DEPARTED"
+msgstr "The Forever Office has fallen. Departure confirmed."
+
+msgid "M17_OBJECTIVE_APPROACH_BREACHED"
+msgstr "Breach the Forever Office civic approach and enter the public hall."
+
+msgid "M17_OBJECTIVE_HALL_SECURED"
+msgstr "Clear the armed defenders in the public hall."
+
+msgid "M17_OBJECTIVE_KESSEL_SECURED"
+msgstr "Take Registrar Kessel into custody at the committee desk."
+
+msgid "M17_OBJECTIVE_CORE_UNSEALED"
+msgstr "Override the security core seal from the command gallery."
+
+msgid "M17_OBJECTIVE_CORE_DEFEATED"
+msgstr "Eliminate the heavy core security detachment under the dome."
+
+msgid "M17_OBJECTIVE_VOSS_CAPTURED"
+msgstr "Confront and secure Chancellor Voss at the executive rostrum."
+
+msgid "M17_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Assemble at the executive terrace for extraction."
+
+msgid "M17_USE_KESSEL"
+msgstr "{use} Secure Registrar Kessel"
+
+msgid "M17_USE_CORE"
+msgstr "{use} Override core seal"
+
+msgid "M17_USE_VOSS"
+msgstr "{use} Secure Chancellor Voss"
+
+msgid "M17_USE_DEPARTURE"
+msgstr "{use} Depart terrace"
+
+msgid "M17_KESSEL_SECURED"
+msgstr "REGISTRAR KESSEL IN CUSTODY"
+
+msgid "M17_CORE_UNSEALED"
+msgstr "SECURITY CORE UNSEALED"
+
+msgid "M17_VOSS_CAPTURED"
+msgstr "CHANCELLOR VOSS CAPTURED"
+
+msgid "MISSION_M18_TITLE"
+msgstr "ALL SYSTEMS NORMAL"
+
+msgid "M18_PROTOTYPE_TITLE"
+msgstr "All Systems Normal: development mission"
+
+msgid "M18_LOCAL_STARTING"
+msgstr "Entering Recovery Square..."
+
+msgid "M18_RUN_DESCRIPTION"
+msgstr "Survive the bot diagnostic rupture and secure transit evacuation."
+
+msgid "M18_NEXT_TITLE"
+msgstr "PLANNED WORKS"
+
+msgid "M18_NEXT_PENDING"
+msgstr "Planned Works is still being built. Your completed transit evacuation run is kept."
+
+msgid "M18_WAITING"
+msgstr "Operatives assemble at the Recovery Square aid depot."
+
+msgid "M18_DEPARTED"
+msgstr "Evacuation concourse cleared. Departure confirmed."
+
+msgid "M18_OBJECTIVE_AID_CHECKIN"
+msgstr "Check in at the Recovery Square relief depot counter."
+
+msgid "M18_OBJECTIVE_SQUARE_DEFENSE"
+msgstr "Defend Recovery Square against the ruptured bot diagnostic swarm."
+
+msgid "M18_OBJECTIVE_COLLECTOR_BREACH"
+msgstr "Breach the Collector roadblock sealing the clinic avenue."
+
+msgid "M18_OBJECTIVE_SERVICE_ASCENT"
+msgstr "Flank through the maintenance alley and ascend the service stair tower."
+
+msgid "M18_OBJECTIVE_OVERLOOK_RECON"
+msgstr "Access the Upper Overlook console and survey the planetary wipe."
+
+msgid "M18_OBJECTIVE_CONCOURSE_EVAC"
+msgstr "Fight through to the Evacuation Concourse departure gate."
+
+msgid "M18_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Board the evacuation transit gate."
+
+msgid "M18_USE_DEPOT"
+msgstr "{use} Check in at depot"
+
+msgid "M18_USE_OVERLOOK"
+msgstr "{use} Access overlook console"
+
+msgid "M18_USE_DEPARTURE"
+msgstr "{use} Evacuate gate"
+
+msgid "M18_AID_DELIVERED"
+msgstr "AID CHECKIN CONFIRMED"
+
+msgid "M18_SQUARE_DEFENDED"
+msgstr "RECOVERY SQUARE SECURED"
+
+msgid "M18_COLLECTOR_NEUTRALIZED"
+msgstr "COLLECTOR BREACH CLEARED"
+
+msgid "M18_OVERLOOK_WITNESSED"
+msgstr "PLANETARY WIPE SURVEYED"
+
+msgid "M18_CONCOURSE_SECURED"
+msgstr "EVACUATION CONCOURSE SECURED"
+
 msgid "M13_NEXT_TITLE"
 msgstr "LAUNCH AUTHORITY"
 

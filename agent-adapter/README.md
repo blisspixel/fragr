@@ -363,7 +363,13 @@ Get the current game state. The default detail is `brief`: compact text in `cont
 ```
 
 **Notes:**
-- Returns connecting state until first snapshot arrives from server
+- Returns connecting state until the first snapshot, unless admission or transport fails.
+- A rejected hello returns `status: "disconnected"` and a retained
+  `connection_error: {"code": "match_full", "message": "..."}` in full observe
+  and `round_state`; brief observe names the reason. Draining events does not
+  erase it. Explicit `join` returns an MCP tool error on rejection. A fresh
+  attempt or successful Welcome clears the previous error; `act` stays refused
+  until a usable snapshot arrives. Missing map identity is null, not Arena Duel.
 - Snapshot may include `shot_results` (per-tick hit-confirm: `hit`, `damage`, `target_hp_after`). A scatter blast is one result per struck fighter plus one miss result, each with `trace.pellets`; all of one shooter's results in a tick are one shot
 - `self_player_id`: UUID of your agent's player (null for spectators)
 - `recent_events`: Last 50 game events (player joins/leaves, frags, respawns, round start/end) in chronological order. Each stored event is truncated near 2 KiB, and the ring also stops at 32 KiB. An inbound server frame above 64 KiB is ignored.
@@ -546,7 +552,7 @@ The readiness and continue schemas list every built mission from the same typed
 stage list as saved campaign progression. Pending destinations are not offered.
 
 Connected M13 uses `weight_of_permission` through these same tools. Matching
-adapters advertise gameplay 49 and validate its registered objectives, worker
+adapters advertise gameplay 54 and validate its registered objectives, worker
 choices, actual arrivals and moving freight lift. After a fresh all-party lift
 Use, the controller holds position while the authoritative deck moves. If it
 returns after losing a rider, the party reboards and uses the same control.
@@ -561,12 +567,23 @@ continues to own combat pose, health and deadlines. Map replacement invalidates
 steering until matching fresh mission facts arrive. The shared controller uses
 ordinary infantry movement and finite equipment; driving remains optional.
 
+Connected M15-M18 use `civic_pressure_valve`, `freedom_of_movement`,
+`peace_without_interruption` and `all_systems_normal`. Their `map.m15` through
+`map.m18` geometry must precede matching mission facts. Ordered completed
+prefixes, objective controls, prompts and world flags are validated together;
+a changed world suspends steering until fresh facts arrive. Minimum gameplay
+versions are 51, 52, 53 and 54 respectively, including spectators. Rejection
+retains the server's reason in `connection_error`, without a pending join.
+These missions keep the same readiness, action and continue tools. Saved runs
+refill continues only when entering M15 (Episode IV) and M18 (Episode V).
+The M19 destination remains pending and unplayable.
+
 ### `mission_continue`
 
 In a solo run, `observe.mission.run` reports its UUID, status, remaining
 continues and `level_start_continues`. Only its dead owner in `continue`
 status can request a mission-start retry using the observed mission ID, run ID
-and attempt. This applies to all built saved campaign missions through M14:
+and attempt. This applies to all built saved campaign missions through M18:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}

@@ -157,6 +157,18 @@ async fn mcp_connect_and_hello(
     name: &str,
     tool_state: &std::sync::Arc<tokio::sync::Mutex<ToolState>>,
 ) -> Result<McpWsSession, Box<dyn std::error::Error>> {
+    {
+        let mut state = tool_state.lock().await;
+        state.connection_error = None;
+        state.connected = false;
+        state.player_id = None;
+        state.last_snapshot = None;
+        state.map = None;
+        state.loadout = None;
+        state.record = None;
+        state.mission = Default::default();
+        state.recent_events.clear();
+    }
     let (ws_stream, _) =
         connect_async_with_config(server_url, Some(socket_config()), false).await?;
     let (mut ws_sink, mut ws_stream) = ws_stream.split();
@@ -228,6 +240,16 @@ async fn mcp_connect_and_hello(
                 }
             }
         }
+        // EOF is also a disconnect. Preserve a more specific admission error.
+        let mut state = tool_state_clone.lock().await;
+        state.connected = false;
+        state.player_id = None;
+        if state.connection_error.is_none() {
+            state.connection_error = Some(mcp::ConnectionError {
+                code: "connection_closed".into(),
+                message: "Server connection closed; explicitly join to retry".into(),
+            });
+        }
     });
 
     Ok(McpWsSession {
@@ -252,6 +274,7 @@ async fn mcp_leave_session(
     }
     let mut state = tool_state.lock().await;
     state.connected = false;
+    state.connection_error = None;
     state.player_id = None;
     state.session_name = None;
     state.last_snapshot = None;
@@ -293,7 +316,7 @@ async fn apply_mcp_line(
         }
     };
 
-    let outcome = {
+    let mut outcome = {
         let mut state = tool_state.lock().await;
         handle_mcp_request(request, &mut state)
     };
@@ -314,7 +337,17 @@ async fn apply_mcp_line(
         match mcp_connect_and_hello(server_url, &join_name, tool_state).await {
             Ok(s) => {
                 *session = Some(s);
-                tracing::info!("MCP join: Hello/Welcome as '{}'", join_name);
+                let state = tool_state.lock().await;
+                outcome.response.result = Some(if let Some(error) = &state.connection_error {
+                    mcp::tool_error_result(&format!(
+                        "join rejected: {}: {}",
+                        error.code, error.message
+                    ))
+                } else if state.connected {
+                    mcp::tool_ok_text(&format!("Joined as '{}'; observe for your seat", join_name))
+                } else {
+                    mcp::tool_error_result("join failed: server did not send Welcome")
+                });
             }
             Err(e) => {
                 tracing::error!("MCP join failed: {}", e);
@@ -322,6 +355,12 @@ async fn apply_mcp_line(
                 state.connected = false;
                 state.player_id = None;
                 state.session_name = None;
+                state.connection_error = Some(mcp::ConnectionError {
+                    code: "connection_failed".into(),
+                    message: e.to_string(),
+                });
+                outcome.response.result =
+                    Some(mcp::tool_error_result(&format!("join failed: {e}")));
             }
         }
     }
@@ -729,7 +768,7 @@ async fn run_scripted_bot(
                             loadout = Some(next);
                         }
                         ServerMessage::Snapshot(snapshot) => last_snapshot = Some(snapshot),
-                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
+                        ServerMessage::MapInfo { map_id, m02_objectives, m02_side_ward, m03, m04, m05, m06, m07, m08, m09, m10, m11, m12, m13, m14, m15, half_extent, solids, geometry_version, presentation, mission, sabotage, .. } => {
                             if let Some(layout) = sabotage.as_ref() {
                                 layout.validate().map_err(io::Error::other)?;
                             }
@@ -748,6 +787,7 @@ async fn run_scripted_bot(
                             mission_client.replace_map_with_m12(m12.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m13(m13.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             mission_client.replace_map_with_m14(m14.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
+                            mission_client.replace_map_with_m15(m15.as_ref(),half_extent,&solids,presentation.as_ref()).map_err(io::Error::other)?;
                             protocol::validate_map_geometry(half_extent, &solids, geometry_version)
                                 .map_err(io::Error::other)?;
                             let arena = fragr_server::movement::Arena { half: half_extent, solids };
@@ -864,7 +904,7 @@ fn enemy_within(bot_id: uuid::Uuid, snapshot: &protocol::Snapshot, range: f32) -
 
 const BOT_TAUNTS: &[&str] = &[
     "nice scrap",
-    "frequency contested",
+    "six-seven clear",
     "league says this is not happening",
     "live laugh frag",
     "host is watching",
@@ -2715,6 +2755,39 @@ fn main() -> ExitCode {
     }
 
     #[tokio::test]
+    async fn rejected_hello_and_explicit_join_report_server_reason() {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = format!("ws://{}", listener.local_addr().unwrap());
+        let peer = tokio::spawn(async move {
+            for _ in 0..2 {
+                let (stream, _) = listener.accept().await.unwrap();
+                let mut ws = tokio_tungstenite::accept_async(stream).await.unwrap();
+                assert!(matches!(ws.next().await, Some(Ok(Message::Text(_)))));
+                ws.send(Message::Text(r#"{"type":"error","code":"match_full","message":"Fighter seats full; watching is available"}"#.into())).await.unwrap();
+                ws.close(None).await.unwrap();
+            }
+        });
+        let state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState::default()));
+        let mut session = Some(
+            mcp_connect_and_hello(&address, "Probe", &state)
+                .await
+                .unwrap(),
+        );
+        assert_eq!(
+            state.lock().await.connection_error.as_ref().unwrap().code,
+            "match_full"
+        );
+        let mut out = Vec::new();
+        apply_mcp_line(r#"{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"join","arguments":{}}}"#, &address, &mut session, &state, &mut out).await.unwrap();
+        let response: Value = serde_json::from_slice(&out).unwrap();
+        assert_eq!(response["result"]["isError"], true);
+        assert!(response["result"].to_string().contains("match_full"));
+        assert!(!response.to_string().contains("Hello pending"));
+        peer.await.unwrap();
+        mcp_leave_session(&mut session, &state).await;
+    }
+
+    #[tokio::test]
     async fn mcp_connect_hello_and_leave_smoke() {
         let (url, peer) = spawn_welcome_peer(WelcomePeerMode::HoldOpen).await;
         let tool_state = std::sync::Arc::new(tokio::sync::Mutex::new(ToolState {
@@ -3085,6 +3158,10 @@ fn main() -> ExitCode {
                 m12: None,
                 m14: None,
                 m13: None,
+                m15: None,
+                m16: None,
+                m17: None,
+                m18: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,
@@ -3274,6 +3351,10 @@ fn main() -> ExitCode {
                 m12: None,
                 m14: None,
                 m13: None,
+                m15: None,
+                m16: None,
+                m17: None,
+                m18: None,
                 walker: None,
                 article_blade: None,
                 presentation: None,
@@ -3293,11 +3374,32 @@ fn main() -> ExitCode {
             ))
             .await
             .unwrap();
+            // Map topology preparation is setup, not the post-ping cadence.
+            // Observe an actual first action before starting that deadline.
+            tokio::time::timeout(std::time::Duration::from_secs(30), async {
+                loop {
+                    match ws.next().await {
+                        Some(Ok(Message::Text(text))) => {
+                            if matches!(
+                                serde_json::from_str::<ClientMessage>(&text),
+                                Ok(ClientMessage::Action(_))
+                            ) {
+                                break;
+                            }
+                        }
+                        Some(Ok(Message::Ping(_) | Message::Pong(_))) => {}
+                        other => panic!("bot disconnected during setup: {other:?}"),
+                    }
+                }
+            })
+            .await
+            .expect("scripted bot never became ready");
             ws.send(Message::Ping(b"fragr".to_vec())).await.unwrap();
             ws.send(Message::Pong(Vec::new())).await.unwrap();
             ws.send(Message::Binary(Vec::new())).await.unwrap();
             let deadline = tokio::time::sleep(std::time::Duration::from_secs(4));
             tokio::pin!(deadline);
+            let mut saw_pong = false;
             loop {
                 tokio::select! {
                     _ = &mut deadline => panic!("bot stopped sending actions after a server ping"),
@@ -3305,11 +3407,13 @@ fn main() -> ExitCode {
                         match message {
                             Some(Ok(Message::Text(text))) => {
                                 if let Ok(ClientMessage::Action(action)) = serde_json::from_str(&text) {
+                                    if !saw_pong { continue; }
                                     assert!(action.fire, "the target is still the one to shoot");
                                     break;
                                 }
                             }
-                            Some(Ok(Message::Pong(_))) | Some(Ok(Message::Ping(_))) => {}
+                            Some(Ok(Message::Pong(payload))) => { saw_pong |= payload == b"fragr"; }
+                            Some(Ok(Message::Ping(_))) => {}
                             other => panic!("bot disconnected after ping: {other:?}"),
                         }
                     }
@@ -3318,7 +3422,7 @@ fn main() -> ExitCode {
             let _ = ws.close(None).await;
         });
         let result = tokio::time::timeout(
-            std::time::Duration::from_secs(5),
+            std::time::Duration::from_secs(40),
             run_scripted_bot(url, "Probe".into(), protocol::BodyKind::Human),
         )
         .await

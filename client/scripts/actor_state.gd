@@ -14,6 +14,10 @@ static func is_companion(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign is Dictionary and campaign.get("side") == "companion"
 
+static func is_entrant(actor: Dictionary) -> bool:
+	var campaign: Variant = actor.get("campaign")
+	return campaign is Dictionary and campaign.get("side") == "entrant"
+
 static func is_participant(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
 	return campaign == null or (campaign is Dictionary and campaign.get("side") == "participant")
@@ -60,6 +64,12 @@ static func validation_error(snapshot: Dictionary) -> String:
 			return INVALID
 		if campaign["side"] == "participant":
 			if campaign.size() != 1:
+				return INVALID
+			continue
+		if campaign["side"] == "entrant":
+			if campaign.size() != 3 or not EquipmentState.integer(campaign.get("placard"), 255) \
+				or int(campaign["placard"]) not in [4, 12, 44, 71] \
+				or typeof(campaign.get("armed")) != TYPE_BOOL:
 				return INVALID
 			continue
 		if campaign["side"] == "companion":

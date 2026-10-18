@@ -43,8 +43,8 @@ static func valid_settings(value: Variant) -> bool:
 	if not value is Dictionary:
 		return false
 	var data: Dictionary = value
-	if data.size() != 7 or not data.get("mode") is String \
-		or data["mode"] not in ["tdm", "sabotage", "conquest"] or not data.get("lan") is bool \
+	if not data.get("mode") is String \
+		or data["mode"] not in ["tdm", "sabotage", "conquest", "ffa", "ctf"] or not data.get("lan") is bool \
 		or not data.get("bot_policy") is String or data["bot_policy"] not in ["none", "fixed", "auto"] \
 		or not EquipmentState.integer(data.get("map_id"), 8) or data["map_id"] < 1 \
 		or not EquipmentState.integer(data.get("bots"), 10) \
@@ -60,8 +60,21 @@ static func valid_settings(value: Variant) -> bool:
 		return false
 	if data["mode"] == "conquest" and data["map_id"] != 7:
 		return false
-	if data["mode"] == "tdm" and data["map_id"] > 6:
+	if data["mode"] == "ctf" and data["map_id"] not in [1, 3, 4]:
 		return false
+	if data.has("mutator") and data["mutator"] != null:
+		if not data["mutator"] is String:
+			return false
+		if not data["mutator"].is_empty() and data["mutator"] not in ["rail-only", "shotgun-only", "fists-only", "licence-to-kill", "golden-rail", "two-lives"]:
+			return false
+		if data["mutator"] == "two-lives" and data["mode"] in ["sabotage", "ctf", "conquest"]:
+			return false
+	if data.has("friendly_fire") and not data["friendly_fire"] is bool:
+		return false
+	var known_keys: Array[String] = ["mode", "lan", "bot_policy", "map_id", "bots", "fill_target", "port", "mutator", "friendly_fire"]
+	for k: Variant in data.keys():
+		if not k is String or k not in known_keys:
+			return false
 	return data["port"] > 0 if data["lan"] else data["port"] == 0
 
 static func arguments_for(value: Dictionary) -> PackedStringArray:
@@ -73,6 +86,11 @@ static func arguments_for(value: Dictionary) -> PackedStringArray:
 		"--bot-policy", value["bot_policy"], "--fill-target", str(int(value["fill_target"]))])
 	if value["mode"] == "sabotage":
 		args.append("--sabotage-five-v-five")
+	if value.get("friendly_fire", false) and value["mode"] != "ffa":
+		args.append("--friendly-fire")
+	if value.has("mutator") and value["mutator"] is String and not value["mutator"].is_empty():
+		args.append("--mutator")
+		args.append(value["mutator"])
 	return args
 
 func start_host(value: Dictionary) -> bool:

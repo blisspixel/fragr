@@ -80,6 +80,10 @@ pub enum CampaignActor {
         #[serde(default, skip_serializing_if = "not_seated")]
         seated: bool,
     },
+    Entrant {
+        placard: u8,
+        armed: bool,
+    },
 }
 
 fn not_seated(seated: &bool) -> bool {
@@ -113,6 +117,10 @@ impl CampaignActor {
 
     pub fn is_companion(self) -> bool {
         matches!(self, Self::Companion { .. })
+    }
+
+    pub fn is_entrant(self) -> bool {
+        matches!(self, Self::Entrant { .. })
     }
 }
 
@@ -159,22 +167,38 @@ mod tests {
             phase: CompanionPhase::Releasing,
             phase_started: 42,
         };
+        let entrant = CampaignActor::Entrant {
+            placard: 4,
+            armed: false,
+        };
         let identities = [
             None,
             Some(CampaignActor::Participant {}),
             Some(union),
             Some(companion),
+            Some(entrant),
         ];
         for (i, a) in identities.into_iter().enumerate() {
             for (j, b) in identities.into_iter().enumerate() {
                 assert_eq!(
                     hostile(a, b),
                     i == 0 && j == 0
-                        || (i == 2 && matches!(j, 1 | 3))
-                        || (j == 2 && matches!(i, 1 | 3))
+                        || (i == 2 && matches!(j, 1 | 3 | 4))
+                        || (j == 2 && matches!(i, 1 | 3 | 4))
                 );
             }
         }
+        assert!(entrant.is_entrant());
+        assert!(!entrant.is_enemy());
+        assert!(!entrant.is_participant());
+        assert_eq!(
+            serde_json::to_value(entrant).unwrap(),
+            serde_json::json!({"side":"entrant","placard":4,"armed":false})
+        );
+        assert!(serde_json::from_str::<CampaignActor>(
+            r#"{"side":"entrant","placard":12,"armed":true}"#
+        )
+        .is_ok());
         assert!(companion.is_companion());
         assert!(!companion.is_participant());
         assert_eq!(

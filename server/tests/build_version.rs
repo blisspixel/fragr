@@ -75,6 +75,9 @@ fn build_in(
         .env("CARGO_TARGET_DIR", target)
         // Cache assertions read Cargo's labels; CI forces ANSI color globally.
         .env("CARGO_TERM_COLOR", "never")
+        // A source-archive fixture must not discover the checkout containing
+        // a caller-selected TMPDIR. Real fixture repositories remain below it.
+        .env("GIT_CEILING_DIRECTORIES", std::env::temp_dir())
         .env_remove("FRAGR_BUILD_VERSION")
         .env_remove("FRAGR_BUILD_COMMIT")
         .env_remove("GIT_DIR")
@@ -109,7 +112,9 @@ fn build_in(
 fn write_package(package: &Path, library: &Path, dependency_path: &str) {
     fs::create_dir_all(package.join("src")).unwrap();
     fs::create_dir_all(library.join("src")).unwrap();
-    fs::write(package.join("Cargo.toml"), format!("[package]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[build-dependencies]\nfragr-build-metadata = {{ path = \"{dependency_path}\" }}\n")).unwrap();
+    // TMPDIR may live under the checkout. Keep this independent Cargo fixture
+    // out of the parent workspace without changing its cache assertions.
+    fs::write(package.join("Cargo.toml"), format!("[workspace]\n[package]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[build-dependencies]\nfragr-build-metadata = {{ path = \"{dependency_path}\" }}\n")).unwrap();
     fs::write(package.join("Cargo.lock"), "version = 4\n\n[[package]]\nname = \"fragr-build-metadata\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"metadata-fixture\"\nversion = \"0.1.0\"\ndependencies = [\"fragr-build-metadata\"]\n").unwrap();
     fs::write(package.join("build.rs"), include_str!("../build.rs")).unwrap();
     fs::write(

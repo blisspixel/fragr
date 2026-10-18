@@ -4,8 +4,11 @@ extends SceneTree
 ## the one-line HUD, gate world rebuilds and the console beacon.
 class CaptureNetwork extends "res://scripts/net_client.gd":
 	var sent: Array[Dictionary] = []
+	var accept_send: bool = true
 	func send_json(data: Dictionary) -> void:
-		sent.append(data.duplicate(true))
+		last_send_ok = accept_send
+		if last_send_ok:
+			sent.append(data.duplicate(true))
 
 const PLAYER: String = "00000000-0000-0000-0000-000000000002"
 var failures: int = 0
@@ -284,6 +287,9 @@ func _network(info: Dictionary) -> void:
 	_expect(network.mission.get("state", {}).get("phase") == "briefing", "network accepts the M02 briefing")
 	network.connection_state = WebSocketPeer.STATE_OPEN
 	network.player_id = PLAYER
+	network.accept_send = false
+	_expect(not network.send_mission_ready() and network.sent.is_empty(), "failed readiness send is not reported as accepted")
+	network.accept_send = true
 	_expect(network.send_mission_ready() and network.sent.back() == {"type": "mission_ready", "id": "persons_unknown", "attempt": 1},
 		"readiness names the M02 mission and attempt")
 	network._handle_message(JSON.stringify(_state(["ward_reached"], _use(), "in_progress", [], 1, 20, true)))

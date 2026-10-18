@@ -17,6 +17,7 @@ pub enum VehicleKind {
     Jeep,
     Boat,
     LightAircraft,
+    Motorcycle,
 }
 
 /// Seats are the sole occupancy fact. Ground-base position uses metres and
@@ -71,6 +72,10 @@ impl VehicleState {
             && self.burning_ticks <= 40
             && (self.hp == 0 || self.burning_ticks == 0)
             && (self.driver.is_none() || self.driver != self.gunner)
-            && (self.kind != VehicleKind::LightAircraft || self.gunner.is_none())
+            && (!matches!(
+                self.kind,
+                VehicleKind::LightAircraft | VehicleKind::Motorcycle
+            ) || self.gunner.is_none())
+            && (self.kind != VehicleKind::Motorcycle || self.gun_heat == 0.0)
     }
 }

@@ -32,6 +32,7 @@ func _run() -> void:
 	_test_tokens()
 	_test_assign_and_conflicts()
 	_test_persistence_and_input_map()
+	_test_new_pad_defaults()
 	await _test_panel()
 	_test_labels_keyed()
 	FragrSettings.new(_path + ".unused").apply_controls()
@@ -54,8 +55,8 @@ func _test_tokens() -> void:
 	_check(InputBindings.parse(42).is_empty(), "non-strings are not overrides")
 	_check(InputBindings.default_slots("interact") == (["key:70", "key:4194309", "pad:b1"] as Array[String]), "defaults come from project settings: " + str(InputBindings.default_slots("interact")))
 	_check(InputBindings.default_slots("fire") == (["key:4194326@r", "mouse:1", "pad:a5+"] as Array[String]), "fire defaults to right Ctrl, left mouse and the right trigger")
-	_check(InputBindings.default_slots("duck") == (["key:4194326@l", "", ""] as Array[String]), "duck defaults to left Ctrl and leaves the pad slot empty")
-	_check(InputBindings.default_slots("reload") == (["key:82", "", ""] as Array[String]), "reload defaults to R and leaves the pad slot empty")
+	_check(InputBindings.default_slots("duck") == (["key:4194326@l", "", "pad:b13"] as Array[String]), "duck defaults to left Ctrl and D-pad left")
+	_check(InputBindings.default_slots("reload") == (["key:82", "", "pad:b12"] as Array[String]), "reload defaults to R and D-pad down")
 
 func _test_assign_and_conflicts() -> void:
 	var prefs: FragrSettings = FragrSettings.new(_path)
@@ -167,6 +168,30 @@ func _test_panel() -> void:
 	loaded.load_from_disk()
 	_check(InputBindings.slots_for(loaded, "jump") == InputBindings.default_slots("jump"), "reset to defaults persists")
 	panel.free()
+
+func _test_new_pad_defaults() -> void:
+	var prefs: FragrSettings = FragrSettings.new(_path)
+	prefs.reset_all()
+	# Old files saved an empty value for actions still using their defaults.
+	InputBindings.assign(prefs, "speak", 2, "pad:b12")
+	InputBindings.store(prefs, "reload", ["key:82", "", ""] as Array[String])
+	prefs.set_value("bindings", "reload", "")
+	prefs.save_to_disk()
+	var loaded: FragrSettings = FragrSettings.new(_path)
+	loaded.load_from_disk()
+	_check(InputBindings.slots_for(loaded, "speak")[2] == "pad:b12", "new default never steals a custom pad button")
+	_check(InputBindings.slots_for(loaded, "reload")[2] == "", "claimed reload default stays unbound")
+	_check(InputBindings.slots_for(loaded, "duck")[2] == "pad:b13", "unclaimed crouch default is adopted")
+	_check(InputBindings.conflicts(loaded).is_empty(), "upgraded custom layout stays conflict free")
+	InputBindings.store(loaded, "duck", ["key:67", "", ""] as Array[String])
+	loaded.save_to_disk()
+	loaded.load_from_disk()
+	_check(InputBindings.slots_for(loaded, "duck") == (["key:67", "", ""] as Array[String]), "deliberately unbound custom crouch is preserved")
+	loaded.reset_section("bindings")
+	loaded.apply_controls()
+	_check(InputMap.action_has_event("reload", _pad(JOY_BUTTON_DPAD_DOWN)), "Reset defaults restores pad reload")
+	_check(InputMap.action_has_event("duck", _pad(JOY_BUTTON_DPAD_LEFT)), "Reset defaults restores pad crouch")
+	loaded.save_to_disk()
 
 func _test_labels_keyed() -> void:
 	for action: String in InputBindings.ACTIONS:

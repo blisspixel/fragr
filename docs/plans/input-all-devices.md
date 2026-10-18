@@ -23,7 +23,10 @@ actions on the same wire. Nothing here changes the server, the protocol or the
   button, trigger, key and mouse button is rebindable.
 - Maker logos. Gamepad glyphs are original 16 pixel sprites generated in code.
 
-## Default bindings
+## Original default bindings (September 24)
+
+This table records the initial implementation. The current complete layout is
+in [Playing](../PLAYING.md); later crouch, magazines and gadgets extend it.
 
 | Action | Keyboard only (right hand on the arrows) | Keyboard and mouse | Gamepad |
 |---|---|---|---|
@@ -164,6 +167,16 @@ Plus `tools/godot_check.sh` (PASS, 157 checks, 2026-09-24),
   that prompt is covered by `test_input_glyphs.gd` and `test_mission.gd` only.
 
 ## Open
+
+October 17 convergence completes the default pad layout with D-pad down for
+reload and D-pad left for held crouch. Both are unclaimed in overlapping play
+contexts. Existing deliberate bindings and explicit unbound overrides retain
+ownership; reset defaults restores the complete layout. Binding, conflict,
+persistence and glyph regressions pass. Real owned campaign and finite
+multiplayer harnesses send mapped pad events through GameManager and the socket,
+empty a magazine, reload, refire, crouch and stand using accepted server facts.
+Rendered llvmpipe captures and their limits are recorded in the
+[convergence plan](development-convergence-20261017.md).
 
 - Real pads: layout names on Linux and macOS drivers, trigger ranges on older
   pads, and stick drift on worn hardware.

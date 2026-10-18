@@ -13,7 +13,7 @@ struct Upgrade {
 
 // A future canonical replacement must register its own reviewed exact pair.
 // An expected hash supplied by a caller never establishes a new successor.
-const UPGRADES: [Upgrade; 5] = [
+const UPGRADES: [Upgrade; 6] = [
     Upgrade {
         mission: MissionId::CustodianOfRecord,
         predecessor: digest(b"b9964704b9bf51e837118f25fbec9d93574d16634b1d281caf694181f44de666"),
@@ -43,6 +43,12 @@ const UPGRADES: [Upgrade; 5] = [
         predecessor: digest(b"01471a5ff4d5c3861018efcc87a547a3b86305c5ecba6e02745457f69b4f5397"),
         successor: digest(b"3197bbcf7a48ede2dea0a06a20ea62e8367c552cc39d671a96d625d860287c85"),
         first_version: 15,
+    },
+    Upgrade {
+        mission: MissionId::CivicPressureValve,
+        predecessor: digest(b"5a2ced0c798dcf5769d6911d6aa64aa6513473574dc12693824d564fb0ab92cf"),
+        successor: digest(b"b1d4ae98dac9ae8e83588dc6594655d7c7a9796bdc81002c9738ac501bbf8f8c"),
+        first_version: 19,
     },
 ];
 

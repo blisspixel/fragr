@@ -155,6 +155,9 @@ func _preset(mode: String) -> bool:
 		return false
 	_expect(current_scene.current_map_info.get("rules", {}).get("mode") == mode, "authoritative map confirms selected mode")
 	_expect(current_scene.pause_menu.hosting_server, "gameplay recognizes its persistent root owner")
+	if mode == "tdm":
+		if not await preload("res://scripts/qa_pad_controls.gd").run(self, current_scene, _until, _expect, "multiplayer-pad"):
+			return false
 	if mode == "sabotage":
 		_expect(partner.equipment.get("selected") == "tack", "5v5 human starts with actual pistol loadout")
 	# Close only this client's socket. The existing resume path must retain its pawn.
@@ -251,6 +254,12 @@ func _automatic(mode: String) -> bool:
 	return true
 
 func _run() -> void:
+	if not OS.get_environment("FRAGR_PAD_QA_DIR").is_empty():
+		var prefs: FragrSettings = FragrSettings.new(settings_path)
+		prefs.set_value("video", "display_mode", 0)
+		prefs.set_value("video", "quality", 0)
+		prefs.set_value("video", "pixel_scale", 2)
+		_expect(prefs.save_to_disk() == OK, "isolated capture preferences saved")
 	_expect(unrelated.listen(0, "127.0.0.1") == OK, "unrelated listener starts")
 	_expect(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "ordinary boot scene loads")
 	await process_frame

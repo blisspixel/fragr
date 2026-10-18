@@ -53,6 +53,17 @@ fn arena(map: MapKind, rules: RuleSet) -> GameState {
     state
 }
 
+#[test]
+fn sector9_sabotage_broadcast_names_the_running_match() {
+    let mut state = arena(MapKind::Sector9, rules(GameMode::Sabotage, &[]));
+    state.start_round();
+    let snap = state.snapshot();
+    assert_eq!(snap.playlist, MapKind::Sector9.name());
+    assert!(snap.host_line.contains("SECTOR 9") && snap.host_line.contains("SABOTAGE"));
+    assert!(!snap.host_line.contains("ARENA DUEL"));
+    assert!(state.events.iter().any(|event| matches!(event, GameEvent::RoundStart { playlist, .. } if playlist == MapKind::Sector9.name())));
+}
+
 fn join(state: &mut GameState, n: u128, role: Role) -> Uuid {
     let id = Uuid::from_u128(n);
     state.add_player(id, format!("F{n}"), role);

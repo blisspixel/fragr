@@ -24,15 +24,14 @@ mod vehicle;
 use crate::movement::{EYE_HEIGHT, STEP_UP};
 use crate::protocol::{
     boss_down_host_line, boss_host_line, boss_round_wipe_host_line, compliance_host_line,
-    default_host_line, default_mode_name, default_playlist, empty_mvp_host_line,
-    episode0_host_line_auditor, episode0_host_line_cold_open, episode0_host_line_fail,
-    episode0_host_line_jammer, episode0_host_line_nods_tick, episode0_host_line_win,
-    episode0_objective_chip, episode0_unlock_teaser, killstreak_host_line, mvp_host_line,
-    roster_host_line, round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action,
-    BotTauntKind, CampaignActor, CampaignSupply, EnemyPhase, GameEvent, PelletTrace, PickupState,
-    PlayerScore, PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot,
-    WeaponType, AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0,
-    MODE_NAME, PLAYLIST_NAME,
+    default_host_line, default_mode_name, empty_mvp_host_line, episode0_host_line_auditor,
+    episode0_host_line_cold_open, episode0_host_line_fail, episode0_host_line_jammer,
+    episode0_host_line_nods_tick, episode0_host_line_win, episode0_objective_chip,
+    episode0_unlock_teaser, killstreak_host_line, mvp_host_line, roster_host_line,
+    round_open_host_line, rule_bot_taunt_line, warmup_host_line, Action, BotTauntKind,
+    CampaignActor, CampaignSupply, EnemyPhase, GameEvent, PelletTrace, PickupState, PlayerScore,
+    PlayerState, Role, ServerMessage, ShotImpact, ShotResult, ShotTrace, Snapshot, WeaponType,
+    AUDITOR_NAME, BOSS_NAME, EPISODE_ID_EP0, EPISODE_MAP_LARAK_LOT, EPISODE_TITLE_EP0, MODE_NAME,
 };
 use crate::protocol::{HostReactionKind, Mutator, Team, TeamScores};
 use std::collections::HashMap;
@@ -766,7 +765,7 @@ impl Player {
             && crate::combat::target_height(self.campaign) + 0.01 >= crate::movement::BODY_HEIGHT
     }
 
-    fn at_spawn(
+    pub(crate) fn at_spawn(
         id: Uuid,
         name: String,
         role: Role,
@@ -1152,7 +1151,7 @@ impl GameState {
             players,
             previous_winner,
             mode_name: default_mode_name(),
-            playlist: default_playlist(),
+            playlist: self.display_map_name(),
             host_line: if self.solo_broadcast.enabled {
                 episode0_host_line_cold_open()
             } else {
@@ -1662,6 +1661,10 @@ impl GameState {
             m12: self.map.m12_geometry(),
             m13: self.map.m13_geometry(),
             m14: self.map.m14_geometry(),
+            m15: self.map.m15_geometry(),
+            m16: self.map.m16_geometry(),
+            m17: self.map.m17_geometry(),
+            m18: self.map.m18_geometry(),
             walker: self.map.walker_geometry(),
             m03: self.map.m03_geometry(),
             geometry_version: crate::protocol::geometry_version(&self.map.arena().solids),
@@ -2961,6 +2964,13 @@ impl GameState {
                 self.encounters.sync_identities(&mut self.players);
             }
         }
+        self.record_m15_damage(
+            shooter_id,
+            target_id,
+            trace.as_ref().map(|t| t.weapon),
+            damage,
+            died,
+        );
 
         if let Some(trace) = trace {
             self.shot_results.push(ShotResult {
@@ -3354,7 +3364,7 @@ impl GameState {
             playlist: if self.map.is_authored() {
                 "Campaign development"
             } else {
-                PLAYLIST_NAME
+                self.map.name()
             }
             .to_string(),
             pressure: if self.boss_id.is_some() {
@@ -3376,7 +3386,7 @@ impl GameState {
             } else if self.round_state == RoundState::Ended {
                 self.ended_host_line
                     .clone()
-                    .unwrap_or_else(default_host_line)
+                    .unwrap_or_else(|| self.active_host_line())
             } else if let Some(line) = self.solo_broadcast.host_line.as_ref() {
                 line.clone()
             } else if self.boss_id.is_some() {
@@ -3388,7 +3398,7 @@ impl GameState {
                 let secs = remaining.div_ceil(20).max(1);
                 warmup_host_line(&self.display_map_name(), &self.roster_names, secs)
             } else {
-                default_host_line()
+                self.active_host_line()
             },
             mvp: if self.round_state == RoundState::Ended {
                 self.ended_mvp.clone()
@@ -3621,6 +3631,19 @@ impl GameState {
             ops: None,
             gameplay_version: Some(crate::protocol::GAMEPLAY_VERSION),
             geometry_version: Some(crate::protocol::GEOMETRY_VERSION),
+        }
+    }
+
+    fn active_host_line(&self) -> String {
+        if self.map == MapKind::ArenaDuel
+            && self.config.rules.mode() == crate::protocol::GameMode::Ffa
+        {
+            default_host_line()
+        } else {
+            round_open_host_line(
+                &format!("{} / {}", self.display_map_name(), self.config.rules.name()),
+                &self.roster_names,
+            )
         }
     }
 

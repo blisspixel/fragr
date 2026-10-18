@@ -27,17 +27,22 @@ freight departure. M04-to-M05 carry retains earlier car, patient and photograph
 outcomes. The connected development run continues through M06 Port of Entry,
 M07 Declared Goods, M08 Custodian of Record, M09 Passenger Manifest, M10 Common
 Carrier, M11 Right of Search, M12 Terms of Cooperation, M13 The Weight of
-Permission and M14 Launch Authority. Version 18 saves retain mission-entry retries,
+Permission, M14 Launch Authority, M15 Civic Pressure Valve, M16 Freedom of
+Movement, M17 Peace Without Interruption, and M18 All Systems Normal. Version 22 saves retain mission-entry retries,
 equipment, remaining continues and completed choices, distinguishing released
 people from those actually evacuated or aboard. Historical saves upgrade
 explicitly and retain exact-byte archives. M12 adds the Arc, Assessor, shelter,
 pump conditions and coalition departure. M13 adds the first finite Rocket
 Launcher, voluntary worker choices, guarded gallery, protected town feed,
-machinery hazards and physical freight-lift departure. M12 carries into M13
-without another episode refill; M13 carries into M14 on the same allowance.
-Connected M14 shipped in v0.85.0 under the [launch-work integration](plans/m14-launch-authority-integration-20261015.md).
-M15 through M20 and the epilogue remain unbuilt. Development grayboxes
-for levels 15 through 20 are not connected missions. Ordinary campaign supply and visual pursuit scale
+machinery hazards and physical freight-lift departure. M14 adds the Continuance
+Walker battle and jeep traversal. M15 connects the stadium games, Article Blade
+and Episode IV continue refill. M16 connects motorcycle traversal, green wave
+and prison bus rescue. M17 connects the Forever Office breach, Kessel custody,
+core unseal and Voss capture. M18 connects Recovery Square relief depot check-in,
+bot diagnostic rupture defense, Collector clinic roadblock breach, maintenance flank ascent,
+Upper Overlook planetary wipe survey, Evacuation Concourse defense, Episode V continue refill
+to 3, and departure to pending M19 Planned Works. M19 through M20 and the epilogue remain unbuilt. Development grayboxes
+for levels 19 through 20 are not connected missions. Ordinary campaign supply and visual pursuit scale
 by Assisted, Standard, and Severe. Standard tell timing stays exact. Local standalone
 [M12 habitat](plans/m12-habitat-development-20261008.md),
 [M13 foundry](plans/m12-m14-foundry-slice-20261008.md) and

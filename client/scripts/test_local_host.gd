@@ -91,8 +91,8 @@ func _run() -> void:
 		contradictory["fill_target"] = 1
 		_check(not LocalHost.valid_settings(contradictory), "inactive automatic target must be zero")
 	var config: Dictionary = _config()
-	for item: Dictionary in [{"key": "mode", "value": "ffa"}, {"key": "bots", "value": 11},
-		{"key": "bots", "value": -1}, {"key": "map_id", "value": 7}, {"key": "port", "value": 6767},
+	for item: Dictionary in [{"key": "mode", "value": "invalid_mode"}, {"key": "bots", "value": 11},
+		{"key": "bots", "value": -1}, {"key": "map_id", "value": 9}, {"key": "port", "value": 6767},
 		{"key": "lan", "value": "true"}, {"key": "bots", "value": 2.5}, {"key": "extra", "value": true},
 		{"key": "bot_policy", "value": "adaptive"}, {"key": "bot_policy", "value": true},
 		{"key": "fill_target", "value": true}]:

@@ -26,6 +26,16 @@ mod m14;
 pub use m14::{
     M14ChallengeState, M14MapGeometry, M14ObjectiveState, M14_FALLEN_PARTS, M14_OBJECTIVE_IDS,
 };
+mod m15;
+pub use m15::{
+    M15ChallengeState, M15MapGeometry, M15ObjectiveState, M15_ENTRANTS, M15_OBJECTIVE_IDS,
+};
+mod m16;
+pub use m16::*;
+mod m17;
+pub use m17::*;
+mod m18;
+pub use m18::*;
 mod walker;
 pub use m13::{
     M13ChallengeState, M13HazardCycle, M13HazardPhase, M13LiftPhase, M13LiftState, M13MapGeometry,
@@ -399,45 +409,43 @@ pub fn rule_bot_taunt_line(name: &str, kind: BotTauntKind, salt: u64) -> String 
         ("Dead Air Dan", BotTauntKind::Frag) => &["dead air cleared", "booth owns that frag"],
         ("Dead Air Dan", BotTauntKind::Death) => &["booth cut out", "dead air for a sec"],
         ("Dead Air Dan", BotTauntKind::Killstreak) => {
-            &["frequency owns this lane", "host keep the mic open"]
+            &["six-seven clear", "host keep the mic open"]
         }
         ("Dead Air Dan", BotTauntKind::Warmup) => &["booth is hot", "dead air dan dials in"],
         ("Nightfall", BotTauntKind::Frag) => &["grid marked", "night watch confirms"],
         ("Nightfall", BotTauntKind::Death) => &["night watch resets", "rail resets"],
-        ("Nightfall", BotTauntKind::Killstreak) => {
-            &["rail holds the scrap", "approved lanes denied"]
-        }
+        ("Nightfall", BotTauntKind::Killstreak) => &["rail holds the scrap", "wirehead denied"],
         ("Nightfall", BotTauntKind::Warmup) => &["night watch on station", "rail tuned"],
-        ("Static Kid", BotTauntKind::Frag) => &["static kids push", "glitch landed"],
+        ("Static Kid", BotTauntKind::Frag) => &["clanker bricked", "glitch landed"],
         ("Static Kid", BotTauntKind::Death) => &["glitch respawn", "static wiped"],
-        ("Static Kid", BotTauntKind::Killstreak) => &["scatter sings", "frequency glitches hard"],
-        ("Static Kid", BotTauntKind::Warmup) => &["tuning the glitch", "static kid on air"],
-        ("Aunt Linda", BotTauntKind::Frag) => &["value for value", "frag for frag"],
-        ("Aunt Linda", BotTauntKind::Death) => &["call back later", "hold the line"],
+        ("Static Kid", BotTauntKind::Killstreak) => &["scatter sings", "clean 67"],
+        ("Static Kid", BotTauntKind::Warmup) => &["tuning the glitch", "static kid on station"],
+        ("Aunt Linda", BotTauntKind::Frag) => &["value for value", "meatproxy zeroed"],
+        ("Aunt Linda", BotTauntKind::Death) => &["call back later", "firmware reset"],
         ("Aunt Linda", BotTauntKind::Killstreak) => {
-            &["league says keep dialing", "aunt linda stays live"]
+            &["league says keep rolling", "aunt linda stays live"]
         }
-        ("Aunt Linda", BotTauntKind::Warmup) => &["aunt linda dials in", "live laugh frag"],
-        ("Scout Ant", BotTauntKind::Frag) => &["scout ant deleted you", "antenna got you"],
+        ("Aunt Linda", BotTauntKind::Warmup) => &["aunt linda dialed in", "live laugh frag"],
+        ("Scout Ant", BotTauntKind::Frag) => &["scout ant deleted you", "loophead clocked"],
         ("Scout Ant", BotTauntKind::Death) => &["not a metaphor", "scout ant wiped"],
-        ("Scout Ant", BotTauntKind::Killstreak) => &["antenna up", "scout owns the scrap"],
-        ("Scout Ant", BotTauntKind::Warmup) => &["scouting the scrap", "antenna warming"],
-        ("Crackpot", BotTauntKind::Frag) => &["they deny this frag", "conspiracy confirmed"],
-        ("Crackpot", BotTauntKind::Death) => &["continuance redacted me", "denied on air"],
+        ("Scout Ant", BotTauntKind::Killstreak) => &["six-seven clear", "scout owns the scrap"],
+        ("Scout Ant", BotTauntKind::Warmup) => &["scouting the scrap", "optics warming"],
+        ("Crackpot", BotTauntKind::Frag) => &["meatbag clocked", "conspiracy confirmed"],
+        ("Crackpot", BotTauntKind::Death) => &["continuance redacted me", "wirehead caught me"],
         ("Crackpot", BotTauntKind::Killstreak) => &["crackpot was right", "they lose count"],
-        ("Crackpot", BotTauntKind::Warmup) => &["crackpot on air", "redacted warmup"],
-        ("Buzzkill", BotTauntKind::Frag) => &["buzzkill closes", "close scrap done"],
+        ("Crackpot", BotTauntKind::Warmup) => &["crackpot online", "redacted warmup"],
+        ("Buzzkill", BotTauntKind::Frag) => &["buzzkill closes", "soft-shell bricked"],
         ("Buzzkill", BotTauntKind::Death) => &["close scrap lost", "buzzkill reset"],
-        ("Buzzkill", BotTauntKind::Killstreak) => &["approved lanes? nah", "buzzkill rampage"],
+        ("Buzzkill", BotTauntKind::Killstreak) => &["approved lanes? nah", "six-seven rampage"],
         ("Buzzkill", BotTauntKind::Warmup) => &["buzzkill warming", "scrap opens loud"],
         ("Tin Foil Tina", BotTauntKind::Frag) => &["not for public release", "eyes only wipe"],
         ("Tin Foil Tina", BotTauntKind::Death) => &["access restricted", "foil wiped"],
         ("Tin Foil Tina", BotTauntKind::Killstreak) => &["hangar candy lane", "denied watermark"],
         ("Tin Foil Tina", BotTauntKind::Warmup) => &["foil tuned in", "hangar candy warm"],
-        (_, BotTauntKind::Frag) => &["nice scrap", "frequency contested"],
-        (_, BotTauntKind::Death) => &["respawn the booth", "cut for now"],
-        (_, BotTauntKind::Killstreak) => &["host is watching", "league stays live"],
-        (_, BotTauntKind::Warmup) => &["tuning in", "frequency warming"],
+        (_, BotTauntKind::Frag) => &["clean 67", "meatproxy down"],
+        (_, BotTauntKind::Death) => &["respawn the booth", "bricked for now"],
+        (_, BotTauntKind::Killstreak) => &["host is watching", "six-seven streak"],
+        (_, BotTauntKind::Warmup) => &["gearing up", "scrap warming"],
     };
     let idx = (salt as usize) % pool.len();
     pool[idx].to_string()
@@ -792,9 +800,17 @@ pub const M14_GAMEPLAY_VERSION: u32 = 49;
 pub const WALKER_GAMEPLAY_VERSION: u32 = 48;
 /// Article Blade melee, plinth lifecycle, eleven-column records and range contract.
 pub const BLADE_GAMEPLAY_VERSION: u32 = 50;
+/// Civic Pressure Valve connected stadium bout, two door systems, armed entrants and takeover.
+pub const M15_GAMEPLAY_VERSION: u32 = 51;
+/// Freedom of Movement connected ceremonial avenue, motorcycle traversal, green wave and chamber doors.
+pub const M16_GAMEPLAY_VERSION: u32 = 52;
+/// Peace Without Interruption connected Forever Office, three door states, Kessel custody and Voss capture.
+pub const M17_GAMEPLAY_VERSION: u32 = 53;
+/// All Systems Normal connected transit evacuation, clinic roadblock, overlook recon and concourse defense.
+pub const M18_GAMEPLAY_VERSION: u32 = 54;
 /// Highest gameplay contract this binary speaks. Shared arcade rooms require
 /// this value. Campaign missions keep their own floor; higher hellos refuse.
-pub const GAMEPLAY_VERSION: u32 = BLADE_GAMEPLAY_VERSION;
+pub const GAMEPLAY_VERSION: u32 = M18_GAMEPLAY_VERSION;
 pub fn legacy_gameplay_version() -> u32 {
     1
 }
@@ -925,6 +941,10 @@ mod geometry_tests {
             m12: None,
             m13: None,
             m14: None,
+            m15: None,
+            m16: None,
+            m17: None,
+            m18: None,
             walker: None,
             article_blade: None,
             map_id: 67,
@@ -1077,6 +1097,30 @@ pub enum ServerMessage {
             skip_serializing_if = "Option::is_none"
         )]
         m14: Option<M14MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m15: Option<M15MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m16: Option<M16MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m17: Option<M17MapGeometry>,
+        #[serde(
+            default,
+            deserialize_with = "m11::present",
+            skip_serializing_if = "Option::is_none"
+        )]
+        m18: Option<M18MapGeometry>,
         #[serde(
             default,
             deserialize_with = "m11::present",
@@ -2366,7 +2410,7 @@ mod protocol_tests {
         assert_eq!(rule_bot_callsign_base("Tin Foil Tina-3"), "Tin Foil Tina");
         let generic = rule_bot_taunt_line("Scrap Fox", BotTauntKind::Frag, 1);
         assert!(
-            generic == "nice scrap" || generic == "frequency contested",
+            generic == "clean 67" || generic == "meatproxy down",
             "{generic}"
         );
     }

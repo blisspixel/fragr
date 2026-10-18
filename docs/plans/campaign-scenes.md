@@ -58,6 +58,14 @@ shot never finishes itself: leaving a scene is always the player's input.
 Captions show by default and hide only while a clip is actually speaking; a
 text-only shot always shows its text.
 
+The October 17 repair also treats muted or zero-volume Voice, Master, or an
+intermediate Voice send bus as reader-paced text. This remains sticky for the
+current shot if sound is restored. Muting during playback or its pending hold
+cancels automatic advance, reveals caption and speaker even when captions were
+disabled, and leaves saved caption preferences unchanged. Next and Back evaluate
+the new shot's actual audio path. The scene-player harness covers both buses,
+both caption preferences, mid-clip mute and the pending-hold transition.
+
 Fallback. A missing still gives the plain text page the opening has today. A
 missing clip gives a reader-paced shot. An invalid manifest reports a warning
 and completes at once, so a broken file never holds a player or a party. The

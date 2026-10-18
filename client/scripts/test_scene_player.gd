@@ -32,6 +32,14 @@ func _expect(value: bool, message: String) -> void:
 		failures += 1
 		push_error("test_scene_player: " + message)
 
+func _capture(name: String) -> void:
+	var directory: String = OS.get_environment("FRAGR_SCENE_QA_DIR")
+	if directory.is_empty() or DisplayServer.get_name() == "headless":
+		return
+	await RenderingServer.frame_post_draw
+	_expect(DirAccess.make_dir_recursive_absolute(directory) == OK, "scene capture directory")
+	_expect(root.get_texture().get_image().save_png(directory.path_join(name + ".png")) == OK, "scene capture saved")
+
 func _key(code: Key, pressed: bool) -> void:
 	var event: InputEventKey = InputEventKey.new()
 	event.physical_keycode = code
@@ -64,6 +72,7 @@ func _run() -> void:
 	root.size = Vector2i(1280, 720)
 	await _fallback()
 	await _still_and_narration()
+	await _muted_narration()
 	await _skip_and_replay()
 	await _broken_scene()
 	await _departure_hook()
@@ -151,6 +160,56 @@ func _still_and_narration() -> void:
 	player = await _start(StoryScene.load_scene("l01_l02"))
 	_expect(player._scroll.visible, "text-only shots show text even with captions off")
 	player.free()
+	preferences.set_value("gameplay", "story_captions", true)
+	preferences.save_to_disk()
+
+func _muted_narration() -> void:
+	var preferences: FragrSettings = FragrSettings.for_tree(self)
+	var manifest: Dictionary = StoryScene.load_scene("m04_arrival")
+	_expect(not manifest.is_empty(), "committed narrated arrival exists")
+	for bus: StringName in [&"Voice", &"Master"]:
+		var index: int = AudioServer.get_bus_index(bus)
+		var setting: String = "voice" if bus == &"Voice" else "master"
+		var volume: float = float(preferences.get_value("audio", setting))
+		for captions: bool in [false, true]:
+			preferences.set_value("gameplay", "story_captions", captions)
+			preferences.save_to_disk()
+			preferences.set_value("audio", setting, 0.0)
+			preferences.apply_audio()
+			var player: ScenePlayer = await _start(manifest)
+			_expect(player._scroll.visible and not player._voiced, "%s mute reveals story immediately" % bus)
+			_expect(player._speaker.visible == not player._speaker.text.is_empty(), "muted speaker is visible when present")
+			await _capture("%s-muted-captions-%s" % [bus, captions])
+			player._process(120.0)
+			player._on_narration_finished()
+			_expect(player.page == 0 and player._auto_advance < 0.0, "silent clips never impose a deadline")
+			preferences.set_value("audio", setting, volume)
+			preferences.apply_audio()
+			player._process(120.0)
+			_expect(player.page == 0 and player._scroll.visible, "unmute preserves reader ownership")
+			player.advance()
+			_expect(player.page == 1, "Next still works")
+			player.previous()
+			_expect(player._voiced, "new audible shot restores narration")
+			await _capture("%s-audible-captions-%s" % [bus, captions])
+			AudioServer.set_bus_mute(index, true)
+			player._process(0.0)
+			_expect(player._scroll.visible and not player._narration.playing, "mid-clip mute uses text fallback")
+			await _capture("%s-muted-during-clip-%s" % [bus, captions])
+			AudioServer.set_bus_mute(index, false)
+			player.advance()
+			player.previous()
+			player._on_narration_finished()
+			_expect(player._auto_advance >= 0.0, "audible narration schedules its hold")
+			AudioServer.set_bus_mute(index, true)
+			player._process(120.0)
+			_expect(player.page == 0 and player._auto_advance < 0.0, "mute cancels a pending hold")
+			_expect(preferences.get_value("gameplay", "story_captions") == captions, "fallback preserves saved caption preference")
+			player.finish()
+			player.finish()
+			_expect(completions == 1, "muted skip completes only once")
+			player.free()
+			AudioServer.set_bus_mute(index, false)
 	preferences.set_value("gameplay", "story_captions", true)
 	preferences.save_to_disk()
 

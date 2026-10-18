@@ -18,6 +18,10 @@ mod m11;
 mod m12;
 mod m13;
 mod m14;
+mod m15;
+mod m16;
+mod m17;
+mod m18;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
@@ -59,6 +63,18 @@ pub struct MissionClient {
     m14_presentation: Option<MapPresentation>,
     m14_intact_solids: Vec<Solid>,
     m14_pending: bool,
+    m15_map: Option<crate::protocol::M15MapGeometry>,
+    m15_points: Option<[[f32; 3]; 3]>,
+    m15_pending: bool,
+    m16_map: Option<crate::protocol::M16MapGeometry>,
+    m16_points: Option<[[f32; 3]; 2]>,
+    m16_pending: bool,
+    m17_map: Option<crate::protocol::M17MapGeometry>,
+    m17_points: Option<[[f32; 3]; 4]>,
+    m17_pending: bool,
+    m18_map: Option<crate::protocol::M18MapGeometry>,
+    m18_points: Option<[[f32; 3]; 3]>,
+    m18_pending: bool,
     m10_map: Option<crate::protocol::M10MapGeometry>,
     m10_point: Option<[f32; 3]>,
     m10_pending: bool,
@@ -401,6 +417,39 @@ impl MissionClient {
                 self.observed = old.observed;
             }
         }
+        if old.m17_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1017
+        {
+            self.m17_map = old.m17_map.clone();
+            self.m17_points = old.m17_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m17_pending = true;
+        }
+        if old.m16_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1016
+        {
+            self.m16_map = old.m16_map.clone();
+            self.m16_points = old.m16_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m16_pending = true;
+        }
+        if old.m15_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1015
+        {
+            self.m15_map = old.m15_map.clone();
+            self.m15_points = old.m15_points;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m15_pending = true;
+        }
         if old.m14_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1014
         {
             self.m14_map = old.m14_map.clone();
@@ -519,7 +568,19 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::LaunchAuthority {
+        let map_matches = if state.id == MissionId::AllSystemsNormal {
+            self.validate_m18_target(&state)?;
+            true
+        } else if state.id == MissionId::PeaceWithoutInterruption {
+            self.validate_m17_target(&state)?;
+            true
+        } else if state.id == MissionId::FreedomOfMovement {
+            self.validate_m16_target(&state)?;
+            true
+        } else if state.id == MissionId::CivicPressureValve {
+            self.validate_m15_target(&state)?;
+            true
+        } else if state.id == MissionId::LaunchAuthority {
             self.validate_m14_target(&state)?;
             true
         } else if state.id == MissionId::WeightOfPermission {
@@ -595,6 +656,10 @@ impl MissionClient {
         self.m12_pending = false;
         self.m13_pending = false;
         self.m14_pending = false;
+        self.m15_pending = false;
+        self.m16_pending = false;
+        self.m17_pending = false;
+        self.m18_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -697,7 +762,11 @@ impl MissionClient {
             && self.m11_map.is_none()
             && self.m12_map.is_none()
             && self.m13_map.is_none()
-            && self.m14_map.is_none())
+            && self.m14_map.is_none()
+            && self.m15_map.is_none()
+            && self.m16_map.is_none()
+            && self.m17_map.is_none()
+            && self.m18_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -881,9 +950,41 @@ impl MissionClient {
             || self.m12_pending
             || self.m13_pending
             || self.m14_pending
+            || self.m15_pending
+            || self.m16_pending
+            || self.m17_pending
+            || self.m18_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::AllSystemsNormal)
+        {
+            return self.steer_m18(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::PeaceWithoutInterruption)
+        {
+            return self.steer_m17(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::FreedomOfMovement)
+        {
+            return self.steer_m16(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::CivicPressureValve)
+        {
+            return self.steer_m15(navigator, world, id, snapshot, action);
         }
         if self
             .state

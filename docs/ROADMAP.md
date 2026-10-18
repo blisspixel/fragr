@@ -13,7 +13,7 @@ Every item below is in exactly one state: **planned**, **in progress**, **shippe
 
 The engineering ladder for scale runs through every phase: small squads first (four to twelve fighters, the current bar), then full servers (thirty-two to sixty-four), then large agent-heavy arenas (hundreds of fighters where most are agents). Each rung has its own measurements and is not claimed until measured.
 
-## Where we are (2026-10-15)
+## Where we are (2026-10-17)
 
 [Desktop releases](https://github.com/blisspixel/fragr/releases/latest) contain
 matching client/server packages and immutable build checks. Bounded development branches use pull requests with
@@ -21,7 +21,7 @@ full CI before main integration. The
 [changelog](../CHANGELOG.md) lists every change; the plans linked here hold the
 evidence.
 
-**Campaign.** Levels 1 to 14 are development prototypes in this source, with
+**Campaign.** Levels 1 to 18 have connected development implementations in this source, with
 durable run carry, retries and continues. An automated
 [polish pass](plans/campaign-polish-20261002.md) sealed level geometry, fixed
 hidden arrival gates and stranded guards, and took the free local agent from 7
@@ -56,12 +56,24 @@ passed before that merge. Fresh-player, difficulty and final-art acceptance
 remain open. M13's connected foundry shipped in v0.83.0 through PR #402,
 with finite Rockets, voluntary worker choices, the protected town feed and a
 physical freight lift. Version 17 retains entry resources and outcomes.
-M15 through M20 remain unbuilt as connected missions. The October 15
+The October 15
 [Walker foundation](plans/walker-foundation-20261015.md) shipped in v0.84.0;
 the [connected M14 integration](plans/m14-launch-authority-integration-20261015.md)
 adds staged support, optional jeep combat, actual fallen geometry and version 18
-carry, shipped in v0.85.0 through PR #404.
-The local M12 habitat, M13 foundry and M14 launch works development maps are described in
+carry, merged through PR #404. The v0.85.0 packages remain a draft at this round's entry;
+v0.84.0 is the latest published release.
+The [connected M15 stadium](plans/m15-connected-stadium-20261015.md) connects
+Civic Pressure Valve, armed entrants, Article Blade plinth, booth takeover,
+the Episode IV refill to 3 continues, and version 19 carry.
+The [connected M16 avenue](plans/m16-connected-avenue-20261017.md) connects
+Freedom of Movement, motorcycle traversal, the green wave sequence, the prison
+bus rescue, the forecourt assault, Forever Office chamber doors, and version 20 carry.
+The [M17 office](plans/m17-connected-office-20261017.md) and
+[M18 transit](plans/m18-connected-transit-20261017.md) implementations extend
+that chain through All Systems Normal and version 22 saves. M15-M18 are under
+[convergence review](plans/development-convergence-20261017.md), not completed
+mission acceptance. M19 Planned Works and M20 Local Exception remain unbuilt
+as connected missions. The development maps are described in
 the full build order below. Fresh-player, difficulty
 and final art acceptance remain open for every level. The full build order
 below owns current sequencing.
@@ -197,7 +209,7 @@ allowance is recorded above.
 The October 3 aggregate balance is reconciled to Nick's reported $14.42;
 individual request charges remain unverified.
 
-**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, full campaign progression and rewards, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, connected levels 15 through 20, completed M14 human and art acceptance, motorcycle and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
+**Not built yet (honest list):** low-latency transport (WebSocket JSON only; local human prediction shipped in v0.58.0), bounded lag compensation, a complete protocol migration policy (geometry and gameplay admission exist), unlimited lifetime statistics, full campaign progression and rewards, DJ bumpers and a voiced Host, a finished single-player campaign or full co-op lifecycle, a complete art pass, public-server load tests, any cloud apply, Rescue, connected levels 19 and 20, completed M14 human and art acceptance, finished motorcycle acceptance and jetpack gameplay, the expanded console, Ultra graphics and the nine-scene rendered showcase, wider directional combat acoustics, a finished modelled cast and complete environmental kits.
 
 The current development build includes Holdfast Conquest with jeeps, boats,
 an aircraft and swimming. This establishes a playable combined-arms prototype;
@@ -363,7 +375,7 @@ level with its starting equipment; three continues, refilled at the start of
 each episode, is the decided allowance. No mandatory duo, companion controls,
 revival or all-mission co-op. Autonomous allies and level-specific viewpoints
 are design options.
-Durable version 18 run files carry the connected development campaign through Launch Authority, including mission-entry retries and completed choices. Final Recall Notice art, pacing and fresh-player acceptance stay in the [M01 completion plan](plans/m01-completion.md). The local service
+Durable version 20 run files carry the connected development campaign through Freedom of Movement, including mission-entry retries and completed choices. Final Recall Notice art, pacing and fresh-player acceptance stay in the [M01 completion plan](plans/m01-completion.md). The local service
 record now retains 256 campaign, arena and practice observations, with authoritative
 counters, separate attempt effort, JSON export and optional localized quips.
 Local verification passes under [#199](plans/benchmark-and-stats.md): authoritative
@@ -388,26 +400,46 @@ The phases below are the long shape. The sequence that follows is the build orde
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-15)
+## Full build order (updated 2026-10-17)
 
 The [connected foundry round](plans/m13-connected-round-20261013.md) shipped in
 v0.83.0 through PR #402 with passing main CI and all three desktop packages.
 The [October 15 round](plans/build-round-20261015.md) shipped the isolated
 Walker encounter, Sabotage objective ownership and Rocket reload presentation
 together in v0.84.0 through [PR #403](https://github.com/blisspixel/fragr/pull/403).
-The current campaign increment is the [M14 integration](plans/m14-launch-authority-integration-20261015.md):
-it combines that boss with the existing battlefield, staged support, optional jeep,
+The [M14 integration](plans/m14-launch-authority-integration-20261015.md)
+combines that boss with the existing battlefield, staged support, optional jeep,
 infantry routes and saved coalition departure. The
 [Sector 9 spawn exits](plans/sector9-spawn-exits-20261015.md) and
 [launch-work presentation](plans/m14-art-integration-20261015.md) advance in
 parallel. Composed local native, client and rendered checks pass.
 [PR #404](https://github.com/blisspixel/fragr/pull/404) shipped M14, Sector 9
-exit cover, version 18 saves and build metadata to main in v0.85.0 with passing
-CI and desktop packages. The next planned work is the
-[Article Blade foundation](plans/m15-connected-stadium-20261015.md) and
-[CTF carrier contact](plans/ctf-carrier-contact-20261015.md), with matching
-local weapon art. These remain planned at the end-of-day checkpoint.
-Nick explicitly requested parallel level, multiplayer and asset work. Each
+exit cover, version 18 saves and build metadata to main with passing
+CI and draft v0.85.0 desktop packages. [PR #405](https://github.com/blisspixel/fragr/pull/405) shipped the
+Article Blade foundation, plinth lifecycle, drawn viewmodels and pickups.
+[PR #406](https://github.com/blisspixel/fragr/pull/406) shipped CTF carrier close-contact
+self-defense and route resumption. The local [connected M15 stadium](plans/m15-connected-stadium-20261015.md) implements Civic Pressure Valve
+with the armed entrant rescue, broadcast booth takeover, Episode IV continue refill to
+3, and version 19 saves. The [connected M16 avenue](plans/m16-connected-avenue-20261017.md)
+implements Freedom of Movement avenue development, motorcycle placement, green wave
+pacing, prison bus rescue, forecourt assault and version 20 saves. The [connected M17 office](plans/m17-connected-office-20261017.md)
+implements Peace Without Interruption Forever Office breach, public hall clearance, Registrar Kessel custody,
+security core override, dome assault, Chancellor Voss capture alive, and version 21 saves. The [connected M18 transit](plans/m18-connected-transit-20261017.md)
+implements All Systems Normal Recovery Square relief depot check-in, bot diagnostic rupture defense, Collector clinic roadblock breach, maintenance flank stair ascent, Upper Overlook planetary wipe survey, Evacuation Concourse defense, Episode V continue refill to 3, and version 22 saves.
+The immediate rung is [development convergence](plans/development-convergence-20261017.md):
+repair and validate the inherited M15-M18 implementation, resolve admission and
+match-description issues #407-#408, then pad controls and readable narration
+#409-#410, and return to one reviewed main with passing CI and an updated release.
+The interface work #411-#418 follows its existing dependencies: palette and type,
+status bar, event tiers, accessibility, terminal polish, signature moments and
+the README front door. Preserve their rendered and human acceptance gates.
+Only then advance the connected campaign to [Planned Works](campaign/l19-planned-works.md)
+and [Local Exception](campaign/l20-local-exception.md), following the accepted
+ground escape and wipe-survival briefs and conditional epilogue.
+The [multiplayer excellence plan](plans/multiplayer-excellence-20261017.md)
+specifies sensory juice, announcer barks, rocket jump blast physics, host UI mutators and Conquest tension
+benchmarked against classic multiplayer legends. The [bot and enemy AI excellence plan](plans/bot-and-enemy-ai-excellence-20261017.md)
+specifies telegraphed combat loops, attack tokens, visible enemy flinches, companion slot yielding and reload covering. Each
 bounded round returns to one reviewed main with passing CI before the next.
 Human and final-art acceptance stay separate.
 
@@ -484,12 +516,7 @@ the first finite Rocket Launcher and connects relay, hazard, voluntary worker
 choices, guarded gallery and physical lift departure to version 17 saves.
 The [foundry round](plans/m13-connected-round-20261013.md) records verification
 and integration status. Ordinary campaign supply and visual pursuit scale by
-Assisted, Standard, and Severe. Connected M15 through M20 and the conditional
-epilogue remain unbuilt. The Walker foundation now has native and ordinary
-rendered clears. Connected M14 is the current campaign increment following the
-v0.84.0 foundation release. Foundry art, balance and fresh-player
-acceptance retain their own gates. Development grayboxes for levels 15 through 20, and a
-sheltered trench on the level 14 battlefield, are not missions. The epilogue
+Assisted, Standard, and Severe. Connected M15 through M18 are under convergence review. Connected M19, M20 and the conditional epilogue remain unbuilt. Their retained development grayboxes are not connected missions. The epilogue
 remains a plan. The optional M12 secret stays separate because it changes
 canonical map bytes.
 
@@ -814,7 +841,24 @@ current work.
    modern boomer shooters this game is measured against.
 5. **The fun loop.**
    - Audit the twenty level briefs against the maximum-fun checks, and
-     simplify what reads complicated.
+     simplify what reads complicated. The [campaign fun and level design audit](plans/campaign-fun-and-level-design-audit-20261017.md)
+     specifies the seven golden rules of `MAP-DESIGN.md`, tight-by-default spatial discipline,
+     and encounter shapes across levels 16 through 20 and the Epilogue.
+   - [Bot and enemy AI excellence](plans/bot-and-enemy-ai-excellence-20261017.md):
+     universal 120-degree perception and reaction delays across CTF, Sabotage and
+     campaign guards; an encounter attack-token manager that prevents simultaneous
+     unreadable volleys and coordinates suppression anchors, flankers and backline
+     repair; pre-fire audio tells and optic glints for infantry; companion
+     peripheral slot following and reload covering fire; and tactical vocoder barks
+     and multiplayer radio callouts.
+   - [Multiplayer excellence](plans/multiplayer-excellence-20261017.md):
+     elevate the working 5-mode, 8-map multiplayer suite to the classic S-tier benchmarks of
+     Doom II, Battlefield 1942, Halo and GoldenEye 007: arena booth Host voice barks
+     for multikills and objectives; metallic hit confirmation chimes with pitch-scaled feedback;
+     authoritative blast impulse and rocket jumping physics; Super Shotgun meatshot point-blank tuning;
+     unlocking all modes, mutators (Licence to Kill, Golden Rail, Slappers Only) and quick-launch
+     presets in the desktop host GUI; Conquest ticket bleed warning sirens;
+     and Sudden Death overtime deciding tied matches.
    - Refine the shipped end-of-level tally: kills, secrets, deaths and measured
      time. The current [local best-time increment](plans/host-rotation-campaign-bests-20261007.md)
      compares retained compatible human completions; reviewed authored pars

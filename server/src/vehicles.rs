@@ -239,6 +239,7 @@ pub fn seat_feet(state: &VehicleState, seat: VehicleSeat) -> [f32; 3] {
         (VehicleKind::Boat, VehicleSeat::Driver) => [-0.2, 0.65, -0.4],
         (VehicleKind::Boat, VehicleSeat::Gunner) => [-1.0, 0.95, 0.0],
         (VehicleKind::LightAircraft, _) => [1.45, 0.80, 0.0],
+        (VehicleKind::Motorcycle, _) => [0.0, 0.60, 0.0],
     };
     local_point(state.position, state.yaw, local)
 }
@@ -294,11 +295,13 @@ pub fn dimensions(kind: VehicleKind) -> [f32; 3] {
         VehicleKind::Jeep => [HALF_LENGTH, HALF_WIDTH, BODY_TOP],
         VehicleKind::Boat => [2.4, 1.1, 1.6],
         VehicleKind::LightAircraft => [4.0, 4.6, 1.8],
+        VehicleKind::Motorcycle => [1.1, 0.45, 1.1],
     }
 }
 
 pub fn supports_seat(kind: VehicleKind, seat: VehicleSeat) -> bool {
-    kind != VehicleKind::LightAircraft || seat == VehicleSeat::Driver
+    !matches!(kind, VehicleKind::LightAircraft | VehicleKind::Motorcycle)
+        || seat == VehicleSeat::Driver
 }
 
 pub fn entry_radius(kind: VehicleKind) -> f32 {
@@ -309,9 +312,29 @@ pub fn entry_radius(kind: VehicleKind) -> f32 {
     }
 }
 
+pub fn clear_motorcycle(position: [f32; 3], yaw: f32, arena: &Arena) -> bool {
+    if !position.iter().all(|v| v.is_finite()) || !yaw.is_finite() {
+        return false;
+    }
+    let [_, half_width, height] = dimensions(VehicleKind::Motorcycle);
+    [-0.65, 0.0, 0.65].into_iter().all(|offset| {
+        let p = local_point(position, yaw, [offset, 0.0, 0.0]);
+        p[0].abs() <= arena.half - half_width
+            && p[2].abs() <= arena.half - half_width
+            && !arena.solids.iter().any(|solid| {
+                solid.top > p[1] + 0.2 + CONTACT_EPSILON
+                    && solid.bottom < p[1] + height + 0.8 - CONTACT_EPSILON
+                    && solid.blocks(p[0], p[2], half_width)
+            })
+    })
+}
+
 pub fn clear_kind(kind: VehicleKind, position: [f32; 3], yaw: f32, arena: &Arena) -> bool {
     if kind == VehicleKind::Jeep {
         return clear_body(position, yaw, arena);
+    }
+    if kind == VehicleKind::Motorcycle {
+        return clear_motorcycle(position, yaw, arena);
     }
     if !position.iter().all(|v| v.is_finite()) || !yaw.is_finite() {
         return false;
@@ -416,6 +439,78 @@ pub fn vehicle_step(
             state.vy = 0.0;
         }
         if clear_body(candidate, yaw, arena) {
+            state.position = candidate;
+            state.yaw = yaw;
+        } else {
+            state.speed = 0.0;
+            break;
+        }
+    }
+    state
+}
+
+pub fn motorcycle_step(
+    mut state: VehicleMotion,
+    input: VehicleInput,
+    dt: f32,
+    arena: &Arena,
+) -> VehicleMotion {
+    if !dt.is_finite()
+        || dt <= 0.0
+        || dt > 0.05
+        || !state.position.iter().all(|v| v.is_finite())
+        || !state.yaw.is_finite()
+        || !state.speed.is_finite()
+        || !state.vy.is_finite()
+    {
+        return state;
+    }
+    let throttle = i32::from(input.forward) - i32::from(input.back);
+    let top_speed = 14.0;
+    let reverse_speed = 4.0;
+    let target = if throttle > 0 {
+        top_speed
+    } else if throttle < 0 {
+        -reverse_speed
+    } else {
+        0.0
+    };
+    let rate = if input.brake {
+        35.0
+    } else if throttle == 0 {
+        6.0
+    } else if state.speed * (throttle as f32) < 0.0 {
+        24.0
+    } else {
+        14.0
+    };
+    let target = if input.brake { 0.0 } else { target };
+    state.speed += (target - state.speed).clamp(-rate * dt, rate * dt);
+    state.speed = state.speed.clamp(-reverse_speed, top_speed);
+    let turn = (i32::from(input.right) - i32::from(input.left)) as f32;
+    let angular =
+        turn * 2.2 * (state.speed / 3.0).clamp(-1.0, 1.0) / (1.0 + state.speed.abs() * 0.03);
+    let steps = ((state.speed.abs() * dt / 0.1).ceil() as usize).max(4);
+    let step = dt / steps as f32;
+    for _ in 0..steps {
+        let yaw = crate::movement::normalize_yaw(state.yaw + angular * step);
+        let mut candidate = state.position;
+        candidate[0] += yaw.cos() * state.speed * step;
+        candidate[2] += yaw.sin() * state.speed * step;
+        let support = [-0.65, 0.0, 0.65]
+            .into_iter()
+            .map(|offset| {
+                let p = local_point(candidate, yaw, [offset, 0.0, 0.0]);
+                arena.support_height(p[0], p[2], state.position[1] + 0.3)
+            })
+            .fold(0.0_f32, f32::max);
+        state.vy -= GRAVITY * step;
+        candidate[1] += state.vy * step;
+        if candidate[1] <= support {
+            candidate[1] = support;
+            state.vy = 0.0;
+        }
+        if clear_motorcycle(candidate, yaw, arena) {
             state.position = candidate;
             state.yaw = yaw;
         } else {

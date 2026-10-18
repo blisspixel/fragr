@@ -304,6 +304,10 @@ impl GameState {
             }),
             m14: None,
             m13: None,
+            m15: None,
+            m16: None,
+            m17: None,
+            m18: None,
         })
     }
     /// Materialize prepared aid jeeps atomically, only when their parked footprints are currently empty.

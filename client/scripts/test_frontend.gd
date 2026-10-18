@@ -143,9 +143,16 @@ func _run() -> void:
 	owned.run_preview["mission"] = MissionState.M14_ID
 	menu._show("single")
 	_check(column.get_node_or_null("LaunchAuthoritySaved") != null and menu._arrival_for_preview(owned.run_preview), "completed M13 offers the launch-work arrival and saved continuation")
+	owned.run_preview["mission"] = MissionState.M15_ID
+	menu._show("single")
+	_check(column.get_node_or_null("CivicPressureValveSaved") != null and menu._arrival_for_preview(owned.run_preview), "completed M14 offers the stadium saved continuation and arrival")
+	for mission: String in [MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID]:
+		owned.run_preview["mission"] = mission
+		menu._show("single")
+		_check(column.get_node_or_null(menu._saved_mission_button(mission)) != null and menu._arrival_for_preview(owned.run_preview), "completed predecessor offers " + mission)
 	owned.run_preview["mission"] = LocalMatch.NEXT_MISSION
 	menu._show("single")
-	_check(column.get_node_or_null("LaunchAuthoritySaved") == null and _menu_text(column).contains(tr("M14_NEXT_PENDING")), "pending M15 has no mission launch button")
+	_check(column.get_node_or_null("CivicPressureValveSaved") == null and _menu_text(column).contains(tr("M18_NEXT_PENDING")), "pending M19 has no mission launch button")
 	menu._onward_pending = true
 	var saved_preview: Dictionary = owned.run_preview.duplicate(true)
 	owned.run_preview = {"status": "loading"}
@@ -159,18 +166,18 @@ func _run() -> void:
 	menu._try_onward()
 	_check(not menu._onward_pending and not menu._launch_pending and menu._page == "single",
 		"an unbuilt next mission settles the onward request on Single Player without launching")
-	_check(_menu_text(column).contains("NEXT: CIVIC PRESSURE VALVE") and _menu_text(column).contains("2 continues left") \
-		and _menu_text(column).contains("Run body: HUMAN"), "pending M15 previews mission, shared continues and saved body")
+	_check(_menu_text(column).contains("NEXT: PLANNED WORKS") and _menu_text(column).contains("2 continues left") \
+		and _menu_text(column).contains("Run body: HUMAN"), "pending M19 previews mission, shared continues and saved body")
 	owned.run_preview["body"] = null
 	menu._show("single")
 	_check(_menu_text(column).contains("Run body is not bound yet") and column.get_node_or_null("ChooseRunBody") == null,
-		"pending M15 leaves an unbound body visible without an unavailable selector")
+		"pending M19 leaves an unbound body visible without an unavailable selector")
 	menu._show("practice")
 	var development: OptionButton = column.get_node("DevelopmentMission") as OptionButton
-	_check(development.item_count == 13 and development.get_item_text(4).contains("PORT OF ENTRY")
+	_check(development.item_count == 17 and development.get_item_text(16) == tr("M18_PROTOTYPE_TITLE") and development.get_item_text(4).contains("PORT OF ENTRY")
 		and development.get_item_text(5).contains("DECLARED GOODS") and development.get_item_text(6).contains("CUSTODIAN OF RECORD")
 		and development.get_item_text(7).contains("PASSENGER MANIFEST") and development.get_item_text(8) == tr("M10_PROTOTYPE_TITLE")
-		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE") and development.get_item_text(10) == tr("M12_PROTOTYPE_TITLE") and development.get_item_text(11) == tr("M13_PROTOTYPE_TITLE") and development.get_item_text(12) == tr("M14_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes the launch works")
+		and development.get_item_text(9) == tr("M11_PROTOTYPE_TITLE") and development.get_item_text(10) == tr("M12_PROTOTYPE_TITLE") and development.get_item_text(11) == tr("M13_PROTOTYPE_TITLE") and development.get_item_text(12) == tr("M14_PROTOTYPE_TITLE") and development.get_item_text(13) == tr("M15_PROTOTYPE_TITLE"), "compact practice selector retains old indices and includes the stadium")
 	_check(column.get_node_or_null("DevelopmentMission") != null and _menu_text(column).contains("NO SAVE OVERWRITE"), "M03 development entry states save isolation")
 	_check(column.get_node_or_null("LaunchDevelopmentMission") != null, "M04 has a separate labeled development entry")
 	var previous_mission: String = owned.mission

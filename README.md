@@ -21,8 +21,8 @@ Local play and self-hosting need no account or paid service.
 ## Play now
 
 Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
-The current source build has fourteen connected development levels through
-Launch Authority, mission-entry saves, finite ammunition and three continues per episode.
+The current source build has eighteen connected development levels through
+All Systems Normal, mission-entry saves, finite ammunition and three continues per episode.
 Check the release notes for the contents of a downloaded package. The finished target
 is twenty levels across five episodes. Art, pacing and fresh-player review are
 still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).

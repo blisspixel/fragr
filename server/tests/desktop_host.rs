@@ -437,8 +437,8 @@ fn parent_closed_before_startup_does_not_advertise_a_room() {
 #[test]
 fn invalid_desktop_configuration_and_busy_bind_never_emit_readiness() {
     for args in [
-        vec!["--mode", "ffa"],
-        vec!["--mode", "ctf"],
+        vec!["--mode", "ctf", "--map", "2"],
+        vec!["--mode", "ffa", "--friendly-fire"],
         vec!["--mode", "sabotage", "--map", "4"],
         vec!["--mode", "sabotage", "--map", "1", "--sabotage-five-v-five"],
         vec!["--mode", "tdm", "--bots", "11"],
@@ -487,8 +487,22 @@ fn invalid_desktop_configuration_and_busy_bind_never_emit_readiness() {
         vec!["--mode", "tdm", "--bind", "0.0.0.0:0"],
         vec!["--mode", "tdm", "--bind", "[::1]:0"],
         vec!["--mode", "tdm", "--bind", "invalid"],
-        vec!["--mode", "tdm", "--mutator", "rail-only"],
-        vec!["--mode", "tdm", "--friendly-fire"],
+        vec![
+            "--mode",
+            "tdm",
+            "--mutator",
+            "golden-rail",
+            "--mutator",
+            "licence-to-kill",
+        ],
+        vec![
+            "--mode",
+            "tdm",
+            "--mutator",
+            "rail-only",
+            "--mutator",
+            "shotgun-only",
+        ],
         vec!["--mode", "tdm", "--map-rotate"],
         vec!["--local-mission", "recall_notice"],
         vec!["--local-run-preview"],

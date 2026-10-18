@@ -187,7 +187,7 @@ func load_from_disk() -> void:
 			set_value(section, key, cfg.get_value(section, key, fallback))
 	# Actions added after a file was written take only defaults nobody claimed.
 	for added: String in ["throw_grenade", "place_mine", "place_remote_mine", "trigger_remote_mines", "weapon_6", "scope", "reload", "duck"]:
-		if not cfg.has_section_key("bindings", added):
+		if not cfg.has_section_key("bindings", added) or cfg.get_value("bindings", added, "") == "":
 			InputBindings.adopt_unclaimed_defaults(self, added)
 
 func save_to_disk() -> Error:

@@ -182,8 +182,8 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Look vertically | Page Up and Page Down | Mouse | Right stick |
 | Center view | End | End | Right stick click |
 | Fire | Right Ctrl | Left mouse | RT |
-| Crouch | Left Ctrl, hold | Left Ctrl, hold | not bound |
-| Reload | R | R | not bound |
+| Crouch | Left Ctrl, hold | Left Ctrl, hold | D-pad left, hold |
+| Reload | R | R | D-pad down |
 | Scope | Z, hold | Right mouse or Z, hold | Left stick click |
 | Throw grenade | G | G or middle mouse | LT |
 | Use | Enter | F | B |
@@ -199,7 +199,7 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 
 Hold Tab to list every fighter. The corner keeps the first four while you are watching, and it stays hidden in first person until you hold that key. In a team match, someone on your side is marked OURS and stays bright. The other side is marked THEIRS and warms toward red. A spectator still reads UNION and FREE on the full plate.
 
-Hold Left Ctrl to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
+Hold Left Ctrl or D-pad left to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
 
 Keyboard turning ramps over a quarter second. Mouse look uses raw counts,
 without smoothing or aim assist. Gamepad and keyboard look can use Off, Light
@@ -215,8 +215,8 @@ Railgun and Arc. The Repeater foundation is not granted in current campaign
 maps. The wheel and bracket keys skip guns you do not own. Campaign ammo
 is one count per type, and that count includes the rounds in each gun. The
 corner shows rounds in the gun, then what is left to load. They add up with
-the other guns on the same type. R reloads the gun in hand. The pad is not
-bound. An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
+the other guns on the same type. R or D-pad down reloads the gun in hand.
+An empty gun does not fire while rounds remain in the bag. Pistol and Rifle share
 Bullets; Shotgun uses Shells; Railgun and Sniper use Cells. A seven-pellet Shotgun blast
 costs one shell. An arcade human spawns with the rifle, shotgun and railgun
 already loaded, and a finite bag behind them: 60 more rifle rounds, 18 more

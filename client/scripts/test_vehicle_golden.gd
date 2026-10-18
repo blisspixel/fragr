@@ -2,7 +2,7 @@ extends SceneTree
 
 func _initialize() -> void:
 	var vectors: Array = []
-	for path: String in ["res://golden/vehicle_vectors.json", "res://golden/water_air_vectors.json"]:
+	for path: String in ["res://golden/vehicle_vectors.json", "res://golden/water_air_vectors.json", "res://golden/motorcycle_vectors.json"]:
 		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 		if not data is Dictionary or data.get("version") != 1 or not data.get("vectors") is Array or data.vectors.is_empty():
 			push_error("vehicle goldens: missing native vectors " + path)

@@ -14,6 +14,10 @@ const M10_ID: String = "common_carrier"
 const M11_ID: String = "right_of_search"
 const M13_ID: String = "weight_of_permission"
 const M14_ID: String = "launch_authority"
+const M15_ID: String = "civic_pressure_valve"
+const M16_ID: String = "freedom_of_movement"
+const M17_ID: String = "peace_without_interruption"
+const M18_ID: String = "all_systems_normal"
 const M12_ID: String = "terms_of_cooperation"
 const DIFFICULTIES: Array[String] = ["assisted", "standard", "severe"]
 ## Revision 3 adds Notary timing. Revision 2 removed magazines and reloading.
@@ -22,8 +26,107 @@ const RULES_REVISION: int = 4
 const PHASES: Array[String] = ["briefing", "find_transfer", "reach_lift", "departed"]
 const RUN_STATUSES: Array[String] = ["playing", "continue", "failed", "complete", "abandoned"]
 const INVALID: String = "The server sent invalid mission state. Connection closed."
+const ORDERED_IDS: Array[String] = [M03_ID, M04_ID, M05_ID, M06_ID, M07_ID, M08_ID, M09_ID, M10_ID, M11_ID, M12_ID, M13_ID, M14_ID, M15_ID, M16_ID, M17_ID, M18_ID]
+
+## Identity of an already validated MapInfo. Shared by entry and live controls.
+static func id_for_map(info: Dictionary) -> String:
+	if info.get("mission") is Dictionary:
+		return str(info["mission"].get("id", ""))
+	if info.get("m02_objectives") != null:
+		return M02_ID
+	for index: int in range(ORDERED_IDS.size()):
+		if info.get("m%02d" % (index + 3)) is Dictionary:
+			return ORDERED_IDS[index]
+	return ""
+
+static func ordered_facts_error(value: Dictionary, ids: Array[String], uses: Array[int], phase: String, tick: int) -> String:
+	var completed: Variant = value.get("completed")
+	if phase not in ["briefing", "in_progress", "departed"] or not completed is Array:
+		return INVALID
+	var n: int = completed.size()
+	if n > ids.size() + 1 or (phase == "departed") != (n == ids.size() + 1) \
+		or value.has("current") != (n <= ids.size()) or (phase == "briefing" and n != 0) \
+		or (phase == "departed" and tick == 0):
+		return INVALID
+	var order: Array[String] = ids.duplicate()
+	order.append("party_departed")
+	for i: int in range(n):
+		if completed[i] != order[i]:
+			return INVALID
+	if n <= ids.size():
+		var current: Variant = value["current"]
+		if n == ids.size() or n in uses:
+			if not M03MissionState._exact(current, ["id", "action"]) or current["id"] != order[n] \
+				or not M03MissionState._exact(current["action"], ["kind", "target"]) or current["action"]["kind"] != "use" \
+				or not M03MissionState._exact(current["action"]["target"], ["decoration", "approach"]):
+				return INVALID
+			var target: Dictionary = current["action"]["target"]
+			if not EquipmentState.integer(target["decoration"], MapDecoration.MAX_DETAILS - 1) or not _point(target["approach"], 512.0):
+				return INVALID
+		elif not M06MissionState._arrival(current, order[n], 512.0):
+			return INVALID
+	return ""
+
+## M16-M18 bind their ordered facts to the accepted map and retain monotone facts.
+static func late_contract_error(message: Dictionary, geometry: Dictionary, previous: Dictionary, key: String, flags: Dictionary) -> String:
+	var value: Dictionary = message["state"]
+	var keys: Array[String] = ["id", "rules", "attempt", "phase", "changed_at", "party", "prompts", key]
+	if value.has("run"):
+		keys.append("run")
+	if not M03MissionState._exact(value, keys) or not geometry.get(key) is Dictionary \
+		or (value.has("run") and not valid_run(value)):
+		return INVALID
+	var facts: Dictionary = value[key]
+	var g: Dictionary = geometry[key]
+	var n: int = facts["completed"].size()
+	if n < 7:
+		var expected: Dictionary = g["objectives"][n] if n < 6 else {"id": "party_departed", "action": {"kind": "use", "target": g["departure"]}}
+		if facts.get("current") != expected:
+			return INVALID
+	for fact: String in flags:
+		if facts[fact] != g[flags[fact]]:
+			return INVALID
+	var all_aboard: bool = not value["party"].is_empty()
+	for member: Dictionary in value["party"]:
+		all_aboard = all_aboard and member["ready"] and member["alive"] and member["aboard"]
+		for character: String in member["name"]:
+			var code: int = character.unicode_at(0)
+			if code < 32 or (code >= 127 and code <= 159):
+				return INVALID
+	var allowed: bool = n == 6 and all_aboard
+	match key:
+		"m16": allowed = allowed or (n >= 2 and n <= 5 and not facts["bus_freed"])
+		"m17": allowed = allowed or (n >= 1 and not facts["kessel_secured"]) or (n >= 3 and not facts["core_unsealed"]) or (n == 5 and not facts["voss_captured"])
+		"m18": allowed = allowed or (n == 0 and not facts["challenges"]["aid_delivered"]) or (n == 4 and not facts["overlook_witnessed"])
+	for prompt: Dictionary in value["prompts"]:
+		if not M03MissionState._exact(prompt, ["player_id", "kind"]) or prompt["kind"] != "objective_use" or value["phase"] != "in_progress" or not allowed:
+			return INVALID
+	if not previous.is_empty():
+		var old: Dictionary = previous["state"]
+		if old.get("id") != value["id"]:
+			return INVALID
+		if value["attempt"] == old["attempt"]:
+			var before: Dictionary = old[key]
+			var phases: Array[String] = ["briefing", "in_progress", "departed"]
+			if n < before["completed"].size() or phases.find(value["phase"]) < phases.find(old["phase"]) or value["changed_at"] < old["changed_at"]:
+				return INVALID
+			for fact: String in facts:
+				if facts[fact] is bool and before[fact] and not facts[fact]:
+					return INVALID
+			for fact: String in facts["challenges"]:
+				if before["challenges"][fact] and not facts["challenges"][fact]:
+					return INVALID
+	return ""
 
 static func map_error(info: Dictionary) -> String:
+	if info.has("m18"):
+		return M18MissionState.map_error(info)
+	if info.has("m17"):
+		return M17MissionState.map_error(info)
+	if info.has("m16"):
+		return M16MissionState.map_error(info)
+	if info.has("m15"):
+		return M15MissionState.map_error(info)
 	if info.has("m14"):
 		return M14MissionState.map_error(info)
 	if info.has("m13"):
@@ -90,6 +193,14 @@ static func map_error(info: Dictionary) -> String:
 
 static func validation_error(message: Dictionary, geometry: Dictionary, previous: Dictionary = {}) -> String:
 	var claimed: Variant = message.get("state")
+	if geometry.get("id") == M18_ID or (claimed is Dictionary and claimed.get("id") == M18_ID):
+		return M18MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M17_ID or (claimed is Dictionary and claimed.get("id") == M17_ID):
+		return M17MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M16_ID or (claimed is Dictionary and claimed.get("id") == M16_ID):
+		return M16MissionState.validation_error(message, geometry, previous)
+	if geometry.get("id") == M15_ID or (claimed is Dictionary and claimed.get("id") == M15_ID):
+		return M15MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M14_ID or (claimed is Dictionary and claimed.get("id") == M14_ID):
 		return M14MissionState.validation_error(message, geometry, previous)
 	if geometry.get("id") == M13_ID or (claimed is Dictionary and claimed.get("id") == M13_ID):
@@ -246,6 +357,14 @@ static func m02_map_error(info: Dictionary) -> String:
 
 ## The validated contract a later mission message must match, or empty.
 static func geometry_for(info: Dictionary) -> Dictionary:
+	if info.has("m18"):
+		return M18MissionState.geometry_for(info)
+	if info.has("m17"):
+		return M17MissionState.geometry_for(info)
+	if info.has("m16"):
+		return M16MissionState.geometry_for(info)
+	if info.has("m15"):
+		return M15MissionState.geometry_for(info)
 	if info.has("m14"):
 		return M14MissionState.geometry_for(info)
 	if info.has("m13"):

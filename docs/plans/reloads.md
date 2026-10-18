@@ -28,7 +28,10 @@ A joined human reloads with R. The corner shows rounds in the gun and what is le
 
 ## Verification
 
-Not merged. The night process does not have it.
+The October 6 results below are historical pre-merge evidence. Finite human
+magazines are now implemented. October 17 convergence adds default pad reload
+and verifies empty, reload and refire through real owned campaign and multiplayer
+sockets. See the [current evidence](development-convergence-20261017.md).
 
 Finite bag, checked 2026-10-06:
 

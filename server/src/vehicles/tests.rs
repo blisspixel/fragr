@@ -16,6 +16,137 @@ fn motion() -> VehicleMotion {
 }
 
 #[test]
+fn motorcycle_shared_vectors_cover_driving_collision_and_landing() {
+    let forward = VehicleInput {
+        forward: true,
+        ..Default::default()
+    };
+    let mut wall = flat();
+    wall.solids.push(Solid {
+        min_x: 5.0,
+        max_x: 5.05,
+        min_z: -10.0,
+        max_z: 10.0,
+        bottom: 0.0,
+        top: 4.0,
+    });
+    assert!(
+        !clear_motorcycle([3.95, 0.0, 0.0], 0.0, &wall),
+        "declared 1.1 m nose must not enter the wall"
+    );
+    assert!(clear_motorcycle([3.89, 0.0, 0.0], 0.0, &wall));
+    let cases = [
+        ("accelerate", motion(), forward, flat(), 80),
+        (
+            "reverse",
+            motion(),
+            VehicleInput {
+                back: true,
+                ..Default::default()
+            },
+            flat(),
+            80,
+        ),
+        (
+            "brake",
+            VehicleMotion {
+                speed: 14.0,
+                ..motion()
+            },
+            VehicleInput {
+                brake: true,
+                ..Default::default()
+            },
+            flat(),
+            20,
+        ),
+        (
+            "turn",
+            motion(),
+            VehicleInput {
+                right: true,
+                ..forward
+            },
+            flat(),
+            80,
+        ),
+        ("thin_wall", motion(), forward, wall, 80),
+        (
+            "landing",
+            VehicleMotion {
+                position: [0.0, 4.0, 0.0],
+                vy: -2.0,
+                ..motion()
+            },
+            VehicleInput::default(),
+            flat(),
+            60,
+        ),
+    ];
+    let mut vectors = Vec::new();
+    for (name, initial, input, arena, steps) in cases {
+        let mut state = initial;
+        for _ in 0..steps {
+            state = motorcycle_step(state, input, 0.05, &arena);
+            assert!(clear_motorcycle(state.position, state.yaw, &arena));
+        }
+        match name {
+            "accelerate" => assert_eq!(state.speed, 14.0),
+            "reverse" => assert_eq!(state.speed, -4.0),
+            "brake" => assert_eq!(state.speed, 0.0),
+            "turn" => assert!(state.position[2].abs() > 1.0),
+            "thin_wall" => {
+                assert!(state.position[0] <= 3.9);
+                assert_eq!(state.speed, 0.0);
+            }
+            "landing" => {
+                assert_eq!(state.position[1], 0.0);
+                assert_eq!(state.vy, 0.0);
+            }
+            _ => unreachable!(),
+        }
+        vectors.push(serde_json::json!({ "name": format!("motorcycle_{name}"), "kind": "motorcycle", "initial": initial, "input": input, "arena": arena, "water_regions": [], "steps": steps, "dt": 0.05, "expected": state }));
+    }
+    let document = serde_json::json!({ "version": 1, "vectors": vectors });
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../client/golden/motorcycle_vectors.json");
+    if std::env::var_os("FRAGR_UPDATE_MOTORCYCLE_VECTORS").is_some() {
+        std::fs::write(
+            &path,
+            format!("{}\n", serde_json::to_string_pretty(&document).unwrap()),
+        )
+        .unwrap();
+    }
+    let expected: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    assert_eq!(expected["version"], 1);
+    assert_eq!(expected["vectors"].as_array().unwrap().len(), 6);
+    for (actual, fixture) in document["vectors"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .zip(expected["vectors"].as_array().unwrap())
+    {
+        assert_eq!(actual["name"], fixture["name"]);
+        let actual: VehicleMotion = serde_json::from_value(actual["expected"].clone()).unwrap();
+        let expected: VehicleMotion = serde_json::from_value(fixture["expected"].clone()).unwrap();
+        for (a, b) in actual
+            .position
+            .into_iter()
+            .chain([actual.yaw, actual.speed, actual.vy])
+            .zip(
+                expected
+                    .position
+                    .into_iter()
+                    .chain([expected.yaw, expected.speed, expected.vy]),
+            )
+        {
+            assert!((a - b).abs() < 0.001, "native {a}, fixture {b}");
+        }
+    }
+}
+
+#[test]
 fn speed_reverse_brake_and_yaw_are_bounded() {
     let arena = flat();
     let mut state = motion();

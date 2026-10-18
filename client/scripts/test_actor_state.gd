@@ -20,6 +20,13 @@ func _run() -> void:
 		{"id": "human", "name": "Meat", "campaign": {"side": "participant"}},
 		{"id": "agent", "name": "Probe", "campaign": {"side": "participant"}}, actor.duplicate(true)]}
 	_check(ActorState.validation_error(snapshot).is_empty(), "valid campaign identity accepted")
+	for placard: int in [4, 12, 44, 71]:
+		var entrant: Dictionary = {"tick": 1, "players": [{"id": "entrant", "name": "Entrant", "hp": 100, "weapon": "Fists", "campaign": {"side": "entrant", "placard": placard, "armed": false}}]}
+		_check(ActorState.validation_error(JSON.parse_string(JSON.stringify(entrant))).is_empty(), "wire-decoded entrant placard accepted")
+		entrant.players[0].campaign.placard = 4.5
+		_check(not ActorState.validation_error(entrant).is_empty(), "fractional entrant refused")
+		entrant.players[0].campaign.placard = 5
+		_check(not ActorState.validation_error(entrant).is_empty(), "unregistered entrant refused")
 	_check(not ActorState.validation_error({"tick": 12, "players": [
 		{"id": "human", "campaign": {"side": "participant"}}]}).is_empty(),
 		"a participant row needs a name")
