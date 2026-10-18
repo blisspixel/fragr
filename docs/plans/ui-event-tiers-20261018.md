@@ -1,7 +1,17 @@
 # Frag feed, corner voice and objective calls
 
-Status: **implemented**, [PR #423](https://github.com/blisspixel/fragr/pull/423),
+Status: **shipped**, [PR #423](https://github.com/blisspixel/fragr/pull/423),
 #413 within [#418](https://github.com/blisspixel/fragr/issues/418).
+Merged at `63185e313af92f2725b26fad7a61fd41e64fc319`, with passing main CI
+[39162974158](https://github.com/blisspixel/fragr/actions/runs/39162974158).
+[v0.89.0](https://github.com/blisspixel/fragr/releases/tag/v0.89.0) is published
+after release run [39165796161](https://github.com/blisspixel/fragr/actions/runs/39165796161).
+All three downloaded desktop archives passed SHA256 and ZIP integrity checks.
+The downloaded Linux package passed installation, TDM and 5v5 Sabotage
+readiness/wire/owned-stop checks, and its server reported the exact tagged
+commit and release in `/status`. All 598 client checks, including 191 harnesses,
+passed on Linux, macOS and Windows. Issue #413 is closed.
+
 Base: reviewed main `8ecbb99c77a74dbb28ff8090fc86f5b58d36a881`, PR #422,
 with passing main CI [39150766048](https://github.com/blisspixel/fragr/actions/runs/39150766048).
 v0.88.0 is published with three verified desktop archives and a passing downloaded
@@ -471,6 +481,10 @@ platform. It does not require an operating system's particular fallback font.
 | Ticks exceeding the 50 ms budget | 0 |
 | Context | Linux x86_64 release, concurrent unrelated work; no GPU or scale claim |
 
-Final merge gates: a clean complete client run and PR/main CI including coverage
-and all desktop client checks. Desktop packaging and publication remain release
-gates. The linked PR and workflow receipts own those final results. Work remains $0.
+Final merge and release gates passed. PR CI 39159372964 and desktop package
+run 39159372979 passed at reviewed head `c5546fe`; main CI 39162974158 passed
+at the source-tree-identical merge `63185e3`, with 92.80% unfiltered line coverage.
+Release run 39165796161 and all three downloaded archive checks passed before
+v0.89.0 publication. The downloaded Linux install and exact tagged server build
+checks passed. Human and final campaign acceptance remain separate. Work used
+$0 cash and zero generation credits.

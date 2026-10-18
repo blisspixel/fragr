@@ -437,8 +437,14 @@ shipped through PR #421. The [bounded client checker repair](plans/bounded-clien
 shipped through PR #422 to `8ecbb99`, with passing main CI 39150766048.
 Published v0.88.0 has three verified desktop archives, including the downloaded
 Linux installation and exact server build metadata checks.
-The immediate rung is the [event-tier round](plans/ui-event-tiers-20261018.md),
-#413: protected frag rows, independent corner voice and sequential objective calls.
+The [event-tier round](plans/ui-event-tiers-20261018.md), #413, shipped through
+PR #423 at `63185e3`, with passing main CI 39162974158 and published v0.89.0.
+All three downloaded desktop archives passed verification, including the Linux
+installation and exact server build metadata checks.
+The immediate rung is [accessibility](plans/ui-accessibility-preparation-20261018.md),
+#414: bounded screen flashes, HUD scale, Large text and high-contrast team marks.
+Reduced motion already shipped in #412. Preparation is recorded; the remaining
+accessibility features are not implemented.
 The interface work #411-#418 follows its existing dependencies: palette and type,
 status bar, event tiers, accessibility, terminal polish, signature moments and
 the README front door. Preserve their rendered and human acceptance gates.

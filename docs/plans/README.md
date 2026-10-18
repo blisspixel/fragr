@@ -18,10 +18,13 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [event-tier round](ui-event-tiers-20261018.md) is **implemented** in PR #423 for
-#413 within #418, following reviewed green main at `8ecbb99` and the v0.88.0 tag.
-v0.88.0 is published with three verified desktop archives and a passing
-downloaded Linux installation and exact server build metadata check.
+The [event-tier round](ui-event-tiers-20261018.md) **shipped** through PR #423 for
+#413 within #418 at `63185e3`, with passing main CI 39162974158.
+v0.89.0 is published with three verified desktop archives and passing
+downloaded Linux installation and exact server build metadata checks.
+The [accessibility preparation](ui-accessibility-preparation-20261018.md) is
+**planned**, with no feature implementation started. The Full build order owns
+its place in the sequence; #414 remains open.
 
 The [bounded client checks repair](bounded-client-checks-20261018.md) **shipped**
 through PR #422 with passing main CI 39150766048. Linux, macOS and Windows
@@ -44,7 +47,7 @@ It preserves six unpublished commits and the M16-M18 working tree and repairs
 priority issues #407-#410. Final main CI passes, including 2,142 native tests
 and 92.74% unfiltered line coverage. Three desktop archives and the downloaded
 Linux installation passed verification before publication. v0.85.0 remains a
-historical draft; v0.88.0 is the latest published release.
+historical draft; v0.89.0 is the latest published release.
 
 The [October 13 development round](build-round-20261013.md) **shipped** in
 [PR 401](https://github.com/blisspixel/fragr/pull/401) and v0.82.1, with passing
