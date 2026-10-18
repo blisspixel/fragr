@@ -271,3 +271,12 @@ msgstr "Return to menu"
 
 msgid "LOADING_DISCONNECTED"
 msgstr "Connection closed. Return to the menu to try again."
+
+msgid "SETTINGS_TAB_ACCESSIBILITY"
+msgstr "ACCESSIBILITY"
+
+msgid "SETTINGS_REDUCED_MOTION"
+msgstr "REDUCED MOTION"
+
+msgid "SETTINGS_REDUCED_MOTION_NOTE"
+msgstr "Stops decorative camera kicks, HUD pulses, weapon and pickup bob, and story pan/zoom. Aim, moving actors and machinery keep their normal motion."

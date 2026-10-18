@@ -93,6 +93,16 @@ func _check_reload_motion() -> void:
 			state = {}
 		motion.update("Rail" if reason == "swapped" else "Rocket", state, 107, 0.1, reason != "motion_off")
 		_check(motion.depth == 0.0, reason + " clears the reload pose immediately")
+		motion.clear()
+	motion.update("Rocket", loadout, 100, 0.1, false)
+	motion.update("Rocket", loadout, 106, 0.1, true)
+	_check(motion.depth == 0.0, "reenabling motion cannot restart a reload observed while muted")
+	loadout.loaded[0].ready_at = 136
+	motion.update("Rocket", loadout, 120, 0.1, true)
+	motion.update("Rocket", loadout, 126, 0.1, true)
+	_check(motion.depth > 0.9, "a fresh accepted deadline can move after reenable")
+	motion.clear()
+	loadout.loaded[0].ready_at = 116
 	# A late first observation uses the remaining received interval; a longer
 	# future rule does not inherit today's sixteen-tick duration in this client.
 	loadout["loaded"][0]["ready_at"] = 240

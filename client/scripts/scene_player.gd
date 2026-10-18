@@ -21,6 +21,7 @@ var page: int = 0
 var finished: bool = false
 ## Captions hide only while narration is actually speaking; text-only shots always show.
 var captions_enabled: bool = true
+var reduced_motion: bool = false
 var _title: Label
 var _speaker: Label
 var _body: Label
@@ -68,6 +69,7 @@ func _ready() -> void:
 	var preferences: FragrSettings = FragrSettings.for_tree(get_tree())
 	preferences.load_from_disk()
 	captions_enabled = bool(preferences.get_value("gameplay", "story_captions"))
+	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
 	var backdrop: MenuBackdrop = MenuBackdrop.new()
 	backdrop.theme_context = MenuTheme.Context.GAMEPLAY
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -258,15 +260,26 @@ func _layout(has_still: bool) -> void:
 		_scroll.custom_minimum_size.y = 0
 
 ## Ken Burns, kept subtle: at most a few percent of drift, eased, never a cut.
-func _start_motion(current: Dictionary, has_still: bool) -> void:
+func apply_preferences(preferences: FragrSettings) -> void:
+	captions_enabled = bool(preferences.get_value("gameplay", "story_captions"))
+	reduced_motion = bool(preferences.get_value("accessibility", "reduced_motion"))
+	if reduced_motion and _still != null:
+		_stop_motion()
+	if _body != null:
+		_refresh()
+
+func _stop_motion() -> void:
 	if _motion != null:
 		_motion.kill()
 		_motion = null
 	_still.scale = Vector2.ONE
 	_still.position = Vector2.ZERO
+
+func _start_motion(current: Dictionary, has_still: bool) -> void:
+	_stop_motion()
 	var motion: Dictionary = current.get("motion", {})
 	var kind: String = str(motion.get("kind", "none"))
-	if not has_still or kind == "none":
+	if reduced_motion or not has_still or kind == "none":
 		return
 	var amount: float = float(motion.get("amount", DEFAULT_MOTION))
 	var size: Vector2 = _still_frame.size if _still_frame.size != Vector2.ZERO else get_viewport().get_visible_rect().size

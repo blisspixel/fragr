@@ -71,6 +71,9 @@ const DEFAULTS: Dictionary = {
 		# Scene captions while narration speaks. Text-only shots always show.
 		"story_captions": true,
 	},
+	"accessibility": {
+		"reduced_motion": false,
+	},
 }
 
 var _values: Dictionary = {}

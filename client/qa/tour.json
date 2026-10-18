@@ -188,6 +188,14 @@
       "note": "Separate master, radio, and effects controls with Save and Cancel."
     },
     {
+      "name": "settings_accessibility",
+      "at_seconds": 2,
+      "camera": "none",
+      "menu_page": "settings",
+      "settings_tab": "ACCESSIBILITY",
+      "note": "Shared reduced-motion preference with cosmetic scope, Save and Cancel."
+    },
+    {
       "name": "settings_controls",
       "at_seconds": 2,
       "camera": "none",

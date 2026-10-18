@@ -65,6 +65,10 @@ func _run() -> void:
 	panel.show_page("AUDIO")
 	(panel.find_child("music", true, false) as HSlider).value = 0.0
 	(panel.find_child("effects", true, false) as HSlider).value = 0.35
+	panel.show_page("ACCESSIBILITY")
+	var motion: Button = panel.find_child("reduced_motion", true, false) as Button
+	_check(motion != null and not motion.button_pressed, "shared accessibility page exposes reduced motion, off by default")
+	motion.button_pressed = true
 	_check(preferences.fov() == 75, "draft must not change active preferences")
 	panel.save()
 	_check(_closes == 1, "successful save closes the panel")
@@ -72,6 +76,7 @@ func _run() -> void:
 	loaded.load_from_disk()
 	_check(loaded.fov() == 85 and loaded.get_value("video", "fps_cap") == 120, "display settings survive a fresh store")
 	_check(loaded.get_value("video", "vsync") == true, "VSync survives a fresh store")
+	_check(loaded.get_value("accessibility", "reduced_motion") == true, "accessibility choice survives the shared draft save")
 	_check(loaded.get_value("video", "show_fps") == 2, "the frame counter mode survives a fresh store")
 	_check(loaded.get_value("controls", "mouse_sensitivity") == 2.25 and loaded.get_value("controls", "invert_y") == true, "control settings survive a fresh store")
 	_check(loaded.player_name() == "Keep this callsign", "settings save preserves the profile")
@@ -107,6 +112,19 @@ func _run() -> void:
 	camera.apply_preferences(loaded)
 	_check(lens.fov == 85 and lens.keep_aspect == Camera3D.KEEP_HEIGHT, "saved FOV reaches the camera in vertical units")
 	_check(camera.mouse_sensitivity == 2.25 and camera.invert_y, "saved aim values reach the camera")
+	loaded.set_value("accessibility", "reduced_motion", false)
+	camera.apply_preferences(loaded)
+	camera.camera_punch()
+	_check(camera.camera_shake_intensity > 0.0, "ordinary camera feedback is active")
+	loaded.set_value("accessibility", "reduced_motion", true)
+	camera.apply_preferences(loaded)
+	_check(camera.camera_shake_intensity == 0.0 and camera.camera_zoom_offset == 0.0, "reduced motion cancels active shake and zoom kick")
+	camera.camera_punch()
+	var followed: Node3D = Node3D.new()
+	camera.available_targets = [followed]
+	camera.cycle_next_target()
+	_check(camera.camera_shake_intensity == 0.0 and camera.camera_zoom_offset == 0.0 and lens.fov == 85, "manual/automatic target cycle stays available without decorative motion or lost FOV")
+	followed.free()
 	camera.free()
 	loaded.apply()
 	var radio: int = AudioServer.get_bus_index("Radio")

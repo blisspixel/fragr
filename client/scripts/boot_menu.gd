@@ -139,6 +139,8 @@ func _ready() -> void:
 
 func _apply_preferences() -> void:
 	_settings.apply()
+	if is_instance_valid(_opening):
+		_opening.apply_preferences(_settings)
 	_apply_render_preferences()
 
 func _apply_render_preferences() -> void:

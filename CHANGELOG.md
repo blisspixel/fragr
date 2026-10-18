@@ -4,6 +4,21 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.88.0 (2026-10-18)
+
+- Give health, armor and ammunition equal display numerals. Health changes at
+  50 and 25, keeps its exact count and bar, and pulses once on a fresh critical
+  injury. Empty magazines say EMPTY even when reserve rounds remain.
+- Center scores, clocks and objectives while keeping the corner to mode and
+  round state. Preserve capture information, Sabotage timing and all five
+  Conquest sites. Keep accepted participant scores through respawn and retain
+  final team/objective scores after the result card closes.
+- Add Reduced Motion to shared Accessibility settings. Cancel decorative
+  camera, HUD, weapon, pickup and story motion while retaining aim, accepted
+  attack/reload frames and world movement.
+- Reserve distinct space for context, notices, ammunition, radio and vehicle
+  controls. Keep full standings on the scoreboard binding.
+
 ## v0.87.0 (2026-10-18)
 
 - Unify menu and HUD chrome on the canonical palette. Front-end and gameplay

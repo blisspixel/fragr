@@ -230,10 +230,14 @@ func _ready():
 	vehicle_hud = VehicleHud.new()
 	vehicle_hud.name = "VehicleHud"
 	hud.add_child(vehicle_hud)
+	hud.regions.vehicle = vehicle_hud
+	vehicle_hud.geometry_changed.connect(hud.regions.layout)
+	vehicle_hud.visibility_changed.connect(hud.regions.layout)
 	arena_conquest = ArenaConquest.new()
 	add_child(arena_conquest)
 	conquest_hud = ConquestHud.new()
 	hud.add_child(conquest_hud)
+	hud.regions.conquest = conquest_hud
 	grenade_effects = GrenadeEffects.new()
 	grenade_effects.name = "GrenadeEffects"
 	grenade_effects.thrown.connect(func(owner_id: String) -> void:
@@ -606,6 +610,12 @@ func _apply_preferences() -> void:
 	settings.apply()
 	camera.apply_preferences(settings)
 	hud.apply_preferences(settings)
+	for pickup: Node in pickups.values():
+		if is_instance_valid(pickup):
+			pickup.set_reduced_motion(bool(settings.get_value("accessibility", "reduced_motion")))
+	for story: ScenePlayer in [opening, interlude]:
+		if is_instance_valid(story):
+			story.apply_preferences(settings)
 	if records != null:
 		hud.set_weapon_finish("standard" if _benchmark else str(records.customization["finish"]))
 	_apply_render_preferences()
@@ -1676,7 +1686,7 @@ func _on_mission_received(state: Dictionary) -> void:
 		m18_transit.apply_state(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
-	hud.combat_feed.set_campaign(not state.is_empty())
+	hud.set_campaign(not state.is_empty())
 	_submit_mission_readiness()
 	play_departure_scene(state)
 	_try_campaign_results()
@@ -2056,7 +2066,7 @@ func _clear_world() -> void:
 		m18_transit.clear_map()
 	if m12_habitat != null:
 		m12_habitat.clear_map()
-	hud.combat_feed.set_campaign(false)
+	hud.set_campaign(false)
 	pending_weapon_swap = null
 	latest_snapshot.clear()
 	hud.equipment_hud.apply({})
@@ -2130,7 +2140,7 @@ func _on_snapshot_received(data):
 		m02_ward.set_companion_phase(companion_phase, companion_started, int(data.get("tick", 0)))
 	var participant_list: Array[Dictionary] = ActorState.participants(player_list)
 	var round_state = data.get("round_state", "")
-	var round_time_left = data.get("round_time_left", 0)
+	var round_time_left = data.get("round_time_left")
 	var frag_limit = data.get("frag_limit", 0)
 	var mode_name = str(data.get("mode_name", "Contested Frequency"))
 	var playlist = str(data.get("playlist", "Arena Duel"))
@@ -2175,7 +2185,9 @@ func _on_snapshot_received(data):
 		hud.set_episode_chrome(ep_id, ep_title, ep_obj, ep_prog, ep_phase)
 	hud.set_tick(tick)
 	hud.set_player_count(participant_list.size())
+	hud.set_round_info(round_state, round_time_left, frag_limit)
 	hud.sync_scores_from_players(participant_list)
+	hud.set_score_subject(str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id())
 	if hud.has_method("set_board_name"):
 		var mine_name: String = ""
 		if is_human_player and net_client.player_id != null and players.has(str(net_client.player_id)):
@@ -2183,7 +2195,6 @@ func _on_snapshot_received(data):
 			if mine_pawn != null and is_instance_valid(mine_pawn):
 				mine_name = str(mine_pawn.get("player_name"))
 		hud.set_board_name(mine_name)
-	hud.set_round_info(round_state, round_time_left, frag_limit)
 	if hud.has_method("set_team_scores"):
 		hud.set_team_scores(data.get("conquest", {}).get("tickets") if data.get("conquest") is Dictionary else data.get("team_scores"))
 	if hud.has_method("set_ctf_state"):
@@ -2194,7 +2205,7 @@ func _on_snapshot_received(data):
 			if str(player_data.get("id", "")) == str(net_client.player_id):
 				var lives: Variant = player_data.get("lives")
 				hud.set_own_lives(int(lives) if lives is float or lives is int else -1)
-	hud.round_label.visible = not _mission_map() and not hud.sabotage()
+	hud.set_campaign(_mission_map())
 	_maybe_rehydrate_ended_mvp(data, round_state)
 	_maybe_assign_ghost_rival(participant_list)
 	
@@ -2640,6 +2651,7 @@ func _sync_pickups(pickup_list):
 				continue
 			arena.add_child(node)
 			node.setup(pid, weapon, pos, kind, amount, str(pad.get("pool", "")))
+			node.set_reduced_motion(bool(settings.get_value("accessibility", "reduced_motion")))
 			pickups[pid] = node
 		if pickups.has(pid):
 			pickups[pid].position = pos
@@ -2704,6 +2716,7 @@ func _update_followed_weapon():
 		return
 	
 	if not camera.follow_mode or len(camera.available_targets) == 0:
+		hud.set_score_subject("")
 		hud.set_followed_weapon("", "")
 		hud.set_fp_juice(false)
 		return
@@ -2712,6 +2725,7 @@ func _update_followed_weapon():
 	var target = camera.available_targets[target_index]
 	
 	if not is_instance_valid(target):
+		hud.set_score_subject("")
 		hud.set_followed_weapon("", "")
 		hud.set_fp_juice(false)
 		return
@@ -2730,6 +2744,7 @@ func _update_followed_weapon():
 		team = pawn.team
 	
 	hud.set_fp_juice(camera.is_observing_first_person())
+	hud.set_score_subject(str(target.player_id))
 	if camera.is_observing_first_person():
 		hud.set_vitals(int(target.hp), int(target.armor))
 	hud.set_fp_weapon(weapon_name)
@@ -2874,6 +2889,7 @@ func _update_local_fp_hud(player_list: Array) -> void:
 				if is_instance_valid(pawn):
 					camera.position = pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)
 		if local_hp_seen >= 0 and hp < local_hp_seen and hp > 0:
+			hud.show_critical_crossing(local_hp_seen, hp)
 			if hud and hud.has_method("show_damage_flash"):
 				hud.show_damage_flash()
 			if camera:

@@ -86,6 +86,12 @@ func _run() -> void:
 		pickup._process(1.0 / 60.0)
 		highest = maxf(highest, icon.position.y)
 	_check(highest > rest + 0.02 and highest <= rest + 0.051, "the sprite bobs gently above its rest")
+	pickup.set_reduced_motion(true)
+	pickup._process(0.4)
+	_check(is_equal_approx(icon.position.y, pickup._sprite_rest_y), "reduced motion restores the actual texture's resting height")
+	var physical_position: Vector3 = pickup.position
+	pickup._process(1.0)
+	_check(is_equal_approx(icon.position.y, pickup._sprite_rest_y) and pickup.position == physical_position, "muted decoration never changes authoritative pickup position")
 	pickup.set_available(false)
 	_check(not pickup.visible, "server availability hides the pickup")
 	pickup.set_available(true)
@@ -94,6 +100,9 @@ func _run() -> void:
 	var early: Node3D = scene.instantiate()
 	early.setup("early_packet", "", Vector3.ZERO, "ammo", 8, "shells")
 	root.add_child(early)
+	early.set_reduced_motion(true)
+	early._process(0.5)
+	_check(is_equal_approx(early.get_node("Icon").position.y, early._sprite_rest_y), "new pickups inherit the muted rest pose")
 	_check((early.get_node("Icon") as Sprite3D).visible and not (early.get_node("Body") as MeshInstance3D).visible,
 		"setup before entering the tree still applies the sprite look")
 	early.queue_free()

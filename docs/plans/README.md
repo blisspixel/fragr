@@ -18,8 +18,11 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [UI palette and type round](ui-palette-type-20261017.md) is **implemented**
-for #411 within #418, with integration in [PR #420](https://github.com/blisspixel/fragr/pull/420).
+The [status bar and reduced motion round](ui-status-bar-20261018.md) is **implemented**
+for #412 within #418, following green main CI and verified v0.87.0 publication.
+
+The [UI palette and type round](ui-palette-type-20261017.md) **shipped**
+for #411 within #418 through [PR #420](https://github.com/blisspixel/fragr/pull/420).
 All 580 local client checks pass, including 186 harnesses; the final published
 tour and three-resolution captures were inspected. It uses the
 retained fonts and canonical palette at $0, preserves world presentation, and
@@ -31,7 +34,7 @@ It preserves six unpublished commits and the M16-M18 working tree and repairs
 priority issues #407-#410. Final main CI passes, including 2,142 native tests
 and 92.74% unfiltered line coverage. Three desktop archives and the downloaded
 Linux installation passed verification before publication. v0.85.0 remains a
-historical draft; v0.86.0 is the latest published release.
+historical draft; v0.87.0 is the latest published release.
 
 The [October 13 development round](build-round-20261013.md) **shipped** in
 [PR 401](https://github.com/blisspixel/fragr/pull/401) and v0.82.1, with passing

@@ -2,7 +2,7 @@ class_name EquipmentHud
 extends Control
 
 ## Presentation of the local participant's last authoritative inventory only.
-## Quiet HUD: an ammunition glyph and one number for the held weapon, no words.
+## Ammunition glyph, equal-size vital numeral, and an explicit empty state.
 const WIDTH: float = 360.0
 const GLYPH: Vector2 = Vector2(28, 36)
 const BRASS: Color = Color("c9a15a")
@@ -14,6 +14,7 @@ const EMPTY_TINT: Color = MenuTheme.EMBER
 var state: Dictionary = {}
 var tick: int = 0
 var counts: Label
+var empty_label: Label
 var grenade_counts: Label
 var _grenades_known: bool = false
 var mine_counts: Label
@@ -29,16 +30,28 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size = Vector2(WIDTH, 96)
 	counts = Label.new()
-	counts.position = Vector2(0, 24)
-	counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 56)
+	counts.position = Vector2(0, 0)
+	counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 84)
 	counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	counts.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
-	counts.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_SMALL)
+	counts.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM)
 	counts.add_theme_color_override("font_color", MenuTheme.BONE)
 	counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	counts.add_theme_constant_override("outline_size", 6)
 	counts.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(counts)
+	empty_label = Label.new()
+	empty_label.position = Vector2(0, 92)
+	empty_label.size.x = WIDTH - GLYPH.x - 12.0
+	empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	empty_label.add_theme_font_override("font", MenuTheme.FONT)
+	empty_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	empty_label.add_theme_color_override("font_color", EMPTY_TINT)
+	empty_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	empty_label.add_theme_constant_override("outline_size", 4)
+	empty_label.text = tr("HUD_AMMO_EMPTY")
+	empty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(empty_label)
 	grenade_counts = Label.new()
 	grenade_counts.position = Vector2(0, -20)
 	grenade_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
@@ -105,7 +118,7 @@ func apply(state_value: Dictionary) -> void:
 func _process(delta: float) -> void:
 	dry_seconds = maxf(0.0, dry_seconds - delta)
 	if visible:
-		position = get_viewport_rect().size - Vector2(WIDTH + 24.0, 128)
+		position = get_viewport_rect().size - Vector2(WIDTH + 24.0, 140)
 		_refresh()
 
 func _refresh() -> void:
@@ -117,6 +130,7 @@ func _refresh() -> void:
 	var text: String = EquipmentState.count_text(state, weapon)
 	counts.text = text
 	var empty: bool = shots == 0
+	empty_label.visible = empty
 	counts.add_theme_color_override("font_color", EMPTY_TINT if dry_seconds > 0.0 or empty else MenuTheme.BONE)
 	grenade_counts.visible = _grenades_known
 	# JSON decodes every number as a float, so the validated count arrives as

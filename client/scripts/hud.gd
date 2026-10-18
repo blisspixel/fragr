@@ -10,12 +10,8 @@ signal host_spoke(seconds: float)
 @onready var player_count_label = $Panel/VBoxContainer/PlayerCountLabel
 @onready var mode_label = $Panel/VBoxContainer/ModeLabel
 @onready var round_label = $Panel/VBoxContainer/RoundLabel
-## The server's rule set under the round line, for players and spectators.
+## Centered accepted match facts, for players and spectators.
 @onready var mode_chip_label: Label = $Panel/VBoxContainer/ModeChipLabel
-## The status panel's right edge in Sabotage, wide enough for the one line
-## with a Use prompt in it.
-const SABOTAGE_PANEL_RIGHT: float = 540.0
-var _panel_right: float = NAN
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
 @onready var combat_feed: CombatFeed = $CombatFeed
 @onready var round_message = $RoundMessage
@@ -108,6 +104,14 @@ var episode_progress = ""
 var episode_phase = ""
 var episode_title_shown = false
 var round_chrome_state = "Warmup"
+var round_seconds: int = 0
+var round_clock_known: bool = false
+var round_target: int = 0
+var campaign_context: bool = false
+var regions: HudRegions
+var score_subject := HudScoreSubject.new()
+var result_subject: String = ""
+var _controls_visible: bool = false
 
 const HOST_BUMPERS = [
 	"HOST: CONTESTED FREQUENCY. LEAGUE DENIES EXISTENCE.",
@@ -150,6 +154,10 @@ var fp_bob_weight: float = 0.0
 # viewport, including the largest upward bob (5.4 pixels) and pixel rounding.
 const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
+var reduced_motion: bool = false
+var _round_pulse: Tween
+var _warmup_pulse: Tween
+var _critical_pulse: Tween
 var fp_reload_motion := WeaponArt.ReloadMotion.new()
 var reticle_colour: Color = MenuTheme.BONE
 var damage_flash_timer = 0.0
@@ -187,7 +195,7 @@ const FP_SHIV_SCALE: float = 1.0
 var fp_stab_timer: float = 0.0
 ## Full width of the vitals bars, so a fill can be scaled against it.
 const HEALTH_BAR_WIDTH: float = 200.0
-const ARMOR_BAR_WIDTH: float = 100.0
+const ARMOR_BAR_WIDTH: float = 200.0
 ## What the server considers a full fighter.
 const PLAYER_MAX_HP: int = 100
 const PLAYER_MAX_ARMOR: int = 100
@@ -238,6 +246,8 @@ func _ready():
 	for weapon: String in WeaponArt.PROFILE:
 		weapon_textures[weapon] = WeaponArt.PROFILE[weapon]
 	_build_fp_extras()
+	_ensure_map_chip_label()
+	regions = HudRegions.new(self)
 	sniper_scope = SniperScope.new()
 	sniper_scope.name = "SniperScope"
 	add_child(sniper_scope)
@@ -323,7 +333,7 @@ func _apply_chrome_roles() -> void:
 	var display_sizes: Dictionary = {
 		"RoundMessage": MenuTheme.DISPLAY_SMALL,
 		"Vitals/HealthValue": MenuTheme.DISPLAY_MEDIUM,
-		"Vitals/ArmorValue": MenuTheme.DISPLAY_SMALL,
+		"Vitals/ArmorValue": MenuTheme.DISPLAY_MEDIUM,
 		"WarmupTv/Center/MapTitle": MenuTheme.DISPLAY_MEDIUM,
 		"WarmupTv/Center/Countdown": MenuTheme.DISPLAY_LARGE,
 	}
@@ -381,32 +391,46 @@ func _ensure_map_chip_label() -> void:
 
 ## The rule set from `map_info`. Empty clears the chip and the sides.
 func set_match_rules(rules: Dictionary) -> void:
-	var old_mode: String = str(match_rules.get("mode", ""))
 	match_rules = rules
-	if not MatchRules.teams(rules) or str(rules.get("mode", "")) != old_mode:
-		team_score_text = ""
-		sides = {}
-	if rules.get("mode", "") != "ctf":
-		flag_status_text = ""
-	if not sabotage():
-		sabotage_line = ""
-		_show_use_plate("")
-		if sabotage_hud != null:
-			sabotage_hud.hide_all()
-	if mode_chip_label != null:
-		# Sabotage's one line stays one line; the other chips wrap in the panel.
-		mode_chip_label.autowrap_mode = TextServer.AUTOWRAP_OFF if sabotage() else TextServer.AUTOWRAP_WORD_SMART
-	var hud_panel: Control = get_node_or_null("Panel") as Control
-	if hud_panel != null:
-		# The panel clips; in Sabotage its one line needs the room a prompt takes.
-		if is_nan(_panel_right):
-			_panel_right = hud_panel.offset_right
-		hud_panel.offset_right = maxf(_panel_right, SABOTAGE_PANEL_RIGHT) if sabotage() else _panel_right
-	if int(rules.get("lives", 0)) <= 0:
-		own_lives = -1
+	score_subject.clear()
+	result_subject = ""
+	# A MapInfo handoff cannot lend the new venue old objective or clock facts.
+	round_clock_known = false
+	round_seconds = 0
+	round_target = 0
+	episode_id = ""
+	episode_title = ""
+	episode_objective = ""
+	episode_progress = ""
+	episode_phase = ""
+	episode_title_shown = false
+	pressure_id = ""
+	team_score_text = ""
+	sides = {}
+	flag_status_text = ""
+	sabotage_line = ""
+	sabotage_score = {}
+	own_lives = -1
+	_show_use_plate("")
+	if sabotage_hud != null:
+		sabotage_hud.hide_all()
 	_refresh_mode_label()
 	_refresh_mode_chip()
 	update_scoreboard()
+
+func set_campaign(active: bool) -> void:
+	if campaign_context == active:
+		return
+	campaign_context = active
+	combat_feed.set_campaign(active)
+	_refresh_mode_label()
+	_refresh_mode_chip()
+
+func set_score_subject(id: String) -> void:
+	if score_subject.subject_id == id:
+		return
+	score_subject.select(id)
+	_refresh_mode_chip()
 
 
 func sabotage() -> bool:
@@ -554,10 +578,7 @@ func set_ctf_state(flags: Variant, scores: Variant, limit: Variant, players: Arr
 	var states: Array[String] = []
 	for flag: Variant in flags:
 		states.append(FlagState.status_text(flag, viewer_id, viewer_team, viewer_position, names, carrying))
-	var status: String = tr("FLAG_STATUS_LINE").format({
-		"union": states[0],
-		"coalition": states[1],
-	})
+	var status: String = tr("FLAG_STATUS_ROWS").format({"union": states[0], "coalition": states[1]})
 	if line == team_score_text and status == flag_status_text:
 		return
 	team_score_text = line
@@ -576,19 +597,50 @@ func set_own_lives(lives: int) -> void:
 
 
 func _refresh_mode_chip() -> void:
+	if mode_chip_label == null:
+		return
 	var lines: PackedStringArray = []
+	if campaign_context or (match_rules.is_empty() and episode_title.is_empty()):
+		mode_chip_label.text = ""
+		mode_chip_label.hide()
+		return
+	if not episode_title.is_empty():
+		lines.append(episode_title.to_upper())
+		for line: String in [episode_objective, episode_progress]:
+			if not line.is_empty():
+				lines.append(line)
 	if sabotage():
 		# One line of HUD text in Sabotage; everything else is a picture.
 		if sabotage_line != "":
 			lines.append(sabotage_line)
-		mode_chip_label.text = "\n".join(lines)
-		mode_chip_label.visible = not lines.is_empty()
-		return
-	var chip: String = MatchRules.chip_text(match_rules)
+	else:
+		var clock: String = "%d:%02d" % [maxi(0, round_seconds) / 60, maxi(0, round_seconds) % 60]
+		var score_line: String = ""
+		if round_chrome_state == "Ended":
+			if match_rules.get("mode", "") in ["ctf", "tdm"] and not team_score_text.is_empty():
+				lines.append(team_score_text)
+			score_line = result_subject
+		elif match_rules.get("mode", "") == "ffa":
+			score_line = score_subject.text()
+			if round_target > 0:
+				score_line += (" // " if not score_line.is_empty() else "") + "FIRST TO " + str(round_target)
+		elif match_rules.get("mode", "") == "tdm":
+			score_line = team_score_text
+			if round_target > 0:
+				score_line += " // FIRST TO " + str(round_target)
+		elif match_rules.get("mode", "") == "ctf":
+			score_line = team_score_text
+		if round_clock_known:
+			score_line += (" // " if not score_line.is_empty() else "") + clock
+		if not score_line.is_empty():
+			lines.append(score_line)
+	if pressure_id == "compliance_drone":
+		lines.append("ARTICLE 7 ENFORCEMENT")
+	elif pressure_id == "compliance":
+		lines.append("APPROVED LANES ONLY")
+	var chip: String = MatchRules.modifier_text(match_rules)
 	if chip != "":
 		lines.append(chip)
-	if team_score_text != "" and match_rules.get("mode", "") != "conquest":
-		lines.append(team_score_text)
 	if flag_status_text != "":
 		lines.append(flag_status_text)
 	if own_lives > 0:
@@ -597,6 +649,8 @@ func _refresh_mode_chip() -> void:
 		lines.append(tr("HUD_OUT_OF_LIVES"))
 	mode_chip_label.text = "\n".join(lines)
 	mode_chip_label.visible = not lines.is_empty()
+	if regions != null:
+		regions.layout()
 
 
 ## A Host beat from a `host_reaction` event, in the Host's corner voice.
@@ -688,64 +742,17 @@ func _refresh_telemetry_lines() -> void:
 func _refresh_mode_label():
 	if not mode_label:
 		return
-	# The league and the playlist are how a spectator knows what they tuned
-	# into. A player picked the match and is standing in it.
-	var league = ""
-	if client_mode == "SPECTATING" and not sabotage():
-		league = league_mode_name.to_upper()
-		# Arena Duel is the older playlist label on the wire. CTF has its own
-		# rules chip and an actual map chip, so do not advertise a different game.
-		if match_rules.get("mode", "") != "ctf":
-			league += " // " + league_playlist.to_upper()
-	# The map name is already on screen as its own chip. It used to be here as
-	# well, and inside the playlist above, so the first visual QA tour
-	# photographed three copies of "ARENA DUEL" in a single frame.
-	var host_chip = ""
-	if sticky_host_line != "" and broadcast_chrome:
-		host_chip = "
-" + sticky_host_line
-	# A spectator needs to know how to join. A player who has joined needs the
-	# screen. The legend shows for a few seconds after joining and then gets out
-	# of the way; it belongs in a settings screen once there is one.
-	# Two rules here, both learned from a screenshot.
-	#
-	# It times out in every mode. The spectator legend used to be permanent
-	# while the playing one expired, so the view you sit in longest was the one
-	# that never stopped explaining itself. Eight lines of chrome in the corner
-	# of a match is not a HUD, it is a manual.
-	#
-	# And it leads with the mouse and keyboard. It used to open with "J/A" and
-	# "RT/A: Fire", which names the gamepad binding first and the mouse never,
-	# so a player on a laptop could read the whole line and still not know what
-	# fires the gun. The full scheme lives on the loading card and in settings.
-	#
-	# The legend follows the device in the player's hands, from the live
-	# bindings: a gamepad reads RT fire, a keyboard CTRL fire, a mouse LMB fire.
-	var controls = ""
+	mode_label.text = MatchRules.mode_text(match_rules)
+	if campaign_context:
+		mode_label.text = "CAMPAIGN"
+	elif mode_label.text.is_empty():
+		mode_label.text = "SOLO BROADCAST" if not episode_title.is_empty() else client_mode
+	round_label.text = client_mode + " // " + round_chrome_state.to_upper()
 	_controls_revision = InputDevice.revision
-	if Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
-		controls = "\n" + legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY")))
-	# The Host line already says a drone is on deck, in its own words, directly
-	# above. Saying it again underneath is the same sentence twice.
-	var pressure_chip = ""
-	if sticky_host_line == "":
-		if pressure_id == "compliance_drone":
-			pressure_chip = "
-PRESSURE: CONTINUANCE COMPLIANCE DRONE"
-		elif pressure_id == "compliance":
-			pressure_chip = "
-PRESSURE: CONTINUANCE COMPLIANCE"
-	var episode_chip = ""
-	if episode_title != "":
-		episode_chip = "
-" + episode_title.to_upper()
-		if episode_objective != "":
-			episode_chip += "
-OBJ: " + episode_objective
-		if episode_progress != "":
-			episode_chip += "
-" + episode_progress
-	mode_label.text = league + host_chip + controls + pressure_chip + episode_chip
+	_controls_visible = Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS
+	if regions != null:
+		regions.hints.text = legend_line(InputGlyphs.plain(tr("HUD_CONTROLS_WATCH" if client_mode == "SPECTATING" else "HUD_CONTROLS_PLAY"))) if _controls_visible else ""
+	_refresh_mode_chip()
 
 ## The legend is key and word pairs separated by wide gaps. The corner panel
 ## is narrow, so let it wrap only between pairs: a lone "]" at the end of one
@@ -753,7 +760,7 @@ OBJ: " + episode_objective
 static func legend_line(plain: String) -> String:
 	var pairs: PackedStringArray = plain.split("   ", false)
 	for index: int in range(pairs.size()):
-		pairs[index] = pairs[index].strip_edges().replace(" ", " ")
+		pairs[index] = pairs[index].strip_edges().replace(" ", " ").replace("-", "‑")
 	return "   ".join(pairs)
 
 func set_tick(tick: int):
@@ -761,51 +768,20 @@ func set_tick(tick: int):
 		var seconds = tick / 20
 		tick_label.text = "Time: " + str(seconds) + "s"
 
-func set_round_info(state: String, time_left: int, frag_limit: int):
+func set_round_info(state: String, time_left: Variant, frag_limit: int):
 	# Retained state also clears the card after a late join or recorded replay,
 	# where the separate RoundStart notice may not have been observed.
 	if state != "Warmup" and warmup_tv_active:
 		hide_warmup_tv()
+	if state == "Warmup" and round_chrome_state != "Warmup":
+		score_subject.clear()
+		result_subject = ""
 	round_chrome_state = state
+	round_clock_known = (time_left is int or time_left is float) and is_finite(float(time_left)) and float(time_left) >= 0.0
+	round_seconds = int(time_left) if round_clock_known else 0
+	round_target = frag_limit
 	_update_broadcast_chrome(state)
-	if not round_label:
-		return
-	var text = "Round: " + state
-	if state == "Active":
-		if episode_title != "":
-			text = episode_title.to_upper()
-			if episode_progress != "":
-				text += "\n" + episode_progress
-			elif episode_objective != "":
-				text += "\n" + episode_objective
-			if time_left > 0:
-				text += " | " + str(time_left) + "s"
-		elif frag_limit > 0:
-			# The map name is its own chip in the corner. This line is the race,
-			# not the venue.
-			text = "FIRST TO " + str(frag_limit)
-			if time_left > 0:
-				text += " | " + str(time_left) + "s"
-		elif time_left > 0:
-			text += " | Time: " + str(time_left) + "s"
-		# Who is leading is the first row of the scoreboard directly below, and
-		# so is the rival. Spelling both out here was two lines of the panel
-		# repeating the two lines under them.
-		if pressure_id == "compliance_drone":
-			text += "\nARTICLE 7 ENFORCEMENT"
-		elif pressure_id == "compliance":
-			text += "\nAPPROVED LANES ONLY"
-	elif state == "Warmup":
-		text = "WARMUP // " + map_label.to_upper()
-		if time_left > 0:
-			text += " // GOES LIVE IN " + str(time_left)
-		else:
-			text += " // Contested Frequency tuning in"
-	elif state == "Ended":
-		text = "ROUND OVER - podium holds"
-		if leader_name != "":
-			text += "\nMVP: " + leader_name
-	round_label.text = text
+	_refresh_mode_label()
 
 func set_player_count(count: int):
 	if player_count_label:
@@ -954,6 +930,7 @@ func _short_behavior(behavior: String) -> String:
 	return StanceChipScript.short(behavior)
 
 func sync_scores_from_players(player_list: Array):
+	score_subject.observe(player_list)
 	var next_scores = {}
 	var next_sheet: Dictionary = {}
 	var next_behaviors = {}
@@ -987,6 +964,7 @@ func sync_scores_from_players(player_list: Array):
 	if best <= 0:
 		leader_name = ""
 	update_scoreboard()
+	_refresh_mode_chip()
 
 func set_ghost_rival(rival: String):
 	ghost_rival = rival
@@ -1010,21 +988,15 @@ func set_episode_chrome(ep_id: String, title: String, objective: String, progres
 		show_nods_tick(progress, sticky_host_line)
 
 func show_episode_title_card(title: String, objective: String = ""):
-	round_banner_remaining = 0.0
 	if not round_message:
 		return
-	round_message.visible = true
 	var line = title.to_upper()
 	if objective != "":
 		line += "\n" + objective
 	line += "\nLARAK LOT // YOU'RE ON THE AIR"
-	round_message.text = line
-	await get_tree().create_timer(3.2).timeout
-	if round_message and episode_phase != "won" and episode_phase != "failed":
-		round_message.visible = false
+	_show_round_banner(line, 3.2)
 
 func show_nods_tick(progress: String, host_line: String = ""):
-	round_banner_remaining = 0.0
 	# Short Contested Frequency booth beat per NODS clear. Not speak. Not killstreak length.
 	flash_broadcast_chrome("host")
 	streak_flash_timer = 0.32
@@ -1036,16 +1008,14 @@ func show_nods_tick(progress: String, host_line: String = ""):
 	var line = host_line
 	if line == "":
 		line = "HOST: " + progress
-	round_message.text = line + "\n" + progress
-	round_message.visible = true
-	var tween = create_tween()
-	tween.tween_property(round_message, "scale", Vector2(1.18, 1.18), 0.08)
-	tween.tween_property(round_message, "scale", Vector2(1.0, 1.0), 0.14)
-	await get_tree().create_timer(1.35).timeout
-	if is_instance_valid(round_message) and episode_phase == "nods":
-		round_message.visible = false
+	_show_round_banner(line + "\n" + progress, 1.35)
+	if not reduced_motion:
+		_round_pulse = create_tween()
+		_round_pulse.tween_property(round_message, "scale", Vector2(1.18, 1.18), 0.08)
+		_round_pulse.tween_property(round_message, "scale", Vector2.ONE, 0.14)
 
 func show_episode_complete(host_line: String, unlock_teaser: String = ""):
+	_cancel_round_pulse()
 	round_banner_remaining = 0.0
 	if not round_message:
 		return
@@ -1060,6 +1030,7 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
 
 func show_episode_fail(host_line: String):
+	_cancel_round_pulse()
 	round_banner_remaining = 0.0
 	# Comedy fail splash, not a lecture.
 	if not round_message:
@@ -1073,13 +1044,11 @@ func show_episode_fail(host_line: String):
 		damage_flash_timer = 0.8
 
 func show_frag(killer: String, victim: String, killer_color: Color = MenuTheme.UNTINTED, _victim_color: Color = MenuTheme.UNTINTED) -> void:
-	if not scores.has(killer):
-		scores[killer] = 0
-	scores[killer] += 1
-	update_scoreboard()
 	combat_feed.push(killer + " > " + victim, killer_color.lightened(0.4))
 
 func reset_host_chrome():
+	score_subject.clear()
+	result_subject = ""
 	# Clear sticky Host + flash latch so a reconnect mid-round can flash once again.
 	sticky_host_line = ""
 	host_line_seen = false
@@ -1094,11 +1063,55 @@ func _load_display_settings() -> void:
 	settings.load_from_disk()
 	apply_preferences(settings)
 
+func _cancel_round_pulse() -> void:
+	if _round_pulse != null:
+		_round_pulse.kill()
+		_round_pulse = null
+	if round_message != null:
+		round_message.scale = Vector2.ONE
+
+func _cancel_warmup_pulse() -> void:
+	if _warmup_pulse != null:
+		_warmup_pulse.kill()
+		_warmup_pulse = null
+	if warmup_tv != null:
+		warmup_tv.scale = Vector2.ONE
+
+func _cancel_critical_pulse() -> void:
+	if _critical_pulse != null:
+		_critical_pulse.kill()
+		_critical_pulse = null
+	if health_value != null:
+		health_value.scale = Vector2.ONE
+
+## Only the local damage transition calls this; hydration and following do not.
+func show_critical_crossing(before: int, after: int) -> void:
+	if reduced_motion or not fp_juice_enabled or before <= 25 or after <= 0 or after > 25:
+		return
+	_cancel_critical_pulse()
+	_critical_pulse = create_tween()
+	_critical_pulse.tween_property(health_value, "scale", Vector2(1.12, 1.12), 0.08)
+	_critical_pulse.tween_property(health_value, "scale", Vector2.ONE, 0.18)
+
 func apply_preferences(settings: FragrSettings) -> void:
 	broadcast_chrome = bool(settings.get_value("gameplay", "broadcast_chrome"))
 	debug_telemetry = bool(settings.get_value("gameplay", "debug_telemetry"))
-	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob"))
+	reduced_motion = bool(settings.get_value("accessibility", "reduced_motion"))
+	head_bob_enabled = bool(settings.get_value("gameplay", "head_bob")) and not reduced_motion
+	if reduced_motion:
+		_cancel_round_pulse()
+		_cancel_warmup_pulse()
+		_cancel_critical_pulse()
+		fp_kick_timer = 0.0
+		fp_bob_weight = 0.0
+		fp_reload_motion.update(current_fp_weapon, equipment_hud.state, equipment_hud.tick, 0.0, false)
+		for entry: Dictionary in floating_damage_nodes:
+			entry["motion_cancelled"] = true
+		_update_floating_damage(0.0)
 	reticle_colour = settings.reticle_colour()
+	_update_broadcast_chrome(round_chrome_state)
+	_refresh_telemetry_lines()
+	_refresh_mode_label()
 
 
 func _update_broadcast_chrome(state: String) -> void:
@@ -1212,6 +1225,7 @@ func refresh_warmup_tv(host_line: String, secs_left: int = 0, roster = []) -> vo
 	_apply_warmup_tv(host_line, secs_left, roster, true)
 
 func hide_warmup_tv() -> void:
+	_cancel_warmup_pulse()
 	warmup_tv_active = false
 	warmup_tv_secs = 0
 	warmup_tv_roster_names = []
@@ -1249,9 +1263,11 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 	if not refresh_only:
 		# Punch scale on first raise so tip capture / spectators feel the open.
 		warmup_tv.scale = Vector2(1.0, 1.0)
-		var tween = create_tween()
-		tween.tween_property(warmup_tv, "scale", Vector2(1.04, 1.04), 0.08)
-		tween.tween_property(warmup_tv, "scale", Vector2(1.0, 1.0), 0.14)
+		_cancel_warmup_pulse()
+		if not reduced_motion:
+			_warmup_pulse = create_tween()
+			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2(1.04, 1.04), 0.08)
+			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2.ONE, 0.14)
 		streak_flash_timer = 0.35
 		if streak_flash:
 			streak_flash.visible = true
@@ -1281,6 +1297,8 @@ func _set_warmup_roster(roster) -> void:
 	warmup_tv_roster.text = " // ".join(PackedStringArray(shown))
 
 func show_round_start(round_number: int, host_line: String = "") -> void:
+	score_subject.clear()
+	result_subject = ""
 	var line: String = host_line
 	if line.is_empty():
 		line = HOST_BUMPERS[host_bumper_index % HOST_BUMPERS.size()]
@@ -1325,6 +1343,8 @@ func show_venue_notice(line: String) -> void:
 	combat_feed.push(line)
 
 func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_line: String = "", podium: Variant = [], winning_team: Variant = null, capture_scores: Variant = null) -> void:
+	result_subject = "MVP: " + mvp_name + " // " + str(mvp_frags) if not mvp_name.is_empty() else "ROUND OVER"
+	score_subject.clear()
 	host_spoke.emit(4.0)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).
 	scores = {}
@@ -1393,6 +1413,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 		_show_round_banner(message, 5.5)
 
 func _show_round_banner(text: String, seconds: float, backed: bool = false) -> void:
+	_cancel_round_pulse()
 	round_banner_remaining = seconds
 	round_message.text = text
 	round_message.scale = Vector2.ONE
@@ -1507,14 +1528,14 @@ func _process(delta):
 	if round_backdrop and round_backdrop.visible and not round_message.visible:
 		round_backdrop.visible = false
 	if scoreboard:
-		# Sabotage keeps the corner to its one line for watchers too; the
-		# short list comes up on the scoreboard key. The centered board is
-		# the full roster, on that same key.
+		# Standings have one visible home, the held scoreboard overlay.
 		var showing_leaders: bool = InputMap.has_action("scoreboard") and Input.is_action_pressed("scoreboard")
-		scoreboard.visible = (not fp_juice_enabled and not sabotage()) or showing_leaders
+		scoreboard.visible = false
 		set_leaderboard_open(showing_leaders)
-	if _controls_revision != InputDevice.revision and Time.get_ticks_msec() - mode_entered_ms < CONTROLS_HINT_MS:
+	if (_controls_revision != InputDevice.revision and _controls_visible) or (_controls_visible and Time.get_ticks_msec() - mode_entered_ms >= CONTROLS_HINT_MS):
 		_refresh_mode_label()
+	if regions != null:
+		regions.layout()
 	if damage_flash_timer > 0:
 		damage_flash_timer -= delta
 		if damage_flash:
@@ -1589,7 +1610,7 @@ func _layout_fp_weapon() -> void:
 		"Scatter": bob_scale = 1.35
 	var weight: float = fp_bob_weight if head_bob_enabled else 0.0
 	var bob: Vector2 = Vector2(cos(fp_bob_t * 0.5) * 2.0, sin(fp_bob_t) * 4.0) * bob_scale * weight
-	var kick: Vector2 = fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
+	var kick: Vector2 = Vector2.ZERO if reduced_motion else fp_kick_amount * clampf(fp_kick_timer / 0.12, 0.0, 1.0)
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	var base: Vector2 = (viewport_size - fp_weapon.size) * Vector2(0.5, 1.0)
 	fp_weapon.position = (base + Vector2(0.0, FP_BOTTOM_OVERLAP + _throw_dip() + fp_weapon.size.y * 0.55 * fp_reload_motion.depth) + bob + kick).round()
@@ -1656,11 +1677,18 @@ func _build_fp_extras() -> void:
 		# A medkit beside health and a plate beside armour: the numbers keep
 		# their size, the symbols say which is which without a word.
 		health_icon = _vitals_icon("HealthIcon", WeaponArt.HUD_HEALTH, Vector2(0, 17))
-		armor_icon = _vitals_icon("ArmorIcon", WeaponArt.HUD_ARMOR, Vector2(216, 26))
+		armor_icon = _vitals_icon("ArmorIcon", WeaponArt.HUD_ARMOR, Vector2(232, 17))
+		vitals.offset_right = 488.0
 		if health_value:
-			health_value.position.x = 62.0
+			health_value.position = Vector2(62, 0)
+			health_value.size = Vector2(160, 84)
 		if armor_value:
-			armor_value.position.x = 272.0
+			armor_value.position = Vector2(294, 0)
+			armor_value.size = Vector2(160, 84)
+		for bar_name: String in ["HealthBar", "HealthBarBack", "ArmorBar", "ArmorBarBack"]:
+			var bar: ColorRect = vitals.get_node(bar_name)
+			bar.position = Vector2(232 if bar_name.begins_with("Armor") else 0, 92)
+			bar.size = Vector2(200, 8)
 
 func _vitals_icon(icon_name: String, texture: Texture2D, at: Vector2) -> TextureRect:
 	var icon: TextureRect = TextureRect.new()
@@ -1726,6 +1754,8 @@ func _layout_throw_hand(at: Vector2) -> void:
 	fp_throw_hand.position = (at + Vector2(0.0, lower)).round()
 
 func set_fp_juice(enabled: bool) -> void:
+	if not enabled:
+		_cancel_critical_pulse()
 	if fp_juice_enabled == enabled:
 		return
 	fp_juice_enabled = enabled
@@ -2027,13 +2057,17 @@ func set_vitals(hp: int, armor: int) -> void:
 		return
 	vitals.visible = fp_juice_enabled
 	var hp_shown: int = maxi(hp, 0)
+	if hp_shown > 25 or hp_shown == 0:
+		_cancel_critical_pulse()
+	var health_tint: Color = MenuTheme.DANGER if hp_shown <= 25 else (MenuTheme.EMBER if hp_shown <= 50 else MenuTheme.BONE)
 	if health_value:
 		health_value.text = str(hp_shown)
 		# Low health is the one place the HUD is allowed to shout.
-		health_value.add_theme_color_override("font_color", MenuTheme.DANGER if hp_shown <= 35 else MenuTheme.BONE)
+		health_value.add_theme_color_override("font_color", health_tint)
 	if health_bar:
 		var hp_fill: float = clampf(float(hp_shown) / float(PLAYER_MAX_HP), 0.0, 1.0)
 		health_bar.size.x = HEALTH_BAR_WIDTH * hp_fill
+		health_bar.color = health_tint
 	var armor_shown: int = maxi(armor, 0)
 	if armor_value:
 		armor_value.text = str(armor_shown)
@@ -2127,6 +2161,9 @@ func _fp_fire_kick(weapon_name: String) -> void:
 		_update_fp_frame()
 	else:
 		_fp_muzzle_flash(weapon_name)
+	if reduced_motion:
+		fp_kick_timer = 0.0
+		return
 	fp_kick_timer = 0.12
 	match weapon_name:
 		"Tack":
@@ -2174,7 +2211,7 @@ func _spawn_floating_damage(damage: int, weapon_name: String) -> void:
 	var ox = randf_range(-28.0, 28.0)
 	label.position = Vector2(ox, -20.0)
 	damage_numbers.add_child(label)
-	floating_damage_nodes.append({"node": label, "t": 0.0, "life": 0.55, "ox": ox})
+	floating_damage_nodes.append({"node": label, "t": 0.0, "life": 0.55, "ox": ox, "motion_cancelled": reduced_motion})
 
 func _update_floating_damage(delta: float) -> void:
 	var keep = []
@@ -2186,7 +2223,7 @@ func _update_floating_damage(delta: float) -> void:
 		var t = float(entry["t"])
 		var life = float(entry["life"])
 		var progress = clampf(t / life, 0.0, 1.0)
-		node.position = Vector2(float(entry["ox"]), -20.0 - progress * 48.0)
+		node.position = Vector2(float(entry["ox"]), -20.0 if bool(entry.get("motion_cancelled", false)) else -20.0 - progress * 48.0)
 		node.modulate.a = 1.0 - progress
 		if t < life:
 			keep.append(entry)

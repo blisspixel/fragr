@@ -75,6 +75,7 @@ func _run() -> void:
 	root.size = Vector2i(1280, 720)
 	await _fallback()
 	await _still_and_narration()
+	await _reduced_motion()
 	await _muted_narration()
 	await _skip_and_replay()
 	await _broken_scene()
@@ -86,6 +87,34 @@ func _run() -> void:
 	quit(0 if failures == 0 else 1)
 
 ## Missing pictures and clips leave a complete reader-paced text page.
+func _reduced_motion() -> void:
+	var prefs: FragrSettings = FragrSettings.new(settings_path)
+	prefs.set_value("accessibility", "reduced_motion", true)
+	_expect(prefs.save_to_disk() == OK, "save initial reduced-motion preference")
+	var manifest: Dictionary = _scene([
+		{"id":"ONE", "caption_key":"STORY_L01_L02_LEDGER", "image":STILL, "motion":{"kind":"zoom_in"}},
+		{"id":"TWO", "caption_key":"STORY_L01_L02_SHIFT", "image":STILL, "motion":{"kind":"pan_left"}},
+	])
+	var player: ScenePlayer = await _start(manifest)
+	_expect(player._motion == null and player._still.scale == Vector2.ONE, "initial preference reaches the first shot before motion")
+	prefs.set_value("accessibility", "reduced_motion", false)
+	player.apply_preferences(prefs)
+	player.advance()
+	_expect(player.page == 1 and player._motion == null, "reenable and shared-still advance do not restart cancelled motion")
+	player.queue_free()
+	await process_frame
+	_expect(prefs.save_to_disk() == OK, "restore ordinary motion for fresh scene")
+	player = await _start(manifest)
+	_expect(player._motion != null, "fresh scene can move after reenable")
+	prefs.set_value("accessibility", "reduced_motion", true)
+	player.apply_preferences(prefs)
+	_expect(player._motion == null and player._still.scale == Vector2.ONE and player._still.position == Vector2.ZERO, "active scene cancels to its resting pose")
+	player.apply_preferences(prefs)
+	_expect(player.page == 0 and not player.finished, "reapplying preferences does not advance or finish the story")
+	player.queue_free()
+	await process_frame
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(settings_path))
+
 func _fallback() -> void:
 	var player: ScenePlayer = await _start(StoryScene.load_scene("l01_l02"))
 	_expect(not player._still_frame.visible and player._still.texture == null, "missing still falls back to the text page")

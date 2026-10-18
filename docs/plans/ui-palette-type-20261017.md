@@ -1,6 +1,11 @@
 # UI palette and typography
 
-Status: **implemented**. Integration: [PR #420](https://github.com/blisspixel/fragr/pull/420).
+Status: **shipped** through [PR #420](https://github.com/blisspixel/fragr/pull/420).
+Main CI [39126933200](https://github.com/blisspixel/fragr/actions/runs/39126933200)
+passed at `8e406135ff46c6265559b34db26eb274bb65ccf9`; [v0.87.0](https://github.com/blisspixel/fragr/releases/tag/v0.87.0) is published.
+All three platform packages passed [release CI](https://github.com/blisspixel/fragr/actions/runs/39130469474).
+All three downloaded archives passed digest and ZIP integrity checks; the
+downloaded Linux package passed its isolated installation smoke check.
 Issue #411 within #418 and the canonical Full build order.
 Base: PR #419, main commit 9081b54945086821f05293cebd3efe74b1aa0dba, with
 [passing CI](https://github.com/blisspixel/fragr/actions/runs/39101263743).
