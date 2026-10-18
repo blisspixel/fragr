@@ -188,6 +188,11 @@ jobs:
       - name: Unpack Godot
         shell: pwsh
         run: Expand-Archive godot.zip -DestinationPath godot-bin
+      - name: Verify client check failure detection
+        timeout-minutes: 10
+        shell: bash
+        run: bash tools/test_godot_check.sh
+
       - name: Headless client checks
         timeout-minutes: 35
         shell: bash
@@ -197,7 +202,6 @@ jobs:
           export GODOT_BIN="$PWD/godot-bin/$GODOT_BINARY"
           chmod +x "$GODOT_BIN"
           bash tools/godot_check.sh
-          bash tools/test_godot_check.sh
 
       - name: Retain failed client check logs
         if: failure() || cancelled()

@@ -2,10 +2,17 @@
 # Headless Godot checks for the client: import the project, parse every script,
 # run the harnesses. Godot can exit 0 with errors in its log, so the log lines
 # are the verdict. Set GODOT_BIN to a 4.7.2-stable binary, or have `godot` on PATH.
+# Shell substitutes can set FRAGR_CHECK_ENGINE_SHELL to their interpreter.
 # Build fragr-server --release --locked first; local campaign checks spawn it.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 GODOT="${GODOT_BIN:-godot}"
+# Native launch keeps the retained Child handle on the engine or its console
+# wrapper. Shell fixtures opt into an interpreter without an emulated exec.
+engine=("$GODOT")
+if [ -n "${FRAGR_CHECK_ENGINE_SHELL:-}" ]; then
+  engine=("$FRAGR_CHECK_ENGINE_SHELL" "$GODOT")
+fi
 runner="${FRAGR_CHECK_PROCESS_BIN:-$PWD/target/debug/fragr-check-process}"
 if [ -z "${FRAGR_CHECK_PROCESS_BIN:-}" ]; then
   cargo build -p fragr-playtest --bin fragr-check-process --locked || exit 1
@@ -25,10 +32,8 @@ check() {
   check_number=$((check_number + 1))
   log="$logs/$check_number.log"
   echo "BEGIN $label ($log)"
-  # exec preserves the owned process on Unix. Windows uses the native guard's
-  # descendant-tree termination, including the console launcher and local child.
   "$runner" --timeout-ms "${FRAGR_CHECK_TIMEOUT_MS:-180000}" --output "$log" -- \
-    "$BASH" -c 'exec "$@"' fragr-check "$GODOT" --headless --path client "$@"
+    "${engine[@]}" --headless --path client "$@"
   status=$?
   out=$(cat "$log" 2>/dev/null)
   echo "END  $label (exit $status)"

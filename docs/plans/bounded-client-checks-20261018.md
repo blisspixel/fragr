@@ -9,7 +9,8 @@ checker, which stopped reporting progress after `test_m02_ward` at 14:53:19 UTC.
 It was canceled at 15:52 UTC. The next discovered harness is `test_m03_local`.
 The same source passed the earlier Windows PR run and main's Linux and macOS
 checks. These facts do not identify the blocking engine or process operation.
-Attempt 2 reruns the unfinished Windows job for additional evidence.
+Attempt 2 passed the unfinished Windows job at 16:19:28 UTC. The earlier stall's
+root cause remains unproven.
 
 The shell checker captures each engine invocation through a command substitution
 with no outer deadline. Add a native process guard using the existing playtest
@@ -23,8 +24,10 @@ checks after a failed invocation, except failed import.
 No game, protocol, save, asset or dependency changes. The guard runs only during
 developer checks. Use a finite positive command deadline, inherited stdin and
 file-backed stdout/stderr. Never wait for inherited output pipe EOF. On Windows,
-terminate the owned command's descendant tree on deadline; on Unix the shell
-executes the engine in place. Preserve the owned server's stdin shutdown lease.
+terminate the owned command's descendant tree on deadline. Launch native Godot
+directly so the retained handle owns its engine or Windows console wrapper.
+Shell fixtures explicitly select their interpreter, without an emulated exec.
+Preserve the owned server's stdin shutdown lease.
 Add an outer CI step budget as a last resort. No paid calls or player runtime
 integration.
 
@@ -50,11 +53,30 @@ explicit so existing `cargo run -p fragr-playtest -- ...` callers still work.
 
 ## Current evidence
 
-Source implementation and independent review are complete. Six locked native
-guard tests and twelve shell verifier fault-injection scenarios pass locally.
+The initial implementation and independent review passed six locked native
+guard tests and twelve shell verifier fault-injection scenarios locally.
 Focused clippy with warnings denied, rustfmt and diff whitespace checks pass.
-The existing playtest command still selects its original binary. The full
-pinned client checker and actual four-agent playtest are running; PR and main
-CI, including Windows native process-tree cleanup, remain integration gates.
-No source dependency or lockfile changed. The Windows stall's root cause remains
-unproven; deadlines make future stalls bounded and diagnosable. Work uses $0.
+The existing playtest command still selects its original binary; its actual
+four-agent asserted smoke passed with eight frags and zero spawn deaths.
+PR #422 run 39143469866 passed native tests, 92.74 percent workspace line
+coverage, Linux and macOS checks. Windows native process-tree cleanup passed,
+then all 585 actual Godot checks (187 harnesses) passed at 16:39:41 UTC.
+The following fault verifier passed ten scenarios and stalled in its first
+timeout scenario until the 35-minute CI deadline. The retained fixture includes
+`test_second: PASS`, proving the checker advanced beyond the timed-out harness.
+The outer command substitution still exposed the verifier to inherited pipe
+EOF; its missing transcript prevents a definitive process diagnosis.
+
+The repair puts each scenario behind a separate 30-second native deadline and
+a retained regular-file transcript. Only exact checker exits 0 or 1 are valid;
+an outer timeout cannot pass a negative scenario. Delete fixtures only after
+the complete suite succeeds. Windows fault checks run before its full client
+suite, so this failure is detected sooner. Native launches also gain a focused
+executable/output path-with-spaces test. Fresh local checks, independent review,
+PR and main CI remain integration gates. No dependency or lockfile changed.
+Work uses $0.
+
+The revised seven native tests, twelve fault scenarios, focused clippy with
+warnings denied, rustfmt, action pins and whitespace checks pass locally.
+Independent review found no remaining blocker. The full direct-launch client
+checker and fresh cross-platform CI remain in progress.

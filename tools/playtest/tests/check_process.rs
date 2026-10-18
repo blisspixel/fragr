@@ -12,7 +12,7 @@ struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
         let path = std::env::temp_dir().join(format!(
-            "fragr-check-process-{}-{}",
+            "fragr check process-{}-{}",
             std::process::id(),
             NEXT.fetch_add(1, Ordering::Relaxed)
         ));
@@ -21,11 +21,15 @@ impl Fixture {
     }
 
     fn run(&self, mode: &str, timeout: &str) -> Output {
+        self.run_executable(mode, timeout, std::env::current_exe().unwrap())
+    }
+
+    fn run_executable(&self, mode: &str, timeout: &str, executable: PathBuf) -> Output {
         Command::new(env!("CARGO_BIN_EXE_fragr-check-process"))
             .args(["--timeout-ms", timeout, "--output"])
             .arg(self.0.join("output.log"))
             .arg("--")
-            .arg(std::env::current_exe().unwrap())
+            .arg(executable)
             .args(["--exact", "guard_fixture_child", "--nocapture"])
             .env("FRAGR_GUARD_FIXTURE_MODE", mode)
             .env("FRAGR_GUARD_FIXTURE_DIR", &self.0)
@@ -44,6 +48,22 @@ impl Fixture {
         }
         assert!(self.0.join(name).exists(), "missing child marker {name}");
     }
+}
+
+#[test]
+fn launches_an_executable_and_retains_output_under_paths_with_spaces() {
+    let fixture = Fixture::new();
+    let executable = fixture.0.join(if cfg!(windows) {
+        "engine with spaces.exe"
+    } else {
+        "engine with spaces"
+    });
+    fs::copy(std::env::current_exe().unwrap(), &executable).unwrap();
+    assert!(fixture
+        .run_executable("success", "5000", executable)
+        .status
+        .success());
+    assert!(fixture.log().contains("fixture: PASS"));
 }
 
 impl Drop for Fixture {
