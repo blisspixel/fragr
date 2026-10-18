@@ -1,7 +1,10 @@
 # Status bar and reduced motion
 
 Status: **implemented**, #412 within [#418](https://github.com/blisspixel/fragr/issues/418).
-Reviewed local implementation; PR/main CI and v0.88.0 publication remain the integration gate.
+Reviewed presentation merged through [PR #421](https://github.com/blisspixel/fragr/pull/421).
+Main CI and v0.88.0 publication remain the integration gate. A stalled Windows
+main attempt requires the [bounded client checker repair](bounded-client-checks-20261018.md);
+the same source passed PR CI and all three PR desktop package checks.
 Base: the palette and typography work in [PR #420](https://github.com/blisspixel/fragr/pull/420),
 merged at `8e406135ff46c6265559b34db26eb274bb65ccf9`.
 Main CI 39126933200 passed and v0.87.0 is published with three verified desktop packages.

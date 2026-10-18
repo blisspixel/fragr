@@ -5,13 +5,30 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p .agents
 workspace=$(pwd -P)
+cargo build -p fragr-playtest --bin fragr-check-process --locked
+runner="$workspace/target/debug/fragr-check-process"
+if [ -f "$runner.exe" ]; then runner="$runner.exe"; fi
 fixture=$(mktemp -d "$workspace/.agents/godot-check-fixture-XXXXXX")
 fixture=$(cd "$fixture" && pwd -P)
 case "$fixture" in
   "$workspace"/.agents/godot-check-fixture-*) ;;
   *) echo "FAIL godot verifier fixture escaped the workspace"; exit 1 ;;
 esac
-trap 'rm -rf -- "$fixture"' EXIT
+complete=false
+cleanup() {
+  if "$complete"; then
+    rm -rf -- "$fixture"
+  else
+    echo "Retained godot verifier fixture: $fixture" >&2
+    if [ -n "${transcript:-}" ] && [ -f "$transcript" ]; then
+      tail -c 12000 "$transcript" >&2
+    fi
+    if [ -n "${guard_diagnostic:-}" ] && [ -f "$guard_diagnostic" ]; then
+      tail -c 12000 "$guard_diagnostic" >&2
+    fi
+  fi
+}
+trap cleanup EXIT
 mkdir -p "$fixture/tools" "$fixture/client/scripts"
 cp tools/godot_check.sh "$fixture/tools/godot_check.sh"
 touch "$fixture/client/scripts/ordinary.gd" \
@@ -32,6 +49,12 @@ case "$*" in
 esac
 name=$(basename "${!#}" .gd)
 case "$CASE" in
+  timeout|pass-then-timeout)
+    if [ "$name" = test_actor_state ]; then
+      if [ "$CASE" = pass-then-timeout ]; then echo "$name: PASS"; fi
+      while :; do :; done
+    fi
+    ;;
   missing-pass) exit 0 ;;
   error-and-pass) echo 'SCRIPT ERROR: fixture' ;;
   debug-socket) echo 'Socket error: 10054.' ;;
@@ -55,9 +78,28 @@ echo "$name: PASS"
 if [ "$CASE" = exit-and-pass ]; then exit 9; fi
 FAKE
 chmod +x "$fake"
-for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure; do
+for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure timeout pass-then-timeout; do
   status=0
-  output=$(CASE="$scenario" GODOT_BIN="$fake" bash "$fixture/tools/godot_check.sh" 2>&1) || status=$?
+  transcript="$fixture/scenario-$scenario.log"
+  guard_diagnostic="$fixture/scenario-$scenario.guard.log"
+  echo "BEGIN godot verifier scenario: $scenario ($transcript)"
+  CASE="$scenario" GODOT_BIN="$fake" FRAGR_CHECK_PROCESS_BIN="$runner" \
+    FRAGR_CHECK_ENGINE_SHELL="$BASH" FRAGR_CHECK_TIMEOUT_MS=3000 \
+    "$runner" --timeout-ms 30000 --output "$transcript" -- \
+    "$BASH" "$fixture/tools/godot_check.sh" 2>"$guard_diagnostic" || status=$?
+  echo "END  godot verifier scenario: $scenario (exit $status)"
+  # Read a regular file after execution, never a process-substitution pipe
+  # that an MSYS descendant could retain after the checker has exited.
+  output=$(cat "$transcript")
+  if grep -qE 'CHECK TIMEOUT|Check process failed:' "$guard_diagnostic" ||
+     grep -qF 'Check process failed:' <<<"$output"; then
+    echo "FAIL godot verifier scenario: $scenario (guard infrastructure failure)"
+    exit 1
+  fi
+  if [ "$status" -ne 0 ] && [ "$status" -ne 1 ]; then
+    echo "FAIL godot verifier scenario: $scenario (unexpected checker exit $status)"
+    exit 1
+  fi
   expected_pass=false
   if [ "$scenario" = pass ] || [ "$scenario" = debug-socket ] || [ "$scenario" = long-pass ]; then expected_pass=true; fi
   if { "$expected_pass" && [ "$status" -ne 0 ]; } ||
@@ -67,6 +109,13 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
   fi
   if [ "$scenario" = verbose-failure ] && ! grep -qF retained-object-identity-fixture <<<"$output"; then
     echo "FAIL godot verifier discarded verbose failure identity"
+    exit 1
+  fi
+  if { [ "$scenario" = timeout ] || [ "$scenario" = pass-then-timeout ]; } &&
+     { ! grep -qF 'CHECK TIMEOUT' <<<"$output" ||
+       ! grep -qF 'END  test_actor_state harness (exit 124)' <<<"$output" ||
+       ! grep -qF 'ok   test_second harness' <<<"$output"; }; then
+    echo "FAIL godot verifier lost timeout diagnostics or skipped the next harness"
     exit 1
   fi
   summary=FAIL
@@ -92,3 +141,4 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
   fi
   echo "ok   godot verifier scenario: $scenario"
 done
+complete=true

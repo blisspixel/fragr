@@ -18,6 +18,10 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
+The [bounded client checks repair](bounded-client-checks-20261018.md) is **in flight**
+within #412 integration after a stalled Windows main check. It adds retained
+per-check logs and an outer process deadline before #413 begins.
+
 The [status bar and reduced motion round](ui-status-bar-20261018.md) is **implemented**
 for #412 within #418, following green main CI and verified v0.87.0 publication.
 
