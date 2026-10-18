@@ -3,6 +3,9 @@ extends Label3D
 
 ## World copy stays in the catalog. Fit the translated glyphs inside the panel.
 const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf")
+## Retain the authored sign inks independently of menu palette changes.
+const PANEL_TEXT: Color = Color("d2bc96")
+const PANEL_INK: Color = Color("0c1010")
 const BREAKS: int = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_ADAPTIVE
 var message_key: String = ""
 var bounds: Vector2 = Vector2.ONE

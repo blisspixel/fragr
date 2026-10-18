@@ -76,7 +76,7 @@ func _ship(hull: Dictionary, stern: Dictionary = {}) -> void:
 	label.name = "CommonCarrierHullName"
 	label.position = Vector3(0, 6.7, front - 0.015)
 	label.rotation.y = PI
-	label.configure("WORLD_M09_COMMON_CARRIER", Vector2(11.0, 1.7), MenuTheme.BONE)
+	label.configure("WORLD_M09_COMMON_CARRIER", Vector2(11.0, 1.7), WorldSign.PANEL_TEXT)
 	_root.add_child(label)
 	for side: float in [-1.0, 1.0]:
 		var x: float = side * 8.02

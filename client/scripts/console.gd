@@ -35,14 +35,15 @@ func _ready() -> void:
 
 func _build() -> void:
 	_panel = Panel.new()
+	_panel.theme = MenuTheme.build(MenuTheme.Context.GAMEPLAY)
 	_panel.anchor_right = 1.0
 	_panel.anchor_bottom = OPEN_HEIGHT_RATIO
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 
 	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.04, 0.05, 0.94)
-	style.border_color = Color(0.82, 0.55, 0.28, 0.9)
+	style.bg_color = MenuTheme.INK
+	style.border_color = MenuTheme.EMBER
 	style.border_width_bottom = 2
 	_panel.add_theme_stylebox_override("panel", style)
 
@@ -52,10 +53,10 @@ func _build() -> void:
 	_output.offset_left = 12.0
 	_output.offset_top = 8.0
 	_output.offset_right = -12.0
-	_output.offset_bottom = -40.0
+	_output.offset_bottom = -66.0
 	_output.scroll_following = true
 	_output.bbcode_enabled = false
-	_output.add_theme_font_size_override("normal_font_size", 15)
+	_output.add_theme_font_size_override("normal_font_size", MenuTheme.BODY)
 	_panel.add_child(_output)
 
 	_input = LineEdit.new()
@@ -63,7 +64,7 @@ func _build() -> void:
 	_input.anchor_right = 1.0
 	_input.anchor_bottom = 1.0
 	_input.offset_left = 12.0
-	_input.offset_top = -34.0
+	_input.offset_top = -54.0
 	_input.offset_right = -12.0
 	_input.offset_bottom = -6.0
 	_input.placeholder_text = "command"

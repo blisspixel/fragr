@@ -35,9 +35,9 @@ missions are a playable foundation for that work.
 
 | Choose | What you can play | Start here |
 |---|---|---|
-| Campaign | Custody escape, freight yard, Low Water, lunar port and town, archive, ship boarding, ship interior, custody tender, Martian habitat, foundry and launch works | **Single Player > Recall Notice**, then **Continue Run** |
+| Campaign | Eighteen connected development missions, from custody escape through the lunar port, Martian foundry, launch works, stadium, Forever Office and evacuation corridor | **Single Player > Recall Notice**, then **Continue Run** |
 | Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
-| Multiplayer | Host team deathmatch, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll; dedicated servers also support free-for-all and capture the flag | **Multiplayer > Run a match**, or enter a running server's address |
+| Multiplayer | Host free-for-all, team deathmatch, capture the flag, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll | **Multiplayer > Run a match**, or enter a running server's address |
 | Calibration | A separate arena challenge against named bots, an announcer called the Host, and objectives | `./tools/solo_scrap.sh` |
 
 Sabotage also has an optional 5v5 profile: start with a Pistol, find stronger
@@ -47,8 +47,8 @@ adds Low Water's Clinic Steps and Tram Stop sites, with human balance review ahe
 late joins and reconnects. Additional competitive maps, Liberation cooperation
 and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
 
-Choose **Multiplayer > Run a match** for team deathmatch, 5v5 plant/defuse or island
-Conquest. Watch, join or return to the menu while your match keeps running;
+Choose **Multiplayer > Run a match** for any of the five supported modes.
+Watch, join or return to the menu while your match keeps running;
 **Stop server** ends it. Enable **Allow LAN players** to invite another computer.
 Choose no bots, a fixed count or automatic fill so humans and agents can join
 a bot-populated match. [Hosting](docs/HOSTING.md) explains the round and seat rules.
@@ -78,8 +78,8 @@ machinery hazards and a freight lift that carries the departing party. The
 launcher has a traveling rocket, a one-round tube, visible timed reload and covered splash; final
 viewmodel art is still ahead. Assisted, Standard, and Severe scale ordinary
 campaign supply and how long an enemy remembers a sighting. Standard tell
-timing stays exact. Development grayboxes for levels 15 through 20 are not
-missions. The standalone
+timing stays exact. Levels 15 through 18 now have connected development missions;
+the separate grayboxes for levels 19 and 20 are not connected missions. The standalone
 [Walker range](docs/plans/walker-foundation-20261015.md) adds warned stomps,
 locked artillery lanes, moving collision and exposed recovery joints. Connected
 [Launch Authority](docs/plans/m14-launch-authority-integration-20261015.md)

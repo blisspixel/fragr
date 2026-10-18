@@ -139,7 +139,7 @@ func _family_room(host: Dictionary, outward: Vector3) -> void:
 	var water_label: Label3D = Label3D.new()
 	water_label.name = "RecyclingCopy"
 	water_label.text = tr("WORLD_M06_RECYCLED_WATER")
-	water_label.font = MenuTheme.FONT
+	water_label.font = WorldSign.FONT
 	water_label.font_size = 24
 	water_label.pixel_size = 0.008
 	water_label.position = centre + Vector3(0.7, 1.3, 4.2)

@@ -76,6 +76,6 @@ func _draw() -> void:
 			var point: Vector2 = (centre + radial * radius).snapped(Vector2.ONE * PIXEL)
 			var strength: float = 1.0 - absf(float(step)) * 0.06
 			draw_rect(Rect2(point - Vector2.ONE * PIXEL, Vector2.ONE * PIXEL * 2.0),
-				Color(0.75, 0.15, 0.12, alpha * strength))
+				MenuTheme.alpha(MenuTheme.DANGER, alpha * strength))
 			if absi(step) <= 2:
-				draw_rect(Rect2(point, Vector2.ONE * PIXEL), Color(1.0, 0.79, 0.56, alpha))
+				draw_rect(Rect2(point, Vector2.ONE * PIXEL), MenuTheme.alpha(MenuTheme.BONE, alpha))

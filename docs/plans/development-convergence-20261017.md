@@ -1,6 +1,8 @@
 # Development convergence, October 17
 
-Status: **in flight**. This round resumes six unpublished commits and the
+Status: **shipped**, [PR #419](https://github.com/blisspixel/fragr/pull/419)
+and [v0.86.0](https://github.com/blisspixel/fragr/releases/tag/v0.86.0).
+This round preserved six unpublished commits and the
 existing M16-M18 working tree. The user's requested outcome is one green main
 branch and an updated desktop release, with priority issues addressed through
 the existing roadmap sequence. All work uses local tools and retained assets,
@@ -12,6 +14,17 @@ allowances, not live readings. Verify each account, exact operation price,
 retained uncertain holds and available quota before any paid stage. Preserve
 native production tools, durable reservations and the $5 per-run dollar ceiling.
 No additional cash purchase, renewal, top-up or overage is authorized.
+
+Final integration: main `9081b54945086821f05293cebd3efe74b1aa0dba` passed
+[all CI jobs](https://github.com/blisspixel/fragr/actions/runs/39101263743),
+including 2,142 native tests and 92.74% unfiltered workspace line coverage.
+The [tag workflow](https://github.com/blisspixel/fragr/actions/runs/39104147151)
+built and smoke-tested Linux, Windows and universal macOS packages. All three
+downloaded archives passed SHA-256 and ZIP integrity verification, and the
+downloaded Linux package passed its exported installation check. The release
+was published October 18 UTC. The repository returned to one remote main branch;
+issues #407-#410 closed. The next bounded implementation is #411. Mission-level
+human, difficulty and final-art acceptance remains in the owning plans.
 
 ## Scope and order
 
@@ -124,8 +137,9 @@ Independent review confirmed the isolation. The client pass found one outdated
 M02 transport double after readiness began reporting actual send success. The
 double now models success and failure, and tests that a failed send is never
 reported as accepted. The final full native, coverage and client reruns pass;
-assertions and coverage policy are unchanged. The changelog prepares v0.86.0;
-its publication still follows reviewed PR CI, main CI and tagged packaging.
+assertions and coverage policy are unchanged. Reviewed PR CI, main CI and tagged
+desktop packaging passed, and v0.86.0 is published with verified archives and
+the exported Linux installation smoke.
 
 The final compatibility review found that three corrected M15 approach heights
 changed its content identity. The registered exact predecessor from commit

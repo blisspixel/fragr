@@ -160,7 +160,7 @@ func _panel(label: String,at: Vector3,size_at: Vector2,color: Color,yaw: float =
 func _sign(label: String,key: String,at: Vector3,size_at: Vector2) -> WorldSign:
 	var sign := WorldSign.new()
 	sign.name = label
-	sign.configure(key,size_at,MenuTheme.BONE)
+	sign.configure(key,size_at,WorldSign.PANEL_TEXT)
 	sign.position = at
 	sign.rotation.y = PI
 	sign.layers = ArenaSky.WORLD_LAYERS
@@ -222,7 +222,7 @@ func apply_state(state: Dictionary) -> void:
 	if _control_sign != null:
 		var key: String = "M14_PAD_RELEASED" if released else "M14_PAD_HELD"
 		if _control_sign.message_key != key:
-			_control_sign.configure(key,_control_sign.bounds,MenuTheme.BONE)
+			_control_sign.configure(key,_control_sign.bounds,WorldSign.PANEL_TEXT)
 
 func _update_overlook(state: Dictionary) -> void:
 	var run: Dictionary = state.get("run",{})

@@ -3,13 +3,13 @@ extends Control
 
 ## Presentation of the local participant's last authoritative inventory only.
 ## Quiet HUD: an ammunition glyph and one number for the held weapon, no words.
-const WIDTH: float = 236.0
+const WIDTH: float = 360.0
 const GLYPH: Vector2 = Vector2(28, 36)
 const BRASS: Color = Color("c9a15a")
 const SHELL_RED: Color = Color("a8402c")
 const CELL_STEEL: Color = Color("7d8c93")
 const CELL_GLOW: Color = Color("b4e0e8")
-const EMPTY_TINT: Color = Color("ec7048")
+const EMPTY_TINT: Color = MenuTheme.EMBER
 
 var state: Dictionary = {}
 var tick: int = 0
@@ -32,8 +32,8 @@ func _ready() -> void:
 	counts.position = Vector2(0, 24)
 	counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 56)
 	counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	counts.add_theme_font_override("font", MenuTheme.FONT)
-	counts.add_theme_font_size_override("font_size", 40)
+	counts.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
+	counts.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_SMALL)
 	counts.add_theme_color_override("font_color", MenuTheme.BONE)
 	counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	counts.add_theme_constant_override("outline_size", 6)
@@ -44,7 +44,7 @@ func _ready() -> void:
 	grenade_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
 	grenade_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	grenade_counts.add_theme_font_override("font", MenuTheme.FONT)
-	grenade_counts.add_theme_font_size_override("font_size", 28)
+	grenade_counts.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	grenade_counts.add_theme_color_override("font_color", MenuTheme.BONE)
 	grenade_counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	grenade_counts.add_theme_constant_override("outline_size", 4)
@@ -55,7 +55,7 @@ func _ready() -> void:
 	mine_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
 	mine_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	mine_counts.add_theme_font_override("font", MenuTheme.FONT)
-	mine_counts.add_theme_font_size_override("font_size", 28)
+	mine_counts.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	mine_counts.add_theme_color_override("font_color", MenuTheme.BONE)
 	mine_counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	mine_counts.add_theme_constant_override("outline_size", 4)
@@ -66,7 +66,7 @@ func _ready() -> void:
 	remote_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
 	remote_counts.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	remote_counts.add_theme_font_override("font", MenuTheme.FONT)
-	remote_counts.add_theme_font_size_override("font_size", 28)
+	remote_counts.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	remote_counts.add_theme_color_override("font_color", MenuTheme.BONE)
 	remote_counts.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	remote_counts.add_theme_constant_override("outline_size", 4)
@@ -105,7 +105,7 @@ func apply(state_value: Dictionary) -> void:
 func _process(delta: float) -> void:
 	dry_seconds = maxf(0.0, dry_seconds - delta)
 	if visible:
-		position = get_viewport_rect().size - Vector2(260, 128)
+		position = get_viewport_rect().size - Vector2(WIDTH + 24.0, 128)
 		_refresh()
 
 func _refresh() -> void:
@@ -116,24 +116,22 @@ func _refresh() -> void:
 	glyph_pool = str(EquipmentState.POOLS.get(weapon, ""))
 	var text: String = EquipmentState.count_text(state, weapon)
 	counts.text = text
-	# A pair such as 12|38 needs the tighter size inside the 196-wide label.
-	counts.add_theme_font_size_override("font_size", 32 if text.contains("|") else 40)
 	var empty: bool = shots == 0
-	counts.modulate = EMPTY_TINT if dry_seconds > 0.0 or empty else Color.WHITE
+	counts.add_theme_color_override("font_color", EMPTY_TINT if dry_seconds > 0.0 or empty else MenuTheme.BONE)
 	grenade_counts.visible = _grenades_known
 	# JSON decodes every number as a float, so the validated count arrives as
 	# 4.0. Print the whole count a player carries, never "4.0".
 	var grenades: int = int(state.get("grenades", 0))
 	grenade_counts.text = str(grenades)
-	grenade_counts.modulate = EMPTY_TINT if grenades == 0 else Color.WHITE
+	grenade_counts.add_theme_color_override("font_color", EMPTY_TINT if grenades == 0 else MenuTheme.BONE)
 	var mines: int = int(state.get("proximity_mines", 0))
 	mine_counts.visible = _mines_known
 	mine_counts.text = str(mines)
-	mine_counts.modulate = EMPTY_TINT if mines == 0 else Color.WHITE
+	mine_counts.add_theme_color_override("font_color", EMPTY_TINT if mines == 0 else MenuTheme.BONE)
 	var remotes: int = int(state.get("remote_mines", 0))
 	remote_counts.visible = _remotes_known
 	remote_counts.text = str(remotes)
-	remote_counts.modulate = EMPTY_TINT if remotes == 0 else Color.WHITE
+	remote_counts.add_theme_color_override("font_color", EMPTY_TINT if remotes == 0 else MenuTheme.BONE)
 	queue_redraw()
 
 func _draw() -> void:

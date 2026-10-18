@@ -5,7 +5,7 @@ extends Control
 ## while the scope input is held with the Sniper Rifle selected. It never
 ## decides a hit; aim and fire still travel as the ordinary absolute action.
 ## Ink beside the square plate, as the art pass specifies.
-const SURROUND: Color = Color("0a0a0c")
+const SURROUND: Color = MenuTheme.INK
 
 ## 0 is the open view, 1 is fully scoped.
 var amount: float = 0.0

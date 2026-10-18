@@ -293,7 +293,7 @@ func _run() -> void:
 	display.apply(state)
 	display.visible = true
 	display._process(0.0)
-	_check(display.counts.text == "0" and display.glyph_pool == "bullets" and display.counts.modulate != Color.WHITE, "an empty pistol shows a dimmed bullet and a red zero")
+	_check(display.counts.text == "0" and display.glyph_pool == "bullets" and display.counts.get_theme_color("font_color") == MenuTheme.EMBER, "an empty pistol shows a dimmed bullet and a readable warning zero")
 	_check(display.get_child_count() == 4 and not display.grenade_counts.visible and not display.mine_counts.visible and not display.remote_counts.visible, "gun number and independent hidden grenade, proximity and remote counters, no caption words")
 	var stocked: Dictionary = state.duplicate(true)
 	stocked["grenades"] = 4
@@ -318,7 +318,7 @@ func _run() -> void:
 	armed["selected"] = "scatter"
 	display.apply(armed)
 	display._process(0.3)
-	_check(display.counts.text == "11" and display.glyph_pool == "shells" and display.counts.modulate == Color.WHITE and display.counts.get_theme_font_size("font_size") == 40, "the held shotgun shows its shell count")
+	_check(display.counts.text == "11" and display.glyph_pool == "shells" and display.counts.get_theme_color("font_color") == MenuTheme.BONE and display.counts.get_theme_font("font") == MenuTheme.DISPLAY_FONT, "the held shotgun shows its shell count in the display face")
 	armed["selected"] = "flechette"
 	display.apply(armed)
 	display._process(0.0)
@@ -333,7 +333,10 @@ func _run() -> void:
 	shown["loaded"] = [{"weapon": "tack", "rounds": 12}]
 	display.apply(shown)
 	display._process(0.0)
-	_check(display.counts.text == "12|38" and display.counts.get_theme_font_size("font_size") == 32 and display.glyph_pool == "bullets", "a magazine reads loaded rounds, then the reserve")
+	_check(display.counts.text == "12|38" and display.counts.get_theme_font_size("font_size") == MenuTheme.DISPLAY_SMALL and display.glyph_pool == "bullets", "a magazine reads loaded rounds, then the reserve without shrinking")
+	var count_font: Font = display.counts.get_theme_font("font")
+	_check(count_font.get_string_size("255|999", HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.DISPLAY_SMALL).x <= display.counts.size.x, "the widest finite count fits at the same display size")
+	_check(display.position.x + display.size.x <= display.get_viewport_rect().size.x - 23.0, "the expanded count and pictogram remain within the right margin")
 	var arcade_hud: Dictionary = state.duplicate(true)
 	arcade_hud["tick"] = 22
 	arcade_hud["selected"] = "rail"
@@ -343,7 +346,7 @@ func _run() -> void:
 	arcade_hud["loaded"] = [{"weapon": "flechette", "rounds": 20}, {"weapon": "scatter", "rounds": 6}, {"weapon": "rail", "rounds": 4}]
 	display.apply(arcade_hud)
 	display._process(0.0)
-	_check(display.counts.text == "4" and display.counts.get_theme_font_size("font_size") == 40 and display.glyph_pool == "cells", "an arcade railgun shows only the magazine")
+	_check(display.counts.text == "4" and display.counts.get_theme_font_size("font_size") == MenuTheme.DISPLAY_SMALL and display.glyph_pool == "cells", "an arcade railgun shows only the magazine at the same display size")
 	display.apply({})
 	_check(not display.visible and display.tick == 0, "disconnect clears private UI and timebase")
 	display.free()

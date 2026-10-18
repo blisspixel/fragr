@@ -32,14 +32,14 @@ func _ready() -> void:
 
 func _build() -> void:
 	var veil: ColorRect = ColorRect.new()
-	veil.color = Color(0.02, 0.02, 0.03, 0.75)
+	veil.color = MenuTheme.alpha(MenuTheme.INK, 0.75)
 	veil.anchor_right = 1.0
 	veil.anchor_bottom = 1.0
 	veil.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(veil)
 
 	var centre: CenterContainer = CenterContainer.new()
-	centre.theme = MenuTheme.build()
+	centre.theme = MenuTheme.build(MenuTheme.Context.GAMEPLAY)
 	centre.anchor_right = 1.0
 	centre.anchor_bottom = 1.0
 	_centre = centre
@@ -61,15 +61,15 @@ func _build() -> void:
 	var title: Label = Label.new()
 	title.text = "MATCH MENU"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 40)
+	title.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_column.add_child(title)
 
 	_note = Label.new()
 	_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_note.custom_minimum_size = Vector2(640.0, 0.0)
-	_note.add_theme_font_size_override("font_size", 14)
-	_note.add_theme_color_override("font_color", Color(0.82, 0.55, 0.28))
+	_note.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	_note.add_theme_color_override("font_color", MenuTheme.EMBER)
 	_column.add_child(_note)
 
 	_add_button("Resume", func() -> void: close())
@@ -88,8 +88,8 @@ func _build() -> void:
 	_hint = hint
 	hint.text = InputGlyphs.plain(tr("MENU_PAUSE_HINT"))
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 12)
-	hint.add_theme_color_override("font_color", Color(0.55, 0.57, 0.6))
+	hint.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	hint.add_theme_color_override("font_color", MenuTheme.BONE)
 	_column.add_child(hint)
 
 	var spacer: Control = Control.new()
@@ -165,8 +165,9 @@ func show_settings() -> void:
 		return
 	_panel.visible = false
 	_settings_panel = SettingsPanel.new()
+	_settings_panel.theme_context = MenuTheme.Context.GAMEPLAY
 	_settings_panel.name = "SettingsPanel"
-	_settings_panel.custom_minimum_size.x = 780
+	_settings_panel.custom_minimum_size.x = 1200
 	_settings_panel.preferences = preferences
 	_settings_panel.closed.connect(_hide_settings)
 	_settings_frame = PanelContainer.new()

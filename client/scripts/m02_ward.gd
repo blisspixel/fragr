@@ -416,7 +416,7 @@ func _build() -> void:
 	_box(list, "Panel", Vector3.ZERO, Vector3(2.05, 1.25, 0.08), steel)
 	var world_copy: WorldSign = WorldSign.new()
 	world_copy.name = "Copy"
-	world_copy.configure("M02_TRANSFER_LIST", Vector2(1.83, 1.05), MenuTheme.BONE)
+	world_copy.configure("M02_TRANSFER_LIST", Vector2(1.83, 1.05), WorldSign.PANEL_TEXT)
 	world_copy.position.z = 0.055
 	list.add_child(world_copy)
 	_transfer_list = list
@@ -545,7 +545,7 @@ func _build_caption() -> void:
 	_overlay.add_child(screen)
 	_card = PanelContainer.new()
 	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_card.add_theme_stylebox_override("panel", MenuTheme.panel(Color("171d1a"), Color("716344")))
+	_card.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
 	screen.add_child(_card)
 	var margin: MarginContainer = MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -556,12 +556,12 @@ func _build_caption() -> void:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_theme_constant_override("separation", 5)
 	margin.add_child(column)
-	_heading = _label(20, MenuTheme.EMBER)
+	_heading = _label(MenuTheme.BODY, MenuTheme.EMBER)
 	column.add_child(_heading)
-	_copy = _label(23, MenuTheme.BONE)
+	_copy = _label(MenuTheme.BODY, MenuTheme.BONE)
 	_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_copy)
-	_hint = _label(14, MenuTheme.BONE)
+	_hint = _label(MenuTheme.BODY, MenuTheme.BONE)
 	column.add_child(_hint)
 	_card.visible = false
 

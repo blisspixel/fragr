@@ -12,12 +12,12 @@ class_name InputGlyphs
 ## A prompt template names actions in braces: "{use}: READ TRANSFER RECORD".
 
 const SIZE: int = 16
-const INK: Color = Color("0c1010")
-const BODY: Color = Color("2b2721")
-const RIM: Color = Color("d2bc96")
-const MARK: Color = Color("efb56e")
-const DIM: Color = Color("6b6960")
-const KEYCAP_BACK: Color = Color("3a2d22")
+const INK: Color = MenuTheme.INK
+const BODY: Color = MenuTheme.SURFACE
+const RIM: Color = MenuTheme.BONE
+const MARK: Color = MenuTheme.EMBER
+const DIM: Color = MenuTheme.MUTED
+const KEYCAP_BACK: Color = MenuTheme.SURFACE
 
 ## Template names to InputMap actions.
 const TOKENS: Dictionary = {
@@ -185,7 +185,7 @@ static func render(label: RichTextLabel, template: String, glyph_size: int = 32,
 		var action: String = str(part["action"])
 		var token: String = InputBindings.live_token(action, pad, InputDevice.kind == InputDevice.Kind.MOUSE)
 		if pad and not token.is_empty():
-			label.add_image(glyph(token, InputDevice.pad_layout), glyph_size, glyph_size, Color.WHITE, INLINE_ALIGNMENT_CENTER)
+			label.add_image(glyph(token, InputDevice.pad_layout), glyph_size, glyph_size, MenuTheme.UNTINTED, INLINE_ALIGNMENT_CENTER)
 			continue
 		if token.is_empty():
 			token = InputBindings.live_token(action, false)
@@ -212,7 +212,7 @@ static func glyph(token: String, layout: String) -> Texture2D:
 
 static func glyph_image(token: String, layout: String) -> Image:
 	var image: Image = Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
-	image.fill(Color(0, 0, 0, 0))
+	image.fill(MenuTheme.CLEAR)
 	if token.begins_with("pad:a"):
 		var left: bool = token.substr(5, 1) == str(JOY_AXIS_TRIGGER_LEFT)
 		_trigger(image)
