@@ -4,6 +4,6 @@
   "height": 720,
   "states": [
     {"name": "m17_office_entry", "scene": "res://scenes/main.tscn", "join": "human", "camera": "first_person", "look_at": [0, 1.5, -15], "settle_seconds": 0.3},
-    {"name": "m17_office_overview", "join": "spectator", "camera": "overview", "camera_position": [22, 24, -25], "camera_look_at": [0, 0, 10], "settle_seconds": 0.3}
+    {"name": "m17_office_overview", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [22, 24, -25], "camera_look_at": [0, 0, 10], "settle_seconds": 0.3, "note": "Geometry inspection after the sole participant leaves resets the encounters."}
   ]
 }

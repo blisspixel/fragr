@@ -98,3 +98,25 @@ acceptance distinct from automated verification.
   [audio plan](campaign-transition-audio.md#muted-narration-october-17) has captures.
 - Composed native, coverage, client, rendered, PR, main and release gates remain
   open until their actual results are recorded here.
+
+## Consolidation review
+
+[PR #419](https://github.com/blisspixel/fragr/pull/419) contains the inherited
+work and the convergence repairs. The new entry captures pass and were inspected:
+[M16 motorcycle](../screenshots/m16_motorcycle_20261017.png),
+[M17 office](../screenshots/m17_entry_20261017.png) and
+[M18 transit](../screenshots/m18_entry_20261017.png). They establish presentation
+and accepted entry facts only. Geometry-only overview states explicitly allow
+an empty roster after the sole participant leaves and encounters reset. The
+unarmed M16/M17 practice entries take immediate damage; practice balance and
+complete human routes remain open. These are development missions.
+
+The composed native pass reached 1,487 passing server unit tests before the
+build-metadata fixture inherited the surrounding checkout's Cargo/Git identity
+from a repository-local TMPDIR. The fixture now explicitly owns its workspace
+and bounds Git discovery; both original cache/worktree/archive tests pass.
+Independent review confirmed the isolation. The client pass found one outdated
+M02 transport double after readiness began reporting actual send success. The
+double now models success and failure, and tests that a failed send is never
+reported as accepted. Full suites are rerunning; assertions and coverage policy
+are unchanged.

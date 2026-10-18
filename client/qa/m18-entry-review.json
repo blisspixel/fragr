@@ -4,6 +4,6 @@
   "height": 720,
   "states": [
     {"name": "m18_recovery_entry", "scene": "res://scenes/main.tscn", "join": "human", "camera": "first_person", "look_at": [-35, 1.5, 0], "settle_seconds": 0.3},
-    {"name": "m18_transit_overview", "join": "spectator", "camera": "overview", "camera_position": [-25, 22, 22], "camera_look_at": [20, 1, 0], "settle_seconds": 0.3}
+    {"name": "m18_transit_overview", "join": "spectator", "camera": "overview", "allow_empty_roster": true, "camera_position": [-25, 22, 22], "camera_look_at": [20, 1, 0], "settle_seconds": 0.3, "note": "Geometry inspection after the sole participant leaves resets the encounters."}
   ]
 }
