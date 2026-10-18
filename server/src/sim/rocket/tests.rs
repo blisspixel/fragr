@@ -588,6 +588,18 @@ fn a_dead_owner_still_owns_the_impact() {
     state
         .players
         .iter_mut()
+        .find(|player| player.id == target)
+        .unwrap()
+        .hp = 1;
+    state
+        .players
+        .iter_mut()
+        .find(|player| player.id == shooter)
+        .unwrap()
+        .weapon = WeaponType::Fists;
+    state
+        .players
+        .iter_mut()
         .find(|player| player.id == shooter)
         .unwrap()
         .hp = 0;
@@ -602,6 +614,9 @@ fn a_dead_owner_still_owns_the_impact() {
             < 100
     );
     assert_eq!(column(&state, shooter).damaging_attacks, 1);
+    assert!(state.events.iter().any(|event| matches!(event,
+        crate::protocol::GameEvent::Frag { killer_id: Some(k), victim_id: Some(v), weapon: Some(WeaponType::Rocket), .. }
+            if *k == shooter && *v == target)));
 }
 
 #[test]

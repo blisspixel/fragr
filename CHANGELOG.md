@@ -4,6 +4,23 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.89.0 (2026-10-18)
+
+- Keep five frag rows in their own queue for 4.5 seconds each. Taunts, Host
+  lines and pickups have a separate corner voice budget. Objective calls appear
+  one at a time above aim, while results retain their backed cards.
+- Show resolved weapon glyphs and a bone plate for frags involving you. Feed
+  and standings share relation marks, and duplicate callsigns retain distinct
+  participant identities. Older events retain neutral, honest fallbacks.
+- Pause obscured notice clocks under actual loading, menu, story, standings
+  and mission covers. Preserve frags across round transitions, and keep scoped
+  voice readable. Duck the radio once when a Host line is first presented.
+- Carry optional participant IDs and resolved weapon provenance on frag events
+  through the adapter and observer. Omit uncertain optional statistics instead
+  of guessing from held guns or same-named fighters.
+- Update existing developer HTTP dependencies to Rustls 0.23.46 and
+  yoke-derive 0.8.4 without changing packaged desktop dependencies or TLS policy.
+
 ## v0.88.0 (2026-10-18)
 
 - Give health, armor and ammunition equal display numerals. Health changes at

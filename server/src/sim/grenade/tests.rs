@@ -238,6 +238,9 @@ fn explosion_effective_armor_hp_self_death_and_posthumous_credit() {
     );
     record.validate_for(Some(owner), None).unwrap();
     let events = state.take_events();
+    assert!(events.iter().any(|event| matches!(event,
+        crate::protocol::GameEvent::Frag { killer_id: Some(k), victim_id: Some(v), weapon: None, .. }
+            if *k == owner && *v == target)));
     assert_eq!(
         events
             .iter()

@@ -432,11 +432,13 @@ packages. Issues #407-#410 are closed. The
 [UI palette and type round](plans/ui-palette-type-20261017.md), #411, shipped through
 PR #420 with passing main CI and published v0.87.0. All three downloaded desktop
 archives passed verification, including the Linux installation smoke check.
-The immediate rung is the [status bar and reduced motion round](plans/ui-status-bar-20261018.md), #412.
-Its reviewed presentation merged through PR #421. A stalled Windows main check
-keeps integration open; the [bounded client checker repair](plans/bounded-client-checks-20261018.md)
-adds retained per-check diagnostics and independent process deadlines before
-the event-tier round begins. v0.88.0 publication remains pending.
+The [status bar and reduced motion round](plans/ui-status-bar-20261018.md), #412,
+shipped through PR #421. The [bounded client checker repair](plans/bounded-client-checks-20261018.md)
+shipped through PR #422 to `8ecbb99`, with passing main CI 39150766048.
+Published v0.88.0 has three verified desktop archives, including the downloaded
+Linux installation and exact server build metadata checks.
+The immediate rung is the [event-tier round](plans/ui-event-tiers-20261018.md),
+#413: protected frag rows, independent corner voice and sequential objective calls.
 The interface work #411-#418 follows its existing dependencies: palette and type,
 status bar, event tiers, accessibility, terminal polish, signature moments and
 the README front door. Preserve their rendered and human acceptance gates.

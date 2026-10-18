@@ -203,6 +203,84 @@ fn set_record_counts(summary: &mut BotSummary, total: &fragr_server::protocol::C
     summary.deaths = total.deaths.min(u64::from(u32::MAX)) as u32;
 }
 
+#[derive(Default)]
+struct FragSummaryIdentity {
+    name: Option<String>,
+    conflicted: bool,
+}
+
+impl FragSummaryIdentity {
+    fn observe_event(&mut self, me: Option<Uuid>, event: &GameEvent) {
+        if let GameEvent::Frag {
+            killer,
+            victim,
+            killer_id,
+            victim_id,
+            ..
+        } = event
+        {
+            for (name, id) in [(killer, killer_id), (victim, victim_id)] {
+                if id.is_some() && *id != me {
+                    self.conflicted |= self.name.is_none() || self.name.as_ref() == Some(name);
+                }
+            }
+        }
+    }
+
+    fn observe(&mut self, me: Option<Uuid>, snapshot: &Snapshot) {
+        let Some(me) = me else { return };
+        if let Some(player) = snapshot.players.iter().find(|player| player.id == me) {
+            if player.name.chars().count() <= 64 {
+                self.name = Some(player.name.clone());
+            } else {
+                self.name = None;
+            }
+        } else if self.name.is_none() && !snapshot.players.is_empty() {
+            // Before our accepted name is known, an omitted other body may
+            // already have used it. Keep this bounded fallback fail-closed.
+            self.conflicted = true;
+        }
+        if let Some(name) = &self.name {
+            self.conflicted |= snapshot
+                .players
+                .iter()
+                .any(|player| player.id != me && player.name == *name);
+        }
+    }
+
+    fn matches(&self, me: Option<Uuid>, supplied: Option<Uuid>, name: &str) -> bool {
+        match supplied {
+            Some(id) => me == Some(id),
+            None => me.is_some() && !self.conflicted && self.name.as_deref() == Some(name),
+        }
+    }
+}
+
+fn ingest_frag_summary(
+    summary: &mut BotSummary,
+    me: Option<Uuid>,
+    record_seen: bool,
+    identity: &FragSummaryIdentity,
+    event: &GameEvent,
+) {
+    if let GameEvent::Frag {
+        killer,
+        victim,
+        killer_id,
+        victim_id,
+        ..
+    } = event
+    {
+        if identity.matches(me, *killer_id, killer) {
+            // Arcade event frags are distinct from the record's combat kills.
+            summary.frags += 1;
+        }
+        if !record_seen && identity.matches(me, *victim_id, victim) {
+            summary.deaths += 1;
+        }
+    }
+}
+
 fn terminal_mission(state: &MissionState) -> bool {
     state.run.is_some_and(|run| {
         matches!(
@@ -720,7 +798,7 @@ pub async fn run_bot(
         ..BotSummary::default()
     };
     let mut me: Option<Uuid> = None;
-    let mut my_name = config.name.clone();
+    let mut frag_identity = FragSummaryIdentity::default();
     let mut last: Option<Snapshot> = None;
     let mut loadout: Option<fragr_server::protocol::LoadoutState> = None;
     let mut record: Option<fragr_server::protocol::PlayerRecord> = None;
@@ -809,17 +887,16 @@ pub async fn run_bot(
                         loadout = Some(next);
                     }
                     Ok(ServerMessage::Welcome { player_id, .. }) => {
+                        if me != player_id {
+                            frag_identity = FragSummaryIdentity::default();
+                        }
                         me = player_id;
                         summary.player_id = player_id;
                     }
                     Ok(ServerMessage::Snapshot(snapshot)) => {
                         decision_epoch.observe_snapshot(me, last.as_ref(), &snapshot);
                         summary.snapshots += 1;
-                        if let Some(id) = me {
-                            if let Some(p) = snapshot.players.iter().find(|p| p.id == id) {
-                                my_name = p.name.clone();
-                            }
-                        }
+                        frag_identity.observe(me, &snapshot);
                         last = Some(snapshot);
                     }
                     Ok(ServerMessage::Event(event)) => {
@@ -830,14 +907,8 @@ pub async fn run_bot(
                                 trace.event(tick, state, id, &event);
                             }
                         }
-                        if let GameEvent::Frag { killer, victim, .. } = &event {
-                            if *killer == my_name {
-                                summary.frags += 1;
-                            }
-                            if record.is_none() && *victim == my_name {
-                                summary.deaths += 1;
-                            }
-                        }
+                        frag_identity.observe_event(me, &event);
+                        ingest_frag_summary(&mut summary, me, record.is_some(), &frag_identity, &event);
                     }
                     // The brain does not predict, so an ack is nothing to act on.
                     Ok(ServerMessage::Ack { .. }) => {}
@@ -1233,6 +1304,97 @@ mod tests {
     };
     use fragr_server::run::{run_server, ServerOptions};
     use fragr_server::sim::{MapKind, MatchConfig};
+
+    #[test]
+    fn frag_summary_uses_ids_and_retains_legacy_ambiguity_without_double_records() {
+        let me = Uuid::from_u128(1);
+        let other = Uuid::from_u128(2);
+        let mut identity = FragSummaryIdentity::default();
+        assert!(!identity.matches(Some(me), None, "Same"));
+        identity.observe(
+            Some(me),
+            &snapshot(1, vec![player("Same", me, 0.0, 0.0, 100, "Rail")], vec![]),
+        );
+        assert!(identity.matches(Some(me), None, "Same"));
+        assert!(!identity.matches(Some(me), Some(other), "Same"));
+        identity.observe(
+            Some(me),
+            &snapshot(
+                2,
+                vec![player("Same", other, 1.0, 0.0, 100, "Rail")],
+                vec![],
+            ),
+        );
+        identity.observe(
+            Some(me),
+            &snapshot(3, vec![player("Same", me, 0.0, 0.0, 100, "Rail")], vec![]),
+        );
+        assert!(!identity.matches(Some(me), None, "Same"));
+        let event = GameEvent::Frag {
+            killer: "Renamed".into(),
+            victim: "Same".into(),
+            killer_score: 1,
+            killer_id: Some(me),
+            victim_id: Some(other),
+            weapon: Some(WeaponType::Rocket),
+            killer_team: None,
+            victim_team: None,
+        };
+        let mut summary = BotSummary::default();
+        ingest_frag_summary(&mut summary, Some(me), false, &identity, &event);
+        assert_eq!((summary.frags, summary.deaths), (1, 0));
+        let mut record = CombatCounts {
+            deaths: 3,
+            ..CombatCounts::default()
+        };
+        record.weapons[WeaponType::Rocket.index()].kills = 7;
+        set_record_counts(&mut summary, &record);
+        ingest_frag_summary(&mut summary, Some(me), true, &identity, &event);
+        assert_eq!(
+            (summary.frags, summary.kills, summary.deaths),
+            (2, Some(7), 3)
+        );
+        let death = GameEvent::Frag {
+            killer: "Same".into(),
+            victim: "Renamed".into(),
+            killer_score: 1,
+            killer_id: Some(other),
+            victim_id: Some(me),
+            weapon: None,
+            killer_team: None,
+            victim_team: None,
+        };
+        ingest_frag_summary(&mut summary, Some(me), false, &identity, &death);
+        assert_eq!(summary.deaths, 4);
+        ingest_frag_summary(&mut summary, Some(me), true, &identity, &death);
+        assert_eq!(summary.deaths, 4);
+        assert!(!identity.matches(None, Some(other), "Same"));
+
+        let mut late_self = FragSummaryIdentity::default();
+        late_self.observe(
+            Some(me),
+            &snapshot(
+                1,
+                vec![player("Same", other, 0.0, 0.0, 100, "Rail")],
+                vec![],
+            ),
+        );
+        late_self.observe(
+            Some(me),
+            &snapshot(2, vec![player("Same", me, 0.0, 0.0, 100, "Rail")], vec![]),
+        );
+        assert!(!late_self.matches(Some(me), None, "Same"));
+        assert!(late_self.matches(Some(me), Some(me), "Same"));
+
+        let mut modern_only = FragSummaryIdentity::default();
+        modern_only.observe(
+            Some(me),
+            &snapshot(1, vec![player("Same", me, 0.0, 0.0, 100, "Rail")], vec![]),
+        );
+        modern_only.observe_event(Some(me), &death);
+        assert!(!modern_only.matches(Some(me), None, "Same"));
+        assert!(modern_only.matches(Some(me), Some(me), "Same"));
+    }
 
     #[test]
     fn authoritative_record_counts_campaign_deaths_without_frag_events() {

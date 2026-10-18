@@ -369,3 +369,57 @@ fn test_holder_death_and_leave_starts_cooldown() {
         ArticleBladePlinthPhase::Cooling { .. }
     ));
 }
+
+#[test]
+fn last_blade_swing_frag_retains_the_trace_after_fallback_selection() {
+    let mut arcade: serde_json::Value = serde_json::from_slice(include_bytes!(
+        "../../../../server/maps/test/m15_blade_range.json"
+    ))
+    .unwrap();
+    // The retained range's encounter roster makes humans campaign allies.
+    // This case stages an arcade frag on its same plinth and geometry.
+    arcade.as_object_mut().unwrap().remove("encounters");
+    let map = AuthoredMap::read(serde_json::to_vec(&arcade).unwrap().as_slice()).unwrap();
+    let mut sim = GameState::with_authored_map(map);
+    let owner = Uuid::from_u128(1);
+    let victim = Uuid::from_u128(2);
+    sim.add_player(owner, "Same".into(), Role::Human);
+    sim.add_player(victim, "Same".into(), Role::Human);
+    sim.spawn_shields.clear();
+    sim.article_blade.as_mut().unwrap().claim(owner, 0);
+    assert_eq!(sim.article_blade.as_ref().unwrap().holder(), Some(owner));
+    sim.players[0].inventory.grant_weapon(WeaponType::Tack);
+    sim.players[0].inventory.grant_article_blade(1);
+    sim.players[0].weapon = WeaponType::ArticleBlade;
+    sim.players[0].last_non_blade_weapon = WeaponType::Tack;
+    for (index, player) in sim.players.iter_mut().enumerate() {
+        player.x = 10.0 + index as f32 * 1.5;
+        player.y = crate::sim::PLAYER_FLOOR_Y;
+        player.z = 10.0;
+        player.yaw = 0.0;
+        player.armor = 0;
+    }
+    sim.players[1].hp = 70;
+    sim.set_action(
+        owner,
+        Action {
+            fire: true,
+            ..Action::default()
+        },
+    );
+    sim.tick(0.05);
+    assert!(
+        sim.players[1].hp <= 0,
+        "hp={}, shots={:?}, phase={:?}, weapon={:?}, uses={}",
+        sim.players[1].hp,
+        sim.shot_results,
+        sim.round_state,
+        sim.players[0].weapon,
+        sim.players[0].inventory.article_blade_uses()
+    );
+    assert_eq!(sim.players[0].weapon, WeaponType::Tack);
+    assert!(sim.players[0].fire_latched);
+    assert!(sim.events.iter().any(|event| matches!(event,
+        crate::protocol::GameEvent::Frag { killer_id: Some(k), victim_id: Some(v), weapon: Some(WeaponType::ArticleBlade), .. }
+            if *k == owner && *v == victim)));
+}

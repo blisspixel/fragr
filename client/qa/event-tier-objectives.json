@@ -1,0 +1,17 @@
+{
+  "comment": "Observe an actual objective call from a real CTF, Sabotage or Conquest server. No event injection. Run separately per mode with seed 42 and native bots. The capture manifest retains exact accepted event-tier payloads and authoritative objective state. This is spectator presentation evidence, not a played difficulty gate.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {
+      "name": "live_objective_call",
+      "scene": "res://scenes/main.tscn",
+      "at_seconds": 1,
+      "camera": "follow",
+      "await_objective": "",
+      "await_timeout_seconds": 120,
+      "settle_seconds": 0.0,
+      "note": "A live accepted objective is shown on its own ink plate above aim. Exact call and mode facts are retained with the still."
+    }
+  ]
+}

@@ -6,7 +6,7 @@ class ResetSink extends Node:
 	func apply(_state: Dictionary) -> void:
 		pass
 
-class AudioHud extends Node:
+class AudioHud extends "res://qa/support/event_hud_probe.gd":
 	func set_campaign(enabled: bool) -> void:
 		combat_feed.set_campaign(enabled)
 	var crawler_caption: CrawlerCaption = null
@@ -178,6 +178,7 @@ func _check_manager(cues: JammerAudio) -> void:
 	manager.call("_present_jammer_launches", {"tick": 3, "players": [_actor("distant")]})
 	_check(cues.launch_count == before + 1, "GameManager uses the actual distant spectator camera")
 	manager.call("_on_map_info", {"map_id": 1012, "geometry_version": 2, "half_extent": 24.0, "solids": []})
+	_check(hud.event_retirements == [false], "map lifecycle reaches the shared event contract")
 	_check(cues.launch_count == 0 and cues.last_snapshot_tick == -1,
 		"real MapInfo handler clears launch deduplication")
 	for voice: AudioStreamPlayer3D in cues.voices:
@@ -186,6 +187,7 @@ func _check_manager(cues: JammerAudio) -> void:
 	manager.call("_present_jammer_launches", {"tick": 1, "players": [_actor("reconnected")]})
 	_check(cues.launch_count == 1, "map reset admits a new launch baseline")
 	manager.call("_clear_world")
+	_check(hud.event_retirements == [false, true], "disconnect retires the whole event session")
 	_check(cues.launch_count == 0 and cues.last_snapshot_tick == -1,
 		"disconnect world cleanup resets launch state")
 	for voice: AudioStreamPlayer3D in cues.voices:

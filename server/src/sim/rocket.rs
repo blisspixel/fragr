@@ -348,7 +348,14 @@ impl GameState {
         let mut connect = false;
         for (target, damage, contact, distance) in planned {
             let (hp, armor, died) = if damage > 0 {
-                self.resolve_fighter_hit_for(owner, target, damage, None, false)
+                self.resolve_fighter_hit_for(
+                    owner,
+                    target,
+                    damage,
+                    None,
+                    false,
+                    Some(WeaponType::Rocket),
+                )
             } else {
                 (0, 0, false)
             };

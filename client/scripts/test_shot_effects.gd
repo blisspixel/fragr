@@ -4,7 +4,7 @@ class CaptionProbe extends Node:
 	func clear() -> void:
 		pass
 
-class HudProbe extends Node:
+class HudProbe extends "res://qa/support/event_hud_probe.gd":
 	func set_campaign(_enabled: bool) -> void:
 		pass
 	var equipment_hud: EquipmentHud = EquipmentHud.new()
@@ -331,10 +331,12 @@ func _run() -> void:
 	await _resolved_dead_shooter_flash(game)
 	game._clear_world()
 	_check(effects.active_count() == 0, "role teardown clears world effects")
+	_check(hud.event_retirements.back(), "world teardown retires the complete event session")
 	game._process_shot_results([_shot()], 1)
 	_check(effects.active_count() == 1, "new sessions may restart tick numbering")
 	game._on_map_info({"map_name": "Test"})
 	_check(effects.active_count() == 0, "map replacement clears old impacts")
+	_check(not hud.event_retirements.back(), "map replacement retires venue events while preserving frag ownership")
 	game.free()
 	hud.equipment_hud.free()
 	hud.combat_feed.free()

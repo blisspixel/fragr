@@ -230,7 +230,7 @@ func _check_hud() -> void:
 	_check(leaders_panel.visible and leaders_panel.mouse_filter == Control.MOUSE_FILTER_IGNORE, "tab opens a board that ignores the pointer")
 	var view: Rect2 = hud.get_viewport().get_visible_rect()
 	_check(view.encloses(leaders_panel.get_global_rect()), "the board stays on screen: " + str(leaders_panel.get_global_rect()) + " in " + str(view))
-	var leader_rows: Label = hud.get("_leaderboard_label")
+	var leader_rows: VBoxContainer = hud.get("_leaderboard_rows")
 	_check(leaders_panel.get_global_rect().encloses(leader_rows.get_global_rect()), "ordinary standings text fits its backing")
 	await _check_large_board(hud)
 	hud.call("set_leaderboard_open", false)
@@ -257,12 +257,13 @@ func _check_large_board(hud: CanvasLayer) -> void:
 		await process_frame
 	var panel: Control = hud.get_node("Leaderboard")
 	var scroll: ScrollContainer = hud.get("_leaderboard_scroll")
-	var rows: Label = hud.get("_leaderboard_label")
+	var rows: VBoxContainer = hud.get("_leaderboard_rows")
 	var hint: Label = hud.get("_leaderboard_hint")
 	_check(panel.get_global_rect().encloses(scroll.get_global_rect()), "large roster has a bounded scrolling viewport")
 	_check(panel.get_global_rect().encloses(hint.get_global_rect()), "scroll instructions stay inside the panel")
 	_check(rows.get_global_rect().end.x <= scroll.get_global_rect().end.x, "long Unicode names and counts wrap within the board width")
-	_check(rows.text.contains("64. [UNION] 測試界abcdefghijklmnopqr63") and rows.text.contains("999999 dealt"), "large roster retains the final fighter and full counts")
+	var final_label: Label = rows.get_child(64).get_node("Content/Text")
+	_check(final_label.text.contains("64. [UNION] 測試界abcdefghijklmnopqr63") and final_label.text.contains("999999 dealt"), "large roster retains the final fighter and full counts")
 	var next: InputEventAction = InputEventAction.new()
 	next.action = "weapon_next"
 	next.pressed = true

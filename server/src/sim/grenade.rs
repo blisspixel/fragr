@@ -298,6 +298,7 @@ impl GameState {
                 damage,
                 None,
                 blast.source == BlastSource::AssessorWreck,
+                None,
             );
             if hp + armor == 0 {
                 continue;

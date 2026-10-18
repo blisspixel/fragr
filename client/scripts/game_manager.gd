@@ -51,6 +51,8 @@ var local_hp_seen = -1
 var fp_spawn_flashed = false
 ## Killer to watch once an arcade death drops first person. Empty until then.
 var _death_watch_killer: String = ""
+var _frag_identity := FragIdentity.new()
+var _joined_ui_team: String = ""
 # Mid-join Ended podium shown once per Ended phase.
 var ended_podium_shown = false
 var action_state = {
@@ -127,6 +129,7 @@ var _onward_armed: bool = false
 ## Set when a finished durable run has asked to open the next mission.
 var onward_requested: bool = false
 var _presented_attempt: int = 0
+var _event_mission_receipt: String = ""
 var _retry_snapshot_tick: int = -1
 
 var arena_cover: ArenaCover = null
@@ -207,6 +210,8 @@ var crawler_last_ms: int = -1000
 
 func _ready():
 	ClientRetirement.for_tree(get_tree())
+	hud.event_cover_query = _event_full_cover
+	hud.event_region_query = _event_cover_regions
 	_begin_world_load()
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
@@ -452,6 +457,14 @@ func _release_retired_environments() -> void:
 
 
 func _on_map_info(info: Dictionary) -> void:
+	var next_mission: String = MissionState.id_for_map(info)
+	var previous_mission: String = MissionState.id_for_map(current_map_info)
+	var changed_venue: bool = current_map_info.is_empty() or next_mission != previous_mission \
+		or (next_mission.is_empty() and info.get("map_id") != current_map_info.get("map_id"))
+	if changed_venue:
+		hud.reset_event_context()
+		_event_mission_receipt = ""
+		_joined_ui_team = ""
 	if walker_view != null:
 		walker_view.configure_map(info)
 	_reset_local_fire()
@@ -505,7 +518,7 @@ func _on_map_info(info: Dictionary) -> void:
 		incoming_feedback.configure_map(info)
 	# The rule set arrives with the map; a campaign map has none.
 	if hud and hud.has_method("set_match_rules"):
-		hud.set_match_rules(MatchRules.parse(info.get("rules")))
+		hud.set_match_rules(MatchRules.parse(info.get("rules")), changed_venue)
 	var layout: Variant = info.get("sabotage")
 	sabotage_layout = layout.duplicate(true) if layout is Dictionary else {}
 	if arena_sabotage != null:
@@ -639,6 +652,42 @@ func controls_blocked() -> bool:
 	if is_instance_valid(departure_review):
 		return true
 	return role_transition or _mission_controls_blocked() or (mission_hud != null and mission_hud.state.get("phase") == "departed") or (mouse_capture != null and not mouse_capture.gameplay_input_allowed()) or (console != null and console.is_open()) or (pause_menu != null and pause_menu.is_open())
+
+## Visual covers are explicit owners, not the broader input-blocking predicate.
+func _event_full_cover() -> bool:
+	var loading: LoadingCard = get_node_or_null("LoadingCard") as LoadingCard
+	if loading != null and loading.visible:
+		return true
+	if pause_menu != null and pause_menu.is_open():
+		return true
+	for scene: CanvasLayer in [opening, interlude, campaign_results]:
+		if is_instance_valid(scene) and scene.visible:
+			return true
+	return false
+
+func _event_cover_regions() -> Array[Rect2]:
+	var regions: Array[Rect2] = []
+	if console != null and console.is_open():
+		regions.append(console.occupied_region())
+	if is_instance_valid(departure_review):
+		regions.append(departure_review.occupied_region())
+	if is_instance_valid(mission_hud):
+		regions.append_array(mission_hud.event_cover_regions())
+	return regions
+
+func _refresh_ui_context(roster: Array) -> void:
+	if hud == null or net_client == null:
+		return
+	var local_id: String = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
+	var viewed: String = local_id if not local_id.is_empty() else _followed_player_id()
+	var side: String = _joined_ui_team if not local_id.is_empty() else ""
+	for row: Variant in roster:
+		if row is Dictionary and row.get("id") == viewed:
+			side = MatchRules.valid_team(row.get("team"))
+			if not local_id.is_empty():
+				_joined_ui_team = side
+			break
+	hud.set_viewer_context(local_id, side)
 
 func _mission_controls_blocked() -> bool:
 	if not is_human_player:
@@ -1270,6 +1319,10 @@ func change_role(play: bool) -> void:
 	if local_match != null or role_transition or play == is_human_player:
 		return
 	role_transition = true
+	hud.reset_event_context(true)
+	_event_mission_receipt = ""
+	_frag_identity.clear()
+	_joined_ui_team = ""
 	pending_jump = false
 	pending_interact = false
 	pending_throw = false
@@ -1350,6 +1403,7 @@ func _process(_delta):
 		_reset_prediction_for_connection("connection_lost")
 	if not is_human_player:
 		_update_followed_weapon()
+	_refresh_ui_context(ActorState.participants(latest_snapshot.get("players", [])))
 	_update_nameplates()
 	if camera and is_human_player:
 		camera.assist_targets = assist_targets()
@@ -1626,6 +1680,10 @@ func _reset_local_fire() -> void:
 	_local_fire_allowed_last_frame = false
 
 func _on_mission_received(state: Dictionary) -> void:
+	var receipt: String = "%s:%d" % [str(state.get("id", "")), int(state.get("attempt", 0))] if not state.is_empty() else ""
+	if not _event_mission_receipt.is_empty() and receipt != _event_mission_receipt:
+		hud.reset_event_context()
+	_event_mission_receipt = receipt
 	_continue_armed = false
 	if is_instance_valid(departure_review):
 		if not _m05_departure_available():
@@ -1963,6 +2021,11 @@ func _on_server_error(message: String) -> void:
 		card.show_error(message)
 
 func _clear_world() -> void:
+	_event_mission_receipt = ""
+	_frag_identity.clear()
+	_joined_ui_team = ""
+	if hud != null:
+		hud.reset_event_context(true)
 	if walker_view != null:
 		walker_view.clear_map()
 	_reset_local_fire()
@@ -2124,6 +2187,7 @@ func _on_snapshot_received(data):
 		arena_conquest.apply(data)
 	if conquest_hud != null:
 		conquest_hud.apply(data)
+		hud.observe_conquest(data)
 	_update_prediction_contacts(data)
 	var tick = data.get("tick", 0)
 	var player_list = data.get("players", [])
@@ -2139,6 +2203,7 @@ func _on_snapshot_received(data):
 	if m02_ward != null:
 		m02_ward.set_companion_phase(companion_phase, companion_started, int(data.get("tick", 0)))
 	var participant_list: Array[Dictionary] = ActorState.participants(player_list)
+	_frag_identity.observe(participant_list)
 	var round_state = data.get("round_state", "")
 	var round_time_left = data.get("round_time_left")
 	var frag_limit = data.get("frag_limit", 0)
@@ -2187,14 +2252,8 @@ func _on_snapshot_received(data):
 	hud.set_player_count(participant_list.size())
 	hud.set_round_info(round_state, round_time_left, frag_limit)
 	hud.sync_scores_from_players(participant_list)
+	_refresh_ui_context(participant_list)
 	hud.set_score_subject(str(net_client.player_id) if is_human_player and net_client.player_id != null else _followed_player_id())
-	if hud.has_method("set_board_name"):
-		var mine_name: String = ""
-		if is_human_player and net_client.player_id != null and players.has(str(net_client.player_id)):
-			var mine_pawn: Node = players[str(net_client.player_id)] as Node
-			if mine_pawn != null and is_instance_valid(mine_pawn):
-				mine_name = str(mine_pawn.get("player_name"))
-		hud.set_board_name(mine_name)
 	if hud.has_method("set_team_scores"):
 		hud.set_team_scores(data.get("conquest", {}).get("tickets") if data.get("conquest") is Dictionary else data.get("team_scores"))
 	if hud.has_method("set_ctf_state"):
@@ -2421,46 +2480,22 @@ func _on_event_received(data):
 	elif event_type == "flag":
 		hud.show_flag_event(data)
 	elif event_type == "frag":
-		var killer_name = data.get("killer", "?")
-		var victim_name = data.get("victim", "?")
-		
-		var killer_id = ""
-		for pawn in players.values():
-			if is_instance_valid(pawn) and pawn.player_name == killer_name:
-				killer_id = pawn.player_id
-				break
-		
-		var killer_color = Color.WHITE
-		var victim_color = Color.WHITE
-		if killer_id != "" and players.has(killer_id):
-			killer_color = players[killer_id].player_color
-		for pawn in players.values():
-			if is_instance_valid(pawn) and pawn.player_name == victim_name:
-				victim_color = pawn.player_color
-				break
-		# In a team mode the killfeed wears the sides' colours, which also
-		# covers a victim whose pawn already left the field.
-		var killer_team: String = MatchRules.valid_team(data.get("killer_team"))
-		var victim_team: String = MatchRules.valid_team(data.get("victim_team"))
-		if killer_team != "":
-			killer_color = MatchRules.team_label_color(killer_team)
-		if victim_team != "":
-			victim_color = MatchRules.team_label_color(victim_team)
-		if is_human_player and hud.has_method("set_own_lives") and hud.own_lives > 0 and players.has(str(net_client.player_id)) \
-				and players[str(net_client.player_id)].player_name == victim_name:
+		_frag_identity.observe_event(data)
+		_refresh_ui_context(ActorState.participants(latest_snapshot.get("players", [])))
+		var killer_name: String = FragFeed._name(data.get("killer"))
+		var victim_name: String = FragFeed._name(data.get("victim"))
+		var killer_id: String = _frag_identity.resolve(data, "killer_id", killer_name)
+		var victim_id: String = _frag_identity.resolve(data, "victim_id", victim_name)
+		if is_human_player and hud.own_lives > 0 and _is_local_victim(victim_id):
 			hud.set_own_lives(hud.own_lives - 1)
-		
-		hud.show_frag(killer_name, victim_name, killer_color, victim_color)
-		
-		for pawn in players.values():
-			if is_instance_valid(pawn) and pawn.player_name == killer_name:
-				pawn.show_winner_glow()
-				break
+		hud.show_frag_event(data, killer_id, victim_id)
+		if not killer_id.is_empty() and players.has(killer_id) and is_instance_valid(players[killer_id]):
+			players[killer_id].show_winner_glow()
 		
 		if frag_sound and frag_sound.stream:
 			frag_sound.play()
 		
-		if is_human_player and _is_local_victim(victim_name):
+		if is_human_player and _is_local_victim(victim_id):
 			_remember_own_frag(killer_id)
 		elif not is_human_player and killer_id != "" and camera:
 			camera.lock_on_frag(killer_id, 2.0)
@@ -2580,7 +2615,7 @@ func _on_event_received(data):
 		var podium = data.get("final_scores", [])
 		if hud and hud.sabotage():
 			hud.show_sabotage_result(SabotageState.result_text(data, _sabotage_viewer_team()), host_line)
-			hud.show_host_join(host_line)
+			hud.show_host_join(host_line, false)
 		elif hud and hud.has_method("show_round_end"):
 			hud.show_round_end(mvp_name, str(data.get("reason", "")), mvp_frags, host_line, podium, data.get("winning_team"), data.get("capture_scores"))
 		if round_end_sound and round_end_sound.stream:
@@ -2924,14 +2959,9 @@ func _update_local_fp_hud(player_list: Array) -> void:
 
 ## The joined callsign, from the live pawn while it exists and from the
 ## connection after an arcade death has removed it.
-func _is_local_victim(victim_name: String) -> bool:
-	if victim_name == "":
-		return false
-	var my_name := str(net_client.player_name) if net_client else ""
-	var my_id := str(net_client.player_id) if net_client and net_client.player_id != null else ""
-	if players.has(my_id) and is_instance_valid(players[my_id]):
-		my_name = str(players[my_id].get("player_name"))
-	return my_name != "" and victim_name == my_name
+func _is_local_victim(victim_id: String) -> bool:
+	return not victim_id.is_empty() and is_human_player and net_client != null \
+		and net_client.player_id != null and victim_id == str(net_client.player_id)
 
 func _remember_own_frag(killer_id: String) -> void:
 	_death_watch_killer = killer_id
@@ -3176,8 +3206,7 @@ func _on_sabotage_event(data: Dictionary) -> void:
 	var kind: String = str(data.get("kind", ""))
 	var line: String = SabotageState.event_line(data, _sabotage_viewer_team(), sabotage_layout)
 	if not line.is_empty():
-		var color: Color = MatchRules.COALITION_LABEL if kind in ["charge_taken", "charge_dropped", "plant_started", "planted", "detonated"] else MatchRules.UNION_LABEL
-		hud.combat_feed.push(line, color)
+		hud.objective_call.push(line)
 	if kind in ["plant_started", "defuse_started"] and arena_sabotage != null:
 		arena_sabotage.play_arm_cue()
 	if kind == "sides_swapped":
