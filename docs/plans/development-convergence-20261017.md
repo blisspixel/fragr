@@ -96,8 +96,13 @@ acceptance distinct from automated verification.
   restored narration with captions on/off; complete fallback text and controls
   remain visible without changing the stored caption choice. The owning
   [audio plan](campaign-transition-audio.md#muted-narration-october-17) has captures.
-- Composed native, coverage, client, rendered, PR, main and release gates remain
-  open until their actual results are recorded here.
+- Local composed gates pass: 2,141 native tests (five existing ignored), 92.75%
+  unfiltered workspace line coverage, 578 Godot checks including 185 harnesses,
+  strict workspace Clippy, formatting, release build and the seeded sixteen-bot
+  benchmark. The license/bans/source check and all verifier failure scenarios
+  pass. Logs remain under the entry evidence directory. GitHub's PR package
+  jobs also pass Linux, Windows and macOS builds and smoke checks. Main CI and
+  release publication remain separate gates, tracked on PR #419 and the release.
 
 ## Consolidation review
 
@@ -118,5 +123,6 @@ and bounds Git discovery; both original cache/worktree/archive tests pass.
 Independent review confirmed the isolation. The client pass found one outdated
 M02 transport double after readiness began reporting actual send success. The
 double now models success and failure, and tests that a failed send is never
-reported as accepted. Full suites are rerunning; assertions and coverage policy
-are unchanged.
+reported as accepted. The final full native, coverage and client reruns pass;
+assertions and coverage policy are unchanged. The changelog prepares v0.86.0;
+its publication still follows reviewed PR CI, main CI and tagged packaging.

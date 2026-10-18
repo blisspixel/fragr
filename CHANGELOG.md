@@ -4,7 +4,7 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## Unreleased
+## v0.86.0 (2026-10-17)
 
 - Connect the M16 avenue, M17 Forever Office and M18 transit development missions,
   with strict version-22 save carry, exact historical archives and mission-entry
