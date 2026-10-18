@@ -11,7 +11,29 @@ when its presentation changes; the remaining files stay as dated tour evidence.
 The project tour runs the engine binary. Packaged desktop games use the original
 game icon checked by the release workflow; these stills do not prove taskbar icons.
 
-## October 15, 2026 parallel build round
+## October 18, 2026 palette and typography round
+
+The complete 32-state arena tour passed and `tools/qa_tour.sh --publish`
+refreshed fourteen retained stills. The contact sheet, menus, first-person and
+watched worlds, and all three effect strips were inspected. Muzzle, Rail-impact
+and Scatter samples retain their expected feedback; the small strip tiles do
+not establish every pellet. The latest Scatter strip keeps the firing player
+alive, with acknowledged fire and visible feedback. An earlier retained private
+sequence included death and a camera transition and is superseded by this run.
+The unchanged Recall Notice intake retains its earlier capture.
+
+The [capture receipt](tour-20261018-ui-palette.json) records Godot 4.7.2-stable,
+OpenGL Compatibility and Linux Xvfb with Mesa llvmpipe at 1280x720. Separate
+[controls and live HUD captures](../plans/ui-palette-type-20261017.md)
+cover 720p, 1080p and 1440p. These establish software-rendered presentation,
+not GPU performance, physical-controller acceptance or fresh-player enjoyment.
+
+The [live standings](ui_standings_720_20261018.png) and
+[bottom of a 64-fighter layout fixture](ui_standings_large_720_20261018.png)
+show the wrapped Tab board at 720p. The second image tests long Unicode names,
+large counts and final-row scrolling; it is not a 64-client gameplay claim.
+
+## Historical October 15, 2026 parallel build round
 
 The complete 32-state arena capture passed its presentation checks after the
 Walker foundation, Rocket reload and Sabotage controller changes. Fourteen

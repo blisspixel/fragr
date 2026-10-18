@@ -1729,11 +1729,12 @@ func _change_role(play: bool) -> void:
 
 func _select_weapon(weapon: String) -> void:
 	var gm: Node = _game_manager()
-	var deadline: int = Time.get_ticks_msec() + 6000
+	# A round may close between the pose prerequisite and this request.
+	# Allow the normal eight-second results and two-second warmup to finish.
+	var deadline: int = Time.get_ticks_msec() + 16000
 	while str(gm.call("_local_weapon_name")) != weapon and Time.get_ticks_msec() < deadline:
-		# A swap issued during the respawn gap is cleared by the manager.
-		# Reissue only after an authoritative pawn exists in the snapshot.
-		if _local_server_pitch(gm) != 99.0:
+		# Only a living pawn in Active can accept a swap.
+		if _local_human_can_act(gm):
 			gm.set("pending_weapon_swap", weapon.to_lower())
 		await create_timer(0.1).timeout
 	if str(gm.call("_local_weapon_name")) != weapon:
@@ -1910,14 +1911,18 @@ func _wait_live_joined_fighter(state_name: String) -> bool:
 		push_error("qa_tour: missing match for " + state_name)
 		_failed = true
 		return false
-	var deadline: int = Time.get_ticks_msec() + 10000
-	while not _local_human_alive(gm) and Time.get_ticks_msec() < deadline:
+	# Default results plus warmup take ten seconds before a fresh round.
+	var deadline: int = Time.get_ticks_msec() + 16000
+	while not _local_human_can_act(gm) and Time.get_ticks_msec() < deadline:
 		await process_frame
-	if not _local_human_alive(gm):
-		push_error("qa_tour: joined fighter did not respawn for " + state_name)
+	if not _local_human_can_act(gm):
+		push_error("qa_tour: joined fighter did not become alive in Active for " + state_name)
 		_failed = true
 		return false
 	return true
+
+func _local_human_can_act(gm: Node) -> bool:
+	return gm.get("latest_snapshot").get("round_state", "") == "Active" and _local_human_alive(gm)
 
 func _prepare_static_capture(state: Dictionary) -> bool:
 	var gm: Node = _game_manager()
@@ -1934,7 +1939,7 @@ func _prepare_static_capture(state: Dictionary) -> bool:
 		# Camera reconciliation must render the accepted aim, not just receive it.
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
-		if not _local_human_alive(gm):
+		if not _local_human_can_act(gm):
 			continue
 		if state.has("weapon") and str(gm.call("_local_weapon_name")) != str(state["weapon"]):
 			continue

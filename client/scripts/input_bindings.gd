@@ -32,7 +32,7 @@ const ACTIONS: Array[String] = [
 ## contexts overlap, so F can use a console while playing and change the
 ## watched fighter while spectating.
 const SPECTATE: Array[String] = ["join_as_human", "cycle_cam", "toggle_follow"]
-const EVERYWHERE: Array[String] = ["pause", "radio_next_station", "radio_next_track", "radio_toggle"]
+const EVERYWHERE: Array[String] = ["scoreboard", "pause", "radio_next_station", "radio_next_track", "radio_toggle"]
 
 const SLOTS: int = 3
 const PAD_SLOT: int = 2

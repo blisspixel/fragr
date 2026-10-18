@@ -13,12 +13,10 @@
 [ext_resource type="Texture2D" path="res://assets/ui/hangar_candy_badge.png" id="9_hangar"]
 
 [sub_resource type="StyleBoxFlat" id="PanelStyleBox_Weapon"]
-bg_color = Color(0.039, 0.039, 0.047, 0.92)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.353, 0.333, 0.31, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_HudPanel"]
 
@@ -45,8 +43,8 @@ script = ExtResource("5_hud")
 [node name="Panel" type="Panel" parent="HUD"]
 offset_left = 10.0
 offset_top = 10.0
-offset_right = 350.0
-offset_bottom = 330.0
+offset_right = 650.0
+offset_bottom = 570.0
 clip_contents = true
 theme_override_styles/panel = SubResource("StyleBoxEmpty_HudPanel")
 
@@ -65,40 +63,31 @@ grow_vertical = 1
 [node name="StatusLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
-autowrap_mode = 3
 text = "Status: Connecting..."
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 6
 
 [node name="TickLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
 text = "Time: 0s"
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 6
 
 [node name="PlayerCountLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
 text = "Fighters: 0"
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 6
 
 [node name="ModeLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
-autowrap_mode = 3
 text = "CONTESTED FREQUENCY // ARENA DUEL\nSPECTATING (J: Join, F: Cycle Cam, ESC: Mouse)"
-theme_override_colors/font_color = Color(0.55, 0.7, 0.72, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 6
 
 [node name="RoundLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
 text = "Round: Warmup"
-theme_override_colors/font_color = Color(0.82, 0.55, 0.28, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 6
 
 [node name="ModeChipLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
@@ -106,29 +95,19 @@ visible = false
 layout_mode = 2
 autowrap_mode = 3
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.96, 0.9, 0.72, 0.95)
-theme_override_colors/font_outline_color = Color(0.05, 0.04, 0.03, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 16
 
 [node name="WeaponLabel" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
 text = "Weapon:"
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 6
 
 [node name="Scoreboard" type="Label" parent="HUD/Panel/VBoxContainer"]
 layout_mode = 2
 autowrap_mode = 3
-autowrap_mode = 3
-text = "SCRAP LEAGUE
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
+text = "SCRAP LEAGUE\nCONTESTED FREQUENCY\n(waiting for scrap)"
 theme_override_constants/outline_size = 6
-CONTESTED FREQUENCY
-(waiting for scrap)"
-theme_override_colors/font_color = Color(0.91, 0.886, 0.839, 1)
 
 
 [node name="ChromeStrip" type="TextureRect" parent="HUD"]
@@ -177,7 +156,7 @@ texture_filter = 0
 texture = ExtResource("8_cf")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(0.95, 0.95, 0.98, 0.9)
+modulate = Color(1, 1, 1, 0.9)
 visible = true
 
 [node name="HangarCandyBadge" type="TextureRect" parent="HUD"]
@@ -235,10 +214,7 @@ offset_right = 600.0
 offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.91, 0.78, 0.45, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 28
 text = "ROUND 1 - FIGHT!"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -261,6 +237,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="WeaponIconBg" type="Panel" parent="HUD"]
+z_index = -1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -290,10 +267,7 @@ mouse_filter = 2
 [node name="HealthValue" type="Label" parent="HUD/Vitals"]
 offset_right = 200.0
 offset_bottom = 74.0
-theme_override_colors/font_color = Color(0.93, 0.29, 0.24, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 64
 text = "100"
 vertical_alignment = 1
 
@@ -301,24 +275,19 @@ vertical_alignment = 1
 offset_top = 76.0
 offset_right = 200.0
 offset_bottom = 84.0
-color = Color(0.93, 0.29, 0.24, 1)
 
 [node name="HealthBarBack" type="ColorRect" parent="HUD/Vitals"]
 show_behind_parent = true
 offset_top = 76.0
 offset_right = 200.0
 offset_bottom = 84.0
-color = Color(0.16, 0.08, 0.08, 0.85)
 
 [node name="ArmorValue" type="Label" parent="HUD/Vitals"]
 offset_left = 216.0
 offset_top = 18.0
 offset_right = 340.0
 offset_bottom = 74.0
-theme_override_colors/font_color = Color(0.56, 0.75, 0.86, 1)
-theme_override_colors/font_outline_color = Color(0.04, 0.04, 0.05, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 40
 text = "0"
 vertical_alignment = 1
 
@@ -327,7 +296,6 @@ offset_left = 216.0
 offset_top = 76.0
 offset_right = 316.0
 offset_bottom = 84.0
-color = Color(0.56, 0.75, 0.86, 1)
 
 [node name="ArmorBarBack" type="ColorRect" parent="HUD/Vitals"]
 show_behind_parent = true
@@ -335,7 +303,6 @@ offset_left = 216.0
 offset_top = 76.0
 offset_right = 316.0
 offset_bottom = 84.0
-color = Color(0.09, 0.12, 0.14, 0.85)
 
 [node name="Crosshair" type="Control" parent="HUD"]
 anchors_preset = 8
@@ -353,7 +320,6 @@ offset_left = -12.0
 offset_top = -3.0
 offset_right = 12.0
 offset_bottom = 3.0
-color = Color(0.03, 0.03, 0.04, 0.85)
 visible = false
 
 [node name="HBar" type="ColorRect" parent="HUD/Crosshair"]
@@ -361,7 +327,6 @@ offset_left = -10.0
 offset_top = -1.0
 offset_right = 10.0
 offset_bottom = 1.0
-color = Color(0.91, 0.886, 0.839, 0.85)
 
 [node name="VBarEdge" type="ColorRect" parent="HUD/Crosshair"]
 z_index = -1
@@ -369,7 +334,6 @@ offset_left = -3.0
 offset_top = -12.0
 offset_right = 3.0
 offset_bottom = 12.0
-color = Color(0.03, 0.03, 0.04, 0.85)
 visible = false
 
 [node name="VBar" type="ColorRect" parent="HUD/Crosshair"]
@@ -377,7 +341,6 @@ offset_left = -1.0
 offset_top = -10.0
 offset_right = 1.0
 offset_bottom = 10.0
-color = Color(0.91, 0.886, 0.839, 0.85)
 
 [node name="DotEdge" type="ColorRect" parent="HUD/Crosshair"]
 z_index = -1
@@ -385,7 +348,6 @@ offset_left = -4.0
 offset_top = -4.0
 offset_right = 4.0
 offset_bottom = 4.0
-color = Color(0.03, 0.03, 0.04, 0.85)
 visible = false
 
 [node name="Dot" type="ColorRect" parent="HUD/Crosshair"]
@@ -393,7 +355,6 @@ offset_left = -2.0
 offset_top = -2.0
 offset_right = 2.0
 offset_bottom = 2.0
-color = Color(0.91, 0.886, 0.839, 0.95)
 visible = false
 
 [node name="HitMarker" type="Control" parent="HUD"]
@@ -412,28 +373,24 @@ offset_left = -12.0
 offset_top = -2.0
 offset_right = -4.0
 offset_bottom = 0.0
-color = Color(0.91, 0.82, 0.7, 0.95)
 
 [node name="HM2" type="ColorRect" parent="HUD/HitMarker"]
 offset_left = 4.0
 offset_top = -2.0
 offset_right = 12.0
 offset_bottom = 0.0
-color = Color(0.91, 0.82, 0.7, 0.95)
 
 [node name="HM3" type="ColorRect" parent="HUD/HitMarker"]
 offset_left = -2.0
 offset_top = -12.0
 offset_right = 0.0
 offset_bottom = -4.0
-color = Color(0.91, 0.82, 0.7, 0.95)
 
 [node name="HM4" type="ColorRect" parent="HUD/HitMarker"]
 offset_left = -2.0
 offset_top = 4.0
 offset_right = 0.0
 offset_bottom = 12.0
-color = Color(0.91, 0.82, 0.7, 0.95)
 
 [node name="DamageNumbers" type="Control" parent="HUD"]
 anchors_preset = 8
@@ -452,7 +409,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.55, 0.08, 0.06, 0)
 visible = false
 
 [node name="SpawnFlash" type="ColorRect" parent="HUD"]
@@ -462,7 +418,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.85, 0.45, 0.18, 0)
 visible = false
 
 [node name="StreakFlash" type="ColorRect" parent="HUD"]
@@ -472,7 +427,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1.0, 0.72, 0.22, 0)
 visible = false
 
 [node name="FpWeapon" type="TextureRect" parent="HUD"]
@@ -528,7 +482,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.04, 0.04, 0.05, 0.78)
 
 [node name="EmberBarTop" type="ColorRect" parent="HUD/WarmupTv"]
 anchors_preset = 10
@@ -536,7 +489,6 @@ anchor_right = 1.0
 offset_bottom = 8.0
 grow_horizontal = 2
 mouse_filter = 2
-color = Color(0.82, 0.45, 0.18, 0.85)
 
 [node name="EmberBarBottom" type="ColorRect" parent="HUD/WarmupTv"]
 anchors_preset = 12
@@ -547,7 +499,6 @@ offset_top = -8.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-color = Color(0.82, 0.45, 0.18, 0.85)
 
 [node name="Center" type="VBoxContainer" parent="HUD/WarmupTv"]
 anchors_preset = 8
@@ -567,48 +518,33 @@ alignment = 1
 
 [node name="LeagueLabel" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.78, 0.8, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 28
 text = "CONTESTED FREQUENCY"
 horizontal_alignment = 1
 
 [node name="MapTitle" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.886, 0.839, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 72
 text = "ARENA DUEL"
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="Countdown" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1.0, 0.72, 0.22, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 12
-theme_override_font_sizes/font_size = 96
 text = "GOES LIVE IN 2"
 horizontal_alignment = 1
 
 [node name="RosterChips" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.86, 0.82, 0.74, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 26
 text = "ON THE SCRAP"
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="HostLine" type="Label" parent="HUD/WarmupTv/Center"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.78, 0.45, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 22
 text = "HOST: CONTESTED FREQUENCY"
 horizontal_alignment = 1
 autowrap_mode = 3

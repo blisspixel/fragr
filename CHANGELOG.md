@@ -4,6 +4,20 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
+## v0.87.0 (2026-10-18)
+
+- Unify menu and HUD chrome on the canonical palette. Front-end and gameplay
+  appearance have separate contexts, with the existing dark cabinet retained.
+- Use crisp pixel lettering for controls and labels, and the display face for
+  titles, health and ammunition. Keep Unicode callsigns and chat supported.
+- Fit larger type into settings, mission objectives, vehicle controls, radio
+  cards and results. Retain world materials, reticle preferences and gameplay.
+- Wrap full standings inside a bounded board. While holding the scoreboard,
+  browse large rosters with the existing weapon-cycle keys, wheel or bumpers.
+  Default controller view switching uses Y, leaving Back for the board and
+  preserving customized bindings.
+- Record the verified v0.86.0 desktop shipment and update the active roadmap rung.
+
 ## v0.86.0 (2026-10-17)
 
 - Connect the M16 avenue, M17 Forever Office and M18 transit development missions,

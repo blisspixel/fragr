@@ -166,6 +166,7 @@ func _run() -> void:
 	_check(camera.available_targets.size() == 2, "clearing pin restores roster")
 	_check(camera.auto_cycle_interval == 3.0, "clearing pin retains normal camera cycle setting")
 	_check_chase_cadence(first)
+	await _check_board_browsing(first, second)
 	var blocker: InputBlocker = InputBlocker.new()
 	root.add_child(blocker)
 	camera.reparent(blocker)
@@ -183,6 +184,80 @@ func _run() -> void:
 	if _failures == 0:
 		print("test_spectator_camera: PASS aim, facing, eye height, view cycle, roster changes")
 	quit(0 if _failures == 0 else 1)
+
+
+func _check_board_browsing(first: Fighter, second: Fighter) -> void:
+	var camera: Node3D = load("res://scripts/spectator_cam.gd").new()
+	root.add_child(camera)
+	camera.set_process(false)
+	camera.stick_source = func(right: bool) -> Vector2: return Vector2.ZERO if right else Vector2(0.5, 0)
+	camera.set_available_targets([first, second])
+	var original: Node3D = camera.get_followed_target()
+	await process_frame
+	var shared: InputEventKey = InputEventKey.new()
+	shared.physical_keycode = KEY_F
+	shared.keycode = KEY_F
+	shared.pressed = true
+	InputMap.action_add_event("weapon_next", shared)
+	Input.action_press("scoreboard")
+	Input.parse_input_event(shared.duplicate())
+	Input.flush_buffered_events()
+	_check(Input.is_action_just_pressed("weapon_next") and Input.is_action_just_pressed("cycle_cam"), "the supported cross-context remap activates both polled actions")
+	camera._process(0.016)
+	_check(camera.get_followed_target() == original and camera.spectator_first_person, "board browsing does not change the watched target or view")
+	shared.pressed = false
+	Input.parse_input_event(shared.duplicate())
+	Input.flush_buffered_events()
+	Input.action_release("scoreboard")
+	await process_frame
+	shared.pressed = true
+	Input.parse_input_event(shared.duplicate())
+	Input.flush_buffered_events()
+	camera._process(0.016)
+	_check(camera.get_followed_target() != original, "releasing the board restores spectator target cycling")
+	shared.pressed = false
+	Input.parse_input_event(shared.duplicate())
+	Input.flush_buffered_events()
+	InputMap.action_erase_event("weapon_next", shared)
+	var back: InputEventJoypadButton = InputEventJoypadButton.new()
+	back.button_index = JOY_BUTTON_BACK
+	back.pressed = true
+	Input.parse_input_event(back.duplicate())
+	Input.flush_buffered_events()
+	_check(Input.is_action_pressed("scoreboard") and not Input.is_action_pressed("toggle_follow"), "default Back opens only the board")
+	var followed: Node3D = camera.get_followed_target()
+	followed.position += Vector3(2, 0, 0)
+	camera._process(0.016)
+	_check(camera.spectator_first_person and camera.get_followed_target() == followed, "Back opens the board without toggling the view")
+	_check(camera.global_position.distance_to(followed.global_position + Vector3(0, 0.1, 0)) < 0.00001, "the watched fighter continues moving while the board is held")
+	back.pressed = false
+	Input.parse_input_event(back.duplicate())
+	Input.flush_buffered_events()
+	await process_frame
+	var view: InputEventJoypadButton = InputEventJoypadButton.new()
+	view.button_index = JOY_BUTTON_Y
+	view.pressed = true
+	Input.parse_input_event(view.duplicate())
+	Input.flush_buffered_events()
+	camera._process(0.016)
+	_check(camera.follow_mode and not camera.spectator_first_person, "default Y still switches the controller's watched view")
+	view.pressed = false
+	Input.parse_input_event(view.duplicate())
+	Input.flush_buffered_events()
+	await process_frame
+	# Explicit older overrides remain usable; only browsing suppresses a switch.
+	InputMap.action_add_event("toggle_follow", back.duplicate())
+	back.pressed = true
+	Input.parse_input_event(back.duplicate())
+	Input.flush_buffered_events()
+	camera._process(0.016)
+	_check(not camera.follow_mode, "an explicit historical Back/view override still switches outside a scroll press")
+	back.pressed = false
+	Input.parse_input_event(back.duplicate())
+	Input.flush_buffered_events()
+	InputMap.action_erase_event("toggle_follow", back)
+	camera.queue_free()
+	await process_frame
 
 
 func _check_chase_cadence(target: Fighter) -> void:

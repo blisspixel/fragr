@@ -13,15 +13,17 @@ var _filtered: Array[Dictionary] = []
 var _first_tab: Button
 var _tabs: Dictionary[String, Button] = {}
 
+var _palette: Dictionary = MenuTheme.colors(MenuTheme.Context.FRONT_END)
+
 func _ready() -> void:
 	add_theme_constant_override("separation", 10)
-	_label(24).text = tr("RECORD_TITLE")
+	_label(MenuTheme.BODY).text = tr("RECORD_TITLE")
 	var appearance: Array[String] = []
 	for kind: String in ["title", "emblem"]:
 		if records.customization[kind] != "none":
 			appearance.append(PlayerRewards.label(records.customization[kind]))
 	if not appearance.is_empty():
-		_label(16).text = " | ".join(appearance)
+		_label(MenuTheme.BODY).text = " | ".join(appearance)
 	var tabs: HBoxContainer = HBoxContainer.new()
 	var group: ButtonGroup = ButtonGroup.new()
 	for kind: String in ["mission", "arena", "practice"]:
@@ -36,22 +38,22 @@ func _ready() -> void:
 		button.pressed.connect(func() -> void: _select_kind(kind))
 		tabs.add_child(button)
 	add_child(tabs)
-	_summary = _label(20)
+	_summary = _label(MenuTheme.BODY)
 	_selection = OptionButton.new()
 	_selection.fit_to_longest_item = false
 	_selection.clip_text = true
 	_selection.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_selection.item_selected.connect(_show_record)
 	add_child(_selection)
-	_details = _label(18)
+	_details = _label(MenuTheme.BODY)
 	var scroll: ScrollContainer = ScrollContainer.new()
 	scroll.custom_minimum_size.y = 180.0
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
 	_details.reparent(scroll)
 	_details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_quip = _label(18)
-	_quip.add_theme_color_override("font_color", MenuTheme.EMBER)
+	_quip = _label(MenuTheme.BODY)
+	_quip.add_theme_color_override("font_color", _palette.accent)
 	var commentary: CheckButton = CheckButton.new()
 	commentary.text = tr("RECORD_COMMENTARY")
 	commentary.button_pressed = preferences.get_value("gameplay", "stat_commentary")
@@ -71,7 +73,7 @@ func _ready() -> void:
 	export_button.pressed.connect(_export)
 	options.add_child(export_button)
 	add_child(options)
-	_notice = _label(16)
+	_notice = _label(MenuTheme.BODY)
 	_select_kind(_kind)
 
 func focus_first() -> void:

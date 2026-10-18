@@ -69,6 +69,7 @@ func _ready() -> void:
 	preferences.load_from_disk()
 	captions_enabled = bool(preferences.get_value("gameplay", "story_captions"))
 	var backdrop: MenuBackdrop = MenuBackdrop.new()
+	backdrop.theme_context = MenuTheme.Context.GAMEPLAY
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(backdrop)
 	_still_frame = Control.new()
@@ -84,7 +85,7 @@ func _ready() -> void:
 	_still.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_still_frame.add_child(_still)
 	var frame: MarginContainer = MarginContainer.new()
-	frame.theme = MenuTheme.build()
+	frame.theme = MenuTheme.build(MenuTheme.Context.GAMEPLAY)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side: String in ["left", "right"]:
@@ -105,7 +106,7 @@ func _ready() -> void:
 	var heading: HBoxContainer = HBoxContainer.new()
 	heading.add_theme_constant_override("separation", 18)
 	column.add_child(heading)
-	_mission_title = _label(22)
+	_mission_title = _label(MenuTheme.BODY)
 	_mission_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_mission_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	heading.add_child(_mission_title)
@@ -118,17 +119,18 @@ func _ready() -> void:
 		segment.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_progress.add_child(segment)
 	heading.add_child(_progress)
-	_page_number = _label(22)
+	_page_number = _label(MenuTheme.BODY)
 	heading.add_child(_page_number)
-	_title = _label(52)
+	_title = _label(MenuTheme.LARGE)
+	_title.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
 	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_title.add_theme_color_override("font_color", MenuTheme.EMBER)
 	column.add_child(_title)
 	var rule: ColorRect = ColorRect.new()
-	rule.color = Color("875739")
+	rule.color = MenuTheme.BORDER
 	rule.custom_minimum_size.y = 4
 	column.add_child(rule)
-	_speaker = _label(22)
+	_speaker = _label(MenuTheme.BODY)
 	_speaker.add_theme_color_override("font_color", MenuTheme.EMBER)
 	column.add_child(_speaker)
 	_scroll = ScrollContainer.new()
@@ -136,12 +138,12 @@ func _ready() -> void:
 	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_scroll.follow_focus = true
 	column.add_child(_scroll)
-	_body = _label(32)
+	_body = _label(MenuTheme.BODY)
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body.add_theme_constant_override("line_spacing", 10)
 	_scroll.add_child(_body)
-	_scroll_hint = _label(16)
+	_scroll_hint = _label(MenuTheme.BODY)
 	column.add_child(_scroll_hint)
 	_body.resized.connect(_update_scroll_hint)
 	_scroll.resized.connect(_update_scroll_hint)
@@ -245,14 +247,14 @@ func _layout(has_still: bool) -> void:
 	if has_still:
 		_panel.custom_minimum_size = Vector2(1180, 0)
 		_panel.size_flags_vertical = Control.SIZE_SHRINK_END
-		_panel.add_theme_stylebox_override("panel", MenuTheme.panel(Color(0.09, 0.114, 0.102, 0.9), Color("8c714e")))
-		_title.add_theme_font_size_override("font_size", 36)
+		_panel.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
+		_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_SMALL)
 		_scroll.custom_minimum_size.y = 128
 	else:
 		_panel.custom_minimum_size = Vector2(1180, 760)
 		_panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		_panel.add_theme_stylebox_override("panel", MenuTheme.panel(Color("171d1a"), Color("8c714e")))
-		_title.add_theme_font_size_override("font_size", 52)
+		_panel.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
+		_title.add_theme_font_size_override("font_size", MenuTheme.LARGE)
 		_scroll.custom_minimum_size.y = 0
 
 ## Ken Burns, kept subtle: at most a few percent of drift, eased, never a cut.
@@ -311,7 +313,7 @@ func _refresh() -> void:
 	_page_number.text = tr("STORY_PAGE").format({"current": page + 1, "total": total})
 	for index: int in _progress.get_child_count():
 		var segment: ColorRect = _progress.get_child(index) as ColorRect
-		segment.color = MenuTheme.EMBER if index == page else (Color("8c714e") if index < page else Color("2e332f"))
+		segment.color = MenuTheme.EMBER if index == page else (MenuTheme.BORDER if index < page else MenuTheme.SURFACE)
 	_back.text = tr("STORY_BACK")
 	_back.disabled = page == 0
 	_next.text = tr("STORY_FINISH" if page == total - 1 else "STORY_NEXT")

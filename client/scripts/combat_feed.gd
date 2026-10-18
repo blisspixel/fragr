@@ -25,8 +25,8 @@ func set_campaign(active: bool) -> void:
 	anchor_bottom = anchor_top
 	offset_left = 16.0 if active else -496.0
 	offset_right = 496.0 if active else -16.0
-	offset_top = -320.0 if active else 20.0
-	offset_bottom = -160.0 if active else 170.0
+	offset_top = -390.0 if active else 20.0
+	offset_bottom = -160.0 if active else 250.0
 	alignment = BoxContainer.ALIGNMENT_END if active else BoxContainer.ALIGNMENT_BEGIN
 	for entry: Entry in _entries:
 		entry.label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if active else HORIZONTAL_ALIGNMENT_RIGHT
@@ -41,8 +41,8 @@ func push(text: String, colour: Color = MenuTheme.BONE) -> void:
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.text = line.left(200)
 	label.add_theme_font_override("font", MenuTheme.FONT)
-	label.add_theme_font_size_override("font_size", 18)
-	label.add_theme_color_override("font_color", colour)
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	label.add_theme_color_override("font_color", MenuTheme.readable_text(colour))
 	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	label.add_theme_constant_override("outline_size", 3)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if _campaign else HORIZONTAL_ALIGNMENT_RIGHT

@@ -66,6 +66,9 @@ func _start(manifest: Dictionary) -> ScenePlayer:
 	root.add_child(player)
 	await process_frame
 	await process_frame
+	var backdrop: MenuBackdrop = player.get_child(0) as MenuBackdrop
+	_expect(backdrop != null and backdrop.theme_context == MenuTheme.Context.GAMEPLAY,
+		"story backdrop and controls share the fixed gameplay appearance")
 	return player
 
 func _run() -> void:

@@ -85,7 +85,7 @@ func configure_map(info: Dictionary) -> void:
 	_hazard = _box("MachineCycleIndicator", Vector3((low.x+high.x)*0.5,low.y+0.015,(low.z+high.z)*0.5), Vector3(high.x-low.x,0.025,high.z-low.z), Color("595c4c"))
 	_hazard_label = WorldSign.new()
 	_hazard_label.name = "MachineCycleFloorLabel"
-	_hazard_label.configure("M13_HAZARD_IDLE", Vector2(high.x-low.x-0.3,0.5),MenuTheme.BONE)
+	_hazard_label.configure("M13_HAZARD_IDLE", Vector2(high.x-low.x-0.3,0.5),WorldSign.PANEL_TEXT)
 	_hazard_label.position = _hazard.position+Vector3(0.0,0.017,0.0)
 	_hazard_label.rotation.x = -PI*0.5
 	_hazard_label.layers = ArenaSky.WORLD_LAYERS
@@ -95,7 +95,7 @@ func configure_map(info: Dictionary) -> void:
 	_relay = _box("RelayIndicator",face,Vector3(0.025,0.65,1.35),Color("91aa7c"))
 	_relay_label = WorldSign.new()
 	_relay_label.name = "RelayFaceLabel"
-	_relay_label.configure("M13_RELAY_ACTIVE",Vector2(1.2,0.45),MenuTheme.INK)
+	_relay_label.configure("M13_RELAY_ACTIVE",Vector2(1.2,0.45),WorldSign.PANEL_INK)
 	_relay_label.position = face+Vector3(0.017,0.0,0.0)
 	_relay_label.rotation.y = PI*0.5
 	_relay_label.layers = ArenaSky.WORLD_LAYERS
@@ -120,8 +120,8 @@ func apply_state(state: Dictionary) -> void:
 	(_hazard.material_override as StandardMaterial3D).albedo_color = warning
 	var key: String = "M13_HAZARD_"+str(p["hazard_phase"]).to_upper()
 	if _hazard_label.message_key != key:
-		_hazard_label.configure(key,_hazard_label.bounds,MenuTheme.BONE)
+		_hazard_label.configure(key,_hazard_label.bounds,WorldSign.PANEL_TEXT)
 	(_relay.material_override as StandardMaterial3D).albedo_color = Color("343d3d") if p["relay_disabled"] else Color("91aa7c")
 	var relay_key: String = "M13_RELAY_OFFLINE" if p["relay_disabled"] else "M13_RELAY_ACTIVE"
 	if _relay_label.message_key != relay_key:
-		_relay_label.configure(relay_key,_relay_label.bounds,MenuTheme.BONE if p["relay_disabled"] else MenuTheme.INK)
+		_relay_label.configure(relay_key,_relay_label.bounds,WorldSign.PANEL_TEXT if p["relay_disabled"] else WorldSign.PANEL_INK)

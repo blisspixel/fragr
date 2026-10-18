@@ -200,11 +200,12 @@ func show_score(report: Dictionary, settings: FragrSettings) -> void:
 	_score = layer
 	add_child(layer)
 	var dim: ColorRect = ColorRect.new()
-	dim.color = Color(0.04, 0.05, 0.05, 0.78)
+	dim.color = MenuTheme.alpha(MenuTheme.INK, 0.78)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	layer.add_child(dim)
 	var margin: MarginContainer = MarginContainer.new()
+	margin.theme = MenuTheme.build(MenuTheme.Context.GAMEPLAY)
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 64)
 	margin.add_theme_constant_override("margin_right", 64)
@@ -228,7 +229,7 @@ func show_score(report: Dictionary, settings: FragrSettings) -> void:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_override("font", MenuTheme.FONT)
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	label.add_theme_color_override("font_color", MenuTheme.BONE)
 	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	label.add_theme_constant_override("outline_size", 3)
@@ -291,9 +292,10 @@ func _ensure_banner() -> void:
 	label.offset_right = 420.0
 	label.offset_top = 12.0
 	label.offset_bottom = 40.0
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_override("font", MenuTheme.FONT)
-	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	label.add_theme_color_override("font_color", MenuTheme.BONE)
 	label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	label.add_theme_constant_override("outline_size", 3)

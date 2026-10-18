@@ -192,12 +192,18 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 | Weapons | [ and ], or 1 through 6 | Wheel, [ and ], or 1 through 6 | LB and RB |
 | Speak | T | T | Y |
 | Join or leave | J or L | J or L | A while watching, or match menu |
-| Spectator fighter and view | F and V | F and V | D-pad right and Back |
+| Spectator fighter and view | F and V | F and V | D-pad right and Y |
 | Radio station, skip track, play or pause | C, N, M | C, N, M | not bound |
 | Match menu | Esc | Esc | Start |
 | Leaderboard, the whole roster | Tab, hold | Tab, hold | Back |
 
-Hold Tab to list every fighter. The corner keeps the first four while you are watching, and it stays hidden in first person until you hold that key. In a team match, someone on your side is marked OURS and stays bright. The other side is marked THEIRS and warms toward red. A spectator still reads UNION and FREE on the full plate.
+Hold Tab to list every fighter. While holding the board, use the weapon-cycle
+keys, wheel or controller bumpers to scroll a large roster. The board shows
+your current bindings. Release it to restore ordinary weapon selection.
+The corner keeps the first four while you are watching, and it stays hidden in
+first person until you hold that key. In a team match, world nameplates mark
+someone on your side OURS and keep them bright. The other side is marked THEIRS
+and warms toward red. A spectator still reads UNION and FREE on the full plate.
 
 Hold Left Ctrl or D-pad left to crouch. The camera and body lower, movement slows, and a low ceiling keeps you crouched until there is room to stand. Rebind **Crouch (Hold)** in Settings > Controls if you prefer another key or a gamepad button. Right Ctrl still fires when one hand is on the arrows. The server decides the stance. An older server ignores the key.
 

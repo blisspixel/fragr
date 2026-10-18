@@ -66,13 +66,13 @@ func _ready() -> void:
 
 func _build() -> void:
 	var back: ColorRect = ColorRect.new()
-	back.color = Color(0.04, 0.04, 0.05, 1.0)
+	back.color = MenuTheme.INK
 	back.anchor_right = 1.0
 	back.anchor_bottom = 1.0
 	add_child(back)
 
 	var centre: CenterContainer = CenterContainer.new()
-	centre.theme = MenuTheme.build()
+	centre.theme = MenuTheme.build(MenuTheme.Context.GAMEPLAY)
 	centre.anchor_right = 1.0
 	centre.anchor_bottom = 1.0
 	add_child(centre)
@@ -85,8 +85,9 @@ func _build() -> void:
 	var title: Label = Label.new()
 	title.text = "fragr"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 56)
-	title.add_theme_color_override("font_color", Color(0.96, 0.90, 0.72))
+	title.add_theme_font_size_override("font_size", MenuTheme.LARGE)
+	title.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
+	title.add_theme_color_override("font_color", MenuTheme.BONE)
 	column.add_child(title)
 
 	var controls: Label = Label.new()
@@ -94,12 +95,12 @@ func _build() -> void:
 	_device_revision = InputDevice.revision
 	controls.text = _controls_text()
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	controls.add_theme_font_size_override("font_size", 17)
-	controls.add_theme_color_override("font_color", Color(0.86, 0.87, 0.88))
+	controls.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	controls.add_theme_color_override("font_color", MenuTheme.BONE)
 	column.add_child(controls)
 
 	var rule: ColorRect = ColorRect.new()
-	rule.color = Color(0.82, 0.55, 0.28, 0.5)
+	rule.color = MenuTheme.alpha(MenuTheme.EMBER, 0.5)
 	rule.custom_minimum_size = Vector2(0.0, 2.0)
 	column.add_child(rule)
 
@@ -108,8 +109,8 @@ func _build() -> void:
 	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip.custom_minimum_size = Vector2(760.0, 0.0)
-	tip.add_theme_font_size_override("font_size", 20)
-	tip.add_theme_color_override("font_color", Color(0.82, 0.72, 0.5))
+	tip.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	tip.add_theme_color_override("font_color", MenuTheme.BONE)
 	column.add_child(tip)
 
 	_bar = ProgressBar.new()
@@ -123,8 +124,9 @@ func _build() -> void:
 	_hint = hint
 	hint.text = tr("LOADING_WAIT" if waiting_for_world else "LOADING_BEGIN")
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 13)
-	hint.add_theme_color_override("font_color", Color(0.55, 0.57, 0.6))
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	hint.add_theme_color_override("font_color", MenuTheme.MUTED)
 	column.add_child(hint)
 	_return = Button.new()
 	_return.text = tr("LOADING_RETURN")

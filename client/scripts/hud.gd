@@ -77,6 +77,8 @@ var behaviors = {}
 var board_name: String = ""
 var _leaderboard: Panel = null
 var _leaderboard_label: Label = null
+var _leaderboard_scroll: ScrollContainer = null
+var _leaderboard_hint: Label = null
 var ghost_rival = ""
 var leader_name = ""
 var host_bumper_index = 0
@@ -149,7 +151,7 @@ var fp_bob_weight: float = 0.0
 const FP_BOTTOM_OVERLAP: float = 12.0
 var head_bob_enabled: bool = true
 var fp_reload_motion := WeaponArt.ReloadMotion.new()
-var reticle_colour: Color = Color("e8e2d6")
+var reticle_colour: Color = MenuTheme.BONE
 var damage_flash_timer = 0.0
 var spawn_flash_timer = 0.0
 var streak_flash_timer = 0.0
@@ -202,8 +204,14 @@ var warmup_tv_active = false
 var warmup_tv_roster_names = []
 var warmup_tv_secs = 0
 var warmup_tv_host_line = ""
+var _chrome_theme: Theme
 
 func _ready():
+	_chrome_theme = MenuTheme.build(MenuTheme.Context.GAMEPLAY)
+	child_entered_tree.connect(_theme_chrome_child)
+	for child: Node in get_children():
+		_theme_chrome_child(child)
+	_apply_chrome_roles()
 	rocket_viewmodel = RocketViewmodel.new()
 	rocket_viewmodel.name = "RocketViewmodel"
 	add_child(rocket_viewmodel)
@@ -252,9 +260,9 @@ func _ready():
 		# The shared weapon card is translucent. A capture ends on the stand,
 		# and that pole was showing through the result.
 		var card := StyleBoxFlat.new()
-		card.bg_color = Color(0.039, 0.039, 0.047, 1.0)
+		card.bg_color = MenuTheme.INK
 		card.set_border_width_all(2)
-		card.border_color = Color(0.353, 0.333, 0.31, 1.0)
+		card.border_color = MenuTheme.BORDER
 		round_backdrop.add_theme_stylebox_override("panel", card)
 	if weapon_label:
 		weapon_label.text = ""
@@ -279,6 +287,53 @@ func _ready():
 		fp_weapon.visible = false
 	_update_broadcast_chrome("Warmup")
 	_bind_warmup_tv()
+
+func _theme_chrome_child(child: Node) -> void:
+	if child is Control:
+		(child as Control).theme = _chrome_theme
+		if not child is TextureRect:
+			(child as Control).texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+func _apply_chrome_roles() -> void:
+	# Scene geometry is authored separately from the fixed gameplay palette.
+	for path: String in ["WeaponIconBg", "RoundBackdrop"]:
+		var card: Panel = get_node_or_null(path) as Panel
+		if card != null:
+			card.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
+	var colors: Dictionary = {
+		"Vitals/HealthBar": MenuTheme.DANGER,
+		"Vitals/ArmorBar": MenuTheme.CYAN,
+		"Vitals/HealthBarBack": MenuTheme.INK,
+		"Vitals/ArmorBarBack": MenuTheme.INK,
+		# Preserve the existing effective opacity until the comfort-controls pass.
+		"DamageFlash": MenuTheme.alpha(MenuTheme.DANGER, 0.0),
+		"SpawnFlash": MenuTheme.alpha(MenuTheme.EMBER, 0.0),
+		"StreakFlash": MenuTheme.alpha(MenuTheme.EMBER, 0.0),
+		"WarmupTv/Veil": MenuTheme.alpha(MenuTheme.INK, 0.78),
+		"WarmupTv/EmberBarTop": MenuTheme.EMBER,
+		"WarmupTv/EmberBarBottom": MenuTheme.EMBER,
+	}
+	for path: String in colors:
+		var rect: ColorRect = get_node_or_null(path) as ColorRect
+		if rect != null:
+			rect.color = colors[path]
+	for part: Node in $Crosshair.get_children():
+		if part is ColorRect:
+			(part as ColorRect).color = MenuTheme.INK if str(part.name).ends_with("Edge") else MenuTheme.BONE
+	var display_sizes: Dictionary = {
+		"RoundMessage": MenuTheme.DISPLAY_SMALL,
+		"Vitals/HealthValue": MenuTheme.DISPLAY_MEDIUM,
+		"Vitals/ArmorValue": MenuTheme.DISPLAY_SMALL,
+		"WarmupTv/Center/MapTitle": MenuTheme.DISPLAY_MEDIUM,
+		"WarmupTv/Center/Countdown": MenuTheme.DISPLAY_LARGE,
+	}
+	for path: String in display_sizes:
+		var label: Label = get_node_or_null(path) as Label
+		if label != null:
+			label.add_theme_font_override("font", MenuTheme.DISPLAY_FONT)
+			label.add_theme_font_size_override("font_size", display_sizes[path])
+	$Vitals/ArmorValue.add_theme_color_override("font_color", MenuTheme.CYAN)
+	round_label.add_theme_color_override("font_color", MenuTheme.EMBER)
 
 func _bind_warmup_tv() -> void:
 	if warmup_tv == null:
@@ -305,9 +360,9 @@ func _ensure_map_chip_label() -> void:
 	map_chip_label = Label.new()
 	map_chip_label.name = "MapChipLabel"
 	map_chip_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	map_chip_label.add_theme_font_size_override("font_size", 18)
-	map_chip_label.add_theme_color_override("font_color", Color(0.96, 0.90, 0.72, 0.95))
-	map_chip_label.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03, 1))
+	map_chip_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	map_chip_label.add_theme_color_override("font_color", MenuTheme.BONE)
+	map_chip_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	map_chip_label.add_theme_constant_override("outline_size", 4)
 	map_chip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	map_chip_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -403,7 +458,7 @@ func _ensure_use_plate() -> void:
 	_use_plate = PanelContainer.new()
 	_use_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_use_plate.visible = false
-	_use_plate.add_theme_stylebox_override("panel", MenuTheme.panel(Color("141816"), MenuTheme.BONE))
+	_use_plate.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BONE))
 	add_child(_use_plate)
 	_use_label = RichTextLabel.new()
 	_use_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -412,7 +467,7 @@ func _ensure_use_plate() -> void:
 	_use_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_use_label.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_use_label.add_theme_font_override("normal_font", MenuTheme.FONT)
-	_use_label.add_theme_font_size_override("normal_font_size", 28)
+	_use_label.add_theme_font_size_override("normal_font_size", MenuTheme.BODY)
 	_use_label.add_theme_color_override("default_color", MenuTheme.BONE)
 	_use_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	_use_label.add_theme_constant_override("outline_size", 4)
@@ -563,7 +618,7 @@ func show_flag_event(data: Dictionary) -> void:
 		"player": str(data.get("player", "")).to_upper(),
 		"flag": MatchRules.team_short(flag),
 	})
-	combat_feed.push(line, MatchRules.team_label_color(flag))
+	combat_feed.push(line, MenuTheme.team_color(flag))
 
 
 func _refresh_map_chip_badge() -> void:
@@ -803,15 +858,29 @@ func _ensure_leaderboard() -> void:
 	_leaderboard.visible = false
 	_leaderboard.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_leaderboard.add_theme_stylebox_override("panel", MenuTheme.panel())
+	_leaderboard_scroll = ScrollContainer.new()
+	_leaderboard_scroll.name = "Scroll"
+	_leaderboard_scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_leaderboard_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
+	_leaderboard_scroll.get_v_scroll_bar().mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard.add_child(_leaderboard_scroll)
 	_leaderboard_label = Label.new()
 	_leaderboard_label.name = "Rows"
 	_leaderboard_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_leaderboard_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_leaderboard_label.add_theme_font_override("font", MenuTheme.FONT)
-	_leaderboard_label.add_theme_font_size_override("font_size", 20)
+	_leaderboard_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_leaderboard_label.add_theme_color_override("font_color", MenuTheme.BONE)
 	_leaderboard_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	_leaderboard_label.add_theme_constant_override("outline_size", 4)
-	_leaderboard.add_child(_leaderboard_label)
+	_leaderboard_scroll.add_child(_leaderboard_label)
+	_leaderboard_hint = Label.new()
+	_leaderboard_hint.name = "ScrollHint"
+	_leaderboard_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_leaderboard.add_child(_leaderboard_hint)
 	add_child(_leaderboard)
 
 func set_leaderboard_open(open: bool) -> void:
@@ -819,22 +888,53 @@ func set_leaderboard_open(open: bool) -> void:
 	if not open:
 		_leaderboard.visible = false
 		return
+	if not _leaderboard.visible:
+		_leaderboard_scroll.scroll_vertical = 0
 	_leaderboard_label.text = leaderboard_text()
 	_leaderboard.visible = true
 	_place_leaderboard()
 
 func _place_leaderboard() -> void:
 	var view: Vector2 = get_viewport().get_visible_rect().size
-	var width: float = minf(760.0, maxf(160.0, view.x - 32.0))
-	var lines: int = maxi(_leaderboard_label.text.split("\n", false).size(), 1)
-	var height: float = clampf(float(lines) * 26.0 + 28.0, 72.0, maxf(72.0, view.y - 32.0))
+	var width: float = minf(1440.0, maxf(160.0, view.x - 64.0))
+	_leaderboard_hint.text = tr("HUD_BOARD_SCROLL").format({
+		"previous": InputGlyphs.action_name("weapon_prev"),
+		"next": InputGlyphs.action_name("weapon_next"),
+	})
+	_leaderboard_hint.size = Vector2(width - 28.0, 0)
+	var hint_height: float = _leaderboard_hint.get_minimum_size().y
+	var bar_width: float = _leaderboard_scroll.get_v_scroll_bar().get_combined_minimum_size().x
+	_leaderboard_label.size.x = width - 28.0 - bar_width
+	var height: float = clampf(_leaderboard_label.get_minimum_size().y + hint_height + 40.0, 100.0, maxf(100.0, view.y - 64.0))
 	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
 	origin.x = clampf(origin.x, 16.0, maxf(16.0, view.x - width - 16.0))
 	origin.y = clampf(origin.y, 16.0, maxf(16.0, view.y - height - 16.0))
 	_leaderboard.position = origin
 	_leaderboard.size = Vector2(width, height)
-	_leaderboard_label.position = Vector2(14, 10)
-	_leaderboard_label.size = Vector2(width - 28.0, height - 20.0)
+	_leaderboard_scroll.position = Vector2(14, 10)
+	_leaderboard_scroll.size = Vector2(width - 28.0, height - hint_height - 40.0)
+	_leaderboard_hint.position = Vector2(14, height - hint_height - 14.0)
+
+## The existing weapon-cycle bindings browse a held board on keys, wheel or pad.
+## Route this before equipment/seat input so browsing cannot change either.
+func handle_leaderboard_input(event: InputEvent) -> bool:
+	if not Input.is_action_pressed("scoreboard"):
+		return false
+	var direction: int = 0
+	if event.is_action_pressed("weapon_next"):
+		direction = 1
+	elif event.is_action_pressed("weapon_prev"):
+		direction = -1
+	if direction == 0:
+		return false
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			direction = -1
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			direction = 1
+	set_leaderboard_open(true)
+	_leaderboard_scroll.scroll_vertical += direction * int(maxf(48.0, _leaderboard_scroll.size.y * 0.75))
+	return true
 
 func update_scoreboard():
 	if not scoreboard:
@@ -930,7 +1030,7 @@ func show_nods_tick(progress: String, host_line: String = ""):
 	streak_flash_timer = 0.32
 	if streak_flash:
 		streak_flash.visible = true
-		streak_flash.modulate = Color(1.0, 0.78, 0.28, 0.42)
+		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.42)
 	if not round_message:
 		return
 	var line = host_line
@@ -957,7 +1057,7 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	streak_flash_timer = 0.7
 	if streak_flash:
 		streak_flash.visible = true
-		streak_flash.modulate = Color(1.0, 0.85, 0.3, 0.55)
+		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
 
 func show_episode_fail(host_line: String):
 	round_banner_remaining = 0.0
@@ -969,10 +1069,10 @@ func show_episode_fail(host_line: String):
 	round_message.text = line + "\n( Continuance paperwork is the real final boss )"
 	if damage_flash:
 		damage_flash.visible = true
-		damage_flash.modulate = Color(0.6, 0.15, 0.55, 0.45)
+		damage_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.45)
 		damage_flash_timer = 0.8
 
-func show_frag(killer: String, victim: String, killer_color: Color = Color.WHITE, _victim_color: Color = Color.WHITE) -> void:
+func show_frag(killer: String, victim: String, killer_color: Color = MenuTheme.UNTINTED, _victim_color: Color = MenuTheme.UNTINTED) -> void:
 	if not scores.has(killer):
 		scores[killer] = 0
 	scores[killer] += 1
@@ -1029,7 +1129,7 @@ func _update_broadcast_chrome(state: String) -> void:
 	if chrome_strip:
 		chrome_strip.visible = strip_shown
 		var a = 0.92 if live else (0.88 if warm else 0.7)
-		chrome_strip.modulate = Color(1, 1, 1, a)
+		chrome_strip.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, a)
 	# The strip already bakes ON AIR and Contested Frequency, the same way it
 	# bakes Hangar Candy. Drawing the loose badges underneath it put both marks
 	# on screen twice, which the first visual QA tour caught. They are the
@@ -1037,12 +1137,12 @@ func _update_broadcast_chrome(state: String) -> void:
 	if on_air_badge:
 		on_air_badge.visible = broadcast_chrome and live and not strip_shown and spectating
 		if on_air_badge.visible:
-			on_air_badge.modulate = Color(1, 1, 1, 0.95)
+			on_air_badge.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.95)
 	if contested_frequency_badge:
 		# Warm on Warmup / Host face; quieter while live so ON AIR owns the scrap.
 		contested_frequency_badge.visible = broadcast_chrome and not strip_shown and spectating
 		var ca = 0.95 if warm else (0.72 if live else 0.8)
-		contested_frequency_badge.modulate = Color(0.95, 0.95, 0.98, ca)
+		contested_frequency_badge.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, ca)
 	# Map chip is Snapshot map_name (see _refresh_map_chip_badge). Never re-show
 	# the Hangar Candy brand texture as if it were the map name.
 	if hangar_candy_badge:
@@ -1140,7 +1240,7 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 			warmup_tv_countdown.text = "GOES LIVE IN " + str(warmup_tv_secs)
 		else:
 			warmup_tv_countdown.text = "GOES LIVE"
-		warmup_tv_countdown.add_theme_color_override("font_color", Color(1.0, 0.72, 0.22, 1))
+		warmup_tv_countdown.add_theme_color_override("font_color", MenuTheme.EMBER)
 	_set_warmup_roster(roster)
 	if warmup_tv_host:
 		warmup_tv_host.text = line
@@ -1155,7 +1255,7 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 		streak_flash_timer = 0.35
 		if streak_flash:
 			streak_flash.visible = true
-			streak_flash.modulate = Color(1.0, 0.72, 0.22, 0.4)
+			streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.4)
 
 func _set_warmup_roster(roster) -> void:
 	var names = []
@@ -1251,7 +1351,7 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	streak_flash_timer = 0.55
 	if streak_flash:
 		streak_flash.visible = true
-		streak_flash.modulate = Color(1.0, 0.78, 0.28, 0.55)
+		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
 
 	if round_message:
 		if match_rules.get("mode", "") == "ctf" and capture_scores is Dictionary:
@@ -1296,7 +1396,7 @@ func _show_round_banner(text: String, seconds: float, backed: bool = false) -> v
 	round_banner_remaining = seconds
 	round_message.text = text
 	round_message.scale = Vector2.ONE
-	round_message.modulate = Color.WHITE
+	round_message.modulate = MenuTheme.UNTINTED
 	round_message.visible = true
 	if round_backdrop:
 		round_backdrop.visible = backed
@@ -1309,6 +1409,8 @@ func _fit_round_message(backed: bool) -> void:
 	if backed and round_backdrop != null:
 		round_message.offset_left = round_backdrop.offset_left + 28.0
 		round_message.offset_right = round_backdrop.offset_right - 28.0
+		var height: float = maxf(165.0, round_message.get_minimum_size().y + 36.0)
+		round_backdrop.offset_top = -25.0 - height
 		round_message.offset_top = round_backdrop.offset_top + 18.0
 		round_message.offset_bottom = round_backdrop.offset_bottom - 18.0
 		return
@@ -1374,9 +1476,9 @@ func set_followed_weapon(weapon_name: String, player_name: String = "", behavior
 		if team != "":
 			weapon_label.text = "[" + MatchRules.team_short(team) + "] " + weapon_label.text
 	if team != "":
-		weapon_label.add_theme_color_override("font_color", MatchRules.team_label_color(team))
+		weapon_label.add_theme_color_override("font_color", MenuTheme.readable_text(MenuTheme.team_color(team)))
 	else:
-		weapon_label.add_theme_color_override("font_color", StanceChipScript.accent_color(behavior != ""))
+		weapon_label.add_theme_color_override("font_color", MenuTheme.EMBER if behavior != "" else MenuTheme.BONE)
 	# A player already has the gun in their hands, drawn large in the corner
 	# this icon sits in. Two pictures of the same weapon, one of them in a
 	# dark box, is one too many. The icon is how a spectator knows what the
@@ -1706,9 +1808,9 @@ func _ensure_fp_pennant() -> void:
 	words.position = Vector2(6, 78)
 	words.size = Vector2(164, 28)
 	words.add_theme_font_override("font", MenuTheme.FONT)
-	words.add_theme_font_size_override("font_size", 16)
-	words.add_theme_color_override("font_color", Color(0.96, 0.9, 0.72, 0.95))
-	words.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03))
+	words.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	words.add_theme_color_override("font_color", MenuTheme.BONE)
+	words.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	words.add_theme_constant_override("outline_size", 4)
 	words.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	root.add_child(pole)
@@ -1788,7 +1890,7 @@ func set_fp_weapon(weapon_name: String) -> void:
 		fp_shot_age = INF
 		fp_muzzle_timer = 0.0
 		fp_muzzle.visible = false
-		fp_weapon.modulate = Color.WHITE
+		fp_weapon.modulate = MenuTheme.UNTINTED
 		fp_weapon.scale = Vector2.ONE
 		fp_weapon.pivot_offset = Vector2.ZERO
 		fp_stab_timer = 0.0
@@ -1878,25 +1980,28 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 	hit_marker_timer = 0.18
 	if hit_marker:
 		hit_marker.visible = true
-		var col = Color(0.91, 0.82, 0.7, 0.95)
+		var col = MenuTheme.alpha(MenuTheme.BONE, 0.95)
 		if damage <= 0:
 			# Dim, and shorter: the shot found a body and did not hurt it.
-			col = Color(0.55, 0.58, 0.62, 0.7)
+			col = MenuTheme.alpha(MenuTheme.MUTED, 0.7)
 			hit_marker_timer = 0.12
 		else:
 			match weapon_name:
 				"Rail":
-					col = Color(0.72, 0.78, 0.82, 0.95)
+					col = MenuTheme.alpha(MenuTheme.CYAN, 0.95)
 					hit_marker_timer = 0.28
 				"Sniper":
-					col = Color(0.88, 0.86, 0.8, 0.95)
+					col = MenuTheme.alpha(MenuTheme.BONE, 0.95)
 					hit_marker_timer = 0.32
 				"Scatter":
-					col = Color(0.9, 0.55, 0.32, 0.95)
+					col = MenuTheme.alpha(MenuTheme.EMBER, 0.95)
 					hit_marker_timer = 0.14
 				_:
-					col = Color(0.91, 0.82, 0.7, 0.95)
-		hit_marker.modulate = col
+					col = MenuTheme.alpha(MenuTheme.BONE, 0.95)
+		hit_marker.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, col.a)
+		for mark: Node in hit_marker.get_children():
+			if mark is ColorRect:
+				(mark as ColorRect).color = MenuTheme.alpha(col, 1.0)
 	if damage > 0:
 		_play_hit_chime(damage)
 		_spawn_floating_damage(damage, weapon_name)
@@ -1925,7 +2030,7 @@ func set_vitals(hp: int, armor: int) -> void:
 	if health_value:
 		health_value.text = str(hp_shown)
 		# Low health is the one place the HUD is allowed to shout.
-		health_value.modulate = Color(1, 0.55, 0.55) if hp_shown <= 35 else Color.WHITE
+		health_value.add_theme_color_override("font_color", MenuTheme.DANGER if hp_shown <= 35 else MenuTheme.BONE)
 	if health_bar:
 		var hp_fill: float = clampf(float(hp_shown) / float(PLAYER_MAX_HP), 0.0, 1.0)
 		health_bar.size.x = HEALTH_BAR_WIDTH * hp_fill
@@ -2054,18 +2159,18 @@ func _spawn_floating_damage(damage: int, weapon_name: String) -> void:
 	var label = Label.new()
 	label.text = str(damage)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var col = Color(0.91, 0.82, 0.7, 1)
+	var col = MenuTheme.BONE
 	match weapon_name:
 		"Rail":
-			col = Color(0.75, 0.82, 0.86, 1)
+			col = MenuTheme.CYAN
 		"Sniper":
-			col = Color(0.9, 0.88, 0.82, 1)
+			col = MenuTheme.BONE
 		"Scatter":
-			col = Color(0.92, 0.55, 0.3, 1)
+			col = MenuTheme.EMBER
 		_:
-			col = Color(0.95, 0.78, 0.45, 1)
+			col = MenuTheme.EMBER
 	label.add_theme_color_override("font_color", col)
-	label.add_theme_font_size_override("font_size", 28 if weapon_name in ["Rail", "Sniper"] else 22)
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	var ox = randf_range(-28.0, 28.0)
 	label.position = Vector2(ox, -20.0)
 	damage_numbers.add_child(label)
@@ -2102,7 +2207,7 @@ func show_damage_flash() -> void:
 	damage_flash_timer = 0.22
 	if damage_flash:
 		damage_flash.visible = true
-		damage_flash.modulate = Color(0.55, 0.08, 0.06, 0.55)
+		damage_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
 
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
@@ -2115,7 +2220,7 @@ func show_spawn_flash() -> void:
 	if spawn_flash:
 		spawn_flash.visible = true
 		# Ember grit flash on spawn / join.
-		spawn_flash.modulate = Color(0.85, 0.45, 0.18, 0.45)
+		spawn_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.45)
 
 
 var radio_label: Label = null
@@ -2131,13 +2236,16 @@ func show_radio(station: String, title: String) -> void:
 		radio_label.anchor_top = 1.0
 		radio_label.anchor_right = 1.0
 		radio_label.anchor_bottom = 1.0
-		radio_label.offset_left = -520.0
-		radio_label.offset_top = -44.0
+		radio_label.offset_left = -640.0
+		radio_label.offset_top = -116.0
 		radio_label.offset_right = -16.0
 		radio_label.offset_bottom = -16.0
 		radio_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		radio_label.add_theme_color_override("font_color", Color(0.91, 0.89, 0.84))
-		radio_label.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05))
+		radio_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		radio_label.max_lines_visible = 3
+		radio_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		radio_label.add_theme_color_override("font_color", MenuTheme.BONE)
+		radio_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 		radio_label.add_theme_constant_override("outline_size", 4)
 		add_child(radio_label)
 	var text := "ON AIR: " + station
@@ -2171,13 +2279,13 @@ func show_station_card(card: Dictionary) -> void:
 		radio_card.anchor_top = 1.0
 		radio_card.anchor_right = 1.0
 		radio_card.anchor_bottom = 1.0
-		radio_card.offset_left = -420.0
-		radio_card.offset_top = -150.0
+		radio_card.offset_left = -640.0
+		radio_card.offset_top = -292.0
 		radio_card.offset_right = -16.0
-		radio_card.offset_bottom = -56.0
+		radio_card.offset_bottom = -128.0
 		radio_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var back := ColorRect.new()
-		back.color = Color(0.04, 0.04, 0.05, 0.82)
+		back.color = MenuTheme.INK
 		back.set_anchors_preset(Control.PRESET_FULL_RECT)
 		back.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		radio_card.add_child(back)
@@ -2191,28 +2299,29 @@ func show_station_card(card: Dictionary) -> void:
 		radio_card_mark.size = Vector2(78, 78)
 		radio_card_mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		radio_card_mark.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		radio_card_mark.add_theme_font_size_override("font_size", 34)
-		radio_card_mark.add_theme_color_override("font_color", Color(0.91, 0.89, 0.84))
-		radio_card_mark.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05))
+		radio_card_mark.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		radio_card_mark.add_theme_color_override("font_color", MenuTheme.BONE)
+		radio_card_mark.add_theme_color_override("font_outline_color", MenuTheme.INK)
 		radio_card_mark.add_theme_constant_override("outline_size", 6)
 		radio_card.add_child(radio_card_mark)
 		radio_card_name = Label.new()
 		radio_card_name.position = Vector2(98, 12)
-		radio_card_name.size = Vector2(300, 34)
-		radio_card_name.add_theme_font_size_override("font_size", 24)
-		radio_card_name.add_theme_color_override("font_color", Color(0.91, 0.89, 0.84))
-		radio_card_name.add_theme_color_override("font_outline_color", Color(0.04, 0.04, 0.05))
+		radio_card_name.size = Vector2(510, 62)
+		radio_card_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		radio_card_name.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		radio_card_name.add_theme_color_override("font_color", MenuTheme.BONE)
+		radio_card_name.add_theme_color_override("font_outline_color", MenuTheme.INK)
 		radio_card_name.add_theme_constant_override("outline_size", 4)
 		radio_card.add_child(radio_card_name)
 		radio_card_tagline = Label.new()
-		radio_card_tagline.position = Vector2(98, 48)
-		radio_card_tagline.size = Vector2(300, 40)
+		radio_card_tagline.position = Vector2(98, 78)
+		radio_card_tagline.size = Vector2(510, 78)
 		radio_card_tagline.autowrap_mode = TextServer.AUTOWRAP_WORD
-		radio_card_tagline.add_theme_font_size_override("font_size", 13)
-		radio_card_tagline.add_theme_color_override("font_color", Color(0.72, 0.70, 0.66))
+		radio_card_tagline.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		radio_card_tagline.add_theme_color_override("font_color", MenuTheme.MUTED)
 		radio_card.add_child(radio_card_tagline)
 		add_child(radio_card)
-	radio_card_badge.color = Color.html(str(card.get("color", "#5A554F")))
+	radio_card_badge.color = MenuTheme.BORDER
 	radio_card_mark.text = str(card.get("badge", "CF"))
 	radio_card_name.text = str(card.get("name", "RADIO")).to_upper()
 	var tagline := str(card.get("tagline", ""))

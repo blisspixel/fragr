@@ -1,5 +1,11 @@
 extends SceneTree
 
+class BoardInputManager extends "res://scripts/game_manager.gd":
+	func _ready() -> void:
+		pass
+	func controls_blocked() -> bool:
+		return false
+
 ## Headless gate for the rule set as the client shows it: validation of
 ## `map_info.rules`, the mode chip, the team scoreboard, team-coloured
 ## fighters and every keyed Host reaction.
@@ -24,6 +30,7 @@ func _run() -> void:
 	_check_labels()
 	_check_reactions()
 	await _check_hud()
+	await _check_board_input_route()
 	await _check_pawn()
 	if _failures == 0:
 		print("test_match_rules: PASS")
@@ -222,6 +229,9 @@ func _check_hud() -> void:
 	_check(leaders_panel.visible and leaders_panel.mouse_filter == Control.MOUSE_FILTER_IGNORE, "tab opens a board that ignores the pointer")
 	var view: Rect2 = hud.get_viewport().get_visible_rect()
 	_check(view.encloses(leaders_panel.get_global_rect()), "the board stays on screen: " + str(leaders_panel.get_global_rect()) + " in " + str(view))
+	var leader_rows: Label = hud.get("_leaderboard_label")
+	_check(leaders_panel.get_global_rect().encloses(leader_rows.get_global_rect()), "ordinary standings text fits its backing")
+	await _check_large_board(hud)
 	hud.call("set_leaderboard_open", false)
 	_check(not leaders_panel.visible, "releasing tab hides the board")
 	hud.call("show_host_reaction", {"kind": "golden_rail", "variant": 2, "player": "Aunt Linda"})
@@ -231,6 +241,85 @@ func _check_hud() -> void:
 	var follow: Label = hud.get("weapon_label")
 	_check(follow.text.begins_with("[FREE] FOLLOWING: Nightfall"), "spectators see the followed side: " + follow.text)
 	hud.queue_free()
+	await process_frame
+
+
+func _check_large_board(hud: CanvasLayer) -> void:
+	var roster: Array = []
+	for i: int in range(64):
+		roster.append({"name": "測試界abcdefghijklmnopqr%02d" % i, "score": 64 - i,
+			"team": "union", "deaths": 999, "attacks": 999999, "connects": 999999,
+			"heads": 999999, "damage": 999999})
+	hud.call("sync_scores_from_players", roster)
+	hud.call("set_leaderboard_open", true)
+	for frame: int in range(3):
+		await process_frame
+	var panel: Control = hud.get_node("Leaderboard")
+	var scroll: ScrollContainer = hud.get("_leaderboard_scroll")
+	var rows: Label = hud.get("_leaderboard_label")
+	var hint: Label = hud.get("_leaderboard_hint")
+	_check(panel.get_global_rect().encloses(scroll.get_global_rect()), "large roster has a bounded scrolling viewport")
+	_check(panel.get_global_rect().encloses(hint.get_global_rect()), "scroll instructions stay inside the panel")
+	_check(rows.get_global_rect().end.x <= scroll.get_global_rect().end.x, "long Unicode names and counts wrap within the board width")
+	_check(rows.text.contains("64. [UNION] 測試界abcdefghijklmnopqr63") and rows.text.contains("999999 dealt"), "large roster retains the final fighter and full counts")
+	var next: InputEventAction = InputEventAction.new()
+	next.action = "weapon_next"
+	next.pressed = true
+	_check(not hud.call("handle_leaderboard_input", next), "weapon input is not consumed without the held scoreboard action")
+	Input.action_press("scoreboard")
+	_check(hud.call("handle_leaderboard_input", next) and scroll.scroll_vertical > 0, "held board consumes the existing next binding and scrolls")
+	var offset: int = scroll.scroll_vertical
+	hud.call("set_leaderboard_open", true)
+	_check(scroll.scroll_vertical == offset, "snapshot refresh does not reset browsing")
+	for page: int in range(64):
+		hud.call("handle_leaderboard_input", next)
+	await process_frame
+	_check(rows.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1.0, "the last fighter is reachable without clipping its final line")
+	var wheel: InputEventMouseButton = InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	offset = scroll.scroll_vertical
+	_check(hud.call("handle_leaderboard_input", wheel) and scroll.scroll_vertical < offset, "wheel up scrolls upward instead of selecting equipment")
+	Input.action_release("scoreboard")
+	hud.call("set_leaderboard_open", false)
+	hud.call("set_leaderboard_open", true)
+	_check(scroll.scroll_vertical == 0, "a newly held board starts at the leaders")
+
+
+func _check_board_input_route() -> void:
+	var game: Node = load("res://scenes/main.tscn").instantiate()
+	game.set_script(BoardInputManager)
+	game.process_mode = Node.PROCESS_MODE_DISABLED
+	root.add_child(game)
+	await process_frame
+	game.is_human_player = true
+	game.net_client.equipment = {"selected": "tack", "weapons": ["fists", "tack"]}
+	var key: InputEventKey = InputEventKey.new()
+	key.physical_keycode = KEY_BRACKETRIGHT
+	key.pressed = true
+	var wheel: InputEventMouseButton = InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	wheel.pressed = true
+	var pad: InputEventJoypadButton = InputEventJoypadButton.new()
+	pad.button_index = JOY_BUTTON_RIGHT_SHOULDER
+	pad.pressed = true
+	Input.action_press("scoreboard")
+	for event: InputEvent in [key, wheel, pad]:
+		game._input(event)
+		_check(game.pending_weapon_swap == null and game.pending_seat.is_empty(), "held board browsing cannot select equipment or a seat: " + event.as_text())
+	Input.action_release("scoreboard")
+	game._input(key)
+	_check(game.pending_weapon_swap == "fists", "releasing the board restores ordinary weapon selection")
+	game.pending_weapon_swap = null
+	game.net_client.player_id = "self"
+	game.latest_snapshot = {"vehicles": [{"kind": "jeep", "driver": "self", "gunner": null}]}
+	Input.action_press("scoreboard")
+	game._input(pad)
+	_check(game.pending_seat.is_empty(), "a seated driver's held-board input does not switch seats")
+	Input.action_release("scoreboard")
+	game._input(pad)
+	_check(game.pending_seat == "gunner", "releasing the board restores the driver's seat switch")
+	game.queue_free()
 	await process_frame
 
 

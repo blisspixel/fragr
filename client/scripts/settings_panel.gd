@@ -12,6 +12,7 @@ const PAGES: Array[String] = ["CONTROLS", "LOOK", "DISPLAY", "GRAPHICS", "AUDIO"
 const SLOT_HEADERS: Array[String] = ["BIND_HEADER_KEY", "BIND_HEADER_ALT", "BIND_HEADER_PAD"]
 
 var preferences: FragrSettings
+var theme_context: MenuTheme.Context = MenuTheme.Context.GAMEPLAY
 var _draft: FragrSettings
 var _rows: VBoxContainer
 var _scroll: ScrollContainer
@@ -24,10 +25,13 @@ var _capture_slot: int = -1
 var _capture_frame: int = -1
 var _device_revision: int = -1
 
+var _palette: Dictionary = {}
+
 func _ready() -> void:
 	assert(preferences != null)
 	_draft = preferences.draft()
-	theme = MenuTheme.build()
+	theme = MenuTheme.build(theme_context)
+	_palette = MenuTheme.colors(theme_context)
 	add_theme_constant_override("separation", 10)
 	_tabs = HBoxContainer.new()
 	_tabs.add_theme_constant_override("separation", 6)
@@ -37,7 +41,7 @@ func _ready() -> void:
 		button.name = "Tab" + page
 		button.text = tr("SETTINGS_TAB_" + page)
 		button.set_meta("page", page)
-		button.add_theme_font_size_override("font_size", 16)
+		button.add_theme_font_size_override("font_size", MenuTheme.BODY)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(show_page.bind(page))
 		_tabs.add_child(button)
@@ -51,7 +55,7 @@ func _ready() -> void:
 	_rows.add_theme_constant_override("separation", 8)
 	_scroll.add_child(_rows)
 	_note = Label.new()
-	_note.add_theme_font_size_override("font_size", 14)
+	_note.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_note.custom_minimum_size.y = 40
 	add_child(_note)
@@ -75,7 +79,7 @@ func show_page(page: String) -> void:
 		child.queue_free()
 	for tab: Button in _tabs.get_children():
 		var current: bool = str(tab.get_meta("page")) == page
-		tab.modulate = MenuTheme.EMBER if current else Color.WHITE
+		tab.add_theme_color_override("font_color", _palette.accent if current else _palette.text)
 		if current:
 			tab.grab_focus()
 	_scroll.scroll_vertical = 0
@@ -159,8 +163,8 @@ func _bindings_page() -> void:
 	for key: String in SLOT_HEADERS:
 		var label: Label = Label.new()
 		label.text = tr(key)
-		label.add_theme_font_size_override("font_size", 14)
-		label.add_theme_color_override("font_color", MenuTheme.EMBER)
+		label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+		label.add_theme_color_override("font_color", _palette.accent)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		header.add_child(label)
@@ -170,17 +174,18 @@ func _bindings_page() -> void:
 		for slot: int in range(InputBindings.SLOTS):
 			var button: Button = Button.new()
 			button.name = "bind_%s_%d" % [action, slot]
-			button.custom_minimum_size = Vector2(0, 34)
+			button.custom_minimum_size = Vector2(240, 48)
 			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			button.add_theme_font_size_override("font_size", 14)
-			button.clip_text = true
+			button.add_theme_font_size_override("font_size", MenuTheme.BODY)
+			button.clip_text = false
+			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			button.pressed.connect(begin_capture.bind(action, slot))
 			row.add_child(button)
 	var reset: Button = Button.new()
 	reset.name = "reset_bindings"
 	reset.text = tr("BIND_RESET")
 	reset.custom_minimum_size.y = 40
-	reset.add_theme_font_size_override("font_size", 16)
+	reset.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	reset.pressed.connect(reset_bindings)
 	_rows.add_child(reset)
 	_device_revision = InputDevice.revision
@@ -193,9 +198,9 @@ func _binding_row(title: String) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 6)
 	var label: Label = Label.new()
 	label.text = title
-	label.custom_minimum_size.x = 250
-	label.add_theme_font_size_override("font_size", 14)
-	label.clip_text = true
+	label.custom_minimum_size.x = 390
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	label.clip_text = false
 	row.add_child(label)
 	_rows.add_child(row)
 	return row
@@ -212,7 +217,12 @@ func _refresh_binding_labels() -> void:
 			if button == null:
 				continue
 			button.text = InputGlyphs.token_name(slots[slot], InputDevice.pad_layout)
-			button.modulate = Color("ff8a6a") if clashing.has(action + "#" + slots[slot]) else Color.WHITE
+			var conflict: bool = clashing.has(action + "#" + slots[slot])
+			button.add_theme_color_override("font_color", _palette.text)
+			if conflict:
+				button.add_theme_stylebox_override("normal", MenuTheme.panel(_palette.ink, _palette.danger))
+			else:
+				button.remove_theme_stylebox_override("normal")
 
 func _show_conflicts() -> void:
 	var found: Array[Dictionary] = InputBindings.conflicts(_draft)
@@ -330,8 +340,8 @@ func _row(title: String) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 14)
 	var label: Label = Label.new()
 	label.text = title
-	label.custom_minimum_size.x = 300
-	label.add_theme_font_size_override("font_size", 18)
+	label.custom_minimum_size.x = 480
+	label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	row.add_child(label)
 	_rows.add_child(row)
 	return row
@@ -349,9 +359,9 @@ func _slider(title: String, section: String, key: String, low: float, high: floa
 	control.custom_minimum_size.y = 24
 	row.add_child(control)
 	var readout: Label = Label.new()
-	readout.custom_minimum_size.x = 85
+	readout.custom_minimum_size.x = 120
 	readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	readout.add_theme_font_size_override("font_size", 18)
+	readout.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	row.add_child(readout)
 	var update: Callable = func(value: float) -> void:
 		readout.text = _format_value(value, section, step, unit)

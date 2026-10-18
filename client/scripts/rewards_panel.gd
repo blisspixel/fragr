@@ -12,11 +12,13 @@ var _stamp: Label
 var _save: Button
 var _selectors: Dictionary[String, OptionButton] = {}
 
+var _palette: Dictionary = MenuTheme.colors(MenuTheme.Context.FRONT_END)
+
 func _ready() -> void:
 	add_theme_constant_override("separation", 12)
 	draft = records.customization.duplicate()
-	_label(tr("REWARD_TITLE"), 26)
-	_label(tr("REWARD_LOCAL"), 16)
+	_label(tr("REWARD_TITLE"), MenuTheme.BODY)
+	_label(tr("REWARD_LOCAL"), MenuTheme.BODY)
 	var awards: HBoxContainer = HBoxContainer.new()
 	awards.add_theme_constant_override("separation", 18)
 	add_child(awards)
@@ -25,12 +27,12 @@ func _ready() -> void:
 		text.custom_minimum_size.x = 300.0
 		text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		text.add_theme_font_size_override("font_size", 16)
+		text.add_theme_font_size_override("font_size", MenuTheme.BODY)
 		var earned: bool = PlayerRewards.owns(records.unlocks, award)
 		text.text = tr("REWARD_" + award.to_upper()) + "\n" \
 			+ tr("REWARD_EARNED" if earned else "REWARD_LOCKED") + "\n" \
 			+ tr("REWARD_CRITERIA_" + award.to_upper())
-		text.add_theme_color_override("font_color", MenuTheme.EMBER if earned else MenuTheme.BONE)
+		text.add_theme_color_override("font_color", _palette.accent if earned else _palette.text)
 		awards.add_child(text)
 	var grid: GridContainer = GridContainer.new()
 	grid.columns = 2
@@ -40,13 +42,13 @@ func _ready() -> void:
 	for kind: String in PlayerRewards.DEFAULTS:
 		var caption: Label = Label.new()
 		caption.text = tr("REWARD_SELECT_" + kind.to_upper())
-		caption.add_theme_font_size_override("font_size", 20)
+		caption.add_theme_font_size_override("font_size", MenuTheme.BODY)
 		grid.add_child(caption)
 		var selector: OptionButton = OptionButton.new()
 		selector.name = "Reward" + kind.capitalize()
 		selector.custom_minimum_size = Vector2(410.0, 42.0)
 		selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		selector.add_theme_font_size_override("font_size", 20)
+		selector.add_theme_font_size_override("font_size", MenuTheme.BODY)
 		_selectors[kind] = selector
 		for choice: String in PlayerRewards.CHOICES[kind]:
 			var available: bool = PlayerRewards.available(kind, choice, records.unlocks)
@@ -72,14 +74,14 @@ func _ready() -> void:
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	display.add_child(identity)
 	_identity = Label.new()
-	_identity.add_theme_font_size_override("font_size", 20)
+	_identity.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_identity.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	identity.add_child(_identity)
 	_stamp = Label.new()
-	_stamp.add_theme_font_size_override("font_size", 18)
-	_stamp.add_theme_stylebox_override("normal", MenuTheme.panel(Color("181c18"), MenuTheme.BONE))
+	_stamp.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	_stamp.add_theme_stylebox_override("normal", MenuTheme.panel(_palette.ink, _palette.text))
 	identity.add_child(_stamp)
-	_notice = _label("", 16)
+	_notice = _label("", MenuTheme.BODY)
 	var buttons: HBoxContainer = HBoxContainer.new()
 	add_child(buttons)
 	_save = Button.new()

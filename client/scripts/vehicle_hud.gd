@@ -21,14 +21,14 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_panel = PanelContainer.new()
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.add_theme_stylebox_override("panel", MenuTheme.panel(Color("171a16"), Color("82765b")))
+	_panel.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
 	add_child(_panel)
 	var stack: VBoxContainer = VBoxContainer.new()
 	stack.add_theme_constant_override("separation", 5)
 	_panel.add_child(stack)
-	_title = _label(20)
+	_title = _label(MenuTheme.BODY)
 	stack.add_child(_title)
-	_status = _label(17)
+	_status = _label(MenuTheme.BODY)
 	stack.add_child(_status)
 	_controls = RichTextLabel.new()
 	_controls.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -36,7 +36,7 @@ func _ready() -> void:
 	_controls.scroll_active = false
 	_controls.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_controls.add_theme_font_override("normal_font", MenuTheme.FONT)
-	_controls.add_theme_font_size_override("normal_font_size", 15)
+	_controls.add_theme_font_size_override("normal_font_size", MenuTheme.BODY)
 	_controls.add_theme_color_override("default_color", MenuTheme.BONE)
 	stack.add_child(_controls)
 	visible = false
@@ -44,6 +44,7 @@ func _ready() -> void:
 static func _label(font_size: int) -> Label:
 	var label: Label = Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_override("font", MenuTheme.FONT)
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", MenuTheme.BONE)
@@ -87,7 +88,7 @@ func _refresh() -> void:
 	_title.text = tr("VEHICLE_" + str(state["kind"]).to_upper()) + (" / " + tr("VEHICLE_SEAT_" + seat.to_upper()) if not seat.is_empty() else "")
 	if seat.is_empty():
 		summary = tr("VEHICLE_HULL").format({"hp": int(state["hp"])})
-		prompt_text = InputGlyphs.render(_controls, tr("VEHICLE_ENTER").format({"seat": tr("VEHICLE_SEAT_" + nearby_seat.to_upper())}), 18)
+		prompt_text = InputGlyphs.render(_controls, tr("VEHICLE_ENTER").format({"seat": tr("VEHICLE_SEAT_" + nearby_seat.to_upper())}), MenuTheme.BODY)
 	else:
 		var heat: int = roundi(float(state["gun_heat"]) * 100.0)
 		summary = tr("VEHICLE_HULL_HEAT").format({"hp": int(state["hp"]), "heat": heat})
@@ -112,7 +113,7 @@ func _refresh() -> void:
 			controls = tr("VEHICLE_HOT") + "\n" + controls
 		if int(state["control_ready_tick"]) > _snapshot_tick:
 			controls = tr("VEHICLE_SWITCHING").format({"seconds": "%.1f" % (float(int(state["control_ready_tick"]) - _snapshot_tick) / 20.0)}) + "\n" + controls
-		prompt_text = InputGlyphs.render(_controls, controls, 18)
+		prompt_text = InputGlyphs.render(_controls, controls, MenuTheme.BODY)
 	_status.text = summary
 	_status.add_theme_color_override("font_color", MenuTheme.EMBER if int(state["hp"]) < 100 else MenuTheme.BONE)
 	_layout()
@@ -121,8 +122,8 @@ func _layout() -> void:
 	if _panel == null:
 		return
 	var viewport: Vector2 = get_viewport_rect().size
-	_panel.size = Vector2(320, 0)
-	_panel.position = Vector2(maxf(12.0, viewport.x - 338.0), maxf(12.0, viewport.y - _panel.size.y - (22.0 if not seat.is_empty() else 135.0)))
+	_panel.size = Vector2(minf(480.0, viewport.x - 24.0), 0)
+	_panel.position = Vector2(maxf(12.0, viewport.x - _panel.size.x - 18.0), maxf(12.0, viewport.y - _panel.size.y - (22.0 if not seat.is_empty() else 135.0)))
 
 func _process(_delta: float) -> void:
 	if visible:

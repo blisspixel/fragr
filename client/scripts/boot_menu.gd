@@ -10,7 +10,7 @@ extends Control
 
 const ARENA_SCENE: String = "res://scenes/main.tscn"
 const LOOPBACK: String = "127.0.0.1:6767"
-const MENU_FONT: Font = preload("res://assets/fonts/BlackOpsOne-Regular.ttf")
+const MENU_FONT: Font = MenuTheme.DISPLAY_FONT
 
 var _page: String = "main"
 var _root: VBoxContainer = null
@@ -84,6 +84,8 @@ var _title: Label
 var _tagline: Label
 var _device_revision: int = -1
 
+var _palette: Dictionary = MenuTheme.colors(MenuTheme.Context.FRONT_END)
+
 func _ready() -> void:
 	ClientRetirement.for_tree(get_tree())
 	MouseCapture.release()
@@ -103,7 +105,7 @@ func _ready() -> void:
 		_local_match.state_changed.connect(_on_local_state_changed)
 	if not _local_match.run_preview_changed.is_connected(_on_run_preview_changed):
 		_local_match.run_preview_changed.connect(_on_run_preview_changed)
-	theme = MenuTheme.build()
+	theme = MenuTheme.build(MenuTheme.Context.FRONT_END)
 	UserDataMigration.run_for(get_tree())
 	if _settings == null:
 		_settings = FragrSettings.for_tree(get_tree())
@@ -145,6 +147,7 @@ func _apply_render_preferences() -> void:
 
 func _build_chrome() -> void:
 	var back: MenuBackdrop = MenuBackdrop.new()
+	back.name = "MenuBackdrop"
 	back.anchor_right = 1.0
 	back.anchor_bottom = 1.0
 	add_child(back)
@@ -165,20 +168,20 @@ func _build_chrome() -> void:
 	title.text = "FRAGR"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_override("font", MENU_FONT)
-	title.add_theme_font_size_override("font_size", 154)
-	title.add_theme_color_override("font_color", Color("c7b89a"))
-	title.add_theme_color_override("font_shadow_color", Color("5d291d"))
+	title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_LARGE)
+	title.add_theme_color_override("font_color", _palette.text)
+	title.add_theme_color_override("font_shadow_color", _palette.rust)
 	title.add_theme_constant_override("shadow_offset_x", 6)
 	title.add_theme_constant_override("shadow_offset_y", 9)
 	title.add_theme_constant_override("outline_size", 8)
-	title.add_theme_color_override("font_outline_color", Color("080b0b"))
+	title.add_theme_color_override("font_outline_color", _palette.ink)
 	column.add_child(title)
 	var tagline: Label = Label.new()
 	_tagline = tagline
 	tagline.text = "CONTESTED FREQUENCY  //  PORT 6767"
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tagline.add_theme_font_size_override("font_size", 18)
-	tagline.add_theme_color_override("font_color", Color("a4774c"))
+	tagline.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	tagline.add_theme_color_override("font_color", _palette.accent)
 	column.add_child(tagline)
 
 	_page_scroll = ScrollContainer.new()
@@ -199,8 +202,8 @@ func _build_chrome() -> void:
 	_status = Label.new()
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status.add_theme_font_size_override("font_size", 18)
-	_status.add_theme_color_override("font_color", Color(0.6, 0.62, 0.64))
+	_status.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	_status.add_theme_color_override("font_color", _palette.text)
 	_status.text = _nav_hint()
 	column.add_child(_status)
 
@@ -238,17 +241,17 @@ func _styled_button(text: String, handler: Callable, compact: bool = false) -> B
 	var b: Button = Button.new()
 	b.text = text.to_upper()
 	b.custom_minimum_size = Vector2(0.0, 76.0 if compact else 62.0)
-	b.add_theme_font_size_override("font_size", 22 if compact else 32)
+	b.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	if compact:
 		b.clip_text = true
-	b.add_theme_color_override("font_color", Color("bba789"))
-	b.add_theme_color_override("font_focus_color", Color("ffcc83"))
-	b.add_theme_color_override("font_hover_color", Color("ffcc83"))
-	b.add_theme_color_override("font_pressed_color", Color("ffffff"))
+	b.add_theme_color_override("font_color", _palette.text)
+	b.add_theme_color_override("font_focus_color", _palette.accent)
+	b.add_theme_color_override("font_hover_color", _palette.accent)
+	b.add_theme_color_override("font_pressed_color", _palette.text)
 	b.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
 	var selected: StyleBoxFlat = StyleBoxFlat.new()
-	selected.bg_color = Color("4a2019")
-	selected.border_color = Color("b66637")
+	selected.bg_color = _palette.ink
+	selected.border_color = _palette.accent
 	selected.border_width_left = 6
 	selected.border_width_bottom = 2
 	b.add_theme_stylebox_override("focus", selected)
@@ -260,10 +263,10 @@ func _styled_button(text: String, handler: Callable, compact: bool = false) -> B
 func _label(text: String) -> Label:
 	var l: Label = Label.new()
 	l.text = text
-	l.add_theme_font_size_override("font_size", 20)
+	l.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.add_theme_color_override("font_color", Color(0.55, 0.7, 0.72))
+	l.add_theme_color_override("font_color", _palette.text)
 	_root.add_child(l)
 	return l
 
@@ -285,7 +288,9 @@ func _show(page: String) -> void:
 	if _release_fetch != null:
 		_release_fetch.cancel()
 	_page = page
-	_title.add_theme_font_size_override("font_size", 96 if page in ["single", "practice"] else (60 if page in ["records", "settings", "profile", "rewards", "multi", "host", "benchmark"] else 154))
+	_title.add_theme_font_size_override("font_size", MenuTheme.DISPLAY_MEDIUM if page in ["records", "settings", "profile", "rewards", "multi", "host", "benchmark"] else MenuTheme.DISPLAY_LARGE)
+	_column.custom_minimum_size.x = 1200.0 if page == "settings" else 960.0 if page in ["host", "records", "benchmark"] else 780.0
+	(get_node("MenuBackdrop") as MenuBackdrop).content_width = _column.custom_minimum_size.x
 	_tagline.visible = page not in ["records", "settings", "profile", "rewards", "single", "practice", "multi", "host", "benchmark"]
 	_clear()
 	_status.text = tr(_local_match.error_key) if not _local_match.error_key.is_empty() else _nav_hint()
@@ -1273,14 +1278,14 @@ func _page_profile() -> void:
 	_name_edit.text = _settings.player_name()
 	_name_edit.max_length = 24
 	_name_edit.custom_minimum_size = Vector2(0, 58)
-	_name_edit.add_theme_font_size_override("font_size", 28)
+	_name_edit.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_name_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_root.add_child(_name_edit)
 	_label("RETICLE COLOUR")
 	var colour: OptionButton = OptionButton.new()
 	colour.name = "ReticleColour"
 	colour.custom_minimum_size.y = 50
-	colour.add_theme_font_size_override("font_size", 24)
+	colour.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	var choices: Array[String] = ["bone", "amber", "cyan"]
 	for choice in choices:
 		colour.add_item(choice.to_upper())
@@ -1296,7 +1301,7 @@ func _page_profile() -> void:
 	var body: OptionButton = OptionButton.new()
 	body.name = "Body"
 	body.custom_minimum_size = Vector2(300, 50)
-	body.add_theme_font_size_override("font_size", 24)
+	body.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	for kind: String in PlayerBody.KINDS:
 		body.add_item(PlayerBody.label(kind))
 	body.select(PlayerBody.KINDS.find(_settings.player_body()))
@@ -1317,7 +1322,7 @@ func _page_profile() -> void:
 	var bob: CheckButton = CheckButton.new()
 	bob.name = "WeaponBob"
 	bob.text = "WEAPON BOB"
-	bob.add_theme_font_size_override("font_size", 24)
+	bob.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	bob.button_pressed = bool(_settings.get_value("gameplay", "head_bob"))
 	bob.toggled.connect(func(on: bool) -> void: _settings.set_value("gameplay", "head_bob", on))
 	_root.add_child(bob)
@@ -1360,6 +1365,7 @@ func _save_profile() -> void:
 
 func _page_settings() -> void:
 	var panel: SettingsPanel = SettingsPanel.new()
+	panel.theme_context = MenuTheme.Context.FRONT_END
 	panel.name = "SettingsPanel"
 	panel.preferences = _settings
 	panel.closed.connect(func() -> void: _show("main"))
@@ -1447,8 +1453,8 @@ func _list_note(box: VBoxContainer, text: String) -> void:
 	note.text = text
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	note.add_theme_font_size_override("font_size", 18)
-	note.add_theme_color_override("font_color", Color(0.55, 0.7, 0.72))
+	note.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	note.add_theme_color_override("font_color", _palette.text)
 	box.add_child(note)
 
 func _row_token(address: String) -> String:

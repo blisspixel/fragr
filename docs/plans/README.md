@@ -12,16 +12,26 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 - Local play is $0. Public hosting sits under the $50 total cap. Nick authorized up to $20 combined external charges for each of the 2026-09-26, 2026-09-29, 2026-09-30 and 2026-10-02 development rounds, subject to that total cap and reconciled actual usage. The 2026-09-30 buildout has $0 new cash charges, 975 included audio credits consumed, a separate conservative $5 audio equivalent reserve and $4.085 in new image reservations through 2026-10-01, reconciled on 2026-10-02 as 33 completed requests; the prior $0.107 reservation is counted as charged ([art pass](art-pass-20261002.md)). The 2026-10-02 round used about $5.82 of prepaid Higgsfield credit and included ElevenLabs credits, with $0 new cash charges. Production deployment still needs a reviewed cost and written approval. The current GCP Terraform remains plan-only.
 - Tailscale is private smoke only, never the documented join path.
 - On 2026-10-03 Nick reported a $100 Higgsfield API top-up and $105.88 available, authorizing that total for asset production. This replaces the historical $50 ceiling only for this Higgsfield asset effort. The $5 per-run ceiling, price preflight and reservation accounting remain; automatic top-ups stay disabled.
+- On 2026-10-18 Nick replaced the historical $5 per-run asset limit with the remaining funded Higgsfield balance and included Meshy and ElevenLabs credits available for fragr. Live verification, exact prices, durable reservations and retained holds still bound each batch. Existing native asset-tool limits must follow this authorization before larger batches. No new purchases, renewals, top-ups or overages are authorized; brain inference and cloud rules are unchanged.
 - Nick authorized included model API credits through the native bounded pipeline. The October 6 free checker reports 1,900 available, 15 held and 1,885 usable. Tracked consumption is 1,170 after the five-credit civilian synthetic rig and the separate 140-credit four-vehicle source batch. The first 900-credit allocation has 625 used and 275 remaining; the trials do not silently expand it. The historical 30-credit unassigned discrepancy remains separate. The [full asset plan](meshy-full-game-assets.md) and [cast receipt](../evidence/named-cast-source-production-20261005.md) separate inspected sources from local repair and selected runtime art. Edda's original walking defect remains retained historical evidence; her [local source repair and live integration](edda-live-repair-20261008.md) have separate acceptance receipts. Splice is prepared and locally selected, with 67 ordinary states accepted and contact-aware gait still open, and the separate vehicle and synthetic plans record their current runtime selections. No new cash, renewal, automatic top-up or overage was enabled.
 - The dedicated server bar is rock solid, secure, and cheap: input validation, rate limits, clean join and leave and reconnect, and a home box or small VM first. The [server excellence goal](server-excellence.md) keeps a spare home machine as a complete host and adds plan-only IaC for one popular small-VM virtual network plus GCP, AWS, and Azure. Main contains the unapplied GCP root; additional local cloud and installer drafts require review and validation.
 
 ## Index
 
-The [October 17 convergence](development-convergence-20261017.md) is **in flight**.
-It preserves six unpublished commits and the M16-M18 working tree, repairs
-priority issues #407-#410, and owns composed verification and release integration.
-At entry, main CI passes, v0.85.0 is a packaged draft and v0.84.0 is the latest
-published release. Earlier v0.86.0 shipment claims were premature.
+The [UI palette and type round](ui-palette-type-20261017.md) is **implemented**
+for #411 within #418, with integration in [PR #420](https://github.com/blisspixel/fragr/pull/420).
+All 580 local client checks pass, including 186 harnesses; the final published
+tour and three-resolution captures were inspected. It uses the
+retained fonts and canonical palette at $0, preserves world presentation, and
+chooses the existing dark front end with explicit appearance contexts.
+
+The [October 17 convergence](development-convergence-20261017.md) **shipped**
+through [PR #419](https://github.com/blisspixel/fragr/pull/419) and v0.86.0.
+It preserves six unpublished commits and the M16-M18 working tree and repairs
+priority issues #407-#410. Final main CI passes, including 2,142 native tests
+and 92.74% unfiltered line coverage. Three desktop archives and the downloaded
+Linux installation passed verification before publication. v0.85.0 remains a
+historical draft; v0.86.0 is the latest published release.
 
 The [October 13 development round](build-round-20261013.md) **shipped** in
 [PR 401](https://github.com/blisspixel/fragr/pull/401) and v0.82.1, with passing
@@ -66,7 +76,7 @@ in a mission; the connected foundry adds the first finite campaign pickup.
 [Difficulty pressure](difficulty-pressure-20261009.md) and
 [admission bounds](admission-bounds-20261009.md) shipped in v0.82.0.
 Levels 19 and 20 remain development grayboxes, not connected missions. The next
-campaign dependency is convergence of the connected M15-M18 increment. Human acceptance, final art and the
+campaign dependency is the interface round following the shipped M15-M18 increment. Human acceptance, final art and the
 unbuilt campaign remain open.
 
 On 2026-10-08 Nick reported $4.65 remaining in the image account and offered a

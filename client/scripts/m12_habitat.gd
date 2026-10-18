@@ -71,7 +71,7 @@ func configure_map(info: Dictionary) -> void:
 func _sign(label: String,key: String,at: Vector3,yaw: float,size: Vector2) -> void:
 	var sign := WorldSign.new()
 	sign.name = label
-	sign.configure(key,size*Vector2(0.86,0.74),MenuTheme.BONE)
+	sign.configure(key,size*Vector2(0.86,0.74),WorldSign.PANEL_TEXT)
 	sign.position = at
 	sign.rotation.y = yaw
 	sign.layers = ArenaSky.WORLD_LAYERS

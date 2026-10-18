@@ -49,7 +49,7 @@ func _ready() -> void:
 	_label.offset_bottom = 19.0
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label.add_theme_font_override("font", MenuTheme.FONT)
-	_label.add_theme_font_size_override("font_size", 14)
+	_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
 	_label.add_theme_color_override("font_color", MenuTheme.BONE)
 	_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
 	_label.add_theme_constant_override("outline_size", 3)

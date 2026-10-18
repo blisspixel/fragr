@@ -16,14 +16,14 @@ func _ready() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(center)
 	var panel: PanelContainer = PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", MenuTheme.panel(Color("202820"), Color("9c8967")))
+	panel.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
 	center.add_child(panel)
 	_copy = RichTextLabel.new()
 	_copy.custom_minimum_size = Vector2(620, 0)
 	_copy.fit_content = true
 	_copy.scroll_active = false
 	_copy.add_theme_font_override("normal_font", MenuTheme.FONT)
-	_copy.add_theme_font_size_override("normal_font_size", 24)
+	_copy.add_theme_font_size_override("normal_font_size", MenuTheme.BODY)
 	_copy.add_theme_color_override("default_color", MenuTheme.BONE)
 	panel.add_child(_copy)
 	_refresh()

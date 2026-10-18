@@ -65,15 +65,15 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_card = PanelContainer.new()
 	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_card.add_theme_stylebox_override("panel", MenuTheme.panel(Color("1c2420"), Color("716344")))
+	_card.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
 	add_child(_card)
-	_copy = _label(18)
+	_copy = _label(MenuTheme.BODY)
 	_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_card.add_child(_copy)
-	_run_badge = _label(16)
+	_run_badge = _label(MenuTheme.BODY)
 	_run_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(_run_badge)
-	_evac_badge = _label(15)
+	_evac_badge = _label(MenuTheme.BODY)
 	_evac_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_evac_badge.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_evac_badge.add_theme_color_override("font_color", MenuTheme.EMBER)
@@ -81,19 +81,19 @@ func _ready() -> void:
 	_prompt_plate = PanelContainer.new()
 	_prompt_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_prompt_plate.visible = false
-	_prompt_plate.add_theme_stylebox_override("panel", MenuTheme.panel(Color("141816"), MenuTheme.BONE))
+	_prompt_plate.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BONE))
 	add_child(_prompt_plate)
-	_prompt = _rich(28)
+	_prompt = _rich(MenuTheme.BODY)
 	_prompt_plate.add_child(_prompt)
-	_bearing = _label(16)
+	_bearing = _label(MenuTheme.BODY)
 	_bearing.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bearing.visible = false
 	add_child(_bearing)
 	_recovery = PanelContainer.new()
 	_recovery.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_recovery.add_theme_stylebox_override("panel", MenuTheme.panel(Color("201b19"), Color("986048")))
+	_recovery.add_theme_stylebox_override("panel", MenuTheme.panel(MenuTheme.INK, MenuTheme.BORDER))
 	add_child(_recovery)
-	_recovery_copy = _rich(24)
+	_recovery_copy = _rich(MenuTheme.BODY)
 	_recovery.add_child(_recovery_copy)
 	_refresh()
 
@@ -270,7 +270,7 @@ func _place_prompt() -> void:
 
 func _show_recovery(template: String) -> void:
 	_recovery_template = template
-	recovery_text = InputGlyphs.render(_recovery_copy, template, 44, true) if not template.is_empty() else ""
+	recovery_text = InputGlyphs.render(_recovery_copy, template, MenuTheme.LARGE, true) if not template.is_empty() else ""
 	if template.is_empty():
 		_recovery_copy.clear()
 
@@ -385,11 +385,11 @@ func _process(delta: float) -> void:
 	if not visible:
 		return
 	var viewport: Vector2 = get_viewport_rect().size
-	var width: float = minf(408.0, viewport.x - 48.0)
+	var width: float = minf(540.0, viewport.x - 48.0)
 	_card.position = Vector2(viewport.x - width - 24.0, 70.0)
 	_card.size = Vector2(width, 0.0)
 	_copy.custom_minimum_size.x = width - 32.0
-	_run_badge.position = Vector2(viewport.x - width - 24.0, 45.0)
+	_run_badge.position = Vector2(viewport.x - width - 24.0, 32.0)
 	_run_badge.size = Vector2(width, 0.0)
 	# Departure copy and translated objectives can wrap beyond two lines.
 	# Field status belongs below the actual card rather than through its text.

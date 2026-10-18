@@ -10,6 +10,14 @@ Arrival continues directly from M17's Forever Office conclusion, carrying the sa
 
 This is a connected development mission, not an acceptance of final exterior kit art, fresh-player pacing, or finished Episode V. Existing enemy AI timings remain unchanged.
 
+Source audit, 2026-10-18: the authored `collector_escort` group currently uses
+a Heavy Sweeper, Assessor and Auditor. Clearing that group triggers the
+prepared rubble world; it does not implement a Collector restoration unit.
+The [Wipe plan](wipe-survival.md)'s Collector behavior, continuous pressure
+director and active survival clock remain unbuilt. Those contracts, the
+takeover staging and fresh-player acceptance must be completed before treating
+this development mission as the finished Episode V opening.
+
 ## Inspected starting point
 
 The level 18 brief establishes:

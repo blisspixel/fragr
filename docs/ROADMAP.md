@@ -60,8 +60,8 @@ The October 15
 [Walker foundation](plans/walker-foundation-20261015.md) shipped in v0.84.0;
 the [connected M14 integration](plans/m14-launch-authority-integration-20261015.md)
 adds staged support, optional jeep combat, actual fallen geometry and version 18
-carry, merged through PR #404. The v0.85.0 packages remain a draft at this round's entry;
-v0.84.0 is the latest published release.
+carry, merged through PR #404. The v0.85.0 packages remain a historical draft;
+v0.86.0 is the latest published release.
 The [connected M15 stadium](plans/m15-connected-stadium-20261015.md) connects
 Civic Pressure Valve, armed entrants, Article Blade plinth, booth takeover,
 the Episode IV refill to 3 continues, and version 19 carry.
@@ -70,9 +70,9 @@ Freedom of Movement, motorcycle traversal, the green wave sequence, the prison
 bus rescue, the forecourt assault, Forever Office chamber doors, and version 20 carry.
 The [M17 office](plans/m17-connected-office-20261017.md) and
 [M18 transit](plans/m18-connected-transit-20261017.md) implementations extend
-that chain through All Systems Normal and version 22 saves. M15-M18 are under
-[convergence review](plans/development-convergence-20261017.md), not completed
-mission acceptance. M19 Planned Works and M20 Local Exception remain unbuilt
+that chain through All Systems Normal and version 22 saves. M15-M18 shipped in
+[the convergence release](plans/development-convergence-20261017.md), with
+mission acceptance still open. M19 Planned Works and M20 Local Exception remain unbuilt
 as connected missions. The development maps are described in
 the full build order below. Fresh-player, difficulty
 and final art acceptance remain open for every level. The full build order
@@ -426,10 +426,10 @@ pacing, prison bus rescue, forecourt assault and version 20 saves. The [connecte
 implements Peace Without Interruption Forever Office breach, public hall clearance, Registrar Kessel custody,
 security core override, dome assault, Chancellor Voss capture alive, and version 21 saves. The [connected M18 transit](plans/m18-connected-transit-20261017.md)
 implements All Systems Normal Recovery Square relief depot check-in, bot diagnostic rupture defense, Collector clinic roadblock breach, maintenance flank stair ascent, Upper Overlook planetary wipe survey, Evacuation Concourse defense, Episode V continue refill to 3, and version 22 saves.
-The immediate rung is [development convergence](plans/development-convergence-20261017.md):
-repair and validate the inherited M15-M18 implementation, resolve admission and
-match-description issues #407-#408, then pad controls and readable narration
-#409-#410, and return to one reviewed main with passing CI and an updated release.
+[Development convergence](plans/development-convergence-20261017.md) shipped
+through PR #419 and v0.86.0, with passing main CI and three verified desktop
+packages. Issues #407-#410 are closed. The immediate rung is the
+[UI palette and type round](plans/ui-palette-type-20261017.md), #411.
 The interface work #411-#418 follows its existing dependencies: palette and type,
 status bar, event tiers, accessibility, terminal polish, signature moments and
 the README front door. Preserve their rendered and human acceptance gates.
@@ -516,7 +516,7 @@ the first finite Rocket Launcher and connects relay, hazard, voluntary worker
 choices, guarded gallery and physical lift departure to version 17 saves.
 The [foundry round](plans/m13-connected-round-20261013.md) records verification
 and integration status. Ordinary campaign supply and visual pursuit scale by
-Assisted, Standard, and Severe. Connected M15 through M18 are under convergence review. Connected M19, M20 and the conditional epilogue remain unbuilt. Their retained development grayboxes are not connected missions. The epilogue
+Assisted, Standard, and Severe. Connected M15 through M18 shipped as development missions in v0.86.0, with human acceptance still open. Connected M19, M20 and the conditional epilogue remain unbuilt. Their retained development grayboxes are not connected missions. The epilogue
 remains a plan. The optional M12 secret stays separate because it changes
 canonical map bytes.
 

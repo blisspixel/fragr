@@ -58,6 +58,7 @@ func _run() -> void:
 	for invalid: Variant in [{}, {"unknown": 76}, {"bullets": -1}, {"bullets": 201}, {"bullets": 76.5}, {"bullets": "76"}, [76]]:
 		_check(not TOUR._pool_rounds_match(carried, invalid), "malformed ammunition pool expectations fail closed")
 	await _check_aim_pitch()
+	await _check_round_capture_prerequisite()
 	_check_engagement_distance()
 	_check_focused_route()
 	_check_m06_gallery_contact()
@@ -539,6 +540,37 @@ func _check_aim_pitch() -> void:
 	camera.free()
 	network.free()
 	manager.free()
+
+func _check_round_capture_prerequisite() -> void:
+	var tour: PitchTour = PitchTour.new()
+	var manager: PitchManager = PitchManager.new()
+	var network: PitchNetwork = PitchNetwork.new()
+	manager.net_client = network
+	tour.manager = manager
+	var pawn: Dictionary = {"id": network.player_id, "hp": 100, "pitch": 0.0}
+	manager.latest_snapshot = {"round_state": "Ended", "players": [pawn]}
+	var completion: Array[bool] = []
+	_finish_round_wait(tour, completion)
+	for phase: String in ["Ended", "Warmup", "unknown"]:
+		manager.latest_snapshot["round_state"] = phase
+		tour.process_frame.emit()
+		await process_frame
+		_check(completion.is_empty(), "living results/warmup/unknown pawn cannot start an action capture")
+	manager.latest_snapshot["round_state"] = "Active"
+	pawn["hp"] = 0
+	tour.process_frame.emit()
+	await process_frame
+	_check(completion.is_empty(), "active round still waits for a living local pawn")
+	pawn["hp"] = 100
+	tour.process_frame.emit()
+	await process_frame
+	_check(completion == [true] and not tour._failed, "capture resumes only on the accepted living Active pawn")
+	tour.free()
+	network.free()
+	manager.free()
+
+func _finish_round_wait(tour: PitchTour, completion: Array[bool]) -> void:
+	completion.append(await tour._wait_live_joined_fighter("round transition regression"))
 
 func _relay_pitch_frame(tour: PitchTour) -> void:
 	tour.process_frame.emit()

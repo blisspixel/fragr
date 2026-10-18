@@ -12,7 +12,7 @@ const MAX_PIPS: int = 8
 const TIMER_SIZE := Vector2(132, 8)
 const PROGRESS_SIZE := Vector2(240, 12)
 const ICON_SCALE: float = 3.0
-const DARK := Color(0.04, 0.04, 0.05, 0.85)
+const DARK: Color = MenuTheme.INK
 const URGENT_TICKS: int = 200
 
 var _union_pips: Array[ColorRect] = []
@@ -35,8 +35,8 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for i: int in range(MAX_PIPS):
-		_union_pips.append(_pip(MatchRules.UNION_LABEL))
-		_coalition_pips.append(_pip(MatchRules.COALITION_LABEL))
+		_union_pips.append(_pip(MenuTheme.team_color("union")))
+		_coalition_pips.append(_pip(MenuTheme.team_color("coalition")))
 	_timer_icon = TextureRect.new()
 	_timer_icon.texture = SabotageArt.charge()
 	_timer_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -45,9 +45,9 @@ func _ready() -> void:
 	_timer_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_timer_icon)
 	_timer_back = _bar(DARK)
-	_timer_fill = _bar(SabotageArt.LIT)
+	_timer_fill = _bar(MenuTheme.EMBER)
 	_progress_back = _bar(DARK)
-	_progress_fill = _bar(SabotageArt.EMBER)
+	_progress_fill = _bar(MenuTheme.EMBER)
 	_carried = TextureRect.new()
 	_carried.texture = SabotageArt.charge()
 	_carried.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -136,7 +136,7 @@ func apply(state: Dictionary, charge_ticks: int, progress_owner: bool, carried: 
 	progress_shown = progress
 	if progress >= 0.0:
 		var kind: String = str((state.get("progress", {}) as Dictionary).get("kind", "plant"))
-		_progress_fill.color = SabotageArt.EMBER if kind == "plant" else SabotageArt.BONE
+		_progress_fill.color = MenuTheme.EMBER if kind == "plant" else MenuTheme.BONE
 		_progress_fill.size = Vector2((PROGRESS_SIZE.x - 4.0) * progress, PROGRESS_SIZE.y - 4.0)
 	carrying = carried
 	_carried.visible = carried
@@ -152,5 +152,5 @@ func _process(_delta: float) -> void:
 		return
 	# The last ten seconds flash, in time with the faster beeps.
 	var on: bool = not _urgent or fmod(Time.get_ticks_msec() / 250.0, 2.0) < 1.0
-	_timer_fill.color = SabotageArt.LIT if on else SabotageArt.BONE
-	_timer_icon.modulate = Color.WHITE if on else Color(1.0, 0.5, 0.45)
+	_timer_fill.color = MenuTheme.DANGER if on else MenuTheme.BONE
+	_timer_icon.modulate = MenuTheme.UNTINTED if on else MenuTheme.DANGER
