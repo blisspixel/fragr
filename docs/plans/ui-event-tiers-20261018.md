@@ -456,6 +456,14 @@ both audio and shot-effect checks verify venue/session retirement and pass.
 The checker correctly rejected their runtime errors despite otherwise completed
 suites. All twelve checker fault scenarios pass. No production check was weakened.
 
+The final local run passes all 598 checks, including 191 harnesses. The first
+PR Linux run then rejects one host-font assumption in the new geometry test:
+its Unicode fallback rows fit the baseline height, while this machine's font
+requires taller rows. Production geometry remains correct in both cases. The
+regression now checks natural Unicode bounds and then explicitly requests
+64-unit minimum rows, proving measured expansion and voice clearance on every
+platform. It does not require an operating system's particular fallback font.
+
 | Local CPU correctness benchmark | Result |
 |---|---|
 | Arena Duel, seed 42, 16 bots, 1,200 ticks | Determinism and budget assertions pass |

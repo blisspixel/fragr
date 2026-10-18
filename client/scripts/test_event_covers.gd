@@ -247,7 +247,16 @@ func _measured_geometry() -> void:
 	await _settle()
 	for row: Control in hud.frag_feed._rows.values():
 		_check(row.get_global_rect().end.y + 12 <= hud.combat_feed.get_global_rect().position.y, "measured Unicode row clears voice reservation")
-	_check(hud.frag_feed.reserved_height > 216, "fallback glyph height participates in measured lane reservation")
+	# System fallback fonts differ across desktop platforms. Exercise the
+	# natural Unicode metrics above, then require deterministic taller rows
+	# to prove reflow independently of the host's installed fallback font.
+	for row: Control in hud.frag_feed._rows.values():
+		row.custom_minimum_size.y = 64
+	hud.frag_feed._process(0)
+	await _settle()
+	_check(hud.frag_feed.reserved_height == 336, "five measured taller rows expand the lane by their actual minimum heights")
+	for row: Control in hud.frag_feed._rows.values():
+		_check(row.get_global_rect().end.y + 12 <= hud.combat_feed.get_global_rect().position.y, "taller platform/style rows retain the full gap before voice")
 	for text: String in ["TOWN SOCKET 02 IS DEFUSING", "TOWN SOCKET 02 HAS THE CHARGE"]:
 		hud.objective_call.clear()
 		hud.objective_call.push(text)
