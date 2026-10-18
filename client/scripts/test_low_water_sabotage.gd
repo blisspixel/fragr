@@ -56,7 +56,7 @@ func _run() -> void:
 	_check(LocalHost.valid_settings(requested) and LocalHost.arguments_for(requested).has("--sabotage-five-v-five"), "town host uses the same bounded finite ten-seat profile")
 	var invalid: Dictionary = requested.duplicate()
 	invalid["mode"] = "tdm"
-	_check(not LocalHost.valid_settings(invalid), "unadvertised town desktop modes stay refused")
+	_check(LocalHost.valid_settings(invalid), "town TDM is available through the shared host profile")
 	invalid = requested.duplicate()
 	invalid["bots"] = 11
 	_check(not LocalHost.valid_settings(invalid), "town cannot expand the ten-fighter host bound")

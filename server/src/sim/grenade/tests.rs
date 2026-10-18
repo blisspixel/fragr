@@ -547,3 +547,37 @@ fn grenade_staggers_heavy_once_without_changing_difficulty_tells() {
         );
     }
 }
+
+#[test]
+fn grenade_self_damage_remains_full_without_rocket_impulse() {
+    let (mut state, _owner, _target) = combat();
+    state.players[0].hp = 100;
+    state.players[1].hp = 100;
+    state.players[0].vy = 0.0;
+    state.players[1].vy = 0.0;
+
+    // Blast directly at owner's feet
+    let feet = [state.players[0].x, 0.0, state.players[0].z];
+    state.resolve_explosion(&grenade(feet, [0.0; 3]), &arena(vec![]));
+
+    // Rocket mobility does not discount a grenade detonated at the owner's feet.
+    assert_eq!(state.players[0].hp, 0);
+    assert_eq!(state.players[0].vy, 0.0);
+
+    // Target at x = 8.0 was beyond blast radius (4.5m), so target is untouched
+    assert_eq!(state.players[1].hp, 100);
+
+    // Now detonate near target (1.0m away from target's feet)
+    let near_target = [state.players[1].x + 1.0, 0.0, state.players[1].z];
+    state.resolve_explosion(&grenade(near_target, [0.0; 3]), &arena(vec![]));
+
+    // Target takes undiscounted damage without rocket jump self-impulse
+    assert!(
+        state.players[1].hp < 50,
+        "target takes undiscounted blast damage"
+    );
+    assert_eq!(
+        state.players[1].vy, 0.0,
+        "other target does not receive self rocket jump impulse"
+    );
+}

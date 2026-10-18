@@ -43,6 +43,8 @@ var _motion: Tween
 ## Seconds left before a narrated shot advances itself; negative when idle.
 var _auto_advance: float = -1.0
 var _voiced: bool = false
+## Once a shot loses audible narration, only its reader may advance it.
+var _reader_paced: bool = false
 var _still_path: String = ""
 
 func _init(manifest: Dictionary = {}) -> void:
@@ -230,7 +232,8 @@ func _enter_shot() -> void:
 	_layout(texture != null)
 	_narration.stop()
 	_narration.stream = _stream(StoryScene.narration_path(current))
-	_voiced = _narration.stream != null
+	_reader_paced = _narration.stream == null or not _voice_audible()
+	_voiced = not _reader_paced
 	if _voiced:
 		_narration.play()
 	if not same_still:
@@ -357,7 +360,10 @@ func toggle_captions() -> void:
 ## Narration timing advances once the clip ends, after a short hold. The last
 ## shot never finishes on its own: leaving the scene is always the reader's call.
 func _on_narration_finished() -> void:
-	if finished:
+	if finished or _reader_paced:
+		return
+	if not _voice_audible():
+		_use_text_fallback()
 		return
 	_voiced = false
 	_refresh()
@@ -366,11 +372,30 @@ func _on_narration_finished() -> void:
 	_auto_advance = float(shot().get("hold", DEFAULT_HOLD))
 
 func _process(delta: float) -> void:
+	if not finished and not _reader_paced and _narration != null and not _voice_audible():
+		_use_text_fallback()
 	if _auto_advance < 0.0 or finished:
 		return
 	_auto_advance -= delta
 	if _auto_advance < 0.0:
 		advance()
+
+static func _voice_audible() -> bool:
+	var index: int = AudioServer.get_bus_index(VOICE_BUS)
+	for step: int in AudioServer.bus_count:
+		if index < 0 or AudioServer.is_bus_mute(index) or AudioServer.get_bus_volume_linear(index) <= 0.0:
+			return false
+		if index == 0:
+			return true
+		index = AudioServer.get_bus_index(AudioServer.get_bus_send(index))
+	return false
+
+func _use_text_fallback() -> void:
+	_reader_paced = true
+	_voiced = false
+	_auto_advance = -1.0
+	_narration.stop()
+	_refresh()
 
 func _on_still_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:

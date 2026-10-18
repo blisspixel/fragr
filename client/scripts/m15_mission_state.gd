@@ -23,14 +23,14 @@ static func map_error(info: Dictionary) -> String:
 	var half: float = float(info["half_extent"])
 	var decorations: Array = info["presentation"]["decorations"]
 	# Objective 0: pen_armed (use arming crate)
-	if not M04MissionState._control(g["objectives"][0], decorations, half, ["terminal", "lift_control"]):
+	if not M16MissionState._use(g["objectives"][0], OBJECTIVES[0], g["arming_crate"], decorations, half, ["terminal", "lift_control"]):
 		return MissionState.INVALID
 	# Objective 1..3, 5: Arrival
 	for idx: int in [1, 2, 3, 5]:
 		if not M06MissionState._arrival(g["objectives"][idx], OBJECTIVES[idx], half):
 			return MissionState.INVALID
 	# Objective 4: broadcast_secured (use booth terminal)
-	if not M04MissionState._control(g["objectives"][4], decorations, half, ["terminal", "lift_control"]):
+	if not M16MissionState._use(g["objectives"][4], OBJECTIVES[4], g["booth_terminal"], decorations, half, ["terminal", "lift_control"]):
 		return MissionState.INVALID
 	if not M03MissionState._region(g["boarding"], half) \
 		or not M04MissionState._control(g["departure"], decorations, half, ["terminal", "lift_control"]) \
@@ -129,6 +129,8 @@ static func validation_error(message: Dictionary, geometry: Dictionary, previous
 		return MissionState.INVALID
 	var g: Dictionary = geometry["m15"]
 	var p: Dictionary = value["m15"]
+	if p["tunnel_closed"] != g["tunnel_closed"] or p["gates_open"] != g["gates_open"]:
+		return MissionState.INVALID
 	var n: int = p["completed"].size()
 	if n < 7:
 		var expected: Dictionary = g["objectives"][n] if n < 6 else {"id": "party_departed", "action": {"kind": "use", "target": g["departure"]}}

@@ -305,6 +305,9 @@ impl GameState {
             m12: None,
             m13: None,
             m14: None,
+            m16: None,
+            m17: None,
+            m18: None,
             m15: Some(M15ObjectiveState {
                 completed,
                 current,
@@ -440,7 +443,19 @@ impl GameState {
             }
         } else if index == 2 {
             let blade_wave_clear = self.encounters.is_complete(1);
-            if blade_wave_clear {
+            // Completion cannot outrun the collision transition. A party member
+            // still in the pen or gate keeps this objective pending until the
+            // entire party can enter without being trapped or intersected.
+            if blade_wave_clear
+                && self
+                    .mission
+                    .as_ref()
+                    .unwrap()
+                    .m15
+                    .as_ref()
+                    .unwrap()
+                    .tunnel_closed
+            {
                 let p = self.mission.as_mut().unwrap().m15.as_mut().unwrap();
                 p.challenges.blade_wave_won = !p.blade_disqualified && p.blade_hits > 0;
                 p.index = 3;

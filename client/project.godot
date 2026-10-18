@@ -85,7 +85,7 @@ jump={
 }
 duck={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":4194326,"location":1)]
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":4194326,"location":1), Object(InputEventJoypadButton,"device":-1,"button_index":13)]
 }
 turn_left={
 "deadzone": 0.5,
@@ -113,7 +113,7 @@ fire={
 }
 reload={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":82)]
+"events": [Object(InputEventKey,"device":-1,"physical_keycode":82), Object(InputEventJoypadButton,"device":-1,"button_index":12)]
 }
 interact={
 "deadzone": 0.5,

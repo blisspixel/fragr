@@ -60,6 +60,9 @@ impl RunDocumentBeforeFoundry {
             m13_outcome: None,
             m14_outcome: None,
             m15_outcome: None,
+            m16_outcome: None,
+            m17_outcome: None,
+            m18_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 12 {
             return Err("M13 was not supported before version 17");

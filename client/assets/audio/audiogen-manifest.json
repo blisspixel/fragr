@@ -468,6 +468,18 @@
       "bytes": 46124,
       "generated_unix": 1789756103
     },
+    "hit_confirm": {
+      "kind": "sfx",
+      "file": "hit_confirm.wav",
+      "prompt": "Crisp subtle metallic hit confirmation chime, short 0.3 second tactile shooter hit marker audio click",
+      "model": "eleven_text_to_sound_v2",
+      "format": "pcm_24000",
+      "seconds": 0.5,
+      "looping": false,
+      "channels": 2,
+      "bytes": 46124,
+      "generated_unix": 1792250648
+    },
     "hit_flechette": {
       "kind": "sfx",
       "file": "hit_flechette.wav",

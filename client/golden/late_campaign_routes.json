@@ -1,0 +1,2134 @@
+[
+  {
+    "map_index": 0,
+    "state": {
+      "attempt": 1,
+      "changed_at": 0,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": false,
+          "ride_started": false
+        },
+        "checkpoint_lifted": false,
+        "completed": [],
+        "current": {
+          "action": {
+            "feet": [
+              -30.0,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -24.0,
+                3.0,
+                4.0
+              ],
+              "min": [
+                -36.0,
+                0.0,
+                -4.0
+              ]
+            }
+          },
+          "id": "ride_started"
+        },
+        "doors_open": false,
+        "forecourt_secured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 0
+  },
+  {
+    "map_index": 0,
+    "state": {
+      "attempt": 1,
+      "changed_at": 38,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": false,
+          "ride_started": true
+        },
+        "checkpoint_lifted": false,
+        "completed": [
+          "ride_started"
+        ],
+        "current": {
+          "action": {
+            "feet": [
+              -12.0,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -5.0,
+                3.0,
+                4.0
+              ],
+              "min": [
+                -15.0,
+                0.0,
+                -4.0
+              ]
+            }
+          },
+          "id": "barricade_broken"
+        },
+        "doors_open": false,
+        "forecourt_secured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 38
+  },
+  {
+    "map_index": 0,
+    "state": {
+      "attempt": 1,
+      "changed_at": 152,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": false,
+          "ride_started": true
+        },
+        "checkpoint_lifted": false,
+        "completed": [
+          "ride_started",
+          "barricade_broken"
+        ],
+        "current": {
+          "action": {
+            "feet": [
+              7.0,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                15.0,
+                3.0,
+                4.0
+              ],
+              "min": [
+                5.0,
+                0.0,
+                -4.0
+              ]
+            }
+          },
+          "id": "green_wave_triggered"
+        },
+        "doors_open": false,
+        "forecourt_secured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 152
+  },
+  {
+    "map_index": 1,
+    "state": {
+      "attempt": 1,
+      "changed_at": 308,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": true,
+          "ride_started": true
+        },
+        "checkpoint_lifted": true,
+        "completed": [
+          "ride_started",
+          "barricade_broken",
+          "green_wave_triggered"
+        ],
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                6.5,
+                0.0,
+                -11.5
+              ],
+              "decoration": 2
+            }
+          },
+          "id": "bus_freed"
+        },
+        "doors_open": false,
+        "forecourt_secured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 308
+  },
+  {
+    "map_index": 1,
+    "state": {
+      "attempt": 1,
+      "changed_at": 676,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": true,
+          "ride_started": true
+        },
+        "checkpoint_lifted": true,
+        "completed": [
+          "ride_started",
+          "barricade_broken",
+          "green_wave_triggered",
+          "bus_freed"
+        ],
+        "current": {
+          "action": {
+            "feet": [
+              26.5,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                35.0,
+                4.0,
+                14.0
+              ],
+              "min": [
+                20.0,
+                0.0,
+                -14.0
+              ]
+            }
+          },
+          "id": "forecourt_secured"
+        },
+        "doors_open": false,
+        "forecourt_secured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 676
+  },
+  {
+    "map_index": 1,
+    "state": {
+      "attempt": 1,
+      "changed_at": 677,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": true,
+          "ride_started": true
+        },
+        "checkpoint_lifted": true,
+        "completed": [
+          "ride_started",
+          "barricade_broken",
+          "green_wave_triggered",
+          "bus_freed",
+          "forecourt_secured"
+        ],
+        "current": {
+          "action": {
+            "feet": [
+              37.0,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                39.0,
+                4.0,
+                4.0
+              ],
+              "min": [
+                35.0,
+                0.0,
+                -4.0
+              ]
+            }
+          },
+          "id": "doors_reached"
+        },
+        "doors_open": false,
+        "forecourt_secured": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 677
+  },
+  {
+    "map_index": 2,
+    "state": {
+      "attempt": 1,
+      "changed_at": 759,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": true,
+          "ride_started": true
+        },
+        "checkpoint_lifted": true,
+        "completed": [
+          "ride_started",
+          "barricade_broken",
+          "green_wave_triggered",
+          "bus_freed",
+          "forecourt_secured",
+          "doors_reached"
+        ],
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                37.5,
+                0.0,
+                0.0
+              ],
+              "decoration": 1
+            }
+          },
+          "id": "party_departed"
+        },
+        "doors_open": true,
+        "forecourt_secured": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 759
+  },
+  {
+    "map_index": 2,
+    "state": {
+      "attempt": 1,
+      "changed_at": 759,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": true,
+          "ride_started": true
+        },
+        "checkpoint_lifted": true,
+        "completed": [
+          "ride_started",
+          "barricade_broken",
+          "green_wave_triggered",
+          "bus_freed",
+          "forecourt_secured",
+          "doors_reached"
+        ],
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                37.5,
+                0.0,
+                0.0
+              ],
+              "decoration": 1
+            }
+          },
+          "id": "party_departed"
+        },
+        "doors_open": true,
+        "forecourt_secured": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 783
+  },
+  {
+    "map_index": 2,
+    "state": {
+      "attempt": 1,
+      "changed_at": 784,
+      "id": "freedom_of_movement",
+      "m16": {
+        "bus_freed": false,
+        "challenges": {
+          "bus_freed": false,
+          "green_wave_triggered": true,
+          "ride_started": true
+        },
+        "checkpoint_lifted": true,
+        "completed": [
+          "ride_started",
+          "barricade_broken",
+          "green_wave_triggered",
+          "bus_freed",
+          "forecourt_secured",
+          "doors_reached",
+          "party_departed"
+        ],
+        "doors_open": true,
+        "forecourt_secured": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "departed",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 784
+  },
+  {
+    "map_index": 3,
+    "state": {
+      "attempt": 1,
+      "changed_at": 0,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": false,
+          "core_defeated": false,
+          "kessel_secured": false,
+          "voss_captured": false
+        },
+        "completed": [],
+        "core_unsealed": false,
+        "current": {
+          "action": {
+            "feet": [
+              0.0,
+              0.0,
+              -17.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                6.0,
+                4.0,
+                -14.0
+              ],
+              "min": [
+                -6.0,
+                0.0,
+                -22.0
+              ]
+            }
+          },
+          "id": "approach_breached"
+        },
+        "kessel_secured": false,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 0
+  },
+  {
+    "map_index": 3,
+    "state": {
+      "attempt": 1,
+      "changed_at": 104,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": false,
+          "kessel_secured": false,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached"
+        ],
+        "core_unsealed": false,
+        "current": {
+          "action": {
+            "feet": [
+              0.0,
+              0.0,
+              -10.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                16.0,
+                4.0,
+                -2.0
+              ],
+              "min": [
+                -16.0,
+                0.0,
+                -18.0
+              ]
+            }
+          },
+          "id": "hall_secured"
+        },
+        "kessel_secured": false,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 104
+  },
+  {
+    "map_index": 3,
+    "state": {
+      "attempt": 1,
+      "changed_at": 219,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": false,
+          "kessel_secured": false,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured"
+        ],
+        "core_unsealed": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                -26.0,
+                0.0,
+                -9.5
+              ],
+              "decoration": 4
+            }
+          },
+          "id": "kessel_secured"
+        },
+        "kessel_secured": false,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 219
+  },
+  {
+    "map_index": 3,
+    "state": {
+      "attempt": 1,
+      "changed_at": 219,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": false,
+          "kessel_secured": false,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured"
+        ],
+        "core_unsealed": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                -26.0,
+                0.0,
+                -9.5
+              ],
+              "decoration": 4
+            }
+          },
+          "id": "kessel_secured"
+        },
+        "kessel_secured": false,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 585
+  },
+  {
+    "map_index": 3,
+    "state": {
+      "attempt": 1,
+      "changed_at": 586,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": false,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured"
+        ],
+        "core_unsealed": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                -24.0,
+                0.0,
+                18.5
+              ],
+              "decoration": 5
+            }
+          },
+          "id": "core_unsealed"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 586
+  },
+  {
+    "map_index": 3,
+    "state": {
+      "attempt": 1,
+      "changed_at": 586,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": false,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured"
+        ],
+        "core_unsealed": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                -24.0,
+                0.0,
+                18.5
+              ],
+              "decoration": 5
+            }
+          },
+          "id": "core_unsealed"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 784
+  },
+  {
+    "map_index": 4,
+    "state": {
+      "attempt": 1,
+      "changed_at": 785,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": false,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": false,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "feet": [
+              0.0,
+              0.0,
+              26.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                12.0,
+                4.0,
+                32.0
+              ],
+              "min": [
+                -12.0,
+                0.0,
+                20.0
+              ]
+            }
+          },
+          "id": "core_defeated"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 785
+  },
+  {
+    "map_index": 4,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1278,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                0.0,
+                0.0,
+                28.5
+              ],
+              "decoration": 3
+            }
+          },
+          "id": "voss_captured"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1278
+  },
+  {
+    "map_index": 4,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1278,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                0.0,
+                0.0,
+                28.5
+              ],
+              "decoration": 3
+            }
+          },
+          "id": "voss_captured"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1470
+  },
+  {
+    "map_index": 4,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1278,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                0.0,
+                0.0,
+                28.5
+              ],
+              "decoration": 3
+            }
+          },
+          "id": "voss_captured"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1471
+  },
+  {
+    "map_index": 4,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1278,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": false
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                0.0,
+                0.0,
+                28.5
+              ],
+              "decoration": 3
+            }
+          },
+          "id": "voss_captured"
+        },
+        "kessel_secured": true,
+        "voss_captured": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1474
+  },
+  {
+    "map_index": 5,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1475,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": true
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated",
+          "voss_captured"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                28.5,
+                0.0,
+                38.0
+              ],
+              "decoration": 6
+            }
+          },
+          "id": "party_departed"
+        },
+        "kessel_secured": true,
+        "voss_captured": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1475
+  },
+  {
+    "map_index": 5,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1475,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": true
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated",
+          "voss_captured"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                28.5,
+                0.0,
+                38.0
+              ],
+              "decoration": 6
+            }
+          },
+          "id": "party_departed"
+        },
+        "kessel_secured": true,
+        "voss_captured": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1613
+  },
+  {
+    "map_index": 5,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1475,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": true
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated",
+          "voss_captured"
+        ],
+        "core_unsealed": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                28.5,
+                0.0,
+                38.0
+              ],
+              "decoration": 6
+            }
+          },
+          "id": "party_departed"
+        },
+        "kessel_secured": true,
+        "voss_captured": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1628
+  },
+  {
+    "map_index": 5,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1629,
+      "id": "peace_without_interruption",
+      "m17": {
+        "brief_completed": true,
+        "challenges": {
+          "approach_breached": true,
+          "core_defeated": true,
+          "kessel_secured": true,
+          "voss_captured": true
+        },
+        "completed": [
+          "approach_breached",
+          "hall_secured",
+          "kessel_secured",
+          "core_unsealed",
+          "core_defeated",
+          "voss_captured",
+          "party_departed"
+        ],
+        "core_unsealed": true,
+        "kessel_secured": true,
+        "voss_captured": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "departed",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1629
+  },
+  {
+    "map_index": 6,
+    "state": {
+      "attempt": 1,
+      "changed_at": 0,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": false,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": false,
+          "collector_neutralized": false,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": false
+        },
+        "completed": [],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                -36.0,
+                0.0,
+                0.0
+              ],
+              "decoration": 0
+            }
+          },
+          "id": "aid_checkin"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 0
+  },
+  {
+    "map_index": 6,
+    "state": {
+      "attempt": 1,
+      "changed_at": 0,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": false,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": false,
+          "collector_neutralized": false,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": false
+        },
+        "completed": [],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                -36.0,
+                0.0,
+                0.0
+              ],
+              "decoration": 0
+            }
+          },
+          "id": "aid_checkin"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1034
+  },
+  {
+    "map_index": 6,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1035,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": false,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": false
+        },
+        "completed": [
+          "aid_checkin"
+        ],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "feet": [
+              -35.0,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                -25.0,
+                4.0,
+                20.0
+              ],
+              "min": [
+                -50.0,
+                0.0,
+                -20.0
+              ]
+            }
+          },
+          "id": "square_defense"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1035
+  },
+  {
+    "map_index": 6,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1036,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": false,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense"
+        ],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "feet": [
+              -14.0,
+              0.0,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                4.0,
+                4.0,
+                10.0
+              ],
+              "min": [
+                -18.0,
+                0.0,
+                -10.0
+              ]
+            }
+          },
+          "id": "collector_breach"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": false
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1036
+  },
+  {
+    "map_index": 7,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1212,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach"
+        ],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "feet": [
+              18.0,
+              3.0,
+              20.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                26.0,
+                6.0,
+                28.0
+              ],
+              "min": [
+                10.0,
+                0.0,
+                12.0
+              ]
+            }
+          },
+          "id": "service_ascent"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1212
+  },
+  {
+    "map_index": 7,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1489,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent"
+        ],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                34.0,
+                6.0,
+                -3.0
+              ],
+              "decoration": 4
+            }
+          },
+          "id": "overlook_recon"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1489
+  },
+  {
+    "map_index": 7,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1489,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": false,
+          "overlook_witnessed": false,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent"
+        ],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                34.0,
+                6.0,
+                -3.0
+              ],
+              "decoration": 4
+            }
+          },
+          "id": "overlook_recon"
+        },
+        "overlook_witnessed": false,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1913
+  },
+  {
+    "map_index": 7,
+    "state": {
+      "attempt": 1,
+      "changed_at": 1914,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": false,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": false,
+          "overlook_witnessed": true,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent",
+          "overlook_recon"
+        ],
+        "concourse_secured": false,
+        "current": {
+          "action": {
+            "feet": [
+              53.0,
+              4.5,
+              0.0
+            ],
+            "kind": "arrival",
+            "region": {
+              "max": [
+                64.0,
+                8.0,
+                12.0
+              ],
+              "min": [
+                50.0,
+                4.5,
+                -12.0
+              ]
+            }
+          },
+          "id": "concourse_evac"
+        },
+        "overlook_witnessed": true,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 1914
+  },
+  {
+    "map_index": 8,
+    "state": {
+      "attempt": 1,
+      "changed_at": 2081,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": true,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": true,
+          "overlook_witnessed": true,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent",
+          "overlook_recon",
+          "concourse_evac"
+        ],
+        "concourse_secured": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                62.5,
+                4.5,
+                0.0
+              ],
+              "decoration": 5
+            }
+          },
+          "id": "party_departed"
+        },
+        "overlook_witnessed": true,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": false,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 2081
+  },
+  {
+    "map_index": 8,
+    "state": {
+      "attempt": 1,
+      "changed_at": 2081,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": true,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": true,
+          "overlook_witnessed": true,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent",
+          "overlook_recon",
+          "concourse_evac"
+        ],
+        "concourse_secured": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                62.5,
+                4.5,
+                0.0
+              ],
+              "decoration": 5
+            }
+          },
+          "id": "party_departed"
+        },
+        "overlook_witnessed": true,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 2167
+  },
+  {
+    "map_index": 8,
+    "state": {
+      "attempt": 1,
+      "changed_at": 2081,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": true,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": true,
+          "overlook_witnessed": true,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent",
+          "overlook_recon",
+          "concourse_evac"
+        ],
+        "concourse_secured": true,
+        "current": {
+          "action": {
+            "kind": "use",
+            "target": {
+              "approach": [
+                62.5,
+                4.5,
+                0.0
+              ],
+              "decoration": 5
+            }
+          },
+          "id": "party_departed"
+        },
+        "overlook_witnessed": true,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "in_progress",
+      "prompts": [
+        {
+          "kind": "objective_use",
+          "player_id": "00000000-0000-0000-0000-0000000277b6"
+        }
+      ],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 2182
+  },
+  {
+    "map_index": 8,
+    "state": {
+      "attempt": 1,
+      "changed_at": 2183,
+      "id": "all_systems_normal",
+      "m18": {
+        "aid_delivered": true,
+        "brief_completed": true,
+        "challenges": {
+          "aid_delivered": true,
+          "collector_neutralized": true,
+          "concourse_secured": true,
+          "overlook_witnessed": true,
+          "square_defended": true
+        },
+        "completed": [
+          "aid_checkin",
+          "square_defense",
+          "collector_breach",
+          "service_ascent",
+          "overlook_recon",
+          "concourse_evac",
+          "party_departed"
+        ],
+        "concourse_secured": true,
+        "overlook_witnessed": true,
+        "roadblock_active": true
+      },
+      "party": [
+        {
+          "aboard": true,
+          "alive": true,
+          "id": "00000000-0000-0000-0000-0000000277b6",
+          "name": "Route",
+          "ready": true
+        }
+      ],
+      "phase": "departed",
+      "prompts": [],
+      "rules": {
+        "difficulty": "standard",
+        "revision": 4
+      }
+    },
+    "tick": 2183
+  }
+]

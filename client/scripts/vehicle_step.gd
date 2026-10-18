@@ -10,7 +10,7 @@ const REVERSE_SPEED: float = 6.0
 const OFFSETS: Array[float] = [-0.95, 0.0, 0.95]
 
 const MOTORCYCLE_HALF_WIDTH: float = 0.45
-const MOTORCYCLE_OFFSETS: Array[float] = [-0.55, 0.0, 0.55]
+const MOTORCYCLE_OFFSETS: Array[float] = [-0.65, 0.0, 0.65]
 const MOTORCYCLE_TOP_SPEED: float = 14.0
 const MOTORCYCLE_REVERSE_SPEED: float = 4.0
 

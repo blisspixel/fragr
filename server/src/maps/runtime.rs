@@ -29,6 +29,165 @@ impl PartialEq<MapKind> for RuntimeMap {
 }
 
 impl RuntimeMap {
+    pub(crate) fn m18_objectives(&self) -> Option<&super::authored::m18::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m18.as_deref(),
+        }
+    }
+    pub fn m18_geometry(&self) -> Option<crate::protocol::M18MapGeometry> {
+        let mut geometry = self.m18_objectives()?.geometry.clone();
+        let stage = self.m18_stage();
+        geometry.roadblock_active = stage >= 1;
+        geometry.concourse_evac_completed = stage >= 2;
+        Some(geometry)
+    }
+    /// 0 initial, 1 ruptured (maint gate open), 2 concourse evac secured (departure gate open).
+    pub fn m18_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m18.is_some() => map.m18_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m18_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m18.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.presentation = prepared.presentation.clone();
+        // Keep decoration indices stable because UseTarget addresses them.
+        // Recessed gate controls become horizontal floor plates when lowered.
+        for panel in &mut selected.presentation.decorations {
+            if stage >= 1 && panel.solid == prepared.maint_gate
+                || stage >= 2 && panel.solid == prepared.departure_gate
+            {
+                panel.face = crate::protocol::MapFace::Up;
+                panel.center = [0.0; 2];
+            }
+        }
+        match stage {
+            0 => {
+                selected.arena = prepared.initial.clone();
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.ruptured.clone();
+                selected.navigation = prepared.ruptured_navigation.clone();
+            }
+            2 => {
+                selected.arena = prepared.concluded.clone();
+                selected.navigation = prepared.concluded_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m18_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    pub(crate) fn m17_objectives(&self) -> Option<&super::authored::m17::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m17.as_deref(),
+        }
+    }
+    pub fn m17_geometry(&self) -> Option<crate::protocol::M17MapGeometry> {
+        let mut geometry = self.m17_objectives()?.geometry.clone();
+        let stage = self.m17_stage();
+        geometry.core_unsealed = stage >= 1;
+        geometry.voss_captured = stage >= 2;
+        Some(geometry)
+    }
+    /// 0 initial, 1 core unsealed, 2 voss captured (exit opened).
+    pub fn m17_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m17.is_some() => map.m17_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m17_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m17.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        match stage {
+            0 => {
+                selected.arena.solids[prepared.core_seal] = Solid {
+                    min_x: -3.0,
+                    bottom: 0.0,
+                    min_z: 18.0,
+                    max_x: 3.0,
+                    top: 4.5,
+                    max_z: 20.0,
+                };
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.unsealed.clone();
+                selected.navigation = prepared.unsealed_navigation.clone();
+            }
+            2 => {
+                selected.arena = prepared.concluded.clone();
+                selected.navigation = prepared.concluded_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m17_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
+    pub(crate) fn m16_objectives(&self) -> Option<&super::authored::m16::Prepared> {
+        match self {
+            Self::BuiltIn(_) => None,
+            Self::Authored(map) => map.m16.as_deref(),
+        }
+    }
+    pub fn m16_geometry(&self) -> Option<crate::protocol::M16MapGeometry> {
+        let mut geometry = self.m16_objectives()?.geometry.clone();
+        let stage = self.m16_stage();
+        geometry.checkpoint_lifted = stage >= 1;
+        geometry.doors_open = stage >= 2;
+        Some(geometry)
+    }
+    /// 0 initial, 1 checkpoint lifted, 2 chamber doors open.
+    pub fn m16_stage(&self) -> u8 {
+        match self {
+            Self::Authored(map) if map.m16.is_some() => map.m16_stage,
+            _ => 0,
+        }
+    }
+    pub fn prepared_m16_world(&self, stage: u8) -> Option<Self> {
+        let Self::Authored(map) = self else {
+            return None;
+        };
+        let prepared = map.m16.as_ref()?;
+        let mut selected = map.as_ref().clone();
+        selected.presentation = prepared.presentation.clone();
+        for panel in &mut selected.presentation.decorations {
+            if stage >= 1 && panel.solid == prepared.checkpoint_barrier
+                || stage >= 2 && panel.solid == prepared.chamber_doors
+            {
+                panel.face = crate::protocol::MapFace::Up;
+                panel.center = [0.0; 2];
+            }
+        }
+        match stage {
+            0 => {
+                selected.arena = prepared.initial.clone();
+                selected.navigation = prepared.navigation.clone();
+            }
+            1 => {
+                selected.arena = prepared.lifted.clone();
+                selected.navigation = prepared.lifted_navigation.clone();
+            }
+            2 => {
+                selected.arena = prepared.open.clone();
+                selected.navigation = prepared.open_navigation.clone();
+            }
+            _ => return None,
+        }
+        selected.m16_stage = stage;
+        Some(Self::Authored(Arc::new(selected)))
+    }
     pub(crate) fn m15_objectives(&self) -> Option<&super::authored::m15::Prepared> {
         match self {
             Self::BuiltIn(_) => None,
@@ -382,8 +541,20 @@ impl RuntimeMap {
     }
 
     pub(crate) fn campaign_mission_id(&self) -> Option<crate::protocol::MissionId> {
-        self.m15_geometry()
-            .map(|_| crate::protocol::MissionId::CivicPressureValve)
+        self.m18_geometry()
+            .map(|_| crate::protocol::MissionId::AllSystemsNormal)
+            .or_else(|| {
+                self.m17_geometry()
+                    .map(|_| crate::protocol::MissionId::PeaceWithoutInterruption)
+            })
+            .or_else(|| {
+                self.m16_geometry()
+                    .map(|_| crate::protocol::MissionId::FreedomOfMovement)
+            })
+            .or_else(|| {
+                self.m15_geometry()
+                    .map(|_| crate::protocol::MissionId::CivicPressureValve)
+            })
             .or_else(|| {
                 self.m14_geometry()
                     .map(|_| crate::protocol::MissionId::LaunchAuthority)
@@ -568,10 +739,19 @@ impl RuntimeMap {
     }
 
     pub fn has_authored_vehicles(&self) -> bool {
-        matches!(self, Self::Authored(map) if !map.vehicles.is_empty())
+        self.m16_geometry().is_some()
+            || self.m14_geometry().is_some()
+            || matches!(self, Self::Authored(map) if !map.vehicles.is_empty())
     }
 
     pub(crate) fn vehicle_spawns(&self) -> Vec<(crate::protocol::VehicleKind, [f32; 3], f32)> {
+        if let Some(g) = self.m16_geometry() {
+            return vec![(
+                crate::protocol::VehicleKind::Motorcycle,
+                g.motorcycle.feet,
+                g.motorcycle.yaw,
+            )];
+        }
         if let Some(g) = self.m14_geometry() {
             return vec![(crate::protocol::VehicleKind::Jeep, g.jeep.feet, g.jeep.yaw)];
         }

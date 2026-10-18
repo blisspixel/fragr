@@ -1,0 +1,14 @@
+{
+  "format": 1,
+  "id": "m17_arrival",
+  "title_key": "MISSION_M17_TITLE",
+  "skip_key": "STORY_SKIP_SCENE",
+  "shots": [
+    {
+      "id": "ARRIVAL",
+      "caption_key": "M17_RUN_DESCRIPTION",
+      "timing": "reader",
+      "hold": 1
+    }
+  ]
+}

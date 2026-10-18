@@ -39,6 +39,12 @@ func _until(condition: Callable, description: String) -> bool:
 	while not condition.call() and Time.get_ticks_msec() < deadline:
 		await process_frame
 	var passed: bool = condition.call()
+	if not passed and current_scene != null and current_scene.has_method("change_role"):
+		var held: Array[String] = []
+		for action: StringName in InputMap.get_actions():
+			if Input.is_action_pressed(action):
+				held.append(action)
+		print("campaign input diagnostics: held=", held, " release=", current_scene._opening_release, " sent=", current_scene._readiness_attempt_sent, " state=", current_scene.net_client.mission)
 	_expect(passed, description)
 	if not passed:
 		quit(1)
@@ -76,6 +82,9 @@ func _capture(filename: String) -> void:
 func _run() -> void:
 	var prefs: FragrSettings = FragrSettings.new(settings_path)
 	prefs.set_value("video", "display_mode", 0)
+	if not OS.get_environment("FRAGR_PAD_QA_DIR").is_empty():
+		prefs.set_value("video", "quality", 0)
+		prefs.set_value("video", "pixel_scale", 2)
 	_expect(prefs.save_to_disk() == OK, "isolated preferences saved")
 	root.mode = Window.MODE_WINDOWED
 	root.size = Vector2i(1280, 960)
@@ -129,12 +138,14 @@ func _run() -> void:
 	dismiss.physical_keycode = KEY_ESCAPE
 	dismiss.pressed = true
 	Input.parse_input_event(dismiss)
+	Input.flush_buffered_events()
 	await process_frame
 	_expect(not is_instance_valid(current_scene.opening) and current_scene.controls_blocked(), "dismissal stays blocked until release")
 	_expect(not current_scene.pause_menu.is_open(), "intro Escape cannot also open the match menu")
 	dismiss = dismiss.duplicate()
 	dismiss.pressed = false
 	Input.parse_input_event(dismiss)
+	Input.flush_buffered_events()
 	if not await _until(func() -> bool:
 		for member: Dictionary in current_scene.mission_hud.state["party"]:
 			if member["id"] == current_scene.net_client.player_id:
@@ -160,15 +171,19 @@ func _run() -> void:
 	Input.action_release("move_forward")
 	if not found_pistol:
 		return
+	if not await preload("res://scripts/qa_pad_controls.gd").run(self, current_scene, _until, _expect, "campaign-pad"):
+		return
 	var fists_key: InputEventKey = InputEventKey.new()
 	fists_key.keycode = KEY_1
 	fists_key.physical_keycode = KEY_1
 	fists_key.pressed = true
 	Input.parse_input_event(fists_key)
+	Input.flush_buffered_events()
 	await process_frame
 	fists_key = fists_key.duplicate()
 	fists_key.pressed = false
 	Input.parse_input_event(fists_key)
+	Input.flush_buffered_events()
 	if not await _until(func() -> bool: return current_scene.net_client.equipment.get("selected") == "fists", "key 1 selects fists in the authoritative M01 loadout"):
 		return
 	if not await _until(func() -> bool: return _local_pawn().get("weapon") == "Fists", "public snapshot agrees with private fists selection"):

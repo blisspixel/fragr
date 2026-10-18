@@ -14,12 +14,18 @@ mod legacy_v14;
 mod legacy_v16;
 mod legacy_v17;
 mod legacy_v18;
+mod legacy_v19;
+mod legacy_v20;
+mod legacy_v21;
 mod m09_outcome;
 mod m11_outcome;
 mod m12_outcome;
 mod m13_outcome;
 mod m14_outcome;
 mod m15_outcome;
+mod m16_outcome;
+mod m17_outcome;
+pub(crate) mod m18_outcome;
 pub(crate) mod store;
 use legacy::{
     RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV2, RunDocumentV3,
@@ -32,10 +38,13 @@ pub(crate) use m12_outcome::M12Outcome;
 pub(crate) use m13_outcome::M13Outcome;
 pub(crate) use m14_outcome::M14Outcome;
 pub(crate) use m15_outcome::M15Outcome;
+pub(crate) use m16_outcome::M16Outcome;
+pub(crate) use m17_outcome::M17Outcome;
+pub(crate) use m18_outcome::M18Outcome;
 
-/// Version 19 connects the stadium bout and retains actual finale receipts.
+/// Version 22 connects All Systems Normal and retains actual recovery receipts.
 /// Historical documents retain exact original-byte archives before upgrade.
-pub(super) const RUN_FILE_VERSION: u32 = 19;
+pub(super) const RUN_FILE_VERSION: u32 = 22;
 const PRE_ASSESSOR_RULES_REVISION: u32 = 3;
 const M02_MISSION: &str = "persons_unknown";
 const M03_MISSION: &str = "scheduled_service";
@@ -51,6 +60,9 @@ const M13_MISSION: &str = "weight_of_permission";
 const M14_MISSION: &str = "launch_authority";
 const M15_MISSION: &str = "civic_pressure_valve";
 const M16_MISSION: &str = "freedom_of_movement";
+const M17_MISSION: &str = "peace_without_interruption";
+const M18_MISSION: &str = "all_systems_normal";
+const M19_MISSION: &str = "planned_works";
 const M08_MISSION: &str = "custodian_of_record";
 
 pub(crate) use crate::protocol::M08Outcome;
@@ -263,6 +275,24 @@ pub(crate) struct RunDocument {
         skip_serializing_if = "Option::is_none"
     )]
     pub m15_outcome: Option<M15Outcome>,
+    #[serde(
+        default,
+        deserialize_with = "m16_outcome::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m16_outcome: Option<M16Outcome>,
+    #[serde(
+        default,
+        deserialize_with = "m17_outcome::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m17_outcome: Option<M17Outcome>,
+    #[serde(
+        default,
+        deserialize_with = "m18_outcome::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m18_outcome: Option<M18Outcome>,
 }
 
 impl RunDocument {
@@ -302,6 +332,9 @@ impl RunDocument {
             MissionId::WeightOfPermission => (MissionId::TermsOfCooperation, M13_MISSION),
             MissionId::LaunchAuthority => (MissionId::WeightOfPermission, M14_MISSION),
             MissionId::CivicPressureValve => (MissionId::LaunchAuthority, M15_MISSION),
+            MissionId::FreedomOfMovement => (MissionId::CivicPressureValve, M16_MISSION),
+            MissionId::PeaceWithoutInterruption => (MissionId::FreedomOfMovement, M17_MISSION),
+            MissionId::AllSystemsNormal => (MissionId::PeaceWithoutInterruption, M18_MISSION),
             MissionId::DeclaredGoods => (MissionId::PortOfEntry, M07_MISSION),
             MissionId::RecallNotice => return Err("a campaign transition cannot return to M01"),
         };
@@ -329,6 +362,9 @@ impl RunDocument {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) && self.m03_outcome.is_some())
         {
             return Err("unsupported saved campaign transition");
@@ -340,11 +376,14 @@ impl RunDocument {
         let mut promoted = self.clone();
         promoted.content_sha256 = content_hash;
         promoted.level_start_continues = self.remaining_continues;
-        // Only the completed M05 edge enters Episode II, M09 enters Episode III, and M14 enters Episode IV. Reopening a promoted
+        // Only the completed M05 edge enters Episode II, M09 enters Episode III, M14 enters Episode IV, and M17 enters Episode V. Reopening a promoted
         // entry or retrying it never passes this edge again.
         if matches!(
             mission,
-            MissionId::PortOfEntry | MissionId::CommonCarrier | MissionId::CivicPressureValve
+            MissionId::PortOfEntry
+                | MissionId::CommonCarrier
+                | MissionId::CivicPressureValve
+                | MissionId::AllSystemsNormal
         ) {
             promoted.remaining_continues = CAMPAIGN_CONTINUES;
             promoted.level_start_continues = CAMPAIGN_CONTINUES;
@@ -397,6 +436,9 @@ impl RunDocument {
             m13_outcome: None,
             m14_outcome: None,
             m15_outcome: None,
+            m16_outcome: None,
+            m17_outcome: None,
+            m18_outcome: None,
         }
     }
 
@@ -442,6 +484,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::ScheduledService, next_mission, ..
         } if next_mission == M04_MISSION);
@@ -464,6 +509,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoticeToVacate, next_mission, ..
         } if next_mission == M05_MISSION);
@@ -485,6 +533,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::NoForwardingAddress, next_mission, ..
         } if next_mission == M06_MISSION);
@@ -505,6 +556,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
                 completed_mission: MissionId::PortOfEntry, next_mission, ..
             } if next_mission == M07_MISSION);
@@ -520,6 +574,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CustodianOfRecord, next_mission, ..
         } if next_mission == M09_MISSION);
@@ -537,6 +594,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::PassengerManifest, next_mission, ..
         } if next_mission == M10_MISSION);
@@ -554,6 +614,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) != self.m10_transit.is_some()
         {
             return Err("saved transit does not match M10");
@@ -578,6 +641,9 @@ impl RunDocument {
                 | MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::RightOfSearch, next_mission, ..
         } if next_mission == M12_MISSION);
@@ -592,6 +658,9 @@ impl RunDocument {
             MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::TermsOfCooperation, next_mission, ..
         } if next_mission == M13_MISSION);
@@ -603,7 +672,11 @@ impl RunDocument {
         }
         let completed_m13 = matches!(
             self.stage_mission(),
-            MissionId::LaunchAuthority | MissionId::CivicPressureValve
+            MissionId::LaunchAuthority
+                | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::WeightOfPermission, next_mission, ..
         } if next_mission == M14_MISSION);
@@ -613,8 +686,13 @@ impl RunDocument {
         if let Some(outcome) = &self.m13_outcome {
             outcome.validate()?;
         }
-        let completed_m14 = self.stage_mission() == MissionId::CivicPressureValve
-            || matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m14 = matches!(
+            self.stage_mission(),
+            MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::LaunchAuthority, next_mission, ..
         } if next_mission == M15_MISSION);
         if completed_m14 != self.m14_outcome.is_some() {
@@ -623,13 +701,49 @@ impl RunDocument {
         if let Some(outcome) = &self.m14_outcome {
             outcome.validate()?;
         }
-        let completed_m15 = matches!(&self.step, SavedStep::AwaitingMission {
+        let completed_m15 = matches!(
+            self.stage_mission(),
+            MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
             completed_mission: MissionId::CivicPressureValve, next_mission, ..
         } if next_mission == M16_MISSION);
         if completed_m15 != self.m15_outcome.is_some() {
             return Err("saved stadium outcome does not match completed M15");
         }
         if let Some(outcome) = &self.m15_outcome {
+            outcome.validate()?;
+        }
+        let completed_m16 = matches!(
+            self.stage_mission(),
+            MissionId::PeaceWithoutInterruption | MissionId::AllSystemsNormal
+        ) || matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::FreedomOfMovement, next_mission, ..
+        } if next_mission == M17_MISSION);
+        if completed_m16 != self.m16_outcome.is_some() {
+            return Err("saved avenue outcome does not match completed M16");
+        }
+        if let Some(outcome) = &self.m16_outcome {
+            outcome.validate()?;
+        }
+        let completed_m17 = self.stage_mission() == MissionId::AllSystemsNormal
+            || matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::PeaceWithoutInterruption, next_mission, ..
+        } if next_mission == M18_MISSION);
+        if completed_m17 != self.m17_outcome.is_some() {
+            return Err("saved office outcome does not match completed M17");
+        }
+        if let Some(outcome) = &self.m17_outcome {
+            outcome.validate()?;
+        }
+        let completed_m18 = matches!(&self.step, SavedStep::AwaitingMission {
+            completed_mission: MissionId::AllSystemsNormal, next_mission, ..
+        } if next_mission == M19_MISSION);
+        if completed_m18 != self.m18_outcome.is_some() {
+            return Err("saved transit outcome does not match completed M18");
+        }
+        if let Some(outcome) = &self.m18_outcome {
             outcome.validate()?;
         }
         if self.version != RUN_FILE_VERSION
@@ -680,6 +794,9 @@ impl RunDocument {
                         | (MissionId::WeightOfPermission, M14_MISSION)
                         | (MissionId::LaunchAuthority, M15_MISSION)
                         | (MissionId::CivicPressureValve, M16_MISSION)
+                        | (MissionId::FreedomOfMovement, M17_MISSION)
+                        | (MissionId::PeaceWithoutInterruption, M18_MISSION)
+                        | (MissionId::AllSystemsNormal, M19_MISSION)
                 ) {
                     return Err("unsupported saved campaign transition");
                 }
@@ -694,6 +811,9 @@ impl RunDocument {
                         | MissionId::WeightOfPermission
                         | MissionId::LaunchAuthority
                         | MissionId::CivicPressureValve
+                        | MissionId::FreedomOfMovement
+                        | MissionId::PeaceWithoutInterruption
+                        | MissionId::AllSystemsNormal
                 ) && !exit.equipment.weapons.contains(&WeaponType::Arc)
                 {
                     return Err("completed M12 lacks its required actual Arc find");
@@ -703,6 +823,9 @@ impl RunDocument {
                     MissionId::WeightOfPermission
                         | MissionId::LaunchAuthority
                         | MissionId::CivicPressureValve
+                        | MissionId::FreedomOfMovement
+                        | MissionId::PeaceWithoutInterruption
+                        | MissionId::AllSystemsNormal
                 ) && !exit.equipment.weapons.contains(&WeaponType::Rocket)
                 {
                     return Err("completed M13 lacks its required actual Rocket find");
@@ -720,6 +843,9 @@ impl RunDocument {
                             | MissionId::WeightOfPermission
                             | MissionId::LaunchAuthority
                             | MissionId::CivicPressureValve
+                            | MissionId::FreedomOfMovement
+                            | MissionId::PeaceWithoutInterruption
+                            | MissionId::AllSystemsNormal
                     ),
                     matches!(
                         *completed_mission,
@@ -731,6 +857,9 @@ impl RunDocument {
                             | MissionId::WeightOfPermission
                             | MissionId::LaunchAuthority
                             | MissionId::CivicPressureValve
+                            | MissionId::FreedomOfMovement
+                            | MissionId::PeaceWithoutInterruption
+                            | MissionId::AllSystemsNormal
                     ),
                     matches!(
                         *completed_mission,
@@ -740,6 +869,9 @@ impl RunDocument {
                             | MissionId::WeightOfPermission
                             | MissionId::LaunchAuthority
                             | MissionId::CivicPressureValve
+                            | MissionId::FreedomOfMovement
+                            | MissionId::PeaceWithoutInterruption
+                            | MissionId::AllSystemsNormal
                     ),
                     matches!(
                         *completed_mission,
@@ -748,6 +880,9 @@ impl RunDocument {
                             | MissionId::WeightOfPermission
                             | MissionId::LaunchAuthority
                             | MissionId::CivicPressureValve
+                            | MissionId::FreedomOfMovement
+                            | MissionId::PeaceWithoutInterruption
+                            | MissionId::AllSystemsNormal
                     ),
                     matches!(
                         *completed_mission,
@@ -755,12 +890,18 @@ impl RunDocument {
                             | MissionId::WeightOfPermission
                             | MissionId::LaunchAuthority
                             | MissionId::CivicPressureValve
+                            | MissionId::FreedomOfMovement
+                            | MissionId::PeaceWithoutInterruption
+                            | MissionId::AllSystemsNormal
                     ),
                     matches!(
                         *completed_mission,
                         MissionId::WeightOfPermission
                             | MissionId::LaunchAuthority
                             | MissionId::CivicPressureValve
+                            | MissionId::FreedomOfMovement
+                            | MissionId::PeaceWithoutInterruption
+                            | MissionId::AllSystemsNormal
                     ),
                 )?;
                 exit.validate()
@@ -777,13 +918,20 @@ impl RunDocument {
             MissionId::WeightOfPermission
                 | MissionId::LaunchAuthority
                 | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) && !entry.equipment.weapons.contains(&WeaponType::Arc)
         {
             return Err("M13 entry lacks its completed habitat Arc find");
         }
         if matches!(
             mission,
-            MissionId::LaunchAuthority | MissionId::CivicPressureValve
+            MissionId::LaunchAuthority
+                | MissionId::CivicPressureValve
+                | MissionId::FreedomOfMovement
+                | MissionId::PeaceWithoutInterruption
+                | MissionId::AllSystemsNormal
         ) && !entry.equipment.weapons.contains(&WeaponType::Rocket)
         {
             return Err("M14 entry lacks its completed foundry Rocket find");
@@ -800,6 +948,9 @@ impl RunDocument {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ),
             matches!(
                 mission,
@@ -811,6 +962,9 @@ impl RunDocument {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ),
             matches!(
                 mission,
@@ -819,6 +973,9 @@ impl RunDocument {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ),
             matches!(
                 mission,
@@ -826,16 +983,26 @@ impl RunDocument {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ),
             matches!(
                 mission,
                 MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ),
             matches!(
                 mission,
-                MissionId::LaunchAuthority | MissionId::CivicPressureValve
+                MissionId::LaunchAuthority
+                    | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ),
         )?;
         entry.validate()
@@ -940,6 +1107,9 @@ impl GameState {
                     MissionId::WeightOfPermission => M14_MISSION,
                     MissionId::LaunchAuthority => M15_MISSION,
                     MissionId::CivicPressureValve => M16_MISSION,
+                    MissionId::FreedomOfMovement => M17_MISSION,
+                    MissionId::PeaceWithoutInterruption => M18_MISSION,
+                    MissionId::AllSystemsNormal => M19_MISSION,
                     MissionId::DeclaredGoods => M08_MISSION,
                 }
                 .into(),
@@ -980,6 +1150,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 Some(M03Outcome {
                     liberated_cars: solo.carried_recall_cars.clone(),
@@ -1007,6 +1180,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 Some(M04Outcome {
                     rescued_patients: solo.carried_patients.clone(),
@@ -1034,6 +1210,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 Some(M05Outcome {
                     released_workers: solo.carried_released_workers.clone(),
@@ -1059,6 +1238,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 Some(M06Outcome {
                     prisoner_route_marked: solo.carried_prisoner_route_marked,
@@ -1084,6 +1266,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 solo.carried_archive.clone()
             } else {
@@ -1107,6 +1292,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 solo.carried_berth.clone()
             } else {
@@ -1120,6 +1308,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 solo.carried_transit.clone()
             } else {
@@ -1140,6 +1331,9 @@ impl GameState {
                     | MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 solo.carried_tender.clone()
             } else {
@@ -1160,6 +1354,9 @@ impl GameState {
                 MissionId::WeightOfPermission
                     | MissionId::LaunchAuthority
                     | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 solo.carried_habitat.clone()
             } else {
@@ -1177,7 +1374,11 @@ impl GameState {
                 )?)
             } else if matches!(
                 mission,
-                MissionId::LaunchAuthority | MissionId::CivicPressureValve
+                MissionId::LaunchAuthority
+                    | MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
             ) {
                 solo.carried_foundry.clone()
             } else {
@@ -1194,7 +1395,13 @@ impl GameState {
                         .ok_or("completed M14 lacks progress")?,
                     self.tick,
                 )?)
-            } else if mission == MissionId::CivicPressureValve {
+            } else if matches!(
+                mission,
+                MissionId::CivicPressureValve
+                    | MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
+            ) {
                 solo.carried_launch.clone()
             } else {
                 None
@@ -1208,6 +1415,62 @@ impl GameState {
                         .ok_or("completed M15 lacks mission state")?
                         .m15
                         .ok_or("completed M15 lacks progress")?,
+                    self.tick,
+                )?)
+            } else if matches!(
+                mission,
+                MissionId::FreedomOfMovement
+                    | MissionId::PeaceWithoutInterruption
+                    | MissionId::AllSystemsNormal
+            ) {
+                solo.carried_stadium.clone()
+            } else {
+                None
+            },
+            m16_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::FreedomOfMovement
+            {
+                Some(M16Outcome::capture(
+                    &self
+                        .mission_state()
+                        .ok_or("completed M16 lacks mission state")?
+                        .m16
+                        .ok_or("completed M16 lacks progress")?,
+                    self.tick,
+                )?)
+            } else if matches!(
+                mission,
+                MissionId::PeaceWithoutInterruption | MissionId::AllSystemsNormal
+            ) {
+                solo.carried_avenue.clone()
+            } else {
+                None
+            },
+            m17_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::PeaceWithoutInterruption
+            {
+                Some(M17Outcome::capture(
+                    &self
+                        .mission_state()
+                        .ok_or("completed M17 lacks mission state")?
+                        .m17
+                        .ok_or("completed M17 lacks progress")?,
+                    self.tick,
+                )?)
+            } else if mission == MissionId::AllSystemsNormal {
+                solo.carried_office.clone()
+            } else {
+                None
+            },
+            m18_outcome: if solo.state.status == CampaignRunStatus::Complete
+                && mission == MissionId::AllSystemsNormal
+            {
+                Some(M18Outcome::capture(
+                    &self
+                        .mission_state()
+                        .ok_or("completed M18 lacks mission state")?
+                        .m18
+                        .ok_or("completed M18 lacks progress")?,
                     self.tick,
                 )?)
             } else {
@@ -1338,6 +1601,9 @@ mod tests {
             m13_outcome: None,
             m14_outcome: None,
             m15_outcome: None,
+            m16_outcome: None,
+            m17_outcome: None,
+            m18_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {

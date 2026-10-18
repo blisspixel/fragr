@@ -329,18 +329,24 @@ impl GameState {
             let point =
                 grenade::closest_body_point_stance(position, feet, player.campaign, player.ducking);
             let distance = grenade::distance(position, point);
-            let splash = (SPLASH_PEAK * (1.0 - distance / SPLASH_RADIUS)).floor() as i32;
+            let raw_splash = (SPLASH_PEAK * (1.0 - distance / SPLASH_RADIUS)).floor() as i32;
+            let splash = if target == owner && self.mission.is_none() {
+                // Rocket jumping self-damage scaling: 40% discount on self-inflicted explosive damage in arena matches
+                ((raw_splash as f32) * 0.60).floor() as i32
+            } else {
+                raw_splash
+            };
             if splash > 0 && crate::combat::line_of_sight(position, point, &arena.solids) {
                 damage += splash;
             }
             if contact || damage > 0 {
-                planned.push((target, damage, contact));
+                planned.push((target, damage, contact, distance));
             }
         }
         let mut hits = Vec::new();
         let (mut hp_total, mut armor_total, mut kills) = (0u64, 0u64, 0u64);
         let mut connect = false;
-        for (target, damage, contact) in planned {
+        for (target, damage, contact, distance) in planned {
             let (hp, armor, died) = if damage > 0 {
                 self.resolve_fighter_hit_for(owner, target, damage, None, false)
             } else {
@@ -361,6 +367,17 @@ impl GameState {
                     target_hp_after: player.hp,
                     killed: died,
                 });
+            }
+            if !died && target == owner && self.mission.is_none() {
+                let dist_clamp = distance.max(0.2);
+                let player = &self.players[target];
+                let upward_ratio = ((player.y - position[1]) / dist_clamp).clamp(0.35, 1.0);
+                let force = (1.0 - (distance / SPLASH_RADIUS).min(1.0)) * SPLASH_PEAK * 0.18;
+                let impulse_y = upward_ratio * force;
+                if impulse_y > 0.0 {
+                    let target_player = &mut self.players[target];
+                    target_player.vy = (target_player.vy + impulse_y).min(24.0);
+                }
             }
         }
         let mut hulls = Vec::new();

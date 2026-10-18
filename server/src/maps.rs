@@ -92,6 +92,15 @@ impl AuthoredSource {
             crate::protocol::MissionId::CivicPressureValve => {
                 include_bytes!("../maps/m15-civic-pressure-valve.json")
             }
+            crate::protocol::MissionId::FreedomOfMovement => {
+                include_bytes!("../maps/m16-freedom-of-movement.json")
+            }
+            crate::protocol::MissionId::PeaceWithoutInterruption => {
+                include_bytes!("../maps/m17-peace-without-interruption.json")
+            }
+            crate::protocol::MissionId::AllSystemsNormal => {
+                include_bytes!("../maps/m18-all-systems-normal.json")
+            }
             crate::protocol::MissionId::PassengerManifest => {
                 include_bytes!("../maps/m09_passenger_manifest.json")
             }
@@ -141,6 +150,17 @@ impl AuthoredSource {
             Self::Mission(crate::protocol::MissionId::CivicPressureValve) => AuthoredMap::read(
                 include_bytes!("../maps/m15-civic-pressure-valve.json").as_slice(),
             ),
+            Self::Mission(crate::protocol::MissionId::FreedomOfMovement) => {
+                AuthoredMap::read(include_bytes!("../maps/m16-freedom-of-movement.json").as_slice())
+            }
+            Self::Mission(crate::protocol::MissionId::PeaceWithoutInterruption) => {
+                AuthoredMap::read(
+                    include_bytes!("../maps/m17-peace-without-interruption.json").as_slice(),
+                )
+            }
+            Self::Mission(crate::protocol::MissionId::AllSystemsNormal) => {
+                AuthoredMap::read(include_bytes!("../maps/m18-all-systems-normal.json").as_slice())
+            }
             Self::Mission(crate::protocol::MissionId::PassengerManifest) => {
                 AuthoredMap::read(include_bytes!("../maps/m09_passenger_manifest.json").as_slice())
             }

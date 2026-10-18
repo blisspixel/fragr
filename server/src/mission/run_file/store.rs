@@ -41,6 +41,9 @@ pub(crate) const fn stage_index(mission: MissionId) -> usize {
         MissionId::WeightOfPermission => 12,
         MissionId::LaunchAuthority => 13,
         MissionId::CivicPressureValve => 14,
+        MissionId::FreedomOfMovement => 15,
+        MissionId::PeaceWithoutInterruption => 16,
+        MissionId::AllSystemsNormal => 17,
     }
 }
 
@@ -286,6 +289,39 @@ impl RunStore {
             }
             Some(18) => {
                 let legacy: super::legacy_v18::RunDocumentBeforeStadium =
+                    match serde_json::from_value(value) {
+                        Ok(document) => document,
+                        Err(_) => return RunProbe::Corrupt,
+                    };
+                match legacy.upgrade() {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(19) => {
+                let legacy: super::legacy_v19::RunDocumentBeforeAvenue =
+                    match serde_json::from_value(value) {
+                        Ok(document) => document,
+                        Err(_) => return RunProbe::Corrupt,
+                    };
+                match legacy.upgrade() {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(20) => {
+                let legacy: super::legacy_v20::RunDocumentBeforeOffice =
+                    match serde_json::from_value(value) {
+                        Ok(document) => document,
+                        Err(_) => return RunProbe::Corrupt,
+                    };
+                match legacy.upgrade() {
+                    Ok(document) => document,
+                    Err(_) => return RunProbe::Incompatible,
+                }
+            }
+            Some(21) => {
+                let legacy: super::legacy_v21::RunDocumentBeforeTransit =
                     match serde_json::from_value(value) {
                         Ok(document) => document,
                         Err(_) => return RunProbe::Corrupt,
@@ -590,6 +626,9 @@ mod tests {
             m13_outcome: None,
             m14_outcome: None,
             m15_outcome: None,
+            m16_outcome: None,
+            m17_outcome: None,
+            m18_outcome: None,
             step: SavedStep::MissionEntry {
                 mission: MissionId::RecallNotice,
                 entry: SavedEntry {
@@ -734,6 +773,7 @@ mod tests {
             [
                 [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                 [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                [108; 32], [109; 32], [110; 32],
             ],
         )
         .unwrap();
@@ -757,6 +797,7 @@ mod tests {
                 [
                     [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                     [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                    [108; 32], [109; 32], [110; 32],
                 ]
             )
             .unwrap(),
@@ -888,6 +929,7 @@ mod tests {
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                 [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                [108; 32], [109; 32], [110; 32],
             ],
         )
         .unwrap();
@@ -935,6 +977,7 @@ mod tests {
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                 [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                [108; 32], [109; 32], [110; 32],
             ],
         )
         .unwrap();
@@ -996,6 +1039,7 @@ mod tests {
             [
                 [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                 [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                [108; 32], [109; 32], [110; 32],
             ],
         )
         .unwrap();
@@ -1060,6 +1104,7 @@ mod tests {
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                 [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                [108; 32], [109; 32], [110; 32],
             ],
         )
         .unwrap();
@@ -1108,6 +1153,7 @@ mod tests {
                 [
                     [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                     [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                    [108; 32], [109; 32], [110; 32],
                 ]
             )
             .unwrap(),
@@ -1125,6 +1171,7 @@ mod tests {
             [
                 [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
                 [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                [108; 32], [109; 32], [110; 32],
             ],
         )
         .unwrap();
@@ -1176,7 +1223,8 @@ mod tests {
                 &directory,
                 [
                     [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32]
+                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
+                    [108; 32], [109; 32], [110; 32],
                 ]
             )
             .unwrap(),
@@ -1225,6 +1273,8 @@ mod tests {
 mod arc_tests;
 #[cfg(test)]
 mod geometry_tests;
+#[cfg(test)]
+mod late_campaign_tests;
 #[cfg(test)]
 mod m06_tests;
 #[cfg(test)]

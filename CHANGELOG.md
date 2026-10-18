@@ -4,12 +4,23 @@ Release history, newest first. Planned work stays in
 [docs/ROADMAP.md](docs/ROADMAP.md). Older tags are on the
 [releases page](https://github.com/blisspixel/fragr/releases).
 
-## v0.86.0 (2026-10-16)
+## Unreleased
+
+- Connect the M16 avenue, M17 Forever Office and M18 transit development missions,
+  with strict version-22 save carry, exact historical archives and mission-entry
+  retries. Episode V refills continues at M18 entry. M19 and M20 remain pending.
+- Report adapter admission failures durably, and name the actual multiplayer
+  map and rules in round broadcasts.
+- Bind pad reload to D-pad down and crouch to D-pad left, preserving customized
+  controls. Muted narration waits on readable text until the player advances.
+- Validate every prepared late-campaign world through native and Godot readers,
+  keep control panels fitted when gates lower, and open the executive departure
+  world before reporting Voss captured.
 
 - Connect Civic Pressure Valve as campaign level 15, with practice entry, arrival
-  framing and saved progression from Launch Authority. Arm six captive entrants,
+  framing and saved progression from Launch Authority. Arm four captive entrants,
   break the sanctioned bout with the Article Blade, secure the broadcast booth
-  for the Host, and leave through the ceremonial gate. Level 16 remains pending.
+  for the Host, and leave through the ceremonial gate.
 - Add the authoritative Article Blade melee weapon and plinth lifecycle. Settle
   70 base damage, 9-tick swing cadence, 12 swings, 2.0 m trace reach, drawn
   viewmodel states, and automatic return to the plinth on exhaustion, death or

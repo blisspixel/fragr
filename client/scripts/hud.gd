@@ -67,6 +67,8 @@ var crosshair_edges: Dictionary = {}
 const CROSSHAIR_EDGE_PAD: float = 2.0
 var hit_marker = null
 var damage_numbers = null
+var hit_confirm_sound: AudioStreamPlayer = null
+const HIT_CONFIRM_PATH: String = "res://assets/audio/hit_confirm.wav"
 
 var scores = {}
 var combat_sheet: Dictionary = {}
@@ -1896,8 +1898,21 @@ func show_hit_marker(damage: int = 0, weapon_name: String = "") -> void:
 					col = Color(0.91, 0.82, 0.7, 0.95)
 		hit_marker.modulate = col
 	if damage > 0:
+		_play_hit_chime(damage)
 		_spawn_floating_damage(damage, weapon_name)
 	# Fire presentation already owns recoil. A hit must not kick twice.
+
+func _play_hit_chime(damage: int) -> void:
+	if not hit_confirm_sound and ResourceLoader.exists(HIT_CONFIRM_PATH):
+		hit_confirm_sound = AudioStreamPlayer.new()
+		hit_confirm_sound.name = "HitConfirmSound"
+		hit_confirm_sound.bus = &"Effects"
+		hit_confirm_sound.volume_db = -4.0
+		hit_confirm_sound.stream = load(HIT_CONFIRM_PATH)
+		add_child(hit_confirm_sound)
+	if hit_confirm_sound != null:
+		hit_confirm_sound.pitch_scale = clampf(1.0 + (float(damage) / 100.0) * 0.35, 0.95, 1.45)
+		hit_confirm_sound.play()
 
 ## How close a player is to dying, which is the one thing the HUD never said.
 ## A number for the exact figure and a bar for the glance, in the corner, read

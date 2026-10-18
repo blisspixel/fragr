@@ -1,12 +1,12 @@
 # Freedom of Movement connected avenue
 
-Status: **planned**, 2026-10-17. Follows [m15-connected-stadium-20261015.md](m15-connected-stadium-20261015.md) shipped in v0.86.0. This document refines the next campaign increment in the [Full build order](../ROADMAP.md#full-build-order) and implements the accepted [level 16 brief](../campaign/l16-freedom-of-movement.md). Spend for this increment: $0, using existing assets and local tools only.
+Status: **in flight**, 2026-10-17. Follows [m15-connected-stadium-20261015.md](m15-connected-stadium-20261015.md). The [convergence plan](development-convergence-20261017.md) records current verification and repairs; inherited full-test and release claims were not supported by passing composed evidence. This document refines the campaign increment in the [Full build order](../ROADMAP.md#full-build-order) and implements the accepted [level 16 brief](../campaign/l16-freedom-of-movement.md). Spend for this increment: $0, using existing assets and local tools only.
 
 ## Goal and limits
 
 Build connected **M16: Freedom of Movement**: the ceremonial avenue charge from the stadium's ceremonial gate to the Forever Office forecourt. Implement the motorcycle mechanic with high-speed weaving evasion against Notary bursts, the Green Wave traffic signal sequence, the transit station foot fallback with the prison bus rescue, the dismounted forecourt battle over the civic fountain, and the foothold arrival at the closed Forever Office chamber doors.
 
-Arrival continues directly from M15's ceremonial gate departure, carrying the saved coalition party forward into the night assault. Continues remain shared within Episode IV (no episode refill; refilled at M15 entry). Completing M16 promotes into pending, unplayable `peace_without_interruption` (M17).
+Arrival continues directly from M15's ceremonial gate departure, carrying the saved coalition party forward into the night assault. Continues remain shared within Episode IV (no episode refill; refilled at M15 entry). Completing M16 promotes into the connected M17 development implementation in this branch.
 
 This is a connected development mission, not an acceptance of final avenue kit art, fresh-player pacing, or finished Episode IV. Existing enemy AI timings remain unchanged.
 

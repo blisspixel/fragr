@@ -127,3 +127,21 @@ Pinned APIs checked against official 4.7 documentation on 2026-09-30:
 [AudioStreamPlayback](https://docs.godotengine.org/en/4.7/classes/class_audiostreamplayback.html),
 [AudioStreamMP3](https://docs.godotengine.org/en/4.7/classes/class_audiostreammp3.html)
 and [AudioStreamWAV](https://docs.godotengine.org/en/4.7/classes/class_audiostreamwav.html).
+
+## Muted narration, October 17
+
+Issue #410 uses the existing text fallback whenever Voice or its output bus is
+muted or has zero volume. The current page becomes reader-paced immediately,
+including during a pending narration hold. Unmuting keeps that page under reader
+control; entering another audible page restores normal narration timing. The
+saved caption choice stays unchanged. OS/device volume is outside this boundary.
+
+The owning scene harness passes Voice and Master mute independently, captions
+on/off, mid-clip and pending-hold mute, Back, Next, Skip, repeated entry and
+once-only completion. The existing real audio-finished checks remain intact.
+The same harness passes rendered on Xvfb/llvmpipe. Inspected
+[muted captions-off](../screenshots/story_muted_20261017.png) and
+[audible captions-on](../screenshots/story_audible_20261017.png) captures retain
+complete text, page indication and controls without clipping. These captures
+establish presentation and player state, not a hardware listening review.
+No assets were generated or changed, and this repair costs $0.

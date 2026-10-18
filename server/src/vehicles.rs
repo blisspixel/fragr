@@ -317,7 +317,7 @@ pub fn clear_motorcycle(position: [f32; 3], yaw: f32, arena: &Arena) -> bool {
         return false;
     }
     let [_, half_width, height] = dimensions(VehicleKind::Motorcycle);
-    [-0.55, 0.0, 0.55].into_iter().all(|offset| {
+    [-0.65, 0.0, 0.65].into_iter().all(|offset| {
         let p = local_point(position, yaw, [offset, 0.0, 0.0]);
         p[0].abs() <= arena.half - half_width
             && p[2].abs() <= arena.half - half_width
@@ -497,7 +497,7 @@ pub fn motorcycle_step(
         let mut candidate = state.position;
         candidate[0] += yaw.cos() * state.speed * step;
         candidate[2] += yaw.sin() * state.speed * step;
-        let support = [-0.55, 0.0, 0.55]
+        let support = [-0.65, 0.0, 0.65]
             .into_iter()
             .map(|offset| {
                 let p = local_point(candidate, yaw, [offset, 0.0, 0.0]);

@@ -1,0 +1,264 @@
+{
+  "version": 1,
+  "map_id": 1018,
+  "name": "All Systems Normal",
+  "half_extent": 70,
+  "ground": "concrete",
+  "equipment": "discovery",
+  "solids": [
+    {"id": "perimeter_west", "min": [-70, 0, -70], "max": [-60, 9.0, 70], "surface": "concrete"},
+    {"id": "perimeter_north", "min": [-60, 0, 36], "max": [70, 9.0, 70], "surface": "concrete"},
+    {"id": "perimeter_south", "min": [-60, 0, -70], "max": [70, 9.0, -36], "surface": "concrete"},
+    {"id": "perimeter_east", "min": [66, 0, -36], "max": [70, 9.0, 36], "surface": "concrete"},
+
+    {"id": "square_north_wall", "min": [-60, 0, 24], "max": [-20, 6.0, 26], "surface": "concrete"},
+    {"id": "square_south_wall", "min": [-60, 0, -26], "max": [-20, 6.0, -24], "surface": "concrete"},
+    {"id": "depot_building_north", "min": [-42, 0, 8], "max": [-32, 4.5, 20], "surface": "concrete"},
+    {"id": "depot_counter", "min": [-38, 0, 1], "max": [-34, 1.1, 4], "surface": "service_steel"},
+    {"id": "aid_tent_south", "min": [-44, 0, -18], "max": [-34, 3.5, -8], "surface": "enamel"},
+    {"id": "cargo_stack_a", "min": [-48, 0, -4], "max": [-44, 2.0, 0], "surface": "service_steel"},
+    {"id": "cargo_stack_b", "min": [-48, 0, 4], "max": [-44, 2.0, 8], "surface": "service_steel"},
+
+    {"id": "clinic_facade_north", "min": [-20, 0, 10], "max": [6, 6.0, 14], "surface": "concrete"},
+    {"id": "clinic_facade_south", "min": [-20, 0, -14], "max": [6, 6.0, -10], "surface": "concrete"},
+    {"id": "roadblock_rubble", "min": [-10, 0, -6], "max": [2, 0.1, 6], "surface": "concrete"},
+
+    {"id": "maint_alley_wall_north", "min": [-20, 0, 32], "max": [10, 6.0, 34], "surface": "concrete"},
+    {"id": "maint_transformer_a", "min": [-14, 0, 18], "max": [-10, 3.0, 22], "surface": "service_steel"},
+    {"id": "maint_transformer_b", "min": [-4, 0, 24], "max": [0, 3.0, 28], "surface": "service_steel"},
+    {"id": "maint_gate_solid", "min": [-19, 0, 14], "max": [-17, 4.0, 18], "surface": "service_steel"},
+
+    {"id": "stair_tower_north", "min": [10, 0, 28], "max": [26, 9.0, 30], "surface": "concrete"},
+    {"id": "stair_tower_south", "min": [10, 0, 10], "max": [26, 9.0, 12], "surface": "concrete"},
+    {"id": "stair_f1_step1", "min": [10, 0, 14], "max": [12, 0.5, 18], "surface": "service_steel"},
+    {"id": "stair_f1_step2", "min": [12, 0, 14], "max": [14, 1.0, 18], "surface": "service_steel"},
+    {"id": "stair_landing_1", "min": [14, 0, 14], "max": [18, 1.5, 18], "surface": "service_steel"},
+    {"id": "stair_f2_step1", "min": [14, 0, 18], "max": [18, 2.0, 20], "surface": "service_steel"},
+    {"id": "stair_f2_step2", "min": [14, 0, 20], "max": [18, 2.5, 22], "surface": "service_steel"},
+    {"id": "stair_landing_2", "min": [18, 0, 18], "max": [22, 3.0, 22], "surface": "service_steel"},
+    {"id": "stair_f3_step1", "min": [18, 0, 22], "max": [22, 3.5, 24], "surface": "service_steel"},
+    {"id": "stair_f3_step2", "min": [18, 0, 24], "max": [22, 4.0, 26], "surface": "service_steel"},
+    {"id": "stair_landing_3", "min": [22, 0, 22], "max": [26, 4.5, 26], "surface": "service_steel"},
+    {"id": "stair_f4_step1", "min": [22, 0, 20], "max": [26, 5.0, 22], "surface": "service_steel"},
+    {"id": "stair_f4_step2", "min": [22, 0, 18], "max": [26, 5.5, 20], "surface": "service_steel"},
+
+    {"id": "overlook_deck", "min": [20, 0, -18], "max": [44, 6.0, 18], "surface": "concrete"},
+    {"id": "overlook_railing_west", "min": [20, 6.0, -18], "max": [22, 7.1, 10], "surface": "service_steel"},
+    {"id": "overlook_railing_south", "min": [22, 6.0, -18], "max": [44, 7.1, -16], "surface": "service_steel"},
+    {"id": "overlook_console_desk", "min": [32, 6.0, -2], "max": [36, 7.1, 2], "surface": "records_tile"},
+
+    {"id": "ramp_to_concourse_step1", "min": [42, 0, -4], "max": [44, 5.5, 4], "surface": "concrete"},
+    {"id": "ramp_to_concourse_step2", "min": [44, 0, -4], "max": [46, 5.0, 4], "surface": "concrete"},
+
+    {"id": "concourse_floor_deck", "min": [44, 0, -24], "max": [66, 4.5, 24], "surface": "concrete"},
+    {"id": "concourse_pillar_a", "min": [50, 4.5, -12], "max": [52, 9.0, -10], "surface": "concrete"},
+    {"id": "concourse_pillar_b", "min": [50, 4.5, 10], "max": [52, 9.0, 12], "surface": "concrete"},
+    {"id": "concourse_turnstiles", "min": [56, 4.5, -8], "max": [58, 5.6, 8], "surface": "service_steel"},
+    {"id": "concourse_departure_gate", "min": [60, 4.5, -4], "max": [62, 9.0, 4], "surface": "service_steel"}
+  ],
+  "spawns": [
+    {"id": "entry", "feet": [-52, 0, 0], "yaw": 0}
+  ],
+  "landmarks": [
+    {"id": "recovery_square", "feet": [-40, 0, 0]},
+    {"id": "aid_depot", "feet": [-36, 0, 0]},
+    {"id": "clinic_roadblock", "feet": [-12, 0, 0]},
+    {"id": "maintenance_flank", "feet": [-8, 0, 22]},
+    {"id": "stair_ascent", "feet": [20, 3.0, 20]},
+    {"id": "upper_overlook", "feet": [30, 6.0, 0]},
+    {"id": "evacuation_concourse", "feet": [54, 4.5, 0]},
+    {"id": "departure_terrace", "feet": [63, 4.5, 0]}
+  ],
+  "supplies": [
+    {
+      "id": "aid_bullets",
+      "feet": [-36, 0, -2],
+      "grant": {"kind": "ammo", "pool": "bullets", "amount": 40},
+      "claim": "contested"
+    },
+    {
+      "id": "aid_health",
+      "feet": [-40, 0, -6],
+      "grant": {"kind": "health", "amount": 25},
+      "claim": "contested"
+    },
+    {
+      "id": "ascent_flechette",
+      "feet": [8, 0, 16],
+      "grant": {"kind": "weapon", "weapon": "flechette"},
+      "claim": "personal"
+    },
+    {
+      "id": "overlook_cells",
+      "feet": [30, 6.0, 4],
+      "grant": {"kind": "ammo", "pool": "cells", "amount": 25},
+      "claim": "contested"
+    },
+    {
+      "id": "concourse_armor",
+      "feet": [54, 4.5, 0],
+      "grant": {"kind": "armor", "amount": 50},
+      "claim": "contested"
+    }
+  ],
+  "decorations": [
+    {"solid": "depot_counter", "face": "north", "kind": "terminal", "center": [0, 0.2], "size": [1.0, 0.6]},
+    {"solid": "aid_tent_south", "face": "north", "kind": "records_sign", "center": [0, 0.2], "size": [2.0, 1.2]},
+    {"solid": "maint_gate_solid", "face": "west", "kind": "terminal", "center": [0, 0.2], "size": [0.8, 0.6]},
+    {"solid": "stair_tower_north", "face": "south", "kind": "records_sign", "center": [0, 0.2], "size": [2.0, 1.5]},
+    {"solid": "overlook_console_desk", "face": "north", "kind": "terminal", "center": [0, 0.2], "size": [1.5, 0.6]},
+    {"solid": "concourse_departure_gate", "face": "east", "kind": "terminal", "center": [0, 0.2], "size": [1.2, 0.8]},
+    {"solid": "perimeter_east", "face": "west", "kind": "union_seal", "center": [0, 0.2], "size": [2.5, 2.0]}
+  ],
+  "encounters": [
+    {
+      "id": "square_uprising",
+      "regions": [{"min": [-58.0, 0.0, -24.0], "max": [-20.0, 5.0, 24.0]}],
+      "enemies": [
+        {"id": "square_clerk_1", "kind": "clerk", "feet": [-40.0, 0.0, -6.0], "yaw": 0.0},
+        {"id": "square_clerk_2", "kind": "clerk", "feet": [-40.0, 0.0, 6.0], "yaw": 0.0},
+        {"id": "square_sweeper_1", "kind": "sweeper", "feet": [-30.0, 0.0, -6.0], "yaw": 3.14159265},
+        {"id": "square_sweeper_2", "kind": "sweeper", "feet": [-30.0, 0.0, 6.0], "yaw": 3.14159265},
+        {"id": "square_enforcer", "kind": "enforcer", "feet": [-24.0, 0.0, 0.0], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "collector_escort",
+      "after": "square_uprising",
+      "regions": [{"min": [-20.0, 0.0, -12.0], "max": [6.0, 5.0, 12.0]}],
+      "enemies": [
+        {"id": "escort_heavy", "kind": "heavy_sweeper", "feet": [-14.0, 0.0, -2.0], "yaw": 3.14159265},
+        {
+          "id": "escort_assessor",
+          "kind": "assessor",
+          "feet": [-14.0, 3.8, 0.0],
+          "yaw": 3.14159265,
+          "hover": {
+            "volume": {"min": [-16.0, 3.2, -2.0], "max": [-12.0, 4.5, 2.0]},
+            "band": [3.0, 5.0],
+            "patrol": [[-14.0, 3.8, -1.0], [-14.0, 3.8, 1.0]],
+            "approach": [-19.0, 0.0, 0.0]
+          }
+        },
+        {"id": "escort_auditor", "kind": "auditor", "feet": [-14.0, 0.0, 2.0], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "stair_ambush",
+      "after": "collector_escort",
+      "regions": [{"min": [8.0, 0.0, 10.0], "max": [26.0, 6.0, 30.0]}],
+      "enemies": [
+        {"id": "stair_turret", "kind": "turret", "feet": [16.0, 1.5, 16.0], "yaw": 3.14159265},
+        {"id": "stair_sweeper_1", "kind": "sweeper", "feet": [20.0, 3.0, 20.0], "yaw": 3.14159265},
+        {"id": "stair_sweeper_2", "kind": "sweeper", "feet": [24.0, 4.5, 24.0], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "overlook_sentries",
+      "after": "stair_ambush",
+      "regions": [{"min": [20.0, 5.0, -18.0], "max": [44.0, 8.0, 16.0]}],
+      "enemies": [
+        {"id": "overlook_enforcer_1", "kind": "enforcer", "feet": [30.0, 6.0, -8.0], "yaw": 3.14159265},
+        {"id": "overlook_enforcer_2", "kind": "enforcer", "feet": [38.0, 6.0, 8.0], "yaw": 3.14159265},
+        {"id": "overlook_sweeper", "kind": "sweeper", "feet": [30.0, 6.0, -4.0], "yaw": 3.14159265}
+      ]
+    },
+    {
+      "id": "concourse_defense",
+      "after": "overlook_sentries",
+      "regions": [{"min": [44.0, 4.0, -20.0], "max": [66.0, 8.0, 20.0]}],
+      "enemies": [
+        {"id": "concourse_heavy_1", "kind": "heavy_sweeper", "feet": [52.0, 4.5, -6.0], "yaw": 3.14159265},
+        {"id": "concourse_heavy_2", "kind": "heavy_sweeper", "feet": [52.0, 4.5, 6.0], "yaw": 3.14159265},
+        {
+          "id": "concourse_notary",
+          "kind": "notary",
+          "feet": [51.0, 6.0, 0.0],
+          "yaw": 3.14159265,
+          "hover": {
+            "volume": {"min": [48.0, 5.2, -4.0], "max": [54.0, 7.0, 4.0]},
+            "band": [5.0, 7.5],
+            "patrol": [[50.0, 6.0, -2.0], [52.0, 6.0, 2.0]],
+            "approach": [48.0, 4.5, 0.0]
+          }
+        },
+        {"id": "concourse_enforcer", "kind": "enforcer", "feet": [54.0, 4.5, 0.0], "yaw": 3.14159265}
+      ]
+    }
+  ],
+  "m18": {
+    "departure": {
+      "decoration": 5,
+      "approach": [62.5, 4.5, 0.0]
+    },
+    "boarding": {
+      "min": [60.0, 4.5, -4.0],
+      "max": [66.0, 8.0, 4.0]
+    },
+    "depot_station": {
+      "decoration": 0,
+      "approach": [-36.0, 0.0, 0.0]
+    },
+    "overlook_console": {
+      "decoration": 4,
+      "approach": [34.0, 6.0, -3.0]
+    },
+    "maint_gate": "maint_gate_solid",
+    "roadblock_rubble": "roadblock_rubble",
+    "departure_gate": "concourse_departure_gate",
+    "objectives": [
+      {
+        "id": "aid_checkin",
+        "kind": "use",
+        "target": {
+          "decoration": 0,
+          "approach": [-36.0, 0.0, 0.0]
+        }
+      },
+      {
+        "id": "square_defense",
+        "kind": "arrival",
+        "arrival": {
+          "min": [-50.0, 0.0, -20.0],
+          "max": [-25.0, 4.0, 20.0]
+        },
+        "approach": [-35.0, 0.0, 0.0]
+      },
+      {
+        "id": "collector_breach",
+        "kind": "arrival",
+        "arrival": {
+          "min": [-18.0, 0.0, -10.0],
+          "max": [4.0, 4.0, 10.0]
+        },
+        "approach": [-14.0, 0.0, 0.0]
+      },
+      {
+        "id": "service_ascent",
+        "kind": "arrival",
+        "arrival": {
+          "min": [10.0, 0.0, 12.0],
+          "max": [26.0, 6.0, 28.0]
+        },
+        "approach": [18.0, 3.0, 20.0]
+      },
+      {
+        "id": "overlook_recon",
+        "kind": "use",
+        "target": {
+          "decoration": 4,
+          "approach": [34.0, 6.0, -3.0]
+        }
+      },
+      {
+        "id": "concourse_evac",
+        "kind": "arrival",
+        "arrival": {
+          "min": [50.0, 4.5, -12.0],
+          "max": [64.0, 8.0, 12.0]
+        },
+        "approach": [53.0, 4.5, 0.0]
+      }
+    ]
+  }
+}

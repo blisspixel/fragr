@@ -74,10 +74,14 @@ var action_state = {
 }
 
 const SPEAK_LINES = [
-	"scrap on",
-	"contested frequency",
-	"deny the denial",
-	"shall not be infringed",
+	"Bricked that clanker.",
+	"Six-seven, clear.",
+	"Meatproxy down.",
+	"Watch the wirehead.",
+	"Soft-shell cracked.",
+	"Clean 67.",
+	"Loophead zeroed.",
+	"Scrap on.",
 ]
 var speak_line_index = 0
 var pending_weapon_swap = null
@@ -109,6 +113,9 @@ var m11_tender: M11Tender
 var m13_foundry: M13Foundry
 var m14_launch: M14Launch
 var m15_stadium: M15Stadium
+var m16_avenue: M16Avenue
+var m17_office: M17Office
+var m18_transit: M18Transit
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
@@ -176,9 +183,12 @@ const PICKUP_SOUND_PATHS: Dictionary[String, String] = {
 	"armor": "res://assets/audio/pickup/armor.wav",
 }
 const DRY_FIRE_SOUND_PATH: String = "res://assets/audio/dry_fire.wav"
+const HIT_CONFIRM_SOUND_PATH: String = "res://assets/audio/hit_confirm.wav"
 var pickup_streams: Dictionary[String, AudioStream] = {}
 var pickup_sound: AudioStreamPlayer = null
 var dry_fire_sound: AudioStreamPlayer = null
+var hit_confirm_sound: AudioStreamPlayer = null
+var hit_confirm_stream: AudioStream = null
 var pickup_cue_count: int = 0
 var dry_fire_cue_count: int = 0
 var scope_sound: AudioStreamPlayer = null
@@ -350,6 +360,21 @@ func _ready():
 	m15_stadium.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m15_stadium)
+	m16_avenue = M16Avenue.new()
+	m16_avenue.name = "M16Avenue"
+	m16_avenue.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m16_avenue)
+	m17_office = M17Office.new()
+	m17_office.name = "M17Office"
+	m17_office.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m17_office)
+	m18_transit = M18Transit.new()
+	m18_transit.name = "M18Transit"
+	m18_transit.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m18_transit)
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
@@ -464,37 +489,10 @@ func _on_map_info(info: Dictionary) -> void:
 		if is_instance_valid(pawn) and pawn.has_method("reset_remote_presentation"):
 			pawn.reset_remote_presentation()
 	_adopt_local_spawn_snapshot = is_human_player
-	var mission: Variant = info.get("mission")
-	var m02: bool = info.get("m02_objectives") != null
-	var m03: bool = info.get("m03") is Dictionary
-	var m04: bool = info.get("m04") is Dictionary
-	var m05: bool = info.get("m05") is Dictionary
-	var m06: bool = info.get("m06") is Dictionary
-	var m08: bool = info.get("m08") is Dictionary
-	var m07: bool = info.get("m07") is Dictionary
-	var m09: bool = info.get("m09") is Dictionary
-	var m10: bool = info.get("m10") is Dictionary
-	var m11: bool = info.get("m11") is Dictionary
-	var m13: bool = info.get("m13") is Dictionary
-	var m14: bool = info.get("m14") is Dictionary
-	var m12: bool = info.get("m12") is Dictionary
-	if local_match != null:
-		var expected_m02: bool = local_match.mission == MissionState.M02_ID
-		var expected_m03: bool = local_match.mission == MissionState.M03_ID
-		var expected_m04: bool = local_match.mission == MissionState.M04_ID
-		var expected_m05: bool = local_match.mission == MissionState.M05_ID
-		var expected_m06: bool = local_match.mission == MissionState.M06_ID
-		var expected_m07: bool = local_match.mission == MissionState.M07_ID
-		var expected_m08: bool = local_match.mission == MissionState.M08_ID
-		var expected_m09: bool = local_match.mission == MissionState.M09_ID
-		var expected_m10: bool = local_match.mission == MissionState.M10_ID
-		var expected_m11: bool = local_match.mission == MissionState.M11_ID
-		var expected_m13: bool = local_match.mission == MissionState.M13_ID
-		var expected_m14: bool = local_match.mission == MissionState.M14_ID
-		var expected_m12: bool = local_match.mission == MissionState.M12_ID
-		if m02 != expected_m02 or m03 != expected_m03 or m04 != expected_m04 or m05 != expected_m05 or m06 != expected_m06 or m07 != expected_m07 or m08 != expected_m08 or m09 != expected_m09 or m10 != expected_m10 or m11 != expected_m11 or m14 != expected_m14 or m13 != expected_m13 or m12 != expected_m12 or (not m02 and not m03 and not m04 and not m05 and not m06 and not m07 and not m08 and not m09 and not m10 and not m11 and not m12 and not m13 and not m14 and (not mission is Dictionary or mission.get("id") != MissionState.ID)):
-			_on_local_failure("LOCAL_SERVER_INVALID_READY")
-			return
+	var mission_id: String = MissionState.id_for_map(info)
+	if local_match != null and mission_id != local_match.mission:
+		_on_local_failure("LOCAL_SERVER_INVALID_READY")
+		return
 	last_shot_tick = -1
 	if shot_effects != null:
 		shot_effects.clear()
@@ -511,24 +509,24 @@ func _on_map_info(info: Dictionary) -> void:
 	if camera:
 		camera.assist_solids = info.get("solids", []) if info.get("solids") is Array else []
 	_awaiting_map = false
-	if mission is Dictionary:
+	if mission_id == MissionState.ID:
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
 			opening = CampaignOpening.new()
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
-	elif m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10 or m11 or m12 or m13 or m14:
+	elif StoryScene.BEFORE_MISSION.has(mission_id):
 		if is_human_player and not _opening_finished and not is_instance_valid(opening):
-			var scene_id: String = MissionState.M14_ID if m14 else MissionState.M13_ID if m13 else MissionState.M12_ID if m12 else MissionState.M11_ID if m11 else MissionState.M10_ID if m10 else MissionState.M09_ID if m09 else MissionState.M07_ID if m07 else MissionState.M08_ID if m08 else (MissionState.M06_ID if m06 else (MissionState.M05_ID if m05 else (MissionState.M04_ID if m04 else MissionState.M03_ID)))
+			var scene_id: String = mission_id
 			opening = ScenePlayer.new(StoryScene.load_scene(StoryScene.BEFORE_MISSION[scene_id]))
 			opening.completed.connect(_on_opening_completed)
 			add_child(opening)
-	elif m02:
+	elif not mission_id.is_empty():
 		# The graybox has no story page yet. Readiness follows the first state.
 		_opening_finished = true
 	elif is_human_player:
 		show_loading_card()
 	if pause_menu != null:
-		pause_menu.development_mission = (m02 or m03 or m04 or m05 or m06 or m07 or m08 or m09 or m10 or m11 or m12 or m13 or m14) and local_match != null and not local_match.has_durable_run()
+		pause_menu.development_mission = not mission_id.is_empty() and mission_id != MissionState.ID and local_match != null and not local_match.has_durable_run()
 	if arena_cover != null:
 		arena_cover.apply_map_info(info)
 		arena_cover.apply_m05({})
@@ -561,6 +559,12 @@ func _on_map_info(info: Dictionary) -> void:
 		m14_launch.configure_map(info)
 	if m15_stadium != null:
 		m15_stadium.configure_map(info)
+	if m16_avenue != null:
+		m16_avenue.configure_map(info)
+	if m17_office != null:
+		m17_office.configure_map(info)
+	if m18_transit != null:
+		m18_transit.configure_map(info)
 	if m12_habitat != null:
 		m12_habitat.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
@@ -647,7 +651,7 @@ func _mission_controls_blocked() -> bool:
 
 ## Mission maps carry M01 geometry or the M02 objective marker.
 func _mission_map() -> bool:
-	return current_map_info.get("mission") is Dictionary or current_map_info.get("m02_objectives") != null or current_map_info.get("m03") is Dictionary or current_map_info.get("m04") is Dictionary or current_map_info.get("m05") is Dictionary or current_map_info.get("m06") is Dictionary or current_map_info.get("m07") is Dictionary or current_map_info.get("m08") is Dictionary or current_map_info.get("m09") is Dictionary or current_map_info.get("m10") is Dictionary or current_map_info.get("m11") is Dictionary or current_map_info.get("m12") is Dictionary or current_map_info.get("m13") is Dictionary or current_map_info.get("m14") is Dictionary
+	return not MissionState.id_for_map(current_map_info).is_empty()
 
 func _on_opening_completed() -> void:
 	_opening_finished = true
@@ -960,6 +964,27 @@ func _load_audio_streams():
 		dry_fire_sound.volume_db = -6.0
 		dry_fire_sound.stream = load(DRY_FIRE_SOUND_PATH)
 		audio_parent.add_child(dry_fire_sound)
+	if hit_confirm_sound == null and ResourceLoader.exists(HIT_CONFIRM_SOUND_PATH):
+		hit_confirm_stream = load(HIT_CONFIRM_SOUND_PATH)
+		hit_confirm_sound = AudioStreamPlayer.new()
+		hit_confirm_sound.name = "HitConfirmSound"
+		hit_confirm_sound.bus = &"Effects"
+		hit_confirm_sound.volume_db = -4.0
+		hit_confirm_sound.stream = hit_confirm_stream
+		audio_parent.add_child(hit_confirm_sound)
+
+## Tactile metallic audio feedback when the player lands a shot.
+func _play_hit_confirm_cue(damage: int) -> void:
+	if hit_confirm_sound == null or hit_confirm_stream == null:
+		return
+	if damage <= 0:
+		hit_confirm_sound.pitch_scale = 0.8
+		hit_confirm_sound.volume_db = -8.0
+	else:
+		var factor: float = clampf(float(damage) / 75.0, 0.0, 1.0)
+		hit_confirm_sound.pitch_scale = lerpf(0.95, 1.35, factor)
+		hit_confirm_sound.volume_db = -4.0
+	hit_confirm_sound.play()
 
 ## Pickup feedback for the watched fighter. The event carries no ammunition
 ## pool, so the pad it came from says whether it was Cells.
@@ -1640,6 +1665,12 @@ func _on_mission_received(state: Dictionary) -> void:
 		m14_launch.apply_state(state)
 	if m15_stadium != null:
 		m15_stadium.apply_state(state)
+	if m16_avenue != null:
+		m16_avenue.apply_state(state)
+	if m17_office != null:
+		m17_office.apply_state(state)
+	if m18_transit != null:
+		m18_transit.apply_state(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
 	hud.combat_feed.set_campaign(not state.is_empty())
@@ -2014,6 +2045,12 @@ func _clear_world() -> void:
 		m14_launch.clear_map()
 	if m15_stadium != null:
 		m15_stadium.clear_map()
+	if m16_avenue != null:
+		m16_avenue.clear_map()
+	if m17_office != null:
+		m17_office.clear_map()
+	if m18_transit != null:
+		m18_transit.clear_map()
 	if m12_habitat != null:
 		m12_habitat.clear_map()
 	hud.combat_feed.set_campaign(false)
@@ -2982,6 +3019,8 @@ func _process_shot_results(results, tick: int) -> void:
 			# Damage above zero is a hit. Zero is a body that stopped the shot
 			# and took nothing: a spawn shield, or a teammate. A miss stays dark.
 			hud.show_hit_marker(dmg, wpn)
+			if is_local:
+				_play_hit_confirm_cue(dmg)
 	if local_fire.reconcile(tick):
 		_cancel_local_fire_effect()
 

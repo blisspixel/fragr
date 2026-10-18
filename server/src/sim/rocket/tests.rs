@@ -689,3 +689,38 @@ fn non_finite_aim_and_a_dry_tube_create_no_rocket() {
     assert!(state.rockets.is_empty());
     assert!(state.players[0].inventory.dry_fire_count() > 0);
 }
+
+#[test]
+fn rocket_jumping_imparts_upward_impulse_and_reduced_self_damage() {
+    let mut state = world(serde_json::json!([]));
+    let shooter = arm(&mut state, 1, 0.0, 0.0);
+    grant(&mut state, shooter, 4);
+    // Aim steeply downward at the floor
+    state.players[0].pitch = -1.4;
+    assert!(state.launch_rocket(shooter));
+    assert_eq!(state.rockets.len(), 1);
+    assert_eq!(state.players[0].vy, 0.0);
+    assert_eq!(state.players[0].hp, 100);
+
+    let arena = state.current_arena().into_owned();
+    // Simulate flight until rocket impacts floor
+    for _ in 0..10 {
+        state.tick += 1;
+        state.tick_rockets(0.05, &arena, &[], &[]);
+        if state.rockets.is_empty() {
+            break;
+        }
+    }
+    assert!(state.rockets.is_empty(), "rocket should have detonated");
+    // Verify upward impulse and reduced self damage (< 60% of 100 SPLASH_PEAK)
+    assert!(
+        state.players[0].vy > 2.0,
+        "rocket jump should impart upward impulse: vy was {}",
+        state.players[0].vy
+    );
+    assert!(
+        state.players[0].hp > 40,
+        "self damage should be reduced: hp was {}",
+        state.players[0].hp
+    );
+}

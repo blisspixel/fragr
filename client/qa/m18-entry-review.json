@@ -1,0 +1,9 @@
+{
+  "comment": "Rendered development entry and geometry inspection only. Not a completed route or fresh-player acceptance.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "m18_recovery_entry", "scene": "res://scenes/main.tscn", "join": "human", "camera": "first_person", "look_at": [-35, 1.5, 0], "settle_seconds": 0.3},
+    {"name": "m18_transit_overview", "join": "spectator", "camera": "overview", "camera_position": [-25, 22, 22], "camera_look_at": [20, 1, 0], "settle_seconds": 0.3}
+  ]
+}

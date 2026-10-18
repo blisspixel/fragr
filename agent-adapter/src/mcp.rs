@@ -34,6 +34,13 @@ pub struct McpError {
 /// Mirrored speak cooldown (~3s at 20 Hz). Same as server SPEAK_COOLDOWN_TICKS.
 pub const SPEAK_COOLDOWN_TICKS: u64 = 60;
 
+/// Retained admission/transport failure, independent of the drainable event log.
+#[derive(Debug, Clone, Serialize)]
+pub struct ConnectionError {
+    pub code: String,
+    pub message: String,
+}
+
 /// In-memory MCP tool state mirrored from the WebSocket receive loop.
 #[derive(Debug, Clone)]
 pub struct ToolState {
@@ -47,6 +54,7 @@ pub struct ToolState {
     pub last_speak_tick: Option<u64>,
     /// True after Welcome / successful join; false after leave or before join.
     pub connected: bool,
+    pub connection_error: Option<ConnectionError>,
     /// Display name from `--name` / `FRAGR_AGENT_NAME` (join reuses when args omit name).
     pub default_name: String,
     /// Name used for the current joined session.
@@ -71,6 +79,7 @@ impl Default for ToolState {
             player_id: None,
             last_speak_tick: None,
             connected: false,
+            connection_error: None,
             default_name: "MCP Agent".to_string(),
             session_name: None,
             map: None,
@@ -485,6 +494,13 @@ pub fn validate_no_arg_tool(tool: &str, arguments: &Value) -> Result<(), String>
 }
 
 pub fn build_observe_result(state: &ToolState) -> Value {
+    if let Some(error) = &state.connection_error {
+        return serde_json::json!({
+            "status": "disconnected", "connection_error": error,
+            "message": error.message, "self_player_id": null,
+            "recent_events": state.recent_events,
+        });
+    }
     match state.last_snapshot.as_ref() {
         Some(snapshot) => {
             let mut observation = snapshot.clone();
@@ -598,14 +614,8 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
         other => other,
     };
 
-    let map_id = match snap_field(snap, "map_id") {
-        Value::Null => Value::from(crate::protocol::default_map_id()),
-        other => other,
-    };
-    let map_name = match snap_field(snap, "map_name") {
-        Value::Null => Value::from(crate::protocol::default_map_name()),
-        other => other,
-    };
+    let map_id = snap_field(snap, "map_id");
+    let map_name = snap_field(snap, "map_name");
     // The arena's rule set arrives once in map_info; a round_start repeats it.
     let rules = state
         .map
@@ -645,6 +655,7 @@ pub fn build_round_state_result(state: &ToolState) -> Value {
 
     serde_json::json!({
         "connected": state.connected,
+        "connection_error": state.connection_error,
         "self_player_id": state.player_id.map(|id| id.to_string()),
         "session_name": state.session_name,
         "round_state": snap_field(snap, "round_state"),
@@ -857,7 +868,7 @@ fn speak_rate_limited(state: &ToolState, tick: u64) -> bool {
     }
 }
 
-fn tool_error_result(message: &str) -> Value {
+pub(crate) fn tool_error_result(message: &str) -> Value {
     serde_json::json!({
         "content": [{
             "type": "text",
@@ -867,7 +878,7 @@ fn tool_error_result(message: &str) -> Value {
     })
 }
 
-fn tool_ok_text(message: &str) -> Value {
+pub(crate) fn tool_ok_text(message: &str) -> Value {
     serde_json::json!({
         "content": [{
             "type": "text",
@@ -988,6 +999,12 @@ struct BriefThreat {
 /// Compact observation the brain already prints, plus the ids `act.look_at` needs.
 /// Threats are in the same engagement order as the scripted bot. At most eight.
 pub(crate) fn observe_brief(state: &ToolState) -> (String, Value) {
+    if let Some(error) = &state.connection_error {
+        return (
+            format!("SELF disconnected: {}: {}\n", error.code, error.message),
+            build_observe_result(state),
+        );
+    }
     let Some(raw) = state.last_snapshot.as_ref() else {
         let text = "SELF connecting\nENEMY none\nPADS none\nROUND connecting\n".to_string();
         let structured = serde_json::json!({
@@ -1329,6 +1346,10 @@ pub fn handle_mcp_request(request: McpRequest, state: &mut ToolState) -> HandleO
                         .unwrap_or(Value::Null);
 
                     match validate_act_arguments(&arguments) {
+                        Ok(_) if state.connection_error.is_some() => {
+                            let error = state.connection_error.as_ref().unwrap();
+                            tool_error_result(&format!("act rejected: {}: {}", error.code, error.message))
+                        }
                         Ok(_) if !state.connected || state.player_id.is_none() => {
                             tool_error_result("act rejected: not connected; join and observe first")
                         }
@@ -1663,6 +1684,9 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             m13,
             m14,
             m15,
+            m16,
+            m17,
+            m18,
             walker,
             article_blade,
             map_name,
@@ -1816,6 +1840,33 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             if let Some(geometry) = m15 {
                 map["m15"] = serde_json::json!(geometry);
             }
+            state.mission.replace_map_with_m16(
+                m16.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m16 {
+                map["m16"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m17(
+                m17.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m17 {
+                map["m17"] = serde_json::json!(geometry);
+            }
+            state.mission.replace_map_with_m18(
+                m18.as_ref(),
+                half_extent,
+                &solids,
+                presentation.as_ref(),
+            )?;
+            if let Some(geometry) = m18 {
+                map["m18"] = serde_json::json!(geometry);
+            }
             if let Some(geometry) = m09 {
                 map["m09"] = serde_json::json!(geometry);
             }
@@ -1859,23 +1910,37 @@ pub fn ingest_server_text(state: &mut ToolState, text: &str) -> Result<(), &'sta
             }
         }
         Ok(protocol::ServerMessage::Welcome { player_id, .. }) => {
+            state.connection_error = None;
+            state.map = None;
+            state.last_snapshot = None;
             state.loadout = None;
             state.record = None;
             state.mission = Default::default();
             state.player_id = player_id;
             state.connected = true;
         }
-        Ok(protocol::ServerMessage::Error { code, .. }) => {
-            if code == "party_full" {
-                return Err("mission party is full");
+        Ok(protocol::ServerMessage::Error { code, message }) => {
+            push_recent_event(
+                state,
+                serde_json::json!({
+                    "event": "server_error", "code": code, "message": message,
+                }),
+            );
+            if !state.connected
+                || matches!(
+                    code.as_str(),
+                    "party_full" | "match_full" | "unsupported_gameplay" | "unsupported_geometry"
+                )
+            {
+                state.connected = false;
+                state.player_id = None;
+                state.map = None;
+                state.last_snapshot = None;
+                state.loadout = None;
+                state.record = None;
+                state.mission = Default::default();
+                state.connection_error = Some(ConnectionError { code, message });
             }
-            if code == "unsupported_gameplay" {
-                return Err("server requires a newer gameplay format");
-            }
-            if code == "unsupported_geometry" {
-                return Err("server requires a newer geometry format");
-            }
-            // Unicast speak rejection; MCP speak path already mirrors cooldown as isError.
         }
         Ok(protocol::ServerMessage::Board(_)) => {}
         Err(_) => {
@@ -2862,7 +2927,7 @@ mod mcp_tests {
             let ids = tool["inputSchema"]["properties"]["id"]["enum"]
                 .as_array()
                 .unwrap();
-            assert_eq!(ids.len(), 15);
+            assert_eq!(ids.len(), 18);
             for id in [
                 "recall_notice",
                 "no_forwarding_address",
@@ -2876,10 +2941,13 @@ mod mcp_tests {
                 "weight_of_permission",
                 "launch_authority",
                 "civic_pressure_valve",
+                "freedom_of_movement",
+                "peace_without_interruption",
+                "all_systems_normal",
             ] {
                 assert!(ids.contains(&serde_json::json!(id)), "{name} omits {id}");
             }
-            assert!(!ids.contains(&serde_json::json!("freedom_of_movement")));
+            assert!(!ids.contains(&serde_json::json!("planned_works")));
             for id in ids {
                 let mission: protocol::MissionId = serde_json::from_value(id.clone()).unwrap();
                 let ready: protocol::MissionReady =
@@ -2945,15 +3013,20 @@ mod mcp_tests {
             assert_eq!(state.map, previous);
         }
         assert!(ingest_server_text(&mut state, r#"{"type":"map_info","solids":"bad"}"#).is_err());
-        assert!(ingest_server_text(
+        ingest_server_text(
             &mut state,
-            r#"{"type":"error","code":"unsupported_geometry","message":"Update"}"#
+            r#"{"type":"error","code":"unsupported_geometry","message":"Update"}"#,
         )
-        .is_err());
+        .unwrap();
+        assert_eq!(
+            state.connection_error.as_ref().unwrap().code,
+            "unsupported_geometry"
+        );
+        assert!(state.map.is_none());
         assert!(ingest_server_text(&mut state, &"x".repeat(1_000_001)).is_err());
         for malformed in ["{broken", "[]", "null"] {
             assert!(ingest_server_text(&mut state, malformed).is_err());
-            assert_eq!(state.map, previous);
+            assert!(state.map.is_none());
         }
     }
 
@@ -3041,11 +3114,15 @@ mod mcp_tests {
         for reload in [serde_json::json!(true), serde_json::json!(false)] {
             assert!(validate_act_arguments(&serde_json::json!({"reload":reload})).is_err());
         }
-        assert!(ingest_server_text(
+        ingest_server_text(
             &mut state,
-            r#"{"type":"error","code":"unsupported_gameplay","message":"Update"}"#
+            r#"{"type":"error","code":"unsupported_gameplay","message":"Update"}"#,
         )
-        .is_err());
+        .unwrap();
+        assert_eq!(
+            state.connection_error.as_ref().unwrap().code,
+            "unsupported_gameplay"
+        );
     }
 
     #[test]
@@ -3064,6 +3141,62 @@ mod mcp_tests {
         let result = tool_structured(out.response.result.unwrap());
         assert_eq!(result["status"], "connecting");
         assert!(result["self_player_id"].is_string());
+    }
+
+    #[test]
+    fn admission_failure_survives_event_drain_and_clears_on_welcome() {
+        for code in [
+            "match_full",
+            "party_full",
+            "bot_fill_next_round",
+            "join_rejected",
+            "unsupported_gameplay",
+            "unsupported_geometry",
+        ] {
+            let mut state = ToolState::default();
+            ingest_server_text(&mut state, &serde_json::json!({
+                "type":"error", "code":code, "message":"No fighter seat; watching remains available",
+            }).to_string()).unwrap();
+            assert!(!state.connected);
+            assert_eq!(
+                build_observe_result(&state)["connection_error"]["code"],
+                code
+            );
+            assert!(observe_brief(&state).0.contains(code));
+            assert_eq!(
+                build_round_state_result(&state)["connection_error"]["code"],
+                code
+            );
+            assert!(build_round_state_result(&state)["map_name"].is_null());
+            assert!(build_get_events_result(&mut state, true)
+                .to_string()
+                .contains(code));
+            assert!(state.recent_events.is_empty());
+            assert!(observe_brief(&state).0.contains(code));
+            let result = handle_mcp_request(
+                req(
+                    "tools/call",
+                    Some(serde_json::json!({"name":"act", "arguments":{"forward":true}})),
+                ),
+                &mut state,
+            );
+            assert!(result.pending_action.is_none());
+            assert!(result.response.result.unwrap().to_string().contains(code));
+            ingest_server_text(
+                &mut state,
+                &serde_json::json!({"type":"welcome", "player_id":Uuid::nil(), "role":"agent"})
+                    .to_string(),
+            )
+            .unwrap();
+            assert!(state.connected && state.connection_error.is_none());
+            ingest_server_text(
+                &mut state,
+                r#"{"type":"error","code":"speak_rejected","message":"Cooldown"}"#,
+            )
+            .unwrap();
+            assert!(state.connected && state.connection_error.is_none());
+            assert_eq!(state.recent_events[0]["code"], "speak_rejected");
+        }
     }
 
     #[test]
@@ -4004,8 +4137,8 @@ mod mcp_tests {
         assert!(result["mvp"].is_null());
         assert!(result["mvp_frags"].is_null());
         // Soft: map fields always present (defaults when snapshot omits them).
-        assert_eq!(result["map_id"], crate::protocol::default_map_id());
-        assert_eq!(result["map_name"], crate::protocol::default_map_name());
+        assert!(result["map_id"].is_null());
+        assert!(result["map_name"].is_null());
     }
 
     #[test]

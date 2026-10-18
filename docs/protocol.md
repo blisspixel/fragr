@@ -6,13 +6,15 @@ WebSocket JSON protocol between clients and the authoritative server.
 **Format:** JSON text messages
 **Tick rate:** ~20 Hz (50ms per tick)
 
-Current contract, 2026-10-15: matching readers advertise gameplay 49 and geometry
+Current contract, 2026-10-17: matching readers advertise gameplay 54 and geometry
 2. Shared arcade rooms require the aggregate gameplay contract. Every live
 campaign map requires at least gameplay 43 and campaign rules revision 4;
 Terms of Cooperation requires 44 and Low Water Sabotage requires 45. The
 Rocket Launcher contract is 46. The Weight of Permission requires 47 and places
 the first campaign launcher. The standalone Walker foundation requires 48 and
-connected Launch Authority requires 49. Numbered
+connected Launch Authority requires 49. Article Blade requires 50, connected
+Civic Pressure Valve 51, Freedom of Movement 52, Peace Without Interruption 53,
+and All Systems Normal 54. Numbered
 capabilities below record when a feature first appeared. Earlier per-map floors
 and rules-3 bootstrap examples are historical allocations, not current live
 campaign admission. Dated evidence retains the exact contract it exercised.
@@ -37,6 +39,13 @@ Wait for validated map data and a snapshot containing the welcomed `player_id`
 before initializing position or aim. Match by UUID, never roster index or name.
 
 **MCP agent-adapter session tools:** boot Hello-on-start remains valid. First-class tools `join` (Hello/Welcome, optional name, idempotent), `leave` (clean WebSocket disconnect; `isError` if not connected), and `round_state` (round fields from last snapshot + recent `round_start` / `round_end`) are documented in `agent-adapter/README.md`. Leave sends `{"type":"leave"}` and closes the WebSocket, marking that teardown as nonresumable.
+
+Admission and terminal connection failures are retained separately from the
+adapter's event ring. Full `observe` returns `status: "disconnected"` with
+`connection_error: {"code": string, "message": string}`; brief observe names
+that reason, and `round_state.connection_error` carries it even after event
+drain. A fresh connection attempt or Welcome clears it. An explicit rejected
+`join` returns an MCP tool error. Unknown `map_id` and `map_name` are null.
 
 **Names and resume:** display names are not identity credentials. Joining
 never evicts an existing fighter by name. The server removes control characters,
@@ -1425,7 +1434,7 @@ Server response to `Hello`. Confirms connection and provides player ID.
   and publishes the resolved stance. Omitted by older servers. Absence means
   the client must not send the key.
 - `mode_name`: Named scrap-league identity (default Contested Frequency)
-- `playlist`: Playlist under the league lie (default Arena Duel)
+- `playlist`: The current map's display name (default Arena Duel).
 
 #### Error
 
@@ -1605,7 +1614,7 @@ cannot be replaced, and combat-heavy queues can still reach this bound.
   attack. Current discovery and campaign maps require 26. The client places bright markers at these
   server positions without predicting collision or damage.
 - `mode_name`: Contested Frequency (scrap league that denies it exists)
-- `playlist`: Arena Duel under the league lie
+- `playlist`: The current map's display name; authored campaign snapshots retain their campaign label.
 - `pressure`: (optional) Live pressure beat id. `"compliance_drone"` while the Compliance Drone is alive; `"compliance"` during Continuance compliance ping slow.
 - `host_line`: Sticky Contested Frequency Host chrome for mid-join / mid-round observe. League Host line by default while Active (no pressure). During Warmup, Contested Frequency bumper names the map, dialed-in scrap roster (callsigns), and countdown seconds. Switches to the compliance Host line while pressure is live. While Ended, carries the MVP Host bumper. Clients show this on join without waiting for the next `round_start`.
 - `team_scores`: (optional) `{"union": n, "coalition": n}`, side frags this round, present only in team deathmatch.
@@ -3316,6 +3325,64 @@ remaining continues. The M14 entry retains the found Arc and Rocket Launcher,
 including finite stock. Continue restores that entry and the intact encounter,
 jeep and Walker without rewinding process ticks or inventory revisions. Completed
 M14 adds `m14_outcome` with the four portable challenge booleans and retains
-pending `civic_pressure_valve`. M15 remains unplayable; its Episode IV refill has
-not been implemented. Historical version 17 refuses M14 entries and even a null
+pending `civic_pressure_valve` in the historical version-18 boundary. Current
+version-22 saves promote it into M15 with the Episode IV refill. Historical
+version 17 refuses M14 entries and even a null
 `m14_outcome` field rather than silently accepting future facts.
+
+### Connected late campaign (capabilities 51 through 54)
+
+All four missions reuse `mission_ready`, `mission_continue`, ordinary `Action`
+and `MissionState`. Humans, agents and spectators must meet the mission floor
+before Welcome or MapInfo. `MissionId::gameplay_version` also supplies local
+readiness. Shared arcade rooms require the aggregate capability 54. Rules stay 4.
+
+| Mission | Map | Floor | MapInfo block | Changed world facts |
+|---|---:|---:|---|---|
+| Civic Pressure Valve | 1015 | 51 | `m15` | `tunnel_closed`, `gates_open` |
+| Freedom of Movement | 1016 | 52 | `m16` | `checkpoint_lifted`, `doors_open` |
+| Peace Without Interruption | 1017 | 53 | `m17` | `core_unsealed`, `voss_captured` |
+| All Systems Normal | 1018 | 54 | `m18` | `roadblock_active`, `concourse_evac_completed` |
+
+Each block registers six ordered `objectives`, a `departure` Use target and
+`boarding` region. M15 additionally registers its arming crate and booth terminal;
+the Article Blade plinth uses `MapInfo.blade`. M16 registers `bus_release` and the original
+`motorcycle` placement (`feet`, `yaw`). The motorcycle uses ordinary vehicle
+seating and snapshots, with one driver and no gunner or mounted gun. M17
+registers `kessel_desk`, `core_override` and `voss_rostrum`; M18 registers
+`depot_station` and `overlook_console`. Flat worlds may use geometry version 1
+(the field is then omitted); raised geometry requires version 2.
+
+The corresponding `MissionState` block has an exact completed prefix and a
+matching `current` objective until departure. The seventh completion is
+`party_departed`, which omits `current`. Stage flags must match the accepted
+MapInfo, and retained challenge booleans cannot move backwards within an attempt.
+MapInfo precedes changed mission facts; all worlds and navigation are prepared
+before readiness. M18 refuses its raised rubble world while any living body
+occupies the new solid. M17 installs the executive world when Voss is captured.
+
+M15 retains armed and fallen entrants separately, `wave`, `broadcast_taken` and
+the door flags. M16 retains `bus_freed`, `forecourt_secured` and challenges
+`ride_started`, `green_wave_triggered`, `bus_freed`. M17 retains `kessel_secured`,
+`core_unsealed`, `voss_captured`, with challenges `approach_breached`,
+`kessel_secured`, `core_defeated`, `voss_captured`. M18 retains `aid_delivered`,
+`roadblock_active`, `overlook_witnessed`, `concourse_secured`, with challenges
+`aid_delivered`, `square_defended`, `collector_neutralized`, `overlook_witnessed`,
+`concourse_secured`. M17 and M18 `brief_completed` is derived from the accepted
+difficulty and those challenges. Optional bus and Kessel outcomes are retained
+separately from passing their ordered stages.
+
+Use prompts remain `{player_id, kind: "objective_use"}`. They require a ready,
+living participant and the relevant active control. Shared departure additionally
+requires every party member ready, alive and physically aboard, followed by a
+fresh Use. M16 bus prompts can occur at stages 2 through 5; M17 Kessel prompts
+can remain available after its optional stage. The client names the nearby
+registered control instead of inferring it solely from the ordered objective.
+
+Run-file versions 19, 20, 21 and 22 introduced M15, M16, M17 and M18 respectively.
+Current saves strictly upgrade v2-v21 documents, archive the exact original bytes
+under the existing writer lock and retain actual finite entry resources and prior
+outcomes. M15 and M18 begin Episodes IV and V with three continues; M16 and M17
+do not refill. M18 completion retains pending `planned_works`; M19 and M20 are
+not playable mission identities. Historical documents reject future mission
+entries and future outcome fields, including null values.

@@ -67,7 +67,8 @@ static func validation_error(snapshot: Dictionary) -> String:
 				return INVALID
 			continue
 		if campaign["side"] == "entrant":
-			if campaign.size() != 3 or not campaign.get("placard") in [4, 12, 44, 71] \
+			if campaign.size() != 3 or not EquipmentState.integer(campaign.get("placard"), 255) \
+				or int(campaign["placard"]) not in [4, 12, 44, 71] \
 				or typeof(campaign.get("armed")) != TYPE_BOOL:
 				return INVALID
 			continue

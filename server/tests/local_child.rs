@@ -172,7 +172,7 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
     assert_eq!(shown["body"], "synthetic");
     assert_eq!(shown["continues"], 2);
     if retained.is_none() {
-        let (child, ready) =
+        let (mut child, ready) =
             spawn_persistent_mission(&directory, "persons_unknown", "resume", Some("severe"));
         assert_eq!(ready.mission, MissionId::PersonsUnknown);
         assert_eq!(
@@ -228,6 +228,14 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         })
         .await
         .unwrap();
+        child
+            .0
+            .stdin
+            .as_mut()
+            .unwrap()
+            .write_all(b"{\"type\":\"shutdown\"}\n")
+            .unwrap();
+        exited(&mut child, &ready, true);
         drop(socket);
         drop(child);
         let promoted = preview(&directory);
@@ -462,7 +470,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 19);
+        assert_eq!(live["version"], 22);
         assert_eq!(live["step"]["mission"], "scheduled_service");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -603,7 +611,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 19);
+        assert_eq!(live["version"], 22);
         assert_eq!(live["step"]["mission"], "notice_to_vacate");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -776,7 +784,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
         drop(child);
         let mut live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 19);
+        assert_eq!(live["version"], 22);
         assert_eq!(live["remaining_continues"], expected_continues);
         assert_eq!(live["level_start_continues"], 3);
         assert_eq!(live["m05_outcome"], prior["m05_outcome"]);
@@ -917,7 +925,7 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 19);
+        assert_eq!(live["version"], 22);
         assert_eq!(live["step"]["entry"]["equipment"]["grenades"], 0);
         assert_eq!(live["m04_outcome"], prior["m04_outcome"]);
         assert_eq!(live["step"]["mission"], "no_forwarding_address");

@@ -20,9 +20,12 @@ extends Node
 # 12 match rule sets;
 # 10 one ammunition count per type and scatter pellet traces; 9 M02
 # objective and gate state; 8 private participant records. A shared arena
+# 54 connects All Systems Normal and its connected Recovery Square transit corridor;
+# 53 connects Peace Without Interruption and its Forever Office chambers;
+# 52 connects Freedom of Movement and its connected ceremonial avenue;
 # 51 connects Civic Pressure Valve and its connected stadium bout;
 # 50 understands Article Blade melee, plinth lifecycle, eleven-column records and range contract;
-const GAMEPLAY_VERSION: int = 51
+const GAMEPLAY_VERSION: int = 54
 ## Desktop builds and SHA256SUMS.txt. Join does not fetch this URL.
 ## The join page can fetch a published archive after the player asks.
 const RELEASES_URL: String = "https://github.com/blisspixel/fragr/releases/latest"
@@ -334,7 +337,7 @@ func send_mission_ready() -> bool:
 	for member: Dictionary in state["party"]:
 		if member["id"] == player_id and not member["ready"]:
 			send_json({"type": "mission_ready", "id": state["id"], "attempt": int(state["attempt"])})
-			return true
+			return last_send_ok
 	return false
 
 func send_mission_continue() -> bool:
@@ -525,6 +528,18 @@ func _handle_message(text: String):
 				return
 			var geometry: Dictionary = MissionState.geometry_for(data)
 			remote_supported = data.get("m11") is Dictionary
+			if geometry.get("id") == MissionState.M18_ID and mission_geometry.get("id") == MissionState.M18_ID and not M18MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.get("id") == MissionState.M17_ID and mission_geometry.get("id") == MissionState.M17_ID and not M17MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
+			if geometry.get("id") == MissionState.M16_ID and mission_geometry.get("id") == MissionState.M16_ID and not M16MissionState.same_contract(mission_geometry, geometry):
+				disconnect_from_server()
+				server_error.emit(MissionState.INVALID)
+				return
 			if geometry.get("id") == MissionState.M15_ID and mission_geometry.get("id") == MissionState.M15_ID and not M15MissionState.same_contract(mission_geometry, geometry):
 				disconnect_from_server()
 				server_error.emit(MissionState.INVALID)
@@ -603,7 +618,7 @@ func _handle_message(text: String):
 				server_error.emit(MissionState.INVALID)
 				return
 			if geometry.is_empty() or geometry.get("id") != mission_geometry.get("id") \
-				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
+				or (geometry.get("id") in [MissionState.M02_ID, MissionState.M03_ID, MissionState.M04_ID, MissionState.M05_ID, MissionState.M06_ID, MissionState.M07_ID, MissionState.M08_ID, MissionState.M09_ID, MissionState.M10_ID, MissionState.M11_ID, MissionState.M12_ID, MissionState.M13_ID, MissionState.M14_ID, MissionState.M15_ID, MissionState.M16_ID, MissionState.M17_ID, MissionState.M18_ID] and geometry.get("map_id") != mission_geometry.get("map_id")):
 				_mission_previous.clear()
 			mission.clear()
 			if geometry.get("id") != MissionState.M14_ID:

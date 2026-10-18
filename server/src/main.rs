@@ -36,12 +36,12 @@ struct Args {
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_parser = ["recall_notice", "persons_unknown", "scheduled_service", "notice_to_vacate", "no_forwarding_address", "port_of_entry", "declared_goods", "custodian_of_record", "passenger_manifest", "common_carrier", "right_of_search", "terms_of_cooperation", "weight_of_permission", "launch_authority", "civic_pressure_valve"], conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
-    local_mission: Option<String>,
+    #[arg(long, value_enum, conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    local_mission: Option<fragr_server::protocol::MissionId>,
 
-    /// Own a desktop TDM or five-per-side Sabotage server. Readiness is JSON
+    /// Own a desktop arcade server (FFA, TDM, CTF, Sabotage, Conquest, with mutators). Readiness is JSON
     /// on stdout; stdin shutdown or EOF ends only this explicit child.
-    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
+    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
     desktop_host: bool,
 
     /// Loopback child for `fragr-agent-adapter mcp --local`. One flushed ArenaReady
@@ -219,24 +219,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         println!("{}", serde_json::to_string(&preview)?);
         return Ok(());
     }
-    if let Some(mission) = args.local_mission.as_deref() {
-        let mission = match mission {
-            "persons_unknown" => fragr_server::protocol::MissionId::PersonsUnknown,
-            "scheduled_service" => fragr_server::protocol::MissionId::ScheduledService,
-            "notice_to_vacate" => fragr_server::protocol::MissionId::NoticeToVacate,
-            "no_forwarding_address" => fragr_server::protocol::MissionId::NoForwardingAddress,
-            "port_of_entry" => fragr_server::protocol::MissionId::PortOfEntry,
-            "custodian_of_record" => fragr_server::protocol::MissionId::CustodianOfRecord,
-            "passenger_manifest" => fragr_server::protocol::MissionId::PassengerManifest,
-            "common_carrier" => fragr_server::protocol::MissionId::CommonCarrier,
-            "right_of_search" => fragr_server::protocol::MissionId::RightOfSearch,
-            "terms_of_cooperation" => fragr_server::protocol::MissionId::TermsOfCooperation,
-            "weight_of_permission" => fragr_server::protocol::MissionId::WeightOfPermission,
-            "launch_authority" => fragr_server::protocol::MissionId::LaunchAuthority,
-            "civic_pressure_valve" => fragr_server::protocol::MissionId::CivicPressureValve,
-            "declared_goods" => fragr_server::protocol::MissionId::DeclaredGoods,
-            _ => fragr_server::protocol::MissionId::RecallNotice,
-        };
+    if let Some(mission) = args.local_mission {
         return fragr_server::local::serve_with_mode(
             mission,
             args.seed,
@@ -530,30 +513,16 @@ mod tests {
 
     #[test]
     fn local_mission_accepts_only_registered_bundled_missions() {
-        for mission in [
-            "recall_notice",
-            "persons_unknown",
-            "scheduled_service",
-            "notice_to_vacate",
-            "no_forwarding_address",
-            "port_of_entry",
-            "declared_goods",
-            "custodian_of_record",
-            "passenger_manifest",
-            "common_carrier",
-            "right_of_search",
-            "terms_of_cooperation",
-            "weight_of_permission",
-            "launch_authority",
-            "civic_pressure_valve",
-        ] {
-            let args = Args::try_parse_from(["fragr-server", "--local-mission", mission]).unwrap();
-            assert_eq!(args.local_mission.as_deref(), Some(mission));
+        for mission in fragr_server::protocol::MissionId::ALL {
+            let name = serde_json::to_value(mission).unwrap();
+            let args =
+                Args::try_parse_from(["fragr-server", "--local-mission", name.as_str().unwrap()])
+                    .unwrap();
+            assert_eq!(args.local_mission, Some(mission));
         }
         assert!(Args::try_parse_from(["fragr-server", "--local-mission", "m03"]).is_err());
         assert!(
-            Args::try_parse_from(["fragr-server", "--local-mission", "freedom_of_movement"])
-                .is_err()
+            Args::try_parse_from(["fragr-server", "--local-mission", "planned_works"]).is_err()
         );
     }
 

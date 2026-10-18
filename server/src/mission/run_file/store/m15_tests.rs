@@ -158,7 +158,7 @@ fn m15_historical_decoder_refuses_future_mission_and_even_null_outcomes() {
 }
 
 #[test]
-fn m15_completed_run_retains_challenge_outcomes_and_refuses_unbuilt_m16() {
+fn m15_completed_run_retains_challenge_outcomes_and_opens_freedom_of_movement() {
     let completed = completed_stadium();
     let bytes = serde_json::to_vec(&completed).unwrap();
     let RunProbe::Compatible(decoded) = RunStore::inspect_bytes(&bytes, m09_tests::HASHES) else {
@@ -166,11 +166,17 @@ fn m15_completed_run_retains_challenge_outcomes_and_refuses_unbuilt_m16() {
     };
     assert_eq!(*decoded, completed);
     assert!(decoded.m15_outcome.as_ref().unwrap().entrants_preserved);
-    assert!(serde_json::from_str::<MissionId>("\"freedom_of_movement\"").is_err());
+    assert_eq!(
+        serde_json::from_str::<MissionId>("\"freedom_of_movement\"").unwrap(),
+        MissionId::FreedomOfMovement
+    );
     for mission in CAMPAIGN_MISSIONS {
-        assert!(completed
-            .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
-            .is_err());
+        assert_eq!(
+            completed
+                .promote_next(mission, m09_tests::HASHES[stage_index(mission)])
+                .is_ok(),
+            mission == MissionId::FreedomOfMovement
+        );
     }
     let mut missing = completed.clone();
     missing.m15_outcome = None;

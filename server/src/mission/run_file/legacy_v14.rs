@@ -82,6 +82,9 @@ impl RunDocumentV14 {
             m13_outcome: None,
             m14_outcome: None,
             m15_outcome: None,
+            m16_outcome: None,
+            m17_outcome: None,
+            m18_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 11 {
             return Err("mission was not supported by version 14");

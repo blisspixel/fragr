@@ -43,6 +43,26 @@ fn tick(s: &mut GameSession) {
         .unwrap()
         .validate(s.state.tick)
         .unwrap();
+    let mut client = crate::mission::MissionClient::default();
+    client
+        .replace_map_with_m15(
+            s.state.map.m15_geometry().as_ref(),
+            s.state.map.arena().half,
+            &s.state.map.arena().solids,
+            s.state.map.presentation_ref(),
+        )
+        .unwrap();
+    client
+        .observe(s.state.tick, s.state.mission_state().unwrap())
+        .unwrap();
+}
+
+fn receipt(s: &GameSession) -> serde_json::Value {
+    serde_json::json!({
+        "map": s.state.map_info(),
+        "mission": {"type": "mission", "tick": s.state.tick, "state": s.state.mission_state().unwrap()},
+        "snapshot": s.state.snapshot()
+    })
 }
 
 fn place(s: &mut GameSession, id: Uuid, feet: [f32; 3]) {
@@ -159,6 +179,60 @@ fn pen_clear_and_tunnel_arrival_closes_tunnel_and_advances_stage() {
 }
 
 #[test]
+fn cleared_blade_wave_waits_for_the_party_to_clear_the_tunnel() {
+    let (mut s, id) = session();
+    let partner = Uuid::from_u128(1016);
+    s.state
+        .add_player(partner, "Pen partner".into(), Role::Agent);
+    assert!(s.state.acknowledge_mission(
+        partner,
+        MissionReady {
+            id: MissionId::CivicPressureValve,
+            attempt: 1,
+        }
+    ));
+    tick(&mut s);
+    let g = s.state.map.m15_geometry().unwrap();
+    interact(&mut s, id, &g.arming_crate);
+    tick(&mut s);
+    clear_enemies(&mut s);
+    tick(&mut s);
+    place(&mut s, id, [0.0, 0.0, -16.0]);
+    tick(&mut s);
+    place(&mut s, id, [3.0, 0.0, 0.0]);
+    tick(&mut s);
+    clear_enemies(&mut s);
+    tick(&mut s);
+    assert!(s.state.encounters.is_complete(1));
+    let pending = s.state.mission_state().unwrap().m15.unwrap();
+    assert_eq!(pending.completed.len(), 2);
+    assert!(!pending.tunnel_closed);
+    assert!(!s.state.map.m15_geometry().unwrap().tunnel_closed);
+
+    // The same refusal protects a body occupying the closing gate itself.
+    place(&mut s, partner, [0.0, 0.0, -12.0]);
+    tick(&mut s);
+    assert_eq!(
+        s.state
+            .mission_state()
+            .unwrap()
+            .m15
+            .unwrap()
+            .completed
+            .len(),
+        2
+    );
+    assert!(!s.state.map.m15_geometry().unwrap().tunnel_closed);
+    place(&mut s, partner, [-3.0, 0.0, -10.0]);
+    tick(&mut s);
+    tick(&mut s);
+    let advanced = s.state.mission_state().unwrap().m15.unwrap();
+    assert_eq!(advanced.completed.len(), 3);
+    assert!(advanced.tunnel_closed);
+    assert!(s.state.map.m15_geometry().unwrap().tunnel_closed);
+}
+
+#[test]
 fn blade_lesson_tracking_checks_hits_and_disqualification() {
     let (mut s, id) = session();
     tick(&mut s);
@@ -209,9 +283,12 @@ fn blade_lesson_tracking_checks_hits_and_disqualification() {
 fn bout_victory_opens_gates_and_enables_departure() {
     let (mut s, id) = session();
     tick(&mut s);
+    // Controlled lifecycle fixtures, not a movement or combat acceptance run.
+    let mut receipts = vec![receipt(&s)];
 
     let g = s.state.map.m15_geometry().unwrap();
     interact(&mut s, id, &g.arming_crate);
+    receipts.push(receipt(&s));
 
     // Clear encounter 0 and advance through tunnel
     tick(&mut s);
@@ -219,8 +296,9 @@ fn bout_victory_opens_gates_and_enables_departure() {
     tick(&mut s);
     place(&mut s, id, [0.0, 0.0, -16.0]);
     tick(&mut s);
-    place(&mut s, id, [0.0, 0.0, 0.0]);
+    place(&mut s, id, [0.0, 0.4, 0.0]);
     tick(&mut s);
+    receipts.push(receipt(&s));
 
     // Record blade hit for blade wave victory
     let progress = s.state.mission.as_mut().unwrap().m15.as_mut().unwrap();
@@ -233,11 +311,13 @@ fn bout_victory_opens_gates_and_enables_departure() {
     tick(&mut s);
 
     // Clear encounter 2 (tunnel wardens)
+    receipts.push(receipt(&s));
     tick(&mut s);
     clear_enemies(&mut s);
     tick(&mut s);
 
     // Clear encounter 3 (overhead notaries)
+    receipts.push(receipt(&s));
     tick(&mut s);
     clear_enemies(&mut s);
     tick(&mut s);
@@ -253,6 +333,7 @@ fn bout_victory_opens_gates_and_enables_departure() {
 
     // Use broadcast booth terminal
     interact(&mut s, id, &g.booth_terminal);
+    receipts.push(receipt(&s));
 
     let state = s.state.mission_state().unwrap();
     let m15 = state.m15.unwrap();
@@ -269,12 +350,21 @@ fn bout_victory_opens_gates_and_enables_departure() {
     assert!(m15.gates_open);
     assert_eq!(m15.completed.len(), 6);
     assert_eq!(m15.current.as_ref().unwrap().id, "party_departed");
+    receipts.push(receipt(&s));
 
     // Board departure area and depart
     interact(&mut s, id, &g.departure);
 
     let state = s.state.mission_state().unwrap();
     assert_eq!(state.phase, MissionPhase::Departed);
+    receipts.push(receipt(&s));
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../client/golden/m15_lifecycle.json");
+    let bytes = serde_json::to_string_pretty(&receipts).unwrap() + "\n";
+    if std::env::var_os("FRAGR_UPDATE_LATE_CAMPAIGN_WORLDS").is_some() {
+        std::fs::write(&path, &bytes).unwrap();
+    }
+    assert_eq!(std::fs::read_to_string(path).unwrap(), bytes);
 }
 
 #[test]

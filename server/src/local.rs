@@ -68,6 +68,9 @@ pub fn preview_run(_mission: MissionId) -> io::Result<RunPreview> {
                         MissionId::WeightOfPermission => "weight_of_permission",
                         MissionId::LaunchAuthority => "launch_authority",
                         MissionId::CivicPressureValve => "civic_pressure_valve",
+                        MissionId::FreedomOfMovement => "freedom_of_movement",
+                        MissionId::PeaceWithoutInterruption => "peace_without_interruption",
+                        MissionId::AllSystemsNormal => "all_systems_normal",
                     }
                     .into(),
                     difficulty: document.rules.difficulty,
@@ -147,18 +150,7 @@ impl Ready {
             mission,
             difficulty,
             url: format!("ws://{address}"),
-            // Mission-specific capabilities add the habitat and foundry facts.
-            gameplay_version: if mission == MissionId::CivicPressureValve {
-                crate::protocol::M15_GAMEPLAY_VERSION
-            } else if mission == MissionId::LaunchAuthority {
-                crate::protocol::M14_GAMEPLAY_VERSION
-            } else if mission == MissionId::WeightOfPermission {
-                crate::protocol::M13_GAMEPLAY_VERSION
-            } else if mission == MissionId::TermsOfCooperation {
-                crate::protocol::M12_GAMEPLAY_VERSION
-            } else {
-                crate::protocol::ASSESSOR_GAMEPLAY_VERSION
-            },
+            gameplay_version: mission.gameplay_version(),
         })
     }
 
@@ -278,20 +270,22 @@ fn validate_arena_options(options: &ServerOptions) -> io::Result<SocketAddr> {
     {
         return Err(io::Error::other("invalid desktop arena profile"));
     }
-    let config = options.match_config.as_ref().ok_or_else(|| {
-        io::Error::other("desktop host requires TDM, five-per-side Sabotage or Holdfast Conquest")
-    })?;
+    let config = options
+        .match_config
+        .as_ref()
+        .ok_or_else(|| io::Error::other("desktop host requires a match configuration"))?;
     let valid_mode = match config.rules.mode() {
+        GameMode::Ffa => !config.sabotage.five_vs_five,
         GameMode::Tdm => !config.sabotage.five_vs_five,
+        GameMode::Ctf => !config.sabotage.five_vs_five && options.map.ctf_stands().is_some(),
         GameMode::Sabotage => config.sabotage.five_vs_five && options.map.sabotage_map().is_some(),
         GameMode::Conquest => {
             !config.sabotage.five_vs_five && options.map == crate::sim::MapKind::HoldfastAtoll
         }
-        _ => false,
     };
-    if !valid_mode || !config.rules.mutators().is_empty() || config.rules.friendly_fire() {
+    if !valid_mode {
         return Err(io::Error::other(
-            "desktop host requires unmodified TDM, five-per-side Sabotage or Holdfast Conquest",
+            "desktop host requires FFA, TDM, CTF on maps with stands, five-per-side Sabotage on Sector 9 or Low Water, or Holdfast Conquest",
         ));
     }
     Ok(address)
@@ -662,7 +656,7 @@ mod tests {
                 false,
                 false,
                 crate::sim::MapKind::ArenaDuel,
-                false,
+                true,
             ),
             (
                 GameMode::Ctf,
@@ -670,6 +664,14 @@ mod tests {
                 false,
                 false,
                 crate::sim::MapKind::ArenaDuel,
+                true,
+            ),
+            (
+                GameMode::Ctf,
+                vec![],
+                false,
+                false,
+                crate::sim::MapKind::HoldfastAtoll,
                 false,
             ),
             (
@@ -678,7 +680,7 @@ mod tests {
                 false,
                 false,
                 crate::sim::MapKind::ArenaDuel,
-                false,
+                true,
             ),
             (
                 GameMode::Tdm,
@@ -686,7 +688,7 @@ mod tests {
                 true,
                 false,
                 crate::sim::MapKind::ArenaDuel,
-                false,
+                true,
             ),
             (
                 GameMode::Sabotage,
@@ -796,7 +798,7 @@ mod tests {
         ] {
             options.match_config.as_mut().unwrap().rules =
                 crate::rules::RuleSet::new(GameMode::Conquest, mutators, friendly).unwrap();
-            assert!(validate_arena_options(&options).is_err());
+            assert!(validate_arena_options(&options).is_ok());
         }
     }
 
@@ -997,6 +999,30 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m15.gameplay_version, crate::protocol::M15_GAMEPLAY_VERSION);
-        assert_eq!(m15.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        let m16 = Ready::new(
+            MissionId::FreedomOfMovement,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m16.gameplay_version, crate::protocol::M16_GAMEPLAY_VERSION);
+        let m17 = Ready::new(
+            MissionId::PeaceWithoutInterruption,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m17.gameplay_version, crate::protocol::M17_GAMEPLAY_VERSION);
+        let m18 = Ready::new(
+            MissionId::AllSystemsNormal,
+            CampaignDifficulty::Standard,
+            "127.0.0.1:6767".parse().unwrap(),
+            true,
+        )
+        .unwrap();
+        assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
+        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
     }
 }

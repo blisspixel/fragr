@@ -158,7 +158,7 @@ func _run() -> void:
 	camera.fp_mode = true
 	camera.locked = ""
 	game.local_fp_pawn_id = "self"
-	game.current_map_info = {"mission": {"phase": "find_transfer"}}
+	game.current_map_info = {"mission": {"id": MissionState.ID, "phase": "find_transfer"}}
 	game._update_local_fp_hud([])
 	_check(camera.fp_mode and game.local_fp_pawn_id == "self", "a mission omission keeps the player's eyes")
 	game.current_map_info = {}

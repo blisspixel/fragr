@@ -1,7 +1,6 @@
 # Civic Pressure Valve connected stadium
 
-Status: **shipped**, 2026-10-16. Shipped in v0.86.0. Follows the
-[M14 integration](m14-launch-authority-integration-20261015.md) shipped in v0.85.0.
+Status: **in flight**, reconciled 2026-10-17. The Article Blade foundation is on main; the connected stadium belongs to the unpublished convergence branch. The earlier v0.86.0 release claim was premature. Follows the [M14 integration](m14-launch-authority-integration-20261015.md), merged in PR #404.
 This document refines the existing campaign rung in the
 [Full build order](../ROADMAP.md#full-build-order); it creates no new sequence.
 Spend for this increment: $0, existing assets and local tools only.

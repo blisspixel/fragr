@@ -399,8 +399,8 @@ async fn run_server_impl(
             .iter()
             .any(|enemy| enemy.kind == crate::protocol::EnemyKind::Notary)
     });
-    let required_gameplay = if session.state.map.m15_geometry().is_some() {
-        crate::protocol::M15_GAMEPLAY_VERSION
+    let required_gameplay = if let Some(mission) = session.state.map.campaign_mission_id() {
+        mission.gameplay_version()
     } else if session.state.map.requires_article_blade_contract() {
         crate::protocol::BLADE_GAMEPLAY_VERSION
     } else if session.state.map.m14_geometry().is_some() {

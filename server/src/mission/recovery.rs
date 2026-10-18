@@ -25,6 +25,10 @@ pub(super) struct SoloRun {
     pub carried_habitat: Option<super::run_file::M12Outcome>,
     pub carried_foundry: Option<super::run_file::M13Outcome>,
     pub carried_launch: Option<super::run_file::M14Outcome>,
+    pub carried_stadium: Option<super::run_file::M15Outcome>,
+    pub carried_avenue: Option<super::run_file::M16Outcome>,
+    pub carried_office: Option<super::run_file::M17Outcome>,
+    pub carried_recovery: Option<super::run_file::M18Outcome>,
     owner: Option<Uuid>,
     entry: Option<Entry>,
     saved_entry: Option<SavedEntry>,
@@ -154,6 +158,10 @@ impl GameState {
             carried_habitat: None,
             carried_foundry: None,
             carried_launch: None,
+            carried_stadium: None,
+            carried_avenue: None,
+            carried_office: None,
+            carried_recovery: None,
             owner: None,
             carried_recall_cars: Vec::new(),
             carried_patients: Vec::new(),
@@ -236,6 +244,10 @@ impl GameState {
         solo.carried_habitat = document.m12_outcome.clone();
         solo.carried_foundry = document.m13_outcome.clone();
         solo.carried_launch = document.m14_outcome.clone();
+        solo.carried_stadium = document.m15_outcome.clone();
+        solo.carried_avenue = document.m16_outcome.clone();
+        solo.carried_office = document.m17_outcome.clone();
+        solo.carried_recovery = document.m18_outcome.clone();
         if let Some(progress) = &mut run.m09 {
             let g = run
                 .initial_map
@@ -313,6 +325,10 @@ impl GameState {
                 || run.m12.is_some()
                 || run.m13.is_some()
                 || run.m14.is_some()
+                || run.m15.is_some()
+                || run.m16.is_some()
+                || run.m17.is_some()
+                || run.m18.is_some()
             {
                 MissionPhase::InProgress
             } else {

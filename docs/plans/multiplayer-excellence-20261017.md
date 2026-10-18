@@ -102,14 +102,36 @@ Currently, matches that reach the time limit with tied scores simply terminate w
   - The HUD displays *"SUDDEN DEATH: NEXT FRAG DECIDES"*.
   - Match clock freezes; the next frag, flag capture, or bomb detonation ends the match instantly with a celebratory winner podium.
 
+### Pillar 8: The Legendary Homage Maps & Modes ("Fuck Yeah Let's Go")
+Classic multiplayer legends earned their immortality through unforgettable map layouts and mode rulesets that produced instant adrenaline. fragr honors these masterpieces through authentic in-universe homages that capture the exact tactical feel without being a lazy clone:
+- **"Square One" (Doom II: Dead Simple / Map07 Homage):**
+  - *Arena Duel* and *Directive 17 Substation* running **"Shotgun Wedding"** (Scatterguns only + meatshot 105 dmg) or **"Rocket Duel"** (Rocket Launchers only + 3D blast impulse).
+  - Sunken central killing floor surrounded by elevated perimeter catwalks. Instant respawns, zero hiding spots, pure kinetic strafe-dueling and vertical rocket jumps.
+- **"Perimeter Gulch" (Halo: Combat Evolved: Blood Gulch Homage):**
+  - Two-base CTF on *Reclamation Gulch* and *Directive 17*.
+  - Opposing fortified bases separated by a rugged canyon with mid-field boulder and container cover.
+  - Vehicles enabled: Jeeps and Motorcycles for high-speed flag runs. A single high-value power weapon (Rocket Launcher or Golden Rail) spawns on the central ridge.
+  - The unmistakable "Golden Triangle" combat loop: primary automatic fire to strip shields/armor, grenade bank around rocks, and a lethal shiv melee strike to finish.
+- **"Atoll Battery" (Battlefield 1942: Wake Island Homage):**
+  - Five-point Conquest on *Holdfast Atoll*.
+  - Combined arms warfare: coastal road motorcycle dashes, multi-seat jeep sweeps, watercraft shallows flanking, and infantry bunker holds.
+  - Dramatic ticket bleed siren when either team drops under 25 tickets, escalating the final stand.
+- **"The Facility / Golden Rail" (GoldenEye 007 Homage):**
+  - Tight subterranean chokepoints, blind corners, and vent drops on *Compliance Yard* and *Sector 9 Transit Hall*.
+  - Preset Mutators:
+    - *Licence to Kill:* Instant 1-hit kill lethality with Tack pistols and shivs. Pure twitch reflexes and corner-peeking tension.
+    - *The Golden Rail:* One single golden Railgun in the map center. One-shot kill, illuminates through fog, drops on death.
+    - *Proximity Party:* Pistols and Proximity Mines only. Trap doorways, blind corners, and spawn exits.
+    - *Slappers Only:* Fists only, movement speed boosted to 1.25x. Rapid-fire comedic melee brawls.
+
 ---
 
 ## 4. Verification and Delivery Sequence
 
-1. **Phase 1: Audio Feedback & Sensory Juice:** Announcer voice lines and metallic hit confirmation sound.
+1. **Phase 1: Audio Feedback & Sensory Juice:** Announcer voice lines, slang updates, and metallic hit confirmation chime.
 2. **Phase 2: Physics & Weapon Tuning:** Blast impulse, rocket jumping, and Super Shotgun meatshot balance.
-3. **Phase 3: Host UI & Mutator Freedom:** Enabling all modes, mutator flags, and party presets in the desktop host dialog.
-4. **Phase 4: Endgame Drama & Overtime:** Conquest siren bleed cues and Sudden Death tiebreakers.
+3. **Phase 3: Host UI & Mutator Freedom:** Enabling all 5 modes (`ffa`, `tdm`, `ctf`, `sabotage`, `conquest`), mutator flags, and legendary homage presets in the desktop host dialog.
+4. **Phase 4: Endgame Drama & Overtime:** Conquest siren bleed cues, Sudden Death tiebreakers, and homage map playlist rotations.
 
 ---
 

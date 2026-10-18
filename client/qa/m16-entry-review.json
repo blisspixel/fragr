@@ -1,0 +1,10 @@
+{
+  "comment": "Rendered development entry and geometry inspection only. Not a completed route or fresh-player acceptance.",
+  "width": 1280,
+  "height": 720,
+  "states": [
+    {"name": "m16_avenue_entry", "scene": "res://scenes/main.tscn", "join": "human", "camera": "first_person", "look_at": [-30, 1.5, 0], "settle_seconds": 0.3},
+    {"name": "m16_motorcycle", "camera": "first_person", "look_at": [-38, 0.7, 3.2], "settle_seconds": 0.3},
+    {"name": "m16_avenue_overview", "join": "spectator", "camera": "overview", "camera_position": [-25, 20, 18], "camera_look_at": [10, 0, 0], "settle_seconds": 0.3}
+  ]
+}

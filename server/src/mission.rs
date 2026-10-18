@@ -25,6 +25,9 @@ mod m12;
 pub(crate) mod m13;
 mod m14;
 mod m15;
+mod m16;
+mod m17;
+pub(crate) mod m18;
 mod recovery;
 pub(crate) mod run_file;
 pub use controller::MissionClient;
@@ -34,6 +37,8 @@ pub(crate) use m09::m09_route_segment_valid;
 
 #[cfg(test)]
 mod difficulty_tests;
+#[cfg(test)]
+mod late_routes;
 
 #[cfg(test)]
 mod readiness_tests;
@@ -57,6 +62,9 @@ pub(crate) struct MissionRun {
     m13: Option<m13::M13Progress>,
     m14: Option<m14::M14Progress>,
     pub(crate) m15: Option<m15::M15Progress>,
+    pub(crate) m16: Option<m16::M16Progress>,
+    pub(crate) m17: Option<m17::M17Progress>,
+    pub(crate) m18: Option<m18::M18Progress>,
     solo: Option<recovery::SoloRun>,
     rules: CampaignRules,
     initial_map: RuntimeMap,
@@ -88,6 +96,9 @@ impl MissionRun {
             m13: map.m13_geometry().map(m13::M13Progress::new),
             m14: map.m14_geometry().map(|_| m14::M14Progress::default()),
             m15: map.m15_geometry().map(|_| m15::M15Progress::default()),
+            m16: map.m16_geometry().map(|_| m16::M16Progress::default()),
+            m17: map.m17_geometry().map(|_| m17::M17Progress::default()),
+            m18: map.m18_geometry().map(|_| m18::M18Progress::default()),
             solo: None,
             rules: CampaignRules::default(),
             initial_map: map.clone(),
@@ -273,6 +284,9 @@ impl GameState {
                 || run.m13.is_some()
                 || run.m14.is_some()
                 || run.m15.is_some()
+                || run.m16.is_some()
+                || run.m17.is_some()
+                || run.m18.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -347,6 +361,18 @@ impl GameState {
             .initial_map
             .m15_geometry()
             .map(|_| m15::M15Progress::default());
+        run.m16 = run
+            .initial_map
+            .m16_geometry()
+            .map(|_| m16::M16Progress::default());
+        run.m17 = run
+            .initial_map
+            .m17_geometry()
+            .map(|_| m17::M17Progress::default());
+        run.m18 = run
+            .initial_map
+            .m18_geometry()
+            .map(|_| m18::M18Progress::default());
         run.m09 = run.initial_map.m09_geometry().map(|g| {
             m09::M09Progress::new(
                 &g,
@@ -375,6 +401,9 @@ impl GameState {
                 || run.m13.is_some()
                 || run.m14.is_some()
                 || run.m15.is_some()
+                || run.m16.is_some()
+                || run.m17.is_some()
+                || run.m18.is_some()
             {
                 MissionPhase::InProgress
             } else {
@@ -412,6 +441,15 @@ impl GameState {
 
     pub fn mission_state(&self) -> Option<MissionState> {
         let run = self.mission.as_ref()?;
+        if run.m18.is_some() {
+            return self.m18_mission_state();
+        }
+        if run.m17.is_some() {
+            return self.m17_mission_state();
+        }
+        if run.m16.is_some() {
+            return self.m16_mission_state();
+        }
         if run.m15.is_some() {
             return self.m15_mission_state();
         }
@@ -517,6 +555,9 @@ impl GameState {
             m13: None,
             m14: None,
             m15: None,
+            m16: None,
+            m17: None,
+            m18: None,
         })
     }
 
@@ -543,6 +584,18 @@ impl GameState {
     }
 
     pub(crate) fn advance_mission(&mut self) {
+        if self.mission.as_ref().is_some_and(|r| r.m18.is_some()) {
+            self.advance_m18();
+            return;
+        }
+        if self.mission.as_ref().is_some_and(|r| r.m17.is_some()) {
+            self.advance_m17();
+            return;
+        }
+        if self.mission.as_ref().is_some_and(|r| r.m16.is_some()) {
+            self.advance_m16();
+            return;
+        }
         if self.mission.as_ref().is_some_and(|r| r.m15.is_some()) {
             self.advance_m15();
             return;
