@@ -1,0 +1,140 @@
+{
+  "captured_utc": "2026-10-18T19:09:11",
+  "godot": "4.7.2-stable (official)",
+  "renderer": "gl_compatibility",
+  "device": "llvmpipe (LLVM 23.1.3, 256 bits)",
+  "states": [
+    {
+      "state": "live_objective_call",
+      "file": "sabotage.png",
+      "note": "A live accepted objective is shown on its own ink plate above aim. Exact call and mode facts are retained with the still.",
+      "observed": {
+        "camera_pitch": -0.348583310842514,
+        "camera_yaw": 2.21170510016272,
+        "capture_limit": null,
+        "capture_scores": null,
+        "conquest": null,
+        "equipment": {},
+        "event_tiers": {
+          "frag_pending": 0,
+          "frag_rejected": 0,
+          "frags": [
+            {
+              "payload": {
+                "killer": "Buzzkill",
+                "killer_id": "0ddfdbb1-edcc-4f96-8f84-d7d2b4477118",
+                "killer_relation": "mate",
+                "killer_team": "coalition",
+                "own": false,
+                "victim": "Crackpot",
+                "victim_id": "aa548247-b894-4e0c-b824-e7002c579d24",
+                "victim_relation": "foe",
+                "victim_team": "union",
+                "weapon": "tack"
+              },
+              "remaining": 3.300758,
+              "serial": 1
+            },
+            {
+              "payload": {
+                "killer": "Aunt Linda",
+                "killer_id": "54b08022-a04f-401b-87aa-42544bfcc550",
+                "killer_relation": "foe",
+                "killer_team": "union",
+                "own": false,
+                "victim": "Scout Ant",
+                "victim_id": "29638364-b7a4-43b4-bfe7-d3552fc51dc2",
+                "victim_relation": "mate",
+                "victim_team": "coalition",
+                "weapon": "tack"
+              },
+              "remaining": 4.5,
+              "serial": 2
+            }
+          ],
+          "objective": [
+            {
+              "payload": {
+                "text": "THE CHARGE IS DOWN"
+              },
+              "remaining": 1.5,
+              "serial": 2
+            }
+          ],
+          "objective_visible": true,
+          "voice": 2
+        },
+        "eye_view": false,
+        "fighters": 6,
+        "fire_strip": [],
+        "flags": null,
+        "following": "5ab135e4-7660-4262-a7e1-ee019daad8a7",
+        "grenade_strip": {},
+        "human": false,
+        "jammer_launches": 0,
+        "local_weapon": "",
+        "m02_captive_views": [],
+        "m02_evacuation": {},
+        "m03": {},
+        "m04": {},
+        "m05": {},
+        "m05_review": false,
+        "m05_ride": {},
+        "m05_workers_aboard": 0,
+        "m06": {},
+        "m07": {},
+        "m07_lamps_lit": 0,
+        "m08": {},
+        "m09": {},
+        "m10": {},
+        "m11": {},
+        "m12": {},
+        "m13": {},
+        "m14": {},
+        "m15": {},
+        "m16": {},
+        "m17": {},
+        "m18": {},
+        "map_id": 4.0,
+        "mission_rules": {},
+        "mission_run": {},
+        "msaa": 1,
+        "notary_crashes": 0,
+        "participant_record": {},
+        "render_scale": 1.0,
+        "round_state": "Active",
+        "sabotage": {
+          "alive": {
+            "coalition": 3.0,
+            "union": 3.0
+          },
+          "charge": {
+            "position": [
+              -37.386703,
+              0.0,
+              6.4978127
+            ],
+            "status": "dropped"
+          },
+          "clock_ticks": 1421.0,
+          "format": "short",
+          "half": 1.0,
+          "half_rounds": 4.0,
+          "period": 0.0,
+          "phase": "live",
+          "round": 1.0,
+          "rounds_to_win": 5.0,
+          "score": {
+            "coalition": 0.0,
+            "union": 0.0
+          }
+        },
+        "self_alive": false,
+        "server_pitch": null,
+        "server_yaw": null,
+        "upscaling": 0
+      },
+      "source_file": "01_live_objective_call.png"
+    }
+  ]
+}

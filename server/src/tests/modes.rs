@@ -1159,8 +1159,25 @@ fn friendly_fire_is_off_by_default_and_a_team_kill_scores_nothing() {
         &frags[0],
         GameEvent::Frag { killer_score: 0, killer_team: Some(k), victim_team: Some(v), .. } if k == v
     ));
+    assert!(
+        matches!(&frags[0], GameEvent::Frag { killer_id: Some(k), victim_id: Some(v), weapon: Some(WeaponType::Flechette), .. } if *k == a && *v == c)
+    );
     assert_eq!(ff.scores[&a], 0);
     assert_eq!(ff.team_scores.max(), 0);
+}
+
+#[test]
+fn resolved_frag_names_do_not_replace_participant_identity() {
+    let mut state = range(rules(GameMode::Ffa, &[]));
+    let a = join(&mut state, 1, Role::Human);
+    let b = join(&mut state, 2, Role::Agent);
+    for player in &mut state.players {
+        player.name = "Same".into();
+    }
+    kill(&mut state, a, b);
+    assert!(events(&mut state).iter().any(|event| matches!(event,
+        GameEvent::Frag { killer, victim, killer_id: Some(k), victim_id: Some(v), weapon: Some(WeaponType::Flechette), killer_score: 1, .. }
+            if killer == "Same" && victim == "Same" && *k == a && *v == b)));
 }
 
 #[test]

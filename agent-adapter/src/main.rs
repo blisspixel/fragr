@@ -1160,6 +1160,9 @@ mod tests {
     fn test_game_event_serialization() {
         let frag_event = protocol::GameEvent::Frag {
             killer_team: None,
+            killer_id: None,
+            victim_id: None,
+            weapon: None,
             victim_team: None,
             killer: "Bot1".to_string(),
             victim: "Bot2".to_string(),

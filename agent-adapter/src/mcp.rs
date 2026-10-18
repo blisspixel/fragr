@@ -3399,6 +3399,48 @@ mod mcp_tests {
     }
 
     #[test]
+    fn optional_frag_provenance_reaches_mcp_events_and_legacy_events_stay_optional() {
+        let mut state = ToolState::default();
+        let killer = Uuid::from_u128(1);
+        let victim = Uuid::from_u128(2);
+        let event = protocol::ServerMessage::Event(protocol::GameEvent::Frag {
+            killer: "Same".into(),
+            victim: "Same".into(),
+            killer_score: 1,
+            killer_id: Some(killer),
+            victim_id: Some(victim),
+            weapon: Some(protocol::WeaponType::Rocket),
+            killer_team: None,
+            victim_team: None,
+        });
+        ingest_server_text(&mut state, &serde_json::to_string(&event).unwrap()).unwrap();
+        ingest_server_text(
+            &mut state,
+            r#"{"type":"event","event":"frag","killer":"Old","victim":"Other","killer_score":1}"#,
+        )
+        .unwrap();
+        assert_eq!(state.recent_events[0]["killer_id"], killer.to_string());
+        assert_eq!(state.recent_events[0]["victim_id"], victim.to_string());
+        assert_eq!(state.recent_events[0]["weapon"], "rocket");
+        assert!(state.recent_events[1].get("weapon").is_none());
+        let out = handle_mcp_request(
+            req(
+                "tools/call",
+                Some(serde_json::json!({"name":"get_events","arguments":{"clear":true}})),
+            ),
+            &mut state,
+        );
+        let result = out.response.result.unwrap();
+        let text = result["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains(&killer.to_string())
+                && text.contains(&victim.to_string())
+                && text.contains("rocket")
+        );
+        assert!(state.recent_events.is_empty());
+    }
+
+    #[test]
     fn get_events_lists_and_optional_clear() {
         let mut state = ToolState {
             recent_events: vec![

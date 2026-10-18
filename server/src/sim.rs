@@ -2842,7 +2842,7 @@ impl GameState {
         damage: i32,
         trace: Option<ShotTrace>,
     ) -> (u64, u64, bool) {
-        self.resolve_fighter_hit_for(shooter_idx, victim_idx, damage, trace, false)
+        self.resolve_fighter_hit_for(shooter_idx, victim_idx, damage, trace, false, None)
     }
 
     fn resolve_fighter_hit_for(
@@ -2852,7 +2852,10 @@ impl GameState {
         damage: i32,
         trace: Option<ShotTrace>,
         assessor_wreck: bool,
+        source_weapon: Option<WeaponType>,
     ) -> (u64, u64, bool) {
+        // Provenance does not manufacture ray semantics for a resolved blast.
+        let weapon = trace.as_ref().map(|trace| trace.weapon).or(source_weapon);
         let damage = self.shielded(victim_idx, damage, trace.as_ref());
         let shooter_name = self.players[shooter_idx].name.clone();
         let shooter_id = self.players[shooter_idx].id;
@@ -3038,6 +3041,9 @@ impl GameState {
                     killer: shooter_name.clone(),
                     victim: target_name.clone(),
                     killer_score: *self.scores.get(&shooter_id).unwrap_or(&0),
+                    killer_id: Some(shooter_id),
+                    victim_id: Some(target_id),
+                    weapon,
                     killer_team: shooter_team,
                     victim_team,
                 });
@@ -3051,6 +3057,9 @@ impl GameState {
                 killer: shooter_name.clone(),
                 victim: target_name.clone(),
                 killer_score,
+                killer_id: Some(shooter_id),
+                victim_id: Some(target_id),
+                weapon,
                 killer_team: shooter_team,
                 victim_team,
             });

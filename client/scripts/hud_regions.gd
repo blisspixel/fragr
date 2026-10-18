@@ -59,14 +59,14 @@ func layout() -> void:
 	var key: Array = [view, origin, hud.sabotage(), hud.campaign_context, hud.mode_chip_label.text,
 		hud.mode_chip_label.get_minimum_size(), context.get_combined_minimum_size(), hints.text,
 		hud.weapon_label.text, hud.weapon_label.visible, hud.map_chip_label.text, hud.map_chip_label.visible,
-		hud.radio_label, hud.radio_card, conquest, vehicle_rect]
+		hud.radio_label, hud.radio_card, conquest, vehicle_rect, hud.frag_feed.reserved_height]
 	if key == _layout_key:
 		return
 	_layout_key = key
 	var panel: Control = hud.get_node("Panel")
 	panel.position = Vector2(20, origin)
 	panel.size = Vector2(460, 120)
-	var width: float = minf(900.0, maxf(320.0, view.x - 1020.0))
+	var width: float = minf(720.0, maxf(320.0, view.x - 1200.0))
 	var top: float = origin + (60.0 if hud.sabotage() else 0.0)
 	hud.mode_chip_label.position = Vector2((view.x - width) * 0.5, top)
 	hud.mode_chip_label.size = Vector2(width, 0)
@@ -78,9 +78,9 @@ func layout() -> void:
 	context.size = Vector2(480, 0)
 	context.size.y = context.get_combined_minimum_size().y
 	context.position = Vector2(24, view.y - 164.0 - context.size.y)
-	var feed_top: float = context.position.y - 246.0 if hud.campaign_context else origin + 4.0
-	var feed_left: float = 24.0 if hud.campaign_context else view.x - 496.0
-	hud.combat_feed.set_region(Rect2(feed_left, feed_top, 480, 230))
+	var frag_top: float = origin + 4.0
+	hud.frag_feed.set_region(Rect2(view.x - 576.0, frag_top, 560, hud.frag_feed.reserved_height))
+	hud.objective_call.set_region(Rect2((view.x - width) * 0.5, view.y * 0.5 - 120.0, width, 96))
 	# Independent explosive counters can extend 92 units above ammunition.
 	# Radio copy reserves that entire stock area, even during equipment changes.
 	var radio_bottom: float = view.y - 248.0
@@ -94,3 +94,18 @@ func layout() -> void:
 		hud.radio_card.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 		hud.radio_card.position = Vector2(view.x - 640, radio_bottom - 276)
 		hud.radio_card.size = Vector2(624, 164)
+	if hud.campaign_context:
+		hud.combat_feed.set_limit(3)
+		hud.combat_feed.set_region(Rect2(24, context.position.y - 246.0, 480, 230))
+	else:
+		var voice_top: float = frag_top + hud.frag_feed.reserved_height + 12.0
+		var card_on_right: bool = hud.radio_card != null
+		if card_on_right and radio_bottom - 292.0 - voice_top < 132.0:
+			# A cosmetic station card can use the quiet space below the left
+			# mode panel when broadcast and vehicle controls fill the right.
+			hud.radio_card.position = Vector2(24, origin + 144.0)
+			card_on_right = false
+		var voice_bottom: float = radio_bottom - (292.0 if card_on_right else 116.0 if hud.radio_label != null else 16.0)
+		var available: float = maxf(0.0, voice_bottom - voice_top)
+		hud.combat_feed.set_limit(clampi(int((available + 4.0) / 66.0), 0, 3))
+		hud.combat_feed.set_region(Rect2(view.x - 576.0, voice_top, 560, available))

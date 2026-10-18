@@ -586,7 +586,7 @@ func _run() -> void:
 		var framed: Variant = measured.get("observed")
 		if framed is Dictionary:
 			for key: String in ["flags", "capture_scores", "round_state", "sabotage", "self_alive",
-					"human", "local_weapon", "camera_pitch", "server_pitch", "camera_yaw", "server_yaw"]:
+					"human", "local_weapon", "camera_pitch", "server_pitch", "camera_yaw", "server_yaw", "event_tiers", "conquest"]:
 				if (framed as Dictionary).has(key):
 					observed[key] = (framed as Dictionary)[key]
 		if state.get("expect_crawler_scrabble", false) and _game_manager() != null:
@@ -1396,6 +1396,8 @@ func _measure(state: Dictionary) -> Dictionary:
 	# Reacquire its requested pose here, with no further live wait before pause.
 	if not await _prepare_static_capture(state):
 		return {}
+	if state.has("await_objective") and not await _await_objective(str(state["await_objective"]), float(state.get("await_timeout_seconds", 90.0))):
+		return {}
 	var out: Dictionary = {"hud_coverage": 0.0, "world_blank": false}
 	# Freeze first. Without this the two frames are a fight two frames apart,
 	# and every bot that moved between them counts as HUD.
@@ -1790,9 +1792,18 @@ func _observed_state() -> Dictionary:
 		"mission_rules": gm.get("net_client").get("mission").get("state", {}).get("rules", {}),
 		"mission_run": gm.get("net_client").get("mission").get("state", {}).get("run", {}),
 		"map_id": snapshot.get("map_id", 0),
+		"event_tiers": {
+			"frags": gm.hud.frag_feed.notices.active.duplicate(true),
+			"frag_pending": gm.hud.frag_feed.notices.pending.size(),
+			"frag_rejected": gm.hud.frag_feed.notices.rejected,
+			"objective": gm.hud.objective_call.notices.active.duplicate(true),
+			"objective_visible": gm.hud.objective_call.is_visible_in_tree(),
+			"voice": gm.hud.combat_feed.get_child_count(),
+		},
 		"flags": snapshot.get("flags"),
 		"capture_scores": snapshot.get("capture_scores"),
 		"sabotage": snapshot.get("sabotage"),
+		"conquest": snapshot.get("conquest"),
 		"self_alive": _self_alive(gm, snapshot),
 		"capture_limit": snapshot.get("capture_limit"),
 		"round_state": snapshot.get("round_state", "unknown"),
@@ -2706,6 +2717,24 @@ func _await_ctf(expected: Dictionary, timeout_seconds: float) -> bool:
 			return true
 		await create_timer(0.05).timeout
 	push_error("qa_tour: live CTF state never reached %s" % str(expected))
+	_failed = true
+	return false
+
+func _await_objective(text: String, timeout_seconds: float) -> bool:
+	var manager: Node = _game_manager()
+	if manager == null or bool(manager.get("is_human_player")):
+		push_error("qa_tour: objective waits require a spectator capture")
+		_failed = true
+		return false
+	var deadline: int = Time.get_ticks_msec() + roundi(timeout_seconds * 1000.0)
+	while Time.get_ticks_msec() < deadline:
+		var hud: Node = _find_hud()
+		if hud != null and hud.objective_call.is_visible_in_tree() and not hud.objective_call.notices.active.is_empty():
+			var accepted: Dictionary = hud.objective_call.notices.active[0]
+			if text.is_empty() or str(accepted.payload.text).contains(text):
+				return true
+		await process_frame
+	push_error("qa_tour: live objective call never reached " + text)
 	_failed = true
 	return false
 

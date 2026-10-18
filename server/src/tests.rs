@@ -210,6 +210,9 @@ fn test_protocol_server_message_welcome() {
 fn test_protocol_server_message_event_frag() {
     let event = GameEvent::Frag {
         killer_team: None,
+        killer_id: None,
+        victim_id: None,
+        weapon: None,
         victim_team: None,
         killer: "Bot1".to_string(),
         victim: "Bot2".to_string(),
@@ -220,6 +223,13 @@ fn test_protocol_server_message_event_frag() {
     assert!(json.contains(r#""event":"frag""#));
     assert!(json.contains("Bot1"));
     assert!(json.contains("Bot2"));
+    for field in ["killer_id", "victim_id", "weapon"] {
+        assert!(!serde_json::to_value(&event_msg)
+            .unwrap()
+            .as_object()
+            .unwrap()
+            .contains_key(field));
+    }
 
     let deserialized: ServerMessage = serde_json::from_str(&json).unwrap();
     match deserialized {
@@ -234,6 +244,57 @@ fn test_protocol_server_message_event_frag() {
             assert_eq!(killer_score, 3);
         }
         _ => panic!("Expected Event(Frag)"),
+    }
+}
+
+#[test]
+fn frag_optional_provenance_round_trips_without_rewriting_legacy_events() {
+    let legacy =
+        r#"{"type":"event","event":"frag","killer":"Same","victim":"Same","killer_score":1}"#;
+    let parsed: ServerMessage = serde_json::from_str(legacy).unwrap();
+    let ServerMessage::Event(GameEvent::Frag {
+        killer_id,
+        victim_id,
+        weapon,
+        ..
+    }) = parsed
+    else {
+        panic!("expected frag");
+    };
+    assert_eq!((killer_id, victim_id, weapon), (None, None, None));
+    let modern = ServerMessage::Event(GameEvent::Frag {
+        killer: "Same".into(),
+        victim: "Same".into(),
+        killer_score: 1,
+        killer_id: Some(Uuid::from_u128(1)),
+        victim_id: Some(Uuid::from_u128(2)),
+        weapon: Some(WeaponType::Rocket),
+        killer_team: None,
+        victim_team: None,
+    });
+    let wire = serde_json::to_value(&modern).unwrap();
+    assert_eq!(wire["weapon"], "rocket");
+    let ServerMessage::Event(GameEvent::Frag {
+        killer_id,
+        victim_id,
+        weapon,
+        ..
+    }) = serde_json::from_value(wire).unwrap()
+    else {
+        panic!("expected frag");
+    };
+    assert_eq!(
+        (killer_id, victim_id, weapon),
+        (
+            Some(Uuid::from_u128(1)),
+            Some(Uuid::from_u128(2)),
+            Some(WeaponType::Rocket)
+        )
+    );
+    for field in ["killer_id", "victim_id"] {
+        let mut malformed: serde_json::Value = serde_json::from_str(legacy).unwrap();
+        malformed[field] = serde_json::json!("not-a-uuid");
+        assert!(serde_json::from_value::<ServerMessage>(malformed).is_err());
     }
 }
 

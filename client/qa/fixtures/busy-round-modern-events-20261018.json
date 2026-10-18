@@ -1,0 +1,5627 @@
+{
+  "schema": 1,
+  "source": {
+    "recording": "complete ten-bot event-tier working-tree round",
+    "sha256": "3f07b7890a7edb99dfba328eaf5e141682e90f50f573d8597e400d487f454b3d",
+    "seed": 42,
+    "bots": 10,
+    "duration_ms": 103238,
+    "native_base": "8ecbb99c77a74dbb28ff8090fc86f5b58d36a881",
+    "source_patch_sha256": "077a21fad0a11c12d051f0be12ac40a05eb27ca23acef0572b23c88e339ebd16",
+    "captured_date": "2026-10-18",
+    "format": "complete ordered event extract; snapshots retained in original recording",
+    "modern": true
+  },
+  "expected": {
+    "frags": 78,
+    "personal_pickups": 3
+  },
+  "view": {
+    "name": "Scout Ant",
+    "followed_id": "8878e9fa-71d9-4446-9e62-65c182086ad7"
+  },
+  "entries": [
+    {
+      "ms": 1285,
+      "event": {
+        "event": "round_start",
+        "frag_limit": 10.0,
+        "host_line": "HOST: CONTESTED FREQUENCY. ARENA DUEL. DEAD AIR DAN, NIGHTFALL, STATIC KID, +7 ON THE SCRAP. FIGHT!",
+        "mode_name": "Contested Frequency",
+        "players": [
+          "Dead Air Dan",
+          "Nightfall",
+          "Static Kid",
+          "Aunt Linda",
+          "Scout Ant",
+          "Crackpot",
+          "Buzzkill",
+          "Tin Foil Tina",
+          "Dead Air Dan-2",
+          "Nightfall-2"
+        ],
+        "playlist": "Arena Duel",
+        "previous_winner": null,
+        "round_number": 1.0,
+        "rules": {
+          "mode": "ffa",
+          "name": "Free-for-all"
+        },
+        "time_limit": 180.0,
+        "type": "event"
+      }
+    },
+    {
+      "ms": 2285,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 75.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 2485,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 50.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 2685,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Dead Air Dan",
+        "target_hp_after": 20.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 2886,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 25.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 3334,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Nightfall-2",
+        "target_hp_after": 75.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 3686,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 50.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 3886,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 0.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 3886,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 3886,
+      "event": {
+        "event": "host_reaction",
+        "kind": "first_blood",
+        "other": "Aunt Linda",
+        "player": "Dead Air Dan-2",
+        "type": "event",
+        "variant": 0.0
+      }
+    },
+    {
+      "ms": 5086,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 25.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 5135,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 75.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 5286,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 0.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 5287,
+      "event": {
+        "event": "frag",
+        "killer": "Buzzkill",
+        "killer_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 5287,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall",
+        "player_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "text": "night watch resets",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 5735,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Nightfall-2",
+        "target_hp_after": 50.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 5935,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Nightfall-2",
+        "target_hp_after": 0.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 5935,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 5935,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "booth owns that frag",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 6784,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 75.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 6887,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 6984,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 50.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7287,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 50.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7384,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7488,
+      "event": {
+        "amount": 40.0,
+        "event": "pickup",
+        "kind": "health",
+        "pickup_id": "pad_health_s",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7488,
+      "event": {
+        "damage": 42.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 8.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7584,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Tin Foil Tina",
+        "target_hp_after": -17.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7584,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 7584,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Dead Air Dan DENIES THE DENIAL.",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7584,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 0.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 7584,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 7584,
+      "event": {
+        "event": "speak",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "text": "eyes only wipe",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 8288,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 8585,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Scout Ant",
+        "target_hp_after": 75.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 8937,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 8985,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Scout Ant",
+        "target_hp_after": 50.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 10137,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Nightfall-2",
+        "target_hp_after": -60.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 10137,
+      "event": {
+        "event": "frag",
+        "killer": "Crackpot",
+        "killer_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 10137,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "text": "rail resets",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 10186,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Scout Ant",
+        "target_hp_after": 25.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 10386,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Scout Ant",
+        "target_hp_after": 0.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 10386,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 10586,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 10586,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 12587,
+      "event": {
+        "amount": 25.0,
+        "event": "pickup",
+        "kind": "armor",
+        "pickup_id": "pad_armor",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 13139,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 13387,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14133,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_scatter",
+        "player": "Buzzkill",
+        "player_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event",
+        "weapon": "Scatter"
+      }
+    },
+    {
+      "ms": 14333,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 75.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14388,
+      "event": {
+        "damage": 28.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 72.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14533,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 50.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14684,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Dead Air Dan",
+        "target_hp_after": 60.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14733,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14885,
+      "event": {
+        "damage": 36.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Dead Air Dan",
+        "target_hp_after": 24.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14988,
+      "event": {
+        "damage": 60.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": -35.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14988,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 14988,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "dead air for a sec",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14988,
+      "event": {
+        "damage": 87.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": -15.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 14988,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 14988,
+      "event": {
+        "event": "speak",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "text": "call back later",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 15789,
+      "event": {
+        "damage": 30.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Dead Air Dan",
+        "target_hp_after": -6.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 15789,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Dead Air Dan",
+        "victim_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 15789,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Static Kid DENIES THE DENIAL.",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 16285,
+      "event": {
+        "duration_ticks": 120.0,
+        "event": "compliance_ping",
+        "message": "HOST: CONTINUANCE COMPLIANCE PING. APPROVED LANES ONLY.",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 16734,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Nightfall",
+        "target_hp_after": 50.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 16934,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Nightfall",
+        "target_hp_after": 25.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 17086,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Scout Ant",
+        "target_hp_after": 75.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 17134,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Nightfall",
+        "target_hp_after": 0.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 17134,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 17686,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Static Kid",
+        "target_hp_after": 75.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 17990,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 17990,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 18086,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Static Kid",
+        "target_hp_after": 25.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 18535,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 75.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 18687,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Static Kid",
+        "target_hp_after": 0.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 18687,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 18687,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Tin Foil Tina DENIES THE DENIAL.",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 18783,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20087,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 50.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20136,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 75.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20136,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20287,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 25.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20336,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20536,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 0.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 20536,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 21288,
+      "event": {
+        "boss_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "event": "boss_spawn",
+        "hp": 200.0,
+        "message": "HOST: CONTINUANCE COMPLIANCE DRONE ON DECK. ARTICLE 7 ENFORCEMENT.",
+        "name": "COMPLIANCE-DRONE",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 21536,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Nightfall",
+        "target_hp_after": 20.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 21689,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 21986,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 50.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 22985,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 0.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 22985,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 22985,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "dead air cleared",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 22986,
+      "event": {
+        "event": "speak",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "text": "foil wiped",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23234,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Buzzkill",
+        "target_hp_after": 75.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23434,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Buzzkill",
+        "target_hp_after": 50.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23537,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23634,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Buzzkill",
+        "target_hp_after": 25.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23834,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Buzzkill",
+        "target_hp_after": 0.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23834,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 23834,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Dead Air Dan DENIES THE DENIAL.",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23834,
+      "event": {
+        "event": "speak",
+        "player": "Buzzkill",
+        "player_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "text": "close scrap lost",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23834,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "COMPLIANCE-DRONE",
+        "shooter_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "target": "Aunt Linda",
+        "target_hp_after": -55.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 23834,
+      "event": {
+        "event": "frag",
+        "killer": "COMPLIANCE-DRONE",
+        "killer_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 24089,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Scout Ant",
+        "target_hp_after": -85.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 24089,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall",
+        "killer_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 24338,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Static Kid",
+        "target_hp_after": 20.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 25338,
+      "event": {
+        "amount": 40.0,
+        "event": "pickup",
+        "kind": "health",
+        "pickup_id": "pad_health_s",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 25338,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Static Kid",
+        "target_hp_after": -20.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 25338,
+      "event": {
+        "event": "frag",
+        "killer": "Crackpot",
+        "killer_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 25338,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Crackpot DENIES THE DENIAL.",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 25338,
+      "event": {
+        "event": "speak",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "text": "static wiped",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 25987,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 26835,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 26835,
+      "event": {
+        "event": "respawn",
+        "player": "Buzzkill",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 27084,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 27332,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Nightfall-2",
+        "target_hp_after": 75.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 27588,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 75.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 27788,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 50.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 27933,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Nightfall-2",
+        "target_hp_after": 50.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 28133,
+      "event": {
+        "amount": 40.0,
+        "event": "pickup",
+        "kind": "health",
+        "pickup_id": "pad_health_n",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 28188,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 0.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 28188,
+      "event": {
+        "event": "frag",
+        "killer": "Buzzkill",
+        "killer_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 28340,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Nightfall-2",
+        "target_hp_after": 65.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 28340,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 28733,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Nightfall-2",
+        "target_hp_after": 40.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29085,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Buzzkill",
+        "target_hp_after": 50.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29388,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Static Kid",
+        "target_hp_after": 75.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29588,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Static Kid",
+        "target_hp_after": 50.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29685,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan",
+        "target_hp_after": 75.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29789,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Static Kid",
+        "target_hp_after": 0.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29789,
+      "event": {
+        "event": "frag",
+        "killer": "Buzzkill",
+        "killer_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 29789,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Buzzkill DENIES THE DENIAL.",
+        "player": "Buzzkill",
+        "player_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29885,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan",
+        "target_hp_after": 25.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29885,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "COMPLIANCE-DRONE",
+        "shooter_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "target": "Dead Air Dan",
+        "target_hp_after": -55.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 29885,
+      "event": {
+        "event": "frag",
+        "killer": "COMPLIANCE-DRONE",
+        "killer_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Dead Air Dan",
+        "victim_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 29885,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. COMPLIANCE-DRONE DENIES THE DENIAL.",
+        "player": "COMPLIANCE-DRONE",
+        "player_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 30037,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_flechette",
+        "player": "Buzzkill",
+        "player_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event",
+        "weapon": "Flechette"
+      }
+    },
+    {
+      "ms": 30534,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall-2",
+        "target_hp_after": -40.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 30534,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 30534,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "text": "rail resets",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 30886,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "COMPLIANCE-DRONE",
+        "shooter_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": -60.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 30886,
+      "event": {
+        "event": "frag",
+        "killer": "COMPLIANCE-DRONE",
+        "killer_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 30886,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "COMPLIANCE-DRONE",
+        "player_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 30886,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "dead air for a sec",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 31134,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_scatter",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event",
+        "weapon": "Scatter"
+      }
+    },
+    {
+      "ms": 31182,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 31734,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Buzzkill",
+        "target_hp_after": 25.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 32783,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 32887,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 33535,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 33887,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 34384,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Buzzkill",
+        "target_hp_after": 0.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 34384,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 34384,
+      "event": {
+        "event": "speak",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "text": "eyes only wipe",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 34832,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Scout Ant",
+        "target_hp_after": 75.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 34936,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Scout Ant",
+        "target_hp_after": 50.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 35585,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Nightfall-2",
+        "target_hp_after": 50.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 35688,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "COMPLIANCE-DRONE",
+        "shooter_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "target": "Scout Ant",
+        "target_hp_after": -30.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 35688,
+      "event": {
+        "event": "frag",
+        "killer": "COMPLIANCE-DRONE",
+        "killer_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 35888,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Static Kid",
+        "target_hp_after": 20.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 35985,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Nightfall-2",
+        "target_hp_after": 0.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 35985,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 36633,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Nightfall",
+        "target_hp_after": -5.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 36633,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 36633,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Static Kid DENIES THE DENIAL.",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 36633,
+      "event": {
+        "event": "speak",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "text": "clean 67",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 36689,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "COMPLIANCE-DRONE",
+        "shooter_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "target": "Tin Foil Tina",
+        "target_hp_after": -60.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 36689,
+      "event": {
+        "event": "frag",
+        "killer": "COMPLIANCE-DRONE",
+        "killer_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 36689,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: FREQUENCY RAMPAGE. COMPLIANCE-DRONE BREAKS EVERY APPROVED LANE.",
+        "player": "COMPLIANCE-DRONE",
+        "player_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "streak": 5.0,
+        "tier": "rampage",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 37137,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "COMPLIANCE-DRONE",
+        "target_hp_after": 120.0,
+        "target_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 37385,
+      "event": {
+        "event": "respawn",
+        "player": "Buzzkill",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 38683,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 38786,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "COMPLIANCE-DRONE",
+        "target_hp_after": 40.0,
+        "target_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 38786,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "COMPLIANCE-DRONE",
+        "shooter_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "target": "Crackpot",
+        "target_hp_after": 20.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 38986,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 39483,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Buzzkill",
+        "target_hp_after": 20.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 39587,
+      "event": {
+        "damage": 47.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 53.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 39635,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 39683,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 40187,
+      "event": {
+        "damage": 78.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": -25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 40187,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 40187,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "dead air cleared",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 40787,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "COMPLIANCE-DRONE",
+        "target_hp_after": 15.0,
+        "target_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 40835,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Aunt Linda",
+        "target_hp_after": -60.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 40835,
+      "event": {
+        "event": "frag",
+        "killer": "Crackpot",
+        "killer_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 40835,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 41132,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Scout Ant",
+        "target_hp_after": 50.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 41332,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Scout Ant",
+        "target_hp_after": 25.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 41533,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Scout Ant",
+        "target_hp_after": 0.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 41533,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 41788,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "COMPLIANCE-DRONE",
+        "target_hp_after": -35.0,
+        "target_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 41788,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "COMPLIANCE-DRONE",
+        "victim_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 41788,
+      "event": {
+        "event": "host_reaction",
+        "kind": "streak_ended",
+        "other": "Dead Air Dan",
+        "player": "COMPLIANCE-DRONE",
+        "type": "event",
+        "variant": 0.0
+      }
+    },
+    {
+      "ms": 41788,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Dead Air Dan DENIES THE DENIAL.",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 41788,
+      "event": {
+        "boss_id": "a8a9c215-5558-4e6b-8fab-b37b96d95772",
+        "event": "boss_down",
+        "killer": "Dead Air Dan",
+        "message": "HOST: DRONE DOWN. CONTINUANCE DENIES THE INCIDENT. SCRAP ON.",
+        "name": "COMPLIANCE-DRONE",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 42036,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Crackpot",
+        "target_hp_after": -5.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 42036,
+      "event": {
+        "event": "frag",
+        "killer": "Buzzkill",
+        "killer_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Crackpot",
+        "victim_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 42036,
+      "event": {
+        "event": "speak",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "text": "continuance redacted me",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 43188,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 43685,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 75.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 43685,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Static Kid",
+        "target_hp_after": -30.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 43685,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 43685,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Tin Foil Tina DENIES THE DENIAL.",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 43837,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 44534,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 45037,
+      "event": {
+        "event": "respawn",
+        "player": "Crackpot",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46038,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Crackpot",
+        "target_hp_after": 50.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46086,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Buzzkill",
+        "target_hp_after": -5.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46086,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 46086,
+      "event": {
+        "event": "speak",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "text": "loophead clocked",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46438,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Crackpot",
+        "target_hp_after": 25.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46535,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 50.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46638,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Crackpot",
+        "target_hp_after": 0.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46638,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Crackpot",
+        "victim_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 46638,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "dead air cleared",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46687,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46935,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 0.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 46935,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 46935,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Scout Ant DENIES THE DENIAL.",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 47287,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_scatter",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event",
+        "weapon": "Scatter"
+      }
+    },
+    {
+      "ms": 47887,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Static Kid",
+        "target_hp_after": 50.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 47935,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Aunt Linda",
+        "target_hp_after": 50.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 48087,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Static Kid",
+        "target_hp_after": 25.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 48136,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Aunt Linda",
+        "target_hp_after": 0.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 48136,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 48136,
+      "event": {
+        "event": "speak",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "text": "glitch landed",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 49088,
+      "event": {
+        "event": "respawn",
+        "player": "Buzzkill",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 49633,
+      "event": {
+        "event": "respawn",
+        "player": "Crackpot",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 49736,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Nightfall",
+        "target_hp_after": 20.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 49936,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 50737,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Nightfall",
+        "target_hp_after": -140.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 50737,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall-2",
+        "killer_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "killer_score": 1.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 51137,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 52186,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Static Kid",
+        "target_hp_after": -135.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 52186,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall-2",
+        "killer_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 52186,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Nightfall-2 DENIES THE DENIAL.",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 52186,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "text": "rail holds the scrap",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 52234,
+      "event": {
+        "damage": 27.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 48.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 52883,
+      "event": {
+        "damage": 30.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 18.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 53738,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 53939,
+      "event": {
+        "damage": 100.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": -82.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 53939,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 53939,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "dead air cleared",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 54387,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall-2",
+        "target_hp_after": 75.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 54484,
+      "event": {
+        "damage": 121.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan",
+        "target_hp_after": -21.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 54484,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Dead Air Dan",
+        "victim_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 54484,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 55132,
+      "event": {
+        "amount": 25.0,
+        "event": "pickup",
+        "kind": "armor",
+        "pickup_id": "pad_armor",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 55187,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 55436,
+      "event": {
+        "damage": 70.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Scout Ant",
+        "target_hp_after": 55.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 55588,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall-2",
+        "target_hp_after": 25.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 56085,
+      "event": {
+        "damage": 70.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Scout Ant",
+        "target_hp_after": -15.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 56085,
+      "event": {
+        "event": "frag",
+        "killer": "Buzzkill",
+        "killer_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 56085,
+      "event": {
+        "event": "host_reaction",
+        "kind": "streak_ended",
+        "other": "Buzzkill",
+        "player": "Scout Ant",
+        "type": "event",
+        "variant": 1.0
+      }
+    },
+    {
+      "ms": 56085,
+      "event": {
+        "event": "speak",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "text": "scout ant wiped",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 56236,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Static Kid",
+        "target_hp_after": -60.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 56236,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall",
+        "killer_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "killer_score": 2.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 56236,
+      "event": {
+        "event": "speak",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "text": "static wiped",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 56788,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall-2",
+        "target_hp_after": 0.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 56788,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 56933,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 57485,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 58734,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_flechette",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event",
+        "weapon": "Flechette"
+      }
+    },
+    {
+      "ms": 59086,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 59238,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 59783,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 59983,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Nightfall",
+        "target_hp_after": 20.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 60487,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Scout Ant",
+        "target_hp_after": 50.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 60887,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Buzzkill",
+        "target_hp_after": 50.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 61087,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Buzzkill",
+        "target_hp_after": 0.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 61087,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 61087,
+      "event": {
+        "event": "speak",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "text": "loophead clocked",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 61536,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 75.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 61687,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Static Kid",
+        "target_hp_after": 20.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 61936,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 50.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 62136,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 62136,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Scout Ant",
+        "target_hp_after": -30.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 62136,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 62136,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Dead Air Dan-2 DENIES THE DENIAL.",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 62136,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "six-seven clear",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 62888,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Crackpot",
+        "target_hp_after": 50.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 63088,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Crackpot",
+        "target_hp_after": 25.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 63288,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Crackpot",
+        "target_hp_after": -25.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 63288,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Crackpot",
+        "victim_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 63336,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Nightfall",
+        "target_hp_after": -60.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 63336,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall-2",
+        "killer_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 63336,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "text": "night watch confirms",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 64088,
+      "event": {
+        "event": "respawn",
+        "player": "Buzzkill",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 65137,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 66283,
+      "event": {
+        "event": "respawn",
+        "player": "Crackpot",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 66338,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 66987,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_scatter",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event",
+        "weapon": "Scatter"
+      }
+    },
+    {
+      "ms": 66987,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Aunt Linda",
+        "target_hp_after": 20.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67539,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall",
+        "target_hp_after": 75.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67539,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan",
+        "target_hp_after": 75.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67732,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall",
+        "target_hp_after": 50.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67932,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Nightfall",
+        "target_hp_after": 0.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67932,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 67932,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Aunt Linda DENIES THE DENIAL.",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67932,
+      "event": {
+        "event": "speak",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "text": "aunt linda stays live",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 67932,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan",
+        "target_hp_after": 50.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 68139,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan",
+        "target_hp_after": 25.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 68684,
+      "event": {
+        "damage": 70.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": -45.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 68684,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 68836,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Aunt Linda",
+        "target_hp_after": -60.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 68836,
+      "event": {
+        "event": "frag",
+        "killer": "Crackpot",
+        "killer_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 68836,
+      "event": {
+        "event": "speak",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "text": "meatbag clocked",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 69388,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan",
+        "target_hp_after": 0.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 69388,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 7.0,
+        "type": "event",
+        "victim": "Dead Air Dan",
+        "victim_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 69388,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Tin Foil Tina DENIES THE DENIAL.",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 69388,
+      "event": {
+        "event": "speak",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "text": "denied watermark",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 70284,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Nightfall-2",
+        "target_hp_after": 75.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 70636,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Static Kid",
+        "target_hp_after": -60.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 70636,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall-2",
+        "killer_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 70637,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Nightfall-2 DENIES THE DENIAL.",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 70637,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall-2",
+        "player_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "text": "wirehead denied",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 70933,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 71037,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Buzzkill",
+        "target_hp_after": 20.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 71685,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 71837,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 72382,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 72838,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Buzzkill",
+        "target_hp_after": -5.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 72838,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 73438,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Scout Ant",
+        "target_hp_after": 50.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 73486,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Dead Air Dan",
+        "target_hp_after": 75.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 73638,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Scout Ant",
+        "target_hp_after": 0.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 73638,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 7.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 73638,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "booth owns that frag",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 73638,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 75584,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Static Kid",
+        "target_hp_after": 20.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 75832,
+      "event": {
+        "event": "respawn",
+        "player": "Buzzkill",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76633,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Crackpot",
+        "target_hp_after": 50.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76633,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76688,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Dead Air Dan",
+        "target_hp_after": 50.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76888,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Dead Air Dan",
+        "target_hp_after": 25.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76936,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Crackpot",
+        "target_hp_after": 0.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76936,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 8.0,
+        "type": "event",
+        "victim": "Crackpot",
+        "victim_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 76936,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 76936,
+      "event": {
+        "event": "speak",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "text": "hangar candy lane",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 77488,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Dead Air Dan",
+        "target_hp_after": 0.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 77488,
+      "event": {
+        "event": "frag",
+        "killer": "Buzzkill",
+        "killer_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Dead Air Dan",
+        "victim_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 77488,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "booth cut out",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 77633,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Nightfall-2",
+        "target_hp_after": 50.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 77833,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Nightfall-2",
+        "target_hp_after": 25.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 77937,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 75.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78137,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 50.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78234,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 0.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78234,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 7.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 78234,
+      "event": {
+        "event": "host_reaction",
+        "kind": "streak_ended",
+        "other": "Aunt Linda",
+        "player": "Tin Foil Tina",
+        "type": "event",
+        "variant": 2.0
+      }
+    },
+    {
+      "ms": 78234,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Aunt Linda DENIES THE DENIAL.",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78634,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Nightfall-2",
+        "target_hp_after": 0.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78634,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 78634,
+      "event": {
+        "event": "speak",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "text": "scout ant deleted you",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78737,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 75.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78785,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 50.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 78937,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 25.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 79186,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 79186,
+      "event": {
+        "damage": 18.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Aunt Linda",
+        "target_hp_after": 7.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 79386,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 0.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 79386,
+      "event": {
+        "event": "frag",
+        "killer": "Aunt Linda",
+        "killer_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "killer_score": 8.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 79386,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 79938,
+      "event": {
+        "event": "respawn",
+        "player": "Crackpot",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 80034,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Static Kid",
+        "target_hp_after": -60.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 80034,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall",
+        "killer_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "killer_score": 3.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 80034,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall",
+        "player_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "text": "night watch confirms",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 80386,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Aunt Linda",
+        "target_hp_after": -73.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 80386,
+      "event": {
+        "event": "frag",
+        "killer": "Crackpot",
+        "killer_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 80483,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 80538,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_flechette",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event",
+        "weapon": "Flechette"
+      }
+    },
+    {
+      "ms": 81235,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 81635,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 82387,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 82684,
+      "event": {
+        "damage": 48.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Buzzkill",
+        "target_hp_after": 52.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 83036,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 83284,
+      "event": {
+        "damage": 40.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Buzzkill",
+        "target_hp_after": 12.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 83388,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 83933,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_scatter",
+        "player": "Nightfall",
+        "player_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event",
+        "weapon": "Scatter"
+      }
+    },
+    {
+      "ms": 85134,
+      "event": {
+        "damage": 70.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Buzzkill",
+        "target_hp_after": -58.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 85134,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 7.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 85134,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Scout Ant DENIES THE DENIAL.",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 85734,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Aunt Linda",
+        "shooter_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "target": "Scout Ant",
+        "target_hp_after": 50.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 85734,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Aunt Linda",
+        "target_hp_after": 75.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 85734,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Dead Air Dan",
+        "target_hp_after": 20.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 85934,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Crackpot",
+        "target_hp_after": 75.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 86582,
+      "event": {
+        "damage": 72.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Aunt Linda",
+        "target_hp_after": 3.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 86686,
+      "event": {
+        "damage": 160.0,
+        "event": "hit",
+        "shooter": "Crackpot",
+        "shooter_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "target": "Tin Foil Tina",
+        "target_hp_after": -60.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 86686,
+      "event": {
+        "event": "frag",
+        "killer": "Crackpot",
+        "killer_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 86686,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Crackpot DENIES THE DENIAL.",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 86686,
+      "event": {
+        "event": "speak",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "text": "they lose count",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 86734,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall-2",
+        "shooter_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "target": "Dead Air Dan",
+        "target_hp_after": -60.0,
+        "target_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 86734,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall-2",
+        "killer_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Dead Air Dan",
+        "victim_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 86734,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "dead air for a sec",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87183,
+      "event": {
+        "damage": 70.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Aunt Linda",
+        "target_hp_after": -67.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87183,
+      "event": {
+        "event": "frag",
+        "killer": "Scout Ant",
+        "killer_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "killer_score": 8.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 87183,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87383,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Nightfall-2",
+        "target_hp_after": 75.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87535,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Static Kid",
+        "target_hp_after": 75.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87583,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Nightfall-2",
+        "target_hp_after": 50.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87735,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Static Kid",
+        "target_hp_after": 50.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87935,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Static Kid",
+        "target_hp_after": 0.0,
+        "target_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87935,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 6.0,
+        "type": "event",
+        "victim": "Static Kid",
+        "victim_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 87935,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "dead air cleared",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 87983,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Nightfall-2",
+        "target_hp_after": 25.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 88135,
+      "event": {
+        "event": "respawn",
+        "player": "Buzzkill",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 88183,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Nightfall-2",
+        "target_hp_after": 0.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 88183,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall",
+        "killer_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "killer_score": 4.0,
+        "type": "event",
+        "victim": "Nightfall-2",
+        "victim_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 88183,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Nightfall DENIES THE DENIAL.",
+        "player": "Nightfall",
+        "player_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 89687,
+      "event": {
+        "event": "respawn",
+        "player": "Tin Foil Tina",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 89736,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 90184,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 90936,
+      "event": {
+        "event": "respawn",
+        "player": "Static Kid",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 91185,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 91233,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Aunt Linda",
+        "target_hp_after": 75.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 91433,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Aunt Linda",
+        "target_hp_after": 50.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 91633,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Aunt Linda",
+        "target_hp_after": 25.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 91833,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Aunt Linda",
+        "target_hp_after": 0.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 91833,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 8.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 91833,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "text": "booth owns that frag",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 94235,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Crackpot",
+        "target_hp_after": 50.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 94835,
+      "event": {
+        "event": "respawn",
+        "player": "Aunt Linda",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95035,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Crackpot",
+        "target_hp_after": 25.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95587,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Nightfall",
+        "shooter_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "target": "Scout Ant",
+        "target_hp_after": -30.0,
+        "target_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95587,
+      "event": {
+        "event": "frag",
+        "killer": "Nightfall",
+        "killer_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "killer_score": 5.0,
+        "type": "event",
+        "victim": "Scout Ant",
+        "victim_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "weapon": "rail"
+      }
+    },
+    {
+      "ms": 95587,
+      "event": {
+        "event": "host_reaction",
+        "kind": "streak_ended",
+        "other": "Nightfall",
+        "player": "Scout Ant",
+        "type": "event",
+        "variant": 0.0
+      }
+    },
+    {
+      "ms": 95587,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: TRIPLE SCRAP. CONTINUANCE LOSES COUNT.",
+        "player": "Nightfall",
+        "player_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "streak": 3.0,
+        "tier": "triple",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95587,
+      "event": {
+        "event": "speak",
+        "player": "Scout Ant",
+        "player_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "text": "scout ant wiped",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95635,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Crackpot",
+        "target_hp_after": 0.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95635,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 7.0,
+        "type": "event",
+        "victim": "Crackpot",
+        "victim_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 95635,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Dead Air Dan-2 DENIES THE DENIAL.",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95635,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "six-seven clear",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95635,
+      "event": {
+        "event": "speak",
+        "player": "Crackpot",
+        "player_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "text": "continuance redacted me",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 95987,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Nightfall-2",
+        "target_hp_after": 75.0,
+        "target_id": "85dac5c0-d551-4570-af78-4bfd657bbf6e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 97036,
+      "event": {
+        "damage": 80.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 20.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 97335,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 75.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 97733,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 50.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98133,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Buzzkill",
+        "shooter_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "target": "Nightfall",
+        "target_hp_after": 25.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98285,
+      "event": {
+        "event": "pickup",
+        "kind": "weapon",
+        "pickup_id": "pad_flechette",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "type": "event",
+        "weapon": "Flechette"
+      }
+    },
+    {
+      "ms": 98285,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 75.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98437,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": -5.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98437,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 9.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 98588,
+      "event": {
+        "event": "respawn",
+        "player": "Scout Ant",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98637,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Nightfall",
+        "target_hp_after": -25.0,
+        "target_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98637,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 7.0,
+        "type": "event",
+        "victim": "Nightfall",
+        "victim_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 98637,
+      "event": {
+        "event": "speak",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "text": "glitch landed",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98637,
+      "event": {
+        "event": "speak",
+        "player": "Nightfall",
+        "player_id": "a90ce9df-ac4b-484e-a53f-51fb052b6996",
+        "text": "rail resets",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 98637,
+      "event": {
+        "event": "respawn",
+        "player": "Crackpot",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 99734,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Buzzkill",
+        "target_hp_after": 75.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 100134,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Buzzkill",
+        "target_hp_after": 50.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 100237,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Scout Ant",
+        "shooter_id": "8878e9fa-71d9-4446-9e62-65c182086ad7",
+        "target": "Crackpot",
+        "target_hp_after": 75.0,
+        "target_id": "01c4c0fe-f26b-4f5b-9546-3ed1417bdf7d",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 100534,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Static Kid",
+        "shooter_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "target": "Buzzkill",
+        "target_hp_after": 0.0,
+        "target_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 100534,
+      "event": {
+        "event": "frag",
+        "killer": "Static Kid",
+        "killer_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "killer_score": 8.0,
+        "type": "event",
+        "victim": "Buzzkill",
+        "victim_id": "db009e86-e263-43b9-b959-5997545094d5",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 100534,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Static Kid DENIES THE DENIAL.",
+        "player": "Static Kid",
+        "player_id": "e4ddce28-085c-4c36-a6b2-616a3b5a0724",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 101438,
+      "event": {
+        "event": "respawn",
+        "player": "Dead Air Dan-2",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 101638,
+      "event": {
+        "event": "respawn",
+        "player": "Nightfall",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 101935,
+      "event": {
+        "damage": 54.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Aunt Linda",
+        "target_hp_after": 46.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102535,
+      "event": {
+        "damage": 97.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan",
+        "shooter_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "target": "Aunt Linda",
+        "target_hp_after": -51.0,
+        "target_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102535,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan",
+        "killer_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "killer_score": 9.0,
+        "type": "event",
+        "victim": "Aunt Linda",
+        "victim_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 102535,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Dead Air Dan DENIES THE DENIAL.",
+        "player": "Dead Air Dan",
+        "player_id": "f0709835-73dd-4a5a-ad17-30e4249fa6f6",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102535,
+      "event": {
+        "event": "speak",
+        "player": "Aunt Linda",
+        "player_id": "08b713d7-86d3-4d82-94e4-bf17a0b8508e",
+        "text": "firmware reset",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102584,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 50.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102784,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 75.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102984,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": 25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 102984,
+      "event": {
+        "damage": 25.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": 25.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 103184,
+      "event": {
+        "damage": 50.0,
+        "event": "hit",
+        "shooter": "Tin Foil Tina",
+        "shooter_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "target": "Dead Air Dan-2",
+        "target_hp_after": -25.0,
+        "target_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 103184,
+      "event": {
+        "event": "frag",
+        "killer": "Tin Foil Tina",
+        "killer_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "killer_score": 10.0,
+        "type": "event",
+        "victim": "Dead Air Dan-2",
+        "victim_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "weapon": "flechette"
+      }
+    },
+    {
+      "ms": 103184,
+      "event": {
+        "event": "killstreak",
+        "message": "HOST: DOUBLE FREQUENCY. Tin Foil Tina DENIES THE DENIAL.",
+        "player": "Tin Foil Tina",
+        "player_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "streak": 2.0,
+        "tier": "double",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 103184,
+      "event": {
+        "event": "speak",
+        "player": "Dead Air Dan-2",
+        "player_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "text": "dead air for a sec",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 103184,
+      "event": {
+        "damage": 54.0,
+        "event": "hit",
+        "shooter": "Dead Air Dan-2",
+        "shooter_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "target": "Tin Foil Tina",
+        "target_hp_after": -29.0,
+        "target_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "type": "event"
+      }
+    },
+    {
+      "ms": 103184,
+      "event": {
+        "event": "frag",
+        "killer": "Dead Air Dan-2",
+        "killer_id": "71e9eda2-8009-40b5-8bbc-ea0945e1e38f",
+        "killer_score": 8.0,
+        "type": "event",
+        "victim": "Tin Foil Tina",
+        "victim_id": "9b0b0259-6b9a-4742-a608-a3272b37e713",
+        "weapon": "scatter"
+      }
+    },
+    {
+      "ms": 103232,
+      "event": {
+        "event": "round_end",
+        "final_scores": [
+          {
+            "name": "Tin Foil Tina",
+            "score": 10.0
+          },
+          {
+            "name": "Dead Air Dan",
+            "score": 9.0
+          },
+          {
+            "name": "Aunt Linda",
+            "score": 8.0
+          },
+          {
+            "name": "Dead Air Dan-2",
+            "score": 8.0
+          },
+          {
+            "name": "Scout Ant",
+            "score": 8.0
+          },
+          {
+            "name": "Static Kid",
+            "score": 8.0
+          },
+          {
+            "name": "Buzzkill",
+            "score": 6.0
+          },
+          {
+            "name": "Crackpot",
+            "score": 6.0
+          },
+          {
+            "name": "Nightfall",
+            "score": 5.0
+          },
+          {
+            "name": "Nightfall-2",
+            "score": 5.0
+          }
+        ],
+        "host_line": "HOST: ROUND MVP. Tin Foil Tina WITH 10 FRAGS. CONTINUANCE DENIES THE PODIUM.",
+        "mvp": "Tin Foil Tina",
+        "mvp_frags": 10.0,
+        "reason": "Frag limit reached",
+        "type": "event",
+        "winner": "Tin Foil Tina",
+        "winner_score": 10.0
+      }
+    }
+  ]
+}

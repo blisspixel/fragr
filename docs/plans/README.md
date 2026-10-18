@@ -18,12 +18,18 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [bounded client checks repair](bounded-client-checks-20261018.md) is **in flight**
-within #412 integration after a stalled Windows main check. It adds retained
-per-check logs and an outer process deadline before #413 begins.
+The [event-tier round](ui-event-tiers-20261018.md) is **in flight** for #413 within
+#418, following reviewed green main at `8ecbb99` and the v0.88.0 tag.
+v0.88.0 is published with three verified desktop archives and a passing
+downloaded Linux installation and exact server build metadata check.
 
-The [status bar and reduced motion round](ui-status-bar-20261018.md) is **implemented**
-for #412 within #418, following green main CI and verified v0.87.0 publication.
+The [bounded client checks repair](bounded-client-checks-20261018.md) **shipped**
+through PR #422 with passing main CI 39150766048. Linux, macOS and Windows
+passed all 585 client checks, including 187 harnesses, and twelve fault scenarios.
+
+The [status bar and reduced motion round](ui-status-bar-20261018.md) **shipped**
+through PR #421, followed by the reviewed checker repair in PR #422.
+v0.88.0 is published from green main with verified desktop packages.
 
 The [UI palette and type round](ui-palette-type-20261017.md) **shipped**
 for #411 within #418 through [PR #420](https://github.com/blisspixel/fragr/pull/420).
@@ -38,7 +44,7 @@ It preserves six unpublished commits and the M16-M18 working tree and repairs
 priority issues #407-#410. Final main CI passes, including 2,142 native tests
 and 92.74% unfiltered line coverage. Three desktop archives and the downloaded
 Linux installation passed verification before publication. v0.85.0 remains a
-historical draft; v0.87.0 is the latest published release.
+historical draft; v0.88.0 is the latest published release.
 
 The [October 13 development round](build-round-20261013.md) **shipped** in
 [PR 401](https://github.com/blisspixel/fragr/pull/401) and v0.82.1, with passing

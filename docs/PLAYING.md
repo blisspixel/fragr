@@ -66,10 +66,15 @@ outside to the launch works. Secure the depot and road, use the captured jeep
 if you choose, and learn the Walker's warned attacks before its support crews
 arrive. Clear the gantry after the machine falls, then use its control with
 the whole ready party aboard. The infantry route remains available after jeep
-loss. All fourteen have practice entries and
-connected saved progression. These remain development prototypes, with final
-art and fresh-player acceptance open. Connected levels 15
-through 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
+loss. **Civic Pressure Valve**, level 15, opens Episode IV at the stadium with
+the finite Article Blade and broadcast booth takeover. **Freedom of Movement**,
+level 16, crosses the avenue, green-wave checkpoints and prison bus rescue.
+**Peace Without Interruption**, level 17, breaches the Forever Office and
+captures Voss alive. **All Systems Normal**, level 18, starts Episode V through
+the relief depot, rupture defense, clinic roadblock and evacuation concourse.
+All eighteen have practice entries and connected saved progression. These
+remain development prototypes, with final art and fresh-player acceptance open.
+Connected levels 19 and 20 remain unbuilt. The [campaign contract](CAMPAIGN.md) and
 [roadmap](ROADMAP.md) own the current scope and build order.
 
 ## Standalone development maps
@@ -200,8 +205,14 @@ the fighter seat. **Esc** opens the match menu. All actions can be rebound in
 Hold Tab to list every fighter. While holding the board, use the weapon-cycle
 keys, wheel or controller bumpers to scroll a large roster. The board shows
 your current bindings. Release it to restore ordinary weapon selection.
-The corner keeps the first four while you are watching, and it stays hidden in
-first person until you hold that key. In a team match, world nameplates mark
+Mode and round stay in the corner; accepted scores, clocks and objectives sit
+above the view. Five frag rows have their own top-right queue and remain for
+4.5 seconds each. Voice below them carries taunts, Host lines and your pickups.
+Objective calls appear one at a time above aim. Loading, menus and other actual
+covers pause obscured notice clocks. Feed and standings use the same relation
+marks, with a bone plate for frags involving you. Following a fighter does not
+make that fighter you, and duplicate callsigns keep distinct standings rows.
+In a team match, world nameplates mark
 someone on your side OURS and keep them bright. The other side is marked THEIRS
 and warms toward red. A spectator still reads UNION and FREE on the full plate.
 

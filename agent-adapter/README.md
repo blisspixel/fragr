@@ -499,6 +499,12 @@ All fields are optional. `clear` (boolean, default false): clear event buffer af
 **Notes:**
 - Returns last 50 events in chronological order
 - Event types: `player_joined`, `player_left`, `frag` (kill), `respawn`, `round_start`, `round_end`
+
+Frag events can also include optional `killer_id` and `victim_id` UUIDs and a
+resolved snake_case `weapon` ID, for example `rocket` or `article_blade`.
+`get_events` preserves these fields. Older events omit them; missing weapon
+does not identify a current held gun, and equal callsigns do not identify equal
+participants. Prefer explicit IDs, including after bodies leave the snapshot.
 - Events are also included in `observe` output under `recent_events`
 - Set `clear: true` to acknowledge events and reset buffer
 

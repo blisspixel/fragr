@@ -190,21 +190,26 @@ static func scoreboard_text(rows: Array, sides: Dictionary, score_line: String, 
 		text += _text("HUD_BOARD_COLUMNS") + "\n"
 	for i: int in range(mini(limit, rows.size())):
 		var row: Dictionary = rows[i]
-		var name: String = str(row.get("name", "?"))
-		var kills: int = int(row.get("kills", 0))
-		var chip: String = str(row.get("chip", ""))
-		var side: String = team_short(str(sides.get(name, "")))
-		var marker: String = "*" if i == 0 and kills > 0 else " "
-		var tag: String = "[" + side + "] " if side != "" else ""
-		var mine: String = "  YOU" if you != "" and name == you else ""
-		if detailed:
-			var attacks: int = int(row.get("attacks", 0))
-			var connects: int = int(row.get("connects", 0))
-			var heads: int = int(row.get("heads", 0))
-			text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + " frag, " + str(int(row.get("deaths", 0))) + " died, hit " + _rate(connects, attacks) + ", head " + _rate(heads, connects) + ", " + str(int(row.get("damage", 0))) + " dealt" + mine + "\n"
-		else:
-			text += str(i + 1) + "." + marker + tag + name + chip + ": " + str(kills) + mine + "\n"
+		var accepted: Dictionary = row.duplicate()
+		if not accepted.has("team"):
+			accepted.team = sides.get(str(row.get("name", "")), "")
+		var unique: int = 0
+		for candidate: Dictionary in rows:
+			if candidate.get("name") == you:
+				unique += 1
+		text += scoreboard_row(accepted, i, detailed, not you.is_empty() and unique == 1 and row.get("name") == you) + "\n"
 	return text
+
+static func scoreboard_row(row: Dictionary, index: int, detailed: bool, own: bool = false) -> String:
+	var name: String = str(row.get("name", "?"))
+	var kills: int = int(row.get("kills", 0))
+	var side: String = team_short(valid_team(row.get("team")))
+	var marker: String = "*" if index == 0 and kills > 0 else " "
+	var tag: String = "[" + side + "] " if not side.is_empty() else ""
+	var prefix: String = str(index + 1) + "." + marker + tag + name + str(row.get("chip", "")) + ": " + str(kills)
+	if detailed:
+		prefix += " frag, " + str(int(row.get("deaths", 0))) + " died, hit " + _rate(int(row.get("connects", 0)), int(row.get("attacks", 0))) + ", head " + _rate(int(row.get("heads", 0)), int(row.get("connects", 0))) + ", " + str(int(row.get("damage", 0))) + " dealt"
+	return prefix + ("  YOU" if own else "")
 
 static func _rate(numerator: int, denominator: int) -> String:
 	var label: String = PlayerRecord.percent_label(numerator, denominator)

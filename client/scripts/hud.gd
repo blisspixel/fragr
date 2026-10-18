@@ -14,6 +14,13 @@ signal host_spoke(seconds: float)
 @onready var mode_chip_label: Label = $Panel/VBoxContainer/ModeChipLabel
 @onready var weapon_label = $Panel/VBoxContainer/WeaponLabel
 @onready var combat_feed: CombatFeed = $CombatFeed
+var frag_feed: FragFeed
+var objective_call: ObjectiveCall
+var event_cover_query: Callable
+var event_region_query: Callable
+var viewer_team: String = ""
+var board_id: String = ""
+var _conquest_owners: Dictionary = {}
 @onready var round_message = $RoundMessage
 @onready var round_backdrop: Panel = get_node_or_null("RoundBackdrop")
 @onready var scoreboard = $Panel/VBoxContainer/Scoreboard
@@ -37,8 +44,6 @@ signal host_spoke(seconds: float)
 var map_chip_label: Label = null
 ## Validated `map_info.rules`; empty on campaign maps and old servers.
 var match_rules: Dictionary = {}
-## Side of every fighter by callsign, from the last snapshot.
-var sides: Dictionary = {}
 var team_score_text: String = ""
 var flag_status_text: String = ""
 ## Sabotage's one HUD line: round, job, round score and clock.
@@ -66,13 +71,15 @@ var damage_numbers = null
 var hit_confirm_sound: AudioStreamPlayer = null
 const HIT_CONFIRM_PATH: String = "res://assets/audio/hit_confirm.wav"
 
-var scores = {}
-var combat_sheet: Dictionary = {}
-var behaviors = {}
+var _standings: Array[Dictionary] = []
+var _standings_revision: int = 0
 ## Local callsign, so the hold-Tab board can mark that row.
 var board_name: String = ""
 var _leaderboard: Panel = null
-var _leaderboard_label: Label = null
+var _leaderboard_rows: VBoxContainer = null
+var _leaderboard_key: Array = []
+var _leaderboard_layout_generation: int = 0
+var _leaderboard_layout_view: Vector2 = Vector2.ZERO
 var _leaderboard_scroll: ScrollContainer = null
 var _leaderboard_hint: Label = null
 var ghost_rival = ""
@@ -251,6 +258,22 @@ func _ready():
 	sniper_scope = SniperScope.new()
 	sniper_scope.name = "SniperScope"
 	add_child(sniper_scope)
+	frag_feed = FragFeed.new()
+	frag_feed.name = "FragFeed"
+	add_child(frag_feed)
+	objective_call = ObjectiveCall.new()
+	objective_call.name = "ObjectiveCall"
+	add_child(objective_call)
+	frag_feed.geometry_changed.connect(regions.layout)
+	move_child(combat_feed, get_child_count() - 1)
+	frag_feed.coverage_query = func() -> bool: return event_lane_covered(frag_feed.occupied_region())
+	combat_feed.coverage_query = func() -> bool: return event_lane_covered(combat_feed.get_global_rect())
+	objective_call.coverage_query = func() -> bool: return event_lane_covered(objective_call.occupied_region(), true)
+	combat_feed.host_presented.connect(func(seconds: float) -> void: host_spoke.emit(seconds))
+	# Tiers follow the scope but never draw over a warmup or result card.
+	for cover: Node in [round_backdrop, round_message, warmup_tv]:
+		if cover != null:
+			move_child(cover, get_child_count() - 1)
 	crosshair_hbar = get_node_or_null("Crosshair/HBar")
 	crosshair_vbar = get_node_or_null("Crosshair/VBar")
 	crosshair_dot = get_node_or_null("Crosshair/Dot")
@@ -390,8 +413,12 @@ func _ensure_map_chip_label() -> void:
 
 
 ## The rule set from `map_info`. Empty clears the chip and the sides.
-func set_match_rules(rules: Dictionary) -> void:
+func set_match_rules(rules: Dictionary, new_map: bool = true) -> void:
 	match_rules = rules
+	if not new_map:
+		_refresh_mode_label()
+		_refresh_mode_chip()
+		return
 	score_subject.clear()
 	result_subject = ""
 	# A MapInfo handoff cannot lend the new venue old objective or clock facts.
@@ -406,7 +433,11 @@ func set_match_rules(rules: Dictionary) -> void:
 	episode_title_shown = false
 	pressure_id = ""
 	team_score_text = ""
-	sides = {}
+	_standings.clear()
+	_standings_revision += 1
+	board_id = ""
+	board_name = ""
+	viewer_team = ""
 	flag_status_text = ""
 	sabotage_line = ""
 	sabotage_score = {}
@@ -658,8 +689,7 @@ func show_host_reaction(data: Dictionary) -> void:
 	var line: String = MatchRules.reaction_line(data)
 	if line.is_empty():
 		return
-	host_spoke.emit(2.0)
-	combat_feed.push(line, MenuTheme.EMBER)
+	combat_feed.push(line, MenuTheme.EMBER, 2.0)
 
 
 func show_flag_event(data: Dictionary) -> void:
@@ -672,7 +702,7 @@ func show_flag_event(data: Dictionary) -> void:
 		"player": str(data.get("player", "")).to_upper(),
 		"flag": MatchRules.team_short(flag),
 	})
-	combat_feed.push(line, MenuTheme.team_color(flag))
+	objective_call.push(line)
 
 
 func _refresh_map_chip_badge() -> void:
@@ -776,6 +806,8 @@ func set_round_info(state: String, time_left: Variant, frag_limit: int):
 	if state == "Warmup" and round_chrome_state != "Warmup":
 		score_subject.clear()
 		result_subject = ""
+		objective_call.clear()
+		_conquest_owners.clear()
 	round_chrome_state = state
 	round_clock_known = (time_left is int or time_left is float) and is_finite(float(time_left)) and float(time_left) >= 0.0
 	round_seconds = int(time_left) if round_clock_known else 0
@@ -790,23 +822,28 @@ func set_player_count(count: int):
 const HUD_SCOREBOARD_ROWS: int = 4
 
 func set_board_name(value: String) -> void:
+	# Explicit compatibility input only. Live callers supply participant IDs.
+	board_id = ""
 	board_name = value
 
+func set_viewer_context(local_id: String, side: String) -> void:
+	board_id = local_id
+	board_name = ""
+	viewer_team = MatchRules.valid_team(side)
+
+func _board_own(row: Dictionary) -> bool:
+	if not board_id.is_empty():
+		return row.get("id", "") == board_id
+	if board_name.is_empty() or row.get("name") != board_name:
+		return false
+	var matches: int = 0
+	for candidate: Dictionary in _standings:
+		if candidate.get("name") == board_name:
+			matches += 1
+	return matches == 1
+
 func _score_rows() -> Array:
-	var sorted_scores: Array = []
-	for player in scores.keys():
-		var chip: String = ""
-		if behaviors.has(player):
-			chip = " [" + _short_behavior(str(behaviors[player])) + "]"
-		var facts: Dictionary = combat_sheet.get(str(player), {})
-		sorted_scores.append({
-			"name": str(player), "kills": int(scores[player]), "chip": chip,
-			"deaths": int(facts.get("deaths", 0)), "attacks": int(facts.get("attacks", 0)),
-			"connects": int(facts.get("connects", 0)), "heads": int(facts.get("heads", 0)),
-			"damage": int(facts.get("damage", 0)),
-		})
-	sorted_scores.sort_custom(func(a, b): return int(a.kills) > int(b.kills))
-	return sorted_scores
+	return _standings
 
 func _board_line() -> String:
 	var board_score: String = tr("FLAG_FRAGS_BOARD_LABEL") if match_rules.get("mode", "") == "ctf" else team_score_text
@@ -821,7 +858,10 @@ func _board_line() -> String:
 ## Every fighter, for the board held on Tab. The corner list stays four rows.
 func leaderboard_text() -> String:
 	var rows: Array = _score_rows()
-	var body: String = MatchRules.scoreboard_text(rows, sides, _board_line(), rows.size(), board_name, true)
+	var body: String = _board_line() + "\n" if not _board_line().is_empty() else ""
+	body += tr("HUD_BOARD_COLUMNS") + "\n"
+	for index: int in range(rows.size()):
+		body += MatchRules.scoreboard_row(rows[index], index, true, _board_own(rows[index])) + "\n"
 	if body.strip_edges() == "":
 		body = "(waiting for scrap)"
 	return tr("HUD_LEADERS") + "\n" + body.strip_edges()
@@ -841,17 +881,12 @@ func _ensure_leaderboard() -> void:
 	_leaderboard_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	_leaderboard_scroll.get_v_scroll_bar().mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_leaderboard.add_child(_leaderboard_scroll)
-	_leaderboard_label = Label.new()
-	_leaderboard_label.name = "Rows"
-	_leaderboard_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_leaderboard_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_leaderboard_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_leaderboard_label.add_theme_font_override("font", MenuTheme.FONT)
-	_leaderboard_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
-	_leaderboard_label.add_theme_color_override("font_color", MenuTheme.BONE)
-	_leaderboard_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
-	_leaderboard_label.add_theme_constant_override("outline_size", 4)
-	_leaderboard_scroll.add_child(_leaderboard_label)
+	_leaderboard_rows = VBoxContainer.new()
+	_leaderboard_rows.name = "Rows"
+	_leaderboard_rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_leaderboard_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_leaderboard_rows.add_theme_constant_override("separation", 6)
+	_leaderboard_scroll.add_child(_leaderboard_rows)
 	_leaderboard_hint = Label.new()
 	_leaderboard_hint.name = "ScrollHint"
 	_leaderboard_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -864,11 +899,71 @@ func set_leaderboard_open(open: bool) -> void:
 	if not open:
 		_leaderboard.visible = false
 		return
-	if not _leaderboard.visible:
+	var opening: bool = not _leaderboard.visible
+	if opening:
 		_leaderboard_scroll.scroll_vertical = 0
-	_leaderboard_label.text = leaderboard_text()
+	var old_key: Array = _leaderboard_key
+	_refresh_leaderboard_rows()
 	_leaderboard.visible = true
 	_place_leaderboard()
+	var view: Vector2 = get_viewport().get_visible_rect().size
+	if opening or old_key != _leaderboard_key or view != _leaderboard_layout_view:
+		_leaderboard_layout_view = view
+		_leaderboard_layout_generation += 1
+		_settle_leaderboard.call_deferred(_leaderboard_layout_generation)
+
+func _settle_leaderboard(generation: int, turns: int = 2) -> void:
+	# Wrapped rows and the scrollbar settle after container layout. Bound this
+	# follow-up rather than rebuilding rows or restarting scroll every frame.
+	if generation != _leaderboard_layout_generation or not is_inside_tree() or not _leaderboard.visible:
+		return
+	_place_leaderboard()
+	if turns > 1:
+		# Bound Node callbacks disconnect on retirement. A coroutine could
+		# resume on a freed HUD during a scene change.
+		get_tree().process_frame.connect(_settle_leaderboard.bind(generation, turns - 1), CONNECT_ONE_SHOT)
+
+func _refresh_leaderboard_rows() -> void:
+	var key: Array = [_standings_revision, _board_line(), board_id, board_name, viewer_team, TranslationServer.get_locale()]
+	if key == _leaderboard_key:
+		return
+	_leaderboard_key = key
+	for child: Node in _leaderboard_rows.get_children():
+		_leaderboard_rows.remove_child(child)
+		child.queue_free()
+	var heading: Label = FragFeed._label(tr("HUD_LEADERS") + "\n" + (_board_line() + "\n" if not _board_line().is_empty() else "") + tr("HUD_BOARD_COLUMNS"), false)
+	heading.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_leaderboard_rows.add_child(heading)
+	for index: int in range(_standings.size()):
+		var row: Dictionary = _standings[index]
+		var own: bool = _board_own(row)
+		var plate := PanelContainer.new()
+		plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		plate.set_meta("facts", row.duplicate(true))
+		var style := StyleBoxFlat.new()
+		style.bg_color = MenuTheme.BONE if own else MenuTheme.INK
+		style.content_margin_left = 6
+		style.content_margin_right = 6
+		style.content_margin_top = 4
+		style.content_margin_bottom = 4
+		plate.add_theme_stylebox_override("panel", style)
+		var content := HBoxContainer.new()
+		content.name = "Content"
+		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content.add_theme_constant_override("separation", 8)
+		plate.add_child(content)
+		var team: String = row.team
+		var relation: String = HudRelation.token(team, viewer_team)
+		plate.set_meta("relation", relation)
+		content.add_child(HudRelation.mark(team, relation, own))
+		var label: Label = FragFeed._label(MatchRules.scoreboard_row(row, index, true, own), own)
+		label.name = "Text"
+		label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		content.add_child(label)
+		_leaderboard_rows.add_child(plate)
 
 func _place_leaderboard() -> void:
 	var view: Vector2 = get_viewport().get_visible_rect().size
@@ -880,8 +975,8 @@ func _place_leaderboard() -> void:
 	_leaderboard_hint.size = Vector2(width - 28.0, 0)
 	var hint_height: float = _leaderboard_hint.get_minimum_size().y
 	var bar_width: float = _leaderboard_scroll.get_v_scroll_bar().get_combined_minimum_size().x
-	_leaderboard_label.size.x = width - 28.0 - bar_width
-	var height: float = clampf(_leaderboard_label.get_minimum_size().y + hint_height + 40.0, 100.0, maxf(100.0, view.y - 64.0))
+	_leaderboard_rows.size.x = width - 28.0 - bar_width
+	var height: float = clampf(_leaderboard_rows.get_combined_minimum_size().y + hint_height + 40.0, 100.0, maxf(100.0, view.y - 64.0))
 	var origin: Vector2 = ((view - Vector2(width, height)) * 0.5).round()
 	origin.x = clampf(origin.x, 16.0, maxf(16.0, view.x - width - 16.0))
 	origin.y = clampf(origin.y, 16.0, maxf(16.0, view.y - height - 16.0))
@@ -923,7 +1018,7 @@ func update_scoreboard():
 	# Four names, not the whole roster. Eight ran the panel off the bottom of
 	# the window, which the first visual QA tour caught, and a standing HUD is
 	# for who is winning. Hold Tab for every fighter.
-	var text: String = MatchRules.scoreboard_text(sorted_scores, sides, _board_line(), HUD_SCOREBOARD_ROWS)
+	var text: String = MatchRules.scoreboard_text(sorted_scores, {}, _board_line(), HUD_SCOREBOARD_ROWS)
 	scoreboard.text = text if len(sorted_scores) > 0 or team_score_text != "" else "(waiting for scrap)"
 
 func _short_behavior(behavior: String) -> String:
@@ -931,38 +1026,33 @@ func _short_behavior(behavior: String) -> String:
 
 func sync_scores_from_players(player_list: Array):
 	score_subject.observe(player_list)
-	var next_scores = {}
-	var next_sheet: Dictionary = {}
-	var next_behaviors = {}
-	var next_sides = {}
-	for player_data in player_list:
-		var pname = str(player_data.get("name", "?"))
-		next_scores[pname] = int(player_data.get("score", 0))
-		next_sheet[pname] = {
+	var next: Array[Dictionary] = []
+	for player_data: Variant in player_list.slice(0, ActorState.MAX_PLAYERS):
+		if not player_data is Dictionary:
+			continue
+		var identity: Variant = player_data.get("id")
+		var behavior: Variant = player_data.get("behavior")
+		next.append({
+			"id": identity if identity is String and identity.length() <= 64 else "",
+			"name": FragFeed._name(player_data.get("name")), "team": MatchRules.valid_team(player_data.get("team")),
+			"kills": int(player_data.get("score", 0)),
+			"chip": " [" + _short_behavior(behavior) + "]" if behavior is String else "",
 			"deaths": int(player_data.get("deaths", 0)),
 			"attacks": int(player_data.get("attacks", 0)),
 			"connects": int(player_data.get("connects", 0)),
 			"heads": int(player_data.get("heads", 0)),
 			"damage": int(player_data.get("damage", 0)),
-		}
-		var side: String = MatchRules.valid_team(player_data.get("team"))
-		if side != "":
-			next_sides[pname] = side
-		var beh = player_data.get("behavior", null)
-		if beh != null:
-			next_behaviors[pname] = str(beh)
-	scores = next_scores
-	combat_sheet = next_sheet
-	behaviors = next_behaviors
-	sides = next_sides
+		})
+	next.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if a.kills != b.kills: return int(a.kills) > int(b.kills)
+		if a.name != b.name: return str(a.name) < str(b.name)
+		return str(a.id) < str(b.id))
+	if next != _standings:
+		_standings = next
+		_standings_revision += 1
 	leader_name = ""
-	var best = -1
-	for pname in scores.keys():
-		if scores[pname] > best:
-			best = scores[pname]
-			leader_name = pname + " (" + str(best) + ")"
-	if best <= 0:
-		leader_name = ""
+	if not next.is_empty() and int(next[0].kills) > 0:
+		leader_name = str(next[0].name) + " (" + str(next[0].kills) + ")"
 	update_scoreboard()
 	_refresh_mode_chip()
 
@@ -1043,10 +1133,48 @@ func show_episode_fail(host_line: String):
 		damage_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.45)
 		damage_flash_timer = 0.8
 
-func show_frag(killer: String, victim: String, killer_color: Color = MenuTheme.UNTINTED, _victim_color: Color = MenuTheme.UNTINTED) -> void:
-	combat_feed.push(killer + " > " + victim, killer_color.lightened(0.4))
+func show_frag(killer: String, victim: String, _killer_color: Color = MenuTheme.UNTINTED, _victim_color: Color = MenuTheme.UNTINTED) -> void:
+	frag_feed.push({"killer": killer, "victim": victim})
+
+func show_frag_event(data: Dictionary, killer_id: String, victim_id: String) -> void:
+	frag_feed.push(data, killer_id, victim_id, board_id, viewer_team)
+
+func reset_event_context(session: bool = false) -> void:
+	combat_feed.clear()
+	objective_call.clear()
+	_conquest_owners.clear()
+	if session:
+		frag_feed.clear()
+
+func observe_conquest(snapshot: Dictionary) -> void:
+	if not snapshot.get("conquest") is Dictionary or not ConquestState.validation_error(snapshot).is_empty():
+		return
+	var next: Dictionary = {}
+	for point: Dictionary in snapshot.conquest.points:
+		next[point.id] = point.owner
+	if not _conquest_owners.is_empty():
+		for id: String in ConquestState.SITES:
+			if _conquest_owners.get(id) != next.get(id):
+				var owner: String = MatchRules.valid_team(next.get(id))
+				objective_call.push(ConquestState.label(id) + ": " + (MatchRules.team_short(owner) if not owner.is_empty() else tr("CONQUEST_NEUTRAL")))
+	_conquest_owners = next
+
+func event_lane_covered(rect: Rect2, objective: bool = false) -> bool:
+	if warmup_tv_active or (event_cover_query.is_valid() and bool(event_cover_query.call())):
+		return true
+	if objective and round_message.visible:
+		return true
+	for owner: Control in [_leaderboard, round_backdrop, round_message]:
+		if is_instance_valid(owner) and owner.is_visible_in_tree() and owner.get_global_rect().intersects(rect):
+			return true
+	if event_region_query.is_valid():
+		for region: Rect2 in event_region_query.call():
+			if region.intersects(rect):
+				return true
+	return false
 
 func reset_host_chrome():
+	reset_event_context(true)
 	score_subject.clear()
 	result_subject = ""
 	# Clear sticky Host + flash latch so a reconnect mid-round can flash once again.
@@ -1197,8 +1325,8 @@ func set_host_line(line: String, flash_on_first: bool = false) -> bool:
 		return true
 	return false
 
-func show_host_join(host_line: String) -> void:
-	combat_feed.push(host_line)
+func show_host_join(host_line: String, duck: bool = true) -> void:
+	combat_feed.push(host_line, MenuTheme.EMBER, 2.0 if duck else 0.0)
 
 func show_warmup_bumper(host_line: String, secs_left: int = 0, roster = []):
 	round_banner_remaining = 0.0
@@ -1297,6 +1425,8 @@ func _set_warmup_roster(roster) -> void:
 	warmup_tv_roster.text = " // ".join(PackedStringArray(shown))
 
 func show_round_start(round_number: int, host_line: String = "") -> void:
+	objective_call.clear()
+	_conquest_owners.clear()
 	score_subject.clear()
 	result_subject = ""
 	var line: String = host_line
@@ -1307,7 +1437,7 @@ func show_round_start(round_number: int, host_line: String = "") -> void:
 	host_line_seen = true
 	_refresh_mode_label()
 	hide_warmup_tv()
-	combat_feed.push(line)
+	combat_feed.push(line, MenuTheme.EMBER, 2.0)
 	_show_round_banner(tr("HUD_ROUND_START").format({"round": round_number}), 1.0)
 
 func show_compliance_ping(message: String, _duration_sec: float = 6.0) -> void:
@@ -1315,7 +1445,7 @@ func show_compliance_ping(message: String, _duration_sec: float = 6.0) -> void:
 	sticky_host_line = line
 	host_line_seen = true
 	_refresh_mode_label()
-	combat_feed.push(line)
+	combat_feed.push(line, MenuTheme.EMBER, 2.0)
 
 
 func show_boss_spawn(message: String, name: String = "COMPLIANCE-DRONE") -> void:
@@ -1323,7 +1453,7 @@ func show_boss_spawn(message: String, name: String = "COMPLIANCE-DRONE") -> void
 	host_line_seen = true
 	pressure_id = "compliance_drone"
 	_refresh_mode_label()
-	combat_feed.push(tr("HUD_BOSS_ARRIVED").format({"name": name}), MenuTheme.EMBER)
+	objective_call.push(tr("HUD_BOSS_ARRIVED").format({"name": name}))
 
 func show_boss_down(message: String, killer: String = "") -> void:
 	sticky_host_line = message
@@ -1347,9 +1477,8 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	score_subject.clear()
 	host_spoke.emit(4.0)
 	# Round-end MVP / podium Host drama (Contested Frequency voice).
-	scores = {}
-	combat_sheet = {}
-	behaviors = {}
+	_standings.clear()
+	_standings_revision += 1
 	leader_name = mvp_name
 	pressure_id = ""
 	if host_line != "":
@@ -1460,9 +1589,9 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 	# own claims. Their callsign in front of every line is noise; a spectator
 	# still needs to know whose pickup it was.
 	if client_mode == "SPECTATING":
-		combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}))
+		combat_feed.push(tr("HUD_PICKUP").format({"player": player_name, "item": what}), MenuTheme.MUTED)
 	else:
-		combat_feed.push(what)
+		combat_feed.push(what, MenuTheme.MUTED)
 
 func set_followed_weapon(weapon_name: String, player_name: String = "", behavior: String = "", team: String = ""):
 	if not weapon_label or not weapon_icon:

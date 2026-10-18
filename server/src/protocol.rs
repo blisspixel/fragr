@@ -1694,6 +1694,14 @@ pub enum GameEvent {
         killer: String,
         victim: String,
         killer_score: u32,
+        /// Accepted participant identities, including bodies already absent.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        killer_id: Option<Uuid>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        victim_id: Option<Uuid>,
+        /// Resolved source only. Untyped explosions leave this absent.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        weapon: Option<WeaponType>,
         /// Sides in a team mode, for killfeed colours. Omitted otherwise.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         killer_team: Option<Team>,

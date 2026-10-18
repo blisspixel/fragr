@@ -83,6 +83,9 @@ func echo(line: String) -> void:
 func is_open() -> bool:
 	return _open
 
+func occupied_region() -> Rect2:
+	return _panel.get_global_rect() if is_open() and is_instance_valid(_panel) else Rect2()
+
 func toggle() -> void:
 	set_open(not _open)
 

@@ -9,6 +9,9 @@ var _state: Dictionary = {}
 var _boarding: Dictionary = {}
 var _revision: int = -1
 
+func occupied_region() -> Rect2:
+	return _copy.get_parent().get_global_rect() if is_instance_valid(_copy) and visible else Rect2()
+
 func _ready() -> void:
 	layer = 100
 	var center: CenterContainer = CenterContainer.new()

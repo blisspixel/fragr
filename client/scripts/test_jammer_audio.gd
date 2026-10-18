@@ -7,6 +7,8 @@ class ResetSink extends Node:
 		pass
 
 class AudioHud extends Node:
+	func reset_event_context(_session: bool = false) -> void:
+		pass
 	func set_campaign(enabled: bool) -> void:
 		combat_feed.set_campaign(enabled)
 	var crawler_caption: CrawlerCaption = null

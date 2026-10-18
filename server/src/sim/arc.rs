@@ -90,6 +90,19 @@ fn resolved_arc_bypasses_ordinary_armor_and_keeps_separate_effective_records() {
 }
 
 #[test]
+fn lethal_arc_retains_ids_and_armor_bypassing_trace_provenance() {
+    let (mut state, shooter, target) = arena(false);
+    state.players[1].hp = 18;
+    state.players[1].armor = 100;
+    aim(&mut state, shooter, 8.0, 0.9, true, false);
+    state.tick(0.05);
+    assert_eq!((state.players[1].hp, state.players[1].armor), (0, 100));
+    assert!(state.events.iter().any(|event| matches!(event,
+        crate::protocol::GameEvent::Frag { killer_id: Some(k), victim_id: Some(v), weapon: Some(WeaponType::Arc), .. }
+            if *k == shooter && *v == target)));
+}
+
+#[test]
 fn actual_arc_cadence_head_band_and_range_stay_distinct() {
     let (mut state, shooter, _) = arena(false);
     aim(&mut state, shooter, 8.0, 1.65, true, false);

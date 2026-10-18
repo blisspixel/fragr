@@ -135,7 +135,7 @@ func _run() -> void:
 		_check(root.get_texture().get_image().save_png(capture_path) == OK, "save campaign feed layout fixture")
 	hud.set_campaign(false)
 	hud.regions.layout()
-	_check(hud.combat_feed.position.x == root.get_visible_rect().size.x - 496 and hud.combat_feed.position.y == 20, "leaving a mission restores the arena corner")
+	_check(hud.combat_feed.position.x == root.get_visible_rect().size.x - 576 and hud.combat_feed.position.y > hud.frag_feed.position.y + hud.frag_feed.size.y, "leaving a mission restores the separate arena voice lane")
 	hud.show_round_start(2, "Round open")
 	_check(hud.round_message.visible, "round starts retain a brief announcement")
 	hud._process(0.8)
@@ -149,6 +149,7 @@ func _run() -> void:
 	killer.player_name = "Other"
 	game.players["killer"] = killer
 	game.net_client.player_name = "Proxy"
+	game._frag_identity.observe([{"id":"self", "name":"Proxy"}, {"id":"killer", "name":"Other"}])
 	game.local_fp_pawn_id = "self"
 	camera.fp_mode = true
 	game._update_local_fp_hud([{"id": "self", "hp": 90, "armor": 0, "yaw": 1.0, "pitch": 0.0, "weapon": "Flechette", "name": "Proxy"}])

@@ -1876,6 +1876,16 @@ them. Connection-control unicasts may arrive between ticks.
 }
 ```
 
+`killer_id` and `victim_id` are optional UUIDs, and `weapon` is an optional
+snake_case `WeaponType` ID such as `rail`, `rocket` or `article_blade`.
+Current native combat includes both identities, even when a body has already
+left the next snapshot, and includes the resolved weapon when known. A
+committed Rocket retains its source after its owner switches weapons or dies.
+An untyped explosion omits weapon. These facts do not change damage or scoring.
+Older events omit all three fields and still deserialize; no gameplay
+capability bump is required. Prefer supplied IDs over callsigns. Never infer
+weapon from a live pawn, or resolve an ambiguous legacy callsign to a fighter.
+
 `killer_team` and `victim_team` appear only in a team mode. A frag where both
 name the same side is a team kill under friendly fire: it scores nothing and
 `killer_score` is unchanged.

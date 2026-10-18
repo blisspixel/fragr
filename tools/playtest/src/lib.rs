@@ -20,6 +20,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message};
 use uuid::Uuid;
 
 pub mod fanout;
+mod provenance;
 pub mod sabotage;
 pub mod soak;
 pub mod traffic;
@@ -385,15 +386,8 @@ pub struct AgentTrack {
     spawned_at: Option<(f32, f32)>,
     pub fire_ticks: u64,
     pub weapon_fire_ticks: BTreeMap<String, u64>,
-    /// Weapon held on the newest snapshot, for attributing a frag.
+    /// Historical report compatibility only, never kill provenance.
     pub last_weapon: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct KillEvidence {
-    killer: String,
-    weapon: String,
-    distance: f64,
 }
 
 /// Positions last seen for the two fighters in one frag.
@@ -510,13 +504,10 @@ pub struct Observation {
     pub time_to_kill_s: Vec<f64>,
     /// Distance of every kill, for the histogram.
     pub kill_distances: Vec<f64>,
-    /// Snapshot evidence awaiting its following frag event, never a prior tick.
+    /// New trusted owner. Old name-keyed transient fields on input are ignored;
+    /// accumulated historical report statistics remain readable.
     #[serde(default)]
-    pending_kills: BTreeMap<String, KillEvidence>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pending_grenade_kills: BTreeMap<Uuid, Uuid>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pending_grenade_names: BTreeMap<String, String>,
+    provenance: provenance::Provenance,
     /// Victim spawn point, victim position and killer position for each frag,
     /// in event order, so spawn-death evidence can say where it happened.
     #[serde(default)]
@@ -629,9 +620,11 @@ impl Observation {
     }
 
     pub fn ingest_snapshot(&mut self, snapshot: &Snapshot, bytes: usize) {
-        self.pending_kills.clear();
-        self.pending_grenade_kills.clear();
-        self.pending_grenade_names.clear();
+        self.provenance.begin_snapshot();
+        self.provenance.observe_positions(snapshot);
+        for player in &snapshot.players {
+            self.provenance.observe(player.id, &player.name);
+        }
         self.snapshots_seen += 1;
         self.snapshot_bytes += bytes as u64;
         if let Some(flags) = snapshot.flags.as_ref() {
@@ -728,7 +721,7 @@ impl Observation {
 
     fn ingest_explosions(&mut self, snapshot: &Snapshot) {
         for explosion in &snapshot.explosions {
-            let tally = self.weapons.entry("Grenade".into()).or_default();
+            let tally = self.weapons.entry("Explosion".into()).or_default();
             // Explosive tallies count resolved detonations, including misses.
             // Participant records separately count authoritative launches.
             tally.shots += 1;
@@ -744,11 +737,9 @@ impl Observation {
                 landed = true;
                 tally.damage += effective as i64;
                 if hit.killed {
-                    self.pending_grenade_kills
-                        .insert(hit.target_id, explosion.owner_id);
                     let owner = snapshot.players.iter().find(|p| p.id == explosion.owner_id);
                     let victim = snapshot.players.iter().find(|p| p.id == hit.target_id);
-                    if let (Some(owner), Some(victim)) = (owner, victim) {
+                    let distance = if let (Some(_), Some(victim)) = (owner, victim) {
                         let position = [
                             victim.x,
                             victim.y - fragr_server::sim::PLAYER_FLOOR_Y,
@@ -760,15 +751,19 @@ impl Observation {
                             .map(|(a, b)| (f64::from(*a) - f64::from(b)).powi(2))
                             .sum::<f64>()
                             .sqrt();
-                        self.pending_kills.insert(
-                            victim.name.clone(),
-                            KillEvidence {
-                                killer: owner.name.clone(),
-                                weapon: "Grenade".into(),
-                                distance,
-                            },
-                        );
-                    }
+                        Some(distance)
+                    } else {
+                        None
+                    };
+                    self.provenance.remember(
+                        hit.target_id,
+                        provenance::KillEvidence {
+                            killer: explosion.owner_id,
+                            weapon: None,
+                            explosion: true,
+                            distance,
+                        },
+                    );
                 }
             }
             tally.hits += u64::from(landed);
@@ -786,18 +781,34 @@ impl Observation {
             return;
         }
         let mut counted: BTreeMap<Uuid, bool> = BTreeMap::new();
-        let by_id: BTreeMap<Uuid, (String, f32, f32)> = snapshot
+        let mut group_weapons: BTreeMap<Uuid, Option<WeaponType>> = BTreeMap::new();
+        for shot in &snapshot.shot_results {
+            let weapon = shot.trace.as_ref().map(|trace| trace.weapon);
+            group_weapons
+                .entry(shot.shooter_id)
+                .and_modify(|known| {
+                    if *known != weapon {
+                        *known = None;
+                    }
+                })
+                .or_insert(weapon);
+        }
+        let by_id: BTreeMap<Uuid, (f32, f32)> = snapshot
             .players
             .iter()
-            .map(|p| (p.id, (p.weapon.clone(), p.x, p.z)))
+            .map(|p| (p.id, (p.x, p.z)))
             .collect();
         for shot in &snapshot.shot_results {
             let shooter = by_id.get(&shot.shooter_id);
-            let weapon = shot
-                .trace
-                .as_ref()
-                .map(|trace| trace.weapon.name().to_string())
-                .or_else(|| shooter.map(|(weapon, _, _)| weapon.clone()))
+            self.provenance.observe(shot.shooter_id, &shot.shooter);
+            if let (Some(id), Some(name)) = (shot.target_id, shot.target.as_deref()) {
+                self.provenance.observe(id, name);
+            }
+            let weapon = group_weapons
+                .get(&shot.shooter_id)
+                .copied()
+                .flatten()
+                .map(|weapon| weapon.name().to_string())
                 .unwrap_or_else(|| "Unknown".to_string());
             let distance = shot
                 .trace
@@ -812,17 +823,18 @@ impl Observation {
                         .sqrt()
                 })
                 .or_else(|| {
-                    let (_, sx, sz) = shooter?;
-                    let (_, tx, tz) = by_id.get(&shot.target_id?)?;
+                    let (sx, sz) = shooter?;
+                    let (tx, tz) = by_id.get(&shot.target_id?)?;
                     Some(f64::from((tx - sx).hypot(tz - sz)))
                 });
             if shot.killed {
-                if let (Some(victim), Some(distance)) = (&shot.target, distance) {
-                    self.pending_kills.insert(
-                        victim.clone(),
-                        KillEvidence {
-                            killer: shot.shooter.clone(),
-                            weapon: weapon.clone(),
+                if let Some(victim) = shot.target_id {
+                    self.provenance.remember(
+                        victim,
+                        provenance::KillEvidence {
+                            killer: shot.shooter_id,
+                            weapon: shot.trace.as_ref().map(|trace| trace.weapon),
+                            explosion: false,
                             distance,
                         },
                     );
@@ -855,17 +867,26 @@ impl Observation {
                 shooter_id,
                 target,
                 target_id,
+                damage,
                 ..
             } => {
-                if self.pending_grenade_kills.get(target_id) == Some(shooter_id) {
-                    self.pending_grenade_names
-                        .insert(target.clone(), shooter.clone());
+                self.provenance.observe(*shooter_id, shooter);
+                self.provenance.observe(*target_id, target);
+                if *damage > 0 {
+                    self.provenance.hit(*target_id, self.last_tick);
                 }
                 self.engagement_start
                     .entry(target.clone())
                     .or_insert(self.last_tick);
             }
-            GameEvent::Frag { killer, victim, .. } => {
+            GameEvent::Frag {
+                killer,
+                victim,
+                killer_id,
+                victim_id,
+                weapon,
+                ..
+            } => {
                 for episode in self.carry_episodes.iter_mut().rev() {
                     if episode.ended_tick != self.last_tick {
                         break;
@@ -875,58 +896,64 @@ impl Observation {
                         episode.combat_drop = true;
                     }
                 }
-                let ttk_s = self.engagement_start.remove(victim).map(|start| {
-                    let ticks = self.last_tick.saturating_sub(start);
-                    ticks as f64 / TICKS_PER_SECOND
-                });
+                if let Some(id) = killer_id {
+                    self.provenance.observe(*id, killer);
+                }
+                if let Some(id) = victim_id {
+                    self.provenance.observe(*id, victim);
+                }
+                let accepted_killer = self.provenance.resolve(*killer_id, killer);
+                let accepted_victim = self.provenance.resolve(*victim_id, victim);
+                let ttk_s = self
+                    .provenance
+                    .finish_engagement(accepted_victim)
+                    .map(|start| {
+                        let ticks = self.last_tick.saturating_sub(start);
+                        ticks as f64 / TICKS_PER_SECOND
+                    });
                 if let Some(seconds) = ttk_s {
                     self.time_to_kill_s.push(seconds);
                 }
-                let killer_track = self.tracks.get(killer);
-                let killer_pos = killer_track.and_then(|t| t.last_pos);
-                let evidence = self
-                    .pending_kills
-                    .remove(victim)
-                    .filter(|e| e.killer == *killer);
-                let killer_weapon = evidence
-                    .as_ref()
-                    .map(|e| e.weapon.clone())
-                    .or_else(|| {
-                        (self.pending_grenade_names.remove(victim).as_ref() == Some(killer))
-                            .then(|| "Grenade".into())
-                    })
-                    .or_else(|| killer_track.and_then(|t| t.last_weapon.clone()));
-                let victim_pos = self.tracks.get(victim).and_then(|t| t.last_pos);
+                let killer_pos = self.provenance.position(accepted_killer);
+                let evidence = self.provenance.take(accepted_killer, accepted_victim);
+                let killer_weapon = weapon
+                    .map(|weapon| weapon.name().to_owned())
+                    .or_else(|| evidence.as_ref().map(provenance::KillEvidence::label))
+                    .unwrap_or_else(|| "Unknown".into());
+                let victim_pos = self.provenance.position(accepted_victim);
                 self.frag_places.push(FragPlace {
-                    victim_spawn: self.tracks.get(victim).and_then(|t| t.spawned_at),
+                    victim_spawn: self.provenance.spawn(accepted_victim),
                     victim: victim_pos,
                     killer: killer_pos,
                 });
-                let distance = evidence.map(|e| e.distance).or_else(|| {
-                    let (kx, kz) = killer_pos?;
-                    let (vx, vz) = victim_pos?;
-                    Some(f64::from((vx - kx).hypot(vz - kz)))
-                });
+                let distance = evidence
+                    .filter(|e| {
+                        weapon
+                            .is_none_or(|explicit| e.weapon.is_none_or(|source| source == explicit))
+                    })
+                    .and_then(|e| e.distance)
+                    .or_else(|| {
+                        let (kx, kz) = killer_pos?;
+                        let (vx, vz) = victim_pos?;
+                        Some(f64::from((vx - kx).hypot(vz - kz)))
+                    });
                 if let Some(distance) = distance {
                     self.kill_distances.push(distance);
-                    if let Some(weapon) = killer_weapon {
-                        let tally = self.weapons.entry(weapon).or_default();
-                        tally.kills += 1;
-                        tally.kill_distances.push(distance);
-                        if let Some(seconds) = ttk_s {
-                            tally.time_to_kill_s.push(seconds);
-                        }
-                    }
-                } else if let (Some(weapon), Some(seconds)) = (killer_weapon, ttk_s) {
-                    // Timed kill without positions still counts toward per-weapon TTK.
-                    let tally = self.weapons.entry(weapon).or_default();
-                    tally.kills += 1;
+                }
+                let tally = self.weapons.entry(killer_weapon).or_default();
+                tally.kills += 1;
+                if let Some(distance) = distance {
+                    tally.kill_distances.push(distance);
+                }
+                if let Some(seconds) = ttk_s {
                     tally.time_to_kill_s.push(seconds);
                 }
+                self.engagement_start.remove(victim);
             }
             // A fighter who respawned is not still in their last engagement.
             GameEvent::Respawn { player } => {
                 self.engagement_start.remove(player);
+                self.provenance.respawn(player);
             }
             GameEvent::Flag {
                 kind,
@@ -2733,6 +2760,9 @@ mod tests {
     fn frag(killer: &str, victim: &str) -> GameEvent {
         GameEvent::Frag {
             killer_team: None,
+            killer_id: None,
+            victim_id: None,
+            weapon: None,
             victim_team: None,
             killer: killer.to_string(),
             victim: victim.to_string(),
@@ -2925,6 +2955,9 @@ mod tests {
         );
         obs.ingest_event(GameEvent::Frag {
             killer_team: None,
+            killer_id: Some(a),
+            victim_id: Some(b),
+            weapon: Some(WeaponType::Flechette),
             victim_team: None,
             killer: "killer".to_string(),
             victim: "victim".to_string(),
@@ -2932,7 +2965,7 @@ mod tests {
         });
         let report = obs.combat_report();
         let kills: u64 = report.by_weapon.values().map(|w| w.kills).sum();
-        assert_eq!(kills, 1, "the kill is attributed to the weapon in hand");
+        assert_eq!(kills, 1, "the kill uses explicit resolved weapon metadata");
         assert_eq!(
             report.kill_distance_buckets.iter().sum::<u64>(),
             1,
@@ -3666,7 +3699,7 @@ mod combat_tests {
     }
 
     #[test]
-    fn resolved_grenade_evidence_never_infers_a_dead_owners_current_gun() {
+    fn untyped_explosion_evidence_never_infers_a_dead_owners_current_gun() {
         use fragr_server::protocol::{ExplosionHit, ExplosionResult};
         let owner = Uuid::from_u128(51);
         let target = Uuid::from_u128(52);
@@ -3719,9 +3752,12 @@ mod combat_tests {
             victim: "Victim".into(),
             killer_score: 1,
             killer_team: None,
+            killer_id: None,
+            victim_id: None,
+            weapon: None,
             victim_team: None,
         });
-        let tally = &observation.weapons["Grenade"];
+        let tally = &observation.weapons["Explosion"];
         assert_eq!(
             (tally.shots, tally.hits, tally.damage, tally.kills),
             (1, 1, 27, 1)
@@ -3731,8 +3767,309 @@ mod combat_tests {
         snapshot.tick = 3;
         snapshot.explosions.clear();
         observation.ingest_snapshot(&snapshot, 5);
-        assert!(observation.pending_grenade_kills.is_empty());
-        assert!(observation.pending_grenade_names.is_empty());
+        assert!(observation.provenance.kills.is_empty());
+    }
+
+    fn proven_shot(
+        from: Uuid,
+        to: Uuid,
+        killer: &str,
+        victim: &str,
+        weapon: WeaponType,
+        distance: f32,
+    ) -> ShotResult {
+        let mut result = shot(from, true, Some(to), 100);
+        result.shooter = killer.into();
+        result.target = Some(victim.into());
+        result.killed = true;
+        result.trace = Some(fragr_server::protocol::ShotTrace {
+            vehicle_id: None,
+            weapon,
+            origin: [0.0, 1.0, 0.0],
+            end: [distance, 1.0, 0.0],
+            impact: fragr_server::protocol::ShotImpact::Fighter {
+                normal: [-1.0, 0.0, 0.0],
+            },
+            pellets: vec![],
+        });
+        result
+    }
+
+    fn frag_fact(
+        killer: &str,
+        victim: &str,
+        killer_id: Option<Uuid>,
+        victim_id: Option<Uuid>,
+        weapon: Option<WeaponType>,
+    ) -> GameEvent {
+        GameEvent::Frag {
+            killer: killer.into(),
+            victim: victim.into(),
+            killer_id,
+            victim_id,
+            weapon,
+            killer_score: 1,
+            killer_team: None,
+            victim_team: None,
+        }
+    }
+
+    #[test]
+    fn explicit_posthumous_rocket_counts_without_optional_geometry() {
+        let a = Uuid::from_u128(1);
+        let b = Uuid::from_u128(2);
+        let mut observation = Observation::default();
+        observation.ingest_event(frag_fact(
+            "A",
+            "B",
+            Some(a),
+            Some(b),
+            Some(WeaponType::Rocket),
+        ));
+        let tally = &observation.weapons["Rocket"];
+        assert_eq!(tally.kills, 1);
+        assert!(tally.kill_distances.is_empty() && tally.time_to_kill_s.is_empty());
+        assert!(observation.kill_distances.is_empty());
+
+        let mut stale = Observation::default();
+        stale.ingest_snapshot(
+            &frame(
+                1,
+                vec![],
+                vec![proven_shot(a, b, "A", "B", WeaponType::Rail, 5.0)],
+            ),
+            100,
+        );
+        stale.ingest_event(frag_fact(
+            "A",
+            "B",
+            Some(a),
+            Some(b),
+            Some(WeaponType::Rocket),
+        ));
+        assert_eq!(stale.weapons["Rocket"].kills, 1);
+        assert_eq!(stale.weapons["Rail"].kills, 0);
+        assert!(
+            stale.weapons["Rocket"].kill_distances.is_empty(),
+            "contradictory ray distance cannot become Rocket geometry"
+        );
+        assert!(
+            stale.provenance.kills.is_empty(),
+            "explicit attribution still consumes pending evidence"
+        );
+    }
+
+    #[test]
+    fn trace_less_shots_and_legacy_frags_never_infer_the_held_gun() {
+        let a = Uuid::from_u128(1);
+        let b = Uuid::from_u128(2);
+        let mut observation = Observation::default();
+        let mut untraced = shot(a, true, Some(b), 100);
+        untraced.shooter = "A".into();
+        untraced.target = Some("B".into());
+        untraced.killed = true;
+        observation.ingest_snapshot(
+            &frame(
+                1,
+                vec![
+                    player("A", a, 0.0, 0.0, "Rail"),
+                    player("B", b, 8.0, 0.0, "Scatter"),
+                ],
+                vec![untraced],
+            ),
+            100,
+        );
+        observation.ingest_event(frag_fact("A", "B", None, None, None));
+        assert_eq!(
+            (
+                observation.weapons["Unknown"].shots,
+                observation.weapons["Unknown"].kills
+            ),
+            (1, 1)
+        );
+        assert!(!observation.weapons.contains_key("Rail"));
+        observation.ingest_snapshot(&frame(2, vec![], vec![]), 100);
+        observation.ingest_event(frag_fact("A", "B", None, None, None));
+        assert_eq!(
+            observation.weapons["Unknown"].kills, 2,
+            "every unknown frag remains in the combat denominator"
+        );
+    }
+
+    #[test]
+    fn duplicate_names_keep_distinct_resolved_kills_in_both_event_orders() {
+        let [a, b, c, d] = [1, 2, 3, 4].map(Uuid::from_u128);
+        let roster = vec![
+            player("K", a, 0.0, 0.0, "Fists"),
+            player("V", b, 10.0, 0.0, "Fists"),
+            player("K", c, 20.0, 0.0, "Fists"),
+            player("V", d, 30.0, 0.0, "Fists"),
+        ];
+        let mut baseline = Observation::default();
+        baseline.ingest_snapshot(
+            &frame(
+                1,
+                roster,
+                vec![
+                    proven_shot(a, b, "K", "V", WeaponType::Rail, 5.0),
+                    proven_shot(c, d, "K", "V", WeaponType::Scatter, 10.0),
+                ],
+            ),
+            100,
+        );
+        let mut legacy = baseline.clone();
+        legacy.ingest_event(frag_fact("K", "V", None, None, None));
+        assert_eq!(legacy.weapons["Unknown"].kills, 1);
+        assert!(legacy.kill_distances.is_empty());
+        for order in [[(a, b), (c, d)], [(c, d), (a, b)]] {
+            let mut observation = baseline.clone();
+            for (killer, victim) in order {
+                observation.ingest_event(frag_fact("K", "V", Some(killer), Some(victim), None));
+            }
+            assert_eq!(observation.weapons["Rail"].kills, 1);
+            assert_eq!(observation.weapons["Scatter"].kills, 1);
+            assert_eq!(observation.weapons["Rail"].kill_distances, vec![5.0]);
+            assert_eq!(observation.weapons["Scatter"].kill_distances, vec![10.0]);
+        }
+    }
+
+    #[test]
+    fn partial_supplied_ids_are_strict_and_never_fall_back_on_mismatch() {
+        let a = Uuid::from_u128(1);
+        let b = Uuid::from_u128(2);
+        let wrong = Uuid::from_u128(9);
+        let mut baseline = Observation::default();
+        baseline.ingest_snapshot(
+            &frame(
+                1,
+                vec![
+                    player("A", a, 0.0, 0.0, "Rail"),
+                    player("B", b, 10.0, 0.0, "Rail"),
+                ],
+                vec![proven_shot(a, b, "A", "B", WeaponType::Rail, 5.0)],
+            ),
+            100,
+        );
+        for (killer, victim) in [(Some(a), None), (None, Some(b))] {
+            let mut observation = baseline.clone();
+            observation.ingest_event(frag_fact("A", "B", killer, victim, None));
+            assert_eq!(observation.weapons["Rail"].kills, 1);
+        }
+        for (killer, victim) in [(Some(wrong), None), (None, Some(wrong))] {
+            let mut observation = baseline.clone();
+            observation.ingest_event(frag_fact("A", "B", killer, victim, None));
+            assert_eq!(observation.weapons["Unknown"].kills, 1);
+            assert!(observation.kill_distances.is_empty());
+        }
+    }
+
+    #[test]
+    fn modern_frag_only_identity_invalidates_later_legacy_name_lookup() {
+        let [a, b, other] = [1, 2, 3].map(Uuid::from_u128);
+        let mut observation = Observation::default();
+        observation.ingest_snapshot(
+            &frame(
+                1,
+                vec![
+                    player("A", a, 0.0, 0.0, "Rail"),
+                    player("B", b, 10.0, 0.0, "Rail"),
+                ],
+                vec![],
+            ),
+            10,
+        );
+        observation.ingest_event(frag_fact("A", "Other", Some(other), None, None));
+        observation.ingest_snapshot(
+            &frame(
+                2,
+                vec![],
+                vec![proven_shot(a, b, "A", "B", WeaponType::Rail, 5.0)],
+            ),
+            10,
+        );
+        observation.ingest_event(frag_fact("A", "B", None, None, None));
+        assert_eq!(observation.weapons["Unknown"].kills, 2);
+        assert_eq!(observation.weapons["Rail"].kills, 0);
+        assert!(observation.kill_distances.is_empty());
+    }
+
+    #[test]
+    fn historical_name_geometry_never_becomes_a_fresh_uuid_receipt() {
+        let [a, b] = [1, 2].map(Uuid::from_u128);
+        let mut prior = Observation::default();
+        prior.ingest_snapshot(
+            &frame(
+                1,
+                vec![
+                    player("A", a, 0.0, 0.0, "Rail"),
+                    player("B", b, 99.0, 0.0, "Rail"),
+                ],
+                vec![],
+            ),
+            10,
+        );
+        let mut historical = serde_json::to_value(prior).unwrap();
+        historical.as_object_mut().unwrap().remove("provenance");
+        let mut observation: Observation = serde_json::from_value(historical).unwrap();
+        observation.ingest_event(GameEvent::Hit {
+            shooter: "A".into(),
+            shooter_id: a,
+            target: "B".into(),
+            target_id: b,
+            damage: 10,
+            target_hp_after: 90,
+        });
+        observation.ingest_event(frag_fact("A", "B", Some(a), Some(b), None));
+        assert!(observation.kill_distances.is_empty());
+        assert!(observation.frag_places[0].victim_spawn.is_none());
+        assert!(observation.frag_places[0].victim.is_none());
+        assert!(observation.frag_places[0].killer.is_none());
+
+        observation.ingest_snapshot(
+            &frame(
+                2,
+                vec![
+                    player("A", a, 1.0, 0.0, "Rail"),
+                    player("B", b, 4.0, 0.0, "Rail"),
+                ],
+                vec![],
+            ),
+            10,
+        );
+        observation.ingest_event(frag_fact("A", "B", Some(a), Some(b), None));
+        assert_eq!(observation.kill_distances, vec![3.0]);
+        let mut next_map = frame(3, vec![], vec![]);
+        next_map.map_id = 2;
+        observation.ingest_snapshot(&next_map, 10);
+        observation.ingest_event(frag_fact("A", "B", Some(a), Some(b), None));
+        assert_eq!(observation.kill_distances, vec![3.0]);
+        assert!(observation.frag_places.last().unwrap().victim.is_none());
+    }
+
+    #[test]
+    fn historical_observation_keeps_totals_without_trusting_old_inferred_caches() {
+        let mut old = serde_json::to_value(Observation::default()).unwrap();
+        old.as_object_mut().unwrap().remove("provenance");
+        old["pending_kills"] =
+            serde_json::json!({"B": {"killer":"A", "weapon":"Rail", "distance":99.0}});
+        old["pending_grenade_names"] = serde_json::json!({"B":"A"});
+        old["engagement_start"] = serde_json::json!({"B":1});
+        old["weapons"] = serde_json::json!({"Grenade": {"shots":3,"hits":2,"damage":50,"kills":2,"hit_distances":[],"kill_distances":[],"time_to_kill_s":[]}});
+        old["events"] = serde_json::json!([{"tick":1,"event":{"event":"frag","killer":"A","victim":"B","killer_score":1}}]);
+        let mut observation: Observation = serde_json::from_value(old).unwrap();
+        observation.ingest_event(frag_fact("A", "B", None, None, None));
+        assert_eq!(observation.weapons["Grenade"].kills, 2);
+        assert_eq!(observation.weapons["Unknown"].kills, 1);
+        assert!(observation.kill_distances.is_empty() && observation.time_to_kill_s.is_empty());
+        assert!(matches!(
+            observation.events[0].event,
+            GameEvent::Frag {
+                killer_id: None,
+                victim_id: None,
+                weapon: None,
+                ..
+            }
+        ));
     }
 
     #[test]
@@ -3776,6 +4113,24 @@ mod combat_tests {
         let mut obs = Observation::default();
         let a = Uuid::new_v4();
         let b = Uuid::new_v4();
+        let traced = |hit, target, damage| {
+            let mut result = shot(a, hit, target, damage);
+            result.trace = Some(fragr_server::protocol::ShotTrace {
+                vehicle_id: None,
+                weapon: WeaponType::Rail,
+                origin: [0.0, 1.0, 0.0],
+                end: [12.0, 1.0, 0.0],
+                impact: if hit {
+                    fragr_server::protocol::ShotImpact::Fighter {
+                        normal: [-1.0, 0.0, 0.0],
+                    }
+                } else {
+                    fragr_server::protocol::ShotImpact::Range
+                },
+                pellets: vec![],
+            });
+            result
+        };
         obs.ingest_snapshot(
             &frame(
                 1,
@@ -3783,7 +4138,7 @@ mod combat_tests {
                     player("A", a, 0.0, 0.0, "rail"),
                     player("B", b, 12.0, 0.0, "scatter"),
                 ],
-                vec![shot(a, true, Some(b), 75)],
+                vec![traced(true, Some(b), 75)],
             ),
             100,
         );
@@ -3795,7 +4150,7 @@ mod combat_tests {
                     player("A", a, 0.0, 0.0, "rail"),
                     player("B", b, 12.0, 0.0, "scatter"),
                 ],
-                vec![shot(a, false, None, 0)],
+                vec![traced(false, None, 0)],
             ),
             100,
         );
@@ -3807,7 +4162,7 @@ mod combat_tests {
             report.accuracy_lo < 0.5 && report.accuracy_hi > 0.5,
             "{report:?}"
         );
-        let rail = &report.by_weapon["rail"];
+        let rail = &report.by_weapon["Rail"];
         assert_eq!((rail.shots, rail.hits, rail.damage), (2, 1, 75));
         assert!(
             (rail.hit_distance.p50 - 12.0).abs() < 1e-4,
@@ -3829,7 +4184,7 @@ mod combat_tests {
             "legacy shots still count when the shooter is absent"
         );
         assert_eq!(obs.combat_report().by_weapon["Unknown"].shots, 1);
-        assert_eq!(obs.combat_report().by_weapon["rail"].shots, 2);
+        assert_eq!(obs.combat_report().by_weapon["Rail"].shots, 2);
     }
 
     #[test]
@@ -3881,6 +4236,9 @@ mod combat_tests {
                 });
                 obs.ingest_event(GameEvent::Frag {
                     killer_team: None,
+                    killer_id: None,
+                    victim_id: None,
+                    weapon: None,
                     victim_team: None,
                     killer: result.shooter,
                     victim: result.target.unwrap(),
@@ -3927,6 +4285,9 @@ mod combat_tests {
         obs.ingest_snapshot(&scene(120), 50);
         obs.ingest_event(GameEvent::Frag {
             killer_team: None,
+            killer_id: Some(a),
+            victim_id: Some(b),
+            weapon: Some(WeaponType::Flechette),
             victim_team: None,
             killer: "A".into(),
             victim: "B".into(),
@@ -3939,7 +4300,7 @@ mod combat_tests {
             "twenty ticks at twenty a second is one second, and the second hit did not restart it: {:?}",
             report.time_to_kill_s
         );
-        let flechette = &report.by_weapon["flechette"];
+        let flechette = &report.by_weapon["Flechette"];
         assert_eq!(flechette.kills, 1);
         assert!((flechette.kill_distance.p50 - 6.0).abs() < 1e-4);
         assert_eq!(flechette.time_to_kill_s.count, 1);
@@ -3958,6 +4319,9 @@ mod combat_tests {
         obs.ingest_snapshot(&scene(200), 50);
         obs.ingest_event(GameEvent::Frag {
             killer_team: None,
+            killer_id: Some(a),
+            victim_id: Some(b),
+            weapon: Some(WeaponType::Flechette),
             victim_team: None,
             killer: "A".into(),
             victim: "B".into(),
@@ -3968,7 +4332,7 @@ mod combat_tests {
             report.time_to_kill_s.count, 1,
             "a death with no opening hit is left untimed rather than timed wrongly"
         );
-        assert_eq!(report.by_weapon["flechette"].kills, 2);
+        assert_eq!(report.by_weapon["Flechette"].kills, 2);
     }
 
     #[test]
@@ -5389,6 +5753,9 @@ mod rule_checks {
                 killer_score: 1,
                 killer_team: Some(fragr_server::protocol::Team::Union),
                 victim_team: Some(fragr_server::protocol::Team::Union),
+                killer_id: None,
+                victim_id: None,
+                weapon: None,
             },
         });
         let report = compute_report(&obs, 3);

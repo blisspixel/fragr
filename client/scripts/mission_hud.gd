@@ -60,6 +60,15 @@ var _evac_seen: String = ""
 var _status_left: float = 0.0
 var _run_onward: bool = false
 
+func event_cover_regions() -> Array[Rect2]:
+	var regions: Array[Rect2] = []
+	if not is_visible_in_tree():
+		return regions
+	for owner: Control in [_card, _recovery, _prompt_plate, _bearing, _run_badge, _evac_badge]:
+		if is_instance_valid(owner) and owner.is_visible_in_tree():
+			regions.append(owner.get_global_rect())
+	return regions
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

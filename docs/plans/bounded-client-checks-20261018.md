@@ -1,6 +1,11 @@
 # Bounded client checks
 
-Status: **in flight**, integration repair for the #412 status bar round.
+Status: **shipped** through [PR #422](https://github.com/blisspixel/fragr/pull/422),
+main `8ecbb99c77a74dbb28ff8090fc86f5b58d36a881`.
+Main CI [39150766048](https://github.com/blisspixel/fragr/actions/runs/39150766048)
+passes. v0.88.0 is published after release run 39153610159 passed, three
+downloaded archive digests/integrity checks and the downloaded Linux
+installation/local-match/build-metadata checks.
 
 ## Problem and scope
 
@@ -78,5 +83,10 @@ Work uses $0.
 
 The revised seven native tests, twelve fault scenarios, focused clippy with
 warnings denied, rustfmt, action pins and whitespace checks pass locally.
-Independent review found no remaining blocker. The full direct-launch client
-checker and fresh cross-platform CI remain in progress.
+Independent review found no remaining blocker. Final local and PR/main checks
+pass: 585 client checks with 187 harnesses, seven native guard tests and twelve
+fault scenarios. Main's Windows fault suite passed at 18:00:31 UTC and its full
+client suite at 18:16:20 UTC; macOS passed at 18:05:34 UTC. Linux client checks
+passed at 17:54:16 UTC. Workspace line coverage is 92.74 percent. The reviewed
+PR head and merged main trees were identical. The original stall's root cause
+remains unproven; the shipped repair bounds and retains future failures.
