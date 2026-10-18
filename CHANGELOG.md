@@ -18,6 +18,8 @@ Release history, newest first. Planned work stays in
   attack/reload frames and world movement.
 - Reserve distinct space for context, notices, ammunition, radio and vehicle
   controls. Keep full standings on the scoreboard binding.
+- Bound developer client checks with an independent process deadline and
+  retained per-check logs, including Windows descendant cleanup on timeout.
 
 ## v0.87.0 (2026-10-18)
 

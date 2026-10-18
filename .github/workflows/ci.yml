@@ -189,6 +189,7 @@ jobs:
         shell: pwsh
         run: Expand-Archive godot.zip -DestinationPath godot-bin
       - name: Headless client checks
+        timeout-minutes: 35
         shell: bash
         env:
           GODOT_BINARY: ${{ matrix.binary }}
@@ -197,6 +198,15 @@ jobs:
           chmod +x "$GODOT_BIN"
           bash tools/godot_check.sh
           bash tools/test_godot_check.sh
+
+      - name: Retain failed client check logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: client-check-logs-${{ matrix.os }}
+          path: .agents/godot-check-*/
+          include-hidden-files: true
+          if-no-files-found: ignore
 
   soak:
     # Runs beside the test job, off its critical path. The long soak is local.
@@ -268,6 +278,7 @@ jobs:
           echo "GODOT_BIN=$PWD/Godot_v4.7.2-stable_linux.x86_64" >> "$GITHUB_ENV"
 
       - name: Headless client checks
+        timeout-minutes: 35
         run: bash tools/godot_check.sh
 
       - name: Saved M01 departure and M02 retry
@@ -275,3 +286,12 @@ jobs:
 
       - name: Verify client check failure detection
         run: bash tools/test_godot_check.sh
+
+      - name: Retain failed client check logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: client-check-logs-linux
+          path: .agents/godot-check-*/
+          include-hidden-files: true
+          if-no-files-found: ignore

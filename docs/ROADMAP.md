@@ -433,6 +433,10 @@ packages. Issues #407-#410 are closed. The
 PR #420 with passing main CI and published v0.87.0. All three downloaded desktop
 archives passed verification, including the Linux installation smoke check.
 The immediate rung is the [status bar and reduced motion round](plans/ui-status-bar-20261018.md), #412.
+Its reviewed presentation merged through PR #421. A stalled Windows main check
+keeps integration open; the [bounded client checker repair](plans/bounded-client-checks-20261018.md)
+adds retained per-check diagnostics and independent process deadlines before
+the event-tier round begins. v0.88.0 publication remains pending.
 The interface work #411-#418 follows its existing dependencies: palette and type,
 status bar, event tiers, accessibility, terminal polish, signature moments and
 the README front door. Preserve their rendered and human acceptance gates.

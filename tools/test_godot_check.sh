@@ -5,6 +5,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p .agents
 workspace=$(pwd -P)
+cargo build -p fragr-playtest --bin fragr-check-process --locked
+runner="$workspace/target/debug/fragr-check-process"
+if [ -f "$runner.exe" ]; then runner="$runner.exe"; fi
 fixture=$(mktemp -d "$workspace/.agents/godot-check-fixture-XXXXXX")
 fixture=$(cd "$fixture" && pwd -P)
 case "$fixture" in
@@ -32,6 +35,12 @@ case "$*" in
 esac
 name=$(basename "${!#}" .gd)
 case "$CASE" in
+  timeout|pass-then-timeout)
+    if [ "$name" = test_actor_state ]; then
+      if [ "$CASE" = pass-then-timeout ]; then echo "$name: PASS"; fi
+      while :; do :; done
+    fi
+    ;;
   missing-pass) exit 0 ;;
   error-and-pass) echo 'SCRIPT ERROR: fixture' ;;
   debug-socket) echo 'Socket error: 10054.' ;;
@@ -55,9 +64,10 @@ echo "$name: PASS"
 if [ "$CASE" = exit-and-pass ]; then exit 9; fi
 FAKE
 chmod +x "$fake"
-for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure; do
+for scenario in pass debug-socket import-exit import-error missing-pass error-and-pass exit-and-pass long-error-and-pass long-pass verbose-failure timeout pass-then-timeout; do
   status=0
-  output=$(CASE="$scenario" GODOT_BIN="$fake" bash "$fixture/tools/godot_check.sh" 2>&1) || status=$?
+  output=$(CASE="$scenario" GODOT_BIN="$fake" FRAGR_CHECK_PROCESS_BIN="$runner" \
+    FRAGR_CHECK_TIMEOUT_MS=3000 bash "$fixture/tools/godot_check.sh" 2>&1) || status=$?
   expected_pass=false
   if [ "$scenario" = pass ] || [ "$scenario" = debug-socket ] || [ "$scenario" = long-pass ]; then expected_pass=true; fi
   if { "$expected_pass" && [ "$status" -ne 0 ]; } ||
@@ -67,6 +77,11 @@ for scenario in pass debug-socket import-exit import-error missing-pass error-an
   fi
   if [ "$scenario" = verbose-failure ] && ! grep -qF retained-object-identity-fixture <<<"$output"; then
     echo "FAIL godot verifier discarded verbose failure identity"
+    exit 1
+  fi
+  if { [ "$scenario" = timeout ] || [ "$scenario" = pass-then-timeout ]; } &&
+     { ! grep -qF 'CHECK TIMEOUT' <<<"$output" || ! grep -qF 'ok   test_second harness' <<<"$output"; }; then
+    echo "FAIL godot verifier lost timeout diagnostics or skipped the next harness"
     exit 1
   fi
   summary=FAIL

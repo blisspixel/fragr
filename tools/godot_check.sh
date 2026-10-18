@@ -6,16 +6,32 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 GODOT="${GODOT_BIN:-godot}"
-"$GODOT" --version || { echo "godot binary not found (set GODOT_BIN)"; exit 1; }
+runner="${FRAGR_CHECK_PROCESS_BIN:-$PWD/target/debug/fragr-check-process}"
+if [ -z "${FRAGR_CHECK_PROCESS_BIN:-}" ]; then
+  cargo build -p fragr-playtest --bin fragr-check-process --locked || exit 1
+  if [ -f "$runner.exe" ]; then runner="$runner.exe"; fi
+fi
+mkdir -p .agents
+logs=$(mktemp -d "$PWD/.agents/godot-check-XXXXXX") || exit 1
+echo "Godot check logs: $logs"
+check_number=0
 fail=0
 
 # Godot may print an error and return zero, or fail without a script diagnostic.
 # A PASS line cannot cancel an earlier error in the same run.
 check() {
-  local label="$1" marker="$2" out status
+  local label="$1" marker="$2" out status log
   shift 2
-  out=$("$GODOT" --headless --path client "$@" 2>&1)
+  check_number=$((check_number + 1))
+  log="$logs/$check_number.log"
+  echo "BEGIN $label ($log)"
+  # exec preserves the owned process on Unix. Windows uses the native guard's
+  # descendant-tree termination, including the console launcher and local child.
+  "$runner" --timeout-ms "${FRAGR_CHECK_TIMEOUT_MS:-180000}" --output "$log" -- \
+    "$BASH" -c 'exec "$@"' fragr-check "$GODOT" --headless --path client "$@"
   status=$?
+  out=$(cat "$log" 2>/dev/null)
+  echo "END  $label (exit $status)"
   # Engine severity labels are uppercase. Verbose socket diagnostics also say
   # "error", including the intentional child crash in test_local_campaign.
   # Direct input avoids SIGPIPE from early matches under pipefail.
@@ -34,6 +50,7 @@ check() {
   echo "ok   $label"
 }
 
+check version "" --version || { echo "godot binary not found or failed (set GODOT_BIN)"; exit 1; }
 # Parsing with a failed import only produces secondary missing-resource errors.
 check import "" --import || { echo "Godot checks: FAIL (import)"; exit 1; }
 for script in client/scripts/*.gd; do

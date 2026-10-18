@@ -6,6 +6,7 @@ license.workspace = true
 repository.workspace = true
 description = "Scripted agents play fragr rounds in-process and file a metrics report"
 publish = false
+default-run = "fragr-playtest"
 
 [lib]
 name = "fragr_playtest"
@@ -14,6 +15,10 @@ path = "src/lib.rs"
 [[bin]]
 name = "fragr-playtest"
 path = "src/main.rs"
+
+[[bin]]
+name = "fragr-check-process"
+path = "src/check_process.rs"
 
 [[example]]
 name = "hitscan_alignment"

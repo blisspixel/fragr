@@ -180,8 +180,8 @@ Godot (the `godot` CI job runs this; locally point `GODOT_BIN` at a 4.7.2-stable
 
 ```bash
 cargo build -p fragr-server --release --locked  # required by the real local-launch harness
-tools/godot_check.sh   # import, parse every script, run the harnesses; log lines are the verdict
-bash tools/test_godot_check.sh   # inject failed exits, errors, and missing PASS markers
+tools/godot_check.sh   # bounded import, parse and harness runs; logs under .agents/godot-check-*
+bash tools/test_godot_check.sh   # inject exits, errors, missing PASS markers and stalled processes
 ```
 
 On Windows use Git Bash for these shell wrappers and set `GODOT_BIN`; the visual
