@@ -16,6 +16,8 @@ Release history, newest first. Planned work stays in
 - Validate every prepared late-campaign world through native and Godot readers,
   keep control panels fitted when gates lower, and open the executive departure
   world before reporting Voss captured.
+- Resume known earlier M15 saves after correcting stadium approach heights,
+  retaining exact original-byte archives, inventory and prior mission outcomes.
 
 - Connect Civic Pressure Valve as campaign level 15, with practice entry, arrival
   framing and saved progression from Launch Authority. Arm four captive entrants,

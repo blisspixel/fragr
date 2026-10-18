@@ -126,3 +126,12 @@ double now models success and failure, and tests that a failed send is never
 reported as accepted. The final full native, coverage and client reruns pass;
 assertions and coverage policy are unchanged. The changelog prepares v0.86.0;
 its publication still follows reviewed PR CI, main CI and tagged packaging.
+
+The final compatibility review found that three corrected M15 approach heights
+changed its content identity. The registered exact predecessor from commit
+984ca50 now uses the existing strict geometry migration, beginning with save
+version 19. Versions 19 through 22 preserve inventory and M12-M15 outcomes,
+archive original bytes through interrupted replacement, and promote completed
+M15 into M16 without a refill. Completed and closed history retains the world
+actually played. Unknown hashes and unsupported shapes still fail. Independent
+review found no blocker; the extended native gates verify this final repair.
