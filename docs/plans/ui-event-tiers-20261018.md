@@ -1,6 +1,7 @@
 # Frag feed, corner voice and objective calls
 
-Status: **in flight**, #413 within [#418](https://github.com/blisspixel/fragr/issues/418).
+Status: **implemented**, [PR #423](https://github.com/blisspixel/fragr/pull/423),
+#413 within [#418](https://github.com/blisspixel/fragr/issues/418).
 Base: reviewed main `8ecbb99c77a74dbb28ff8090fc86f5b58d36a881`, PR #422,
 with passing main CI [39150766048](https://github.com/blisspixel/fragr/actions/runs/39150766048).
 v0.88.0 is published with three verified desktop archives and a passing downloaded
@@ -449,10 +450,11 @@ The 33-state full tour passes and publishes fourteen inspected established still
 Locked workspace tests pass: 2,166 tests across 55 suites, including affected
 developer tools' offline provider and ledger cases. Workspace release build,
 clippy with warnings denied and the explicit cargo-deny advisory/license/bans/
-sources check pass. The first full client run found one stale audio-test HUD
-double without the new reset method; its focused repair passes and a fresh full
-run is pending. The checker correctly rejected its runtime errors despite an
-otherwise completed suite. No production check was weakened.
+sources check pass. Full client runs exposed two focused HUD test doubles
+without the new lifecycle contract. A shared probe now records that contract;
+both audio and shot-effect checks verify venue/session retirement and pass.
+The checker correctly rejected their runtime errors despite otherwise completed
+suites. All twelve checker fault scenarios pass. No production check was weakened.
 
 | Local CPU correctness benchmark | Result |
 |---|---|
@@ -461,5 +463,6 @@ otherwise completed suite. No production check was weakened.
 | Ticks exceeding the 50 ms budget | 0 |
 | Context | Linux x86_64 release, concurrent unrelated work; no GPU or scale claim |
 
-Remaining: clean final full client run, PR/main CI including coverage and all
-desktop client checks, desktop packaging and publication. Work remains $0.
+Final merge gates: a clean complete client run and PR/main CI including coverage
+and all desktop client checks. Desktop packaging and publication remain release
+gates. The linked PR and workflow receipts own those final results. Work remains $0.

@@ -18,8 +18,8 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
-The [event-tier round](ui-event-tiers-20261018.md) is **in flight** for #413 within
-#418, following reviewed green main at `8ecbb99` and the v0.88.0 tag.
+The [event-tier round](ui-event-tiers-20261018.md) is **implemented** in PR #423 for
+#413 within #418, following reviewed green main at `8ecbb99` and the v0.88.0 tag.
 v0.88.0 is published with three verified desktop archives and a passing
 downloaded Linux installation and exact server build metadata check.
 
