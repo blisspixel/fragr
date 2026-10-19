@@ -147,6 +147,7 @@ var grenade_effects: GrenadeEffects
 var walker_view: WalkerView
 var auditor_channels: AuditorChannels
 var last_shot_tick: int = -1
+var _last_damage_flash_tick: int = -1
 var local_fire: LocalFireFeedback = LocalFireFeedback.new()
 var _local_fire_allowed_last_frame: bool = false
 var _receiving_snapshot: bool = false
@@ -2178,6 +2179,15 @@ func _on_snapshot_received(data):
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
+	var pre_my_id: String = str(net_client.player_id) if net_client != null and net_client.player_id != null else ""
+	var pre_pawn: Node = players.get(pre_my_id)
+	var active_cam: Node3D = camera if is_instance_valid(camera) else (get_viewport().get_camera_3d() if get_viewport() != null else null)
+	var active_cam_in_tree: bool = is_instance_valid(active_cam) and active_cam.is_inside_tree()
+	var pre_fp: bool = is_human_player and not role_transition \
+		and net_client.connection_state == WebSocketPeer.STATE_OPEN and local_fp_pawn_id == pre_my_id \
+		and is_instance_valid(pre_pawn) and active_cam_in_tree and bool(active_cam.get("fp_mode"))
+	var pre_cam_xform: Transform3D = active_cam.global_transform if active_cam_in_tree else Transform3D.IDENTITY
+	var pre_alive: bool = local_hp_seen > 0
 	var entered_vehicle: bool = previous_seat.is_empty() and not _vehicle_seat().is_empty()
 	_apply_map_from_snapshot(data)
 	vehicle_prediction.accept_vehicles(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "")
@@ -2347,7 +2357,7 @@ func _on_snapshot_received(data):
 	if hud and hud.has_method("set_fp_carried_flag"):
 		hud.set_fp_carried_flag(_carried_flag_team(_first_person_carrier_id(), flag_rows))
 	_present_rocket_launches()
-	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)))
+	_process_shot_results(data.get("shot_results", []), int(data.get("tick", -1)), pre_fp, pre_cam_xform, pre_alive)
 	if entered_vehicle:
 		# The entry snapshot can still carry a resolved handheld shot. Consume
 		# that receipt first, then drop reservations without cutting mount audio.
@@ -2561,11 +2571,16 @@ func _on_event_received(data):
 		# Victim blood flash only. Shooter hit markers come from Snapshot shot_results.
 		var target_id = str(data.get("target_id", ""))
 		var my_id = str(net_client.player_id) if net_client.player_id != null else ""
-		if is_human_player and my_id != "" and target_id == my_id:
-			if hud and hud.has_method("show_damage_flash"):
-				hud.show_damage_flash()
-			if camera:
-				camera.camera_punch()
+		var dmg: Variant = data.get("damage")
+		var valid_dmg: bool = (dmg is int or dmg is float) and int(dmg) > 0
+		var hit_tick: int = int(data.get("tick", -1))
+		if is_human_player and my_id != "" and target_id == my_id and valid_dmg:
+			if hit_tick < 0 or hit_tick != _last_damage_flash_tick:
+				_last_damage_flash_tick = hit_tick
+				if hud and hud.has_method("show_damage_flash"):
+					hud.show_damage_flash()
+				if camera:
+					camera.camera_punch()
 	elif event_type == "respawn":
 		var who = str(data.get("player", ""))
 		var my_name = str(net_client.player_name) if net_client else ""
@@ -2836,12 +2851,13 @@ func _set_human_fp(enabled: bool) -> void:
 		return
 	_refresh_fp_target()
 
-func _clear_fp_state() -> void:
+func _clear_fp_state(preserve_incoming: bool = false) -> void:
 	_reset_local_fire()
 	vehicle_prediction.reset_vehicle("role")
 	pending_seat = ""
+	_last_damage_flash_tick = -1
 	if incoming_feedback != null:
-		incoming_feedback.reset()
+		incoming_feedback.reset(preserve_incoming)
 	local_prediction.reset("role", true)
 	_adopt_local_spawn_snapshot = false
 	_clear_predicted_pawn()
@@ -2925,6 +2941,7 @@ func _update_local_fp_hud(player_list: Array) -> void:
 					camera.position = pawn.global_position + Vector3(0.0, MoveStep.EYE_HEIGHT - LocalPrediction.FLOOR_OFFSET, 0.0)
 		if local_hp_seen >= 0 and hp < local_hp_seen and hp > 0:
 			hud.show_critical_crossing(local_hp_seen, hp)
+			_last_damage_flash_tick = int(latest_snapshot.get("tick", -1))
 			if hud and hud.has_method("show_damage_flash"):
 				hud.show_damage_flash()
 			if camera:
@@ -2954,7 +2971,7 @@ func _update_local_fp_hud(player_list: Array) -> void:
 	# person would freeze the camera on a body that is already gone. A campaign
 	# body stays in the snapshot at zero health and keeps its eyes.
 	if local_fp_pawn_id == pid and not _mission_map():
-		_clear_fp_state()
+		_clear_fp_state(true)
 		_watch_own_killer()
 
 ## The joined callsign, from the live pawn while it exists and from the
@@ -2997,7 +3014,7 @@ func _present_rocket_launches() -> void:
 		if not predicted and (is_local or followed_first_person) and hud != null and hud.has_method("show_fire_juice"):
 			hud.show_fire_juice("Rocket")
 
-func _process_shot_results(results, tick: int) -> void:
+func _process_shot_results(results, tick: int, captured_fp: bool = false, captured_xform: Transform3D = Transform3D.IDENTITY, captured_alive: bool = false) -> void:
 	if results == null or typeof(results) != TYPE_ARRAY:
 		return
 	if results.size() > ShotEffects.MAX_RESULTS or tick <= last_shot_tick:
@@ -3009,19 +3026,24 @@ func _process_shot_results(results, tick: int) -> void:
 	var followed_id = "" if is_human_player else _followed_player_id()
 	var feedback_viewport: Viewport = get_viewport()
 	var feedback_camera: Camera3D = feedback_viewport.get_camera_3d() if feedback_viewport != null else null
+	var active_cam: Node3D = feedback_camera if is_instance_valid(feedback_camera) else (camera if is_instance_valid(camera) else null)
+	var active_cam_in_tree: bool = is_instance_valid(active_cam) and active_cam.is_inside_tree()
 	var feedback_pawn: Node = players.get(my_id)
-	var feedback_fp: bool = is_human_player and not role_transition \
+	var current_fp: bool = is_human_player and not role_transition \
 		and net_client.connection_state == WebSocketPeer.STATE_OPEN and local_fp_pawn_id == my_id \
-		and is_instance_valid(feedback_pawn) and camera != null and bool(camera.get("fp_mode")) \
-		and is_instance_valid(feedback_camera) and not _awaiting_map and not _opening_release \
+		and is_instance_valid(feedback_pawn) and camera != null and bool(camera.get("fp_mode"))
+	var feedback_fp: bool = (current_fp or captured_fp) \
+		and active_cam_in_tree and not _awaiting_map and not _opening_release \
 		and _retry_snapshot_tick < 0 and not is_instance_valid(opening) \
 		and not is_instance_valid(interlude) and not is_instance_valid(campaign_results) \
 		and get_node_or_null("LoadingCard") == null \
 		and (local_hp_seen <= 0 or not _mission_controls_blocked())
+	var xform: Transform3D = captured_xform if (captured_fp and captured_xform.is_finite()) else (active_cam.global_transform if active_cam_in_tree else Transform3D.IDENTITY)
+	var is_alive: bool = local_hp_seen > 0
 	if incoming_feedback != null:
-		incoming_feedback.ingest(tick, results, my_id,
-			feedback_camera.global_transform if is_instance_valid(feedback_camera) else Transform3D.IDENTITY,
-			feedback_fp, local_hp_seen > 0)
+		incoming_feedback.ingest(tick, results, my_id, xform, feedback_fp, is_alive)
+		if captured_fp and not is_alive and incoming_feedback.has_method("seal_terminal"):
+			incoming_feedback.seal_terminal()
 	_play_shot_impacts(results)
 	# A scatter blast arrives as one result per struck fighter plus one for its
 	# missed pellets. A fighter fires at most once a tick, so fold each

@@ -66,9 +66,24 @@ func _run() -> void:
 	(panel.find_child("music", true, false) as HSlider).value = 0.0
 	(panel.find_child("effects", true, false) as HSlider).value = 0.35
 	panel.show_page("ACCESSIBILITY")
+	var flashes: OptionButton = panel.find_child("screen_flashes", true, false) as OptionButton
+	_check(flashes != null and flashes.item_count == 3 and flashes.selected == 1, "screen flashes defaults to Reduced (index 1)")
+	flashes.select(0)
+	flashes.item_selected.emit(0)
 	var motion: Button = panel.find_child("reduced_motion", true, false) as Button
 	_check(motion != null and not motion.button_pressed, "shared accessibility page exposes reduced motion, off by default")
 	motion.button_pressed = true
+	var hud_scale_slider: HSlider = panel.find_child("hud_scale", true, false) as HSlider
+	_check(hud_scale_slider != null and is_equal_approx(hud_scale_slider.value, 100.0), "hud scale slider defaults to 100")
+	hud_scale_slider.value = 125.0
+	var text_size_opt: OptionButton = panel.find_child("text_size", true, false) as OptionButton
+	_check(text_size_opt != null and text_size_opt.item_count == 2 and text_size_opt.selected == 0, "text size defaults to Standard")
+	text_size_opt.select(1)
+	text_size_opt.item_selected.emit(1)
+	var team_colours_opt: OptionButton = panel.find_child("team_colours", true, false) as OptionButton
+	_check(team_colours_opt != null and team_colours_opt.item_count == 2 and team_colours_opt.selected == 0, "team colours defaults to Standard")
+	team_colours_opt.select(1)
+	team_colours_opt.item_selected.emit(1)
 	_check(preferences.fov() == 75, "draft must not change active preferences")
 	panel.save()
 	_check(_closes == 1, "successful save closes the panel")
@@ -76,7 +91,11 @@ func _run() -> void:
 	loaded.load_from_disk()
 	_check(loaded.fov() == 85 and loaded.get_value("video", "fps_cap") == 120, "display settings survive a fresh store")
 	_check(loaded.get_value("video", "vsync") == true, "VSync survives a fresh store")
-	_check(loaded.get_value("accessibility", "reduced_motion") == true, "accessibility choice survives the shared draft save")
+	_check(loaded.screen_flashes() == 0, "screen flashes choice survives the shared draft save")
+	_check(loaded.reduced_motion() == true, "accessibility choice survives the shared draft save")
+	_check(loaded.hud_scale() == 125, "hud scale choice survives the shared draft save")
+	_check(loaded.text_size() == 1, "text size choice survives the shared draft save")
+	_check(loaded.team_colours() == 1, "team colours choice survives the shared draft save")
 	_check(loaded.get_value("video", "show_fps") == 2, "the frame counter mode survives a fresh store")
 	_check(loaded.get_value("controls", "mouse_sensitivity") == 2.25 and loaded.get_value("controls", "invert_y") == true, "control settings survive a fresh store")
 	_check(loaded.player_name() == "Keep this callsign", "settings save preserves the profile")

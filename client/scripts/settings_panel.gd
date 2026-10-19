@@ -125,8 +125,18 @@ func show_page(page: String) -> void:
 			else:
 				_note.text = tr("SETTINGS_GRAPHICS_NOTE")
 		"ACCESSIBILITY":
+			_option(tr("SETTINGS_SCREEN_FLASHES"), "accessibility", "screen_flashes",
+				[tr("SETTINGS_FLASHES_FULL"), tr("SETTINGS_FLASHES_REDUCED"), tr("SETTINGS_FLASHES_OFF")],
+				[FragrSettings.FLASHES_FULL, FragrSettings.FLASHES_REDUCED, FragrSettings.FLASHES_OFF])
 			_toggle(tr("SETTINGS_REDUCED_MOTION"), "accessibility", "reduced_motion")
-			_note.text = tr("SETTINGS_REDUCED_MOTION_NOTE")
+			_slider(tr("SETTINGS_HUD_SCALE"), "accessibility", "hud_scale", 75.0, 150.0, 5.0, "percent")
+			_option(tr("SETTINGS_TEXT_SIZE"), "accessibility", "text_size",
+				[tr("SETTINGS_TEXT_STANDARD"), tr("SETTINGS_TEXT_LARGE")],
+				[FragrSettings.TEXT_STANDARD, FragrSettings.TEXT_LARGE])
+			_option(tr("SETTINGS_TEAM_COLOURS"), "accessibility", "team_colours",
+				[tr("SETTINGS_TEAM_STANDARD"), tr("SETTINGS_TEAM_HIGH_CONTRAST")],
+				[FragrSettings.TEAM_STANDARD, FragrSettings.TEAM_HIGH_CONTRAST])
+			_note.text = tr("SETTINGS_ACCESSIBILITY_NOTE")
 		"AUDIO":
 			_slider("MASTER", "audio", "master", 0.0, 1.0, 0.05)
 			_slider("RADIO", "audio", "music", 0.0, 1.0, 0.05)
@@ -378,6 +388,8 @@ func _slider(title: String, section: String, key: String, low: float, high: floa
 static func _format_value(value: float, section: String, step: float, unit: String = "") -> String:
 	if section == "audio":
 		return "%.0f%%" % (value * 100.0)
+	if unit == "percent":
+		return "%.0f%%" % value
 	if unit == "degrees":
 		return "%.0f" % rad_to_deg(value)
 	return "%.2f" % value if step < 1.0 else "%.0f" % value

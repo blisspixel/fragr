@@ -72,14 +72,29 @@ const DEFAULTS: Dictionary = {
 		"story_captions": true,
 	},
 	"accessibility": {
+		"screen_flashes": 1,    # 0 Full, 1 Reduced, 2 Off
 		"reduced_motion": false,
+		"hud_scale": 100,       # 75 to 150 percent
+		"text_size": 0,         # 0 Standard, 1 Large
+		"team_colours": 0,      # 0 Standard, 1 High contrast
 	},
 }
+
+const FLASHES_FULL: int = 0
+const FLASHES_REDUCED: int = 1
+const FLASHES_OFF: int = 2
+
+const TEXT_STANDARD: int = 0
+const TEXT_LARGE: int = 1
+
+const TEAM_STANDARD: int = 0
+const TEAM_HIGH_CONTRAST: int = 1
 
 var _values: Dictionary = {}
 var storage_path: String
 
 const RANGES: Dictionary = {
+	"accessibility/hud_scale": Vector2(75.0, 150.0),
 	"video/vertical_fov": Vector2(60.0, 110.0),
 	"video/fps_cap": Vector2(0.0, 1000.0),
 	"audio/master": Vector2(0.0, 1.0),
@@ -147,8 +162,11 @@ func set_value(section: String, key: String, value: Variant) -> void:
 	elif path == "video/resolution_height":
 		if not value is int or value not in RenderQuality.RESOLUTION_HEIGHTS:
 			value = fallback
-	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist"]:
+	elif path in ["video/quality", "video/upscaling", "video/show_fps", "controls/aim_assist", "accessibility/screen_flashes"]:
 		if not value is int or value not in [0, 1, 2]:
+			value = fallback
+	elif path in ["accessibility/text_size", "accessibility/team_colours"]:
+		if not value is int or value not in [0, 1]:
 			value = fallback
 	elif section == "bindings":
 		if not value is String or (not (value as String).is_empty() and InputBindings.parse(value).size() != InputBindings.SLOTS):
@@ -280,3 +298,18 @@ static func _set_bus(name: String, linear: float) -> void:
 ## Vertical FOV, with horizontal coverage expanding on wider viewports.
 func fov() -> float:
 	return float(get_value("video", "vertical_fov"))
+
+func screen_flashes() -> int:
+	return int(get_value("accessibility", "screen_flashes"))
+
+func reduced_motion() -> bool:
+	return bool(get_value("accessibility", "reduced_motion"))
+
+func hud_scale() -> int:
+	return int(get_value("accessibility", "hud_scale"))
+
+func text_size() -> int:
+	return int(get_value("accessibility", "text_size"))
+
+func team_colours() -> int:
+	return int(get_value("accessibility", "team_colours"))
