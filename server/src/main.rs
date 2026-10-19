@@ -139,7 +139,12 @@ struct Args {
     bench_verify_trace: Option<PathBuf>,
 
     /// Run the benchmark twice and report whether the two matches agreed.
-    #[arg(long, default_value_t = false, requires = "bench", help_heading = "Benchmark")]
+    #[arg(
+        long,
+        default_value_t = false,
+        requires = "bench",
+        help_heading = "Benchmark"
+    )]
     bench_check: bool,
 
     /// Seed for the simulation's random stream. The same seed gives the same
@@ -148,7 +153,12 @@ struct Args {
     seed: u64,
 
     /// Color mode for log output: auto, always, or never.
-    #[arg(long, value_enum, default_value = "auto", help_heading = "Hosting and access")]
+    #[arg(
+        long,
+        value_enum,
+        default_value = "auto",
+        help_heading = "Hosting and access"
+    )]
     color: ColorChoice,
 
     /// Print the status report (tick time, bytes, budget use) this often, in
@@ -159,7 +169,12 @@ struct Args {
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
-    #[arg(long, default_value_t = false, requires = "bench", help_heading = "Benchmark")]
+    #[arg(
+        long,
+        default_value_t = false,
+        requires = "bench",
+        help_heading = "Benchmark"
+    )]
     bench_assert: bool,
 
     /// Largest share of the tick budget the p99 tick may use before
@@ -483,7 +498,9 @@ mod tests {
     #[test]
     fn help_hides_child_process_flags_and_groups_match_hosting() {
         let mut help_buf = Vec::new();
-        Args::command().write_help(&mut help_buf).expect("write help");
+        Args::command()
+            .write_help(&mut help_buf)
+            .expect("write help");
         let help_text = String::from_utf8(help_buf).expect("utf8 help");
 
         assert!(help_text.contains("Match:"));

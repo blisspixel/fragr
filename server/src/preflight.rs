@@ -258,7 +258,6 @@ pub fn primary_join_addr(bound: SocketAddr) -> SocketAddr {
     SocketAddr::from(([127, 0, 0, 1], bound.port()))
 }
 
-
 fn read_adapters() -> Result<Vec<JoinAdapter>, String> {
     let interfaces = if_addrs::get_if_addrs().map_err(|error| error.to_string())?;
     let mut adapters = Vec::new();

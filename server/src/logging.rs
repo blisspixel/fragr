@@ -10,7 +10,17 @@ use tracing_subscriber::registry::LookupSpan;
 use tracing_subscriber::EnvFilter;
 
 /// Color mode for command-line log output.
-#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[derive(
+    clap::ValueEnum,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Default,
+    serde::Serialize,
+    serde::Deserialize,
+)]
 #[serde(rename_all = "kebab-case")]
 pub enum ColorChoice {
     #[default]
@@ -160,8 +170,8 @@ where
 
 /// Initialize tracing with the custom formatter, color gating, and the provided default filter.
 pub fn init_logging_with_default(default_filter: &str, color: ColorChoice) {
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(default_filter));
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default_filter));
     let use_ansi = color.resolve();
     tracing_subscriber::fmt()
         .with_ansi(use_ansi)
@@ -191,44 +201,80 @@ mod tests {
         // Explicit always wins over NO_COLOR
         let mut env = HashMap::new();
         env.insert("NO_COLOR".to_string(), "1".to_string());
-        assert!(resolve_color_with(ColorChoice::Always, |k| env.get(k).cloned(), false));
+        assert!(resolve_color_with(
+            ColorChoice::Always,
+            |k| env.get(k).cloned(),
+            false
+        ));
 
         // Explicit never wins over FORCE_COLOR
         let mut env = HashMap::new();
         env.insert("FORCE_COLOR".to_string(), "1".to_string());
-        assert!(!resolve_color_with(ColorChoice::Never, |k| env.get(k).cloned(), true));
+        assert!(!resolve_color_with(
+            ColorChoice::Never,
+            |k| env.get(k).cloned(),
+            true
+        ));
 
         // Auto with NO_COLOR set
         let mut env = HashMap::new();
         env.insert("NO_COLOR".to_string(), "1".to_string());
-        assert!(!resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), true));
+        assert!(!resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            true
+        ));
 
         // Auto with empty NO_COLOR does not disable color
         let mut env = HashMap::new();
         env.insert("NO_COLOR".to_string(), "".to_string());
-        assert!(resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), true));
+        assert!(resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            true
+        ));
 
         // Auto with FORCE_COLOR=1 enables color even when not a terminal
         let mut env = HashMap::new();
         env.insert("FORCE_COLOR".to_string(), "1".to_string());
-        assert!(resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), false));
+        assert!(resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            false
+        ));
 
         // Auto with FORCE_COLOR=0 does not force color
         let mut env = HashMap::new();
         env.insert("FORCE_COLOR".to_string(), "0".to_string());
-        assert!(!resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), false));
+        assert!(!resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            false
+        ));
 
         // Auto with TERM=dumb disables color
         let mut env = HashMap::new();
         env.insert("TERM".to_string(), "dumb".to_string());
-        assert!(!resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), true));
+        assert!(!resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            true
+        ));
 
         // Auto on terminal without env vars enables color
         let env: HashMap<String, String> = HashMap::new();
-        assert!(resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), true));
+        assert!(resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            true
+        ));
 
         // Auto without terminal disables color
         let env: HashMap<String, String> = HashMap::new();
-        assert!(!resolve_color_with(ColorChoice::Auto, |k| env.get(k).cloned(), false));
+        assert!(!resolve_color_with(
+            ColorChoice::Auto,
+            |k| env.get(k).cloned(),
+            false
+        ));
     }
 }

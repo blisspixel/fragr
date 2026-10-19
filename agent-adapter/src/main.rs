@@ -88,10 +88,7 @@ fn parse_body(value: &str) -> Result<protocol::BodyKind, String> {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    fragr_server::logging::init_logging_with_default(
-        "info,fragr_agent_adapter=debug",
-        args.color,
-    );
+    fragr_server::logging::init_logging_with_default("info,fragr_agent_adapter=debug", args.color);
 
     match args.command {
         Commands::Mcp {
