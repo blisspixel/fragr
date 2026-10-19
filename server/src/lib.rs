@@ -9,6 +9,7 @@ mod encounters;
 pub mod inventory;
 pub mod join_ticket;
 pub mod local;
+pub mod logging;
 pub mod maps;
 pub mod metrics;
 pub mod mission;

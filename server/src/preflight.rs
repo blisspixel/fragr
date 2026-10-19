@@ -244,6 +244,21 @@ fn join_candidates(adapters: &[JoinAdapter], bind: SocketAddr) -> JoinOffer {
     JoinOffer { offered, skipped }
 }
 
+/// The best join address for human operators to connect to.
+pub fn primary_join_addr(bound: SocketAddr) -> SocketAddr {
+    if !bound.ip().is_unspecified() {
+        return bound;
+    }
+    if let Ok(adapters) = read_adapters() {
+        let offer = join_candidates(&adapters, bound);
+        if let Some(&first) = offer.offered.first() {
+            return first;
+        }
+    }
+    SocketAddr::from(([127, 0, 0, 1], bound.port()))
+}
+
+
 fn read_adapters() -> Result<Vec<JoinAdapter>, String> {
     let interfaces = if_addrs::get_if_addrs().map_err(|error| error.to_string())?;
     let mut adapters = Vec::new();
@@ -646,5 +661,19 @@ mod tests {
         assert_eq!(facts.kind, "arena");
         assert_eq!(facts.map, "Arena Duel");
         accept.abort();
+    }
+
+    #[test]
+    fn primary_join_addr_preserves_specific_or_finds_unspecified() {
+        let loopback: SocketAddr = "127.0.0.1:6767".parse().unwrap();
+        assert_eq!(primary_join_addr(loopback), loopback);
+
+        let specific: SocketAddr = "192.168.1.100:6767".parse().unwrap();
+        assert_eq!(primary_join_addr(specific), specific);
+
+        let unspecified: SocketAddr = "0.0.0.0:6767".parse().unwrap();
+        let primary = primary_join_addr(unspecified);
+        assert_eq!(primary.port(), 6767);
+        assert!(!primary.ip().is_unspecified());
     }
 }

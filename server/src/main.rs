@@ -1,7 +1,7 @@
 use clap::{CommandFactory, FromArgMatches, Parser};
+use fragr_server::logging::{init_logging, ColorChoice};
 use fragr_server::run::{run_server, ServerOptions};
 use std::path::PathBuf;
-use tracing_subscriber::EnvFilter;
 
 // Eq is out because a threshold is a float; PartialEq still serves the tests.
 #[derive(Parser, Debug, PartialEq)]
@@ -9,166 +9,172 @@ use tracing_subscriber::EnvFilter;
 #[command(about = "fragr authoritative game server")]
 #[command(version = env!("FRAGR_CLI_VERSION"))]
 struct Args {
-    #[arg(long, default_value = "0.0.0.0:6767")]
+    /// Bind address for the WebSocket game server.
+    #[arg(long, default_value = "0.0.0.0:6767", help_heading = "Match")]
     bind: String,
 
-    #[arg(long, default_value = "4")]
+    /// Rule bots to spawn into the match.
+    #[arg(long, default_value = "4", help_heading = "Match")]
     bots: usize,
 
     /// Fixed rule bots, no bots, or automatic total fighter population.
-    #[arg(long, value_enum, default_value = "fixed", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    #[arg(long, value_enum, default_value = "fixed", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     bot_policy: fragr_server::bot_fill::BotPolicy,
 
     /// Desired total fighter count for automatic fill, 1 through 10.
-    #[arg(long, default_value = "0", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    #[arg(long, default_value = "0", help_heading = "Match", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     fill_target: usize,
 
     /// Map: 1/arena, 2/compliance-yard, 3/directive-17, 4/sector-9,
     /// 5/reclamation-gulch, 6/tripoint-works, 7/holdfast-atoll, 8/low-water.
-    #[arg(long, default_value = "1")]
+    #[arg(long, default_value = "1", help_heading = "Match")]
     map: String,
 
     /// Load a local authored campaign development map. Requires --bots 0.
     #[arg(group = "campaign_source")]
-    #[arg(long, conflicts_with_all = ["map", "map_rotate", "solo_broadcast", "bench", "bench_verify_trace", "no_round_events"])]
+    #[arg(long, help_heading = "Match", conflicts_with_all = ["map", "map_rotate", "solo_broadcast", "bench", "bench_verify_trace", "no_round_events"])]
     map_file: Option<PathBuf>,
 
     /// Run the bundled mission for a desktop parent. Readiness is JSON on stdout;
     /// stdin shutdown or EOF ends this loopback-only child.
     #[arg(group = "campaign_source")]
-    #[arg(long, value_enum, conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
+    #[arg(long, value_enum, hide = true, conflicts_with_all = ["bind", "bots", "map", "map_file", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "status_every_s"])]
     local_mission: Option<fragr_server::protocol::MissionId>,
 
     /// Own a desktop arcade server (FFA, TDM, CTF, Sabotage, Conquest, with mutators). Readiness is JSON
     /// on stdout; stdin shutdown or EOF ends only this explicit child.
-    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
+    #[arg(long, hide = true, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "frag_limit", "capture_limit", "sabotage_format", "ready_line"])]
     desktop_host: bool,
 
     /// Loopback child for `fragr-agent-adapter mcp --local`. One flushed ArenaReady
     /// JSON line on stdout after bind; stdin shutdown or EOF stops only this child.
     /// Any arcade mode the dedicated server already accepts, including free-for-all.
-    #[arg(long, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "console", "map_file", "campaign_run"])]
+    #[arg(long, hide = true, conflicts_with_all = ["campaign_source", "run_mode", "local_run_preview", "map_rotate", "solo_broadcast", "no_round_events", "bench", "bench_verify_trace", "console", "map_file", "campaign_run"])]
     ready_line: bool,
 
     /// Persist an owned desktop campaign run. Omit for ephemeral development runs.
-    #[arg(long, value_enum, requires = "local_mission")]
+    #[arg(long, value_enum, hide = true, requires = "local_mission")]
     run_mode: Option<fragr_server::local::LocalRunMode>,
 
     /// Read-only compatibility summary for the local campaign menu.
-    #[arg(long, conflicts_with_all = ["local_mission", "map_file", "map", "bots", "bind", "campaign_run", "difficulty", "bench", "bench_verify_trace"])]
+    #[arg(long, hide = true, conflicts_with_all = ["local_mission", "map_file", "map", "bots", "bind", "campaign_run", "difficulty", "bench", "bench_verify_trace"])]
     local_run_preview: bool,
 
     /// Shared campaign pressure. Fixed for this run; does not change arcade rules.
-    #[arg(long, value_enum, requires = "campaign_source", conflicts_with_all = ["bench", "bench_verify_trace", "solo_broadcast", "map_rotate", "no_round_events"])]
+    #[arg(long, value_enum, requires = "campaign_source", help_heading = "Rules", conflicts_with_all = ["bench", "bench_verify_trace", "solo_broadcast", "map_rotate", "no_round_events"])]
     difficulty: Option<fragr_server::protocol::CampaignDifficulty>,
 
     /// One combatant, three mission-start continues. Leaving ends this run.
-    #[arg(long, requires = "campaign_source")]
+    #[arg(long, requires = "campaign_source", help_heading = "Rules")]
     campaign_run: bool,
 
     /// Move to the next map in the roster each round.
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, help_heading = "Match")]
     map_rotate: bool,
 
     /// Stay up and rotate the built-in night list of maps and modes.
     /// Sabotage plays its short match, including the half-time swap, before
     /// the list moves. A fixed map, mode, mutator, or limit cannot combine.
-    #[arg(long, default_value_t = false, conflicts_with_all = ["map", "map_rotate", "map_file", "local_mission", "desktop_host", "solo_broadcast", "mode", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "sabotage_five_v_five", "no_round_events", "bench", "bench_verify_trace", "campaign_run", "difficulty", "run_mode", "local_run_preview"])]
+    #[arg(long, default_value_t = false, help_heading = "Match", conflicts_with_all = ["map", "map_rotate", "map_file", "local_mission", "desktop_host", "solo_broadcast", "mode", "mutators", "friendly_fire", "frag_limit", "capture_limit", "sabotage_format", "sabotage_five_v_five", "no_round_events", "bench", "bench_verify_trace", "campaign_run", "difficulty", "run_mode", "local_run_preview"])]
     playlist: bool,
 
     /// Contested Frequency Solo Broadcast Episode 0 (Calibration / Larak Lot).
     /// NODS clear + jammer dish + Auditor. MP unchanged when off.
-    #[arg(long, default_value_t = false)]
+    #[arg(long, default_value_t = false, help_heading = "Match")]
     solo_broadcast: bool,
 
     /// Disable timed compliance slowdowns and boss spawns for arena practice.
-    #[arg(long, conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, help_heading = "Rules", conflicts_with_all = ["solo_broadcast", "bench", "bench_verify_trace"])]
     no_round_events: bool,
 
     /// Match mode: ffa, tdm, ctf, sabotage or conquest. Conquest uses Holdfast Atoll.
     /// Capture the flag runs on Arena
     /// Duel, Directive 17, or Sector 9; Sabotage runs on Sector 9 or Low Water.
-    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, value_enum, default_value_t = fragr_server::protocol::GameMode::Ffa, help_heading = "Match", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mode: fragr_server::protocol::GameMode,
 
     /// A host rule twist, repeatable: rail-only, shotgun-only, fists-only,
     /// licence-to-kill, golden-rail, two-lives.
-    #[arg(long = "mutator", value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long = "mutator", value_enum, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     mutators: Vec<fragr_server::protocol::Mutator>,
 
     /// Team damage lands. Needs a team mode. Off by default.
-    #[arg(long, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     friendly_fire: bool,
 
     /// Frags that end a round: a fighter's in ffa, a side's in tdm.
     /// Defaults to 10 in ffa and 25 in tdm; unavailable in ctf.
-    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=999), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=999), help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     frag_limit: Option<u32>,
 
     /// Captures that end a ctf round (default 3). Only valid with --mode ctf.
-    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=99), conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, value_parser = clap::value_parser!(u32).range(1..=99), help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     capture_limit: Option<u32>,
 
     /// Sabotage match length: short (halves of 4, first to 5, the default)
     /// or match (halves of 8, first to 9). Only valid with --mode sabotage.
-    #[arg(long, value_enum, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, value_enum, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     sabotage_format: Option<fragr_server::protocol::SabotageFormat>,
 
     /// Limit Sabotage to ten seated fighters, five per side. Spectators remain welcome.
-    #[arg(long, conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
+    #[arg(long, help_heading = "Rules", conflicts_with_all = ["campaign_source", "solo_broadcast", "bench", "bench_verify_trace"])]
     sabotage_five_v_five: bool,
 
     /// Benchmark instead of serving: run this many scripted fighters with no
     /// network, print one JSON report, and exit. The ruler for every change.
-    #[arg(long)]
+    #[arg(long, help_heading = "Benchmark")]
     bench: Option<usize>,
 
     /// Ticks to run in benchmark mode (20 per second of match time).
-    #[arg(long, default_value_t = 1200, value_parser = clap::value_parser!(u64).range(1..))]
+    #[arg(long, default_value_t = 1200, help_heading = "Benchmark", value_parser = clap::value_parser!(u64).range(1..))]
     bench_ticks: u64,
 
     /// Write a complete offline NDJSON recording to a new file. Parent directory
     /// must exist. No overwrite, network connection, or paid provider is involved.
-    #[arg(long, requires = "bench")]
+    #[arg(long, requires = "bench", help_heading = "Benchmark")]
     bench_trace: Option<PathBuf>,
 
     /// Validate a recorded trace without opening a network connection.
-    #[arg(long, conflicts_with = "bench")]
+    #[arg(long, conflicts_with = "bench", help_heading = "Benchmark")]
     bench_verify_trace: Option<PathBuf>,
 
     /// Run the benchmark twice and report whether the two matches agreed.
-    #[arg(long, default_value_t = false, requires = "bench")]
+    #[arg(long, default_value_t = false, requires = "bench", help_heading = "Benchmark")]
     bench_check: bool,
 
     /// Seed for the simulation's random stream. The same seed gives the same
     /// match, which is what makes two runs comparable.
-    #[arg(long, default_value_t = 1)]
+    #[arg(long, default_value_t = 1, help_heading = "Benchmark")]
     seed: u64,
+
+    /// Color mode for log output: auto, always, or never.
+    #[arg(long, value_enum, default_value = "auto", help_heading = "Hosting and access")]
+    color: ColorChoice,
 
     /// Print the status report (tick time, bytes, budget use) this often, in
     /// seconds. Zero turns it off.
-    #[arg(long, default_value_t = 60)]
+    #[arg(long, default_value_t = 60, help_heading = "Hosting and access")]
     status_every_s: u64,
 
     /// Exit non-zero when a benchmark crosses a threshold below. This is what
     /// CI runs, so a regression is a failed build rather than a note nobody
     /// reads.
-    #[arg(long, default_value_t = false, requires = "bench")]
+    #[arg(long, default_value_t = false, requires = "bench", help_heading = "Benchmark")]
     bench_assert: bool,
 
     /// Largest share of the tick budget the p99 tick may use before
     /// `--bench-assert` fails. One tick in a hundred over half the budget
     /// means the next change has nowhere to go.
-    #[arg(long, default_value_t = 0.5, value_parser = parse_budget_fraction)]
+    #[arg(long, default_value_t = 0.5, help_heading = "Benchmark", value_parser = parse_budget_fraction)]
     bench_max_budget_p99: f64,
 
     /// Refuse these addresses. One IP or CIDR range per line, with optional
     /// `expires=YYYY-MM-DD` and `reason=...`. Read again every five seconds.
-    #[arg(long, conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    #[arg(long, help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     ban_list: Option<PathBuf>,
 
     /// Admit only these addresses, same format. A ban still wins.
-    #[arg(long, conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
+    #[arg(long, help_heading = "Hosting and access", conflicts_with_all = ["local_mission", "local_run_preview", "bench", "bench_verify_trace"])]
     allow_list: Option<PathBuf>,
 
     /// Local venue desk on this terminal: who, kick, ban, say, and stats.
@@ -176,6 +182,7 @@ struct Args {
     #[arg(
         long,
         default_value_t = false,
+        help_heading = "Hosting and access",
         conflicts_with_all = [
             "desktop_host",
             "ready_line",
@@ -212,7 +219,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
     // In benchmark mode the JSON report is the only thing on stdout, so logs
     // go to stderr and only warnings survive.
-    init_tracing(args.bench.is_some() || args.local_run_preview);
+    init_logging(args.bench.is_some() || args.local_run_preview, args.color);
     if args.local_run_preview {
         let preview =
             fragr_server::local::preview_run(fragr_server::protocol::MissionId::RecallNotice)?;
@@ -367,6 +374,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         join_audience: admission.audience,
         origin_allow: admission.origins,
         spectator_tickets: admission.spectator_tickets,
+        human_summary: !args.ready_line && !args.desktop_host,
     };
     let started = if args.ready_line {
         fragr_server::local::serve_ready_line(options, std::io::stdin(), std::io::stdout()).await
@@ -434,20 +442,6 @@ fn match_config(
     })
 }
 
-fn init_tracing(quiet: bool) {
-    let default = if quiet {
-        "warn"
-    } else {
-        "info,fragr_server=debug"
-    };
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(default)),
-        )
-        .with_writer(std::io::stderr)
-        .init();
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -473,6 +467,41 @@ mod tests {
     use std::net::SocketAddr;
     use std::time::Duration;
     use tokio_tungstenite::{connect_async, tungstenite::Message};
+
+    #[test]
+    fn args_parse_color_choice() {
+        let args = Args::try_parse_from(["fragr-server"]).expect("default args");
+        assert_eq!(args.color, ColorChoice::Auto);
+
+        let args = Args::try_parse_from(["fragr-server", "--color=always"]).expect("color always");
+        assert_eq!(args.color, ColorChoice::Always);
+
+        let args = Args::try_parse_from(["fragr-server", "--color", "never"]).expect("color never");
+        assert_eq!(args.color, ColorChoice::Never);
+    }
+
+    #[test]
+    fn help_hides_child_process_flags_and_groups_match_hosting() {
+        let mut help_buf = Vec::new();
+        Args::command().write_help(&mut help_buf).expect("write help");
+        let help_text = String::from_utf8(help_buf).expect("utf8 help");
+
+        assert!(help_text.contains("Match:"));
+        assert!(help_text.contains("Rules:"));
+        assert!(help_text.contains("Hosting and access:"));
+        assert!(help_text.contains("Benchmark:"));
+
+        assert!(help_text.contains("--bind <BIND>"));
+        assert!(help_text.contains("Bind address for the WebSocket game server"));
+        assert!(help_text.contains("--bots <BOTS>"));
+        assert!(help_text.contains("Rule bots to spawn into the match"));
+
+        assert!(!help_text.contains("--local-mission"));
+        assert!(!help_text.contains("--desktop-host"));
+        assert!(!help_text.contains("--ready-line"));
+        assert!(!help_text.contains("--run-mode"));
+        assert!(!help_text.contains("--local-run-preview"));
+    }
 
     #[test]
     fn difficulty_is_explicit_campaign_only_configuration() {
@@ -1090,6 +1119,7 @@ mod tests {
                     join_audience: None,
                     origin_allow: Vec::new(),
                     spectator_tickets: false,
+                    human_summary: false,
                 },
                 async move {
                     let _ = shutdown_rx.await;

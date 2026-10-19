@@ -19,13 +19,15 @@ fn socket_config() -> WebSocketConfig {
         ..WebSocketConfig::default()
     }
 }
-use tracing_subscriber::EnvFilter;
-
 #[derive(Parser, Debug, PartialEq, Eq)]
 #[command(name = "fragr-agent-adapter")]
 #[command(about = "fragr agent adapter - MCP server and bot client")]
 #[command(version = env!("FRAGR_CLI_VERSION"))]
 struct Args {
+    /// Color mode for log output: auto, always, or never.
+    #[arg(long, value_enum, default_value = "auto", global = true)]
+    color: fragr_server::logging::ColorChoice,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -84,15 +86,12 @@ fn parse_body(value: &str) -> Result<protocol::BodyKind, String> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| EnvFilter::new("info,fragr_agent_adapter=debug")),
-        )
-        .with_writer(std::io::stderr)
-        .init();
-
     let args = Args::parse();
+
+    fragr_server::logging::init_logging_with_default(
+        "info,fragr_agent_adapter=debug",
+        args.color,
+    );
 
     match args.command {
         Commands::Mcp {
@@ -2412,6 +2411,20 @@ mod tests {
             }
             other => panic!("expected Mcp, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn args_parse_color_choice() {
+        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp"]).expect("default args");
+        assert_eq!(args.color, fragr_server::logging::ColorChoice::Auto);
+
+        let args = Args::try_parse_from(["fragr-agent-adapter", "--color=always", "mcp"])
+            .expect("color before subcommand");
+        assert_eq!(args.color, fragr_server::logging::ColorChoice::Always);
+
+        let args = Args::try_parse_from(["fragr-agent-adapter", "mcp", "--color", "never"])
+            .expect("color after subcommand");
+        assert_eq!(args.color, fragr_server::logging::ColorChoice::Never);
     }
 
     #[test]

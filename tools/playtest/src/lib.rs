@@ -2464,6 +2464,7 @@ pub async fn run(config: Config) -> Result<(Report, Observation), Error> {
         join_audience: None,
         origin_allow: Vec::new(),
         spectator_tickets: false,
+        human_summary: false,
     };
     let server = tokio::spawn(async move {
         run_server(

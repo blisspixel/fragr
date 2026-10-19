@@ -102,6 +102,8 @@ pub struct ServerOptions {
     pub origin_allow: Vec<String>,
     /// Spectators present a ticket only when a join secret is also set.
     pub spectator_tickets: bool,
+    /// Dedicated server summary line for humans after preflight checks complete.
+    pub human_summary: bool,
 }
 
 impl Default for ServerOptions {
@@ -127,6 +129,7 @@ impl Default for ServerOptions {
             join_audience: None,
             origin_allow: Vec::new(),
             spectator_tickets: false,
+            human_summary: false,
         }
     }
 }
@@ -568,6 +571,16 @@ async fn run_server_impl(
         kind = facts.kind
     );
     crate::preflight::log_join_checks(bound).await;
+    if options.human_summary {
+        let addr = crate::preflight::primary_join_addr(bound);
+        let map_name = session.state.map.name();
+        let mode_name = if session.state.map.is_authored() {
+            "Campaign"
+        } else {
+            session.state.config.rules.mode().name()
+        };
+        println!("ready ws://{addr} {map_name} {mode_name} Ctrl-C stops");
+    }
     let _beacon = crate::announce::should_announce(bound)
         .then(|| AbortOnDrop(tokio::spawn(crate::announce::broadcast_loop(bound.port()))));
     if let Some(tx) = ready {
