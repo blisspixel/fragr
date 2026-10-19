@@ -3,6 +3,10 @@ extends CanvasLayer
 const StanceChipScript = preload("res://scripts/stance_chip.gd")
 const ScreenFlashScript = preload("res://scripts/screen_flash.gd")
 const HudStyle = preload("res://scripts/hud_style.gd")
+const SealCutPlateScript = preload("res://scripts/seal_cut_plate.gd")
+const StampCardScript = preload("res://scripts/stamp_card.gd")
+var vitals_seal_plate = null
+var stamp_card = null
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
@@ -259,6 +263,14 @@ func _ready():
 	_ensure_map_chip_label()
 	if vitals:
 		vitals.visible = false
+		vitals_seal_plate = SealCutPlateScript.new()
+		vitals_seal_plate.name = "VitalsSealPlate"
+		vitals_seal_plate.size = vitals.size
+		vitals.add_child(vitals_seal_plate)
+		vitals.move_child(vitals_seal_plate, 0)
+	stamp_card = StampCardScript.new()
+	stamp_card.name = "StampCard"
+	add_child(stamp_card)
 	fp_muzzle_texture = load("res://assets/vfx/32/muzzle_flash.png")
 	if fp_muzzle:
 		fp_muzzle.texture = fp_muzzle_texture
@@ -573,6 +585,13 @@ func show_sabotage_result(card: String, host_line: String) -> void:
 	if card.is_empty() or round_message == null:
 		return
 	_show_round_banner(card, 4.5, true)
+	if stamp_card != null:
+		var stamp_col: Color = MenuTheme.EMBER
+		if card.find("UNION") != -1:
+			stamp_col = MatchRules.THEIRS_MARK
+		elif card.find("FREE") != -1 or card.find("COALITION") != -1:
+			stamp_col = MatchRules.OURS_MARK
+		stamp_card.trigger_stamp(round_message, stamp_col, reduced_motion)
 
 
 ## A short centred notice: the side swap, or that a round goes live.
@@ -1102,8 +1121,6 @@ func show_episode_title_card(title: String, objective: String = ""):
 func show_nods_tick(progress: String, host_line: String = ""):
 	# Short Contested Frequency booth beat per NODS clear. Not speak. Not killstreak length.
 	flash_broadcast_chrome("host")
-	if screen_flash != null:
-		screen_flash.trigger("nods", MenuTheme.EMBER, 0.32)
 	if not round_message:
 		return
 	var line = host_line
@@ -1129,8 +1146,8 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	if unlock_teaser != "":
 		line += "\n" + unlock_teaser
 	round_message.text = line
-	if screen_flash != null:
-		screen_flash.trigger("complete", MenuTheme.EMBER, 0.7)
+	if stamp_card != null:
+		stamp_card.trigger_stamp(round_message, MenuTheme.EMBER, reduced_motion)
 
 func show_episode_fail(host_line: String):
 	_cancel_round_pulse()
@@ -1141,8 +1158,8 @@ func show_episode_fail(host_line: String):
 	round_message.visible = true
 	var line = host_line if host_line != "" else "HOST: Citizen Handle assigned. Reload."
 	round_message.text = line + "\n( Continuance paperwork is the real final boss )"
-	if screen_flash != null:
-		screen_flash.trigger("fail", MenuTheme.DANGER, 0.45)
+	if stamp_card != null:
+		stamp_card.trigger_stamp(round_message, MenuTheme.DANGER, reduced_motion)
 
 func show_frag(killer: String, victim: String, _killer_color: Color = MenuTheme.UNTINTED, _victim_color: Color = MenuTheme.UNTINTED) -> void:
 	frag_feed.push({"killer": killer, "victim": victim})
@@ -1425,8 +1442,6 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 			_warmup_pulse = create_tween()
 			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2(1.04, 1.04), 0.08)
 			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2.ONE, 0.14)
-		if screen_flash != null:
-			screen_flash.trigger("warmup", MenuTheme.EMBER, 0.35)
 
 func _set_warmup_roster(roster) -> void:
 	var names = []
@@ -1466,6 +1481,8 @@ func show_round_start(round_number: int, host_line: String = "") -> void:
 	hide_warmup_tv()
 	combat_feed.push(line, MenuTheme.EMBER, 2.0)
 	_show_round_banner(tr("HUD_ROUND_START").format({"round": round_number}), 1.0)
+	if vitals_seal_plate != null:
+		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
 
 func show_compliance_ping(message: String, _duration_sec: float = 6.0) -> void:
 	var line: String = message if not message.is_empty() else tr("HUD_COMPLIANCE")
@@ -1523,11 +1540,13 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 
 	followed_player_name = ""
 
-	# Brief ember podium flash (same grit as killstreak).
-	if screen_flash != null:
-		screen_flash.trigger("podium", MenuTheme.EMBER, 0.55)
-
 	if round_message:
+		var end_col: Color = MenuTheme.EMBER
+		var win_str: String = str(winning_team).to_lower()
+		if win_str == "union":
+			end_col = MatchRules.THEIRS_MARK
+		elif win_str == "coalition" or win_str == "free":
+			end_col = MatchRules.OURS_MARK
 		if match_rules.get("mode", "") == "ctf" and capture_scores is Dictionary:
 			var winner_side: String = MatchRules.valid_team(winning_team)
 			var result: String = tr("FLAG_ROUND_WINNER").format({"team": MatchRules.team_short(winner_side)}) if winner_side != "" else tr("FLAG_ROUND_DRAW")
@@ -1538,6 +1557,8 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 			if reason != "":
 				result += "\n" + reason.to_upper()
 			_show_round_banner(result, 5.5, true)
+			if stamp_card != null:
+				stamp_card.trigger_stamp(round_message, end_col, reduced_motion)
 			return
 		var message = host_line
 		if message == "":
@@ -1565,12 +1586,15 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 		message += "\n" + league_mode_name.to_upper() + " // " + league_playlist.to_upper()
 
 		_show_round_banner(message, 5.5)
+		if stamp_card != null:
+			stamp_card.trigger_stamp(round_message, end_col, reduced_motion)
 
 func _show_round_banner(text: String, seconds: float, backed: bool = false) -> void:
 	_cancel_round_pulse()
 	round_banner_remaining = seconds
 	round_message.text = text
 	round_message.scale = Vector2.ONE
+	round_message.rotation = 0.0
 	round_message.modulate = MenuTheme.UNTINTED
 	round_message.visible = true
 	if round_backdrop:
@@ -1908,6 +1932,8 @@ func set_fp_juice(enabled: bool) -> void:
 		vitals.visible = enabled
 	if crosshair:
 		crosshair.visible = enabled
+	if enabled and vitals_seal_plate != null:
+		vitals_seal_plate.play_seal_cut(viewer_team, reduced_motion)
 	if not enabled:
 		fp_reload_motion.clear()
 		melee_view.reset()
@@ -2396,8 +2422,8 @@ func show_crawler_scrabble_caption() -> void:
 func show_spawn_flash() -> void:
 	if not fp_juice_enabled:
 		return
-	if screen_flash != null:
-		screen_flash.trigger("spawn", MenuTheme.EMBER, 0.35)
+	if vitals_seal_plate != null:
+		vitals_seal_plate.settle(viewer_team)
 
 
 var radio_label: Label = null
