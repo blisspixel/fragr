@@ -25,6 +25,7 @@ var _owner: String = ""
 var _solids: Array = []
 var _map_valid: bool = false
 var _listener: Transform3D = Transform3D.IDENTITY
+var terminal: bool = false
 
 
 func setup(hud: CanvasLayer) -> void:
@@ -42,18 +43,20 @@ func configure_map(info: Dictionary) -> bool:
 	return _map_valid
 
 
-func reset() -> void:
+func reset(preserve_indicator: bool = false) -> void:
 	for voice: AudioStreamPlayer3D in voices:
 		voice.stop()
-	if is_instance_valid(indicator):
+	if not preserve_indicator and is_instance_valid(indicator):
 		indicator.reset()
-	_owner = ""
+	if not preserve_indicator:
+		_owner = ""
+		damage_count = 0
 	last_tick = -1
 	_next_cue_tick = 0
 	_next_voice = 0
 	cue_count = 0
-	damage_count = 0
 	last_cue_positions.clear()
+	terminal = false
 
 
 func _exit_tree() -> void:
@@ -65,16 +68,23 @@ func _exit_tree() -> void:
 
 ## The manager supplies its actual local-human first-person view, including
 ## the final committed hit before death. Dead views never start pass-by cues.
+func seal_terminal() -> void:
+	terminal = true
+
+
 func ingest(tick: int, results: Variant, owner_id: String, listener: Transform3D,
 		first_person: bool, alive: bool = true) -> void:
 	if not first_person or owner_id.is_empty() or owner_id.length() > 64 \
 			or not listener.is_finite():
-		reset()
+		if not terminal:
+			reset()
 		return
 	if _owner != owner_id:
 		reset()
 		_owner = owner_id
 	_listener = listener
+	if alive:
+		terminal = false
 	if not _map_valid or tick < 0 or tick > EquipmentState.MAX_EXACT_INTEGER \
 			or tick <= last_tick or not results is Array or results.size() > ShotEffects.MAX_RESULTS:
 		return

@@ -1,5 +1,6 @@
 class_name EquipmentHud
 extends Control
+const HudStyle = preload("res://scripts/hud_style.gd")
 
 ## Presentation of the local participant's last authoritative inventory only.
 ## Ammunition glyph, equal-size vital numeral, and an explicit empty state.
@@ -87,6 +88,16 @@ func _ready() -> void:
 	add_child(remote_counts)
 	visible = false
 	_refresh()
+
+func apply_style(style: HudStyle) -> void:
+	if style == null:
+		return
+	if counts != null:
+		counts.add_theme_font_size_override("font_size", style.display_font_size(MenuTheme.DISPLAY_MEDIUM))
+	var body_sz: int = style.body_font_size()
+	for l: Label in [empty_label, grenade_counts, mine_counts, remote_counts]:
+		if l != null:
+			l.add_theme_font_size_override("font_size", body_sz)
 
 func apply(state_value: Dictionary) -> void:
 	var dry: int = int(state_value.get("dry_fire_count", 0))

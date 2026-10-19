@@ -280,3 +280,39 @@ msgstr "REDUCED MOTION"
 
 msgid "SETTINGS_REDUCED_MOTION_NOTE"
 msgstr "Stops decorative camera kicks, HUD pulses, weapon and pickup bob, and story pan/zoom. Aim, moving actors and machinery keep their normal motion."
+
+msgid "SETTINGS_SCREEN_FLASHES"
+msgstr "SCREEN FLASHES"
+
+msgid "SETTINGS_FLASHES_FULL"
+msgstr "FULL"
+
+msgid "SETTINGS_FLASHES_REDUCED"
+msgstr "REDUCED"
+
+msgid "SETTINGS_FLASHES_OFF"
+msgstr "OFF"
+
+msgid "SETTINGS_HUD_SCALE"
+msgstr "HUD SCALE"
+
+msgid "SETTINGS_TEXT_SIZE"
+msgstr "TEXT SIZE"
+
+msgid "SETTINGS_TEXT_STANDARD"
+msgstr "STANDARD"
+
+msgid "SETTINGS_TEXT_LARGE"
+msgstr "LARGE"
+
+msgid "SETTINGS_TEAM_COLOURS"
+msgstr "TEAM COLOURS"
+
+msgid "SETTINGS_TEAM_STANDARD"
+msgstr "STANDARD"
+
+msgid "SETTINGS_TEAM_HIGH_CONTRAST"
+msgstr "HIGH CONTRAST"
+
+msgid "SETTINGS_ACCESSIBILITY_NOTE"
+msgstr "Screen flashes cap edge vignette admissions (max 3/s on Reduced, off on Off). Reduced motion removes decorative shake and bob. HUD scale and text size reflow readouts. Team colours enhance side contrast."

@@ -72,6 +72,8 @@ func _check_labels() -> void:
 	_check(MatchRules.team_name("coalition") == "The Free Coalition", "side name")
 	_check(MatchRules.valid_team("union") == "union" and MatchRules.valid_team("office") == "" and MatchRules.valid_team(3) == "", "only two sides")
 	_check(MatchRules.team_label_color("union") == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition") == MatchRules.COALITION_LABEL, "side colours")
+	_check(MatchRules.team_label_color("union", true) == MatchRules.UNION_LABEL and MatchRules.team_label_color("coalition", true) == Color("e8e2d6"), "high contrast side colours")
+	_check(MatchRules.team_shape_mark("union") == "■" and MatchRules.team_shape_mark("coalition") == "□" and MatchRules.team_shape_mark("") == "", "shape marks for sides")
 	_check(MatchRules.team_body_color("union").get_luminance() < MatchRules.team_body_color("coalition").get_luminance(), "Union plate darker than coalition bone")
 
 

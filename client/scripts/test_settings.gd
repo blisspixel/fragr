@@ -193,11 +193,46 @@ func _initialize() -> void:
 	if int(counter.get_value("video", "show_fps")) != 2:
 		push_error("test_settings: frame counter mode 2 must be accepted")
 		ok = false
-	for bad: Variant in [3, -1, 1.5, "2", true]:
-		counter.set_value("video", "show_fps", bad)
-		if not counter.get_value("video", "show_fps") is int or int(counter.get_value("video", "show_fps")) != 0:
-			push_error("test_settings: an invalid frame counter mode must fall back to off: " + str(bad))
+	# Accessibility options default to documented values and reject out-of-range enums.
+	var a11y: RefCounted = script.new(test_path)
+	if int(a11y.get_value("accessibility", "screen_flashes")) != 1:
+		push_error("test_settings: screen_flashes must default to 1 (Reduced)")
+		ok = false
+	if int(a11y.get_value("accessibility", "hud_scale")) != 100:
+		push_error("test_settings: hud_scale must default to 100%")
+		ok = false
+	if int(a11y.get_value("accessibility", "text_size")) != 0:
+		push_error("test_settings: text_size must default to 0 (Standard)")
+		ok = false
+	if int(a11y.get_value("accessibility", "team_colours")) != 0:
+		push_error("test_settings: team_colours must default to 0 (Standard)")
+		ok = false
+	for bad: Variant in [-1, 3, "1", 1.5, true, null]:
+		a11y.set_value("accessibility", "screen_flashes", bad)
+		if int(a11y.get_value("accessibility", "screen_flashes")) != 1:
+			push_error("test_settings: invalid screen_flashes must fall back to 1: " + str(bad))
 			ok = false
+	for bad: Variant in [-1, 2, "0", 0.5, true, null]:
+		a11y.set_value("accessibility", "text_size", bad)
+		if int(a11y.get_value("accessibility", "text_size")) != 0:
+			push_error("test_settings: invalid text_size must fall back to 0: " + str(bad))
+			ok = false
+		a11y.set_value("accessibility", "team_colours", bad)
+		if int(a11y.get_value("accessibility", "team_colours")) != 0:
+			push_error("test_settings: invalid team_colours must fall back to 0: " + str(bad))
+			ok = false
+	a11y.set_value("accessibility", "screen_flashes", 0)
+	a11y.set_value("accessibility", "hud_scale", 150)
+	a11y.set_value("accessibility", "text_size", 1)
+	a11y.set_value("accessibility", "team_colours", 1)
+	a11y.save_to_disk()
+	var a11y_loaded: RefCounted = script.new(test_path)
+	a11y_loaded.load_from_disk()
+	if a11y_loaded.screen_flashes() != 0 or a11y_loaded.hud_scale() != 150 \
+			or a11y_loaded.text_size() != 1 or a11y_loaded.team_colours() != 1:
+		push_error("test_settings: accessibility settings did not survive disk round-trip")
+		ok = false
+
 	DirAccess.remove_absolute(test_path)
 	if ok:
 		print("test_settings: PASS defaults, fallback, clamp, reset, a disk round trip, and %d tips" % int(tips.count()))

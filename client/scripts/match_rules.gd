@@ -101,12 +101,26 @@ static func team_short(team: String) -> String:
 	return _text(_key("TEAM_", team) + "_SHORT") if TEAMS.has(team) else ""
 
 
-static func team_label_color(team: String) -> Color:
+const UNION_PLATE_DARK: Color = Color("8c1a1e")
+const UNION_SHAPE_MARK: String = "■"
+const COALITION_SHAPE_MARK: String = "□"
+
+
+static func team_shape_mark(team: String) -> String:
+	match team:
+		"union":
+			return UNION_SHAPE_MARK
+		"coalition":
+			return COALITION_SHAPE_MARK
+	return ""
+
+
+static func team_label_color(team: String, high_contrast: bool = false) -> Color:
 	match team:
 		"union":
 			return UNION_LABEL
 		"coalition":
-			return COALITION_LABEL
+			return Color("e8e2d6") if high_contrast else COALITION_LABEL
 	return Color.WHITE
 
 

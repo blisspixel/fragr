@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 const StanceChipScript = preload("res://scripts/stance_chip.gd")
+const ScreenFlashScript = preload("res://scripts/screen_flash.gd")
+const HudStyle = preload("res://scripts/hud_style.gd")
 
 ## Fired whenever the Host takes the air so the radio can duck underneath.
 signal host_spoke(seconds: float)
@@ -30,6 +32,7 @@ var _conquest_owners: Dictionary = {}
 @onready var damage_flash = $DamageFlash
 @onready var spawn_flash = $SpawnFlash
 @onready var streak_flash = $StreakFlash
+var screen_flash = null
 @onready var fp_weapon = $FpWeapon
 @onready var fp_muzzle = $FpMuzzle
 @onready var vitals = $Vitals
@@ -116,6 +119,7 @@ var round_clock_known: bool = false
 var round_target: int = 0
 var campaign_context: bool = false
 var regions: HudRegions
+var hud_style: HudStyle = HudStyle.new()
 var score_subject := HudScoreSubject.new()
 var result_subject: String = ""
 var _controls_visible: bool = false
@@ -242,6 +246,15 @@ func _ready():
 	melee_view = MeleeView.new()
 	melee_view.name = "MeleeView"
 	add_child(melee_view)
+	screen_flash = ScreenFlashScript.new()
+	screen_flash.name = "ScreenFlash"
+	add_child(screen_flash)
+	if damage_flash != null:
+		damage_flash.visible = false
+	if spawn_flash != null:
+		spawn_flash.visible = false
+	if streak_flash != null:
+		streak_flash.visible = false
 	_load_display_settings()
 	_ensure_map_chip_label()
 	if vitals:
@@ -1089,10 +1102,8 @@ func show_episode_title_card(title: String, objective: String = ""):
 func show_nods_tick(progress: String, host_line: String = ""):
 	# Short Contested Frequency booth beat per NODS clear. Not speak. Not killstreak length.
 	flash_broadcast_chrome("host")
-	streak_flash_timer = 0.32
-	if streak_flash:
-		streak_flash.visible = true
-		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.42)
+	if screen_flash != null:
+		screen_flash.trigger("nods", MenuTheme.EMBER, 0.32)
 	if not round_message:
 		return
 	var line = host_line
@@ -1103,6 +1114,10 @@ func show_nods_tick(progress: String, host_line: String = ""):
 		_round_pulse = create_tween()
 		_round_pulse.tween_property(round_message, "scale", Vector2(1.18, 1.18), 0.08)
 		_round_pulse.tween_property(round_message, "scale", Vector2.ONE, 0.14)
+	else:
+		_round_pulse = create_tween()
+		round_message.modulate.a = 0.4
+		_round_pulse.tween_property(round_message, "modulate:a", 1.0, 0.14)
 
 func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	_cancel_round_pulse()
@@ -1114,10 +1129,8 @@ func show_episode_complete(host_line: String, unlock_teaser: String = ""):
 	if unlock_teaser != "":
 		line += "\n" + unlock_teaser
 	round_message.text = line
-	streak_flash_timer = 0.7
-	if streak_flash:
-		streak_flash.visible = true
-		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
+	if screen_flash != null:
+		screen_flash.trigger("complete", MenuTheme.EMBER, 0.7)
 
 func show_episode_fail(host_line: String):
 	_cancel_round_pulse()
@@ -1128,10 +1141,8 @@ func show_episode_fail(host_line: String):
 	round_message.visible = true
 	var line = host_line if host_line != "" else "HOST: Citizen Handle assigned. Reload."
 	round_message.text = line + "\n( Continuance paperwork is the real final boss )"
-	if damage_flash:
-		damage_flash.visible = true
-		damage_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.45)
-		damage_flash_timer = 0.8
+	if screen_flash != null:
+		screen_flash.trigger("fail", MenuTheme.DANGER, 0.45)
 
 func show_frag(killer: String, victim: String, _killer_color: Color = MenuTheme.UNTINTED, _victim_color: Color = MenuTheme.UNTINTED) -> void:
 	frag_feed.push({"killer": killer, "victim": victim})
@@ -1237,9 +1248,27 @@ func apply_preferences(settings: FragrSettings) -> void:
 			entry["motion_cancelled"] = true
 		_update_floating_damage(0.0)
 	reticle_colour = settings.reticle_colour()
+	hud_style = HudStyle.from_settings(settings, hud_style.revision + 1)
+	_apply_hud_style()
 	_update_broadcast_chrome(round_chrome_state)
 	_refresh_telemetry_lines()
 	_refresh_mode_label()
+
+func _apply_hud_style() -> void:
+	if hud_style == null:
+		return
+	var body_sz: int = hud_style.body_font_size()
+	for lbl: Label in [status_label, tick_label, player_count_label, mode_label, round_label, weapon_label, mode_chip_label]:
+		if is_instance_valid(lbl):
+			lbl.add_theme_font_size_override("font_size", body_sz)
+	if is_instance_valid(map_chip_label):
+		map_chip_label.add_theme_font_size_override("font_size", body_sz)
+	if regions != null and is_instance_valid(regions.hints):
+		regions.hints.add_theme_font_size_override("font_size", body_sz)
+	if is_instance_valid(equipment_hud) and equipment_hud.has_method("apply_style"):
+		equipment_hud.call("apply_style", hud_style)
+	if regions != null:
+		regions.layout()
 
 
 func _update_broadcast_chrome(state: String) -> void:
@@ -1396,10 +1425,8 @@ func _apply_warmup_tv(host_line: String, secs_left: int, roster, refresh_only: b
 			_warmup_pulse = create_tween()
 			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2(1.04, 1.04), 0.08)
 			_warmup_pulse.tween_property(warmup_tv, "scale", Vector2.ONE, 0.14)
-		streak_flash_timer = 0.35
-		if streak_flash:
-			streak_flash.visible = true
-			streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.4)
+		if screen_flash != null:
+			screen_flash.trigger("warmup", MenuTheme.EMBER, 0.35)
 
 func _set_warmup_roster(roster) -> void:
 	var names = []
@@ -1497,10 +1524,8 @@ func show_round_end(mvp_name: String, reason: String, mvp_frags: int = 0, host_l
 	followed_player_name = ""
 
 	# Brief ember podium flash (same grit as killstreak).
-	streak_flash_timer = 0.55
-	if streak_flash:
-		streak_flash.visible = true
-		streak_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
+	if screen_flash != null:
+		screen_flash.trigger("podium", MenuTheme.EMBER, 0.55)
 
 	if round_message:
 		if match_rules.get("mode", "") == "ctf" and capture_scores is Dictionary:
@@ -1668,25 +1693,16 @@ func _process(delta):
 	if damage_flash_timer > 0:
 		damage_flash_timer -= delta
 		if damage_flash:
-			damage_flash.visible = true
-			damage_flash.modulate.a = clampf(damage_flash_timer / 0.22, 0.0, 0.55)
-		if damage_flash_timer <= 0 and damage_flash:
 			damage_flash.visible = false
 			damage_flash.modulate.a = 0.0
 	if spawn_flash_timer > 0:
 		spawn_flash_timer -= delta
 		if spawn_flash:
-			spawn_flash.visible = true
-			spawn_flash.modulate.a = clampf(spawn_flash_timer / 0.35, 0.0, 0.45)
-		if spawn_flash_timer <= 0 and spawn_flash:
 			spawn_flash.visible = false
 			spawn_flash.modulate.a = 0.0
 	if streak_flash_timer > 0:
 		streak_flash_timer -= delta
 		if streak_flash:
-			streak_flash.visible = true
-			streak_flash.modulate.a = clampf(streak_flash_timer / 0.4, 0.0, 0.5)
-		if streak_flash_timer <= 0 and streak_flash:
 			streak_flash.visible = false
 			streak_flash.modulate.a = 0.0
 	if hit_marker_timer > 0:
@@ -2370,10 +2386,8 @@ func _clear_floating_damage() -> void:
 func show_damage_flash() -> void:
 	if not fp_juice_enabled:
 		return
-	damage_flash_timer = 0.22
-	if damage_flash:
-		damage_flash.visible = true
-		damage_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.55)
+	if screen_flash != null:
+		screen_flash.trigger("damage", MenuTheme.DANGER, 0.22)
 
 func show_crawler_scrabble_caption() -> void:
 	if crawler_caption != null:
@@ -2382,11 +2396,8 @@ func show_crawler_scrabble_caption() -> void:
 func show_spawn_flash() -> void:
 	if not fp_juice_enabled:
 		return
-	spawn_flash_timer = 0.35
-	if spawn_flash:
-		spawn_flash.visible = true
-		# Ember grit flash on spawn / join.
-		spawn_flash.modulate = MenuTheme.alpha(MenuTheme.UNTINTED, 0.45)
+	if screen_flash != null:
+		screen_flash.trigger("spawn", MenuTheme.EMBER, 0.35)
 
 
 var radio_label: Label = null

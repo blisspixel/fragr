@@ -300,7 +300,7 @@ func _follow_target(delta: float = 1.0 / 60.0) -> void:
 		var target_pos = target.global_position
 		var offset = Vector3(0, 5.5, 10.5 + camera_zoom_offset)
 
-		if camera_shake_intensity > 0:
+		if not reduced_motion and camera_shake_intensity > 0:
 			offset += Vector3(
 				randf_range(-camera_shake_intensity, camera_shake_intensity),
 				randf_range(-camera_shake_intensity, camera_shake_intensity),
@@ -468,7 +468,7 @@ func _process_fp(delta):
 	# The eye looks where the client aims, not where the last snapshot said.
 	var yaw = fp_yaw
 
-	if camera_shake_intensity > 0:
+	if not reduced_motion and camera_shake_intensity > 0:
 		eye += Vector3(
 			randf_range(-camera_shake_intensity, camera_shake_intensity) * 0.35,
 			randf_range(-camera_shake_intensity, camera_shake_intensity) * 0.25,
