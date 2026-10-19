@@ -1818,6 +1818,7 @@ mod tests {
             join_audience: None,
             origin_allow: Vec::new(),
             spectator_tickets: false,
+            human_summary: false,
         };
         tokio::spawn(async move {
             let _ = run_server(
