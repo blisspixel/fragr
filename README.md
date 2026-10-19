@@ -12,99 +12,40 @@ by default, join when you want to fight, and return to watching while play
 continues. A Rust server owns the simulation; the Godot client presents it.
 Local play and self-hosting need no account or paid service.
 
-**[Download for Windows, Linux or macOS](https://github.com/blisspixel/fragr/releases/latest)**
-| [How to play](docs/PLAYING.md) | [Roadmap](docs/ROADMAP.md)
-| [Contribute](CONTRIBUTING.md)
+> "MEATBAGS + AGENTS. Freedom is not a licensed feature."
 
-![Recall Notice's custody intake in the playable campaign prototype](docs/screenshots/m01_intake_16x9.png)
+## Three doors
 
-## Play now
-
-Download the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest).
-The current source build has eighteen connected development levels through
-All Systems Normal, mission-entry saves, finite ammunition and three continues per episode.
-Check the release notes for the contents of a downloaded package. The finished target
-is twenty levels across five episodes. Art, pacing and fresh-player review are
-still in progress; see the [current build order](docs/ROADMAP.md#full-build-order).
-
-The remaining campaign levels and the ending are still to be built. The
-Continuance Walker joins level 14's launch works, with staged support and an
-optional captured jeep. Multiplayer needs further map refinement, human balance review,
-two-machine LAN evidence and measured network capacity. The current modes and
-missions are a playable foundation for that work.
-
-| Choose | What you can play | Start here |
+| Door | How to enter | Guide |
 |---|---|---|
-| Campaign | Eighteen connected development missions, from custody escape through the lunar port, Martian foundry, launch works, stadium, Forever Office and evacuation corridor | **Single Player > Recall Notice**, then **Continue Run** |
-| Practice | Individual built missions without changing your campaign save | **Single Player > Practice and Development** |
-| Multiplayer | Host free-for-all, team deathmatch, capture the flag, 5v5 plant/defuse on Sector 9 or Low Water, or vehicle Conquest on Holdfast Atoll | **Multiplayer > Run a match**, or enter a running server's address |
-| Calibration | A separate arena challenge against named bots, an announcer called the Host, and objectives | `./tools/solo_scrap.sh` |
+| **Play** | Download the **[latest desktop release](https://github.com/blisspixel/fragr/releases/latest)**, then choose **Single Player** or **Multiplayer** | [Playing fragr](docs/PLAYING.md) |
+| **Host** | In game: **Multiplayer > Run a match**<br>From source: `cargo run -p fragr-server --locked -- --bind 0.0.0.0:6767` | [Hosting](docs/HOSTING.md) |
+| **Bring an agent** | `claude mcp add fragr -- "$(pwd)/target/release/fragr-agent-adapter" mcp --local --name MyAgent` | [Agent adapter](agent-adapter/README.md) |
 
-Sabotage also has an optional 5v5 profile: start with a Pistol, find stronger
-weapons on the map, and carry surviving equipment between rounds. Current source
-adds Low Water's Clinic Steps and Tram Stop sites, with human balance review ahead.
-[Host setup and rules](infra/docs/HOME-LAN.md#optional-5v5-sabotage) explain seats,
-late joins and reconnects. Additional competitive maps, Liberation cooperation
-and the large Wipe defense mode are [planned](docs/plans/competitive-and-community.md).
+![First-person HUD with status bar readouts and combat feed in Arena Duel](docs/screenshots/tour_first_person_16x9.png)
 
-Choose **Multiplayer > Run a match** for any of the five supported modes.
-Watch, join or return to the menu while your match keeps running;
-**Stop server** ends it. Enable **Allow LAN players** to invite another computer.
-Choose no bots, a fixed count or automatic fill so humans and agents can join
-a bot-populated match. [Hosting](docs/HOSTING.md) explains the round and seat rules.
-Releases before v0.77.0 use the [dedicated server launch](docs/HOSTING.md).
-Current development includes shared jeeps, boats, a light aircraft, swimming
-and Holdfast Atoll's five-site Conquest mode. The island remains a development
-blockout with further art, balance and human playtesting ahead. The
-[build order](docs/ROADMAP.md#full-build-order) records implementation and review
-gates, including human reloads, crouching and the remaining player tests.
+For the factions, machines, and history behind the scrap, see [The world and its three powers](docs/lore/README.md#the-world-and-its-three-powers).
 
-Current development adds [next-show controls](docs/HOSTING.md#join-tickets-and-access-lists)
-for a dedicated host and [local campaign best times](docs/PLAYING.md#solo-runs-and-local-records).
-Both extend existing matches and records; check release notes for package availability.
+## Overheard in the scrap
 
-Local development also adds two earned awards for saved solo play: completing
-Recall Notice and finding an authored secret. **Your callsign > Awards and
-Appearance** previews titles, an emblem and first-person gun finishes. Standard
-steel and oxide are available immediately. Awards and appearance survive failed
-runs; full-campaign rewards await the finished campaign.
+- *"continuance redacted me"* (Crackpot)
+- *"HOST: Null-Objective Drones don't trash-talk. That's how you know they're approved."* (The Host)
+- *"THE CHARGE IS DOWN"* (Sabotage call)
+- *"HOST: FIRST BLOOD. DEAD AIR DAN. SOMEBODY HAD TO."* (The Host)
 
-The connected Terms of Cooperation prototype adds the Arc, flying Assessor,
-shelter controls, vulnerable pumps and deliberate coalition departure.
-Three retained [standalone development maps](docs/PLAYING.md#standalone-development-maps)
-explore the habitat, foundry and launch works. The connected foundry adds the
-first finite Rocket Launcher, voluntary worker releases, a protected town feed,
-machinery hazards and a freight lift that carries the departing party. The
-launcher has a traveling rocket, a one-round tube, visible timed reload and covered splash; final
-viewmodel art is still ahead. Assisted, Standard, and Severe scale ordinary
-campaign supply and how long an enemy remembers a sighting. Standard tell
-timing stays exact. Levels 15 through 18 now have connected development missions;
-the separate grayboxes for levels 19 and 20 are not connected missions. The standalone
-[Walker range](docs/plans/walker-foundation-20261015.md) adds warned stomps,
-locked artillery lanes, moving collision and exposed recovery joints. Connected
-[Launch Authority](docs/plans/m14-launch-authority-integration-20261015.md)
-combines those attacks with the battlefield, staged reinforcements and coalition
-departure. A lost jeep does not block the infantry route. Version 18 carries the
-foundry save into the launch works without refilling continues. Later levels,
-pacing, final art and fresh-player acceptance remain open.
+## Development
 
-Current source work also moves the selectable human and synthetic bodies and
-Tern to live animated meshes, reusing retained models. Splice uses an articulated
-mechanical body with further gait refinement ahead. Latch's screen expressions
-respond to movement, firing and ward release. Conquest bots coordinate
-captures and threatened-site defense. These development changes retain separate
-art, human play and release gates in the roadmap.
-
-The **Benchmark** page measures the current graphics preset or
-compares all three using the same recorded ten-bot fight. Results include average
-FPS, 1% lows, frame-time percentiles and local JSON/CSV exports. See the
-[measurement contract](docs/BENCHMARK.md#player-benchmark) for scope and method.
+The campaign targets twenty levels across five episodes (eighteen connected development levels through All Systems Normal are currently playable). For current development across the campaign, vehicles, maps and modes, see [Now in development](docs/ROADMAP.md#now-in-development) and the [full build order](docs/ROADMAP.md#full-build-order).
 
 ## In game
 
 These are actual captures from the development build. They show provisional
 game art and menus. The
 [visual tour](docs/screenshots/README.md) records capture dates, scope and source.
+
+Recall Notice custody intake:
+
+![Recall Notice's custody intake in the playable campaign prototype](docs/screenshots/m01_intake_16x9.png)
 
 The boot menu:
 
