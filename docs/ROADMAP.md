@@ -484,7 +484,7 @@ FPS, 1% lows, frame-time percentiles and local JSON/CSV exports. See the
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-18)
+## Full build order (updated 2026-10-19)
 
 The [connected foundry round](plans/m13-connected-round-20261013.md) shipped in
 v0.83.0 through PR #402 with passing main CI and all three desktop packages.
@@ -525,15 +525,18 @@ The [event-tier round](plans/ui-event-tiers-20261018.md), #413, shipped through
 PR #423 at `63185e3`, with passing main CI 39162974158 and published v0.89.0.
 All three downloaded desktop archives passed verification, including the Linux
 installation and exact server build metadata checks.
-The immediate rung is [accessibility](plans/ui-accessibility-preparation-20261018.md),
-#414: bounded screen flashes, HUD scale, Large text and high-contrast team marks.
-Reduced motion already shipped in #412. Preparation is recorded; the remaining
-accessibility features are not implemented.
-The interface work #411-#418 follows its existing dependencies: palette and type,
-status bar, event tiers, accessibility, terminal polish, signature moments and
-the README front door. Preserve their rendered and human acceptance gates.
-Only then advance the connected campaign to [Planned Works](campaign/l19-planned-works.md)
-and [Local Exception](campaign/l20-local-exception.md), following the accepted
+The interface rules and polish milestone #411-#418 is completely shipped in v0.90.0:
+[UI palette and type](plans/ui-palette-type-20261017.md) (#411) in PR #420,
+[status bar](plans/ui-status-bar-20261018.md) (#412) in PR #421,
+[event tiers](plans/ui-event-tiers-20261018.md) (#413) in PR #423,
+[accessibility settings](plans/ui-accessibility-preparation-20261018.md) (#414) in PR #425,
+terminal tools and roles (#415) in PR #426,
+signature moments with Seal Cut and Stamped cards (#416) in PR #427, and
+the README front door refresh and game voice (#417) in PR #428.
+All sub-issues #411-#417 and parent milestone #418 are closed with passing CI across all platforms.
+The immediate rung is advancing the connected campaign to Episode V:
+[Planned Works](campaign/l19-planned-works.md) (Level 19) and
+[Local Exception](campaign/l20-local-exception.md) (Level 20), following the accepted
 ground escape and wipe-survival briefs and conditional epilogue.
 The [multiplayer excellence plan](plans/multiplayer-excellence-20261017.md)
 specifies sensory juice, announcer barks, rocket jump blast physics, host UI mutators and Conquest tension

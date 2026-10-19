@@ -1,9 +1,8 @@
 # Accessibility preparation and next-session handoff
 
-Status: **planned**, [#414](https://github.com/blisspixel/fragr/issues/414)
-within [#418](https://github.com/blisspixel/fragr/issues/418). No feature
-implementation has started. Base: reviewed green main `63185e3`, PR #423,
-published v0.89.0 with three verified desktop packages. The
+Status: **shipped**, [#414](https://github.com/blisspixel/fragr/issues/414)
+in PR #425 within [#418](https://github.com/blisspixel/fragr/issues/418).
+Published in v0.90.0 with passing CI across all platforms. The
 [Full build order](../ROADMAP.md#full-build-order) owns sequencing.
 
 ## Goal and boundaries
