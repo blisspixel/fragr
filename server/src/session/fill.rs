@@ -137,7 +137,7 @@ impl GameSession {
             let _ = reply.send(Err(FillRefusal::Cancelled));
             return;
         }
-        let Some(slots) = self.configure_sabotage_seats() else {
+        let Some(slots) = self.configure_fighter_seats() else {
             let _ = reply.send(Err(FillRefusal::Cancelled));
             return;
         };
@@ -191,7 +191,14 @@ impl GameSession {
             return;
         }
         let (seat, bot) = match reservation.seat {
-            ReservedSeat::Free(seat) if self.occupied() < 10 => (seat, None),
+            ReservedSeat::Free(seat)
+                if self
+                    .state
+                    .fighter_seats()
+                    .is_some_and(|seats| self.occupied() < seats) =>
+            {
+                (seat, None)
+            }
             ReservedSeat::Bot(id) if self.safe_bot(id) => {
                 let Some(seat) = self.bot_seats.remove(&id) else {
                     let _ = reply.send(Err(FillRefusal::Cancelled));
@@ -348,7 +355,7 @@ mod tests {
     fn strict_automatic_muster_transfers_exact_bot_seats_to_equal_participants() {
         let mut session = room(GameMode::Sabotage, 10);
         session.state.start_round();
-        let slots = session.configure_sabotage_seats().unwrap();
+        let slots = session.configure_fighter_seats().unwrap();
         let before: Vec<_> = session.state.players.iter().map(|p| p.id).collect();
         let first = prepare(&mut session, 1).unwrap();
         let second = prepare(&mut session, 2).unwrap();
@@ -399,10 +406,36 @@ mod tests {
     }
 
     #[test]
+    fn an_automatic_duel_hands_bot_seats_to_people_and_refuses_a_third() {
+        let mut session = GameSession::with_map(MapKind::ArenaDuel, false);
+        session.state.apply_config(MatchConfig {
+            rules: RuleSet::new(GameMode::Duel, &[], false).unwrap(),
+            ..Default::default()
+        });
+        session.set_auto_fill(2);
+        let slots = session.configure_fighter_seats().unwrap();
+        assert_eq!((session.bots.len(), slots.available_permits()), (2, 0));
+        let mut seats = Vec::new();
+        for n in 1..=2 {
+            prepare(&mut session, n).unwrap();
+            seats.push(commit(&mut session, n, Role::Human).unwrap());
+        }
+        assert_eq!((session.occupied(), session.bots.len()), (2, 0));
+        assert!(matches!(prepare(&mut session, 3), Err(FillRefusal::Full)));
+        // A person leaving gives the seat back to a rule bot.
+        drop(seats.pop());
+        session.apply_command(GameCommand::Disconnected {
+            id: Uuid::from_u128(2),
+        });
+        session.ensure_min_bots();
+        assert_eq!((session.occupied(), session.bots.len()), (2, 1));
+    }
+
+    #[test]
     fn cancelled_and_expired_preparation_never_removes_a_bot_or_steals_a_free_seat() {
         for target in [4, 10] {
             let mut session = room(GameMode::Sabotage, target);
-            let slots = session.configure_sabotage_seats().unwrap();
+            let slots = session.configure_fighter_seats().unwrap();
             let original = slots.available_permits();
             let (reply, receiver) = oneshot::channel();
             drop(receiver);

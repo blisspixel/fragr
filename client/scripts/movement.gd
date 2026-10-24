@@ -19,6 +19,12 @@ const AIR_SPEED_CAP: float = 7.5
 const DODGE_SPEED: float = 9.0
 const DODGE_UP: float = 3.5
 const DODGE_COOLDOWN_TICKS: int = 15
+## Blast push (#431), which extends the frozen block without changing it:
+## the push at a blast's heart in m/s, the least upward share, and the caps.
+const BLAST_PUSH: float = 8.1
+const BLAST_MIN_LIFT: float = 0.35
+const BLAST_SPEED_CAP: float = 14.0
+const BLAST_RISE_CAP: float = 24.0
 ## The campaign pace: authored actors' gaits are shares of it, and a campaign
 ## participant keeps the immediate step at it (Ack version 1).
 const ACTOR_REFERENCE_SPEED: float = 5.0
@@ -279,6 +285,47 @@ static func dodge_applies(state: Dictionary, input: Dictionary, arena: Dictionar
 		return false
 	var state_y: float = float(state.get("y", GROUND_Y))
 	return grounded(state_y, arena_support_height(arena, float(state["x"]), float(state["z"]), state_y), float(state.get("vy", 0.0)))
+
+
+## Mirror of movement::blast_push: one blast's push on one body (knockback,
+## or the rocket jump when the blast is the body's own). `state.y` is the
+## feet, `center` the blast in the same frame. Strength falls off with the
+## distance to the nearest point of the body's cylinder; the direction runs
+## to the body's middle with at least BLAST_MIN_LIFT of it upward. Out of
+## reach or with nonsense input the state comes back unchanged.
+static func blast_push(state: Dictionary, height: float, center: Vector3, radius: float, peak: float) -> Dictionary:
+	var x: float = float(state["x"])
+	var z: float = float(state["z"])
+	var y: float = float(state.get("y", GROUND_Y))
+	var vx: float = float(state.get("vx", 0.0))
+	var vz: float = float(state.get("vz", 0.0))
+	var vy: float = float(state.get("vy", 0.0))
+	for value: float in [x, y, z, vx, vy, vz, center.x, center.y, center.z, height, radius, peak]:
+		if not is_finite(value):
+			return state
+	if radius <= 0.0 or peak <= 0.0 or height <= 0.0:
+		return state
+	var dx: float = x - center.x
+	var dz: float = z - center.z
+	var flat: float = Vector2(dx, dz).length()
+	var nearest_y: float = clampf(center.y, y, y + height)
+	var reach: float = Vector2(maxf(flat - RADIUS, 0.0), nearest_y - center.y).length()
+	if reach >= radius:
+		return state
+	var speed: float = peak * (1.0 - reach / radius)
+	var dy: float = y + height * 0.5 - center.y
+	var length: float = sqrt(flat * flat + dy * dy)
+	var u := Vector3(0.0, 1.0, 0.0)
+	if length > 1e-4:
+		u = Vector3(dx / length, dy / length, dz / length)
+	var pushed: Dictionary = state.duplicate()
+	pushed["vy"] = minf(vy + maxf(u.y, BLAST_MIN_LIFT) * speed, BLAST_RISE_CAP)
+	var across := Vector2(vx + u.x * speed, vz + u.z * speed)
+	if across.length() > BLAST_SPEED_CAP:
+		across *= BLAST_SPEED_CAP / across.length()
+	pushed["vx"] = across.x
+	pushed["vz"] = across.y
+	return pushed
 
 
 ## Quake and Source ground friction.

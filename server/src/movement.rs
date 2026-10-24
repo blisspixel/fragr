@@ -61,6 +61,28 @@ pub const DODGE_UP: f32 = 3.5;
 /// Server ticks before another dodge is allowed. The caller owns the count
 /// (it rides in the movement Ack) so the pure step stays stateless.
 pub const DODGE_COOLDOWN_TICKS: u32 = 15;
+
+// Blast push, 2026-10-24 (#431). It extends the frozen block above without
+// changing any of it: a blast adds velocity to every arena body it reaches,
+// and the fighter step then carries that velocity like any other (the air
+// cap never trims it, friction takes it back on landing). Fired at your own
+// feet it is the rocket jump; fired at somebody else's it is knockback. The
+// values are the wave 2 rocket jump's, moved here unchanged so the server,
+// the client mirror and both golden files share one rule.
+
+/// Push at the blast's heart in metres per second, falling linearly to zero
+/// at its radius. A standing rocket jump rises about 1.3 m, no higher than a
+/// jump; jumping first and firing at the floor under you on the next tick
+/// reaches about 2.9 m, over a 1.5 m deck edge (`rocket_jump_heights`).
+pub const BLAST_PUSH: f32 = 8.1;
+/// The least share of the push that goes upward, so a blast beside a
+/// standing fighter lifts it off the floor rather than spending itself
+/// against ground friction in two ticks.
+pub const BLAST_MIN_LIFT: f32 = 0.35;
+/// A push never leaves a body faster than this horizontally.
+pub const BLAST_SPEED_CAP: f32 = 14.0;
+/// Nor rising faster than this.
+pub const BLAST_RISE_CAP: f32 = 24.0;
 /// The campaign pace. Authored actors' gaits are shares of it, and a campaign
 /// participant keeps the immediate step at it, so the arena's faster run does
 /// not change an encounter its route proofs were tuned against.
@@ -627,6 +649,67 @@ pub fn dodge_applies(state: &MoveState, input: &MoveInput, arena: &Arena) -> boo
         )
 }
 
+/// One blast's push on one body. `state.y` is the feet, `height` the body's
+/// standing or crouched height, `center` the blast in the same frame (feet
+/// height for y), `radius` its reach and `peak` the push at its heart (the
+/// arena's explosives all use `BLAST_PUSH`).
+///
+/// The strength falls off with the distance from the blast to the nearest
+/// point of the body's cylinder, the same nearest point the blast's damage
+/// measures. The direction runs from the blast to the body's middle, so a
+/// blast at the feet throws straight up and one behind a running fighter
+/// throws it forward as well; at least `BLAST_MIN_LIFT` of it is upward.
+/// The push adds to the velocity already there, within `BLAST_SPEED_CAP`
+/// across the floor and `BLAST_RISE_CAP` upward. Collision is the next
+/// step's business; position is untouched. Out of reach, or with nonsense
+/// input, the state comes back unchanged.
+pub fn blast_push(
+    state: MoveState,
+    height: f32,
+    center: [f32; 3],
+    radius: f32,
+    peak: f32,
+) -> MoveState {
+    let finite = [state.x, state.y, state.z, state.vx, state.vy, state.vz]
+        .into_iter()
+        .chain(center)
+        .chain([height, radius, peak])
+        .all(f32::is_finite);
+    if !finite || radius <= 0.0 || peak <= 0.0 || height <= 0.0 {
+        return state;
+    }
+    let dx = state.x - center[0];
+    let dz = state.z - center[2];
+    let flat = dx.hypot(dz);
+    let nearest_y = center[1].clamp(state.y, state.y + height);
+    let reach = (flat - RADIUS).max(0.0).hypot(nearest_y - center[1]);
+    if reach >= radius {
+        return state;
+    }
+    let speed = peak * (1.0 - reach / radius);
+    let dy = state.y + height * 0.5 - center[1];
+    let length = (flat * flat + dy * dy).sqrt();
+    let (ux, uy, uz) = if length > 1e-4 {
+        (dx / length, dy / length, dz / length)
+    } else {
+        (0.0, 1.0, 0.0)
+    };
+    let vy = (state.vy + uy.max(BLAST_MIN_LIFT) * speed).min(BLAST_RISE_CAP);
+    let mut vx = state.vx + ux * speed;
+    let mut vz = state.vz + uz * speed;
+    let across = vx.hypot(vz);
+    if across > BLAST_SPEED_CAP {
+        vx *= BLAST_SPEED_CAP / across;
+        vz *= BLAST_SPEED_CAP / across;
+    }
+    MoveState {
+        vx,
+        vy,
+        vz,
+        ..state
+    }
+}
+
 /// Quake and Source ground friction: lose `max(speed, STOP_SPEED) *
 /// FRICTION * dt`, never below rest.
 pub fn friction(velocity: (f32, f32), dt: f32) -> (f32, f32) {
@@ -786,6 +869,10 @@ pub struct FeelConstants {
     pub jump_speed: f32,
     pub dodge_speed: f32,
     pub dodge_up: f32,
+    pub blast_push: f32,
+    pub blast_min_lift: f32,
+    pub blast_speed_cap: f32,
+    pub blast_rise_cap: f32,
 }
 
 pub const FEEL: FeelConstants = FeelConstants {
@@ -800,10 +887,16 @@ pub const FEEL: FeelConstants = FeelConstants {
     jump_speed: JUMP_SPEED,
     dodge_speed: DODGE_SPEED,
     dodge_up: DODGE_UP,
+    blast_push: BLAST_PUSH,
+    blast_min_lift: BLAST_MIN_LIFT,
+    blast_speed_cap: BLAST_SPEED_CAP,
+    blast_rise_cap: BLAST_RISE_CAP,
 };
 
 /// One golden case: an arena, a start, a wish speed, inputs, and the state
 /// expected after every `stride` steps (so a long case stays small on disk).
+/// A case may also set off blasts: each pushes the body (`blast_push`) just
+/// before its step runs.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct GoldenCase {
     pub name: String,
@@ -811,8 +904,20 @@ pub struct GoldenCase {
     pub start: MoveState,
     pub speed: f32,
     pub inputs: Vec<MoveInput>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub blasts: Vec<GoldenBlast>,
     pub stride: usize,
     pub expected: Vec<MoveState>,
+}
+
+/// A blast in a golden case, applied before step `step` (zero based).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct GoldenBlast {
+    pub step: usize,
+    pub center: [f32; 3],
+    pub radius: f32,
+    pub peak: f32,
+    pub height: f32,
 }
 
 /// A golden file: its step length, the constants, and the cases.
@@ -824,7 +929,7 @@ pub struct GoldenFile {
     pub cases: Vec<GoldenCase>,
 }
 
-pub const GOLDEN_VERSION: u32 = 3;
+pub const GOLDEN_VERSION: u32 = 4;
 /// The fighter model at 60 Hz, shared with the Godot harness.
 pub const GOLDEN_PATH: &str = "client/golden/move_vectors.json";
 /// The fighter model at the live 20 Hz server step.
@@ -839,9 +944,26 @@ fn golden_case(
     stride: usize,
     dt: f32,
 ) -> GoldenCase {
+    blast_case(name, arena, start, speed, inputs, Vec::new(), stride, dt)
+}
+
+#[allow(clippy::too_many_arguments)] // One golden case is one row of data.
+fn blast_case(
+    name: &str,
+    arena: &Arena,
+    start: MoveState,
+    speed: f32,
+    inputs: Vec<MoveInput>,
+    blasts: Vec<GoldenBlast>,
+    stride: usize,
+    dt: f32,
+) -> GoldenCase {
     let mut state = start;
     let mut expected = Vec::new();
     for (i, input) in inputs.iter().enumerate() {
+        for blast in blasts.iter().filter(|blast| blast.step == i) {
+            state = blast_push(state, blast.height, blast.center, blast.radius, blast.peak);
+        }
         state = fighter_step(state, input, speed, dt, arena);
         if (i + 1) % stride == 0 {
             expected.push(state);
@@ -853,6 +975,7 @@ fn golden_case(
         start,
         speed,
         inputs,
+        blasts,
         stride,
         expected,
     }
@@ -1041,12 +1164,128 @@ pub fn live_golden_cases() -> GoldenFile {
             dt,
         ),
     ];
+    let mut cases = cases;
+    cases.extend(blast_golden_cases(dt));
     GoldenFile {
         version: GOLDEN_VERSION,
         dt,
         constants: FEEL,
         cases,
     }
+}
+
+/// A 1.5 m deck east of the origin, the height of Larak Lot's Roof over its
+/// Gallery: a jump does not reach it and a rocket jump does.
+pub fn golden_ledge_arena() -> Arena {
+    Arena {
+        half: 25.0,
+        solids: vec![Solid::from_center_top(10.0, 0.0, 4.0, 6.0, 1.5)],
+    }
+}
+
+fn blast_at(step: usize, center: [f32; 3], height: f32) -> GoldenBlast {
+    GoldenBlast {
+        step,
+        center,
+        radius: 4.0,
+        peak: BLAST_PUSH,
+        height,
+    }
+}
+
+/// The blast push through the fighter step: a standing rocket jump, a
+/// running jump boosted onto a ledge, knockback from the side with a second
+/// blast out of reach, a push into a wall, a push against a fall and a
+/// crouched body.
+pub fn blast_golden_cases(dt: f32) -> Vec<GoldenCase> {
+    let rate = (DT_LIVE / dt).round().max(1.0) as usize;
+    let flat = Arena {
+        half: 25.0,
+        solids: Vec::new(),
+    };
+    let ledge = golden_ledge_arena();
+    let idle = |ticks: usize| hold(MoveInput::default(), ticks * rate);
+    // Run east, jump, and fire at the floor just behind the feet while still
+    // rising: the blast lands on the step after the jump leaves the floor.
+    let run = keys(true, false, false, false, 0.0);
+    let mut leap = hold(run, 3 * rate);
+    let mut takeoff = run;
+    takeoff.jump = true;
+    leap.push(takeoff);
+    leap.extend(hold(run, 24 * rate));
+    let mut probe = at(0.0, 0.0, 0.0);
+    for input in leap.iter().take(3 * rate + 2) {
+        probe = fighter_step(probe, input, TOP_SPEED, dt, &ledge);
+    }
+    let floor_behind = [probe.x - 0.4, GROUND_Y, probe.z];
+    vec![
+        blast_case(
+            "rocket_jump_standing",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            idle(20),
+            vec![blast_at(0, [0.0, GROUND_Y, 0.0], BODY_HEIGHT)],
+            1,
+            dt,
+        ),
+        blast_case(
+            "rocket_jump_onto_ledge",
+            &ledge,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            leap,
+            vec![blast_at(3 * rate + 2, floor_behind, BODY_HEIGHT)],
+            rate,
+            dt,
+        ),
+        blast_case(
+            "blast_knockback_side",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED,
+            idle(16),
+            vec![
+                blast_at(0, [-1.5, 1.0, 0.0], BODY_HEIGHT),
+                blast_at(12 * rate, [5.0, 1.0, 9.0], BODY_HEIGHT),
+            ],
+            rate,
+            dt,
+        ),
+        blast_case(
+            "blast_into_wall",
+            &golden_arena(),
+            at(4.0, 0.0, 0.0),
+            TOP_SPEED,
+            idle(10),
+            vec![blast_at(0, [3.0, 0.3, 0.0], BODY_HEIGHT)],
+            rate,
+            dt,
+        ),
+        blast_case(
+            "blast_against_a_fall",
+            &flat,
+            MoveState {
+                vy: -6.0,
+                ..at_y(0.0, 0.0, 3.0, 0.0)
+            },
+            TOP_SPEED,
+            idle(16),
+            vec![blast_at(0, [0.5, GROUND_Y, 0.0], BODY_HEIGHT)],
+            rate,
+            dt,
+        ),
+        blast_case(
+            "blast_crouched",
+            &flat,
+            at(0.0, 0.0, 0.0),
+            TOP_SPEED * DUCK_SPEED_SCALE,
+            idle(12),
+            vec![blast_at(0, [0.0, 1.2, -1.0], DUCK_HEIGHT)],
+            rate,
+            dt,
+        ),
+    ]
 }
 
 fn at(x: f32, z: f32, yaw: f32) -> MoveState {
@@ -1313,6 +1552,7 @@ pub fn golden_cases(dt: f32) -> GoldenFile {
             1,
         );
     }
+    cases.extend(blast_golden_cases(dt));
 
     GoldenFile {
         version: GOLDEN_VERSION,
@@ -1754,6 +1994,7 @@ mod tests {
         assert_eq!(fresh.cases.len(), file.cases.len());
         for (want, have) in file.cases.iter().zip(fresh.cases.iter()) {
             assert_eq!(want.name, have.name);
+            assert_eq!(want.blasts, have.blasts, "{}", want.name);
             assert_eq!(want.expected.len(), have.expected.len(), "{}", want.name);
             for (i, (w, h)) in want.expected.iter().zip(have.expected.iter()).enumerate() {
                 for (label, a, b) in [
@@ -1799,6 +2040,7 @@ mod tests {
             assert_eq!(want.start, have.start);
             assert_eq!(want.inputs, have.inputs);
             assert_eq!(want.speed, have.speed);
+            assert_eq!(want.blasts, have.blasts);
             assert_eq!(want.stride, have.stride);
             assert_eq!(want.expected.len(), have.expected.len(), "{}", want.name);
             for (i, (w, h)) in want.expected.iter().zip(have.expected.iter()).enumerate() {
@@ -1819,6 +2061,153 @@ mod tests {
                     );
                 }
             }
+        }
+    }
+
+    /// The highest feet reach over a run of states.
+    fn apex(states: &[MoveState]) -> f32 {
+        states.iter().fold(f32::MIN, |top, state| top.max(state.y))
+    }
+
+    #[test]
+    fn blast_golden_cases_do_what_they_are_named_for() {
+        for dt in [DT_LIVE, DT_60HZ] {
+            let cases = blast_golden_cases(dt);
+            let find = |name: &str| {
+                cases
+                    .iter()
+                    .find(|case| case.name == name)
+                    .unwrap_or_else(|| panic!("missing blast case {name}"))
+            };
+            let standing = find("rocket_jump_standing");
+            let top = apex(&standing.expected);
+            assert!(top > 1.0 && top < 1.5, "standing rocket jump apex {top}");
+            assert_eq!(standing.expected.last().unwrap().y, GROUND_Y);
+
+            // The same run and jump without the blast falls short of the
+            // ledge; with it the fighter ends up standing on top.
+            let leap = find("rocket_jump_onto_ledge");
+            let landed = leap.expected.last().unwrap();
+            assert_eq!(landed.y, 1.5, "{landed:?}");
+            let mut plain = leap.start;
+            for input in &leap.inputs {
+                plain = fighter_step(plain, input, TOP_SPEED, dt, &leap.arena);
+            }
+            assert!(plain.x < 6.0 && plain.y == GROUND_Y, "{plain:?}");
+
+            let side = find("blast_knockback_side");
+            let thrown = side.expected[0];
+            assert!(thrown.vx > 1.0 && thrown.y > 0.0, "{thrown:?}");
+            assert!(thrown.vx.abs() > thrown.vy, "mostly sideways: {thrown:?}");
+            let rested = side.expected[11];
+            let end = side.expected.last().unwrap();
+            assert_eq!(
+                (rested.x, rested.vx, rested.vy),
+                (end.x, end.vx, end.vy),
+                "a blast out of reach does nothing"
+            );
+
+            let wall = find("blast_into_wall");
+            assert!(wall
+                .expected
+                .iter()
+                .all(|state| state.x <= 6.0 - 1.0 - RADIUS + 1e-4));
+
+            let fall = find("blast_against_a_fall");
+            let slowed = fall.expected[0];
+            assert!(slowed.vy > -6.0, "the push slows the fall: {slowed:?}");
+
+            let crouched = find("blast_crouched");
+            assert!(crouched.expected[0].vz > 0.0, "{:?}", crouched.expected[0]);
+        }
+    }
+
+    /// The rocket jump the way the server plays it: jump, look straight
+    /// down and fire on tick `fire` of the jump. The rocket leaves the eye
+    /// at 18 m/s and bursts on the floor under where it was fired, and the
+    /// fighter takes the push on that tick. Returns the highest the feet
+    /// reach.
+    fn rocket_jump_apex(fire: Option<usize>) -> f32 {
+        let arena = Arena {
+            half: 25.0,
+            solids: Vec::new(),
+        };
+        let takeoff = MoveInput {
+            jump: true,
+            ..MoveInput::default()
+        };
+        let mut state = fighter_step(at(0.0, 0.0, 0.0), &takeoff, TOP_SPEED, DT_LIVE, &arena);
+        let mut top = state.y;
+        let mut burst: Option<(usize, [f32; 3])> = None;
+        for tick in 1..60 {
+            if Some(tick) == fire {
+                let flight = (state.y + EYE_HEIGHT) / 18.0;
+                let ticks = (flight / DT_LIVE).ceil() as usize;
+                burst = Some((tick + ticks.max(1), [state.x, GROUND_Y, state.z]));
+            }
+            if let Some((at_tick, center)) = burst {
+                if at_tick == tick {
+                    state = blast_push(state, BODY_HEIGHT, center, 4.0, BLAST_PUSH);
+                }
+            }
+            state = fighter_step(state, &MoveInput::default(), TOP_SPEED, DT_LIVE, &arena);
+            top = top.max(state.y);
+        }
+        top
+    }
+
+    #[test]
+    fn a_rocket_jump_clears_a_deck_edge_that_a_jump_cannot() {
+        let jump = rocket_jump_apex(None);
+        let best = (0..8)
+            .map(|fire| rocket_jump_apex(Some(fire)))
+            .fold(0.0f32, f32::max);
+        assert!(jump < 1.5, "a jump stays under a 1.5 m deck edge: {jump}");
+        assert!(
+            best > 1.5 + 0.6,
+            "a jump and a rocket clear the edge with room: {best}"
+        );
+        assert!(best < 3.0, "but not a full storey: {best}");
+    }
+
+    /// Prints the reach of a rocket jump fired on each tick of a jump:
+    /// `cargo test -p fragr-server --lib rocket_jump_heights -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn rocket_jump_heights() {
+        println!("jump only: {:.2} m", rocket_jump_apex(None));
+        for fire in 0..8 {
+            println!("fire on tick {fire}: {:.2} m", rocket_jump_apex(Some(fire)));
+        }
+    }
+
+    #[test]
+    fn blast_push_scales_caps_and_refuses_nonsense() {
+        let still = at(0.0, 0.0, 0.0);
+        let feet = blast_push(still, BODY_HEIGHT, [0.0, 0.0, 0.0], 4.0, BLAST_PUSH);
+        assert!((feet.vy - BLAST_PUSH).abs() < 1e-5, "{feet:?}");
+        assert_eq!((feet.vx, feet.vz, feet.x, feet.y), (0.0, 0.0, 0.0, 0.0));
+        // Half the radius from the nearest point of the body, half the push.
+        let half = blast_push(still, BODY_HEIGHT, [-(2.0 + RADIUS), 0.9, 0.0], 4.0, 10.0);
+        assert!((half.vx - 5.0).abs() < 1e-4, "{half:?}");
+        assert!((half.vy - 5.0 * BLAST_MIN_LIFT).abs() < 1e-4, "{half:?}");
+        // Already fast: the push never takes a body past the caps.
+        let fast = MoveState {
+            vx: 13.0,
+            vy: 20.0,
+            ..still
+        };
+        let capped = blast_push(fast, BODY_HEIGHT, [-0.5, 0.0, 0.0], 4.0, 30.0);
+        assert!((capped.vx.hypot(capped.vz) - BLAST_SPEED_CAP).abs() < 1e-4);
+        assert_eq!(capped.vy, BLAST_RISE_CAP);
+        for (center, radius, peak, height) in [
+            ([4.6, 0.9, 0.0], 4.0, BLAST_PUSH, BODY_HEIGHT),
+            ([f32::NAN, 0.0, 0.0], 4.0, BLAST_PUSH, BODY_HEIGHT),
+            ([0.0, 0.0, 0.0], 0.0, BLAST_PUSH, BODY_HEIGHT),
+            ([0.0, 0.0, 0.0], 4.0, -1.0, BODY_HEIGHT),
+            ([0.0, 0.0, 0.0], 4.0, BLAST_PUSH, 0.0),
+        ] {
+            assert_eq!(blast_push(still, height, center, radius, peak), still);
         }
     }
 

@@ -300,7 +300,7 @@ impl GameState {
                 .capture_scores
                 .leader()
                 .map(|side| (Leader::Side(side), self.capture_scores.max())),
-            GameMode::Ffa => {
+            GameMode::Ffa | GameMode::Duel => {
                 let mut best: Option<(Uuid, u32)> = None;
                 let mut level = false;
                 for player in self.players.iter().filter(|p| p.contestant()) {
@@ -363,7 +363,7 @@ impl GameState {
                 .conquest
                 .as_ref()
                 .is_some_and(|state| state.tickets.leader().is_none()),
-            GameMode::Ffa => {
+            GameMode::Ffa | GameMode::Duel => {
                 let mut scores: Vec<u32> = self
                     .players
                     .iter()
@@ -417,7 +417,7 @@ impl GameState {
                     crate::rules::match_point(self.config.sabotage.format, sab.round, sab.score);
                 Team::ALL.map(|team| side == Some(team))
             }),
-            GameMode::Ffa | GameMode::Conquest => None,
+            GameMode::Ffa | GameMode::Duel | GameMode::Conquest => None,
         };
         if let Some(sides) = sides {
             for side in Team::ALL {
@@ -430,7 +430,7 @@ impl GameState {
             }
             return;
         }
-        if mode != GameMode::Ffa || self.reactions.match_point_fighter {
+        if !mode.free_for_all() || self.reactions.match_point_fighter {
             return;
         }
         let Some(limit) = self.config.frag_limit.filter(|limit| *limit >= 2) else {

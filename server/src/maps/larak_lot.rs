@@ -61,16 +61,13 @@ const SHEAR_WALL: f32 = 4.6;
 const SHEAR_SOUTH: f32 = 14.0;
 const SHEAR_DOOR: (f32, f32) = (19.0, 22.0);
 
-/// The Custody Plate today: an armour pad that fills to the cap, on its own
-/// 35 s clock, until the Plate kind (cap 150, decaying above 100) lands.
+/// The Custody Plate, the lot's power item: +100 armour to 150, the excess
+/// draining a point a second, on the rule sheet's 35 s heavy plate clock.
 pub(crate) const PLATE_ID: &str = "larak_custody_plate";
 pub(crate) const RAIL_ID: &str = "larak_rail";
-const PLATE_AMOUNT: i32 = 100;
-
-/// Seconds to ticks at the 20 Hz simulation rate.
-const fn seconds(s: u32) -> u32 {
-    s * 20
-}
+/// The Rocket Launcher in the Pit behind the Stack, free-for-all and Duel
+/// only.
+pub(crate) const ROCKET_ID: &str = "larak_rocket_pit";
 
 /// Explicit spawn slots: x, floor, z, yaw. Yaw 0 faces east (+x), a quarter
 /// turn faces south (+z). Each faces into its quarter's way out.
@@ -454,13 +451,13 @@ fn build_lot() -> Lot {
     b.panel(gallery, F::South, [5.0, 0.3], [1.4, 1.4], K::Vent);
 
     let plate = crate::sim::ArenaPickup {
-        amount: PLATE_AMOUNT,
-        clock: Some(seconds(35)),
+        kind: crate::sim::PickupKind::Plate,
+        amount: crate::sim::PLATE_AMOUNT,
         ..armor_pad(PLATE_ID, 31.0, -22.0, ROOF)
     };
-    // Every other pad runs the rule sheet's clock (`crate::rules`): in
-    // free-for-all the Rail 25 s, Shotgun and Rifle 15 s, health and armour
-    // 25 s; team modes their own. Only the Plate keeps an authored clock.
+    // Every pad runs the rule sheet's clock (`crate::rules`): the Plate 35 s
+    // in every mode; in free-for-all the Rail and Rocket 25 s, Shotgun and
+    // Rifle 15 s, health and armour 25 s; team modes their own.
     let pickups = vec![
         plate,
         weapon_pad(RAIL_ID, WeaponType::Rail, -20.0, 6.0, RAIL_LANDING),
@@ -500,9 +497,15 @@ fn build_lot() -> Lot {
             spawn_radius: 30.0,
             solids: b.solids,
             pickups,
-            // Every slot is within 5 s of a gun on the lot's own pads, so the
-            // free-for-all Pistol start needs no extra scrap pads here.
-            scrap_pads: Vec::new(),
+            // Every slot is within 5 s of a gun on the lot's own pads. The
+            // one free-for-all pad is the Rocket at the bottom of the Pit, in
+            // the lee of the Stack: the one patch of the stage no spawn slot
+            // sees, under every deck that looks in. Splash belongs in the
+            // bowl, and the launcher is the way out of it again: a rocket
+            // jump clears the 1.5 m from the Gallery onto the Roof and the
+            // Plate. An arsenal mode's bag cannot hold the Rocket, so it is
+            // laid only where lives start on the Pistol.
+            scrap_pads: vec![weapon_pad(ROCKET_ID, WeaponType::Rocket, 7.5, 2.0, PIT)],
         },
         presentation: MapPresentation {
             ground: Concrete,

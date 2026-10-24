@@ -161,7 +161,7 @@ impl GameSession {
     /// rule-bot count so solo stays stocked.
     /// Refreshes sticky Warmup Host roster intro for mid-join.
     pub fn spawn_bots(&mut self, count: usize) {
-        let slots = self.configure_sabotage_seats();
+        let slots = self.configure_fighter_seats();
 
         let start_index = self.bots.len();
         for i in 0..count {
@@ -270,14 +270,13 @@ impl GameSession {
     }
 
     /// Initialize the optional fixed roster before network admission or bot spawn.
-    pub(crate) fn configure_sabotage_seats(&mut self) -> Option<Arc<tokio::sync::Semaphore>> {
-        if self.state.config.rules.mode() != protocol::GameMode::Sabotage
-            || !self.state.config.sabotage.five_vs_five
-        {
-            return None;
-        }
+    /// The shared permit pool for a mode with fixed fighter seats (five
+    /// versus five Sabotage, Duel): rule bots and network fighters draw from
+    /// the same pool, so a full match refuses a joiner before any pawn exists.
+    pub(crate) fn configure_fighter_seats(&mut self) -> Option<Arc<tokio::sync::Semaphore>> {
+        let seats = self.state.fighter_seats()?;
         Some(Arc::clone(self.participant_slots.get_or_insert_with(
-            || Arc::new(tokio::sync::Semaphore::new(10)),
+            || Arc::new(tokio::sync::Semaphore::new(seats)),
         )))
     }
 

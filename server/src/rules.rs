@@ -26,6 +26,9 @@ pub const FFA_SIDEARM_RESPAWN_TICKS: u32 = 20 * 8;
 /// Free-for-all health and armour, the rule sheet's 25 s. Team modes keep
 /// the 15 s health and armour clock.
 pub const FFA_HEALTH_ARMOR_RESPAWN_TICKS: u32 = 20 * 25;
+/// The heavy plate, the Custody Plate: 35 s in every mode, the longest clock
+/// on the sheet, so taking it is an appointment rather than a habit.
+pub const PLATE_RESPAWN_TICKS: u32 = 20 * 35;
 
 /// The published pad clock: the one the server runs and the one a rule bot
 /// or a joined agent learns. `None` for kinds whose clock does not depend on
@@ -49,6 +52,9 @@ pub fn pad_respawn_ticks(
         _ => FFA_WEAPON_RESPAWN_TICKS,
     })
 }
+/// The result shows at least this long before a room that has all pressed
+/// for another round skips the rest of the podium: two seconds.
+pub const AGAIN_MIN_TICKS: u32 = 20 * 2;
 /// Ticks a fallen free-for-all fighter waits before the server tries to put
 /// them back: four seconds at 20 Hz (Nick, 2026-10-23). It moves neither the
 /// team modes nor the spawn shield.
@@ -84,6 +90,9 @@ pub const SUDDEN_DEATH_LIMIT_TICKS: u32 = 20 * 120;
 pub const fn spree_step(mode: GameMode) -> u32 {
     match mode {
         GameMode::Ffa | GameMode::Tdm => 5,
+        // Two fighters trade frags; three in a row against one opponent is
+        // already a run.
+        GameMode::Duel => 3,
         GameMode::Ctf | GameMode::Conquest => 4,
         GameMode::Sabotage => 3,
     }
@@ -140,7 +149,7 @@ impl RuleSet {
             }
         }
         if mutators.contains(&Mutator::FullArsenal) {
-            if mode != GameMode::Ffa {
+            if !mode.free_for_all() {
                 return Err(format!(
                     "full-arsenal changes the free-for-all start; {} keeps its own kit",
                     mode.id()
@@ -241,7 +250,9 @@ impl RuleSet {
         }
         match self.mode {
             GameMode::Sabotage => StartKit::Found { sidearm: false },
-            GameMode::Ffa if !self.has(Mutator::GoldenRail) && !self.has(Mutator::FullArsenal) => {
+            GameMode::Ffa | GameMode::Duel
+                if !self.has(Mutator::GoldenRail) && !self.has(Mutator::FullArsenal) =>
+            {
                 StartKit::Found { sidearm: true }
             }
             _ => StartKit::Arsenal,
@@ -274,7 +285,7 @@ impl RuleSet {
     /// [`CAMPAIGN_RESPAWN_DELAY_TICKS`] instead (see `GameState`).
     pub fn respawn_delay_ticks(&self) -> u32 {
         match self.mode {
-            GameMode::Ffa => FFA_RESPAWN_DELAY_TICKS,
+            GameMode::Ffa | GameMode::Duel => FFA_RESPAWN_DELAY_TICKS,
             GameMode::Tdm | GameMode::Ctf | GameMode::Sabotage | GameMode::Conquest => {
                 TEAM_RESPAWN_DELAY_TICKS
             }

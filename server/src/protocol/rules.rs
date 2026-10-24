@@ -22,15 +22,20 @@ pub enum GameMode {
     Sabotage,
     /// Capture and hold a majority of sites to exhaust the other side's tickets.
     Conquest,
+    /// One versus one: free-for-all rules with two fighter seats. Joiners
+    /// past the two watch; a rule bot keeps an empty seat warm and gives it
+    /// up to a person. Both fighters ready up for an instant rematch.
+    Duel,
 }
 
 impl GameMode {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::Ffa,
         Self::Tdm,
         Self::Ctf,
         Self::Sabotage,
         Self::Conquest,
+        Self::Duel,
     ];
 
     /// The wire and command-line id.
@@ -41,6 +46,7 @@ impl GameMode {
             Self::Ctf => "ctf",
             Self::Sabotage => "sabotage",
             Self::Conquest => "conquest",
+            Self::Duel => "duel",
         }
     }
 
@@ -52,6 +58,28 @@ impl GameMode {
             Self::Ctf => "Capture the Flag",
             Self::Sabotage => "Sabotage",
             Self::Conquest => "Conquest",
+            Self::Duel => "Duel",
+        }
+    }
+
+    /// Whether the Continuance leans on the round (the compliance ping and
+    /// the drone). Objective modes have their own clock, and a Duel is two
+    /// people settling something: nobody else walks in.
+    pub const fn pressure(self) -> bool {
+        !self.objective() && !matches!(self, Self::Duel)
+    }
+
+    /// Every fighter for themselves, scored by frags: free-for-all and Duel.
+    pub const fn free_for_all(self) -> bool {
+        matches!(self, Self::Ffa | Self::Duel)
+    }
+
+    /// Fighter seats a round can hold, when the mode caps them: Duel's two.
+    /// Five versus five Sabotage caps its own through `SabotageConfig`.
+    pub const fn seats(self) -> Option<usize> {
+        match self {
+            Self::Duel => Some(2),
+            _ => None,
         }
     }
 

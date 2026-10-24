@@ -65,6 +65,12 @@ var _use_plate: PanelContainer
 var _use_label: RichTextLabel
 var _use_template: String = ""
 var _use_revision: int = -1
+## The podium's own words on the use plate, so clearing it never hides a
+## Sabotage plant or defuse prompt.
+var _podium_template: String = ""
+## The narrowest the use plate's text may be, so a several-line podium wraps
+## at its line breaks rather than between words. Zero for the plant prompt.
+var _use_plate_floor: float = 0.0
 ## The local fighter's lives when lives are limited, otherwise -1.
 var own_lives: int = -1
 @onready var warmup_tv = $WarmupTv
@@ -533,9 +539,46 @@ func set_sabotage_state(state: Dictionary, viewer_team: String, charge_ticks: in
 	_refresh_mode_chip()
 
 
+## The podium between rounds, from the snapshot's `podium` block: a Duel's
+## series for everyone, and for a seated fighter the ready-up for one more
+## round (fire to press, then how many the room still waits on). `my_id` is
+## empty for a spectator. Absent mid-round, which clears it.
+func show_podium(podium: Variant, my_id: String) -> void:
+	var lines: PackedStringArray = []
+	if podium is Dictionary:
+		var data: Dictionary = podium
+		var voters: int = int(data["voters"]) if data.get("voters") is int or data.get("voters") is float else 0
+		var ready: Array = data["again"] if data.get("again") is Array else []
+		var duel: Variant = data.get("duel")
+		if duel is Array and (duel as Array).size() == 2 and duel[0] is Dictionary and duel[1] is Dictionary:
+			lines.append(tr("HUD_DUEL_SERIES").format({
+				"a": str(duel[0].get("name", "?")).to_upper(), "a_wins": int(duel[0].get("wins", 0)),
+				"b": str(duel[1].get("name", "?")).to_upper(), "b_wins": int(duel[1].get("wins", 0)),
+			}))
+		if voters > 0 and not my_id.is_empty():
+			if ready.has(my_id):
+				var waiting: int = maxi(voters - ready.size(), 0)
+				lines.append(tr("HUD_AGAIN_READY").format({"waiting": waiting}) if waiting > 0 else tr("HUD_AGAIN_GO"))
+			else:
+				lines.append(tr("HUD_AGAIN_PROMPT").format({"ready": ready.size(), "voters": voters}))
+	var template: String = "\n".join(lines)
+	if template.is_empty():
+		if not _podium_template.is_empty() and _use_template == _podium_template:
+			_show_use_plate("")
+		_podium_template = ""
+		return
+	_podium_template = template
+	var widest: float = 0.0
+	for line: String in lines:
+		widest = maxf(widest, MenuTheme.FONT.get_string_size(InputGlyphs.plain(line), HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x)
+	# A key glyph is drawn wider than its plain name.
+	_show_use_plate(template, widest + 64.0)
+
+
 ## Plant and defuse name the held Use key under the crosshair. The score line
 ## keeps the same words.
-func _show_use_plate(template: String) -> void:
+func _show_use_plate(template: String, min_width: float = 0.0) -> void:
+	_use_plate_floor = min_width
 	if template.is_empty():
 		_use_template = ""
 		if _use_plate != null:
@@ -584,7 +627,7 @@ func _place_use_plate() -> void:
 	if viewport.x < 1.0:
 		return
 	var text_size: Vector2 = _use_label.get_minimum_size()
-	var inner: float = minf(maxf(text_size.x, 220.0), viewport.x * 0.72)
+	var inner: float = minf(maxf(maxf(text_size.x, 220.0), _use_plate_floor), viewport.x * 0.72)
 	_use_label.custom_minimum_size = Vector2(inner, 0.0)
 	_use_plate.reset_size()
 	var plate: Vector2 = _use_plate.get_combined_minimum_size()
@@ -1677,6 +1720,7 @@ func show_pickup_toast(player_name: String, weapon_name: String, kind: String = 
 	match kind:
 		"health": what = tr("HUD_PICKUP_HEALTH").format({"amount": amount})
 		"armor": what = tr("HUD_PICKUP_ARMOR").format({"amount": amount})
+		"plate": what = tr("HUD_PICKUP_PLATE").format({"amount": amount})
 		"ammo": what = tr("HUD_PICKUP_AMMO").format({"amount": amount})
 		"grenade": what = tr("HUD_PICKUP_GRENADES").format({"amount": amount})
 		"proximity_mine": what = tr("HUD_PICKUP_MINES").format({"amount": amount})

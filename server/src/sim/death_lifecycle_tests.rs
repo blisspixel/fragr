@@ -262,7 +262,7 @@ fn an_eliminated_fighter_is_told_no_countdown() {
 fn respawn_delay_is_a_rule_value_with_ffa_separate_from_team_modes() {
     for mode in crate::protocol::GameMode::ALL {
         let rules = RuleSet::new(mode, &[], false).unwrap();
-        let expected = if mode == crate::protocol::GameMode::Ffa {
+        let expected = if mode.free_for_all() {
             FFA_RESPAWN_DELAY_TICKS
         } else {
             TEAM_RESPAWN_DELAY_TICKS

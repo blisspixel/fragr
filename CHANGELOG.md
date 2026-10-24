@@ -48,6 +48,15 @@ Release history, newest first. Planned work stays in
   displays, and show an operator overview in the dedicated server terminal.
 - Keep one campaign save format; saves from earlier builds are refused with a
   clear message instead of migrated.
+- Rocket jump. Every arena blast throws the fighters it hurts, and a rocket at
+  your own feet lifts you: from Larak Lot's Gallery straight onto the Roof.
+  The Rocket waits at the bottom of the Pit in free-for-all and Duel.
+- Make the Custody Plate a real power item: +100 armour to 150, the excess
+  draining a point a second, back every 35 seconds.
+- Add Duel on Larak Lot: two fighter seats, a bot that keeps an empty seat warm
+  and gives it up, and a running series between the same pair.
+- Press fire on the podium for one more: when everyone seated has, the next
+  round starts two seconds after the result.
 
 Linux, macOS and Windows CI passed for every change. Windows human play and
 real controllers are still owed.

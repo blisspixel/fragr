@@ -2755,6 +2755,7 @@ mod tests {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         }
     }
 
@@ -3701,6 +3702,7 @@ mod combat_tests {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         }
     }
 
@@ -4625,6 +4627,7 @@ mod planner_tests {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         }
     }
 
@@ -5443,6 +5446,7 @@ mod line_of_sight_tests {
             sabotage: None,
             conquest: None,
             article_blade: None,
+            podium: None,
         };
         let mk = |id: Uuid, x: f32| fragr_server::protocol::PlayerState {
             collidable: true,

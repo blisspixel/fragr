@@ -115,6 +115,17 @@ func _run() -> void:
 		"a free-for-all host can restore the full arsenal start")
 	arsenal["mode"] = "tdm"
 	_check(not LocalHost.valid_settings(arsenal), "full arsenal is refused where a mode keeps its own kit")
+	var duel: Dictionary = _config(false, false)
+	duel["mode"] = "duel"
+	duel["map_id"] = 1
+	duel["bots"] = 1
+	_check(LocalHost.valid_settings(duel) and "duel" in LocalHost.arguments_for(duel),
+		"a duel hosts on Larak Lot with one bot beside you")
+	duel["bots"] = 2
+	_check(not LocalHost.valid_settings(duel), "two fixed bots would leave the host no seat")
+	duel["bots"] = 1
+	duel["map_id"] = 3
+	_check(not LocalHost.valid_settings(duel), "a duel is fought on Larak Lot")
 	var record: Dictionary = _ready_record(config)
 	for item: Dictionary in [{"key": "version", "value": 2}, {"key": "kind", "value": "campaign"},
 		{"key": "url", "value": "ws://0.0.0.0:32123"}, {"key": "url", "value": "wss://127.0.0.1:32123"},

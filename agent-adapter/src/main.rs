@@ -1744,6 +1744,7 @@ mod tests {
             episode_phase: None,
             jammer_dish: None,
             article_blade: None,
+            podium: None,
         };
 
         let json = serde_json::to_value(&snapshot).unwrap();
@@ -1805,6 +1806,7 @@ mod tests {
             episode_phase: None,
             jammer_dish: None,
             article_blade: None,
+            podium: None,
         };
         let json = serde_json::to_value(&snap).unwrap();
         assert_eq!(json["host_line"], protocol::default_host_line());
@@ -1926,6 +1928,7 @@ mod tests {
             episode_phase: None,
             jammer_dish: None,
             article_blade: None,
+            podium: None,
         };
 
         let json = serde_json::to_value(&snapshot).unwrap();
@@ -2300,6 +2303,7 @@ mod tests {
             episode_phase: None,
             jammer_dish: None,
             article_blade: None,
+            podium: None,
         };
         let action = compute_bot_action(bot_id, &snapshot);
         let look = action.look_at.expect("look_at toward nearest");
@@ -2423,6 +2427,16 @@ mod tests {
                 "available": true
             }))
             .unwrap(),
+            serde_json::from_value(serde_json::json!({
+                "id": "larak_custody_plate",
+                "kind": "plate",
+                "amount": 100,
+                "x": 0.0,
+                "y": 6.4,
+                "z": -12.0,
+                "available": true
+            }))
+            .unwrap(),
         ];
         let chosen = compute_bot_action(me, &snapshot)
             .look_at
@@ -2455,6 +2469,8 @@ mod tests {
         assert!(text.contains("top_rival=4"), "{text}");
         assert!(text.contains("health=5.0"), "{text}");
         assert!(text.contains("weapon.rail=7.0"), "{text}");
+        assert!(text.contains("plate=12.0"), "{text}");
+        assert_eq!(structured["pads"]["plate"], 12.0);
         assert!(text.contains("ROUND"), "{text}");
         assert_eq!(structured["threats"][0]["id"], auditor.to_string());
         assert_eq!(structured["threats"][0]["id"], chosen.unwrap().to_string());

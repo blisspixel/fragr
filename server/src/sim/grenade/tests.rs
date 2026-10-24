@@ -553,7 +553,7 @@ fn grenade_staggers_heavy_once_without_changing_difficulty_tells() {
 }
 
 #[test]
-fn grenade_self_damage_remains_full_without_rocket_impulse() {
+fn grenade_self_damage_stays_full_and_its_blast_pushes_whoever_survives() {
     let (mut state, _owner, _target) = combat();
     state.players[0].hp = 100;
     state.players[1].hp = 100;
@@ -575,13 +575,16 @@ fn grenade_self_damage_remains_full_without_rocket_impulse() {
     let near_target = [state.players[1].x + 1.0, 0.0, state.players[1].z];
     state.resolve_explosion(&grenade(near_target, [0.0; 3]), &arena(vec![]));
 
-    // Target takes undiscounted damage without rocket jump self-impulse
+    // Target takes undiscounted damage, and the same blast push as a
+    // rocket's throws the survivor up and away from the blast.
     assert!(
         state.players[1].hp < 50,
         "target takes undiscounted blast damage"
     );
-    assert_eq!(
-        state.players[1].vy, 0.0,
-        "other target does not receive self rocket jump impulse"
+    assert!(
+        state.players[1].vy > 0.0 && state.players[1].vx < 0.0,
+        "a living target is thrown: vx {} vy {}",
+        state.players[1].vx,
+        state.players[1].vy
     );
 }

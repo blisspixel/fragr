@@ -71,14 +71,17 @@ impl crate::run::ServerOptions {
                     && self.match_config.as_ref().is_some_and(|config| config.rules.mutators().is_empty())
                     && matches!(
                         self.match_config.as_ref().map(|config| config.rules.mode()),
-                        Some(crate::protocol::GameMode::Tdm | crate::protocol::GameMode::Sabotage | crate::protocol::GameMode::Conquest)
+                        Some(crate::protocol::GameMode::Tdm | crate::protocol::GameMode::Sabotage | crate::protocol::GameMode::Conquest | crate::protocol::GameMode::Duel)
                     )
+                    && self.match_config.as_ref().is_none_or(|config| {
+                        config.rules.mode().seats().is_none_or(|seats| self.fill_target <= seats)
+                    })
                     && self.match_config.as_ref().is_some_and(|config| {
                         config.rules.mode() != crate::protocol::GameMode::Conquest
                             || (self.map == crate::sim::MapKind::HoldfastAtoll
                                 && !config.sabotage.five_vs_five)
                     }) => Ok(()),
-            _ => Err("invalid bot policy, fixed requires target zero, none requires both counts zero, and auto requires arena TDM/Sabotage or Holdfast Conquest, bots zero and target 1 through 10"),
+            _ => Err("invalid bot policy, fixed requires target zero, none requires both counts zero, and auto requires arena TDM/Sabotage/Duel or Holdfast Conquest, bots zero and target 1 through 10 (a duel's two at most)"),
         }
     }
 }

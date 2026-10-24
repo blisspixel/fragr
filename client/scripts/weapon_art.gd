@@ -134,6 +134,7 @@ const PROFILE: Dictionary[String, Texture2D] = {
 	"Flechette": preload("res://assets/weapons/pickups/rifle.png"),
 	"Scatter": preload("res://assets/weapons/pickups/shotgun.png"),
 	"Rail": preload("res://assets/weapons/pickups/railgun.png"),
+	"Rocket": preload("res://assets/weapons/pickups/rocket.png"),
 	"Sniper": preload("res://assets/weapons/sniper-source-20261004/sniper.png"),
 	"Shiv": preload("res://assets/weapons/48/shiv.png"),
 	"Arc": preload("res://assets/weapons/arc/arc_profile.png"),
@@ -145,6 +146,7 @@ const PROFILE: Dictionary[String, Texture2D] = {
 const SUPPLY: Dictionary[String, Texture2D] = {
 	"health": preload("res://assets/pickups/medkit.png"),
 	"armor": preload("res://assets/pickups/armor.png"),
+	"plate": preload("res://assets/pickups/plate.png"),
 	"grenade": preload("res://assets/pickups/grenades.png"),
 	"bullets": preload("res://assets/pickups/bullets.png"),
 	"shells": preload("res://assets/pickups/shells.png"),

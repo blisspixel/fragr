@@ -632,7 +632,9 @@ pub struct NetServer {
     /// leave it, because the mission probe aims that way. Agents always keep it.
     client_aim: bool,
     party_slots: Option<Arc<Semaphore>>,
-    five_vs_five: bool,
+    /// The mode whose fixed fighter seats `party_slots` holds: five versus
+    /// five Sabotage or Duel. A full pool refuses with `match_full`.
+    seat_mode: Option<crate::protocol::GameMode>,
     auto_fill: bool,
     solo_run: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
@@ -932,7 +934,7 @@ impl NetServer {
             gameplay_version,
             client_aim: false,
             solo_run: false,
-            five_vs_five: false,
+            seat_mode: None,
             auto_fill: false,
             solo_bound_body: None,
             party_slots: (gameplay_version >= crate::protocol::MISSION_GAMEPLAY_VERSION)
@@ -1073,9 +1075,13 @@ impl NetServer {
     }
 
     /// Rule bots and network fighters share the same bounded permit pool.
-    pub(crate) fn set_sabotage_seats(&mut self, slots: Arc<Semaphore>) {
+    pub(crate) fn set_fighter_seats(
+        &mut self,
+        slots: Arc<Semaphore>,
+        mode: crate::protocol::GameMode,
+    ) {
         self.party_slots = Some(slots);
-        self.five_vs_five = true;
+        self.seat_mode = Some(mode);
     }
 
     /// Only a completed admission consumes the run's lifetime combat seat.
@@ -1112,7 +1118,7 @@ impl NetServer {
                     let client_aim = self.client_aim;
                     let party_slots = self.party_slots.clone();
                     let solo_run = self.solo_run;
-                    let five_vs_five = self.five_vs_five;
+                    let seat_mode = self.seat_mode;
                     let auto_fill = self.auto_fill;
                     let solo_bound_body = self.solo_bound_body;
                     let admission = Arc::clone(&self.admission);
@@ -1201,7 +1207,7 @@ impl NetServer {
                                 client_aim,
                                 party_slots,
                                 solo_run,
-                                five_vs_five,
+                                seat_mode,
                                 auto_fill,
                                 solo_bound_body,
                                 handshake_timeout,
@@ -1424,7 +1430,7 @@ struct HelloPolicy {
     client_aim: bool,
     party_slots: Option<Arc<Semaphore>>,
     solo_run: bool,
-    five_vs_five: bool,
+    seat_mode: Option<crate::protocol::GameMode>,
     auto_fill: bool,
     solo_bound_body: Option<crate::protocol::BodyKind>,
     handshake_timeout: Duration,
@@ -1839,7 +1845,7 @@ async fn handle_connection(
                     );
                 } else {
                     let mut auto_join =
-                        if policy.auto_fill && policy.five_vs_five && r != Role::Spectator {
+                        if policy.auto_fill && policy.seat_mode.is_some() && r != Role::Spectator {
                             let guard = AutoJoinGuard {
                                 client_id,
                                 gate: crate::bot_fill::admission_gate(),
@@ -1887,10 +1893,12 @@ async fn handle_connection(
                                 Ok(seat) => Some(seat),
                                 Err(_) => {
                                     let rejection = ServerMessage::Error {
-                                    code: if policy.solo_run { "run_seat_closed" } else if policy.five_vs_five { "match_full" } else { "party_full" }.into(),
+                                    code: if policy.solo_run { "run_seat_closed" } else if policy.seat_mode.is_some() { "match_full" } else { "party_full" }.into(),
                                     message: if policy.solo_run {
                                         "This run already has an owner. Join as a spectator or start a new run."
-                                    } else if policy.five_vs_five {
+                                    } else if policy.seat_mode == Some(crate::protocol::GameMode::Duel) {
+                                        "This duel has two fighter seats. Watch, and join when one opens."
+                                    } else if policy.seat_mode.is_some() {
                                         "This five versus five match has ten fighter seats. Join as a spectator or wait for a seat."
                                     } else {
                                         "This mission supports four participants; join as a spectator or wait for a seat."

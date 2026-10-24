@@ -405,7 +405,12 @@ mod tests {
             assert_eq!(state.config.warmup_ticks, 4);
             assert_eq!(state.config.end_delay_ticks, 7);
             match state.config.rules.mode() {
-                GameMode::Conquest => panic!("Conquest is not in the standard night playlist"),
+                GameMode::Conquest | GameMode::Duel => {
+                    panic!(
+                        "{:?} is not in the standard night playlist",
+                        state.config.rules.mode()
+                    )
+                }
                 GameMode::Tdm => {
                     saw_tdm = true;
                     assert_eq!(state.config.frag_limit, Some(25));

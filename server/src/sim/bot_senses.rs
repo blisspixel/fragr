@@ -203,7 +203,10 @@ fn habit(behavior: BotBehavior, kind: super::PickupKind) -> bool {
             BotBehavior::Flanker,
             PickupKind::Weapon(WeaponType::Scatter)
         ) | (BotBehavior::Balanced, PickupKind::Health)
-            | (BotBehavior::Aggressive, PickupKind::Armor)
+            | (
+                BotBehavior::Aggressive,
+                PickupKind::Armor | PickupKind::Plate
+            )
     )
 }
 
@@ -361,6 +364,7 @@ impl BotController {
             && matches!(
                 state.config.rules.mode(),
                 GameMode::Ffa
+                    | GameMode::Duel
                     | GameMode::Tdm
                     | GameMode::Conquest
                     | GameMode::Ctf
@@ -442,6 +446,7 @@ impl BotController {
                 super::PickupKind::Weapon(weapon) => bot.inventory.weapon_pad_useful(weapon),
                 super::PickupKind::Health => supplied && bot.hp < super::PLAYER_MAX_HP,
                 super::PickupKind::Armor => supplied && bot.armor < super::PLAYER_MAX_ARMOR,
+                super::PickupKind::Plate => supplied && bot.armor < super::PLATE_MAX_ARMOR,
                 _ => false,
             };
             // Worth dropping a search for: a gun the bot cannot fire yet,
@@ -452,7 +457,9 @@ impl BotController {
                     !bot.inventory.usable(weapon) && !bot.inventory.can_reload(weapon)
                 }
                 // Plate when the body has actually been worn down.
-                super::PickupKind::Armor => bot.hp + bot.armor < super::PLAYER_MAX_HP,
+                super::PickupKind::Armor | super::PickupKind::Plate => {
+                    bot.hp + bot.armor < super::PLAYER_MAX_HP
+                }
                 super::PickupKind::Health => bot.hp < HURT_HP,
                 _ => false,
             };

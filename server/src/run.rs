@@ -215,6 +215,12 @@ async fn run_server_impl(
             );
         }
     }
+    if options.match_config.as_ref().is_some_and(|config| {
+        config.rules.mode() == crate::protocol::GameMode::Duel
+            && (options.bots > 2 || config.sabotage.five_vs_five)
+    }) {
+        return Err("a duel has two fighter seats: at most two initial rule bots".into());
+    }
     if options
         .match_config
         .as_ref()
@@ -532,8 +538,8 @@ async fn run_server_impl(
     if shared_room || (twisted && !discovery) || playlist {
         net_server.open_arena_seats();
     }
-    if let Some(slots) = session.configure_sabotage_seats() {
-        net_server.set_sabotage_seats(slots);
+    if let Some(slots) = session.configure_fighter_seats() {
+        net_server.set_fighter_seats(slots, session.state.config.rules.mode());
     }
     if options.bot_policy == crate::bot_fill::BotPolicy::Auto {
         session.set_auto_fill(options.fill_target);

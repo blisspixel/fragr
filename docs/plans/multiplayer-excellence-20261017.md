@@ -1,6 +1,6 @@
 # Multiplayer Excellence: The Golden Era Benchmark
 
-Status: **in flight**, 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built; voice casting and the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
+Status: **in flight**, 2026-10-24: the [Host spine](#host-spine-431-wave-2) (Pillar 1's rules and text, and Pillar 7) is built, and so are [blast push, the Plate, Duel and the rematch](#movement-depth-and-the-rematch-431-wave-3) (Pillar 3 and the GoldenEye "couch friction"); voice casting and the other pillars stay planned. Planned 2026-10-17. Follows [bot-and-enemy-ai-excellence-20261017.md](bot-and-enemy-ai-excellence-20261017.md) and integrates into [ROADMAP.md](../ROADMAP.md#full-build-order). Spend for this plan: $0, using existing assets, local tools, and approved asset allowances.
 
 ---
 
@@ -164,6 +164,29 @@ just spoke inside the eight seconds; that is the rarity rule working, revisit
 after a listening pass.
 
 ---
+
+## Movement depth and the rematch (#431, wave 3)
+
+Built on `wave3/mp-depth`, 2026-10-24. Linux evidence only.
+
+- **Blast push (Pillar 3).** `movement::blast_push` beside the frozen feel
+  block, mirrored in `MoveStep.blast_push` and pinned by six blast cases in
+  each golden file (`docs/protocol.md`, Movement). Every arena explosive
+  throws the fighters it damages; a rocket always throws its owner, who takes
+  0.6 of its splash. Standing rocket jump about 1.3 m, jump-then-rocket about
+  2.9 m. It replaced the wave 2 rocket's inline self-only impulse, whose
+  upward ratio mixed world and feet heights.
+- **The Rocket and the Custody Plate on Larak Lot** ([larak-lot.md](larak-lot.md#wave-3-the-plate-the-rocket-and-duel)).
+- **Again.** `Action.again` on the podium; when every seated person and agent
+  has pressed, the next round opens 2 s after the result instead of 8 s. Rule
+  bots never hold it up. A fighter fragged at the whistle presses too. After
+  a finished free-for-all or Duel round every fighter starts the next from a
+  spawn at full health.
+- **Duel.** `--mode duel`: free-for-all rules, two seats with bot hand-over,
+  no Continuance pressure, a running series and a Host rematch line, no MVP
+  for a level round. Not built: a spectator queue that seats the next
+  watcher, winner-stays rotation, and a local head-to-head record across
+  sessions.
 
 ## 4. Verification and Delivery Sequence
 

@@ -10,7 +10,7 @@ extends SceneTree
 
 const GOLDEN_PATH := "res://golden/move_vectors.json"
 const LIVE_GOLDEN_PATH := "res://golden/live_move_vectors.json"
-const GOLDEN_VERSION := 3
+const GOLDEN_VERSION := 4
 const STEP_TOLERANCE := 1e-4
 const LONG_TOLERANCE := 1e-2
 ## Height and vertical speed are checked too, because the heightfield is the
@@ -22,8 +22,12 @@ const CONSTANTS := {
 	"stop_speed": MoveStep.STOP_SPEED, "air_accel": MoveStep.AIR_ACCEL,
 	"air_speed_cap": MoveStep.AIR_SPEED_CAP, "gravity": MoveStep.GRAVITY,
 	"jump_speed": MoveStep.JUMP_SPEED, "dodge_speed": MoveStep.DODGE_SPEED,
-	"dodge_up": MoveStep.DODGE_UP,
+	"dodge_up": MoveStep.DODGE_UP, "blast_push": MoveStep.BLAST_PUSH,
+	"blast_min_lift": MoveStep.BLAST_MIN_LIFT, "blast_speed_cap": MoveStep.BLAST_SPEED_CAP,
+	"blast_rise_cap": MoveStep.BLAST_RISE_CAP,
 }
+## The blast push cases, in both files.
+const BLAST_CASES := ["rocket_jump_standing", "rocket_jump_onto_ledge", "blast_knockback_side", "blast_into_wall", "blast_against_a_fall", "blast_crouched"]
 
 var failures: Array = []
 var case_count: int = 0
@@ -36,8 +40,8 @@ func _check(condition: bool, message: String) -> void:
 
 func _initialize() -> void:
 	var checked: int = 0
-	checked += _run_file(GOLDEN_PATH, MoveStep.DT_60HZ, ["straight_run", "start_and_stop", "jump_arc", "stair_climb", "stair_descend", "deck_edge_fall", "stair_fractional_above", "stair_fractional_below", "ledge_escape_east", "ledge_escape_south", "ledge_escape_west", "ledge_escape_north", "balcony_underpass", "balcony_exit_east", "balcony_exit_south", "balcony_exit_west", "balcony_exit_north", "ceiling_head_strike", "ceiling_edge_contact", "ceiling_step_blocked", "ceiling_step_clear", "long_wander_1000"])
-	checked += _run_file(LIVE_GOLDEN_PATH, MoveStep.DT_LIVE, ["start_and_stop", "counter_strafe", "diagonal_yaw", "wall_slide", "stair_climb_and_deck", "deck_edge_fall", "jump_arc", "air_steer", "strafe_jump_air_cap", "ground_dodge", "blast_momentum", "ceiling_head_strike", "compliance_half_speed", "crouch_speed"])
+	checked += _run_file(GOLDEN_PATH, MoveStep.DT_60HZ, ["straight_run", "start_and_stop", "jump_arc", "stair_climb", "stair_descend", "deck_edge_fall", "stair_fractional_above", "stair_fractional_below", "ledge_escape_east", "ledge_escape_south", "ledge_escape_west", "ledge_escape_north", "balcony_underpass", "balcony_exit_east", "balcony_exit_south", "balcony_exit_west", "balcony_exit_north", "ceiling_head_strike", "ceiling_edge_contact", "ceiling_step_blocked", "ceiling_step_clear", "long_wander_1000"] + BLAST_CASES)
+	checked += _run_file(LIVE_GOLDEN_PATH, MoveStep.DT_LIVE, ["start_and_stop", "counter_strafe", "diagonal_yaw", "wall_slide", "stair_climb_and_deck", "deck_edge_fall", "jump_arc", "air_steer", "strafe_jump_air_cap", "ground_dodge", "blast_momentum", "ceiling_head_strike", "compliance_half_speed", "crouch_speed"] + BLAST_CASES)
 	_test_unit_behaviour()
 
 	if failures.is_empty():
@@ -91,7 +95,12 @@ func _run_case(case: Dictionary, dt: float) -> int:
 	var tolerance: float = LONG_TOLERANCE if stride > 1 else STEP_TOLERANCE
 	var checked: int = 0
 	var next_expected: int = 0
+	var blasts: Array = case.get("blasts", [])
 	for i in range(inputs.size()):
+		for blast: Dictionary in blasts:
+			if int(blast["step"]) == i:
+				var c: Array = blast["center"]
+				state = MoveStep.blast_push(state, float(blast["height"]), Vector3(float(c[0]), float(c[1]), float(c[2])), float(blast["radius"]), float(blast["peak"]))
 		state = MoveStep.fighter_step(state, inputs[i], speed, dt, arena)
 		if (i + 1) % stride == 0:
 			if next_expected >= expected.size():
@@ -132,6 +141,11 @@ func _test_unit_behaviour() -> void:
 	var thrown: Dictionary = MoveStep.fighter_step(s, dodge, MoveStep.TOP_SPEED, MoveStep.DT_LIVE, arena)
 	_check(absf(float(thrown["vz"]) - MoveStep.DODGE_SPEED) < 1e-4 and float(thrown["vy"]) > 0.0, "the dodge throws sideways on a hop")
 	_check(not MoveStep.dodge_applies(thrown, dodge, arena), "nobody dodges in the air")
+	var still := MoveStep.make_state(0.0, 0.0, 0.0)
+	var lifted: Dictionary = MoveStep.blast_push(still, MoveStep.BODY_HEIGHT, Vector3.ZERO, 4.0, MoveStep.BLAST_PUSH)
+	_check(absf(float(lifted["vy"]) - MoveStep.BLAST_PUSH) < 1e-5 and float(lifted["vx"]) == 0.0, "a blast at the feet throws straight up")
+	_check(MoveStep.blast_push(still, MoveStep.BODY_HEIGHT, Vector3(4.6, 0.9, 0.0), 4.0, MoveStep.BLAST_PUSH) == still, "a blast out of reach does nothing")
+	_check(MoveStep.blast_push(still, MoveStep.BODY_HEIGHT, Vector3(NAN, 0.0, 0.0), 4.0, MoveStep.BLAST_PUSH) == still, "a nonsense blast does nothing")
 
 	# A solid with no top on the wire is a wall, which is what keeps an older
 	# server's map readable by a newer client.
