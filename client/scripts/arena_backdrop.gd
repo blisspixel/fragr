@@ -7,7 +7,8 @@ const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
-	if venue == "holdfast_atoll":
+	if venue in ["holdfast_atoll", "planned_works"]:
+		# Planned Works: M19Works builds the night town, river and pier.
 		return
 	if venue in ["launch_works", "mars_habitat", "mars_foundry"]:
 		_build_mars(half, venue == "mars_habitat")
@@ -25,6 +26,11 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 		return
 	if venue == "low_water":
 		_build_town(half)
+		return
+	if venue == "waterworks":
+		var harbour: WaterworksBackdrop = WaterworksBackdrop.new()
+		harbour.build(half)
+		add_child(harbour)
 		return
 	var steel: StandardMaterial3D = _metal(Color("41494b"))
 	var edge: StandardMaterial3D = _metal(Color("6b716d"))

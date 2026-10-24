@@ -105,6 +105,7 @@ var remote_place_armed: bool = true
 var pending_remote_trigger: bool = false
 var remote_trigger_armed: bool = true
 var mission_hud: MissionHud
+var m20_hold: M20HoldStrip
 var m02_ward: M02Ward
 var m03_yard: M03Yard
 var m04_town: M04Town
@@ -121,6 +122,9 @@ var m15_stadium: M15Stadium
 var m16_avenue: M16Avenue
 var m17_office: M17Office
 var m18_transit: M18Transit
+var m19_works: M19Works
+var m20_waterworks: M20Waterworks
+var surveyor_marks: SurveyorMarks
 var m12_habitat: M12Habitat
 var departure_review: DepartureReview
 var _continue_armed: bool = false
@@ -239,6 +243,9 @@ func _ready():
 	_begin_world_load()
 	mission_hud = MissionHud.new()
 	hud.add_child(mission_hud)
+	m20_hold = M20HoldStrip.new()
+	m20_hold.name = "M20HoldStrip"
+	hud.add_child(m20_hold)
 	mission_hud.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	mouse_capture = MouseCapture.new()
@@ -286,6 +293,9 @@ func _ready():
 	auditor_channels.name = "AuditorChannels"
 	auditor_channels.pawns = players
 	add_child(auditor_channels)
+	surveyor_marks = SurveyorMarks.new()
+	surveyor_marks.name = "SurveyorMarks"
+	add_child(surveyor_marks)
 	jammer_audio = JammerAudio.new()
 	jammer_audio.name = "JammerAudio"
 	add_child(jammer_audio)
@@ -409,6 +419,17 @@ func _ready():
 	m18_transit.notice_requested.connect(func(text: String) -> void:
 		hud.combat_feed.push(text, MenuTheme.BONE))
 	add_child(m18_transit)
+	m19_works = M19Works.new()
+	m19_works.name = "M19Works"
+	m19_works.players = players
+	m19_works.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m19_works)
+	m20_waterworks = M20Waterworks.new()
+	m20_waterworks.name = "M20Waterworks"
+	m20_waterworks.notice_requested.connect(func(text: String) -> void:
+		hud.combat_feed.push(text, MenuTheme.BONE))
+	add_child(m20_waterworks)
 	m12_habitat = M12Habitat.new()
 	m12_habitat.name = "M12Habitat"
 	add_child(m12_habitat)
@@ -508,6 +529,8 @@ func _on_map_info(info: Dictionary) -> void:
 		grenade_effects.reset()
 	if auditor_channels != null:
 		auditor_channels.reset()
+	if surveyor_marks != null:
+		surveyor_marks.clear()
 	pending_throw = false
 	throw_armed = false
 	pending_place = false
@@ -608,6 +631,10 @@ func _on_map_info(info: Dictionary) -> void:
 		m17_office.configure_map(info)
 	if m18_transit != null:
 		m18_transit.configure_map(info)
+	if m19_works != null:
+		m19_works.configure_map(info)
+	if m20_waterworks != null:
+		m20_waterworks.configure_map(info)
 	if m12_habitat != null:
 		m12_habitat.configure_map(info)
 	# Town fixtures are created after the venue preferences were applied.
@@ -2014,6 +2041,8 @@ func _on_mission_received(state: Dictionary) -> void:
 		mission_hud.boarding_region = net_client.mission_geometry.get("m05", {}).get("boarding", {})
 		mission_hud.geometry = net_client.mission_geometry
 		mission_hud.apply(state, str(net_client.player_id) if is_human_player else "")
+	if m20_hold != null:
+		m20_hold.apply(state, net_client.mission_geometry)
 	if m02_ward != null:
 		m02_ward.apply_state(state)
 	if m03_yard != null:
@@ -2046,6 +2075,10 @@ func _on_mission_received(state: Dictionary) -> void:
 		m17_office.apply_state(state)
 	if m18_transit != null:
 		m18_transit.apply_state(state)
+	if m19_works != null:
+		m19_works.apply_state(state)
+	if m20_waterworks != null:
+		m20_waterworks.apply_state(state)
 	if m12_habitat != null:
 		m12_habitat.apply_state(state)
 	hud.set_campaign(not state.is_empty())
@@ -2355,6 +2388,8 @@ func _clear_world() -> void:
 		grenade_effects.reset()
 	if auditor_channels != null:
 		auditor_channels.reset()
+	if surveyor_marks != null:
+		surveyor_marks.clear()
 	local_prediction.reset("disconnect", true)
 	if jammer_audio != null:
 		jammer_audio.reset()
@@ -2400,6 +2435,8 @@ func _clear_world() -> void:
 	if mission_hud != null:
 		mission_hud.apply({}, "")
 		mission_hud.reset_notices()
+	if m20_hold != null:
+		m20_hold.apply({}, {})
 	if m02_ward != null:
 		m02_ward.clear_map()
 	if m03_yard != null:
@@ -2432,6 +2469,10 @@ func _clear_world() -> void:
 		m17_office.clear_map()
 	if m18_transit != null:
 		m18_transit.clear_map()
+	if m19_works != null:
+		m19_works.clear_map()
+	if m20_waterworks != null:
+		m20_waterworks.clear_map()
 	if m12_habitat != null:
 		m12_habitat.clear_map()
 	hud.set_campaign(false)
@@ -2484,6 +2525,12 @@ func _on_snapshot_received(data):
 		grenade_effects.apply(data, camera.global_position if camera != null else Vector3(NAN, NAN, NAN))
 	if auditor_channels != null:
 		auditor_channels.apply(data)
+	if surveyor_marks != null:
+		surveyor_marks.apply_snapshot(data)
+	if m20_hold != null and data.get("tick") is float:
+		m20_hold.set_tick(int(data["tick"]))
+	if m20_waterworks != null:
+		m20_waterworks.apply_snapshot(data)
 	ack_probe.record_snapshot(data.get("tick"), Time.get_ticks_usec())
 	var previous_seat: String = _vehicle_seat()
 	latest_snapshot = data
@@ -2503,6 +2550,9 @@ func _on_snapshot_received(data):
 		arena_vehicles.apply(data, str(net_client.player_id) if is_human_player and net_client.player_id != null else "", Time.get_ticks_usec())
 	if arena_conquest != null:
 		arena_conquest.apply(data)
+	if m19_works != null and m19_works.active():
+		m19_works.local_id = str(net_client.player_id) if is_human_player and net_client.player_id != null else ""
+		m19_works.apply_snapshot(data)
 	if conquest_hud != null:
 		conquest_hud.apply(data)
 		hud.observe_conquest(data)
@@ -2765,7 +2815,9 @@ func _update_nameplates() -> void:
 		if not is_instance_valid(pawn):
 			continue
 		var label: Label3D = pawn.get_node_or_null("Label3D") as Label3D
-		if label == null or view.is_position_behind(label.global_position):
+		# A campaign machine or Union body is named by the server's authored
+		# id, an implementation detail that never reaches a player's screen.
+		if label == null or bool(pawn.get("is_campaign_enemy")) or view.is_position_behind(label.global_position):
 			pawn.set_nameplate_enabled(false)
 			continue
 		var area: Rect2 = NameplateLayoutScript.project_label(view, label)

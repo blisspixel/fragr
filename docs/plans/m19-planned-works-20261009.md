@@ -1,6 +1,8 @@
 # Level 19 Planned Works development
 
-Status: **in flight**.
+Status: **superseded 2026-10-23** by the connected mission
+(`server/maps/m19-planned-works.json`, issue #429). The development graybox below
+is retained as historical evidence; see the [level plan](../campaign/l19-planned-works.md).
 
 ## Goal
 

@@ -130,6 +130,39 @@ pub enum MapDecorationKind {
     /// curfew post is cleared.
     M07CurfewLamp,
     M07DepotFreight,
+    /// Planned Works: the coalition stores counter that lends out jetpacks.
+    M19StoresCounter,
+    M19StoresSign,
+    M19ConcourseBoard,
+    /// An old Union works board the seized infrastructure has relit: a permit
+    /// number and no stated objective.
+    M19PlannedWorks,
+    /// Edda's clinic sign with its lamp out.
+    M19ClinicDark,
+    M19TramVote,
+    /// Episode V's Floating 67, tucked behind the tram vote poster.
+    #[serde(rename = "m19_floating_67")]
+    M19Floating67,
+    M19MarketBoard,
+    M19MarketSix,
+    M19WaterTank,
+    M19ServiceSix,
+    /// The waterworks hatch control at the trench mouth.
+    M19Waterworks,
+    /// The refuge crossing's control, behind the level's one door.
+    M20CrossingControl,
+    /// The harbour display: dark until the one precise message.
+    M20HarbourDisplay,
+    /// Chalked sixes over the three Local Exception secrets.
+    M20ValveSix,
+    M20LampSix,
+    M20CraneSix,
+    /// Hand-painted refuge notice on the gate leaf.
+    M20RefugeNotice,
+    /// The sluice gauge board: the pumps still running for the refuge.
+    M20PumpBoard,
+    /// The footbridge door toward the waterworks tower.
+    M20TowerBridge,
 }
 
 impl MapDecorationKind {
@@ -147,6 +180,40 @@ impl MapDecorationKind {
                 | Self::M10CargoDeck
                 | Self::M10PassengerDeck
                 | Self::M10CommandDeck
+        )
+    }
+
+    /// Registered panels that belong only to Planned Works.
+    pub fn is_m19(self) -> bool {
+        matches!(
+            self,
+            Self::M19StoresCounter
+                | Self::M19StoresSign
+                | Self::M19ConcourseBoard
+                | Self::M19PlannedWorks
+                | Self::M19ClinicDark
+                | Self::M19TramVote
+                | Self::M19Floating67
+                | Self::M19MarketBoard
+                | Self::M19MarketSix
+                | Self::M19WaterTank
+                | Self::M19ServiceSix
+                | Self::M19Waterworks
+        )
+    }
+
+    /// Registered panels that belong only to Local Exception.
+    pub fn is_m20(self) -> bool {
+        matches!(
+            self,
+            Self::M20CrossingControl
+                | Self::M20HarbourDisplay
+                | Self::M20ValveSix
+                | Self::M20LampSix
+                | Self::M20CraneSix
+                | Self::M20RefugeNotice
+                | Self::M20PumpBoard
+                | Self::M20TowerBridge
         )
     }
 

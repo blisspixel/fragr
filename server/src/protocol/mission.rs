@@ -147,12 +147,16 @@ pub enum MissionId {
     FreedomOfMovement,
     PeaceWithoutInterruption,
     AllSystemsNormal,
+    PlannedWorks,
+    LocalException,
 }
 
 impl MissionId {
     /// Current connected-mission admission, shared by native and local readiness.
     pub const fn gameplay_version(self) -> u32 {
         match self {
+            Self::PlannedWorks => super::M19_GAMEPLAY_VERSION,
+            Self::LocalException => super::M20_GAMEPLAY_VERSION,
             Self::AllSystemsNormal => super::M18_GAMEPLAY_VERSION,
             Self::PeaceWithoutInterruption => super::M17_GAMEPLAY_VERSION,
             Self::FreedomOfMovement => super::M16_GAMEPLAY_VERSION,
@@ -165,7 +169,7 @@ impl MissionId {
     }
     /// Playable campaign stages in progression order. Pending destinations are
     /// strings in saved exits until their actual mission is implemented.
-    pub const ALL: [Self; 18] = [
+    pub const ALL: [Self; 20] = [
         Self::RecallNotice,
         Self::PersonsUnknown,
         Self::ScheduledService,
@@ -184,6 +188,8 @@ impl MissionId {
         Self::FreedomOfMovement,
         Self::PeaceWithoutInterruption,
         Self::AllSystemsNormal,
+        Self::PlannedWorks,
+        Self::LocalException,
     ];
 }
 
@@ -615,6 +621,12 @@ pub struct MissionState {
     pub changed_at: u64,
     pub party: Vec<MissionMember>,
     pub prompts: Vec<InteractionPrompt>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m20: Option<super::M20ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub m02: Option<M02ObjectiveState>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -681,10 +693,32 @@ pub struct MissionState {
         skip_serializing_if = "Option::is_none"
     )]
     pub m18: Option<super::M18ObjectiveState>,
+    #[serde(
+        default,
+        deserialize_with = "super::m11::present",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub m19: Option<super::M19ObjectiveState>,
 }
 
 impl MissionState {
     pub fn validate(&self, tick: u64) -> Result<(), &'static str> {
+        self.validate_with_clock(None, tick)
+    }
+
+    /// Strict validation. Readers that hold the accepted M20 map pass its
+    /// clock so the turn and reprieve ticks are checked against it.
+    pub fn validate_with_clock(
+        &self,
+        m20_clock: Option<(u64, u64, u64)>,
+        tick: u64,
+    ) -> Result<(), &'static str> {
+        if (self.id == MissionId::LocalException) != self.m20.is_some() {
+            return Err("M20 facts require exactly M20 mission");
+        }
+        if (self.id == MissionId::PlannedWorks) != self.m19.is_some() {
+            return Err("M19 facts require exactly M19 mission");
+        }
         if (self.id == MissionId::AllSystemsNormal) != self.m18.is_some() {
             return Err("M18 facts require exactly M18 mission");
         }
@@ -731,6 +765,37 @@ impl MissionState {
             return Err("M04 facts require M04 mission");
         }
         match self.id {
+            MissionId::PlannedWorks => {
+                if self.m02.is_some() || self.m03.is_some() {
+                    return Err("M19 cannot carry earlier mission facts");
+                }
+                let facts = self.m19.as_ref().ok_or("M19 facts missing")?;
+                facts.validate(self.phase, tick)?;
+                if facts.brief_completed != facts.challenges.brief_completed(self.rules.difficulty)
+                {
+                    return Err("M19 brief completion disagrees with difficulty");
+                }
+            }
+            MissionId::LocalException => {
+                if self.m02.is_some()
+                    || self.m03.is_some()
+                    || self.m04.is_some()
+                    || self.m05.is_some()
+                    || self.m06.is_some()
+                    || self.m07.is_some()
+                    || self.m08.is_some()
+                    || self.m09.is_some()
+                    || self.m10.is_some()
+                {
+                    return Err("M20 cannot carry earlier mission facts");
+                }
+                let facts = self.m20.as_ref().ok_or("M20 facts missing")?;
+                facts.validate(m20_clock, self.phase, tick)?;
+                if facts.brief_completed != facts.challenges.brief_completed(self.rules.difficulty)
+                {
+                    return Err("M20 brief completion disagrees with difficulty");
+                }
+            }
             MissionId::AllSystemsNormal => {
                 if self.m02.is_some() || self.m03.is_some() {
                     return Err("M18 cannot carry earlier mission facts");
@@ -889,14 +954,22 @@ impl MissionState {
                         && self.party.iter().all(|p| p.alive && p.aboard)
                 }
                 MissionPhase::InProgress => {
-                    (self.id == MissionId::CivicPressureValve
+                    (self.id == MissionId::LocalException
                         && prompt.kind == InteractionKind::ObjectiveUse
-                        && self.m15.as_ref().is_some_and(|f| {
-                            matches!(f.completed.len(), 0 | 4)
-                                || f.completed.len() == 6
-                                    && !self.party.is_empty()
-                                    && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                        && self.m20.as_ref().is_some_and(|f| {
+                            f.completed.len() == super::M20_OBJECTIVE_IDS.len()
+                                && f.gate_open
+                                && !self.party.is_empty()
+                                && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
                         }))
+                        || (self.id == MissionId::CivicPressureValve
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m15.as_ref().is_some_and(|f| {
+                                matches!(f.completed.len(), 0 | 4)
+                                    || f.completed.len() == 6
+                                        && !self.party.is_empty()
+                                        && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                            }))
                         || (self.id == MissionId::FreedomOfMovement
                             && prompt.kind == InteractionKind::ObjectiveUse
                             && self.m16.as_ref().is_some_and(|f| {
@@ -914,6 +987,18 @@ impl MissionState {
                                     || f.completed.len() == 6
                                         && !self.party.is_empty()
                                         && self.party.iter().all(|p| p.alive && p.ready && p.aboard)
+                            }))
+                        || (self.id == MissionId::PlannedWorks
+                            && prompt.kind == InteractionKind::ObjectiveUse
+                            && self.m19.as_ref().is_some_and(|f| {
+                                let count = f.completed.len();
+                                (count == 0 && !f.jetpack_taken)
+                                    || (count == super::M19_OBJECTIVE_IDS.len()
+                                        && !self.party.is_empty()
+                                        && self
+                                            .party
+                                            .iter()
+                                            .all(|p| p.alive && p.ready && p.aboard))
                             }))
                         || (self.id == MissionId::AllSystemsNormal
                             && prompt.kind == InteractionKind::ObjectiveUse
@@ -1214,6 +1299,7 @@ mod m02_wire_tests {
 
     fn state() -> MissionState {
         MissionState {
+            m20: None,
             id: MissionId::PersonsUnknown,
             run: None,
             rules: CampaignRules::default(),
@@ -1244,6 +1330,7 @@ mod m02_wire_tests {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
             m02: Some(M02ObjectiveState {
                 completed: vec!["ward_reached".into()],
                 total: 3,

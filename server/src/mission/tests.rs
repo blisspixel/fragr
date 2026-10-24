@@ -313,12 +313,13 @@ fn use_requires_live_participant_range_aim_and_clear_sight() {
                 player.respawn_timer = Some(50);
             }
             "npc" => {
-                player.campaign = Some(CampaignActor::Union {
+                player.campaign = Some(CampaignActor::Hostile {
                     kind: crate::protocol::EnemyKind::Clerk,
                     phase: crate::protocol::EnemyPhase::Idle,
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    control: Default::default(),
                 })
             }
             _ => unreachable!(),
@@ -900,12 +901,13 @@ fn target_filter_preserves_mission_route_through_inventory_and_steering() {
     let target = Uuid::new_v4();
     let mut guard = snapshot.players[0].clone();
     guard.id = target;
-    guard.campaign = Some(CampaignActor::Union {
+    guard.campaign = Some(CampaignActor::Hostile {
         kind: EnemyKind::Clerk,
         phase: EnemyPhase::Idle,
         phase_started: 0,
         phase_ends: 0,
         seated: false,
+        control: Default::default(),
     });
     guard.x = 4.0;
     snapshot.players.push(guard);

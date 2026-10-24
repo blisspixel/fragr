@@ -77,6 +77,7 @@ func _run() -> void:
 		var other: Dictionary = _actor()
 		other["campaign"]["kind"] = kind
 		_check(ActorState.validation_error({"tick": 12, "players": [other]}).is_empty(), "accept Union kind " + kind)
+	_inheritance_side()
 	var participants: Array[Dictionary] = ActorState.participants(snapshot["players"])
 	_check(participants.size() == 2 and participants[0]["id"] == "human" and participants[1]["id"] == "agent", "only participants belong to the scoreboard and camera roster")
 	_check(ActorState.is_participant({"id": "arcade"}), "legacy arcade roster preserved")
@@ -84,7 +85,7 @@ func _run() -> void:
 		"yaw": 0.0, "hp": 100, "weapon": "Tack", "just_fired": false,
 		"campaign": {"side": "companion", "kind": "latch", "phase": "releasing", "phase_started": 10}}
 	snapshot["players"].append(latch)
-	_check(ActorState.validation_error(snapshot).is_empty() and ActorState.is_companion(latch) and not ActorState.is_union(latch),
+	_check(ActorState.validation_error(snapshot).is_empty() and ActorState.is_companion(latch) and not ActorState.is_hostile(latch),
 		"one server-owned Latch identity and spatial pawn are accepted")
 	_check(ActorState.participants(snapshot["players"]).size() == 2, "Latch never enters participant roster")
 	_check(not ActorState.validation_error({"tick": 12, "players": [latch, latch.duplicate(true)]}).is_empty(),
@@ -183,3 +184,64 @@ func _run() -> void:
 	if _failures == 0:
 		print("test_actor_state: PASS")
 	quit(0 if _failures == 0 else 1)
+
+func _inheritance(control: Variant, kind: String) -> Dictionary:
+	var campaign: Dictionary = {"side": "inheritance", "kind": kind, "phase": "windup", "phase_started": 10, "phase_ends": 22}
+	if control != null:
+		campaign["control"] = control
+	return {"id": kind, "name": kind, "hp": 60, "weapon": "Fists" if kind == "paver" else "Flechette", "campaign": campaign}
+
+## The Inheritance names its control domain, and the domain must fit the body.
+func _inheritance_side() -> void:
+	for kind: String in ["sweeper", "heavy_sweeper", "notary", "crawler"]:
+		var absorbed: Dictionary = _inheritance("absorbed", kind)
+		_check(ActorState.validation_error({"tick": 12, "players": [absorbed]}).is_empty(), "accept absorbed " + kind)
+		_check(ActorState.is_hostile(absorbed) and ActorState.control(absorbed["campaign"]) == "absorbed",
+			"an absorbed bot is hostile and names its control")
+	var paver: Dictionary = _inheritance("restoration", "paver")
+	_check(ActorState.validation_error({"tick": 12, "players": [paver]}).is_empty() and ActorState.control(paver["campaign"]) == "restoration",
+		"accept a restoration Paver")
+	_check(ActorState.control(_actor()["campaign"]) == "union" and ActorState.control({"side": "participant"}) == "",
+		"the Union is its own control; participants have none")
+	for bad: Dictionary in [_inheritance("absorbed", "clerk"), _inheritance("absorbed", "paver"),
+			_inheritance("restoration", "sweeper"), _inheritance("union", "sweeper"), _inheritance(null, "sweeper")]:
+		_check(not ActorState.validation_error({"tick": 12, "players": [bad]}).is_empty(),
+			"refuse a control that does not fit: " + str(bad["campaign"]))
+	var seated: Dictionary = _inheritance("absorbed", "sweeper")
+	seated["campaign"]["seated"] = true
+	_check(not ActorState.validation_error({"tick": 12, "players": [seated]}).is_empty(), "an absorbed bot is never seated")
+	var union_paver: Dictionary = paver.duplicate(true)
+	union_paver["campaign"]["side"] = "union"
+	union_paver["campaign"].erase("control")
+	_check(not ActorState.validation_error({"tick": 12, "players": [union_paver]}).is_empty(), "a Paver is never the Union's")
+	# Absorption changes the light and the timing, never the chassis.
+	var pawn: Node3D = Node3D.new()
+	var body: Sprite3D = Sprite3D.new()
+	pawn.add_child(body)
+	var sweeper: Dictionary = _inheritance("absorbed", "sweeper")
+	var view: EnemyView = EnemyView.new()
+	view.update(sweeper, 12, body)
+	var material: ShaderMaterial = body.material_override as ShaderMaterial
+	_check(view.absorbed and material != null and is_equal_approx(float(material.get_shader_parameter("absorbed")), 1.0)
+		and body.texture == load(EnemyView.atlas_path("sweeper")), "an absorbed Sweeper keeps its atlas with the dead-optics light")
+	var union_body: Sprite3D = Sprite3D.new()
+	pawn.add_child(union_body)
+	var union_view: EnemyView = EnemyView.new()
+	var union_state: Dictionary = _actor()
+	union_state["weapon"] = "Tack"
+	union_view.update(union_state, 12, union_body)
+	_check(not union_view.absorbed and is_zero_approx(float((union_body.material_override as ShaderMaterial).get_shader_parameter("absorbed"))),
+		"a Union body keeps its red optics")
+	var resting: float = EnemyView.work_energy({"phase": "idle", "phase_started": 0, "phase_ends": 0}, 0.0, 12, 0.0)
+	var tell_start: float = EnemyView.work_energy(sweeper["campaign"], 0.0, 10, 0.0)
+	var tell_peak: float = EnemyView.work_energy(sweeper["campaign"], 0.0, 22, 0.0)
+	_check(tell_start < tell_peak and resting < tell_peak and is_zero_approx(EnemyView.work_energy({"phase": "dead"}, 0.0, 12, 0.0)),
+		"the working light swells through the authoritative windup and dies with the body")
+	var other_body: Sprite3D = Sprite3D.new()
+	pawn.add_child(other_body)
+	var other: EnemyView = EnemyView.new()
+	other.update(_inheritance("absorbed", "sweeper"), 12, other_body)
+	view.elapsed = 0.03
+	other.elapsed = 0.03
+	_check(is_equal_approx(view.shared_travel(), other.shared_travel()), "absorbed bots step on one shared beat")
+	pawn.free()

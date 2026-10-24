@@ -89,6 +89,7 @@ impl RunDocumentBeforeAvenue {
             m16_outcome: None,
             m17_outcome: None,
             m18_outcome: None,
+            m19_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 15 {
             return Err("M16 was not supported before version 20");

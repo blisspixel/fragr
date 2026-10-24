@@ -127,6 +127,7 @@ impl GameState {
             }
         }
         Some(MissionState {
+            m20: None,
             id: MissionId::AllSystemsNormal,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,
@@ -161,6 +162,7 @@ impl GameState {
                 concourse_secured: p.concourse_secured,
                 brief_completed: p.challenges.brief_completed(run.rules.difficulty),
             }),
+            m19: None,
         })
     }
 

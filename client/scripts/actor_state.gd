@@ -2,13 +2,31 @@ class_name ActorState
 extends RefCounted
 
 ## Campaign identity comes from the server, never a callsign or control role.
-const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor", "assessor"]
+const KINDS: Array[String] = ["clerk", "sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "auditor", "ranged_sweeper", "enforcer", "redactor", "assessor", "paver", "surveyor"]
 const PHASES: Array[String] = ["idle", "moving", "windup", "leaping", "firing", "recovery", "hit", "dead", "channeling", "charging"]
 const COMPANION_PHASES: Array[String] = ["releasing", "following", "firing"]
+## Union bots and equipment: the only bodies the Inheritance absorbs. Union
+## people are never absorbed; only restoration machines are restoration.
+const MACHINE_KINDS: Array[String] = ["sweeper", "heavy_sweeper", "turret", "crawler", "jammer", "notary", "ranged_sweeper", "assessor"]
+const RESTORATION_KINDS: Array[String] = ["paver", "surveyor"]
+## Hostile wire sides: the Union, and the Inheritance with its control domain.
+const HOSTILE_SIDES: Array[String] = ["union", "inheritance"]
 
-static func is_union(actor: Dictionary) -> bool:
+## A hostile campaign body, whoever commands it.
+static func is_hostile(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
-	return campaign is Dictionary and campaign.get("side") == "union"
+	return campaign is Dictionary and campaign.get("side") is String and campaign["side"] in HOSTILE_SIDES
+
+## Who commands a hostile body: "union", "absorbed" or "restoration"; empty
+## for anyone else. Body kind never decides it.
+static func control(campaign: Variant) -> String:
+	if not campaign is Dictionary:
+		return ""
+	if campaign.get("side") == "union":
+		return "union"
+	if campaign.get("side") == "inheritance" and campaign.get("control") in ["absorbed", "restoration"]:
+		return str(campaign["control"])
+	return ""
 
 static func is_companion(actor: Dictionary) -> bool:
 	var campaign: Variant = actor.get("campaign")
@@ -88,11 +106,18 @@ static func validation_error(snapshot: Dictionary) -> String:
 				if not (coordinate is int or coordinate is float) or not is_finite(float(coordinate)):
 					return INVALID
 			continue
-		if campaign["side"] != "union" or campaign.size() not in [5, 6] \
+		if not campaign["side"] in HOSTILE_SIDES or campaign.size() not in [5, 6] \
 			or not campaign.get("kind") is String or campaign["kind"] not in KINDS \
 			or not campaign.get("phase") is String or campaign["phase"] not in PHASES:
 			return INVALID
-		if campaign.size() == 6 and not campaign.has("seated"):
+		if campaign["side"] == "union" and ((campaign.size() == 6 and not campaign.has("seated")) \
+				or campaign["kind"] in RESTORATION_KINDS):
+			return INVALID
+		# The Inheritance names its control domain, which must fit the body:
+		# absorbed Union machines and restoration machines, never people.
+		if campaign["side"] == "inheritance" and (campaign.size() != 6 \
+				or not (campaign.get("control") == "absorbed" and campaign["kind"] in MACHINE_KINDS) \
+				and not (campaign.get("control") == "restoration" and campaign["kind"] in RESTORATION_KINDS)):
 			return INVALID
 		# Only an Auditor holds a repair channel.
 		if campaign["phase"] == "channeling" and campaign["kind"] != "auditor":
@@ -102,6 +127,12 @@ static func validation_error(snapshot: Dictionary) -> String:
 		if campaign["kind"] == "redactor" and campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"]:
 			return INVALID
 		if campaign["kind"] == "assessor" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
+			return INVALID
+		# A Paver prepares (windup) and works (firing) a strip; it never fires a gun.
+		if campaign["kind"] == "paver" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
+			return INVALID
+		# The Surveyor never fires: its "firing" phase is the projected disc.
+		if campaign["kind"] == "surveyor" and (campaign["phase"] not in ["idle", "moving", "windup", "firing", "recovery", "hit", "dead"] or actor.get("weapon") != "Fists"):
 			return INVALID
 		if campaign.has("seated") and (campaign.size() != 6 \
 			or typeof(campaign["seated"]) != TYPE_BOOL or campaign["seated"] != true \
@@ -122,6 +153,10 @@ static func validation_error(snapshot: Dictionary) -> String:
 		if (campaign["phase"] == "dead") != (float(health) <= 0.0):
 			return INVALID
 		if campaign["kind"] == "assessor" and float(health) > 240.0:
+			return INVALID
+		if campaign["kind"] == "paver" and float(health) > 220.0:
+			return INVALID
+		if campaign["kind"] == "surveyor" and float(health) > 90.0:
 			return INVALID
 	return ""
 

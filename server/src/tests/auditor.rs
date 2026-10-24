@@ -61,14 +61,14 @@ fn body(session: &GameSession, id: Uuid) -> Option<&crate::sim::Player> {
 
 fn phase(session: &GameSession, id: Uuid) -> EnemyPhase {
     match body(session, id).unwrap().campaign.unwrap() {
-        CampaignActor::Union { phase, .. } => phase,
+        CampaignActor::Hostile { phase, .. } => phase,
         _ => panic!("expected Union actor"),
     }
 }
 
 fn window(session: &GameSession, id: Uuid) -> (u64, u64) {
     match body(session, id).unwrap().campaign.unwrap() {
-        CampaignActor::Union {
+        CampaignActor::Hostile {
             phase_started,
             phase_ends,
             ..
@@ -163,12 +163,13 @@ fn auditor_body_and_timing_rows_are_part_of_rules_revision_three() {
         WeaponType::Tack
     );
     assert_eq!(
-        crate::encounters::gait(Some(CampaignActor::Union {
+        crate::encounters::gait(Some(CampaignActor::Hostile {
             kind: EnemyKind::Auditor,
             phase: EnemyPhase::Moving,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         })),
         0.4
     );

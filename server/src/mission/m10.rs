@@ -96,6 +96,7 @@ impl GameState {
         };
         let solo = run.solo.as_ref();
         Some(MissionState {
+            m20: None,
             m07: None,
             m08: None,
             id: MissionId::CommonCarrier,
@@ -120,6 +121,7 @@ impl GameState {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
             m10: Some(M10ObjectiveState {
                 completed,
                 current,

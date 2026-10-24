@@ -180,7 +180,7 @@ impl GameState {
                             && p.hp <= 0
                             && matches!(
                                 p.campaign,
-                                Some(CampaignActor::Union {
+                                Some(CampaignActor::Hostile {
                                     kind: crate::protocol::EnemyKind::Clerk,
                                     ..
                                 })
@@ -278,6 +278,7 @@ impl GameState {
             Vec::new()
         };
         Some(MissionState {
+            m20: None,
             id: MissionId::TermsOfCooperation,
             run: run.solo.as_ref().map(|s| s.state),
             rules: run.rules,
@@ -308,6 +309,7 @@ impl GameState {
             m16: None,
             m17: None,
             m18: None,
+            m19: None,
         })
     }
     /// Materialize prepared aid jeeps atomically, only when their parked footprints are currently empty.

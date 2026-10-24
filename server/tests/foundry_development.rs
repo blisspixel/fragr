@@ -405,7 +405,7 @@ fn advance(
             .filter(|p| {
                 p.hp > 0
                     && required.contains(&p.name)
-                    && matches!(p.campaign, Some(CampaignActor::Union { .. }))
+                    && matches!(p.campaign, Some(CampaignActor::Hostile { .. }))
             })
             .collect();
         let aim = |target: &fragr_server::protocol::PlayerState| {
@@ -629,7 +629,7 @@ fn foundry_finite_human_magazines_clear_ordered_guards_and_party_reset_restores_
                 assert!(
                     matches!(
                         player.campaign,
-                        Some(CampaignActor::Union {
+                        Some(CampaignActor::Hostile {
                             phase: EnemyPhase::Idle,
                             ..
                         })

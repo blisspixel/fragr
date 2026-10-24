@@ -249,7 +249,7 @@ fn a_pending_reader_cannot_trigger_loot_or_become_an_enemy_target() {
         .filter(|p| p.is_campaign_enemy())
         .all(|p| matches!(
             p.campaign,
-            Some(crate::protocol::CampaignActor::Union {
+            Some(crate::protocol::CampaignActor::Hostile {
                 phase: crate::protocol::EnemyPhase::Idle,
                 ..
             })

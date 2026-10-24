@@ -675,7 +675,7 @@ fn m07_seeded_rack_sniper_takes_the_lesson_from_the_step_and_the_arrival_counts(
                 .iter()
                 .find(|p| p.id == marksman)
                 .and_then(|p| p.campaign),
-            Some(crate::protocol::CampaignActor::Union {
+            Some(crate::protocol::CampaignActor::Hostile {
                 phase: crate::protocol::EnemyPhase::Windup,
                 ..
             })

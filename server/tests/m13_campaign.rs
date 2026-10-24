@@ -141,7 +141,7 @@ impl Attempt {
             .unwrap_or_else(|e| panic!("{label} tick {}: {e}", state.tick));
         let snapshot = state.snapshot();
         for p in &snapshot.players {
-            if p.hp <= 0 && matches!(p.campaign, Some(CampaignActor::Union { .. })) {
+            if p.hp <= 0 && matches!(p.campaign, Some(CampaignActor::Hostile { .. })) {
                 self.killed.insert(p.name.clone());
             }
         }
@@ -172,7 +172,7 @@ impl Attempt {
                     .filter(|hit| {
                         snapshot.players.iter().any(|p| {
                             p.id == hit.target_id
-                                && matches!(p.campaign, Some(CampaignActor::Union { .. }))
+                                && matches!(p.campaign, Some(CampaignActor::Hostile { .. }))
                         })
                     })
                     .map(|hit| u64::from(hit.hp_damage) + u64::from(hit.armor_damage))
@@ -217,7 +217,7 @@ impl Attempt {
             snapshot.players.iter().find(|p| p.id == self.id),
             self.rocket_effective_damage,
             snapshot.shot_results,
-            snapshot.players.iter().filter(|p| p.hp > 0 && matches!(p.campaign, Some(CampaignActor::Union { .. }))).collect::<Vec<_>>()
+            snapshot.players.iter().filter(|p| p.hp > 0 && matches!(p.campaign, Some(CampaignActor::Hostile { .. }))).collect::<Vec<_>>()
         );
         let feet_y = me.y - PLAYER_FLOOR_Y;
         assert!(
@@ -302,7 +302,7 @@ impl Attempt {
                         p.hp > 0
                             && matches!(
                                 p.campaign,
-                                Some(CampaignActor::Union {
+                                Some(CampaignActor::Hostile {
                                     phase: EnemyPhase::Windup
                                         | EnemyPhase::Leaping
                                         | EnemyPhase::Firing,
@@ -317,7 +317,7 @@ impl Attempt {
                             .total_cmp(&(b.x - me.x).hypot(b.z - me.z))
                     });
                 let mut evade = false;
-                if let Some(CampaignActor::Union { phase_started, .. }) =
+                if let Some(CampaignActor::Hostile { phase_started, .. }) =
                     tell.and_then(|p| p.campaign)
                 {
                     if evade_started != Some(phase_started) {

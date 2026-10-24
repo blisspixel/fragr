@@ -582,14 +582,38 @@ versions are 51, 52, 53 and 54 respectively, including spectators. Rejection
 retains the server's reason in `connection_error`, without a pending join.
 These missions keep the same readiness, action and continue tools. Saved runs
 refill continues only when entering M15 (Episode IV) and M18 (Episode V).
-The M19 destination remains pending and unplayable.
+
+Connected M19 uses `planned_works` (minimum gameplay 55). `observe.map.m19`
+binds eight ordered objectives, the coalition stores and waterworks controls,
+the jetpack ceiling, authored jetpack hops and the presentation-only Latch
+route and work marks; `gate_open` flips with the prepared open world.
+`observe.snapshot.jetpacks` reports each worn pack's fuel and thrust, and
+`observe.snapshot.paver_strips` each marked strip with its owner, origin,
+yaw, length, half width, phase window and whether it is being worked. The
+shared controller steps out of a strip before it is worked, prefers a Paver
+preparing its strip over a nearer target, and flies an authored hop only with
+enough fuel; the walking route always remains. Completing M19 promotes into
+`local_exception`.
+
+Connected M20 uses `local_exception` (minimum gameplay 56). `observe.map.m20`
+binds the five ordered arrivals, the refuge gate, the refuge line and the hold
+clock; `observe.mission.m20` reports the crew, quay arrival, barricade, display,
+reprieve, Latch and gate. `observe.snapshot.surveyor_marks` lists live Surveyor
+discs. Every hostile body in M20 observes as `side: "inheritance"`: Surveyors
+and Pavers with `control: "restoration"`, every other machine with
+`control: "absorbed"`; nothing in the finale answers the Union. The shared controller holds each objective, finds a sightline on a
+Surveyor its lesson is waiting on, fights back to its pier post rather than
+chasing, keeps a gun that reaches its target, detours to pier crates it needs
+(further when nearly dry) and leaves through the refuge gate once it opens. The scripted bot binds
+the same geometry. Completing M20 records the campaign's survival with the
+epilogue destination `still_here` pending.
 
 ### `mission_continue`
 
 In a solo run, `observe.mission.run` reports its UUID, status, remaining
 continues and `level_start_continues`. Only its dead owner in `continue`
 status can request a mission-start retry using the observed mission ID, run ID
-and attempt. This applies to all built saved campaign missions through M18:
+and attempt. This applies to all built saved campaign missions through M19:
 
 ```json
 {"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"mission_continue","arguments":{"id":"recall_notice","run_id":"550e8400-e29b-41d4-a716-446655440000","attempt":1}}}
@@ -807,6 +831,11 @@ fire fields. They add no mission readiness or campaign progression operation.
 `releasing`, `following`, and `firing` phases describe a server-owned ally, not
 an MCP seat or an action target. It appears in `observe` for late observers,
 but does not collect supplies or count toward the party or departure.
+`side: inheritance` (capability 55) is equally hostile and always names its
+`control`: `absorbed` for a former Union bot that keeps its chassis and learned
+attacks, `restoration` for a restoration machine such as the `paver`. The
+brief `observe` threat token reads `inheritance:absorbed/<kind>/<phase>` or
+`inheritance:restoration/<kind>/<phase>`.
 `side: union` identifies Clerk humans, Sweeper and Heavy Sweeper bots, fixed
 Turrets, low Crawlers, stationary Jammers and stationary marksman Ranged
 Sweepers (`kind`: `clerk`, `sweeper`, `heavy_sweeper`, `turret`, `crawler`,

@@ -215,6 +215,13 @@ impl GameState {
             .collect()
     }
 
+    /// A terminal reprieve ends every hostile attack still in flight: launched
+    /// pulses and canisters. Participants keep their own devices.
+    pub(crate) fn clear_hostile_projectiles(&mut self) {
+        self.traveling_shots.clear();
+        self.assessor_canisters.clear();
+    }
+
     pub(crate) fn clear_traveling_shots(&mut self) {
         self.clear_grenades();
         self.clear_mines();

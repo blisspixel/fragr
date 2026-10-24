@@ -186,7 +186,7 @@ func _run() -> void:
 	await process_frame
 	_check(hud._evac_badge.get_line_count()>1 and hud._evac_badge.position.x+hud._evac_badge.size.x<=hud.get_viewport_rect().size.x-23.0,"worker choices wrap inside the actual HUD width instead of clipping at the right edge")
 	hud.queue_free()
-	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M13_ID)==47 and LocalMatch.NEXT_MISSION=="planned_works" and StoryScene.exists("m13_arrival"),"frontend capability and built boundary agree")
+	_check(LocalMatch.MISSION_GAMEPLAY.get(MissionState.M13_ID)==47 and LocalMatch.CAMPAIGN_COMPLETE=="still_here" and StoryScene.exists("m13_arrival"),"frontend capability and built boundary agree")
 	_check(not LocalMatch.parse_run_preview('{"status":"ready","mission":"weight_of_permission","difficulty":"standard","continues":2,"attempt":1,"pending_continue":false,"body":null}'.to_ascii_buffer()).is_empty(),"saved foundry preview accepted without refill assumption")
 	_check(not LocalMatch.parse_run_preview('{"status":"ready","mission":"launch_authority","difficulty":"standard","continues":2,"attempt":1,"pending_continue":false,"body":null}'.to_ascii_buffer()).is_empty(),"completed foundry opens the built launch works")
 	await process_frame

@@ -8,14 +8,19 @@ use std::f32::consts::{PI, TAU};
 use uuid::Uuid;
 mod assessor;
 mod enforcer;
+pub(crate) mod paver;
 mod redactor;
 mod spine_patrol;
+pub(crate) mod surveyor;
 pub(crate) use enforcer::{CHARGE_DAMAGE, CHARGE_SHOVE};
 
 /// Damage from one tick at or above this staggers an armored body. A Rail hit,
 /// a close Scatter blast or several pellets landing together qualify; a single
 /// pistol, rifle or fist hit does not.
 pub(crate) const STAGGER_DAMAGE: i32 = 40;
+/// At the reprieve every machine stops where it stands for 2.5 s before it
+/// walks on to the next district.
+pub(crate) const STAND_DOWN_HOLD: u64 = 50;
 /// Sight distance shared by walking enemies. Tick memory is `pursuit_memory`.
 const SIGHT_RANGE: f32 = 32.0;
 const ENGAGE_RANGE: f32 = 24.0;
@@ -102,6 +107,8 @@ pub(crate) fn body(kind: EnemyKind) -> (i32, WeaponType) {
         EnemyKind::Enforcer => (140, WeaponType::Fists),
         EnemyKind::Redactor => (90, WeaponType::Shiv),
         EnemyKind::Assessor => (240, WeaponType::Fists),
+        EnemyKind::Paver => (220, WeaponType::Fists),
+        EnemyKind::Surveyor => (90, WeaponType::Fists),
     }
 }
 
@@ -114,11 +121,13 @@ pub(crate) fn gait(kind: EnemyKind) -> f32 {
         | EnemyKind::Jammer
         | EnemyKind::Notary
         | EnemyKind::RangedSweeper
-        | EnemyKind::Assessor => 0.0,
+        | EnemyKind::Assessor
+        | EnemyKind::Surveyor => 0.0,
         EnemyKind::Crawler => 0.7,
         EnemyKind::Auditor => 0.4,
         EnemyKind::Enforcer => 0.45,
         EnemyKind::Redactor => 0.6,
+        EnemyKind::Paver => 0.28,
     }
 }
 
@@ -131,7 +140,9 @@ fn burst(kind: EnemyKind) -> u8 {
         | EnemyKind::Jammer
         | EnemyKind::Auditor
         | EnemyKind::RangedSweeper
-        | EnemyKind::Redactor => 1,
+        | EnemyKind::Redactor
+        | EnemyKind::Paver
+        | EnemyKind::Surveyor => 1,
         EnemyKind::Enforcer => 1,
         EnemyKind::Sweeper | EnemyKind::Notary | EnemyKind::Assessor => 3,
         EnemyKind::HeavySweeper => 4,
@@ -153,13 +164,20 @@ fn stun(kind: EnemyKind) -> u64 {
         EnemyKind::Enforcer => 16,
         EnemyKind::Turret => 10,
         EnemyKind::Assessor => 16,
+        EnemyKind::Paver => 16,
+        EnemyKind::Surveyor => surveyor::LENS_STAGGER_TICKS,
     }
 }
 
 fn armored(kind: EnemyKind) -> bool {
     matches!(
         kind,
-        EnemyKind::HeavySweeper | EnemyKind::Turret | EnemyKind::Enforcer | EnemyKind::Assessor
+        EnemyKind::HeavySweeper
+            | EnemyKind::Turret
+            | EnemyKind::Enforcer
+            | EnemyKind::Assessor
+            | EnemyKind::Paver
+            | EnemyKind::Surveyor
     )
 }
 
@@ -231,6 +249,27 @@ pub(super) struct EnemyController {
     redactor_approached: bool,
     /// Only the authored tender's three-Clerk file, before combat is noticed.
     spine_march: Option<spine_patrol::SpineMarch>,
+    /// Paver only: the strip fixed when its preparation began.
+    paver_strip: Option<paver::Strip>,
+    /// Paver only: damage landed on the body during the current preparation.
+    prep_damage: i32,
+    /// Paver only: preparations put out by damage, for mission receipts.
+    paver_interruptions: u32,
+    /// Who commands this body, from its authored placement.
+    control: crate::protocol::ControlDomain,
+    /// Surveyor only: the projected disc while its lens holds it.
+    mark: Option<surveyor::Mark>,
+    /// Surveyor only: discs that ended by broken sight or a hit before any
+    /// machine reached them, drained by the encounter once per tick.
+    marks_broken: u32,
+    /// Surveyor only: discs cast so far. The first one that ends closes the
+    /// lone lesson window.
+    marks_cast: u32,
+    /// Pressing toward a live Surveyor disc until this tick.
+    converging: Option<([f32; 3], u64)>,
+    /// After the reprieve: the exit this body walks to without attacking.
+    stood_down: Option<[f32; 3]>,
+    stood_down_at: u64,
 }
 
 /// (windup, recovery) ticks. Health, damage, burst length, locked aim and
@@ -272,6 +311,16 @@ pub(crate) fn attack_timing(kind: EnemyKind, difficulty: CampaignDifficulty) -> 
         (EnemyKind::Assessor, CampaignDifficulty::Assisted) => (32, 50),
         (EnemyKind::Assessor, CampaignDifficulty::Standard) => (24, 40),
         (EnemyKind::Assessor, CampaignDifficulty::Severe) => (18, 32),
+        // The Paver's preparation is the whole reaction window: long enough on
+        // Severe to cross a 3.2 m strip or land two interrupting hits.
+        (EnemyKind::Paver, CampaignDifficulty::Assisted) => (44, 50),
+        (EnemyKind::Paver, CampaignDifficulty::Standard) => (34, 40),
+        (EnemyKind::Paver, CampaignDifficulty::Severe) => (28, 32),
+        // The lens opening is the whole tell; recovery is the shutter's
+        // cooldown after a disc. The Surveyor never fires.
+        (EnemyKind::Surveyor, CampaignDifficulty::Assisted) => (48, 70),
+        (EnemyKind::Surveyor, CampaignDifficulty::Standard) => (36, 56),
+        (EnemyKind::Surveyor, CampaignDifficulty::Severe) => (28, 44),
     }
 }
 
@@ -444,16 +493,31 @@ impl EnemyController {
             redactor_approach_until: 0,
             redactor_approached: false,
             spine_march: None,
+            paver_strip: None,
+            prep_damage: 0,
+            paver_interruptions: 0,
+            control: if matches!(kind, EnemyKind::Paver | EnemyKind::Surveyor) {
+                crate::protocol::ControlDomain::Restoration
+            } else {
+                crate::protocol::ControlDomain::Union
+            },
+            mark: None,
+            marks_broken: 0,
+            marks_cast: 0,
+            converging: None,
+            stood_down: None,
+            stood_down_at: 0,
         }
     }
 
     pub fn identity(&self) -> CampaignActor {
-        CampaignActor::Union {
+        CampaignActor::Hostile {
             kind: self.kind,
             phase: self.phase,
             phase_started: self.started,
             phase_ends: self.until,
             seated: self.seated,
+            control: self.control,
         }
     }
 
@@ -483,6 +547,84 @@ impl EnemyController {
         self.search_until = tick.saturating_add(600);
     }
 
+    /// Pressure toward a point on the refuge line. The point becomes this
+    /// body's post, so a chase that loses its quarry walks back to the line.
+    pub(super) fn march(&mut self, point: [f32; 3], tick: u64) {
+        self.home = point;
+        self.alarmed = true;
+        self.chased = true;
+        if self.target.is_none() {
+            self.last_known = point;
+            self.search_until = tick.saturating_add(POST_RETURN_TICKS * 6);
+        }
+    }
+
+    pub(super) fn marching_to(&self) -> [f32; 3] {
+        self.home
+    }
+
+    /// The reprieve: stop every attack, close any disc, stand still for
+    /// [`STAND_DOWN_HOLD`] and then walk to `exit`.
+    pub(super) fn stand_down(&mut self, exit: [f32; 3], tick: u64) {
+        if self.stood_down.is_some() {
+            return;
+        }
+        self.end_mark(surveyor::MarkEnd::Expired);
+        self.stood_down = Some(exit);
+        self.stood_down_at = tick;
+        self.converging = None;
+        self.target = None;
+        self.shots_left = 0;
+        self.photograph_pending = None;
+        self.canister_target = None;
+        self.channel_target = None;
+        self.spine_march = None;
+        if self.phase != EnemyPhase::Dead {
+            self.enter(EnemyPhase::Idle, tick, STAND_DOWN_HOLD);
+        }
+    }
+
+    pub(super) fn stood_down(&self) -> Option<(u64, [f32; 3])> {
+        self.stood_down.map(|exit| (self.stood_down_at, exit))
+    }
+
+    fn walk_off(
+        &mut self,
+        exit: [f32; 3],
+        me: &crate::protocol::PlayerState,
+        tick: u64,
+    ) -> BotIntent {
+        if self.phase == EnemyPhase::Dead || gait(self.kind) <= 0.0 {
+            return BotIntent::default();
+        }
+        if matches!(self.phase, EnemyPhase::Hit) && tick < self.until {
+            return BotIntent::default();
+        }
+        // Every machine stops where it stands first; only then does the
+        // work go around the line and on.
+        if tick < self.stood_down_at.saturating_add(STAND_DOWN_HOLD) {
+            if self.phase != EnemyPhase::Idle {
+                self.enter(EnemyPhase::Idle, tick, 0);
+            }
+            return BotIntent::default();
+        }
+        if self.phase != EnemyPhase::Moving {
+            self.enter(EnemyPhase::Moving, tick, 0);
+        }
+        let feet = [me.x, me.y - PLAYER_FLOOR_Y, me.z];
+        BotIntent {
+            action: Action {
+                forward: true,
+                yaw: Some((exit[2] - feet[2]).atan2(exit[0] - feet[0])),
+                ..Default::default()
+            },
+            goal: Some(NavigationGoal {
+                feet: exit,
+                combat: false,
+            }),
+        }
+    }
+
     fn enter(&mut self, phase: EnemyPhase, tick: u64, duration: u64) {
         self.phase = phase;
         self.started = tick;
@@ -504,9 +646,19 @@ impl EnemyController {
         // Any damaging hit snaps a repair channel.
         self.channel_target = None;
         if died {
+            self.end_mark(surveyor::MarkEnd::Struck);
             self.shots_left = 0;
+            self.paver_strip = None;
             self.enter(EnemyPhase::Dead, tick, 40);
             self.dead_until = self.until;
+        } else if self.kind == EnemyKind::Surveyor {
+            // An open lens is exposed: any hit staggers it and ends the
+            // observation or the disc. A closed shutter shrugs it off.
+            if Self::lens_open(self.phase) {
+                self.end_mark(surveyor::MarkEnd::Struck);
+                self.target = None;
+                self.enter(EnemyPhase::Hit, tick, stun(self.kind));
+            }
         } else if !armored(self.kind) {
             self.shots_left = 0;
             self.enter(EnemyPhase::Hit, tick, stun(self.kind));
@@ -535,11 +687,17 @@ impl EnemyController {
             return BotIntent::default();
         };
         let tick = state.tick.saturating_add(1);
+        if let Some(exit) = self.stood_down {
+            return self.walk_off(exit, me, tick);
+        }
         let (windup, recovery) = attack_timing(self.kind, state.campaign_rules().difficulty);
         let turret = self.kind == EnemyKind::Turret;
         let marksman = self.kind == EnemyKind::RangedSweeper;
+        let surveyor = self.kind == EnemyKind::Surveyor;
         let sight_range = if marksman {
             MARKSMAN_SIGHT_RANGE
+        } else if surveyor {
+            surveyor::SURVEYOR_SIGHT_RANGE
         } else {
             SIGHT_RANGE
         };
@@ -593,6 +751,8 @@ impl EnemyController {
             let bearing = (p.z - me.z).atan2(p.x - me.x);
             if turret {
                 turn(head, bearing).abs() <= TURRET_ACQUIRE_CONE
+            } else if surveyor {
+                turn(head, bearing).abs() <= surveyor::NOTICE_CONE
             } else if marksman {
                 turn(home, bearing).abs() <= MARKSMAN_NOTICE_CONE
             } else {
@@ -638,6 +798,29 @@ impl EnemyController {
         // several pellets or trading shooters add up to one heavy hit.
         let damage = self.last_hp.saturating_sub(me.hp);
         self.last_hp = me.hp;
+        if self.kind == EnemyKind::Paver {
+            let arena = state.current_arena();
+            let grounded = me.hp > 0
+                && state
+                    .players
+                    .iter()
+                    .find(|p| p.id == self.id)
+                    .is_some_and(|p| {
+                        p.vy <= 0.0
+                            && (feet[1] - arena.support_height(feet[0], feet[2], feet[1] + 0.01))
+                                .abs()
+                                <= 0.02
+                    });
+            return self.paver(
+                &arena,
+                target,
+                feet,
+                grounded,
+                damage,
+                (windup, recovery),
+                tick,
+            );
+        }
         if armored(self.kind)
             && damage >= STAGGER_DAMAGE
             && self.stagger_ready
@@ -645,10 +828,14 @@ impl EnemyController {
         {
             self.stagger_ready = false;
             self.shots_left = 0;
+            self.end_mark(surveyor::MarkEnd::Struck);
             self.enter(EnemyPhase::Hit, tick, stun(self.kind));
             return BotIntent::default();
         }
 
+        if surveyor {
+            return self.surveyor(state, target, eye, (windup, recovery), tick);
+        }
         let mut action = Action::default();
         if self.kind == EnemyKind::Enforcer {
             let grounded = state
@@ -851,6 +1038,28 @@ impl EnemyController {
             }
             return BotIntent::default();
         }
+        // A live Surveyor disc pulls this machine in: it presses toward the
+        // marked ground before it plants for an attack, so standing on the
+        // disc brings the fight close and stepping off it leaves them a spot.
+        if let Some((disc, until)) = self.converging {
+            let remaining = (feet[0] - disc[0]).hypot(feet[2] - disc[2]);
+            if tick > until || remaining <= surveyor::ARRIVAL_RADIUS {
+                self.converging = None;
+            } else {
+                if self.phase != EnemyPhase::Moving {
+                    self.enter(EnemyPhase::Moving, tick, 0);
+                }
+                action.forward = true;
+                action.yaw = Some((disc[2] - feet[2]).atan2(disc[0] - feet[0]));
+                return BotIntent {
+                    action,
+                    goal: Some(NavigationGoal {
+                        feet: disc,
+                        combat: true,
+                    }),
+                };
+            }
+        }
         if let Some(target) = target {
             let distance = (target.x - me.x).hypot(target.z - me.z);
             if self.kind == EnemyKind::HeavySweeper && tick < self.reposition_until {
@@ -937,6 +1146,14 @@ impl EnemyController {
     pub(super) fn with_hover(mut self, hover: Option<crate::maps::Hover>) -> Self {
         self.hover = hover;
         self
+    }
+    /// The authored control domain; validation already matched it to the kind.
+    pub(super) fn with_control(mut self, control: crate::protocol::ControlDomain) -> Self {
+        self.control = control;
+        self
+    }
+    pub(super) fn control(&self) -> crate::protocol::ControlDomain {
+        self.control
     }
     pub(super) fn claim_notary_photo_target(&mut self) -> Option<Uuid> {
         self.photograph_pending.take()
@@ -1468,12 +1685,13 @@ mod tests {
             .iter_mut()
             .find(|p| p.id == enemy_id)
             .unwrap()
-            .campaign = Some(CampaignActor::Union {
+            .campaign = Some(CampaignActor::Hostile {
             kind: EnemyKind::Clerk,
             phase: EnemyPhase::Recovery,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         });
         state
             .players
@@ -1632,19 +1850,19 @@ mod tests {
         let mut alarmed = seated();
         assert!(matches!(
             alarmed.identity(),
-            CampaignActor::Union { seated: true, .. }
+            CampaignActor::Hostile { seated: true, .. }
         ));
         alarmed.alarm([1.0, 0.0, 0.0], 1);
         assert!(matches!(
             alarmed.identity(),
-            CampaignActor::Union { seated: false, .. }
+            CampaignActor::Hostile { seated: false, .. }
         ));
 
         let mut struck = seated();
         struck.hit(1, false);
         assert!(matches!(
             struck.identity(),
-            CampaignActor::Union { seated: false, .. }
+            CampaignActor::Hostile { seated: false, .. }
         ));
     }
 
@@ -1698,12 +1916,13 @@ mod tests {
             },
         ));
         state.add_player(enemy_id, "Guard".into(), Role::Agent);
-        let campaign = CampaignActor::Union {
+        let campaign = CampaignActor::Hostile {
             kind,
             phase: EnemyPhase::Idle,
             phase_started: 0,
             phase_ends: 0,
             seated: false,
+            control: Default::default(),
         };
         for (id, x, z, actor) in [
             (player_id, player_x, player_z, CampaignActor::Participant {}),
@@ -1778,12 +1997,13 @@ mod tests {
             (
                 enemy_id,
                 0.0,
-                CampaignActor::Union {
+                CampaignActor::Hostile {
                     kind: EnemyKind::Clerk,
                     phase: EnemyPhase::Idle,
                     phase_started: 0,
                     phase_ends: 0,
                     seated: false,
+                    control: Default::default(),
                 },
             ),
             (player_id, 4.0, CampaignActor::Participant {}),

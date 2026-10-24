@@ -22,9 +22,15 @@ mod m15;
 mod m16;
 mod m17;
 mod m18;
+mod m19;
+mod m20;
 
 #[derive(Debug, Clone, Default)]
 pub struct MissionClient {
+    m20_map: Option<crate::protocol::M20MapGeometry>,
+    m20_point: Option<[f32; 3]>,
+    m20_pending: bool,
+    m20_loadout: Option<crate::protocol::LoadoutState>,
     geometry: Option<MissionGeometry>,
     points: [[f32; 3]; 2],
     m02_map: Option<M02Map>,
@@ -75,6 +81,11 @@ pub struct MissionClient {
     m18_map: Option<crate::protocol::M18MapGeometry>,
     m18_points: Option<[[f32; 3]; 3]>,
     m18_pending: bool,
+    m19_map: Option<crate::protocol::M19MapGeometry>,
+    m19_points: Option<[[f32; 3]; 2]>,
+    m19_solids: Vec<Solid>,
+    m19_pending: bool,
+    m19_hops: m19::HopState,
     m10_map: Option<crate::protocol::M10MapGeometry>,
     m10_point: Option<[f32; 3]>,
     m10_pending: bool,
@@ -417,6 +428,17 @@ impl MissionClient {
                 self.observed = old.observed;
             }
         }
+        if old.m20_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1020
+        {
+            self.m20_map = old.m20_map.clone();
+            self.m20_point = old.m20_point;
+            self.state = old.state.clone();
+            self.last_tick = old.last_tick;
+            self.rules = old.rules;
+            self.run = old.run;
+            self.observed = old.observed;
+            self.m20_pending = true;
+        }
         if old.m17_map.is_some() && mission.is_none() && m02_objectives.is_none() && map_id == 1017
         {
             self.m17_map = old.m17_map.clone();
@@ -568,7 +590,13 @@ impl MissionClient {
         } else {
             None
         };
-        let map_matches = if state.id == MissionId::AllSystemsNormal {
+        let map_matches = if state.id == MissionId::LocalException {
+            self.validate_m20_target(tick, &state)?;
+            true
+        } else if state.id == MissionId::PlannedWorks {
+            self.validate_m19_target(&state)?;
+            true
+        } else if state.id == MissionId::AllSystemsNormal {
             self.validate_m18_target(&state)?;
             true
         } else if state.id == MissionId::PeaceWithoutInterruption {
@@ -660,6 +688,8 @@ impl MissionClient {
         self.m16_pending = false;
         self.m17_pending = false;
         self.m18_pending = false;
+        self.m19_pending = false;
+        self.m20_pending = false;
         self.m02_point = m02_point.flatten();
         self.state = Some(state);
         Ok(())
@@ -766,7 +796,9 @@ impl MissionClient {
             && self.m15_map.is_none()
             && self.m16_map.is_none()
             && self.m17_map.is_none()
-            && self.m18_map.is_none())
+            && self.m18_map.is_none()
+            && self.m19_map.is_none()
+            && self.m20_map.is_none())
             || self.state.as_ref().is_some_and(|state| {
                 state
                     .run
@@ -811,6 +843,7 @@ impl MissionClient {
         action: Action,
         loadout: Option<&crate::protocol::LoadoutState>,
     ) -> Action {
+        self.note_m20_loadout(loadout);
         if self
             .state
             .as_ref()
@@ -909,6 +942,16 @@ impl MissionClient {
                     append(format!("m09/{}", crew.id), crew.feet);
                 }
             }
+            if let Some(f) = &state.m20 {
+                for (index, crew) in f.crew.iter().enumerate() {
+                    if crew.phase != crate::protocol::M20CrewPhase::Arrived {
+                        append(format!("m20/crew/{index}"), crew.feet);
+                    }
+                }
+                if let Some(feet) = f.latch {
+                    append("m20/latch".into(), feet);
+                }
+            }
             if let Some(f) = &state.m13 {
                 for (index, feet) in f.worker_feet.iter().enumerate() {
                     append(format!("m13/worker/{index}"), *feet);
@@ -954,9 +997,25 @@ impl MissionClient {
             || self.m16_pending
             || self.m17_pending
             || self.m18_pending
+            || self.m19_pending
+            || self.m20_pending
         {
             navigator.clear();
             return Action::default();
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::PlannedWorks)
+        {
+            return self.steer_m19(navigator, world, id, snapshot, action);
+        }
+        if self
+            .state
+            .as_ref()
+            .is_some_and(|s| s.id == MissionId::LocalException)
+        {
+            return self.steer_m20(navigator, world, id, snapshot, action);
         }
         if self
             .state

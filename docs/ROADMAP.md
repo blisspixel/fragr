@@ -18,7 +18,7 @@ Scale runs through every phase: small squads first (four to twelve fighters), th
 ## Where we are (2026-10-23)
 
 - **Release.** v0.90.0 is the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest) for Windows, Linux and macOS.
-- **Campaign.** Levels 1 to 18 are connected development missions with mission-entry saves, finite ammunition and three continues per episode. Levels 19 and 20 are grayboxes, not connected missions. Art, pacing and fresh-player review are open on every level.
+- **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves, finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival and leaves the Still Here epilogue pending, unbuilt. Level 19, Planned Works (#429), has its generated jetpack in place and a placeholder Paver; Level 20, Local Exception (#430), uses placeholder Surveyor and Paver forms. Art, pacing and fresh-player review are open on every level.
 - **Multiplayer.** Free-for-all, team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
 - **Honest assessment.** Breadth has outrun depth. Nick's first Windows multiplayer session on v0.90.0 filed #433 to #442: death camera and input carryover, HUD collisions and tilted results, menu focus, silent reloads, buried server output, benchmark UX, music controls and stutter. Green checks did not catch any of it. The build order below fixes that before adding more.
 

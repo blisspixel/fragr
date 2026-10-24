@@ -95,6 +95,7 @@ impl RunDocumentBeforeOffice {
             m16_outcome: self.m16_outcome,
             m17_outcome: None,
             m18_outcome: None,
+            m19_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 16 {
             return Err("M17 was not supported before version 21");

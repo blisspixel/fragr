@@ -5,6 +5,11 @@ const PANEL_SHADER: Shader = preload("res://assets/shaders/facility_panel.gdshad
 const FacilitySource = preload("res://scripts/facility_geometry.gd")
 const BONE: Color = Color("e8e2d6")
 const INK: Color = Color("242c29")
+## Edda's clinic sign with its lamp out: the letters are still there.
+const DARK_SIGN: Color = Color("5d5a52")
+## An old Union works board the seized infrastructure has relit in the
+## Inheritance's muted working cyan.
+const RELIT_SIGN: Color = Color("4a8a92")
 const SIGN_KEYS: Dictionary[String, String] = {
 	"property_sign": "WORLD_PROPERTY_INTAKE", "intake_sign": "WORLD_CIVIC_INTAKE",
 	"records_sign": "WORLD_TRANSFER_RECORDS", "maintenance_sign": "WORLD_SERVICE_ACCESS",
@@ -82,11 +87,30 @@ const SIGN_KEYS: Dictionary[String, String] = {
 	"m07_sniper_rack": "WORLD_M07_SNIPER_RACK",
 	"m07_port_overlook": "WORLD_M07_PORT_OVERLOOK",
 	"m07_depot_freight": "WORLD_M07_DEPOT_FREIGHT",
+	"m19_stores_counter": "WORLD_M19_STORES_COUNTER",
+	"m19_stores_sign": "WORLD_M19_STORES_SIGN",
+	"m19_concourse_board": "WORLD_M19_CONCOURSE_BOARD",
+	"m19_planned_works": "WORLD_M19_PLANNED_WORKS",
+	"m19_clinic_dark": "WORLD_M19_CLINIC_DARK",
+	"m19_tram_vote": "WORLD_M19_TRAM_VOTE",
+	"m19_floating_67": "WORLD_M19_FLOATING_67",
+	"m19_market_board": "WORLD_M19_MARKET_BOARD",
+	"m19_market_six": "WORLD_M19_MARKET_SIX",
+	"m19_water_tank": "WORLD_M19_WATER_TANK",
+	"m19_service_six": "WORLD_M19_SERVICE_SIX",
+	"m19_waterworks": "WORLD_M19_WATERWORKS",
+	"m20_crossing_control": "WORLD_M20_CROSSING_CONTROL",
+	"m20_valve_six": "WORLD_M20_SIX",
+	"m20_lamp_six": "WORLD_M20_SIX",
+	"m20_crane_six": "WORLD_M20_SIX",
+	"m20_refuge_notice": "WORLD_M20_REFUGE_NOTICE",
+	"m20_pump_board": "WORLD_M20_PUMP_BOARD",
+	"m20_tower_bridge": "WORLD_M20_TOWER_BRIDGE",
 }
 
 ## Cosmetic planes only. The host solid remains the sole collision authority.
 ## Faces a mission presenter dresses itself; a plate here would hide them.
-const PRESENTER_ONLY: Array[String] = ["m07_window_figure"]
+const PRESENTER_ONLY: Array[String] = ["m07_window_figure", "m20_harbour_display"]
 
 ## Mission controls share the terminal kind with ordinary counters.
 ## `marked_terminal` is that registered decoration index, or -1.
@@ -125,7 +149,7 @@ static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky
 			var label: WorldSign = WorldSign.new()
 			label.name = "Copy"
 			label.configure(copy_key, size * Vector2(0.86, 0.74),
-				INK if kind == "complaint_notice" else BONE)
+				_copy_color(kind))
 			label.position.z = 0.008
 			panel.add_child(label)
 		if kind == "strip_light":
@@ -133,11 +157,18 @@ static func build(parent: Node3D, solids: Array, details: Array, venue: ArenaSky
 		elif kind == "union_seal" and preset.accent_energy > 0.0:
 			panel.add_child(_seal_lamp(preset))
 
+static func _copy_color(kind: String) -> Color:
+	match kind:
+		"complaint_notice": return INK
+		"m19_clinic_dark": return DARK_SIGN
+		"m19_planned_works": return RELIT_SIGN
+		_: return BONE
+
 static func _style(kind: String) -> int:
 	match kind:
 		"lockers": return 1
 		"vent": return 2
-		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release", "m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation": return 3
+		"terminal", "lift_control", "m04_clinic_control", "m04_roof_departure", "m07_depot_freight", "m08_freight_departure", "m08_bay_release", "m09_crew_manifest", "m09_board_carrier", "m10_ship_confirmation", "m19_stores_counter", "m19_waterworks", "m20_crossing_control": return 3
 		"gate_locked", "m08_seal_locked": return 7
 		"gate_open", "m08_seal_open": return 8
 		"m03_schedule_cancelled": return 7

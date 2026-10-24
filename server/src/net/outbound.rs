@@ -179,6 +179,9 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         mines,
         remote_mines,
         auditors,
+        paver_strips,
+        jetpacks,
+        surveyor_marks,
         explosions,
         mode_name,
         playlist,
@@ -227,6 +230,22 @@ fn can_replace(old: &Snapshot, new: &Snapshot) -> bool {
         && mines == &new.mines
         && remote_mines == &new.remote_mines
         && auditors == &new.auditors
+        // A strip is an exact attack fact. Worn fuel is replaceable motion:
+        // the same wearers in order may be superseded by a newer reading.
+        && paver_strips == &new.paver_strips
+        && jetpacks.len() == new.jetpacks.len()
+        && jetpacks
+            .iter()
+            .zip(&new.jetpacks)
+            .all(|(a, b)| a.player_id == b.player_id)
+        // A disc's centre is motion; its owner, lifetime and tracking are facts.
+        && surveyor_marks.len() == new.surveyor_marks.len()
+        && surveyor_marks
+            .iter()
+            .zip(&new.surveyor_marks)
+            .all(|(a, b)| {
+                a.id == b.id && a.since == b.since && a.until == b.until && a.tracking == b.tracking
+            })
         && mode_name == &new.mode_name
         && playlist == &new.playlist
         && pressure == &new.pressure

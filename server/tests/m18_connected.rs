@@ -83,6 +83,6 @@ fn all_systems_normal_canonical_source_and_connected_loop() {
         serde_json::from_str::<MissionId>("\"all_systems_normal\"").unwrap(),
         MissionId::AllSystemsNormal
     );
-    assert_eq!(MissionId::ALL.len(), 18);
+    assert_eq!(MissionId::ALL.len(), 20);
     assert!(MissionId::ALL.contains(&MissionId::AllSystemsNormal));
 }

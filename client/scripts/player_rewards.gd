@@ -2,22 +2,24 @@ class_name PlayerRewards
 extends RefCounted
 
 ## Local profile awards consume private authoritative records, never presentation.
-const IDS: Array[String] = ["recall_notice_complete", "authored_secret_found"]
+const IDS: Array[String] = ["recall_notice_complete", "authored_secret_found", "local_exception_complete"]
 const MIN_RULES_REVISION: int = 3
 const DEFAULTS: Dictionary = {"title": "none", "emblem": "none", "finish": "standard"}
 const CHOICES: Dictionary = {
-	"title": ["none", "on_file", "margin_reader"],
+	"title": ["none", "on_file", "margin_reader", "still_here"],
 	"emblem": ["none", "transfer_stamp"],
-	"finish": ["standard", "oxide", "margin_teal"],
+	"finish": ["standard", "oxide", "margin_teal", "harbour_lamp"],
 }
 const REQUIRED: Dictionary = {
 	"on_file": "recall_notice_complete", "transfer_stamp": "recall_notice_complete",
 	"margin_reader": "authored_secret_found", "margin_teal": "authored_secret_found",
+	"still_here": "local_exception_complete", "harbour_lamp": "local_exception_complete",
 }
 const FINISH_SHADER: Shader = preload("res://scripts/weapon_finish.gdshader")
 const FINISH_TINTS: Dictionary = {
 	"standard": Vector3.ONE, "oxide": Vector3(1.2, 0.96, 0.82),
 	"margin_teal": Vector3(0.8, 1.04, 1.08),
+	"harbour_lamp": Vector3(1.16, 1.0, 0.78),
 }
 
 static func eligible(record: Dictionary, origin: String, server_hash: String) -> Array[String]:
@@ -34,6 +36,10 @@ static func eligible(record: Dictionary, origin: String, server_hash: String) ->
 		awards.append("recall_notice_complete")
 	if PlayerRecord.secrets(record["total"]) > 0:
 		awards.append("authored_secret_found")
+	# The campaign's terminal survival: the refuge held to the reprieve.
+	if scope["mission"] == MissionState.M20_ID and int(record["map_id"]) == M20MissionState.MAP_ID \
+		and record["status"] == "complete" and scope["run"]["status"] == "complete":
+		awards.append("local_exception_complete")
 	return awards
 
 static func valid_unlocks(value: Variant) -> bool:

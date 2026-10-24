@@ -267,7 +267,7 @@ fn advance_fighting(
             .filter(|p| {
                 p.hp > 0
                     && required.contains(&p.name)
-                    && matches!(p.campaign, Some(CampaignActor::Union { .. }))
+                    && matches!(p.campaign, Some(CampaignActor::Hostile { .. }))
             })
             .collect();
         let aim_point = |target: &fragr_server::protocol::PlayerState| {

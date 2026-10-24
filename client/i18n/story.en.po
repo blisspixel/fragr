@@ -549,6 +549,12 @@ msgstr "Complete Recall Notice in your saved solo run. Unlocks ON FILE and the t
 msgid "REWARD_CRITERIA_AUTHORED_SECRET_FOUND"
 msgstr "Find an authored secret in your saved solo run. Unlocks MARGIN READER and margin teal."
 
+msgid "REWARD_LOCAL_EXCEPTION_COMPLETE"
+msgstr "THE REFUGE HELD"
+
+msgid "REWARD_CRITERIA_LOCAL_EXCEPTION_COMPLETE"
+msgstr "Survive Local Exception in your saved solo run. Unlocks STILL HERE and the harbour lamp finish."
+
 msgid "REWARD_EARNED"
 msgstr "EARNED"
 
@@ -584,6 +590,12 @@ msgstr "OXIDE"
 
 msgid "REWARD_CHOICE_MARGIN_TEAL"
 msgstr "MARGIN TEAL"
+
+msgid "REWARD_CHOICE_STILL_HERE"
+msgstr "STILL HERE"
+
+msgid "REWARD_CHOICE_HARBOUR_LAMP"
+msgstr "HARBOUR LAMP"
 
 msgid "REWARD_STAMP"
 msgstr "TRANSFER\nCLEARED"
@@ -874,7 +886,7 @@ msgid "M17_NEXT_PENDING"
 msgstr "All Systems Normal is still being built. Your completed Forever Office run is kept."
 
 msgid "M17_WAITING"
-msgstr "Operatives assemble at the chamber approach."
+msgstr "Everyone's at the chamber approach."
 
 msgid "M17_DEPARTED"
 msgstr "The Forever Office has fallen. Departure confirmed."
@@ -940,7 +952,7 @@ msgid "M18_NEXT_PENDING"
 msgstr "Planned Works is still being built. Your completed transit evacuation run is kept."
 
 msgid "M18_WAITING"
-msgstr "Operatives assemble at the Recovery Square aid depot."
+msgstr "Everyone's at the Recovery Square aid depot."
 
 msgid "M18_DEPARTED"
 msgstr "Evacuation concourse cleared. Departure confirmed."
@@ -1067,3 +1079,204 @@ msgstr "Tern arrives with a repair invoice before the smoke clears. \"Liberation
 
 msgid "STORY_M14_DEPARTURE_EARTH"
 msgstr "The coalition fleet lifts for Earth. Repairs, shared meals and arguments over the cargo lists fill the journey. Nine days after Mars, the capital waits below."
+
+msgid "MISSION_M19_TITLE"
+msgstr "PLANNED WORKS"
+
+msgid "M19_PROTOTYPE_TITLE"
+msgstr "Planned Works: development mission"
+
+msgid "M19_LOCAL_STARTING"
+msgstr "Entering the evacuation concourse..."
+
+msgid "M19_RUN_DESCRIPTION"
+msgstr "Cross the concourse and Low Water to the waterworks before the work strips close."
+
+msgid "STORY_M19_ARRIVAL"
+msgstr "The evacuation concourse, minutes later.\n\nThe only way to the pier runs through Low Water."
+
+msgid "M19_WAITING"
+msgstr "Everyone's at the concourse stores."
+
+msgid "M19_DEPARTED"
+msgstr "Through the waterworks. The pier is ahead."
+
+msgid "M19_OBJECTIVE_CONCOURSE_STORES"
+msgstr "Draw a jetpack at the concourse stores counter."
+
+msgid "M19_OBJECTIVE_BROKEN_STAIR"
+msgstr "The stair is broken. Jump, then hold {jump} in the air to reach the gallery."
+
+msgid "M19_OBJECTIVE_CONCOURSE_CROSSING"
+msgstr "Clear the concourse crossing to the street doors."
+
+msgid "M19_OBJECTIVE_TRAM_STREET"
+msgstr "Get down the tram street past the Paver."
+
+msgid "M19_OBJECTIVE_MARKET_STRIPS"
+msgstr "Cross the market through the work strips."
+
+msgid "M19_OBJECTIVE_WATER_TANKS"
+msgstr "Climb to the water tanks. Latch is up there."
+
+msgid "M19_OBJECTIVE_ROOF_LOOP"
+msgstr "Run the roofs to Splice's workshop. The streets go there too."
+
+msgid "M19_OBJECTIVE_TRAM_TRENCH"
+msgstr "Get through the tram trench before the strips close."
+
+msgid "M19_OBJECTIVE_PARTY_DEPARTED"
+msgstr "Get everyone through the waterworks hatch."
+
+msgid "M19_USE_STORES"
+msgstr "{use} Draw jetpack"
+
+msgid "M19_USE_WATERWORKS"
+msgstr "{use} Through the waterworks"
+
+msgid "M19_JETPACK_ON"
+msgstr "JETPACK ON: hold {jump} in the air"
+
+msgid "M19_JET_GAUGE"
+msgstr "JET"
+
+msgid "M19_JET_THRUST"
+msgstr "THRUST"
+
+msgid "M19_JET_EMPTY"
+msgstr "EMPTY: LAND TO REFILL"
+
+msgid "M19_JET_HINT"
+msgstr "Jump, then hold {jump} in the air"
+
+msgid "M19_STRIP_FIRST"
+msgstr "WORK STRIP: step out or hit the Paver"
+
+msgid "M19_STRIP_PUT_OUT"
+msgstr "WORK STRIP PUT OUT"
+
+msgid "M19_CROSSING_CLEARED"
+msgstr "CONCOURSE CROSSING CLEAR"
+
+msgid "M19_PAVER_INTERRUPTED"
+msgstr "PAVER STOPPED MID-PREPARATION"
+
+msgid "M19_WATERWORKS_OPEN"
+msgstr "WATERWORKS HATCH OPEN"
+
+msgid "M19_CLERK_FORM"
+msgstr "Clerk, at the stretcher: \"Form, please. Your form?\""
+
+msgid "M19_LATCH_FILING"
+msgstr "Latch: \"Nobody's filing anymore.\""
+
+msgid "M19_LATCH_TANK_REACH"
+msgstr "Latch: \"Every one I didn't reach.\""
+
+msgid "M19_TERN_TANK_AGENTS"
+msgstr "Tern, on the channel: \"The free agents are going to talk to it.\""
+
+msgid "M19_LATCH_TANK_GOING"
+msgstr "Latch: \"I'm going. Hold them for me. Then we're even.\""
+
+msgid "MISSION_M20_TITLE"
+msgstr "LOCAL EXCEPTION"
+
+msgid "M20_PROTOTYPE_TITLE"
+msgstr "Local Exception: development mission"
+
+msgid "M20_LOCAL_STARTING"
+msgstr "Crossing to the waterworks..."
+
+msgid "M20_RUN_DESCRIPTION"
+msgstr "Hold the refuge pier until the exception lands."
+
+msgid "M20_NEXT_TITLE"
+msgstr "STILL HERE"
+
+msgid "M20_NEXT_PENDING"
+msgstr "The refuge held. Still Here, the epilogue, is still being built; this run's survival is kept."
+
+msgid "M20_WAITING"
+msgstr "The sluices are running. The pier is waiting."
+
+msgid "M20_DEPARTED"
+msgstr "The refuge gate is open. Everyone on the pier crossed."
+
+msgid "M20_OBJECTIVE_SLUICE_CROSSING"
+msgstr "Cross the sluices. Break the Surveyor's sight, outwalk its light, or hit the open lens."
+
+msgid "M20_OBJECTIVE_CREW_CROSSING"
+msgstr "Clear the service road. The waterworks crew will cross on their own."
+
+msgid "M20_OBJECTIVE_PIER_ARRIVAL"
+msgstr "Reach the refuge pier."
+
+msgid "M20_OBJECTIVE_PIER_HOLD"
+msgstr "Hold the pier. Keep the machines off the refuge line."
+
+msgid "M20_OBJECTIVE_LAST_SIX"
+msgstr "Six minutes. Hold the line."
+
+msgid "M20_OBJECTIVE_LATCH_RETURNING"
+msgstr "Latch is walking back across the pier."
+
+msgid "M20_OBJECTIVE_PARTY_DEPARTED"
+msgstr "The gate is open. Cross with them at the refuge control."
+
+msgid "M20_USE_CROSSING"
+msgstr "{use} Open the crossing"
+
+msgid "M20_CREW_CROSSING_BADGE"
+msgstr "WATERWORKS CREW CROSSING"
+
+msgid "M20_CREW_CROSSED_BADGE"
+msgstr "WATERWORKS CREW THROUGH THE WICKET"
+
+msgid "M20_NOTICE_CREW_CROSSING"
+msgstr "THE CREW GO ON THEIR OWN"
+
+msgid "M20_NOTICE_CREW_CROSSED"
+msgstr "THE CREW ARE THROUGH THE WICKET"
+
+msgid "M20_NOTICE_MARK_BROKEN"
+msgstr "SURVEYOR MARK BROKEN"
+
+msgid "M20_NOTICE_BARRICADE_FELL"
+msgstr "THE BARRICADE FELL. THE PEOPLE PULLED BACK"
+
+msgid "M20_LATCH_EVEN"
+msgstr "Latch: \"Held them. We're even.\""
+
+msgid "M20_TERN_POLITE"
+msgstr "Tern, on the channel: \"It's very polite. I hate it.\""
+
+msgid "M20_DISPLAY_PIER"
+msgstr "PIER 4"
+
+msgid "M20_DISPLAY_PERSONS"
+msgstr "{persons} PERSONS"
+
+msgid "M20_DISPLAY_NAMES"
+msgstr "EACH NAME RECEIVED FROM LATCH"
+
+msgid "M20_DISPLAY_CLOSES"
+msgstr "WORK HERE CLOSES IN 06:00"
+
+msgid "M20_DISPLAY_EXCEPTED"
+msgstr "WORK HERE IS EXCEPTED"
+
+msgid "M20_HOLD_LINE"
+msgstr "REFUGE LINE"
+
+msgid "M20_HOLD_BREATH"
+msgstr "--:--"
+
+msgid "STORY_M20_DEPARTURE_LINE"
+msgstr "The machines reached the refuge line and stopped. Then they went around it, like water around a stone, and on to the next district."
+
+msgid "STORY_M20_DEPARTURE_CROSSING"
+msgstr "The gate opened. Everyone on the pier crossed."
+
+msgid "STORY_M20_DEPARTURE_UNLOCKED"
+msgstr "STILL HERE is unlocked. The epilogue is still being built; this run's survival is kept."

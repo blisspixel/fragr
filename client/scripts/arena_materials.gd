@@ -120,13 +120,18 @@ static func authored(surface: String, venue: String = "") -> Material:
 	elif venue == "mars_foundry":
 		bases = [Color("818276"), Color("c5bda7"), Color("394749"), Color("d78d47"), Color("465552")]
 		accents = [Color("636d65"), Color("7c8172"), Color("79928d"), Color("b05b22"), Color("99aaa1")]
+	elif venue == "waterworks":
+		# Weathered quay concrete, municipal green enamel, blue-grey works
+		# steel with oxide trim, and the refuge's painted tile.
+		bases = [Color("6f6d65"), Color("5f7d6c"), Color("4f5b61"), Color("a69a7d"), Color("4c5552")]
+		accents = [Color("66665c"), Color("3f5a4d"), Color("8a5636"), Color("7a6a50"), Color("8fa59c")]
 	elif venue in ["moon_port", "moon_town"]:
 		bases = [Color("a9a698"), Color("d0cbb8"), Color("394144"), Color("9aa397"), Color("505954")]
 		accents = [Color("6c6e64"), Color("7f8278"), Color("9a302a"), Color("4e5c55"), Color("a9ad99")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
-	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
+	if venue in ["low_water", "common_carrier", "right_of_search", "mars_foundry", "waterworks"] or (venue == "moon_town" and surface == "enamel") or (venue in ["launch_works", "mars_habitat"] and surface in ["concrete", "enamel", "records_tile"]):
 		material.set_shader_parameter("warning_color", accents[index])
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
@@ -136,7 +141,11 @@ static func authored(surface: String, venue: String = "") -> Material:
 		# its pixel grain without painting an institutional slab grid over it.
 		material.set_shader_parameter("markings_enabled", false)
 		material.set_shader_parameter("panel_contrast", 0.2)
-	if venue == "low_water" and surface in ["concrete", "enamel", "service_steel"]:
+	if venue == "waterworks" and surface == "concrete":
+		# Long poured quay slabs, not an institutional two-metre grid.
+		material.set_shader_parameter("panel_size", 4.0)
+		material.set_shader_parameter("panel_contrast", 0.45)
+	if venue in ["low_water", "waterworks"] and surface in ["concrete", "enamel", "service_steel"]:
 		material.set_shader_parameter("detail_enabled", true)
 		material.set_shader_parameter("detail_texture", STEEL_DETAIL if surface == "service_steel" else PLASTER_DETAIL)
 	elif venue in ["moon_port", "moon_town"] and surface in ["concrete", "enamel", "service_steel"] \

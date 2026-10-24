@@ -101,6 +101,7 @@ impl RunDocumentBeforeTransit {
             m16_outcome: self.m16_outcome,
             m17_outcome: self.m17_outcome,
             m18_outcome: None,
+            m19_outcome: None,
         };
         if store::stage_index(document.stage_mission()) >= 17 {
             return Err("M18 was not supported before version 22");
