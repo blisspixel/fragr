@@ -414,7 +414,7 @@ func _preset_finished(summary: Dictionary) -> void:
 		"renderer": RenderingServer.get_current_rendering_method(), "driver": RenderingServer.get_current_rendering_driver_name(),
 		"adapter": RenderingServer.get_video_adapter_name(), "adapter_vendor": RenderingServer.get_video_adapter_vendor(),
 		"graphics_api": RenderingServer.get_video_adapter_api_version(), "engine": Engine.get_version_info()["string"],
-		"build": "debug" if OS.is_debug_build() else "release", "os": OS.get_name(),
+		"build": "debug" if OS.is_debug_build() else "release", "os": OS.get_name(), "display_server": DisplayServer.get_name(),
 		"measurement": "RenderingServer.frame_post_draw cadence, uncapped, vertical sync disabled", "metric_version": METRIC_VERSION,
 		"warmup_seconds": PRIME_SECONDS, "score_seconds": SCORE_SECONDS,
 		"low_1_definition": "1000 / mean(slowest ceil(frame_count * 0.01) frame times in milliseconds)",
@@ -426,8 +426,10 @@ func _preset_finished(summary: Dictionary) -> void:
 	finished.emit(final_report)
 
 ## What two results must share before their numbers are compared across runs:
-## the workload and metric versions, engine and build, the system and graphics
-## path, the output size, and each preset's world size and settings. A match
+## the workload and metric versions, engine and build, the system, display
+## server and graphics path, the output size, and each preset's world size and
+## settings. The display server is part of the key because presentation is: on
+## one Linux host the same scene paced differently under X11 and Wayland. A match
 ## does not make two recordings the same fight; it rules out comparing unlike runs.
 static func compatibility(document: Dictionary) -> Dictionary:
 	var rows: Array = []
@@ -438,7 +440,7 @@ static func compatibility(document: Dictionary) -> Dictionary:
 			output = row.get("output_size")
 	var workload_id: Variant = document.get("workload", {}).get("id") if document.get("workload") is Dictionary else null
 	return {"schema_version": document.get("schema_version"), "workload": workload_id, "metric_version": document.get("metric_version"),
-		"engine": document.get("engine"), "build": document.get("build"), "os": document.get("os"),
+		"engine": document.get("engine"), "build": document.get("build"), "os": document.get("os"), "display_server": document.get("display_server"),
 		"renderer": document.get("renderer"), "driver": document.get("driver"), "adapter": document.get("adapter"),
 		"graphics_api": document.get("graphics_api"), "output_size": output, "runs": rows}
 

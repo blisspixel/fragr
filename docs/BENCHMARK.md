@@ -157,7 +157,9 @@ render size, system, the shared Display settings, what each preset changes
 (MSAA, shadow atlas, light fixture shadows, ambient occlusion, glow, read from
 the same `RenderQuality` rules that applied them), definitions and the last
 compatible run. Run again, Copy summary, Open results folder and Back to menu
-stay on screen without scrolling. A stopped run (settings changed, window
+stay on screen without scrolling. Focus stays on those actions for mouse,
+keyboard and pad alike; up and down (arrows, D-pad, stick) and page up and down
+scroll the figures and Details. A stopped run (settings changed, window
 resized, frames stopped for two seconds, a preset or the match did not load)
 says **Benchmark stopped** with one card: the reason, the step it stopped
 during, any presets that finished (their figures are not kept), that nothing was
@@ -175,10 +177,16 @@ raw participant or network recording is saved.
 
 Compared presets within a run receive the same fight; a new run records a new
 fight. A result is compared with an earlier one only when their `compatibility`
-keys match: schema, workload id, metric version, engine and build, OS, renderer,
-driver, adapter, graphics API, output size, and each preset's 3D render size and
-settings. The workload id changes whenever the measured scene changes (hiding
-the match HUD was such a change), so older results never compare as equal.
+keys match: schema, workload id, metric version, engine and build, OS, display
+server, renderer, driver, adapter, graphics API, output size, and each preset's
+3D render size and settings. The display server is in the key because
+presentation is part of what is measured: on one Linux host, each of eight X11
+(XWayland) runs stalled for 0.2 to 0.8 s at the same two points of every
+preset, one inside the scored window, before the frame's first physics step;
+one native Wayland run, which the compositor also sized differently, had no
+scored frame over 0.15 s. The workload id changes whenever the measured scene
+changes (hiding the match HUD was such a change), so older results never
+compare as equal.
 Matching keys rule out unlike runs; they do not make two recordings the same
 fight. Repeated runs and a representative workload matter before judging small
 differences. This Arena Duel scene does not establish 64-player capacity or

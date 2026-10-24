@@ -26,6 +26,8 @@ var _notice: Label
 func _ready() -> void:
 	name = "BenchmarkScoreLayer"
 	layer = 120
+	# One focus target across mouse, keyboard and pad, as on every menu.
+	MenuFocus.attach(self)
 	var screen: Control = Control.new()
 	screen.name = "Screen"
 	screen.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -217,7 +219,7 @@ func _build_details(panel: VBoxContainer, runs: Array) -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	var renderer: String = str(report.get("renderer", ""))
 	lines.append("Graphics: %s. %s renderer, %s, API %s." % [report.get("adapter", ""), RenderQuality.renderer_name(renderer), report.get("driver", ""), report.get("graphics_api", "")])
-	lines.append("Engine %s, %s build, %s." % [report.get("engine", ""), report.get("build", ""), report.get("os", "")])
+	lines.append("Engine %s, %s build, %s, %s display server." % [report.get("engine", ""), report.get("build", ""), report.get("os", ""), str(report.get("display_server", "unknown"))])
 	# The Display settings are the same for every preset; what each preset
 	# changes is named from the rules that applied it.
 	lines.append("Display settings for every preset: %s." % _settings_text(runs[0].get("settings", {})))
@@ -231,7 +233,7 @@ func _build_details(panel: VBoxContainer, runs: Array) -> void:
 	var capture: Dictionary = report.get("capture", {}) if report.get("capture") is Dictionary else {}
 	lines.append("Recorded fight: %d snapshots, SHA-256 %s. Every preset replayed it. A new run records a new fight." % [int(capture.get("snapshots", 0)), str(capture.get("sha256", "")).left(16)])
 	if previous.is_empty():
-		lines.append("No earlier compatible run in the results folder. Runs compare only with the same build, graphics adapter, renderer, output size and preset settings.")
+		lines.append("No earlier compatible run in the results folder. Runs compare only with the same build, display, graphics adapter, renderer, output size and preset settings.")
 	else:
 		var changes: PackedStringArray = PackedStringArray()
 		for row: Dictionary in runs:
@@ -316,6 +318,28 @@ static func stopped_during(document: Dictionary) -> String:
 			return "Measuring %s." % preset if not preset.is_empty() else "Measuring."
 		_:
 			return "Starting."
+
+## The body holds no focusable rows, so focus stays on the actions. Up and
+## down (arrows, D-pad, stick) scroll the figures and Details instead, and
+## page up and down move a screen, so a keyboard or pad reads everything a
+## mouse wheel can.
+func _unhandled_input(event: InputEvent) -> void:
+	if _scroll == null or not _scroll.is_visible_in_tree():
+		return
+	var step: float = 0.0
+	var line: float = float(MenuTheme.BODY) * 3.0
+	if event.is_action_pressed("ui_down", true):
+		step = line
+	elif event.is_action_pressed("ui_up", true):
+		step = -line
+	elif event.is_action_pressed("ui_page_down", true):
+		step = _scroll.size.y * 0.8
+	elif event.is_action_pressed("ui_page_up", true):
+		step = -_scroll.size.y * 0.8
+	if step == 0.0:
+		return
+	_scroll.scroll_vertical = int(_scroll.scroll_vertical + step)
+	get_viewport().set_input_as_handled()
 
 func _toggle_details() -> void:
 	_details.visible = not _details.visible

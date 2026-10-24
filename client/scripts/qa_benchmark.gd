@@ -119,6 +119,7 @@ func _run() -> void:
 				await process_frame
 			await RenderingServer.frame_post_draw
 			root.get_texture().get_image().save_png(directory.path_join("03-results-details.png"))
+			await _check_key_scroll(game.find_child("BenchmarkScoreLayer", true, false))
 	await _finish()
 
 ## While the benchmark runs: no match chrome, no followed fighter hidden for an
@@ -131,6 +132,28 @@ func _check_scene(run: BenchmarkRun, label: String) -> void:
 			_check(not bool(pawn.get("is_local_fp")), "%s: every fighter is drawn (%s)" % [label, pawn.get("player_name")])
 	_check(run.hud != null and run.hud.visible and not (run.hud.find_child("Headline", true, false) as Label).text.is_empty(), "%s: benchmark HUD shows its state" % label)
 	_check(not run.hud.live().is_empty(), "%s: live frame rate is reported" % label)
+
+## Through the real input path, with focus on the actions: up scrolls the
+## figures back toward the cards, and focus stays where it was.
+func _check_key_scroll(view: Node) -> void:
+	var scrolls: Array[Node] = view.find_children("*", "ScrollContainer", true, false) if view != null else []
+	if not _check(not scrolls.is_empty(), "results have a scrolled body"):
+		return
+	var body: ScrollContainer = scrolls[0] as ScrollContainer
+	var focused: Control = root.gui_get_focus_owner()
+	var before: int = body.scroll_vertical
+	for action: String in ["ui_up", "ui_up", "ui_up"]:
+		var press: InputEventAction = InputEventAction.new()
+		press.action = action
+		press.pressed = true
+		Input.parse_input_event(press)
+		await process_frame
+		var release: InputEventAction = InputEventAction.new()
+		release.action = action
+		Input.parse_input_event(release)
+		await process_frame
+	_check(before > 0 and body.scroll_vertical < before, "up scrolls the open Details back toward the cards (%d to %d)" % [before, body.scroll_vertical])
+	_check(root.gui_get_focus_owner() == focused, "scrolling by key leaves focus on the actions")
 
 static func row_frames_match(document: Dictionary) -> bool:
 	var parsed: Variant = JSON.parse_string(JSON.stringify(document))

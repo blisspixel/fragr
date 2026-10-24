@@ -260,7 +260,7 @@ func _sample_report() -> Dictionary:
 		runs.append(row)
 	var report: Dictionary = {"schema_version": BenchmarkRun.SCHEMA_VERSION, "state": "complete", "created_utc": "2026-10-23T22:00:00",
 		"workload": {"id": BenchmarkRun.WORKLOAD_ID}, "renderer": "forward_plus", "driver": "vulkan", "adapter": "Test Adapter",
-		"graphics_api": "1.4", "engine": "4.7.2-stable", "build": "release", "os": "Linux", "metric_version": BenchmarkRun.METRIC_VERSION,
+		"graphics_api": "1.4", "engine": "4.7.2-stable", "build": "release", "os": "Linux", "display_server": "X11", "metric_version": BenchmarkRun.METRIC_VERSION,
 		"warmup_seconds": 8.0, "score_seconds": 20.0, "capture": {"snapshots": 561, "sha256": "ab"}, "runs": runs, "save_error": ""}
 	report["compatibility"] = BenchmarkRun.compatibility(report)
 	return report
@@ -285,11 +285,26 @@ func _results_view() -> void:
 		_check(button != null and not view.find_child("Body", true, false).is_ancestor_of(button), "%s sits outside the scrolled body" % action)
 	(view.find_child("BenchmarkDetails", true, false) as Button).pressed.emit()
 	_check(details.visible, "details open on request")
+	await process_frame
+	await process_frame
+	var body_scroll: ScrollContainer = view.find_children("*", "ScrollContainer", true, false)[0] as ScrollContainer
+	body_scroll.scroll_vertical = 0
+	var page_down: InputEventAction = InputEventAction.new()
+	page_down.action = "ui_page_down"
+	page_down.pressed = true
+	view._unhandled_input(page_down)
+	var paged: int = body_scroll.scroll_vertical
+	var line_up: InputEventAction = InputEventAction.new()
+	line_up.action = "ui_up"
+	line_up.pressed = true
+	view._unhandled_input(line_up)
+	_check(paged > 0 and body_scroll.scroll_vertical < paged, "keys and pad scroll the figures and Details while focus stays on the actions")
 	var detail_copy: String = ""
 	for label: Node in details.find_children("*", "Label", true, false):
 		detail_copy += (label as Label).text + "\n"
 	_check(detail_copy.contains("Performance preset: no MSAA") and detail_copy.contains("Balanced preset: MSAA 2x") and detail_copy.contains("High preset: MSAA 4x"), "details name what each preset changes")
 	_check(detail_copy.contains("Forward+ renderer") and not detail_copy.contains("forward_plus"), "details name the renderer in player words")
+	_check(detail_copy.contains("Linux, X11 display server."), "details name the display server the frames were presented through")
 	_check(RenderQuality.preset_features(2, "forward_plus", {"upscaling": 2, "pixel_scale": 0}, Vector2i(1920, 1080)).begins_with("no MSAA"), "FSR 2 turns MSAA off, and the description says so")
 	_check(RenderQuality.preset_features(1, "mobile", {}, Vector2i(1920, 1080)).contains("ambient occlusion off"), "no ambient occlusion where the renderer has none")
 	var timeline: BenchmarkChart = view.find_child("Timeline", true, false) as BenchmarkChart
@@ -352,6 +367,10 @@ func _history() -> void:
 	faster["runs"][1]["settings"]["render_scale"] = 0.5
 	faster["compatibility"] = BenchmarkRun.compatibility(faster)
 	_check(BenchmarkRun.previous_compatible(directory, faster, "").is_empty(), "different preset settings never compare")
+	var other_display: Dictionary = _sample_report()
+	other_display["display_server"] = "Wayland"
+	other_display["compatibility"] = BenchmarkRun.compatibility(other_display)
+	_check(BenchmarkRun.previous_compatible(directory, other_display, "").is_empty(), "a different display server never compares")
 	var view: BenchmarkResults = BenchmarkResults.new()
 	view.report = current
 	view.previous = found
