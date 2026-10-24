@@ -14,7 +14,7 @@ Status words: **proposed** (awaiting Nick's decision; directs no work), **planne
 
 ## Current round
 
-The [October 23 playtest round](playtest-round-20261023.md) is **in flight**. Wave 1 lanes: FFA death lifecycle (#441), HUD layout and upright results (#437), menu focus and structure (#435, #436), reload readability (#440), operator console output (#438) and stutter diagnosis (#434). Wave 2, the asset round and Episode V follow per that plan and the [Full build order](../ROADMAP.md#full-build-order). The golden slice that sets the quality bar comes before Episode V.
+The [October 23 playtest round](playtest-round-20261023.md) is **shipped** with Linux evidence: wave 1 in PR #457 and wave 2 in PR #471, which also carried the golden slice (Larak Lot on map 1, Recall Notice) and Episode V (Levels 19 and 20). Nick's Windows play, real pads and a packaged build are still owed. What comes next, in order, is the roadmap's [next steps](../ROADMAP.md#next-steps): Nick's picks, the Windows playtest, integrating the picks, the Still Here epilogue, the remaining #431, #432 and #434 scope, then v0.91.
 
 Wave 1 **shipped** through PR #457: [FFA death lifecycle](ffa-death-lifecycle-20261023.md), [HUD layout and upright results](hud-layout-upright-results-20261023.md), [menu focus and structure](menu-focus-and-structure-20261023.md), [reload readability](reload-readability-20261023.md), [operator console output](operator-console-output-20261023.md), [stutter diagnosis](stutter-diagnosis-20261023.md), [music review tool](music-review-tool-20261023.md) and the asset tool ceilings. The [asset round](asset-round-20261023.md) is in flight. Windows and human play checks are still owed.
 

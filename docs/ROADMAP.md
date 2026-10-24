@@ -15,12 +15,12 @@ Scale runs through every phase: small squads first (four to twelve fighters), th
 
 <a id="now-in-development"></a>
 
-## Where we are (2026-10-23)
+## Where we are (2026-10-24)
 
-- **Release.** v0.90.0 is the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest) for Windows, Linux and macOS.
-- **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves, finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival and leaves the Still Here epilogue pending, unbuilt. Level 19, Planned Works (#429), has its generated jetpack in place and a placeholder Paver; Level 20, Local Exception (#430), uses placeholder Surveyor and Paver forms. Art, pacing and fresh-player review are open on every level.
-- **Multiplayer.** Free-for-all, team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
-- **Honest assessment.** Breadth has outrun depth. Nick's first Windows multiplayer session on v0.90.0 filed #433 to #442: death camera and input carryover, HUD collisions and tilted results, menu focus, silent reloads, buried server output, benchmark UX, music controls and stutter. Green checks did not catch any of it. The build order below fixes that before adding more.
+- **Release.** v0.90.0 is the [latest desktop release](https://github.com/blisspixel/fragr/releases/latest) for Windows, Linux and macOS. v0.91 waits until Nick has played the wave 2 build.
+- **Campaign.** Levels 1 to 20 are connected development missions with mission-entry saves (one current save schema, no migration), finite ammunition and three continues per episode; surviving Level 20 records the campaign's survival and leaves the Still Here epilogue pending, unbuilt. Level 1, Recall Notice, is dressed as the golden slice (#461). Level 19, Planned Works (#465), adds the jetpack with a placeholder Paver; Level 20, Local Exception (#466), uses placeholder Surveyor and Paver forms. Art, pacing and fresh-player review are open on every level.
+- **Multiplayer.** Larak Lot, the hero free-for-all map, holds map 1 (#464). Every free-for-all life starts on the Pistol and Fists with guns on timed pads and a 4 s respawn (#467); fighters move at 6 m/s with a ground dodge (#463); bots see before they fight (#468); the Host speaks rarely (#462). Team deathmatch, capture the flag, 5v5 Sabotage and vehicle Conquest on Holdfast Atoll remain, hosted from the menu or a dedicated server, with bot fill and agents on the same wire.
+- **Honest assessment.** Nick's first Windows session on v0.90.0 filed #433 to #442. Waves 1 (#457) and 2 (#471) of the [October 23 round](plans/playtest-round-20261023.md) answer them and add the slice above, with Linux evidence only: headless and Rust suites, coverage, playtest smokes and a rendered tour inspected on one Linux host. Windows play, real pads, packaged builds and a fresh-player pass are still owed, and they are the gate for v0.91.
 
 <a id="full-build-order"></a>
 <a id="full-build-order-2026-09-27"></a>
@@ -30,12 +30,25 @@ Scale runs through every phase: small squads first (four to twelve fighters), th
 
 This is the only active sequence. When the current rung changes, edit this section. Do not add a second list.
 
-1. **October 23 playtest round, current.** The [round plan](plans/playtest-round-20261023.md) runs in waves, each returning to one reviewed, green `main` before the next. Wave 1 fixes the death lifecycle (#441), HUD layout and upright results (#437), menu focus and structure (#435, #436), reload readability (#440), operator console output (#438) and stutter diagnosis (#434). Wave 2 adds benchmark UX (#439), music controls (#442), the Tack and Fists FFA starting kit and a 4 s FFA respawn, alongside an asset round that spends the funded image, model and audio credits on assets that will be integrated and visible. Every wave ends with the visual QA loop: recapture, look, fix, repeat until a pass finds nothing.
-2. **Golden slice and hero map.** Boot, menu, join, fight, die, respawn and result on one hero free-for-all map, plus campaign Level 1, built until it looks, sounds and plays well enough to show anyone. Validate by capturing and looking at stills and motion, iterating until they look good, and Nick playing it. The hero map is [Larak Lot](plans/larak-lot.md) on map 1, a five-level car park that replaced the Arena Duel field (in review). This slice is the quality bar for everything after it.
-3. **Episode V to that bar.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #429) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #430), following the accepted ground-escape and wipe-survival briefs, then the conditional [epilogue](campaign/epilogue-still-here.md). No level ships below the golden-slice bar.
+1. **October 23 playtest round, shipped with Linux evidence.** The [round plan](plans/playtest-round-20261023.md) ran in waves, each returning to one reviewed, green `main`. Wave 1 (#457) fixed the death lifecycle (#441), HUD layout and upright results (#437), menu focus and structure (#435, #436), reload readability (#440) and operator console output (#438), and added stutter traces (#434), the music review tool and asset-tool ceilings. Wave 2 (#471) added benchmark UX (#439), the console pad layout, radio dial and announcer setting (#442), the Pistol and Fists FFA start with a 4 s respawn, the feel pass, bot senses, the rare Host spine, one save schema, the faction readability contract and the bot roster. Owed: Nick's Windows play, real pads and a packaged build.
+2. **Golden slice and hero map, implemented, awaiting play.** [Larak Lot](plans/larak-lot.md), a five-level car park, replaced Arena Duel on map 1 (#464), and Recall Notice is dressed as the Level 1 golden slice (#461). Both were judged from inspected Linux stills and motion; the bar is met only when Nick has played them. This slice is the quality bar for everything after it.
+3. **Episode V to that bar, current.** [Planned Works](campaign/l19-planned-works.md) (Level 19, #465) and [Local Exception](campaign/l20-local-exception.md) (Level 20, #466) are connected development levels with placeholder Paver and Surveyor forms. The conditional [epilogue](campaign/epilogue-still-here.md), Still Here, is unbuilt. No level ships below the golden-slice bar. The next steps below finish this rung.
 4. **Raise everything else to the bar.** Revisit levels 1 to 18 for art, pacing, encounter readability and fresh-player review. Deliver the [multiplayer excellence](plans/multiplayer-excellence-20261017.md) (#431) and [bot and enemy AI excellence](plans/bot-and-enemy-ai-excellence-20261017.md) (#432) scope, stutter stages 2 to 6 (#434) once wave 1 measurements exist, and remaining weapon, character and venue art. Nothing in the agreed game is cut; it is built to the bar instead.
 5. **Network depth and the exposed server.** A two-machine LAN session on the predicted sim with humans, rule bots and an agent; bounded lag compensation; measured WebSocket capacity before any UDP spike, per [TRANSPORT.md](TRANSPORT.md); then a public week with strangers on it.
 6. **Prove the release.** Close fresh-player, difficulty, input and visual acceptance against the 1.0 bar below. Cloud apply stays plan-only until the public week is real and spend is approved.
+
+<a id="next-steps"></a>
+
+### Next steps when work resumes
+
+The current rung's work, in order. Check out `main` after #471 lands.
+
+1. **Nick's picks.** Narrator and Host voices (`.agents/voice-casting-20261023/index.html`); the character art treatment from the [#469 trial](plans/art-style-trial-20261023.md); Meshy model picks (`.agents/review-20261023/models.html`); the Latch colours (#455); Union seal option C; radio keepers through `fragr-audiogen review`. Credits as read on 2026-10-24: Meshy 300 monthly with 15 held, so about 285 usable, resetting 2026-11-03; ElevenLabs 329,544 remaining, resetting 2026-11-06. Run the live balance check before any paid stage.
+2. **Windows playtest of the wave 2 build.** Nick plays Larak Lot, Recall Notice and the menus on Windows with a real pad; every defect becomes an issue and a fix lane.
+3. **Integrate the picks.** Selected Meshy models and radio keepers go into the levels and the station library, seen in game and recaptured.
+4. **Still Here.** Build the conditional epilogue to the golden-slice bar.
+5. **Remaining scope.** The rest of #431 (multiplayer excellence) and #432 (bot and enemy AI), and #434 stutter stages 2 to 6 from the wave 1 traces.
+6. **Release v0.91** once Nick has played it, with `tools/qa_tour.sh --publish` and release notes that keep Linux and Windows evidence apart.
 
 Later, after evidence: Wipe and large combined-arms modes, the [inheritance benchmark](plans/inheritance-benchmark.md), [agent discovery](plans/agent-door-2026.md), localization and a possible Steam build.
 

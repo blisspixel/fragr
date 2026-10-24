@@ -1,6 +1,8 @@
 # October 23 playtest round
 
-Status: **in flight**, 2026-10-23. Coordinating plan for the work that follows
+Status: **shipped** with Linux evidence, 2026-10-24: wave 1 in #457, wave 2
+(with waves 3 to 5 folded in) in #471. Nick's Windows play is owed.
+Coordinating plan for the work that follows
 Nick's first Windows multiplayer playtest of v0.90.0. It sequences existing
 issues into waves. It does not replace the roadmap's Full build order, which
 names this round as its current rung.
@@ -19,18 +21,18 @@ description; a lane writes a plan file only if it grows into several PRs.
 
 | Wave | Lanes and issues | Record |
 |---|---|---|
-| 1 | Death and respawn lifecycle, post-death residue (#441, #437 comment) | issue and PR |
-| 1 | Top-HUD collisions and upright result text (#437) | issue and PR |
-| 1 | Mixed-input menu focus, main and multiplayer menu structure (#435, #436) | issues and PR |
-| 1 | Reload readability for ordinary weapons (#440) | issue and PR |
-| 1 | Dedicated server operator output and Windows hosting (#438) | issue and PR |
-| 1 | Stutter diagnosis slice (#434, second comment) | issue and PR |
+| 1 | Death and respawn lifecycle, post-death residue (#441, #437 comment) | #450 in #457 |
+| 1 | Top-HUD collisions and upright result text (#437) | #447 in #457 |
+| 1 | Mixed-input menu focus, main and multiplayer menu structure (#435, #436) | #453 in #457 |
+| 1 | Reload readability for ordinary weapons (#440) | #449 in #457 |
+| 1 | Dedicated server operator output and Windows hosting (#438) | #446 in #457 |
+| 1 | Stutter diagnosis slice (#434, second comment) | #452 in #457 (traces only; no fix claimed) |
 | 1 | Issue closeout rule (#433), this plan, roadmap, agent guidance diet | this file, PR #443 |
-| 2 | Benchmark UX (#439), music playback and controls (#442), FFA starting kit (#431 comment), 4 s FFA respawn, wave 1 leftovers | issues and PRs |
-| 2+ | Asset round with the funded Higgsfield, Meshy and ElevenLabs credits | ledger reservation before any paid stage; plan only if it spans several PRs |
-| 3 | Golden slice and hero map: boot, menu, join, fight, die, respawn and result on one hero FFA map, plus campaign Level 1 | [roadmap rung 2](../ROADMAP.md#full-build-order) |
-| 4 | Level 19, Planned Works (#429), built to the golden-slice bar | [brief](../campaign/l19-planned-works.md) |
-| 5 | Level 20, Local Exception (#430), built to the golden-slice bar | [brief](../campaign/l20-local-exception.md) |
+| 2 | Benchmark UX (#439), music playback and controls (#442), FFA starting kit (#431 comment), 4 s FFA respawn, wave 1 leftovers | #458, #448, #467, #460 and more in #471 |
+| 2+ | Asset round with the funded Higgsfield, Meshy and ElevenLabs credits | candidates made; Nick's picks and integration are the [roadmap's next steps](../ROADMAP.md#next-steps) |
+| 3 | Golden slice and hero map: boot, menu, join, fight, die, respawn and result on one hero FFA map, plus campaign Level 1 | #464 and #461 in #471; awaits Nick's play |
+| 4 | Level 19, Planned Works (#429), built to the golden-slice bar | #465 in #471; placeholder Paver |
+| 5 | Level 20, Local Exception (#430), built to the golden-slice bar | #466 in #471; placeholder Surveyor and Paver; Still Here unbuilt |
 
 Later, not in these waves: the remaining multiplayer excellence (#431) and
 bot and enemy AI excellence (#432) scope, and #434 stages 2 to 6, which wait on
@@ -110,3 +112,10 @@ two-edge highlight that no check had flagged.
 ## Status
 
 - 2026-10-23: wave 1 lanes started from `e4cec37`.
+- 2026-10-24: wave 1 merged as #457. Wave 2 integrated seventeen lane PRs
+  as #471, which also carried the golden slice, Larak Lot and Episode V.
+  Evidence is Linux only: Rust and Godot suites, coverage, playtest smokes
+  and an inspected `tools/qa_tour.sh --publish`. Not run: Windows, macOS,
+  real pads, packaged builds, soak and a human playtest. #471's open
+  questions carry the per-lane follow-ups; the
+  [roadmap's next steps](../ROADMAP.md#next-steps) carry the order of work.
