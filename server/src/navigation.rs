@@ -832,7 +832,7 @@ pub(crate) mod tests {
     #[test]
     fn ctf_bases_are_walkable_on_the_validated_maps() {
         use crate::sim::MapKind;
-        for map in [MapKind::ArenaDuel, MapKind::Directive17, MapKind::Sector9] {
+        for map in [MapKind::Directive17, MapKind::Sector9] {
             let stands = map.ctf_stands().expect("validated CTF map");
             let navigation = Navigation::new(Arena {
                 half: map.half_extent(),

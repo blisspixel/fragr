@@ -1,12 +1,17 @@
 extends RefCounted
 class_name BenchmarkCamera
 
-## Arena Duel orbit. The pose is a function of scene time in seconds, so two
-## machines that reach the same timestamp aim at the same place. Stepping the
-## angle once per frame would make a fast machine walk a different path.
+## Larak Lot orbit, just inside the wall bands and above the Roof, so the
+## whole car park, its landmarks and its lights stay in frame. The pose is a
+## function of scene time in seconds, so two machines that reach the same
+## timestamp aim at the same place. Stepping the angle once per frame would
+## make a fast machine walk a different path. Scene revision 2: revision 1
+## circled the retired Arena Duel field at 46 m, 12 m up; its scores are not
+## comparable with these.
 
-const RADIUS: float = 46.0
-const HEIGHT: float = 12.0
+const SCENE_REVISION: int = 2
+const RADIUS: float = 31.0
+const HEIGHT: float = 17.0
 const ORBIT_SECONDS: float = 20.0
 const LOOK: Vector3 = Vector3(0.0, 1.5, 0.0)
 

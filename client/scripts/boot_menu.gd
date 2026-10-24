@@ -978,7 +978,7 @@ func _on_host_state_changed() -> void:
 		_show(_page)
 
 func _page_benchmark() -> void:
-	_label("Compare graphics settings on this computer. A fixed camera circles Arena Duel with ten bots. Every preset plays the same recorded fight.")
+	_label("Compare graphics settings on this computer. A fixed camera circles Larak Lot with ten bots. Every preset plays the same recorded fight.")
 	_label("See average FPS, 1% lows and frame-time spikes. Current preset takes about a minute; all three take about two. Your settings return when the test ends. Results save as JSON and CSV.")
 	if _benchmark_pending and _local_host.state == LocalHost.State.STARTING:
 		_label("Starting a local match on this computer. A server you already left running for other people stays up.")
@@ -1212,14 +1212,14 @@ func _rebuild_host_maps() -> void:
 		_host_map.add_item("Holdfast Atoll", 7)
 		return
 	if _host_mode.selected == 4:
+		# Larak Lot is the FFA and Duel home; it has no flag stands.
 		_host_map.add_item("Directive 17", 3)
 		_host_map.add_item("Sector 9", 4)
-		_host_map.add_item("Arena Duel", 1)
-		var ctf_maps: Array[int] = [3, 4, 1]
+		var ctf_maps: Array[int] = [3, 4]
 		var sel_idx: int = ctf_maps.find(_host_settings["map_id"])
 		_host_map.select(sel_idx if sel_idx >= 0 else 0)
 		return
-	var names: Array[String] = ["Arena Duel", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
+	var names: Array[String] = ["Larak Lot", "Compliance Yard", "Directive 17", "Sector 9", "Reclamation Gulch", "Tripoint Works"]
 	for index: int in names.size():
 		_host_map.add_item(names[index], index + 1)
 	var selected: int = int(_host_settings["map_id"]) - 1

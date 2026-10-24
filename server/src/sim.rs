@@ -151,7 +151,9 @@ impl MapKind {
 
     pub fn from_cli(raw: &str) -> Option<Self> {
         match raw.trim().to_ascii_lowercase().replace('_', "-").as_str() {
-            "1" | "arena" | "duel" | "arena-duel" => Some(Self::ArenaDuel),
+            "1" | "arena" | "duel" | "arena-duel" | "larak" | "lot" | "larak-lot" => {
+                Some(Self::ArenaDuel)
+            }
             "2" | "compliance" | "yard" | "compliance-yard" => Some(Self::ComplianceYard),
             "3" | "directive" | "substation" | "directive-17" | "directive-17-substation" => {
                 Some(Self::Directive17)
@@ -178,7 +180,7 @@ impl MapKind {
 
     pub fn name(self) -> &'static str {
         match self {
-            Self::ArenaDuel => "Arena Duel",
+            Self::ArenaDuel => "Larak Lot",
             Self::ComplianceYard => "Compliance Yard",
             Self::Directive17 => "Directive 17 Substation",
             Self::Sector9 => "Sector 9 Transit Hall",
@@ -192,7 +194,9 @@ impl MapKind {
     /// One line on what the map is for, so a picker is not six names.
     pub fn blurb(self) -> &'static str {
         match self {
-            Self::ArenaDuel => "Assembly floor. A hub inside a gantry ring, rail on the walkway.",
+            Self::ArenaDuel => {
+                "Car park. Plate on the roof, Rail down the low ramp, a cruiser hung over the Pit."
+            }
             Self::ComplianceYard => "Records block. Nine rooms, no long shot anywhere.",
             Self::Directive17 => "Transformer bowl. Four terraces down to a pit you can see into.",
             Self::Sector9 => "Freight interchange. Two halls, one door between them.",
@@ -285,6 +289,9 @@ fn floor_height(map: MapKind, x: f32, z: f32, ceiling: f32) -> f32 {
 pub(crate) fn spawn_on_ring(map: MapKind, angle: f32) -> (f32, f32, f32, f32) {
     if map == MapKind::HoldfastAtoll {
         return crate::maps::holdfast::spawn(angle);
+    }
+    if map == MapKind::ArenaDuel {
+        return crate::maps::larak_lot::spawn(angle);
     }
     let spawn_radius = map.spawn_radius();
     let mut a = angle;
@@ -429,6 +436,10 @@ struct ReactionState {
     /// Largest deficit each side has faced since it was last level.
     deficit: [u32; 2],
     last_standing: [bool; 2],
+    /// Larak Lot: ticks of the round's recent frags, oldest first, and when
+    /// the Host last called the Larak Lot special.
+    lot_frags: std::collections::VecDeque<u64>,
+    lot_special: Option<u64>,
 }
 
 /// How a lives-limited round ended by elimination.
@@ -499,6 +510,10 @@ pub struct ArenaPickup {
     pub respawn_timer: Option<u32>,
     /// An authored secret: optional, found by exploring, never required.
     pub secret: bool,
+    /// This pad's own respawn clock in ticks, when the map sets one. A map
+    /// built around item control times its power items rather than taking
+    /// the clock for the pad's kind.
+    pub clock: Option<u32>,
 }
 
 impl ArenaPickup {
@@ -539,6 +554,9 @@ impl ArenaPickup {
     }
 
     fn respawn_ticks(&self) -> u32 {
+        if let Some(clock) = self.clock {
+            return clock;
+        }
         match self.kind {
             PickupKind::Grenade { .. }
             | PickupKind::ProximityMine { .. }
@@ -3104,6 +3122,7 @@ impl GameState {
                     self.note_team_frag(side);
                 }
             }
+            self.note_lot_frag(&shooter_name, shooter_team);
 
             // Killer streak (victim already reset). Host callouts at 2/3/5.
             let killer_streak = {
@@ -4148,7 +4167,9 @@ impl GameState {
             // Campaign stock is consumed until the authoritative party reset.
             // Arcade pads retain their timed circulation around the map.
             let respawn = (!self.map.is_campaign()).then(|| match pad.kind {
-                PickupKind::Weapon(_) if team_clock => crate::rules::TEAM_WEAPON_RESPAWN_TICKS,
+                PickupKind::Weapon(_) if team_clock && pad.clock.is_none() => {
+                    crate::rules::TEAM_WEAPON_RESPAWN_TICKS
+                }
                 _ => pad.respawn_ticks(),
             });
             if claim == crate::protocol::SupplyClaim::Contested {
@@ -5255,6 +5276,6 @@ mod live_status_tests {
         assert_eq!(live.bots, 0);
         assert_eq!(live.fighters, 2);
         assert_eq!(live.connections, 3);
-        assert_eq!(live.map, "Arena Duel");
+        assert_eq!(live.map, "Larak Lot");
     }
 }

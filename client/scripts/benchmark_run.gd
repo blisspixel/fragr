@@ -92,7 +92,7 @@ static func preset_label(quality: int) -> String:
 
 static func presentation(report: Dictionary, pace: String, preset: String, adapter: String) -> PackedStringArray:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Arena Duel, ten bots, fixed camera. Preset: %s." % preset)
+	lines.append("Larak Lot, ten bots, fixed camera. Preset: %s." % preset)
 	lines.append(pace)
 	if int(report.get("count", 0)) <= 0:
 		lines.append(FrameStats.EMPTY_VERDICT)
@@ -425,7 +425,8 @@ func _preset_finished(summary: Dictionary) -> void:
 		return
 	_restore()
 	final_report = {"schema_version": 2, "created_utc": Time.get_datetime_string_from_system(true),
-		"workload": "Arena Duel, ten bots, one recorded authoritative match", "map_id": 1, "bots": 10,
+		"workload": "Larak Lot, ten bots, one recorded authoritative match", "map_id": 1, "bots": 10,
+		"scene_revision": BenchmarkCamera.SCENE_REVISION,
 		"renderer": RenderingServer.get_current_rendering_method(), "driver": RenderingServer.get_current_rendering_driver_name(),
 		"adapter": RenderingServer.get_video_adapter_name(), "adapter_vendor": RenderingServer.get_video_adapter_vendor(),
 		"graphics_api": RenderingServer.get_video_adapter_api_version(), "engine": Engine.get_version_info()["string"],

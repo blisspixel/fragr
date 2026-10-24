@@ -53,11 +53,24 @@ The names are short on purpose and carry just enough backstory to make you wonde
 
 ## What is actually built
 
-The server roster is Arena Duel, Compliance Yard, Directive 17 Substation,
-Sector 9 Transit Hall, Reclamation Gulch, and Tripoint Works. These are arena
-layouts, not completed campaign levels. Larak Lot is the Episode 0 face of Arena
-Duel; other maps retain their own names. Never label different geometry as Larak
-Lot, because learned routes must agree with the name a player sees.
+The server roster is Larak Lot, Compliance Yard, Directive 17 Substation,
+Sector 9 Transit Hall, Reclamation Gulch, Tripoint Works, Holdfast Atoll and
+Low Water. These are arena layouts, not completed campaign levels. Larak Lot
+replaced the Arena Duel field on map 1 (2026-10-23): five levels round a
+collapsed Pit, the Custody Plate on the Roof, the Rail down the Low Ramp, and
+a repossessed Union cruiser hung over the middle. It is the Episode 0 venue and
+the FFA and Duel home. Never label different geometry as Larak Lot, because
+learned routes must agree with the name a player sees.
+
+As built, the lot is an old black-budget range that nobody will sign off, with
+the power still on and the league holding its nights there. The directory at
+every entry admits four levels, 1 to 3 and the Roof, and calls level 1 the
+lowest. The fifth is the one the sign never admitted: the centre bays fell into
+it and became the Pit, and the Low Ramp tunnel is the old way down, past the
+Rail on a landing stencilled "halfway to a level that isn't there". The league
+has painted "-1" at the tunnel mouth and on the Pit walls. Aunt Linda's tent
+revival is on level three, over the Spiral landing. Larak's signature is on the
+pay machines, the pulpit and a coffee machine approved in 2009.
 
 The other arena myths and campaign locations await floor plans. The arena size
 ladder is in [map-scale](../plans/map-scale.md); campaign scale follows its story

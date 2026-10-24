@@ -26,6 +26,9 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	if venue == "low_water":
 		_build_town(half)
 		return
+	if venue == "larak_lot":
+		_build_lot(half)
+		return
 	var steel: StandardMaterial3D = _metal(Color("41494b"))
 	var edge: StandardMaterial3D = _metal(Color("6b716d"))
 	var accent_material: StandardMaterial3D = _metal(ArenaMaterials.accent(map_id))
@@ -91,6 +94,70 @@ func _build_mars(half: float, habitat: bool) -> void:
 			_box(Vector3(x - 4 + bay * 4, 3.5, z + 6.05), Vector3(2.1, 1.3, 0.12), frame)
 	_box(Vector3(half + 8, 9, -half * 0.4), Vector3(0.8, 18, 0.8), frame)
 	_box(Vector3(half + 8, 17, -half * 0.4), Vector3(4, 0.7, 0.7), shell)
+
+## The Perimeter round Larak Lot, all beyond the wall bands: an office block
+## behind the north facade, dark but for the corridor lights the lot's
+## presenter switches on a floor at a time, a transit viaduct past the
+## Stands, and the city's sodium grid beyond the Roof. The tower crane, the
+## train and those corridor lights belong to the presenter.
+func _build_lot(half: float) -> void:
+	# A dark office facade: it should sit behind the north wall as a shape
+	# against the sky, not a lit slab competing with the venue.
+	var concrete: StandardMaterial3D = _metal(Color("2b2d33"))
+	var dark: StandardMaterial3D = _metal(Color("24252c"))
+	var lit: StandardMaterial3D = _metal(Color("f0c27a"))
+	lit.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# Streets and lots round the structure, so the city stands on something.
+	var street: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.EARTH + "earth_roof_tar_patches.png", Color("2c2a2a"))
+	var ground: MeshInstance3D = MeshInstance3D.new()
+	var plane: PlaneMesh = PlaneMesh.new()
+	plane.size = Vector2(520.0, 520.0)
+	ground.mesh = plane
+	ground.position = Vector3(0.0, -0.05, 0.0)
+	ground.material_override = street
+	add_child(ground)
+	var sodium: StandardMaterial3D = _metal(Color("ffb35c"))
+	sodium.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for index: int in range(12):
+		var along: float = -88.0 + float(index) * 16.0
+		for side: float in [-1.0, 1.0]:
+			_box(Vector3(side * (half + 14.0), 4.0, along), Vector3(0.25, 8.0, 0.25), dark)
+			_box(Vector3(side * (half + 13.2), 8.0, along), Vector3(1.4, 0.2, 0.4), sodium)
+	# The office block north of the lot, the Perimeter's own neighbour: an
+	# office building where the lights follow you and the elevators still
+	# answer. Every pane is dark here; the presenter lights the corridor.
+	var pane: StandardMaterial3D = _metal(Color("1d2026"))
+	_box(Vector3(-17.0, 13.0, -half - 13.0), Vector3(42.0, 26.0, 24.0), concrete)
+	_box(Vector3(-17.0, 26.3, -half - 13.0), Vector3(43.0, 0.6, 25.0), dark)
+	for row: int in range(5):
+		for column: int in range(12):
+			_box(Vector3(-36.0 + float(column) * 3.4, 11.5 + float(row) * 3.0, -half - 0.98), Vector3(1.4, 1.1, 0.08), pane)
+	# The transit viaduct beyond the south wall: piers and a deck at 13 m.
+	var pier: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.PRODUCTION + "yard_concrete.png", Color("5a5852"))
+	_box(Vector3(0.0, 13.0, half + 9.0), Vector3(half * 2.0 + 120.0, 1.6, 7.0), pier)
+	_box(Vector3(0.0, 14.3, half + 5.6), Vector3(half * 2.0 + 120.0, 1.0, 0.25), pier)
+	for index: int in range(13):
+		var x: float = -90.0 + float(index) * 15.0
+		_box(Vector3(x, 6.1, half + 9.0), Vector3(2.0, 12.2, 3.0), pier)
+	# The city beyond the Roof and the Lane: dark blocks with sodium windows.
+	for index: int in range(16):
+		var side: float = 1.0 if index < 8 else -1.0
+		var along: float = -60.0 + float(index % 8) * 17.0
+		var height: float = 14.0 + float((index * 5) % 4) * 6.0
+		var x: float = side * (half + 26.0 + float(index % 3) * 9.0)
+		_box(Vector3(x, height * 0.5, along), Vector3(12.0, height, 12.0), dark)
+		for floor_index: int in range(int(height / 4.0)):
+			if (index + floor_index) % 3 == 1:
+				continue
+			_box(Vector3(x - side * 6.05, 2.5 + float(floor_index) * 4.0, along + float((floor_index * 3) % 5) - 2.0), Vector3(0.08, 1.0, 3.0), lit)
+	for index: int in range(10):
+		var x: float = -70.0 + float(index) * 15.0
+		var height: float = 18.0 + float(index % 4) * 7.0
+		_box(Vector3(x, height * 0.5, half + 44.0), Vector3(11.0, height, 10.0), dark)
+		for floor_index: int in range(int(height / 5.0)):
+			if (index * 2 + floor_index) % 4 == 0:
+				continue
+			_box(Vector3(x + float(floor_index % 3) * 2.5 - 2.5, 3.0 + float(floor_index) * 5.0, half + 38.95), Vector3(1.6, 1.2, 0.08), lit)
 
 func _build_town(half: float) -> void:
 	_riverside(half)

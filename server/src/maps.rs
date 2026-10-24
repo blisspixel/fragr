@@ -30,6 +30,7 @@ use std::sync::OnceLock;
 mod authored;
 pub(crate) use authored::encounters::{EnemyPlacement, Hover};
 pub(crate) mod holdfast;
+pub(crate) mod larak_lot;
 mod low_water;
 pub(crate) use authored::m11::SpinePatrol;
 pub(crate) use authored::walker::overlaps as walker_solids_overlap;
@@ -188,14 +189,16 @@ pub(crate) fn arena(kind: MapKind) -> &'static crate::movement::Arena {
 /// Ground-level flag stands for two-sided league scenarios. A map without
 /// validated stands cannot run capture the flag. Union is the negative X
 /// stand and Coalition the positive X stand, matching the spawn halves.
-/// Compliance Yard is retired. Gulch's compounds face north and south.
+/// Compliance Yard and Larak Lot have none. Gulch's compounds face north and
+/// south.
 /// Tripoint Works has three compounds.
 pub(crate) fn ctf_stands(kind: MapKind) -> Option<[[f32; 3]; 2]> {
     match kind {
-        MapKind::ArenaDuel => Some([[-63.0, 0.0, 0.0], [63.0, 0.0, 0.0]]),
         MapKind::Directive17 => Some([[-68.0, 0.0, 0.0], [68.0, 0.0, 0.0]]),
         MapKind::Sector9 => Some([[-70.0, 0.0, 0.0], [70.0, 0.0, 0.0]]),
-        MapKind::ComplianceYard
+        // Larak Lot is the FFA and Duel home; its decks have no two-base route.
+        MapKind::ArenaDuel
+        | MapKind::ComplianceYard
         | MapKind::ReclamationGulch
         | MapKind::TripointWorks
         | MapKind::HoldfastAtoll
@@ -642,6 +645,7 @@ fn weapon_pad(id: &str, weapon: WeaponType, x: f32, z: f32, floor: f32) -> Arena
         available: true,
         respawn_timer: None,
         secret: false,
+        clock: None,
     }
 }
 
@@ -658,6 +662,7 @@ fn health_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
         available: true,
         respawn_timer: None,
         secret: false,
+        clock: None,
     }
 }
 
@@ -674,93 +679,13 @@ fn armor_pad(id: &str, x: f32, z: f32, floor: f32) -> ArenaPickup {
         available: true,
         respawn_timer: None,
         secret: false,
+        clock: None,
     }
 }
 
 // ---------------------------------------------------------------------------
 // The roster
 // ---------------------------------------------------------------------------
-
-/// Arena Duel: a municipal assembly floor, certified for use as an arena.
-///
-/// Rosette flow. A clear hub at the origin sits inside a broken gantry ring
-/// that is a wall from the floor and a firing step from above, so the middle
-/// is a room you fight into rather than a field you cross. Eight spokes run
-/// out through the gantry gaps to the spawn rim. The rail sits on the north
-/// gantry with nothing on it to hide behind, which is `MAP-DESIGN` rule two:
-/// the best thing in the worst place.
-fn arena_duel() -> MapDef {
-    let half = 70.0;
-    let spawn = 42.0;
-    let gantry_top = 2.6;
-    let mut s = Vec::with_capacity(160);
-
-    // The gantry ring, four segments with the diagonals left open.
-    for (cx, cz, hx, hz) in [
-        (0.0, -19.0, 13.0, 1.8),
-        (0.0, 19.0, 13.0, 1.8),
-        (19.0, 0.0, 1.8, 13.0),
-        (-19.0, 0.0, 1.8, 13.0),
-    ] {
-        s.push(Solid::from_center_top(cx, cz, hx, hz, gantry_top));
-    }
-    // One flight up from the hub and one from the field per segment. Inner
-    // approaches form a pinwheel: crossing perpendicular flights makes their
-    // taller side faces block an otherwise ordinary walk up the first tread.
-    let run = stair_length(0.0, gantry_top);
-    for (sx, sz, dx, dz) in [
-        (7.0, -17.2 + run, 0.0, -1.0),
-        (7.0, -20.8 - run, 0.0, 1.0),
-        (-7.0, 17.2 - run, 0.0, 1.0),
-        (-7.0, 20.8 + run, 0.0, -1.0),
-        (17.2 - run, 7.0, 1.0, 0.0),
-        (20.8 + run, -7.0, -1.0, 0.0),
-        (-17.2 + run, -7.0, -1.0, 0.0),
-        (-20.8 - run, 7.0, 1.0, 0.0),
-    ] {
-        s.extend(stair_run(sx, sz, dx, dz, 1.6, 0.0, gantry_top));
-    }
-
-    // Pillar ring at mid field, between the gantry and the spawn rim.
-    for i in 0..8 {
-        let angle = PI * 2.0 * (i as f32) / 8.0;
-        s.push(Solid::from_center(
-            angle.cos() * 31.0,
-            angle.sin() * 31.0,
-            2.0,
-            2.0,
-        ));
-    }
-
-    spawn_pockets(8, spawn, 0.0, WALL_TOP, &mut s);
-
-    // Outer walls set in from the boundary, so the corners are rooms.
-    for (cx, cz, hx, hz) in [
-        (0.0, -56.0, 18.0, 0.8),
-        (0.0, 56.0, 18.0, 0.8),
-        (56.0, 0.0, 0.8, 18.0),
-        (-56.0, 0.0, 0.8, 18.0),
-    ] {
-        s.push(Solid::from_center(cx, cz, hx, hz));
-    }
-    for (cx, cz) in [(50.0, 50.0), (-50.0, 50.0), (50.0, -50.0), (-50.0, -50.0)] {
-        s.push(Solid::from_center(cx, cz, 2.5, 2.5));
-    }
-
-    MapDef {
-        half_extent: half,
-        spawn_radius: spawn,
-        solids: s,
-        pickups: vec![
-            weapon_pad("pad_rail", WeaponType::Rail, 0.0, -19.0, gantry_top),
-            weapon_pad("pad_scatter", WeaponType::Scatter, -25.0, 25.0, 0.0),
-            weapon_pad("pad_flechette", WeaponType::Flechette, 25.0, 25.0, 0.0),
-            health_pad("pad_health_n", -25.0, -25.0, 0.0),
-            health_pad("pad_health_s", 25.0, -25.0, 0.0),
-            armor_pad("pad_armor", 12.0, -12.0, 0.0),
-        ],
-    }
-}
 
 /// Compliance Yard: a records and inspection block.
 ///
@@ -1376,7 +1301,7 @@ fn tripoint_works() -> MapDef {
 
 fn build(kind: MapKind) -> MapDef {
     match kind {
-        MapKind::ArenaDuel => arena_duel(),
+        MapKind::ArenaDuel => larak_lot::build(),
         MapKind::ComplianceYard => compliance_yard(),
         MapKind::Directive17 => directive_17(),
         MapKind::Sector9 => sector_9(),
@@ -1409,33 +1334,43 @@ pub(crate) fn validate(kind: MapKind) -> Vec<String> {
     let name = kind.name();
     let mut problems = Vec::new();
 
-    let origin_floor = if kind == MapKind::HoldfastAtoll {
-        holdfast::LAND_HEIGHT
-    } else {
-        0.0
-    };
+    let origin_floor = origin_floor(kind);
     if blocked_at(kind, 0.0, 0.0, origin_floor + STEP_UP)
-        || stand_height(kind, 0.0, 0.0) != origin_floor
+        || support_height(kind, 0.0, 0.0, origin_floor + STEP_UP) != origin_floor
     {
         problems.push(format!("{name}: the origin is not clear, walkable floor"));
     }
 
-    let mut clear_spawns = 0;
-    let samples = 64;
-    for i in 0..samples {
-        let angle = PI * 2.0 * (i as f32) / samples as f32;
-        let (x, z) = (
-            angle.cos() * def.spawn_radius,
-            angle.sin() * def.spawn_radius,
-        );
-        if can_stand(kind, x, z) {
-            clear_spawns += 1;
+    if let Some(table) = spawn_table(kind) {
+        for (slot, [x, floor, z, _]) in table.iter().copied().enumerate() {
+            // A slot may stand under a bay ceiling, so ask from its own floor.
+            if blocked_at(kind, x, z, floor + STEP_UP)
+                || (support_height(kind, x, z, floor + STEP_UP) - floor).abs() > 0.01
+            {
+                problems.push(format!("{name}: spawn slot {slot} lacks clear floor"));
+            }
+            if x.abs() + RADIUS > def.half_extent || z.abs() + RADIUS > def.half_extent {
+                problems.push(format!("{name}: spawn slot {slot} is outside the boundary"));
+            }
         }
-    }
-    if clear_spawns < 8 {
-        problems.push(format!(
-            "{name}: only {clear_spawns} of {samples} spawn ring angles are clear"
-        ));
+    } else {
+        let mut clear_spawns = 0;
+        let samples = 64;
+        for i in 0..samples {
+            let angle = PI * 2.0 * (i as f32) / samples as f32;
+            let (x, z) = (
+                angle.cos() * def.spawn_radius,
+                angle.sin() * def.spawn_radius,
+            );
+            if can_stand(kind, x, z) {
+                clear_spawns += 1;
+            }
+        }
+        if clear_spawns < 8 {
+            problems.push(format!(
+                "{name}: only {clear_spawns} of {samples} spawn ring angles are clear"
+            ));
+        }
     }
     if def.spawn_radius + RADIUS >= def.half_extent {
         problems.push(format!("{name}: the spawn ring is outside the boundary"));
@@ -1512,59 +1447,102 @@ pub(crate) fn support_height(kind: MapKind, x: f32, z: f32, ceiling: f32) -> f32
     arena(kind).support_height(x, z, ceiling)
 }
 
-/// A two and a half dimensional flood fill from the origin, stepping up and
-/// down by the same rules the movement step uses, reporting anything a fighter
-/// cannot walk to. This is the test that catches a sealed room, a deck with no
-/// stairs, and a pit nobody can climb out of, before the playtest does.
+/// The floor at the origin: the drone's spawn and the last-resort fallback.
+#[cfg(test)]
+fn origin_floor(kind: MapKind) -> f32 {
+    if kind == MapKind::HoldfastAtoll {
+        holdfast::LAND_HEIGHT
+    } else {
+        0.0
+    }
+}
+
+/// An explicit spawn table (x, floor, z, yaw) for a map that does not use a
+/// ring.
+#[cfg(test)]
+pub(crate) fn spawn_table(kind: MapKind) -> Option<&'static [[f32; 4]]> {
+    (kind == MapKind::ArenaDuel).then_some(&larak_lot::SPAWNS[..])
+}
+
+/// Every floor a fighter can walk to from the origin, by cell. A layered flood
+/// fill: a cell can be reached at several heights, so a deck over a walkable
+/// floor (a bridge over a pit) keeps both. It steps up and down by the same
+/// rules the movement step uses and lets a fighter drop off any edge.
+#[cfg(test)]
+pub(crate) struct Reach {
+    span: i32,
+    width: usize,
+    floors: Vec<Vec<f32>>,
+}
+
+#[cfg(test)]
+impl Reach {
+    pub(crate) fn from_origin(kind: MapKind) -> Self {
+        let def = def(kind);
+        let span = def.half_extent.floor() as i32;
+        let width = (span * 2 + 1) as usize;
+        let mut reach = Self {
+            span,
+            width,
+            floors: vec![Vec::new(); width * width],
+        };
+        let mut queue = std::collections::VecDeque::new();
+        let origin_floor = origin_floor(kind);
+        let origin = reach.index(0, 0);
+        reach.floors[origin].push(origin_floor);
+        queue.push_back((0i32, 0i32, origin_floor));
+        let arena = arena(kind);
+        while let Some((ix, iz, floor)) = queue.pop_front() {
+            for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                let (nx, nz) = (ix + dx, iz + dz);
+                if nx.abs() > span || nz.abs() > span {
+                    continue;
+                }
+                let (wx, wz) = (nx as f32, nz as f32);
+                let climb = floor + STEP_UP;
+                if arena.blocked_body_at(wx, wz, floor, climb) {
+                    continue;
+                }
+                let next = arena.support_height(wx, wz, climb);
+                let cell = reach.index(nx, nz);
+                if reach.floors[cell].iter().any(|f| (f - next).abs() < 0.01) {
+                    continue;
+                }
+                reach.floors[cell].push(next);
+                queue.push_back((nx, nz, next));
+            }
+        }
+        reach
+    }
+
+    fn index(&self, ix: i32, iz: i32) -> usize {
+        ((iz + self.span) as usize) * self.width + (ix + self.span) as usize
+    }
+
+    /// The reached floor nearest `floor` at the cell holding `(x, z)`.
+    pub(crate) fn floor_near(&self, x: f32, z: f32, floor: f32) -> Option<f32> {
+        let (ix, iz) = (x.round() as i32, z.round() as i32);
+        if ix.abs() > self.span || iz.abs() > self.span {
+            return None;
+        }
+        self.floors[self.index(ix, iz)]
+            .iter()
+            .copied()
+            .min_by(|a, b| (a - floor).abs().total_cmp(&(b - floor).abs()))
+    }
+}
+
+/// Reports anything a fighter cannot walk to from the origin. This is the
+/// test that catches a sealed room, a deck with no stairs, and a pit nobody
+/// can climb out of, before the playtest does.
 #[cfg(test)]
 pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
     let def = def(kind);
-    let cell = 1.0f32;
-    let span = (def.half_extent / cell).floor() as i32;
-    let width = (span * 2 + 1) as usize;
-    let index = |ix: i32, iz: i32| ((iz + span) as usize) * width + (ix + span) as usize;
-    // Highest floor reached in each cell; -1 means never reached.
-    let mut reached = vec![-1.0f32; width * width];
-    let mut queue = std::collections::VecDeque::new();
-    let origin_floor = stand_height(kind, 0.0, 0.0);
-    reached[index(0, 0)] = origin_floor;
-    queue.push_back((0i32, 0i32, origin_floor));
-    while let Some((ix, iz, floor)) = queue.pop_front() {
-        if reached[index(ix, iz)] > floor + 0.01 {
-            continue;
-        }
-        for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-            let (nx, nz) = (ix + dx, iz + dz);
-            if nx.abs() > span || nz.abs() > span {
-                continue;
-            }
-            let (wx, wz) = (nx as f32 * cell, nz as f32 * cell);
-            let climb = floor + STEP_UP;
-            if blocked_at(kind, wx, wz, climb) {
-                continue;
-            }
-            let next = support_height(kind, wx, wz, climb);
-            if reached[index(nx, nz)] >= next - 0.01 && reached[index(nx, nz)] >= 0.0 {
-                continue;
-            }
-            reached[index(nx, nz)] = next;
-            queue.push_back((nx, nz, next));
-        }
-    }
-
+    let reach = Reach::from_origin(kind);
     let name = kind.name();
     let mut problems = Vec::new();
-    let at = |x: f32, z: f32| -> Option<f32> {
-        let ix = (x / cell).round() as i32;
-        let iz = (z / cell).round() as i32;
-        if ix.abs() > span || iz.abs() > span {
-            return None;
-        }
-        let v = reached[index(ix, iz)];
-        (v >= 0.0).then_some(v)
-    };
     for pad in &def.pickups {
-        match at(pad.x, pad.z) {
+        match reach.floor_near(pad.x, pad.z, pad.floor) {
             None => problems.push(format!("{name}: pad {} is unreachable", pad.id)),
             Some(floor) if (floor - pad.floor).abs() > STEP_UP => problems.push(format!(
                 "{name}: pad {} sits at {:.2} but is only reachable at {floor:.2}",
@@ -1575,7 +1553,7 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
     }
     if let Some(stands) = ctf_stands(kind) {
         for (i, [x, floor, z]) in stands.into_iter().enumerate() {
-            match at(x, z) {
+            match reach.floor_near(x, z, floor) {
                 None => problems.push(format!("{name}: flag stand {i} is unreachable")),
                 Some(height) if (height - floor).abs() > STEP_UP => {
                     problems.push(format!("{name}: flag stand {i} has an unreachable floor"))
@@ -1584,6 +1562,17 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
             }
         }
     }
+    if let Some(table) = spawn_table(kind) {
+        for (slot, [x, floor, z, _]) in table.iter().copied().enumerate() {
+            if !reach
+                .floor_near(x, z, floor)
+                .is_some_and(|reached| (reached - floor).abs() < 0.01)
+            {
+                problems.push(format!("{name}: spawn slot {slot} is unreachable"));
+            }
+        }
+        return problems;
+    }
     let mut reachable_spawns = 0;
     for i in 0..16 {
         let angle = PI * 2.0 * (i as f32) / 16.0;
@@ -1591,7 +1580,7 @@ pub(crate) fn unreachable(kind: MapKind) -> Vec<String> {
             angle.cos() * def.spawn_radius,
             angle.sin() * def.spawn_radius,
         );
-        if can_stand(kind, x, z) && at(x, z).is_some() {
+        if can_stand(kind, x, z) && reach.floor_near(x, z, stand_height(kind, x, z)).is_some() {
             reachable_spawns += 1;
         }
     }

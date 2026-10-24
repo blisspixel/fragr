@@ -248,15 +248,19 @@ pub enum HostReactionKind {
     LastStanding,
     Comeback,
     GoldenRail,
+    /// Larak Lot only: the frag count spikes, and the Host calls it what the
+    /// league calls it.
+    LarakLotSpecial,
 }
 
 impl HostReactionKind {
-    pub const ALL: [Self; 5] = [
+    pub const ALL: [Self; 6] = [
         Self::FirstBlood,
         Self::StreakEnded,
         Self::LastStanding,
         Self::Comeback,
         Self::GoldenRail,
+        Self::LarakLotSpecial,
     ];
 
     /// Information rather than drama: never held back by the reaction gap.

@@ -2849,8 +2849,9 @@ func _pose_camera(mode: String, state: Dictionary = {}) -> void:
 							if cam is Node3D:
 								var home: Vector3 = Vector3(float(stand[0]), float(stand[1]), float(stand[2]))
 								# Seven metres toward center is the Sector 9 framing.
-								# Arena Duel's perimeter wall sits at |x| = 56, so that
-								# step from x = 63 lands inside the wall. Stay in the room.
+								# A perimeter wall close behind a stand (the retired Arena
+								# Duel field had one at |x| = 56) would swallow that step
+								# from x = 63. Stay in the room.
 								var inward: float = 3.0 if absf(home.x) < 65.0 else 7.0
 								var n3: Node3D = cam
 								n3.global_position = home + Vector3(-side * inward, 4.0, 11.0)

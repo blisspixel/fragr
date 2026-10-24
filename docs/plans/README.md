@@ -24,6 +24,7 @@ Plans whose recorded status is proposed, planned, in flight or otherwise open. M
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`larak-lot.md`](./larak-lot.md) | **in review** on `feat/larak-lot` | Map 1 becomes Larak Lot, the hero free-for-all map: a five-level car park round a collapsed Pit, Plate on the Roof, Rail down the Low Ramp, twelve measured spawns, per-pad clocks, the Repossession landmark and canon league dressing. |
 | [`m15-connected-stadium-20261015.md`](./m15-connected-stadium-20261015.md) | **in flight**, implemented locally | Article Blade foundation, finite armed entrants, stadium bout and booth takeover, ceremonial gate departure and Episode IV refill to 3 continues. |
 | [`rocket-art-20261015.md`](./rocket-art-20261015.md) | **in flight** | Accepted-state Rocket reload and fitted Walker mechanical presentation; held-image production awaits live account reconciliation. |
 | [`splice-contact-gait-20261008.md`](./splice-contact-gait-20261008.md) | **in flight** | Ignored straight-walk contact candidate passes actual planted-foot, reach and continuity controls. Selected runtime gait remains unchanged; export, visual, start/stop and turn acceptance remain open. |

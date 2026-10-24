@@ -25,6 +25,16 @@ static func scenery_tile(path: String, base: Color) -> ShaderMaterial:
 ## Street decking has no issued warning signal. Duplicate only this material
 ## so the same authored steel on the post and barriers keeps its red markings.
 static func ground(material: Material, surface: String, venue: String) -> Material:
+	if venue == "larak_lot" and material is ShaderMaterial:
+		# The Pit floor is the base ground: the bays that fell in, wet scrap
+		# concrete under the lightwell rather than the swept decks above it.
+		var pit: ShaderMaterial = material.duplicate() as ShaderMaterial
+		pit.set_shader_parameter("surface_color", Color("5c5852"))
+		var wet: Texture2D = EnvironmentTextures.texture_at(EnvironmentTextures.PRODUCTION + "scrap_floor.png")
+		if wet != null:
+			pit.set_shader_parameter("tile_floor", wet)
+			pit.set_shader_parameter("tile_floor_strength", 0.6)
+		return pit
 	if venue != "moon_town" or surface != "service_steel" or not material is ShaderMaterial:
 		return material
 	var deck: ShaderMaterial = material.duplicate() as ShaderMaterial
@@ -123,6 +133,12 @@ static func authored(surface: String, venue: String = "") -> Material:
 	elif venue in ["moon_port", "moon_town"]:
 		bases = [Color("a9a698"), Color("d0cbb8"), Color("394144"), Color("9aa397"), Color("505954")]
 		accents = [Color("6c6e64"), Color("7f8278"), Color("9a302a"), Color("4e5c55"), Color("a9ad99")]
+	elif venue == "larak_lot":
+		# Mid-value cast concrete, black booth enamel whose only red is its
+		# seals, dark steel treads with yellow nosing, rust-brown wrecks and
+		# the stairwell's green tile.
+		bases = [Color("726c62"), Color("2e2f31"), Color("4c4f4e"), Color("6d5446"), Color("6f8a76")]
+		accents = [Color("6b665c"), Color("45484b"), Color("c9a23a"), Color("4f3a2f"), Color("4d6655")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])
@@ -131,6 +147,20 @@ static func authored(surface: String, venue: String = "") -> Material:
 		material.set_shader_parameter("trim_glow", 0.0)
 	material.set_shader_parameter("panel_size", 2.0)
 	EnvironmentTextures.apply(material, surface, venue)
+	if venue == "larak_lot":
+		# Paint, not light: the only glow in the lot is its fixtures and neon.
+		material.set_shader_parameter("trim_glow", 0.0)
+		material.set_shader_parameter("warning_color", Color("c9a23a"))
+		material.set_shader_parameter("deck_spacing", 1.5)
+		if surface == "records_tile":
+			# Wrecks are plate and rust, never a tiled wall.
+			material.set_shader_parameter("markings_enabled", false)
+			material.set_shader_parameter("tile_strength", 0.8)
+			material.set_shader_parameter("tile_floor_strength", 0.8)
+		elif surface == "concrete":
+			material.set_shader_parameter("panel_size", 4.0)
+			material.set_shader_parameter("tile_strength", 0.45)
+			material.set_shader_parameter("tile_floor_strength", 0.5)
 	if venue == "launch_works" and surface == "concrete":
 		# This venue uses dust and berm terrain. Keep
 		# its pixel grain without painting an institutional slab grid over it.

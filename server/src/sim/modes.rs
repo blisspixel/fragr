@@ -131,6 +131,43 @@ impl GameState {
         }
     }
 
+    /// Larak Lot: count the frag, and when enough land across the lot inside
+    /// the window, the Host calls the Larak Lot special for the fighter whose
+    /// frag tipped it. Every other map stays quiet.
+    pub(crate) fn note_lot_frag(&mut self, killer: &str, team: Option<Team>) {
+        if self.map != super::MapKind::ArenaDuel {
+            return;
+        }
+        let tick = self.tick;
+        let frags = &mut self.reactions.lot_frags;
+        frags.push_back(tick);
+        while frags
+            .front()
+            .is_some_and(|&at| at + crate::rules::LOT_SPECIAL_WINDOW_TICKS <= tick)
+        {
+            frags.pop_front();
+        }
+        if frags.len() < crate::rules::LOT_SPECIAL_FRAGS {
+            return;
+        }
+        if self
+            .reactions
+            .lot_special
+            .is_some_and(|at| tick < at + crate::rules::LOT_SPECIAL_COOLDOWN_TICKS)
+        {
+            return;
+        }
+        if self.react(
+            HostReactionKind::LarakLotSpecial,
+            Some(killer.to_string()),
+            None,
+            team,
+        ) {
+            self.reactions.lot_special = Some(tick);
+            self.reactions.lot_frags.clear();
+        }
+    }
+
     /// Lives-limited team rounds: one fighter left on a side against two or more.
     pub(super) fn react_to_last_standing(&mut self) {
         if !self.config.rules.teams() || self.config.rules.lives().is_none() {
