@@ -18,6 +18,14 @@ Status words: **proposed** (a design awaiting Nick's decision; directs no work),
 
 ## Index
 
+The [October 23 playtest round](playtest-round-20261023.md) is **in flight**. Wave 1 lanes:
+[FFA death lifecycle](ffa-death-lifecycle-20261023.md) (#441),
+[HUD layout and upright results](hud-layout-upright-results-20261023.md) (#437),
+[menu focus and structure](menu-focus-and-structure-20261023.md) (#435, #436),
+[reload readability](reload-readability-20261023.md) (#440),
+[operator console output](operator-console-output-20261023.md) (#438) and
+[stutter diagnosis](stutter-diagnosis-20261023.md) (#434). Each lane's plan lands with its PR.
+
 The interface rules and polish milestone #411-#418 is completely **shipped** in
 v0.90.0, covering [UI palette and type](ui-palette-type-20261017.md) (#411, PR #420),
 [status bar](ui-status-bar-20261018.md) (#412, PR #421),

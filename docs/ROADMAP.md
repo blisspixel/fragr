@@ -484,7 +484,7 @@ FPS, 1% lows, frame-time percentiles and local JSON/CSV exports. See the
 
 <a id="full-build-order"></a>
 
-## Full build order (updated 2026-10-19)
+## Full build order (updated 2026-10-23)
 
 The [connected foundry round](plans/m13-connected-round-20261013.md) shipped in
 v0.83.0 through PR #402 with passing main CI and all three desktop packages.
@@ -534,10 +534,18 @@ terminal tools and roles (#415) in PR #426,
 signature moments with Seal Cut and Stamped cards (#416) in PR #427, and
 the README front door refresh and game voice (#417) in PR #428.
 All sub-issues #411-#417 and parent milestone #418 are closed with passing CI across all platforms.
-The immediate rung is advancing the connected campaign to Episode V:
-[Planned Works](campaign/l19-planned-works.md) (Level 19) and
-[Local Exception](campaign/l20-local-exception.md) (Level 20), following the accepted
-ground escape and wipe-survival briefs and conditional epilogue.
+The immediate rung is the [October 23 playtest round](plans/playtest-round-20261023.md).
+Nick's first Windows multiplayer session on v0.90.0 filed #433-#442: death camera
+and input carryover, HUD collisions and tilted results, menu focus and
+structure, silent reloads, buried server output, benchmark UX, music controls
+and stutter. Wave 1 fixes those in parallel lanes. Wave 2 adds the benchmark,
+music, the Tack and Fists FFA starting kit and a 4 s FFA respawn, alongside an
+asset round that spends the funded image, model and audio credits. Episode V
+follows as waves 3 and 4:
+[Planned Works](campaign/l19-planned-works.md) (Level 19, #429) and
+[Local Exception](campaign/l20-local-exception.md) (Level 20, #430), following the accepted
+ground escape and wipe-survival briefs and conditional epilogue. Each wave
+returns to one reviewed main with passing CI before the next.
 The [multiplayer excellence plan](plans/multiplayer-excellence-20261017.md)
 specifies sensory juice, announcer barks, rocket jump blast physics, host UI mutators and Conquest tension
 benchmarked against classic multiplayer legends. The [bot and enemy AI excellence plan](plans/bot-and-enemy-ai-excellence-20261017.md)
