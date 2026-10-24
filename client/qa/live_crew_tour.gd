@@ -1,7 +1,7 @@
 extends "res://scripts/qa_tour.gd"
 
 ## Ordinary mission inputs with current named-skin/feet observations.
-## M10 starts from the same labelled historical finite-carry fixture as its gate.
+## M10 starts from the same labelled finite-carry fixture as its gate.
 var _owned: LocalMatch
 var _crew_mission: String = "m09"
 var _cast_samples: Array[Dictionary] = []
@@ -124,19 +124,19 @@ func _write_carry_fixture(directory: String) -> bool:
 	var content: Array[int] = []
 	for byte: int in FileAccess.get_sha256("res://../server/maps/m09_passenger_manifest.json").hex_decode():
 		content.append(byte)
-	var fixture: Dictionary = {"version": 12, "id": "0dc7302e-c024-4ccc-aac7-19e2aa908ce8", "starting_continues": 3,
+	var fixture: Dictionary = {"version": RunFixture.VERSION, "id": "0dc7302e-c024-4ccc-aac7-19e2aa908ce8", "starting_continues": 3,
 		"remaining_continues": 1, "level_start_continues": 1, "body": "synthetic",
-		"rules": {"difficulty": "standard", "revision": 3}, "content_sha256": content,
+		"rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": content,
 		"m03_outcome": {"liberated_cars": ["roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers": ["splice"]},
 		"m06_outcome": {"prisoner_route_marked": true},
-		"m08_outcome": {"kind": "recorded", "custody_released": true, "recovered_mind_secured": true, "captives_evacuated": true},
-		"m09_outcome": {"kind": "recorded", "released_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure": []},
+		"m08_outcome": {"custody_released": true, "recovered_mind_secured": true, "captives_evacuated": true},
+		"m09_outcome": {"released_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure": []},
 		"step": {"kind": "awaiting_mission", "completed_mission": "passenger_manifest", "next_mission": "common_carrier",
 			"exit": {"hp": 39, "armor": 17, "equipment": {"selected": "sniper", "weapons": ["fists", "flechette", "scatter", "sniper"],
-				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}],
-				"grenades": 2, "proximity_mines": 3, "personal_claims": ["cold_cabinet"]}}}}
+				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}, {"pool": "rockets", "rounds": 0}],
+				"grenades": 2, "proximity_mines": 3, "remote_mines": 0, "personal_claims": ["cold_cabinet"]}}}}
 	var file: FileAccess = FileAccess.open(directory.path_join("run.json"), FileAccess.WRITE)
 	if file == null:
 		return false

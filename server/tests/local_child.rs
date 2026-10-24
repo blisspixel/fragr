@@ -99,14 +99,47 @@ fn preview(directory: &Path) -> serde_json::Value {
     serde_json::from_slice(&output.stdout).unwrap()
 }
 
-/// Historical campaign saves have three ammunition pools. Version 16 inserts
-/// an empty Rockets pool exactly once during migration.
-fn migrated_ammo(ammo: &serde_json::Value) -> serde_json::Value {
-    let mut ammo = ammo.clone();
-    ammo.as_array_mut()
+/// The only run-file version this build reads or writes.
+const RUN_FILE_VERSION: u64 = 23;
+
+/// Every write is an atomic replace: no archives, copies or temporaries remain.
+fn assert_only_live_run(directory: &Path) {
+    let mut names: Vec<_> = std::fs::read_dir(directory)
         .unwrap()
-        .push(serde_json::json!({"pool":"rockets","rounds":0}));
-    ammo
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    assert_eq!(names, ["run.json", "run.lock"]);
+}
+
+/// A resume the child must refuse before advertising readiness.
+fn refused_resume(directory: &Path, mission: &str) {
+    let mut refused = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
+        .args(["--local-mission", mission, "--run-mode", "resume"])
+        .env("FRAGR_RUN_DIR", directory)
+        .env("RUST_LOG", "warn")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        if let Some(status) = refused.try_wait().unwrap() {
+            assert!(!status.success());
+            break;
+        }
+        assert!(Instant::now() < deadline, "resume was not refused");
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let mut output = Vec::new();
+    refused
+        .stdout
+        .take()
+        .unwrap()
+        .read_to_end(&mut output)
+        .unwrap();
+    assert!(output.is_empty(), "refused resume advertised readiness");
 }
 
 /// Set FRAGR_TEST_RUN_FIXTURE_DIR to an unused absolute directory to retain
@@ -130,13 +163,13 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
     );
     let hash = m01.content_sha256().unwrap();
     let document = serde_json::json!({
-        "version": 3,
+        "version": RUN_FILE_VERSION,
         "id": uuid::Uuid::from_u128(0x12712898),
         "starting_continues": 3,
         "remaining_continues": 2,
         "level_start_continues": 3,
         "body": "synthetic",
-        "rules": {"difficulty":"severe", "revision":2},
+        "rules": {"difficulty":"severe", "revision":4},
         "content_sha256": hash,
         "step": {
             "kind":"awaiting_mission",
@@ -150,8 +183,12 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
                     "ammo":[
                         {"pool":"bullets","rounds":29},
                         {"pool":"shells","rounds":0},
-                        {"pool":"cells","rounds":0}
+                        {"pool":"cells","rounds":0},
+                        {"pool":"rockets","rounds":0}
                     ],
+                    "grenades":0,
+                    "proximity_mines":0,
+                    "remote_mines":0,
                     "personal_claims":["bay_tack"]
                 }
             }
@@ -244,23 +281,13 @@ async fn isolated_m01_departure_fixture_for_m02_client_smoke() {
         assert_eq!(promoted["attempt"], 1);
         assert_eq!(promoted["continues"], 2);
         assert_eq!(promoted["body"], "synthetic");
-        let archives: Vec<_> = std::fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| {
-                entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-")
-            })
-            .collect();
-        assert_eq!(archives.len(), 1);
+        assert_only_live_run(&directory);
         std::fs::remove_dir_all(&directory).unwrap();
     }
 }
 
 #[test]
-fn wrong_mission_resume_does_not_migrate_v2_departure() {
+fn wrong_mission_resume_leaves_a_saved_departure_untouched() {
     let directory =
         std::env::temp_dir().join(format!("fragr-wrong-mission-{}", uuid::Uuid::new_v4()));
     let (mut first, ready) = spawn_persistent(&directory, "new", None);
@@ -273,83 +300,21 @@ fn wrong_mission_resume_does_not_migrate_v2_departure() {
         .unwrap();
     exited(&mut first, &ready, true);
     let path = directory.join("run.json");
-    let mut legacy: serde_json::Value =
+    let mut saved: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    legacy["version"] = 2.into();
-    legacy["rules"]["revision"] = 2.into();
-    legacy
-        .as_object_mut()
-        .unwrap()
-        .remove("level_start_continues");
-    legacy.as_object_mut().unwrap().remove("body");
-    // A historical v2 document has no explosive counts. Keep this a valid
-    // legacy save so the first refusal proves the requested mission is wrong.
-    legacy["step"]["entry"]["equipment"]
-        .as_object_mut()
-        .unwrap()
-        .remove("grenades");
-    legacy["step"]["entry"]["equipment"]
-        .as_object_mut()
-        .unwrap()
-        .remove("proximity_mines");
-    if let Some(count) = legacy["step"]["entry"]["equipment"].get("remote_mines") {
-        assert_eq!(count, 0);
-    }
-    legacy["step"]["entry"]["equipment"]
-        .as_object_mut()
-        .unwrap()
-        .remove("remote_mines");
-    legacy["step"]["entry"]["equipment"]["ammo"]
-        .as_array_mut()
-        .unwrap()
-        .retain(|count| count["pool"] != "rockets");
-    let entry = legacy["step"]["entry"].clone();
-    legacy["step"] = serde_json::json!({
+    let entry = saved["step"]["entry"].clone();
+    saved["step"] = serde_json::json!({
         "kind":"awaiting_mission",
         "completed_mission":"recall_notice",
         "next_mission":"persons_unknown",
         "exit":entry
     });
-    let source = serde_json::to_vec(&legacy).unwrap();
+    let source = serde_json::to_vec(&saved).unwrap();
     std::fs::write(&path, &source).unwrap();
-    let mut wrong = Command::new(env!("CARGO_BIN_EXE_fragr-server"))
-        .args(["--local-mission", "recall_notice", "--run-mode", "resume"])
-        .env("FRAGR_RUN_DIR", &directory)
-        .env("RUST_LOG", "warn")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .unwrap();
-    let deadline = Instant::now() + Duration::from_secs(10);
-    loop {
-        if let Some(status) = wrong.try_wait().unwrap() {
-            assert!(!status.success());
-            break;
-        }
-        assert!(Instant::now() < deadline, "wrong mission was not refused");
-        std::thread::sleep(Duration::from_millis(10));
-    }
-    let mut output = Vec::new();
-    wrong
-        .stdout
-        .take()
-        .unwrap()
-        .read_to_end(&mut output)
-        .unwrap();
-    assert!(output.is_empty(), "refused resume advertised readiness");
+    assert_eq!(preview(&directory)["status"], "awaiting_mission");
+    refused_resume(&directory, "recall_notice");
     assert_eq!(std::fs::read(&path).unwrap(), source);
-    assert_eq!(
-        std::fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with("run.prior-"))
-            .count(),
-        0
-    );
+    assert_only_live_run(&directory);
     let (child, ready) = spawn_persistent_mission(&directory, "persons_unknown", "resume", None);
     assert_eq!(
         ready.gameplay_version,
@@ -373,11 +338,12 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":3,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
-        "rules":{"difficulty":"severe","revision":2},"content_sha256":source_hash,
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
+        "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "step":{"kind":"awaiting_mission","completed_mission":"persons_unknown","next_mission":"scheduled_service",
             "exit":{"hp":61,"armor":7,"equipment":{"selected":"flechette","weapons":["fists","flechette","scatter"],
-                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0}],"personal_claims":["m02_rifle"]}}}
+                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0},{"pool":"rockets","rounds":0}],
+                "grenades":0,"proximity_mines":0,"remote_mines":0,"personal_claims":["m02_rifle"]}}}
     });
     let bytes = serde_json::to_vec(&prior).unwrap();
     let path = directory.join("run.json");
@@ -470,7 +436,7 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 22);
+        assert_eq!(live["version"], RUN_FILE_VERSION);
         assert_eq!(live["step"]["mission"], "scheduled_service");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -478,21 +444,10 @@ async fn released_m02_run_promotes_once_and_restarts_at_m03_entry() {
         );
         assert_eq!(
             live["step"]["entry"]["equipment"]["ammo"],
-            migrated_ammo(&prior["step"]["exit"]["equipment"]["ammo"])
+            prior["step"]["exit"]["equipment"]["ammo"]
         );
     }
-    let archives: Vec<_> = std::fs::read_dir(&directory)
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter(|entry| {
-            entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with("run.prior-")
-        })
-        .collect();
-    assert_eq!(archives.len(), 1);
-    assert_eq!(std::fs::read(archives[0].path()).unwrap(), bytes);
+    assert_only_live_run(&directory);
     std::fs::remove_dir_all(directory).unwrap();
 }
 
@@ -509,12 +464,13 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":4,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
-        "rules":{"difficulty":"severe","revision":2},"content_sha256":source_hash,
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
+        "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "m03_outcome":{"liberated_cars":["platform_car","roof_car"]},
         "step":{"kind":"awaiting_mission","completed_mission":"scheduled_service","next_mission":"notice_to_vacate",
             "exit":{"hp":61,"armor":7,"equipment":{"selected":"flechette","weapons":["fists","flechette","scatter"],
-                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0}],"personal_claims":["m02_rifle"]}}}
+                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0},{"pool":"rockets","rounds":0}],
+                "grenades":0,"proximity_mines":0,"remote_mines":0,"personal_claims":["m02_rifle"]}}}
     });
     let bytes = serde_json::to_vec(&prior).unwrap();
     let path = directory.join("run.json");
@@ -611,7 +567,7 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 22);
+        assert_eq!(live["version"], RUN_FILE_VERSION);
         assert_eq!(live["step"]["mission"], "notice_to_vacate");
         assert_eq!(
             live["step"]["entry"]["equipment"]["personal_claims"],
@@ -619,26 +575,15 @@ async fn completed_m03_run_promotes_once_and_retains_choices_at_m04_entry() {
         );
         assert_eq!(
             live["step"]["entry"]["equipment"]["ammo"],
-            migrated_ammo(&prior["step"]["exit"]["equipment"]["ammo"])
+            prior["step"]["exit"]["equipment"]["ammo"]
         );
     }
-    let archives: Vec<_> = std::fs::read_dir(&directory)
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter(|entry| {
-            entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with("run.prior-")
-        })
-        .collect();
-    assert_eq!(archives.len(), 1);
-    assert_eq!(std::fs::read(archives[0].path()).unwrap(), bytes);
+    assert_only_live_run(&directory);
     std::fs::remove_dir_all(directory).unwrap();
 }
 
 #[tokio::test]
-async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entry() {
+async fn completed_m05_run_refills_once_and_retains_actual_counts_at_m06_entry() {
     let directory = std::env::temp_dir().join(format!("fragr-m06-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
     let source_hash = fragr_server::maps::RuntimeMap::Authored(
@@ -650,15 +595,15 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":6,"id":run_id,"starting_continues":3,"remaining_continues":0,"level_start_continues":1,"body":"synthetic",
-        "rules":{"difficulty":"severe","revision":3},"content_sha256":source_hash,
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":0,"level_start_continues":1,"body":"synthetic",
+        "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "m03_outcome":{"liberated_cars":["roof_car","platform_car"]},
         "m04_outcome":{"rescued_patients":["edda_team_a"],"photos_completed":3},
         "m05_outcome":{"released_workers":["workshop_agent_b","splice","workshop_agent_a"],"evacuated_workers":["workshop_agent_b"]},
         "step":{"kind":"awaiting_mission","completed_mission":"no_forwarding_address","next_mission":"port_of_entry",
             "exit":{"hp":61,"armor":7,"equipment":{"selected":"flechette","weapons":["fists","flechette","scatter"],
-                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0}],
-                "grenades":2,"personal_claims":["workshop_grenade"]}}}
+                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0},{"pool":"rockets","rounds":0}],
+                "grenades":2,"proximity_mines":0,"remote_mines":0,"personal_claims":["workshop_grenade"]}}}
     });
     let bytes = serde_json::to_vec_pretty(&prior).unwrap();
     let path = directory.join("run.json");
@@ -750,7 +695,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
                         assert!(loadout.personal_claims.is_empty());
                         assert_eq!(
                             serde_json::to_value(loadout.ammo).unwrap(),
-                            migrated_ammo(&prior["step"]["exit"]["equipment"]["ammo"])
+                            prior["step"]["exit"]["equipment"]["ammo"]
                         );
                         saw_loadout = true;
                     }
@@ -784,7 +729,7 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
         drop(child);
         let mut live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 22);
+        assert_eq!(live["version"], RUN_FILE_VERSION);
         assert_eq!(live["remaining_continues"], expected_continues);
         assert_eq!(live["level_start_continues"], 3);
         assert_eq!(live["m05_outcome"], prior["m05_outcome"]);
@@ -793,19 +738,13 @@ async fn completed_v6_m05_run_refills_once_and_retains_actual_counts_at_m06_entr
         live["remaining_continues"] = 1.into();
         std::fs::write(&path, serde_json::to_vec(&live).unwrap()).unwrap();
     }
-    let archives: Vec<_> = std::fs::read_dir(&directory)
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter(|p| p.file_name().to_string_lossy().starts_with("run.prior-"))
-        .collect();
-    assert_eq!(archives.len(), 1);
-    assert_eq!(std::fs::read(archives[0].path()).unwrap(), bytes);
+    assert_only_live_run(&directory);
     assert_eq!(preview(&directory)["continues"], 1);
     std::fs::remove_dir_all(directory).unwrap();
 }
 
 #[tokio::test]
-async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
+async fn completed_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
     let directory = std::env::temp_dir().join(format!("fragr-m05-carry-{}", uuid::Uuid::new_v4()));
     std::fs::create_dir_all(&directory).unwrap();
     let source_hash = fragr_server::maps::RuntimeMap::Authored(
@@ -817,13 +756,14 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
     .unwrap();
     let run_id = uuid::Uuid::new_v4();
     let prior = serde_json::json!({
-        "version":5,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
-        "rules":{"difficulty":"severe","revision":3},"content_sha256":source_hash,
+        "version":RUN_FILE_VERSION,"id":run_id,"starting_continues":3,"remaining_continues":1,"level_start_continues":2,"body":"synthetic",
+        "rules":{"difficulty":"severe","revision":4},"content_sha256":source_hash,
         "m03_outcome":{"liberated_cars":["platform_car","roof_car"]},
         "m04_outcome":{"rescued_patients":["patient_a","patient_b"],"photos_completed":3},
         "step":{"kind":"awaiting_mission","completed_mission":"notice_to_vacate","next_mission":"no_forwarding_address",
             "exit":{"hp":61,"armor":7,"equipment":{"selected":"flechette","weapons":["fists","flechette","scatter"],
-                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0}],"personal_claims":["m02_rifle"]}}}
+                "ammo":[{"pool":"bullets","rounds":29},{"pool":"shells","rounds":8},{"pool":"cells","rounds":0},{"pool":"rockets","rounds":0}],
+                "grenades":0,"proximity_mines":0,"remote_mines":0,"personal_claims":["m02_rifle"]}}}
     });
     let bytes = serde_json::to_vec(&prior).unwrap();
     let path = directory.join("run.json");
@@ -925,7 +865,7 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         drop(child);
         let live: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-        assert_eq!(live["version"], 22);
+        assert_eq!(live["version"], RUN_FILE_VERSION);
         assert_eq!(live["step"]["entry"]["equipment"]["grenades"], 0);
         assert_eq!(live["m04_outcome"], prior["m04_outcome"]);
         assert_eq!(live["step"]["mission"], "no_forwarding_address");
@@ -935,21 +875,10 @@ async fn completed_v5_m04_run_promotes_once_and_retains_choices_at_m05_entry() {
         );
         assert_eq!(
             live["step"]["entry"]["equipment"]["ammo"],
-            migrated_ammo(&prior["step"]["exit"]["equipment"]["ammo"])
+            prior["step"]["exit"]["equipment"]["ammo"]
         );
     }
-    let archives: Vec<_> = std::fs::read_dir(&directory)
-        .unwrap()
-        .filter_map(Result::ok)
-        .filter(|entry| {
-            entry
-                .file_name()
-                .to_string_lossy()
-                .starts_with("run.prior-")
-        })
-        .collect();
-    assert_eq!(archives.len(), 1);
-    assert_eq!(std::fs::read(archives[0].path()).unwrap(), bytes);
+    assert_only_live_run(&directory);
     std::fs::remove_dir_all(directory).unwrap();
 }
 
@@ -1241,14 +1170,9 @@ async fn second_local_child_cannot_take_an_active_run() {
 }
 
 #[test]
-fn read_only_preview_distinguishes_corrupt_and_incompatible_without_deleting() {
+fn unreadable_runs_are_refused_kept_until_new_run_and_then_replaced() {
     let directory =
         std::env::temp_dir().join(format!("fragr-run-preview-{}", uuid::Uuid::new_v4()));
-    std::fs::create_dir(&directory).unwrap();
-    let path = directory.join("run.json");
-    std::fs::write(&path, b"broken").unwrap();
-    assert_eq!(preview(&directory)["status"], "corrupt");
-    assert_eq!(std::fs::read(&path).unwrap(), b"broken");
     let (mut child, ready) = spawn_persistent(&directory, "new", None);
     child
         .0
@@ -1258,13 +1182,40 @@ fn read_only_preview_distinguishes_corrupt_and_incompatible_without_deleting() {
         .write_all(b"{\"type\":\"shutdown\"}\n")
         .unwrap();
     exited(&mut child, &ready, true);
-    let mut saved: serde_json::Value =
+    let path = directory.join("run.json");
+    let current: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
-    saved["version"] = 999.into();
-    let bytes = serde_json::to_vec(&saved).unwrap();
-    std::fs::write(&path, &bytes).unwrap();
-    assert_eq!(preview(&directory)["status"], "incompatible");
-    assert_eq!(std::fs::read(&path).unwrap(), bytes);
+    assert_eq!(current["version"], RUN_FILE_VERSION);
+    let mut older = current.clone();
+    older["version"] = (RUN_FILE_VERSION - 1).into();
+    let mut future = current;
+    future["version"] = 999.into();
+    for (bytes, status) in [
+        (b"broken".to_vec(), "corrupt"),
+        (b"{\"version\":23}".to_vec(), "corrupt"),
+        (serde_json::to_vec(&older).unwrap(), "incompatible"),
+        (serde_json::to_vec(&future).unwrap(), "incompatible"),
+    ] {
+        std::fs::write(&path, &bytes).unwrap();
+        assert_eq!(preview(&directory)["status"], status);
+        assert_eq!(std::fs::read(&path).unwrap(), bytes, "preview is read-only");
+        refused_resume(&directory, "recall_notice");
+        assert_eq!(std::fs::read(&path).unwrap(), bytes, "refusal is read-only");
+        let (mut child, ready) = spawn_persistent(&directory, "new", None);
+        child
+            .0
+            .stdin
+            .as_mut()
+            .unwrap()
+            .write_all(b"{\"type\":\"shutdown\"}\n")
+            .unwrap();
+        exited(&mut child, &ready, true);
+        let fresh = preview(&directory);
+        assert_eq!(fresh["status"], "ready");
+        assert_eq!(fresh["mission"], "recall_notice");
+        assert_eq!(fresh["attempt"], 1);
+        assert_only_live_run(&directory);
+    }
     std::fs::remove_dir_all(directory).unwrap();
 }
 
@@ -1493,7 +1444,7 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
     assert_eq!(ready.mission, MissionId::PassengerManifest);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1504,7 +1455,8 @@ async fn m09_development_child_guards_every_role_before_welcome_and_serves_berth
                     role,
                     name: "Berth reader".into(),
                     geometry_version: 2,
-                    gameplay_version: 33,
+                    // The previous contract predates the untagged receipts.
+                    gameplay_version: fragr_server::protocol::M18_GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })
@@ -1606,7 +1558,7 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
     assert_eq!(ready.mission, MissionId::CommonCarrier);
     assert_eq!(
         ready.gameplay_version,
-        fragr_server::protocol::ASSESSOR_GAMEPLAY_VERSION
+        fragr_server::protocol::RECEIPT_GAMEPLAY_VERSION
     );
     for role in [Role::Human, Role::Agent, Role::Spectator] {
         let (mut socket, _) = connect_async(&ready.url).await.unwrap();
@@ -1617,7 +1569,8 @@ async fn m10_development_child_guards_every_role_before_welcome_and_serves_ship_
                     role,
                     name: "Ship reader".into(),
                     geometry_version: 2,
-                    gameplay_version: 35,
+                    // The previous contract predates the untagged receipts.
+                    gameplay_version: fragr_server::protocol::M18_GAMEPLAY_VERSION,
                     ticket: None,
                     resume: None,
                 })

@@ -70,28 +70,29 @@ func _run() -> void:
 	await _persistence(first, faster)
 	await _presentation(store, faster)
 	if failures == 0:
-		print("test_mission_bests: PASS compatible history, migration, provenance, exact times and rendered result controls")
+		print("test_mission_bests: PASS unknown provenance, exact times, reload and rendered result controls")
 	quit(0 if failures == 0 else 1)
 
 func _persistence(first: Dictionary, faster: Dictionary) -> void:
 	var path: String = "user://test-mission-bests-%d" % OS.get_process_id()
-	var legacy: Dictionary = {"version": 1, "generation": 1, "profile_id": "1".repeat(32), "entries": [{"origin": "local", "record": first}]}
-	var original: String = JSON.stringify(legacy)
+	var prior: Dictionary = {"version": PlayerRecords.VERSION, "generation": 1, "profile_id": "1".repeat(32),
+		"entries": [{"origin": "local", "record": first}], "unlocks": [], "customization": PlayerRewards.DEFAULTS.duplicate()}
+	var original: String = JSON.stringify(prior)
 	var file: FileAccess = FileAccess.open(path + ".1.json", FileAccess.WRITE)
 	file.store_string(original)
 	file.close()
 	var store: PlayerRecords = PlayerRecords.new(path)
-	_check(store.error == OK and store.entries.size() == 1, "version one history loads without invented provenance")
-	_check(store.accept(faster, "local", SERVER_HASH) == OK, "new observation upgrades through the existing two-slot writer")
-	_check(FileAccess.get_file_as_string(path + ".1.json") == original, "the preceding committed slot survives migration unchanged")
+	_check(store.error == OK and store.entries.size() == 1 and not store.started_fresh, "history without provenance loads as it is")
+	_check(store.accept(faster, "local", SERVER_HASH) == OK, "new observation commits through the two-slot writer")
+	_check(FileAccess.get_file_as_string(path + ".1.json") == original, "the preceding committed slot survives unchanged")
 	store = PlayerRecords.new(path)
-	_check(store.entries.size() == 2 and store.profile_id == legacy["profile_id"], "profile and historical entries survive reload")
-	_check(store.mission_comparison(faster, SERVER_HASH)["count"] == 1, "legacy unknown provenance is never assigned the new build")
+	_check(store.entries.size() == 2 and store.profile_id == prior["profile_id"], "profile and earlier entries survive reload")
+	_check(store.mission_comparison(faster, SERVER_HASH)["count"] == 1, "unknown provenance is never assigned the new build")
 	var later: Dictionary = _record(30, 2401)
 	_check(store.accept(later, "local", SERVER_HASH) == OK, "second new comparison record persists")
 	store = PlayerRecords.new(path)
 	_check(store.mission_comparison(later, SERVER_HASH)["best_ticks"] == 2399, "best times survive process reload")
-	var document: Dictionary = {"version": 2, "generation": 4, "profile_id": legacy["profile_id"], "entries": store.entries.duplicate(true)}
+	var document: Dictionary = store._document(4).duplicate(true)
 	document["entries"][0]["server_sha256"] = "bad"
 	_check(not PlayerRecords._valid_document(document), "disk metadata has the same strict source boundary")
 	for slot: int in range(2):

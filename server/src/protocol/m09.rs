@@ -7,28 +7,17 @@ use crate::movement::Solid;
 use serde::{Deserialize, Serialize};
 
 /// A cabinet copy is secured evidence, not proof of restoration or identity.
-/// Historical v9 bytes never recorded these choices. Keep that absence honest.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
-pub enum M08Outcome {
-    Recorded {
-        custody_released: bool,
-        recovered_mind_secured: bool,
-        captives_evacuated: bool,
-    },
-    HistoricalUnrecorded {},
+#[serde(deny_unknown_fields)]
+pub struct M08Outcome {
+    pub custody_released: bool,
+    pub recovered_mind_secured: bool,
+    pub captives_evacuated: bool,
 }
 
 impl M08Outcome {
     pub(crate) fn validate(&self) -> Result<(), &'static str> {
-        if matches!(
-            self,
-            Self::Recorded {
-                custody_released: false,
-                captives_evacuated: true,
-                ..
-            }
-        ) {
+        if !self.custody_released && self.captives_evacuated {
             return Err("saved custody evacuation requires actual release");
         }
         Ok(())

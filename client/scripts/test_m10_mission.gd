@@ -27,7 +27,7 @@ static func fixture_map() -> Dictionary:
 			"pilot": [-4, 0, -4], "companion_start": [4, 0, -4], "passengers": passengers}}
 
 static func fixture_state(info: Dictionary, done: int = 0, arrivals: Array[String] = []) -> Dictionary:
-	var transit: Dictionary = {"kind": "historical_unrecorded"} if arrivals.is_empty() else {"kind": "recorded", "arrived_crew": arrivals.duplicate()}
+	var transit: Dictionary = {"kind": "unlinked"} if arrivals.is_empty() else {"kind": "recorded", "arrived_crew": arrivals.duplicate()}
 	var people: Array[Dictionary] = []
 	for person: Dictionary in info["m10"]["passengers"]:
 		if person["id"] in arrivals:
@@ -81,10 +81,13 @@ func _run() -> void:
 	_check(not MissionState.validation_error(bad, geometry).is_empty(), "future encounter objective cannot be forged")
 	var later: Dictionary = fixture_state(info, 2)
 	_check(not MissionState.validation_error(first, geometry, later).is_empty(), "an attempt cannot rewind")
-	var unknown_archive: Dictionary = first.duplicate(true)
-	unknown_archive["state"]["m10"]["carried_archive"] = {"kind": "historical_unrecorded"}
-	_check(MissionState.validation_error(unknown_archive, geometry).is_empty(), "archive history remains separately unknown")
-	_check(not MissionState.validation_error(first, geometry, unknown_archive).is_empty(), "archive facts cannot disappear during retry")
+	var carried_archive: Dictionary = first.duplicate(true)
+	carried_archive["state"]["m10"]["carried_archive"] = {"custody_released": true, "recovered_mind_secured": true, "captives_evacuated": false}
+	_check(MissionState.validation_error(carried_archive, geometry).is_empty(), "carried archive choices arrive separately from transit")
+	_check(not MissionState.validation_error(first, geometry, carried_archive).is_empty(), "archive facts cannot disappear during retry")
+	bad = first.duplicate(true)
+	bad["state"]["m10"]["transit"] = {"kind": "historical_unrecorded"}
+	_check(not MissionState.validation_error(bad, geometry).is_empty(), "retired transit shape is refused")
 	bad = info.duplicate(true)
 	bad["m10"]["pilot"][0] += 0.5
 	_check(not M10MissionState.same_contract(geometry, MissionState.geometry_for(bad)), "static pilot contract changes refused")

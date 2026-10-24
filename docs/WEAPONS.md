@@ -58,10 +58,10 @@ offers an explicit mission-start continue with entry equipment restored. Three
 continues are implemented for the local run. Mission-entry saves carry body,
 found guns, ammunition, grenade counts, selection and remaining continues
 through the connected authored development missions, including the M14 prototype.
-Save version 18 is current. It preserves those counts and M13/M14 outcomes, adding
-an empty Rockets pool when a pre-16 file migrates. Strict historical upgrades archive exact
-original bytes and refuse forged Arc ownership and a forged Rockets pool. Earlier formats retain their original weapon
-and stage boundaries, including Repeater and Remote Mine restrictions.
+The save preserves those counts and every completed mission's outcome. Each
+stage refuses equipment it cannot yet contain: the Sniper Rifle before
+completed M07, the Repeater before completed M10, Remote Mines before completed
+M11, the Arc before completed M12 and the Rocket Launcher before completed M13.
 The current M10 prototype grants no
 Repeater; its actual source, cue and discovery lesson remain open.
 

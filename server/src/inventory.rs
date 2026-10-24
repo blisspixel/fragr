@@ -21,9 +21,7 @@ pub(crate) struct SavedEquipment {
     pub ammo: Vec<AmmoCount>,
     pub grenades: u16,
     pub proximity_mines: u16,
-    /// Independent deliberate charges. Absent means zero in current saves;
-    /// historical documents use their exact pre-remote decoder instead.
-    #[serde(default, skip_serializing_if = "remote_count_empty")]
+    /// Independent deliberate charges.
     pub remote_mines: u16,
     pub personal_claims: Vec<String>,
 }
@@ -48,10 +46,6 @@ impl SavedEquipment {
             &self.personal_claims,
         )
     }
-}
-
-fn remote_count_empty(count: &u16) -> bool {
-    *count == 0
 }
 
 #[derive(Debug, Clone)]

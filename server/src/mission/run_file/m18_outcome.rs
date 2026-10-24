@@ -12,12 +12,6 @@ pub(crate) struct M18Outcome {
     pub concourse_secured: bool,
 }
 
-pub(super) fn present<'de, D: serde::Deserializer<'de>>(
-    decoder: D,
-) -> Result<Option<M18Outcome>, D::Error> {
-    M18Outcome::deserialize(decoder).map(Some)
-}
-
 impl M18Outcome {
     pub(super) fn capture(state: &M18ObjectiveState, tick: u64) -> Result<Self, &'static str> {
         state.validate(MissionPhase::Departed, tick)?;

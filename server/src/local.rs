@@ -1024,6 +1024,21 @@ mod tests {
         )
         .unwrap();
         assert_eq!(m18.gameplay_version, crate::protocol::M18_GAMEPLAY_VERSION);
-        assert_eq!(m18.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        // M09 and M10 carry the single-schema campaign receipts, the highest
+        // contract this binary speaks.
+        for mission in [MissionId::PassengerManifest, MissionId::CommonCarrier] {
+            let ready = Ready::new(
+                mission,
+                CampaignDifficulty::Standard,
+                "127.0.0.1:6767".parse().unwrap(),
+                true,
+            )
+            .unwrap();
+            assert_eq!(
+                ready.gameplay_version,
+                crate::protocol::RECEIPT_GAMEPLAY_VERSION
+            );
+            assert_eq!(ready.gameplay_version, crate::protocol::GAMEPLAY_VERSION);
+        }
     }
 }

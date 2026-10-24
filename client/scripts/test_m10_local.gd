@@ -116,16 +116,16 @@ func _run() -> void:
 	var hash: Array[int] = []
 	for byte: int in FileAccess.get_sha256("res://../server/maps/m09_passenger_manifest.json").hex_decode():
 		hash.append(byte)
-	_check(hash.size() == 32, "strict historical completion binds actual berth bytes")
-	var fixture: Dictionary = {"version": 12, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 1,
-		"body": "synthetic", "rules": {"difficulty": "standard", "revision": 3}, "content_sha256": hash,
+	_check(hash.size() == 32, "completed berth binds actual berth bytes")
+	var fixture: Dictionary = {"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1, "level_start_continues": 1,
+		"body": "synthetic", "rules": {"difficulty": "standard", "revision": MissionState.RULES_REVISION}, "content_sha256": hash,
 		"m03_outcome": {"liberated_cars": ["roof_car"]}, "m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["splice", "workshop_agent_a", "workshop_agent_b"], "evacuated_workers": ["splice"]}, "m06_outcome": {"prisoner_route_marked": true},
-		"m08_outcome": {"kind": "recorded", "custody_released": true, "recovered_mind_secured": true, "captives_evacuated": true},
-		"m09_outcome": {"kind": "recorded", "released_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure": []},
+		"m08_outcome": {"custody_released": true, "recovered_mind_secured": true, "captives_evacuated": true},
+		"m09_outcome": {"released_crew": ["tern", "berth_crew_a", "berth_crew_b", "edda", "splice"], "aboard_at_departure": []},
 		"step": {"kind": "awaiting_mission", "completed_mission": "passenger_manifest", "next_mission": "common_carrier",
 			"exit": {"hp": 39, "armor": 17, "equipment": {"selected": "sniper", "weapons": ["fists", "flechette", "scatter", "sniper"],
-				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}], "grenades": 2, "proximity_mines": 3, "personal_claims": ["cold_cabinet"]}}}}
+				"ammo": [{"pool": "bullets", "rounds": 76}, {"pool": "shells", "rounds": 32}, {"pool": "cells", "rounds": 1}, {"pool": "rockets", "rounds": 0}], "grenades": 2, "proximity_mines": 3, "remote_mines": 0, "personal_claims": ["cold_cabinet"]}}}}
 	var source: String = JSON.stringify(fixture) + "\n  \n"
 	var file: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
 	_check(file != null, "isolated source is writable")
@@ -143,7 +143,7 @@ func _run() -> void:
 	if not await _until(func() -> bool: return owned.run_preview.get("status") == "awaiting_mission", "actual preview reads M09 completion"):
 		return
 	_check(owned.run_preview.get("mission") == MissionState.M10_ID, "preview names supported M10")
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact v12 bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == source, "preview preserves exact bytes")
 	var resume: Button = current_scene._root.get_node_or_null("CommonCarrierSaved") as Button
 	_check(resume != null and not resume.disabled, "real saved-run ship button")
 	if resume == null:
@@ -181,14 +181,10 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 22 and saved["step"]["mission"] == MissionState.M10_ID, "locked writer stores current M10 entry")
+	_check(saved is Dictionary and saved["version"] == RunFixture.VERSION and saved["step"]["mission"] == MissionState.M10_ID, "locked writer stores current M10 entry")
 	_check(saved is Dictionary and saved["step"]["entry"]["hp"] == 39 and saved["step"]["entry"]["armor"] == 17 and saved["step"]["entry"]["equipment"]["proximity_mines"] == 3, "retry anchor is exact entry, never spent live inventory")
 	_check(saved is Dictionary and saved["m08_outcome"] == fixture["m08_outcome"] and saved["m09_outcome"] == fixture["m09_outcome"] and saved["m10_transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "original zero-aboard receipt remains separate from real transit arrivals")
-	var archives: Array[String] = []
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-"):
-			archives.append(filename)
-	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "migration archive is exact historical source")
+	_check(RunFixture.only_live_run(run_directory), "promotion replaces the run without leaving copies")
 	# Reopen the actual current native M10 entry. Arrival facts and the berth
 	# subset stay exact, without a second transition or an episode refill.
 	var native_source: String = FileAccess.get_file_as_string(run_directory.path_join("run.json"))
@@ -257,13 +253,9 @@ func _run() -> void:
 	await process_frame
 	await create_timer(0.5).timeout
 	var retry_saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(retry_saved is Dictionary and retry_saved["version"] == 22 and retry_saved["m09_outcome"] == fixture["m09_outcome"] and retry_saved["m10_transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "unfinished ship retry preserves actual earlier crew history")
+	_check(retry_saved is Dictionary and retry_saved["version"] == RunFixture.VERSION and retry_saved["m09_outcome"] == fixture["m09_outcome"] and retry_saved["m10_transit"]["arrived_crew"] == fixture["m09_outcome"]["released_crew"], "unfinished ship retry preserves actual earlier crew history")
 	_check(retry_saved is Dictionary and retry_saved["step"]["entry"] == saved["step"]["entry"], "real-process retry preserves every entry count")
-	archives.clear()
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-"):
-			archives.append(filename)
-	_check(archives.size() == 1 and FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == source, "reopen does not duplicate the exact v12 archive")
+	_check(RunFixture.only_live_run(run_directory), "retry leaves only the live run")
 	if failures == 0:
 		print("test_m10_local: PASS")
 	quit(0 if failures == 0 else 1)

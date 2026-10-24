@@ -117,7 +117,7 @@ func _run() -> void:
 	if not await _saved_transition(owned):
 		return
 	if failures == 0:
-		print("test_m07_local: PASS development isolation, town presentation and v7 saved M06-M07 carry without refill, v9 archive and owned cleanup")
+		print("test_m07_local: PASS development isolation, town presentation and saved M06-M07 carry without refill, atomic promotion and owned cleanup")
 	quit(0 if failures == 0 else 1)
 
 func _saved_transition(owned: LocalMatch) -> bool:
@@ -127,24 +127,24 @@ func _saved_transition(owned: LocalMatch) -> bool:
 		digest.append(hash.substr(index, 2).hex_to_int())
 	_check(digest.size() == 32, "version 7 fixture binds actual current M06 content")
 	var fixture: Dictionary = {
-		"version": 7, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
-		"level_start_continues": 3, "body": "human", "rules": {"difficulty": "severe", "revision": 3},
+		"version": RunFixture.VERSION, "id": RUN_ID, "starting_continues": 3, "remaining_continues": 1,
+		"level_start_continues": 3, "body": "human", "rules": {"difficulty": "severe", "revision": MissionState.RULES_REVISION},
 		"content_sha256": digest, "m03_outcome": {"liberated_cars": ["platform_car", "roof_car"]},
 		"m04_outcome": {"rescued_patients": ["edda_team_a"], "photos_completed": 2},
 		"m05_outcome": {"released_workers": ["workshop_agent_b", "splice", "workshop_agent_a"], "evacuated_workers": ["workshop_agent_a", "splice"]},
 		"m06_outcome": {"prisoner_route_marked": true},
 		"step": {"kind": "awaiting_mission", "completed_mission": "port_of_entry", "next_mission": "declared_goods",
 			"exit": {"hp": 54, "armor": 12, "equipment": {"selected": "rail", "weapons": ["fists", "flechette", "scatter", "rail"],
-				"ammo": [{"pool": "bullets", "rounds": 41}, {"pool": "shells", "rounds": 6}, {"pool": "cells", "rounds": 9}],
-				"grenades": 1, "personal_claims": ["customs_cells"]}}}}
-	var legacy_bytes: String = JSON.stringify(fixture) + "\n"
-	var legacy: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
-	_check(legacy != null, "isolated compatible version 7 transition is writable")
-	if legacy == null:
+				"ammo": [{"pool": "bullets", "rounds": 41}, {"pool": "shells", "rounds": 6}, {"pool": "cells", "rounds": 9}, {"pool": "rockets", "rounds": 0}],
+				"grenades": 1, "proximity_mines": 0, "remote_mines": 0, "personal_claims": ["customs_cells"]}}}}
+	var saved_source: String = JSON.stringify(fixture) + "\n"
+	var saved_file: FileAccess = FileAccess.open(run_directory.path_join("run.json"), FileAccess.WRITE)
+	_check(saved_file != null, "isolated saved transition is writable")
+	if saved_file == null:
 		quit(1)
 		return false
-	legacy.store_string(legacy_bytes)
-	legacy.close()
+	saved_file.store_string(saved_source)
+	saved_file.close()
 	_check(change_scene_to_file("res://scenes/boot_menu.tscn") == OK, "saved transition boot menu loads")
 	await process_frame
 	await process_frame
@@ -154,7 +154,7 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	var preview: Dictionary = owned.run_preview
 	_check(preview["mission"] == MissionState.M07_ID and preview["body"] == "human" and int(preview["continues"]) == 1,
 		"preview retains destination, body and the episode's remaining continues")
-	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == legacy_bytes, "read-only menu preview preserves exact version 7 bytes")
+	_check(FileAccess.get_file_as_string(run_directory.path_join("run.json")) == saved_source, "read-only menu preview preserves exact bytes")
 	var resume: Button = current_scene._root.get_node_or_null("DeclaredGoodsSaved") as Button
 	_check(resume != null and not resume.disabled, "saved M07 transition offers its actual resume button")
 	if resume == null:
@@ -194,19 +194,13 @@ func _saved_transition(owned: LocalMatch) -> bool:
 	if not await _until(func() -> bool: return owned.state == LocalMatch.State.IDLE, "durable owned M07 child stops cleanly before inspecting disk"):
 		return false
 	var saved: Variant = JSON.parse_string(FileAccess.get_file_as_string(run_directory.path_join("run.json")))
-	_check(saved is Dictionary and saved["version"] == 22 and saved["id"] == RUN_ID, "actual child atomically persists the current run")
+	_check(saved is Dictionary and saved["version"] == RunFixture.VERSION and saved["id"] == RUN_ID, "actual child atomically persists the current run")
 	if saved is Dictionary:
 		_check(saved["step"]["kind"] == "mission_entry" and saved["step"]["mission"] == MissionState.M07_ID \
 			and saved["m06_outcome"] == fixture["m06_outcome"] and saved["m05_outcome"] == fixture["m05_outcome"] \
 			and int(saved["remaining_continues"]) == 1 and int(saved["level_start_continues"]) == 1,
 			"current entry retains every outcome and the unrefilled baseline: " + JSON.stringify(saved))
-	var archives: Array[String] = []
-	for filename: String in DirAccess.get_files_at(run_directory):
-		if filename.begins_with("run.prior-") and filename.ends_with(".json"):
-			archives.append(filename)
-	_check(archives.size() == 1, "the upgrade creates exactly one prior archive")
-	if archives.size() == 1:
-		_check(FileAccess.get_file_as_string(run_directory.path_join(archives[0])) == legacy_bytes, "archive preserves the exact version 7 bytes")
+	_check(RunFixture.only_live_run(run_directory), "promotion replaces the run without leaving copies")
 	current_scene.queue_free()
 	await process_frame
 	await create_timer(0.5).timeout

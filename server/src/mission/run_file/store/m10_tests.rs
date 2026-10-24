@@ -1,5 +1,5 @@
 use super::*;
-use crate::mission::run_file::{M09Outcome, SavedStep};
+use crate::mission::run_file::SavedStep;
 use crate::protocol::{CampaignRunStatus, M10Transit, MissionContinue, MissionReady, Role};
 use crate::sim::{GameState, PLAYER_FLOOR_Y};
 
@@ -8,18 +8,9 @@ fn m10_real_promotion_completes_only_released_crew_and_retry_keeps_its_entry() {
     let map = crate::maps::AuthoredSource::Mission(MissionId::CommonCarrier)
         .load()
         .unwrap();
-    for (edda, splice, known) in [
-        (false, false, true),
-        (true, false, true),
-        (false, true, true),
-        (true, true, true),
-        (true, true, false),
-    ] {
+    for (edda, splice) in [(false, false), (true, false), (false, true), (true, true)] {
         let mut before = m09_receipt_tests::completed_berth(edda, splice);
         before.remaining_continues = 1;
-        if !known {
-            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
-        }
         let receipt = before.m09_outcome.clone();
         let SavedStep::AwaitingMission { exit, .. } = &before.step else {
             panic!("berth exit");
@@ -37,26 +28,18 @@ fn m10_real_promotion_completes_only_released_crew_and_retry_keeps_its_entry() {
         assert_eq!(promoted.remaining_continues, 3);
         assert_eq!(promoted.level_start_continues, 3);
         assert_eq!(promoted.m09_outcome, receipt);
-        match (&receipt, &promoted.m10_transit) {
-            (
-                Some(M09Outcome::Recorded {
-                    released_crew,
-                    aboard_at_departure,
-                }),
-                Some(M10Transit::Recorded { arrived_crew }),
-            ) => {
-                assert!(
-                    aboard_at_departure.is_empty(),
-                    "the true old zero-aboard fact stays empty"
-                );
-                assert_eq!(arrived_crew, released_crew);
-            }
-            (
-                Some(M09Outcome::HistoricalUnrecorded {}),
-                Some(M10Transit::HistoricalUnrecorded {}),
-            ) => {}
-            _ => panic!("unknown history or actual release was fabricated"),
-        }
+        let berth = receipt.as_ref().unwrap();
+        assert!(
+            berth.aboard_at_departure.is_empty(),
+            "the true zero-aboard fact stays empty"
+        );
+        assert_eq!(
+            promoted.m10_transit,
+            Some(M10Transit::Recorded {
+                arrived_crew: berth.released_crew.clone()
+            }),
+            "arrivals are exactly the actual release"
+        );
         assert_eq!(
             promoted.step,
             SavedStep::MissionEntry {
@@ -94,21 +77,11 @@ fn m10_real_promotion_completes_only_released_crew_and_retry_keeps_its_entry() {
                 .pilot,
             "current Tern appears independently of history"
         );
-        assert_eq!(
-            ship.passengers.iter().any(|p| p.id == "edda"),
-            known && edda
-        );
-        assert_eq!(
-            ship.passengers.iter().any(|p| p.id == "splice"),
-            known && splice
-        );
+        assert_eq!(ship.passengers.iter().any(|p| p.id == "edda"), edda);
+        assert_eq!(ship.passengers.iter().any(|p| p.id == "splice"), splice);
         assert_eq!(
             ship.passengers.len(),
-            if known {
-                2 + usize::from(edda) + usize::from(splice)
-            } else {
-                0
-            }
+            2 + usize::from(edda) + usize::from(splice)
         );
         for _ in 0..40 {
             state.tick(0.05);
@@ -148,58 +121,50 @@ fn m10_real_promotion_completes_only_released_crew_and_retry_keeps_its_entry() {
 }
 
 #[test]
-fn m10_locked_v12_upgrade_preserves_bytes_then_commits_distinct_transit_once() {
-    for known in [false, true] {
-        let mut source = m09_receipt_tests::completed_berth(true, true);
-        source.remaining_continues = 1;
-        if !known {
-            source.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
-        }
-        let mut value = serde_json::to_value(&source).unwrap();
-        value["version"] = 12.into();
-        value["rules"]["revision"] = (3).into();
-        super::super::omit_historical_rockets(&mut value);
-        let mut bytes = serde_json::to_vec_pretty(&value).unwrap();
-        bytes.extend_from_slice(b"\n \n");
-        let directory = std::env::temp_dir().join(format!("fragr-m10-transit-{}", Uuid::new_v4()));
-        let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded, source);
-        assert!(store.needs_upgrade().unwrap());
-        let promoted = loaded
+fn m10_locked_promotion_commits_distinct_transit_once() {
+    let mut source = m09_receipt_tests::completed_berth(true, true);
+    source.remaining_continues = 1;
+    let directory = std::env::temp_dir().join(format!("fragr-m10-transit-{}", Uuid::new_v4()));
+    let store = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
+    store.save(&source).unwrap();
+    let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
+    let loaded = store.load().unwrap().unwrap();
+    assert_eq!(loaded, source);
+    let promoted = loaded
+        .promote_next(MissionId::CommonCarrier, m09_tests::HASHES[9])
+        .unwrap();
+    assert!(store
+        .save_with_sync(
+            &promoted,
+            |_| Err(io::Error::other("interrupted transition")),
+            sync_directory,
+        )
+        .is_err());
+    assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
+    store.save(&promoted).unwrap();
+    drop(store);
+    let reopened = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
+    let reloaded = reopened.load().unwrap().unwrap();
+    assert_eq!(reloaded, promoted);
+    assert!(
+        reloaded
             .promote_next(MissionId::CommonCarrier, m09_tests::HASHES[9])
-            .unwrap();
-        assert!(store
-            .archive_and_save_before_replace(&loaded, &promoted, |_| Err(io::Error::other(
-                "interrupted transition"
-            )))
-            .is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap().unwrap(), promoted);
-        assert!(!store.needs_upgrade().unwrap());
-        drop(store);
-        let reopened = RunStore::open_with_hashes(&directory, m09_tests::HASHES).unwrap();
-        assert_eq!(reopened.load().unwrap().unwrap(), promoted);
-        assert!(
-            reopened.archive_and_save(&loaded, &promoted).is_err(),
-            "stale promotion cannot duplicate arrival/refill"
-        );
-        drop(reopened);
-        fs::remove_dir_all(directory).unwrap();
-    }
+            .is_err(),
+        "a promoted entry cannot duplicate arrival or refill"
+    );
+    drop(reopened);
+    fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]
-fn m10_transit_refuses_forged_current_and_historical_ownership_or_arrivals() {
+fn m10_transit_refuses_forged_ownership_or_arrivals() {
     let before = m09_receipt_tests::completed_berth(true, true);
     let promoted = before
         .promote_next(MissionId::CommonCarrier, m09_tests::HASHES[9])
         .unwrap();
     for transit in [
         serde_json::json!({"kind":"recorded","arrived_crew":["tern","berth_crew_a","berth_crew_b"]}),
+        serde_json::json!({"kind":"unlinked"}),
         serde_json::json!({"kind":"historical_unrecorded"}),
         serde_json::json!({"kind":"recorded","arrived_crew":["tern","berth_crew_a","berth_crew_b","edda","edda"]}),
     ] {
@@ -210,47 +175,28 @@ fn m10_transit_refuses_forged_current_and_historical_ownership_or_arrivals() {
             RunProbe::Compatible(_)
         ));
     }
-    for version in [10, 11, 12] {
-        let mut value = serde_json::to_value(&promoted).unwrap();
-        value["version"] = version.into();
-        value["rules"]["revision"] = (if version <= 4 {
-            2
-        } else if version < super::super::RUN_FILE_VERSION {
-            3
-        } else {
-            crate::protocol::CAMPAIGN_RULES_REVISION
-        })
-        .into();
-        value.as_object_mut().unwrap().remove("m10_transit");
-        if version < 12 {
-            value.as_object_mut().unwrap().remove("m09_outcome");
-        }
-        assert!(
-            !matches!(
-                RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), m09_tests::HASHES),
-                RunProbe::Compatible(_)
-            ),
-            "historical M10 must refuse"
-        );
-        let mut value = serde_json::to_value(&before).unwrap();
-        value["version"] = version.into();
-        value["rules"]["revision"] = (if version <= 4 {
-            2
-        } else if version < super::super::RUN_FILE_VERSION {
-            3
-        } else {
-            crate::protocol::CAMPAIGN_RULES_REVISION
-        })
-        .into();
-        if version < 12 {
-            value.as_object_mut().unwrap().remove("m09_outcome");
-        }
-        value["m10_transit"] = serde_json::Value::Null;
-        assert!(matches!(
-            RunStore::inspect_bytes(&serde_json::to_vec(&value).unwrap(), m09_tests::HASHES),
-            RunProbe::Corrupt
-        ));
-    }
+    let mut missing = serde_json::to_value(&promoted).unwrap();
+    missing.as_object_mut().unwrap().remove("m10_transit");
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&missing).unwrap(), m09_tests::HASHES),
+        RunProbe::Incompatible
+    ));
+    let mut early = serde_json::to_value(&before).unwrap();
+    early["m10_transit"] = serde_json::Value::Null;
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&early).unwrap(), m09_tests::HASHES),
+        RunProbe::Corrupt
+    ));
+    // Remote charges are an M11 find; an M10 entry never carries one.
+    let mut remote = serde_json::to_value(&promoted).unwrap();
+    remote["step"]["entry"]["equipment"]["remote_mines"] = 1.into();
+    assert!(matches!(
+        RunStore::inspect_bytes(&serde_json::to_vec(&remote).unwrap(), m09_tests::HASHES),
+        RunProbe::Incompatible
+    ));
+    assert!(promoted
+        .promote_next(MissionId::RightOfSearch, m09_tests::HASHES[10])
+        .is_err());
 }
 
 #[test]
@@ -260,17 +206,8 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
     let source = crate::maps::AuthoredSource::Mission(MissionId::CommonCarrier)
         .load()
         .unwrap();
-    for (edda, splice, known) in [
-        (false, false, true),
-        (true, false, true),
-        (false, true, true),
-        (true, true, true),
-        (true, true, false),
-    ] {
+    for (edda, splice) in [(false, false), (true, false), (false, true), (true, true)] {
         let mut before = m09_receipt_tests::completed_berth(edda, splice);
-        if !known {
-            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
-        }
         let SavedStep::AwaitingMission { exit, .. } = &mut before.step else {
             panic!("actual departure fixture");
         };
@@ -330,20 +267,10 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
         let facts = session.state.mission_state().unwrap().m10.unwrap();
         assert_eq!(
             facts.passengers.len(),
-            if known {
-                2 + usize::from(edda) + usize::from(splice)
-            } else {
-                0
-            }
+            2 + usize::from(edda) + usize::from(splice)
         );
-        assert_eq!(
-            facts.passengers.iter().any(|p| p.id == "edda"),
-            known && edda
-        );
-        assert_eq!(
-            facts.passengers.iter().any(|p| p.id == "splice"),
-            known && splice
-        );
+        assert_eq!(facts.passengers.iter().any(|p| p.id == "edda"), edda);
+        assert_eq!(facts.passengers.iter().any(|p| p.id == "splice"), splice);
         let initial_equipment = session
             .state
             .players
@@ -445,7 +372,7 @@ fn m10_ready_session_keeps_future_guards_out_of_actual_crew_and_medkit_paths() {
             let player = session.state.players.iter().find(|p| p.id == id).unwrap();
             assert!(
                 arrived,
-                "edda={edda} splice={splice} known={known} target={target:?} stalled at {:?}",
+                "edda={edda} splice={splice} target={target:?} stalled at {:?}",
                 [player.x, player.y - PLAYER_FLOOR_Y, player.z]
             );
             session.state.set_action(id, Action::default());
@@ -544,17 +471,8 @@ fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes()
         }
         state.tick(0.05);
     }
-    for (edda, splice, known) in [
-        (false, false, true),
-        (true, false, true),
-        (false, true, true),
-        (true, true, true),
-        (true, true, false),
-    ] {
-        let mut before = m09_receipt_tests::completed_berth(edda, splice);
-        if !known {
-            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
-        }
+    for (edda, splice) in [(false, false), (true, false), (false, true), (true, true)] {
+        let before = m09_receipt_tests::completed_berth(edda, splice);
         let promoted = before
             .promote_next(
                 MissionId::CommonCarrier,
@@ -578,11 +496,7 @@ fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes()
         state.append_civilian_contacts(&mut contacts);
         assert_eq!(
             contacts.len(),
-            1 + if known {
-                2 + usize::from(edda) + usize::from(splice)
-            } else {
-                0
-            }
+            1 + 2 + usize::from(edda) + usize::from(splice)
         );
         assert!(contacts.iter().any(|b| b.key == "m10/tern"));
         let mut navigator = Navigator::default();
@@ -652,7 +566,7 @@ fn m10_live_crew_contacts_preserve_both_stairs_and_actual_finite_supply_routes()
             let p = state.players.iter().find(|p| p.id == id).unwrap();
             assert!(
                 arrived,
-                "crew edda={edda} splice={splice} known={known}, target={target:?} stalled at {:?}",
+                "crew edda={edda} splice={splice}, target={target:?} stalled at {:?}",
                 [p.x, p.y - PLAYER_FLOOR_Y, p.z]
             );
         }
@@ -708,17 +622,8 @@ fn m10_actual_transit_bodies_stop_shots_and_unknown_people_do_not() {
         .clone();
     let mut places = vec![("tern".to_owned(), geometry.pilot)];
     places.extend(geometry.passengers.iter().map(|p| (p.id.clone(), p.feet)));
-    for (edda, splice, known) in [
-        (false, false, true),
-        (true, false, true),
-        (false, true, true),
-        (true, true, true),
-        (true, true, false),
-    ] {
-        let mut before = m09_receipt_tests::completed_berth(edda, splice);
-        if !known {
-            before.m09_outcome = Some(M09Outcome::HistoricalUnrecorded {});
-        }
+    for (edda, splice) in [(false, false), (true, false), (false, true), (true, true)] {
+        let before = m09_receipt_tests::completed_berth(edda, splice);
         let promoted = before
             .promote_next(
                 MissionId::CommonCarrier,

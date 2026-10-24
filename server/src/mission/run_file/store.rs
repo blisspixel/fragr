@@ -1,11 +1,11 @@
-//! Bounded local run storage. The lock file is never renamed with the save.
-use super::{
-    RunDocument, RunDocumentV10, RunDocumentV11, RunDocumentV12, RunDocumentV13, RunDocumentV14,
-    RunDocumentV2, RunDocumentV3, RunDocumentV4, RunDocumentV5, RunDocumentV6, RunDocumentV7,
-    RunDocumentV8, RunDocumentV9,
-};
+//! Bounded local run storage. One process holds the writer lock, and every
+//! write atomically replaces `run.json`. The lock file is never renamed.
+//!
+//! Only [`RUN_FILE_VERSION`] is readable. Any other version is reported as
+//! [`RunProbe::Incompatible`] and unreadable bytes as [`RunProbe::Corrupt`];
+//! the menu then offers a new run, which simply replaces the file.
+use super::{RunDocument, RUN_FILE_VERSION};
 use crate::protocol::MissionId;
-use sha2::{Digest, Sha256};
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
@@ -56,7 +56,10 @@ pub(crate) struct RunStore {
 pub(crate) enum RunProbe {
     Missing,
     Compatible(Box<RunDocument>),
+    /// Readable JSON this build will not continue: another schema version,
+    /// different bundled mission content, or a document that fails validation.
     Incompatible,
+    /// Oversized, not JSON, missing its version, or not the current shape.
     Corrupt,
 }
 
@@ -89,11 +92,6 @@ impl RunStore {
 
     /// A menu may inspect an unlocked snapshot. Launch always reopens under
     /// the writer lock and validates again before advertising readiness.
-    #[cfg(test)]
-    pub fn preview(directory: &Path, content_sha256: [u8; 32]) -> io::Result<Option<RunDocument>> {
-        Self::preview_with_hashes(directory, [content_sha256; CAMPAIGN_STAGES])
-    }
-
     pub fn preview_with_hashes(
         directory: &Path,
         hashes: ContentHashes,
@@ -129,231 +127,16 @@ impl RunStore {
         let Ok(value) = serde_json::from_slice::<serde_json::Value>(bytes) else {
             return RunProbe::Corrupt;
         };
-        // A readable document of another format version is a real run this
-        // build cannot continue, not damage. New Run archives its bytes.
-        let version = value.get("version").and_then(serde_json::Value::as_u64);
-        let current_hashes = hashes;
-        let hashes = super::geometry::validation_hashes(&value, hashes);
-        let mut document = match version {
-            Some(2) => {
-                let legacy: RunDocumentV2 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes[0]) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(3) => {
-                let legacy: RunDocumentV3 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes[0], hashes[1]) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(4) => {
-                let legacy: RunDocumentV4 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade([hashes[0], hashes[1], hashes[2]]) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(5) => {
-                let legacy: RunDocumentV5 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade([hashes[0], hashes[1], hashes[2], hashes[3]]) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(6) => {
-                let legacy: RunDocumentV6 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade([hashes[0], hashes[1], hashes[2], hashes[3], hashes[4]]) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(7) => {
-                let legacy: RunDocumentV7 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(8) => {
-                let legacy: RunDocumentV8 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(9) => {
-                let legacy: RunDocumentV9 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(10) => {
-                let legacy: RunDocumentV10 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(11) => {
-                let legacy: RunDocumentV11 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade_v11(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(12) => {
-                let legacy: RunDocumentV12 = match serde_json::from_value(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(13) => {
-                let legacy: RunDocumentV13 = match serde_json::from_value(value) {
-                    Ok(legacy) => legacy,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(14) => {
-                let legacy: RunDocumentV14 = match serde_json::from_value(value) {
-                    Ok(legacy) => legacy,
-                    Err(_) => return RunProbe::Corrupt,
-                };
-                match legacy.upgrade(hashes) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(15 | 16) => {
-                let legacy: super::legacy_v16::RunDocumentBeforeFoundry =
-                    match serde_json::from_value(value) {
-                        Ok(document) => document,
-                        Err(_) => return RunProbe::Corrupt,
-                    };
-                match legacy.upgrade() {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(17) => {
-                let legacy: super::legacy_v17::RunDocumentBeforeLaunch =
-                    match serde_json::from_value(value) {
-                        Ok(document) => document,
-                        Err(_) => return RunProbe::Corrupt,
-                    };
-                match legacy.upgrade() {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(18) => {
-                let legacy: super::legacy_v18::RunDocumentBeforeStadium =
-                    match serde_json::from_value(value) {
-                        Ok(document) => document,
-                        Err(_) => return RunProbe::Corrupt,
-                    };
-                match legacy.upgrade() {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(19) => {
-                let legacy: super::legacy_v19::RunDocumentBeforeAvenue =
-                    match serde_json::from_value(value) {
-                        Ok(document) => document,
-                        Err(_) => return RunProbe::Corrupt,
-                    };
-                match legacy.upgrade() {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(20) => {
-                let legacy: super::legacy_v20::RunDocumentBeforeOffice =
-                    match serde_json::from_value(value) {
-                        Ok(document) => document,
-                        Err(_) => return RunProbe::Corrupt,
-                    };
-                match legacy.upgrade() {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(21) => {
-                let legacy: super::legacy_v21::RunDocumentBeforeTransit =
-                    match serde_json::from_value(value) {
-                        Ok(document) => document,
-                        Err(_) => return RunProbe::Corrupt,
-                    };
-                match legacy.upgrade() {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Incompatible,
-                }
-            }
-            Some(version) if version == u64::from(super::RUN_FILE_VERSION) => {
-                match serde_json::from_value::<RunDocument>(value) {
-                    Ok(document) => document,
-                    Err(_) => return RunProbe::Corrupt,
-                }
-            }
+        match value.get("version").and_then(serde_json::Value::as_u64) {
+            Some(version) if version == u64::from(RUN_FILE_VERSION) => {}
             Some(_) => return RunProbe::Incompatible,
             None => return RunProbe::Corrupt,
-        };
-        let Some(expected) = hashes.get(stage_index(document.stage_mission())) else {
-            return RunProbe::Incompatible;
-        };
-        if document.validate(*expected).is_err() {
-            return RunProbe::Incompatible;
         }
-        super::geometry::normalize_entry(&mut document, current_hashes);
-        // Entry normalization changes only the content identity, but the
-        // successor must still satisfy ordinary complete validation.
-        if matches!(
-            document.step,
-            super::SavedStep::MissionEntry { .. } | super::SavedStep::PendingContinue { .. }
-        ) && document
-            .validate(current_hashes[stage_index(document.stage_mission())])
+        let Ok(document) = serde_json::from_value::<RunDocument>(value) else {
+            return RunProbe::Corrupt;
+        };
+        if document
+            .validate(hashes[stage_index(document.stage_mission())])
             .is_err()
         {
             return RunProbe::Incompatible;
@@ -361,150 +144,15 @@ impl RunStore {
         RunProbe::Compatible(Box::new(document))
     }
 
-    pub fn needs_upgrade(&self) -> io::Result<bool> {
-        let mut bytes = Vec::new();
-        File::open(self.directory.join(RUN_NAME))?
-            .take(MAX_RUN_BYTES + 1)
-            .read_to_end(&mut bytes)?;
-        if bytes.len() as u64 > MAX_RUN_BYTES {
-            return Err(invalid("campaign run exceeds size limit"));
-        }
-        let value: serde_json::Value = serde_json::from_slice(&bytes)?;
-        let RunProbe::Compatible(document) = Self::inspect_bytes(&bytes, self.hashes) else {
-            return Err(invalid("campaign run cannot be upgraded"));
-        };
-        let original_hash = value
-            .get("content_sha256")
-            .cloned()
-            .and_then(|hash| serde_json::from_value::<[u8; 32]>(hash).ok());
-        Ok(original_hash != Some(document.content_sha256)
-            || value.get("version").and_then(serde_json::Value::as_u64)
-                != Some(u64::from(super::RUN_FILE_VERSION)))
+    fn expected_hash(&self, document: &RunDocument) -> [u8; 32] {
+        self.hashes[stage_index(document.stage_mission())]
     }
 
-    /// Archive source bytes without removing run.json, then atomically replace
-    /// it. A pre-replace failure leaves the old document at its normal path.
-    pub fn archive_and_save(
-        &self,
-        source_document: &RunDocument,
-        document: &RunDocument,
-    ) -> io::Result<PathBuf> {
-        self.archive_and_save_before_replace(source_document, document, |_| Ok(()))
-    }
-
-    fn archive_and_save_before_replace(
-        &self,
-        source_document: &RunDocument,
-        document: &RunDocument,
-        before_replace: impl FnOnce(&Path) -> io::Result<()>,
-    ) -> io::Result<PathBuf> {
-        document
-            .validate(self.expected_hash(document)?)
-            .map_err(invalid)?;
-        let source = read_bounded(&self.directory.join(RUN_NAME))?;
-        if !matches!(
-            Self::inspect_bytes(&source, self.hashes),
-            RunProbe::Compatible(current) if *current == *source_document
-        ) {
-            return Err(invalid("campaign run changed before migration"));
-        }
-        // The source may still be run.json after a failed replacement. Its
-        // content address makes migration retries reuse the same archive.
-        let digest: String = Sha256::digest(&source)
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect();
-        let archive = self.directory.join(format!("run.prior-{digest}.json"));
-        if archive.exists() {
-            if read_bounded(&archive)? != source {
-                return Err(invalid("campaign run archive differs from source"));
-            }
-        } else {
-            let temporary = self
-                .directory
-                .join(format!(".run-archive-{}.tmp", Uuid::new_v4().simple()));
-            let result = (|| {
-                let mut file = OpenOptions::new()
-                    .write(true)
-                    .create_new(true)
-                    .open(&temporary)?;
-                file.write_all(&source)?;
-                file.sync_all()?;
-                drop(file);
-                fs::rename(&temporary, &archive)
-            })();
-            if let Err(error) = result {
-                let _ = fs::remove_file(&temporary);
-                return Err(error);
-            }
-        }
-        sync_directory(&self.directory)?;
-        self.save_before_replace(document, |temporary| {
-            before_replace(temporary)?;
-            if read_bounded(&self.directory.join(RUN_NAME))? != source {
-                return Err(invalid("campaign run changed before replacement"));
-            }
-            Ok(())
-        })?;
-        Ok(archive)
-    }
-
-    fn expected_hash(&self, document: &RunDocument) -> io::Result<[u8; 32]> {
-        self.hashes
-            .get(stage_index(document.stage_mission()))
-            .copied()
-            .ok_or_else(|| invalid("campaign mission carry is not implemented"))
-    }
-
+    /// Validate and atomically replace `run.json`, whatever it held before.
+    /// New Run, promotion between missions and in-mission checkpoints all
+    /// write through here under the writer lock.
     pub fn save(&self, document: &RunDocument) -> io::Result<()> {
-        self.save_before_replace(document, |_| Ok(()))
-    }
-
-    /// Explicit New Run keeps the previous bytes recoverable under the same
-    /// writer lock, including a document this version cannot decode.
-    pub fn start_new(&self, document: &RunDocument) -> io::Result<Option<PathBuf>> {
-        self.start_new_with_sync(document, sync_directory)
-    }
-
-    fn start_new_with_sync(
-        &self,
-        document: &RunDocument,
-        sync: impl Fn(&Path) -> io::Result<()>,
-    ) -> io::Result<Option<PathBuf>> {
-        document
-            .validate(self.expected_hash(document)?)
-            .map_err(invalid)?;
-        let prior = self.directory.join(RUN_NAME);
-        let archived = if prior.try_exists()? {
-            let archive = self
-                .directory
-                .join(format!("run.prior-{}.json", Uuid::new_v4().simple()));
-            fs::rename(&prior, &archive)?;
-            if let Err(error) = sync(&self.directory) {
-                let moved = archive.try_exists()? && !prior.try_exists()?;
-                return Err(io::Error::new(
-                    error.kind(),
-                    if moved {
-                        format!("prior campaign run is archived; directory durability is uncertain: {error}")
-                    } else {
-                        format!("prior campaign run archive location is uncertain: {error}")
-                    },
-                ));
-            }
-            Some(archive)
-        } else {
-            None
-        };
-        self.save(document)?;
-        Ok(archived)
-    }
-
-    fn save_before_replace(
-        &self,
-        document: &RunDocument,
-        before_replace: impl FnOnce(&Path) -> io::Result<()>,
-    ) -> io::Result<()> {
-        self.save_with_sync(document, before_replace, sync_directory)
+        self.save_with_sync(document, |_| Ok(()), sync_directory)
     }
 
     fn save_with_sync(
@@ -514,7 +162,7 @@ impl RunStore {
         sync: impl Fn(&Path) -> io::Result<()>,
     ) -> io::Result<()> {
         document
-            .validate(self.expected_hash(document)?)
+            .validate(self.expected_hash(document))
             .map_err(invalid)?;
         let bytes = serde_json::to_vec(document)
             .map_err(|_| invalid("campaign run document could not be encoded"))?;
@@ -563,17 +211,6 @@ impl RunStore {
     }
 }
 
-fn read_bounded(path: &Path) -> io::Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    File::open(path)?
-        .take(MAX_RUN_BYTES + 1)
-        .read_to_end(&mut bytes)?;
-    if bytes.len() as u64 > MAX_RUN_BYTES {
-        return Err(invalid("campaign run exceeds size limit"));
-    }
-    Ok(bytes)
-}
-
 fn invalid(reason: &str) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, reason)
 }
@@ -602,6 +239,11 @@ mod tests {
         let path = std::env::temp_dir().join(format!("fragr-run-store-{}", Uuid::new_v4()));
         fs::create_dir(&path).unwrap();
         path
+    }
+
+    /// Distinct bundled content per stage; M01 keeps the fixture's [7; 32].
+    fn hashes() -> ContentHashes {
+        std::array::from_fn(|index| [7 + index as u8; 32])
     }
 
     fn document() -> RunDocument {
@@ -642,62 +284,54 @@ mod tests {
         }
     }
 
-    #[test]
-    fn version_15_upgrades_to_zero_rockets_and_archives_the_original_bytes() {
-        let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
-        let mut historical = serde_json::to_value(document()).unwrap();
-        historical["version"] = 15.into();
-        historical["step"]["entry"]["equipment"]["ammo"]
-            .as_array_mut()
-            .unwrap()
-            .retain(|count| count["pool"] != "rockets");
-        let bytes = serde_json::to_vec(&historical).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded.version, RUN_FILE_VERSION);
-        let SavedStep::MissionEntry { entry, .. } = &loaded.step else {
-            panic!("entry");
+    fn awaiting_m02() -> RunDocument {
+        let mut awaiting = document();
+        let SavedStep::MissionEntry { entry, .. } = awaiting.step else {
+            panic!("expected entry")
         };
-        assert_eq!(
-            entry
-                .equipment
-                .ammo
-                .iter()
-                .find(|count| count.pool == crate::protocol::AmmoPool::Rockets)
-                .unwrap()
-                .rounds,
-            0
-        );
-        assert!(store.needs_upgrade().unwrap());
-        let archive = store.archive_and_save(&loaded, &loaded).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert!(!store.needs_upgrade().unwrap());
+        awaiting.step = SavedStep::AwaitingMission {
+            completed_mission: MissionId::RecallNotice,
+            next_mission: "persons_unknown".into(),
+            exit: entry,
+        };
+        awaiting
+    }
 
-        let mut forged = historical.clone();
-        forged["step"]["entry"]["equipment"]["weapons"]
-            .as_array_mut()
+    fn probe(value: &serde_json::Value) -> RunProbe {
+        RunStore::inspect_bytes(&serde_json::to_vec(value).unwrap(), hashes())
+    }
+
+    /// Only the live document and the writer lock remain after any write.
+    fn directory_names(directory: &Path) -> Vec<String> {
+        let mut names: Vec<_> = fs::read_dir(directory)
             .unwrap()
-            .push(serde_json::json!("rocket"));
-        assert!(matches!(
-            RunStore::inspect_bytes(
-                &serde_json::to_vec(&forged).unwrap(),
-                [[7; 32]; CAMPAIGN_STAGES]
-            ),
-            RunProbe::Incompatible
-        ));
-        let mut pooled = historical;
-        pooled["step"]["entry"]["equipment"]["ammo"]
-            .as_array_mut()
-            .unwrap()
-            .push(serde_json::json!({"pool": "rockets", "rounds": 0}));
-        assert!(matches!(
-            RunStore::inspect_bytes(
-                &serde_json::to_vec(&pooled).unwrap(),
-                [[7; 32]; CAMPAIGN_STAGES]
-            ),
-            RunProbe::Incompatible
-        ));
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        names.sort();
+        names
+    }
+
+    #[test]
+    fn current_document_round_trips_byte_for_byte_through_disk() {
+        let directory = temp_dir();
+        let store = RunStore::open_with_hashes(&directory, hashes()).unwrap();
+        let original = document();
+        store.save(&original).unwrap();
+        let bytes = fs::read(directory.join(RUN_NAME)).unwrap();
+        assert_eq!(bytes, serde_json::to_vec(&original).unwrap());
+        let value: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(value["version"], RUN_FILE_VERSION);
+        // Every equipment count is explicit; absence is never a default.
+        let equipment = &value["step"]["entry"]["equipment"];
+        for field in ["grenades", "proximity_mines", "remote_mines"] {
+            assert_eq!(equipment[field], 0, "{field} must be written");
+        }
+        assert_eq!(store.load().unwrap(), Some(original.clone()));
+        assert_eq!(
+            RunStore::preview_with_hashes(&directory, hashes()).unwrap(),
+            Some(original)
+        );
+        assert_eq!(directory_names(&directory), [RUN_NAME, LOCK_NAME]);
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }
@@ -712,159 +346,19 @@ mod tests {
         let mut updated = original.clone();
         updated.remaining_continues = 1;
         assert!(store
-            .save_before_replace(&updated, |_| Err(io::Error::other(
-                "injected write failure"
-            )))
+            .save_with_sync(
+                &updated,
+                |_| Err(io::Error::other("injected write failure")),
+                sync_directory,
+            )
             .is_err());
         assert_eq!(store.load().unwrap(), Some(original));
+        assert_eq!(directory_names(&directory), [RUN_NAME, LOCK_NAME]);
         store.save(&updated).unwrap();
         assert_eq!(store.load().unwrap(), Some(updated));
         drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn store_bounds_and_validates_untrusted_run_bytes() {
-        let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
-        assert!(store.load().unwrap().is_none());
-        fs::write(directory.join(RUN_NAME), b"not json").unwrap();
-        assert_eq!(store.load().unwrap_err().kind(), io::ErrorKind::InvalidData);
-        fs::write(
-            directory.join(RUN_NAME),
-            vec![b' '; (MAX_RUN_BYTES + 1) as usize],
-        )
-        .unwrap();
-        assert_eq!(store.load().unwrap_err().kind(), io::ErrorKind::InvalidData);
-        let mut mismatched = document();
-        mismatched.content_sha256 = [8; 32];
-        fs::write(
-            directory.join(RUN_NAME),
-            serde_json::to_vec(&mismatched).unwrap(),
-        )
-        .unwrap();
-        assert_eq!(store.load().unwrap_err().kind(), io::ErrorKind::InvalidData);
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn explicit_new_run_archives_even_an_incompatible_prior() {
-        let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
-        fs::write(directory.join(RUN_NAME), b"older unsupported bytes").unwrap();
-        let created = document();
-        let archive = store.start_new(&created).unwrap().unwrap();
-        assert_eq!(fs::read(&archive).unwrap(), b"older unsupported bytes");
-        assert_eq!(store.load().unwrap(), Some(created));
-        assert_eq!(
-            RunStore::preview(&directory, [7; 32]).unwrap(),
-            store.load().unwrap()
-        );
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn changed_m02_map_hash_requires_new_run_and_archives_the_prior_bytes() {
-        let directory = temp_dir();
-        let store = RunStore::open_with_hashes(
-            &directory,
-            [
-                [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                [108; 32], [109; 32], [110; 32],
-            ],
-        )
-        .unwrap();
-        let mut prior = document();
-        prior.step = SavedStep::MissionEntry {
-            mission: MissionId::PersonsUnknown,
-            entry: SavedEntry {
-                hp: 100,
-                armor: 0,
-                equipment: Inventory::new(EquipmentPolicy::Discovery)
-                    .saved_equipment(WeaponType::Fists)
-                    .unwrap(),
-            },
-        };
-        prior.content_sha256 = [8; 32];
-        let bytes = serde_json::to_vec(&prior).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        assert!(matches!(
-            RunStore::inspect_with_hashes(
-                &directory,
-                [
-                    [7; 32], [9; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                    [108; 32], [109; 32], [110; 32],
-                ]
-            )
-            .unwrap(),
-            RunProbe::Incompatible
-        ));
-        let mut current = prior;
-        current.content_sha256 = [9; 32];
-        let archive = store.start_new(&current).unwrap().unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(current));
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    /// A save written before magazines were removed is a real run this build
-    /// cannot continue: it reads as incompatible, never corrupt, and New Run
-    /// keeps its exact bytes.
-    #[test]
-    fn magazine_era_run_needs_a_new_run_and_keeps_its_bytes() {
-        let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
-        let hash = [7_u8; 32];
-        let legacy = serde_json::json!({
-            "version": 1,
-            "id": Uuid::from_u128(9),
-            "starting_continues": CAMPAIGN_CONTINUES,
-            "remaining_continues": 2,
-            "rules": {"difficulty": "standard", "revision": 1},
-            "content_sha256": hash,
-            "step": {"kind": "mission_entry", "mission": "recall_notice", "entry": {
-                "hp": 100, "armor": 0, "equipment": {
-                    "selected": "tack",
-                    "weapons": [{"weapon": "fists", "magazine": null}, {"weapon": "tack", "magazine": 11}],
-                    "reserves": [{"pool": "tacks", "rounds": 36}, {"pool": "darts", "rounds": 0}, {"pool": "cores", "rounds": 0}],
-                    "personal_claims": ["bay_tack"]
-                }
-            }}
-        });
-        let bytes = serde_json::to_vec(&legacy).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        assert!(matches!(
-            RunStore::inspect(&directory, [7; 32]).unwrap(),
-            RunProbe::Incompatible
-        ));
-        assert!(store
-            .load()
-            .unwrap_err()
-            .to_string()
-            .contains("incompatible"));
-        // The same shape claiming the current version is damage, not an old run.
-        let mut forged = legacy.clone();
-        forged["version"] = RUN_FILE_VERSION.into();
-        fs::write(
-            directory.join(RUN_NAME),
-            serde_json::to_vec(&forged).unwrap(),
-        )
-        .unwrap();
-        assert!(matches!(
-            RunStore::inspect(&directory, [7; 32]).unwrap(),
-            RunProbe::Corrupt
-        ));
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let created = document();
-        let archive = store.start_new(&created).unwrap().unwrap();
-        assert_eq!(fs::read(&archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(created));
-        drop(store);
+        // The lock is released with the store.
+        RunStore::open(&directory, [7; 32]).unwrap();
         fs::remove_dir_all(directory).unwrap();
     }
 
@@ -890,380 +384,186 @@ mod tests {
     }
 
     #[test]
-    fn archive_sync_failure_keeps_prior_bytes_recoverable() {
+    fn save_refuses_an_invalid_document_without_touching_disk() {
         let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
+        let store = RunStore::open_with_hashes(&directory, hashes()).unwrap();
         let original = document();
         store.save(&original).unwrap();
-        let error = store
-            .start_new_with_sync(&document(), |_| {
-                Err(io::Error::other("injected sync failure"))
-            })
-            .unwrap_err();
-        assert!(error.to_string().contains("prior campaign run is archived"));
-        let archives: Vec<_> = fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| {
-                entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-")
-            })
-            .collect();
-        assert_eq!(archives.len(), 1);
-        assert_eq!(
-            fs::read(archives[0].path()).unwrap(),
-            serde_json::to_vec(&original).unwrap()
-        );
-        assert!(store.load().unwrap().is_none());
+        let before = fs::read(directory.join(RUN_NAME)).unwrap();
+        let mut wrong_content = original.clone();
+        wrong_content.content_sha256 = [99; 32];
+        let mut overspent = original.clone();
+        overspent.remaining_continues = CAMPAIGN_CONTINUES + 1;
+        let mut wrong_version = original;
+        wrong_version.version = RUN_FILE_VERSION - 1;
+        for bad in [wrong_content, overspent, wrong_version] {
+            let error = store.save(&bad).unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+            assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), before);
+        }
+        assert_eq!(directory_names(&directory), [RUN_NAME, LOCK_NAME]);
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }
 
     #[test]
-    fn v2_m01_departure_is_readable_and_archived_before_m02_promotion() {
-        let directory = temp_dir();
-        let store = RunStore::open_with_hashes(
-            &directory,
-            [
-                [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                [108; 32], [109; 32], [110; 32],
-            ],
-        )
-        .unwrap();
-        let mut legacy = serde_json::to_value(document()).unwrap();
-        legacy["version"] = 2.into();
-        legacy["rules"]["revision"] = 2.into();
-        legacy
+    fn unreadable_bytes_are_corrupt_and_never_panic() {
+        let current = serde_json::to_value(document()).unwrap();
+        let oversized = vec![b' '; (MAX_RUN_BYTES + 1) as usize];
+        for bytes in [
+            &b""[..],
+            b"not json",
+            b"\xff\xfe\x00",
+            b"[]",
+            b"null",
+            b"{}",
+            b"{\"version\":\"23\"}",
+            b"{\"version\":-1}",
+            b"{\"version\":1.5}",
+            &oversized,
+        ] {
+            assert!(
+                matches!(RunStore::inspect_bytes(bytes, hashes()), RunProbe::Corrupt),
+                "{:?}",
+                String::from_utf8_lossy(&bytes[..bytes.len().min(32)])
+            );
+        }
+        // The current version with a shape this build does not write is damage.
+        let mut unknown = current.clone();
+        unknown["extra"] = true.into();
+        let mut missing = current.clone();
+        missing["step"]["entry"]["equipment"]
             .as_object_mut()
             .unwrap()
-            .remove("level_start_continues");
-        legacy.as_object_mut().unwrap().remove("body");
-        legacy["step"] = serde_json::json!({
-            "kind": "awaiting_mission", "completed_mission": "recall_notice",
-            "next_mission": "persons_unknown", "exit": {
-                "hp": 61, "armor": 7,
-                "equipment": Inventory::new(EquipmentPolicy::Discovery)
-                    .saved_equipment(WeaponType::Fists).unwrap()
+            .remove("remote_mines");
+        let mut null_outcome = current.clone();
+        null_outcome["m03_outcome"] = serde_json::Value::Null;
+        let mut bad_step = current.clone();
+        bad_step["step"]["kind"] = "rewound".into();
+        let mut bad_mission = current;
+        bad_mission["step"]["mission"] = "planned_works".into();
+        for value in [unknown, missing, null_outcome, bad_step, bad_mission] {
+            assert!(matches!(probe(&value), RunProbe::Corrupt), "{value}");
+        }
+    }
+
+    #[test]
+    fn other_versions_changed_content_and_invalid_runs_are_incompatible() {
+        let current = serde_json::to_value(document()).unwrap();
+        for version in [0, 1, 2, 21, 22, u64::from(RUN_FILE_VERSION) + 1, u64::MAX] {
+            if version == u64::from(RUN_FILE_VERSION) {
+                continue;
             }
-        });
-        super::super::remove_historical_grenades(&mut legacy);
-        let source = serde_json::to_vec(&legacy).unwrap();
-        fs::write(directory.join(RUN_NAME), &source).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded.version, RUN_FILE_VERSION);
-        assert_eq!(loaded.level_start_continues, CAMPAIGN_CONTINUES);
-        assert_eq!(loaded.body, None);
-        assert!(store.needs_upgrade().unwrap());
-        let promoted = loaded.promote_m02([8; 32]).unwrap();
-        assert_eq!(promoted.remaining_continues, 2);
-        assert_eq!(promoted.level_start_continues, 2);
-        assert_eq!(promoted.attempt(), 1);
-        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), source);
-        assert_eq!(store.load().unwrap(), Some(promoted));
-        assert!(!store.needs_upgrade().unwrap());
+            // Old and future documents are refused before their shape is read,
+            // whatever they contain.
+            for body in [current.clone(), serde_json::json!({})] {
+                let mut value = body;
+                value["version"] = version.into();
+                assert!(
+                    matches!(probe(&value), RunProbe::Incompatible),
+                    "version {version}"
+                );
+            }
+        }
+        let mut changed_content = current.clone();
+        changed_content["content_sha256"] = serde_json::to_value([8_u8; 32]).unwrap();
+        let mut overspent = current.clone();
+        overspent["remaining_continues"] = (CAMPAIGN_CONTINUES + 1).into();
+        let mut old_rules = current.clone();
+        old_rules["rules"]["revision"] = 3.into();
+        let mut nil_id = current.clone();
+        nil_id["id"] = Uuid::nil().to_string().into();
+        let mut forged_sniper = current;
+        forged_sniper["step"]["entry"]["equipment"]["weapons"]
+            .as_array_mut()
+            .unwrap()
+            .push("sniper".into());
+        for value in [changed_content, overspent, old_rules, nil_id, forged_sniper] {
+            assert!(matches!(probe(&value), RunProbe::Incompatible), "{value}");
+        }
+    }
+
+    #[test]
+    fn load_reports_refusals_as_invalid_data_with_a_reason() {
+        let directory = temp_dir();
+        let store = RunStore::open_with_hashes(&directory, hashes()).unwrap();
+        assert!(store.load().unwrap().is_none());
+        assert!(matches!(
+            RunStore::inspect_with_hashes(&directory, hashes()).unwrap(),
+            RunProbe::Missing
+        ));
+        fs::write(directory.join(RUN_NAME), b"not json").unwrap();
+        let error = store.load().unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        assert!(error.to_string().contains("invalid campaign run"));
+        let mut old = serde_json::to_value(document()).unwrap();
+        old["version"] = (RUN_FILE_VERSION - 1).into();
+        fs::write(directory.join(RUN_NAME), serde_json::to_vec(&old).unwrap()).unwrap();
+        let error = store.load().unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        assert!(error.to_string().contains("incompatible campaign run"));
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }
 
     #[test]
-    fn promotion_write_failure_keeps_original_run_and_an_exact_archive() {
+    fn new_run_replaces_any_prior_file_without_leaving_copies() {
+        let mut old = serde_json::to_value(document()).unwrap();
+        old["version"] = (RUN_FILE_VERSION - 1).into();
+        let mut future = old.clone();
+        future["version"] = (RUN_FILE_VERSION + 1).into();
+        for prior in [
+            b"older unsupported bytes".to_vec(),
+            serde_json::to_vec(&old).unwrap(),
+            serde_json::to_vec(&future).unwrap(),
+            serde_json::to_vec(&document()).unwrap(),
+        ] {
+            let directory = temp_dir();
+            let store = RunStore::open_with_hashes(&directory, hashes()).unwrap();
+            fs::write(directory.join(RUN_NAME), &prior).unwrap();
+            let created = document();
+            store.save(&created).unwrap();
+            assert_eq!(store.load().unwrap(), Some(created));
+            assert_eq!(directory_names(&directory), [RUN_NAME, LOCK_NAME]);
+            drop(store);
+            fs::remove_dir_all(directory).unwrap();
+        }
+    }
+
+    #[test]
+    fn promotion_is_one_atomic_replace_and_a_failed_write_keeps_the_source() {
         let directory = temp_dir();
-        let store = RunStore::open_with_hashes(
-            &directory,
-            [
-                [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                [108; 32], [109; 32], [110; 32],
-            ],
-        )
-        .unwrap();
-        let mut awaiting = document();
-        let SavedStep::MissionEntry { entry, .. } = awaiting.step else {
-            panic!("expected entry")
-        };
-        awaiting.step = SavedStep::AwaitingMission {
-            completed_mission: MissionId::RecallNotice,
-            next_mission: "persons_unknown".into(),
-            exit: entry,
-        };
+        let store = RunStore::open_with_hashes(&directory, hashes()).unwrap();
+        let awaiting = awaiting_m02();
         store.save(&awaiting).unwrap();
         let source = fs::read(directory.join(RUN_NAME)).unwrap();
-        let promoted = awaiting.promote_m02([8; 32]).unwrap();
+        let promoted = awaiting.promote_m02(hashes()[1]).unwrap();
+        assert_eq!(promoted.version, RUN_FILE_VERSION);
+        assert_eq!(promoted.stage_mission(), MissionId::PersonsUnknown);
+        assert_eq!(
+            (promoted.remaining_continues, promoted.level_start_continues),
+            (2, 2)
+        );
+        assert_eq!(promoted.attempt(), 1);
         let error = store
-            .archive_and_save_before_replace(&awaiting, &promoted, |_| {
-                Err(io::Error::other("injected replacement failure"))
-            })
+            .save_with_sync(
+                &promoted,
+                |_| Err(io::Error::other("injected replacement failure")),
+                sync_directory,
+            )
             .unwrap_err();
         assert!(error.to_string().contains("injected replacement failure"));
         assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), source);
-        let archives: Vec<_> = fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| {
-                entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-")
-            })
-            .collect();
-        assert_eq!(archives.len(), 1);
-        assert_eq!(fs::read(archives[0].path()).unwrap(), source);
         assert_eq!(store.load().unwrap(), Some(awaiting.clone()));
-        let retried = store.archive_and_save(&awaiting, &promoted).unwrap();
-        assert_eq!(retried, archives[0].path());
-        assert_eq!(store.load().unwrap(), Some(promoted));
-        let archive_count = fs::read_dir(&directory)
-            .unwrap()
-            .filter_map(Result::ok)
-            .filter(|entry| {
-                entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-")
-            })
-            .count();
-        assert_eq!(archive_count, 1);
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn v5_market_promotion_preserves_exact_bytes_and_retries_one_archive() {
-        let directory = temp_dir();
-        let store = RunStore::open_with_hashes(
-            &directory,
-            [
-                [5; 32], [7; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                [108; 32], [109; 32], [110; 32],
-            ],
-        )
-        .unwrap();
-        let mut legacy = super::super::tests::completed_market_document();
-        legacy.version = 5;
-        legacy.rules.revision = 3;
-        let bytes = serde_json::to_vec_pretty(&super::super::historical_value(&legacy)).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded.version, RUN_FILE_VERSION);
-        assert!(store.needs_upgrade().unwrap());
-        let promoted = loaded
-            .promote_next(MissionId::NoForwardingAddress, [12; 32])
-            .unwrap();
-        assert!(store
-            .archive_and_save_before_replace(&loaded, &promoted, |_| {
-                Err(io::Error::other("injected replacement failure"))
-            })
+        store.save(&promoted).unwrap();
+        assert_eq!(store.load().unwrap(), Some(promoted.clone()));
+        assert_eq!(directory_names(&directory), [RUN_NAME, LOCK_NAME]);
+        // A promoted entry is not promotable again, and an awaiting run is
+        // bound to the mission its edge names.
+        assert!(promoted.promote_m02(hashes()[1]).is_err());
+        assert!(awaiting
+            .promote_next(MissionId::ScheduledService, hashes()[2])
             .is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(loaded.clone()));
-        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
-        assert_eq!(fs::read(&archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(promoted));
-        assert!(!store.needs_upgrade().unwrap());
-        assert_eq!(
-            fs::read_dir(&directory)
-                .unwrap()
-                .filter_map(Result::ok)
-                .filter(|entry| entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-"))
-                .count(),
-            1
-        );
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn invalid_migration_target_does_not_archive_source() {
-        let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
-        let original = document();
-        store.save(&original).unwrap();
-        let source = fs::read(directory.join(RUN_NAME)).unwrap();
-        let mut invalid_target = original.clone();
-        invalid_target.content_sha256 = [9; 32];
-        assert!(store.archive_and_save(&original, &invalid_target).is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), source);
-        assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn v3_m02_promotion_archives_exact_bytes_and_retries_safely() {
-        let directory = temp_dir();
-        let store = RunStore::open_with_hashes(
-            &directory,
-            [
-                [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                [108; 32], [109; 32], [110; 32],
-            ],
-        )
-        .unwrap();
-        let mut legacy = document();
-        legacy.version = 3;
-        legacy.rules.revision = 2;
-        legacy.content_sha256 = [8; 32];
-        legacy.step = SavedStep::AwaitingMission {
-            completed_mission: MissionId::PersonsUnknown,
-            next_mission: "scheduled_service".into(),
-            exit: super::super::SavedEntry::initial(),
-        };
-        let bytes = serde_json::to_vec(&super::super::historical_value(&legacy)).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded.version, super::super::RUN_FILE_VERSION);
-        assert!(store.needs_upgrade().unwrap());
-        let promoted = loaded
-            .promote_next(MissionId::ScheduledService, [9; 32])
-            .unwrap();
-        assert!(store
-            .archive_and_save_before_replace(&loaded, &promoted, |_| Err(io::Error::other(
-                "injected failure"
-            )))
-            .is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(loaded.clone()));
-        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(promoted));
-        assert!(!store.needs_upgrade().unwrap());
-        assert_eq!(
-            fs::read_dir(&directory)
-                .unwrap()
-                .filter_map(Result::ok)
-                .filter(|entry| entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-"))
-                .count(),
-            1
-        );
-        assert!(matches!(
-            RunStore::inspect_with_hashes(
-                &directory,
-                [
-                    [7; 32], [8; 32], [10; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                    [108; 32], [109; 32], [110; 32],
-                ]
-            )
-            .unwrap(),
-            RunProbe::Incompatible
-        ));
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn v4_yard_promotion_archives_exact_bytes_and_retains_choices() {
-        let directory = temp_dir();
-        let store = RunStore::open_with_hashes(
-            &directory,
-            [
-                [7; 32], [8; 32], [9; 32], [11; 32], [12; 32], [13; 32], [99; 32], [100; 32],
-                [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                [108; 32], [109; 32], [110; 32],
-            ],
-        )
-        .unwrap();
-        let mut legacy = document();
-        legacy.version = 4;
-        legacy.rules.revision = 2;
-        legacy.content_sha256 = [9; 32];
-        legacy.step = SavedStep::AwaitingMission {
-            completed_mission: MissionId::ScheduledService,
-            next_mission: "notice_to_vacate".into(),
-            exit: super::super::SavedEntry::initial(),
-        };
-        legacy.m03_outcome = Some(super::super::M03Outcome {
-            liberated_cars: vec!["platform_car".into()],
-        });
-        let bytes = serde_json::to_vec(&super::super::historical_value(&legacy)).unwrap();
-        fs::write(directory.join(RUN_NAME), &bytes).unwrap();
-        let loaded = store.load().unwrap().unwrap();
-        assert_eq!(loaded.version, super::super::RUN_FILE_VERSION);
-        assert!(store.needs_upgrade().unwrap());
-        let promoted = loaded
-            .promote_next(MissionId::NoticeToVacate, [11; 32])
-            .unwrap();
-        assert_eq!(promoted.m03_outcome, loaded.m03_outcome);
-        assert!(store
-            .archive_and_save_before_replace(&loaded, &promoted, |_| Err(io::Error::other(
-                "injected failure"
-            )))
-            .is_err());
-        assert_eq!(fs::read(directory.join(RUN_NAME)).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(loaded.clone()));
-        let archive = store.archive_and_save(&loaded, &promoted).unwrap();
-        assert_eq!(fs::read(archive).unwrap(), bytes);
-        assert_eq!(store.load().unwrap(), Some(promoted));
-        assert!(!store.needs_upgrade().unwrap());
-        assert_eq!(
-            fs::read_dir(&directory)
-                .unwrap()
-                .filter_map(Result::ok)
-                .filter(|entry| entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with("run.prior-"))
-                .count(),
-            1
-        );
-        assert!(matches!(
-            RunStore::inspect_with_hashes(
-                &directory,
-                [
-                    [7; 32], [8; 32], [9; 32], [12; 32], [13; 32], [14; 32], [99; 32], [100; 32],
-                    [101; 32], [102; 32], [103; 32], [104; 32], [105; 32], [106; 32], [107; 32],
-                    [108; 32], [109; 32], [110; 32],
-                ]
-            )
-            .unwrap(),
-            RunProbe::Incompatible
-        ));
-        drop(store);
-        fs::remove_dir_all(directory).unwrap();
-    }
-
-    #[test]
-    fn migration_refuses_oversized_or_changed_source() {
-        let directory = temp_dir();
-        let store = RunStore::open(&directory, [7; 32]).unwrap();
-        let original = document();
-        let mut target = original.clone();
-        target.remaining_continues = 1;
-        let path = directory.join(RUN_NAME);
-        fs::write(&path, vec![b' '; MAX_RUN_BYTES as usize + 1]).unwrap();
-        assert!(store.archive_and_save(&original, &target).is_err());
-        assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
-
-        store.save(&original).unwrap();
-        let mut changed = original.clone();
-        changed.remaining_continues = 0;
-        let changed_bytes = serde_json::to_vec(&changed).unwrap();
-        fs::write(&path, &changed_bytes).unwrap();
-        assert!(store.archive_and_save(&original, &target).is_err());
-        assert_eq!(fs::read(&path).unwrap(), changed_bytes);
-        assert_eq!(fs::read_dir(&directory).unwrap().count(), 2);
-
-        store.save(&original).unwrap();
-        let error = store
-            .archive_and_save_before_replace(&original, &target, |_| {
-                fs::write(&path, &changed_bytes)
-            })
-            .unwrap_err();
-        assert!(error.to_string().contains("changed before replacement"));
-        assert_eq!(fs::read(&path).unwrap(), changed_bytes);
-        assert_eq!(store.load().unwrap(), Some(changed));
         drop(store);
         fs::remove_dir_all(directory).unwrap();
     }
@@ -1271,8 +571,6 @@ mod tests {
 
 #[cfg(test)]
 mod arc_tests;
-#[cfg(test)]
-mod geometry_tests;
 #[cfg(test)]
 mod late_campaign_tests;
 #[cfg(test)]
@@ -1298,4 +596,4 @@ mod m14_tests;
 #[cfg(test)]
 pub(super) mod m15_tests;
 #[cfg(test)]
-mod remote_tests;
+mod stair_entry_tests;
