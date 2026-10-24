@@ -1778,7 +1778,7 @@ func _take_from_pad(weapon: String) -> bool:
 		if not await _wait_live_joined_fighter("pad " + weapon):
 			return false
 		var map_routes: Variant = _pad_routes.get(str(int(gm.get("latest_snapshot").get("map_id", 0))), {})
-		var route: Variant = (map_routes as Dictionary).get(weapon, []) if map_routes is Dictionary else []
+		var route: Variant = _pad_route_from((map_routes as Dictionary).get(weapon, []) if map_routes is Dictionary else [], _local_feet())
 		var alive: bool = true
 		for point: Variant in (route if route is Array else []):
 			if point is Array and (point as Array).size() == 3:
@@ -1820,6 +1820,31 @@ func _take_from_pad(weapon: String) -> bool:
 	push_error("qa_tour: the joined fighter never took a " + weapon + " from its pad")
 	_failed = true
 	return false
+
+## A manifest pad route is either one list of waypoints, or a list of
+## {near: [x, z], points: [...]} alternatives for a map whose spawns sit in
+## different quarters: the alternative whose `near` is closest to the
+## fighter's feet is walked. Anything else walks no route.
+func _pad_route_from(entry: Variant, feet: Vector3) -> Array:
+	if not entry is Array:
+		return []
+	var routes: Array = entry
+	if routes.is_empty() or not routes[0] is Dictionary:
+		return routes
+	var best: Array = []
+	var best_distance: float = INF
+	for alternative: Variant in routes:
+		if not alternative is Dictionary:
+			continue
+		var near: Variant = (alternative as Dictionary).get("near", [])
+		var points: Variant = (alternative as Dictionary).get("points", [])
+		if not near is Array or (near as Array).size() != 2 or not points is Array:
+			continue
+		var distance: float = Vector2(feet.x - float(near[0]), feet.z - float(near[1])).length()
+		if distance < best_distance:
+			best_distance = distance
+			best = points
+	return best
 
 ## Walk out to a ring of this radius at the fighter's own bearing, then round
 ## it to `target` in short chords: a floor route around a hub that a straight

@@ -2,8 +2,32 @@
   "comment": "Real match captures. Timing selects a moment, not a promised game phase. The output records the observed round, role, map, weapon, and camera. Inspect the images for quality.",
   "width": 1280,
   "height": 720,
-  "pad_routes_comment": "Free-for-all lives start on the Pistol, so a weapon state walks to its pad first: by a manifest route keyed by map id when a straight line is blocked, otherwise straight to the nearest pad of that gun. Map 1 is Larak Lot; the Arena Duel orbit routes were retired with that field and Larak routes are not authored yet.",
-  "pad_routes": {},
+  "pad_routes_comment": "Free-for-all lives start on the Pistol, so a weapon state walks to its pad first, then straight to the nearest pad of that gun. A route keyed by map id and gun is a list of feet waypoints walked in straight lines, or a list of {near, points} alternatives: the one whose near [x, z] is closest to the fighter's feet is walked. Map 1 is Larak Lot. The Rail sits on the Low Ramp landing under the lid, entered from the Lane's west mouth or across the Pit, so each spawn quarter has its own way down. The routes were checked from all twelve spawn slots against the server's collision and movement step.",
+  "pad_routes": {
+    "1": {
+      "Rail": [
+        {"near": [-33.0, -21.0], "points": [[-33.0, 3.0, -8.0], [-31.0, 1.5, 1.0]]},
+        {"near": [-27.0, -15.0], "points": [[-27.0, 3.0, -8.0], [-31.0, 1.5, 1.0]]},
+        {"near": [-17.0, -23.0], "points": [[-21.0, 3.0, -19.0], [-21.0, 3.0, -9.0], [-31.0, 1.5, 1.0]]},
+        {"near": [-3.0, -26.0], "points": [[-12.0, 3.0, -9.0], [-31.0, 1.5, 1.0]]},
+        {"near": [-31.0, 24.0], "points": [[-29.0, 1.5, 6.0]]},
+        {"near": [-5.0, 25.0], "points": [[-3.0, 1.5, 15.0], [-3.0, 0.0, 4.0]]},
+        {"near": [5.0, 24.0], "points": [[3.0, 1.5, 15.0], [3.0, 0.0, 4.0]]},
+        {"near": [19.0, 26.0], "points": [[21.7, 1.5, 22.0], [21.7, 1.5, 14.0], [13.0, 1.0, 5.0], [9.0, 0.0, 2.5], [0.0, 0.0, 1.0]]}
+      ],
+      "Scatter": [
+        {"near": [-33.0, -21.0], "points": [[-33.0, 3.0, -20.0], [-21.0, 3.0, -19.0]]},
+        {"near": [-27.0, -15.0], "points": [[-27.0, 3.0, -19.0], [-21.0, 3.0, -19.0]]},
+        {"near": [-17.0, -23.0], "points": [[-21.0, 3.0, -19.0]]},
+        {"near": [-3.0, -26.0], "points": []},
+        {"near": [-31.0, 24.0], "points": [[-31.0, 1.5, 1.0], [-33.0, 3.0, -8.0], [-33.0, 3.0, -20.0], [-21.0, 3.0, -19.0]]},
+        {"near": [-5.0, 25.0], "points": [[-3.0, 1.5, 15.0], [5.0, 1.5, 15.0], [8.0, 1.5, 20.5], [13.0, 1.5, 20.5]]},
+        {"near": [5.0, 24.0], "points": []},
+        {"near": [13.0, 26.0], "points": []},
+        {"near": [25.0, 26.0], "points": [[21.7, 1.5, 22.0], [21.7, 1.5, 15.0]]}
+      ]
+    }
+  },
   "states": [
     {
       "name": "boot_menu",
