@@ -152,13 +152,23 @@ peers using your LAN address and selected port. Leaving or returning to the
 menu preserves the match; **Stop server** or closing the app ends your owned
 host.
 
-**Benchmark**, on the main menu, times the frames on this computer. It starts
-its own Arena Duel match with ten bots and a fixed camera, on a port this
-computer picks. A server you already left running for other people stays up.
-Vertical sync and the frame cap turn off for the run, then your settings
-return. The score separates fast even frames from hitches and from frames that
-are slow on their own. A live match changes between runs, so compare the frame
-times. The recorded nine-scene showcase is still ahead.
+**Benchmark**, on the main menu, times the frames drawn on this computer. Run
+the current preset (about a minute) or compare all three (about two). It
+records 28 seconds of its own Arena Duel match with ten bots on a port this
+computer picks, then replays that same fight for each preset under an
+automated orbit camera. A server you already left running for other people
+stays up. Vertical sync and the frame cap turn off for the run, then your
+settings return. The match HUD is hidden; the benchmark's own readout names the
+step (recording, warming up, measuring), shows overall progress and a live
+frame rate. Esc cancels and returns to the Benchmark page.
+
+The result leads with average FPS, the 1% low, the 99th percentile frame time
+and frames at 33 ms or more for each preset, then a frame-time timeline.
+Details hold the other percentiles, the system and settings, and the last
+compatible run from your results folder. Run again, Copy summary and Open
+results folder sit beside Back to menu. A new run records a new fight, so
+repeat runs before trusting a small difference. The recorded nine-scene
+showcase is still ahead.
 
 Choose no bots, a fixed count or automatic fill toward a total fighter count.
 Automatic fill gives humans and agents equal priority over eligible filler
