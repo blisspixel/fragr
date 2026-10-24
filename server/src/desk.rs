@@ -18,6 +18,9 @@ use uuid::Uuid;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeskVerb {
     Who,
+    /// The operator pulse and join addresses, then the same table as `Who`.
+    /// The game loop answers it because it holds the served snapshot.
+    Status,
     Kick {
         name: String,
     },
@@ -81,6 +84,7 @@ enum Parsed {
     Blank,
     Help,
     Who,
+    Status,
     Kick { name: String },
     Ban { query: String },
     Say { text: String },
@@ -115,6 +119,9 @@ pub async fn serve<W: Write>(
             Ok(Parsed::Blank) => {}
             Ok(Parsed::Help) => write_line(out, HELP),
             Ok(Parsed::Who) => write_line(out, ask(&requests, DeskVerb::Who).await.text()),
+            Ok(Parsed::Status) => {
+                write_line(out, ask(&requests, DeskVerb::Status).await.text());
+            }
             Ok(Parsed::Kick { name }) => {
                 write_line(out, ask(&requests, DeskVerb::Kick { name }).await.text());
             }
@@ -164,7 +171,7 @@ pub async fn serve<W: Write>(
                 }
             }
             Err(ParseFault::Unknown) => {
-                write_line(out, "The desk knows who, kick, ban, say, stats, shows, next, and map.");
+                write_line(out, "The desk knows help, status, who, kick, ban, say, stats, shows, next, and map.");
             }
             Err(ParseFault::NeedsName) => {
                 write_line(out, "Say who. Use the name from who.");
@@ -177,6 +184,7 @@ pub async fn serve<W: Write>(
 }
 
 const HELP: &str = "\
+status
 who
 kick <name>
 ban <name> [reason]
@@ -186,8 +194,9 @@ shows
 next
 map <map> <mode>
 Map and next wait for the whole live show. A manual map then repeats. \
+Status adds uptime, tick health and join addresses to the who table. \
 Names are what who prints. A ban keeps the address, not the name. \
-Closing this input leaves the match running.";
+Closing this input leaves the match running. Ctrl-C stops the match.";
 
 fn parse_line(line: &str) -> Result<Parsed, ParseFault> {
     let line = line.trim();
@@ -201,7 +210,8 @@ fn parse_line(line: &str) -> Result<Parsed, ParseFault> {
     let rest = rest.trim();
     match verb {
         "help" | "?" if rest.is_empty() => Ok(Parsed::Help),
-        "who" | "status" | "list" if rest.is_empty() => Ok(Parsed::Who),
+        "who" | "list" if rest.is_empty() => Ok(Parsed::Who),
+        "status" if rest.is_empty() => Ok(Parsed::Status),
         "kick" if rest.is_empty() => Err(ParseFault::NeedsName),
         "kick" => Ok(Parsed::Kick {
             name: rest.to_string(),
@@ -284,7 +294,8 @@ mod tests {
     fn lines_parse_as_an_operator_would_type_them() {
         assert!(matches!(parse_line("  "), Ok(Parsed::Blank)));
         assert!(matches!(parse_line("who"), Ok(Parsed::Who)));
-        assert!(matches!(parse_line("status"), Ok(Parsed::Who)));
+        assert!(matches!(parse_line("status"), Ok(Parsed::Status)));
+        assert!(matches!(parse_line("status now"), Err(ParseFault::Unknown)));
         assert!(matches!(parse_line("list"), Ok(Parsed::Who)));
         assert!(matches!(parse_line("help"), Ok(Parsed::Help)));
         match parse_line("kick Dead Air Dan").unwrap() {
@@ -376,6 +387,7 @@ mod tests {
             while let Some(call) = call_rx.recv().await {
                 let text = match &call.verb {
                     DeskVerb::Who => "Patch  human  2  203.0.113.7".into(),
+                    DeskVerb::Status => "running | 1 human".into(),
                     DeskVerb::Kick { name } => format!("{name} is off the floor."),
                     other => format!("unexpected {other:?}"),
                 };
@@ -385,20 +397,27 @@ mod tests {
         });
         let mut output = Vec::new();
         line_tx.send("who".into()).unwrap();
+        line_tx.send("status".into()).unwrap();
         line_tx.send("kick Patch".into()).unwrap();
         line_tx.send("".into()).unwrap();
         line_tx.send("dance".into()).unwrap();
+        line_tx.send("help".into()).unwrap();
         drop(line_tx);
         serve(line_rx, call_tx, None, &mut output).await;
         answers.await.unwrap();
         let text = String::from_utf8(output).unwrap();
         assert!(text.contains("Patch  human  2  203.0.113.7"), "{text}");
+        assert!(text.contains("running | 1 human"), "{text}");
         assert!(text.contains("Patch is off the floor."), "{text}");
         assert!(
-            text.contains("The desk knows who, kick, ban, say, stats, shows, next, and map."),
+            text.contains(
+                "The desk knows help, status, who, kick, ban, say, stats, shows, next, and map."
+            ),
             "{text}"
         );
-        assert_eq!(seen.lock().unwrap().len(), 2);
+        assert!(text.contains("Status adds uptime"), "{text}");
+        assert!(!text.contains("unexpected"), "{text}");
+        assert_eq!(seen.lock().unwrap().len(), 3);
     }
 
     #[tokio::test]

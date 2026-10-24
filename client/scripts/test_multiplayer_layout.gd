@@ -31,7 +31,7 @@ func _run() -> void:
 				menu._book.favorites.append(address)
 			else:
 				menu._book.recent.append(address)
-		await menu._show("multi")
+		await menu._show("join")
 		menu._stop_lan_listen()
 		menu._probe.cancel_request()
 		if menu._list_probe != null:
@@ -67,10 +67,27 @@ func _run() -> void:
 				"focusing the final host scrolls its complete row into view")
 			_check(menu._scroll_back.is_visible_in_tree() and card.encloses(menu._scroll_back.get_global_rect()),
 				"Back stays visible while the last saved host is focused")
-			menu._root.get_node("RunServer").grab_focus()
+			if count == 20:
+				var enter: InputEventKey = InputEventKey.new()
+				enter.keycode = KEY_ENTER
+				enter.physical_keycode = KEY_ENTER
+				enter.pressed = true
+				root.push_input(enter)
+				enter = enter.duplicate()
+				enter.pressed = false
+				root.push_input(enter)
+				await _settle()
+				var view: Rect2 = menu._page_scroll.get_global_rect().grow(0.1)
+				_check(menu._host_edit.text == "127.0.0.1:18020" and menu._selected_card.get_parent() == menu._saved_box
+					and view.encloses(menu._selected_card.get_global_rect()) and view.encloses(last.get_global_rect())
+					and root.gui_get_focus_owner() == last,
+					"choosing the last host keeps it focused and scrolls its whole status card into view")
+				menu._probe.cancel_request()
+			var check: Control = menu._root.find_child("CheckHost", true, false) as Control
+			check.grab_focus()
 			await _settle()
-			_check(menu._page_scroll.get_global_rect().grow(0.1).encloses(
-				menu._root.get_node("RunServer").get_global_rect()), "focus returns the first action fully into view")
+			_check(menu._page_scroll.get_global_rect().grow(0.1).encloses(check.get_global_rect()),
+				"focus returns the first action fully into view")
 	await menu._show("main")
 	await _settle()
 	_check(not menu._page_scroll.visible and not menu._scroll_back.visible

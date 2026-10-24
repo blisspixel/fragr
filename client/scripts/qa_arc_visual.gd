@@ -1,7 +1,8 @@
 extends "res://scripts/qa_tour.gd"
 
 ## Retain the original Arc entry point while sharing ordinary reload capture
-## with Rocket. Both inspect the same accepted private loadout deadline.
+## with every magazine gun. All inspect the same accepted private loadout
+## deadline, and each sample also records the HUD reload line and bar.
 var _reload_samples: Array[Dictionary] = []
 
 func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
@@ -12,10 +13,12 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 	var network: Node = manager.get("net_client")
 	var before: Dictionary = network.get("equipment").duplicate(true)
 	var weapon: String = str(state.get("weapon", "Arc"))
-	if weapon not in ["Arc", "Rocket"] or before.get("selected", "") != weapon.to_lower():
+	if not EquipmentState.MAGAZINE_SIZES.has(weapon.to_lower()) or before.get("selected", "") != weapon.to_lower():
 		push_error("qa_arc_visual: reload strip requires its actually owned selected weapon")
 		_failed = true
 		return
+	var starts_before: int = int(manager.get("reload_start_cue_count"))
+	var finishes_before: int = int(manager.get("reload_complete_cue_count"))
 	var press: InputEventKey = InputEventKey.new()
 	press.physical_keycode = KEY_R
 	press.pressed = true
@@ -46,21 +49,33 @@ func _capture_strip(state: Dictionary, frames: int, file_name: String) -> void:
 		if probe != null and _probe_active(probe,state):
 			break
 	await super._capture_strip(state, frames, file_name)
+	# A long reload can outlast the strip; wait for its authoritative finish.
+	var finish_by: int = Time.get_ticks_msec() + 3000
+	while Time.get_ticks_msec() < finish_by and EquipmentState.magazine(network.get("equipment"), weapon.to_lower()).has("ready_at"):
+		await process_frame
+	await process_frame
 	var after: Dictionary = network.get("equipment").duplicate(true)
+	var cues: Dictionary = {"start": int(manager.get("reload_start_cue_count")) - starts_before, "complete": int(manager.get("reload_complete_cue_count")) - finishes_before}
+	if EquipmentState.shots(after, weapon) <= EquipmentState.shots(before, weapon) or cues["start"] != 1 or cues["complete"] != 1:
+		push_error("qa_arc_visual: ordinary reload did not show one accepted start and one authoritative finish")
+		_failed = true
 	var pool: String = str(EquipmentState.POOLS[weapon.to_lower()])
 	if EquipmentState.ammo(before, pool) != EquipmentState.ammo(after, pool):
 		push_error("qa_arc_visual: reload changed the finite ammunition total")
 		_failed = true
 	var report: FileAccess = FileAccess.open(_out_dir.path_join(weapon.to_lower()+"-reload-observation.json"), FileAccess.WRITE)
-	report.store_string(JSON.stringify({"ordinary_key":"R", "before":before, "acknowledged":acknowledged, "after":after, "samples":_reload_samples}, "\t") + "\n")
+	report.store_string(JSON.stringify({"ordinary_key":"R", "before":before, "acknowledged":acknowledged, "after":after, "cues":cues, "samples":_reload_samples}, "\t") + "\n")
 
 func _probe_active(probe: Node, state: Dictionary) -> bool:
 	if state.get("trigger", "") == "reload" and probe is TextureRect and probe.name == "FpWeapon":
 		var manager: Node = _game_manager()
 		var network: Node = manager.get("net_client")
 		var hud: Node = _find_hud()
-		var depth: float = hud.fp_reload_motion.depth if state.get("weapon") == "Rocket" else 0.0
-		var pending: bool = probe.visible and (depth > 0.05 if state.get("weapon") == "Rocket" else probe.texture == WeaponArt.ARC_RELOAD)
-		_reload_samples.append({"tick":int(manager.get("latest_snapshot").get("tick", 0)), "reload_pose":pending, "reload_depth":depth, "held_y":probe.position.y, "texture":probe.texture.resource_path if probe.texture != null else "", "equipment":network.get("equipment").duplicate(true)})
+		var weapon: String = str(state.get("weapon", "Arc"))
+		var depth: float = hud.fp_reload_motion.depth * WeaponArt.reload_dip(weapon)
+		var pending: bool = probe.visible and (probe.texture == WeaponArt.ARC_RELOAD if weapon == "Arc" else depth > 0.05)
+		var equipment_hud: EquipmentHud = hud.get("equipment_hud")
+		var tick: int = int(manager.get("latest_snapshot").get("tick", 0))
+		_reload_samples.append({"tick":tick, "reload_pose":pending, "reload_depth":depth, "held_y":probe.position.y, "texture":probe.texture.resource_path if probe.texture != null else "", "hud_line":equipment_hud.reload_label.text if equipment_hud.reload_label.visible else "", "hud_progress":equipment_hud.reload.progress(equipment_hud.tick), "start_cues":manager.get("reload_start_cue_count"), "complete_cues":manager.get("reload_complete_cue_count"), "request_to_accept_usec":equipment_hud.reload.last_request_to_accept_usec, "accept_to_cue_usec":equipment_hud.reload.last_accept_to_cue_usec, "equipment":network.get("equipment").duplicate(true)})
 		return pending
 	return super._probe_active(probe, state)

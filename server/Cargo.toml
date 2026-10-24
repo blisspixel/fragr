@@ -34,6 +34,11 @@ rand = "0.8"
 getrandom = "=0.2.15"
 if-addrs = "0.15"
 
+# Already in the tree through tracing-subscriber's ansi feature. Used only to
+# switch on virtual terminal processing before colour reaches a Windows console.
+[target.'cfg(windows)'.dependencies]
+nu-ansi-term = "0.50"
+
 [lints]
 workspace = true
 

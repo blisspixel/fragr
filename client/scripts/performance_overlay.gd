@@ -12,6 +12,11 @@ class_name PerformanceOverlay
 ## process delta, so time scale and pause cannot flatter it, and it never
 ## touches the match. The boot menu and the match manager each mount one,
 ## beside their console.
+##
+## The match manager also hands it a StutterTrace. While that trace records,
+## the overlay runs first in every frame and a marker runs last, so each frame
+## record carries the whole _process span beside the renderer's own CPU and
+## GPU time. Neither runs, and render timing stays off, when not recording.
 
 const OFF: int = 0
 const FPS: int = 1
@@ -24,9 +29,25 @@ const REFRESH_SECONDS: float = 0.25
 ## counts, but one absurd value must not make the readout unreadable.
 const MAX_INTERVAL_SECONDS: float = 1.0
 
+## Process priorities that put the overlay before, and its marker after,
+## every other _process callback in the frame.
+const FIRST_PRIORITY: int = -1000000000
+const LAST_PRIORITY: int = 1000000000
+
+## Stamps the end of each frame's _process phase for the trace.
+class FrameEnd extends Node:
+	var stamped_usec: int = -1
+
+	func _process(_delta: float) -> void:
+		stamped_usec = Time.get_ticks_usec()
+
 var preferences: FragrSettings
+var trace: StutterTrace = null
 
 var _mode: int = OFF
+var _tracing: bool = false
+var _frame_end: FrameEnd = null
+var _frame_start_usec: int = -1
 var _label: Label = null
 var _intervals: PackedFloat32Array = PackedFloat32Array()
 var _next: int = 0
@@ -37,6 +58,13 @@ var _since_refresh: float = 0.0
 func _ready() -> void:
 	layer = 127 # Just under the console, above every HUD and menu layer.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	process_priority = FIRST_PRIORITY
+	_frame_end = FrameEnd.new()
+	_frame_end.name = "FrameEnd"
+	_frame_end.process_mode = Node.PROCESS_MODE_ALWAYS
+	_frame_end.process_priority = LAST_PRIORITY
+	_frame_end.set_process(false)
+	add_child(_frame_end)
 	_intervals.resize(WINDOW_FRAMES)
 	_label = Label.new()
 	_label.name = "FrameCounter"
@@ -47,6 +75,8 @@ func _ready() -> void:
 	_label.offset_right = -8.0
 	_label.offset_top = 2.0
 	_label.offset_bottom = 19.0
+	# A readout wider than its box grows toward the screen, never past the edge.
+	_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_label.add_theme_font_override("font", MenuTheme.FONT)
 	_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
@@ -65,13 +95,28 @@ func apply_preferences() -> void:
 func mode() -> int:
 	return _mode
 
+## The canvas rectangle the readout may draw in while it is on, sized for the
+## widest text this mode can print, so HUD text laid out beneath it neither
+## waits for the first refresh nor moves as the digits change. Empty when off.
+func occupied_region() -> Rect2:
+	if _label == null or not visible or _mode == OFF:
+		return Rect2()
+	var font: Font = _label.get_theme_font("font")
+	var font_size: int = _label.get_theme_font_size("font_size")
+	var outline: float = float(_label.get_theme_constant("outline_size"))
+	var widest: String = format(_mode, {"fps": 9999.0, "frame_ms": 999.9, "low_fps": 9999.0})
+	var box: Rect2 = _label.get_global_rect()
+	var width: float = maxf(box.size.x, font.get_string_size(widest, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + outline * 2.0)
+	var height: float = maxf(box.size.y, font.get_height(font_size) + outline * 2.0)
+	return Rect2(box.end.x - width, box.position.y, width, height)
+
 func text() -> String:
 	return "" if _label == null else _label.text
 
 func set_mode(value: int) -> void:
 	_mode = value if value in MODES else OFF
 	visible = _mode != OFF
-	set_process(_mode != OFF)
+	set_process(_mode != OFF or _tracing)
 	_count = 0
 	_next = 0
 	_last_usec = -1
@@ -79,8 +124,31 @@ func set_mode(value: int) -> void:
 	if _label != null:
 		_label.text = ""
 
+func tracing() -> bool:
+	return _tracing
+
+## Start or stop feeding `trace` and the renderer's per-frame timing. The trace
+## itself decides what it keeps; this only decides whether frames reach it.
+func set_tracing(active: bool) -> void:
+	_tracing = active and trace != null
+	_frame_start_usec = -1
+	if _frame_end != null:
+		_frame_end.stamped_usec = -1
+		_frame_end.set_process(_tracing)
+	set_process(_mode != OFF or _tracing)
+	if is_inside_tree():
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), _tracing)
+
+func _exit_tree() -> void:
+	if _tracing:
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), false)
+
 func _process(_delta: float) -> void:
 	var now: int = Time.get_ticks_usec()
+	if _tracing:
+		_record_trace_frame(now)
+	if _mode == OFF:
+		return
 	if _last_usec >= 0:
 		var interval: float = float(now - _last_usec) / 1000000.0
 		record(interval)
@@ -89,6 +157,19 @@ func _process(_delta: float) -> void:
 			_since_refresh = 0.0
 			_label.text = format(_mode, summarize(samples()))
 	_last_usec = now
+
+## The previous frame ran from its start stamp to the marker's end stamp.
+func _record_trace_frame(now: int) -> void:
+	if trace == null or not trace.recording:
+		return
+	var end: int = _frame_end.stamped_usec
+	var script_us: int = end - _frame_start_usec if _frame_start_usec >= 0 and end >= _frame_start_usec else -1
+	var viewport: RID = get_viewport().get_viewport_rid()
+	trace.record_frame(now, script_us,
+		RenderingServer.viewport_get_measured_render_time_cpu(viewport),
+		RenderingServer.viewport_get_measured_render_time_gpu(viewport),
+		StutterTrace.pipeline_compilations())
+	_frame_start_usec = now
 
 ## Adds one frame interval in seconds. Non-positive or non-finite values are
 ## measurement noise from a clock that did not advance and are dropped.

@@ -278,6 +278,15 @@ func _measure_drawn_frame() -> void:
 	_last_usec = now
 	advance(interval)
 
+## The canvas rectangle the status banner occupies after wrapping, so the HUD
+## lays the replayed match's top text out below it. Empty when it shows nothing.
+func occupied_region() -> Rect2:
+	if _banner == null or not _banner.is_visible_in_tree() or _banner.text.strip_edges().is_empty():
+		return Rect2()
+	var box: Rect2 = _banner.get_global_rect()
+	box.size.y = maxf(box.size.y, _banner.get_minimum_size().y)
+	return box
+
 func _ensure_banner() -> void:
 	if _banner != null:
 		return

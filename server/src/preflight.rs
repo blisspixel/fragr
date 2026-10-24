@@ -108,38 +108,200 @@ pub(crate) fn population_note(bots: usize, connections: usize, per_address: usiz
     )
 }
 
-/// List join addresses and probe them. Failures are warnings. This never
-/// claims that another computer can connect.
-pub async fn log_join_checks(bound: SocketAddr) {
+/// Who can plausibly use a join address. A label, never a reachability claim.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum JoinScope {
+    /// RFC 1918 private network: another computer on the same network.
+    Lan,
+    /// Any other address: only where a path to it is open.
+    Other,
+    /// RFC 6598 shared space, including Tailscale: only peers on that overlay.
+    Overlay,
+    /// Loopback: this computer only.
+    ThisComputer,
+}
+
+impl JoinScope {
+    pub fn of(addr: SocketAddr) -> Self {
+        match addr.ip() {
+            ip if ip.is_loopback() => Self::ThisComputer,
+            IpAddr::V4(ip) if is_lan(ip) => Self::Lan,
+            IpAddr::V4(ip) if is_shared_overlay(ip) => Self::Overlay,
+            _ => Self::Other,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Lan => "LAN",
+            Self::Other => "other",
+            Self::Overlay => "overlay",
+            Self::ThisComputer => "local",
+        }
+    }
+
+    pub fn audience(self) -> &'static str {
+        match self {
+            Self::Lan => "computers on the same network",
+            Self::Other => "only where a path to it is open",
+            Self::Overlay => "only computers on that private overlay",
+            Self::ThisComputer => "this computer only",
+        }
+    }
+}
+
+/// One address this process offers, and whether this computer reached it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JoinEntry {
+    pub addr: SocketAddr,
+    pub scope: JoinScope,
+    /// `Err` holds why the self probe failed. Success is not proof that
+    /// another computer can connect.
+    pub answered: Result<(), String>,
+}
+
+/// Every join address with its scope, LAN first and loopback last.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct JoinReport {
+    pub entries: Vec<JoinEntry>,
+    /// Adapters set aside (virtual, link-local), already described.
+    pub skipped: Vec<String>,
+    /// Set when the adapter list could not be read.
+    pub listing_error: Option<String>,
+    /// The process listens on loopback only; no other computer can join.
+    pub loopback_bind: bool,
+}
+
+impl JoinReport {
+    /// The address a person should try first: the best answered scope, then
+    /// the best scope, then loopback. An overlay never outranks a LAN address.
+    pub fn primary(&self, bound: SocketAddr) -> SocketAddr {
+        self.entries
+            .iter()
+            .find(|entry| entry.answered.is_ok())
+            .or_else(|| self.entries.first())
+            .map(|entry| entry.addr)
+            .unwrap_or_else(|| fallback_join_addr(bound))
+    }
+
+    fn sort(&mut self) {
+        self.entries.sort_by_key(|entry| entry.scope);
+    }
+}
+
+fn fallback_join_addr(bound: SocketAddr) -> SocketAddr {
+    if bound.ip().is_unspecified() {
+        SocketAddr::new(loopback_probe_addr(bound).ip(), bound.port())
+    } else {
+        bound
+    }
+}
+
+/// List join addresses, probe them and log the result. Failures are
+/// warnings. This never claims that another computer can connect.
+pub async fn join_checks(bound: SocketAddr) -> JoinReport {
+    let adapters = if bound.ip().is_loopback() {
+        Ok(Vec::new())
+    } else {
+        read_adapters()
+    };
+    let report = join_report(bound, adapters, |addr| async move {
+        fetch_status(addr)
+            .await
+            .map(|_| ())
+            .map_err(|error| error.message().to_string())
+    })
+    .await;
+    log_join_report(bound, &report);
+    report
+}
+
+/// Pure assembly of the report around an injectable probe, so scope order
+/// and failure handling are testable without real adapters.
+async fn join_report<P, F>(
+    bound: SocketAddr,
+    adapters: Result<Vec<JoinAdapter>, String>,
+    probe: P,
+) -> JoinReport
+where
+    P: Fn(SocketAddr) -> F,
+    F: std::future::Future<Output = Result<(), String>>,
+{
+    let mut report = JoinReport::default();
+    // The readiness preflight already answered on loopback for a loopback or
+    // wildcard bind. A specific address bind is not reachable on loopback.
+    if bound.ip().is_loopback() || bound.ip().is_unspecified() {
+        report.entries.push(JoinEntry {
+            addr: loopback_probe_addr(bound),
+            scope: JoinScope::ThisComputer,
+            answered: Ok(()),
+        });
+    }
+    if bound.ip().is_loopback() {
+        report.loopback_bind = true;
+        return report;
+    }
+    let adapters = match adapters {
+        Ok(adapters) => adapters,
+        Err(error) => {
+            report.listing_error = Some(error);
+            return report;
+        }
+    };
+    let offer = join_candidates(&adapters, bound);
+    report.skipped = offer.skipped;
+    for addr in offer.offered {
+        let answered = probe(addr).await;
+        report.entries.push(JoinEntry {
+            addr,
+            scope: JoinScope::of(addr),
+            answered,
+        });
+    }
+    report.sort();
+    report
+}
+
+fn log_join_report(bound: SocketAddr, report: &JoinReport) {
     if bound.ip().is_loopback() {
         tracing::info!(
+            target: crate::logging::STARTUP_TARGET,
             "Listening on loopback only ({bound}). Other computers cannot join this process."
         );
         return;
     }
-    let adapters = match read_adapters() {
-        Ok(adapters) => adapters,
-        Err(error) => {
-            tracing::warn!(
-                "Join addresses could not be listed: {error}. A check from this computer does not prove another computer can connect."
-            );
-            return;
-        }
-    };
-    let offer = join_candidates(&adapters, bound);
-    if !offer.skipped.is_empty() {
-        tracing::info!("Not offered for join: {}.", offer.skipped.join(", "));
+    if let Some(error) = &report.listing_error {
+        tracing::warn!(
+            "Join addresses could not be listed: {error}. A check from this computer does not prove another computer can connect."
+        );
+        return;
     }
-    if offer.offered.is_empty() {
+    if !report.skipped.is_empty() {
+        tracing::info!(
+            target: crate::logging::STARTUP_TARGET,
+            "Not offered for join: {}.",
+            report.skipped.join(", ")
+        );
+    }
+    let mut offered = report
+        .entries
+        .iter()
+        .filter(|entry| entry.scope != JoinScope::ThisComputer || !bound.ip().is_unspecified())
+        .peekable();
+    if offered.peek().is_none() {
         tracing::warn!(
             "No join address was found besides loopback. Another computer cannot use this process until a network address is up. A check from this computer does not prove another computer can connect."
         );
         return;
     }
-    for addr in offer.offered {
-        match fetch_status(addr).await {
-            Ok(_) => tracing::info!("{}", join_success_line(addr)),
-            Err(error) => tracing::warn!("{}", join_failure_line(addr, error.message())),
+    for entry in offered {
+        match &entry.answered {
+            Ok(()) => tracing::info!(
+                target: crate::logging::STARTUP_TARGET,
+                "{}",
+                join_success_line(entry.addr)
+            ),
+            Err(error) => tracing::warn!("{}", join_failure_line(entry.addr, error)),
         }
     }
 }
@@ -242,20 +404,6 @@ fn join_candidates(adapters: &[JoinAdapter], bind: SocketAddr) -> JoinOffer {
         }
     }
     JoinOffer { offered, skipped }
-}
-
-/// The best join address for human operators to connect to.
-pub fn primary_join_addr(bound: SocketAddr) -> SocketAddr {
-    if !bound.ip().is_unspecified() {
-        return bound;
-    }
-    if let Ok(adapters) = read_adapters() {
-        let offer = join_candidates(&adapters, bound);
-        if let Some(&first) = offer.offered.first() {
-            return first;
-        }
-    }
-    SocketAddr::from(([127, 0, 0, 1], bound.port()))
 }
 
 fn read_adapters() -> Result<Vec<JoinAdapter>, String> {
@@ -583,8 +731,125 @@ mod tests {
     #[tokio::test]
     async fn loopback_bind_does_not_probe_other_addresses() {
         let started = std::time::Instant::now();
-        log_join_checks("127.0.0.1:1".parse().unwrap()).await;
+        let report = join_checks("127.0.0.1:1".parse().unwrap()).await;
         assert!(started.elapsed() < Duration::from_millis(200));
+        assert_eq!(report.entries.len(), 1);
+        assert_eq!(report.entries[0].scope, JoinScope::ThisComputer);
+        assert_eq!(
+            report.primary("127.0.0.1:1".parse().unwrap()),
+            "127.0.0.1:1".parse().unwrap()
+        );
+    }
+
+    /// The October 23 Windows log named an overlay in the ready line while a
+    /// LAN address existed. Adapter order must not decide that.
+    #[tokio::test]
+    async fn report_orders_scopes_and_never_prefers_an_overlay_over_lan() {
+        let adapters = vec![
+            adapter("Tailscale", Ipv4Addr::new(100, 83, 110, 16)),
+            adapter("Public", Ipv4Addr::new(203, 0, 113, 8)),
+            adapter("Wi-Fi", Ipv4Addr::new(192, 168, 44, 46)),
+            adapter("vEthernet (WSL)", Ipv4Addr::new(172, 17, 208, 1)),
+        ];
+        let bound: SocketAddr = "0.0.0.0:6767".parse().unwrap();
+        let report = join_report(bound, Ok(adapters.clone()), |_| async { Ok(()) }).await;
+        let scopes: Vec<JoinScope> = report.entries.iter().map(|e| e.scope).collect();
+        assert_eq!(
+            scopes,
+            [
+                JoinScope::Lan,
+                JoinScope::Other,
+                JoinScope::Overlay,
+                JoinScope::ThisComputer
+            ]
+        );
+        assert_eq!(report.primary(bound), "192.168.44.46:6767".parse().unwrap());
+        assert!(report.skipped.iter().any(|line| line.contains("WSL")));
+
+        // A LAN address that did not answer yields to the next answered scope.
+        let report = join_report(bound, Ok(adapters), |addr| async move {
+            if JoinScope::of(addr) == JoinScope::Lan {
+                Err("timed out".to_string())
+            } else {
+                Ok(())
+            }
+        })
+        .await;
+        assert_eq!(report.entries[0].answered, Err("timed out".to_string()));
+        assert_eq!(report.primary(bound), "203.0.113.8:6767".parse().unwrap());
+
+        // Overlay only: the overlay is honest, and loopback stays listed.
+        let report = join_report(
+            bound,
+            Ok(vec![adapter("Tailscale", Ipv4Addr::new(100, 83, 110, 16))]),
+            |_| async { Ok(()) },
+        )
+        .await;
+        assert_eq!(report.entries[0].scope, JoinScope::Overlay);
+        assert_eq!(
+            report.entries.last().unwrap().scope,
+            JoinScope::ThisComputer
+        );
+    }
+
+    #[tokio::test]
+    async fn report_failure_paths_keep_loopback_and_name_the_error() {
+        let bound: SocketAddr = "0.0.0.0:6767".parse().unwrap();
+        let report = join_report(bound, Err("no adapters".into()), |_| async { Ok(()) }).await;
+        assert_eq!(report.listing_error.as_deref(), Some("no adapters"));
+        assert_eq!(report.entries.len(), 1);
+        assert_eq!(report.primary(bound), "127.0.0.1:6767".parse().unwrap());
+        log_join_report(bound, &report);
+
+        let nothing = join_report(bound, Ok(Vec::new()), |_| async { Ok(()) }).await;
+        assert_eq!(nothing.entries.len(), 1, "loopback only");
+        log_join_report(bound, &nothing);
+
+        // Every probe failed: the first scope is still offered, with its error.
+        let failing = join_report(
+            bound,
+            Ok(vec![adapter("Wi-Fi", Ipv4Addr::new(192, 168, 44, 46))]),
+            |_| async { Err("refused".to_string()) },
+        )
+        .await;
+        log_join_report(bound, &failing);
+        assert_eq!(failing.entries[0].answered, Err("refused".to_string()));
+        assert_eq!(
+            failing.primary(bound),
+            "127.0.0.1:6767".parse().unwrap(),
+            "loopback answered the readiness probe"
+        );
+
+        // A specific bind offers exactly that address and no loopback entry.
+        let specific: SocketAddr = "192.168.1.100:6767".parse().unwrap();
+        let report = join_report(specific, Ok(Vec::new()), |_| async { Ok(()) }).await;
+        assert_eq!(report.entries.len(), 1);
+        assert_eq!(report.entries[0].scope, JoinScope::Lan);
+        assert_eq!(report.primary(specific), specific);
+        let empty = JoinReport::default();
+        assert_eq!(empty.primary(specific), specific);
+        assert_eq!(
+            empty.primary("[::]:6767".parse().unwrap()),
+            "[::1]:6767".parse().unwrap()
+        );
+    }
+
+    #[test]
+    fn scopes_label_their_audience_without_claiming_reachability() {
+        for (addr, scope, label) in [
+            ("10.0.0.2:1", JoinScope::Lan, "LAN"),
+            ("172.20.0.2:1", JoinScope::Lan, "LAN"),
+            ("100.100.1.1:1", JoinScope::Overlay, "overlay"),
+            ("203.0.113.8:1", JoinScope::Other, "other"),
+            ("127.0.0.1:1", JoinScope::ThisComputer, "local"),
+            ("[::1]:1", JoinScope::ThisComputer, "local"),
+            ("[2001:db8::1]:1", JoinScope::Other, "other"),
+        ] {
+            let addr: SocketAddr = addr.parse().unwrap();
+            assert_eq!(JoinScope::of(addr), scope, "{addr}");
+            assert_eq!(scope.label(), label);
+            assert!(!scope.audience().contains("can connect"));
+        }
     }
 
     #[tokio::test]
@@ -662,16 +927,11 @@ mod tests {
         accept.abort();
     }
 
-    #[test]
-    fn primary_join_addr_preserves_specific_or_finds_unspecified() {
-        let loopback: SocketAddr = "127.0.0.1:6767".parse().unwrap();
-        assert_eq!(primary_join_addr(loopback), loopback);
-
-        let specific: SocketAddr = "192.168.1.100:6767".parse().unwrap();
-        assert_eq!(primary_join_addr(specific), specific);
-
+    #[tokio::test]
+    async fn a_live_wildcard_report_offers_a_usable_primary() {
         let unspecified: SocketAddr = "0.0.0.0:6767".parse().unwrap();
-        let primary = primary_join_addr(unspecified);
+        let report = join_report(unspecified, read_adapters(), |_| async { Ok(()) }).await;
+        let primary = report.primary(unspecified);
         assert_eq!(primary.port(), 6767);
         assert!(!primary.ip().is_unspecified());
     }

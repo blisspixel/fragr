@@ -189,18 +189,45 @@ func _run() -> void:
 	menu._show("launch")
 	_check(_menu_text(column).contains(tr("M12_PROTOTYPE_TITLE")), "practice M12 launch retains the habitat prototype title")
 	owned.mission = previous_mission
+	await menu._show("main")
+	_check(not _menu_text(menu._column).contains("CONTESTED FREQUENCY") and not _menu_text(menu._column).contains("PORT 6767"),
+		"the main menu carries no decorative frequency or port line")
 	await menu._show("multi")
-	_check(column.get_node_or_null("UseRunningServer") == null and column.get_node_or_null("RunServer") != null and column.get_node_or_null("CheckHost") != null,
-		"run and join are separate controls, and nothing on the join page replaces the address")
-	_check(_menu_text(column).contains(tr("HOST_RUN_SECTION")) and _menu_text(column).contains(tr("JOIN_SECTION")),
-		"run and join are labeled separately")
-	_check(not _menu_text(column).contains(tr("HOST_STILL_RUNNING")), "an idle menu does not claim a server is running")
+	var find_match: Button = column.get_node_or_null("FindMatch") as Button
+	var run_match: Button = column.get_node_or_null("RunServer") as Button
+	_check(find_match != null and run_match != null and find_match.get_index() < run_match.get_index()
+		and find_match.text == tr("JOIN_SECTION").to_upper() and run_match.text == tr("HOST_CREATE").to_upper(),
+		"Multiplayer first asks join or run, as two primary choices")
+	_check(column.find_child("HostAddress", true, false) == null and column.find_child("SavedList", true, false) == null
+		and column.find_child("StartServer", true, false) == null, "the choice page is not a flat list of address and host controls")
+	var find_note: Label = column.get_node_or_null("FindNote") as Label
+	_check(find_note != null and find_note.get_theme_color("font_color") == MenuTheme.MUTED
+		and find_match.get_theme_color("font_color") != MenuTheme.MUTED, "choice notes are quieter than the choices they explain")
+	_check(column.get_node_or_null("RunningMatch") == null, "an idle menu does not claim a server is running")
+	_check(menu.get_viewport().gui_get_focus_owner() == find_match, "the first choice owns focus on arrival")
+	find_match.pressed.emit()
+	await process_frame
+	_check(menu._page == "join" and column.find_child("UseRunningServer", true, false) == null
+		and column.find_child("CheckHost", true, false) != null, "Find / join opens the join view; nothing there replaces the address")
+	var escape_join: InputEventKey = InputEventKey.new()
+	escape_join.physical_keycode = KEY_ESCAPE
+	escape_join.pressed = true
+	menu._unhandled_input(escape_join)
+	await process_frame
+	_check(menu._page == "multi" and menu.get_viewport().gui_get_focus_owner() == column.get_node_or_null("FindMatch"),
+		"Back from join returns to the choice with Find / join still focused")
+	await menu._show("join")
 	var typed_join: String = menu._host_edit.text
 	menu._host_edit.text = "remote.example:6767"
 	menu._host_edit.text_changed.emit("remote.example:6767")
 	_check(menu._host_edit.text == "remote.example:6767", "a typed join address stays in the field")
+	_check(menu._watch_button.disabled and menu._join_button.disabled and menu._match_line.text == tr("JOIN_CHECK_PROMPT"),
+		"an edited address is not the checked one, so Watch and Join wait for a check")
+	_check(menu._selected_address.text == tr("JOIN_SELECTED").format({"address": "remote.example:6767"}),
+		"the card names the address its actions use")
 	await menu._show("host")
 	await menu._show("multi")
+	await menu._show("join")
 	_check(menu._host_edit.text == "remote.example:6767", "a typed join address survives the server page")
 	menu._host_edit.text = typed_join
 	menu._host_edit.text_changed.emit(typed_join)
@@ -221,14 +248,15 @@ func _run() -> void:
 	_check(not menu._match_line.text.contains("SHA256SUMS.txt"), "an older server does not send this client to the release")
 	versioned["gameplay_version"] = 99
 	menu._apply_status(versioned)
-	var offer: Button = column.get_node_or_null("InstallLatest") as Button
-	var offer_note: Label = column.get_node_or_null("InstallNote") as Label
+	var offer: Button = column.find_child("InstallLatest", true, false) as Button
+	var offer_note: Label = column.find_child("InstallNote", true, false) as Label
 	_check(not menu._watch_button.disabled and not menu._join_button.disabled, "a newer server does not block join")
 	_check(menu._match_line.text.contains("Update this client.") and menu._match_line.text.contains("https://github.com/blisspixel/fragr/releases/latest") and menu._match_line.text.contains("SHA256SUMS.txt"), "a newer server names the release and its checksum")
 	_check(offer != null and offer.visible and not offer.disabled and offer.text == "INSTALL THE LATEST AND REJOIN", "a newer server offers to install and rejoin")
 	_check(offer_note != null and offer_note.visible and offer_note.text == ReleaseInstall.OFFER_NOTE, "the offer says the latest build may still be older")
 	_check(menu.get_node_or_null("ReleaseFetch") == null, "the offer does not download until it is chosen")
-	_check(column.get_node("Join").get_index() < offer.get_index() and offer.get_index() < column.get_node("SaveHost").get_index(), "the install offer follows Join")
+	_check(column.find_child("ServerActions", true, false).get_index() < offer.get_index() and offer.get_index() < column.find_child("SaveHost", true, false).get_index()
+		and menu._selected_card.is_ancestor_of(offer), "the install offer follows Join inside the selected server card")
 	versioned["gameplay_version"] = preload("res://scripts/net_client.gd").GAMEPLAY_VERSION
 	versioned["geometry_version"] = 9
 	menu._apply_status(versioned)
@@ -271,19 +299,14 @@ func _run() -> void:
 	_check(menu.probe_body_line(null) == "This host did not return a match line.", "a 200 that is not an object is not a silent host")
 	_check(menu.probe_body_line(["nope"]) == "This host did not return a match line.", "a 200 array is not a match line")
 	_check(menu.probe_body_line({"schema_version": 2}).is_empty(), "an object still goes to the match line")
-	_check(column.get_node_or_null("SaveHost") != null and column.get_node_or_null("NearbyList") != null \
+	_check(column.find_child("SaveHost", true, false) != null and column.get_node_or_null("NearbyList") != null \
 		and column.get_node_or_null("SavedList") != null, "join page can save a host and lists nearby and saved ones")
-	var next_name: String = ""
-	var passed_check: bool = false
-	for node: Node in column.get_children():
-		if passed_check and node is Button and next_name.is_empty():
-			next_name = node.name
-		if node.name == "CheckHost":
-			passed_check = true
-	_check(next_name == "Watch", "Watch still follows Check host")
+	_check(menu._selected_card.get_parent() == menu._direct_slot and menu._direct_slot.get_index() == column.get_node("AddressRow").get_index() + 1
+		and menu._selected_card.is_ancestor_of(menu._watch_button),
+		"the typed address's Watch and Join sit directly under Check host")
 	menu._host_edit.text = "192.0.2.10"
 	menu._host_edit.text_changed.emit("192.0.2.10")
-	var save_host: Button = column.get_node("SaveHost") as Button
+	var save_host: Button = column.find_child("SaveHost", true, false) as Button
 	save_host.pressed.emit()
 	_check(menu._book.favorites == ["ws://192.0.2.10:6767"], "save stores the typed host")
 	var saved_list: VBoxContainer = column.get_node("SavedList") as VBoxContainer
@@ -298,12 +321,32 @@ func _run() -> void:
 	menu._host_edit.text_changed.emit("192.0.2.11:6767")
 	use_saved.pressed.emit()
 	_check(menu._host_edit.text == "ws://192.0.2.10:6767", "choosing a saved host fills the address")
+	_check(menu._selected_card.get_parent() == saved_list and menu._selected_card.get_index() == use_saved.get_parent().get_index() + 1,
+		"a chosen server owns the card: its status and Watch and Join sit under its row")
+	var card_save: Button = menu._selected_card.find_child("SaveHost", true, false) as Button
+	card_save.grab_focus()
+	menu._fill_server_lists()
+	_check(menu._selected_card.get_parent() == saved_list and is_instance_valid(menu._watch_button),
+		"a list rebuild keeps the selected server card and its actions")
+	_check(menu.get_viewport().gui_get_focus_owner() == card_save,
+		"a list rebuild keeps keyboard focus on the selected card's action")
+	card_save.pressed.emit()
+	_check(menu.get_viewport().gui_get_focus_owner() == card_save and menu._selected_card.get_parent() == saved_list,
+		"saving the selected host from its card keeps focus on Save")
+	menu._host_edit.text = "192.0.2.12:6767"
+	menu._host_edit.text_changed.emit("192.0.2.12:6767")
+	_check(menu._selected_card.get_parent() == menu._direct_slot and menu._watch_button.disabled,
+		"typing a different address moves the card back under the field and waits for a check")
+	use_saved = saved_list.find_child("Use_ws___192_0_2_10_6767", true, false) as Button
+	use_saved.pressed.emit()
 	var drop_saved: Button = saved_list.find_child("Drop_ws___192_0_2_10_6767", true, false) as Button
 	_check(drop_saved != null, "a saved host can be dropped")
 	if drop_saved != null:
 		drop_saved.pressed.emit()
 	_check(menu._book.favorites.is_empty() and saved_list.find_child("Use_ws___192_0_2_10_6767", true, false) == null,
 		"drop removes that host and its row")
+	_check(menu._selected_card.get_parent() == menu._direct_slot and is_instance_valid(menu._join_button),
+		"dropping the selected row returns its card, not a freed one, under the field")
 	menu._lan.append("192.0.2.20:6767")
 	menu._fill_server_lists()
 	var nearby_list: VBoxContainer = column.get_node("NearbyList") as VBoxContainer
@@ -313,6 +356,17 @@ func _run() -> void:
 		hide_nearby.pressed.emit()
 	_check(menu._lan.is_empty() and _menu_text(column).contains(tr("JOIN_NEARBY_EMPTY")),
 		"hiding the last network host leaves the empty line")
+	# A scan that finds nothing settles to its own line, with the scan, the
+	# address and Back still usable.
+	var scan_button: Button = column.get_node("ScanNetwork") as Button
+	scan_button.grab_focus()
+	menu._scanning = true
+	menu._on_lan_scan_finished()
+	_check(menu._lan.is_empty() and _menu_text(column).contains(tr("JOIN_SCAN_EMPTY")) and not scan_button.disabled
+		and menu.get_viewport().gui_get_focus_owner() == scan_button and menu._scroll_back.visible
+		and menu._host_edit.editable and menu._selected_card.get_parent() == menu._direct_slot,
+		"a scan that finds nothing says so and leaves scan, address and Back usable")
+	menu._scan_settled = false
 	var page_was: String = menu._page
 	menu._page = "records"
 	menu._on_lan_found("8.8.8.8:6767")

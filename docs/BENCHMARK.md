@@ -146,3 +146,49 @@ frame rates. A frame rate is not a CI gate. The server `--bench` results above
 remain separate CPU measurements. The
 [comparison plan](plans/benchmark-preset-comparison-20261006.md) records the
 actual renderer acceptance and remaining broader showcase work.
+
+## Stutter diagnosis traces
+
+Two opt-in recordings, one per process, join on the Snapshot tick so a
+player-reported hitch can be separated into a slow drawn frame, a server stall
+or skip, a late delivery, a prediction correction or reset, a remote pawn whose
+interpolation ran dry, or a camera mode change. Both are off by default and
+cost one boolean test per hook while off. The
+[stutter diagnosis plan](plans/stutter-diagnosis-20261023.md) holds the first
+measurements and their limits.
+
+**Server tick trace version 1.** `fragr-server --tick-trace PATH` (or
+`FRAGR_TICK_TRACE` set to an absolute path, which a client-launched desktop or
+campaign host inherits) truncates `PATH` and writes UTF-8 NDJSON: a `header`
+(`version`, `tick_us`, `build`, `started_unix_us`), one `tick` record per served
+tick and a `complete` footer (`ticks`, `dropped`, `over_budget`,
+`skipped_periods`) on clean shutdown. A killed process leaves no footer; its
+flushed ticks remain readable. Each `tick` carries the Snapshot tick number,
+`unix_us` at handler start, `late_us` after the scheduled deadline,
+`skipped` whole periods the interval skipped, and microseconds for
+`sim_us` (session tick and run persistence), `measure_us` (serializing once
+to count bytes), `fanout_us` (queuing broadcasts and unicasts, not socket
+completion) and `total_us`, plus clients, messages, bytes and queue
+overflows. A writer thread owns the file behind a bounded 1,024-record queue;
+a full queue drops and counts records rather than delay a tick. An unwritable
+path fails the start. The flag is refused beside `--bench`,
+`--bench-verify-trace` and `--local-run-preview`, which run no served tick
+loop, and beside `--local-mission`, which reads only `FRAGR_TICK_TRACE`. Every
+host process the client starts truncates the same file, so copy a trace before
+hosting or starting a mission again.
+
+**Client stutter trace version 1.** In a match, the console's `stutter start`,
+`stutter mark <label>` and `stutter stop [path]` record a bounded window and
+write JSON under `user://diagnostics/` by default. Leaving the match saves an
+open recording. Per drawn frame it keeps the interval, the whole `_process`
+span (first and last process-priority markers on the PerformanceOverlay), the
+renderer's measured CPU and GPU time, new pipeline compilations, starved remote
+pawns and the camera pose; per network poll that delivered messages, the drain
+time and message count; per Snapshot, tick, arrival and handler time; per Ack,
+sequence and tick; prediction corrections, resets and state changes; camera
+mode changes and marks. `StutterReport` reads both files, refuses malformed
+input, and names a cause only when a measured stage holds at least half of a
+slow interval's excess over the median frame. `client/scripts/qa_stutter.gd`
+drives a scripted rendered session through these phases and writes the joined
+report and table. Wall-clock delivery figures assume one shared clock and
+hold only when client and server run on the same machine.

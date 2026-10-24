@@ -85,6 +85,49 @@ func _check_shiv_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 	_check(is_equal_approx(settled, reference), "resolved use settles to the same player's glove scale")
 	hud.head_bob_enabled = true
 
+## Every held magazine gun lowers for its accepted reload and comes back up,
+## head bob off included. Reduced motion stills the gun but never the HUD line.
+func _check_reload_motion_every_gun(hud: CanvasLayer, weapon: TextureRect) -> void:
+	hud.set_fp_walk_speed(0.0)
+	for weapon_name: String in ["Tack", "Flechette", "Scatter", "Rail", "Sniper", "Rocket"]:
+		var key: String = weapon_name.to_lower()
+		var size: int = int(EquipmentState.MAGAZINE_SIZES[key])
+		var pool: String = str(EquipmentState.POOLS[key])
+		var ammo: Array = []
+		for name: String in EquipmentState.POOL_ORDER:
+			ammo.append({"pool": name, "rounds": size + 10 if name == pool else 0})
+		var accepted: Dictionary = {"selected": key, "tick": 100, "weapons": ["fists", key], "ammo": ammo, "loaded": [{"weapon": key, "rounds": 0, "ready_at": 120}], "dry_fire_count": 0, "grenades": 0, "personal_claims": []}
+		for mode: String in ["bob_off", "reduced"]:
+			hud.equipment_hud.apply({})
+			hud.reduced_motion = mode == "reduced"
+			hud.head_bob_enabled = false
+			hud.set_fp_weapon(weapon_name)
+			hud._process(1.0)
+			var rest: float = weapon.position.y
+			hud.equipment_hud.apply(accepted)
+			hud.equipment_hud.reload.observe(accepted, 0)
+			hud.equipment_hud.visible = true
+			var lowest: float = rest
+			for tick: int in range(100, 120):
+				hud.equipment_hud.tick = tick
+				for frame: int in range(3):
+					hud._process(1.0 / 60.0)
+					lowest = maxf(lowest, weapon.position.y)
+					_check(weapon.position.y + weapon.size.y > root.get_visible_rect().size.y + 2.0, weapon_name + " reload keeps the cut-off base below the frame")
+			hud.equipment_hud._refresh()
+			_check(hud.equipment_hud.reload_label.visible and hud.equipment_hud.reload_label.text == "RELOADING" and hud.equipment_hud.reload_bar_visible(), weapon_name + " " + mode + ": the HUD reload line and bar show")
+			if mode == "reduced":
+				_check(lowest == rest, weapon_name + ": reduced motion keeps the gun still during reload")
+			else:
+				_check(lowest > rest + weapon.size.y * 0.2, weapon_name + ": an accepted reload visibly lowers the gun with head bob off")
+			hud.equipment_hud.tick = 120
+			for frame: int in range(30):
+				hud._process(1.0 / 60.0)
+			_check(weapon.position.y == rest, weapon_name + " " + mode + ": the gun returns to rest at the deadline")
+	hud.reduced_motion = false
+	hud.head_bob_enabled = true
+	hud.equipment_hud.apply({})
+
 func _check_arc_hand_scale(hud: CanvasLayer, weapon: TextureRect) -> void:
 	hud.set_fp_walk_speed(0.0)
 	hud.head_bob_enabled = false
@@ -213,6 +256,7 @@ func _run() -> void:
 	hud._process(0.4)
 	_check(weapon.texture == WeaponArt.IDLE["Rocket"], "Rocket settles back to idle")
 	_check_missing_art(hud, weapon)
+	_check_reload_motion_every_gun(hud, weapon)
 	# A network shot arrives before the HUD's update. A slow preceding render
 	# must not erase its fire frame before this update can present it.
 	hud.set_fp_weapon("Flechette")
