@@ -250,6 +250,7 @@ fn combat_facts_remain_exact_and_ordered_before_their_acknowledgement() {
         yaw: 0.0,
         pitch: 0.0,
         movement: None,
+        respawn_ticks: None,
     };
     tx.try_send(ack.clone()).unwrap();
     tx.try_send(ServerMessage::Snapshot(world(11))).unwrap();
