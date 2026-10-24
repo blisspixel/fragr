@@ -778,11 +778,12 @@ async fn run_server_impl(
                 persist_local_run(&session.state, run_store.as_ref(), &mut last_run_document)?;
                 session.resume.note_tick(session.state.tick);
                 let elapsed = started.elapsed();
-                let bytes = crate::bench::encoded_payload_bytes(messages.iter())?;
+                let broadcasts = crate::net::Broadcast::encode_all(messages)?;
+                let bytes: usize = broadcasts.iter().map(|broadcast| broadcast.text().len()).sum();
                 let measured = started.elapsed();
                 stats.record_tick(elapsed, bytes);
                 let fanout_started = std::time::Instant::now();
-                let delivery = broadcast_to_clients(&clients, &messages).await;
+                let delivery = broadcast_to_clients(&clients, &broadcasts).await;
                 let broadcast_elapsed = fanout_started.elapsed();
                 let connections;
                 {
@@ -829,7 +830,7 @@ async fn run_server_impl(
                     let deadline = deadline.into_std();
                     let skipped = trace.deadline(deadline);
                     trace.record(tick_sample(TickTraceInput {
-                        messages: &messages,
+                        messages: &broadcasts,
                         fallback_tick: session.state.tick,
                         started_unix,
                         late: started.saturating_duration_since(deadline),
@@ -849,7 +850,7 @@ async fn run_server_impl(
                     let encode = measured.saturating_sub(elapsed);
                     metrics.broadcast_encode_ns.record(encode.as_nanos().min(u64::MAX as u128) as u64);
                     metrics.fanout_ns.record(fanout_elapsed.as_nanos().min(u64::MAX as u128) as u64);
-                    if let Some(tick) = snapshot_tick(&messages) {
+                    if let Some(tick) = snapshot_tick(&broadcasts) {
                         metrics.record_tick_start(tick, started);
                     }
                     metrics.record_delivery(delivery);
@@ -978,7 +979,7 @@ fn spawn_venue_desk(
 
 /// What the tick loop measured, before it becomes one trace record.
 struct TickTraceInput<'a> {
-    messages: &'a [crate::protocol::ServerMessage],
+    messages: &'a [std::sync::Arc<crate::net::Broadcast>],
     fallback_tick: u64,
     started_unix: std::time::SystemTime,
     late: Duration,
@@ -993,8 +994,8 @@ struct TickTraceInput<'a> {
 }
 
 /// The tick number clients see on this tick's Snapshot, if it built one.
-fn snapshot_tick(messages: &[crate::protocol::ServerMessage]) -> Option<u64> {
-    messages.iter().find_map(|message| match message {
+fn snapshot_tick(messages: &[std::sync::Arc<crate::net::Broadcast>]) -> Option<u64> {
+    messages.iter().find_map(|message| match message.message() {
         crate::protocol::ServerMessage::Snapshot(snapshot) => Some(snapshot.tick),
         _ => None,
     })

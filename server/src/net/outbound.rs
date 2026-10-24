@@ -1,5 +1,9 @@
 //! Bounded ordered delivery with one replaceable pending world. Resolved
 //! combat and discrete state changes remain in their original FIFO positions.
+//!
+//! A broadcast is encoded once on the tick and every recipient's queue holds
+//! the same immutable payload. A targeted message stays a typed value that
+//! its own writer encodes, so private state never enters a shared payload.
 
 use crate::bench::{Histogram, Summary};
 use crate::protocol::{PlayerState, ServerMessage, Snapshot};
@@ -9,10 +13,85 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc::error::TryRecvError;
 use tokio::sync::Notify;
 
+/// One message every initialized session receives unchanged, with the exact
+/// JSON text each of their writers sends. Immutable once built.
+#[derive(Debug)]
+pub struct Broadcast {
+    message: ServerMessage,
+    text: String,
+}
+
+impl Broadcast {
+    pub fn encode(message: ServerMessage) -> serde_json::Result<Arc<Self>> {
+        let text = serde_json::to_string(&message)?;
+        Ok(Arc::new(Self { message, text }))
+    }
+
+    /// Encode a tick's broadcasts in order. One failure fails the tick.
+    pub fn encode_all(
+        messages: impl IntoIterator<Item = ServerMessage>,
+    ) -> serde_json::Result<Vec<Arc<Self>>> {
+        messages.into_iter().map(Self::encode).collect()
+    }
+
+    /// Copies of borrowed test messages, encoded as a tick would.
+    #[cfg(test)]
+    pub(crate) fn copies(messages: &[ServerMessage]) -> Vec<Arc<Self>> {
+        Self::encode_all(messages.iter().cloned()).expect("test broadcasts encode")
+    }
+
+    pub fn message(&self) -> &ServerMessage {
+        &self.message
+    }
+
+    /// The bytes on the wire for every recipient.
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+}
+
+/// What a session queue holds: a shared broadcast or one targeted message.
+/// A message is several kilobytes inline, so a targeted one is boxed and a
+/// queue slot stays pointer sized.
+#[derive(Debug)]
+pub enum Outbound {
+    Shared(Arc<Broadcast>),
+    Targeted(Box<ServerMessage>),
+}
+
+impl Outbound {
+    pub fn message(&self) -> &ServerMessage {
+        match self {
+            Self::Shared(broadcast) => broadcast.message(),
+            Self::Targeted(message) => message,
+        }
+    }
+
+    /// The typed message, copied out of a shared broadcast.
+    pub fn into_message(self) -> ServerMessage {
+        match self {
+            Self::Shared(broadcast) => broadcast.message().clone(),
+            Self::Targeted(message) => *message,
+        }
+    }
+}
+
+impl From<ServerMessage> for Outbound {
+    fn from(message: ServerMessage) -> Self {
+        Self::Targeted(Box::new(message))
+    }
+}
+
+impl From<Arc<Broadcast>> for Outbound {
+    fn from(broadcast: Arc<Broadcast>) -> Self {
+        Self::Shared(broadcast)
+    }
+}
+
 /// One message as the socket writer takes it, with the moment it was queued.
 #[derive(Debug)]
 pub struct Delivery {
-    pub message: ServerMessage,
+    pub frame: Outbound,
     pub queued_at: Instant,
 }
 
@@ -81,13 +160,16 @@ impl Drop for WsTx {
 }
 
 impl WsTx {
-    pub fn try_send(&self, message: ServerMessage) -> Result<Queued, QueueError> {
+    pub fn try_send(&self, frame: impl Into<Outbound>) -> Result<Queued, QueueError> {
+        let frame = frame.into();
         let mut state = self.0.state.lock().unwrap_or_else(|e| e.into_inner());
         if state.closed {
             return Err(QueueError::Closed);
         }
-        let replace = match (&message, state.pending_world) {
-            (ServerMessage::Snapshot(new), Some(index)) => match &state.queue[index].message {
+        let message = frame.message();
+        let replace = match (message, state.pending_world) {
+            (ServerMessage::Snapshot(new), Some(index)) => match state.queue[index].frame.message()
+            {
                 ServerMessage::Snapshot(old) => can_replace(old, new),
                 _ => unreachable!("pending world must index a snapshot"),
             },
@@ -114,7 +196,7 @@ impl WsTx {
             state.pending_world = None;
         }
         state.queue.push_back(Delivery {
-            message,
+            frame,
             queued_at: Instant::now(),
         });
         drop(state);
@@ -151,7 +233,8 @@ impl WsRx {
 
     /// The queued message alone, for code that inspects rather than sends.
     pub fn try_recv(&mut self) -> Result<ServerMessage, TryRecvError> {
-        self.try_take().map(|delivery| delivery.message)
+        self.try_take()
+            .map(|delivery| delivery.frame.into_message())
     }
 
     pub async fn recv(&mut self) -> Option<Delivery> {
@@ -221,6 +304,12 @@ impl WriterProbe {
         samples.encode_ns.record(nanos(elapsed));
         samples.encodes += 1;
         samples.encoded_bytes += bytes as u64;
+    }
+
+    pub(crate) fn shared(&self, bytes: usize) {
+        let mut samples = self.samples();
+        samples.shared_frames += 1;
+        samples.shared_bytes += bytes as u64;
     }
 
     pub(crate) fn sent(&self, elapsed: Duration) {

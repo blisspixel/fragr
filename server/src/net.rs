@@ -24,6 +24,13 @@ pub(crate) fn disable_nagle(stream: &TcpStream) {
 /// Never log a ticket, resume token or secret under it.
 pub const AUDIT_TARGET: &str = "fragr_server::audit";
 
+/// What a session writer counts into: its traffic and, only when a harness
+/// measures, the shared writer probe.
+struct WriterMeters {
+    traffic: Arc<crate::metrics::ClientTraffic>,
+    probe: Option<Arc<WriterProbe>>,
+}
+
 /// Owns the socket's write half. Sends queued messages and a ping on a fixed
 /// cadence. Returns the sink so a kick can still send its reason and close.
 async fn run_outbound_writer<S>(
@@ -33,12 +40,12 @@ async fn run_outbound_writer<S>(
     send_timeout: Duration,
     ping_every: Duration,
     mut stop: tokio::sync::oneshot::Receiver<()>,
-    traffic: Arc<crate::metrics::ClientTraffic>,
-    probe: Option<Arc<WriterProbe>>,
+    meters: WriterMeters,
 ) -> S
 where
     S: futures_util::Sink<Message> + Unpin,
 {
+    let WriterMeters { traffic, probe } = meters;
     let mut ping = tokio::time::interval_at(tokio::time::Instant::now() + ping_every, ping_every);
     ping.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
     loop {
@@ -49,13 +56,27 @@ where
                 if let Some(probe) = &probe {
                     probe.taken(delivery.queued_at, taken);
                 }
-                let Ok(json) = serde_json::to_string(&delivery.message) else {
-                    tracing::warn!("Failed to serialize outbound server message; dropping client send");
-                    break;
+                let json = match delivery.frame {
+                    // tungstenite 0.24 owns each frame's String, so a shared
+                    // payload is copied, never serialized again.
+                    Outbound::Shared(broadcast) => {
+                        let json = broadcast.text().to_owned();
+                        if let Some(probe) = &probe {
+                            probe.shared(json.len());
+                        }
+                        json
+                    }
+                    Outbound::Targeted(message) => {
+                        let Ok(json) = serde_json::to_string(&message) else {
+                            tracing::warn!("Failed to serialize outbound server message; dropping client send");
+                            break;
+                        };
+                        if let Some(probe) = &probe {
+                            probe.encoded(taken.elapsed(), json.len());
+                        }
+                        json
+                    }
                 };
-                if let Some(probe) = &probe {
-                    probe.encoded(taken.elapsed(), json.len());
-                }
                 Message::Text(json)
             }
             _ = ping.tick() => Message::Ping(Vec::new()),
@@ -523,8 +544,8 @@ mod tests;
 
 mod outbound;
 pub use outbound::{
-    channel as outbound_channel, Delivery, QueueError, Queued, WriterProbe, WriterReport, WsRx,
-    WsTx,
+    channel as outbound_channel, Broadcast, Delivery, Outbound, QueueError, Queued, WriterProbe,
+    WriterReport, WsRx, WsTx,
 };
 
 pub struct ClientSession {
@@ -2154,8 +2175,10 @@ async fn handle_connection(
         OUTBOUND_SEND_TIMEOUT,
         policy.limits.ping_every,
         writer_stop,
-        Arc::clone(&traffic),
-        policy.writer_probe.clone(),
+        WriterMeters {
+            traffic: Arc::clone(&traffic),
+            probe: policy.writer_probe.clone(),
+        },
     ));
 
     let end = read_session(

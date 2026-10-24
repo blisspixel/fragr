@@ -656,3 +656,97 @@ async fn a_live_server_reports_ticks_traffic_and_roles_on_status() {
         .unwrap()
         .unwrap();
 }
+
+#[tokio::test]
+async fn a_measured_live_server_sends_every_watcher_one_shared_payload() {
+    use futures_util::{SinkExt, StreamExt};
+    use tokio_tungstenite::tungstenite::Message;
+    let metrics = Arc::new(std::sync::Mutex::new(crate::run::RunMetrics::default()));
+    let (ready_tx, ready_rx) = tokio::sync::oneshot::channel();
+    let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
+    let server = tokio::spawn(crate::run::run_server_with_metrics(
+        crate::run::ServerOptions {
+            bind: "127.0.0.1:0".into(),
+            bots: 2,
+            status_every_s: 0,
+            ..crate::run::ServerOptions::default()
+        },
+        async move {
+            let _ = stop_rx.await;
+        },
+        Some(ready_tx),
+        Arc::clone(&metrics),
+    ));
+    let address = tokio::time::timeout(Duration::from_secs(30), ready_rx)
+        .await
+        .unwrap()
+        .unwrap();
+    let hello = format!(
+        r#"{{"type":"hello","role":"spectator","name":"Probe","gameplay_version":{},"geometry_version":{}}}"#,
+        crate::protocol::GAMEPLAY_VERSION,
+        crate::protocol::GEOMETRY_VERSION
+    );
+    let mut sockets = Vec::new();
+    for _ in 0..2 {
+        let (mut socket, _) = tokio_tungstenite::connect_async(format!("ws://{address}"))
+            .await
+            .unwrap();
+        socket.send(Message::Text(hello.clone())).await.unwrap();
+        sockets.push(socket);
+    }
+    // Snapshot text by tick, per watcher.
+    let mut seen = vec![std::collections::BTreeMap::<u64, String>::new(); 2];
+    for (socket, seen) in sockets.iter_mut().zip(&mut seen) {
+        while seen.len() < 30 {
+            let frame = tokio::time::timeout(Duration::from_secs(5), socket.next())
+                .await
+                .unwrap()
+                .unwrap()
+                .unwrap();
+            let Message::Text(text) = frame else { continue };
+            if let crate::protocol::ServerMessage::Snapshot(snapshot) =
+                serde_json::from_str(&text).unwrap()
+            {
+                seen.insert(snapshot.tick, text);
+            }
+        }
+    }
+    let common: Vec<u64> = seen[0]
+        .keys()
+        .filter(|tick| seen[1].contains_key(tick))
+        .copied()
+        .collect();
+    assert!(common.len() >= 10, "{common:?}");
+    for tick in &common {
+        assert_eq!(seen[0][tick], seen[1][tick], "tick {tick} differs");
+    }
+    {
+        let metrics = metrics.lock().unwrap();
+        let report = metrics.report();
+        assert!(report.writer.shared_frames >= 60, "{:?}", report.writer);
+        // Each writer encodes its own geometry; none re-encodes a broadcast.
+        assert!(
+            report.writer.encodes < report.writer.shared_frames / 4,
+            "{:?}",
+            report.writer
+        );
+        assert!(report.broadcast_encode_ms.count >= 30);
+        let starts: std::collections::BTreeMap<u64, Instant> = metrics.tick_starts().collect();
+        assert!(common.iter().all(|tick| starts.contains_key(tick)));
+    }
+    metrics.lock().unwrap().reset();
+    {
+        let metrics = metrics.lock().unwrap();
+        let report = metrics.report();
+        assert!(report.writer.shared_frames <= 8, "{:?}", report.writer);
+        assert!(report.broadcast_encode_ms.count <= 2);
+        assert!(metrics.tick_starts().count() <= 2);
+    }
+    drop(sockets);
+    let _ = stop_tx.send(());
+    tokio::time::timeout(Duration::from_secs(5), server)
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+}

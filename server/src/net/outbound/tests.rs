@@ -413,7 +413,9 @@ async fn sender_clones_close_only_after_all_are_gone_and_receiver_drop_refuses()
     clone.try_send(event()).unwrap();
     drop(clone);
     assert!(matches!(
-        rx.recv().await.map(|delivery| delivery.message),
+        rx.recv()
+            .await
+            .map(|delivery| delivery.frame.into_message()),
         Some(ServerMessage::Event(_))
     ));
     assert!(rx.recv().await.is_none());
@@ -429,7 +431,9 @@ async fn waiting_receiver_wakes_on_send_and_final_sender_drop() {
     let (tx, mut rx) = channel(1);
     let receive = tokio::spawn(async move {
         assert!(matches!(
-            rx.recv().await.map(|delivery| delivery.message),
+            rx.recv()
+                .await
+                .map(|delivery| delivery.frame.into_message()),
             Some(ServerMessage::Event(_))
         ));
         assert!(rx.recv().await.is_none());
@@ -441,4 +445,58 @@ async fn waiting_receiver_wakes_on_send_and_final_sender_drop() {
         .await
         .unwrap()
         .unwrap();
+}
+
+fn shared(delivery: Delivery) -> Arc<Broadcast> {
+    match delivery.frame {
+        Outbound::Shared(broadcast) => broadcast,
+        Outbound::Targeted(message) => panic!("expected a shared broadcast, got {message:?}"),
+    }
+}
+
+#[test]
+fn a_broadcast_payload_is_the_exact_wire_encoding_of_its_message() {
+    let message = ServerMessage::Snapshot(world(9));
+    let wire = serde_json::to_string(&message).unwrap();
+    let broadcast = Broadcast::encode(message.clone()).unwrap();
+    assert_eq!(broadcast.text(), wire);
+    assert_eq!(tick(broadcast.message().clone()), 9);
+    let copied = Outbound::from(broadcast).into_message();
+    assert_eq!(serde_json::to_string(&copied).unwrap(), wire);
+    let all = Broadcast::encode_all([event(), message.clone()]).unwrap();
+    assert_eq!(all.len(), 2);
+    assert_eq!(all[1].text(), serde_json::to_string(&message).unwrap());
+}
+
+#[test]
+fn shared_worlds_coalesce_per_queue_without_moving_targeted_facts() {
+    let (fighter_tx, mut fighter_rx) = channel(4);
+    let (watcher_tx, mut watcher_rx) = channel(4);
+    let first = Broadcast::encode(ServerMessage::Snapshot(world(1))).unwrap();
+    let second = Broadcast::encode(ServerMessage::Snapshot(world(2))).unwrap();
+    for tx in [&fighter_tx, &watcher_tx] {
+        assert_eq!(tx.try_send(Arc::clone(&first)), Ok(Queued::Added));
+    }
+    // A targeted fact sits between the worlds in one queue only.
+    fighter_tx.try_send(event()).unwrap();
+    for tx in [&fighter_tx, &watcher_tx] {
+        assert_eq!(tx.try_send(Arc::clone(&second)), Ok(Queued::ReplacedWorld));
+    }
+    // Both queues dropped the superseded payload; neither copied the newer one.
+    assert_eq!(Arc::strong_count(&first), 1);
+    assert_eq!(Arc::strong_count(&second), 3);
+    match fighter_rx.try_take().unwrap().frame {
+        Outbound::Targeted(message) => assert!(matches!(*message, ServerMessage::Event(_))),
+        Outbound::Shared(_) => panic!("a targeted fact became shared"),
+    }
+    assert!(Arc::ptr_eq(
+        &shared(fighter_rx.try_take().unwrap()),
+        &second
+    ));
+    assert!(Arc::ptr_eq(
+        &shared(watcher_rx.try_take().unwrap()),
+        &second
+    ));
+    assert!(watcher_rx.try_take().is_err());
+    assert_eq!(Arc::strong_count(&second), 1);
 }
