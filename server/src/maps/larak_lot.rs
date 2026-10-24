@@ -1,12 +1,14 @@
-//! Larak Lot: a half-collapsed multistorey car park on the Perimeter, where
-//! the league settles debts. Map id 1, the FFA and Duel home for 2 to 8.
+//! Larak Lot: a half-collapsed multistorey car park on the Perimeter, an old
+//! black-budget range that nobody will sign off with the power still on,
+//! where the league settles debts. Map id 1, the FFA and Duel home for 2 to 8.
 //!
 //! Five walking levels round one atrium. The centre bays fell in and became
 //! the Pit (0.0), the stage. The Lane, Stands and Impound sit on level 1
 //! (1.5), the Toll plaza, Bridge and Crane landing on level 2 (3.0), the
 //! Gallery balcony on level 3 (4.5) and the Roof (6.0) is open to the sky.
-//! The Rail lies one level lower than the sign admits, on the Low Ramp landing
-//! (0.5) inside a tunnel; the Custody Plate sits in the Roof's valet circle in
+//! The directory admits four levels and calls level 1 the lowest; the Pit is
+//! the fifth, the one nobody numbered, and the Low Ramp tunnel runs down to it
+//! past the Rail on its landing (0.5); the Custody Plate sits in the Roof's valet circle in
 //! the opposite corner. Falling to the Rail takes about 14 s, climbing back to
 //! the Plate about 17 s, so holding both is a plan rather than a habit.
 //!
@@ -250,21 +252,20 @@ fn build_lot() -> Lot {
     use MapSurface::{Concrete, Enamel, LiftPanel, RecordsTile, ServiceSteel};
     let mut b = Builder::default();
 
-    // Exterior shell: the Custody Annex facade to the north-west, the Roof
+    // Exterior shell: the office block's wall to the north-west, the Roof
     // parapets, the viaduct embankment to the south and the street walls.
-    let annex = b.block((-38.0, 4.0), (-38.0, -28.0), 9.0, Concrete);
+    b.block((-38.0, 4.0), (-38.0, -28.0), 9.0, Concrete);
     b.block((4.0, 38.0), (-38.0, -28.0), ROOF_WALL, Concrete);
     let viaduct = b.block((-38.0, 38.0), (28.0, 38.0), 9.0, Concrete);
     let west_wall = b.block((-38.0, -36.0), (-28.0, 28.0), 9.0, Concrete);
     b.block((36.0, 38.0), (-28.0, -10.0), ROOF_WALL, Concrete);
     let east_wall = b.block((36.0, 38.0), (-10.0, 28.0), 9.0, Concrete);
 
-    // TOLL (NW, level 2): three Union toll booths under a canopy that keeps
+    // TOLL (NW, level 2): three old toll booths under a canopy that keeps
     // the Roof from shooting down the booth lanes.
     let toll = b.block((-36.0, -10.0), (-28.0, -4.0), LEVEL_2, Concrete);
-    let mut booths = Vec::new();
     for x in [-30.0, -24.0, -18.0] {
-        booths.push(b.block((x - 1.0, x + 1.0), (-17.0, -13.0), 5.8, Enamel));
+        b.block((x - 1.0, x + 1.0), (-17.0, -13.0), 5.8, Enamel);
     }
     let canopy = b.slab((-34.0, -12.0), (-20.0, -10.0), (6.6, 7.0), ServiceSteel);
     b.block((-15.0, -11.0), (-26.0, -24.0), 4.4, Enamel);
@@ -280,7 +281,7 @@ fn build_lot() -> Lot {
                                                               // The ramp's north wall stands proud of its lid, a sight screen between
                                                               // the Stands and the Toll plaza that still leaves the lid out of reach.
     b.block((-26.0, -14.0), (1.5, 2.0), RAMP_SCREEN, Concrete);
-    let ramp_south_west = b.block((-26.0, -21.0), (10.0, 10.5), 3.4, Concrete);
+    b.block((-26.0, -21.0), (10.0, 10.5), 3.4, Concrete);
     b.block((-17.0, -14.0), (10.0, 10.5), 3.4, Concrete);
     let lid = b.slab((-24.0, -14.0), (2.0, 10.0), (3.0, 3.4), Concrete);
     b.block((-26.0, -24.0), (2.0, 10.0), 1.0, ServiceSteel);
@@ -298,8 +299,8 @@ fn build_lot() -> Lot {
     // The bookmaker's kiosk, and its tote board running back to the viaduct
     // wall, so the level-one strip along the south wall is two bays rather
     // than one 70 m lane from the Lane to the Impound.
-    b.block((-2.0, 2.0), (16.0, 19.0), 4.3, Enamel);
-    b.block((-0.6, 0.6), (19.0, 28.0), 4.3, Enamel);
+    b.block((-2.0, 2.0), (16.0, 19.0), 4.3, ServiceSteel);
+    b.block((-0.6, 0.6), (19.0, 28.0), 4.3, ServiceSteel);
     // The bettors' front row: car seats bolted to a kerb, chest high, facing
     // the Pit. Half cover on the one deck that was otherwise a flat field.
     for x in [-6.5, 6.5] {
@@ -409,12 +410,11 @@ fn build_lot() -> Lot {
     );
     b.panel(lid, F::Down, [-1.0, 0.0], [3.0, 0.5], K::StripLight);
     b.panel(canopy, F::Down, [0.0, 0.0], [4.0, 0.6], K::StripLight);
-    for booth in &booths {
-        b.panel(*booth, F::South, [0.0, 0.8], [1.2, 1.2], K::UnionSeal);
-    }
+    // The booths' seals are the presenter's: cut through by the league and
+    // unlit, so no red panel glows behind the booth lanes.
+    // One Office seal stays, on the viaduct over the Impound; the north wall
+    // above the Spiral belongs to the revival.
     b.panel(toll, F::South, [10.0, 0.0], [2.0, 1.6], K::ComplaintNotice);
-    b.panel(annex, F::South, [-15.0, 1.3], [6.0, 2.0], K::PropertySign);
-    b.panel(annex, F::South, [10.0, 2.2], [3.0, 2.2], K::UnionSeal);
     b.panel(
         west_wall,
         F::East,
@@ -434,13 +434,6 @@ fn build_lot() -> Lot {
         [3.0, 2.0],
         K::ComplaintNotice,
     );
-    b.panel(
-        viaduct,
-        F::North,
-        [-30.0, -1.0],
-        [4.0, 2.0],
-        K::PropertySign,
-    );
     b.panel(viaduct, F::North, [26.0, -1.5], [2.2, 2.2], K::UnionSeal);
     b.panel(
         stair_b_wall,
@@ -457,13 +450,6 @@ fn build_lot() -> Lot {
         K::ComplaintNotice,
     );
     b.panel(gallery, F::South, [5.0, 0.3], [1.4, 1.4], K::Vent);
-    b.panel(
-        ramp_south_west,
-        F::North,
-        [0.0, -0.4],
-        [2.6, 1.4],
-        K::ComplaintNotice,
-    );
 
     let plate = crate::sim::ArenaPickup {
         amount: PLATE_AMOUNT,

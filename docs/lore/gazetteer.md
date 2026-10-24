@@ -62,6 +62,16 @@ a repossessed Union cruiser hung over the middle. It is the Episode 0 venue and
 the FFA and Duel home. Never label different geometry as Larak Lot, because
 learned routes must agree with the name a player sees.
 
+As built, the lot is an old black-budget range that nobody will sign off, with
+the power still on and the league holding its nights there. The directory at
+every entry admits four levels, 1 to 3 and the Roof, and calls level 1 the
+lowest. The fifth is the one the sign never admitted: the centre bays fell into
+it and became the Pit, and the Low Ramp tunnel is the old way down, past the
+Rail on a landing stencilled "halfway to a level that isn't there". The league
+has painted "-1" at the tunnel mouth and on the Pit walls. Aunt Linda's tent
+revival is on level three, over the Spiral landing. Larak's signature is on the
+pay machines, the pulpit and a coffee machine approved in 2009.
+
 The other arena myths and campaign locations await floor plans. The arena size
 ladder is in [map-scale](../plans/map-scale.md); campaign scale follows its story
 and encounter needs rather than a square arena's dimensions.

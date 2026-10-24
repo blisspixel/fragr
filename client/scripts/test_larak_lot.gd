@@ -16,6 +16,11 @@ func _check(condition: bool, message: String) -> void:
 		_failures += 1
 		push_error("test_larak_lot: " + message)
 
+## Warm amber to orange: hue between about 22 and 60 degrees.
+func _warm_not_red(color: Color) -> bool:
+	var hue: float = color.h * 360.0
+	return hue > 22.0 and hue < 60.0 and color.s > 0.3
+
 func _solid(min_x: float, max_x: float, min_z: float, max_z: float, top: float, bottom: float = 0.0) -> Dictionary:
 	var solid: Dictionary = {"min_x": min_x, "max_x": max_x, "min_z": min_z, "max_z": max_z, "top": top}
 	if bottom > 0.0:
@@ -71,10 +76,28 @@ func _run() -> void:
 		_check(neon != null and neon.text == "L", "the LARAK neon spells from the catalog")
 		lot._process(4.3)
 		_check(not (lot.get_node("Neon4") as Label3D).visible, "the K drops out")
+		# Red belongs to Union optics and attack tells: the venue's own
+		# emitters stay warm and out of the reserved red band.
+		var bar: OmniLight3D = lot.find_child("LightBar", true, false) as OmniLight3D
+		_check(bar != null and _warm_not_red(bar.light_color), "the light bar burns league amber, not red or blue")
+		var neon_light: OmniLight3D = lot.get_node_or_null("LarakNeon") as OmniLight3D
+		_check(neon_light != null and _warm_not_red(neon_light.light_color), "the LARAK neon sits outside the reserved red band")
+		_check(lot.is_in_group(LarakLot.GROUP), "the presenter joins its group for venue events")
+		var calm: float = bar.light_energy if bar != null else 0.0
+		lot.plate_claimed()
+		lot._process(0.6)
+		_check(bar != null and bar.light_energy > calm + 1.0, "a Plate claim flares the light bar once")
+		lot._process(2.0)
+		_check(bar != null and bar.light_energy < calm + 1.0, "the flare settles")
+		var arm: Node3D = lot.get_node_or_null("TollArm") as Node3D
+		lot._process(4.6)
+		var lowered: float = arm.rotation.z if arm != null else -1.0
+		lot._process(6.5)
+		_check(arm != null and arm.rotation.z > lowered + 0.5, "the last toll arm still lifts on its timer")
 	var preset: ArenaSky.Preset = ArenaSky.preset_for("Larak Lot")
 	_check(not preset.key_in_sky and preset.practical_color == LarakLot.SODIUM, "venue sky and sodium practicals")
 	arena.queue_free()
 	await process_frame
 	if _failures == 0:
-		print("test_larak_lot: PASS presenter replaces only its boxes, adds no collision, keeps the light budget and catalog copy")
+		print("test_larak_lot: PASS presenter replaces only its boxes, adds no collision, keeps the light budget, warm emitters and catalog copy")
 	quit(0 if _failures == 0 else 1)

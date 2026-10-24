@@ -355,12 +355,14 @@ static func low_water() -> Preset:
 	preset.saturation = 0.92
 	return preset
 
-## Larak Lot: a condemned car park at night. Deep indigo over a sodium haze,
-## a low cool city glow raking in from the south-west across the Roof and the
-## Pit, and warm sodium practicals in the covered bays: warm outside the
+## Larak Lot: an old range's car park at night. Deep indigo over a sodium
+## haze, a low cool city glow raking in from the south-west across the Roof and
+## the Pit, and warm sodium practicals in the covered bays: warm outside the
 ## lightwells, cold inside the concrete. The floors stay mid-value so a body
-## never disappears into a corner, and the actor fill keeps black Union and
-## bone coalition armour readable at thirty metres.
+## never disappears into a corner, and the actor fill keeps a NODS bot's dark
+## plate and a free fighter's own colours readable at thirty metres. The
+## Office's one seal here is dead: no red lamp burns in a league venue, where
+## red is a Union body's tell.
 static func larak_lot() -> Preset:
 	var preset: Preset = Preset.new(
 		Color("1b1838"),             # deep indigo-violet
@@ -381,8 +383,7 @@ static func larak_lot() -> Preset:
 	preset.practical_energy = 4.0
 	preset.practical_range = 15.0
 	preset.practical_attenuation = 1.2
-	preset.accent_energy = 1.6
-	preset.accent_range = 4.0
+	preset.accent_energy = 0.0
 	preset.view_fill_energy = 0.55
 	preset.view_fill_range = 32.0
 	preset.contrast = 1.1

@@ -62,8 +62,9 @@ func _run() -> void:
 	_check(ember.visible and is_equal_approx(key.light_energy, scrap.key_energy), "arena lost its ember props or sun")
 	var larak: ArenaSky.Preset = ArenaSky.preset_for("Larak Lot")
 	_check(not larak.interior and not larak.outdoor_embers and not larak.key_in_sky and larak.sky_top != scrap.sky_top \
-		and larak.view_fill_energy > 0.0 and larak.practical_color.r > larak.practical_color.b,
-		"Larak Lot needs its own night sky, sodium practicals and actor fill without a sun disc")
+		and larak.view_fill_energy > 0.0 and larak.practical_color.r > larak.practical_color.b \
+		and larak.accent_energy == 0.0,
+		"Larak Lot needs its own night sky, sodium practicals and actor fill without a sun disc or a red seal lamp")
 	var authored: Vector3 = key.rotation_degrees
 	ArenaSky.apply_scene_lights(layout, "Larak Lot")
 	_check(not ember.visible and key.sky_mode == DirectionalLight3D.SKY_MODE_LIGHT_ONLY \

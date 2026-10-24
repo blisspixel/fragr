@@ -2900,6 +2900,11 @@ func _on_event_received(data):
 				hud.show_spawn_flash()
 			fp_spawn_flashed = true
 	elif event_type == "pickup":
+		# The venue reacts to its power item for everyone watching, whoever
+		# took it (Larak Lot's light bar flares once on the Plate).
+		if str(data.get("pickup_id", "")) == LarakLot.PLATE_ID:
+			for lot: Node in get_tree().get_nodes_in_group(LarakLot.GROUP):
+				(lot as LarakLot).plate_claimed()
 		if not _shows_participant_notice(str(data.get("player_id", ""))):
 			return
 		var who = str(data.get("player", "?"))

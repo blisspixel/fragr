@@ -134,10 +134,11 @@ static func authored(surface: String, venue: String = "") -> Material:
 		bases = [Color("a9a698"), Color("d0cbb8"), Color("394144"), Color("9aa397"), Color("505954")]
 		accents = [Color("6c6e64"), Color("7f8278"), Color("9a302a"), Color("4e5c55"), Color("a9ad99")]
 	elif venue == "larak_lot":
-		# Mid-value cast concrete, black-and-red Union enamel, dark steel
-		# treads with yellow nosing, rust-brown wrecks, stairwell green.
-		bases = [Color("726c62"), Color("3b3434"), Color("4c4f4e"), Color("6d5446"), Color("6f8a76")]
-		accents = [Color("6b665c"), Color("8e2420"), Color("c9a23a"), Color("4f3a2f"), Color("4d6655")]
+		# Mid-value cast concrete, black booth enamel whose only red is its
+		# seals, dark steel treads with yellow nosing, rust-brown wrecks and
+		# the stairwell's green tile.
+		bases = [Color("726c62"), Color("2e2f31"), Color("4c4f4e"), Color("6d5446"), Color("6f8a76")]
+		accents = [Color("6b665c"), Color("45484b"), Color("c9a23a"), Color("4f3a2f"), Color("4d6655")]
 	material.set_shader_parameter("surface_style", index + 1)
 	material.set_shader_parameter("surface_color", bases[index])
 	material.set_shader_parameter("accent_color", accents[index])

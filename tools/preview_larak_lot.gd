@@ -6,8 +6,10 @@ extends SceneTree
 ##   FRAGR_LARAK_MAP_INFO=/abs/map.json cargo test -p fragr-server --lib \
 ##     larak_write_map_info -- --ignored
 ## and the scene is lit exactly as a match lights it (arena scene lights, the
-## venue sky, quality settings, practicals). There are no fighters or pickups;
-## a live match through tools/qa_tour.sh shows those.
+## venue sky, quality settings, practicals). There are no pickups; a live match
+## through tools/qa_tour.sh shows those. The readability stagings stand a NODS
+## rule bot beside a free fighter in the Pit, a booth lane and on the Roof, in
+## colour and grayscale, for the faction readability check.
 ##
 ##   FRAGR_LARAK_MAP_INFO=/abs/map.json FRAGR_QA_DIR=/abs/out \
 ##     "$GODOT_BIN" --path client --audio-driver Dummy --windowed \
@@ -35,7 +37,31 @@ const VIEWS: Array = [
 	["stair_b", Vector3(34.0, 1.5 + EYE, 10.0), Vector3(34.0, 5.0, -6.0)],
 	["crane_fire_stair", Vector3(12.0, 3.0 + EYE, -2.0), Vector3(28.0, 5.5, -9.0)],
 	["spiral_gallery", Vector3(-8.0, 3.5 + EYE, -24.0), Vector3(6.0, 5.0, -14.0)],
+	["revival", Vector3(-3.0, 4.5 + EYE, -20.5), Vector3(-3.0, 6.4, -28.0)],
+	["revival_from_pit", Vector3(2.0, EYE, 4.0), Vector3(-3.0, 7.0, -28.0)],
+	["lane_entry", Vector3(-27.0, 1.5 + EYE, 2.0), Vector3(-36.0, 3.2, 9.0)],
+	["ramp_directory", Vector3(-20.0, 1.5 + EYE, -3.0), Vector3(-20.0, 2.8, 1.5)],
+	["tunnel_halfway", Vector3(-17.0, 0.5 + EYE, 6.0), Vector3(-23.5, 1.8, 10.0)],
+	["stands_back", Vector3(0.0, 1.5 + EYE, 11.0), Vector3(-2.0, 5.0, 28.0)],
+	["impound_office", Vector3(24.0, 1.5 + EYE, 18.0), Vector3(31.0, 2.4, 23.0)],
+	["toll_north_wall", Vector3(-24.0, 3.0 + EYE, -18.5), Vector3(-24.0, 5.0, -28.0)],
+	["gulf_breeze_corner", Vector3(24.0, 3.0 + EYE, -2.0), Vector3(30.0, 4.0, -2.0)],
 ]
+## Readability stagings: name, camera, look target, then a NODS bot and a free
+## fighter side by side near (about 15 m) and far (about 22 to 30 m), each as
+## floor positions. Every staging is shot in colour and in grayscale.
+const READABILITY: Array = [
+	["read_pit", Vector3(0.0, 1.5 + EYE, 16.0), Vector3(0.0, 2.5, -6.0),
+		[Vector3(-1.2, 0.0, 1.0), Vector3(1.2, 0.0, 1.0)], [Vector3(-1.2, 4.5, -15.0), Vector3(1.2, 4.5, -15.0)]],
+	["read_booth_lane", Vector3(-27.0, 3.0 + EYE, -26.0), Vector3(-27.0, 4.0, -10.0),
+		[Vector3(-27.7, 3.0, -11.0), Vector3(-26.3, 3.0, -11.0)], [Vector3(-27.7, 3.0, -5.0), Vector3(-26.3, 3.0, -5.0)]],
+	["read_roof", Vector3(10.0, 6.0 + EYE, -21.0), Vector3(31.0, 7.0, -23.0),
+		[Vector3(24.5, 6.0, -22.5), Vector3(24.5, 6.0, -24.0)], [Vector3(34.5, 6.0, -23.0), Vector3(34.5, 6.0, -24.5)]],
+]
+const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
+## Server body centre above the floor (sim.rs PLAYER_FLOOR_Y).
+const BODY_Y: float = 1.5
+
 ## Server spawn slots: x, floor, z, yaw (mirrors larak_lot.rs SPAWNS).
 const SPAWNS: Array = [
 	[-33.0, 3.0, -27.0, PI * 0.25], [-33.5, 3.0, -15.5, PI * 0.5], [-27.0, 3.0, -15.0, PI * 0.5],
@@ -114,8 +140,47 @@ func _run() -> void:
 		camera.rotation = Vector3(-0.05, ServerYaw.camera_rotation_y(float(slot[3])), 0.0)
 		if not await _shoot(out, "spawn_s%02d" % (index + 1)):
 			return
-	print("preview_larak_lot: wrote %d stills to %s" % [VIEWS.size() + SPAWNS.size(), out])
+	var shots: int = VIEWS.size() + SPAWNS.size()
+	for staging: Array in READABILITY:
+		var pawns: Array[Node3D] = []
+		var index: int = 0
+		for pair: Array in [staging[3], staging[4]]:
+			pawns.append(_fighter(arena, "NODS-0%d" % (index + 1), "", pair[0], staging[1]))
+			pawns.append(_fighter(arena, "STTC KD %d" % (index + 1), "human", pair[1], staging[1]))
+			index += 1
+		for i: int in range(20):
+			await process_frame
+		camera.position = staging[1]
+		camera.look_at(staging[2], Vector3.UP)
+		if not await _shoot(out, str(staging[0])):
+			return
+		world.environment.adjustment_enabled = true
+		world.environment.adjustment_saturation = 0.0
+		if not await _shoot(out, str(staging[0]) + "_gray"):
+			return
+		world.environment.adjustment_enabled = false
+		world.environment.adjustment_saturation = 1.0
+		shots += 2
+		for pawn: Node3D in pawns:
+			pawn.queue_free()
+		await process_frame
+	print("preview_larak_lot: wrote %d stills to %s" % [shots, out])
 	quit(0)
+
+## A fighter as a match presents it to a spectator, standing on `feet` and
+## facing the camera: a NODS rule bot on the legacy strip, or a free body.
+func _fighter(arena: Node3D, callsign: String, body: String, feet: Vector3, toward: Vector3) -> Node3D:
+	var pawn: Node3D = PLAYER_SCENE.instantiate() as Node3D
+	arena.add_child(pawn)
+	pawn.call("set_player_data", callsign, callsign)
+	var yaw: float = atan2(toward.z - feet.z, toward.x - feet.x)
+	var state: Dictionary = {"x": feet.x, "y": feet.y + BODY_Y, "z": feet.z, "yaw": yaw, "pitch": 0.0,
+		"hp": 100, "armor": 0, "weapon": "flechette", "score": 0}
+	if not body.is_empty():
+		state["body"] = body
+	pawn.call("update_state", state, 0)
+	pawn.position = Vector3(feet.x, feet.y + BODY_Y, feet.z)
+	return pawn
 
 func _shoot(out: String, name: String) -> bool:
 	for i: int in range(3):

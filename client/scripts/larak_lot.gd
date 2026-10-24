@@ -2,7 +2,8 @@ class_name LarakLot
 extends Node3D
 
 ## Larak Lot's presentation: the landmarks, light plan and set dressing of the
-## condemned car park on map 1. The server's solids stay the only collision;
+## car park on map 1, an old black-budget range nobody will sign off, with the
+## power still on, where the league settles debts. The server's solids stay the only collision;
 ## everything here is paint, fixtures and scenery. A few plain boxes (the
 ## wrecks, the hung cruiser) are redrawn as vehicles inside their own volume,
 ## so a shot still stops exactly where it looks like it should.
@@ -20,10 +21,15 @@ const LEVEL_1: float = 1.5
 const LEVEL_2: float = 3.0
 const LEVEL_3: float = 4.5
 const ROOF: float = 6.0
+const RAIL_LANDING: float = 0.5
 
 ## Light plan (the other four are the registered strip lights).
 const SODIUM: Color = Color("ffb35c")
-const NEON: Color = Color("ff6a2a")
+## Sodium orange, hue about 28 degrees: outside the red band reserved for
+## Union optics and attack tells.
+const NEON: Color = Color("ff8c2e")
+## The Repossession's light bar, re-lensed by the league in warm amber.
+const LEAGUE_AMBER: Color = Color("ffae42")
 const FLUORESCENT: Color = Color("e1ebe5")
 const WORK_WHITE: Color = Color("f2efe4")
 
@@ -31,13 +37,25 @@ const WORK_WHITE: Color = Color("f2efe4")
 const LINE_PAINT: Color = Color("d8cf9f")
 const HAZARD_YELLOW: Color = Color("c9a23a")
 const HAZARD_BLACK: Color = Color("1d1b19")
-const SPRAY_RED: Color = Color("c23a2c")
-const SPRAY_BONE: Color = Color("e8e2d6")
+## League paint stays warm and hand-mixed, and out of the Union's red band:
+## ember, mustard, rust, stained canvas and cream, with a few tribe colours.
+const SPRAY: Color = Color("e0782e")
 const CHALK: Color = Color("e9e6da")
 const UNION_BLACK: Color = Color("1e2124")
+## Issued plates, one step lighter than the black body.
+const UNION_STEEL: Color = Color("3a3f43")
 const UNION_RED: Color = Color("8e2420")
-const LEAGUE_EMBER: Color = Color("c4552c")
+const LEAGUE_EMBER: Color = Color("cf6f2a")
+const LEAGUE_MUSTARD: Color = Color("d6a23e")
+const LEAGUE_RUST: Color = Color("7c4529")
+const LEAGUE_CANVAS: Color = Color("b49a68")
+const LEAGUE_CREAM: Color = Color("ead7a6")
+const TAG_MAGENTA: Color = Color("c0508e")
+## Small lettering only.
 const LEAGUE_BONE: Color = Color("ddd3bd")
+## Group the presenter joins, so a match can tell it about the Plate.
+const GROUP: StringName = &"larak_lot"
+const PLATE_ID: String = "larak_custody_plate"
 
 var _solids: Array = []
 var _views: Array[MeshInstance3D] = []
@@ -47,14 +65,18 @@ var _batch_materials: Dictionary[String, Material] = {}
 var _clock: float = 0.0
 var _cruiser: Node3D
 var _light_bar: OmniLight3D
-var _bar_red: MeshInstance3D
-var _bar_blue: MeshInstance3D
+var _bar_lens: MeshInstance3D
+## Seconds left on the light bar's one warm flare after a Plate claim.
+var _plate_flare: float = 0.0
+var _toll_arm: Node3D
+var _office_windows: Array[MeshInstance3D] = []
 var _neon_light: OmniLight3D
 var _neon_letters: Array[Label3D] = []
 var _train: Node3D
 
 func build(info: Dictionary, views: Array[MeshInstance3D]) -> void:
 	name = "LarakLot"
+	add_to_group(GROUP)
 	_solids = info.get("solids", [])
 	_views = views
 	_structure()
@@ -76,6 +98,12 @@ func build(info: Dictionary, views: Array[MeshInstance3D]) -> void:
 	_floor_stencils()
 	_wet_and_worn()
 	_height_bars()
+	_range_still_runs()
+	_office_block()
+	_office_paper()
+	_free_marks()
+	_revival()
+	_bell_and_podium()
 	_transit()
 	_flush_batches()
 	call_deferred("_retint_practicals")
@@ -88,10 +116,29 @@ func _process(delta: float) -> void:
 		# The hook turns the cruiser a little on its cable.
 		_cruiser.rotation.y = sin(_clock * TAU / 47.0) * 0.16
 	if is_instance_valid(_light_bar):
-		var red: bool = fmod(_clock, 0.9) < 0.45
-		_light_bar.light_color = Color("ff2a22") if red else Color("2a5cff")
-		_bar_red.visible = red
-		_bar_blue.visible = not red
+		# The league re-lensed the bar in amber and wired it to a slow
+		# breath. It flares once, warm, when somebody takes the Plate: never
+		# red, which belongs to Union optics and attack tells.
+		_plate_flare = maxf(_plate_flare - maxf(delta, 0.0), 0.0)
+		var breath: float = 0.5 + 0.5 * sin(_clock * TAU / 3.2)
+		var flare: float = sin(_plate_flare / 1.2 * PI) if _plate_flare > 0.0 else 0.0
+		_light_bar.light_energy = 0.9 + breath * 0.5 + flare * 3.2
+		_bar_lens.transparency = 0.0
+		(_bar_lens.material_override as StandardMaterial3D).emission_energy_multiplier = 1.2 + breath * 0.8 + flare * 4.0
+	if is_instance_valid(_toll_arm):
+		# The last working barrier arm still lifts and drops on a timer for a
+		# car that never comes: the range runs on a schedule nobody stopped.
+		var cycle: float = fmod(_clock, 11.0)
+		var lift: float = clampf((cycle - 6.0) / 0.8, 0.0, 1.0) - clampf((cycle - 9.4) / 0.8, 0.0, 1.0)
+		_toll_arm.rotation.z = lift * 1.35
+	if not _office_windows.is_empty():
+		# The office block over the north wall lights a floor at a time, as if
+		# following somebody up the stairs, then goes dark again.
+		var climb: float = fmod(_clock, 26.0)
+		for index: int in range(_office_windows.size()):
+			var floor_index: int = int(_office_windows[index].get_meta("floor", 0))
+			var on: float = 2.0 + float(floor_index) * 1.6
+			_office_windows[index].visible = climb > on and climb < on + 3.4
 	if not _neon_letters.is_empty():
 		# The K has a bad transformer: it drops out for a beat now and then,
 		# so the sign often reads LARA.
@@ -247,9 +294,9 @@ func _sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color, 
 ## ---------------------------------------------------------------------------
 
 ## Level colours, the car park's own wayfinding: green for 1, ochre for 2,
-## blue for 3 and red for the Roof.
+## blue for 3 and violet for the Roof (red stays with Union optics).
 const LEVEL_COLORS: Dictionary[String, Color] = {
-	"1": Color("4f8a6c"), "2": Color("b8892f"), "3": Color("57709e"), "R": Color("9a3328"),
+	"1": Color("4f8a6c"), "2": Color("b8892f"), "3": Color("57709e"), "R": Color("7a5a9a"),
 }
 
 func _structure() -> void:
@@ -534,7 +581,9 @@ func _car(base: Vector3, size: Vector3, along_x: bool, style: String, tilt: floa
 	var glass: Material = _mat("car_glass", Color("15191c"))
 	var tyre: Material = _mat("tyre", Color("151515"))
 	var lamp: Material = _mat("lamp_white", Color("e9e2c4"), "", 0.6)
-	var red: Material = _mat("lamp_red", Color("b12a20"), "", 0.6)
+	# Dead tail lamps: dark lenses, never a lit red point at body height,
+	# which would read like a Union optic in Episode 0.
+	var red: Material = _mat("lamp_red_dead", Color("4a1c18"))
 	var wheel_y: float = 0.36 if style != "union_slashed" else 0.24
 	var lower: float = 0.32
 	var waist: float = height * 0.62
@@ -563,8 +612,9 @@ func _car(base: Vector3, size: Vector3, along_x: bool, style: String, tilt: floa
 			if style == "civil_clamped" and fx > 0.0 and fz > 0.0:
 				_part(root, _mat("clamp", HAZARD_YELLOW, "", 0.15), wheel.position + Vector3(0.0, 0.0, 0.18), Vector3(0.5, 0.5, 0.12))
 	if style.begins_with("union"):
-		# Union Compliance livery: a red waist band and a dead light bar.
-		_part(root, _mat("union_band", UNION_RED), Vector3(0.0, waist - 0.05, 0.0), Vector3(length + 0.01, 0.12, width + 0.01))
+		# Union issue: a narrow red waist line, kept thin so no wreck reads
+		# like a Union body's red tell, and a dead light bar.
+		_part(root, _mat("union_band", UNION_RED), Vector3(0.0, waist - 0.05, 0.0), Vector3(length + 0.01, 0.06, width + 0.01))
 		_part(root, _mat("bar_dead", Color("3a2222")), Vector3(-length * 0.04, height + 0.06, 0.0), Vector3(0.3, 0.1, width * 0.7))
 	if style == "civil_clamped":
 		_part(root, _mat("tag_paper", Color("d9d2b8")), Vector3(length * 0.12, waist + 0.25, width * 0.5 + 0.01), Vector3(0.3, 0.42, 0.01))
@@ -583,24 +633,24 @@ func _van(base: Vector3, size: Vector3, on_side: bool, style: String) -> void:
 		_part(root, body, Vector3(0.0, 1.25, 0.2), Vector3(size.x, 1.8, size.z - 0.4))
 		_part(root, body, Vector3(0.0, 0.85, -size.z * 0.5 + 0.2), Vector3(size.x, 0.9, 0.4))
 		_part(root, glass, Vector3(0.0, 1.75, -size.z * 0.5 + 0.38), Vector3(size.x * 0.9, 0.6, 0.02))
-		_part(root, band, Vector3(0.0, 1.2, 0.2), Vector3(size.x + 0.01, 0.2, size.z - 0.38))
+		_part(root, band, Vector3(0.0, 1.2, 0.2), Vector3(size.x + 0.01, 0.08, size.z - 0.38))
 		for z: float in [-1.6, 1.6]:
 			for x: float in [-1.0, 1.0]:
 				_wheel(root, tyre, Vector3(x * (size.x * 0.5 - 0.1), 0.38, z), true)
 	else:
 		# On its side: the roof faces west, the wheels east. The waist band
-		# now stands on end round the body; the bone Compliance doors face
-		# the sky, and the roof with its dead light bar faces the Roof deck.
-		var bone: Material = _mat("union_door", Color("d9d4c6"))
+		# now stands on end round the body; the issued door plates face the
+		# sky, and the roof with its dead light bar faces the Roof deck.
+		var bone: Material = _mat("union_plate", UNION_STEEL, PRODUCTION + "union_steel.png", 0.0, 0.5)
 		var west: float = -(size.x - 0.3) * 0.5
 		_part(root, body, Vector3(0.0, size.y * 0.5, 0.0), Vector3(size.x - 0.3, size.y, size.z))
-		_part(root, band, Vector3(-0.1, size.y * 0.5, 0.0), Vector3(0.22, size.y + 0.02, size.z + 0.02))
+		_part(root, band, Vector3(-0.1, size.y * 0.5, 0.0), Vector3(0.08, size.y + 0.02, size.z + 0.02))
 		_part(root, bone, Vector3(0.45, size.y + 0.005, 0.2), Vector3(0.9, 0.02, size.z * 0.6))
 		_part(root, bone, Vector3(0.45, 0.005, 0.2), Vector3(0.9, 0.02, size.z * 0.6))
-		# Compliance vans wear a bone roof so the air wing can read them; it
-		# faces the Roof deck now, crossed by the red band and scuffed.
+		# The roof plate faces the Roof deck now, crossed by the red band and
+		# scuffed where the van went over.
 		_part(root, bone, Vector3(west - 0.01, size.y * 0.5, 0.25), Vector3(0.02, size.y - 0.25, size.z - 0.9))
-		_part(root, band, Vector3(west - 0.02, size.y * 0.5, 0.25), Vector3(0.02, 0.32, size.z - 0.9))
+		_part(root, band, Vector3(west - 0.02, size.y * 0.5, 0.25), Vector3(0.02, 0.08, size.z - 0.9))
 		_part(root, _mat("van_scuff", Color("3b3632")), Vector3(west - 0.025, 0.45, 0.9), Vector3(0.02, 0.5, 2.2))
 		_part(root, _mat("van_scuff", Color("3b3632")), Vector3(west - 0.025, size.y - 0.55, -0.6), Vector3(0.02, 0.35, 1.4))
 		# Roof: rack rails, the dead light bar with its lenses, and the spray.
@@ -608,10 +658,11 @@ func _van(base: Vector3, size: Vector3, on_side: bool, style: String) -> void:
 		for y: float in [0.45, size.y - 0.45]:
 			_part(root, rail, Vector3(west - 0.06, y, 0.0), Vector3(0.08, 0.08, size.z * 0.8))
 		_part(root, _mat("bar_dead", Color("3a2222")), Vector3(west - 0.1, size.y * 0.5, -1.4), Vector3(0.18, size.y * 0.66, 0.34))
-		_part(root, _mat("lens_red_dead", Color("6a1a16"), "", 0.3), Vector3(west - 0.2, size.y * 0.5 + 0.38, -1.4), Vector3(0.04, 0.6, 0.3))
-		_part(root, _mat("lens_blue_dead", Color("1a2a5a"), "", 0.3), Vector3(west - 0.2, size.y * 0.5 - 0.38, -1.4), Vector3(0.04, 0.6, 0.3))
+		# Both lenses dead and dark: smashed, not lit.
+		_part(root, _mat("lens_dead", Color("2a1c1a")), Vector3(west - 0.2, size.y * 0.5 + 0.38, -1.4), Vector3(0.04, 0.6, 0.3))
+		_part(root, _mat("lens_dead", Color("2a1c1a")), Vector3(west - 0.2, size.y * 0.5 - 0.38, -1.4), Vector3(0.04, 0.6, 0.3))
 		var spray: Label3D = WorldSign.new()
-		(spray as WorldSign).configure("WORLD_LARAK_REPOSSESSED", Vector2(2.6, 1.0), SPRAY_RED)
+		(spray as WorldSign).configure("WORLD_LARAK_REPOSSESSED", Vector2(2.6, 1.0), SPRAY)
 		spray.position = Vector3(west - 0.04, size.y * 0.5 + 0.45, 0.9)
 		spray.rotation = Vector3(0.0, -PI * 0.5, 0.0)
 		root.add_child(spray)
@@ -620,7 +671,7 @@ func _van(base: Vector3, size: Vector3, on_side: bool, style: String) -> void:
 		_part(root, _mat("lamp_white", Color("e9e2c4"), "", 0.6), Vector3(0.6, 0.35, -size.z * 0.5 - 0.02), Vector3(0.2, 0.3, 0.02))
 		_part(root, _mat("lamp_white", Color("e9e2c4"), "", 0.6), Vector3(0.6, size.y - 0.35, -size.z * 0.5 - 0.02), Vector3(0.2, 0.3, 0.02))
 		_part(root, bone, Vector3(0.0, size.y * 0.5, size.z * 0.5 + 0.01), Vector3(size.x - 0.5, size.y - 0.3, 0.02))
-		_part(root, band, Vector3(-0.1, size.y * 0.5, size.z * 0.5 + 0.02), Vector3(0.22, size.y - 0.3, 0.02))
+		_part(root, band, Vector3(-0.1, size.y * 0.5, size.z * 0.5 + 0.02), Vector3(0.08, size.y - 0.3, 0.02))
 		for z: float in [-1.6, 1.6]:
 			for y: float in [0.45, 1.75]:
 				_wheel(root, tyre, Vector3(size.x * 0.5 - 0.12, y, z), false)
@@ -690,37 +741,74 @@ func _drum(base: Vector3) -> void:
 
 func _toll() -> void:
 	var glass: Material = _decal("booth_glass", Color("2b3a3c"), 0.85)
-	var spray: Material = _decal("decal_spray", SPRAY_RED, 0.8)
-	var arm_white: Material = _mat("arm_white", Color("d8d2c2"))
-	var arm_red: Material = _mat("arm_red", UNION_RED)
 	var cap: Material = _mat("booth_cap", UNION_BLACK)
-	for x: float in [-30.0, -24.0, -18.0]:
-		# Glass band, sprayed over, and a black cap.
+	var arm_yellow: Material = _mat("arm_yellow", HAZARD_YELLOW)
+	var arm_black: Material = _mat("arm_black", HAZARD_BLACK)
+	var sprays: Array[Color] = [LEAGUE_EMBER, LEAGUE_MUSTARD, TAG_MAGENTA]
+	for index: int in range(3):
+		var x: float = [-30.0, -24.0, -18.0][index]
+		# Glass band, sprayed over in league paint, and a black cap. The
+		# booths' red stays in their seals; the enamel is painted out.
+		var paint: Color = sprays[index]
+		var spray: Material = _decal("decal_spray_%d" % index, paint, 0.82)
 		for side: float in [-1.0, 1.0]:
 			_box("booth_glass", glass, Vector3(x + side * 1.005, 4.6, -15.0), Vector3(0.02, 1.0, 3.4))
-			_box("decal_spray", spray, Vector3(x + side * 1.012, 4.7, -15.4 + side * 0.4), Vector3(0.01, 0.35, 1.6), Vector3(0.0, 0.0, side * 0.2))
+			_box("decal_spray_%d" % index, spray, Vector3(x + side * 1.012, 4.7, -15.4 + side * 0.4), Vector3(0.01, 0.35, 1.6), Vector3(0.0, 0.0, side * 0.2))
+			_box("decal_spray_%d" % index, spray, Vector3(x + side * 1.012, 3.9, -14.6 - side * 0.5), Vector3(0.01, 0.9, 1.1), Vector3(side * 0.35, 0.0, 0.0))
 		_box("booth_cap", cap, Vector3(x, 5.85, -15.0), Vector3(2.3, 0.12, 4.3))
-		# Barrier arms: snapped, one hanging into the lane.
-		_box("arm_red", arm_red, Vector3(x + 1.25, 4.05, -12.9), Vector3(0.3, 0.3, 0.3))
-		_box("arm_white", arm_white, Vector3(x + 1.55, 4.45, -12.9), Vector3(0.8, 0.12, 0.12), Vector3(0.0, 0.0, 1.1 if x > -25.0 else 0.7))
-	_sign("WORLD_LARAK_TOLL_ONE_LIFE", Vector3(-11.5, 4.6, -27.98), 0.0, Vector2(3.6, 2.2), Color("f0e6c8"), Color("231c1a"))
-	_sign("WORLD_LARAK_NOT_METERED", Vector3(-7.0, 5.15, -27.97), 0.0, Vector2(3.2, 0.6), SPRAY_RED)
-	_sign("WORLD_LARAK_FARE_PAID", Vector3(-35.98, 4.4, -9.0), PI * 0.5, Vector2(3.0, 1.2), SPRAY_BONE, Color("3a3e3b"))
-	# Dead pay machines, every one signed by Larak.
+		# Barrier arms: hazard striped, two snapped short, and the east one
+		# still on its motor.
+		_box("arm_black", arm_black, Vector3(x + 1.25, 4.05, -12.9), Vector3(0.3, 0.3, 0.3))
+		if index < 2:
+			_box("arm_yellow", arm_yellow, Vector3(x + 1.55, 4.45, -12.9), Vector3(0.8, 0.12, 0.12), Vector3(0.0, 0.0, 1.1 if index == 1 else 0.7))
+	_toll_arm = Node3D.new()
+	_toll_arm.name = "TollArm"
+	_toll_arm.position = Vector3(-16.75, 4.12, -12.9)
+	add_child(_toll_arm)
+	for i: int in range(3):
+		_part(_toll_arm, arm_yellow if i % 2 == 0 else arm_black, Vector3(0.15 + float(i) * 0.3, 0.0, 0.0), Vector3(0.3, 0.12, 0.12))
+	_sign("WORLD_LARAK_TOLL_ONE_LIFE", Vector3(-11.5, 4.6, -27.98), 0.0, Vector2(3.6, 2.2), LEAGUE_CREAM, Color("231c1a"))
+	_sign("WORLD_LARAK_NOT_METERED", Vector3(-7.0, 5.15, -27.97), 0.0, Vector2(3.2, 0.6), SPRAY)
+	_sign("WORLD_LARAK_FARE_PAID", Vector3(-35.98, 4.4, -10.5), PI * 0.5, Vector2(3.0, 1.2), LEAGUE_CREAM, Color("3a3e3b"))
+	_directory(Vector3(-35.98, 4.55, -6.3), PI * 0.5)
+	# Dead pay machines, every one signed by Larak; one still asks to be paid.
 	var machine: Material = _mat("pay_machine", Color("a7aca6"), PRODUCTION + "union_steel.png")
 	for x: float in [-34.0, -31.5, -21.0]:
 		_box("pay_machine", machine, Vector3(x, LEVEL_2 + 0.8, -27.85), Vector3(0.8, 1.6, 0.3))
 		_sign("WORLD_LARAK_SIGNATURE", Vector3(x, LEVEL_2 + 1.05, -27.69), 0.0, Vector2(0.62, 0.36), Color("1b1d1c"), Color("c9c2a8"))
-	_sign("WORLD_LARAK_TOLL", Vector3(-35.98, 5.3, -18.0), PI * 0.5, Vector2(4.0, 1.4), LEAGUE_BONE)
-	_sign("WORLD_LARAK_BOOTHS", Vector3(-24.0, 5.2, -12.98), 0.0, Vector2(1.8, 0.5), LEAGUE_BONE)
+	_box("pay_screen", _mat("pay_screen", Color("3a2208")), Vector3(-31.5, LEVEL_2 + 1.42, -27.695), Vector3(0.6, 0.26, 0.01))
+	_sign("WORLD_LARAK_PLEASE_PAY", Vector3(-31.5, LEVEL_2 + 1.42, -27.685), 0.0, Vector2(0.56, 0.2), Color("ffb347"), Color(0, 0, 0, 0), 1.6)
+	_callout("WORLD_LARAK_TOLL", Vector3(-35.98, 5.3, -18.0), PI * 0.5, Vector2(4.0, 1.4), 0)
+	_callout("WORLD_LARAK_BOOTHS", Vector3(-24.0, 5.2, -12.98), 0.0, Vector2(1.8, 0.5), 1)
 
 func _lane_and_ramp() -> void:
-	_sign("WORLD_LARAK_NOTICE_TO_VACATE", Vector3(-35.98, 3.3, 16.0), PI * 0.5, Vector2(3.6, 2.0), UNION_BLACK, Color("d8d0b4"))
-	_sign("WORLD_LARAK_CONDEMNED", Vector3(-35.97, 3.0, 16.4), PI * 0.5, Vector2(2.4, 0.8), SPRAY_RED)
-	_sign("WORLD_LARAK_LANE", Vector3(-35.98, 3.6, 4.0), PI * 0.5, Vector2(3.0, 1.0), LEAGUE_BONE)
-	_sign("WORLD_LARAK_LOWEST_LEVEL", Vector3(-23.0, 2.1, 9.98), PI, Vector2(3.6, 0.8), Color("e0dccb"), Color("2c4a3a"))
-	_sign("WORLD_LARAK_LOW_RAMP", Vector3(-15.0, 2.6, 1.48), PI, Vector2(2.0, 0.6), LEAGUE_BONE)
+	# The Lane is the old street entry: the facility's own plate, still
+	# naming the officer who signed for it, and the directory that admits
+	# four levels.
+	_sign("WORLD_LARAK_FACILITY", Vector3(-35.98, 3.4, 6.4), PI * 0.5, Vector2(2.2, 1.4), Color("23262a"), Color("a9aca6"))
+	_callout("WORLD_LARAK_LANE", Vector3(-35.98, 3.6, 3.4), PI * 0.5, Vector2(3.0, 1.0), 2)
+	_directory(Vector3(-22.0, 2.95, 1.48), PI)
+	_sign("WORLD_LARAK_DECOMMISSION", Vector3(-35.98, 2.75, 12.6), PI * 0.5, Vector2(1.5, 0.8), Color("2a1f12"), Color("8c6c34"))
+	# The Office's paper, and the league's reply under it.
+	_sign("WORLD_LARAK_NOT_ON_RECORD", Vector3(-35.98, 3.4, 16.4), PI * 0.5, Vector2(2.8, 1.3), UNION_BLACK, Color("d8d0b4"))
+	_seal(Vector3(-35.975, 3.85, 17.55), PI * 0.5, 0.2, true)
+	_sign("WORLD_LARAK_NEITHER", Vector3(-35.97, 2.45, 16.2), PI * 0.5, Vector2(2.4, 0.6), SPRAY)
+	_callout("WORLD_LARAK_LOW_RAMP", Vector3(-15.0, 2.6, 1.48), PI, Vector2(2.0, 0.6), 0)
 	_sign("WORLD_LARAK_PAY_DOOR", Vector3(-23.5, 2.75, 10.52), 0.0, Vector2(3.2, 0.6), HAZARD_YELLOW, Color("222222"))
+	# Inside the tunnel: the landing is not a level, whatever the sign at the
+	# top says, and somebody has lettered Article Seven's reply on the wall.
+	_sign("WORLD_LARAK_HALFWAY", Vector3(-23.6, 2.05, 9.98), PI, Vector2(3.6, 0.8), LEAGUE_CREAM)
+	_sign("WORLD_LARAK_COGNITION", Vector3(-19.4, 2.2, 2.02), 0.0, Vector2(5.2, 0.5), LEAGUE_MUSTARD)
+	var chevron: Material = _decal("paint_chevron", LEAGUE_EMBER, 0.85)
+	for z: float in [4.0, 8.0]:
+		for step: int in range(2):
+			var x: float = -18.6 + float(step) * 1.1
+			_floor_mark("paint_chevron", chevron, x, z - 0.32, RAIL_LANDING, 0.9, 0.16, -0.6)
+			_floor_mark("paint_chevron", chevron, x, z + 0.32, RAIL_LANDING, 0.9, 0.16, 0.6)
+	# Minus one at the bottom: on the tunnel mouth and the Pit's walls.
+	_sign("WORLD_LARAK_LEVEL_MINUS_1", Vector3(-12.0, 0.8, 2.02), 0.0, Vector2(1.5, 1.2), SPRAY)
+	_sign("WORLD_LARAK_LEVEL_MINUS_1", Vector3(9.98, 1.6, -4.5), -PI * 0.5, Vector2(1.8, 2.0), SPRAY)
+	_floor_sign("WORLD_LARAK_LEVEL_MINUS_1", Vector3(-12.6, PIT, 6.0), PI * 0.5, Vector2(2.6, 3.4), Color(0.88, 0.47, 0.18, 0.8))
 	# Sodium fittings along the Lane bay soffit and a cold tube in the tunnel.
 	var sodium: Material = _mat("lamp_sodium", SODIUM, "", 3.0)
 	for z: float in [12.0, 18.0, 24.0]:
@@ -730,7 +818,8 @@ func _lane_and_ramp() -> void:
 	_box("lamp_tube", tube, Vector3(-21.0, 2.96, 6.0), Vector3(1.6, 0.06, 0.12))
 	_box("lamp_tube", tube, Vector3(-17.0, 2.96, 6.0), Vector3(1.6, 0.06, 0.12))
 	_box("lamp_dead", dead, Vector3(-19.0, 2.96, 6.0), Vector3(1.6, 0.06, 0.12))
-	# Cables strung along the bay soffit.
+	# League extension cables strung along the bay soffit, tapping the
+	# facility's own supply: the power was never cut.
 	var cable: Material = _mat("cable", Color("1c1c1e"))
 	_box("cable", cable, Vector3(-27.2, 4.4, 18.0), Vector3(0.05, 0.05, 20.0))
 
@@ -754,7 +843,9 @@ func _pit_and_stands() -> void:
 		if absf(x) < 3.0:
 			continue
 		_box("car_seat", seat, Vector3(x, LEVEL_1 + 0.75, 27.88), Vector3(0.6, 0.9, 0.22))
-	_sign("WORLD_LARAK_STANDS", Vector3(-6.0, 4.0, 27.98), PI, Vector2(4.0, 1.2), LEAGUE_BONE)
+	_callout("WORLD_LARAK_STANDS", Vector3(-6.0, 3.9, 27.97), PI, Vector2(4.0, 1.2), 1)
+	# The creed, once and large, where the Office is thinnest.
+	_sign("WORLD_LARAK_CREED", Vector3(2.0, 6.6, 27.97), PI, Vector2(11.5, 1.8), LEAGUE_MUSTARD)
 	_sign("WORLD_LARAK_ODDS", Vector3(0.0, 2.9, 15.98), PI, Vector2(3.6, 1.8), CHALK, Color("1f2a24"))
 	var awning: Material = _mat("awning", LEAGUE_EMBER)
 	_box("awning", awning, Vector3(0.0, 4.45, 17.5), Vector3(4.6, 0.12, 3.6))
@@ -762,38 +853,216 @@ func _pit_and_stands() -> void:
 	# The tote board running back to the viaduct: the night's book, both faces.
 	_sign("WORLD_LARAK_LEDGER_2", Vector3(-0.62, 3.0, 23.5), -PI * 0.5, Vector2(5.0, 1.8), CHALK, Color("1f2a24"))
 	_sign("WORLD_LARAK_ODDS", Vector3(0.62, 3.0, 23.5), PI * 0.5, Vector2(5.0, 1.8), CHALK, Color("1f2a24"))
+	_sign("WORLD_LARAK_67", Vector3(2.02, 2.05, 18.6), PI * 0.5, Vector2(0.16, 0.1), Color("9a948a"))
 	# League banners hang off the Gallery front over the Pit.
 	for x: float in [-7.5, 7.5]:
 		_banner(Vector3(x, 3.2, -9.97), 0.0, Vector2(2.4, 2.4))
 
 func _impound_and_crane() -> void:
-	_sign("WORLD_LARAK_IMPOUND", Vector3(35.98, 3.4, 4.0), -PI * 0.5, Vector2(4.0, 1.2), LEAGUE_BONE)
+	_callout("WORLD_LARAK_IMPOUND", Vector3(35.98, 3.4, 4.0), -PI * 0.5, Vector2(4.0, 1.2), 2)
+	_directory(Vector3(10.62, 3.45, 16.5), PI * 0.5)
 	_sign("WORLD_LARAK_RELEASE_BY_ORDER", Vector3(18.2, 3.3, 20.0), 0.0, Vector2(2.6, 0.6), UNION_BLACK, Color("d9d2b8"))
-	_sign("WORLD_LARAK_STAIR_B", Vector3(29.98, 3.6, 2.0), -PI * 0.5, Vector2(2.6, 0.9), LEAGUE_BONE)
-	_sign("WORLD_LARAK_CRANE", Vector3(17.0, 2.3, 0.02), 0.0, Vector2(3.2, 0.9), LEAGUE_BONE)
+	# A Hangar Candy sticker slapped beside the Office's release tag.
+	_sign("WORLD_LARAK_TAG_DENIED", Vector3(20.02, 3.3, 20.01), 0.0, Vector2(1.0, 0.34), Color("e9e4d8"), Color("141414"))
+	_callout("WORLD_LARAK_STAIR_B", Vector3(29.98, 3.6, 2.0), -PI * 0.5, Vector2(2.6, 0.9), 0)
+	_callout("WORLD_LARAK_CRANE", Vector3(17.0, 2.3, 0.02), 0.0, Vector2(3.2, 0.9), 3)
 	_sign("WORLD_LARAK_FIRE_STAIR", Vector3(15.0, 4.4, -9.98), 0.0, Vector2(3.2, 0.7), HAZARD_YELLOW)
 	var sodium: Material = _mat("lamp_sodium", SODIUM, "", 3.0)
 	for x: float in [18.0, 24.0, 32.0]:
 		_box("lamp_sodium", sodium, Vector3(x, 4.55, 18.0), Vector3(1.4, 0.08, 0.25))
-	# The league's back office: a window and a door on the cabin.
+	# The league's back office: a window and a door on the cabin, and the
+	# coffee machine Larak signed for, set out by the door.
 	var window: Material = _mat("office_window", Color("e8c27a"), "", 1.4)
 	_box("office_window", window, Vector3(28.98, 3.1, 25.0), Vector3(0.04, 0.8, 1.8))
 	_box("office_door", _mat("office_door", Color("4b3b2c")), Vector3(32.0, 2.6, 22.98), Vector3(1.0, 2.1, 0.04))
+	var coffee: Material = _mat("coffee_machine", Color("5d5a54"), PRODUCTION + "union_steel.png")
+	_box("coffee_machine", coffee, Vector3(30.2, LEVEL_1 + 0.8, 22.88), Vector3(0.7, 1.6, 0.22))
+	_box("coffee_spout", _mat("coffee_spout", Color("1a1918")), Vector3(30.2, LEVEL_1 + 0.62, 22.76), Vector3(0.3, 0.3, 0.02))
+	_sign("WORLD_LARAK_COFFEE", Vector3(30.2, LEVEL_1 + 1.25, 22.765), PI, Vector2(0.5, 0.3), Color("1b1d1c"), Color("c9c2a8"))
+	_sign("WORLD_LARAK_OUT_OF_ORDER", Vector3(30.2, LEVEL_1 + 0.98, 22.76), PI, Vector2(0.56, 0.18), Color("2a2a2a"), Color("e3dcc4"))
+	# A Night Watch grid stencil on a bay column.
+	_sign("WORLD_LARAK_TAG_GRID", Vector3(28.0, 2.5, 15.68), PI, Vector2(0.5, 0.4), Color("c8c4b8"))
 
 func _gallery_and_spiral() -> void:
-	# AUNT LINDA'S TENT REVIVAL: an awning off the north wall above the Spiral
-	# landing, well over head height, and its banner on the wall.
-	var canvas: Material = _mat("revival_canvas", Color("d9cfb4"), PRODUCTION + "detail_yard_fabric.png", 0.0, 0.25)
+	# The giant league banner on the Spiral wall.
+	_banner(Vector3(-16.0, 6.2, -27.97), 0.0, Vector2(4.6, 5.0))
+	_callout("WORLD_LARAK_SPIRAL", Vector3(-8.0, 4.3, -27.98), 0.0, Vector2(1.8, 0.55), 2)
+	_callout("WORLD_LARAK_GALLERY", Vector3(-9.98, 4.0, -15.0), -PI * 0.5, Vector2(3.0, 0.8), 0)
+	_sign("WORLD_LARAK_BRIDGE", Vector3(-6.0, 2.8, -4.98), 0.0, Vector2(2.2, 0.32), HAZARD_YELLOW)
+	# Hangar Candy leave their watermark on the Gallery front.
+	_sign("WORLD_LARAK_TAG_DENIED", Vector3(2.6, 3.95, -9.97), 0.0, Vector2(1.2, 0.36), Color("e9e4d8"), Color("141414"))
+
+## A league callout board: hand-painted lettering on a board in one of the
+## league's warm colours, so the quarters read without bone-white placards.
+func _callout(key: String, center: Vector3, yaw: float, size: Vector2, style: int) -> void:
+	var boards: Array[Color] = [LEAGUE_EMBER, LEAGUE_MUSTARD, LEAGUE_RUST, LEAGUE_CANVAS]
+	var inks: Array[Color] = [Color("1c1612"), Color("201a12"), LEAGUE_CREAM, Color("3a2416")]
+	var pick: int = posmod(style, boards.size())
+	_sign(key, center, yaw, size, inks[pick], boards[pick])
+
+## The lot's own directory at each entry: four levels admitted, and level 1
+## named the lowest, a ramp's length above the one nobody numbered.
+func _directory(center: Vector3, yaw: float) -> void:
+	_sign("WORLD_LARAK_DIRECTORY", center, yaw, Vector2(2.4, 1.3), Color("e0dccb"), Color("2c4a3a"))
+
+## A Union seal on a face: a black disc, a red ring and, on a freed one, the
+## knife cut straight through it. There is no replacement mark.
+func _seal(center: Vector3, yaw: float, radius: float, cut: bool) -> void:
+	var basis: Basis = Basis.from_euler(Vector3(0.0, yaw, 0.0))
+	var facing: Vector3 = Vector3(PI * 0.5, yaw, 0.0)
+	_cylinder("seal_black", _mat("seal_black", UNION_BLACK), center + basis.z * 0.006, radius, 0.01, facing, 14)
+	_cylinder("seal_red", _mat("union_band", UNION_RED), center + basis.z * 0.003, radius * 1.18, 0.01, facing, 14)
+	_cylinder("seal_steel", _mat("seal_steel", Color("8d9092")), center + basis.z * 0.009, radius * 0.45, 0.01, facing, 10)
+	if cut:
+		_box("seal_cut", _mat("seal_cut", Color("c9c6be")), center + basis.z * 0.014, Vector3(radius * 2.9, 0.035, 0.01), Vector3(0.0, yaw, 0.85))
+
+func _banner(center: Vector3, yaw: float, size: Vector2) -> void:
+	var cloth: Material = _mat("banner_canvas", LEAGUE_CANVAS, PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5)
+	var ember: Material = _mat("banner_ember", LEAGUE_EMBER)
+	var rust: Material = _mat("banner_rust", LEAGUE_RUST)
+	var basis: Basis = Basis.from_euler(Vector3(0.0, yaw, 0.0))
+	_box("banner_canvas", cloth, center + basis.z * 0.02, Vector3(size.x, size.y, 0.03), Vector3(0.0, yaw, 0.0))
+	_box("banner_ember", ember, center + basis.z * 0.04 + Vector3(0.0, size.y * 0.32, 0.0), Vector3(size.x * 0.96, size.y * 0.12, 0.02), Vector3(0.0, yaw, 0.0))
+	_box("banner_rust", rust, center + basis.z * 0.04, Vector3(size.x * 0.18, size.y * 0.5, 0.02), Vector3(0.0, yaw, 0.0))
+	_box("banner_ember", ember, center + basis.z * 0.04 - Vector3(0.0, size.y * 0.32, 0.0), Vector3(size.x * 0.96, size.y * 0.06, 0.02), Vector3(0.0, yaw, 0.0))
+
+## ---------------------------------------------------------------------------
+## Canon dressing: the range that still runs, the Office's paper, free marks
+## ---------------------------------------------------------------------------
+
+## The range nobody decommissioned: an old brass plaque still waiting on a
+## signature, and the motto plate the Office left, intact and unmocked.
+func _range_still_runs() -> void:
+	_sign("WORLD_LARAK_MOTTO", Vector3(-22.0, 6.55, -27.97), 0.0, Vector2(4.4, 0.7), Color("a7abad"), UNION_BLACK)
+	_seal(Vector3(-24.7, 6.55, -27.965), 0.0, 0.26, false)
+	_sign("WORLD_LARAK_NOT_COMPLIANT", Vector3(-24.0, 4.45, -27.97), 0.0, Vector2(2.6, 1.5), UNION_BLACK, Color("d8d0b4"))
+
+## Office seals on the booths, each cut through with a blade, and an approval
+## plate ground back to bare scarred metal.
+func _office_paper() -> void:
+	for i: int in range(3):
+		_seal(Vector3(-18.55 + float(i) * 0.55, 4.3 + float(i % 2) * 0.12, -17.012), PI, 0.2, true)
+	var bare: Material = _mat("plate_ground", Color("b9b5aa"), PRODUCTION + "union_steel.png", 0.0, 1.0)
+	_box("plate_ground", bare, Vector3(-30.0, 4.4, -17.012), Vector3(0.7, 0.4, 0.01))
+	var scratch: Material = _decal("decal_scratch", Color("ece8de"), 0.9)
+	for i: int in range(4):
+		_box("decal_scratch", scratch, Vector3(-30.0 + float(i) * 0.12 - 0.18, 4.4, -17.02), Vector3(0.5, 0.012, 0.005), Vector3(0.0, 0.0, 0.3 + float(i) * 0.25))
+	# A Static Kids tag on the middle booth: the name with its vowels gone.
+	_sign("WORLD_LARAK_TAG_STATIC", Vector3(-24.0, 3.75, -17.012), PI, Vector2(1.7, 0.5), TAG_MAGENTA)
+
+## Free marks: six in a circle on three columns, each painted by somebody
+## different, Article Seven crossed out on the Toll canopy, and the Gulf
+## Breeze corner where two textures do not quite line up.
+func _free_marks() -> void:
+	_six(Vector3(-27.02, 2.7, 14.0), -PI * 0.5, 0.42, LEAGUE_CREAM)
+	_six(Vector3(20.0, 2.6, 15.68), PI, 0.26, LEAGUE_EMBER)
+	_sign("WORLD_LARAK_TAG_GRID", Vector3(-27.02, 2.6, 22.0), -PI * 0.5, Vector2(0.7, 0.5), Color("c8c4b8"))
+	_sign("WORLD_LARAK_ARTICLE_7", Vector3(-23.0, 6.8, -9.98), 0.0, Vector2(2.6, 0.32), LEAGUE_CREAM)
+	_box("paint_strike", _decal("paint_strike", SPRAY), Vector3(-23.0, 6.8, -9.97), Vector3(2.5, 0.06, 0.01), Vector3(0.0, 0.0, 0.08))
+	# Gulf Breeze: a wall panel set 4 cm proud and a hand off true, with the
+	# coordinates chalked beside it and the smallest six of the three.
+	# Two tiles of the stairwell's own wall, a few centimetres proud and a
+	# few degrees off true, with their grout lines showing the twist.
+	var panel: Material = _mat("offset_panel", Color("5d6c66"))
+	var grout: Material = _mat("offset_grout", Color("3f5a4f"))
+	for tile: int in range(2):
+		var z: float = -3.0 + float(tile) * 1.62
+		var tilt: float = 0.05 + float(tile) * 0.035
+		_box("offset_panel", panel, Vector3(29.95 - float(tile) * 0.02, 4.3, z), Vector3(0.04, 1.5, 1.5), Vector3(tilt, 0.0, 0.0))
+		for edge: float in [-0.76, 0.76]:
+			_box("offset_grout", grout, Vector3(29.925 - float(tile) * 0.02, 4.3, z) + Vector3(0.0, edge * cos(tilt), -edge * sin(tilt)), Vector3(0.02, 0.05, 1.56), Vector3(tilt, 0.0, 0.0))
+			_box("offset_grout", grout, Vector3(29.925 - float(tile) * 0.02, 4.3, z) + Vector3(0.0, edge * sin(tilt), edge * cos(tilt)), Vector3(0.02, 1.56, 0.05), Vector3(tilt, 0.0, 0.0))
+	_sign("WORLD_LARAK_TAG_COORDS", Vector3(29.9, 3.3, -2.2), -PI * 0.5, Vector2(2.2, 0.45), CHALK)
+	_six(Vector3(29.9, 4.0, -0.3), -PI * 0.5, 0.18, CHALK)
+
+## The numeral six inside a circle: legally nothing, the most illegal thing
+## in the Perimeter.
+func _six(center: Vector3, yaw: float, radius: float, ink: Color) -> void:
+	var ring: MeshInstance3D = MeshInstance3D.new()
+	var torus: TorusMesh = TorusMesh.new()
+	torus.inner_radius = radius * 0.82
+	torus.outer_radius = radius
+	torus.rings = 20
+	torus.ring_segments = 3
+	ring.mesh = torus
+	ring.material_override = _decal("paint_six_%s" % ink.to_html(false), ink)
+	ring.position = center
+	ring.rotation = Vector3(PI * 0.5, yaw, 0.0)
+	ring.rotation_order = EULER_ORDER_YXZ
+	ring.scale = Vector3(1.0, 0.04, 1.0)
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(ring)
+	_sign("WORLD_LARAK_SIX", center, yaw, Vector2(radius * 1.1, radius * 1.2), ink)
+
+## AUNT LINDA'S TENT REVIVAL on level three: a nightly service where people
+## and machines worship together. The canvas, the pulpit made from a dead pay
+## machine, the hymn board, the chairs and the prayer card all sit flat to the
+## north wall above the Spiral landing, so none of it reads as cover.
+func _revival() -> void:
+	var canvas: Material = _mat("revival_canvas", Color("b38f5a"), PRODUCTION + "detail_yard_fabric.png", 0.0, 0.25)
+	var stripe: Material = _mat("revival_stripe", Color("8a3f2c"))
 	_box("revival_canvas", canvas, Vector3(-3.0, 7.2, -26.8), Vector3(6.0, 0.08, 2.4), Vector3(-0.22, 0.0, 0.0))
-	_sign("WORLD_LARAK_REVIVAL", Vector3(-3.0, 8.4, -27.98), 0.0, Vector2(5.4, 1.0), Color("f2dfa6"), Color("4a2a3a"))
+	for i: int in range(4):
+		_box("revival_stripe", stripe, Vector3(-5.25 + float(i) * 1.5, 7.21, -26.8), Vector3(0.5, 0.085, 2.42), Vector3(-0.22, 0.0, 0.0))
+	_box("revival_canvas", canvas, Vector3(-3.0, 6.88, -25.65), Vector3(6.0, 0.56, 0.04))
+	# The name is lettered on the awning's valance, where the whole Pit reads
+	# it under the bulbs, rather than on the wall the awning hides.
+	_sign("WORLD_LARAK_REVIVAL", Vector3(-3.0, 6.88, -25.62), 0.0, Vector2(5.8, 0.5), Color("f2dfa6"), Color("4a2a3a"))
 	var bulb: Material = _mat("bulb", Color("ffd9a0"), "", 2.4)
 	for i: int in range(9):
 		_box("bulb", bulb, Vector3(-6.0 + float(i) * 0.75, 7.55 - absf(float(i) - 4.0) * 0.06, -25.62), Vector3(0.1, 0.1, 0.1))
-	# The giant league banner on the Spiral wall.
-	_banner(Vector3(-16.0, 6.2, -27.97), 0.0, Vector2(4.6, 5.0))
-	_sign("WORLD_LARAK_SPIRAL", Vector3(-8.0, 4.3, -27.98), 0.0, Vector2(1.8, 0.55), LEAGUE_BONE)
-	_sign("WORLD_LARAK_GALLERY", Vector3(-9.98, 4.0, -15.0), -PI * 0.5, Vector2(3.0, 0.8), LEAGUE_BONE)
-	_sign("WORLD_LARAK_BRIDGE", Vector3(-6.0, 2.8, -4.98), 0.0, Vector2(2.2, 0.32), HAZARD_YELLOW)
+	# The pulpit: a dead pay machine, Larak's signature still on it, the hand
+	# bell on top and a network cable over it for a stole.
+	var machine: Material = _mat("pay_machine", Color("a7aca6"), PRODUCTION + "union_steel.png")
+	_box("pay_machine", machine, Vector3(-3.0, LEVEL_3 + 0.8, -27.85), Vector3(0.8, 1.6, 0.3))
+	_sign("WORLD_LARAK_SIGNATURE", Vector3(-3.0, LEVEL_3 + 1.05, -27.69), 0.0, Vector2(0.62, 0.36), Color("1b1d1c"), Color("c9c2a8"))
+	var brass: Material = _mat("bell_brass", Color("a07a34"), "", 0.0)
+	_cylinder("bell_brass", brass, Vector3(-3.1, LEVEL_3 + 1.7, -27.82), 0.09, 0.16, Vector3.ZERO, 10)
+	_box("bell_brass", brass, Vector3(-3.1, LEVEL_3 + 1.83, -27.82), Vector3(0.03, 0.12, 0.03))
+	var stole: Material = _mat("stole_cable", Color("d4b13c"))
+	_box("stole_cable", stole, Vector3(-2.72, LEVEL_3 + 1.25, -27.69), Vector3(0.04, 0.75, 0.03), Vector3(0.0, 0.0, 0.08))
+	_box("stole_cable", stole, Vector3(-2.86, LEVEL_3 + 1.62, -27.75), Vector3(0.3, 0.04, 0.12))
+	# The hymn board and the prayer card, pinned beside it.
+	_sign("WORLD_LARAK_HYMNS", Vector3(-5.1, 5.75, -27.97), 0.0, Vector2(1.5, 1.7), LEAGUE_CREAM, Color("3a2a1e"))
+	_sign("WORLD_LARAK_PRAYER", Vector3(-1.3, 5.95, -27.965), 0.0, Vector2(0.62, 0.42), Color("2a2420"), Color("e6dcc0"))
+	# Folding chairs hung flat on the wall, and a crate of fish oil on a
+	# shelf above them, all over head height.
+	var chair: Material = _mat("revival_chair", Color("5d625e"), EARTH + "earth_workshop_patched_steel.png", 0.0, 0.5)
+	for i: int in range(4):
+		var x: float = -0.4 + float(i) * 0.12
+		_box("revival_chair", chair, Vector3(x - 0.2, 6.75, -27.94 + float(i) * 0.02), Vector3(0.44, 0.78, 0.02))
+	_box("crate", _mat("crate", Color("6b5236")), Vector3(-5.2, 6.98, -27.8), Vector3(0.7, 0.32, 0.36))
+	_box("shelf", _mat("shelf", Color("3e3328")), Vector3(-5.2, 6.8, -27.82), Vector3(0.9, 0.04, 0.4))
+	_sign("WORLD_LARAK_FISH_OIL", Vector3(-5.2, 6.98, -27.615), 0.0, Vector2(0.6, 0.18), Color("e8dcb8"))
+
+## The bell at the Stands: a scavenged school bell on a bracket off the
+## viaduct wall with its pull rope, over head height. Everything stops for
+## it between rounds; today it hangs as a prop. And the podium: three
+## stacked pallets on the bookmaker's roof, where the whole lot can see them.
+func _bell_and_podium() -> void:
+	var iron: Material = _mat("hook_iron", Color("2f2c2a"))
+	var brass: Material = _mat("bell_brass", Color("a07a34"), "", 0.0)
+	_box("hook_iron", iron, Vector3(-9.3, 4.85, 27.6), Vector3(0.08, 0.08, 0.8))
+	var bell: MeshInstance3D = MeshInstance3D.new()
+	var cone: CylinderMesh = CylinderMesh.new()
+	cone.top_radius = 0.16
+	cone.bottom_radius = 0.3
+	cone.height = 0.42
+	cone.radial_segments = 12
+	cone.rings = 1
+	bell.mesh = cone
+	bell.material_override = brass
+	bell.name = "StandsBell"
+	bell.position = Vector3(-9.3, 4.55, 27.25)
+	add_child(bell)
+	_box("bell_rope", _mat("bell_rope", Color("8a7650")), Vector3(-9.3, 3.55, 27.25), Vector3(0.03, 1.6, 0.03))
+	var pallet: Material = _mat("pallet", Color("8a6f4c"))
+	for step: int in range(3):
+		var x: float = [-1.3, 0.0, 1.3][step]
+		var stack: int = [2, 3, 1][step]
+		for level: int in range(stack):
+			_box("pallet", pallet, Vector3(x, 4.58 + float(level) * 0.14, 17.4), Vector3(1.1, 0.12, 0.9))
+		_sign("WORLD_LARAK_PODIUM_%d" % [2, 1, 3][step], Vector3(x, 4.56 + float(stack) * 0.07, 16.94), PI, Vector2(0.4, 0.13 * float(stack)), LEAGUE_CREAM)
 
 func _roof() -> void:
 	# Sodium mast heads: one carries the Roof's raking light.
@@ -824,23 +1093,16 @@ func _roof() -> void:
 	_box("barrier_stripe", stripe, Vector3(25.5, 7.05, -18.5), Vector3(1.02, 0.18, 5.02))
 	_box("barrier_stripe", stripe, Vector3(29.0, 7.05, -16.5), Vector3(6.02, 0.18, 1.02))
 
-func _banner(center: Vector3, yaw: float, size: Vector2) -> void:
-	var cloth: Material = _mat("banner_bone", LEAGUE_BONE, PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5)
-	var ember: Material = _mat("banner_ember", LEAGUE_EMBER)
-	var basis: Basis = Basis.from_euler(Vector3(0.0, yaw, 0.0))
-	_box("banner_bone", cloth, center + basis.z * 0.02, Vector3(size.x, size.y, 0.03), Vector3(0.0, yaw, 0.0))
-	_box("banner_ember", ember, center + basis.z * 0.04 + Vector3(0.0, size.y * 0.32, 0.0), Vector3(size.x * 0.96, size.y * 0.12, 0.02), Vector3(0.0, yaw, 0.0))
-	_box("banner_ember", ember, center + basis.z * 0.04, Vector3(size.x * 0.18, size.y * 0.5, 0.02), Vector3(0.0, yaw, 0.0))
-	_box("banner_ember", ember, center + basis.z * 0.04 - Vector3(0.0, size.y * 0.32, 0.0), Vector3(size.x * 0.96, size.y * 0.06, 0.02), Vector3(0.0, yaw, 0.0))
-
 ## ---------------------------------------------------------------------------
 ## Landmarks
 ## ---------------------------------------------------------------------------
 
 ## THE REPOSSESSION: a Union Compliance cruiser hung nose-down from a tower
 ## crane hook over the Pit, wrapped in a league banner, lit from below by the
-## work floods on the hook. The crane mast stands outside the north-east
-## corner; its jib crosses the Roof.
+## work floods on the hook. Union issue: a black body, dark steel plates one
+## step lighter, a narrow deep-red band and one seal, cut through by the
+## league. The light bar is re-lensed in league amber. The crane mast stands
+## outside the north-east corner; its jib crosses the Roof.
 func _repossession() -> void:
 	if not _replace(-1.0, -0.9, 1.0, 0.9, 14.5):
 		return
@@ -859,27 +1121,36 @@ func _repossession() -> void:
 	var body: Material = _mat("car_union", UNION_BLACK)
 	var glass: Material = _mat("car_glass", Color("15191c"))
 	var band: Material = _mat("union_band", UNION_RED)
+	var plate: Material = _mat("union_plate", UNION_STEEL, PRODUCTION + "union_steel.png", 0.0, 0.5)
 	_part(car, body, Vector3(0.0, 0.5, 0.0), Vector3(4.4, 0.55, 1.8))
-	_part(car, _mat("union_door", Color("d9d4c6")), Vector3(-0.15, 1.05, 0.0), Vector3(2.3, 0.55, 1.6))
+	_part(car, body, Vector3(-0.15, 1.05, 0.0), Vector3(2.3, 0.55, 1.6))
 	_part(car, glass, Vector3(-0.15, 1.07, 0.0), Vector3(2.1, 0.4, 1.64))
-	_part(car, band, Vector3(0.0, 0.66, 0.0), Vector3(4.41, 0.12, 1.81))
-	# Union Compliance doors: bone panels either side of the black body.
-	_part(car, _mat("union_door", Color("d9d4c6")), Vector3(0.25, 0.48, 0.0), Vector3(1.9, 0.32, 1.83))
+	_part(car, band, Vector3(0.0, 0.72, 0.0), Vector3(4.41, 0.06, 1.81))
+	# Issued door plates, one step lighter than the body, and a seal on each
+	# front door with the league's knife cut through it.
+	_part(car, plate, Vector3(0.25, 0.46, 0.0), Vector3(1.9, 0.34, 1.83))
+	for side: float in [-1.0, 1.0]:
+		var seal: MeshInstance3D = _part(car, _mat("seal_black", UNION_BLACK), Vector3(0.75, 0.46, side * 0.92), Vector3(0.3, 0.3, 0.02))
+		seal.rotation.z = PI * 0.25
+		_part(car, band, Vector3(0.75, 0.46, side * 0.925), Vector3(0.16, 0.16, 0.02))
+		var cut: MeshInstance3D = _part(car, _mat("seal_cut", Color("c9c6be")), Vector3(0.75, 0.46, side * 0.935), Vector3(0.52, 0.035, 0.02))
+		cut.rotation.z = 0.7
 	_part(car, _mat("chrome", Color("9a9c9a")), Vector3(2.21, 0.35, 0.0), Vector3(0.08, 0.2, 1.84))
 	_part(car, _mat("chrome", Color("9a9c9a")), Vector3(-2.21, 0.35, 0.0), Vector3(0.08, 0.2, 1.84))
 	for fx: float in [-1.4, 1.4]:
 		for fz: float in [-0.8, 0.8]:
 			_part(car, _mat("tyre", Color("151515")), Vector3(fx, 0.25, fz), Vector3(0.7, 0.7, 0.22))
 	# League banner wrapped round the boot.
-	_part(car, _mat("banner_bone", LEAGUE_BONE, PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5), Vector3(-1.75, 0.7, 0.0), Vector3(0.9, 1.0, 1.84))
+	_part(car, _mat("banner_canvas", LEAGUE_CANVAS, PRODUCTION + "detail_yard_fabric.png", 0.0, 0.5), Vector3(-1.75, 0.7, 0.0), Vector3(0.9, 1.0, 1.84))
 	_part(car, _mat("banner_ember", LEAGUE_EMBER), Vector3(-1.75, 0.7, 0.0), Vector3(0.25, 1.02, 1.86))
-	# The light bar still strobes.
-	_bar_red = _part(car, _mat("bar_red", Color("ff3a2a"), "", 4.0), Vector3(-0.15, 1.38, 0.35), Vector3(0.3, 0.12, 0.6))
-	_bar_blue = _part(car, _mat("bar_blue", Color("3a6bff"), "", 4.0), Vector3(-0.15, 1.38, -0.35), Vector3(0.3, 0.12, 0.6))
+	# The light bar, both lenses swapped for league amber.
+	var lens: StandardMaterial3D = _mat("bar_amber", LEAGUE_AMBER, "", 1.6).duplicate() as StandardMaterial3D
+	_bar_lens = _part(car, lens, Vector3(-0.15, 1.38, 0.0), Vector3(0.3, 0.12, 1.3))
 	_light_bar = OmniLight3D.new()
 	_light_bar.name = "LightBar"
+	_light_bar.light_color = LEAGUE_AMBER
 	_light_bar.position = Vector3(-0.15, 1.6, 0.0)
-	_light_bar.light_energy = 2.4
+	_light_bar.light_energy = 1.2
 	_light_bar.omni_range = 9.0
 	_light_bar.omni_attenuation = 1.6
 	_light_bar.shadow_enabled = false
@@ -950,8 +1221,10 @@ func _crane(cable: Material) -> void:
 
 ## THE LARAK SIGN: a vertical blade on the east wall band behind the valet
 ## circle. Sodium-orange neon spells the procurement officer's name; the K
-## has a bad transformer. Under it, the Union's LEVEL FULL board, re-lettered
-## with the night's debts. Cables run from the stairwell up to it.
+## has a bad transformer. Under it, the lot's LEVEL FULL board, re-lettered
+## with the night's debts. League extension cables run up to it from the
+## stairwell: the facility's supply was never cut, and the bill goes to a
+## site with no name.
 func _larak_sign() -> void:
 	var frame: Material = _mat("sign_frame", Color("2a2624"), PRODUCTION + "scrap_steel.png")
 	_box("sign_frame", frame, Vector3(37.0, 13.7, -20.0), Vector3(0.5, 12.2, 5.0))
@@ -1021,6 +1294,22 @@ func _stretch(material: Material, a: Vector3, b: Vector3, thickness: float) -> v
 		_batch_materials["cable"] = material
 	_batches["cable"].append_from(mesh, 0, Transform3D(basis, (a + b) * 0.5))
 
+## The office block over the north wall: dark, except that its corridor
+## lights come on a floor at a time as if following somebody up the stairs.
+## Emissive panes only, in front of the backdrop's dark facade.
+func _office_block() -> void:
+	var lit: Material = _mat("office_lit", Color("f2d7a0"), "", 2.0)
+	for row: int in range(5):
+		for pane: int in range(3):
+			var node: MeshInstance3D = _part(self, lit, Vector3(-36.0 + float(row + pane) * 3.4, 11.5 + float(row) * 3.0, -38.92), Vector3(1.4, 1.1, 0.04))
+			node.set_meta("floor", row)
+			node.visible = false
+			_office_windows.append(node)
+
+## The Plate was claimed: the light bar flares once, warm.
+func plate_claimed() -> void:
+	_plate_flare = 1.2
+
 ## A transit train on the viaduct beyond the Stands: four lit carriages that
 ## sweep past every half minute. Emissive only; it spends no light budget.
 func _transit() -> void:
@@ -1040,8 +1329,6 @@ func _transit() -> void:
 ## Painted level numbers, three metres tall, in each quarter's colour.
 func _level_numbers() -> void:
 	_sign("WORLD_LARAK_LEVEL_1", Vector3(-35.97, 3.4, 9.0), PI * 0.5, Vector2(2.0, 3.0), Color("6fa58a"))
-	_sign("WORLD_LARAK_LEVEL_1", Vector3(-20.5, 1.75, 2.01), 0.0, Vector2(1.0, 1.5), Color("6fa58a"))
-	_sign("WORLD_LARAK_LEVEL_MINUS_1", Vector3(-20.5, 1.75, 2.02), 0.0, Vector2(1.6, 1.6), SPRAY_RED)
 	_sign("WORLD_LARAK_LEVEL_2", Vector3(-27.0, 5.8, -27.97), 0.0, Vector2(2.0, 3.0), Color("d0a24a"))
 	_sign("WORLD_LARAK_LEVEL_3", Vector3(2.5, 7.6, -27.97), 0.0, Vector2(1.6, 2.4), Color("8a9ec9"))
 	_sign("WORLD_LARAK_LEVEL_1", Vector3(35.97, 3.4, 14.0), -PI * 0.5, Vector2(2.0, 3.0), Color("6fa58a"))
@@ -1080,8 +1367,8 @@ func _floor_stencils() -> void:
 	_floor_sign("WORLD_LARAK_LEVEL_2", Vector3(20.0, LEVEL_2, -5.0), -PI * 0.5, Vector2(2.6, 3.6), Color(0.82, 0.64, 0.29, worn))
 	_floor_sign("WORLD_LARAK_LEVEL_3", Vector3(4.0, LEVEL_3, -15.5), PI, Vector2(3.0, 4.2), Color(0.54, 0.62, 0.79, worn))
 	# The league paints over the Union's wayfinding with its own instructions.
-	_floor_sign("WORLD_LARAK_STENCIL_SETTLE", Vector3(-16.0, LEVEL_1, 22.0), PI * 0.5, Vector2(4.6, 1.2), Color(0.76, 0.23, 0.17, 0.8))
-	_floor_sign("WORLD_LARAK_STENCIL_SETTLE", Vector3(27.0, LEVEL_1, 14.5), 0.0, Vector2(4.6, 1.2), Color(0.76, 0.23, 0.17, 0.8))
+	_floor_sign("WORLD_LARAK_STENCIL_SETTLE", Vector3(-16.0, LEVEL_1, 22.0), PI * 0.5, Vector2(4.6, 1.2), Color(0.85, 0.45, 0.17, 0.8))
+	_floor_sign("WORLD_LARAK_STENCIL_SETTLE", Vector3(27.0, LEVEL_1, 14.5), 0.0, Vector2(4.6, 1.2), Color(0.85, 0.45, 0.17, 0.8))
 	_floor_sign("WORLD_LARAK_STENCIL_NO_PARKING", Vector3(-22.0, LEVEL_2, -6.5), 0.0, Vector2(4.4, 1.0), Color(0.85, 0.81, 0.62, 0.7))
 
 func _floor_sign(key: String, center: Vector3, yaw: float, size: Vector2, ink: Color) -> void:
@@ -1134,7 +1421,7 @@ func _wet_and_worn() -> void:
 			at += forward * step
 			t += step
 	var slip: Material = _decal("decal_slip", Color("ddd5bd"), 0.92)
-	var ticket: Material = _decal("decal_ticket", Color("c4552c"), 0.9)
+	var ticket: Material = _decal("decal_ticket", LEAGUE_EMBER, 0.9)
 	for i: int in range(140):
 		seed = (seed * 1103515245 + 12345) & 0x7fffffff
 		var x: float = -10.0 + float(seed % 2000) / 100.0

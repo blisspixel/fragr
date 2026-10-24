@@ -95,19 +95,18 @@ func _build_mars(half: float, habitat: bool) -> void:
 	_box(Vector3(half + 8, 9, -half * 0.4), Vector3(0.8, 18, 0.8), frame)
 	_box(Vector3(half + 8, 17, -half * 0.4), Vector3(4, 0.7, 0.7), shell)
 
-## The Perimeter round Larak Lot, all beyond the wall bands: the Custody
-## Annex rising behind the north facade with its windows lit, a transit
-## viaduct past the Stands, and the city's sodium grid beyond the Roof.
-## The tower crane and its moving train belong to the lot's presenter.
+## The Perimeter round Larak Lot, all beyond the wall bands: an office block
+## behind the north facade, dark but for the corridor lights the lot's
+## presenter switches on a floor at a time, a transit viaduct past the
+## Stands, and the city's sodium grid beyond the Roof. The tower crane, the
+## train and those corridor lights belong to the presenter.
 func _build_lot(half: float) -> void:
-	var concrete: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.PRODUCTION + "union_concrete.png", Color("4d4f55"))
+	# A dark office facade: it should sit behind the north wall as a shape
+	# against the sky, not a lit slab competing with the venue.
+	var concrete: StandardMaterial3D = _metal(Color("2b2d33"))
 	var dark: StandardMaterial3D = _metal(Color("24252c"))
 	var lit: StandardMaterial3D = _metal(Color("f0c27a"))
 	lit.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var cold: StandardMaterial3D = _metal(Color("9fc4d6"))
-	cold.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var union_red: StandardMaterial3D = _metal(Color("8e2420"))
-	union_red.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	# Streets and lots round the structure, so the city stands on something.
 	var street: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.EARTH + "earth_roof_tar_patches.png", Color("2c2a2a"))
 	var ground: MeshInstance3D = MeshInstance3D.new()
@@ -124,17 +123,15 @@ func _build_lot(half: float) -> void:
 		for side: float in [-1.0, 1.0]:
 			_box(Vector3(side * (half + 14.0), 4.0, along), Vector3(0.25, 8.0, 0.25), dark)
 			_box(Vector3(side * (half + 13.2), 8.0, along), Vector3(1.4, 0.2, 0.4), sodium)
-	# The Custody Annex: a Union block north of the lot, taller than anything
-	# in it, with a band of red authority lamps along its crown.
+	# The office block north of the lot, the Perimeter's own neighbour: an
+	# office building where the lights follow you and the elevators still
+	# answer. Every pane is dark here; the presenter lights the corridor.
+	var pane: StandardMaterial3D = _metal(Color("1d2026"))
 	_box(Vector3(-17.0, 13.0, -half - 13.0), Vector3(42.0, 26.0, 24.0), concrete)
 	_box(Vector3(-17.0, 26.3, -half - 13.0), Vector3(43.0, 0.6, 25.0), dark)
-	_box(Vector3(-17.0, 25.6, -half - 0.95), Vector3(40.0, 0.25, 0.1), union_red)
 	for row: int in range(5):
 		for column: int in range(12):
-			if (row * 7 + column * 3) % 5 == 0:
-				continue
-			var window: StandardMaterial3D = lit if (row + column) % 3 != 0 else cold
-			_box(Vector3(-36.0 + float(column) * 3.4, 11.5 + float(row) * 3.0, -half - 0.98), Vector3(1.4, 1.1, 0.08), window)
+			_box(Vector3(-36.0 + float(column) * 3.4, 11.5 + float(row) * 3.0, -half - 0.98), Vector3(1.4, 1.1, 0.08), pane)
 	# The transit viaduct beyond the south wall: piers and a deck at 13 m.
 	var pier: Material = ArenaMaterials.scenery_tile(EnvironmentTextures.PRODUCTION + "yard_concrete.png", Color("5a5852"))
 	_box(Vector3(0.0, 13.0, half + 9.0), Vector3(half * 2.0 + 120.0, 1.6, 7.0), pier)
