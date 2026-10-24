@@ -424,6 +424,97 @@ fn a_joined_human_receives_the_kit_privately_and_spectators_receive_nothing() {
         == crate::session::Recipient::Player(id)));
 }
 
+/// Agents, the scripted bot, the brain and the harness share one equipment
+/// helper. On the Pistol it goes and gets a gun, and holding one it fights.
+#[test]
+fn the_shared_agent_helper_routes_a_pistol_life_to_a_gun_pad() {
+    let mut state = ffa(MapKind::ArenaDuel);
+    let agent = join(&mut state, 1, Role::Agent);
+    let rival = join(&mut state, 2, Role::Agent);
+    park(&mut state, agent);
+    let far = state.players.iter_mut().find(|p| p.id == rival).unwrap();
+    far.x = 0.0;
+    far.z = 40.0;
+    let loadout = |state: &GameState| {
+        let p = fighter(state, agent);
+        p.inventory.state(agent, p.weapon, state.tick).unwrap()
+    };
+    let wanted = crate::protocol::Action {
+        fire: true,
+        look_at: Some(crate::protocol::LookAt {
+            player_id: Some(rival),
+            ..Default::default()
+        }),
+        ..Default::default()
+    };
+    let action = crate::inventory::control_action(
+        agent,
+        &state.snapshot(),
+        Some(&loadout(&state)),
+        wanted.clone(),
+    );
+    let goal = action.look_at.as_ref().expect("routes somewhere");
+    assert!(
+        goal.player_id.is_none() && action.forward && !action.fire,
+        "{action:?}"
+    );
+    let pad = state
+        .pickups
+        .iter()
+        .find(|p| Some(p.x) == goal.x && Some(p.z) == goal.z)
+        .expect("the route ends on a pad");
+    assert!(matches!(pad.kind, PickupKind::Weapon(w) if w != WeaponType::Tack));
+    // A rival inside the Pistol's reach, with no gun a few steps away, is a
+    // fight on the Pistol rather than a walk past it.
+    let pad_distance = pad.x.hypot(pad.z);
+    assert!(pad_distance > 8.0, "the nearest gun is past the detour");
+    let close = state.players.iter_mut().find(|p| p.id == rival).unwrap();
+    close.z = 20.0;
+    let action = crate::inventory::control_action(
+        agent,
+        &state.snapshot(),
+        Some(&loadout(&state)),
+        wanted.clone(),
+    );
+    assert_eq!(
+        action.look_at.as_ref().and_then(|aim| aim.player_id),
+        Some(rival),
+        "{action:?}"
+    );
+    assert!(action.fire, "{action:?}");
+    let far = state.players.iter_mut().find(|p| p.id == rival).unwrap();
+    far.z = 40.0;
+    // A campaign participant on its found Pistol keeps its mission's pacing:
+    // the same intent stays a fight.
+    let mut mission = state.snapshot();
+    for p in &mut mission.players {
+        p.campaign = Some(if p.id == agent {
+            crate::protocol::CampaignActor::Participant {}
+        } else {
+            crate::protocol::CampaignActor::Union {
+                kind: crate::protocol::EnemyKind::Clerk,
+                phase: crate::protocol::EnemyPhase::Idle,
+                phase_started: 0,
+                phase_ends: 0,
+                seated: false,
+            }
+        });
+    }
+    let action =
+        crate::inventory::control_action(agent, &mission, Some(&loadout(&state)), wanted.clone());
+    assert_eq!(
+        action.look_at.as_ref().and_then(|aim| aim.player_id),
+        Some(rival)
+    );
+    // Holding the Shotgun, the same intent is a fight again.
+    stand_on(&mut state, agent, "scrap_scatter_w");
+    state.tick(DT);
+    assert!(fighter(&state, agent).inventory.owns(WeaponType::Scatter));
+    let action =
+        crate::inventory::control_action(agent, &state.snapshot(), Some(&loadout(&state)), wanted);
+    assert_eq!(action.look_at.and_then(|aim| aim.player_id), Some(rival));
+}
+
 #[test]
 fn free_for_all_supply_pads_are_laid_only_in_free_for_all() {
     for (map, modes) in [

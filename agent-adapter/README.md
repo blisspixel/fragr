@@ -658,9 +658,12 @@ null only before either arrives or on a campaign map. In free-for-all
 `start_kit` is `["fists", "tack"]`: every life starts with the Pistol and Fists,
 and the Rifle, Shotgun and Railgun belong to whoever takes their pad.
 `observe` with `detail: full` carries your private `loadout`; read `weapons`
-there before `weapon_swap`, and route to a weapon pad when the Pistol runs
-dry. The scripted bot and the reference brain do this through the shared
-equipment helper. `team_scores` is the
+there before `weapon_swap`. A life holding only the Pistol should go and take a
+gun: the scripted bot and the reference brain share one equipment helper that
+walks to the nearest unowned gun pad whenever no rival is inside the Pistol's
+reach (30 m), or with a fight on when that pad is a few steps away. An
+objective, Sabotage and a campaign mission keep their own priorities. Holding
+a found gun, the same helper fights. `team_scores` is the
 snapshot's side frags in team deathmatch, else null. In CTF, `flags` lists
 both stands and current flag state, `capture_scores` counts captures, and
 `capture_limit` is the win target. `observe` carries the same typed snapshot.
