@@ -138,6 +138,7 @@ remain open.
 
 | Plan | Status | One-liner |
 |---|---|---|
+| [`audiogen-voice-design-20261023.md`](./audiogen-voice-design-20261023.md) | **implemented** on `feat/audiogen-voice-design` | Library search, Voice Design and remix previews, save-voice and `eleven_v4` in `tools/audiogen`, ahead of the 2026-12-31 default voice expiry. Fake-transport tests only; no paid call. |
 | [`build-round-20261015.md`](./build-round-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Walker foundation, Sabotage objective ownership, Rocket reload and reconnect recovery; native/client/network gates and both rendered routes pass. |
 | [`walker-foundation-20261015.md`](./walker-foundation-20261015.md) | **shipped**, [#403](https://github.com/blisspixel/fragr/pull/403), v0.84.0 | Strict moving machinery, warned finite attacks and ordinary-action completion in an isolated range. M14 integration remains separate. |
 | [`m14-launch-authority-integration-20261015.md`](./m14-launch-authority-integration-20261015.md) | **merged and packaged**, [#404](https://github.com/blisspixel/fragr/pull/404), v0.85.0 draft | Connected staged Walker encounter, optional jeep, finite infantry routes, fleet departure and version-18 M13 carry. |

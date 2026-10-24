@@ -6,6 +6,8 @@
 //! real HTTP transport. Players never run this; it exists so developers can
 //! produce sound effects and music beds that are committed as ordinary assets.
 
+pub mod casting;
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
@@ -39,15 +41,17 @@ const MUSIC_LENGTH_MAX_MS: u32 = 600_000;
 /// Text to speech defaults: the expressive v3 model and the same MP3 format as music.
 pub const DEFAULT_TTS_MODEL: &str = "eleven_v3";
 pub const DEFAULT_TTS_FORMAT: &str = "mp3_44100_128";
-const TTS_MODELS: [&str; 4] = [
+const TTS_MODELS: [&str; 5] = [
+    "eleven_v4",
     "eleven_v3",
     "eleven_multilingual_v2",
     "eleven_flash_v2_5",
     "eleven_flash_v2",
 ];
-/// The v3 per-request limit. Other models allow more, but v3 is the default.
+/// The v3 per-request limit. Other models, eleven_v4 included, allow more; v3 is the default.
 const TTS_TEXT_MAX_CHARS: usize = 5_000;
-/// Text to dialogue: v3 only, at most ten voices, two thousand characters across all lines.
+/// Text to dialogue: eleven_v3 or eleven_v4, at most ten voices, two thousand characters across all lines.
+const DIALOGUE_MODELS: [&str; 2] = ["eleven_v3", "eleven_v4"];
 const DIALOGUE_TEXT_MAX_CHARS: usize = 2_000;
 const DIALOGUE_MAX_VOICES: usize = 10;
 
@@ -325,9 +329,10 @@ impl TtsParams {
             }
         }
         if !self.lines.is_empty() {
-            if self.model != DEFAULT_TTS_MODEL {
+            if !DIALOGUE_MODELS.contains(&self.model.as_str()) {
                 return Err(Error::InvalidArgument(format!(
-                    "dialogue needs the {DEFAULT_TTS_MODEL} model, got '{}'",
+                    "dialogue needs one of {}, got '{}'",
+                    DIALOGUE_MODELS.join(", "),
                     self.model
                 )));
             }
@@ -405,7 +410,9 @@ pub fn tts_request(params: &TtsParams) -> Result<Request, Error> {
     })
 }
 
-/// `GET /v2/voices` for the account's default voices, the casting sheet.
+/// `GET /v2/voices` for the account's default voices. ElevenLabs states that
+/// default voices expire on 2026-12-31; cast lasting roles from the shared
+/// library (`library`) or a designed voice (`design`).
 pub fn voices_request() -> Request {
     Request {
         method: Method::Get,
@@ -1285,7 +1292,7 @@ pub enum Outcome {
     },
 }
 
-fn pending_receipt(out_dir: &Path, name: &str) -> PathBuf {
+pub(crate) fn pending_receipt(out_dir: &Path, name: &str) -> PathBuf {
     let relative = Path::new(name);
     let parent = relative.parent().unwrap_or(Path::new(""));
     let file = relative.file_name().unwrap_or(relative.as_os_str());
@@ -1294,7 +1301,7 @@ fn pending_receipt(out_dir: &Path, name: &str) -> PathBuf {
         .join(format!(".{}.audiogen-pending", file.to_string_lossy()))
 }
 
-fn reserve_generation(out_dir: &Path, name: &str, credits: u64) -> Result<(), Error> {
+pub(crate) fn reserve_generation(out_dir: &Path, name: &str, credits: u64) -> Result<(), Error> {
     let path = pending_receipt(out_dir, name);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
@@ -1539,6 +1546,15 @@ pub enum Command {
     },
     Quota,
     Voices,
+    /// Search the shared voice library; free.
+    Library(casting::LibraryQuery),
+    /// Design or remix a voice into three previews; charges the preview text.
+    Design {
+        name: String,
+        params: casting::DesignParams,
+    },
+    /// Save one design preview as an account voice; no credits.
+    SaveVoice(casting::SaveVoiceParams),
     /// Turn a scripts file into a batch spec using the given voice cast; no network.
     Scripts {
         scripts_json: String,
@@ -1666,6 +1682,32 @@ pub fn run_command(
             let voices = parse_voices(&response.body)?;
             writeln!(out, "{}", describe_voices(&voices))?;
             Ok(())
+        }
+        Command::Library(query) => {
+            let response = send_with_retry(
+                transport,
+                api_key,
+                &casting::library_request(query)?,
+                &RetryPolicy::default(),
+                sleep,
+            )?;
+            let page = casting::parse_library(&response.body)?;
+            writeln!(out, "{}", casting::describe_library(&page))?;
+            Ok(())
+        }
+        Command::Design { name, params } => casting::run_design(
+            name,
+            params,
+            options.out_dir.as_deref(),
+            options.overwrite,
+            options.dry_run,
+            options.max_credits,
+            transport,
+            api_key,
+            out,
+        ),
+        Command::SaveVoice(params) => {
+            casting::run_save_voice(params, options.dry_run, transport, api_key, out)
         }
         Command::Generate { name, job } => {
             let generator = Generator {
@@ -3147,6 +3189,23 @@ mod tests {
             many.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
         assert!(dialogue(&many_refs).validate().is_err());
         assert!(dialogue(&[("a", "x"), ("b", "y")]).validate().is_ok());
+        assert!(TtsParams {
+            model: "eleven_v4".into(),
+            ..dialogue(&[("a", "x"), ("b", "y")])
+        }
+        .validate()
+        .is_ok());
+    }
+
+    #[test]
+    fn eleven_v4_speech_is_accepted_at_one_credit_per_character() {
+        let params = TtsParams {
+            model: "eleven_v4".into(),
+            ..tts("Somebody had to.")
+        };
+        let request = tts_request(&params).unwrap();
+        assert_eq!(request.body.as_ref().unwrap()["model_id"], "eleven_v4");
+        assert_eq!(estimate_credits(&Job::Tts(params)), 16);
     }
 
     #[test]
