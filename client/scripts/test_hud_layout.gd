@@ -69,7 +69,19 @@ func _test_band_math() -> void:
 	_check(is_equal_approx(HudRegions.fit_shift(50.0, 300.0, 100.0, 800.0), 50.0), "a card above the ceiling moves down the least distance")
 	_check(is_equal_approx(HudRegions.fit_shift(300.0, 1200.0, 100.0, 800.0), -200.0), "a card taller than the room keeps its first lines at the ceiling")
 	var standard: Dictionary = HudRegions.top_band(1920.0, 1.0)
-	_check(is_equal_approx(standard.center_width, 720.0) and is_equal_approx(standard.left_width, 460.0) and is_equal_approx(standard.right_width, 560.0), "100 percent layout keeps the accepted widths")
+	_check(is_equal_approx(standard.center_width, 720.0) and is_equal_approx(standard.left_width, 460.0) and is_equal_approx(standard.right_width, 560.0), "100 percent layout keeps the accepted widths: " + str(standard))
+	var ffa_line: float = MenuTheme.FONT.get_string_size("MEAT PROXY: 10 // FIRST TO 10 // 12:59", HORIZONTAL_ALIGNMENT_LEFT, -1, MenuTheme.BODY).x
+	_check(ffa_line <= standard.center_width, "an FFA score line stays one row at 100 percent: %.0f" % ffa_line)
+	var wide: Dictionary = HudRegions.top_band(1920.0, 1.5, 1.5, 700.0)
+	_check(wide.center_width >= 700.0 and 20.0 + wide.left_width + HudRegions.GAP <= (1920.0 - wide.center_width) * 0.5 + 0.01, "the center never falls under its widest unbreakable fact")
+	var label := Label.new()
+	label.add_theme_font_override("font", MenuTheme.FONT)
+	label.add_theme_font_size_override("font_size", 36)
+	label.text = "UNION 2 : 2 FREE COALITION // FIRST TO 25 // 2:35"
+	var wrapped: String = HudRegions.wrap_segments(label.text, MenuTheme.FONT, 36, HudRegions.segment_width(label))
+	_check(wrapped == "UNION 2 : 2 FREE COALITION\nFIRST TO 25 // 2:35", "match facts wrap only between whole facts: " + wrapped.c_escape())
+	_check(HudRegions.wrap_segments(wrapped, MenuTheme.FONT, 36, HudRegions.segment_width(label)) == wrapped, "wrapping twice is stable")
+	label.free()
 	var reserved: Array[Rect2] = [Rect2(1500, 2, 412, 31)]
 	_check(HudRegions.column_top(20.0, 1344.0, 560.0, reserved) > 33.0, "a crossing reservation pushes the column below it")
 	_check(is_equal_approx(HudRegions.column_top(16.0, 600.0, 720.0, reserved), 16.0), "a reservation outside the span leaves the column alone")

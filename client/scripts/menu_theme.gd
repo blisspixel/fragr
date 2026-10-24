@@ -65,6 +65,55 @@ static func _pixel_font() -> FontFile:
 	# Keep fallback glyphs for player-authored Unicode names and chat.
 	return font
 
+## Gameplay type rules (#411). Every word on the match HUD is Silkscreen,
+## upper case, on the pixel sizes. Black Ops One draws numerals only: the
+## vitals, ammunition and countdown digits. A HUD label that sets its own font
+## goes through one of these two, so no screen carries a third look.
+static func pixel_text(label: Label, size: int = BODY, colour: Color = BONE, outline: int = 3) -> void:
+	label.add_theme_font_override("font", FONT)
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", colour)
+	label.add_theme_color_override("font_outline_color", INK)
+	label.add_theme_constant_override("outline_size", outline)
+	label.uppercase = true
+
+static func numeral(label: Label, size: int) -> void:
+	label.add_theme_font_override("font", DISPLAY_FONT)
+	label.add_theme_font_size_override("font_size", size)
+
+## True when text is only digits and the readout separators the display face
+## is allowed to draw.
+static func is_numeral_text(text: String) -> bool:
+	var stripped: String = text.strip_edges()
+	if stripped.is_empty():
+		return false
+	for character: String in stripped:
+		if not character in "0123456789|/:%.+- ":
+			return false
+	return true
+
+## The backing every HUD text block sits on over the world: the corner voice,
+## the bottom-left context and the controls hint. Light crates and sky never
+## decide whether small text is readable.
+const BACKING_ALPHA: float = 0.8
+
+static func backing(fill: Color = INK) -> StyleBoxFlat:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = alpha(fill, BACKING_ALPHA)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	style.anti_aliasing = false
+	return style
+
+## World text (nameplates, pickup tags, flag and objective marks) uses the
+## same pixel face as the HUD, never the engine's smooth fallback.
+static func world_text(label: Label3D) -> void:
+	label.font = FONT
+	label.uppercase = true
+	label.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+
 static func colors(context: Context) -> Dictionary:
 	return FRONT_END_COLORS if context == Context.FRONT_END else GAMEPLAY_COLORS
 

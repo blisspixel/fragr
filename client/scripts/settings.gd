@@ -70,6 +70,9 @@ const DEFAULTS: Dictionary = {
 		"debug_telemetry": false,
 		# Scene captions while narration speaks. Text-only shots always show.
 		"story_captions": true,
+		# Set once the first join has shown the in-match controls hint. Not a
+		# menu option; Settings > Controls is the full reference.
+		"controls_hint_seen": false,
 	},
 	"accessibility": {
 		"screen_flashes": 1,    # 0 Full, 1 Reduced, 2 Off

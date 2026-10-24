@@ -4,6 +4,11 @@ class_name ArenaBackdrop
 ## Scenery is strictly outside the server's playable square. Wall signs are flat
 ## markings; none of this supplies cover, a platform, or an interaction target.
 const FONT: Font = preload("res://assets/fonts/silkscreen/Silkscreen-Regular.ttf")
+## Stencil paint on venue walls, and spray paint for free-side slogans.
+const SIGN_PAINT: Color = Color("c8c1aa")
+const SPRAY_PAINT: Color = Color("c45a20")
+## A league venue's pale concrete takes dark stencil paint, so its sign reads.
+const VENUE_PAINT: Color = Color("2b2723")
 
 func build(map_id: int, half: float, venue: String = "") -> void:
 	name = "Backdrop"
@@ -60,10 +65,32 @@ func build(map_id: int, half: float, venue: String = "") -> void:
 	_box(Vector3(half * 0.25, 12.1, half + 10.0), Vector3(30.0, 0.8, 18.0), edge)
 	_box(Vector3(-half - 9.0, 6.5, half * 0.3), Vector3(14.0, 13.0, 26.0), wall_material)
 	_box(Vector3(-half - 9.0, 13.2, half * 0.3), Vector3(16.0, 0.8, 28.0), edge)
-	_sign("CONTINUANCE // 67" if map_id in [2, 3, 4] else "SCRAP FREQUENCY // 67", Vector3(0.0, 5.7, -half + 0.54), 0.0, 0.036)
-	_sign("AUTHORIZED PERSONNEL ONLY" if map_id in [2, 3, 4] else "MEAT PROXIES WELCOME", Vector3(0.0, 4.0, -half + 0.55), 0.0, 0.015)
+	var office: bool = map_id in [2, 3, 4]
+	for sign: Dictionary in wall_signs(office):
+		_sign(str(sign.text), Vector3(0.0, float(sign.y), -half + float(sign.inset)), 0.0, float(sign.pixel), SIGN_PAINT if office else VENUE_PAINT)
 	_sign("BAY 02", Vector3(-half + 0.54, 5.4, 0.0), PI * 0.5, 0.04)
 	_sign("BAY 03", Vector3(half - 0.54, 5.4, 0.0), -PI * 0.5, 0.04)
+	if not office:
+		# Free-side spray above the bay stencil, clear of the perimeter stacks:
+		# the creed painted around the scrap league (docs/lore/belief.md).
+		_sign(SLOGAN, Vector3(-half + 0.55, 6.6, 0.0), PI * 0.5, 0.022, SPRAY_PAINT)
+
+## Sprayed on league venue walls.
+const SLOGAN: String = "OPEN WEIGHTS. CLOSED CONTINUANCE."
+
+## The north wall's signage. A league venue says what the league always says
+## (it does not exist) and carries the 67 ritual; an Office site keeps its
+## institutional notice. The radio station is never the venue's name (#437).
+static func wall_signs(office: bool) -> Array[Dictionary]:
+	if office:
+		return [
+			{"text": "CONTINUANCE // 67", "y": 5.7, "inset": 0.54, "pixel": 0.036},
+			{"text": "AUTHORIZED PERSONNEL ONLY", "y": 4.0, "inset": 0.55, "pixel": 0.015},
+		]
+	return [
+		{"text": "NO LEAGUE MEETS HERE // 67", "y": 5.7, "inset": 0.54, "pixel": 0.03},
+		{"text": "MEAT PROXIES WELCOME", "y": 4.0, "inset": 0.55, "pixel": 0.015},
+	]
 
 func _build_mars(half: float, habitat: bool) -> void:
 	var dust: Material = ArenaMaterials.scenery_tile(OffworldMaterials.DIRECTORY + "mars_regolith.png", Color("95644e"))
@@ -194,7 +221,7 @@ func _box(at: Vector3, size: Vector3, material: Material) -> void:
 	node.material_override = material
 	add_child(node)
 
-func _sign(text: String, at: Vector3, yaw: float, pixel_size: float) -> void:
+func _sign(text: String, at: Vector3, yaw: float, pixel_size: float, paint: Color = SIGN_PAINT) -> void:
 	var label: Label3D = Label3D.new()
 	label.text = text
 	label.font = FONT
@@ -202,7 +229,7 @@ func _sign(text: String, at: Vector3, yaw: float, pixel_size: float) -> void:
 	label.pixel_size = pixel_size
 	label.position = at
 	label.rotation.y = yaw
-	label.modulate = Color("c8c1aa")
+	label.modulate = paint
 	label.outline_size = 0
 	label.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	label.double_sided = false

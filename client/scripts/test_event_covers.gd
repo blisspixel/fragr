@@ -257,7 +257,8 @@ func _measured_geometry() -> void:
 	_check(hud.frag_feed.reserved_height == 336, "five measured taller rows expand the lane by their actual minimum heights")
 	for row: Control in hud.frag_feed._rows.values():
 		_check(row.get_global_rect().end.y + 12 <= hud.combat_feed.get_global_rect().position.y, "taller platform/style rows retain the full gap before voice")
-	for text: String in ["TOWN SOCKET 02 IS DEFUSING", "TOWN SOCKET 02 HAS THE CHARGE"]:
+	# Long enough to wrap at the objective's pixel size.
+	for text: String in ["TOWN SOCKET 02 IS DEFUSING THE CHARGE AT THE CLINIC STEPS", "TOWN SOCKET 02 HAS THE CHARGE AND IS RUNNING FOR THE TRAM STOP"]:
 		hud.objective_call.clear()
 		hud.objective_call.push(text)
 		hud.objective_call._process(0)
