@@ -2939,6 +2939,10 @@ func _update_nameplates() -> void:
 		if label == null or bool(pawn.get("is_campaign_enemy")) or view.is_position_behind(label.global_position):
 			pawn.set_nameplate_enabled(false)
 			continue
+		# A fighter the map's solids hide carries no plate.
+		if NameplateLayoutScript.hidden_by(view.global_position, label.global_position, camera.assist_solids):
+			pawn.set_nameplate_enabled(false)
+			continue
 		var area: Rect2 = NameplateLayoutScript.project_label(view, label)
 		if area.position.x < viewport_rect.position.x or area.position.y < viewport_rect.position.y \
 			or area.end.x > viewport_rect.end.x or area.end.y > viewport_rect.end.y:

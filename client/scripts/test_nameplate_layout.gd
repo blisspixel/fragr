@@ -46,5 +46,15 @@ func _run() -> void:
 		push_error("test_nameplate_layout: a flag rect should hide the plate that covers it")
 		quit(1)
 		return
-	print("test_nameplate_layout: PASS carrier priority, clear labels, stable ties, flag yield")
+	var wall: Array = [{"min_x": 4.0, "max_x": 5.0, "min_z": -10.0, "max_z": 10.0, "bottom": 0.0, "top": 3.0}]
+	var eye: Vector3 = Vector3(0.0, 1.6, 0.0)
+	if not layout.hidden_by(eye, Vector3(10.0, 2.2, 0.0), wall):
+		push_error("test_nameplate_layout: a plate behind a wall should hide")
+		quit(1)
+		return
+	if layout.hidden_by(eye, Vector3(3.0, 2.2, 0.0), wall) or layout.hidden_by(eye, Vector3(10.0, 2.2, 0.0), []):
+		push_error("test_nameplate_layout: a plate in clear view, or with no solids known, should stay")
+		quit(1)
+		return
+	print("test_nameplate_layout: PASS carrier priority, clear labels, stable ties, flag yield, cover")
 	quit(0)
