@@ -55,9 +55,23 @@ const CYCLE: Dictionary[String, Texture2D] = {
 ## magazine reload. Its receiver and wrists share the held pose canvas.
 const ARC_RELOAD: Texture2D = preload("res://assets/weapons/arc/arc_reload.png")
 
-## A held Rocket leaves the aim line while its accepted tube reload is pending.
+## How far each held gun drops, as a fraction of its frame height, at the
+## bottom of an accepted reload. The Rocket keeps its original tube drop. The
+## Arc's drawn capacitor reset frame is its reload, so it does not also dip.
+## Every other magazine gun lowers about a third and comes back up. The
+## Repeater has no first-person frame yet; its HUD line is its whole signal.
+const RELOAD_DIP: Dictionary[String, float] = {
+	"Tack": 0.32, "Flechette": 0.32, "Repeater": 0.32, "Scatter": 0.32,
+	"Rail": 0.32, "Sniper": 0.32, "Arc": 0.0, "Rocket": 0.55,
+}
+
+static func reload_dip(weapon: String) -> float:
+	return float(RELOAD_DIP.get(weapon, 0.0))
+
+## A held gun leaves the aim line while its accepted reload is pending.
 ## The received deadline determines the pose, never a key press or a guessed
 ## weapon duration. This also fits future drawn held art on the same canvas.
+## `enabled` is off under reduced motion; the HUD reload line still shows.
 class ReloadMotion extends RefCounted:
 	var depth: float = 0.0
 	var _deadline: int = -1
@@ -71,7 +85,7 @@ class ReloadMotion extends RefCounted:
 		_muted = false
 
 	func update(weapon: String, state: Dictionary, tick: int, delta: float, enabled: bool) -> void:
-		var deadline: int = WeaponArt.reload_deadline(weapon, state, tick) if weapon == "Rocket" else -1
+		var deadline: int = WeaponArt.reload_deadline(weapon, state, tick) if WeaponArt.RELOAD_DIP.has(weapon) else -1
 		if deadline <= tick:
 			clear()
 			return

@@ -48,6 +48,7 @@ request, asset charge or weapon-gunshot substitution.
 | `down/body.wav`, `down/robot.wav` | Authoritative fall to zero health; the Notary keeps its crash |
 | `pickup/weapon.wav`, `ammo.wav`, `cells.wav`, `health.wav`, `armor.wav` | The watched fighter's pickups |
 | `dry_fire.wav` | The owner's dry trigger |
+| `sniper/scope_out.wav`, `sniper/scope_in.wav` | Also the owner's accepted reload start (-10 dB, pitch 0.94) and finish (-8 dB, pitch 1.08), through `game_manager.gd`, until dedicated reload clips exist |
 | `grenade/throw.wav` | A grenade first seen in flight |
 | `fire_sniper.wav`, `sniper/scope_in.wav`, `sniper/scope_out.wav` | Sniper Rifle fire and scope transitions, through `l07_assets.gd` |
 | `ranged_sweeper/tell.wav`, `ranged_sweeper/fire.wav` | Ranged Sweeper tell (paced to its windup, cut when it ends) and shot |
@@ -76,7 +77,8 @@ import, in `client/art/audio/shotgun/`. Listening and in-game mix acceptance
 remain separate from these measurements.
 
 Radio controls in the match: C next station, N skip track, M play or pause.
-The pad is not bound. A joined human reloads with R. The carried count includes
+Radio has no pad binding. A joined human reloads with R or D-pad down; the start
+and finish of an accepted reload each play once. The carried count includes
 rounds in each gun. Agents keep one count and do not reload.
 Every switch shows a station card above the track toast. Radio ducks under Host
 lines and sits lower while playing; LOCK IN never ducks for combat.

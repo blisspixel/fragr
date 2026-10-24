@@ -22,6 +22,12 @@ var mine_counts: Label
 var _mines_known: bool = false
 var remote_counts: Label
 var _remotes_known: bool = false
+## Reload status from the authoritative loadout and the edge this client sent.
+## The line and bar are the essential reload signal; motion and sound add to
+## them and may be off.
+var reload: ReloadCue = ReloadCue.new()
+var reload_label: Label
+const RELOAD_BAR: Vector2 = Vector2(150, 6)
 var dry_seconds: float = 0.0
 var _dry_count: int = 0
 ## Pool drawn beside the number: bullets, shells, cells, rockets, or empty for fists.
@@ -53,6 +59,18 @@ func _ready() -> void:
 	empty_label.text = tr("HUD_AMMO_EMPTY")
 	empty_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(empty_label)
+	reload_label = Label.new()
+	reload_label.name = "ReloadStatus"
+	reload_label.position = Vector2(0, 92)
+	reload_label.size.x = WIDTH - GLYPH.x - 12.0
+	reload_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	reload_label.add_theme_font_override("font", MenuTheme.FONT)
+	reload_label.add_theme_font_size_override("font_size", MenuTheme.BODY)
+	reload_label.add_theme_color_override("font_outline_color", MenuTheme.INK)
+	reload_label.add_theme_constant_override("outline_size", 4)
+	reload_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reload_label.visible = false
+	add_child(reload_label)
 	grenade_counts = Label.new()
 	grenade_counts.position = Vector2(0, -20)
 	grenade_counts.size = Vector2(WIDTH - GLYPH.x - 12.0, 36)
@@ -95,7 +113,7 @@ func apply_style(style: HudStyle) -> void:
 	if counts != null:
 		counts.add_theme_font_size_override("font_size", style.display_font_size(MenuTheme.DISPLAY_MEDIUM))
 	var body_sz: int = style.body_font_size()
-	for l: Label in [empty_label, grenade_counts, mine_counts, remote_counts]:
+	for l: Label in [empty_label, reload_label, grenade_counts, mine_counts, remote_counts]:
 		if l != null:
 			l.add_theme_font_size_override("font_size", body_sz)
 
@@ -108,6 +126,9 @@ func apply(state_value: Dictionary) -> void:
 	if state.is_empty():
 		tick = 0
 		dry_seconds = 0.0
+		reload.reset()
+		if reload_label != null:
+			reload_label.visible = false
 		glyph_pool = ""
 		_grenades_known = false
 		_mines_known = false
@@ -128,6 +149,7 @@ func apply(state_value: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	dry_seconds = maxf(0.0, dry_seconds - delta)
+	reload.advance(Time.get_ticks_usec())
 	if visible:
 		position = get_viewport_rect().size - Vector2(WIDTH + 24.0, 140)
 		_refresh()
@@ -141,7 +163,12 @@ func _refresh() -> void:
 	var text: String = EquipmentState.count_text(state, weapon)
 	counts.text = text
 	var empty: bool = shots == 0
-	empty_label.visible = empty
+	var reload_key: String = reload.status_key()
+	reload_label.visible = not reload_key.is_empty()
+	reload_label.text = tr(reload_key) if not reload_key.is_empty() else ""
+	reload_label.add_theme_color_override("font_color", reload_colour())
+	# The reload line replaces EMPTY on the same row; the count stays tinted.
+	empty_label.visible = empty and not reload_label.visible
 	counts.add_theme_color_override("font_color", EMPTY_TINT if dry_seconds > 0.0 or empty else MenuTheme.BONE)
 	grenade_counts.visible = _grenades_known
 	# JSON decodes every number as a float, so the validated count arrives as
@@ -159,7 +186,35 @@ func _refresh() -> void:
 	remote_counts.add_theme_color_override("font_color", EMPTY_TINT if remotes == 0 else MenuTheme.BONE)
 	queue_redraw()
 
+## The line stays bone, the HUD's legible text colour, for every state the
+## player can act on normally. Cancelled and impossible reloads are ember like
+## EMPTY. The words alone tell requested, reloading, loaded and full apart.
+func reload_colour() -> Color:
+	match reload.phase:
+		ReloadCue.Phase.CANCELLED:
+			return EMPTY_TINT
+		ReloadCue.Phase.UNAVAILABLE:
+			return MenuTheme.BONE if reload.reason == "full" else EMPTY_TINT
+	return MenuTheme.BONE
+
+## The bar fills bone while reloading and turns green once the server filled it.
+func reload_bar_colour() -> Color:
+	return MenuTheme.SUCCESS if reload.phase == ReloadCue.Phase.COMPLETE else MenuTheme.BONE
+
+## Bar rect under the count, filled to the accepted interval's progress.
+func reload_bar_rect() -> Rect2:
+	return Rect2(Vector2(WIDTH - GLYPH.x - 12.0 - RELOAD_BAR.x, 84.0), RELOAD_BAR)
+
+func reload_bar_visible() -> bool:
+	return reload.phase == ReloadCue.Phase.ACTIVE or reload.phase == ReloadCue.Phase.COMPLETE
+
 func _draw() -> void:
+	if reload_bar_visible():
+		var bar: Rect2 = reload_bar_rect()
+		draw_rect(bar.grow(2.0), MenuTheme.INK)
+		draw_rect(bar, MenuTheme.INSET)
+		var fill: Rect2 = Rect2(bar.position, Vector2(roundf(bar.size.x * reload.progress(tick)), bar.size.y))
+		draw_rect(fill, reload_bar_colour())
 	if _grenades_known:
 		_grenade(Vector2(WIDTH - GLYPH.x + 3.0, -12.0), 0.45 if int(state.get("grenades", 0)) == 0 else 1.0)
 	if _mines_known:
